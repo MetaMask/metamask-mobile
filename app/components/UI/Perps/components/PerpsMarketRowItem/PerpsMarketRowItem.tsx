@@ -34,6 +34,7 @@ import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags'
 const PerpsMarketRowItem = ({
   market,
   onPress,
+  onLongPress,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = false,
@@ -43,6 +44,8 @@ const PerpsMarketRowItem = ({
   onWatchlistPress,
   isWatchlisted = false,
   twClassName,
+  accessibilityActions,
+  onAccessibilityAction,
 }: PerpsMarketRowItemProps) => {
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
@@ -174,6 +177,9 @@ const PerpsMarketRowItem = ({
     <ListItem
       isInteractive
       onPress={handlePress}
+      onLongPress={onLongPress}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
       avatar={
         <PerpsTokenLogo

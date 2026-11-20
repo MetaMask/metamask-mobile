@@ -38,13 +38,20 @@ export interface UnifiedWatchlistDomainState<TItem> {
 export interface UnifiedWatchlistResult {
   isUnifiedEnabled: boolean;
   isPerpsEnabled: boolean;
-  items: UnifiedWatchlistItem[];
+  orderedItems: UnifiedWatchlistItem[];
+  isOrderLoading: boolean;
+  isOrderReady: boolean;
+  orderError: string | null;
   tokens: UnifiedWatchlistDomainState<UnifiedWatchlistToken>;
   perps: UnifiedWatchlistDomainState<UnifiedWatchlistPerp>;
   canUseLivePerpsPrices: boolean;
   canUseMotion: boolean;
   canRefresh: boolean;
   canFetchSuggestions: boolean;
+  tokenMembershipAssetIds: string[];
+  isTokenMetadataComplete: boolean;
+  tokenCount: number;
   isInitialLoading: boolean;
+  persistOrder: (keys: string[]) => Promise<void>;
   refresh: () => Promise<void>;
 }

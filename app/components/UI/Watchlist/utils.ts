@@ -9,9 +9,10 @@ import type {
   UnifiedWatchlistPerp,
   UnifiedWatchlistToken,
 } from './types';
+import { isEvmCaip19AssetId } from '../../../util/multichain/isEvmCaip19AssetId';
 
 const normalizeTokenAssetId = (assetId: string): string =>
-  assetId.toLowerCase();
+  isEvmCaip19AssetId(assetId) ? assetId.toLowerCase() : assetId;
 
 /**
  * Creates a namespaced token identity so equal token and Perps tickers remain
@@ -78,6 +79,57 @@ export const buildWatchlistItems = (
   }
 
   return items;
+};
+
+/**
+ * Limits the persisted mixed order for the bounded Homepage preview.
+ */
+export const buildHomepageWatchlistItems = (
+  items: readonly UnifiedWatchlistItem[],
+  limit: number,
+): UnifiedWatchlistItem[] => items.slice(0, Math.max(0, limit));
+
+/**
+ * Reconciles persisted presentation order with current watchlist membership.
+ * Removed keys are dropped and new rows are appended in source order.
+ */
+export const reconcileWatchlistOrder = (
+  persistedOrder: readonly string[],
+  availableItems: readonly UnifiedWatchlistItem[],
+): string[] => {
+  const availableKeys = new Set(availableItems.map((item) => item.key));
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  persistedOrder.forEach((key) => {
+    if (availableKeys.has(key) && !seen.has(key)) {
+      result.push(key);
+      seen.add(key);
+    }
+  });
+
+  availableItems.forEach((item) => {
+    if (!seen.has(item.key)) {
+      result.push(item.key);
+      seen.add(item.key);
+    }
+  });
+
+  return result;
+};
+
+export const reorderWatchlistItems = (
+  items: readonly UnifiedWatchlistItem[],
+  from: number,
+  to: number,
+): UnifiedWatchlistItem[] => {
+  const result = [...items];
+  const [moved] = result.splice(from, 1);
+  if (moved === undefined) {
+    return result;
+  }
+  result.splice(to, 0, moved);
+  return result;
 };
 
 /**

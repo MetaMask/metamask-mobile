@@ -248,7 +248,9 @@ const MixedWatchlistSection = forwardRef<
   const sectionViewRef = useRef<View>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const {
-    items,
+    orderedItems,
+    isOrderLoading,
+    orderError,
     tokens,
     perps,
     canUseLivePerpsPrices,
@@ -267,13 +269,14 @@ const MixedWatchlistSection = forwardRef<
   const { removeFromWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
   );
-  const displayItems = items.slice(0, MAX_ITEMS_DISPLAYED);
+  const displayItems = orderedItems.slice(0, MAX_ITEMS_DISPLAYED);
   const suggestedTokens = useMemo(
     () => getSuggestedWatchlistTokens(suggestedPool ?? [], watchlistAssetIds),
     [suggestedPool, watchlistAssetIds],
   );
-  const hasError = Boolean(tokens.error || perps.error);
-  const isEmpty = !isInitialLoading && displayItems.length === 0 && !hasError;
+  const hasError = Boolean(tokens.error || perps.error || orderError);
+  const isLoading = isInitialLoading || isOrderLoading;
+  const isEmpty = !isLoading && displayItems.length === 0 && !hasError;
   const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
   const showSuggestedSection = suggestedTokens.length > 0;
   const showFallback =
@@ -308,7 +311,7 @@ const MixedWatchlistSection = forwardRef<
 
   const { onLayout } = useHomeViewedEvent({
     sectionRef: sectionViewRef,
-    isLoading: isInitialLoading,
+    isLoading,
     sectionName: HomeSectionNames.WATCHLIST,
     sectionIndex,
     totalSectionsLoaded,
@@ -318,14 +321,14 @@ const MixedWatchlistSection = forwardRef<
 
   useSectionPerformance({
     sectionId: HomeSectionNames.WATCHLIST,
-    contentReady: !isInitialLoading,
+    contentReady: !isLoading,
     isEmpty,
-    isLoading: isInitialLoading,
+    isLoading,
     enabled: true,
   });
 
   const renderSectionContent = () => {
-    if (isInitialLoading && displayItems.length === 0) {
+    if (isLoading && displayItems.length === 0) {
       return Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, index) => (
         <TrendingTokensSkeleton key={`watchlist-skeleton-${index}`} />
       ));

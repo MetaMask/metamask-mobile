@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, type ComponentProps } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import {
   BadgeNetwork,
@@ -30,10 +30,17 @@ import { useTrendingTokenPress } from '../Trending/hooks/useTrendingTokenPress/u
 interface WatchlistTokenRowItemProps {
   token: TrendingAsset;
   position?: number;
+  onLongPress?: () => void;
   onWatchlistPress?: () => void;
   isWatchlisted?: boolean;
   tokenDetailsSource?: TokenDetailsSource;
   twClassName?: string;
+  accessibilityActions?: ComponentProps<
+    typeof ListItem
+  >['accessibilityActions'];
+  onAccessibilityAction?: ComponentProps<
+    typeof ListItem
+  >['onAccessibilityAction'];
 }
 
 const getPriceChangeColor = (priceChange: number) => {
@@ -46,10 +53,13 @@ const getPriceChangeColor = (priceChange: number) => {
 const WatchlistTokenRowItem = ({
   token,
   position,
+  onLongPress,
   onWatchlistPress,
   isWatchlisted = false,
   tokenDetailsSource = TokenDetailsSource.WatchlistFullscreen,
   twClassName,
+  accessibilityActions,
+  onAccessibilityAction,
 }: WatchlistTokenRowItemProps) => {
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
   const { onPress } = useTrendingTokenPress({
@@ -83,6 +93,9 @@ const WatchlistTokenRowItem = ({
     <ListItem
       isInteractive
       onPress={onPress}
+      onLongPress={onLongPress}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       testID={getTrendingTokenRowItemTestId(token.assetId)}
       avatar={
         <BadgeWrapper
