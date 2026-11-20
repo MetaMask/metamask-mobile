@@ -132,6 +132,28 @@ test('uses the same quality-gate sentence as the PR comment', () => {
   );
 });
 
+test('counts a test that fails on two platforms against the per-platform total', () => {
+  const text = buildSlackMessage({
+    uniqueTests: 2,
+    failedTestsStats: {
+      failedTestsByTeam: {
+        swaps: {
+          tests: [
+            { testName: 'Swap flow', platform: 'iOS', failureReason: 'failed' },
+            {
+              testName: 'Swap flow',
+              platform: 'Android',
+              failureReason: 'failed',
+            },
+          ],
+        },
+      },
+    },
+  });
+
+  assert.match(text, /^\*Performance E2E: 2 of 2 tests failed\*/);
+});
+
 test('says all tests passed when there are no failures', () => {
   const text = render(summary({ uniqueTests: 25 }));
 

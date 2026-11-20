@@ -18,6 +18,8 @@ import { describeReportedFailure } from './perf-comment-details.mjs';
  * @param {{ runIncomplete?: boolean, runUrl?: string }} options
  */
 export function buildSlackMessage(summary, options = {}) {
+  // uniqueTests and the failed rows are both keyed by test + platform + device,
+  // so a test that fails on two platforms counts twice in each.
   const total = summary.uniqueTests ?? summary.totalTests ?? 0;
   const failed = Object.values(summary.failedTestsStats?.failedTestsByTeam ?? {})
     .flatMap((team) => team.tests ?? [])

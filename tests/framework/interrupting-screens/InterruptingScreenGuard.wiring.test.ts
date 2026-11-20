@@ -3,6 +3,7 @@
  */
 import AppiumAssertions from '../AppiumAssertions';
 import AppiumGestures from '../AppiumGestures';
+import { isOptionalElementVisible } from '../AppiumUtilities';
 import Gestures from '../Gestures';
 import Utilities from '../Utilities';
 import type { AppiumElement } from '../AppiumElement';
@@ -60,6 +61,27 @@ describe('interrupting screen guard wiring', () => {
     expect(visible).toBe(false);
     expect(pollUntilVisible).toHaveBeenCalledTimes(1);
     expect(recoverFromFailure).not.toHaveBeenCalled();
+  });
+
+  it('does not involve the guard for optional-element probes', async () => {
+    const previousDriver = globalThis.driver;
+    globalThis.driver = {
+      setTimeout: jest.fn().mockResolvedValue(undefined),
+    } as unknown as WebdriverIO.Browser;
+    pollUntilVisible.mockRejectedValue(new Error('not visible'));
+
+    try {
+      const visible = await isOptionalElementVisible(
+        () => Promise.resolve(visibleTarget),
+        500,
+      );
+
+      expect(visible).toBe(false);
+      expect(pollUntilVisible).toHaveBeenCalledTimes(1);
+      expect(recoverFromFailure).not.toHaveBeenCalled();
+    } finally {
+      globalThis.driver = previousDriver;
+    }
   });
 
   it('retries a failed tap once after the guard dismisses a screen', async () => {
