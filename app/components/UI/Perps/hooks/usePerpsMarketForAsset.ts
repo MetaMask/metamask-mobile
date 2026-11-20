@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  getPerpsDexFromSymbol,
+  getPerpsDisplaySymbol,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -48,6 +52,30 @@ export const _clearMarketExistenceCache = (): void => {
   marketExistenceCache.clear();
 };
 
+type GetMarkets = ReturnType<typeof usePerpsTrading>['getMarkets'];
+type PerpsMarket = Awaited<ReturnType<GetMarkets>>[number];
+
+interface MatchMarketParams {
+  getMarketsParams: Parameters<GetMarkets>[0];
+  isStaleResponse: () => boolean;
+  isMatch: (market: PerpsMarket) => boolean;
+}
+
+const isHip3MarketForTicker = (market: PerpsMarket, ticker: string) =>
+  getPerpsDexFromSymbol(market.name) !== null &&
+  getPerpsDisplaySymbol(market.name).toUpperCase() === ticker;
+
+const findMatchingMarket = async (
+  getMarkets: GetMarkets,
+  { getMarketsParams, isStaleResponse, isMatch }: MatchMarketParams,
+): Promise<{ matchedMarket: PerpsMarket | undefined } | null> => {
+  const markets = await getMarkets(getMarketsParams);
+  if (isStaleResponse()) {
+    return null;
+  }
+  return { matchedMarket: markets.find(isMatch) };
+};
+
 /**
  * usePerpsMarketForAsset Hook
  *
@@ -60,7 +88,8 @@ export const _clearMarketExistenceCache = (): void => {
  * - Uses standalone mode - works without full perps initialization (no wallet/WebSocket)
  * - Handles symbol normalization (ETH on any chain maps to ETH perp)
  *
- * @param symbol - Token symbol (e.g., 'ETH', 'BTC')
+ * @param symbol - Token symbol (e.g., 'ETH', 'BTC') or RWA ticker (e.g., 'MSFT')
+ * @param isRwaAsset - Match the ticker against HIP-3 markets (e.g., 'xyz:MSFT') instead of exact names
  * @returns Object with hasPerpsMarket, marketData, isLoading, error
  *
  * @example
@@ -74,6 +103,7 @@ export const _clearMarketExistenceCache = (): void => {
  */
 export const usePerpsMarketForAsset = (
   symbol: string | undefined | null,
+  isRwaAsset = false,
 ): UsePerpsMarketForAssetResult => {
   const { getMarkets } = usePerpsTrading();
   const perpsNetwork = usePerpsNetwork();
@@ -88,7 +118,10 @@ export const usePerpsMarketForAsset = (
   const lookupSymbol = symbol?.toUpperCase() ?? null;
 
   // Create cache key with network context to avoid stale data when switching networks
-  const cacheKey = lookupSymbol ? `${lookupSymbol}_${perpsNetwork}` : null;
+  const postfixKey = isRwaAsset ? 'rwa' : 'exact';
+  const cacheKey = lookupSymbol
+    ? `${lookupSymbol}_${perpsNetwork}_${postfixKey}`
+    : null;
 
   const [state, setState] = useState<{
     hasPerpsMarket: boolean;
@@ -149,20 +182,25 @@ export const usePerpsMarketForAsset = (
     try {
       // Single lightweight API call with standalone mode
       // standalone: true bypasses full initialization (no wallet/WebSocket needed)
-      const markets = await getMarkets({
-        symbols: [lookupSymbol],
-        standalone: true,
-      });
+      const isStaleResponse = () =>
+        requestIdRef.current !== currentRequestId || !isMountedRef.current;
+      const matchParams: MatchMarketParams = isRwaAsset
+        ? {
+            getMarketsParams: { standalone: true },
+            isStaleResponse,
+            isMatch: (market) => isHip3MarketForTicker(market, lookupSymbol),
+          }
+        : {
+            getMarketsParams: { symbols: [lookupSymbol], standalone: true },
+            isStaleResponse,
+            isMatch: (market) => market.name.toUpperCase() === lookupSymbol,
+          };
 
-      // Verify this response matches current request (prevents stale updates)
-      if (requestIdRef.current !== currentRequestId || !isMountedRef.current) {
+      const result = await findMatchingMarket(getMarkets, matchParams);
+      if (!result) {
         return;
       }
-
-      // Find exact match by symbol
-      const matchedMarket = markets.find(
-        (market) => market.name.toUpperCase() === lookupSymbol,
-      );
+      const { matchedMarket } = result;
 
       const exists = matchedMarket !== undefined;
 
@@ -172,7 +210,10 @@ export const usePerpsMarketForAsset = (
         marketData = {
           symbol: matchedMarket.name,
           name: matchedMarket.name,
-          maxLeverage: `${matchedMarket.maxLeverage}x`,
+          maxLeverage: isRwaAsset
+            ? String(matchedMarket.maxLeverage)
+            : `${matchedMarket.maxLeverage}x`,
+          marketSource: getPerpsDexFromSymbol(matchedMarket.name),
           price: '',
           change24h: '',
           change24hPercent: '',
@@ -216,7 +257,7 @@ export const usePerpsMarketForAsset = (
           err instanceof Error ? err.message : 'Failed to check perps market',
       });
     }
-  }, [lookupSymbol, cacheKey, getMarkets]);
+  }, [lookupSymbol, cacheKey, getMarkets, isRwaAsset]);
 
   // Effect to check market existence
   useEffect(() => {
@@ -241,6 +282,7 @@ export const usePerpsMarketForAsset = (
     // Check if already cached (includes network context)
     const cached = marketExistenceCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      ++requestIdRef.current;
       setState({
         hasPerpsMarket: cached.exists,
         marketData: cached.data,

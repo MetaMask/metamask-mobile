@@ -26,5 +26,5 @@ export interface AssetViewParams {
   isETH?: boolean;
   aggregators?: string[];
   source?: string;
-  rwaData?: TokenRwaData;
+  rwaData?: TokenRwaData | null;
 }

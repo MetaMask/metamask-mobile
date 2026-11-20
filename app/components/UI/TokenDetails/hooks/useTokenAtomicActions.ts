@@ -70,7 +70,7 @@ const toCurrentTokenAsBridgeToken = (token: TokenI): BridgeToken => ({
   name: token.name,
   image: token.image,
   securityData: adaptTokenSecurityData(token.securityData),
-  rwaData: token.rwaData,
+  rwaData: token.rwaData ?? undefined,
 });
 
 const hasPositiveBalance = (balance: string | number | undefined): boolean => {

@@ -1,6 +1,9 @@
 import { useSelector } from 'react-redux';
 import type { CaipAssetType } from '@metamask/utils';
-import { useTokenAssetDetails } from '../queries/tokenAssetQuery';
+import {
+  useTokenAssetDetails,
+  type TokenAssetRecord,
+} from '../queries/tokenAssetQuery';
 import { selectMemecoinTdpV1TokenApiBaseUrl } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 
 export interface UseIsMemeTokenOptions {
@@ -13,6 +16,7 @@ export interface UseIsMemeTokenResult {
   isMeme: boolean;
   /** `true` while the /v2/assets query is still in flight. */
   isLoading: boolean;
+  asset: TokenAssetRecord | null;
 }
 
 /**
@@ -36,5 +40,6 @@ export const useIsMemeToken = ({
   return {
     isMeme: asset?.launchpadData != null,
     isLoading,
+    asset,
   };
 };

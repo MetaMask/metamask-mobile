@@ -6,6 +6,7 @@ import {
   type UsePerpsMarketForAssetResult,
 } from '../../Perps/hooks/usePerpsMarketForAsset';
 import Routes from '../../../../constants/navigation/Routes';
+import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useIsPerpsProModeActive } from '../../Perps/utils/perpsModeSwitch';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../Perps/hooks/usePerpsScreenVsBottomSheetAbTest';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
@@ -17,6 +18,7 @@ import {
 export interface UsePerpsActionsParams {
   /** Token symbol, or null to skip the perps market check */
   symbol: string | null;
+  token?: Pick<TokenDetailsRouteParams, 'rwaData'>;
   /** When true, signals that navigation originated from the token details screen */
   fromTokenDetails?: boolean;
   /** Homepage / explicit flow tests for Transaction Added attribution */
@@ -54,6 +56,7 @@ export interface UsePerpsActionsResult extends UsePerpsMarketForAssetResult {
  */
 export const usePerpsActions = ({
   symbol,
+  token,
   fromTokenDetails,
   transactionActiveAbTests,
 }: UsePerpsActionsParams): UsePerpsActionsResult => {
@@ -63,8 +66,11 @@ export const usePerpsActions = ({
     trackExposure: false,
   });
 
+  const rwaTicker = token?.rwaData?.ticker;
+  const perpSymbol = rwaTicker || symbol || '';
+
   const { hasPerpsMarket, marketData, isLoading, error } =
-    usePerpsMarketForAsset(symbol);
+    usePerpsMarketForAsset(perpSymbol, Boolean(rwaTicker));
 
   const navigateToOrder = useCallback(
     (direction: OrderDirection) => {

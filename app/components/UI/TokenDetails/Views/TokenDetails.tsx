@@ -1071,8 +1071,9 @@ export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
-  const { variant, isLoading } = useTokenDetailsVariant(token);
+  const { variant, isLoading, asset } = useTokenDetailsVariant(token);
   usePrefetchTokenDetails(token);
+  const pageToken = { ...token, ...asset };
 
   if (isLoading) {
     return <TokenDetailsPagePending token={token} />;
@@ -1083,10 +1084,10 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   // needing to read the flag or pass anything down.
   return variant ? (
     <PriceApiHostProvider>
-      <TokenDetailsV1 token={token} variant={variant} />
+      <TokenDetailsV1 token={pageToken} variant={variant} />
     </PriceApiHostProvider>
   ) : (
-    <TokenDetailsLegacy token={token} />
+    <TokenDetailsLegacy token={pageToken} />
   );
 };
 

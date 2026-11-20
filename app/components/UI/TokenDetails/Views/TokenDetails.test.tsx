@@ -1865,6 +1865,25 @@ describe('TokenDetails', () => {
       expect(mockTokenDetailsInlineHeader).not.toHaveBeenCalled();
     });
 
+    it('passes the fetched rwaData through on the token', () => {
+      applyBaselineSelectorsWithMemeFlag(true);
+      mockUseIsMemeToken.mockReturnValue({
+        isMeme: true,
+        isLoading: false,
+        isError: false,
+        query: {},
+        asset: { rwaData: { ticker: 'MSFT' } },
+      } as never);
+
+      render(<TokenDetailsRoute />);
+
+      expect(mockTokenDetailsV1).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: expect.objectContaining({ rwaData: { ticker: 'MSFT' } }),
+        }),
+      );
+    });
+
     it('does not run legacy page hooks when it renders TokenDetailsV1', () => {
       applyBaselineSelectorsWithMemeFlag(true);
       mockUseIsMemeToken.mockReturnValue({

@@ -1,4 +1,5 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
+import type { TokenRwaData } from '@metamask/assets-controllers';
 import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 
 export const TOKEN_ASSETS_V2_PATH = '/v2/assets';
@@ -49,7 +50,7 @@ export interface TokenAssetRecord {
   symbol: string;
   name: string;
   decimals: number;
-  rwaData: unknown;
+  rwaData?: TokenRwaData | null;
   marketData: TokenAssetMarketData | null;
   launchpad: string | null;
   launchpadData: TokenAssetLaunchpadData | null;

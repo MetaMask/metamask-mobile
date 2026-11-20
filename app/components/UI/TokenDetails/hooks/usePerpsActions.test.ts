@@ -239,7 +239,7 @@ describe('usePerpsActions', () => {
     });
   });
 
-  it('passes null symbol through to usePerpsMarketForAsset', () => {
+  it('passes an empty symbol to usePerpsMarketForAsset when symbol is null', () => {
     // Arrange
     mockUsePerpsMarketForAsset.mockReturnValue({
       hasPerpsMarket: false,
@@ -252,7 +252,7 @@ describe('usePerpsActions', () => {
     renderHook(() => usePerpsActions({ symbol: null }));
 
     // Assert
-    expect(mockUsePerpsMarketForAsset).toHaveBeenCalledWith(null);
+    expect(mockUsePerpsMarketForAsset).toHaveBeenCalledWith('', false);
   });
 
   it('does not navigate when marketData is null even if called', () => {
@@ -291,5 +291,35 @@ describe('usePerpsActions', () => {
     // Assert
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBe('Network error');
+  });
+  describe('RWA tokens', () => {
+    beforeEach(() => {
+      mockUsePerpsMarketForAsset.mockReturnValue({
+        hasPerpsMarket: false,
+        marketData: null,
+        isLoading: false,
+        error: null,
+      });
+    });
+
+    it('matches HIP-3 markets by the token rwaData ticker', () => {
+      renderHook(() =>
+        usePerpsActions({
+          symbol: 'MSFT',
+          token: { rwaData: { ticker: 'MSFT' } },
+        }),
+      );
+
+      expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith('MSFT', true);
+    });
+
+    it('uses exact symbol matching when the token has no rwaData', () => {
+      renderHook(() => usePerpsActions({ symbol: 'AAPL', token: {} }));
+
+      expect(mockUsePerpsMarketForAsset).toHaveBeenLastCalledWith(
+        'AAPL',
+        false,
+      );
+    });
   });
 });
