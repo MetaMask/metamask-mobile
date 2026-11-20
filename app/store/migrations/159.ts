@@ -1,6 +1,5 @@
 import { captureException } from '@sentry/react-native';
 import { getErrorMessage, hasProperty, isObject } from '@metamask/utils';
-import FilesystemStorage from 'redux-persist-filesystem-storage';
 import { ensureValidState } from './util';
 
 /**
@@ -13,10 +12,13 @@ import { ensureValidState } from './util';
  * deprecated behind the (now removed) `assetsUnifyState` feature flag and are
  * no longer initialized by the Engine. `AssetsController` is the sole source
  * of truth for asset data. This migration removes their now-orphaned
- * top-level `engine.backgroundState` entries, and deletes their per-controller
- * `persist:<name>` files. The files must be deleted explicitly: they are no
- * longer part of the persisted controller list, so they are never loaded into
- * `backgroundState` and would otherwise stay on disk forever.
+ * top-level `engine.backgroundState` entries.
+ *
+ * Their `persist:<name>` files stay on disk here. `asyncifyMigrations` loads
+ * them for migrations 139 and 143, then deletes a file only after
+ * `deflateToControllersAndStrip` has written the migrated state. Deleting in
+ * this migration would drop those inputs if the process died before that
+ * write, and the next launch could not rerun 139 or 143.
  */
 export const migrationVersion = 159;
 
@@ -31,30 +33,10 @@ const DEPRECATED_CONTROLLER_NAMES = [
   'MultichainBalancesController',
 ] as const;
 
-const removePersistedControllerFiles = async (): Promise<void> => {
-  await Promise.all(
-    DEPRECATED_CONTROLLER_NAMES.map(async (controllerName) => {
-      try {
-        await FilesystemStorage.removeItem(`persist:${controllerName}`);
-      } catch (error) {
-        captureException(
-          new Error(
-            `Migration ${migrationVersion}: Failed to remove persisted file for ${controllerName}: ${getErrorMessage(
-              error,
-            )}`,
-          ),
-        );
-      }
-    }),
-  );
-};
-
 const migration = async (state: unknown): Promise<unknown> => {
   if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
-
-  await removePersistedControllerFiles();
 
   try {
     const { backgroundState } = state.engine;
