@@ -69,8 +69,9 @@ appiumTest.describe(SmokeAccounts('Account syncing - Setting'), () => {
           // Post-create sync chrome / glass header can briefly hide the back
           // control — settle before dismissing to Settings.
           await AccountListBottomSheet.waitForAccountSyncToComplete(30_000);
-          await AccountListBottomSheet.tapBackButton();
-          await waitForWalletHomePlaywright();
+          await AccountListBottomSheet.tapBackButton({
+            onDismissed: () => waitForWalletHomePlaywright(20_000),
+          });
 
           await disableAccountSyncViaSettings();
 
