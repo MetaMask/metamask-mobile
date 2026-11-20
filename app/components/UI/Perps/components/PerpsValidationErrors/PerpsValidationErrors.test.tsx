@@ -12,12 +12,12 @@ describe('PerpsValidationErrors', () => {
     expect(getByText('Limit price is too far')).toBeOnTheScreen();
   });
 
-  it('renders the container with no messages when there are no errors', () => {
-    const { getByTestId, toJSON } = render(
+  it('renders nothing when there are no errors', () => {
+    const { queryByTestId, toJSON } = render(
       <PerpsValidationErrors errors={[]} testID="errors" />,
     );
 
-    expect(getByTestId('errors')).toBeOnTheScreen();
-    expect(toJSON()).not.toHaveTextContent(/\w/);
+    expect(queryByTestId('errors')).toBeNull();
+    expect(toJSON()).toBeNull();
   });
 });

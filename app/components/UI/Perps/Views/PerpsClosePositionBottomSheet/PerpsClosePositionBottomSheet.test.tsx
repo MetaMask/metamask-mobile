@@ -878,7 +878,7 @@ describe('PerpsClosePositionBottomSheet', () => {
   });
 
   describe('fee disclaimer', () => {
-    it('renders the combined fee rate beneath the CTA', () => {
+    it('renders the combined fee rate above the CTA', () => {
       const { getByTestId } = renderSheet();
 
       expect(
@@ -897,6 +897,22 @@ describe('PerpsClosePositionBottomSheet', () => {
         utils.queryByTestId(
           PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER,
         ),
+      ).toBeNull();
+    });
+
+    it('hides the fee rate while an error is showing', () => {
+      usePerpsClosePositionValidationMock.mockReturnValue({
+        ...defaultPerpsClosePositionValidationMock,
+        errors: [
+          strings('perps.order.validation.minimum_amount', { amount: '10' }),
+        ],
+        isValid: false,
+      });
+
+      const { queryByTestId } = renderSheet();
+
+      expect(
+        queryByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER),
       ).toBeNull();
     });
 

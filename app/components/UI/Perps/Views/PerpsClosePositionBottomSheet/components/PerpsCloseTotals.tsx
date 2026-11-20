@@ -75,6 +75,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
       {marginMode ? (
         <KeyValueRow
           variant={KeyValueRowVariant.Summary}
+          twClassName="h-8"
           keyLabel={strings('perps.close_position.margin')}
           keyEndAccessory={
             <Box
@@ -117,6 +118,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
 
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
+        twClassName="h-8"
         keyLabel={strings('perps.close_position.total_receive')}
         value={formatCloseSummaryFiat(receiveAmount)}
         valueTextProps={{
@@ -126,7 +128,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
 
       <KeyValueRow
         variant={KeyValueRowVariant.Summary}
-        twClassName="mt-0.5"
+        twClassName="h-8"
         // One native element carries the label with its value for automation.
         accessible
         testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}

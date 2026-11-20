@@ -44,8 +44,8 @@ const PerpsClosePositionSheetHeader: React.FC<
   isOrderTypeToggleDisabled,
   onOrderTypeToggle,
 }) => (
-  <Box twClassName="flex-row items-center gap-3 px-4 pt-4 pb-4">
-    <PerpsTokenLogo symbol={symbol} size={32} />
+  <Box twClassName="flex-row items-center gap-3 px-4 pt-1 pb-4">
+    <PerpsTokenLogo symbol={symbol} size={40} />
 
     <Box twClassName="flex-1 min-w-0">
       <Box
