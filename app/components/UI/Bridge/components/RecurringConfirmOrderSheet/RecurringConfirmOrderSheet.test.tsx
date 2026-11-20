@@ -381,14 +381,12 @@ describe('RecurringConfirmOrderSheet', () => {
     );
   });
 
-  it('shows a fixed 180 day expiry', () => {
-    const { getByTestId } = renderSheet();
+  it('omits the global expiry limit from confirmation', () => {
+    const { queryByText } = renderSheet();
 
     expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.EXPIRES_AFTER),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.expires_after')}180 ${strings('bridge.recurring.unit_plural.day')}`,
-    );
+      queryByText(strings('bridge.recurring.expires_after')),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows slippage as Auto when unset', () => {
@@ -474,7 +472,7 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps paying, receiving, expiry, and slippage populated while a quote is loading', () => {
+  it('keeps paying, receiving, and slippage populated while a quote is loading', () => {
     jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
       ...mockUseBridgeQuoteData,
       isLoading: true,
@@ -500,13 +498,21 @@ describe('RecurringConfirmOrderSheet', () => {
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
     expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.EXPIRES_AFTER),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.expires_after')}180 ${strings('bridge.recurring.unit_plural.day')}`,
-    );
-    expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE),
     ).toHaveTextContent(`${strings('bridge.recurring.slippage_all_orders')}2%`);
+  });
+
+  it('omits the global expiry limit while a quote is loading', () => {
+    jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+      ...mockUseBridgeQuoteData,
+      isLoading: true,
+    }));
+
+    const { queryByText } = renderSheet();
+
+    expect(
+      queryByText(strings('bridge.recurring.expires_after')),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows placeholders for est receiving and network fee when there is no quote', () => {
