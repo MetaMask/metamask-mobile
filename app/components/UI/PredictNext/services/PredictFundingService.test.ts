@@ -430,9 +430,10 @@ describe('PredictFundingService withdrawal flow', () => {
       await Promise.resolve();
 
       service.stopObserving();
-      const firstRejection = await expect(first).rejects.toMatchObject({
-        name: 'AbortError',
-      });
+      const firstRejection = first.then(
+        () => undefined,
+        (error: unknown) => error,
+      );
 
       // The person confirms again while the aborted promise is still pending,
       // which is where the lock window used to hand them that rejection.
@@ -440,7 +441,7 @@ describe('PredictFundingService withdrawal flow', () => {
       await expect(
         service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
       ).resolves.toMatchObject({ status: 'processing' });
-      await firstRejection;
+      expect(await firstRejection).toMatchObject({ name: 'AbortError' });
       expect(commitWithdraw).toHaveBeenCalledTimes(2);
     });
 
@@ -530,13 +531,14 @@ describe('PredictFundingService withdrawal flow', () => {
           signal: caller.signal,
         },
       );
-      const cancelled = await expect(second).rejects.toMatchObject({
-        name: 'AbortError',
-      });
+      const secondOutcome = second.then(
+        () => undefined,
+        (error: unknown) => error,
+      );
       await Promise.resolve();
       caller.abort();
 
-      await cancelled;
+      expect(await secondOutcome).toMatchObject({ name: 'AbortError' });
       expect(commitWithdraw).toHaveBeenCalledTimes(1);
       expect(commitWithdraw.mock.calls[0][1]?.signal?.aborted).toBe(false);
       gate.resolve(canonical);
@@ -717,9 +719,10 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      const abandoned = await expect(oldCommit).rejects.toMatchObject({
-        code: PredictErrorCode.UNAUTHENTICATED,
-      });
+      const abandoned = oldCommit.then(
+        () => undefined,
+        (error: unknown) => error,
+      );
       await Promise.resolve();
       service.changeIdentity();
       await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
@@ -730,7 +733,9 @@ describe('PredictFundingService withdrawal flow', () => {
         'preview-1',
       );
       oldGate.resolve(receipt('processing'));
-      await abandoned;
+      expect(await abandoned).toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
 
       expect(service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')).toBe(
         newCommit,
@@ -760,11 +765,12 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      const cancelled = await expect(pending).rejects.toMatchObject({
-        name: 'AbortError',
-      });
+      const pendingOutcome = pending.then(
+        () => undefined,
+        (error: unknown) => error,
+      );
       expect(signal?.aborted).toBe(false);
-      await cancelled;
+      expect(await pendingOutcome).toMatchObject({ name: 'AbortError' });
       gate.resolve(receipt('processing'));
       await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
       expect(commitWithdraw).toHaveBeenCalledTimes(1);
