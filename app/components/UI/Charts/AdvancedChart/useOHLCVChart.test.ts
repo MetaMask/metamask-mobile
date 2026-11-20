@@ -15,6 +15,13 @@ const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
 
 const ASSET_ID = 'eip155:1/slip44:60';
 
+// Nock v15 intercepts at the process-wide socket layer, so leaving it active
+// after this file would let its interceptor see (and block) requests made by
+// later suites in the same Jest worker. Deactivate once every suite is done.
+afterAll(() => {
+  nock.restore();
+});
+
 const createAPICandle = (
   overrides: Partial<OHLCVApiCandle> = {},
 ): OHLCVApiCandle => ({

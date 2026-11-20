@@ -74,4 +74,28 @@ const installSocketLeakGuard = () => {
   afterAll(closeOpenSockets);
 };
 
-module.exports = { installSocketLeakGuard, trackOpenSockets };
+/**
+ * Destroys every socket the current collector is tracking — every socket this
+ * file opened so far — without swapping the collector.
+ *
+ * Nock v15 intercepts at the socket-connection layer, so a request reusing a
+ * keep-alive socket that a passthrough (real-network) exchange opened earlier
+ * in the same file bypasses its interceptors. Tests that register nock mocks
+ * call this at setup time to force the next requests to connect afresh, the
+ * same way {@link installSocketLeakGuard} closes leaked sockets at file end.
+ */
+const closeTrackedSockets = () => {
+  const collector = net.Socket.prototype[COLLECTOR];
+  if (!collector) {
+    return;
+  }
+  collector.forEach((socket) => {
+    // Destroying a TLS socket mid-write emits on the socket itself; without
+    // a listener Node escalates it to an uncaught error.
+    socket.on?.('error', () => undefined);
+    socket.destroy?.();
+  });
+  collector.clear();
+};
+
+module.exports = { installSocketLeakGuard, trackOpenSockets, closeTrackedSockets };

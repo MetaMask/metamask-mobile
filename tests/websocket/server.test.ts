@@ -5,6 +5,13 @@ import nock from 'nock';
 import LocalWebSocketServer from './server.ts';
 import { ServerStatus } from '../framework/types.ts';
 
+// Nock v15 intercepts at the process-wide socket layer, so leaving it active
+// after this file would let its interceptor see (and block) requests made by
+// later suites in the same Jest worker. Deactivate once every suite is done.
+afterAll(() => {
+  nock.restore();
+});
+
 jest.mock('../framework/logger.ts', () => ({
   LogLevel: { ERROR: 0, WARN: 1, INFO: 2, DEBUG: 3, TRACE: 4 },
   createLogger: () => ({
