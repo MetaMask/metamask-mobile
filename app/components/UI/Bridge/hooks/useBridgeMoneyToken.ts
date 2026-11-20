@@ -47,7 +47,7 @@ export const useMoneyToken = ({ type }: { type: TokenSelectorType }) => {
       return undefined;
     }
 
-    const baseToken = {
+    const tokenData = {
       address: assetReference,
       symbol: 'MUSD',
       name: strings('money.splash.eyebrow'),
@@ -59,7 +59,7 @@ export const useMoneyToken = ({ type }: { type: TokenSelectorType }) => {
     };
 
     return {
-      ...baseToken,
+      ...tokenData,
       balance:
         type === TokenSelectorType.Source
           ? moneyAccountBalance.withdrawableMusd?.toFixed()
