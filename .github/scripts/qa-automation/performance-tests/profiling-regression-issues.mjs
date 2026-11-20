@@ -739,7 +739,8 @@ function buildLists(items) {
 }
 
 function isMarkerLine(line) {
-  return /^<!-- .+ -->$/.test(line.trim());
+  // `[\s\S]` so a newline cannot slip past the match (CodeQL js/bad-html-filtering-regexp).
+  return /^<!-- [\s\S]+ -->$/.test(line.trim());
 }
 
 /**
