@@ -967,20 +967,51 @@ export async function listTrackedIssues({
     .filter((issue) => issue.jiraKey);
 }
 
-export function findOpenIssue(issues, key, title = null) {
+function jiraProjectOf(issue) {
+  const match = /^([A-Z][A-Z0-9]+)-/.exec(String(issue?.jiraKey || ''));
+  return match ? match[1] : null;
+}
+
+function createdTimestamp(issue) {
+  const timestamp = Date.parse(issue?.createdAt || '');
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+/**
+ * The open ticket for one scenario. The marker key or the scenario label
+ * identifies it. A matching title counts only inside `projectKey`, so a
+ * copy in another project cannot take the comment. When the owning project
+ * has a match, that ticket wins. Otherwise the latest `createdAt` wins.
+ * Jira key numbers are per project and are not an order.
+ */
+export function findOpenIssue(
+  issues,
+  key,
+  { title = null, projectKey = null } = {},
+) {
   const label = scenarioIssueLabel(key);
-  return (
-    issues
-      .filter(
-        (issue) =>
-          issue.state === 'open' &&
-          (issue.marker?.key === key ||
-            (issue.labels || []).includes(label) ||
-            (title != null && issue.title === title)),
-      )
-      .sort((left, right) => (right.number || 0) - (left.number || 0))[0] ||
-    null
+  const matches = (issues || []).filter((issue) => {
+    if (issue.state !== 'open') {
+      return false;
+    }
+    if (issue.marker?.key === key || (issue.labels || []).includes(label)) {
+      return true;
+    }
+    return (
+      title != null &&
+      issue.title === title &&
+      projectKey != null &&
+      jiraProjectOf(issue) === projectKey
+    );
+  });
+  const inProject = projectKey
+    ? matches.filter((issue) => jiraProjectOf(issue) === projectKey)
+    : [];
+  const candidates = inProject.length > 0 ? inProject : matches;
+  candidates.sort(
+    (left, right) => createdTimestamp(right) - createdTimestamp(left),
   );
+  return candidates[0] || null;
 }
 
 export async function createIssue({
@@ -1083,7 +1114,10 @@ export function fetchAppVersion({ repo, sha, runGh }) {
 }
 
 async function syncOne({ jira, fetchFn, tracked, issue, recurrence, attachment }) {
-  const existing = findOpenIssue(tracked, issue.key, issue.title);
+  const existing = findOpenIssue(tracked, issue.key, {
+    title: issue.title,
+    projectKey: issue.jiraProject,
+  });
   if (existing) {
     await commentOnIssue({
       jira,

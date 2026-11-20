@@ -403,30 +403,86 @@ test('listTrackedIssues reads the dedupe label and the marker', async () => {
   assert.equal(calls[0].headers['Content-Type'], 'application/json');
 });
 
-test('findOpenIssue prefers the newest open issue for the key', () => {
+test('findOpenIssue prefers the owning project, then the newest ticket', () => {
   const issues = [
-    { number: 3, state: 'open', marker: { key: 'k' }, labels: [] },
-    { number: 7, state: 'open', marker: { key: 'k' }, labels: [] },
-    { number: 9, state: 'closed', marker: { key: 'k' }, labels: [] },
-    { number: 11, state: 'open', marker: { key: 'other' }, labels: [] },
     {
-      number: 4,
+      jiraKey: 'MCWP-50000',
+      state: 'open',
+      marker: { key: 'k' },
+      labels: [],
+      createdAt: '2026-09-01T00:00:00.000Z',
+    },
+    {
+      jiraKey: 'TAT-80',
+      state: 'open',
+      marker: { key: 'k' },
+      labels: [],
+      createdAt: '2026-09-20T00:00:00.000Z',
+    },
+    {
+      jiraKey: 'MCWP-50001',
+      state: 'open',
+      marker: { key: 'k' },
+      labels: [],
+      createdAt: '2026-09-25T00:00:00.000Z',
+    },
+    {
+      jiraKey: 'TAT-9',
+      state: 'closed',
+      marker: { key: 'k' },
+      labels: [],
+      createdAt: '2026-09-21T00:00:00.000Z',
+    },
+    {
+      jiraKey: 'MCWP-11',
+      state: 'open',
+      marker: { key: 'other' },
+      labels: [],
+      createdAt: '2026-09-22T00:00:00.000Z',
+    },
+    {
+      jiraKey: 'RWDS-4',
       state: 'open',
       marker: null,
       labels: [scenarioIssueLabel('label-only')],
+      createdAt: '2026-09-03T00:00:00.000Z',
     },
   ];
 
-  assert.equal(findOpenIssue(issues, 'k').number, 7);
-  assert.equal(findOpenIssue(issues, 'missing'), null);
-  assert.equal(findOpenIssue(issues, 'label-only').number, 4);
+  assert.equal(findOpenIssue(issues, 'k', { projectKey: 'TAT' }).jiraKey, 'TAT-80');
   assert.equal(
-    findOpenIssue(
-      [{ number: 8, state: 'open', marker: null, labels: [], title: 'Same' }],
-      'other-key',
-      'Same',
-    ).number,
-    8,
+    findOpenIssue(issues, 'k', { projectKey: 'MCWP' }).jiraKey,
+    'MCWP-50001',
+  );
+  assert.equal(findOpenIssue(issues, 'k').jiraKey, 'MCWP-50001');
+  assert.equal(findOpenIssue(issues, 'missing'), null);
+  assert.equal(findOpenIssue(issues, 'label-only').jiraKey, 'RWDS-4');
+  const titled = [
+    {
+      jiraKey: 'MCWP-8',
+      state: 'open',
+      marker: null,
+      labels: [],
+      title: 'Same',
+      createdAt: '2026-09-22T00:00:00.000Z',
+    },
+    {
+      jiraKey: 'TAT-2',
+      state: 'open',
+      marker: null,
+      labels: [],
+      title: 'Same',
+      createdAt: '2026-09-01T00:00:00.000Z',
+    },
+  ];
+  assert.equal(
+    findOpenIssue(titled, 'other-key', { title: 'Same', projectKey: 'TAT' })
+      .jiraKey,
+    'TAT-2',
+  );
+  assert.equal(
+    findOpenIssue(titled, 'other-key', { title: 'Same', projectKey: 'SWAPS' }),
+    null,
   );
 });
 
