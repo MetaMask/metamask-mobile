@@ -22,10 +22,8 @@ import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cance
 import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
 import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { PredictError, PredictErrorCode } from '../../errors';
-import {
-  KALSHI_STATIC_VENUE_CATALOG,
-  POLYMARKET_STATIC_VENUE_CATALOG,
-} from '../../config/venueCatalogs';
+import { POLYMARKET_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictEntityId,
   PredictEvent,

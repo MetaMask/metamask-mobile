@@ -269,6 +269,10 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         </Text>
       )}
       <AnimatedAmountDisplay
+        // When wrapped in TouchableOpacity (`onPress`), keep this row out of
+        // the coalesced a11y tree so `AMOUNT_LABEL` stays queryable on iOS
+        // Appium — same shape as the tradeSheet variant.
+        accessible={!onPress}
         amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
         color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
         containerStyle={styles.amountRow}
