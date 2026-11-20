@@ -1,5 +1,6 @@
 import type { Browser } from 'webdriverio';
 import AppiumGestures from '../AppiumGestures.ts';
+import type { AppiumElement } from '../AppiumElement.ts';
 import {
   getDriver,
   withOverheadTrackingSuspended,
@@ -94,6 +95,13 @@ export interface RetryContext {
   trigger: Exclude<InterruptionTrigger, 'settle'>;
 }
 
+export interface TapRetryContext extends RetryContext {
+  /** testID / text / label of the control the tap was aimed at. */
+  describeTarget(): Promise<string[]>;
+  /** Whether that control is still displayed. A stale element counts as gone. */
+  isTargetDisplayed(): Promise<boolean>;
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -106,6 +114,33 @@ async function readAttribute(
   } catch {
     return null;
   }
+}
+
+/**
+ * testID / text / label / content-desc of an element, read one command at a
+ * time. Unreadable attributes are skipped.
+ */
+export async function describeElement(
+  control: AppiumElement,
+): Promise<string[]> {
+  const values: string[] = [];
+  for (const read of [
+    () => control.getText(),
+    () => control.getAttribute('resource-id'),
+    () => control.getAttribute('content-desc'),
+    () => control.getAttribute('label'),
+    () => control.getAttribute('name'),
+  ]) {
+    const value = await readAttribute(read);
+    if (value) {
+      values.push(value);
+    }
+  }
+  return values;
+}
+
+function normalizeDescriptor(value: string): string {
+  return value.trim().toLowerCase();
 }
 
 export const appiumInterruptingScreenAdapter: InterruptingScreenDeviceAdapter =
@@ -135,21 +170,8 @@ export const appiumInterruptingScreenAdapter: InterruptingScreenDeviceAdapter =
     },
     async describe(locator) {
       try {
-        const control = await getElementForLocator(locator);
         // Sequential on purpose: one Appium session must not run commands concurrently.
-        const values: string[] = [];
-        for (const read of [
-          () => control.getText(),
-          () => control.getAttribute('content-desc'),
-          () => control.getAttribute('label'),
-          () => control.getAttribute('name'),
-        ]) {
-          const value = await readAttribute(read);
-          if (value) {
-            values.push(value);
-          }
-        }
-        return values;
+        return await describeElement(await getElementForLocator(locator));
       } catch {
         return [];
       }
@@ -202,6 +224,10 @@ export class InterruptingScreenGuard {
   #ownedGeneration = 0;
   /** Chains device work so a new test waits out the previous test's in-flight command. */
   #turn: Promise<void> = Promise.resolve();
+  /** Normalized descriptors of the control a failed tap was aimed at. */
+  #recoveryTarget: string[] = [];
+  /** Set when the last recovery tapped that same control. */
+  #tappedRecoveryTarget = false;
   readonly #adapter: InterruptingScreenDeviceAdapter;
 
   constructor(
@@ -314,11 +340,13 @@ export class InterruptingScreenGuard {
    * dismissed and the caller should retry once.
    */
   async recoverFromFailure(
-    context: RetryContext & { error: unknown },
+    context: (RetryContext | TapRetryContext) & { error: unknown },
   ): Promise<boolean> {
     if (this.#inGuardWork()) {
       return false;
     }
+    this.#recoveryTarget = [];
+    this.#tappedRecoveryTarget = false;
     if (this.#config === undefined) {
       await this.#turn;
       return false;
@@ -331,19 +359,28 @@ export class InterruptingScreenGuard {
       if (this.#abandoned() || pageSource === null) {
         return false;
       }
-      if (
-        await this.#dismissFirstKnownScreen(
+      const tapContext = 'describeTarget' in context ? context : undefined;
+      if (tapContext) {
+        this.#recoveryTarget = await this.#readRecoveryTarget(tapContext);
+        if (this.#abandoned()) {
+          return false;
+        }
+      }
+      const dismissed =
+        (await this.#dismissFirstKnownScreen(
           pageSource,
           context.trigger,
           context.intent,
-        )
-      ) {
-        return true;
+        )) ||
+        (!this.#abandoned() &&
+          (await this.#dismissWithAi(pageSource, context)));
+      if (dismissed && tapContext && this.#tappedRecoveryTarget) {
+        // A shared label (two sheets with "Not now") must not skip the retry
+        // while the control the spec aimed at is still on screen.
+        this.#tappedRecoveryTarget =
+          !(await this.#isTargetDisplayed(tapContext));
       }
-      if (this.#abandoned()) {
-        return false;
-      }
-      return this.#dismissWithAi(pageSource, context);
+      return dismissed;
     });
   }
 
@@ -429,6 +466,61 @@ export class InterruptingScreenGuard {
     }
   }
 
+  /**
+   * {@link retryAfterInterruption} for a tap. When the guard dismissed the
+   * sheet by tapping the very control the tap was aimed at (for example the
+   * spec's own "Not now"), the tap is done and is not retried: the control is
+   * gone, so a retry would fail.
+   */
+  async retryTapAfterInterruption(
+    tap: () => Promise<void>,
+    context: TapRetryContext,
+  ): Promise<void> {
+    if (!this.#inGuardWork()) {
+      await this.#turn;
+    }
+    try {
+      await tap();
+    } catch (error) {
+      if (!(await this.recoverFromFailure({ ...context, error }))) {
+        throw error;
+      }
+      if (this.#tappedRecoveryTarget) {
+        logger.info(
+          `"${context.intent}" completed by the interrupting-screen dismissal of the same control`,
+        );
+        return;
+      }
+      logger.info(
+        `Retrying "${context.intent}" after dismissing an interrupting screen`,
+      );
+      await tap();
+    }
+  }
+
+  async #readRecoveryTarget(context: TapRetryContext): Promise<string[]> {
+    try {
+      return (await context.describeTarget()).map(normalizeDescriptor);
+    } catch (error) {
+      logger.debug(`Reading the tap target failed: ${errorMessage(error)}`);
+      return [];
+    }
+  }
+
+  async #isTargetDisplayed(context: TapRetryContext): Promise<boolean> {
+    try {
+      return await context.isTargetDisplayed();
+    } catch {
+      return false;
+    }
+  }
+
+  #noteDismissTap(locator: RecoveredLocator): void {
+    if (this.#recoveryTarget.includes(normalizeDescriptor(locator.value))) {
+      this.#tappedRecoveryTarget = true;
+    }
+  }
+
   async #dismissFirstKnownScreen(
     pageSource: string,
     trigger: InterruptionTrigger,
@@ -475,6 +567,7 @@ export class InterruptingScreenGuard {
         if (this.#abandoned()) {
           return undefined;
         }
+        this.#noteDismissTap(locator);
         const event: InterruptingScreenDismissal = {
           screen: screen.name,
           source: 'registry',
@@ -556,6 +649,7 @@ export class InterruptingScreenGuard {
     if (this.#abandoned()) {
       return false;
     }
+    this.#noteDismissTap(locator);
 
     const event: InterruptingScreenDismissal = {
       screen: decision.screenName,

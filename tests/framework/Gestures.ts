@@ -19,7 +19,10 @@ import {
   getPerformanceLocatorRecovery,
   isPerformanceSuiteActive,
 } from './ai-locator/PerformanceLocatorRecovery.ts';
-import { interruptingScreenGuard } from './interrupting-screens/InterruptingScreenGuard.ts';
+import {
+  describeElement,
+  interruptingScreenGuard,
+} from './interrupting-screens/InterruptingScreenGuard.ts';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 
 type TapAtIndexElement =
@@ -141,7 +144,7 @@ export default class Gestures {
   ): Promise<void> {
     const intent = options.elemDescription ?? 'tap the current mobile control';
     const tap = async (target: AppiumElement): Promise<void> => {
-      await interruptingScreenGuard.retryAfterInterruption(
+      await interruptingScreenGuard.retryTapAfterInterruption(
         () =>
           AppiumGestures.waitAndTap(target, {
             timeout: options.timeout,
@@ -153,7 +156,12 @@ export default class Gestures {
             postEnabledSettleMs: options.postEnabledSettleMs,
             checkForStable: options.checkStability,
           }),
-        { intent, trigger: 'tap-failure' },
+        {
+          intent,
+          trigger: 'tap-failure',
+          describeTarget: () => describeElement(target),
+          isTargetDisplayed: () => target.isVisible(),
+        },
       );
     };
 

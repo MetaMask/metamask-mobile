@@ -372,6 +372,74 @@ describe('InterruptingScreenGuard', () => {
     });
   });
 
+  describe('retryTapAfterInterruption', () => {
+    const tapTarget = (
+      descriptors: string[],
+      displayedAfterDismiss: boolean,
+    ) => ({
+      intent: 'tap No thanks',
+      trigger: 'tap-failure' as const,
+      describeTarget: jest.fn().mockResolvedValue(descriptors),
+      isTargetDisplayed: jest.fn().mockResolvedValue(displayedAfterDismiss),
+    });
+
+    it('does not retry when the dismissal tapped the control the spec aimed at', async () => {
+      const adapter = createAdapter([EXPERIENCE_ENHANCER]);
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({});
+      const tap = jest.fn().mockRejectedValueOnce(new Error('not stable'));
+
+      await guard.retryTapAfterInterruption(
+        tap,
+        tapTarget(
+          ['experience-enhancer-modal-cancel-button', 'No thanks'],
+          false,
+        ),
+      );
+
+      expect(tap).toHaveBeenCalledTimes(1);
+      expect(adapter.tapped).toEqual([
+        {
+          strategy: 'testID',
+          value: 'experience-enhancer-modal-cancel-button',
+        },
+      ]);
+    });
+
+    it('retries when a control with the same label is still on screen', async () => {
+      const adapter = createAdapter([EXPERIENCE_ENHANCER]);
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({});
+      const tap = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('not stable'))
+        .mockResolvedValueOnce(undefined);
+
+      await guard.retryTapAfterInterruption(
+        tap,
+        tapTarget(['experience-enhancer-modal-cancel-button'], true),
+      );
+
+      expect(tap).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries once when the dismissal tapped a different control', async () => {
+      const adapter = createAdapter([EXPERIENCE_ENHANCER]);
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({});
+      const target = tapTarget(['wallet-send-button', 'Send'], false);
+      const tap = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('not displayed'))
+        .mockResolvedValueOnce(undefined);
+
+      await guard.retryTapAfterInterruption(tap, target);
+
+      expect(tap).toHaveBeenCalledTimes(2);
+      expect(target.isTargetDisplayed).not.toHaveBeenCalled();
+    });
+  });
+
   describe('retryAfterInterruption', () => {
     it('runs the action once when it succeeds', async () => {
       const adapter = createAdapter([EXPERIENCE_ENHANCER]);
