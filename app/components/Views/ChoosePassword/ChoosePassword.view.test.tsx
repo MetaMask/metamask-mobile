@@ -17,6 +17,9 @@ import {
   type RenderAPI,
 } from '@testing-library/react-native';
 import { AccessibilityInfo, InteractionManager, Platform } from 'react-native';
+import { Button as DesignSystemButton } from '@metamask/design-system-react-native';
+import type { DeepPartial } from '../../../util/test/renderWithProvider';
+import type { RootState } from '../../../reducers';
 import {
   describeForPlatforms,
   itEach,
@@ -573,5 +576,36 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       trackEventSpy.mockRestore();
       loggerErrorSpy.mockRestore();
     }
+  });
+
+  it('resolves geolocation before enabling create password for social login', async () => {
+    let resolveGeolocation!: (location: string) => void;
+    const geolocationMock = jest.fn(
+      () =>
+        new Promise<string>((resolve) => {
+          resolveGeolocation = resolve;
+        }),
+    );
+
+    const { findByTestId, UNSAFE_getByType } =
+      renderChoosePasswordForSocialLogin({
+        geolocationMock,
+        overrides: {
+          engine: {
+            backgroundState: {
+              GeolocationController: { location: 'UNKNOWN' },
+            },
+          },
+        } as DeepPartial<RootState>,
+      });
+
+    await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+    expect(geolocationMock).toHaveBeenCalledTimes(1);
+    expect(UNSAFE_getByType(DesignSystemButton).props.isLoading).toBe(true);
+
+    resolveGeolocation('US');
+    await waitFor(() => {
+      expect(UNSAFE_getByType(DesignSystemButton).props.isLoading).toBe(false);
+    });
   });
 });
