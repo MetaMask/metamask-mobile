@@ -191,6 +191,39 @@ describe('ClaimableRewardsCard', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the remaining wait, not the earned-elsewhere caption, when both apply', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        isClaimWaiting
+        claimWaitCaption="You can't claim just yet. Try again in 12 minutes."
+        earnedElsewhereCaption="Earned on accounts not on this device. Import the earning wallet to claim."
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_WAIT),
+    ).toHaveTextContent("You can't claim just yet. Try again in 12 minutes.");
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.EARNED_ELSEWHERE_CAPTION),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).not.toHaveBeenCalled();
+  });
+
   it('keeps Available to claim with Claim when the earnings are on accounts this phone cannot sign', () => {
     const onClaim = jest.fn();
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
