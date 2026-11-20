@@ -11545,11 +11545,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.view.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 3
-    }
-  },
   "app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1

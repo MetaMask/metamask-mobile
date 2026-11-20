@@ -64,6 +64,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimFailureNoEligibleBalanceToast: 'Nothing eligible to claim',
   claimFailureUnavailableToast: 'Claims are unavailable',
   claimFailureContactSupportToast: 'Contact support',
+  earnedOnOtherAccounts:
+    'Some earnings belong to accounts not on this device. Import the wallet to claim.',
   historyClaimPending: 'Claim pending',
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
@@ -584,6 +586,11 @@ export interface RewardsMoneyViewStateOptions {
    * follow `claimReady`.
    */
   claimGates?: ClaimSubmissionGates;
+  /**
+   * Epoch ms until Claim is enabled again. Set when a refusal's Retry-After
+   * is still running.
+   */
+  claimWaitUntil?: number;
 }
 
 /**
@@ -595,6 +602,7 @@ export function rewardsMoneyViewState({
   summary = CLAIMABLE_EARNINGS_SUMMARY,
   claimReady = false,
   claimGates,
+  claimWaitUntil,
   referralMe: referralMeOverride,
   seedReferralMe = true,
   subscriptionId = null,
@@ -682,6 +690,13 @@ export function rewardsMoneyViewState({
         pendingReferralCode,
         answeredReferralCode,
         isReferralLinkPending,
+        ...(claimWaitUntil === undefined
+          ? {}
+          : {
+              claimWaitingUntil: {
+                [profileId]: claimWaitUntil,
+              },
+            }),
       },
       engine: {
         backgroundState: {

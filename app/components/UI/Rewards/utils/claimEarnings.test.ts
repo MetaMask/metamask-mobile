@@ -1,6 +1,8 @@
 import { ethers } from 'ethers';
 import { base58 } from 'ethers/lib/utils';
 import { SolScope } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -27,11 +29,17 @@ import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
   cashbackMeetsClaimMinimum,
+  claimBlockedOnThisDevice,
+  claimHasUnsignableAddress,
+  claimWaitCaption,
+  claimWaitMinutesRemaining,
   displayClaimTotals,
   claimRouteOptions,
   showEarningsIndicator,
   claimRoutesForSummary,
+  routesSignableOnDevice,
   selectClaimRoutes,
+  canSignEarningAddress,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
@@ -62,7 +70,7 @@ jest.mock('../../../../core/Engine', () => ({
   default: {
     context: {
       NetworkController: { findNetworkClientIdByChainId: jest.fn() },
-      KeyringController: { withKeyringV2: jest.fn() },
+      KeyringController: { withKeyringV2: jest.fn(), state: { keyrings: [] } },
     },
     controllerMessenger: {
       subscribe: jest.fn(),
@@ -333,6 +341,145 @@ describe('selectClaimRoutes', () => {
     expect(
       selectClaimRoutes([...routes], { cashbackOnly: true, omitIncome: true }),
     ).toEqual(['referral-trade-fee-cashback']);
+  });
+});
+
+const ON_DEVICE = 'eip155:0x1111111111111111111111111111111111111111';
+const ELSEWHERE = 'eip155:0x3333333333333333333333333333333333333333';
+
+function addressRow(address: string, claimable: string) {
+  return {
+    address,
+    lifetime: claimable,
+    claimable,
+    pending: '0',
+    claimed: '0',
+    voided: '0',
+  };
+}
+
+describe('claimWaitCaption', () => {
+  const text = {
+    claimFailureWaitMinutesToast: 'Try again in {minutes} minutes.',
+    claimFailureWaitToast: 'Try again later.',
+  };
+
+  it('counts whole minutes still left, and at least one while the wait is running', () => {
+    expect(claimWaitMinutesRemaining(90_000, 0)).toBe(2);
+    expect(claimWaitMinutesRemaining(1_000, 0)).toBe(1);
+    expect(claimWaitMinutesRemaining(0, 1)).toBe(0);
+  });
+
+  it('fills the minutes in the wait sentence', () => {
+    expect(claimWaitCaption(text, 120_000, 0)).toBe('Try again in 2 minutes.');
+  });
+
+  it('uses the later sentence when the template has no minutes placeholder', () => {
+    expect(
+      claimWaitCaption(
+        { ...text, claimFailureWaitMinutesToast: 'Wait a bit' },
+        120_000,
+        0,
+      ),
+    ).toBe('Try again later.');
+  });
+});
+
+describe('routesSignableOnDevice', () => {
+  const canSign = (address: string) => address === ON_DEVICE;
+
+  it('keeps a route whose claimable addresses are not listed', () => {
+    const cashback = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+    });
+
+    expect(
+      routesSignableOnDevice(
+        cashback,
+        ['referral-trade-fee-cashback'],
+        canSign,
+      ),
+    ).toEqual(['referral-trade-fee-cashback']);
+    expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(false);
+  });
+
+  it('drops a cashback or follow-trade route when none of its claimable addresses can be signed here', () => {
+    const cashback = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+    });
+    cashback.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [addressRow(ELSEWHERE, ONE_DOLLAR)];
+    const follow = summary({
+      claimable: ONE_DOLLAR,
+      followTrade: ONE_DOLLAR,
+      cashback: '0',
+    });
+    follow.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE.by_address = [
+      addressRow(ELSEWHERE, ONE_DOLLAR),
+    ];
+
+    expect(
+      routesSignableOnDevice(
+        cashback,
+        ['referral-trade-fee-cashback'],
+        canSign,
+      ),
+    ).toEqual([]);
+    expect(
+      routesSignableOnDevice(follow, ['social-follow-trade'], canSign),
+    ).toEqual([]);
+    expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(true);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(true);
+    expect(
+      claimBlockedOnThisDevice(follow, { includeFollowTrade: true }, canSign),
+    ).toBe(true);
+    expect(
+      claimHasUnsignableAddress(follow, { includeFollowTrade: true }, canSign),
+    ).toBe(true);
+  });
+
+  it('keeps the route when one claimable address can be signed here', () => {
+    const cashback = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+    });
+    cashback.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [addressRow(ELSEWHERE, ONE_DOLLAR), addressRow(ON_DEVICE, ONE_DOLLAR)];
+
+    expect(
+      routesSignableOnDevice(
+        cashback,
+        ['referral-trade-fee-cashback'],
+        canSign,
+      ),
+    ).toEqual(['referral-trade-fee-cashback']);
+    expect(claimBlockedOnThisDevice(cashback, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(cashback, undefined, canSign)).toBe(true);
+  });
+
+  it('leaves revenue share alone, since it has no address list', () => {
+    const revShare = summary({
+      claimable: ONE_DOLLAR,
+      revShare: ONE_DOLLAR,
+      cashback: '0',
+    });
+
+    expect(
+      routesSignableOnDevice(revShare, ['referral-rev-share'], canSign),
+    ).toEqual(['referral-rev-share']);
+    expect(
+      claimBlockedOnThisDevice(revShare, { includeRevShare: true }, canSign),
+    ).toBe(false);
+  });
+
+  it('does not block a tax-only claim, which opens documentation rather than a proof', () => {
+    const held = summary({ claimable: '0', cashback: '0' });
+
+    expect(claimBlockedOnThisDevice(held, undefined, canSign)).toBe(false);
+    expect(claimHasUnsignableAddress(held, undefined, canSign)).toBe(false);
   });
 });
 
@@ -842,6 +989,46 @@ describe('isTaxDeterminationRefusal', () => {
         },
       ]),
     ).toBe(false);
+  });
+});
+
+describe('canSignEarningAddress', () => {
+  const ACCOUNT = '0x1111111111111111111111111111111111111111';
+  const OTHER = '0x2222222222222222222222222222222222222222';
+  const setKeyrings = (keyrings: { type: string; accounts: string[] }[]) => {
+    (
+      Engine.context.KeyringController as unknown as {
+        state: { keyrings: unknown[] };
+      }
+    ).state = { keyrings };
+  };
+
+  afterEach(() => {
+    setKeyrings([]);
+  });
+
+  it('signs for an EVM software key this phone holds', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.hd, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(true);
+  });
+
+  it('does not sign for a hardware account this phone lists', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.ledger, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
+  });
+
+  it('does not sign for a snap account this phone lists', () => {
+    setKeyrings([{ type: KeyringTypes.snap, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
+  });
+
+  it('does not sign for an address no keyring on this phone holds', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.hd, accounts: [OTHER] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
   });
 });
 
