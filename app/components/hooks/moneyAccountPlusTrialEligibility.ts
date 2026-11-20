@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { PRODUCT_TYPES } from '@metamask/subscription-controller';
+import Engine from '../../core/Engine';
 
 /**
  * Prefix for the Plus trial eligibility query. Identity segments are appended
@@ -41,4 +42,19 @@ export function refreshMoneyAccountPlusTrialEligibility(
   return queryClient.resetQueries({
     queryKey: MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
   });
+}
+
+/**
+ * Loads subscription history, then asks whether this user can start a Plus
+ * trial. Both Benefits and checkout use this so they share one controller
+ * sequence. The caller owns retries. This does not go through the shared
+ * subscriptions query, which has no user identity and would retry again.
+ *
+ * @returns Whether the controller says this user can start a Plus trial.
+ */
+export async function fetchPlusTrialEligibility(): Promise<boolean> {
+  await Engine.context.SubscriptionController.getSubscriptions();
+  return Engine.context.SubscriptionController.isUserEligibleForTrial(
+    PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+  );
 }

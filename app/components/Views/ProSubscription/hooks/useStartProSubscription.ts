@@ -34,6 +34,7 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import {
   clearMoneyAccountPlusTrialEligibilityCache,
+  fetchPlusTrialEligibility,
   refreshMoneyAccountPlusTrialEligibility,
 } from '../../../hooks/moneyAccountPlusTrialEligibility';
 import {
@@ -209,36 +210,43 @@ export function buildConfirmMembershipRequestData(
 }
 
 /**
+ * Expected checkout result: the cached trial answer is no longer true.
+ * This is not a failed start, so it is not logged and it does not show the
+ * join error. Checkout stops, and Benefits reloads the paid offer.
+ */
+class PlusTrialUnavailableError extends Error {
+  constructor() {
+    super('Plus trial is no longer available');
+    this.name = 'PlusTrialUnavailableError';
+  }
+}
+
+/**
+ * Reloads subscription history and asks the controller again before checkout
+ * continues. Benefits can still be showing a cached eligible answer from
+ * another session on this phone.
+ *
+ * A false answer refreshes the open Benefits screen and stops checkout. A
+ * rejected call still throws, so the user can retry, and the cached answer
+ * stays in place.
+ */
+async function assertStillEligibleForPlusTrial(): Promise<void> {
+  const isEligible = await fetchPlusTrialEligibility();
+  if (isEligible) {
+    return;
+  }
+
+  await refreshMoneyAccountPlusTrialEligibility(ReactQueryService.queryClient);
+  throw new PlusTrialUnavailableError();
+}
+
+/**
  * Raises a `confirm_membership` approval and waits for the user to accept or
  * reject it. Rejection propagates so the caller can treat it as a user cancel.
  *
  * @param plan - Checkout-ready Plus plan.
  * @param isTrial - Whether Benefits already loaded a trial for this user.
  */
-/**
- * Reloads subscription history and asks the controller again before the
- * trial sheet opens. Benefits can still be showing a cached eligible answer
- * from another session on this phone.
- *
- * @throws When the user can no longer start a Plus trial.
- */
-async function assertStillEligibleForPlusTrial(): Promise<void> {
-  await Engine.context.SubscriptionController.getSubscriptions();
-  const isEligible =
-    await Engine.context.SubscriptionController.isUserEligibleForTrial(
-      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-    );
-  // Fail closed: anything but an explicit true blocks the trial. A rejected
-  // call throws above and surfaces as a retryable error without touching the
-  // cached answer.
-  if (!isEligible) {
-    // Reset the cached "eligible" answer so an open Benefits screen refetches
-    // and shows the paid offer.
-    void refreshMoneyAccountPlusTrialEligibility(ReactQueryService.queryClient);
-    throw new Error('Plus trial is no longer available');
-  }
-}
-
 async function requestMembershipConsent(
   plan: SelectedPlusPlan,
   isTrial: boolean,
@@ -367,6 +375,7 @@ function getStartSubscriptionErrorMessage(error: Error): string {
  * rejections are not logged; they clear any previous join error.
  *
  * @param error - Failure from balance check, top-up, or delegation start.
+ * A trial that is no longer available is rethrown without logging.
  * @param isMounted - Whether the hook is still mounted.
  * @param setMessage - Join-screen error setter.
  */
@@ -375,6 +384,10 @@ function reportStartSubscriptionError(
   isMounted: boolean,
   setMessage: (message: string | undefined) => void,
 ): never {
+  if (error instanceof PlusTrialUnavailableError) {
+    throw error;
+  }
+
   const loggedError = error instanceof Error ? error : new Error(String(error));
 
   if (isUserRejectedError(loggedError, loggedError.message)) {

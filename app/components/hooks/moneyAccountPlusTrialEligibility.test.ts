@@ -1,10 +1,22 @@
 import { QueryClient } from '@tanstack/react-query';
+import { PRODUCT_TYPES } from '@metamask/subscription-controller';
+import Engine from '../../core/Engine';
 import { SUBSCRIPTIONS_QUERY_KEY } from './useSubscriptions';
 import {
   clearMoneyAccountPlusTrialEligibilityCache,
+  fetchPlusTrialEligibility,
   refreshMoneyAccountPlusTrialEligibility,
   MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
 } from './moneyAccountPlusTrialEligibility';
+
+jest.mock('../../core/Engine', () => ({
+  context: {
+    SubscriptionController: {
+      getSubscriptions: jest.fn(),
+      isUserEligibleForTrial: jest.fn(),
+    },
+  },
+}));
 
 const trialKey = [
   ...MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
@@ -42,5 +54,36 @@ describe('refreshMoneyAccountPlusTrialEligibility', () => {
 
     expect(queryClient.getQueryData(trialKey)).toBeUndefined();
     expect(queryClient.getQueryData(SUBSCRIPTIONS_QUERY_KEY)).toEqual([]);
+  });
+});
+
+describe('fetchPlusTrialEligibility', () => {
+  const getSubscriptions = jest.mocked(
+    Engine.context.SubscriptionController.getSubscriptions,
+  );
+  const isUserEligibleForTrial = jest.mocked(
+    Engine.context.SubscriptionController.isUserEligibleForTrial,
+  );
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('loads subscriptions and then asks the controller', async () => {
+    const callOrder: string[] = [];
+    getSubscriptions.mockImplementation(async () => {
+      callOrder.push('subscriptions');
+      return [];
+    });
+    isUserEligibleForTrial.mockImplementation(async () => {
+      callOrder.push('eligibility');
+      return false;
+    });
+
+    await expect(fetchPlusTrialEligibility()).resolves.toBe(false);
+    expect(isUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    expect(callOrder).toEqual(['subscriptions', 'eligibility']);
   });
 });

@@ -1,12 +1,12 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { PRODUCT_TYPES } from '@metamask/subscription-controller';
+import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import Engine from '../../../../../../core/Engine';
-import { SUBSCRIPTIONS_QUERY_KEY } from '../../../../../../components/hooks/useSubscriptions';
 import { selectCanonicalProfileId } from '../../../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../../../selectors/keyringController';
 import { selectSeedlessOnboardingUserId } from '../../../../../../selectors/seedlessOnboardingController';
-import { MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY } from '../../../../../../components/hooks/moneyAccountPlusTrialEligibility';
+import {
+  fetchPlusTrialEligibility,
+  MONEY_ACCOUNT_PLUS_TRIAL_ELIGIBILITY_QUERY_KEY,
+} from '../../../../../../components/hooks/moneyAccountPlusTrialEligibility';
 
 /**
  * Cache key for a Plus trial eligibility check.
@@ -52,7 +52,8 @@ export interface MoneyAccountPlusTrialEligibility {
  * finishes, so asking earlier would answer "eligible" and the screen would
  * have to correct itself. The screen waits while the check is pending,
  * including when the device is offline and the fetch is paused, and then
- * shows the answer from this one check.
+ * shows the answer from this one check. Retries stay on this query only, so
+ * a failing subscriptions API is not fetched again by an inner query.
  *
  * The check runs when the wallet is unlocked and either the canonical profile
  * id or the social-login user id is present. Profile sync can lag behind
@@ -71,23 +72,10 @@ export function useMoneyAccountPlusTrialEligibility(): MoneyAccountPlusTrialElig
   // arrives later does not change the key and reload the plan cards.
   const trialIdentityId = socialLoginUserId || canonicalProfileId;
   const canRequestEligibility = isUnlocked && Boolean(trialIdentityId);
-  const queryClient = useQueryClient();
 
   const { data, isPending } = useQuery({
     queryKey: getMoneyAccountPlusTrialEligibilityQueryKey(trialIdentityId),
-    queryFn: async () => {
-      // Join a subscriptions load already in flight, but never reuse a cached
-      // one: the shared key has no user identity, so a fresh-looking entry
-      // could hold another session's history.
-      await queryClient.fetchQuery({
-        queryKey: SUBSCRIPTIONS_QUERY_KEY,
-        queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
-        staleTime: 0,
-      });
-      return Engine.context.SubscriptionController.isUserEligibleForTrial(
-        PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
-      );
-    },
+    queryFn: fetchPlusTrialEligibility,
     enabled: canRequestEligibility,
     // Keep the app default (retry: 2). retry: false treats one network blip
     // as "not eligible" and hides the trial.

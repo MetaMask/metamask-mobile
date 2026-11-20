@@ -313,7 +313,7 @@ describe('useStartProSubscription', () => {
     });
   });
 
-  it('shows the join error and skips the trial sheet when the trial is no longer available', async () => {
+  it('stops checkout without a join error when the trial is no longer available', async () => {
     mockedIsUserEligibleForTrial.mockResolvedValue(false);
     const { result } = renderHook(() => useStartProSubscription());
     let thrownError: Error | undefined;
@@ -335,9 +335,8 @@ describe('useStartProSubscription', () => {
     expect(mockedStartSubscription).not.toHaveBeenCalled();
     expect(mockResetQueries).toHaveBeenCalledTimes(1);
     expect(mockRemoveQueries).not.toHaveBeenCalled();
-    expect(result.current.errorMessage).toBe(
-      strings('pro_subscription.join_error'),
-    );
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBeUndefined();
   });
 
   it('rechecks trial eligibility before topping up and skips the top-up when ineligible', async () => {
@@ -359,6 +358,8 @@ describe('useStartProSubscription', () => {
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
     expect(mockedStartSubscription).not.toHaveBeenCalled();
     expect(mockResetQueries).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBeUndefined();
   });
 
   it('leaves the cached trial answer alone and does not start when the recheck fails', async () => {
