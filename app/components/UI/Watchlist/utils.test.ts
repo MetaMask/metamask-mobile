@@ -1,10 +1,14 @@
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 import {
+  buildHomepageWatchlistItems,
   buildWatchlistItems,
   canUseWatchlistLivePrices,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
+  getTokenWatchlistKey,
+  reconcileWatchlistOrder,
+  reorderWatchlistItems,
 } from './utils';
 
 const TOKEN = {
@@ -58,6 +62,41 @@ describe('watchlist utils', () => {
       perp.key,
       secondToken.key,
     ]);
+  });
+
+  it('preserves case-sensitive non-EVM token identities', () => {
+    const assetId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
+
+    const result = getTokenWatchlistKey(assetId);
+
+    expect(result).toBe(`token:${assetId}`);
+  });
+
+  it('reconciles removed, duplicate, and newly watched keys', () => {
+    const token = createUnifiedWatchlistToken(TOKEN);
+    const perp = createUnifiedWatchlistPerp(PERP);
+    const addedToken = createUnifiedWatchlistToken({
+      ...TOKEN,
+      assetId: 'eip155:1/erc20:0xABC',
+    });
+
+    const result = reconcileWatchlistOrder(
+      ['unknown', perp.key, perp.key],
+      [token, perp, addedToken],
+    );
+
+    expect(result).toEqual([perp.key, token.key, addedToken.key]);
+  });
+
+  it('reorders heterogeneous rows and preserves the homepage prefix', () => {
+    const token = createUnifiedWatchlistToken(TOKEN);
+    const perp = createUnifiedWatchlistPerp(PERP);
+
+    const reordered = reorderWatchlistItems([token, perp], 0, 1);
+    const preview = buildHomepageWatchlistItems(reordered, 1);
+
+    expect(reordered).toEqual([perp, token]);
+    expect(preview).toEqual([perp]);
   });
 
   it('disables live prices for offline and low slow-cellular cells', () => {

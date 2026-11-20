@@ -13776,6 +13776,8 @@
     "suggested": "Suggested",
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
+    "move_up": "Move up",
+    "move_down": "Move down",
     "load_error": "Unable to load watchlist items",
     "retry": "Try again",
     "edit": "Edit",

@@ -8,6 +8,8 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 
 let mockIsWatchlistEnabled = true;
+let mockIsUnifiedWatchlistEnabled = false;
+let mockIsPerpsEnabled = false;
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
@@ -23,9 +25,15 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: (state: unknown) => unknown) => {
-    const { selectTokenWatchlistEnabled } = jest.requireMock(
-      '../../../../UI/Assets/selectors/featureFlags',
+    const { selectTokenWatchlistEnabled, selectUnifiedWatchlistEnabled } =
+      jest.requireMock('../../../../UI/Assets/selectors/featureFlags');
+    const { selectPerpsEnabledFlag } = jest.requireMock(
+      '../../../../UI/Perps/selectors/featureFlags',
     );
+    if (selector === selectUnifiedWatchlistEnabled) {
+      return mockIsUnifiedWatchlistEnabled;
+    }
+    if (selector === selectPerpsEnabledFlag) return mockIsPerpsEnabled;
     if (selector === selectTokenWatchlistEnabled) return mockIsWatchlistEnabled;
     return undefined;
   },
@@ -33,7 +41,52 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../UI/Assets/selectors/featureFlags', () => ({
   selectTokenWatchlistEnabled: jest.fn(),
+  selectUnifiedWatchlistEnabled: jest.fn(),
 }));
+
+jest.mock('../../../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsEnabledFlag: jest.fn(),
+}));
+
+const mockUseUnifiedWatchlist = jest.fn();
+jest.mock('../../../../UI/Watchlist/hooks/useUnifiedWatchlist', () => ({
+  useUnifiedWatchlist: () => mockUseUnifiedWatchlist(),
+}));
+
+jest.mock('../../../../UI/Perps/hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({ navigateToMarketDetails: jest.fn() }),
+}));
+
+jest.mock('../../../../UI/Perps/hooks/usePerpsWatchlistActions', () => ({
+  usePerpsWatchlistActions: () => ({
+    removeFromWatchlist: jest.fn().mockResolvedValue(true),
+  }),
+}));
+
+jest.mock('../../../../UI/Watchlist/WatchlistTokenRowItem', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  const Mock = ({ token }: { token: { assetId: string } }) =>
+    ReactActual.createElement(View, {
+      testID: `mixed-token-${token.assetId}`,
+    });
+  Mock.displayName = 'WatchlistTokenRowItem';
+  return { __esModule: true, default: Mock };
+});
+
+jest.mock(
+  '../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+    const Mock = ({ market }: { market: { symbol: string } }) =>
+      ReactActual.createElement(View, {
+        testID: `mixed-perp-${market.symbol}`,
+      });
+    Mock.displayName = 'PerpsMarketRowItem';
+    return { __esModule: true, default: Mock };
+  },
+);
 
 const mockToast = jest.fn();
 jest.mock('@metamask/design-system-react-native', () => {
@@ -204,6 +257,8 @@ describe('WatchlistSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsWatchlistEnabled = true;
+    mockIsUnifiedWatchlistEnabled = false;
+    mockIsPerpsEnabled = false;
     mockWatchlistAssetIds = [];
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
@@ -213,6 +268,26 @@ describe('WatchlistSection', () => {
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: [],
       isLoading: false,
+    });
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: false,
+      isPerpsEnabled: false,
+      orderedItems: [],
+      isOrderLoading: false,
+      isOrderReady: false,
+      orderError: null,
+      tokens: { items: [], isLoading: false, error: null },
+      perps: { items: [], isLoading: false, error: null },
+      canUseLivePerpsPrices: true,
+      canUseMotion: true,
+      canRefresh: true,
+      canFetchSuggestions: true,
+      tokenMembershipAssetIds: [],
+      isTokenMetadataComplete: true,
+      tokenCount: 0,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
     });
   });
 
@@ -425,6 +500,51 @@ describe('WatchlistSection', () => {
   it('renders section header with watchlist testID', () => {
     const { getByTestId } = renderSection();
     expect(getByTestId('homepage-section-title-watchlist')).toBeDefined();
+  });
+
+  it('uses persisted mixed order for the Homepage preview', () => {
+    const token = makeWatchlistToken('eth');
+    const tokenItem = {
+      kind: 'token',
+      key: `token:${token.assetId}`,
+      assetId: token.assetId,
+      token,
+    };
+    const perpItem = {
+      kind: 'perp',
+      key: 'perp:btc',
+      symbol: 'BTC',
+      status: 'resolved',
+      market: {
+        symbol: 'BTC',
+        name: 'Bitcoin Perpetual',
+        maxLeverage: '50x',
+        price: '$100,000.00',
+        change24h: '+$1.00',
+        change24hPercent: '+1.00%',
+        volume: '$1B',
+      },
+    };
+    mockIsUnifiedWatchlistEnabled = true;
+    mockIsPerpsEnabled = true;
+    mockUseUnifiedWatchlist.mockReturnValue({
+      ...mockUseUnifiedWatchlist(),
+      isUnifiedEnabled: true,
+      isPerpsEnabled: true,
+      orderedItems: [perpItem, tokenItem],
+      isOrderReady: true,
+      tokens: { items: [tokenItem], isLoading: false, error: null },
+      perps: { items: [perpItem], isLoading: false, error: null },
+      tokenMembershipAssetIds: [token.assetId],
+      tokenCount: 1,
+    });
+
+    const { getAllByTestId } = renderSection();
+
+    expect(getAllByTestId(/^mixed-/).map((row) => row.props.testID)).toEqual([
+      'mixed-perp-BTC',
+      `mixed-token-${token.assetId}`,
+    ]);
   });
 
   it('navigates to the watchlist full view when the section header is pressed', () => {

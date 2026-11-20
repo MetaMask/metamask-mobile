@@ -3,12 +3,8 @@ export enum WatchlistFullScreenViewSelectorsIDs {
   HEADER = 'watchlist-fullscreen-header',
   BACK_BUTTON = 'watchlist-fullscreen-back-button',
   SEARCH_BUTTON = 'watchlist-fullscreen-search-button',
-  EDIT_BUTTON = 'watchlist-fullscreen-edit-button',
-  DONE_BUTTON = 'watchlist-fullscreen-done-button',
   TITLE = 'watchlist-fullscreen-title',
   TOKEN_LIST = 'watchlist-fullscreen-token-list',
   MIXED_LIST = 'watchlist-fullscreen-mixed-list',
-  EDITABLE_ROW = 'watchlist-fullscreen-editable-row',
-  DRAG_HANDLE = 'watchlist-fullscreen-drag-handle',
-  UNWATCH_STAR = 'watchlist-fullscreen-unwatch-star',
+  ROW = 'watchlist-fullscreen-row',
 }
