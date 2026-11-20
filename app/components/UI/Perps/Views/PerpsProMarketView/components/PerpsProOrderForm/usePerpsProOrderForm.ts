@@ -3319,9 +3319,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
