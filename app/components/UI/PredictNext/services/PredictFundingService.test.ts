@@ -430,7 +430,7 @@ describe('PredictFundingService withdrawal flow', () => {
       await Promise.resolve();
 
       service.stopObserving();
-      const firstRejection = expect(first).rejects.toMatchObject({
+      const firstRejection = await expect(first).rejects.toMatchObject({
         name: 'AbortError',
       });
 
@@ -530,7 +530,7 @@ describe('PredictFundingService withdrawal flow', () => {
           signal: caller.signal,
         },
       );
-      const cancelled = expect(second).rejects.toMatchObject({
+      const cancelled = await expect(second).rejects.toMatchObject({
         name: 'AbortError',
       });
       await Promise.resolve();
@@ -717,7 +717,7 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      const abandoned = expect(oldCommit).rejects.toMatchObject({
+      const abandoned = await expect(oldCommit).rejects.toMatchObject({
         code: PredictErrorCode.UNAUTHENTICATED,
       });
       await Promise.resolve();
@@ -760,7 +760,7 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      const cancelled = expect(pending).rejects.toMatchObject({
+      const cancelled = await expect(pending).rejects.toMatchObject({
         name: 'AbortError',
       });
       expect(signal?.aborted).toBe(false);
@@ -870,6 +870,147 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(committed).toBe(refusal);
       expect(observed).toBe(refusal);
       expect(invalidateQueries).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reconcileWithdrawCommit', () => {
+    it('returns the receipt and does not read when the commit is answered', async () => {
+      const service = await quotedServiceWith();
+      const canonical = receipt('processing');
+      commitWithdraw.mockResolvedValueOnce(canonical);
+
+      await expect(
+        service.reconcileWithdrawCommit(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toEqual({ outcome: 'receipt', receipt: canonical });
+
+      expect(observeWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('treats an expired preview as not placed and sends nothing', async () => {
+      previewWithdraw.mockResolvedValueOnce({
+        ...preview,
+        expiresAt: new Date(Date.now() - 1).toISOString() as PredictTimestamp,
+      });
+      const service = serviceWith();
+      await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        amount: preview.requestedAmount as PredictAmount,
+      });
+
+      const resolution = await service.reconcileWithdrawCommit(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+
+      expect(resolution).toMatchObject({
+        outcome: 'not_placed',
+        error: expect.objectContaining({
+          code: PredictErrorCode.PREVIEW_EXPIRED,
+        }),
+      });
+      expect(commitWithdraw).not.toHaveBeenCalled();
+      expect(observeWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('keeps an unauthenticated commit unknown and does not read it', async () => {
+      const service = await quotedServiceWith();
+      const error = PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+      commitWithdraw.mockRejectedValueOnce(error);
+
+      await expect(
+        service.reconcileWithdrawCommit(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toEqual({ outcome: 'unknown', error });
+
+      expect(observeWithdraw).not.toHaveBeenCalled();
+    });
+
+    it.each(['AbortError', 'TimeoutError'])(
+      'reads the same preview after a %s commit',
+      async (name) => {
+        const service = await quotedServiceWith();
+        const lost = new Error('Commit deadline reached');
+        lost.name = name;
+        const settled = receipt('settled');
+        commitWithdraw.mockRejectedValueOnce(lost);
+        observeWithdraw.mockResolvedValueOnce(settled);
+
+        await expect(
+          service.reconcileWithdrawCommit(KALSHI_VENUE_ID, 'preview-1'),
+        ).resolves.toEqual({ outcome: 'receipt', receipt: settled });
+
+        expect(commitWithdraw).toHaveBeenCalledTimes(1);
+        expect(observeWithdraw).toHaveBeenCalledTimes(1);
+      },
+    );
+
+    it('quotes again when the recovery read finds no operation', async () => {
+      const service = await quotedServiceWith();
+      const readError = PredictError.from(
+        PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+        { metadata: { bodyCode: 'operation_not_found', phase: 'observe' } },
+      );
+      commitWithdraw.mockRejectedValueOnce(new TypeError('Connection lost'));
+      observeWithdraw.mockRejectedValueOnce(readError);
+
+      await expect(
+        service.reconcileWithdrawCommit(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toEqual({ outcome: 'not_placed', error: readError });
+
+      expect(commitWithdraw).toHaveBeenCalledTimes(1);
+      expect(observeWithdraw).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps a lost commit unknown when the recovery read also fails', async () => {
+      const service = await quotedServiceWith();
+      commitWithdraw.mockRejectedValueOnce(new TypeError('Connection lost'));
+      observeWithdraw.mockRejectedValueOnce(new TypeError('Still offline'));
+
+      const resolution = await service.reconcileWithdrawCommit(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+
+      expect(resolution).toMatchObject({
+        outcome: 'unknown',
+        error: expect.objectContaining({ code: PredictErrorCode.UNKNOWN }),
+      });
+      expect(
+        resolution.outcome === 'unknown' && resolution.error,
+      ).toBeInstanceOf(PredictError);
+    });
+  });
+
+  describe('reconcileWithdrawObservation', () => {
+    it('reads the same preview and never commits', async () => {
+      const service = await quotedServiceWith();
+      const settled = receipt('settled');
+      const prior = PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+      observeWithdraw.mockResolvedValueOnce(settled);
+
+      await expect(
+        service.reconcileWithdrawObservation(
+          KALSHI_VENUE_ID,
+          'preview-1',
+          prior,
+        ),
+      ).resolves.toEqual({ outcome: 'receipt', receipt: settled });
+
+      expect(commitWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('keeps the prior error when the read fails without a Predict error', async () => {
+      const service = await quotedServiceWith();
+      const prior = PredictError.from(PredictErrorCode.UNAUTHENTICATED);
+      observeWithdraw.mockRejectedValueOnce(new TypeError('Still offline'));
+
+      await expect(
+        service.reconcileWithdrawObservation(
+          KALSHI_VENUE_ID,
+          'preview-1',
+          prior,
+        ),
+      ).resolves.toEqual({ outcome: 'unknown', error: prior });
+
+      expect(commitWithdraw).not.toHaveBeenCalled();
     });
   });
 

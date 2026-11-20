@@ -476,6 +476,7 @@ describe('Benefits', () => {
       await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
       expect(mockStartSubscription).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN, {
         isTrial: false,
+        enableTestClocks: false,
       });
       expect(mockOnSuccess).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
     });
@@ -504,6 +505,7 @@ describe('Benefits', () => {
         MONTHLY_CHECKOUT_PLAN,
         {
           isTrial: false,
+          enableTestClocks: false,
         },
       );
       expect(mockOnSuccess).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
@@ -531,7 +533,24 @@ describe('Benefits', () => {
             ...ANNUAL_CHECKOUT_PLAN,
             trialPeriodDays: 7,
           },
-          { isTrial: true },
+          { isTrial: true, enableTestClocks: false },
+        ),
+      );
+    });
+
+    it('passes enableTestClocks when the Stripe test clocks checkbox is selected', async () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX));
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() =>
+        expect(mockStartSubscription).toHaveBeenCalledWith(
+          ANNUAL_CHECKOUT_PLAN,
+          {
+            isTrial: false,
+            enableTestClocks: true,
+          },
         ),
       );
     });

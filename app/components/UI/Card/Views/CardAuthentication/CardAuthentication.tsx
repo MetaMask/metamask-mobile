@@ -1214,6 +1214,12 @@ const CardAuthentication = () => {
           }
         : undefined;
 
+  const secondaryButtonProps =
+    view.mode !== 'otp' &&
+    ((showPrimaryCta && showSignupWithCta) || view.mode === 'fork')
+      ? signUpButtonProps
+      : undefined;
+
   const tertiaryButtonProps =
     view.mode === 'otp'
       ? {
@@ -1223,9 +1229,7 @@ const CardAuthentication = () => {
           onPress: handleBackToLogin,
           testID: CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON,
         }
-      : (showPrimaryCta && showSignupWithCta) || view.mode === 'fork'
-        ? signUpButtonProps
-        : undefined;
+      : undefined;
 
   const loginErrorText =
     displayedLoginError && view.mode === 'email' ? (
@@ -1250,6 +1254,7 @@ const CardAuthentication = () => {
         </>
       }
       primaryButtonProps={primaryButtonProps}
+      secondaryButtonProps={secondaryButtonProps}
       tertiaryButtonProps={tertiaryButtonProps}
       headerMode="back"
     />

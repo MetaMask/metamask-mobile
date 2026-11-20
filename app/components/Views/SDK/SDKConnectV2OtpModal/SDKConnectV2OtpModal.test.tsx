@@ -7,6 +7,11 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockUseRoute = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
@@ -24,6 +29,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   } = jest.requireActual('react-native');
 
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({
       children,
       testID,

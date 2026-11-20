@@ -24,6 +24,10 @@ export interface PredictNextSearchParams {
   venueId: PredictVenueId;
 }
 
+export interface PredictNextDepositParams {
+  venueId: PredictVenueId;
+}
+
 export interface PredictNextWithdrawParams {
   venueId: PredictVenueId;
 }
@@ -36,5 +40,6 @@ export type PredictNextStackParamList = {
   PredictNextEvent: PredictNextEventParams;
   PredictNextPortfolio: PredictNextPortfolioParams;
   PredictNextSearch: PredictNextSearchParams;
+  PredictNextDeposit: PredictNextDepositParams;
   PredictNextWithdraw: PredictNextWithdrawParams;
 };

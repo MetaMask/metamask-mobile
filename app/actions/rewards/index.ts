@@ -6,8 +6,6 @@ export {
   resetRewardsState,
   setCandidateSubscriptionId,
   setHideUnlinkedAccountsBanner,
-  setGeoRewardsMetadata,
-  setGeoRewardsMetadataLoading,
   setActiveBoosts,
   setActiveBoostsLoading,
   acceptVipInvite,

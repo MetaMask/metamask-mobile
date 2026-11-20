@@ -21,6 +21,7 @@ import { v1 as random } from 'uuid';
 import Engine from '../../../../core/Engine';
 import ReactQueryService from '../../../../core/ReactQueryService';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { isProduction } from '../../../../util/environment';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -414,6 +415,11 @@ export interface StartProSubscriptionResult {
 
 export interface StartProSubscriptionOptions {
   isTrial?: boolean;
+  /**
+   * When true outside production, asks the Subscription API to attach a
+   * Stripe test clock. Ignored in production builds.
+   */
+  enableTestClocks?: boolean;
 }
 
 export interface UseStartProSubscriptionResult {
@@ -518,10 +524,13 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
           );
         }
 
+        const useTestClock =
+          options?.enableTestClocks === true && !isProduction();
         const startedSubscription =
           await SubscriptionDelegationService.startSubscriptionWithDelegation({
             ...subscriptionParams,
             chainId,
+            ...(useTestClock ? { useTestClock: true } : {}),
           });
 
         // The Benefits screen may still be holding "eligible for trial".

@@ -4152,6 +4152,36 @@
       "not_placed_title": "Order not placed",
       "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "Withdraw",
       "amount_label": "Amount",
@@ -5379,6 +5409,13 @@
     "fully_diluted": "Fully diluted",
     "unknown": "Unknown",
     "stock": "Stock"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "home_section": {
+      "description": "Explore collectibles packs and cards.",
+      "open_collectibles": "Explore Collectibles"
+    }
   },
   "collectible": {
     "collectible_address": "Address",
@@ -9906,6 +9943,7 @@
           "title": "Link your MetaMask Card",
           "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Link card",
+          "cta_log_in": "Log in",
           "cta_secondary": "Skip"
         }
       }
@@ -9986,7 +10024,7 @@
     },
     "action": {
       "add": "Add",
-      "transfer": "Send",
+      "move": "Move",
       "card": "Card",
       "details": "Details"
     },
@@ -10053,6 +10091,8 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "link_title": "Link card",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
@@ -10108,8 +10148,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Send funds to",
-      "between_accounts": "Another account",
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
