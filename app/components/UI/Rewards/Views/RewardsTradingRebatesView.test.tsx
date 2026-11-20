@@ -40,8 +40,7 @@ const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
 const LOCALIZED_TEXT = {
   tradingRebates: 'Trading rebates',
-  rebatePerpsVolume: 'Perps volume',
-  rebateSwapsVolume: 'Swaps volume',
+  rebatePerps: 'Perps',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
   tradingActivityEmptyDescription:
@@ -130,7 +129,7 @@ describe('RewardsTradingRebatesView', () => {
       getByTestId(REWARDS_TRADING_REBATES_VIEW_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('Trading rebates')).toBeOnTheScreen();
-    expect(getByText('Perps volume')).toBeOnTheScreen();
+    expect(getByText('Perps')).toBeOnTheScreen();
     expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(
       getByTestId(`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-${REBATE.id}`),

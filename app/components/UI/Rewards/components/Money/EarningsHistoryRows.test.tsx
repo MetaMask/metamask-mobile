@@ -24,6 +24,8 @@ const LOCALIZED_TEXT = {
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
   rebatePredictions: 'Predictions',
+  rebateSwaps: 'Swaps',
+  rebatePerps: 'Perps',
   historyClaimed: 'Claimed',
   historyClaimPending: 'Pending',
   voided: 'Voided',
@@ -131,6 +133,34 @@ describe('EarningsHistoryRow', () => {
 
     expect(getByText('Predictions')).toBeOnTheScreen();
     expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Chart);
+  });
+
+  it('shows a swaps cashback earning as Swaps with the swap icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'SWAPS_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.SwapVertical,
+    );
+  });
+
+  it('shows a perps cashback earning as Perps with the candlestick icon', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <EarningsHistoryRow
+        item={{ ...earning, earning_origin_type: 'PERPS_FEE_CASHBACK' }}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(
+      IconName.Candlestick,
+    );
   });
 
   it('shows a type a newer server adds as a rebate with the swap icon', () => {
