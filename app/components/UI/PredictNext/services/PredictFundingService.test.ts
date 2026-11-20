@@ -430,7 +430,7 @@ describe('PredictFundingService withdrawal flow', () => {
       await Promise.resolve();
 
       service.stopObserving();
-      const firstRejection = expect(first).rejects.toMatchObject({
+      const firstRejection = await expect(first).rejects.toMatchObject({
         name: 'AbortError',
       });
 
@@ -530,7 +530,7 @@ describe('PredictFundingService withdrawal flow', () => {
           signal: caller.signal,
         },
       );
-      const cancelled = expect(second).rejects.toMatchObject({
+      const cancelled = await expect(second).rejects.toMatchObject({
         name: 'AbortError',
       });
       await Promise.resolve();
@@ -717,7 +717,7 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      const abandoned = expect(oldCommit).rejects.toMatchObject({
+      const abandoned = await expect(oldCommit).rejects.toMatchObject({
         code: PredictErrorCode.UNAUTHENTICATED,
       });
       await Promise.resolve();
@@ -760,7 +760,7 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      const cancelled = expect(pending).rejects.toMatchObject({
+      const cancelled = await expect(pending).rejects.toMatchObject({
         name: 'AbortError',
       });
       expect(signal?.aborted).toBe(false);

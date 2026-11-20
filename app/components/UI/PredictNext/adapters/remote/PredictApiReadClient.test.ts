@@ -1370,7 +1370,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.commitWithdraw(venueId, previewId);
-        const rejected = expect(pending).rejects.toMatchObject({
+        const rejected = await expect(pending).rejects.toMatchObject({
           name: 'AbortError',
         });
         await jest.advanceTimersByTimeAsync(0);
@@ -1399,7 +1399,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.observeWithdraw(venueId, previewId);
-        const rejected = expect(pending).rejects.toMatchObject({
+        const rejected = await expect(pending).rejects.toMatchObject({
           name: 'AbortError',
         });
         await jest.advanceTimersByTimeAsync(0);

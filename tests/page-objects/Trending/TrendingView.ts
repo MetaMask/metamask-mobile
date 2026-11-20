@@ -3,6 +3,7 @@ import {
   Gestures,
   Assertions,
   PlatformDetector,
+  Utilities,
   type ScrollOptions,
   type AppiumElement,
 } from '../../framework';
@@ -116,12 +117,20 @@ class TrendingView {
 
   /**
    * Taps the tab itself: on iOS the tab is a single accessibility element, so
-   * XCUITest does not expose the `-label` text inside it.
+   * XCUITest does not expose the `-label` text inside it. Later tabs sit in
+   * a horizontal scroller and can start off-screen.
    */
   async tapTab(tabTestID: string): Promise<void> {
-    await Gestures.tap(Matchers.getElementByID(tabTestID), {
+    const tab = Matchers.getElementByID(tabTestID);
+    const displayed = await Utilities.isElementVisible(tab, 1000);
+    if (!displayed) {
+      await Gestures.scrollIntoView(tab, {
+        direction: 'left',
+        maxScrolls: 4,
+      });
+    }
+    await Gestures.tap(tab, {
       elemDescription: `Tap tab ${tabTestID}`,
-      checkVisibility: false,
     });
   }
 
