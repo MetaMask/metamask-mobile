@@ -2,7 +2,6 @@ import type {
   Availability,
   InterestHistoryGranularity,
   InterestHistoryRange,
-  InterestHistoryResponse,
   PeriodStatus,
   UnavailableReason,
 } from '../../types/moneyInterestHistory';

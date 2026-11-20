@@ -84,8 +84,8 @@ const EarningsTab = (): React.ReactElement => {
     Number.isFinite(selectedRangeTotalUsd) &&
     chartPoints.some(isAvailableBucket);
 
-  const handleRetry = useCallback(() => {
-    refetchHistoricalEarnings();
+  const handleRetry = useCallback(async () => {
+    await refetchHistoricalEarnings();
   }, [refetchHistoricalEarnings]);
 
   return (

@@ -52,6 +52,8 @@ const renderPlot = ({
   onPointPressOut = jest.fn(),
   onPlotLayout = jest.fn(),
   setScrollEnabled = jest.fn(),
+  xAxisLabels = ['Nov 9', 'Nov 10', 'Nov 11'],
+  yAxisValuesUsd = [2, 1],
 }: {
   points?: EarningsPoint[];
   activeIndex?: number | null;
@@ -59,13 +61,15 @@ const renderPlot = ({
   onPointPressOut?: () => void;
   onPlotLayout?: (width: number) => void;
   setScrollEnabled?: (enabled: boolean) => void;
+  xAxisLabels?: string[];
+  yAxisValuesUsd?: number[];
 } = {}) =>
   renderWithProvider(
     <EarningsChartPlot
       points={points}
       chartAmountsUsd={points.map(({ amountUsd }) => amountUsd)}
-      xAxisLabels={['Nov 9', 'Nov 10', 'Nov 11']}
-      yAxisValuesUsd={[2, 1]}
+      xAxisLabels={xAxisLabels}
+      yAxisValuesUsd={yAxisValuesUsd}
       chartMaximumUsd={2}
       activeIndex={activeIndex}
       plotWidth={300}
@@ -111,6 +115,27 @@ describe('EarningsChartPlot', () => {
         getByTestId(MoneyEarningsViewTestIds.CHART_FILL(1)).props.style,
       ),
     ).toEqual(expect.objectContaining({ height: 2 }));
+  });
+
+  it('avoids duplicate key warnings when axis values repeat', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+
+    const { getByTestId } = renderPlot({
+      xAxisLabels: ['Same', 'Same', 'Same'],
+      yAxisValuesUsd: [2, 2],
+    });
+    const duplicateKeyWarnings = consoleError.mock.calls.filter(([message]) =>
+      String(message).includes('same key'),
+    );
+    consoleError.mockRestore();
+
+    expect(duplicateKeyWarnings).toHaveLength(0);
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.CHART_X_LABEL(2)),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.CHART_Y_LABEL(1)),
+    ).toBeOnTheScreen();
   });
 
   it('dims inactive bars and shows the selected point pill', () => {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -28,6 +29,24 @@ const mockUseMoneyAccountProjectedEarnings = jest.mocked(
   useMoneyAccountProjectedEarnings,
 );
 const mockRefetchHistoricalEarnings = jest.fn();
+
+const getOnPress = (
+  button: ReactTestInstance,
+): (() => void | Promise<void>) => {
+  let current: ReactTestInstance | null = button;
+
+  while (current) {
+    const { onPress } = current.props as {
+      onPress?: () => void | Promise<void>;
+    };
+    if (typeof onPress === 'function') {
+      return onPress;
+    }
+    current = current.parent;
+  }
+
+  throw new Error('onPress handler not found');
+};
 
 const setProjectedEarningsResult = (
   result: Partial<ReturnType<typeof useMoneyAccountProjectedEarnings>> = {},
@@ -364,6 +383,19 @@ describe('EarningsTab', () => {
     fireEvent.press(getByText(strings('money.earnings.retry')));
 
     expect(mockRefetchHistoricalEarnings).toHaveBeenCalledTimes(1);
+  });
+
+  it('propagates historical earnings retry errors', async () => {
+    const retryError = new Error('Retry failed');
+    mockRefetchHistoricalEarnings.mockRejectedValueOnce(retryError);
+    setHistoricalEarningsResult({ isError: true });
+
+    const { getByRole } = renderWithProvider(<EarningsTab />);
+    const retryButton = getByRole('button', {
+      name: strings('money.earnings.retry'),
+    });
+
+    await expect(getOnPress(retryButton)()).rejects.toBe(retryError);
   });
 
   it('displays error content without a summary for malformed history', () => {
