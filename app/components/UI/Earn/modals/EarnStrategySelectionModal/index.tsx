@@ -281,7 +281,8 @@ const EarnStrategySelectionModal = () => {
 
   const handleGetStartedPress = useCallback(() => {
     if (!selectedStrategy || !earnAsset) {
-      handleGetStartedAfterClose();
+      // eslint-disable-next-line no-void -- The handler catches its own navigation errors.
+      void handleGetStartedAfterClose();
       return;
     }
 
