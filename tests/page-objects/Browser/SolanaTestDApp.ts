@@ -294,6 +294,7 @@ class SolanaTestDApp {
           if (connectVisible && tapBudget > 0) {
             lastNativeConnectAttemptAt = Date.now();
             await this.tapNativeConnectBestEffort(tapBudget);
+            continue;
           }
         }
       }
@@ -420,7 +421,11 @@ class SolanaTestDApp {
           if (document.querySelector(${JSON.stringify(
             SolanaTestDappSelectorsWebIDs.WALLET_BUTTON,
           )})) return 'wallet';
-          if (document.body?.innerText?.includes('No wallet available')) {
+          if (
+            document.body?.innerText?.includes(
+              "You'll need a wallet on Solana to continue",
+            )
+          ) {
             return 'empty';
           }
           return null;
@@ -429,6 +434,7 @@ class SolanaTestDApp {
       if (state === 'wallet' || state === 'empty') return state;
       await wait(Math.min(POLL_MS, Math.max(0, deadline - Date.now())));
     }
+    await this.closeWalletSelectionModalBestEffort();
     return outcome;
   }
 
