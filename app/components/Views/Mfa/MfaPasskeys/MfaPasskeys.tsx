@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -22,8 +22,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import Routes from '../../../../constants/navigation/Routes';
-import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
-import { verifyOrEnroll } from '../../../../util/identity/mfa/useMfa';
+import { useMfa } from '../../../../util/identity/mfa';
 import type { MfaReason } from '../../../../util/identity/mfa/engine/types';
 import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
@@ -33,8 +32,7 @@ import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
-import SocialLinkEmailBottomSheet from '../../shared/SocialLinkEmailBottomSheet';
-import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryAfterEnroll';
+import useRecoverySync from '../useRecoverySync';
 
 const ADD_PASSKEY_REASON: MfaReason = { operation: 'settings.addPasskey' };
 
@@ -50,15 +48,7 @@ const MfaPasskeys = () => {
   const { toastRef } = useContext(ToastContext);
   const { credentials, enroll } = useMfa();
   const passkeys = getActivePasskeys(credentials);
-
-  const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
-    resolve: (email?: string) => void;
-  }>();
-
-  const closeSocialLinkPrompt = (email?: string) => {
-    socialLinkPrompt?.resolve(email);
-    setSocialLinkPrompt(undefined);
-  };
+  const { syncRecovery, recoverySheets } = useRecoverySync();
 
   const addPasskey = async () => {
     try {
@@ -68,20 +58,7 @@ const MfaPasskeys = () => {
     }
 
     try {
-      await syncRecoveryAfterEnroll('passkey', {
-        verifyMfa: () =>
-          verifyOrEnroll({
-            methods: ['passkey'],
-            verifyWith: ['passkey'],
-            reason: ADD_PASSKEY_REASON,
-          }).then(() => undefined),
-        getSocialLinkEmail: isMfaDevBuild()
-          ? () =>
-              new Promise<string | undefined>((resolve) =>
-                setSocialLinkPrompt({ resolve }),
-              )
-          : undefined,
-      });
+      await syncRecovery('passkey', ADD_PASSKEY_REASON);
     } catch (error) {
       Logger.error(
         error instanceof Error ? error : new Error('Recovery sync failed'),
@@ -147,12 +124,7 @@ const MfaPasskeys = () => {
           {strings('mfa.settings.add_passkey')}
         </Button>
       </Box>
-      {socialLinkPrompt ? (
-        <SocialLinkEmailBottomSheet
-          onSubmit={closeSocialLinkPrompt}
-          onClose={() => closeSocialLinkPrompt(undefined)}
-        />
-      ) : null}
+      {recoverySheets}
     </SafeAreaView>
   );
 };

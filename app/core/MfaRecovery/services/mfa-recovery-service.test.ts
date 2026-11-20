@@ -271,25 +271,58 @@ describe('MfaRecoveryService', () => {
     });
   });
 
-  describe('hasEnrolledIdentifier', () => {
-    it('reports whether Cubist has an identifier of the type', async () => {
+  describe('findEnrolledPasskeyIdentifier', () => {
+    it('returns the enrolled passkey with the credential ID', async () => {
       const { service } = createService({
         controller: createController({ identifiers: [SIWE, PASSKEY] }),
       });
 
-      await expect(service.hasEnrolledIdentifier('passkey')).resolves.toBe(
-        true,
-      );
+      await expect(
+        service.findEnrolledPasskeyIdentifier('credential'),
+      ).resolves.toStrictEqual(PASSKEY);
     });
 
-    it('returns false when Cubist has none of the type', async () => {
+    it('returns undefined when Cubist has no passkey with the credential ID', async () => {
       const { service } = createService({
-        controller: createController({ identifiers: [SIWE] }),
+        controller: createController({ identifiers: [SIWE, PASSKEY] }),
       });
 
-      await expect(service.hasEnrolledIdentifier('passkey')).resolves.toBe(
-        false,
-      );
+      await expect(
+        service.findEnrolledPasskeyIdentifier('other-credential'),
+      ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('getUnenrolledPasskeyIdentifiers', () => {
+    const OTHER_AUTH_PASSKEY: Identifier = {
+      ...AUTH_PASSKEY,
+      value: 'other-credential',
+    };
+
+    it("returns Auth's passkeys that Cubist does not have", async () => {
+      const { service } = createService({
+        controller: createController({
+          identifiers: [SIWE, PASSKEY],
+          authIdentifiers: [AUTH_PASSKEY, OTHER_AUTH_PASSKEY, AUTH_SOCIAL],
+        }),
+      });
+
+      await expect(
+        service.getUnenrolledPasskeyIdentifiers(),
+      ).resolves.toStrictEqual([OTHER_AUTH_PASSKEY]);
+    });
+
+    it('returns nothing when Cubist has every Auth passkey', async () => {
+      const { service } = createService({
+        controller: createController({
+          identifiers: [SIWE, PASSKEY],
+          authIdentifiers: [AUTH_PASSKEY],
+        }),
+      });
+
+      await expect(
+        service.getUnenrolledPasskeyIdentifiers(),
+      ).resolves.toStrictEqual([]);
     });
   });
 
@@ -941,12 +974,36 @@ describe('MfaRecoveryService', () => {
       expect(controller.resume).toHaveBeenCalled();
     });
 
-    it('rejects an identifier whose type is already enrolled', async () => {
+    it('adds another passkey when Cubist already has one', async () => {
+      const controller = createController({ identifiers: [SIWE, PASSKEY] });
+      const { service } = createService({ controller });
+      const otherPasskey = { ...AUTH_PASSKEY, value: 'other-credential' };
+
+      await service.addIdentifier(otherPasskey);
+
+      expect(controller.updateIdentifiers).toHaveBeenCalledWith(
+        SIWE,
+        [SIWE, AUTH_PASSKEY, otherPasskey],
+        3,
+      );
+    });
+
+    it('rejects a passkey that is already enrolled', async () => {
       const controller = createController({ identifiers: [SIWE, PASSKEY] });
       const { service } = createService({ controller });
 
+      await expect(service.addIdentifier(AUTH_PASSKEY)).rejects.toMatchObject({
+        code: 'identifier_already_enrolled',
+      });
+      expect(controller.updateIdentifiers).not.toHaveBeenCalled();
+    });
+
+    it('rejects a non-passkey identifier whose type is already enrolled', async () => {
+      const controller = createController({ identifiers: [SIWE, SOCIAL] });
+      const { service } = createService({ controller });
+
       await expect(
-        service.addIdentifier({ ...AUTH_PASSKEY, value: 'other-credential' }),
+        service.addIdentifier({ ...SOCIAL, value: 'other-user' }),
       ).rejects.toMatchObject({ code: 'identifier_already_enrolled' });
       expect(controller.updateIdentifiers).not.toHaveBeenCalled();
     });

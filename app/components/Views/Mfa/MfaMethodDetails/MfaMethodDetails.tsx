@@ -45,6 +45,7 @@ import type {
   MfaReason,
 } from '../../../../util/identity/mfa/engine/types';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
+import Logger from '../../../../util/Logger';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import {
   getAddedOn,
@@ -54,6 +55,7 @@ import {
 } from '../labels';
 import { MfaMethodDetailsSelectorsIDs } from '../Mfa.testIds';
 import { getMfaUsedFor } from './mfaUsedFor';
+import useRecoverySync from '../useRecoverySync';
 
 export interface MfaMethodDetailsParams {
   method: MfaMethod;
@@ -128,6 +130,7 @@ const MfaMethodDetails = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const [sheet, setSheet] = useState<'confirm' | 'lastMethod'>();
   const [isRemoving, setIsRemoving] = useState(false);
+  const { removeRecoveryPasskey, recoverySheets } = useRecoverySync();
 
   const active = getActiveCredentials(credentials);
   const credential =
@@ -170,18 +173,27 @@ const MfaMethodDetails = () => {
     setIsRemoving(true);
     try {
       const reason = { operation: copy.operation };
-      await verifyOrEnroll({
-        methods: verifyWith,
-        verifyWith,
-        maxSessionAgeMs: ENROLLMENT_MAX_SESSION_AGE_MS,
-        reason,
-      });
+      const verify = (): Promise<unknown> =>
+        verifyOrEnroll({
+          methods: verifyWith,
+          verifyWith,
+          maxSessionAgeMs: ENROLLMENT_MAX_SESSION_AGE_MS,
+          reason,
+        });
+      await verify();
+      if (credential.type === 'passkey') {
+        await removeRecoveryPasskey(credential.id, verify);
+      }
       await removeMfaCredential(credential, reason);
       showToast(strings(copy.removed), true);
       navigation.dispatch(StackActions.popTo(Routes.MFA.SETTINGS));
     } catch (error) {
       // The kit has already shown its own errors, or the user backed out.
       if (!(error instanceof MfaFlowError)) {
+        Logger.error(
+          error instanceof Error ? error : new Error('MFA removal failed'),
+          { tags: { feature: 'mfa', operation: copy.operation } },
+        );
         showToast(strings('mfa.settings.remove_failed'), false);
       }
     } finally {
@@ -315,6 +327,7 @@ const MfaMethodDetails = () => {
           </Box>
         </BottomSheet>
       ) : null}
+      {recoverySheets}
     </SafeAreaView>
   );
 };

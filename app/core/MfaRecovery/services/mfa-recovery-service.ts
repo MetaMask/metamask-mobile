@@ -177,12 +177,29 @@ export class MfaRecoveryService {
     return getMfaRecoveryStatus(this.#seedlessState());
   }
 
-  /** Whether Cubist already has an identifier of `type` enrolled. */
-  async hasEnrolledIdentifier(type: Identifier['type']): Promise<boolean> {
+  /** The passkey Cubist has enrolled for the WebAuthn `credentialId`, if any. */
+  async findEnrolledPasskeyIdentifier(
+    credentialId: string,
+  ): Promise<Identifier | undefined> {
     const { identifiers } = await this.#messenger.call(
       'MfaRecoveryController:getIdentifiers',
     );
-    return identifiers.some((identifier) => identifier.type === type);
+    return identifiers.find(
+      (identifier) =>
+        identifier.type === 'passkey' && identifier.value === credentialId,
+    );
+  }
+
+  /** The passkeys Auth approved that Cubist does not have enrolled yet. */
+  async getUnenrolledPasskeyIdentifiers(): Promise<Identifier[]> {
+    const { identifiers, authIdentifiers } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
+    return authIdentifiers.filter(
+      (candidate) =>
+        candidate.type === 'passkey' &&
+        !identifiers.some((enrolled) => isSameIdentifier(enrolled, candidate)),
+    );
   }
 
   /**
@@ -444,15 +461,21 @@ export class MfaRecoveryService {
   }
 
   /**
-   * Adds an identifier to Cubist. Rejects with `identifier_already_enrolled`
-   * when Cubist already has an identifier of its type.
+   * Adds an identifier to Cubist. Cubist may hold several passkeys but one
+   * identifier of each other type. Rejects with `identifier_already_enrolled`
+   * when the passkey is already enrolled, or for other types when one of the
+   * type is.
    */
   async addIdentifier(
     identifier: Identifier,
   ): Promise<CubistIdentifierChangeResult> {
     const { identifiers, epoch, authIdentifiers } =
       await this.#loadForMutation();
-    if (identifiers.some((enrolled) => enrolled.type === identifier.type)) {
+    const isEnrolled = (enrolled: Identifier): boolean =>
+      identifier.type === 'passkey'
+        ? isSameIdentifier(enrolled, identifier)
+        : enrolled.type === identifier.type;
+    if (identifiers.some(isEnrolled)) {
       throw new MfaRecoveryControllerError(
         `The ${identifier.type} identifier is already enrolled in Cubist`,
         'identifier_already_enrolled',

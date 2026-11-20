@@ -23,7 +23,6 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
-import { verifyOrEnroll } from '../../../../util/identity/mfa/useMfa';
 import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
@@ -37,10 +36,9 @@ import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
-import SocialLinkEmailBottomSheet from '../../shared/SocialLinkEmailBottomSheet';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
-import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryAfterEnroll';
+import useRecoverySync from '../useRecoverySync';
 
 const ROW_TEST_IDS: Record<MfaMethod, string> = {
   passkey: MfaSettingsSelectorsIDs.PASSKEY_ROW,
@@ -80,14 +78,7 @@ const MfaSettings = () => {
     getActiveCredentials(credentials).map(({ type }) => type),
   );
   const [pendingMethod, setPendingMethod] = useState<MfaMethod>();
-  const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
-    resolve: (email?: string) => void;
-  }>();
-
-  const closeSocialLinkPrompt = (email?: string) => {
-    socialLinkPrompt?.resolve(email);
-    setSocialLinkPrompt(undefined);
-  };
+  const { syncRecovery, recoverySheets } = useRecoverySync();
 
   useEffect(() => {
     mobileMfaControllerAdapter
@@ -106,20 +97,7 @@ const MfaSettings = () => {
     }
 
     try {
-      await syncRecoveryAfterEnroll(method, {
-        verifyMfa: () =>
-          verifyOrEnroll({
-            methods: [method],
-            verifyWith: [method],
-            reason: { operation: ADD_OPERATIONS[method] },
-          }).then(() => undefined),
-        getSocialLinkEmail: isMfaDevBuild()
-          ? () =>
-              new Promise<string | undefined>((resolve) =>
-                setSocialLinkPrompt({ resolve }),
-              )
-          : undefined,
-      });
+      await syncRecovery(method, { operation: ADD_OPERATIONS[method] });
     } catch (error) {
       Logger.error(
         error instanceof Error ? error : new Error('Recovery sync failed'),
@@ -239,12 +217,7 @@ const MfaSettings = () => {
         ))}
         {isMfaDevBuild() ? <MfaQaPresets /> : null}
       </ScrollView>
-      {socialLinkPrompt ? (
-        <SocialLinkEmailBottomSheet
-          onSubmit={closeSocialLinkPrompt}
-          onClose={() => closeSocialLinkPrompt(undefined)}
-        />
-      ) : null}
+      {recoverySheets}
     </SafeAreaView>
   );
 };

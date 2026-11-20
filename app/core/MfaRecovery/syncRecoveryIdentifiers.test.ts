@@ -2,7 +2,10 @@ import type { Identifier } from '@metamask/mfa-recovery-controller';
 import type { MfaRecoveryService } from './services/mfa-recovery-service';
 import { createMfaRecoveryService } from './engineBindings';
 import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
-import { syncRecoveryAfterEnroll } from './syncRecoveryAfterEnroll';
+import {
+  removePasskeyFromRecovery,
+  syncRecoveryAfterEnroll,
+} from './syncRecoveryIdentifiers';
 
 jest.mock('./engineBindings', () => ({ createMfaRecoveryService: jest.fn() }));
 
@@ -24,23 +27,35 @@ const SOCIAL: Identifier = {
 
 const verifyMfa = jest.fn();
 
+const NEW_PASSKEY: Identifier = {
+  ...PASSKEY,
+  value: 'new-credential',
+} as Identifier;
+
 function createService({
   status = 'Enabled',
-  cubist = [] as Identifier[],
+  unenrolledPasskeys = [] as Identifier[],
   candidates = {} as Partial<Record<string, Identifier>>,
+  enrolledPasskey = PASSKEY as Identifier | null,
 }: {
   status?: 'Enabled' | 'NotEnabled';
-  cubist?: Identifier[];
+  unenrolledPasskeys?: Identifier[];
   candidates?: Partial<Record<string, Identifier>>;
+  /** `null` when Cubist does not have the passkey being removed. */
+  enrolledPasskey?: Identifier | null;
 } = {}) {
   const service = {
     getStatus: jest.fn().mockReturnValue(status),
     getCandidateIdentifiers: jest.fn().mockResolvedValue(candidates),
     setUp: jest.fn().mockResolvedValue('enabled'),
     addIdentifier: jest.fn().mockResolvedValue({}),
-    hasEnrolledIdentifier: jest.fn(async (type: string) =>
-      cubist.some((identifier) => identifier.type === type),
-    ),
+    getUnenrolledPasskeyIdentifiers: jest
+      .fn()
+      .mockResolvedValue(unenrolledPasskeys),
+    findEnrolledPasskeyIdentifier: jest
+      .fn()
+      .mockResolvedValue(enrolledPasskey ?? undefined),
+    removeIdentifier: jest.fn().mockResolvedValue({}),
   };
   jest
     .mocked(createMfaRecoveryService)
@@ -116,23 +131,29 @@ describe('syncRecoveryAfterEnroll', () => {
     expect(service.setUp).toHaveBeenCalledWith([SIWE]);
   });
 
-  it('adds a new passkey when recovery is set up and Cubist has none', async () => {
+  it('adds a new passkey when recovery is set up', async () => {
+    const service = createService({ unenrolledPasskeys: [NEW_PASSKEY] });
+
+    await syncRecoveryAfterEnroll('passkey', { verifyMfa });
+
+    expect(service.addIdentifier).toHaveBeenCalledWith(NEW_PASSKEY);
+    expect(service.setUp).not.toHaveBeenCalled();
+  });
+
+  it('adds each passkey Cubist does not have, one at a time', async () => {
     const service = createService({
-      cubist: [SIWE],
-      candidates: { passkey: PASSKEY },
+      unenrolledPasskeys: [PASSKEY, NEW_PASSKEY],
     });
 
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
-    expect(service.addIdentifier).toHaveBeenCalledWith(PASSKEY);
-    expect(service.setUp).not.toHaveBeenCalled();
+    expect(service.addIdentifier).toHaveBeenCalledTimes(2);
+    expect(service.addIdentifier).toHaveBeenNthCalledWith(1, PASSKEY);
+    expect(service.addIdentifier).toHaveBeenNthCalledWith(2, NEW_PASSKEY);
   });
 
-  it('does nothing when Cubist already has a passkey', async () => {
-    const service = createService({
-      cubist: [SIWE, PASSKEY],
-      candidates: { passkey: PASSKEY },
-    });
+  it('does nothing when Cubist already has every passkey', async () => {
+    const service = createService({ unenrolledPasskeys: [] });
 
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
@@ -141,23 +162,22 @@ describe('syncRecoveryAfterEnroll', () => {
   });
 
   it('does nothing for a non-passkey method once recovery is set up', async () => {
-    const service = createService({
-      cubist: [SIWE],
-      candidates: { passkey: PASSKEY },
-    });
+    const service = createService({ unenrolledPasskeys: [NEW_PASSKEY] });
 
     await syncRecoveryAfterEnroll('totp', { verifyMfa });
 
+    expect(service.getUnenrolledPasskeyIdentifiers).not.toHaveBeenCalled();
     expect(service.addIdentifier).not.toHaveBeenCalled();
     expect(service.setUp).not.toHaveBeenCalled();
   });
 
-  it('does nothing when no passkey candidate is available', async () => {
-    const service = createService({ cubist: [SIWE], candidates: {} });
+  it('propagates add failures to the caller', async () => {
+    const service = createService({ unenrolledPasskeys: [NEW_PASSKEY] });
+    service.addIdentifier.mockRejectedValue(new Error('add failed'));
 
-    await syncRecoveryAfterEnroll('passkey', { verifyMfa });
-
-    expect(service.addIdentifier).not.toHaveBeenCalled();
+    await expect(
+      syncRecoveryAfterEnroll('passkey', { verifyMfa }),
+    ).rejects.toThrow('add failed');
   });
 
   it('propagates setup failures to the caller', async () => {
@@ -170,5 +190,59 @@ describe('syncRecoveryAfterEnroll', () => {
     await expect(
       syncRecoveryAfterEnroll('totp', { verifyMfa }),
     ).rejects.toThrow('setup failed');
+  });
+});
+
+describe('removePasskeyFromRecovery', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("builds the service with the caller's verifyMfa and the setup approval operation", async () => {
+    createService();
+
+    await removePasskeyFromRecovery('credential', { verifyMfa });
+
+    expect(createMfaRecoveryService).toHaveBeenCalledWith({
+      verifyMfa,
+      approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
+    });
+  });
+
+  it('removes the enrolled passkey with the credential ID', async () => {
+    const service = createService();
+
+    await removePasskeyFromRecovery('credential', { verifyMfa });
+
+    expect(service.findEnrolledPasskeyIdentifier).toHaveBeenCalledWith(
+      'credential',
+    );
+    expect(service.removeIdentifier).toHaveBeenCalledWith(PASSKEY);
+  });
+
+  it('does nothing when recovery is not set up', async () => {
+    const service = createService({ status: 'NotEnabled' });
+
+    await removePasskeyFromRecovery('credential', { verifyMfa });
+
+    expect(service.findEnrolledPasskeyIdentifier).not.toHaveBeenCalled();
+    expect(service.removeIdentifier).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when Cubist does not have the passkey', async () => {
+    const service = createService({ enrolledPasskey: null });
+
+    await removePasskeyFromRecovery('credential', { verifyMfa });
+
+    expect(service.removeIdentifier).not.toHaveBeenCalled();
+  });
+
+  it('propagates removal failures to the caller', async () => {
+    const service = createService();
+    service.removeIdentifier.mockRejectedValue(new Error('remove failed'));
+
+    await expect(
+      removePasskeyFromRecovery('credential', { verifyMfa }),
+    ).rejects.toThrow('remove failed');
   });
 });

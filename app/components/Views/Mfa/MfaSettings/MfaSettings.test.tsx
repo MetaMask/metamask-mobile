@@ -8,7 +8,8 @@ import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryAfterEnroll';
+import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryIdentifiers';
+import { RECOVERY_SETUP_PROGRESS_TEST_IDS } from '../../shared/RecoverySetupProgressBottomSheet';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaSettings from './MfaSettings';
 
@@ -29,8 +30,9 @@ jest.mock('../../../../util/identity/mfa/bindings', () => ({
   },
 }));
 
-jest.mock('../../../../core/MfaRecovery/syncRecoveryAfterEnroll', () => ({
+jest.mock('../../../../core/MfaRecovery/syncRecoveryIdentifiers', () => ({
   syncRecoveryAfterEnroll: jest.fn(),
+  removePasskeyFromRecovery: jest.fn(),
 }));
 
 const mockIsMfaDevBuild = jest.fn(() => true);
@@ -93,7 +95,12 @@ describe('MfaSettings', () => {
     mockIsMfaDevBuild.mockReturnValue(true);
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('asks for the social link email in dev builds and passes it on', async () => {
+    jest.useFakeTimers();
     let emailPromise: Promise<string | undefined> | undefined;
     mockSyncRecovery.mockImplementation(async (_method, options) => {
       emailPromise = options.getSocialLinkEmail?.();
@@ -103,6 +110,7 @@ describe('MfaSettings', () => {
 
     await act(async () => {
       fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+      await jest.advanceTimersByTimeAsync(300);
     });
     expect(
       getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_SHEET),
@@ -115,6 +123,7 @@ describe('MfaSettings', () => {
       fireEvent.press(
         getByTestId(MfaSettingsSelectorsIDs.SOCIAL_LINK_EMAIL_CONFIRM),
       );
+      await jest.advanceTimersByTimeAsync(300);
     });
 
     await expect(emailPromise).resolves.toBe('qa@example.com');
@@ -123,6 +132,26 @@ describe('MfaSettings', () => {
         labelOptions: [{ label: 'Authenticator app added' }],
       }),
     );
+  });
+
+  it('shows the recovery progress sheet while the recovery sync is pending', async () => {
+    let finishSync: () => void = () => undefined;
+    mockSyncRecovery.mockImplementation(
+      () => new Promise<void>((resolve) => (finishSync = resolve)),
+    );
+    const { getByTestId, queryByTestId } = renderSettings();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    });
+    expect(
+      getByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET),
+    ).toBeOnTheScreen();
+    await act(async () => {
+      finishSync();
+    });
+
+    expect(queryByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET)).toBeNull();
   });
 
   it('shows a loading indicator on the row while an add is in progress', async () => {
