@@ -651,6 +651,40 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('uses the explore_crypto source for view all, profile and follow', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+    renderWithProvider(
+      <TopTradersSection {...defaultProps} source="explore_crypto" />,
+    );
+
+    fireEvent.press(screen.getByText('Top traders'));
+    fireEvent.press(screen.getByTestId('top-trader-card-trader-1'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.PROFILE,
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+    expect(mockToggleFollow).toHaveBeenCalledWith(
+      'trader-1',
+      expect.objectContaining({ source: 'explore_crypto' }),
+    );
+  });
+
   it('navigates to the trading signals setup sheet when following with both channels off', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = {
