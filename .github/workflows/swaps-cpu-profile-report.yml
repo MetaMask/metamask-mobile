@@ -49,4 +49,5 @@ jobs:
           name: swaps-cpu-profile-summary
           path: /tmp/swaps-cpu-profile-report/summary.json
           if-no-files-found: ignore
+          overwrite: true
           retention-days: 90
