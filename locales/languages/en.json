@@ -5412,10 +5412,6 @@
   },
   "collectibles": {
     "title": "Collectibles",
-    "home_section": {
-      "description": "Explore collectibles packs and cards.",
-      "open_collectibles": "Explore Collectibles"
-    },
     "trade_menu": {
       "description": "Explore packs and cards"
     }

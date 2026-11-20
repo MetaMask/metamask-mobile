@@ -3,11 +3,8 @@ import type { View as RNView } from 'react-native';
 import {
   SectionDivider,
   SectionHeader,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { View } from '../../../../UI/primitives/View';
-import { Text } from '../../../../UI/primitives/Text';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
 import useHomeViewedEvent, {
@@ -80,19 +77,12 @@ export function CollectiblesSection({
       testID={collectiblesTestIds.homeSection}
     >
       <SectionDivider />
-      {/* TODO: make the header open Collectibles once it has routes */}
       <SectionHeader
         title={strings('collectibles.title')}
+        isInteractive
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        className="px-4"
-      >
-        {strings('collectibles.home_section.description')}
-      </Text>
-      <View className="pt-3">
+      <View>
         {isPending || !packs ? (
           <CollectiblesCarouselSkeleton />
         ) : (
