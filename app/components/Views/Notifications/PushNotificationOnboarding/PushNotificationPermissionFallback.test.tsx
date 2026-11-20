@@ -1,4 +1,11 @@
 import React from 'react';
+import { hasPushPrePromptBeenAnswered } from '../../../../util/notifications/constants/notification-storage-keys';
+jest.mock(
+  '../../../../util/notifications/constants/notification-storage-keys',
+  () => ({
+    hasPushPrePromptBeenAnswered: jest.fn(() => false),
+  }),
+);
 import { render } from '@testing-library/react-native';
 import PushNotificationPermissionFallback from './PushNotificationPermissionFallback';
 import {
@@ -48,6 +55,7 @@ const mockVariant = (variant: PushPrePromptVariant) => {
 describe('PushNotificationPermissionFallback', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(hasPushPrePromptBeenAnswered).mockReturnValue(false);
     mockShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
     mockUseEnableNotifications.mockReturnValue({
       enableNotifications: mockEnableNotifications,
@@ -58,6 +66,15 @@ describe('PushNotificationPermissionFallback', () => {
       data: false,
     });
     mockVariant(null);
+  });
+
+  it('suppresses the fallback after onboarding even with a stale eligible variant', () => {
+    mockVariant('push_permission');
+    jest.mocked(hasPushPrePromptBeenAnswered).mockReturnValue(true);
+
+    render(<PushNotificationPermissionFallback />);
+
+    expect(mockEnableNotifications).not.toHaveBeenCalled();
   });
 
   it('renders nothing', () => {

@@ -38,16 +38,42 @@ const markBrazePushRegistrationDesiredSafely = async (): Promise<void> => {
  * - This is used during onboarding and for the notifications settings toggle
  * - Enables wallet notifications, feature announcements, and push notifications
  */
-export const enableNotifications = async (
+// Serialize callers before the first await (including Braze persistence). Controller
+// loading state alone cannot protect two calls that arrive in the same JS turn.
+let notificationEnableQueue: Promise<void> = Promise.resolve();
+export const enableNotifications = (
   options?: NotificationServicesControllerEnableNotificationsOptions,
-) => {
-  assertIsFeatureEnabled();
-  if (options?.registerPushNotifications !== false) {
-    await markBrazePushRegistrationDesiredSafely();
-  }
-  await Engine.context.NotificationServicesController.enableMetamaskNotifications(
-    options,
-  );
+  requireReady = false,
+): Promise<void> => {
+  const operation = notificationEnableQueue.then(async () => {
+    assertIsFeatureEnabled();
+    const assertReady = () => {
+      if (
+        requireReady &&
+        (!Engine.context.KeyringController.state.isUnlocked ||
+          !Engine.context.AuthenticationController.state.isSignedIn)
+      ) {
+        throw new Error('Notification services are not ready');
+      }
+      if (
+        Engine.context.NotificationServicesController.state
+          .isUpdatingMetamaskNotifications
+      ) {
+        throw new Error('Notification services are already updating');
+      }
+    };
+    assertReady();
+    if (options?.registerPushNotifications !== false) {
+      await markBrazePushRegistrationDesiredSafely();
+    }
+    assertReady();
+    await Engine.context.NotificationServicesController.enableMetamaskNotifications(
+      options,
+    );
+  });
+  // A failed call must not poison subsequent explicit retries.
+  notificationEnableQueue = operation.catch(() => undefined);
+  return operation;
 };
 
 /**

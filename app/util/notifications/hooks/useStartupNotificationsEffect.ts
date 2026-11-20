@@ -16,6 +16,7 @@ import {
 } from './useNotifications';
 import {
   hasNotificationSubscriptionExpired,
+  hasPushPrePromptBeenAnswered,
   hasUserTurnedOffNotificationsOnce,
 } from '../constants/notification-storage-keys';
 import { hasNotificationPreferences } from '../../../actions/notification/helpers';
@@ -128,7 +129,10 @@ export function useEnableNotificationsByDefaultEffect() {
         const isWalletHomePostOnboardingChecklistActive =
           shouldShowWalletHomeOnboardingSteps;
 
-        if (isWalletHomePostOnboardingChecklistActive) {
+        if (
+          isWalletHomePostOnboardingChecklistActive ||
+          hasPushPrePromptBeenAnswered()
+        ) {
           return;
         }
 
@@ -139,7 +143,10 @@ export function useEnableNotificationsByDefaultEffect() {
           isNotificationsEnabledByDefaultFeatureFlag &&
           notificationsFlagEnabled
         ) {
-          if (!(await hasUserTurnedOffNotificationsOnce())) {
+          if (
+            !(await hasUserTurnedOffNotificationsOnce()) &&
+            !hasPushPrePromptBeenAnswered()
+          ) {
             await enableAndRefresh();
           }
         }

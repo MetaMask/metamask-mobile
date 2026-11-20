@@ -119,6 +119,28 @@ describe('usePushPrePromptAnalytics', () => {
     },
   );
 
+  it('attributes onboarding views, actions, dismissal and OS responses', () => {
+    const { result } = renderHook(() =>
+      usePushPrePromptAnalytics('onboarding_push_permission'),
+    );
+
+    result.current.trackPrePromptViewed('push_permission');
+    result.current.trackPrePromptButtonClicked('push_permission', 'yes');
+    result.current.trackPrePromptButtonClicked('push_permission', 'not_now');
+    result.current.trackPrePromptDismissed('push_permission');
+    result.current.trackOsPromptResponse('push_permission', 'allowed');
+
+    expect(
+      mockTrackEvent.mock.calls.map(([event]) => event.properties),
+    ).toEqual([
+      { location: 'onboarding_push_permission' },
+      { location: 'onboarding_push_permission', button_type: 'allow' },
+      { location: 'onboarding_push_permission', button_type: 'deny' },
+      { location: 'onboarding_push_permission', button_type: 'dismiss' },
+      { location: 'onboarding_push_permission', button_type: 'allow' },
+    ]);
+  });
+
   it('keeps OS prompt shown as a noop because the schema has no shown event', () => {
     const { result } = renderHook(() => usePushPrePromptAnalytics());
 

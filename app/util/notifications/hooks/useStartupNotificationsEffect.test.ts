@@ -434,6 +434,19 @@ describe('useEnableNotificationsByDefaultEffect', () => {
     jest.useRealTimers();
   });
 
+  it('does not auto-enable after an onboarding answer', async () => {
+    const mocks = arrange();
+    const answered = jest
+      .spyOn(storageWrapper, 'getItemSync')
+      .mockReturnValue('true');
+
+    renderHookWithProvider(() => useEnableNotificationsByDefaultEffect(), {});
+    await waitFor(() => expect(answered).toHaveBeenCalled());
+
+    expect(mocks.hooks.enableNotifications).not.toHaveBeenCalled();
+    answered.mockRestore();
+  });
+
   it('enables notifications by default when all conditions are met and user has not turned off notifications', async () => {
     const mocks = arrange();
 
