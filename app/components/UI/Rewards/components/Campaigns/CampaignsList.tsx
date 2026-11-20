@@ -67,7 +67,9 @@ const CampaignsList: React.FC = () => {
         <RewardsErrorBanner
           title={strings('rewards.campaigns_view.error_title')}
           description={strings('rewards.campaigns_view.error_description')}
-          onConfirm={fetchCampaigns}
+          onConfirm={() => {
+            void fetchCampaigns();
+          }}
           confirmButtonLabel={strings('rewards.campaigns_view.retry_button')}
         />
       );
