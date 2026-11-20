@@ -60,6 +60,7 @@ const LOCALIZED_TEXT = {
   historyReferrals: 'Referral earning',
   historyCommission: 'Commission',
   historyRebate: 'Rebate',
+  rebateSwaps: 'Swaps',
   historyClaimed: 'Claimed',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
@@ -226,7 +227,7 @@ describe('RewardsEarningsHistoryView', () => {
       getByTestId(REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('History')).toBeOnTheScreen();
-    expect(getByText('Rebate')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
     expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(
       getByTestId(`${EARNINGS_HISTORY_TEST_IDS.ROW}-${earning.id}`),
