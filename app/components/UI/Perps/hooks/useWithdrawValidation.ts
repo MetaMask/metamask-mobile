@@ -10,7 +10,7 @@ import {
   parseCurrencyString,
   truncateToTwoDecimals,
 } from '../utils/formatUtils';
-import { usePerpsNetwork } from './index';
+import { usePerpsConnection, usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
 
 interface UseWithdrawValidationParams {
@@ -28,6 +28,7 @@ export const useWithdrawValidation = ({
   providerId,
 }: UseWithdrawValidationParams) => {
   const { account } = usePerpsLiveAccount({ providerId });
+  const { isInitialized } = usePerpsConnection();
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
@@ -37,8 +38,8 @@ export const useWithdrawValidation = ({
     return truncateToTwoDecimals(parseCurrencyString(balance)).toString();
   }, [account]);
 
-  // Get withdrawal route for constraints
   const withdrawalRoute = useMemo(() => {
+    if (!isInitialized) return undefined;
     const controller = Engine.context.PerpsController;
     const routes = controller.getWithdrawalRoutes();
 
@@ -50,11 +51,9 @@ export const useWithdrawValidation = ({
     return routes.find(
       (route) =>
         route.assetId === usdcAssetId &&
-        (providerId === undefined ||
-          route.providerId === providerId ||
-          route.providerId === undefined),
+        (route.providerId === providerId || route.providerId === undefined),
     );
-  }, [isTestnet, providerId]);
+  }, [isInitialized, isTestnet, providerId]);
 
   // Validation checks
   const hasInsufficientBalance = useMemo(() => {
@@ -103,6 +102,7 @@ export const useWithdrawValidation = ({
   return {
     withdrawableBalance,
     withdrawalRoute,
+    isLoadingRoute: !isInitialized,
     hasInsufficientBalance,
     isBelowMinimum,
     hasAmount,

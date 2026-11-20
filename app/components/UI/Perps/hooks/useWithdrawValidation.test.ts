@@ -17,6 +17,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 // Mock other hooks
 jest.mock('./index', () => ({
+  usePerpsConnection: jest.fn(),
   usePerpsNetwork: jest.fn(),
 }));
 
@@ -45,7 +46,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
-import { usePerpsNetwork } from './index';
+import { usePerpsConnection, usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
 
 describe('useWithdrawValidation', () => {
@@ -72,9 +73,24 @@ describe('useWithdrawValidation', () => {
       isInitialLoading: false,
     });
     (usePerpsNetwork as jest.Mock).mockReturnValue('mainnet');
+    (usePerpsConnection as jest.Mock).mockReturnValue({ isInitialized: true });
     (
       Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
     ).mockReturnValue([mockRoute]);
+  });
+
+  it('reads the route when the connection initializes with an already cached balance', () => {
+    const connection = usePerpsConnection as jest.Mock;
+    connection.mockReturnValue({ isInitialized: false });
+    const { result, rerender } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100' }),
+    );
+    expect(result.current.withdrawalRoute).toBeUndefined();
+
+    connection.mockReturnValue({ isInitialized: true });
+    rerender();
+
+    expect(result.current.withdrawalRoute).toEqual(mockRoute);
   });
 
   it('should parse available balance correctly', () => {

@@ -275,7 +275,9 @@ describe('usePerpsOrderForm', () => {
         },
       );
 
-      expect(mockUsePerpsMarketData).toHaveBeenCalledWith('');
+      expect(mockUsePerpsMarketData).toHaveBeenCalledWith(
+        expect.objectContaining({ asset: '' }),
+      );
     });
 
     it('keeps an empty surface fallback empty', () => {

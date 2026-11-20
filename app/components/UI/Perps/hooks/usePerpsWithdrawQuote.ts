@@ -1,11 +1,9 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
 import { formatPerpsFiat, formatPerpsUsdCents } from '../utils/formatUtils';
 import {
-  HYPERLIQUID_ASSET_CONFIGS,
   PERPS_DISPLAY_PRECISION,
-  type PerpsProviderType,
+  type AssetRoute,
   WITHDRAWAL_CONSTANTS,
 } from '@metamask/perps-controller';
 import {
@@ -15,7 +13,7 @@ import {
 
 interface PerpsWithdrawQuoteParams {
   amount: string;
-  providerId?: PerpsProviderType;
+  withdrawalRoute?: AssetRoute;
 }
 
 interface FormattedQuoteData {
@@ -32,7 +30,7 @@ interface FormattedQuoteData {
  */
 export const usePerpsWithdrawQuote = ({
   amount,
-  providerId,
+  withdrawalRoute,
 }: PerpsWithdrawQuoteParams) => {
   // Parse and validate amount once
   const { parsedAmount, isValid } = useMemo(() => {
@@ -52,26 +50,6 @@ export const usePerpsWithdrawQuote = ({
 
     return { parsedAmount: parsed, isValid: valid };
   }, [amount]);
-
-  // Get withdrawal route to access fee constraints
-  const isTestnet = Engine.context.PerpsController.state.isTestnet;
-  const withdrawalRoute = useMemo(() => {
-    const controller = Engine.context.PerpsController;
-    const routes = controller.getWithdrawalRoutes();
-
-    // Find USDC route
-    const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
-
-    return routes.find(
-      (route) =>
-        route.assetId === usdcAssetId &&
-        (providerId === undefined ||
-          route.providerId === providerId ||
-          route.providerId === undefined),
-    );
-  }, [isTestnet, providerId]);
 
   // Numeric network fee, for arithmetic; never re-parse the localized display.
   const networkFeeAmount: number =

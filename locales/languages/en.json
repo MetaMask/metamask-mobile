@@ -2283,6 +2283,7 @@
       "review": "Review withdrawal",
       "withdraw": "Withdraw",
       "withdraw_usdc": "Withdraw USDC",
+      "route_unavailable": "Withdrawals are unavailable for this venue.",
       "minimum_amount_error": "Minimum withdrawal amount is ${{amount}}",
       "amount_too_low": "Amount must be greater than ${{minAmount}} to cover fees",
       "confirm": "Confirm withdrawal",
