@@ -11,7 +11,7 @@ describe('ProfileRow', () => {
     const onPress = jest.fn();
     const { getByTestId } = renderWithProvider(
       <ProfileRow
-        title="Handle"
+        title="Username"
         value="giga-whale"
         onPress={onPress}
         testID={TEST_ID}
@@ -27,7 +27,7 @@ describe('ProfileRow', () => {
     it('is not pressable even when onPress is provided', () => {
       const { getByTestId } = renderWithProvider(
         <ProfileRow
-          title="Handle"
+          title="Username"
           value="giga-whale"
           onPress={jest.fn()}
           disabled
@@ -47,7 +47,7 @@ describe('ProfileRow', () => {
     it('is announced as disabled', () => {
       const { getByTestId } = renderWithProvider(
         <ProfileRow
-          title="Handle"
+          title="Username"
           value="giga-whale"
           disabled
           testID={TEST_ID}
@@ -62,7 +62,7 @@ describe('ProfileRow', () => {
     it('still renders the label and value', () => {
       const { getByTestId } = renderWithProvider(
         <ProfileRow
-          title="Handle"
+          title="Username"
           value="giga-whale"
           disabled
           testID={TEST_ID}
@@ -70,7 +70,7 @@ describe('ProfileRow', () => {
       );
 
       const row = getByTestId(TEST_ID);
-      expect(within(row).getByText('Handle')).toBeOnTheScreen();
+      expect(within(row).getByText('Username')).toBeOnTheScreen();
       expect(within(row).getByText('giga-whale')).toBeOnTheScreen();
     });
   });

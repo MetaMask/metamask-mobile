@@ -1234,7 +1234,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        'This handle is unavailable. Choose another one.',
+        'This username is unavailable. Choose another one.',
       ),
     ).toBeOnTheScreen();
     expect(
@@ -1600,7 +1600,7 @@ describe('SocialProfileOnboardingView', () => {
     await waitFor(
       () => {
         expect(
-          screen.getByText('This handle is unavailable. Choose another one.'),
+          screen.getByText('This username is unavailable. Choose another one.'),
         ).toBeOnTheScreen();
       },
       // Username availability is debounced 400ms before the taken result renders.
@@ -1610,7 +1610,7 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.changeText(usernameInput, 'h');
     expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
     expect(
-      screen.queryByText('This handle is unavailable. Choose another one.'),
+      screen.queryByText('This username is unavailable. Choose another one.'),
     ).not.toBeOnTheScreen();
     expect(screen.queryByText('Username available')).not.toBeOnTheScreen();
     expect(
@@ -1625,7 +1625,7 @@ describe('SocialProfileOnboardingView', () => {
     await waitFor(
       () => {
         expect(
-          screen.getByText('This handle is unavailable. Choose another one.'),
+          screen.getByText('This username is unavailable. Choose another one.'),
         ).toBeOnTheScreen();
       },
       // Username availability is debounced 400ms before the taken result renders.
@@ -1653,7 +1653,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that handle. Check your connection and try again.",
+        "Couldn't check that username. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(
@@ -2551,7 +2551,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       await screen.findByText(
-        "Couldn't check that handle. Check your connection and try again.",
+        "Couldn't check that username. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
     expect(
