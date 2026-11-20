@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
@@ -157,8 +158,10 @@ describe('RefererHeroCard', () => {
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
-      getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
-    ).toBeOnTheScreen();
+      within(
+        getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+    ).toBe(IconName.People);
   });
 
   it('does not read the referrer totals off the self-earned branch', () => {

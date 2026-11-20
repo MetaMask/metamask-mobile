@@ -76,6 +76,9 @@ describe('EarningsHistoryRow', () => {
 
     expect(getByText('Commission')).toBeOnTheScreen();
     expect(getByText('+$2.50')).toBeOnTheScreen();
+    expect(UNSAFE_getAllByType(AvatarIcon)[0].props.iconName).toBe(
+      IconName.People,
+    );
     expect(amountColor(UNSAFE_getAllByType, '+$2.50')).toBe(
       TextColor.SuccessDefault,
     );
