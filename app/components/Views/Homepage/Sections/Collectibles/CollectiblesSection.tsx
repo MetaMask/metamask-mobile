@@ -65,6 +65,7 @@ export function CollectiblesSection({
     sectionId: HomeSectionNames.COLLECTIBLES,
     contentReady: !isPending,
     isEmpty,
+    demandStarted: isPending || Boolean(packs?.length),
     isLoading: isPending,
   });
 
