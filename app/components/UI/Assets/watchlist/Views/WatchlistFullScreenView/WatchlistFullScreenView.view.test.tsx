@@ -1,4 +1,6 @@
 import '../../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
 import {
   renderWatchlistFullScreenViewWithRoutes,
   renderWatchlistSectionWithRoutes,
@@ -34,14 +36,22 @@ import { getTrendingTokenRowItemTestId } from '../../../../Trending/components/T
 import { TrendingViewSelectorsIDs } from '../../../../../Views/TrendingView/TrendingView.testIds';
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
 import { formatPriceWithSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
+import { getPerpsMarketRowItemSelector } from '../../../../Perps/Perps.testIds';
+import {
+  getUnavailablePerpRemoveButtonTestId,
+  getUnavailablePerpRowTestId,
+} from '../../../../Watchlist/WatchlistUnavailablePerpRow';
+import Engine from '../../../../../../core/Engine';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 const SEARCH_TOKEN = mockTrendingTokensData[1];
 
 const getRowTestId = (assetId: string) =>
   getTrendingTokenRowItemTestId(assetId);
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
   setupTrendingApiFetchMock(mockTrendingTokensData);
   setupWatchlistStorageMock();
   setupWatchlistTokenApiMock();
@@ -51,6 +61,7 @@ beforeEach(() => {
 afterEach(() => {
   clearWatchlistApiMocks();
   clearTrendingApiMocks();
+  netInfoMock.__resetMockNetInfo();
 });
 
 describeForPlatforms('WatchlistFullScreenView', () => {
@@ -94,6 +105,60 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       expect(
         scope.getByText(`${pctPrefix}${Math.abs(pctChange).toFixed(2)}%`),
       ).toBeOnTheScreen();
+    });
+  });
+
+  it('renders mixed same-ticker rows without token edit controls', async () => {
+    const { findByTestId, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['ETH'],
+        streamOverrides: {
+          marketData: [
+            {
+              symbol: 'ETH',
+              name: 'Ethereum Perpetual',
+              maxLeverage: '50x',
+              price: '$2,000.00',
+              change24h: '+$50.00',
+              change24hPercent: '+2.50%',
+              volume: '$1.5B',
+              openInterest: '$500M',
+            },
+          ],
+        },
+      });
+
+    expect(
+      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('removes an unavailable watched Perps market', async () => {
+    const toggleWatchlistMarket = Engine.context.PerpsController
+      .toggleWatchlistMarket as jest.Mock;
+    toggleWatchlistMarket.mockClear();
+    const { findByTestId } = renderWatchlistFullScreenViewWithRoutes({
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: ['DOGE'],
+      streamOverrides: { marketData: [] },
+    });
+
+    expect(
+      await findByTestId(getUnavailablePerpRowTestId('DOGE')),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      await findByTestId(getUnavailablePerpRemoveButtonTestId('DOGE')),
+    );
+
+    await waitFor(() => {
+      expect(toggleWatchlistMarket).toHaveBeenCalledWith('DOGE');
     });
   });
 
