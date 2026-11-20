@@ -198,6 +198,10 @@ export class InterruptingScreenGuard {
   #aiAttempts = 0;
   /** Bumped by configure() so a timed-out test's leftover work cannot touch the next test. */
   #generation = 0;
+  /** Generation that owns the device. Leftover work stops when this no longer matches. */
+  #ownedGeneration = 0;
+  /** Chains device work so a new test waits out the previous test's in-flight command. */
+  #turn: Promise<void> = Promise.resolve();
   readonly #adapter: InterruptingScreenDeviceAdapter;
 
   constructor(
@@ -210,8 +214,17 @@ export class InterruptingScreenGuard {
   configure(config: InterruptingScreenGuardConfig | undefined): void {
     this.#config = config;
     this.#aiAttempts = 0;
-    this.#handling = false;
     this.#generation += 1;
+  }
+
+  /** True once configure() has moved on from the work that owns the device. */
+  #abandoned(): boolean {
+    return this.#ownedGeneration !== this.#generation;
+  }
+
+  /** True while this generation is already inside a guard device call. Nested calls must not queue behind it. */
+  #inGuardWork(): boolean {
+    return this.#handling && !this.#abandoned();
   }
 
   /** False when unconfigured or while the guard itself is dismissing a screen. */
@@ -230,11 +243,12 @@ export class InterruptingScreenGuard {
   async settle(
     options: SettleOptions = {},
   ): Promise<InterruptingScreenDismissal[]> {
-    if (!this.isActive()) {
+    const windowMs = options.windowMs ?? resolveSettleWindowMs();
+    if (this.#inGuardWork()) {
       return [];
     }
-    const windowMs = options.windowMs ?? resolveSettleWindowMs();
-    if (windowMs <= 0) {
+    if (this.#config === undefined || windowMs <= 0) {
+      await this.#turn;
       return [];
     }
     const pollIntervalMs =
@@ -242,11 +256,20 @@ export class InterruptingScreenGuard {
 
     return this.#runExcluded(INTERRUPTING_SCREEN_SETTLE_PHASE, async () => {
       const dismissed: InterruptingScreenDismissal[] = [];
+      if (this.#abandoned()) {
+        return dismissed;
+      }
       const failedAttempts = new Map<string, number>();
       const deadline = this.#adapter.now() + windowMs;
 
       while (dismissed.length < MAX_SETTLE_DISMISSALS) {
+        if (this.#abandoned()) {
+          return dismissed;
+        }
         const pageSource = await this.#safePageSource();
+        if (this.#abandoned()) {
+          return dismissed;
+        }
         const screen =
           pageSource === null
             ? undefined
@@ -258,6 +281,9 @@ export class InterruptingScreenGuard {
 
         if (screen) {
           const event = await this.#dismissKnownScreen(screen, 'settle');
+          if (this.#abandoned()) {
+            return dismissed;
+          }
           if (event) {
             dismissed.push(event);
           } else {
@@ -274,6 +300,9 @@ export class InterruptingScreenGuard {
           break;
         }
         await this.#adapter.sleep(Math.min(pollIntervalMs, remaining));
+        if (this.#abandoned()) {
+          return dismissed;
+        }
       }
       return dismissed;
     });
@@ -287,12 +316,19 @@ export class InterruptingScreenGuard {
   async recoverFromFailure(
     context: RetryContext & { error: unknown },
   ): Promise<boolean> {
-    if (!this.isActive()) {
+    if (this.#inGuardWork()) {
+      return false;
+    }
+    if (this.#config === undefined) {
+      await this.#turn;
       return false;
     }
     return this.#runExcluded(INTERRUPTING_SCREEN_RECOVERY_PHASE, async () => {
+      if (this.#abandoned()) {
+        return false;
+      }
       const pageSource = await this.#safePageSource();
-      if (pageSource === null) {
+      if (this.#abandoned() || pageSource === null) {
         return false;
       }
       if (
@@ -304,6 +340,9 @@ export class InterruptingScreenGuard {
       ) {
         return true;
       }
+      if (this.#abandoned()) {
+        return false;
+      }
       return this.#dismissWithAi(pageSource, context);
     });
   }
@@ -314,15 +353,22 @@ export class InterruptingScreenGuard {
    * pass while a sheet covers the screen, such as the wallet-home wait.
    */
   async dismissKnownScreen(intent: string): Promise<boolean> {
-    if (!this.isActive()) {
+    if (this.#inGuardWork()) {
+      return false;
+    }
+    if (this.#config === undefined) {
+      await this.#turn;
       return false;
     }
     return this.#runExcluded(INTERRUPTING_SCREEN_RECOVERY_PHASE, async () => {
+      if (this.#abandoned()) {
+        return false;
+      }
       const pageSource = await this.#safePageSource();
-      return (
-        pageSource !== null &&
-        this.#dismissFirstKnownScreen(pageSource, 'wait-failure', intent)
-      );
+      if (this.#abandoned() || pageSource === null) {
+        return false;
+      }
+      return this.#dismissFirstKnownScreen(pageSource, 'wait-failure', intent);
     });
   }
 
@@ -332,12 +378,23 @@ export class InterruptingScreenGuard {
    */
   async capturePageSource(label: string): Promise<void> {
     const onPageSource = this.#config?.onPageSource;
-    if (!this.isActive() || !onPageSource) {
+    if (this.#inGuardWork()) {
+      return;
+    }
+    if (this.#config === undefined || !onPageSource) {
+      await this.#turn;
       return;
     }
     await this.#runExcluded(INTERRUPTING_SCREEN_RECOVERY_PHASE, async () => {
+      if (this.#abandoned()) {
+        return;
+      }
       const pageSource = await this.#safePageSource();
-      if (pageSource === null || pageSourceContainsSecrets(pageSource)) {
+      if (
+        this.#abandoned() ||
+        pageSource === null ||
+        pageSourceContainsSecrets(pageSource)
+      ) {
         return;
       }
       try {
@@ -356,6 +413,9 @@ export class InterruptingScreenGuard {
     action: () => Promise<TResult>,
     context: RetryContext,
   ): Promise<TResult> {
+    if (!this.#inGuardWork()) {
+      await this.#turn;
+    }
     try {
       return await action();
     } catch (error) {
@@ -403,9 +463,18 @@ export class InterruptingScreenGuard {
     trigger: InterruptionTrigger,
     intent?: string,
   ): Promise<InterruptingScreenDismissal | undefined> {
+    if (this.#abandoned()) {
+      return undefined;
+    }
     const startedAt = this.#adapter.now();
     for (const locator of screen.dismiss) {
+      if (this.#abandoned()) {
+        return undefined;
+      }
       if (await this.#adapter.tap(locator)) {
+        if (this.#abandoned()) {
+          return undefined;
+        }
         const event: InterruptingScreenDismissal = {
           screen: screen.name,
           source: 'registry',
@@ -432,6 +501,9 @@ export class InterruptingScreenGuard {
     pageSource: string,
     context: RetryContext & { error: unknown },
   ): Promise<boolean> {
+    if (this.#abandoned()) {
+      return false;
+    }
     const provider = this.#config?.aiProvider;
     const maxAttempts =
       this.#config?.maxAiAttemptsPerTest ?? DEFAULT_MAX_AI_ATTEMPTS_PER_TEST;
@@ -453,6 +525,9 @@ export class InterruptingScreenGuard {
       logger.warn(`AI interruption check failed: ${errorMessage(error)}`);
       return false;
     }
+    if (this.#abandoned()) {
+      return false;
+    }
 
     if (!decision?.blocking || !decision.dismissLocator) {
       logger.debug(
@@ -463,6 +538,9 @@ export class InterruptingScreenGuard {
 
     const locator = decision.dismissLocator;
     const onDevice = await this.#adapter.describe(locator);
+    if (this.#abandoned()) {
+      return false;
+    }
     if (
       !isSafeDismissControl([locator.value, decision.dismissLabel, ...onDevice])
     ) {
@@ -473,6 +551,9 @@ export class InterruptingScreenGuard {
     }
 
     if (!(await this.#adapter.tap(locator))) {
+      return false;
+    }
+    if (this.#abandoned()) {
       return false;
     }
 
@@ -494,8 +575,12 @@ export class InterruptingScreenGuard {
   }
 
   async #emit(event: InterruptingScreenDismissal): Promise<void> {
+    if (this.#abandoned()) {
+      return;
+    }
+    const onDismissed = this.#config?.onDismissed;
     try {
-      await this.#config?.onDismissed?.(event);
+      await onDismissed?.(event);
     } catch (error) {
       logger.debug(`onDismissed callback failed: ${errorMessage(error)}`);
     }
@@ -506,18 +591,32 @@ export class InterruptingScreenGuard {
     fn: () => Promise<TResult>,
   ): Promise<TResult> {
     const generation = this.#generation;
-    this.#handling = true;
-    const startedAt = this.#adapter.now();
+    let release = () => undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const previous = this.#turn;
+    this.#turn = gate;
     try {
-      return await withOverheadTrackingSuspended(fn);
-    } finally {
-      // A newer configure() means this work belongs to a test that already ended.
-      if (this.#generation === generation) {
-        const elapsedMs = this.#adapter.now() - startedAt;
-        this.#handling = false;
-        TimerStore.excludeFromActiveTimers(elapsedMs);
-        recordPhase(nestedPhase(phase), elapsedMs);
+      await previous;
+      if (generation !== this.#generation) {
+        return await fn();
       }
+      this.#ownedGeneration = generation;
+      this.#handling = true;
+      const startedAt = this.#adapter.now();
+      try {
+        return await withOverheadTrackingSuspended(fn);
+      } finally {
+        if (generation === this.#generation) {
+          const elapsedMs = this.#adapter.now() - startedAt;
+          TimerStore.excludeFromActiveTimers(elapsedMs);
+          recordPhase(nestedPhase(phase), elapsedMs);
+        }
+        this.#handling = false;
+      }
+    } finally {
+      release();
     }
   }
 }

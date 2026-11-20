@@ -254,7 +254,62 @@ describe('InterruptingScreenGuard', () => {
   });
 
   describe('configure', () => {
-    it('drops leftover work so it cannot change the next test', async () => {
+    it('stops leftover work before it taps or overlaps the next test', async () => {
+      let release = () => undefined;
+      let reads = 0;
+      let inFlightReads = 0;
+      let maxInFlightReads = 0;
+      const adapter = createAdapter([EXPERIENCE_ENHANCER]);
+      adapter.getPageSource = () => {
+        reads += 1;
+        inFlightReads += 1;
+        maxInFlightReads = Math.max(maxInFlightReads, inFlightReads);
+        if (reads === 1) {
+          return new Promise((resolve) => {
+            release = () => {
+              inFlightReads -= 1;
+              resolve(EXPERIENCE_ENHANCER);
+            };
+          });
+        }
+        inFlightReads -= 1;
+        return Promise.resolve(WALLET_HOME);
+      };
+      const previousDismissed = jest.fn();
+      const nextDismissed = jest.fn();
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({ onDismissed: previousDismissed });
+      const pending = guard.settle({ windowMs: 1_000 });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      guard.configure({ onDismissed: nextDismissed });
+      let nextDone = false;
+      const nextSettle = guard.settle({ windowMs: 1_000 }).then((value) => {
+        nextDone = true;
+        return value;
+      });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
+
+      expect(reads).toBe(1);
+      expect(nextDone).toBe(false);
+      release();
+      const [dismissed] = await Promise.all([pending, nextSettle]);
+
+      expect(dismissed).toEqual([]);
+      expect(nextDone).toBe(true);
+      expect(guard.isActive()).toBe(true);
+      expect(adapter.tapped).toEqual([]);
+      expect(previousDismissed).not.toHaveBeenCalled();
+      expect(nextDismissed).not.toHaveBeenCalled();
+      expect(maxInFlightReads).toBe(1);
+      expect(reads).toBeGreaterThan(1);
+    });
+
+    it('does not charge leftover guard time to the next test timer', async () => {
       let release = () => undefined;
       let firstRead = true;
       const adapter = createAdapter([WALLET_HOME]);
@@ -270,6 +325,9 @@ describe('InterruptingScreenGuard', () => {
       const guard = new InterruptingScreenGuard(adapter);
       guard.configure({});
       const pending = guard.settle({ windowMs: 1_000 });
+      await new Promise((resolve) => {
+        setImmediate(resolve);
+      });
 
       guard.configure({});
       TimerStore.createTimer('next');
@@ -277,10 +335,9 @@ describe('InterruptingScreenGuard', () => {
       const start = TimerStore.getTimer('next').start;
       release();
       await pending;
+      await guard.settle({ windowMs: 0 });
 
-      expect(guard.isActive()).toBe(true);
       expect(TimerStore.getTimer('next').start).toBe(start);
-      expect(adapter.tapped).toEqual([]);
     });
   });
 
