@@ -109,6 +109,7 @@ const useTokenDetailsIdentity = ({
         onPress={handleSecurityBadgePress}
         iconProps={{ color: verifiedBadgeConfig.iconColor }}
         testID="security-badge-verified"
+        twClassName="ml-0.5"
         accessibilityLabel={securityConfig.label}
       />
     ) : null;
@@ -312,7 +313,7 @@ export const TokenDetailsIdentity = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3 px-4 pt-2"
+      twClassName="gap-4 px-4 pt-2"
       testID="token-details-identity"
     >
       {identity.avatar}
