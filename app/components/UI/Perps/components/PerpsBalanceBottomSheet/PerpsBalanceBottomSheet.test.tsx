@@ -1,7 +1,11 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PerpsBalanceBottomSheet from './PerpsBalanceBottomSheet';
-import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import {
+  getPerpsCrossMarginSummaryLabelSelector,
+  PerpsBalanceBottomSheetSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
+} from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
@@ -274,6 +278,49 @@ describe('PerpsBalanceBottomSheet', () => {
         `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  // Unit rather than component-view: this sheet is not a route, and the
+  // cross-margin branch is already driven by the hook mock in this file.
+  it('replaces the account summary with the explanation and restores it on back', () => {
+    const previousExposure = mockCrossMarginSummary.hasCrossExposure;
+    Object.assign(mockCrossMarginSummary, { hasCrossExposure: true });
+
+    try {
+      const { getByTestId, queryByTestId } = renderSheet();
+
+      fireEvent.press(
+        getByTestId(getPerpsCrossMarginSummaryLabelSelector('account_ratio')),
+      );
+
+      expect(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      );
+
+      expect(
+        queryByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(getPerpsCrossMarginSummaryLabelSelector('account_ratio')),
+      ).toBeOnTheScreen();
+    } finally {
+      Object.assign(mockCrossMarginSummary, {
+        hasCrossExposure: previousExposure,
+      });
+    }
   });
 
   it('hides balance, available, and PnL values when privacy mode is enabled', () => {
