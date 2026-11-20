@@ -84,6 +84,8 @@ interface TrendingTokenRowItemProps {
    * asset details screen (including network-add logic and analytics tracking).
    */
   onPress?: (token: TrendingAsset) => void;
+  /** Callback when the row is long-pressed. */
+  onLongPress?: () => void;
   /**
    * Called synchronously before the card's press handler fires.
    * Useful for injecting analytics without overriding navigation.
@@ -162,6 +164,7 @@ const TrendingTokenRowItem = ({
   tokenDetailsSource = TokenDetailsSource.Trending,
   transactionActiveAbTests,
   onPress,
+  onLongPress,
   onCardPress,
   testIdInstanceKey,
   endAction,
@@ -230,6 +233,7 @@ const TrendingTokenRowItem = ({
     <TouchableOpacity
       style={styles.container}
       onPress={handlePress}
+      onLongPress={onLongPress}
       testID={rowTestId}
     >
       <BadgeWrapper

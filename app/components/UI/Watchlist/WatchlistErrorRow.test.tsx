@@ -14,7 +14,7 @@ describe('WatchlistErrorRow', () => {
     jest.restoreAllMocks();
   });
 
-  it('announces the async error and hides unavailable retry action', async () => {
+  it('announces the async error and hides retry when refresh is unavailable', async () => {
     render(<WatchlistErrorRow />);
 
     expect(screen.getByRole('alert')).toHaveTextContent(
@@ -28,7 +28,7 @@ describe('WatchlistErrorRow', () => {
     );
   });
 
-  it('renders retry when refresh is available', () => {
+  it('shows retry when refresh is available', () => {
     render(<WatchlistErrorRow onRetry={jest.fn()} />);
 
     expect(screen.getByText('Try again')).toBeOnTheScreen();

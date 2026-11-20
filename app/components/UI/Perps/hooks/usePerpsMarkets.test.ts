@@ -116,6 +116,23 @@ describe('usePerpsMarkets', () => {
       expect(typeof result.current.refresh).toBe('function');
     });
 
+    it('surfaces stream errors and stops the initial loading state', async () => {
+      const streamError = new Error('Market stream unavailable');
+      mockSubscribe.mockImplementation(({ onError }) => {
+        onError?.(streamError);
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await waitFor(() => {
+        expect(result.current.error).toBe(streamError.message);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasResolvedInitialData).toBe(true);
+    });
+
     it('returns initial state with loading false when skipInitialFetch is true', () => {
       // Act
       const { result } = renderHook(() =>
@@ -127,6 +144,23 @@ describe('usePerpsMarkets', () => {
       expect(result.current.isLoading).toBe(false);
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeNull();
+    });
+
+    it('returns to unresolved when skipped hydration becomes enabled without resident data', () => {
+      mockMarketContextReady = false;
+      mockSubscribe.mockImplementation(() => mockUnsubscribe);
+      const { result, rerender } = renderHook(
+        ({ skipInitialFetch }: { skipInitialFetch: boolean }) =>
+          usePerpsMarkets({ skipInitialFetch }),
+        { initialProps: { skipInitialFetch: true } },
+      );
+      expect(result.current.hasResolvedInitialData).toBe(true);
+
+      rerender({ skipInitialFetch: false });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.hasResolvedInitialData).toBe(false);
+      expect(mockSubscribe).not.toHaveBeenCalled();
     });
 
     it('waits to subscribe when the selected market context is not ready', () => {
@@ -281,6 +315,7 @@ describe('usePerpsMarkets', () => {
       act(() => subscriberCallback([]));
 
       expect(result.current.hasResolvedInitialData).toBe(false);
+      expect(result.current.isLoading).toBe(true);
     });
   });
 

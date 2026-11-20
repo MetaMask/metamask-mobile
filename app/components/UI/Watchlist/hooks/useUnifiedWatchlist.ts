@@ -1,17 +1,19 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../Perps/selectors/featureFlags';
-import { selectPerpsWatchlistMarkets } from '../../Perps/selectors/perpsController';
 import { usePerpsMarkets } from '../../Perps/hooks';
+import { selectPerpsWatchlistMarkets } from '../../Perps/selectors/perpsController';
 import {
   selectTokenWatchlistEnabled,
   selectUnifiedWatchlistEnabled,
 } from '../../Assets/selectors/featureFlags';
-import { useTokenWatchlistQuery } from '../../Assets/watchlist/hooks/useTokenWatchlistQuery';
-import { useTokenWatchlistMembershipQuery } from '../../Assets/watchlist/hooks/useTokenWatchlist';
-import { mapWatchlistTokenToTrendingAsset } from '../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import {
+  useTokenWatchlistQuery,
+  type UseTokenWatchlistQueryOptions,
+} from '../../Assets/watchlist/hooks/useTokenWatchlistQuery';
+import { useTokenWatchlistMembershipQuery } from '../../Assets/watchlist/hooks/useTokenWatchlist';
 import type {
   UnifiedWatchlistPerp,
   UnifiedWatchlistResult,
@@ -19,21 +21,33 @@ import type {
 } from '../types';
 import {
   buildWatchlistItems,
+  canUseWatchlistGlass,
   canUseWatchlistLivePrices,
   canUseWatchlistMotion,
   createUnavailableWatchlistPerp,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
   getTokenWatchlistKey,
+  shouldSkipWatchlistOptionalFetch,
+  shouldSkipWatchlistRemoteFetch,
+  mapWatchlistTokenToTrendingAsset,
 } from '../utils';
+import {
+  getSuggestedWatchlistMarkets,
+  WATCHLIST_LIMIT,
+} from '../../Perps/utils/marketUtils';
 import { useWatchlistOrder } from './useWatchlistOrder';
 
 const EMPTY_SYMBOLS: string[] = [];
 const EMPTY_ASSET_IDS: string[] = [];
+const SUGGESTED_WATCHLIST_LIMIT = 10;
 
 /**
- * Resolves independently-owned token and Perps memberships into rows for the
- * shared watchlist presentation.
+ * Composes the token and Perps watchlists into a presentation model.
+ *
+ * Token membership remains owned by AuthenticatedUserStorageService and Perps
+ * membership remains owned by PerpsController. This hook only resolves both
+ * stores into rows that can be rendered together.
  */
 export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
@@ -46,8 +60,20 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
 
   const isPerpsEnabled =
     isTokenWatchlistEnabled && isUnifiedEnabled && isPerpsFeatureEnabled;
-  const isOffline = networkTier === 'NONE';
+  const shouldSkipRemoteFetch = shouldSkipWatchlistRemoteFetch(
+    hardwareTier,
+    networkTier,
+  );
+  const shouldSkipOptionalFetch = shouldSkipWatchlistOptionalFetch(
+    hardwareTier,
+    networkTier,
+  );
 
+  // Reuse cached token metadata when remote hydration is skipped. A cold cache
+  // is surfaced as unavailable data below rather than as an empty watchlist.
+  const tokenQueryOptions: UseTokenWatchlistQueryOptions = {
+    skipRemoteFetch: shouldSkipRemoteFetch,
+  };
   const {
     data: tokenMembershipBlob,
     isLoading: isTokenMembershipLoading,
@@ -59,14 +85,19 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     isLoading: isTokenLoading,
     error: tokenError,
     refetch: refetchTokens,
-  } = useTokenWatchlistQuery({ skipRemoteFetch: isOffline });
+  } = useTokenWatchlistQuery(tokenQueryOptions);
+
   const {
     markets,
     isLoading: isPerpsLoading,
     error: perpsError,
     refresh: refreshPerps,
+    hasResolvedInitialData,
   } = usePerpsMarkets({
-    skipInitialFetch: !isPerpsEnabled || isOffline,
+    skipInitialFetch: !isPerpsEnabled || shouldSkipRemoteFetch,
+    // Favorites should remain resolvable even when a market has no current
+    // volume/open-interest value. Those filters are appropriate for discovery
+    // feeds, not for a user's explicitly saved markets.
     showZeroVolume: true,
     showZeroOpenInterest: true,
   });
@@ -102,27 +133,53 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
       ? 'Some watchlist metadata is unavailable'
       : null;
 
+  const hasResolvedPerpsSnapshot =
+    isPerpsEnabled &&
+    (markets.length > 0 ||
+      (hasResolvedInitialData === true && !shouldSkipRemoteFetch));
   const perps = useMemo<UnifiedWatchlistPerp[]>(() => {
     if (!isPerpsEnabled) {
       return [];
     }
 
-    const marketsBySymbol = new Map(
-      markets.map((market) => [market.symbol.toLowerCase(), market]),
-    );
+    const marketBySymbol = new Map<string, (typeof markets)[number]>();
+    markets.forEach((market) => {
+      marketBySymbol.set(market.symbol, market);
+      marketBySymbol.set(market.symbol.toLowerCase(), market);
+    });
 
     return watchlistSymbols.map((symbol) => {
-      const market = marketsBySymbol.get(symbol.toLowerCase());
-      return market
-        ? createUnifiedWatchlistPerp(market)
-        : createUnavailableWatchlistPerp(symbol);
+      const market =
+        marketBySymbol.get(symbol) ?? marketBySymbol.get(symbol.toLowerCase());
+      if (!market) {
+        return createUnavailableWatchlistPerp(
+          symbol,
+          hasResolvedPerpsSnapshot ? 'stale' : 'unavailable',
+        );
+      }
+      return createUnifiedWatchlistPerp(market);
     });
-  }, [isPerpsEnabled, markets, watchlistSymbols]);
+  }, [hasResolvedPerpsSnapshot, isPerpsEnabled, markets, watchlistSymbols]);
 
   const availableItems = useMemo(
     () => buildWatchlistItems(tokens, perps),
     [perps, tokens],
   );
+  const suggestedPerps = useMemo(
+    () =>
+      isPerpsEnabled &&
+      hasResolvedPerpsSnapshot &&
+      watchlistSymbols.length < WATCHLIST_LIMIT
+        ? getSuggestedWatchlistMarkets(
+            markets,
+            watchlistSymbols,
+            watchlistSymbols.length + SUGGESTED_WATCHLIST_LIMIT,
+          )
+        : [],
+    [hasResolvedPerpsSnapshot, isPerpsEnabled, markets, watchlistSymbols],
+  );
+  const isMixedOrderHydrationReady =
+    isPerpsEnabled && isTokenMetadataComplete && !isPerpsLoading;
   const {
     orderedItems,
     isLoading: isOrderLoading,
@@ -132,18 +189,23 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     persistOrder,
   } = useWatchlistOrder(availableItems, {
     enabled: isPerpsEnabled,
-    isReady: isPerpsEnabled && isTokenMetadataComplete && !isPerpsLoading,
+    isReady: isMixedOrderHydrationReady,
   });
+  const isTokenHydrationUnavailable =
+    isTokenWatchlistEnabled &&
+    shouldSkipRemoteFetch &&
+    tokenData === undefined &&
+    !tokenError;
 
   const refresh = useCallback(async () => {
     const refreshes: Promise<unknown>[] = [];
     if (isTokenWatchlistEnabled) {
       refreshes.push(refetchTokenMembership());
     }
-    if (!isOffline) {
+    if (!shouldSkipRemoteFetch) {
       refreshes.push(refetchTokens());
     }
-    if (isPerpsEnabled && !isOffline) {
+    if (isPerpsEnabled && !shouldSkipRemoteFetch) {
       refreshes.push(refreshPerps());
     }
     if (isPerpsEnabled && orderError) {
@@ -151,7 +213,6 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     }
     await Promise.allSettled(refreshes);
   }, [
-    isOffline,
     isPerpsEnabled,
     isTokenWatchlistEnabled,
     orderError,
@@ -159,45 +220,83 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     refetchTokens,
     refreshPerps,
     retryOrder,
+    shouldSkipRemoteFetch,
   ]);
 
-  return {
-    isUnifiedEnabled,
-    isPerpsEnabled,
-    orderedItems,
-    isOrderLoading,
-    isOrderReady,
-    orderError,
-    tokens: {
-      items: tokens,
-      isLoading:
-        isTokenWatchlistEnabled &&
-        (isTokenMembershipLoading || (!isOffline && isTokenLoading)),
-      error: isTokenWatchlistEnabled
-        ? (tokenMembershipError?.message ??
-          tokenError?.message ??
-          tokenMetadataCoverageError)
-        : null,
-    },
-    perps: {
-      items: perps,
-      isLoading: isPerpsEnabled && isPerpsLoading,
-      error: isPerpsEnabled ? perpsError : null,
-    },
-    canUseLivePerpsPrices:
-      isPerpsEnabled && canUseWatchlistLivePrices(hardwareTier, networkTier),
-    canUseMotion: canUseWatchlistMotion(hardwareTier, networkTier),
-    canRefresh: !isOffline || Boolean(orderError),
-    canFetchSuggestions: !isOffline && hardwareTier !== 'LOW',
-    tokenMembershipAssetIds,
-    isTokenMetadataComplete,
-    tokenCount: isTokenWatchlistEnabled ? tokenMembershipAssetIds.length : 0,
-    isInitialLoading:
-      (isTokenWatchlistEnabled &&
-        (isTokenMembershipLoading || (!isOffline && isTokenLoading))) ||
-      (isPerpsEnabled && isPerpsLoading && !isOffline) ||
-      (isPerpsEnabled && isOrderLoading),
-    persistOrder,
-    refresh,
-  };
+  return useMemo(
+    () => ({
+      isUnifiedEnabled,
+      isPerpsEnabled,
+      orderedItems,
+      isOrderLoading,
+      isOrderReady,
+      orderError,
+      tokens: {
+        items: tokens,
+        isLoading:
+          isTokenWatchlistEnabled &&
+          (isTokenMembershipLoading || isTokenLoading),
+        error: isTokenWatchlistEnabled
+          ? (tokenMembershipError?.message ??
+            tokenError?.message ??
+            tokenMetadataCoverageError ??
+            (isTokenHydrationUnavailable
+              ? 'Watchlist metadata is unavailable offline'
+              : null))
+          : null,
+      },
+      perps: {
+        items: perps,
+        isLoading: isPerpsEnabled && isPerpsLoading,
+        error: isPerpsEnabled ? perpsError : null,
+      },
+      suggestedPerps,
+      canUseLivePerpsPrices:
+        isPerpsEnabled && canUseWatchlistLivePrices(hardwareTier, networkTier),
+      canUseMotion: canUseWatchlistMotion(hardwareTier, networkTier),
+      canUseGlass: canUseWatchlistGlass(networkTier),
+      canRefresh: !shouldSkipRemoteFetch || Boolean(orderError),
+      canFetchSuggestions: !shouldSkipOptionalFetch,
+      tokenMembershipAssetIds,
+      isTokenMetadataComplete,
+      tokenCount: isTokenWatchlistEnabled ? tokenMembershipAssetIds.length : 0,
+      perpsCount: isPerpsEnabled ? watchlistSymbols.length : 0,
+      isInitialLoading:
+        (isTokenWatchlistEnabled &&
+          (isTokenMembershipLoading || isTokenLoading)) ||
+        (isPerpsEnabled && isPerpsLoading) ||
+        (isPerpsEnabled && isOrderLoading),
+      persistOrder,
+      refresh,
+    }),
+    [
+      hardwareTier,
+      isPerpsEnabled,
+      isOrderLoading,
+      isOrderReady,
+      orderError,
+      isPerpsLoading,
+      isTokenHydrationUnavailable,
+      isTokenLoading,
+      isTokenMembershipLoading,
+      isTokenMetadataComplete,
+      isTokenWatchlistEnabled,
+      isUnifiedEnabled,
+      networkTier,
+      orderedItems,
+      perps,
+      perpsError,
+      persistOrder,
+      refresh,
+      shouldSkipOptionalFetch,
+      shouldSkipRemoteFetch,
+      suggestedPerps,
+      tokenMembershipAssetIds,
+      tokenMembershipError,
+      tokenMetadataCoverageError,
+      tokenError,
+      tokens,
+      watchlistSymbols.length,
+    ],
+  );
 };

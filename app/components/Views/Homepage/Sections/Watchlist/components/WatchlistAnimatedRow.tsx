@@ -2,7 +2,7 @@ import React from 'react';
 import Animated, {
   FadeIn,
   FadeOut,
-  LinearTransition,
+  useReducedMotion,
 } from 'react-native-reanimated';
 
 export const WATCHLIST_ROW_ANIMATION_DURATION_MS = 250;
@@ -16,18 +16,21 @@ const WatchlistAnimatedRow: React.FC<WatchlistAnimatedRowProps> = ({
   children,
   enableMotion = true,
 }) => {
-  const entering = enableMotion
-    ? FadeIn.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
-    : undefined;
-  const exiting = enableMotion
-    ? FadeOut.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
-    : undefined;
-  const layout = enableMotion
-    ? LinearTransition.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
-    : undefined;
+  const reduceMotion = useReducedMotion() || !enableMotion;
 
   return (
-    <Animated.View entering={entering} exiting={exiting} layout={layout}>
+    <Animated.View
+      entering={
+        reduceMotion
+          ? undefined
+          : FadeIn.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
+      }
+      exiting={
+        reduceMotion
+          ? undefined
+          : FadeOut.duration(WATCHLIST_ROW_ANIMATION_DURATION_MS)
+      }
+    >
       {children}
     </Animated.View>
   );

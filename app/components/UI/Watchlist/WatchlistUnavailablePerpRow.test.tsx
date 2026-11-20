@@ -1,12 +1,10 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
-import WatchlistUnavailablePerpRow, {
-  getUnavailablePerpRemoveButtonTestId,
-  getUnavailablePerpRowTestId,
-} from './WatchlistUnavailablePerpRow';
+import { render } from '@testing-library/react-native';
+import { ListItem } from '@metamask/design-system-react-native';
+import WatchlistUnavailablePerpRow from './WatchlistUnavailablePerpRow';
 import type { UnifiedWatchlistUnavailablePerp } from './types';
 
-const ITEM: UnifiedWatchlistUnavailablePerp = {
+const item: UnifiedWatchlistUnavailablePerp = {
   kind: 'perp',
   key: 'perp:btc',
   symbol: 'BTC',
@@ -14,20 +12,23 @@ const ITEM: UnifiedWatchlistUnavailablePerp = {
 };
 
 describe('WatchlistUnavailablePerpRow', () => {
-  it('renders unavailable market data and removes the watched market', () => {
-    const onRemove = jest.fn();
-    const { getByTestId, getByText } = render(
-      <WatchlistUnavailablePerpRow item={ITEM} onRemove={onRemove} />,
+  it('does not advertise a row action when only removal is available', () => {
+    const { UNSAFE_getByType: getByType } = render(
+      <WatchlistUnavailablePerpRow item={item} onRemove={jest.fn()} />,
     );
 
-    fireEvent.press(
-      getByTestId(getUnavailablePerpRemoveButtonTestId(ITEM.symbol)),
+    expect(getByType(ListItem).props.isInteractive).toBe(false);
+  });
+
+  it('keeps the row interactive when long-press reorder is available', () => {
+    const { UNSAFE_getByType: getByType } = render(
+      <WatchlistUnavailablePerpRow
+        item={item}
+        onRemove={jest.fn()}
+        onLongPress={jest.fn()}
+      />,
     );
 
-    expect(
-      getByTestId(getUnavailablePerpRowTestId(ITEM.symbol)),
-    ).toBeOnTheScreen();
-    expect(getByText('Market data unavailable')).toBeOnTheScreen();
-    expect(onRemove).toHaveBeenCalledTimes(1);
+    expect(getByType(ListItem).props.isInteractive).toBe(true);
   });
 });

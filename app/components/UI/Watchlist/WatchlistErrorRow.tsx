@@ -14,9 +14,16 @@ import { strings } from '../../../../locales/i18n';
 
 interface WatchlistErrorRowProps {
   onRetry?: () => void;
+  testID?: string;
 }
 
-const WatchlistErrorRow = ({ onRetry }: WatchlistErrorRowProps) => {
+/**
+ * Inline retry state used when one watchlist domain fails independently.
+ */
+const WatchlistErrorRow = ({
+  onRetry,
+  testID = 'watchlist-error-row',
+}: WatchlistErrorRowProps) => {
   const message = strings('token_watchlist.load_error');
 
   useEffect(() => {
@@ -28,7 +35,7 @@ const WatchlistErrorRow = ({ onRetry }: WatchlistErrorRowProps) => {
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="justify-between px-4 py-3"
-      testID="watchlist-error-row"
+      testID={testID}
     >
       <Text
         variant={TextVariant.BodySm}

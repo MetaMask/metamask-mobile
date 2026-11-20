@@ -88,6 +88,7 @@ export const usePerpsMarkets = (
   const { identityKey: marketIdentityKey, isReady: isMarketContextReady } =
     usePerpsMarketContext();
   const initialChannelMarkets = streamManager.marketData.getSnapshot();
+  const hasPreloadedMarketData = hasPreloadedData('cachedMarketData');
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>(
     () => {
       const cached =
@@ -108,25 +109,38 @@ export const usePerpsMarkets = (
     if (initialChannelMarkets !== null && initialChannelMarkets !== undefined) {
       return false;
     }
-    const hit = hasPreloadedData('cachedMarketData');
-    const loading = skipInitialFetch ? false : !hit;
+    const loading = skipInitialFetch ? false : !hasPreloadedMarketData;
     return loading;
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(() =>
+    skipInitialFetch
+      ? null
+      : (streamManager.marketData.getError?.()?.message ?? null),
+  );
   const [hasResolvedInitialData, setHasResolvedInitialData] = useState(
     () =>
       skipInitialFetch ||
       (initialChannelMarkets !== null && initialChannelMarkets !== undefined) ||
-      hasPreloadedData('cachedMarketData'),
+      hasPreloadedMarketData,
   );
 
   const previousMarketIdentityKeyRef = useRef(marketIdentityKey);
+  const previousSkipInitialFetchRef = useRef(skipInitialFetch);
+  const isResumingWithoutResidentData =
+    previousSkipInitialFetchRef.current &&
+    !skipInitialFetch &&
+    (initialChannelMarkets === null || initialChannelMarkets === undefined) &&
+    !hasPreloadedMarketData;
   const hasResidentMarketData =
     previousMarketIdentityKeyRef.current === marketIdentityKey &&
-    hasResolvedInitialData;
+    hasResolvedInitialData &&
+    !isResumingWithoutResidentData;
   const isMarketSubscriptionReady =
     isMarketContextReady || hasResidentMarketData;
+  useEffect(() => {
+    previousSkipInitialFetchRef.current = skipInitialFetch;
+  }, [skipInitialFetch]);
   useEffect(() => {
     if (previousMarketIdentityKeyRef.current === marketIdentityKey) {
       return;
@@ -176,6 +190,11 @@ export const usePerpsMarkets = (
       setHasResolvedInitialData(true);
       return;
     }
+    if (isResumingWithoutResidentData) {
+      setIsLoading(true);
+      setHasResolvedInitialData(false);
+      setError(null);
+    }
     if (!isMarketSubscriptionReady) {
       setIsLoading(true);
       setHasResolvedInitialData(false);
@@ -187,13 +206,21 @@ export const usePerpsMarkets = (
     const subscriptionStartTime = Date.now();
 
     const unsubscribe = streamManager.marketData.subscribe({
+      onError: (streamError) => {
+        if (!isActive) return;
+        setError(streamError.message);
+        setIsLoading(false);
+        setHasResolvedInitialData(true);
+      },
       callback: (marketData) => {
         if (!isActive) return;
+        const hasResolvedDelivery =
+          marketData !== null &&
+          marketData !== undefined &&
+          (marketData.length > 0 ||
+            streamManager.marketData.getLastDeliveredAt() !== null);
         if (marketData !== null && marketData !== undefined) {
-          setHasResolvedInitialData(
-            marketData.length > 0 ||
-              streamManager.marketData.getLastDeliveredAt() !== null,
-          );
+          setHasResolvedInitialData(hasResolvedDelivery);
         }
         const receiveTime = Date.now();
         const timeToData = receiveTime - subscriptionStartTime;
@@ -219,7 +246,8 @@ export const usePerpsMarkets = (
         } else if (marketData) {
           // Empty array
           setMarkets([]);
-          setIsLoading(false);
+          setIsLoading(!hasResolvedDelivery);
+          setError(null);
           if (isFirstUpdate) {
             DevLogger.log('Perps: No market data available', {
               timeToDataMs: timeToData,
@@ -237,6 +265,7 @@ export const usePerpsMarkets = (
     };
   }, [
     isMarketSubscriptionReady,
+    isResumingWithoutResidentData,
     marketIdentityKey,
     streamManager.marketData,
     sortMarketsByVolume,

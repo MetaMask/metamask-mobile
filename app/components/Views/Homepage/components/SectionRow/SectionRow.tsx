@@ -14,6 +14,11 @@ interface SectionRowProps {
    * Optional gap between children (uses Box spacing tokens, e.g. gap={3} = 12px).
    */
   gap?: ComponentProps<typeof Box>['gap'];
+  /**
+   * Optional horizontal padding override for sections whose children provide
+   * their own list-item padding.
+   */
+  paddingHorizontal?: ComponentProps<typeof Box>['paddingHorizontal'];
 }
 
 /**
@@ -21,8 +26,13 @@ interface SectionRowProps {
  *
  * Use this wrapper for content that needs standard section padding.
  */
-const SectionRow = ({ children, testID, gap }: SectionRowProps) => (
-  <Box paddingHorizontal={4} testID={testID} gap={gap}>
+const SectionRow = ({
+  children,
+  testID,
+  gap,
+  paddingHorizontal = 4,
+}: SectionRowProps) => (
+  <Box paddingHorizontal={paddingHorizontal} testID={testID} gap={gap}>
     {children}
   </Box>
 );
