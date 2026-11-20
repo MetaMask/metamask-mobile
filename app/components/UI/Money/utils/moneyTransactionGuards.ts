@@ -7,6 +7,7 @@ import {
   isMusdOnMoneyAccountChain,
   isMusdToken,
 } from '../../Earn/constants/musd';
+import { isMoneyDepositTransaction } from './moneyAccountUsage';
 import { store } from '../../../../store';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import type { MoneyAccountDepositIntent } from '../hooks/useMoneyAccount';
@@ -24,10 +25,7 @@ export const nestedTxWithType = (
   );
 
 export const isMoneyDepositTx = (transactionMeta: TransactionMeta) =>
-  transactionMeta.type === TransactionType.moneyAccountDeposit ||
-  Boolean(
-    nestedTxWithType(transactionMeta, TransactionType.moneyAccountDeposit),
-  );
+  isMoneyDepositTransaction(transactionMeta);
 
 /**
  * Derives the funding method of a Money account deposit from the transaction's

@@ -4,7 +4,15 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 
-const isMoneyDepositTransaction = (tx: Record<string, unknown>): boolean => {
+/**
+ * True when a persisted transaction is a Money deposit, top-level or nested in
+ * a batch.
+ */
+export const isMoneyDepositTransaction = (tx: unknown): boolean => {
+  if (!isObject(tx)) {
+    return false;
+  }
+
   if (tx.type === TransactionType.moneyAccountDeposit) {
     return true;
   }
