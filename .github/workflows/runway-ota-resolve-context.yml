@@ -3,7 +3,7 @@
 # Runway OTA Resolve Context (reusable)
 #
 # Resolves OTA-related context for Runway OTA / auto-RC flows:
-#   - pr_number: open PR number for the resolved branch (empty if none)
+#   - pr_number: open same-repo PR from the resolved branch into stable (empty if none)
 #   - base_ref:  semver release tag derived from package.json version (e.g. v7.71.0)
 #   - ota_version: OTA_VERSION string exported from app/constants/ota.ts at the resolved ref
 #   - ota_bump:  "true" if OTA_VERSION differs from base_ref (or origin/main when tag missing).
@@ -29,7 +29,7 @@ on:
         default: ''
     outputs:
       pr_number:
-        description: 'Open PR number for the resolved branch (empty if none)'
+        description: 'Open same-repo PR from the resolved branch into stable (empty if none)'
         value: ${{ jobs.resolve.outputs.pr_number }}
       base_ref:
         description: 'Semver release tag derived from package.json (e.g. v7.71.0)'
@@ -73,12 +73,11 @@ jobs:
           BRANCH="${SOURCE_BRANCH#refs/heads/}"
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
-          # Try same-repo head first, then owner:branch (required by API when listing pulls)
-          # jq '.[0].number' on an empty array outputs the literal string "null", so normalise to empty
-          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
-          if [[ -z "$PR_NUMBER" ]]; then
-            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
-          fi
+          # Only the release PR into stable from this repository; --head matches the branch name alone,
+          # so a fork PR from a branch with the same name would otherwise be picked up.
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base stable \
+            --json number,isCrossRepository \
+            --jq '[.[] | select(.isCrossRepository | not)] | .[0].number // empty' 2>/dev/null || echo "")
 
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
           echo "Branch: $BRANCH, PR number: ${PR_NUMBER:-none}"

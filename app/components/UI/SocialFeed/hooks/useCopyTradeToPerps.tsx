@@ -33,6 +33,7 @@ export const useCopyTradeToPerps = (
       direction,
       asset: tradeSymbol,
       leverage,
+      isCopyTrade: true,
       ...(commentId
         ? { copyTradeOrigin: { commentId, asset: tradeSymbol } }
         : {}),

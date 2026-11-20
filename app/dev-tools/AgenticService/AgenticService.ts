@@ -1579,7 +1579,6 @@ function getRowValue(
  * can inspect and drive the app remotely via Metro's Hermes CDP WebSocket.
  *
  * Consumed by the runner-owned Mobile bridge runtime.
- * See docs/perps/perps-agentic-feedback-loop.md for the full workflow.
  */
 const AgenticService = {
   /**

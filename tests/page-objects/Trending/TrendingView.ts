@@ -115,11 +115,12 @@ class TrendingView {
     this.activeScrollViewID = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
   }
 
+  /**
+   * Taps the tab itself: on iOS the tab is a single accessibility element, so
+   * XCUITest does not expose the `-label` text inside it. Later tabs sit in
+   * a horizontal scroller and can start off-screen.
+   */
   async tapTab(tabTestID: string): Promise<void> {
-    // The visible label is `position: absolute`, so XCUITest reports
-    // `${tabTestID}-label` as not displayed and the tap times out. The
-    // Pressable owns this testID and the real hit target. Later tabs sit in
-    // a horizontal scroller and can start off-screen.
     const tab = Matchers.getElementByID(tabTestID);
     const displayed = await Utilities.isElementVisible(tab, 1000);
     if (!displayed) {
