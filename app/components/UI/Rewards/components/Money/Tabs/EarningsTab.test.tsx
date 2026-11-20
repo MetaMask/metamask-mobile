@@ -350,7 +350,7 @@ describe('EarningsTab', () => {
       within(
         getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
       ).UNSAFE_getByType(AvatarIcon).props.iconName,
-    ).toBe(IconName.SwapHorizontal);
+    ).toBe(IconName.SwapVertical);
     expect(queryByText('Trading rebates')).toBeNull();
     expect(queryByText('Referrals')).toBeNull();
     expect(
