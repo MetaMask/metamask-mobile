@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { DUST_THRESHOLD, formatSignedUsd } from '../../utils/moneyFormatFiat';
+import { DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import {
   getBucketDisplayDateRange,
@@ -17,8 +17,6 @@ const fmt = (
   options: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormat =>
   new Intl.DateTimeFormat(locale, { timeZone: 'UTC', ...options });
-
-export { formatSignedUsd };
 
 export const formatDate = (timestamp: string, locale: string): string =>
   getIntlDateTimeFormatter(locale, {
