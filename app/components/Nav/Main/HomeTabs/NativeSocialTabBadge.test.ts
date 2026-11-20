@@ -89,10 +89,33 @@ describe('NativeSocialTabBadge', () => {
   });
 
   it('renders the non-interactive Social badge overlay', () => {
-    const { getByTestId } = render(
+    const { UNSAFE_getAllByProps: getAllByProps } = render(
       React.createElement(NativeSocialTabBadge, { tabIndex: 3, tabCount: 4 }),
     );
 
-    expect(getByTestId(SOCIAL_TAB_BADGE_OVERLAY_TEST_ID)).toBeOnTheScreen();
+    const badge = getAllByProps({
+      testID: SOCIAL_TAB_BADGE_OVERLAY_TEST_ID,
+    })[0];
+
+    expect(badge.props.testID).toBe(SOCIAL_TAB_BADGE_OVERLAY_TEST_ID);
+  });
+
+  it('hides the visual overlay from assistive technology', () => {
+    const { UNSAFE_getAllByProps: getAllByProps } = render(
+      React.createElement(NativeSocialTabBadge, { tabIndex: 3, tabCount: 4 }),
+    );
+
+    const overlay = getAllByProps({
+      accessibilityElementsHidden: true,
+      importantForAccessibility: 'no-hide-descendants',
+    })[0];
+
+    expect(overlay.props).toEqual(
+      expect.objectContaining({
+        accessible: false,
+        accessibilityElementsHidden: true,
+        importantForAccessibility: 'no-hide-descendants',
+      }),
+    );
   });
 });

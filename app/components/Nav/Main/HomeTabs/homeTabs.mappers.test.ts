@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 import { TabBarIconKey } from '../../../../component-library/components/Navigation/TabBar/TabBar.types';
 import {
   isNativeTabBarSupported,
@@ -142,6 +143,27 @@ describe('toNativeTabOptions', () => {
       source: 2,
       tinted: true,
     });
+  });
+
+  it('adds a new-state accessibility label to the Social tab', () => {
+    const options = toNativeTabOptions({
+      ...homeTab,
+      iconKey: TabBarIconKey.Social,
+      showNewBadge: true,
+    });
+
+    expect(options.tabBarAccessibilityLabel).toBe(
+      `${strings('bottom_nav.social')}, ${strings('bridge.tabs.new_badge')}`,
+    );
+  });
+
+  it('leaves the Social tab accessibility label unchanged without a new badge', () => {
+    const options = toNativeTabOptions({
+      ...homeTab,
+      iconKey: TabBarIconKey.Social,
+    });
+
+    expect(options).not.toHaveProperty('tabBarAccessibilityLabel');
   });
 
   it('does not touch the bar style unless the tab asks to hide it', () => {

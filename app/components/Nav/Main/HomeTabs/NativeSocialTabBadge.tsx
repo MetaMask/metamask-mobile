@@ -85,6 +85,9 @@ const NativeSocialTabBadge = ({
   return (
     <Box
       pointerEvents="none"
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
       twClassName="absolute"
       style={{
         left,
