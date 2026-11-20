@@ -6,6 +6,7 @@
 import '../../../../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
+import Engine from '../../../../../../core/Engine';
 import { RewardsMoneyClaimRefusalError } from '../../../../../../core/Engine/controllers/rewards-money-controller/services/rewards-money-data-service';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
@@ -57,7 +58,56 @@ function commissionsPage(followTradeClaimOpen: boolean) {
     });
 }
 
-/** An opened claim with no voucher, so the next route can start. */
+function incomeCommissions({
+  followTrade = false,
+  revShare = false,
+}: {
+  followTrade?: boolean;
+  revShare?: boolean;
+}) {
+  return () =>
+    Promise.resolve({
+      results: [],
+      mechanisms: {
+        REFERRAL_REV_SHARE: {
+          claim_open: revShare,
+          reason: revShare ? null : 'MECHANISM_NOT_CLAIMABLE',
+        },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: followTrade,
+          reason: followTrade ? null : 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      has_more: false,
+      cursor: null,
+    });
+}
+
+const ON_DEVICE = '0x1111111111111111111111111111111111111111';
+const ELSEWHERE = '0x3333333333333333333333333333333333333333';
+const ONE_DOLLAR = '1000000';
+
+function addressRow(address: string) {
+  return {
+    address: `eip155:${address}`,
+    lifetime: ONE_DOLLAR,
+    claimable: ONE_DOLLAR,
+    pending: '0',
+    claimed: '0',
+    voided: '0',
+  };
+}
+
+function installDeviceKeyring(address: string) {
+  const keyrings = Engine.context.KeyringController.state.keyrings as {
+    type: string;
+    accounts: string[];
+  }[];
+  keyrings.push({ type: 'HD Key Tree', accounts: [address] });
+  return () => {
+    keyrings.length = 0;
+  };
+}
 function openedClaim() {
   return Promise.resolve({
     kind: 'authorized',
@@ -374,10 +424,21 @@ describe('EarningsTab', () => {
         await view.findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
       );
 
-      expect(await view.findByText(message())).toBeOnTheScreen();
-      expect(
-        view.getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-      ).toBeOnTheScreen();
+      const shown = await view.findAllByText(message());
+      if (retryAfterSeconds) {
+        expect(shown).toHaveLength(2);
+        expect(
+          view.getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_WAIT),
+        ).toHaveTextContent(message());
+        expect(
+          view.getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+        ).toBeDisabled();
+      } else {
+        expect(shown).toHaveLength(1);
+        expect(
+          view.getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+        ).toBeOnTheScreen();
+      }
       expect(
         view.queryByTestId(
           getRouteParamsProbeTestId(
@@ -569,5 +630,172 @@ describe('EarningsTab', () => {
     expect(
       callsFor(engine, 'RewardsMoneyController:initiateClaim'),
     ).toHaveLength(0);
+  });
+
+  it('shows the minutes still left under a disabled Claim button', async () => {
+    const referralMe = referralMeFixture('referee');
+    const { findByText, getByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
+      claimReady: true,
+      claimWaitUntil: Date.now() + 10 * 60 * 1000,
+      referralMe: {
+        ...referralMe,
+        localized_text: {
+          ...referralMe.localized_text,
+          claimFailureWaitMinutesToast: 'Claim again in {minutes} minutes',
+        },
+      },
+    });
+
+    expect(await findByText('Claim again in 10 minutes')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
+  it('hides Claim when every claimable cashback address is on another phone', async () => {
+    const summary = earningsSummaryFixture({
+      lifetimeTotal: ONE_DOLLAR,
+      claimable: ONE_DOLLAR,
+      cashbackClaimable: ONE_DOLLAR,
+    });
+    summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [addressRow(ELSEWHERE)];
+
+    const { findByText, queryByTestId, engine } = renderEarningsTab({
+      persona: 'referee',
+      summary,
+      claimReady: true,
+    });
+
+    expect(
+      await findByText('Earned on accounts not in this wallet'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
+  it('keeps Claim when one cashback address can be signed on this phone', async () => {
+    const restore = installDeviceKeyring(ON_DEVICE);
+    try {
+      const summary = earningsSummaryFixture({
+        lifetimeTotal: ONE_DOLLAR,
+        claimable: ONE_DOLLAR,
+        cashbackClaimable: ONE_DOLLAR,
+      });
+      summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+        [addressRow(ELSEWHERE), addressRow(ON_DEVICE)];
+
+      const { findByTestId, getByTestId, engine } = renderEarningsTab({
+        persona: 'referee',
+        summary,
+        claimReady: true,
+        initiateClaim: 'hang',
+      });
+
+      fireEvent.press(
+        await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+        ).toEqual([
+          [
+            'RewardsMoneyController:initiateClaim',
+            'referral-trade-fee-cashback',
+            { money_account_address: REWARDS_MONEY_ACCOUNT_ADDRESS },
+          ],
+        ]);
+      });
+      expect(
+        getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      ).toBeOnTheScreen();
+    } finally {
+      restore();
+    }
+  });
+
+  it('hides Claim when follow-trade addresses are not on this phone', async () => {
+    const summary = earningsSummaryFixture({
+      lifetimeTotal: ONE_DOLLAR,
+      claimable: ONE_DOLLAR,
+      cashbackClaimable: '0',
+      followTradeClaimable: ONE_DOLLAR,
+    });
+    const followTrade =
+      summary.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE;
+    if (!followTrade) {
+      throw new Error('follow-trade family missing from the fixture');
+    }
+    followTrade.by_address = [addressRow(ELSEWHERE)];
+
+    const { findByText, queryByTestId } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      handlers: {
+        'RewardsMoneyController:getCommissions': incomeCommissions({
+          followTrade: true,
+        }),
+      },
+    });
+
+    expect(
+      await findByText('Earned on accounts not in this wallet'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('still claims revenue share when cashback addresses are not on this phone', async () => {
+    const summary = earningsSummaryFixture({
+      lifetimeTotal: '2000000',
+      claimable: '2000000',
+      cashbackClaimable: ONE_DOLLAR,
+      revShareLifetime: ONE_DOLLAR,
+    });
+    summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [addressRow(ELSEWHERE)];
+    summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE.claimable =
+      ONE_DOLLAR;
+
+    const { findByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      initiateClaim: 'hang',
+      handlers: {
+        'RewardsMoneyController:getCommissions': incomeCommissions({
+          revShare: true,
+        }),
+      },
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(callsFor(engine, 'RewardsMoneyController:initiateClaim')).toEqual([
+        [
+          'RewardsMoneyController:initiateClaim',
+          'referral-rev-share',
+          { money_account_address: REWARDS_MONEY_ACCOUNT_ADDRESS },
+        ],
+      ]);
+    });
   });
 });

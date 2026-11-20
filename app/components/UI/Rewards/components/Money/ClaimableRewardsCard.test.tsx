@@ -166,6 +166,55 @@ describe('ClaimableRewardsCard', () => {
     );
   });
 
+  it('shows the remaining wait under the disabled Claim button', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        isClaimWaiting
+        claimWaitCaption="You can't claim just yet. Try again in 12 minutes."
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByText("You can't claim just yet. Try again in 12 minutes."),
+    ).toBeOnTheScreen();
+  });
+
+  it('replaces Claim when the earnings are on accounts this phone cannot sign', () => {
+    const { queryByTestId, getByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        earnedElsewhereLabel="Earned on accounts not in this wallet"
+      />,
+    );
+
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      getByText('Earned on accounts not in this wallet'),
+    ).toBeOnTheScreen();
+  });
+
   it('renders a disabled Claimed button when only claimed is positive', () => {
     const { getByTestId, getByText, queryByTestId } = renderCard('0', '50');
 

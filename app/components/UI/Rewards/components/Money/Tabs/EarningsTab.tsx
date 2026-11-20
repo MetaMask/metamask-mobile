@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -46,6 +46,8 @@ import { navigateToRewardsRoute } from '../../../utils';
 import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
 import {
   canClaimEarnings,
+  canSignEarningAddress,
+  claimBlockedOnThisDevice,
   claimRouteOptions,
   displayClaimTotals,
   incomeHeldOnOpenRoute,
@@ -61,6 +63,7 @@ import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
 import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
 import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
+import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
 import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
@@ -587,41 +590,69 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       prefetchTaxMe();
     }, [prefetchTaxMe]),
   );
-  const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
-    summary: earningsSummaryEntry?.data ?? null,
-    onOpened: () => {
-      inFlight.refresh({ forceFresh: true }).catch(() => undefined);
-    },
-    onSubmitted: async () => {
-      const refreshed = await fetchEarningsSummary({ forceFresh: true });
-      // No summary means this refresh did not finish. Claim stays disabled
-      // until a later summary replaces the one it was pressed against.
-      if (!refreshed) {
-        throw new Error('Earnings summary refresh did not finish');
-      }
-    },
-    onTaxRequired: () => {
-      void openAfterClaimRefusal().catch(() => {
-        openClaimsPaused();
-      });
-    },
-    onClaimsPaused: () => {
-      // The sheet copies these totals into route params, so it has to open
-      // with the summary this refresh returns. The selector still holds the
-      // pre-refusal figures until the next render. A refresh that returns
-      // nothing has not finished, so the sheet stays closed.
-      void fetchEarningsSummary({ forceFresh: true })
-        .then((summary) => {
-          if (!summary) {
-            return;
-          }
-          openClaimsPaused(summary);
-        })
-        .catch(() => {
+  const { claim, isClaiming, isClaimWaiting, claimWaitCaption } =
+    useClaimEarnings(profileId, {
+      summary: earningsSummaryEntry?.data ?? null,
+      onOpened: () => {
+        inFlight.refresh({ forceFresh: true }).catch(() => undefined);
+      },
+      onSubmitted: async () => {
+        const refreshed = await fetchEarningsSummary({ forceFresh: true });
+        // No summary means this refresh did not finish. Claim stays disabled
+        // until a later summary replaces the one it was pressed against.
+        if (!refreshed) {
+          throw new Error('Earnings summary refresh did not finish');
+        }
+      },
+      onTaxRequired: () => {
+        void openAfterClaimRefusal().catch(() => {
           openClaimsPaused();
         });
-    },
-  });
+      },
+      onClaimsPaused: () => {
+        // The sheet copies these totals into route params, so it has to open
+        // with the summary this refresh returns. The selector still holds the
+        // pre-refusal figures until the next render. A refresh that returns
+        // nothing has not finished, so the sheet stays closed.
+        void fetchEarningsSummary({ forceFresh: true })
+          .then((summary) => {
+            if (!summary) {
+              return;
+            }
+            openClaimsPaused(summary);
+          })
+          .catch(() => {
+            openClaimsPaused();
+          });
+      },
+    });
+  const accountsOnDevice = useSelector(selectInternalAccounts);
+  const earnedElsewhere = useMemo(() => {
+    // The list is what re-runs this after an import. Signing stays the
+    // claim runner's keyring check, hardware and snap included.
+    const canSign = accountsOnDevice
+      ? canSignEarningAddress
+      : canSignEarningAddress;
+    return (
+      Boolean(localizedText?.earnedOnOtherAccounts) &&
+      claimBlockedOnThisDevice(
+        earningsSummaryEntry?.data,
+        claimRouteOptions(
+          localizedText?.taxFormUrl,
+          followTradeClaimOpen,
+          revShareClaimOpen,
+        ),
+        canSign,
+      )
+    );
+  }, [
+    accountsOnDevice,
+    earningsSummaryEntry?.data,
+    followTradeClaimOpen,
+    localizedText?.earnedOnOtherAccounts,
+    localizedText?.taxFormUrl,
+    revShareClaimOpen,
+  ]);
 
   if (!localizedText) {
     return null;
@@ -691,6 +722,12 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               taxHeld={taxHeld}
               isClaiming={isClaiming}
               isClaimWaiting={isClaimWaiting}
+              claimWaitCaption={claimWaitCaption ?? undefined}
+              earnedElsewhereLabel={
+                earnedElsewhere
+                  ? localizedText.earnedOnOtherAccounts
+                  : undefined
+              }
               onClaim={
                 summary.data
                   ? () => {
