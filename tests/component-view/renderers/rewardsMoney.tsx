@@ -8,8 +8,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
-import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../app/core/Engine';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
@@ -242,32 +241,29 @@ export function installRewardsMoneyEngine({
 }
 
 /**
- * The claim hook refuses through the app toast. Component-view renders do not
- * mount that host, so this one surfaces the toast label for the refusal tests.
+ * The Rewards toast hook shows toasts through the design-system `toast()` API.
+ * Component-view renders do not mount its Toaster, and that API is stubbed
+ * globally, so this host surfaces the toast title for the refusal and tax tests.
  */
 function RewardsMoneyToastHost({ children }: { children: React.ReactNode }) {
   const [label, setLabel] = React.useState<string | null>(null);
-  const api = React.useMemo<ToastRef>(
-    () => ({
-      showToast: (options) => {
-        const next = options.labelOptions[0]?.label;
-        setLabel(typeof next === 'string' ? next : null);
-      },
-      closeToast: () => {
-        setLabel(null);
-      },
-    }),
-    [],
-  );
-  const toastRef = React.useRef<ToastRef | null>(api);
-  toastRef.current = api;
-  const value = React.useMemo(() => ({ toastRef }), []);
+
+  React.useEffect(() => {
+    const mockedToast = jest.mocked(toast);
+    mockedToast.mockImplementation((options) => {
+      setLabel(typeof options.title === 'string' ? options.title : null);
+      return '';
+    });
+    return () => {
+      mockedToast.mockReset();
+    };
+  }, []);
 
   return (
-    <ToastContext.Provider value={value}>
+    <>
       {children}
       {label === null ? null : <Text>{label}</Text>}
-    </ToastContext.Provider>
+    </>
   );
 }
 

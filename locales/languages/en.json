@@ -2070,7 +2070,9 @@
       "select_quote_title": "Select quote",
       "rate": "Rate",
       "get_new_quote": "Get new quote",
-      "available_balance": "{{amount}} Available",
+      "available_balance": "{{amount}} available",
+      "min_post_buy": "Buy ${{amount}} to post",
+      "min_post_sell": "Sell ${{amount}} to post",
       "toggle_amount_display": "Switch between token and dollar amount",
       "receive": "Receive",
       "max": "Max",
@@ -4065,6 +4067,9 @@
       "pnl_with_percent": "{{amount}} ({{percent}})",
       "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
+    "amount_entry": {
+      "delete": "Delete"
+    },
     "order_preview": {
       "amount": "USD amount",
       "contracts": "Contract count",
@@ -4103,7 +4108,6 @@
       "submitting": "Submitting your order…",
       "done": "Done",
       "close": "Close",
-      "delete": "Delete",
       "expired": "This quote expired. Refresh to get a new one.",
       "refresh": "Refresh",
       "retry": "Try again",
@@ -4147,6 +4151,113 @@
     "order_notification": {
       "not_placed_title": "Order not placed",
       "not_placed_description": "Nothing left your balance. Get a fresh quote to try again."
+    },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
+    "withdraw": {
+      "title": "Withdraw",
+      "amount_label": "Amount",
+      "available_balance": "Available balance: {{amount}}",
+      "balance_loading": "Checking your available balance...",
+      "balance_unavailable": "We couldn't load your available balance.",
+      "below_minimum": "The minimum withdrawal is {{amount}}.",
+      "over_balance": "Enter an amount within your available balance.",
+      "offline": "You're offline. Reconnect to withdraw.",
+      "receive_row": "Receive",
+      "receive_sandbox_wallet": "Sandbox wallet",
+      "continue": "Continue",
+      "confirm": "Confirm",
+      "back": "Back",
+      "submitting": "Submitting your withdrawal…",
+      "outcome_unknown": "We couldn't confirm this withdrawal. Check its status to recover the same withdrawal, not start another.",
+      "retry": "Check withdrawal",
+      "amount_row": "Amount",
+      "network_row": "Network",
+      "destination_row": "To",
+      "copy_destination": "Copy destination address",
+      "fee_row": "Fee",
+      "no_fee": "No fee",
+      "expires_at": "Quote expires at {{time}}",
+      "phase": {
+        "input": "Enter an amount",
+        "confirm": "Review withdrawal",
+        "status": "Withdrawal status"
+      },
+      "full_balance": "Full available balance",
+      "sandbox_notice": {
+        "title": "Sandbox wallet",
+        "body": "This pays the sandbox wallet registered when you set up your demo account. It can't be changed here."
+      },
+      "status": {
+        "processing": {
+          "title": "Withdrawal processing",
+          "body": "This can take a few minutes. You can close this and check your balance later."
+        },
+        "settled": {
+          "title": "Withdrawal sent",
+          "body": "The venue transferred the funds. Your destination wallet may take a few minutes to show them."
+        },
+        "sweep_remainder": "Any amount above the per-withdrawal limit stays in your balance.",
+        "stalled": "We can't get the latest status right now. Check again.",
+        "manual_review": {
+          "title": "Withdrawal under review",
+          "body": "This withdrawal needs a manual review. Check your balance later, and contact support if it doesn't arrive."
+        },
+        "failed": {
+          "title": "Withdrawal failed",
+          "body": "The withdrawal couldn't be completed. Funds may have left your balance. Check your balance and destination wallet before trying again."
+        },
+        "returned": {
+          "title": "Withdrawal returned",
+          "body": "The funds came back to your balance."
+        },
+        "check_balance": "Check balance",
+        "done": "Done"
+      },
+      "rejection": {
+        "insufficient_balance": "Not enough balance",
+        "insufficient_balance_body": "Your balance changed before this was placed. Nothing left your account.",
+        "amount_below_minimum": "Amount too small",
+        "amount_below_minimum_body": "The venue requires at least $1.00. Nothing left your account.",
+        "step_up_verification_required": "Verification required",
+        "step_up_verification_required_body": "This withdrawal needs extra verification, which isn't available in the app yet. Nothing left your account.",
+        "venue_rejected": "Withdrawal not accepted",
+        "venue_rejected_body": "The venue refused this withdrawal. Nothing left your account."
+      },
+      "error": {
+        "preview_expired": "This quote expired. Start the withdrawal again.",
+        "venue_account_not_enabled": "Finish setting up Kalshi before withdrawing.",
+        "venue_unavailable": "The venue is unavailable right now. Try again in a moment.",
+        "generic": "Something went wrong. Try again."
+      }
     }
   },
   "predict": {
@@ -5298,6 +5409,13 @@
     "fully_diluted": "Fully diluted",
     "unknown": "Unknown",
     "stock": "Stock"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "home_section": {
+      "description": "Explore collectibles packs and cards.",
+      "open_collectibles": "Explore Collectibles"
+    }
   },
   "collectible": {
     "collectible_address": "Address",
@@ -9025,6 +9143,7 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "verifying": "Verifying code",
+      "paste": "Paste",
       "get_new_code": "Get new code",
       "get_new_code_in": "Get new code in {{seconds}}s"
     },
@@ -9824,6 +9943,7 @@
           "title": "Link your MetaMask Card",
           "description": "Spend your balance while it earns, anywhere Mastercard is accepted.",
           "cta_primary": "Link card",
+          "cta_log_in": "Log in",
           "cta_secondary": "Skip"
         }
       }
@@ -9904,7 +10024,7 @@
     },
     "action": {
       "add": "Add",
-      "transfer": "Send",
+      "move": "Move",
       "card": "Card",
       "details": "Details"
     },
@@ -9971,6 +10091,8 @@
       "virtual_card": "Virtual card",
       "metal_card": "Metal card",
       "link_title": "Link card",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_subtitle_no_apy": "Spend your balance while it earns, anywhere Mastercard is accepted.",
       "link_bullet_apy": "Earn up to ~{{apy}}% APY",
@@ -10026,8 +10148,8 @@
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
-      "title": "Send funds to",
-      "between_accounts": "Another account",
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Perps account",
       "predictions_account": "Predictions account",
       "send_external": "External address",
@@ -13786,6 +13908,7 @@
       "money_account": "Money account",
       "renews_on": "Renews on",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",

@@ -826,9 +826,14 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         ),
       ).not.toBeOnTheScreen();
     });
+    expect(
+      renderResult.queryByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
-  it('shows no footer action for a cancelled API order', async () => {
+  it('shows duplicate action for a cancelled API order', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_CANCELLED_ORDER,
     });
@@ -850,9 +855,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(
-      renderResult.queryByTestId(
+      await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
   });
 });

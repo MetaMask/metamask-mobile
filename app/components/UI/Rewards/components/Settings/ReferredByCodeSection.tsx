@@ -27,7 +27,6 @@ import {
 } from '../../../../../reducers/rewardsMoney/selectors';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
 import {
@@ -66,7 +65,6 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { profileId } = useReferralMe();
-  useGeoRewardsMetadata({ enabled: true });
   const settingsReferralAvailable = useSelector(
     selectSettingsReferralAvailable,
   );

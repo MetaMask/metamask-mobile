@@ -58,6 +58,19 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
+const mockRemoveQueries = jest.fn();
+
+jest.mock('../../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+      removeQueries: (...args: unknown[]) => mockRemoveQueries(...args),
+    },
+  },
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -239,6 +252,7 @@ describe('CancelMembership', () => {
     mockAddListener.mockReturnValue(jest.fn());
     mockGetSubscriptionByProduct.mockReturnValue(PLUS_SUBSCRIPTION);
     mockCancelSubscription.mockResolvedValue(undefined);
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockUseMoneyPremiumVaultRate.mockReturnValue({
       vaultRateQuery: { data: undefined },
       rate: '0.071',
@@ -517,6 +531,8 @@ describe('CancelMembership', () => {
       subscriptionId: PLUS_SUBSCRIPTION.id,
       cancelAtPeriodEnd: true,
     });
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).toHaveBeenCalledTimes(1);
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
       'cancellationReason',
     );
