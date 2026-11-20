@@ -1,8 +1,8 @@
 {
   "aps": {
     "alert": {
-      "title": "ETH crossed above $4,000",
-      "body": "ETH is now $4,036.42."
+      "title": "ETH crossed above $1,875",
+      "body": "ETH is now $1,875.82."
     },
     "sound": "default",
     "category": "mm-price-alert-v1"
@@ -13,11 +13,10 @@
   "asset_id": "eip155:1/slip44:60",
   "deeplink": "https://link.metamask.io/asset?assetId=eip155%3A1%2Fslip44%3A60&source=price_alert_notification",
   "kind": "threshold",
-  "price": "4036.42",
-  "target": "4000",
+  "price": "",
+  "target": "1875",
   "direction": "above",
-  "change_pct": "3.1",
-  "points": "",
-  "fallback_title": "ETH crossed above $4,000",
-  "fallback_body": "ETH is now $4,036.42."
+  "change_pct": "0.79",
+  "fallback_title": "ETH crossed above $1,875",
+  "fallback_body": "ETH is now $1,875.82."
 }

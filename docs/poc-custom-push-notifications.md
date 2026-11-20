@@ -15,13 +15,21 @@ All custom fields are strings, either under FCM `message.data` or at the top lev
 | `asset_id`                        | CAIP-19 asset type, e.g. `eip155:1/slip44:60`                                                                           |
 | `price`                           | USD current price, positive and at most `1e12`                                                                          |
 | `change_pct`                      | Signed percent, absolute value at most `1e6`; zero uses the positive color                                              |
-| `points`                          | Oldest-to-newest list of 2–24 comma-separated USD prices; at most 384 characters                                        |
+| `chart`                           | Optional compact JSON string; see below.                                                                                |
 | `target`, `direction`             | Threshold only: positive USD target with the same bounds as `price`; `above` or `below`                                 |
 | `period`                          | Movement only: `5m`, `1h`, or `24h`                                                                                     |
 | `fallback_title`, `fallback_body` | Required on Android data-only sends; also included in the APNs fixtures, where `aps.alert` supplies the actual fallback |
 | `deeplink`                        | Existing fallback token deeplink; rich actions instead derive fixed MetaMask links from `asset_id`                      |
 
-Use plain decimal strings (no exponents, spaces or grouping). The graph is drawn from inline points without network images. Keep the complete provider payload within its size limit. Do not send `mm_local`; it is a client marker. Rich labels are English-only for this POC.
+Use plain decimal strings (no exponents, spaces or grouping). Keep the complete provider payload within its size limit. Do not send `mm_local`; it is a client marker. Rich labels are English-only for this POC.
+
+## Chart blob v1
+
+`chart` is a compact JSON **string** on both FCM and APNs, not a nested object. Its decoded shape is `{v: 1, currency: "usd", start: <Unix seconds UTC>, interval: <seconds>, prices: [<USD number>, ...]}`. Samples are oldest first on a regular grid, with both endpoints included. Use 49 prices at 30-minute spacing or 97 at 15-minute spacing so `(prices.length - 1) * interval` is exactly 86,400 seconds. The renderer pins the final sample to the alert's top-level `price` and calculates 24h high/low from the displayed samples, not from intrabar highs/lows or the threshold. The threshold line shares the same USD scale, with the plotted domain extended to include it if needed. Movement `period` describes the trigger, not the chart window.
+
+At send time, fetch or reuse cached USD history for `asset_id`, resample onto a grid ending at the trigger time, and set the last value to the trigger quote. Send only finite positive prices up to `1e12`; omit `chart` if there isn't enough history or it won't fit. Cap the blob at 2,048 bytes and measure the full serialized provider payload (including fallback copy and JSON escaping) against the 4 KB limit. Missing, malformed, or unsupported chart blobs leave the rich price card and its actions intact, without a chart. Invalid alert metadata still uses the ordinary fallback. Capability routing must distinguish older POC builds that expected the obsolete `points` field.
+
+Fixtures use actual [Coinbase Exchange ETH-USD candle closes](https://docs.cdp.coinbase.com/exchange/reference/exchangerestapi_getproductcandles), sampled every 30 minutes from the 15-minute candles starting July 23–25, 2026 UTC, timestamped at candle close; the sample trigger prices are the final closes, not live quotes.
 
 ## Delivery and fallback
 
@@ -45,6 +53,8 @@ await globalThis.showPriceAlertSample('movement', 'android-background');
 await globalThis.showPriceAlertSample('movement-up', 'android-background');
 await globalThis.showPriceAlertSample('fallback', 'android-background');
 await globalThis.showPriceAlertSample('malformed', 'android-background');
+await globalThis.showPriceAlertSample('no-chart', 'android-background');
+await globalThis.showPriceAlertSample('invalid-chart', 'android-background');
 ```
 
 Trigger separately and open the Android notification shade. For real delivery use the [FCM v1 sample bodies](../app/util/notifications/priceAlerts/samples/) with the test installation token in the matching Firebase project; send while backgrounded and after process death (not Android **Force stop**). No FCM credentials are required for the local dev trigger. For iOS, use the extension-capable main simulator build; grant permission first (the `showPriceAlertSample('threshold')` DevTools call can prompt), then background the app. Run from the repository root, one case at a time:
@@ -57,15 +67,18 @@ xcrun simctl push booted io.metamask.MetaMask "$samples/movement.apns"
 xcrun simctl push booted io.metamask.MetaMask "$samples/movement-up.apns"
 xcrun simctl push booted io.metamask.MetaMask "$samples/fallback.apns"
 xcrun simctl push booted io.metamask.MetaMask "$samples/malformed.apns"
+xcrun simctl push booted io.metamask.MetaMask "$samples/no-chart.apns"
+xcrun simctl push booted io.metamask.MetaMask "$samples/invalid-chart.apns"
 ```
 
 Repeat with the app foregrounded (one notification, not two), and test tapping from a cold start. `simctl push` injects directly into the OS and does not validate FCM transport or legacy tap attribution. Capture collapsed and expanded states and button destinations on each platform:
 
-- **Threshold above:** ETH, `$4,036.42`, green `+3.1%`, rising chart and dashed orange `$4,000` line when expanded. Below uses `$3,820.80`, red `−5.2%` and a falling chart with the same target line.
-- **Movement down:** ETH, `$3,820.80`, red `−5.2%`, `24h`, falling chart, no target. Up uses `$4,036.42`, green `+3.1%` and a rising chart. iOS collapsed shows the supplied plain alert copy, not the expanded controls.
-- **Body tap / View token:** opens Ethereum token details (`token-asset-overview`; `token-price` when loaded). For the above sample the target link is `https://link.metamask.io/asset?assetId=eip155%3A1%2Fslip44%3A60&source=price_alert_notification&alert_type=threshold&price_at_trigger=4036.42`.
+- **Threshold above:** ETH, `$1,875.82`, green `+0.79%`, and a dashed orange `$1,875` line when expanded. Below uses `$1,872.96`, red `−3.17%`, and the same target line. Both show a 24h history, high/low markers, and the trigger quote at the endpoint.
+- **Movement down:** ETH, `$1,872.96`, red `−3.17%`, `24h` chart, no target. Up uses `$1,875.82` and green `+0.79%`. iOS collapsed shows the supplied plain alert copy, not the expanded controls.
+- **Body tap / View token:** opens Ethereum token details (`token-asset-overview`; `token-price` when loaded). For the above sample the target link is `https://link.metamask.io/asset?assetId=eip155%3A1%2Fslip44%3A60&source=price_alert_notification&alert_type=threshold&price_at_trigger=1875.82`.
 - **Swap:** opens the swap/bridge screen (`bridge-view-scroll`, `source-token-area`) with ETH selected as the source (`https://link.metamask.io/swap?from=eip155%3A1%2Fslip44%3A60`). Verify it doesn't start a transaction. Use a fresh alert for each tap.
-- **Unknown version / malformed:** only `ETH crossed above $4,000` / `ETH is now $4,036.42.`; no chart, chip or rich buttons in the opened notification. On iOS, malformed v1 with the category uses the branded fallback card; no category uses the system notification. For Android, tapping fallback uses its original `deeplink`. For iOS, the sample omits Firebase transport metadata; use a real legacy FCM/APNs send to verify the pre-existing fallback tap route. OS notification views have no in-app test IDs.
+- **Missing chart / invalid chart:** rich price, change and actions, but no history, high/low, or target marker.
+- **Unknown version / malformed:** only `ETH crossed above $1,875` / `ETH is now $1,875.82.`; no chart, chip or rich buttons in the opened notification. On iOS, malformed v1 with the category uses the branded fallback card; no category uses the system notification. For Android, tapping fallback uses its original `deeplink`. For iOS, the sample omits Firebase transport metadata; use a real legacy FCM/APNs send to verify the pre-existing fallback tap route. OS notification views have no in-app test IDs.
 
 ## Test layer placement
 

@@ -131,9 +131,22 @@ final class PriceAlertViewController: UIViewController, UNNotificationContentExt
     stack.setCustomSpacing(4, after: priceRow)
     stack.addArrangedSubview(label(alert.description, size: 14, color: muted))
 
-    let graph = Sparkline(alert: alert)
-    graph.heightAnchor.constraint(equalToConstant: 104).isActive = true
-    stack.addArrangedSubview(graph)
+    if let chart = alert.chart, let high = chart.prices.max(), let low = chart.prices.min() {
+      let graph = Sparkline(alert: alert, prices: chart.prices)
+      graph.heightAnchor.constraint(equalToConstant: 104).isActive = true
+      stack.addArrangedSubview(graph)
+      let footer = UIStackView()
+      footer.spacing = 8
+      footer.addArrangedSubview(label("24h", size: 11, color: muted, weight: .semibold))
+      footer.addArrangedSubview(UIView())
+      let range = label("High \(PriceAlert.usd(high))  ·  Low \(PriceAlert.usd(low))", size: 11, color: muted, weight: .semibold)
+      range.numberOfLines = 1
+      range.adjustsFontSizeToFitWidth = true
+      range.minimumScaleFactor = 0.65
+      footer.addArrangedSubview(range)
+      stack.setCustomSpacing(3, after: graph)
+      stack.addArrangedSubview(footer)
+    }
     fitCard(to: stack)
   }
 
@@ -187,9 +200,11 @@ final class PriceAlertViewController: UIViewController, UNNotificationContentExt
 
 private final class Sparkline: UIView {
   private let alert: PriceAlert
+  private let prices: [Double]
 
-  init(alert: PriceAlert) {
+  init(alert: PriceAlert, prices: [Double]) {
     self.alert = alert
+    self.prices = prices
     super.init(frame: .zero)
     backgroundColor = .clear
     isAccessibilityElement = false
@@ -198,7 +213,7 @@ private final class Sparkline: UIView {
   required init?(coder: NSCoder) { nil }
 
   override func draw(_ rect: CGRect) {
-    let values = alert.points + [alert.target].compactMap { $0 }
+    let values = prices + [alert.target].compactMap { $0 }
     guard let minimum = values.min(), let maximum = values.max() else { return }
     guard let context = UIGraphicsGetCurrentContext() else { return }
     let targetLabel = alert.target.map {
@@ -224,8 +239,8 @@ private final class Sparkline: UIView {
       orange.withAlphaComponent(0.8).setStroke()
       marker.stroke()
     }
-    let positions = alert.points.enumerated().map { index, value in
-      CGPoint(x: chart.minX + chart.width * CGFloat(index) / CGFloat(alert.points.count - 1), y: y(value))
+    let positions = prices.enumerated().map { index, value in
+      CGPoint(x: chart.minX + chart.width * CGFloat(index) / CGFloat(prices.count - 1), y: y(value))
     }
     guard let first = positions.first, let last = positions.last else { return }
     let line = UIBezierPath()
@@ -257,6 +272,14 @@ private final class Sparkline: UIView {
     alert.trend.setFill()
     UIBezierPath(ovalIn: CGRect(x: last.x - 3.5, y: last.y - 3.5, width: 7, height: 7)).fill()
     context.restoreGState()
+    if let high = prices.max(), let low = prices.min() {
+      for value in high == low ? [high] : [high, low] {
+        guard let index = prices.firstIndex(of: value) else { continue }
+        let point = positions[index]
+        UIColor.white.setFill()
+        UIBezierPath(ovalIn: CGRect(x: point.x - 2, y: point.y - 2, width: 4, height: 4)).fill()
+      }
+    }
     if let target = alert.target, let targetLabel {
       let pill = CGRect(x: labelX, y: y(target) - 8.5, width: labelSize.width + 12, height: 17)
       UIColor(red: 0.19, green: 0.10, blue: 0.07, alpha: 1).setFill()

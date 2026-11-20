@@ -6,9 +6,29 @@ struct PriceAlert {
   let asset: String
   let price: Double
   let change: Double
-  let points: [Double]
+  let chart: Chart?
   let target: Double?
   let description: String
+
+  struct Chart: Decodable {
+    let v: Int
+    let currency: String
+    let start: Int
+    let interval: Int
+    var prices: [Double]
+  }
+
+  private static func parseChart(_ raw: Any?, price: Double) -> Chart? {
+    guard let text = raw as? String, text.utf8.count <= 2048,
+          var chart = try? JSONDecoder().decode(Chart.self, from: Data(text.utf8)),
+          chart.v == 1, chart.currency == "usd",
+          (1...253402214399).contains(chart.start), (1...1800).contains(chart.interval),
+          (49...97).contains(chart.prices.count),
+          (chart.prices.count - 1) * chart.interval == 86400,
+          chart.prices.allSatisfy(Self.isPrice) else { return nil }
+    chart.prices[chart.prices.count - 1] = price
+    return chart
+  }
 
   init?(_ data: [AnyHashable: Any]) {
     guard data["mm_delivery"] as? String == "price_alert",
@@ -19,12 +39,7 @@ struct PriceAlert {
           let asset = data["asset_id"] as? String,
           asset.range(of: "^[-a-z0-9]{3,8}:[-_a-zA-Z0-9]{1,32}/[-a-z0-9]{3,8}:[-.%a-zA-Z0-9]{1,128}$", options: .regularExpression) != nil,
           let price = Self.number(data["price"]), Self.isPrice(price),
-          let change = Self.number(data["change_pct"]), abs(change) <= 1e6,
-          let series = data["points"] as? String, series.utf8.count <= 384 else { return nil }
-    let fields = series.components(separatedBy: ",")
-    let points = fields.compactMap { Self.number($0) }
-    guard (2...24).contains(fields.count),
-          points.count == fields.count, points.allSatisfy(Self.isPrice) else { return nil }
+          let change = Self.number(data["change_pct"]), abs(change) <= 1e6 else { return nil }
 
     if kind == "threshold", let direction = data["direction"] as? String,
        ["above", "below"].contains(direction),
@@ -43,7 +58,7 @@ struct PriceAlert {
     self.asset = asset
     self.price = price
     self.change = change
-    self.points = points
+    self.chart = Self.parseChart(data["chart"], price: price)
   }
 
   private static func number(_ value: Any?) -> Double? {

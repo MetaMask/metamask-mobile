@@ -130,7 +130,29 @@ export async function displayPriceAlert(message: PriceAlertMessage) {
 export async function registerPriceAlertCategory() {
   const categories = await notifee.getNotificationCategories();
   await notifee.setNotificationCategories([
-    ...categories.filter(({ id }) => id !== PRICE_ALERT_CATEGORY),
+    ...categories
+      .filter(({ id }) => id !== PRICE_ALERT_CATEGORY)
+      .map((category) => ({
+        ...category,
+        allowInCarPlay: Boolean(category.allowInCarPlay),
+        allowAnnouncement: Boolean(category.allowAnnouncement),
+        hiddenPreviewsShowTitle: Boolean(category.hiddenPreviewsShowTitle),
+        hiddenPreviewsShowSubtitle: Boolean(
+          category.hiddenPreviewsShowSubtitle,
+        ),
+        actions: category.actions?.map((action) => ({
+          ...action,
+          destructive: Boolean(action.destructive),
+          foreground: Boolean(action.foreground),
+          authenticationRequired: Boolean(action.authenticationRequired),
+          input:
+            typeof action.input === 'number'
+              ? action.input
+                ? true
+                : undefined
+              : action.input,
+        })),
+      })),
     {
       id: PRICE_ALERT_CATEGORY,
       actions: [

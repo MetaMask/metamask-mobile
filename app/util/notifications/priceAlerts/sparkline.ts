@@ -5,7 +5,6 @@ import { cardArtwork } from './artwork';
 import { formatPriceAlert, usd, type PriceAlert } from './payload';
 
 const WIDTH = 900;
-const HEIGHT = 450;
 const PADDING = 46;
 const ORANGE = [250, 75, 0];
 const BLUE = [139, 153, 255];
@@ -33,11 +32,16 @@ export async function writeSparkline(
   id: string,
   priceAlert: PriceAlert,
 ): Promise<string> {
-  const { points, change, target } = priceAlert;
-  const top = 231;
-  const bottom = HEIGHT - PADDING;
+  const { chart, change } = priceAlert;
+  const points = chart?.prices ?? [];
+  const height = chart ? 450 : 232;
+  const target = chart ? priceAlert.target : undefined;
+  const high = Math.max(...points);
+  const low = Math.min(...points);
+  const top = 240;
+  const bottom = 390;
   const stride = 1 + WIDTH * 3;
-  const pixels = Buffer.alloc(stride * HEIGHT);
+  const pixels = Buffer.alloc(stride * height);
   const min = Math.min(...points, target ?? Infinity);
   const max = Math.max(...points, target ?? -Infinity);
   const chartY = (value: number) => {
@@ -54,7 +58,7 @@ export async function writeSparkline(
       : cardArtwork(() => undefined).textWidth(label, 0.59) + 24;
   const labelX = WIDTH - PADDING - labelWidth;
   const right = label === undefined ? labelX : labelX - 28;
-  const endY = chartY(points[points.length - 1]);
+  const endY = chart ? chartY(points[points.length - 1]) : 0;
   const targetY = target === undefined ? -100 : chartY(target);
   const trend = change >= 0 ? LIME : RED;
   const heights = points.map(chartY);
@@ -63,31 +67,34 @@ export async function writeSparkline(
       clamp((x - PADDING) / (right - PADDING)) * (points.length - 1);
     const segment = Math.min(heights.length - 2, Math.floor(progress));
     const t = progress - segment;
-    const yTrend =
-      heights[segment] +
-      (heights[segment + 1] - heights[segment]) * t * t * (3 - 2 * t);
-    const inChart = x >= PADDING && x <= right;
-    for (let y = 0; y < HEIGHT; y++) {
+    const yTrend = chart
+      ? heights[segment] +
+        (heights[segment + 1] - heights[segment]) * t * t * (3 - 2 * t)
+      : 0;
+    const inChart = chart !== undefined && x >= PADDING && x <= right;
+    for (let y = 0; y < height; y++) {
       const orangeGlow = 0.28 * clamp(1 - Math.hypot(x / 420, y / 340)) ** 2;
       const blueGlow =
-        0.2 * clamp(1 - Math.hypot((x - WIDTH) / 640, (y - HEIGHT) / 430)) ** 2;
+        0.2 * clamp(1 - Math.hypot((x - WIDTH) / 640, (y - height) / 430)) ** 2;
       const fill =
         inChart && y > yTrend
-          ? 0.26 *
-            clamp((HEIGHT - PADDING - y) / (HEIGHT - PADDING - yTrend || 1))
+          ? 0.26 * clamp((bottom - y) / (bottom - yTrend || 1))
           : 0;
       const marker =
-        x >= PADDING && x <= labelX && (x - PADDING) % 25 < 13
+        target !== undefined &&
+        x >= PADDING &&
+        x <= labelX &&
+        (x - PADDING) % 25 < 13
           ? 0.7 * clamp(1.9 - Math.abs(y - targetY))
           : 0;
-      const radius = Math.hypot(x - right, y - endY);
+      const radius = chart ? Math.hypot(x - right, y - endY) : Infinity;
       const line = inChart ? clamp(4 - Math.abs(y - yTrend)) : 0;
       const stroke = Math.max(
         line,
         0.45 * clamp(1 - radius / 29),
         clamp(8 - radius),
       );
-      const edge = Math.min(x, WIDTH - 1 - x, y, HEIGHT - 1 - y) < 2 ? 0.14 : 0;
+      const edge = Math.min(x, WIDTH - 1 - x, y, height - 1 - y) < 2 ? 0.14 : 0;
       const offset = y * stride + 1 + x * 3;
       for (let channel = 0; channel < 3; channel++) {
         let color =
@@ -102,7 +109,7 @@ export async function writeSparkline(
   }
 
   const blend = (x: number, y: number, color: number[], opacity: number) => {
-    if (x < 0 || y < 0 || x >= WIDTH || y >= HEIGHT) return;
+    if (x < 0 || y < 0 || x >= WIDTH || y >= height) return;
     const offset = y * stride + 1 + x * 3;
     for (let channel = 0; channel < 3; channel++) {
       pixels[offset + channel] += Math.round(
@@ -115,12 +122,12 @@ export async function writeSparkline(
     x: number,
     y: number,
     width: number,
-    height: number,
+    pillHeight: number,
     color: number[],
     opacity: number,
   ) => {
-    const radius = height / 2;
-    for (let row = 0; row < height; row++) {
+    const radius = pillHeight / 2;
+    for (let row = 0; row < pillHeight; row++) {
       for (let column = 0; column < width; column++) {
         const dx = Math.max(0, radius - column, column - (width - radius));
         const dy = row - radius;
@@ -167,7 +174,9 @@ export async function writeSparkline(
   );
   art.text(price, PADDING, 87, priceScale, white);
   art.text(
-    target === undefined ? priceAlert.description : 'Price target crossed',
+    priceAlert.target === undefined
+      ? priceAlert.description
+      : priceAlert.compactContext,
     PADDING,
     177,
     0.83,
@@ -179,9 +188,36 @@ export async function writeSparkline(
     art.text(label, labelX + 12, y + 6, 0.59, [255, 169, 127]);
   }
 
+  if (chart) {
+    for (const value of high === low ? [high] : [high, low]) {
+      const x =
+        PADDING +
+        ((right - PADDING) * points.indexOf(value)) / (points.length - 1);
+      const y = chartY(value);
+      for (let row = Math.floor(y - 5); row <= y + 5; row++) {
+        for (let column = Math.floor(x - 5); column <= x + 5; column++) {
+          blend(column, row, white, clamp(5 - Math.hypot(column - x, row - y)));
+        }
+      }
+    }
+    const range = `High ${usd(high)}  ·  Low ${usd(low)}`;
+    const scale = Math.min(
+      0.68,
+      (WIDTH - PADDING * 2 - 95) / art.textWidth(range, 1),
+    );
+    art.text('24h', PADDING, 412, 0.68, muted);
+    art.text(
+      range,
+      WIDTH - PADDING - art.textWidth(range, scale),
+      412,
+      scale,
+      muted,
+    );
+  }
+
   const header = Buffer.alloc(13);
   header.writeUInt32BE(WIDTH);
-  header.writeUInt32BE(HEIGHT, 4);
+  header.writeUInt32BE(height, 4);
   header.set([8, 2], 8);
   const png = Buffer.concat([
     Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),

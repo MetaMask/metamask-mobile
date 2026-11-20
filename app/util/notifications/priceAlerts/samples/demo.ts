@@ -17,7 +17,12 @@ const samples = {
   'movement-up': movementUp.message.data,
 };
 
-type Sample = keyof typeof samples | 'fallback' | 'malformed';
+type Sample =
+  | keyof typeof samples
+  | 'fallback'
+  | 'malformed'
+  | 'no-chart'
+  | 'invalid-chart';
 
 export async function showPriceAlertSample(
   sample: Sample,
@@ -26,14 +31,14 @@ export async function showPriceAlertSample(
   if (!__DEV__) {
     return;
   }
-  const data =
-    sample === 'fallback' || sample === 'malformed'
-      ? {
-          ...samples.threshold,
-          mm_ui: sample === 'fallback' ? 'price_alert@2' : PRICE_ALERT_VERSION,
-          points: sample === 'fallback' ? samples.threshold.points : '',
-        }
-      : samples[sample];
+  const { chart: _chart, ...withoutChart } = samples.threshold;
+  const variants = {
+    fallback: { ...withoutChart, mm_ui: 'price_alert@2' },
+    malformed: { ...withoutChart, mm_ui: PRICE_ALERT_VERSION, price: '' },
+    'no-chart': withoutChart,
+    'invalid-chart': { ...withoutChart, chart: '{"v":99}' },
+  };
+  const data = { ...samples, ...variants }[sample];
   await notifee.requestPermission();
   const display =
     delivery === 'android-background'

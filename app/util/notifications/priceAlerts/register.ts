@@ -1,6 +1,7 @@
 import notifee from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
+import Logger from '../../Logger';
 import {
   onBackgroundPriceAlertMessage,
   onPriceAlertEvent,
@@ -13,7 +14,12 @@ export function registerPriceAlertNotifications() {
   if (Platform.OS === 'android') {
     messaging().setBackgroundMessageHandler(onBackgroundPriceAlertMessage);
   } else {
-    registerPriceAlertCategory().catch(() => undefined);
+    registerPriceAlertCategory().catch((error: unknown) => {
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        'Failed to register the iOS price alert notification category',
+      );
+    });
   }
 
   if (__DEV__) {

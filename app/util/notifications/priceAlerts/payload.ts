@@ -11,7 +11,7 @@ export interface PriceAlert {
   assetId: string;
   price: number;
   change: number;
-  points: number[];
+  chart?: { start: number; interval: number; prices: number[] };
   description: string;
   compactContext: string;
   kind: 'threshold' | 'movement';
@@ -33,6 +33,42 @@ const numberField = (value: unknown): number => {
 const isPrice = (value: number): boolean =>
   Number.isFinite(value) && value > 0 && value <= 1e12;
 
+function parseChart(raw: unknown, price: number): PriceAlert['chart'] {
+  if (typeof raw !== 'string' || raw.length > 2048) return undefined;
+  let decoded: unknown;
+  try {
+    decoded = JSON.parse(raw);
+  } catch {
+    return undefined;
+  }
+  if (!decoded || typeof decoded !== 'object') return undefined;
+  const { v, currency, start, interval, prices } = decoded as Record<
+    string,
+    unknown
+  >;
+  if (
+    v !== 1 ||
+    currency !== 'usd' ||
+    typeof start !== 'number' ||
+    !Number.isSafeInteger(start) ||
+    start <= 0 ||
+    start > 253402214399 ||
+    typeof interval !== 'number' ||
+    !Number.isInteger(interval) ||
+    interval <= 0 ||
+    !Array.isArray(prices) ||
+    prices.length < 49 ||
+    prices.length > 97 ||
+    (prices.length - 1) * interval !== 86400 ||
+    !prices.every(
+      (value): value is number => typeof value === 'number' && isPrice(value),
+    )
+  ) {
+    return undefined;
+  }
+  return { start, interval, prices: [...prices.slice(0, -1), price] };
+}
+
 export const usd = (price: number): string =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -48,7 +84,7 @@ export function parsePriceAlert(data: PushData): PriceAlert | null {
   ) {
     return null;
   }
-  const { symbol, asset_id: assetId, kind, direction, period, points } = data;
+  const { symbol, asset_id: assetId, kind, direction, period } = data;
   const price = numberField(data.price);
   const change = numberField(data.change_pct);
   const target = numberField(data.target);
@@ -59,17 +95,12 @@ export function parsePriceAlert(data: PushData): PriceAlert | null {
     !isCaipAssetType(assetId) ||
     !isPrice(price) ||
     !Number.isFinite(change) ||
-    Math.abs(change) > 1e6 ||
-    typeof points !== 'string' ||
-    points.length > 384
+    Math.abs(change) > 1e6
   ) {
     return null;
   }
 
-  const prices = points.split(',').map(numberField);
-  if (prices.length < 2 || prices.length > 24 || !prices.every(isPrice)) {
-    return null;
-  }
+  const chart = parseChart(data.chart, price);
 
   if (
     kind === 'threshold' &&
@@ -81,7 +112,7 @@ export function parsePriceAlert(data: PushData): PriceAlert | null {
       assetId,
       price,
       change,
-      points: prices,
+      chart,
       kind,
       target,
       description: `Crossed ${direction} ${usd(target)}`,
@@ -98,7 +129,7 @@ export function parsePriceAlert(data: PushData): PriceAlert | null {
       assetId,
       price,
       change,
-      points: prices,
+      chart,
       kind,
       description: `Price movement · ${period}`,
       compactContext: period,
