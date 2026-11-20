@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useVenueCapabilities } from '../capabilities';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import { useActiveVenue } from '../implementation/activeVenue';
 import type { ActiveVenueResolution } from '../implementation/types';
 import type { PredictVenueId } from '../types';

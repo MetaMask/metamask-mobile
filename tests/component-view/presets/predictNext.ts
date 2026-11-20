@@ -19,9 +19,5 @@ export const initialStatePredictNext = (privacyMode = false) =>
           kalshi: { enabled: true },
         },
         venueSelection: { enabled: false },
-        // The PredictNext lane's view tests exercise the Kalshi Withdraw
-        // flow, so its rollout flag is on here. Cases that need it off pass
-        // their own `remoteFeatureFlags`.
-        kalshiWithdrawalsEnabled: true,
       },
     });
