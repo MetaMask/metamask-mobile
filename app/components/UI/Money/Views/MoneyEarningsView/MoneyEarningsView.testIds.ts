@@ -1,6 +1,7 @@
 export const MoneyEarningsViewTestIds = {
   CONTAINER: 'money-earnings-view-container',
   EARNINGS_PANEL: 'money-earnings-view-panel-earnings',
+  ALLOCATION_PANEL: 'money-earnings-view-panel-allocation',
   BACK_BUTTON: 'money-earnings-view-back-button',
   TAB_EARNINGS: 'money-earnings-view-tab-earnings',
   TAB_APY: 'money-earnings-view-tab-apy',
