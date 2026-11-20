@@ -193,6 +193,7 @@ export const NextPredictHomeSection = forwardRef<
     contentReady: !isLoading && !discoveryHasError,
     isEmpty: !isLoading && itemCount === 0 && !discoveryHasError,
     demandStarted,
+    generationKey: showsDiscovery ? 'discovery' : 'positions',
     cacheState,
     contentStateForTrace,
     contentError: discoveryHasError,
