@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 
 const VAULT_COMPOSITION_STALE_TIME = 15 * 60 * 1000; // 15 minutes
+// TODO: Remove after testing.
+const DEBUG_VAULT_ADDRESS = '0x1c8a336051d2024e318a229d01f9f6cf96efd316';
 
 export interface UseMoneyVaultCompositionOptions {
   enabled?: boolean;
@@ -23,7 +25,8 @@ export const useMoneyVaultComposition = ({
   enabled = true,
 }: UseMoneyVaultCompositionOptions = {}): UseQueryResult<VaultCompositionResponse> => {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  const vaultAddress = vaultConfig?.boringVault;
+  // const vaultAddress = vaultConfig?.boringVault;
+  const vaultAddress = DEBUG_VAULT_ADDRESS;
   const chainId = vaultConfig?.chainId;
 
   const hasValidConfig = Boolean(vaultAddress && chainId);

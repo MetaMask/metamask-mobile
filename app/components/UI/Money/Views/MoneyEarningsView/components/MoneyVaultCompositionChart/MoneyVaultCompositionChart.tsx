@@ -2,12 +2,14 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { G, Path, Svg } from 'react-native-svg';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import I18n, { strings } from '../../../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
+import { formatVaultCompositionLabel } from '../../../../utils/moneyVaultComposition';
 import { useTheme } from '../../../../../../../util/theme';
 import {
   buildVaultCompositionChartModel,
   CHART_VIEWBOX_SIZE,
   formatAllocationPercentage,
+  getVaultCompositionComponentColor,
 } from './MoneyVaultCompositionChart.utils';
 import type {
   ComponentKey,
@@ -15,41 +17,6 @@ import type {
 } from './MoneyVaultCompositionChart.types';
 import { MoneyVaultCompositionChartTestIds } from './MoneyVaultCompositionChart.testIds';
 import useMoneyVaultCompositionChartInteraction from './useMoneyVaultCompositionChartInteraction';
-
-const getWedgeColor = (
-  componentKey: string,
-  colors: ReturnType<typeof useTheme>['colors'],
-): string => {
-  switch (componentKey) {
-    case 'direct_idle_musd':
-      return colors.primary.default;
-    case 'direct_idle_usdc':
-      return colors.success.default;
-    case 'aave_v3_musd':
-      return colors.info.default;
-    case 'morpho_v2_musd':
-      return colors.warning.default;
-    case 'morpho_v2_usdc':
-      return colors.error.default;
-  }
-
-  // In case component key isn't part of known keys above. We still want to return a different color.
-  const fallbackColors = [
-    colors.primary.alternative,
-    colors.error.alternative,
-    colors.warning.defaultHover,
-    colors.success.defaultHover,
-    colors.icon.alternative,
-  ];
-  const hash = componentKey
-    .split('')
-    .reduce(
-      (total, character) => (total * 31 + character.charCodeAt(0)) >>> 0,
-      0,
-    );
-
-  return fallbackColors[hash % fallbackColors.length];
-};
 
 const MoneyVaultCompositionChart = ({
   components,
@@ -77,7 +44,7 @@ const MoneyVaultCompositionChart = ({
   const previousActiveKey = useRef<ComponentKey | null>(null);
 
   const centerPercentage = activeWedge
-    ? formatAllocationPercentage(activeWedge.allocationFraction, I18n.locale)
+    ? formatAllocationPercentage(activeWedge.allocationFraction)
     : null;
   const accessibilityText = activeWedge
     ? strings('money.earnings.chart_allocation_accessibility_label', {
@@ -188,7 +155,10 @@ const MoneyVaultCompositionChart = ({
                   ? wedge.pressedPath
                   : wedge.path
               }
-              fill={getWedgeColor(wedge.componentKey, colors)}
+              fill={getVaultCompositionComponentColor(
+                wedge.componentKey,
+                colors,
+              )}
               opacity={
                 isInteracting && wedge.componentKey !== activeWedge.componentKey
                   ? 0.35
@@ -202,7 +172,7 @@ const MoneyVaultCompositionChart = ({
       <Box
         pointerEvents="none"
         accessible={false}
-        twClassName="absolute inset-0 items-center justify-center px-4"
+        twClassName="absolute inset-0 items-center justify-center px-8"
       >
         <Text
           testID={MoneyVaultCompositionChartTestIds.CENTER_PERCENTAGE}
@@ -221,7 +191,7 @@ const MoneyVaultCompositionChart = ({
           accessible={false}
           twClassName="max-w-full text-center"
         >
-          {activeWedge.component.label}
+          {formatVaultCompositionLabel(activeWedge.component)}
         </Text>
       </Box>
     </Box>

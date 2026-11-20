@@ -1,23 +1,35 @@
 import BigNumber from 'bignumber.js';
 import { arc } from 'd3-shape';
 import type { VaultCompositionResponse } from '../../../../types/moneyVaultComposition';
+import type { Colors } from '../../../../../../../util/theme/models';
+import { getIntlNumberFormatter } from '../../../../../../../util/intl';
 import type {
   ComponentKey,
   VaultCompositionChartModel,
   VaultCompositionWedge,
 } from './MoneyVaultCompositionChart.types';
 
-export const CHART_VIEWBOX_SIZE = 200;
+export const CHART_VIEWBOX_SIZE = 240;
 export const CHART_CENTER = CHART_VIEWBOX_SIZE / 2;
-export const DONUT_INNER_RADIUS = 64;
-export const DONUT_OUTER_RADIUS = 80;
-export const PRESSED_DONUT_OUTER_RADIUS = 86;
+export const DONUT_INNER_RADIUS = 88;
+export const DONUT_OUTER_RADIUS = 108;
+export const PRESSED_DONUT_OUTER_RADIUS = 116;
 export const SEPARATOR_ANGLE_DEGREES = 2;
-export const MINIMUM_PAINTED_ANGLE_DEGREES = 2;
+export const MINIMUM_PAINTED_ANGLE_DEGREES = 4;
 
 const DEGREES_IN_CIRCLE = new BigNumber(360);
 const RADIANS_PER_DEGREE = Math.PI / 180;
 const DECIMAL_PATTERN = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+const MONEY_PERCENTAGE_LOCALE = 'en-US';
+const PERCENTAGE_FORMAT_OPTIONS = {
+  style: 'percent',
+  maximumFractionDigits: 2,
+} satisfies Intl.NumberFormatOptions;
+const LOWER_BOUND_PERCENTAGE_FORMAT_OPTIONS = {
+  style: 'percent',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+} satisfies Intl.NumberFormatOptions;
 
 type VaultComponent = VaultCompositionResponse['components'][number];
 
@@ -25,6 +37,54 @@ interface ParsedComponent {
   component: VaultComponent;
   allocation: BigNumber;
 }
+
+type ParsedComponentsResult =
+  | { status: 'ready'; components: ParsedComponent[] }
+  | {
+      status: 'invalid';
+      reason: 'duplicate_component_key' | 'invalid_allocation_fraction';
+    };
+
+/**
+ * Resolves a stable theme color for a vault component key.
+ *
+ * @param componentKey - API component key.
+ * @param colors - Theme colors.
+ * @returns Theme color for the component.
+ */
+export const getVaultCompositionComponentColor = (
+  componentKey: string,
+  colors: Colors,
+): string => {
+  switch (componentKey) {
+    case 'direct_idle_musd':
+      return colors.text.default;
+    case 'direct_idle_usdc':
+      return colors.success.default;
+    case 'aave_v3_musd':
+      return colors.info.default;
+    case 'morpho_v2_musd':
+      return colors.warning.default;
+    case 'morpho_v2_usdc':
+      return colors.error.default;
+  }
+
+  const fallbackColors = [
+    colors.primary.alternative,
+    colors.error.alternative,
+    colors.warning.defaultHover,
+    colors.success.defaultHover,
+    colors.icon.alternative,
+  ];
+  const hash = componentKey
+    .split('')
+    .reduce(
+      (total, character) => (total * 31 + character.charCodeAt(0)) >>> 0,
+      0,
+    );
+
+  return fallbackColors[hash % fallbackColors.length];
+};
 
 /**
  * Tests whether an arbitrary point lands inside a painted donut wedge.
@@ -57,15 +117,9 @@ export const getVaultCompositionComponentKeyAtPoint = (
   );
 };
 
-/**
- * Builds a validated, sorted, and normalized model for the composition chart.
- *
- * @param components - Components returned by the vault composition API.
- * @returns A renderable, empty, or invalid chart model.
- */
-export const buildVaultCompositionChartModel = (
+const parseVaultCompositionComponents = (
   components: VaultCompositionResponse['components'],
-): VaultCompositionChartModel => {
+): ParsedComponentsResult => {
   const parsedComponents: ParsedComponent[] = [];
   const componentKeys = new Set<string>();
 
@@ -84,23 +138,57 @@ export const buildVaultCompositionChartModel = (
     parsedComponents.push({ component, allocation });
   }
 
-  const positiveComponents = parsedComponents
+  return { status: 'ready', components: parsedComponents };
+};
+
+const getPositiveComponents = (
+  components: ParsedComponent[],
+): ParsedComponent[] =>
+  components
     .filter(({ allocation }) => allocation.gt(0))
     .sort(compareParsedComponents);
+
+const hasFeasibleGeometry = (componentCount: number): boolean => {
+  const availablePaintedDegrees = DEGREES_IN_CIRCLE.minus(
+    new BigNumber(componentCount * SEPARATOR_ANGLE_DEGREES),
+  );
+  const minimumPaintedDegrees = new BigNumber(MINIMUM_PAINTED_ANGLE_DEGREES);
+
+  return availablePaintedDegrees.gte(
+    minimumPaintedDegrees.times(componentCount),
+  );
+};
+
+/**
+ * Builds a validated, sorted, and normalized model for the composition chart.
+ *
+ * @param components - Components returned by the vault composition API.
+ * @returns A renderable, empty, or invalid chart model.
+ */
+export const buildVaultCompositionChartModel = (
+  components: VaultCompositionResponse['components'],
+): VaultCompositionChartModel => {
+  const parsedResult = parseVaultCompositionComponents(components);
+  if (parsedResult.status === 'invalid') {
+    return parsedResult;
+  }
+
+  const positiveComponents = getPositiveComponents(parsedResult.components);
 
   if (positiveComponents.length === 0) {
     return { status: 'empty' };
   }
 
   const positiveCount = positiveComponents.length;
+  const minimumPaintedDegrees = new BigNumber(MINIMUM_PAINTED_ANGLE_DEGREES);
+
+  if (!hasFeasibleGeometry(positiveCount)) {
+    return { status: 'invalid', reason: 'infeasible_geometry' };
+  }
+
   const availablePaintedDegrees = DEGREES_IN_CIRCLE.minus(
     new BigNumber(positiveCount * SEPARATOR_ANGLE_DEGREES),
   );
-  const minimumPaintedDegrees = new BigNumber(MINIMUM_PAINTED_ANGLE_DEGREES);
-
-  if (availablePaintedDegrees.lt(minimumPaintedDegrees.times(positiveCount))) {
-    return { status: 'invalid', reason: 'infeasible_geometry' };
-  }
 
   const totalAllocation = positiveComponents.reduce(
     (total, { allocation }) => total.plus(allocation),
@@ -163,15 +251,38 @@ export const buildVaultCompositionChartModel = (
 };
 
 /**
- * Formats a fractional allocation as a locale-aware percentage.
+ * Returns positive components in the same deterministic order as chart wedges.
+ *
+ * Invalid allocation data returns no components; the chart remains responsible
+ * for rendering its existing invalid state.
+ *
+ * @param components - Components returned by the vault composition API.
+ * @returns Positive components ordered for chart and table presentation.
+ */
+export const getVaultCompositionComponentsInChartOrder = (
+  components: VaultCompositionResponse['components'],
+): VaultComponent[] => {
+  const parsedResult = parseVaultCompositionComponents(components);
+  if (parsedResult.status === 'invalid') {
+    return [];
+  }
+
+  const positiveComponents = getPositiveComponents(parsedResult.components);
+
+  return positiveComponents.length > 0 &&
+    hasFeasibleGeometry(positiveComponents.length)
+    ? positiveComponents.map(({ component }) => component)
+    : [];
+};
+
+/**
+ * Formats a fractional allocation as a US English percentage.
  *
  * @param allocationFraction - Decimal fraction such as `0.38`.
- * @param locale - BCP 47 locale used for decimal and percent formatting.
- * @returns A localized percentage string.
+ * @returns A percentage string.
  */
 export const formatAllocationPercentage = (
   allocationFraction: string,
-  locale: string,
 ): string => {
   const parsedAllocation = parseAllocationFraction(allocationFraction);
   if (parsedAllocation === null) {
@@ -180,17 +291,16 @@ export const formatAllocationPercentage = (
     );
   }
 
-  const formatter = new Intl.NumberFormat(locale, {
-    style: 'percent',
-    maximumFractionDigits: 2,
-  });
+  const formatter = getIntlNumberFormatter(
+    MONEY_PERCENTAGE_LOCALE,
+    PERCENTAGE_FORMAT_OPTIONS,
+  );
 
   if (parsedAllocation.gt(0) && parsedAllocation.lt(new BigNumber('0.0001'))) {
-    const lowerBoundFormatter = new Intl.NumberFormat(locale, {
-      style: 'percent',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+    const lowerBoundFormatter = getIntlNumberFormatter(
+      MONEY_PERCENTAGE_LOCALE,
+      LOWER_BOUND_PERCENTAGE_FORMAT_OPTIONS,
+    );
 
     return `<${lowerBoundFormatter.format(0.0001)}`;
   }

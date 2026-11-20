@@ -204,18 +204,14 @@ describe('buildVaultCompositionChartModel', () => {
 
 describe('formatAllocationPercentage', () => {
   it('formats a decimal fraction as a percentage', () => {
-    expect(formatAllocationPercentage('0.38', 'en-US')).toBe('38%');
-  });
-
-  it('formats decimal separators according to the locale', () => {
-    expect(formatAllocationPercentage('0.125', 'de-DE')).toContain('12,5');
+    expect(formatAllocationPercentage('0.38')).toBe('38%');
   });
 
   it('formats zero as zero percent', () => {
-    expect(formatAllocationPercentage('0', 'en-US')).toBe('0%');
+    expect(formatAllocationPercentage('0')).toBe('0%');
   });
 
   it('shows a lower bound for positive percentages below one hundredth of a percent', () => {
-    expect(formatAllocationPercentage('0.00005', 'en-US')).toBe('<0.01%');
+    expect(formatAllocationPercentage('0.00005')).toBe('<0.01%');
   });
 });

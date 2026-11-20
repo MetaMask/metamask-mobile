@@ -42,7 +42,13 @@ const createComponent = (
       : componentKey.startsWith('morpho')
         ? 'morpho_v2'
         : 'liquidity_buffer',
-  assets: [],
+  assets: [
+    {
+      asset_symbol: componentKey.endsWith('usdc') ? 'USDC' : 'mUSD',
+      amount: '1',
+      value_usd: '1',
+    },
+  ],
   allocation_value_usd: '1',
   allocation_fraction: '0.2',
   organic_supply_apy: '0',
@@ -68,13 +74,13 @@ const createInteractionComponents = (): VaultCompositionComponent[] => [
   createComponent('aave_v3_musd', { allocation_fraction: '0.2' }),
 ];
 
-const createTouchEvent = (angleDegrees: number, radius = 72) => {
+const createTouchEvent = (angleDegrees: number, radius = 100) => {
   const angleRadians = (angleDegrees * Math.PI) / 180;
 
   return {
     nativeEvent: {
-      locationX: 100 + Math.sin(angleRadians) * radius,
-      locationY: 100 - Math.cos(angleRadians) * radius,
+      locationX: 120 + Math.sin(angleRadians) * radius,
+      locationY: 120 - Math.cos(angleRadians) * radius,
     },
   };
 };
@@ -168,7 +174,7 @@ describe('MoneyVaultCompositionChart', () => {
     ).toHaveTextContent('38%');
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('Highest allocation');
+    ).toHaveTextContent('Cash reserve · mUSD');
   });
 
   it('centers the SVG ring inside its viewBox', () => {
@@ -180,10 +186,10 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.RING).props.transform,
-    ).toBe('translate(100, 100)');
+    ).toBe('translate(120, 120)');
   });
 
-  it('shows the API label under the true percentage', () => {
+  it('shows the formatted protocol and asset label under the true percentage', () => {
     const component = createComponent('direct_idle_musd', {
       label: 'Direct idle mUSD',
       allocation_fraction: '0.38',
@@ -195,7 +201,7 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('Direct idle mUSD');
+    ).toHaveTextContent('Cash reserve · mUSD');
   });
 
   it('renders an explicit empty state', () => {
@@ -361,7 +367,7 @@ describe('MoneyVaultCompositionChart', () => {
     ).toBe('adjustable');
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('Highest allocation');
+    ).toHaveTextContent('Cash reserve · mUSD');
   });
 
   it('selects a wedge on ring touch and preserves selection after release', () => {
@@ -382,7 +388,7 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('direct_idle_usdc');
+    ).toHaveTextContent('Cash reserve · USDC');
   });
 
   it('dims inactive wedges and expands the selected wedge while held', () => {
@@ -436,7 +442,7 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('direct_idle_usdc');
+    ).toHaveTextContent('Cash reserve · USDC');
   });
 
   it('retains selection when dragging through a separator, hole, or outside', () => {
@@ -455,7 +461,7 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('direct_idle_musd');
+    ).toHaveTextContent('Cash reserve · mUSD');
   });
 
   it('selects across the zero-degree boundary while dragging', () => {
@@ -475,7 +481,7 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('direct_idle_musd');
+    ).toHaveTextContent('Cash reserve · mUSD');
   });
 
   it('rejects touches that begin outside the painted ring', () => {
@@ -489,7 +495,7 @@ describe('MoneyVaultCompositionChart', () => {
       chart.props.onStartShouldSetResponder(createTouchEvent(60, 20)),
     ).toBe(false);
     expect(
-      chart.props.onStartShouldSetResponder(createTouchEvent(60, 100)),
+      chart.props.onStartShouldSetResponder(createTouchEvent(60, 120)),
     ).toBe(false);
     expect(chart.props.onStartShouldSetResponder(createTouchEvent(179.5))).toBe(
       false,
@@ -582,7 +588,7 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('Refreshed active wedge');
+    ).toHaveTextContent('Cash reserve · USDC');
   });
 
   it('selects the new maximum when the active wedge becomes non-positive', () => {
@@ -609,7 +615,7 @@ describe('MoneyVaultCompositionChart', () => {
 
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('aave_v3_musd');
+    ).toHaveTextContent('Aave v3 · mUSD');
   });
 
   it('changes selection through accessibility increment and decrement actions', () => {
@@ -629,7 +635,7 @@ describe('MoneyVaultCompositionChart', () => {
     });
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('direct_idle_usdc');
+    ).toHaveTextContent('Cash reserve · USDC');
 
     act(() => {
       chart.props.onAccessibilityAction({
@@ -638,7 +644,7 @@ describe('MoneyVaultCompositionChart', () => {
     });
     expect(
       getByTestId(MoneyVaultCompositionChartTestIds.CENTER_LABEL),
-    ).toHaveTextContent('direct_idle_musd');
+    ).toHaveTextContent('Cash reserve · mUSD');
   });
 
   it('announces changed selection through accessibility', () => {

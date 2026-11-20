@@ -10144,6 +10144,7 @@
       "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
       "earn_more": "Earn more",
       "chart_allocation_accessibility_label": "{{label}}, {{percentage}}",
+      "cash_reserve": "Cash reserve",
       "chart_empty": "No allocation data is available yet.",
       "chart_invalid": "We couldn't display allocation data. Try again later.",
       "allocation_loading": "Loading allocation data",

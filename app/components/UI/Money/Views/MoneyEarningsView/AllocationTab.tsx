@@ -15,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyVaultComposition } from '../../hooks/useMoneyVaultComposition';
 import MoneyVaultCompositionChart from './components/MoneyVaultCompositionChart';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
+import { CHART_VIEWBOX_SIZE } from './components/MoneyVaultCompositionChart/MoneyVaultCompositionChart.utils';
 
 export const setAllocationScrollEnabled = (
   scrollView: Pick<ScrollView, 'setNativeProps'> | null,
@@ -47,8 +48,8 @@ const AllocationTab = (): React.ReactElement => {
     if (isCompositionLoading) {
       return (
         <Skeleton
-          height={200}
-          width={200}
+          height={CHART_VIEWBOX_SIZE}
+          width={CHART_VIEWBOX_SIZE}
           testID={MoneyEarningsViewTestIds.ALLOCATION_LOADING}
           accessible
           accessibilityRole="progressbar"
@@ -125,7 +126,7 @@ const AllocationTab = (): React.ReactElement => {
     }
 
     return (
-      <Box twClassName="items-center gap-4">
+      <Box twClassName="items-center">
         {data.data_freshness === 'degraded' ? (
           <Text
             testID={MoneyEarningsViewTestIds.ALLOCATION_DEGRADED}
@@ -147,10 +148,7 @@ const AllocationTab = (): React.ReactElement => {
   return (
     <ScrollView
       ref={scrollViewRef}
-      style={tw.style('flex-1')}
-      contentContainerStyle={tw.style(
-        'flex-grow items-center justify-center px-4 py-6',
-      )}
+      contentContainerStyle={tw.style('items-center justify-center px-4 py-6')}
       showsVerticalScrollIndicator={false}
     >
       {renderContent()}
