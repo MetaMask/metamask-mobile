@@ -15,6 +15,7 @@ import {
   withImplicitWait,
 } from './AppiumUtilities.ts';
 import { createAppiumLogger } from './appiumLogger.ts';
+import { interruptingScreenGuard } from './interrupting-screens/InterruptingScreenGuard.ts';
 
 const logger = createAppiumLogger('AppiumAssertions');
 
@@ -212,13 +213,40 @@ export default class AppiumAssertions {
     targetElement: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
+    const el = await this.resolveTrackedElement(targetElement);
+    logger.debug('Waiting for element to be visible');
+    const timeout = this.getTimeout(options);
+    await interruptingScreenGuard.retryAfterInterruption(
+      () => this.pollUntilVisible(el, timeout),
+      {
+        intent: options.description ?? 'wait for element to be visible',
+        trigger: 'wait-failure',
+      },
+    );
+  }
+
+  /**
+   * Same wait as {@link expectElementToBeVisible} without interrupting-screen
+   * recovery. Use for presence probes where absence is an expected outcome
+   * (`Utilities.isElementVisible`, ready-state polling).
+   */
+  static async probeElementToBeVisible(
+    targetElement: AppiumElement | Promise<AppiumElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await this.resolveTrackedElement(targetElement);
+    await this.pollUntilVisible(el, this.getTimeout(options));
+  }
+
+  private static async resolveTrackedElement(
+    targetElement: AppiumElement | Promise<AppiumElement>,
+  ): Promise<AppiumElement> {
     const t0 = Date.now();
     const el = await targetElement;
     if (isOverheadTrackingActive()) {
       addOverhead(Date.now() - t0);
     }
-    logger.debug('Waiting for element to be visible');
-    await this.pollUntilVisible(el, this.getTimeout(options));
+    return el;
   }
 
   /**
