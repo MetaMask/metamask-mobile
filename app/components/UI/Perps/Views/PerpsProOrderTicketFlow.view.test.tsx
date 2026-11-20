@@ -23,6 +23,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { HYPERLIQUID_TWAP_LIMITS } from '@metamask/perps-controller';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
@@ -174,6 +175,16 @@ const renderTicket = ({
       status: 'ready',
       providerId: activeProvider,
       supportedStrategies,
+      ...(supportedStrategies.includes('twap') && {
+        strategyRules: {
+          twap: {
+            minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+            maxDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
+            minNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+            sliceIntervalSeconds: HYPERLIQUID_TWAP_LIMITS.SliceIntervalSeconds,
+          },
+        },
+      }),
       supportedTriggerOrderTypes: [
         'stop_market',
         'stop_limit',

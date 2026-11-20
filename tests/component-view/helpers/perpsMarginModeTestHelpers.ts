@@ -1,5 +1,8 @@
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
-import type { MarketInfo } from '@metamask/perps-controller';
+import type {
+  MarketInfo,
+  PerpsOrderCapabilities,
+} from '@metamask/perps-controller';
 import Engine from '../../../app/core/Engine';
 import {
   PerpsCrossMarginConfirmBottomSheetSelectorsIDs as confirmIds,
@@ -15,9 +18,20 @@ export const crossMarginMarketInfo: MarketInfo = {
   providerId: 'hyperliquid',
 };
 
+export const crossMarginCapabilities = {
+  status: 'ready',
+  providerId: 'hyperliquid',
+  supportedStrategies: [],
+  supportedMarginModes: ['isolated', 'cross'],
+} as const satisfies PerpsOrderCapabilities;
+
 /** Reset every Engine implementation modified by the margin-mode journeys. */
 export function resetMarginModeControllerMocks() {
   const controller = Engine.context.PerpsController;
+  jest
+    .mocked(controller.getOrderCapabilities)
+    .mockReset()
+    .mockResolvedValue(crossMarginCapabilities);
   jest
     .mocked(controller.getMarkets)
     .mockReset()
