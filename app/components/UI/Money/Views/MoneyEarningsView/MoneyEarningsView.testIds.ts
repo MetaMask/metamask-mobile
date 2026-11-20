@@ -21,6 +21,10 @@ export const MoneyEarningsViewTestIds = {
   CHART_GRIDLINE: (index: number): string =>
     `money-earnings-view-chart-gridline-${index}`,
   RANGE_SELECTOR: 'money-earnings-view-range-selector',
+  ALLOCATION_LOADING: 'money-earnings-view-allocation-loading',
+  ALLOCATION_ERROR: 'money-earnings-view-allocation-error',
+  ALLOCATION_EMPTY: 'money-earnings-view-allocation-empty',
+  ALLOCATION_DEGRADED: 'money-earnings-view-allocation-degraded',
   SUMMARY: 'money-earnings-view-summary',
   SUMMARY_ROW: (index: number): string =>
     `money-earnings-view-summary-row-${index}`,

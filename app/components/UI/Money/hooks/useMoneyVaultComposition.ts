@@ -1,17 +1,14 @@
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import { useSelector } from 'react-redux';
-import {
-  selectMoneyAccountPremiumVaultConfig,
-  selectMoneyAccountVaultConfig,
-} from '../../../../selectors/featureFlagController/moneyAccount';
 import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyVaultComposition } from '../services/moneyVaultComposition';
 import type { VaultCompositionResponse } from '../types/moneyVaultComposition';
+import { Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 
 const VAULT_COMPOSITION_STALE_TIME = 15 * 60 * 1000; // 15 minutes
 
 export interface UseMoneyVaultCompositionOptions {
-  vaultType: VaultCompositionResponse['vault_key'];
   enabled?: boolean;
 }
 
@@ -21,44 +18,29 @@ export interface UseMoneyVaultCompositionOptions {
  * @param options - Vault variant and optional query enablement.
  * @returns The TanStack Query result for vault composition.
  */
+// TODO: Add support for premium vault composition.
 export const useMoneyVaultComposition = ({
-  vaultType,
   enabled = true,
-}: UseMoneyVaultCompositionOptions): UseQueryResult<VaultCompositionResponse> => {
-  const standardVaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  const premiumVaultConfig = useSelector(selectMoneyAccountPremiumVaultConfig);
-  const vaultConfig =
-    vaultType === 'premium' ? premiumVaultConfig : standardVaultConfig;
-  const boringVault = vaultConfig?.boringVault;
-  const normalizedBoringVault =
-    typeof boringVault === 'string' && boringVault.length > 0
-      ? boringVault.toLowerCase()
-      : undefined;
-  const configuredChainId = vaultConfig?.chainId;
-  const chainId =
-    typeof configuredChainId === 'string'
-      ? Number(configuredChainId)
-      : undefined;
-  const isValidChainId = chainId !== undefined && Number.isSafeInteger(chainId);
-  const hasValidConfig = Boolean(
-    normalizedBoringVault && isValidChainId && chainId !== undefined,
-  );
+}: UseMoneyVaultCompositionOptions = {}): UseQueryResult<VaultCompositionResponse> => {
+  const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const vaultAddress = vaultConfig?.boringVault;
+  const chainId = vaultConfig?.chainId;
+
+  const hasValidConfig = Boolean(vaultAddress && chainId);
 
   return useQuery({
-    queryKey: [
-      MoneyQueryKeys.FETCH_VAULT_COMPOSITION,
-      vaultType,
-      normalizedBoringVault,
-      chainId,
-    ],
+    queryKey: [MoneyQueryKeys.FETCH_VAULT_COMPOSITION, vaultAddress, chainId],
     queryFn: async () => {
-      if (!normalizedBoringVault || !isValidChainId || chainId === undefined) {
+      if (!vaultAddress || !chainId) {
         throw new Error(
           'Cannot fetch Money vault composition without a vault address and valid chain ID',
         );
       }
 
-      return await fetchMoneyVaultComposition(normalizedBoringVault, chainId);
+      return await fetchMoneyVaultComposition(
+        vaultAddress,
+        parseInt(chainId, 16),
+      );
     },
     staleTime: VAULT_COMPOSITION_STALE_TIME,
     enabled: enabled && hasValidConfig,

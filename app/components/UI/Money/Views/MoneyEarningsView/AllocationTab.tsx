@@ -1,0 +1,161 @@
+import React, { useCallback, useRef } from 'react';
+import { ScrollView } from 'react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  Skeleton,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
+import { useMoneyVaultComposition } from '../../hooks/useMoneyVaultComposition';
+import MoneyVaultCompositionChart from './components/MoneyVaultCompositionChart';
+import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
+
+export const setAllocationScrollEnabled = (
+  scrollView: Pick<ScrollView, 'setNativeProps'> | null,
+  enabled: boolean,
+): void => {
+  scrollView?.setNativeProps({ scrollEnabled: enabled });
+};
+
+const AllocationTab = (): React.ReactElement => {
+  const tw = useTailwind();
+
+  const {
+    data,
+    isLoading: isCompositionLoading,
+    isError,
+    refetch,
+  } = useMoneyVaultComposition();
+
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const setScrollEnabled = useCallback((enabled: boolean): void => {
+    setAllocationScrollEnabled(scrollViewRef.current, enabled);
+  }, []);
+
+  const handleRetry = useCallback(async (): Promise<void> => {
+    await refetch();
+  }, [refetch]);
+
+  const renderContent = (): React.ReactElement => {
+    if (isCompositionLoading) {
+      return (
+        <Skeleton
+          height={200}
+          width={200}
+          testID={MoneyEarningsViewTestIds.ALLOCATION_LOADING}
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityLabel={strings('money.earnings.allocation_loading')}
+        />
+      );
+    }
+
+    if (isError) {
+      return (
+        <Box
+          testID={MoneyEarningsViewTestIds.ALLOCATION_ERROR}
+          accessibilityRole="alert"
+          twClassName="items-center justify-center gap-3 px-4 py-8"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('money.earnings.allocation_error')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={handleRetry}
+          >
+            {strings('money.earnings.allocation_retry')}
+          </Button>
+        </Box>
+      );
+    }
+
+    if (!data) {
+      return (
+        <Box
+          testID={MoneyEarningsViewTestIds.ALLOCATION_ERROR}
+          accessibilityRole="alert"
+          twClassName="items-center justify-center gap-3 px-4 py-8"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('money.earnings.allocation_error')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={handleRetry}
+          >
+            {strings('money.earnings.allocation_retry')}
+          </Button>
+        </Box>
+      );
+    }
+
+    if (data.components.length === 0) {
+      return (
+        <Box
+          testID={MoneyEarningsViewTestIds.ALLOCATION_EMPTY}
+          twClassName="items-center justify-center px-4 py-8"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('money.earnings.allocation_empty')}
+          </Text>
+        </Box>
+      );
+    }
+
+    return (
+      <Box twClassName="items-center gap-4">
+        {data.data_freshness === 'degraded' ? (
+          <Text
+            testID={MoneyEarningsViewTestIds.ALLOCATION_DEGRADED}
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('money.earnings.allocation_degraded')}
+          </Text>
+        ) : null}
+        <MoneyVaultCompositionChart
+          components={data.components}
+          setScrollEnabled={setScrollEnabled}
+        />
+      </Box>
+    );
+  };
+
+  return (
+    <ScrollView
+      ref={scrollViewRef}
+      style={tw.style('flex-1')}
+      contentContainerStyle={tw.style(
+        'flex-grow items-center justify-center px-4 py-6',
+      )}
+      showsVerticalScrollIndicator={false}
+    >
+      {renderContent()}
+    </ScrollView>
+  );
+};
+
+export default AllocationTab;

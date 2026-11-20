@@ -1,10 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import {
-  selectMoneyAccountPremiumVaultConfig,
-  selectMoneyAccountVaultConfig,
-} from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyVaultComposition } from '../services/moneyVaultComposition';
 import type { VaultCompositionResponse } from '../types/moneyVaultComposition';
@@ -20,7 +17,6 @@ jest.mock('@tanstack/react-query', () => ({
 }));
 
 jest.mock('../../../../selectors/featureFlagController/moneyAccount', () => ({
-  selectMoneyAccountPremiumVaultConfig: jest.fn(),
   selectMoneyAccountVaultConfig: jest.fn(),
 }));
 
@@ -32,12 +28,8 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
 const mockFetchMoneyVaultComposition = jest.mocked(fetchMoneyVaultComposition);
 
-const STANDARD_VAULT_CONFIG = {
+const VAULT_CONFIG = {
   boringVault: '0xAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAaAa',
-  chainId: '0x8f',
-};
-const PREMIUM_VAULT_CONFIG = {
-  boringVault: '0xBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBbBb',
   chainId: '0x8f',
 };
 const MOCK_RESPONSE = {
@@ -57,24 +49,10 @@ interface QueryOptions {
   enabled: boolean;
 }
 
-const setSelectors = ({
-  standard = STANDARD_VAULT_CONFIG,
-  premium = PREMIUM_VAULT_CONFIG,
-}: {
-  standard?: VaultConfig;
-  premium?: VaultConfig;
-} = {}): void => {
-  mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectMoneyAccountVaultConfig) {
-      return standard;
-    }
-
-    if (selector === selectMoneyAccountPremiumVaultConfig) {
-      return premium;
-    }
-
-    return undefined;
-  });
+const setSelector = (vaultConfig: VaultConfig = VAULT_CONFIG): void => {
+  mockUseSelector.mockImplementation((selector) =>
+    selector === selectMoneyAccountVaultConfig ? vaultConfig : undefined,
+  );
 };
 
 const getQueryOptions = (): QueryOptions => {
@@ -89,72 +67,53 @@ const getQueryOptions = (): QueryOptions => {
 describe('useMoneyVaultComposition', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    setSelectors();
+    setSelector();
     mockUseQuery.mockReturnValue({} as never);
   });
 
-  it.each([
-    ['standard', STANDARD_VAULT_CONFIG],
-    ['premium', PREMIUM_VAULT_CONFIG],
-  ] as const)('uses the %s vault configuration', (vaultType, vaultConfig) => {
-    renderHook(() => useMoneyVaultComposition({ vaultType }));
+  it('uses the configured vault address and chain ID', () => {
+    renderHook(() => useMoneyVaultComposition());
 
     const queryOptions = getQueryOptions();
 
     expect(queryOptions.queryKey).toEqual([
       MoneyQueryKeys.FETCH_VAULT_COMPOSITION,
-      vaultType,
-      vaultConfig.boringVault.toLowerCase(),
-      143,
+      VAULT_CONFIG.boringVault,
+      VAULT_CONFIG.chainId,
     ]);
     expect(queryOptions.enabled).toBe(true);
   });
 
   it('sets 15-minute query freshness', () => {
-    renderHook(() => useMoneyVaultComposition({ vaultType: 'standard' }));
+    renderHook(() => useMoneyVaultComposition());
 
     expect(getQueryOptions().staleTime).toBe(15 * 60 * 1000);
   });
 
   it('combines valid configuration with caller enablement', () => {
-    renderHook(() =>
-      useMoneyVaultComposition({ vaultType: 'standard', enabled: false }),
-    );
+    renderHook(() => useMoneyVaultComposition({ enabled: false }));
 
     expect(getQueryOptions().enabled).toBe(false);
   });
 
   it('disables the query when configuration is missing', () => {
-    setSelectors({ standard: {} });
+    setSelector({});
 
-    renderHook(() => useMoneyVaultComposition({ vaultType: 'standard' }));
-
-    expect(getQueryOptions().enabled).toBe(false);
-  });
-
-  it('disables the query when the configured chain ID is not safe', () => {
-    setSelectors({
-      standard: {
-        boringVault: STANDARD_VAULT_CONFIG.boringVault,
-        chainId: 'not-a-chain',
-      },
-    });
-
-    renderHook(() => useMoneyVaultComposition({ vaultType: 'standard' }));
+    renderHook(() => useMoneyVaultComposition());
 
     expect(getQueryOptions().enabled).toBe(false);
   });
 
-  it('delegates query execution to the composition service', async () => {
+  it('passes the configured address and parsed chain ID to the composition service', async () => {
     mockFetchMoneyVaultComposition.mockResolvedValue(MOCK_RESPONSE);
-    renderHook(() => useMoneyVaultComposition({ vaultType: 'premium' }));
+    renderHook(() => useMoneyVaultComposition());
 
     const queryOptions = getQueryOptions();
     const result = await queryOptions.queryFn();
 
     expect(result).toBe(MOCK_RESPONSE);
     expect(mockFetchMoneyVaultComposition).toHaveBeenCalledWith(
-      PREMIUM_VAULT_CONFIG.boringVault.toLowerCase(),
+      VAULT_CONFIG.boringVault,
       143,
     );
   });
@@ -162,14 +121,14 @@ describe('useMoneyVaultComposition', () => {
   it('propagates composition service failures', async () => {
     const error = new Error('composition unavailable');
     mockFetchMoneyVaultComposition.mockRejectedValue(error);
-    renderHook(() => useMoneyVaultComposition({ vaultType: 'standard' }));
+    renderHook(() => useMoneyVaultComposition());
 
     await expect(getQueryOptions().queryFn()).rejects.toBe(error);
   });
 
   it('throws when the query function lacks required configuration', async () => {
-    setSelectors({ standard: {} });
-    renderHook(() => useMoneyVaultComposition({ vaultType: 'standard' }));
+    setSelector({});
+    renderHook(() => useMoneyVaultComposition());
 
     await expect(getQueryOptions().queryFn()).rejects.toThrow(
       'Cannot fetch Money vault composition without a vault address and valid chain ID',
