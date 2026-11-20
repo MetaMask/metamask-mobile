@@ -9,6 +9,11 @@ import { BatchSellPriceImpactInfoModalParams } from './BatchSellPriceImpactInfoM
 const mockGoBack = jest.fn();
 let mockRouteParams: BatchSellPriceImpactInfoModalParams;
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,

@@ -10,7 +10,6 @@ import {
   BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -61,6 +60,8 @@ import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscoun
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -203,6 +204,7 @@ const RecurringConfirmOrderSheet = ({
   onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -316,14 +318,15 @@ const RecurringConfirmOrderSheet = ({
       testID={RecurringConfirmOrderSheetSelectorsIDs.SHEET}
       goBack={goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: RecurringConfirmOrderSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.confirm_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {showLocalCurrencyNotice ? (
         <Box paddingHorizontal={4} paddingBottom={2}>
           <BannerAlert

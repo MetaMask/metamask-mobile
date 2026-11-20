@@ -11,7 +11,6 @@ import {
   type SeasonTierState,
   type SeasonTierDto,
   type SubscriptionReferralDetailState,
-  type GeoRewardsMetadata,
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
   type GetPointsEventsDto,
@@ -119,8 +118,6 @@ import { sortAccounts } from './utils/sortAccounts';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
-
-export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
@@ -596,7 +593,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClientVersionRequirements',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
-  'getGeoRewardsMetadata',
   'getHasAccountOptedIn',
   'getOffDeviceSubscriptionAccounts',
   'getOndoCampaignDeposits',
@@ -678,7 +674,6 @@ export class RewardsController extends BaseController<
   RewardsControllerState,
   RewardsControllerMessenger
 > {
-  #geoLocation: GeoRewardsMetadata | null = null;
   #participantOutcomeCache: Map<
     string,
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
@@ -3316,59 +3311,6 @@ export class RewardsController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
       throw error;
-    }
-  }
-
-  /**
-   * Get geo rewards metadata including location and support status
-   * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
-   */
-  async getGeoRewardsMetadata(): Promise<GeoRewardsMetadata> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: false,
-      };
-    }
-
-    if (this.#geoLocation) {
-      return this.#geoLocation;
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-
-      const geoLocation = await this.messenger.call(
-        'GeolocationController:getGeolocation',
-      );
-
-      // Check if the location is supported (not in blocked regions)
-      const optinAllowedForGeo = !DEFAULT_BLOCKED_REGIONS.some(
-        (blockedRegion) => geoLocation.startsWith(blockedRegion),
-      );
-
-      const result: GeoRewardsMetadata = {
-        geoLocation,
-        optinAllowedForGeo,
-      };
-
-      Logger.log('RewardsController: Geo rewards metadata retrieved', result);
-      this.#geoLocation = result;
-      return result;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to get geo rewards metadata:',
-        error instanceof Error ? error.message : String(error),
-      );
-
-      // Return fallback metadata on error
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      };
     }
   }
 

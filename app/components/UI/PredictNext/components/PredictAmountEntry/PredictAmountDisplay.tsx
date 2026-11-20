@@ -22,6 +22,8 @@ interface PredictAmountDisplayProps {
   /** Rendered before the figure: '$' for USD amounts, '' for contracts. */
   prefix?: string;
   accessibilityLabel: string;
+  /** Defaults to the shared amount-entry test ID. */
+  testID?: string;
 }
 
 /** Legacy PredictAmountDisplay sizing: shrink as the figure grows. */
@@ -46,6 +48,7 @@ export const PredictAmountDisplay = ({
   isDisabled = false,
   prefix = '$',
   accessibilityLabel,
+  testID = PredictAmountEntryTestIds.DISPLAY,
 }: PredictAmountDisplayProps) => {
   const tw = useTailwind();
 
@@ -80,7 +83,7 @@ export const PredictAmountDisplay = ({
     return (
       <Box
         accessible
-        testID={PredictAmountEntryTestIds.DISPLAY}
+        testID={testID}
         accessibilityLabel={accessibilityLabel}
         accessibilityValue={accessibilityValue}
       >
@@ -93,7 +96,7 @@ export const PredictAmountDisplay = ({
     <Pressable
       onPress={isDisabled ? undefined : onAmountPress}
       disabled={isDisabled}
-      testID={PredictAmountEntryTestIds.DISPLAY}
+      testID={testID}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={accessibilityValue}

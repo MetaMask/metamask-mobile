@@ -35,15 +35,8 @@ export const usePredictWithdrawAvailable = (): PredictFundingResolution => {
         // `PredictImplementationSwitch`, so this descriptor is the one
         // `resolvePredictFunding` asks for by name.
         getCapabilities: () => capabilities,
-        kalshiDepositsEnabled: config.kalshiDepositsEnabled === true,
         kalshiWithdrawalsEnabled: config.kalshiWithdrawalsEnabled === true,
       }),
-    [
-      activeVenue,
-      available,
-      capabilities,
-      config.kalshiDepositsEnabled,
-      config.kalshiWithdrawalsEnabled,
-    ],
+    [activeVenue, available, capabilities, config.kalshiWithdrawalsEnabled],
   );
 };
