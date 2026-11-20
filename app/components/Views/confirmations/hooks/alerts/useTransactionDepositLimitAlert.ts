@@ -1,10 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  TransactionMeta,
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
+import { payFlagForTransactionType } from '../../utils/perps-lighter-transaction-type';
 import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
@@ -32,14 +29,10 @@ export function useTransactionDepositLimitAlert({
   // reaches the confirmation alert context or its metrics.
   const effectiveAmount = pendingAmount ?? pendingFiatAmount;
 
-  const depositLimit = useMemo(() => {
-    for (const [type, limit] of Object.entries(depositLimits)) {
-      if (hasTransactionType(transactionMeta, [type as TransactionType])) {
-        return limit;
-      }
-    }
-    return undefined;
-  }, [transactionMeta, depositLimits]);
+  const depositLimit = useMemo(
+    () => payFlagForTransactionType(depositLimits, transactionMeta),
+    [transactionMeta, depositLimits],
+  );
 
   const exceedsLimit = useMemo(() => {
     if (depositLimit === undefined) {
