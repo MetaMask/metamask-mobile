@@ -23,7 +23,6 @@ import {
   TitleHub,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Logger from '../../../../../util/Logger';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
@@ -72,9 +71,6 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const closeTooltip = useCallback(() => setActiveTooltip(null), []);
   const handleInfoPress = useCallback(
     (key: PerpsCrossMarginSummaryTooltipKey) => {
-      Logger.log(
-        `[TAT-4675] BUG_MARKER: info tooltip '${key}' opened while the account summary bottom sheet is still open`,
-      );
       setActiveTooltip(key);
     },
     [],
