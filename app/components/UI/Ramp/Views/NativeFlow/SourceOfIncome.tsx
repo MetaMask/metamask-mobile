@@ -89,51 +89,6 @@ const SourceOfIncome = (): React.JSX.Element => {
   const [currentMetadata, setCurrentMetadata] =
     useState<SourceOfIncomeMetadata>(metadata);
 
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        const details = await getUserDetails();
-        setAddressCountryCode(details?.address?.countryCode || '');
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          'SourceOfIncome: Failed to fetch user details',
-        );
-      } finally {
-        setUserDetailsLoading(false);
-      }
-    };
-    fetchUserDetails();
-  }, [getUserDetails]);
-
-  useEffect(() => {
-    if (hasEEAFieldsMissing && !retrying) {
-      const timer = setTimeout(() => {
-        Logger.log(
-          'SourceOfIncome: Auto-retrying requirements fetch for EEA user with missing options',
-        );
-        handleRetryFetchRequirements();
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [hasEEAFieldsMissing, retrying, handleRetryFetchRequirements]);
-
-  const regionIsoCode = userRegion?.country?.isoCode || '';
-  const effectiveCountryCode = addressCountryCode || regionIsoCode;
-  const isEEA = EEA_COUNTRIES.includes(effectiveCountryCode.toUpperCase());
-
-  const sourceOfFundsOptions: { name: string; value: string }[] =
-    currentMetadata.sourceOfFundsTypeOptions || [];
-  const employmentStatusOptions: { name: string; value: string }[] =
-    currentMetadata.employmentStatusOptions || [];
-  const countryOfCitizenshipOptions: { name: string; value: string }[] =
-    currentMetadata.countryOfCitizenshipOptions || [];
-
-  const hasEEAFieldsMissing =
-    isEEA &&
-    !userDetailsLoading &&
-    (!employmentStatusOptions.length || !countryOfCitizenshipOptions.length);
-
   const handleRetryFetchRequirements = useCallback(async () => {
     setRetrying(true);
     setError(null);
@@ -167,6 +122,52 @@ const SourceOfIncome = (): React.JSX.Element => {
       setRetrying(false);
     }
   }, [getAdditionalRequirements, quote.quoteId]);
+
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const details = await getUserDetails();
+        setAddressCountryCode(details?.address?.countryCode || '');
+      } catch (err) {
+        Logger.error(
+          err as Error,
+          'SourceOfIncome: Failed to fetch user details',
+        );
+      } finally {
+        setUserDetailsLoading(false);
+      }
+    };
+    fetchUserDetails();
+  }, [getUserDetails]);
+
+  const regionIsoCode = userRegion?.country?.isoCode || '';
+  const effectiveCountryCode = addressCountryCode || regionIsoCode;
+  const isEEA = EEA_COUNTRIES.includes(effectiveCountryCode.toUpperCase());
+
+  const sourceOfFundsOptions: { name: string; value: string }[] =
+    currentMetadata.sourceOfFundsTypeOptions || [];
+  const employmentStatusOptions: { name: string; value: string }[] =
+    currentMetadata.employmentStatusOptions || [];
+  const countryOfCitizenshipOptions: { name: string; value: string }[] =
+    currentMetadata.countryOfCitizenshipOptions || [];
+
+  const hasEEAFieldsMissing =
+    isEEA &&
+    !userDetailsLoading &&
+    (!employmentStatusOptions.length || !countryOfCitizenshipOptions.length);
+
+  useEffect(() => {
+    if (hasEEAFieldsMissing && !retrying) {
+      const timer = setTimeout(() => {
+        Logger.log(
+          'SourceOfIncome: Auto-retrying requirements fetch for EEA user with missing options',
+        );
+        handleRetryFetchRequirements();
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+    return undefined;
+  }, [hasEEAFieldsMissing, retrying, handleRetryFetchRequirements]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -311,7 +312,9 @@ const SourceOfIncome = (): React.JSX.Element => {
             {hasEEAFieldsMissing && !error && (
               <BannerAlert
                 severity={BannerAlertSeverity.Error}
-                title={strings('deposit.source_of_income.eea_fields_missing_title')}
+                title={strings(
+                  'deposit.source_of_income.eea_fields_missing_title',
+                )}
                 description={strings(
                   'deposit.source_of_income.eea_fields_missing_description',
                 )}
@@ -336,13 +339,17 @@ const SourceOfIncome = (): React.JSX.Element => {
                 keyboardType="numeric"
                 autoCapitalize="none"
                 prefix="€"
-                caption={strings('deposit.source_of_income.monthly_volume_helper')}
+                caption={strings(
+                  'deposit.source_of_income.monthly_volume_helper',
+                )}
               />
             </View>
 
             <View style={styles.section}>
               <DepositSelectField
-                label={strings('deposit.source_of_income.source_of_funds_label')}
+                label={strings(
+                  'deposit.source_of_income.source_of_funds_label',
+                )}
                 placeholder={strings(
                   'deposit.source_of_income.source_of_funds_placeholder',
                 )}
@@ -370,7 +377,9 @@ const SourceOfIncome = (): React.JSX.Element => {
 
                 <View style={styles.section}>
                   <DepositSelectField
-                    label={strings('deposit.source_of_income.nationality_label')}
+                    label={strings(
+                      'deposit.source_of_income.nationality_label',
+                    )}
                     placeholder={strings(
                       'deposit.source_of_income.nationality_placeholder',
                     )}

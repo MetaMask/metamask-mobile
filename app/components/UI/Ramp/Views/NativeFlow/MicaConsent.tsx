@@ -244,7 +244,11 @@ const MicaConsent = (): React.JSX.Element => {
                       >
                         {strings('deposit.mica_consent.address_label')}:{' '}
                       </Text>
-                      {userDetails.address?.addressLine1 || ''}{userDetails.address?.city ? ', ' : ''}{userDetails.address?.city || ''}{userDetails.address?.countryCode ? ', ' : ''}{userDetails.address?.countryCode || ''}
+                      {userDetails.address?.addressLine1 || ''}
+                      {userDetails.address?.city ? ', ' : ''}
+                      {userDetails.address?.city || ''}
+                      {userDetails.address?.countryCode ? ', ' : ''}
+                      {userDetails.address?.countryCode || ''}
                     </Text>
                     <Text
                       variant={TextVariant.BodyMd}
@@ -254,7 +258,8 @@ const MicaConsent = (): React.JSX.Element => {
                         variant={TextVariant.BodyMd}
                         style={styles.boldText}
                       >
-                        {strings('deposit.mica_consent.mobile_number_label')}:{' '}
+                        {strings('deposit.mica_consent.mobile_number_label')}
+                        :{' '}
                       </Text>
                       {userDetails.mobileNumber ||
                         strings('deposit.mica.notProvided')}
@@ -299,7 +304,9 @@ const MicaConsent = (): React.JSX.Element => {
                     variant={TextVariant.BodyMd}
                     style={styles.linkText}
                     onPress={() => {
-                      Linking.openURL('https://transak.com/terms-of-service').catch((err) =>
+                      Linking.openURL(
+                        'https://transak.com/terms-of-service',
+                      ).catch((err) =>
                         Logger.error(err as Error, 'Failed to open Terms URL'),
                       );
                     }}
@@ -311,8 +318,13 @@ const MicaConsent = (): React.JSX.Element => {
                     variant={TextVariant.BodyMd}
                     style={styles.linkText}
                     onPress={() => {
-                      Linking.openURL('https://transak.com/privacy-policy').catch((err) =>
-                        Logger.error(err as Error, 'Failed to open Privacy URL'),
+                      Linking.openURL(
+                        'https://transak.com/privacy-policy',
+                      ).catch((err) =>
+                        Logger.error(
+                          err as Error,
+                          'Failed to open Privacy URL',
+                        ),
                       );
                     }}
                   >
