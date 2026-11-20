@@ -293,7 +293,9 @@ function RecurringSwapDetailsView() {
     goToBuy(
       { assetId: sourceAssetId },
       { surface: RAMPS_BUY_CUF_SURFACE.RECURRING_SWAPS },
-    );
+    ).catch(() => {
+      showGenericErrorToast();
+    });
   }, [goToBuy, sourceAssetId]);
 
   return (
