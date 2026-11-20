@@ -15,6 +15,7 @@ import {
 import {
   calculatePositionSize,
   CandlePeriod,
+  PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -22,13 +23,17 @@ import {
   type PriceUpdate,
   type OrderBookData,
   type OrderBookLevel,
+  type Position,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { analytics } from '../../../../../util/analytics/analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import {
+  wirePerpsControllerForStore,
+  withLighterBuildEnabled,
+} from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   defaultPositionForViews,
   renderPerpsOrderView,
@@ -36,12 +41,14 @@ import {
   type PerpsStreamOverrides,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsAmountDisplaySelectorsIDs,
   PerpsFeeDiscountLabelSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import {
@@ -49,6 +56,7 @@ import {
   createFundedAccountForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
 import {
   formatPercentage,
   formatPerpsFiat,
@@ -470,10 +478,12 @@ describe('PerpsOrderView', () => {
                 ...eligibleOverrides.engine.backgroundState.PerpsController,
                 tradeConfigurations: {
                   mainnet: {
-                    ETH: {
-                      pendingConfig: {
-                        takeProfitPrice: '3500',
-                        timestamp: Date.now(),
+                    hyperliquid: {
+                      ETH: {
+                        pendingConfig: {
+                          takeProfitPrice: '3500',
+                          timestamp: Date.now(),
+                        },
                       },
                     },
                   },
@@ -554,10 +564,12 @@ describe('PerpsOrderView', () => {
               ...eligibleOverrides.engine.backgroundState.PerpsController,
               tradeConfigurations: {
                 mainnet: {
-                  ETH: {
-                    pendingConfig: {
-                      takeProfitPrice: '2000',
-                      timestamp: Date.now(),
+                  hyperliquid: {
+                    ETH: {
+                      pendingConfig: {
+                        takeProfitPrice: '2000',
+                        timestamp: Date.now(),
+                      },
                     },
                   },
                 },
@@ -1703,6 +1715,27 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  const existingCrossPositionStream = {
+    account,
+    positions: [
+      {
+        ...defaultPositionForViews,
+        // The venue reports a liquidation price; the order form still
+        // withholds its own isolated estimate.
+        liquidationPrice: '1900',
+        leverage: { value: 10, type: 'cross' as const },
+      },
+    ],
+    orders: [],
+    marketData: [ethMarket],
+  };
+  const existingCrossOrderParams = {
+    asset: 'ETH',
+    direction: 'long' as const,
+    amount: '120',
+    leverage: 10,
+  };
+
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const { stream } = renderPerpsOrderView({
@@ -1737,6 +1770,380 @@ describe('PerpsOrderView', () => {
     ).toBeOnTheScreen();
     expect(placeOrder).not.toHaveBeenCalled();
   });
+
+  it('places an order on an existing cross position when cross margin is enabled', async () => {
+    const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      crossMarginEnabled: true,
+      initialParams: existingCrossOrderParams,
+      streamOverrides: existingCrossPositionStream,
+      extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    // The isolated formula does not describe an order against a cross position.
+    expect(
+      await screen.findByTestId(
+        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
+      ),
+    );
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(
+      strings('perps.tooltips.cross_liquidation_estimate_unavailable.content'),
+    );
+    expect(
+      screen.queryByText(
+        strings('perps.tooltips.cross_no_liquidation_price.content'),
+      ),
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+    );
+
+    const placeOrderButton = await waitForEnabledPlaceOrderButton();
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'ETH', isBuy: true }),
+      );
+    });
+    expect(
+      screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
+    ).not.toBeOnTheScreen();
+    await waitForDeferredOrderData();
+  });
+
+  it('keeps the isolated liquidation price out of a lite cross order', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      crossMarginEnabled: true,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: existingCrossPositionStream,
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(
+        PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.LIQUIDATION_PRICE_ROW),
+    );
+    expect(
+      await screen.findByText(
+        strings(
+          'perps.tooltips.cross_liquidation_estimate_unavailable.content',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('perps.tooltips.cross_no_liquidation_price.content'),
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+    );
+    fireEvent.press(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.AUTO_CLOSE_ROW),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+      ),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.queryByTestId(
+        PerpsTPSLViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('labels the lite trade sheet Isolated for an isolated position', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: [
+          {
+            ...existingCrossPositionStream.positions[0],
+            leverage: { value: 10, type: 'isolated' },
+          },
+        ],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+  });
+
+  it('labels the lite trade sheet Isolated when no position is open', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: [],
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+  });
+
+  it('holds the lite margin label until a cross position arrives', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      crossMarginEnabled: true,
+      initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      streamOverrides: {
+        ...existingCrossPositionStream,
+        positions: null,
+      },
+    });
+
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    expect(
+      screen.queryByText(strings('perps.margin_mode.cross_title')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.margin_mode.isolated_title')),
+    ).not.toBeOnTheScreen();
+
+    await act(async () => {
+      stream.emitPositions(existingCrossPositionStream.positions);
+    });
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+    ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+  });
+
+  describe('same symbol open on both venues', () => {
+    withLighterBuildEnabled();
+
+    const bothVenues = ({
+      activeProvider,
+      effectiveProvider,
+      defaultProvider = effectiveProvider ?? 'hyperliquid',
+      lighter,
+      hyperliquid,
+    }: {
+      activeProvider: 'aggregated' | 'lighter';
+      effectiveProvider: 'lighter' | 'hyperliquid' | null;
+      defaultProvider?: 'lighter' | 'hyperliquid';
+      lighter: Position['leverage'];
+      hyperliquid: Position['leverage'];
+    }) => {
+      const twoExchange = perpsTwoExchangeState('sameMarketOnBoth');
+      const [presetPosition] = twoExchange.streamOverrides.positions ?? [];
+      const lighterPosition = createLongPositionForViews({
+        ...(presetPosition as Partial<Position>),
+        providerId: 'lighter',
+        leverage: lighter,
+      });
+
+      return {
+        overrides: {
+          ...twoExchange.overrides,
+          engine: {
+            ...twoExchange.overrides.engine,
+            backgroundState: {
+              ...twoExchange.overrides.engine?.backgroundState,
+              PerpsController: {
+                ...twoExchange.overrides.engine?.backgroundState
+                  ?.PerpsController,
+                activeProvider,
+                defaultProvider,
+                effectiveProvider,
+              },
+            },
+          },
+        },
+        streamOverrides: {
+          ...twoExchange.streamOverrides,
+          positions: [
+            lighterPosition,
+            createLongPositionForViews({
+              ...lighterPosition,
+              providerId: 'hyperliquid',
+              leverage: hyperliquid,
+            }),
+          ],
+        },
+      };
+    };
+
+    it('follows the route provider when it disagrees with the live venue', async () => {
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: 'hyperliquid',
+          lighter: { value: 10, type: 'isolated' },
+          hyperliquid: { value: 10, type: 'cross' },
+        }),
+        crossMarginEnabled: true,
+        initialParams: {
+          ...existingCrossOrderParams,
+          useBottomSheet: true,
+          providerId: 'lighter',
+        },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+    });
+
+    it('labels an aggregated order from the live Lighter venue', async () => {
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: 'lighter',
+          lighter: { value: 10, type: 'cross' },
+          hyperliquid: { value: 10, type: 'isolated' },
+        }),
+        crossMarginEnabled: true,
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.cross_title'));
+    });
+
+    it('labels an aggregated order from the saved default before the live venue resolves', async () => {
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: null,
+          defaultProvider: 'hyperliquid',
+          lighter: { value: 10, type: 'cross' },
+          hyperliquid: { value: 10, type: 'isolated' },
+        }),
+        crossMarginEnabled: true,
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+    });
+
+    it('labels a direct Lighter order from that venue when the route has none', async () => {
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'lighter',
+          effectiveProvider: 'lighter',
+          lighter: { value: 10, type: 'isolated' },
+          hyperliquid: { value: 10, type: 'cross' },
+        }),
+        crossMarginEnabled: true,
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+    });
+
+    it('keeps the isolated label when cross margin is off', async () => {
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: 'lighter',
+          lighter: { value: 10, type: 'cross' },
+          hyperliquid: { value: 10, type: 'isolated' },
+        }),
+        initialParams: { ...existingCrossOrderParams, useBottomSheet: true },
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG),
+      ).toHaveTextContent(strings('perps.margin_mode.isolated_title'));
+    });
+
+    it('places the order when only the other venue is cross', async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      placeOrder.mockClear();
+      const { stream } = renderPerpsOrderView({
+        ...bothVenues({
+          activeProvider: 'aggregated',
+          effectiveProvider: 'lighter',
+          lighter: { value: 10, type: 'isolated' },
+          hyperliquid: { value: 10, type: 'cross' },
+        }),
+        initialParams: existingCrossOrderParams,
+        extraRoutes: [crossMarginWarningRoute, marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      fireEvent.press(await waitForEnabledPlaceOrderButton());
+
+      expect(
+        screen.queryByTestId(`route-${Routes.PERPS.MODALS.ROOT}`),
+      ).not.toBeOnTheScreen();
+      await waitFor(() => {
+        expect(placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ symbol: 'ETH', isBuy: true }),
+        );
+      });
+    });
+  });
+
   describe('market order liquidity', () => {
     const bookLevel = (price: number, size: number): OrderBookLevel => ({
       price: String(price),

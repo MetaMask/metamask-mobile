@@ -1,6 +1,6 @@
 import React, { ComponentClass } from 'react';
 import { useSelector } from 'react-redux';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../reducers';
 import { QrScanRequest, QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 const withQRHardwareAwareness = (

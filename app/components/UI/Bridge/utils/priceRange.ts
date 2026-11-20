@@ -1,8 +1,10 @@
 import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import type { RecurringPriceRange as ApiRecurringPriceRange } from '../api/recurringOrders.types';
+import type { RecurringOrderPriceRange } from '../api/recurringOrders.types';
+import type { BridgeToken } from '../types';
 import { formatCurrency } from './currencyUtils';
+import { getIsSwapsLimitOrderStablecoin } from './limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import { FIAT_INPUT_DECIMALS } from './sourceAmountInputMode';
 
 export const PRICE_RANGE_TOKEN_SIDES = ['source', 'dest'] as const;
@@ -19,6 +21,34 @@ export interface RecurringPriceRange {
 }
 
 export const DEFAULT_PRICE_RANGE_TOKEN_SIDE: PriceRangeTokenSide = 'dest';
+
+/**
+ * Returns the token side used when starting a recurring price range.
+ * Mixed stablecoin pairs default to the non-stable token; all other pairs
+ * default to the destination token.
+ *
+ * @param sourceToken - Source token in the recurring swap pair.
+ * @param destToken - Destination token in the recurring swap pair.
+ * @returns The default token side for the recurring price range.
+ */
+export function getDefaultRecurringPriceRangeTokenSide({
+  sourceToken,
+  destToken,
+}: {
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+}): PriceRangeTokenSide {
+  if (!sourceToken || !destToken) {
+    return DEFAULT_PRICE_RANGE_TOKEN_SIDE;
+  }
+
+  const isSourceStablecoin = getIsSwapsLimitOrderStablecoin(sourceToken);
+  const isDestStablecoin = getIsSwapsLimitOrderStablecoin(destToken);
+
+  return isDestStablecoin && !isSourceStablecoin
+    ? 'source'
+    : DEFAULT_PRICE_RANGE_TOKEN_SIDE;
+}
 
 export const PRICE_RANGE_MIN_PERCENTS = [-1, -5, -10, -25, -50] as const;
 
@@ -38,7 +68,7 @@ export const PRICE_RANGE_MISSING_VALUE = '--';
 export function convertPriceRangeToUsd(
   priceRange: RecurringPriceRange | undefined,
   fiatToUsdRate: number | undefined,
-): ApiRecurringPriceRange | undefined {
+): RecurringOrderPriceRange | undefined {
   if (!priceRange) {
     return undefined;
   }
@@ -75,7 +105,7 @@ export function convertPriceRangeToUsd(
 
   return {
     side: priceRange.tokenSide === 'source' ? 'src' : 'dest',
-    currency: 'usd',
+    currency: 'USD',
     min,
     max,
   };

@@ -31,6 +31,15 @@ export interface SocialPostPerpsPreview {
   leverageLabel?: string;
   costLabel?: string;
   entryPriceLabel?: string;
+  /** `close` when the order fully closed the position. Absent means an open. */
+  action?: 'open' | 'close';
+  /** Average fill price of the closing order. Close only. */
+  exitPriceLabel?: string;
+  /** Realized P&L percent of the closed position. Close only. */
+  pnlLabel?: string;
+  /** Realized P&L in USD of the closed position. Close only. */
+  pnlValueLabel?: string;
+  isPnlPositive?: boolean;
 }
 
 export type SocialPostComposerPreview =
@@ -45,6 +54,11 @@ interface SocialPostComposerTradeParams {
   preview: SocialPostComposerPreview;
   /** Surface that started the trade. Omitted when it is unknown. */
   analyticsSource?: SocialEventSource;
+  spotComposerEntry?: Extract<
+    SocialComposerEntry,
+    'post_trade_spot' | 'post_trade_swap'
+  >;
+  shareId?: string;
   position?: never;
   entryPoint?: never;
   openFeedAfterPost?: never;
@@ -58,6 +72,8 @@ interface SocialPostComposerBlankParams {
     'social_feed' | 'my_profile' | 'token_details'
   >;
   analyticsSource?: SocialEventSource;
+  spotComposerEntry?: never;
+  shareId?: never;
   tradeInFlight?: never;
   preview?: never;
   position?: never;
@@ -74,6 +90,8 @@ interface SocialPostComposerPositionParams {
    * viewer's Posts tab. Used by the Perps share screen.
    */
   openFeedAfterPost?: boolean;
+  spotComposerEntry?: never;
+  shareId?: never;
   tradeInFlight?: never;
   preview?: never;
   composerEntry?: never;

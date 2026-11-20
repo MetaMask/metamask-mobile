@@ -6,8 +6,6 @@ export const dashboardKeys = {
     [...dashboardKeys.all(), 'externalWalletDetails'] as const,
   cardDetails: () => [...dashboardKeys.all(), 'cardDetails'] as const,
   kycStatus: () => [...dashboardKeys.all(), 'kycStatus'] as const,
-  priorityTokenOnChain: (address: string) =>
-    [...dashboardKeys.all(), 'priorityToken', 'onChain', address] as const,
   latestAllowance: (
     tokenAddress: string,
     delegationContract: string,

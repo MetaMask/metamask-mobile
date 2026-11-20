@@ -52,7 +52,7 @@ const BottomSheetHeaderGlass = ({
     <HeaderBaseGlass
       {...props}
       isFloating={false}
-      style={[tw.style('px-2', twClassName), style]}
+      style={[tw.style('px-4', twClassName), style]}
       startButtonIconProps={
         onBack
           ? {

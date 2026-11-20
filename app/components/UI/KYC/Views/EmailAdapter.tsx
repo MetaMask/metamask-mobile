@@ -18,6 +18,7 @@ import Engine from '../../../../core/Engine';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import ReduxService from '../../../../core/redux';
 import Logger from '../../../../util/Logger';
+import { fireImpact, ImpactMoment } from '../../../../util/haptics';
 import { useMfa, type MfaFlowErrorCode } from '../../../../util/identity/mfa';
 import { getErrorMessage } from '../../../Views/Mfa/labels';
 import type { RootState } from '../../../../reducers';
@@ -86,6 +87,7 @@ const KycEmailAdapter = () => {
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
   const handleRetry = useCallback(() => {
+    fireImpact(ImpactMoment.PrimaryCTA);
     setErrorMessage(undefined);
     setAttempt((count) => count + 1);
   }, []);

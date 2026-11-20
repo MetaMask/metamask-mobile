@@ -545,9 +545,7 @@ describe('CodeStep', () => {
     });
 
     expect(
-      getByText(
-        "Too many incorrect codes. Get a new code when it's available.",
-      ),
+      getByText('Too many incorrect codes. Get a new code.'),
     ).toBeOnTheScreen();
     expect(getByText('Get new code in 30s')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
@@ -597,6 +595,26 @@ describe('CodeStep', () => {
     );
   });
 
+  it('pastes an authenticator app code with the Paste button and submits it', async () => {
+    jest.spyOn(Clipboard, 'getString').mockResolvedValue('123 456');
+    const { onAction, getByTestId } = renderCode(totpCode);
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON));
+
+    await waitFor(() =>
+      expect(onAction).toHaveBeenCalledWith({
+        type: 'submitCode',
+        code: '123456',
+      }),
+    );
+  });
+
+  it('shows no Paste button for email codes', () => {
+    const { queryByTestId } = renderCode(otp(true));
+
+    expect(queryByTestId(MfaFlowSelectorsIDs.PASTE_BUTTON)).toBeNull();
+  });
+
   it('offers a new code once the one on screen expired', () => {
     const { onAction, getByText } = renderCode(otp(true), {
       error: 'flow_expired',
@@ -609,18 +627,20 @@ describe('CodeStep', () => {
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
-  it('sends the first code by itself once the cooldown ends', () => {
+  it('lets the user send the first code once the cooldown ends, never by itself', () => {
     const { onAction, getByText } = renderCode(otp(false), {
       error: 'otp_resend_cooldown',
       resendAvailableAt: Date.now() + 2_000,
     });
 
-    expect(getByText('Sending a new code in 2s')).toBeOnTheScreen();
-    expect(onAction).not.toHaveBeenCalled();
+    expect(getByText('Send code in 2s')).toBeOnTheScreen();
+    expect(getByText(/^We'll send a 6-digit code to /)).toBeOnTheScreen();
     act(() => {
       jest.advanceTimersByTime(2_000);
     });
-    expect(onAction).toHaveBeenCalledWith({ type: 'resend', trigger: 'auto' });
+    expect(onAction).not.toHaveBeenCalled();
+    fireEvent.press(getByText('Send code'));
+    expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
 
   it('waits out a new cooldown before sending again', () => {

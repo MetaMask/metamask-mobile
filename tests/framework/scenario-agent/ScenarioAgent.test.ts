@@ -978,6 +978,9 @@ describe('typed text', () => {
     expect(result.status).toBe('PASS');
     expect(result.modelCalls).toBe(1);
     expect(typed).toBe(2);
+    expect(result.steps.find((s) => s.number === 2)?.cacheError).toMatch(
+      /after entering "0.01", testID=source-token-area-input shows "0"/,
+    );
     expect(
       JSON.parse(fs.readFileSync(cachePath, 'utf8'))[
         'Enter 0.01 as the source amount'

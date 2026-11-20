@@ -10,11 +10,13 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useIsFiatPaymentAvailable } from '../pay/useIsFiatPaymentAvailable';
 import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
+import { useTransactionPayAccountLoading } from '../pay/useTransactionPayAccountLoading';
 import { useAccountNoFundsAlert } from './useAccountNoFundsAlert';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayAvailableTokens');
 jest.mock('../pay/useIsFiatPaymentAvailable');
+jest.mock('../pay/useTransactionPayAccountLoading');
 jest.mock('../pay/useTransactionPayData', () => ({
   ...jest.requireActual('../pay/useTransactionPayData'),
   useIsTransactionPayLoading: jest.fn(),
@@ -39,6 +41,10 @@ describe('useAccountNoFundsAlert', () => {
     useIsTransactionPayLoading,
   );
 
+  const useTransactionPayAccountLoadingMock = jest.mocked(
+    useTransactionPayAccountLoading,
+  );
+
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -54,6 +60,7 @@ describe('useAccountNoFundsAlert', () => {
 
     useIsFiatPaymentAvailableMock.mockReturnValue(false);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
+    useTransactionPayAccountLoadingMock.mockReturnValue(false);
   });
 
   it('returns alert for moneyAccountDeposit with no available tokens and no fiat', () => {
@@ -130,6 +137,19 @@ describe('useAccountNoFundsAlert', () => {
     });
 
     useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no alert while the selected pay account is still loading', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    useTransactionPayAccountLoadingMock.mockReturnValue(true);
 
     const { result } = runHook();
 

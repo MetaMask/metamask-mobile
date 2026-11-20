@@ -32,6 +32,13 @@ let mockBalancesByAssetId: Record<
   { balance: string; balanceFiat?: string; tokenFiatAmount?: number }
 >;
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,

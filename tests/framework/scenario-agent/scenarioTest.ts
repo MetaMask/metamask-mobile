@@ -17,7 +17,7 @@ import {
   buildScenarioOutcome,
   OUTCOME_FILE_PREFIX,
   type ScenarioOutcome,
-} from './heal';
+} from './outcome';
 import {
   builtinSecretStep,
   scenarioCoverageProblems,
@@ -186,13 +186,12 @@ function scenarioTest(
           OUTCOME_DIR,
           `${OUTCOME_FILE_PREFIX}${path.basename(scenarioPath, '.scenario.md')}.json`,
         );
-        // A retry replays the cache the failed attempt already healed, so it
-        // would report no drift. Keep the cache from before the first attempt.
-        const cacheBaseline =
-          testInfo.retry > 0
-            ? (readJson<ScenarioOutcome>(outcomePath)?.cacheBaseline ??
-              cacheBefore)
-            : cacheBefore;
+        // A retry replays the cache the failed attempt already corrected, so it
+        // would report no drift. Keep the cache (and why it failed) from the
+        // first attempt.
+        const earlier =
+          testInfo.retry > 0 ? readJson<ScenarioOutcome>(outcomePath) : null;
+        const cacheBaseline = earlier?.cacheBaseline ?? cacheBefore;
         const result = await new ScenarioAgent({
           scenario,
           platform: currentDeviceDetails.platform,
@@ -255,6 +254,7 @@ function scenarioTest(
           result,
           cacheBefore,
           cacheBaseline,
+          earlierCacheErrors: earlier?.cacheErrors,
           attempt: testInfo.retry,
           cacheAfter: readJson<StepCache>(cachePath),
           thresholdViolations: gates.violations.map((v) => v.message),

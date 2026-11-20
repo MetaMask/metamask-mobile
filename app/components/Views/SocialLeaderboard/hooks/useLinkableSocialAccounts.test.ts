@@ -10,8 +10,9 @@ import {
   selectSelectedAccountGroupId,
 } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectAllAccountGroupIconSeedAddresses } from '../../../../selectors/multichainAccounts/accounts';
+import { selectProfileEntropySourceIds } from '../../../../selectors/identity';
 import {
-  selectVisibleEntropyAccountGroupsByWallet,
+  selectProfileWalletSections,
   selectWallets,
 } from '../../../../selectors/multichainAccounts/wallets';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
@@ -49,19 +50,23 @@ const SOLANA_ADDRESS = 'So11111111111111111111111111111111111111112';
 const GROUP_1_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
 const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
 
+const PRIMARY_ENTROPY_SOURCE_ID = 'primary';
+
 const evmAccount1 = {
   id: 'evm-1',
   address: EVM_ADDRESS_1,
   type: 'eip155:eoa',
   scopes: ['eip155:0'],
-  metadata: { name: 'Internal One' },
+  metadata: { name: 'Internal One', keyring: { type: 'HD Key Tree' } },
+  options: { entropySource: PRIMARY_ENTROPY_SOURCE_ID },
 };
 const evmAccount2 = {
   id: 'evm-2',
   address: EVM_ADDRESS_2,
   type: 'eip155:eoa',
   scopes: ['eip155:0'],
-  metadata: { name: '' },
+  metadata: { name: '', keyring: { type: 'HD Key Tree' } },
+  options: { entropySource: PRIMARY_ENTROPY_SOURCE_ID },
 };
 const group1SolanaAccount = {
   id: 'sol-group-1',
@@ -82,6 +87,7 @@ interface SelectorValues {
   evmAccounts: unknown[];
   accountsById: Record<string, unknown>;
   accountSections: unknown[];
+  profileEntropySourceIds?: string[];
   wallets?: unknown[];
   seedAddressByGroupId: Record<string, string>;
   accountToGroupMap?: Record<string, { id: string }>;
@@ -117,6 +123,7 @@ const mockSelectors = ({
   evmAccounts,
   accountsById,
   accountSections,
+  profileEntropySourceIds = [PRIMARY_ENTROPY_SOURCE_ID],
   wallets = [],
   seedAddressByGroupId,
   accountToGroupMap = {},
@@ -127,7 +134,8 @@ const mockSelectors = ({
   const values = new Map<unknown, unknown>([
     [selectInternalEvmAccounts, evmAccounts],
     [selectInternalAccountsById, accountsById],
-    [selectVisibleEntropyAccountGroupsByWallet, accountSections],
+    [selectProfileWalletSections, accountSections],
+    [selectProfileEntropySourceIds, profileEntropySourceIds],
     [selectWallets, wallets],
     [selectAllAccountGroupIconSeedAddresses, seedAddressByGroupId],
     [selectAccountToGroupMap, accountToGroupMap],
@@ -166,8 +174,9 @@ const defaultSelectors: SelectorValues = {
   },
   accountSections: [
     {
-      title: 'Wallet 1',
-      data: [group1, group2, groupSol],
+      id: 'entropy:wallet-1',
+      name: 'Wallet 1',
+      groups: [group1, group2, groupSol],
     },
   ],
   seedAddressByGroupId: {
@@ -294,7 +303,7 @@ describe('useLinkableSocialAccounts', () => {
     expect(result.current).toEqual([]);
   });
 
-  it('falls back to the internal EVM accounts when there are no account groups', () => {
+  it('falls back to profile mnemonic accounts before the account tree hydrates', () => {
     mockSelectors({ ...defaultSelectors, accountSections: [] });
 
     const { result } = renderHook(() => useLinkableSocialAccounts());
@@ -316,8 +325,12 @@ describe('useLinkableSocialAccounts', () => {
     mockSelectors({
       ...defaultSelectors,
       accountSections: [
-        { title: 'Wallet 1', data: [group1] },
-        { title: 'Wallet 2', data: [secondWalletGroup] },
+        { id: 'entropy:wallet-1', name: 'Wallet 1', groups: [group1] },
+        {
+          id: 'entropy:wallet-2',
+          name: 'Wallet 2',
+          groups: [secondWalletGroup],
+        },
       ],
       seedAddressByGroupId: {
         'group-1': EVM_ADDRESS_1,
@@ -344,6 +357,50 @@ describe('useLinkableSocialAccounts', () => {
         walletTitle: 'Wallet 2',
         accountGroup: secondWalletGroup,
       },
+    ]);
+  });
+
+  it('leaves imported accounts and unconfirmed SRPs out of the pre-tree fallback', () => {
+    const importedAccount = {
+      id: 'imported-1',
+      address: '0x3333333333333333333333333333333333333333',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+      metadata: { name: 'Imported', keyring: { type: 'Simple Key Pair' } },
+      options: { entropySource: PRIMARY_ENTROPY_SOURCE_ID },
+    };
+    const unpairedAccount = {
+      id: 'unpaired-1',
+      address: '0x4444444444444444444444444444444444444444',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+      metadata: { name: 'Other SRP', keyring: { type: 'HD Key Tree' } },
+      options: { entropySource: 'unpaired' },
+    };
+    const unnamedHdAccount = {
+      id: 'unnamed-hd',
+      address: '0x5555555555555555555555555555555555555555',
+      type: 'eip155:eoa',
+      scopes: ['eip155:0'],
+      metadata: { name: 'No entropy id', keyring: { type: 'HD Key Tree' } },
+      options: {},
+    };
+
+    mockSelectors({
+      ...defaultSelectors,
+      accountSections: [],
+      evmAccounts: [
+        evmAccount1,
+        importedAccount,
+        unpairedAccount,
+        unnamedHdAccount,
+      ],
+    });
+
+    const { result } = renderHook(() => useLinkableSocialAccounts());
+
+    expect(result.current.map((account) => account.id)).toEqual([
+      evmAccount1.id,
     ]);
   });
 

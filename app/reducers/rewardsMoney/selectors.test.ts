@@ -134,6 +134,20 @@ const buildState = (
     },
   }) as RootState;
 
+const withDeviceGeo = (state: RootState, location: string | null): RootState =>
+  ({
+    ...state,
+    engine: {
+      ...state.engine,
+      backgroundState: {
+        ...state.engine?.backgroundState,
+        GeolocationController: location
+          ? { location, status: 'complete' }
+          : { status: 'idle' },
+      },
+    },
+  }) as RootState;
+
 describe('rewardsMoney selectors', () => {
   describe('selectReferralMeEntry', () => {
     it('returns undefined when there is no profile id', () => {
@@ -263,39 +277,50 @@ describe('rewardsMoney selectors', () => {
 
   describe('selectMoneyReferralAllowedForGeo', () => {
     it('refuses when the device country is on excluded_regions', () => {
-      const state = {
-        ...buildState({
+      const state = withDeviceGeo(
+        buildState({
           [PROFILE_A]: {
             loading: false,
             error: false,
             data: { ...mockReferralMe, excluded_regions: ['GB'] },
           },
         }),
-        rewards: {
-          ...initialRootState.rewards,
-          geoLocation: 'GB',
-        },
-      } as RootState;
+        'GB',
+      );
 
       expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(false);
     });
 
     it('allows when geo is unknown', () => {
-      const state = {
-        ...buildState({
+      const state = withDeviceGeo(
+        buildState({
           [PROFILE_A]: {
             loading: false,
             error: false,
             data: { ...mockReferralMe, excluded_regions: ['GB'] },
           },
         }),
-        rewards: {
-          ...initialRootState.rewards,
-          geoLocation: null,
-        },
-      } as RootState;
+        null,
+      );
 
       expect(selectMoneyReferralAllowedForGeo(state, PROFILE_A)).toBe(true);
+    });
+
+    it('flips when the device location changes and the exclusion list stays', () => {
+      const base = buildState({
+        [PROFILE_A]: {
+          loading: false,
+          error: false,
+          data: { ...mockReferralMe, excluded_regions: ['GB'] },
+        },
+      });
+
+      expect(
+        selectMoneyReferralAllowedForGeo(withDeviceGeo(base, 'US'), PROFILE_A),
+      ).toBe(true);
+      expect(
+        selectMoneyReferralAllowedForGeo(withDeviceGeo(base, 'GB'), PROFILE_A),
+      ).toBe(false);
     });
   });
 
@@ -508,35 +533,29 @@ describe('rewardsMoney selectors', () => {
     });
 
     it('is unavailable when the device country is excluded', () => {
-      const state = {
-        ...buildState({
+      const state = withDeviceGeo(
+        buildState({
           [PROFILE_A]: {
             ...plainEntry,
             data: { ...plainReferralMe, excluded_regions: ['GB'] },
           },
         }),
-        rewards: {
-          ...initialRootState.rewards,
-          geoLocation: 'GB',
-        },
-      } as RootState;
+        'GB',
+      );
 
       expect(selectSettingsReferralAvailable(state)).toBe(false);
     });
 
     it('stays available when geo is unknown', () => {
-      const state = {
-        ...buildState({
+      const state = withDeviceGeo(
+        buildState({
           [PROFILE_A]: {
             ...plainEntry,
             data: { ...plainReferralMe, excluded_regions: ['GB'] },
           },
         }),
-        rewards: {
-          ...initialRootState.rewards,
-          geoLocation: null,
-        },
-      } as RootState;
+        null,
+      );
 
       expect(selectSettingsReferralAvailable(state)).toBe(true);
     });

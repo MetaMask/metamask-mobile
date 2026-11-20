@@ -5,6 +5,10 @@ import {
   Box,
   FontFamily,
   FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
   TextColor,
@@ -25,9 +29,10 @@ import { useTheme } from '../../../../util/theme';
 import { useFormatters } from '../../../hooks/useFormatters';
 import { formatAmountWithLocaleSeparators } from '../../Bridge/utils/formatAmountWithLocaleSeparators';
 import { QuickBuySheetSelectorsIDs } from '../QuickBuySheet.testIds';
-import type { QuickBuyAmountDisplayMode } from '../types';
+import type { QuickBuyAmountDisplayMode, QuickBuyTradeMode } from '../types';
 import { formatTokenAmount } from '../../SocialFeed/utils/formatters';
 import { strings } from '../../../../../locales/i18n';
+import { MIN_POST_TRADE_SHARE_USD } from '../../../../util/social/postTradeShareThreshold';
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -58,6 +63,10 @@ interface QuickBuyAmountSectionProps {
   sourceBalanceDisplay?: string;
   /** When true, shows a blinking caret after the editable digits (keypad open). */
   showCursor?: boolean;
+  /** Selects the Buy/Sell copy of the post minimum hint. */
+  tradeMode?: QuickBuyTradeMode;
+  /** Shows the post minimum hint while the amount is below the share minimum. */
+  showPostTradeShareHint?: boolean;
   // Custom-amount input is temporarily disabled (numpad removed). The slider is
   // the only input path for now, but these props remain on the interface so the
   // controller wiring is preserved for when the keyboard path is restored.
@@ -96,6 +105,8 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   sourceSymbol,
   sourceBalanceDisplay,
   showCursor = false,
+  tradeMode,
+  showPostTradeShareHint = false,
   onAmountAreaPress,
 }) => {
   const tw = useTailwind();
@@ -144,6 +155,12 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
   if (hasInsufficientBalance && !sourceBalanceDisplay) {
     secondaryLabel = strings('social_leaderboard.quick_buy.add_funds');
   }
+  const postTradeShareHint =
+    tradeMode && showPostTradeShareHint && !hasInsufficientBalance
+      ? strings(`social_leaderboard.quick_buy.min_post_${tradeMode}`, {
+          amount: MIN_POST_TRADE_SHARE_USD,
+        })
+      : undefined;
   const amountColor = hasInsufficientBalance
     ? TextColor.ErrorDefault
     : TextColor.TextDefault;
@@ -282,6 +299,29 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
             {secondaryLabel}
           </Text>
         )}
+        {postTradeShareHint ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+            twClassName="mt-3 px-2 py-1 rounded-lg border border-muted"
+            testID={QuickBuySheetSelectorsIDs.POST_TRADE_SHARE_HINT}
+          >
+            <Icon
+              name={IconName.People}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
+            <Text
+              variant={TextVariant.BodyXs}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {postTradeShareHint}
+            </Text>
+          </Box>
+        ) : null}
       </Box>
     </Box>
   );

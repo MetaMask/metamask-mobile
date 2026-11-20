@@ -4,6 +4,7 @@ import {
   formatExchangeRate,
   formatPriceRangeLabel,
   formatTokenPrice,
+  getDefaultRecurringPriceRangeTokenSide,
   isInvertedPriceRange,
   isValidPriceRange,
   matchingPricePercent,
@@ -13,6 +14,7 @@ import {
   tokenPairRateFromFiatRates,
 } from './priceRange';
 import { formatCurrency } from './currencyUtils';
+import { createMockToken } from '../testUtils/fixtures';
 
 jest.mock('./currencyUtils', () => ({
   formatCurrency: jest.fn(
@@ -24,6 +26,78 @@ jest.mock('./currencyUtils', () => ({
 const mockedFormatCurrency = formatCurrency as jest.MockedFunction<
   typeof formatCurrency
 >;
+
+const eth = createMockToken({
+  address: '0x0000000000000000000000000000000000000000',
+  symbol: 'ETH',
+  decimals: 18,
+});
+const link = createMockToken({
+  address: '0x514910771af9ca656af840dff83e8264ecf986ca',
+  symbol: 'LINK',
+  decimals: 18,
+});
+const usdc = createMockToken({
+  address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+  symbol: 'USDC',
+  decimals: 6,
+});
+const usdt = createMockToken({
+  address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  symbol: 'USDT',
+  decimals: 6,
+});
+
+describe('getDefaultRecurringPriceRangeTokenSide', () => {
+  it.each([
+    {
+      pair: 'stable source and non-stable destination',
+      sourceToken: usdc,
+      destToken: eth,
+      expectedSide: 'dest',
+    },
+    {
+      pair: 'non-stable source and stable destination',
+      sourceToken: eth,
+      destToken: usdc,
+      expectedSide: 'source',
+    },
+    {
+      pair: 'two stablecoins',
+      sourceToken: usdc,
+      destToken: usdt,
+      expectedSide: 'dest',
+    },
+    {
+      pair: 'two non-stable tokens',
+      sourceToken: eth,
+      destToken: link,
+      expectedSide: 'dest',
+    },
+  ] as const)(
+    'returns $expectedSide for $pair',
+    ({ sourceToken, destToken, expectedSide }) => {
+      const result = getDefaultRecurringPriceRangeTokenSide({
+        sourceToken,
+        destToken,
+      });
+
+      expect(result).toBe(expectedSide);
+    },
+  );
+
+  it.each([
+    { sourceToken: undefined, destToken: eth },
+    { sourceToken: eth, destToken: undefined },
+  ])('returns dest for an incomplete pair', ({ sourceToken, destToken }) => {
+    const result = getDefaultRecurringPriceRangeTokenSide({
+      sourceToken,
+      destToken,
+    });
+
+    expect(result).toBe('dest');
+  });
+});
 
 describe('applyPercentToPrice', () => {
   it('writes 1800.00 for -10 percent of 2000', () => {
@@ -73,7 +147,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'dest',
-      currency: 'usd',
+      currency: 'USD',
       min: '0.1087654321',
       max: '1342.77451853376',
     });
@@ -92,7 +166,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'src',
-      currency: 'usd',
+      currency: 'USD',
       min: '108',
       max: undefined,
     });
@@ -111,7 +185,7 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toEqual({
       side: 'dest',
-      currency: 'usd',
+      currency: 'USD',
       min: '1800.25',
       max: '2200.75',
     });

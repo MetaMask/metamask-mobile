@@ -12,6 +12,7 @@ import { Text, Button } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
+import Routes from '../../../../../constants/navigation/Routes';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import {
   composePredictNextOrderService,
@@ -53,6 +54,11 @@ import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 const composeOrderService = composePredictNextOrderService;
 
 const PROBE_BUTTON = 'order-flow-probe-open';
+
+// The sheet and its balance-gated chips settle in tens of milliseconds, but the
+// CV worker can stall for several seconds mid-test, past waitFor's 1s default.
+const SHEET_LOAD = { timeout: 10000 };
+
 const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
 
 interface FetchReply {
@@ -379,7 +385,7 @@ describe('PredictOrderFlow', () => {
   const openSheet = async (Component: React.ComponentType = BuyProbe) => {
     renderProbe(Component);
     fireEvent.press(screen.getByTestId(PROBE_BUTTON));
-    await screen.findByTestId(PredictOrderFlowTestIds.SHEET);
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
   };
 
   const flushDebounce = () =>
@@ -866,10 +872,12 @@ describe('PredictOrderFlow', () => {
     /** Opens the sheet and waits for the balance to enable the chips. */
     const openSheetWithBalance = async () => {
       await openSheet();
-      await waitFor(() =>
-        expect(
-          screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
-        ).toBeEnabled(),
+      await waitFor(
+        () =>
+          expect(
+            screen.getByTestId(PredictOrderFlowTestIds.QUICK_AMOUNT('max')),
+          ).toBeEnabled(),
+        SHEET_LOAD,
       );
     };
 
@@ -1148,6 +1156,56 @@ describe('PredictOrderFlow', () => {
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.REFRESH),
     ).toBeOnTheScreen();
+  });
+
+  it('offers Add funds under an insufficient_balance quote when the Kalshi catalog includes deposit', async () => {
+    stubFetch(() => ({
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    }));
+    renderPredictOrderFlow(BuyProbe);
+    fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
+    typeAmount('20');
+    await flushDebounce();
+
+    fireEvent.press(
+      await screen.findByTestId(PredictOrderFlowTestIds.ADD_FUNDS),
+    );
+
+    expect(
+      await screen.findByTestId(`route-${Routes.PREDICT.ROOT}-params`),
+    ).toHaveTextContent(
+      JSON.stringify({
+        screen: 'PredictNextDeposit',
+        params: { venueId: 'kalshi' },
+      }),
+    );
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.SHEET)).toBeNull();
+  });
+
+  it('offers no Add funds under an insufficient_balance quote while the Kalshi catalog omits deposit', async () => {
+    stubFetch(() => ({
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    }));
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell'],
+    });
+
+    await openSheet();
+    typeAmount('20');
+    await flushDebounce();
+
+    expect(screen.getByTestId(PredictOrderFlowTestIds.ERROR)).toBeOnTheScreen();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.ADD_FUNDS)).toBeNull();
   });
 
   it('presents the exact quoted values for approval before committing', async () => {
@@ -1649,12 +1707,19 @@ describe('PredictOrderFlow', () => {
   });
 
   it('keeps the original previewId after a failed commit even when the quote later expires', async () => {
+    // The sheet arms a real-time expiry timer when the quote lands, so the
+    // quote must outlive the same worker stall SHEET_LOAD absorbs, or it can
+    // expire before Review or Approve is pressed.
+    let quoteExpiresAt = 0;
     stubFetch(
-      () => ({
-        body: makePreview({
-          expiresAt: new Date(Date.now() + 4000).toISOString(),
-        }),
-      }),
+      () => {
+        quoteExpiresAt = Date.now() + SHEET_LOAD.timeout;
+        return {
+          body: makePreview({
+            expiresAt: new Date(quoteExpiresAt).toISOString(),
+          }),
+        };
+      },
       {
         commit: () => ({
           status: 500,
@@ -1674,8 +1739,16 @@ describe('PredictOrderFlow', () => {
       screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();
 
-    await act(() => new Promise((resolve) => setTimeout(resolve, 4500)));
+    // Armed after the sheet's expiry timer and due later, so that timer has
+    // fired and re-rendered the expired quote before this resolves.
+    await act(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(resolve, Math.max(0, quoteExpiresAt - Date.now()) + 500),
+        ),
+    );
 
+    expect(Date.now()).toBeGreaterThan(quoteExpiresAt);
     expect(
       screen.getByTestId(PredictOrderFlowTestIds.KEEP_CHECKING),
     ).toBeOnTheScreen();

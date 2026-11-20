@@ -106,7 +106,11 @@ export function validateRecurringSchedule(
     errors.push(RecurringScheduleErrorCode.RepeatInvalid);
   }
 
-  if (every !== undefined && repeat !== undefined) {
+  if (
+    every !== undefined &&
+    every <= RECURRING_EVERY_MAX_BY_UNIT[recurring.everyUnit] &&
+    repeat !== undefined
+  ) {
     const durationMinutes =
       every * RECURRING_INTERVAL_MINUTES[recurring.everyUnit] * repeat;
 

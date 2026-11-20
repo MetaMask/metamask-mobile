@@ -96,6 +96,8 @@ export interface AgentRunResult {
     source: StepSource;
     actions: AgentAction[];
     error?: string;
+    /** Why the cached resolution of this step failed before it was re-resolved. */
+    cacheError?: string;
   }[];
   timers: TimerResult[];
   changedSteps: number[];

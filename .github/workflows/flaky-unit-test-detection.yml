@@ -4,11 +4,9 @@
 # on the runner (no artifact upload/download). Every stage script lives in
 # .github/scripts/flaky-unit-test-detection/:
 #
-#   1. Deterministic history — flaky-history-analysis.ts lists 14d of ci.yml
-#      runs, keeps only SHAs that can be a retry, GraphQL-batches failed Unit
-#      tests check runs, confirms the same job later passed, then downloads
-#      logs only for those jobs. Stops when every modified file has a hit.
-#      historyComplete is false when a cap ends the walk early.
+#   1. Deterministic history — flaky-history-analysis.ts reads the nightly
+#      index from flaky-unit-test-index.yml and looks up modified unit tests.
+#      historyComplete is false when that index is stale or still has gap days.
 #      → writes .ai-pr-analyzer/flaky-history.json
 #
 #   2. AI analyzer — flaky-ai-analysis.ts runs MetaMask/ai-analyzer once per
@@ -95,7 +93,7 @@ jobs:
       # Stage 1: ID-first funnel — list ci.yml runs, keep retry candidate SHAs,
       # The history itself is built nightly on main by
       # flaky-unit-test-index.yml; this job only reads it. Walking it here
-      # instead cost minutes per push and a GraphQL budget shared with every
+      # instead cost minutes per push and a request budget shared with every
       # other workflow, to answer a question about a handful of files.
       - name: Resolve the nightly history index
         id: history-index

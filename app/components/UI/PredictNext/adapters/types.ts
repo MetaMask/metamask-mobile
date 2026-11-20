@@ -5,6 +5,10 @@ import type {
   FetchSearchParams,
   PredictActivityPage,
   PredictBalance,
+  PredictDepositApproval,
+  PredictDepositOperation,
+  PredictDepositParams,
+  PredictDepositTransferParams,
   PredictEntityId,
   PredictEvent,
   PredictFeed,
@@ -23,6 +27,9 @@ import type {
   PredictVenueCatalog,
   PredictVenueStatus,
   PredictUnresolvedOrdersPage,
+  PredictWithdrawPreview,
+  PredictWithdrawPreviewParams,
+  PredictWithdrawReceipt,
 } from '../types';
 
 export interface VenuePortfolioAdapter {
@@ -76,6 +83,32 @@ export interface VenueTradingAdapter {
   ): Promise<PredictUnresolvedOrdersPage>;
 }
 
+/**
+ * Funding moves money between the Venue Account and a payout destination.
+ * Like trading it is write-adjacent: the Preview is never cached, the Commit
+ * is never retried, and the phone supplies no identity, destination, or
+ * idempotency key — the backend owns all three.
+ */
+export interface VenueFundingAdapter {
+  previewWithdraw(
+    params: PredictWithdrawPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawPreview>;
+  /** Commits the stored, expiring Preview by reference only. Repeated calls
+   * for the same `previewId` converge on one operation. `onDispatch` fires
+   * immediately before issuing the request, after bearer resolution. */
+  commitWithdraw(
+    previewId: string,
+    options?: PredictReadOptions,
+    onDispatch?: () => void,
+  ): Promise<PredictWithdrawReceipt>;
+  /** The operation's canonical receipt. Never submits. */
+  observeWithdraw(
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt>;
+}
+
 export interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
   /** The Venue's product support: actions, discovery Feeds by key, and
@@ -99,4 +132,39 @@ export interface VenueMarketDataAdapter {
     params: FetchSearchParams,
     options?: PredictReadOptions,
   ): Promise<PredictSearchResults>;
+}
+
+/**
+ * A Venue's deposit routes. Every method answers canonical deposit
+ * operations; none hands out request bytes or transaction data.
+ */
+export interface VenueFundingAdapter {
+  /**
+   * Starts a deposit and, unless `clientOperationId` already created one,
+   * signs the venue's address request with the device key and creates it.
+   * Signing needs the explicit user approval. Answers the deposit with its
+   * next step, usually the Funding Plan.
+   */
+  prepareDeposit(
+    params: PredictDepositParams,
+    approval: PredictDepositApproval,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
+  getDeposit(
+    operationId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
+  /** Deposits that are not final yet, oldest first. */
+  listOpenDeposits(
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation[]>;
+  reportDepositTransfer(
+    operationId: string,
+    params: PredictDepositTransferParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
+  cancelDeposit(
+    operationId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictDepositOperation>;
 }

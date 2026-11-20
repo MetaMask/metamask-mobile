@@ -879,7 +879,7 @@ const SignUp = () => {
           : !isWaitlistMode && emailVerificationIsLoading,
         testID: 'signup-continue-button',
       }}
-      tertiaryButtonProps={
+      secondaryButtonProps={
         fromMigration
           ? undefined
           : {
