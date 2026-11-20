@@ -51,7 +51,21 @@ export function usePerpsLivePrices(
       symbols: route.symbols,
       providerId: route.providerId,
       callback: (prices) => {
-        if (active) setSnapshot({ route, prices: prices ?? EMPTY_PRICES });
+        if (!active || !prices) return;
+
+        // The channel delivers ticks for changed symbols and an empty payload
+        // on cache clear. Merge prices only within the current subscription.
+        if (Object.keys(prices).length === 0) {
+          setSnapshot({ route, prices: EMPTY_PRICES });
+          return;
+        }
+        setSnapshot((previous) => ({
+          route,
+          prices: {
+            ...(previous?.route === route ? previous.prices : EMPTY_PRICES),
+            ...prices,
+          },
+        }));
       },
       throttleMs,
     });
