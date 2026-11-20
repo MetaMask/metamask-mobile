@@ -1,4 +1,5 @@
 import Engine from '../Engine';
+import Logger from '../../util/Logger';
 import { ApiEnv, getApiEnv } from '../apiEnv';
 import {
   MfaRecoveryService,
@@ -19,6 +20,10 @@ let serviceMessenger:
 
 function getServiceMessenger(): MfaRecoveryServiceMessenger {
   const root = Engine.controllerMessenger;
+  Logger.log('MfaRecovery getServiceMessenger', {
+    hasSeedlessController:
+      Engine.context?.SeedlessOnboardingController !== undefined,
+  });
   if (serviceMessenger?.root !== root) {
     serviceMessenger = {
       root,

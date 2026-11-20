@@ -4,6 +4,7 @@ import type {
   RecoveryIdentifiers,
 } from '@metamask/mfa-recovery-controller';
 import { useSelector } from 'react-redux';
+import { getEnvelopeStatus } from '@metamask/seedless-onboarding-controller';
 import Engine from '../../../../../core/Engine';
 import {
   Button,
@@ -52,8 +53,6 @@ import {
 } from './runMfaRecoveryFullRetrieval';
 import {
   runResetPassword,
-  runSetLocalPassword,
-  type MfaRecoveryPasswordResult,
   type MfaRecoveryPasswordStep,
 } from './runMfaRecoveryPasswords';
 import PasswordPromptBottomSheet from './PasswordPromptBottomSheet';
@@ -86,6 +85,7 @@ const RECOVER_BUTTONS: readonly {
   },
 ];
 const SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-setup-recovery-button';
+const RESUME_SETUP_BUTTON_TEST_ID = 'mfa-recovery-dev-resume-setup-button';
 /** Setup always registers SIWE and social; passkey is optional. */
 type MfaRecoverySetupOption = 'siwe_social' | 'siwe_social_passkey';
 const SETUP_BUTTON_LABEL_KEYS: Record<MfaRecoverySetupOption, string> = {
@@ -117,8 +117,6 @@ const FULL_RETRIEVAL_OPTIONS: readonly {
     labelKey: `${STRINGS_PREFIX}.recover_secret_button_passkey`,
   },
 ];
-const SET_LOCAL_PASSWORD_BUTTON_TEST_ID =
-  'mfa-recovery-dev-set-local-password-button';
 const RESET_PASSWORD_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-password-button';
 const PASSWORD_PROMPT_SHEET_TEST_ID = 'mfa-recovery-dev-password-prompt-sheet';
 const RESET_PENDING_BUTTON_TEST_ID = 'mfa-recovery-dev-reset-pending-button';
@@ -147,14 +145,6 @@ function formatFailureCode(runError: unknown): string {
     .filter((part) => part !== undefined)
     .map((part, index) => (index === 0 ? part : `(${part})`))
     .join(' ');
-}
-
-function formatPasswordResult({ action }: MfaRecoveryPasswordResult): string {
-  return strings(
-    action === 'set_local'
-      ? `${STRINGS_PREFIX}.set_local_password_success`
-      : `${STRINGS_PREFIX}.reset_password_success`,
-  );
 }
 
 function formatCubistIdentifierChange({
@@ -206,11 +196,14 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [phase, setPhase] = useState<string | null>(null);
-  const [recoveredVaultStage, setRecoveredVaultStage] = useState<
-    'none' | 'recovered' | 'local_password_set'
-  >('none');
+  const [hasRecoveredVault, setHasRecoveredVault] = useState(false);
   const [passwordPrompt, setPasswordPrompt] = useState<
-    'set_local' | 'reset' | null
+    | {
+        kind: 'full_retrieval';
+        identifierType: MfaRecoveryFullRetrievalIdentifierType;
+      }
+    | { kind: 'reset' }
+    | null
   >(null);
   const { verifyOrEnroll } = useMfa();
   const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
@@ -236,8 +229,8 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   // session, otherwise it throws aal2_required without calling the server.
   const verifyMfa = useCallback(async () => {
     await verifyOrEnroll({
-      methods: ['passkey', 'totp'],
-      verifyWith: ['passkey', 'totp'],
+      methods: ['passkey'],
+      verifyWith: ['passkey'],
       reason: { operation: AAL2_APPROVAL_OPERATION },
     });
   }, [verifyOrEnroll]);
@@ -314,6 +307,12 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     cubistIdentifiers === null && !isCubistIdentifiersUnavailable;
   const isCubistRegistered = (cubistIdentifiers?.identifiers.length ?? 0) > 0;
   const isSetupBlockedByCubist = isCubistCheckPending || isCubistRegistered;
+  // Cubist holds a Recovery Secret but the TOPRF envelope was never sealed.
+  // Resuming reads the secret with SIWE and finishes migrateToEnvelope.
+  const hasEnvelope = getEnvelopeStatus(
+    Engine.context.SeedlessOnboardingController.state,
+  ).isEnvelopeManaged;
+  const isResumeSetupVisible = isCubistRegistered && !hasEnvelope;
   const isCubistNotRegistered =
     cubistIdentifiers !== null && cubistIdentifiers.identifiers.length === 0;
   const isRecoverBlockedByCubist =
@@ -618,6 +617,15 @@ const MfaRecoveryDeveloperOptionsSection = () => {
     [handleRun, refreshCubistIdentifiers],
   );
 
+  const handleResumeSetup = useCallback(async () => {
+    await handleRun(
+      async (service) => await service.setUp(),
+      (setupResult) =>
+        strings(`${STRINGS_PREFIX}.setup_success`, { result: setupResult }),
+    );
+    await refreshCubistIdentifiers();
+  }, [handleRun, refreshCubistIdentifiers]);
+
   const handleToprfRecoverySecretTest = useCallback(() => {
     handleRun(
       (service, onStep) =>
@@ -643,8 +651,19 @@ const MfaRecoveryDeveloperOptionsSection = () => {
   }, [handleRun]);
 
   const handleFullRetrievalIdentifier = useCallback(
-    async (identifierType: MfaRecoveryFullRetrievalIdentifierType) => {
+    (identifierType: MfaRecoveryFullRetrievalIdentifierType) => {
       setIsFullRetrievalSheetOpen(false);
+      setPasswordPrompt({ kind: 'full_retrieval', identifierType });
+    },
+    [],
+  );
+
+  const handleFullRetrieval = useCallback(
+    async (
+      identifierType: MfaRecoveryFullRetrievalIdentifierType,
+      localPassword: string,
+    ) => {
+      setPasswordPrompt(null);
       const succeeded = await handleRun(
         (service, onStep) =>
           runMfaRecoveryFullRetrieval(
@@ -652,32 +671,14 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             {
               seedless: Engine.context.SeedlessOnboardingController,
               identifierType,
+              localPassword,
             },
             onStep,
           ),
         formatFullRetrievalResult,
       );
       if (succeeded) {
-        setRecoveredVaultStage('recovered');
-      }
-    },
-    [handleRun],
-  );
-
-  const handleSetLocalPassword = useCallback(
-    async (password: string) => {
-      setPasswordPrompt(null);
-      const succeeded = await handleRun(
-        (_service, onStep) =>
-          runSetLocalPassword(
-            Engine.context.SeedlessOnboardingController,
-            password,
-            onStep,
-          ),
-        formatPasswordResult,
-      );
-      if (succeeded) {
-        setRecoveredVaultStage('local_password_set');
+        setHasRecoveredVault(true);
       }
     },
     [handleRun],
@@ -693,10 +694,10 @@ const MfaRecoveryDeveloperOptionsSection = () => {
             newPassword,
             onStep,
           ),
-        formatPasswordResult,
+        () => strings(`${STRINGS_PREFIX}.reset_password_success`),
       );
       if (succeeded) {
-        setRecoveredVaultStage('none');
+        setHasRecoveredVault(false);
       }
     },
     [handleRun],
@@ -799,6 +800,19 @@ const MfaRecoveryDeveloperOptionsSection = () => {
       >
         {setupRecoveryLabel}
       </Button>
+      {isResumeSetupVisible && (
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={handleResumeSetup}
+          isDisabled={isRunning || !isMfaRecoveryAvailable}
+          isFullWidth
+          style={styles.accessory}
+          testID={RESUME_SETUP_BUTTON_TEST_ID}
+        >
+          {strings(`${STRINGS_PREFIX}.resume_setup_button`)}
+        </Button>
+      )}
       {isSetupSheetOpen && (
         <MfaRecoveryOptionsBottomSheet
           testID={SETUP_SHEET_TEST_ID}
@@ -876,37 +890,18 @@ const MfaRecoveryDeveloperOptionsSection = () => {
           onClose={() => setIsFullRetrievalSheetOpen(false)}
         />
       )}
-      {recoveredVaultStage !== 'none' && (
-        <>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            onPress={() => setPasswordPrompt('set_local')}
-            isDisabled={
-              isRunning || !__DEV__ || recoveredVaultStage !== 'recovered'
-            }
-            isFullWidth
-            style={styles.accessory}
-            testID={SET_LOCAL_PASSWORD_BUTTON_TEST_ID}
-          >
-            {strings(`${STRINGS_PREFIX}.set_local_password_button`)}
-          </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            onPress={() => setPasswordPrompt('reset')}
-            isDisabled={
-              isRunning ||
-              !__DEV__ ||
-              recoveredVaultStage !== 'local_password_set'
-            }
-            isFullWidth
-            style={styles.accessory}
-            testID={RESET_PASSWORD_BUTTON_TEST_ID}
-          >
-            {strings(`${STRINGS_PREFIX}.reset_password_button`)}
-          </Button>
-        </>
+      {hasRecoveredVault && (
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Lg}
+          onPress={() => setPasswordPrompt({ kind: 'reset' })}
+          isDisabled={isRunning || !__DEV__}
+          isFullWidth
+          style={styles.accessory}
+          testID={RESET_PASSWORD_BUTTON_TEST_ID}
+        >
+          {strings(`${STRINGS_PREFIX}.reset_password_button`)}
+        </Button>
       )}
       {socialLinkPrompt !== null && (
         <SocialLinkEmailBottomSheet
@@ -918,14 +913,14 @@ const MfaRecoveryDeveloperOptionsSection = () => {
         <PasswordPromptBottomSheet
           testID={PASSWORD_PROMPT_SHEET_TEST_ID}
           titleKey={
-            passwordPrompt === 'set_local'
+            passwordPrompt.kind === 'full_retrieval'
               ? `${STRINGS_PREFIX}.set_local_password_prompt_title`
               : `${STRINGS_PREFIX}.reset_password_prompt_title`
           }
-          onSubmit={
-            passwordPrompt === 'set_local'
-              ? handleSetLocalPassword
-              : handleResetPassword
+          onSubmit={(password) =>
+            passwordPrompt.kind === 'full_retrieval'
+              ? handleFullRetrieval(passwordPrompt.identifierType, password)
+              : handleResetPassword(password)
           }
           onClose={() => setPasswordPrompt(null)}
         />

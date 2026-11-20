@@ -20,6 +20,7 @@ const SIWE_IDENTIFIER = { type: 'siwe', value: '0xabc' } as Identifier;
 const PASSKEY_IDENTIFIER = { type: 'passkey', value: 'cred' } as Identifier;
 const SRP_ONE = new TextEncoder().encode('seed phrase one');
 const SRP_TWO = new TextEncoder().encode('seed phrase two');
+const LOCAL_PASSWORD = 'local-pw';
 
 function createSeedless(options: {
   before: unknown[];
@@ -32,7 +33,12 @@ function createSeedless(options: {
       return options.before;
     }),
     recoverWithRecoverySecret: jest.fn(
-      async ({ recoverySecret }: { recoverySecret: Uint8Array }) => {
+      async ({
+        recoverySecret,
+      }: {
+        recoverySecret: Uint8Array;
+        password: string;
+      }) => {
         options.order?.push(`recover:${recoverySecret[0]}`);
         return options.recovered;
       },
@@ -48,6 +54,7 @@ function createDependencies(
     seedless:
       seedless as unknown as MfaRecoveryFullRetrievalDependencies['seedless'],
     identifierType,
+    localPassword: LOCAL_PASSWORD,
   };
 }
 
@@ -68,7 +75,7 @@ describe('runMfaRecoveryFullRetrieval', () => {
     }));
   });
 
-  it('reads the recovery secret with the SIWE identifier and recovers the vault with it, without a password', async () => {
+  it('reads the recovery secret with the SIWE identifier and recovers the vault with it under the local password', async () => {
     const order: string[] = [];
     const seedless = createSeedless({
       before: [{ type: SecretType.Mnemonic, data: SRP_ONE }],
@@ -80,6 +87,10 @@ describe('runMfaRecoveryFullRetrieval', () => {
 
     expect(mockReadRecoverySecret).toHaveBeenCalledWith(SIWE_IDENTIFIER);
     expect(order).toStrictEqual(['fetch', 'recover:9']);
+    expect(seedless.recoverWithRecoverySecret).toHaveBeenCalledWith({
+      recoverySecret,
+      password: LOCAL_PASSWORD,
+    });
   });
 
   it('opens the recovery session after reading the secret and before recovering', async () => {

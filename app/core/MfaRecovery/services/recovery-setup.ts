@@ -15,7 +15,6 @@ export type MfaRecoverySeedless = Pick<
   | 'runMigrations'
   | 'getAccessToken'
   | 'recoverWithRecoverySecret'
-  | 'setLocalPassword'
   | 'resetPasswordWithVaultKeys'
 > & {
   state: Pick<

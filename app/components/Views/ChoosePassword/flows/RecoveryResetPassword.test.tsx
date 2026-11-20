@@ -60,7 +60,7 @@ jest.mock('../../../../core/MfaRecovery/engineBindings', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     SeedlessOnboardingController: {
-      fetchAllSecretData: jest.fn(),
+      restoreVaultWithPassword: jest.fn(),
     },
   },
 }));
@@ -101,8 +101,8 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockRoute,
 }));
 
-const mockFetchAllSecretData = Engine.context.SeedlessOnboardingController
-  .fetchAllSecretData as jest.Mock;
+const mockRestoreVaultWithPassword = Engine.context.SeedlessOnboardingController
+  .restoreVaultWithPassword as jest.Mock;
 const mockUnlockWithRecoveredSecrets =
   Authentication.unlockWithRecoveredSecrets as jest.Mock;
 const mockUpdateMarketingOptInStatus =
@@ -184,7 +184,7 @@ describe('ChoosePassword — passwordless recovery reset', () => {
     jest.clearAllMocks();
     store = createStore('US');
     mockResetGlobalPassword.mockResolvedValue(undefined);
-    mockFetchAllSecretData.mockResolvedValue(MOCK_SECRETS);
+    mockRestoreVaultWithPassword.mockResolvedValue(MOCK_SECRETS);
     mockUnlockWithRecoveredSecrets.mockResolvedValue(undefined);
     mockUpdateMarketingOptInStatus.mockResolvedValue(undefined);
   });
@@ -231,8 +231,8 @@ describe('ChoosePassword — passwordless recovery reset', () => {
     mockResetGlobalPassword.mockImplementation(async () => {
       calls.push('resetGlobalPassword');
     });
-    mockFetchAllSecretData.mockImplementation(async () => {
-      calls.push('fetchAllSecretData');
+    mockRestoreVaultWithPassword.mockImplementation(async () => {
+      calls.push('restoreVaultWithPassword');
       return MOCK_SECRETS;
     });
     mockUnlockWithRecoveredSecrets.mockImplementation(async () => {
@@ -247,12 +247,14 @@ describe('ChoosePassword — passwordless recovery reset', () => {
     );
     expect(calls).toEqual([
       'resetGlobalPassword',
-      'fetchAllSecretData',
+      'restoreVaultWithPassword',
       'unlockWithRecoveredSecrets',
     ]);
     expect(mockResetGlobalPassword).toHaveBeenCalledWith(NEW_PASSWORD);
-    expect(mockFetchAllSecretData).toHaveBeenCalledTimes(1);
-    expect(mockFetchAllSecretData).toHaveBeenCalledWith(NEW_PASSWORD);
+    expect(mockRestoreVaultWithPassword).toHaveBeenCalledTimes(1);
+    expect(mockRestoreVaultWithPassword).toHaveBeenCalledWith({
+      password: NEW_PASSWORD,
+    });
     expect(mockUnlockWithRecoveredSecrets).toHaveBeenCalledWith(
       NEW_PASSWORD,
       MOCK_SECRETS,
@@ -304,9 +306,10 @@ describe('ChoosePassword — passwordless recovery reset', () => {
       expectedUnlocks: 0,
     },
     {
-      step: 'fetchAllSecretData',
+      step: 'restoreVaultWithPassword',
       loggedStep: 'fetch_secrets',
-      fail: () => mockFetchAllSecretData.mockRejectedValue(new Error('x')),
+      fail: () =>
+        mockRestoreVaultWithPassword.mockRejectedValue(new Error('x')),
       expectedFetches: 1,
       expectedUnlocks: 0,
     },
@@ -336,7 +339,9 @@ describe('ChoosePassword — passwordless recovery reset', () => {
         expect.any(Error),
         `ChoosePassword: passwordless social recovery failed at ${loggedStep}`,
       );
-      expect(mockFetchAllSecretData).toHaveBeenCalledTimes(expectedFetches);
+      expect(mockRestoreVaultWithPassword).toHaveBeenCalledTimes(
+        expectedFetches,
+      );
       expect(mockUnlockWithRecoveredSecrets).toHaveBeenCalledTimes(
         expectedUnlocks,
       );

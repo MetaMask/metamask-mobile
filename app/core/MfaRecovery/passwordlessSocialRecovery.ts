@@ -7,13 +7,8 @@ import { redactForDisplay } from './redactForDisplay';
 /** Operation named on the Auth approvals this flow requests. */
 export const PASSWORDLESS_RECOVERY_OPERATION = 'wallet.passwordless_recovery';
 
-/**
- * Where a failed recovery stopped. At `setting_password` the secrets are
- * already recovered, but the local password may not be set.
- */
-export type PasswordlessRecoveryStage =
-  | 'recovering_secrets'
-  | 'setting_password';
+/** Where a failed recovery stopped. */
+export type PasswordlessRecoveryStage = 'recovering_secrets';
 
 /** A failed passwordless recovery. Carries no token, secret, or password. */
 export class PasswordlessRecoveryError extends Error {
@@ -43,9 +38,10 @@ export class PasswordlessRecoveryError extends Error {
  *
  * Runs after the locked MFA verification. Reads the Recovery Secret (may
  * prompt passkey) while opening the TOPRF recovery session (held AAL2, no UI),
- * then recovers with it. The recovered SRPs and private keys are zeroed and
- * not returned; fetch them again with `service.fetchSecretsWithCachedKey`.
- * The global password is left unchanged.
+ * then recovers with it, creating the local vault under `localPassword`. No
+ * local vault is created if recovery fails. The recovered SRPs and private
+ * keys are zeroed and not returned; fetch them again with
+ * `service.fetchSecretsWithCachedKey`. The global password is left unchanged.
  *
  * @param service - The recovery service for this flow.
  * @param params - The parameters.
@@ -78,19 +74,14 @@ export async function recoverWithLocalPassword(
         throw sessionResult.reason;
       }
       step = 'recovering_vault';
-      zeroSecrets(await service.recoverWithRecoverySecret(recoverySecret));
+      zeroSecrets(
+        await service.recoverWithRecoverySecret(recoverySecret, localPassword),
+      );
     } finally {
       recoverySecret.fill(0);
     }
   } catch (error) {
     throw new PasswordlessRecoveryError('recovering_secrets', error, step);
-  }
-
-  try {
-    step = 'setting_local_password';
-    await service.setLocalPassword(localPassword);
-  } catch (error) {
-    throw new PasswordlessRecoveryError('setting_password', error, step);
   }
 }
 

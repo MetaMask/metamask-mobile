@@ -66,6 +66,12 @@ jest.mock('../../apiEnv', () => ({
   authEnv: () => 'test-env',
 }));
 
+const mockLoggerLog = jest.fn();
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: (...args: unknown[]) => mockLoggerLog(...args) },
+}));
+
 const mockLinkSocialLogin = jest.mocked(linkSocialLogin);
 
 function createController({
@@ -291,22 +297,18 @@ describe('MfaRecoveryService', () => {
     it('forwards recovery and password calls to the seedless controller', async () => {
       const seedless = Object.assign(createSeedless(), {
         recoverWithRecoverySecret: jest.fn().mockResolvedValue(['secret']),
-        setLocalPassword: jest.fn().mockResolvedValue(undefined),
         resetPasswordWithVaultKeys: jest.fn().mockResolvedValue(undefined),
       });
       const { service } = createService({ seedless });
 
       await expect(
-        service.recoverWithRecoverySecret(RECOVERY_SECRET),
+        service.recoverWithRecoverySecret(RECOVERY_SECRET, 'local-password'),
       ).resolves.toStrictEqual(['secret']);
-      await service.setLocalPassword('new-password');
       await service.resetGlobalPassword('new-password');
 
       expect(seedless.recoverWithRecoverySecret).toHaveBeenCalledWith({
         recoverySecret: RECOVERY_SECRET,
-      });
-      expect(seedless.setLocalPassword).toHaveBeenCalledWith({
-        password: 'new-password',
+        password: 'local-password',
       });
       expect(seedless.resetPasswordWithVaultKeys).toHaveBeenCalledWith({
         newPassword: 'new-password',
@@ -838,31 +840,35 @@ describe('MfaRecoveryService', () => {
       });
     });
 
-    it('reuses the registered secret, read with the given passkey, when the escrow already has one', async () => {
+    it('reads the existing secret with SIWE and does not register when the escrow already has one', async () => {
       const controller = createController({ epoch: 2 });
       const seedless = createSeedless();
       const captured = captureSecrets(controller, seedless);
       const { service } = createService({ controller, seedless });
 
-      await expect(service.setUp([PASSKEY])).resolves.toBe('enabled');
+      await expect(service.setUp()).resolves.toBe('enabled');
 
       expect(controller.register).not.toHaveBeenCalled();
-      expect(controller.authenticateIdentifier).toHaveBeenCalledWith(
-        PROVABLE_PASSKEY,
+      expect(controller.authenticateIdentifier).toHaveBeenCalledWith(SIWE);
+      expect(mockLoggerLog).toHaveBeenCalledWith(
+        'MfaRecovery setUp: reading existing secret',
+        { epoch: 2 },
       );
       expect(captured.migrated).toStrictEqual(REGISTERED_SECRET);
       expect(controller.readSecrets[0]).toStrictEqual(new Uint8Array(32));
     });
 
-    it('throws passkey_not_enrolled when the escrow has a secret and no passkey is given', async () => {
+    it('reads with SIWE even when a passkey is given and the escrow already has a secret', async () => {
       const controller = createController({ epoch: 2 });
-      const { service, seedless } = createService({ controller });
+      const { service } = createService({ controller });
 
-      await expect(service.setUp()).rejects.toMatchObject({
-        code: 'passkey_not_enrolled',
-      });
+      await expect(service.setUp([PASSKEY])).resolves.toBe('enabled');
+
       expect(controller.register).not.toHaveBeenCalled();
-      expect(seedless.migrateToEnvelope).not.toHaveBeenCalled();
+      expect(controller.authenticateIdentifier).toHaveBeenCalledWith(SIWE);
+      expect(controller.authenticateIdentifier).not.toHaveBeenCalledWith(
+        PROVABLE_PASSKEY,
+      );
     });
 
     it('zeroes the secret after sealing the vault', async () => {

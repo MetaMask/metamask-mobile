@@ -15,6 +15,8 @@ export interface MfaRecoveryFullRetrievalDependencies {
   seedless: MfaRecoveryFullRetrievalSeedless;
   /** The identifier the user chose to prove the Recovery Secret read with. */
   identifierType: MfaRecoveryFullRetrievalIdentifierType;
+  /** The password of the local vault the recovery creates. Never logged. */
+  localPassword: string;
 }
 
 export type MfaRecoveryFullRetrievalIdentifierType = 'siwe' | 'passkey';
@@ -64,12 +66,16 @@ async function srpFingerprints(
  * recovers the vault with that secret, then checks that every SRP the vault
  * held before is back in the seedless controller.
  *
- * Recovering does not create a local vault or need a password. The recovered
- * vault keys stay in memory until a local password is set.
+ * Recovering replaces the local vault with one under `localPassword`, which
+ * stays local until the global password is reset.
  */
 export async function runMfaRecoveryFullRetrieval(
   service: MfaRecoveryService,
-  { seedless, identifierType }: MfaRecoveryFullRetrievalDependencies,
+  {
+    seedless,
+    identifierType,
+    localPassword,
+  }: MfaRecoveryFullRetrievalDependencies,
   onStep: (step: MfaRecoveryFullRetrievalStep) => void = () => undefined,
 ): Promise<MfaRecoveryFullRetrievalResult> {
   const identifiers = await service.prepareRun();
@@ -95,6 +101,7 @@ export async function runMfaRecoveryFullRetrieval(
     onStep('recovering_vault');
     recoveredItems = await seedless.recoverWithRecoverySecret({
       recoverySecret,
+      password: localPassword,
     });
   } finally {
     recoverySecret.fill(0);

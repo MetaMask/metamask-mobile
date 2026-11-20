@@ -81,15 +81,17 @@ describe('walletRecoveryUtils', () => {
   });
 
   describe('describeRecoveryError', () => {
-    it('returns the stage and code of a recovery error', () => {
+    it('returns the stage, code, and detail of a recovery error', () => {
       const error = new PasswordlessRecoveryError(
-        'setting_password',
+        'recovering_secrets',
         Object.assign(new Error('failed'), { code: 'write_failed' }),
+        'recovering_vault',
       );
 
       expect(describeRecoveryError(error)).toStrictEqual({
-        stage: 'setting_password',
+        stage: 'recovering_secrets',
         code: 'write_failed',
+        detail: 'recovering_vault; Error: failed',
       });
     });
 

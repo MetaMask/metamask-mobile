@@ -11984,23 +11984,44 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-200ae8283":
-  version: 12.0.0-preview-200ae8283
-  resolution: "@metamask-previews/seedless-onboarding-controller@npm:12.0.0-preview-200ae8283"
+"@metamask/seedless-onboarding-controller@file:./metamask-seedless-onboarding-controller-12.1.0.tgz::locator=metamask%40workspace%3A.":
+  version: 12.1.0
+  resolution: "@metamask/seedless-onboarding-controller@file:./metamask-seedless-onboarding-controller-12.1.0.tgz#./metamask-seedless-onboarding-controller-12.1.0.tgz::hash=2418ac&locator=metamask%40workspace%3A."
   dependencies:
-    "@metamask/analytics-controller": "npm:^4.3.0"
+    "@metamask/analytics-controller": "npm:^4.3.1"
     "@metamask/auth-network-utils": "npm:^0.4.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/cryptography": "npm:^1.1.2"
-    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/keyring-controller": "npm:^28.2.2"
     "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/toprf-secure-backup": ./metamask-toprf-secure-backup-1.1.0.tgz
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.2"
     "@noble/curves": "npm:^1.9.7"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/a12bf5a98a484692750f677f406c44e2880c69b4b73ac75921d862f5afc7ad32e11afeb450097ed04f734c292e62e4bb969d24258f3d45940404a3219e855918
+  checksum: 10/1a497f1f9aef162b06b19e75833d88147b9045baffee107c0ed27ec75470488c00ea04b07edf6720749e4566468b5184ea23d7cad3cedf3c70370721c6471666
+  languageName: node
+  linkType: hard
+
+"@metamask/seedless-onboarding-controller@npm:^12.0.0":
+  version: 12.1.0
+  resolution: "@metamask/seedless-onboarding-controller@npm:12.1.0"
+  dependencies:
+    "@metamask/analytics-controller": "npm:^4.3.1"
+    "@metamask/auth-network-utils": "npm:^0.4.0"
+    "@metamask/base-controller": "npm:^10.1.0"
+    "@metamask/browser-passworder": "npm:^6.0.0"
+    "@metamask/cryptography": "npm:^1.1.2"
+    "@metamask/keyring-controller": "npm:^28.2.2"
+    "@metamask/messenger": "npm:^3.0.0"
+    "@metamask/toprf-secure-backup": "npm:^1.1.0"
+    "@metamask/utils": "npm:^12.0.2"
+    "@noble/curves": "npm:^1.9.7"
+    "@noble/hashes": "npm:^1.8.0"
+    async-mutex: "npm:^0.5.0"
+  checksum: 10/ff01fd8fda8814d96da82a3c53916710f13d9254ee656fc207329d854f188653814411a1f7bb530d56a628d2782abb14d23084e0c63ad360caf1d3409a94934d
   languageName: node
   linkType: hard
 
@@ -38458,7 +38479,7 @@ __metadata:
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@12.0.0-preview-200ae8283"
+    "@metamask/seedless-onboarding-controller": ./metamask-seedless-onboarding-controller-12.1.0.tgz
     "@metamask/selected-network-controller": "npm:^27.0.0"
     "@metamask/sentinel-api-service": "npm:^2.1.0"
     "@metamask/shield-controller": "npm:^7.1.1"

@@ -94,7 +94,6 @@ export const MFA_RECOVERY_SERVICE_ACTIONS = [
   'SeedlessOnboardingController:recoverWithRecoverySecret',
   'SeedlessOnboardingController:resetPasswordWithVaultKeys',
   'SeedlessOnboardingController:runMigrations',
-  'SeedlessOnboardingController:setLocalPassword',
 ] as const satisfies readonly MessengerActions<MfaRecoveryServiceMessenger>['type'][];
 
 /** Returns the messenger the MFA recovery service reaches controllers with. */

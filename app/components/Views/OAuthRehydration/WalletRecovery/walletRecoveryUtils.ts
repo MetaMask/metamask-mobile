@@ -51,7 +51,7 @@ export const biometricAuthTypeFor = (
 /** Loggable summary of a recovery failure. Never includes secrets. */
 export const describeRecoveryError = (
   error: unknown,
-): { stage?: PasswordlessRecoveryStage; code: string } =>
+): { stage?: PasswordlessRecoveryStage; code: string; detail?: string } =>
   error instanceof PasswordlessRecoveryError
-    ? { stage: error.stage, code: error.code }
+    ? { stage: error.stage, code: error.code, detail: error.detail }
     : { code: getMfaRecoveryErrorCode(error) };

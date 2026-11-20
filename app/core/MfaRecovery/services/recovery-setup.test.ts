@@ -40,7 +40,7 @@ describe('getMfaRecoveryStatus', () => {
   it('is Enabled when the vault is envelope-managed', () => {
     expect(
       getMfaRecoveryStatus({
-        envelope: { v: 1, vaultAuthPubKey: 'pk' },
+        envelope: { v: 1, vaultAuthPubKey: 'pk', passwordAuthPubKey: 'ppk' },
       }),
     ).toBe('Enabled');
   });

@@ -27,9 +27,9 @@ import type {
   SeedlessOnboardingControllerRecoverWithRecoverySecretAction,
   SeedlessOnboardingControllerResetPasswordWithVaultKeysAction,
   SeedlessOnboardingControllerRunMigrationsAction,
-  SeedlessOnboardingControllerSetLocalPasswordAction,
 } from '@metamask/seedless-onboarding-controller';
 import { bytesToHex } from '@metamask/utils';
+import Logger from '../../../util/Logger';
 import { authEnv } from '../../apiEnv';
 import { createSiweIdentifier } from '../../Engine/controllers/mfa-recovery-controller/auth/identifiers';
 import {
@@ -86,8 +86,7 @@ type AllowedActions =
   | SeedlessOnboardingControllerMigrateToEnvelopeAction
   | SeedlessOnboardingControllerRecoverWithRecoverySecretAction
   | SeedlessOnboardingControllerResetPasswordWithVaultKeysAction
-  | SeedlessOnboardingControllerRunMigrationsAction
-  | SeedlessOnboardingControllerSetLocalPasswordAction;
+  | SeedlessOnboardingControllerRunMigrationsAction;
 
 /** The controller actions the recovery flows call. */
 export type MfaRecoveryServiceMessenger = Messenger<
@@ -186,23 +185,17 @@ export class MfaRecoveryService {
     return identifiers.some((identifier) => identifier.type === type);
   }
 
-  /** Decrypts the seed phrases with the Recovery Secret. */
+  /**
+   * Decrypts the seed phrases with the Recovery Secret and creates the local
+   * vault under `password`, the password that unlocks the wallet on this device.
+   */
   async recoverWithRecoverySecret(
     recoverySecret: Uint8Array,
+    password: string,
   ): Promise<SecretMetadata[]> {
     return await this.#messenger.call(
       'SeedlessOnboardingController:recoverWithRecoverySecret',
-      { recoverySecret },
-    );
-  }
-
-  /** Sets the password that unlocks the wallet on this device. */
-  async setLocalPassword(password: string): Promise<void> {
-    await this.#messenger.call(
-      'SeedlessOnboardingController:setLocalPassword',
-      {
-        password,
-      },
+      { recoverySecret, password },
     );
   }
 
@@ -215,8 +208,8 @@ export class MfaRecoveryService {
   }
 
   /**
-   * Fetches the SRPs and private keys with the encryption key cached by the last
-   * recovery or `setLocalPassword`. The caller owns the result.
+   * Fetches the SRPs and private keys with the keys of the unlocked vault, such
+   * as the one `recoverWithRecoverySecret` creates. The caller owns the result.
    */
   async fetchSecretsWithCachedKey(): Promise<SecretMetadata[]> {
     return await this.#messenger.call(
@@ -301,10 +294,18 @@ export class MfaRecoveryService {
     const aal2Token = await this.mintAal2Token();
     const { authConnectionId, groupedAuthConnectionId } =
       getToprfRecoveryConfig();
-    await this.#messenger.call(
-      'SeedlessOnboardingController:authenticateForRecovery',
-      { aal2Token, authConnectionId, groupedAuthConnectionId },
-    );
+    try {
+      await this.#messenger.call(
+        'SeedlessOnboardingController:authenticateForRecovery',
+        { aal2Token, authConnectionId, groupedAuthConnectionId },
+      );
+    } catch (error) {
+      Logger.log('MfaRecovery openRecoverySession failed', {
+        message: (error as Error)?.message,
+        stack: (error as Error)?.stack,
+      });
+      throw error;
+    }
   }
 
   /**
@@ -345,8 +346,9 @@ export class MfaRecoveryService {
   /**
    * Prepares the unlocked social wallet for passwordless recovery: registers
    * one Recovery Secret for SIWE, Auth's social identifier, and `identifiers`,
-   * then seals the vault with it. The current password still unlocks the
-   * wallet. Does nothing when the vault is already sealed.
+   * then seals the vault with it. An existing Cubist registration is read with
+   * SIWE, never overwritten. The current password still unlocks the wallet.
+   * Does nothing when the vault is already sealed.
    */
   async setUp(
     identifiers: readonly Identifier[] = [],
@@ -378,18 +380,8 @@ export class MfaRecoveryService {
       if (epoch > 0) {
         // A previous attempt already stored the secret. Registering again asks
         // for version 1, which Cubist rejects.
-        const passkey = identifiers.find(
-          (identifier) => identifier.type === 'passkey',
-        );
-        if (!passkey) {
-          throw new MfaRecoveryControllerError(
-            'No passkey was given to read the registered Recovery Secret with',
-            'passkey_not_enrolled',
-          );
-        }
-        ({ recoverySecret } = await this.readRecoverySecret(
-          withPasskeyVerifier(passkey),
-        ));
+        Logger.log('MfaRecovery setUp: reading existing secret', { epoch });
+        ({ recoverySecret } = await this.readRecoverySecret(siweIdentifier));
       } else {
         recoverySecret = this.createRecoverySecret();
         await messenger.call(

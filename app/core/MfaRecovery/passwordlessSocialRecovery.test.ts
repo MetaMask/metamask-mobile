@@ -38,22 +38,21 @@ function createService() {
     openRecoverySession: jest.fn(async () => {
       calls.push('openRecoverySession');
     }),
-    recoverWithRecoverySecret: jest.fn(async (recoverySecret: Uint8Array) => {
-      calls.push('recoverWithRecoverySecret');
-      secrets.seen = new Uint8Array(recoverySecret);
-      secrets.recovered = [
-        new SecretMetadata(new Uint8Array([1, 2, 3]), {
-          type: SecretType.Mnemonic,
-        }),
-        new SecretMetadata(new Uint8Array([4, 5, 6]), {
-          type: SecretType.PrivateKey,
-        }),
-      ];
-      return secrets.recovered;
-    }),
-    setLocalPassword: jest.fn(async (_password: string) => {
-      calls.push('setLocalPassword');
-    }),
+    recoverWithRecoverySecret: jest.fn(
+      async (recoverySecret: Uint8Array, _password: string) => {
+        calls.push('recoverWithRecoverySecret');
+        secrets.seen = new Uint8Array(recoverySecret);
+        secrets.recovered = [
+          new SecretMetadata(new Uint8Array([1, 2, 3]), {
+            type: SecretType.Mnemonic,
+          }),
+          new SecretMetadata(new Uint8Array([4, 5, 6]), {
+            type: SecretType.PrivateKey,
+          }),
+        ];
+        return secrets.recovered;
+      },
+    ),
     resetGlobalPassword: jest.fn(async (_newPassword: string) => {
       calls.push('resetGlobalPassword');
     }),
@@ -73,7 +72,7 @@ const recover = (fake: ReturnType<typeof createService>) =>
 const zeroedSecret = () => new Uint8Array(RECOVERY_SECRET_LENGTH).fill(0);
 
 describe('recoverWithLocalPassword', () => {
-  it('recovers with the Recovery Secret, then sets the local password', async () => {
+  it('recovers with the Recovery Secret under the local password', async () => {
     const fake = createService();
 
     await expect(recover(fake)).resolves.toBeUndefined();
@@ -82,12 +81,14 @@ describe('recoverWithLocalPassword', () => {
     expect(fake.secrets.seen).toStrictEqual(
       new Uint8Array(RECOVERY_SECRET_LENGTH).fill(9),
     );
-    expect(fake.setLocalPassword).toHaveBeenCalledWith(LOCAL_PASSWORD);
+    expect(fake.recoverWithRecoverySecret).toHaveBeenCalledWith(
+      expect.any(Uint8Array),
+      LOCAL_PASSWORD,
+    );
     expect(fake.calls).toStrictEqual([
       'readRecoverySecret',
       'openRecoverySession',
       'recoverWithRecoverySecret',
-      'setLocalPassword',
     ]);
     expect(fake.resetGlobalPassword).not.toHaveBeenCalled();
   });
@@ -143,7 +144,6 @@ describe('recoverWithLocalPassword', () => {
       detail: 'reading_secret; Error: read failed',
     });
     expect(fake.recoverWithRecoverySecret).not.toHaveBeenCalled();
-    expect(fake.setLocalPassword).not.toHaveBeenCalled();
   });
 
   it('reports opening_session and zeroes the secret when the session fails', async () => {
@@ -173,28 +173,9 @@ describe('recoverWithLocalPassword', () => {
       detail: 'recovering_vault; Error: recover failed',
     });
     expect(fake.secrets.read).toStrictEqual(zeroedSecret());
-    expect(fake.setLocalPassword).not.toHaveBeenCalled();
-  });
-
-  it('reports setting_password at setting_local_password and still zeroes the recovered secrets', async () => {
-    const fake = createService();
-    fake.setLocalPassword.mockRejectedValue(new Error('password rejected'));
-
-    const error = await recover(fake).catch((caught: unknown) => caught);
-
-    expect(error).toBeInstanceOf(PasswordlessRecoveryError);
-    expect(error).toMatchObject({
-      stage: 'setting_password',
-      detail: 'setting_local_password; Error: password rejected',
-    });
     expect((error as PasswordlessRecoveryError).detail).not.toContain(
       LOCAL_PASSWORD,
     );
-    expect(fake.secrets.read).toStrictEqual(zeroedSecret());
-    expect(fake.secrets.recovered?.map((secret) => secret.data)).toStrictEqual([
-      new Uint8Array(3),
-      new Uint8Array(3),
-    ]);
     expect(fake.resetGlobalPassword).not.toHaveBeenCalled();
   });
 });

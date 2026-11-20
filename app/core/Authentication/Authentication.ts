@@ -1682,7 +1682,7 @@ class AuthenticationService {
     try {
       const { SeedlessOnboardingController } = Engine.context;
       let allSRPs: Awaited<
-        ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+        ReturnType<typeof SeedlessOnboardingController.restoreVaultWithPassword>
       > | null = null;
       let fetchSrpsSuccess = false;
       try {
@@ -1691,8 +1691,9 @@ class AuthenticationService {
           op: TraceOperation.OnboardingSecurityOp,
           parentContext,
         });
-        allSRPs =
-          await SeedlessOnboardingController.fetchAllSecretData(password);
+        allSRPs = await SeedlessOnboardingController.restoreVaultWithPassword({
+          password,
+        });
         fetchSrpsSuccess = true;
       } catch (error) {
         const err = ensureError(error, 'Fetch SRPs failed');

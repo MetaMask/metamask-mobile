@@ -55,8 +55,8 @@ const RecoveryResetPassword = ({ params }: ChoosePasswordFlowProps) => {
 
       step = 'fetch_secrets';
       const secrets =
-        await Engine.context.SeedlessOnboardingController.fetchAllSecretData(
-          password,
+        await Engine.context.SeedlessOnboardingController.restoreVaultWithPassword(
+          { password },
         );
 
       step = 'unlock_wallet';
