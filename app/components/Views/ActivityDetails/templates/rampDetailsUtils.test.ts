@@ -129,6 +129,18 @@ describe('rampDetailsUtils', () => {
       expect(formatRampActivityFiatAmount('abc', 'USD')).toBe('abc USD');
     });
 
+    it.each([
+      ['USDC', '3.00 USDC'],
+      ['$', '3.00 $'],
+      ['', '3.00'],
+      [undefined, '3.00'],
+    ])(
+      'keeps a non-ISO or missing currency %p visible as %s',
+      (currency, expected) => {
+        expect(formatRampActivityFiatAmount(3, currency)).toBe(expected);
+      },
+    );
+
     it('formats with the app language', () => {
       I18n.locale = 'de';
 
@@ -144,6 +156,22 @@ describe('rampDetailsUtils', () => {
     it('uses the amount when there is no fee', () => {
       expect(formatRampActivityFiatTotal('6.27', undefined, 'USD')).toBe(
         '$6.27',
+      );
+    });
+
+    it('returns undefined when the fee is not a number', () => {
+      expect(
+        formatRampActivityFiatTotal('61.88', 'abc', 'EUR'),
+      ).toBeUndefined();
+    });
+
+    it('shows zero instead of a negative total when the fee exceeds the amount', () => {
+      expect(formatRampActivityFiatTotal(0, 0.004, 'USD')).toBe('$0.00');
+    });
+
+    it('returns the raw amount when the amount is not finite', () => {
+      expect(formatRampActivityFiatTotal('Infinity', '1', 'USD')).toBe(
+        'Infinity USD',
       );
     });
   });

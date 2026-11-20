@@ -38,34 +38,55 @@ export function getRampActivityExplorerChainId(network: string) {
   return network;
 }
 
+const ISO_CURRENCY_CODE = /^[a-z]{3}$/iu;
+
+function appendCurrency(text: string, currency: string | undefined) {
+  return currency ? `${text} ${currency}` : text;
+}
+
 export function formatRampActivityFiatAmount(
   amount: string | number | undefined,
-  currency: string,
+  currency: string | undefined,
 ): string | undefined {
   if (amount === undefined || amount === null || amount === '') {
     return undefined;
   }
   const numericAmount = Number(amount);
   if (!Number.isFinite(numericAmount)) {
-    return `${amount} ${currency}`;
+    return appendCurrency(String(amount), currency);
   }
-  return getFormatters().formatCurrencyWithMinThreshold(
-    numericAmount,
-    currency,
-  );
+  const formatters = getFormatters();
+  if (!currency || !ISO_CURRENCY_CODE.test(currency)) {
+    // Intl rejects these codes, and client-utils would then drop the code instead of showing it.
+    return appendCurrency(
+      formatters.formatNumber(numericAmount, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+      currency,
+    );
+  }
+  return formatters.formatCurrencyWithMinThreshold(numericAmount, currency);
 }
 
 export function formatRampActivityFiatTotal(
   amount: string | number,
   fee: string | number | undefined,
-  currency: string,
+  currency: string | undefined,
 ) {
   const amountNumber = Number(amount);
-  const feeNumber = fee === undefined ? 0 : Number(fee);
-  if (Number.isNaN(amountNumber) || Number.isNaN(feeNumber)) {
+  if (!Number.isFinite(amountNumber)) {
     return formatRampActivityFiatAmount(amount, currency);
   }
-  return formatRampActivityFiatAmount(amountNumber - feeNumber, currency);
+  const feeNumber = fee === undefined ? 0 : Number(fee);
+  if (!Number.isFinite(feeNumber)) {
+    return undefined;
+  }
+  // Received money can't be negative; without the clamp a tiny negative total renders as "<$0.01".
+  return formatRampActivityFiatAmount(
+    Math.max(0, amountNumber - feeNumber),
+    currency,
+  );
 }
 
 export function valueOrUnavailable(value: string | undefined) {
