@@ -6486,6 +6486,11 @@
       "count": 1
     }
   },
+  "app/components/Views/Settings/DeveloperOptions/SubscriptionDeveloperOptionsSection.tsx": {
+    "typescript/no-misused-promises": {
+      "count": 1
+    }
+  },
   "app/components/Views/Settings/DeveloperOptions/index.tsx": {
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1

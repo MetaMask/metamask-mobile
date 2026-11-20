@@ -39,7 +39,7 @@ import {
   configurePredictNextCatalog,
   resetPredictNextCatalog,
 } from '../../../../../tests/component-view/fixtures/predictNext';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictConfig } from '../config/predictConfig';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import { PredictNextRoutes } from '../navigation/routes';

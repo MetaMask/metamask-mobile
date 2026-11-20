@@ -52,6 +52,16 @@ export interface PerpsCloseTotalsProps {
   margin?: number;
   /** Margin mode of the position; renders the margin row when set. */
   marginMode?: MarginMode;
+  /**
+   * Optional test IDs. A caller with its own selector namespace (the Close
+   * all sheet) passes its own IDs; defaults to the close position sheet's.
+   */
+  testIDs?: {
+    marginValue?: string;
+    receiveValue?: string;
+    pnlValue?: string;
+    pnlRow?: string;
+  };
 }
 
 /**
@@ -65,8 +75,19 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   receiveAmount,
   margin,
   marginMode,
+  testIDs,
 }) => {
   const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
+  const marginValueTestID =
+    testIDs?.marginValue ??
+    PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE;
+  const receiveValueTestID =
+    testIDs?.receiveValue ??
+    PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE;
+  const pnlValueTestID =
+    testIDs?.pnlValue ?? PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL;
+  const pnlRowTestID =
+    testIDs?.pnlRow ?? PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW;
   const openMarginInfo = useCallback(() => setIsMarginInfoVisible(true), []);
   const closeMarginInfo = useCallback(() => setIsMarginInfoVisible(false), []);
 
@@ -110,7 +131,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
           }
           value={formatCloseSummaryFiat(margin)}
           valueTextProps={{
-            testID: PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+            testID: marginValueTestID,
           }}
         />
       ) : null}
@@ -120,7 +141,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
         keyLabel={strings('perps.close_position.total_receive')}
         value={formatCloseSummaryFiat(receiveAmount)}
         valueTextProps={{
-          testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
+          testID: receiveValueTestID,
         }}
       />
 
@@ -129,7 +150,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
         twClassName="mt-0.5"
         // One native element carries the label with its value for automation.
         accessible
-        testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
+        testID={pnlRowTestID}
         keyLabel={strings(
           // Cross margin never holds the P&L, so it is not "included".
           marginMode === 'cross'
@@ -147,7 +168,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
         }
         valueTextProps={{
           color: getCloseSummaryPnlColor(pnl),
-          testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
+          testID: pnlValueTestID,
         }}
       />
 
