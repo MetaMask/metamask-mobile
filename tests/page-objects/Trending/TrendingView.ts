@@ -3,6 +3,7 @@ import {
   Gestures,
   Assertions,
   PlatformDetector,
+  Utilities,
   type ScrollOptions,
   type AppiumElement,
 } from '../../framework';
@@ -115,9 +116,20 @@ class TrendingView {
   }
 
   async tapTab(tabTestID: string): Promise<void> {
-    await Gestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
+    // The visible label is `position: absolute`, so XCUITest reports
+    // `${tabTestID}-label` as not displayed and the tap times out. The
+    // Pressable owns this testID and the real hit target. Later tabs sit in
+    // a horizontal scroller and can start off-screen.
+    const tab = Matchers.getElementByID(tabTestID);
+    const displayed = await Utilities.isElementVisible(tab, 1000);
+    if (!displayed) {
+      await Gestures.scrollIntoView(tab, {
+        direction: 'left',
+        maxScrolls: 4,
+      });
+    }
+    await Gestures.tap(tab, {
       elemDescription: `Tap tab ${tabTestID}`,
-      checkVisibility: false,
     });
   }
 
