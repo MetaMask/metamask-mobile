@@ -20,6 +20,7 @@ const descriptor = (
     feeds: {},
     categories: [],
     searchSupported: false,
+    screens: [],
     displayName: venueId,
   },
 });
