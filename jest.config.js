@@ -247,7 +247,8 @@ const config = {
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.CI ? '50%' : '20%',
   moduleNameMapper: {
-    '^multiformats/cid$': '<rootDir>/node_modules/@metamask/assets-controllers/node_modules/multiformats/dist/src/cid.js',
+    '^multiformats/cid$':
+      '<rootDir>/node_modules/@metamask/assets-controllers/node_modules/multiformats/dist/src/cid.js',
     '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
     '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',
