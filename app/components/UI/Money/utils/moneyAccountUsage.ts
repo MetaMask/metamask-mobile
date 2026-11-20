@@ -21,16 +21,6 @@ const isMoneyTransaction = (tx: unknown, type: TransactionType): boolean => {
   );
 };
 
-const hasConfirmed = (
-  transactions: unknown,
-  matches: (tx: unknown) => boolean,
-): boolean =>
-  Array.isArray(transactions) &&
-  transactions.some(
-    (tx) =>
-      isObject(tx) && tx.status === TransactionStatus.confirmed && matches(tx),
-  );
-
 /**
  * True when a persisted transaction is a Money deposit, top-level or nested in
  * a batch.
@@ -46,20 +36,19 @@ export const isMoneyWithdrawTransaction = (tx: unknown): boolean =>
   isMoneyTransaction(tx, TransactionType.moneyAccountWithdraw);
 
 /**
- * True when persisted transactions include a confirmed Money deposit.
- */
-export const hasConfirmedMoneyDeposit = (transactions: unknown): boolean =>
-  hasConfirmed(transactions, isMoneyDepositTransaction);
-
-/**
  * True when persisted transactions include a confirmed Money deposit or
  * withdrawal.
  */
 export const hasConfirmedMoneyAccountTransaction = (
   transactions: unknown,
 ): boolean =>
-  hasConfirmed(transactions, isMoneyDepositTransaction) ||
-  hasConfirmed(transactions, isMoneyWithdrawTransaction);
+  Array.isArray(transactions) &&
+  transactions.some(
+    (tx) =>
+      isObject(tx) &&
+      tx.status === TransactionStatus.confirmed &&
+      (isMoneyDepositTransaction(tx) || isMoneyWithdrawTransaction(tx)),
+  );
 
 /**
  * True when a persisted Money balance is above zero.

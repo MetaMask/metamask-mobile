@@ -4,7 +4,6 @@ import {
 } from '@metamask/transaction-controller';
 import {
   hasConfirmedMoneyAccountTransaction,
-  hasConfirmedMoneyDeposit,
   isPositiveMoneyBalance,
 } from './moneyAccountUsage';
 
@@ -29,44 +28,6 @@ describe('isPositiveMoneyBalance', () => {
     { balance: { value: 12.34 }, expected: false },
   ])('returns $expected for $balance', ({ balance, expected }) => {
     expect(isPositiveMoneyBalance(balance)).toBe(expected);
-  });
-});
-
-describe('hasConfirmedMoneyDeposit', () => {
-  it('returns true for a confirmed top-level Money deposit', () => {
-    expect(
-      hasConfirmedMoneyDeposit([moneyDeposit(TransactionStatus.confirmed)]),
-    ).toBe(true);
-  });
-
-  it('returns true for a confirmed nested Money deposit', () => {
-    expect(
-      hasConfirmedMoneyDeposit([
-        {
-          type: 'batch',
-          status: TransactionStatus.confirmed,
-          nestedTransactions: [moneyDeposit(TransactionStatus.confirmed)],
-        },
-      ]),
-    ).toBe(true);
-  });
-
-  it('returns false for a pending Money deposit', () => {
-    expect(
-      hasConfirmedMoneyDeposit([moneyDeposit(TransactionStatus.submitted)]),
-    ).toBe(false);
-  });
-
-  it('returns false for unrelated or malformed transactions', () => {
-    expect(hasConfirmedMoneyDeposit(undefined)).toBe(false);
-    expect(hasConfirmedMoneyDeposit([])).toBe(false);
-    expect(
-      hasConfirmedMoneyDeposit([
-        { type: 'simpleSend', status: TransactionStatus.confirmed },
-        null,
-        'invalid',
-      ]),
-    ).toBe(false);
   });
 });
 
@@ -96,14 +57,22 @@ describe('hasConfirmedMoneyAccountTransaction', () => {
   it('returns false for unconfirmed or unrelated transactions', () => {
     expect(
       hasConfirmedMoneyAccountTransaction([
+        moneyDeposit(TransactionStatus.submitted),
+      ]),
+    ).toBe(false);
+    expect(
+      hasConfirmedMoneyAccountTransaction([
         moneyWithdraw(TransactionStatus.submitted),
       ]),
     ).toBe(false);
     expect(
       hasConfirmedMoneyAccountTransaction([
         { type: 'simpleSend', status: TransactionStatus.confirmed },
+        null,
+        'invalid',
       ]),
     ).toBe(false);
     expect(hasConfirmedMoneyAccountTransaction(undefined)).toBe(false);
+    expect(hasConfirmedMoneyAccountTransaction([])).toBe(false);
   });
 });
