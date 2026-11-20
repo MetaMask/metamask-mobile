@@ -32,7 +32,12 @@ import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/Pred
 import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
+import { PredictDepositScreenTestIds } from '../PredictDeposit/PredictDepositScreen.testIds';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
+import awaitingTransferDeposit from '../../contracts/v1/fixtures/funding-contract/awaiting-transfer.json';
+import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cancelled.json';
+import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
+import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 
 describe('PredictPortfolioScreen', () => {
   const activityTransportRestores: (() => void)[] = [];
@@ -1855,5 +1860,122 @@ describe('PredictPortfolioScreen', () => {
         ).toHaveTextContent('$500.00'),
       );
     });
+  });
+
+  describe('deposit status line', () => {
+    it('shows awaiting_transfer on the Portfolio summary card and opens DepositInProgressSheet on tap', async () => {
+      configurePredictNextFeeds({
+        summary: makePredictNextSummary({
+          availableBalance: '120.50',
+          totalValue: '153.50',
+        }),
+        depositStatus: awaitingTransferDeposit,
+      });
+      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+      const statusLine = await view.findByTestId(
+        PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
+      );
+      expect(statusLine).toHaveTextContent('Deposit waiting for your transfer');
+      expect(statusLine).toHaveProp('hitSlop', { top: 11, bottom: 11 });
+      expect(
+        await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      ).toHaveTextContent('$153.50');
+
+      fireEvent.press(statusLine);
+
+      expect(
+        await view.findByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows Deposit processing without adding pending funds or writing a funding row to Activity', async () => {
+      configurePredictNextFeeds({
+        activity: [],
+        summary: makePredictNextSummary({
+          availableBalance: '120.50',
+          totalValue: '153.50',
+        }),
+        depositStatus: transferReportedDeposit,
+      });
+      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(
+        await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit processing');
+      expect(
+        await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+      ).toHaveTextContent('$153.50');
+
+      fireEvent.press(
+        view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+      );
+      expect(
+        await view.findByTestId(PredictPortfolioScreenTestIds.EMPTY_STATE),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows Deposit under review with the first 8 characters of operationId', async () => {
+      configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
+      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(
+        await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent(
+        `Deposit under review · Ref ${needsReviewDeposit.operationId.slice(0, 8)}`,
+      );
+    });
+
+    it.each([
+      [
+        'failed',
+        { ...cancelledDeposit, status: 'failed', next: null },
+        'Deposit failed',
+      ],
+      ['cancelled', cancelledDeposit, 'Deposit cancelled'],
+    ])(
+      'shows %s deposit status once and removes it on the next visit',
+      async (_label, fixture, expectedText) => {
+        configurePredictNextFeeds({ depositStatus: fixture });
+        const firstVisit = renderPredictPortfolioScreen({
+          venueId: KALSHI_VENUE_ID,
+        });
+
+        expect(
+          await firstVisit.findByTestId(
+            PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
+          ),
+        ).toHaveTextContent(expectedText);
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            fixture.operationId,
+          ),
+        );
+        firstVisit.unmount();
+
+        const secondVisit = renderPredictPortfolioScreen({
+          venueId: KALSHI_VENUE_ID,
+        });
+        await secondVisit.findByTestId(
+          PredictPortfolioScreenTestIds.TOTAL_VALUE,
+        );
+        expect(
+          secondVisit.queryByTestId(
+            PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
+          ),
+        ).not.toBeOnTheScreen();
+      },
+    );
   });
 });

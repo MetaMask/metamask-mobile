@@ -54,19 +54,27 @@ describe('getPredictFundingServiceMessenger', () => {
       listOpenDeposits: [KALSHI_VENUE_ID],
       reportDepositTransfer: [KALSHI_VENUE_ID, 'operation-id', transfer],
       cancelDeposit: [KALSHI_VENUE_ID, 'operation-id'],
+      getDepositStatus: [KALSHI_VENUE_ID],
+      acknowledgeDepositNotice: [KALSHI_VENUE_ID, 'operation-id'],
     };
     try {
       expect(register).toHaveBeenCalledTimes(Object.keys(argsByMethod).length);
       for (const [action] of register.mock.calls) {
-        const method = action.split(':')[1] as keyof typeof funding;
-        expect(service[method]).toEqual(expect.any(Function));
+        const method = action.split(':')[1] as keyof typeof argsByMethod;
+        expect(service[method as keyof PredictFundingService]).toEqual(
+          expect.any(Function),
+        );
         const args = argsByMethod[method];
         expect(args).toBeDefined();
         await (rootMessenger.call as (...values: unknown[]) => unknown)(
           action,
           ...args,
         );
-        expect(funding[method]).toHaveBeenCalledWith(...args.slice(1));
+        if (method in funding) {
+          expect(funding[method as keyof typeof funding]).toHaveBeenCalledWith(
+            ...args.slice(1),
+          );
+        }
       }
     } finally {
       service.destroy();
@@ -173,24 +181,36 @@ describe('getPredictFundingServiceInitMessenger', () => {
     const abandon = jest.fn();
 
     initMessenger.subscribe('KeyringController:lock', abandon);
+    initMessenger.subscribe('KeyringController:unlock', abandon);
     initMessenger.subscribe('AuthenticationController:stateChange', abandon);
     initMessenger.subscribe('AuthenticationController:profileSignIn', abandon);
     rootMessenger.publish('KeyringController:lock');
+    rootMessenger.publish('KeyringController:unlock');
 
-    expect(abandon).toHaveBeenCalledTimes(1);
+    expect(abandon).toHaveBeenCalledTimes(2);
   });
 
-  it('delegates the session state actions a session change needs', () => {
+  it('delegates the session and wallet state actions a session change or deposit resume needs', () => {
     const rootMessenger = new Messenger<
       MockAnyNamespace,
       GlobalActions | PredictDeviceAuthServiceActions,
       never
     >({ namespace: MOCK_ANY_NAMESPACE });
     const signedIn = { isSignedIn: true } as never;
+    const keyring = { isUnlocked: true } as never;
+    const transactions = { transactions: [] } as never;
     const invalidateA2t = jest.fn();
     rootMessenger.registerActionHandler(
       'AuthenticationController:getState',
       () => signedIn,
+    );
+    rootMessenger.registerActionHandler(
+      'KeyringController:getState',
+      () => keyring,
+    );
+    rootMessenger.registerActionHandler(
+      'TransactionController:getState',
+      () => transactions,
     );
     rootMessenger.registerActionHandler(
       'PredictDeviceAuthService:invalidateA2t',
@@ -202,6 +222,10 @@ describe('getPredictFundingServiceInitMessenger', () => {
 
     expect(initMessenger.call('AuthenticationController:getState')).toBe(
       signedIn,
+    );
+    expect(initMessenger.call('KeyringController:getState')).toBe(keyring);
+    expect(initMessenger.call('TransactionController:getState')).toBe(
+      transactions,
     );
     initMessenger.call('PredictDeviceAuthService:invalidateA2t');
 

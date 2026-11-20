@@ -34,10 +34,13 @@ export {
   findMatchingUnapprovedDepositTransactions,
   getSessionDepositTransfer,
   isKnownFailedDepositHash,
+  matchDepositTransferForResume,
   recordSessionDepositTransfer,
   waitForPendingDepositTransaction,
+  type DepositResumeMatch,
   type DepositTransactionMessenger,
   type ExistingDepositTransfer,
+  type MatchDepositTransferForResumeParams,
 } from './deposit/reconcileDepositTransfer';
 export { checkDepositPlan } from './deposit/checkDepositPlan';
 export { toUsdcBaseUnits } from './deposit/usdcTransfer';
