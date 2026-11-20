@@ -684,6 +684,7 @@ describe('PredictHome', () => {
           PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
         ),
       ).toHaveTextContent('Politics');
+      expect(view.getByRole('header', { name: 'Politics' })).toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictFeedScreenTestIds.VIEW),
       ).not.toBeOnTheScreen();

@@ -85,6 +85,7 @@ export const FeedPreviewSection = ({
       ) : (
         <Text
           testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
+          accessibilityRole="header"
           variant={TextVariant.HeadingMd}
         >
           {title}
