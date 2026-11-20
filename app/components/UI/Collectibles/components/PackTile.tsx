@@ -46,11 +46,7 @@ export function PackTile({ pack }: Props) {
         >
           {pack.subtitle}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          className="mt-1"
-        >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {pack.priceLabel}
         </Text>
       </View>
