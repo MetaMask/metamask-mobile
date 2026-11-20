@@ -108,22 +108,34 @@ export type EarnRatesView = {
    */
   revshare_earning_start: string | null;
   revshare_earning_end: string | null;
-  /** The caller's own revenue share rate per product; null where no row covers now. */
-  revshare_by_product: Record<
+  /**
+   * The caller's own revenue share rate per product; null where no row covers now.
+   *
+   * Optional: absent in a payload persisted before the backend change, or from an older backend.
+   */
+  revshare_by_product?: Record<
     'perps' | 'swaps' | 'predict',
     ProductRate | null
   >;
   /**
    * Cashback per product. A caller with any row sees only their rows, null on
-   * the other products; a caller with none sees each product's program rate as
-   * the offer (`source` null). `predict` is null while no policy pays it.
+   * the other products. A prospective referee (no referee row, not a KOL, never
+   * in the cashback experiment) sees each product's program rate as the offer
+   * (`source` null). Any other caller with no row gets null on every product
+   * and a null `cashback_rate_bps`. `predict` is null while no policy pays it.
+   *
+   * Optional: absent in a payload persisted before the backend change, or from an older backend.
    */
-  cashback_by_product: Record<
+  cashback_by_product?: Record<
     'perps' | 'swaps' | 'predict',
     ProductRate | null
   >;
-  /** Copy-trading commission per product, in bps; null where no period covers now. */
-  copy_trading_by_product: Record<'perps' | 'swaps', number | null>;
+  /**
+   * Copy-trading commission per product, in bps; null where no period covers now.
+   *
+   * Optional: absent in a payload persisted before the backend change, or from an older backend.
+   */
+  copy_trading_by_product?: Record<'perps' | 'swaps', number | null>;
 };
 
 /**
