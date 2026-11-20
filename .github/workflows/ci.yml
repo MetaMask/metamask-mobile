@@ -1095,10 +1095,12 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        # actionlint 1.7.1 predates the `cache-mode` workflow key.
+        # actionlint 1.7.1 predates the `cache-mode` workflow key and the
+        # `output-env-credentials` input of aws-actions/configure-aws-credentials@v4.
         run: >-
           ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
           -ignore 'unexpected key "cache-mode" for "(workflow|job)" section'
+          -ignore 'input "output-env-credentials" is not defined in action "aws-actions/configure-aws-credentials@v4"'
         shell: bash
 
   deploy-platform-api-docs:

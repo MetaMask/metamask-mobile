@@ -87,6 +87,32 @@ describe('aggregatePhaseTimings', () => {
     );
   });
 
+  it('leaves nested login steps out of the shard phase sum', () => {
+    const report = aggregateTimingSuites([
+      {
+        suite: 'accounts',
+        tests: [
+          {
+            title: 'login',
+            file: 'login.spec.ts',
+            phases: {
+              login: 162_000,
+              'nested:login_app_ready': 60_000,
+              'nested:login_wallet_home': 30_000,
+              test_body: 10_000,
+            },
+            meta: { platform: 'ios' },
+          },
+        ],
+      },
+    ]);
+
+    expect(report.slowestShard?.totalMs).toBe(172_000);
+    expect(report.phases.ios.login.avg).toBe(162_000);
+    expect(report.phases.ios['nested:login_app_ready'].avg).toBe(60_000);
+    expect(report.phases.ios['nested:login_wallet_home'].samples).toBe(1);
+  });
+
   it('formats trend markdown with phase table headers', () => {
     const report = aggregateTimingSuites([
       {

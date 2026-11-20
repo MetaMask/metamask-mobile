@@ -2,10 +2,7 @@ import contract from '../../contracts/v1/fixtures/api-errors.v1.json';
 import signRequest from '../../contracts/v1/fixtures/funding-contract/sign-request.json';
 import transferReported from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { PredictErrorCode } from '../../errors';
-import {
-  predictErrorEvidence,
-  type PredictErrorPhase,
-} from '../../errors/apiErrorEvidence';
+import type { PredictErrorPhase } from '../../errors/commitOutcome';
 import type { PredictAmount, PredictEntityId, PredictHex } from '../../types';
 import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
 import {
@@ -206,14 +203,12 @@ const cases = Object.entries(contract.codes).flatMap(([code, definition]) =>
 
 describe('API emitted error contract at the mobile adapter boundary', () => {
   it.each(cases)(
-    '$phase maps $code on $route with API relay evidence',
+    '$phase maps $code on $route',
     async ({ code, phase, definition, depositCall }) => {
       const expected =
         (depositCall && DEPOSIT_PRODUCT_CODE_BY_API_CODE[code]) ??
         PRODUCT_CODE_BY_API_CODE[code];
       expect(expected).toBeDefined();
-      const commitRelay =
-        'commitRelay' in definition ? definition.commitRelay : 'unknown';
       const error = new PredictHttpError(definition.status, code);
       await expect(
         depositCall
@@ -221,17 +216,29 @@ describe('API emitted error contract at the mobile adapter boundary', () => {
           : invoke(phase as PredictErrorPhase, error),
       ).rejects.toMatchObject({
         code: expected,
-        metadata: {
-          status: definition.status,
-          bodyCode: code,
-          phase,
-          mutationRelay:
-            phase === 'commit'
-              ? commitRelay
-              : contract.phaseRelay[phase as PredictErrorPhase],
-          operationOutcome: contract.operationOutcome,
-        },
+        metadata: { status: definition.status, bodyCode: code, phase },
       });
+    },
+  );
+
+  // The code never decides whether a commit changed anything: the same code
+  // is kept or forgotten only by what the API said about this call.
+  it.each(cases.filter(({ phase }) => phase === 'commit'))(
+    'carries the API outcome, not the code, on a commit $code on $route',
+    async ({ code, definition, depositCall }) => {
+      for (const outcome of ['not_placed', 'unknown'] as const) {
+        const error = new PredictHttpError(
+          definition.status,
+          code,
+          undefined,
+          outcome,
+        );
+        await expect(
+          depositCall
+            ? invokeDeposit(depositCall, error)
+            : invoke('commit', error),
+        ).rejects.toMatchObject({ metadata: { phase: 'commit', outcome } });
+      }
     },
   );
 
@@ -264,46 +271,45 @@ describe('API emitted error contract at the mobile adapter boundary', () => {
   it.each([
     ['venue_signing_unavailable', PredictErrorCode.UNAUTHENTICATED],
     ['venue_signing_refused', PredictErrorCode.VENUE_SIGNING_REFUSED],
-  ])(
-    'keeps local %s honest and unsent only on the mutation lane',
-    async (code, expected) => {
-      for (const phase of ['commit', 'observe'] as const) {
-        await expect(
-          invoke(phase, new PredictRequestNotSentError(code)),
-        ).rejects.toMatchObject({
-          code: expected,
-          metadata: {
-            requestSent: false,
-            phase,
-            mutationRelay:
-              phase === 'commit'
-                ? 'not_relayed_this_invocation'
-                : 'not_a_mutation',
-            operationOutcome: 'unknown',
-          },
-        });
-      }
-    },
-  );
+  ])('keeps local %s marked as never sent', async (code, expected) => {
+    for (const phase of ['commit', 'observe'] as const) {
+      await expect(
+        invoke(phase, new PredictRequestNotSentError(code)),
+      ).rejects.toMatchObject({
+        code: expected,
+        metadata: { requestSent: false, phase },
+      });
+    }
+  });
 
   it.each(contract.uncodedStatuses)(
-    'never resolves an operation from uncoded HTTP %s',
+    'leaves an uncoded HTTP %s unknown on a commit and outcome-free on a read',
     async (status) => {
       await expect(
         invoke('commit', new PredictHttpError(status)),
       ).rejects.toMatchObject({
-        metadata: { mutationRelay: 'unknown', operationOutcome: 'unknown' },
+        metadata: { phase: 'commit', outcome: 'unknown' },
       });
-      await expect(
-        invoke('observe', new PredictHttpError(status)),
-      ).rejects.toMatchObject({
-        metadata: {
-          mutationRelay: 'not_a_mutation',
-          operationOutcome: 'unknown',
-        },
-      });
+      const read = await invoke('observe', new PredictHttpError(status)).catch(
+        (error: unknown) => error,
+      );
+      expect(read).toMatchObject({ metadata: { phase: 'observe' } });
+      expect((read as { metadata: object }).metadata).not.toHaveProperty(
+        'outcome',
+      );
     },
   );
+
+  it('never copies a not_placed outcome onto a read', async () => {
+    const read = await invoke(
+      'observe',
+      new PredictHttpError(404, 'operation_not_found', undefined, 'not_placed'),
+    ).catch((error: unknown) => error);
+
+    expect((read as { metadata: object }).metadata).not.toHaveProperty(
+      'outcome',
+    );
+  });
 
   it.each([
     [
@@ -319,40 +325,8 @@ describe('API emitted error contract at the mobile adapter boundary', () => {
     async (error, code) => {
       await expect(invoke('observe', error)).rejects.toMatchObject({
         code,
-        metadata: {
-          requestSent: true,
-          phase: 'observe',
-          mutationRelay: 'not_a_mutation',
-          operationOutcome: 'unknown',
-        },
+        metadata: { requestSent: true, phase: 'observe' },
       });
     },
   );
-
-  it('never reuses commit-only mismatch or absence proof during observation', () => {
-    for (const code of [
-      'venue_preview_mismatch',
-      'operation_not_found',
-      'preview_expired',
-    ]) {
-      expect(predictErrorEvidence('observe', code)).toEqual({
-        phase: 'observe',
-        mutationRelay: 'not_a_mutation',
-        operationOutcome: 'unknown',
-      });
-    }
-  });
-
-  it('treats the replaying withdrawal read as unknown, not mutation-free', () => {
-    expect(contract.replayingReads).toContain('withdrawals.observe');
-    expect(
-      predictErrorEvidence('observe', 'venue_unavailable', true, {
-        readCanReplay: true,
-      }).mutationRelay,
-    ).toBe('unknown');
-    // A plain read keeps its claim.
-    expect(
-      predictErrorEvidence('observe', 'venue_unavailable', true).mutationRelay,
-    ).toBe('not_a_mutation');
-  });
 });

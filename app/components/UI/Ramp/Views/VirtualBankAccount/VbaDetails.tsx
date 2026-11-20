@@ -37,7 +37,6 @@ import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
@@ -60,7 +59,10 @@ import {
   getAccountCreateFailureLogFields,
   logAccountCreateFailure,
 } from './accountCreateError';
-import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
+import {
+  exitVbaOnboardingToMoneyHome,
+  navigateToVbaOnboardingDestination,
+} from './hooks/useVbaOnboardingRouting';
 import { useVbaEligibility } from './hooks/useVbaEligibility';
 import VbaCreatingAccount from './VbaCreatingAccount';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -757,10 +759,7 @@ const VbaDetails = () => {
   const handleDone = useCallback(() => {
     finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
     endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    exitVbaOnboardingToMoneyHome(navigation);
   }, [finishPixFetchTrace, navigation]);
 
   const handleBack = useCallback(() => {
