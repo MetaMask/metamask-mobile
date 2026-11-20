@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import WatchlistFullScreenView from './WatchlistFullScreenView';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
@@ -873,7 +874,9 @@ describe('WatchlistFullScreenView', () => {
 
   describe('glass header', () => {
     beforeEach(() => {
-      mockUseSelector.mockReturnValue(true);
+      mockUseSelector.mockImplementation(
+        (selector) => selector === selectGlassHeadersEnabled,
+      );
     });
 
     it('renders glass header components when flag is enabled', () => {

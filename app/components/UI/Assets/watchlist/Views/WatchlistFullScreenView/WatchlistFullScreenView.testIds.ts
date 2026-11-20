@@ -7,6 +7,7 @@ export enum WatchlistFullScreenViewSelectorsIDs {
   DONE_BUTTON = 'watchlist-fullscreen-done-button',
   TITLE = 'watchlist-fullscreen-title',
   TOKEN_LIST = 'watchlist-fullscreen-token-list',
+  MIXED_LIST = 'watchlist-fullscreen-mixed-list',
   EDITABLE_ROW = 'watchlist-fullscreen-editable-row',
   DRAG_HANDLE = 'watchlist-fullscreen-drag-handle',
   UNWATCH_STAR = 'watchlist-fullscreen-unwatch-star',

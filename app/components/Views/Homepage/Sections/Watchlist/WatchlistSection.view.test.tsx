@@ -1,4 +1,6 @@
 import '../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import {
   renderWatchlistSectionWithRoutes,
   renderWatchlistJourneyWithRoutes,
@@ -26,6 +28,7 @@ import { WatchlistStarButtonTestIds } from '../../../../UI/Assets/watchlist/comp
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { EMPTY_BLOB } from '../../../../UI/Assets/watchlist/storage';
 import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { getPerpsMarketRowItemSelector } from '../../../../UI/Perps/Perps.testIds';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 
@@ -34,8 +37,10 @@ const getRowTestId = (assetId: string) =>
 
 const getAddButtonTestId = (assetId: string) =>
   getTrendingTokenRowAddButtonTestId(assetId);
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
   setupWatchlistStorageMock();
   setupWatchlistTokenApiMock();
   setupReadOnlyNetworkStoreMock();
@@ -43,6 +48,7 @@ beforeEach(() => {
 
 afterEach(() => {
   clearWatchlistApiMocks();
+  netInfoMock.__resetMockNetInfo();
 });
 
 describeForPlatforms('WatchlistSection', () => {
@@ -81,6 +87,34 @@ describeForPlatforms('WatchlistSection', () => {
         scope.getByText(`${pctPrefix}${Math.abs(pctChange).toFixed(2)}%`),
       ).toBeOnTheScreen();
     }
+  });
+
+  it('renders same-ticker token and Perps rows when unified watchlist is enabled', async () => {
+    const { findByTestId } = renderWatchlistSectionWithRoutes({
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: ['ETH'],
+      streamOverrides: {
+        marketData: [
+          {
+            symbol: 'ETH',
+            name: 'Ethereum Perpetual',
+            maxLeverage: '50x',
+            price: '$2,000.00',
+            change24h: '+$50.00',
+            change24hPercent: '+2.50%',
+            volume: '$1.5B',
+            openInterest: '$500M',
+          },
+        ],
+      },
+    });
+
+    expect(
+      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to the full-screen watchlist when the section header is pressed', async () => {

@@ -10,10 +10,18 @@ import { TokenDetails } from '../../../app/components/UI/TokenDetails/Views/Toke
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import { HardwareWalletProvider } from '../../../app/core/HardwareWallet/HardwareWalletProvider';
 import { initialStateWatchlist } from '../presets/watchlist';
+import WatchlistPerpsProvider from '../../../app/components/UI/Watchlist/WatchlistPerpsProvider';
+import {
+  createTestStreamManager,
+  type PerpsStreamOverrides,
+} from './perpsViewRenderer';
 
 interface RenderWatchlistOptions {
   overrides?: DeepPartial<RootState>;
   deterministicFiat?: boolean;
+  unifiedWatchlist?: boolean;
+  perpsWatchlistSymbols?: string[];
+  streamOverrides?: PerpsStreamOverrides;
 }
 
 function TokenDetailsWithProviders() {
@@ -32,14 +40,18 @@ const ASSET_ROUTE = {
     TokenDetailsWithProviders as unknown as React.ComponentType<object>,
 };
 
-const WATCHLIST_FULL_VIEW_ROUTE = {
-  name: Routes.WALLET.WATCHLIST_FULL_VIEW,
-  Component: WatchlistFullScreenView as unknown as React.ComponentType<object>,
-};
-
 const buildWatchlistState = (options: RenderWatchlistOptions = {}) => {
-  const { overrides, deterministicFiat = true } = options;
-  const builder = initialStateWatchlist({ deterministicFiat });
+  const {
+    overrides,
+    deterministicFiat = true,
+    unifiedWatchlist = false,
+    perpsWatchlistSymbols,
+  } = options;
+  const builder = initialStateWatchlist({
+    deterministicFiat,
+    unifiedWatchlist,
+    perpsWatchlistSymbols,
+  });
   if (overrides) {
     builder.withOverrides(overrides);
   }
@@ -53,10 +65,29 @@ const buildWatchlistState = (options: RenderWatchlistOptions = {}) => {
 export function renderWatchlistSectionWithRoutes(
   options: RenderWatchlistOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
+  const { streamManager } = createTestStreamManager(options.streamOverrides);
+  const WatchlistSectionWithPerps = (
+    props: React.ComponentProps<typeof WatchlistSection>,
+  ) => (
+    <WatchlistPerpsProvider testStreamManager={streamManager}>
+      <WatchlistSection {...props} />
+    </WatchlistPerpsProvider>
+  );
+  const WatchlistFullViewWithPerps = () => (
+    <WatchlistFullScreenView testStreamManager={streamManager} />
+  );
+
   return renderScreenWithRoutes(
-    WatchlistSection as unknown as React.ComponentType,
+    WatchlistSectionWithPerps as unknown as React.ComponentType,
     { name: 'WatchlistSection' },
-    [WATCHLIST_FULL_VIEW_ROUTE, ASSET_ROUTE],
+    [
+      {
+        name: Routes.WALLET.WATCHLIST_FULL_VIEW,
+        Component:
+          WatchlistFullViewWithPerps as unknown as React.ComponentType<object>,
+      },
+      ASSET_ROUTE,
+    ],
     { state: buildWatchlistState(options) },
     { sectionIndex: 3, totalSectionsLoaded: 5 },
   );
@@ -68,8 +99,13 @@ export function renderWatchlistSectionWithRoutes(
 export function renderWatchlistFullScreenViewWithRoutes(
   options: RenderWatchlistOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
+  const { streamManager } = createTestStreamManager(options.streamOverrides);
+  const WatchlistFullViewWithPerps = () => (
+    <WatchlistFullScreenView testStreamManager={streamManager} />
+  );
+
   return renderScreenWithRoutes(
-    WatchlistFullScreenView as unknown as React.ComponentType,
+    WatchlistFullViewWithPerps as unknown as React.ComponentType,
     { name: Routes.WALLET.WATCHLIST_FULL_VIEW },
     [ASSET_ROUTE],
     { state: buildWatchlistState(options) },
