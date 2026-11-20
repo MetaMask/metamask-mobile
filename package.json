@@ -321,12 +321,7 @@
     "metro-source-map@npm:^0.84.3": "0.84.5",
     "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
   },
-  "previewBuilds": {
-    "@metamask/perps-controller": {
-      "type": "non-breaking",
-      "previewVersion": "24.0.0-preview-baf573897"
-    }
-  },
+  "previewBuilds": {},
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
     "@consensys/on-ramp-sdk": "2.1.12",
@@ -371,7 +366,7 @@
     "@metamask/config-registry-controller": "^6.0.0",
     "@metamask/connectivity-controller": "^1.0.0",
     "@metamask/controller-utils": "^13.0.0",
-    "@metamask/core-backend": "^14.0.0",
+    "@metamask/core-backend": "^14.1.0",
     "@metamask/cryptography": "^1.1.2",
     "@metamask/delegation-controller": "^4.0.0",
     "@metamask/delegation-deployments": "^2.1.0",
@@ -433,7 +428,7 @@
     "@metamask/network-enablement-controller": "^7.1.3",
     "@metamask/notification-services-controller": "^29.0.3",
     "@metamask/permission-controller": "^14.1.0",
-    "@metamask/perps-controller": "^24.1.0",
+    "@metamask/perps-controller": "^25.0.0",
     "@metamask/phishing-controller": "^18.3.1",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^24.0.0",
