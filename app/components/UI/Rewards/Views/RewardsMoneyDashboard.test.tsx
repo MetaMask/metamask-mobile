@@ -148,6 +148,7 @@ const LOCALIZED_TEXT = {
   earnEligibleFees: 'Earn on eligible fees',
   yourReferralCode: 'Your referral code',
   share: 'Share',
+  shareCode: 'Share code',
   historyReferrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',

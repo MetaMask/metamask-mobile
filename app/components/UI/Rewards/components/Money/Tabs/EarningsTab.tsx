@@ -47,6 +47,7 @@ import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
 import {
   canClaimEarnings,
   claimRouteOptions,
+  displayClaimTotals,
   incomeHeldOnOpenRoute,
   isPendingClaimRow,
   mergeInFlightClaims,
@@ -85,15 +86,19 @@ const EARNINGS_HISTORY_PREVIEW_COUNT = 5;
 const musdAmount = (baseUnits: string | null | undefined): string =>
   formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 2 }) ?? '—';
 
-/** Root summary amounts for the Claims paused sheet. */
+/**
+ * Sheet rows. Available and Pending use the display split. Held and blocked
+ * stay the summary values so the rows still add up to the lifetime total.
+ */
 function claimsPausedTotals(summary: EarningsSummaryDto): ClaimsPausedTotals {
+  const display = displayClaimTotals(summary);
   return {
     lifetime_total: summary.lifetime_total,
-    claimable: summary.claimable,
+    claimable: display.claimable,
     held: summary.held,
     blocked: summary.blocked,
     voided: summary.voided,
-    pending: summary.pending,
+    pending: display.pending,
     claimed: summary.claimed,
   };
 }
@@ -641,6 +646,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   // One earning type does not need a split. The section appears only when
   // two rows remain after the role and Social V1 filters.
   const showBreakdown = summary.show && rows.length >= 2;
+  const display = displayClaimTotals(summary.data);
   const routeOptions = claimRouteOptions(
     localizedText?.taxFormUrl,
     followTradeClaimOpen,
@@ -668,11 +674,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
           {summary.show ? (
             <ClaimableRewardsCard
               localizedText={localizedText}
-              claimable={summary.data?.claimable}
+              claimable={display.claimable}
+              pending={display.pending}
               claimed={summary.data?.claimed}
               held={summary.data?.held}
               blocked={summary.data?.blocked}
-              claimableAmount={musdAmount(summary.data?.claimable)}
+              claimableAmount={musdAmount(display.claimable)}
+              pendingAmount={musdAmount(display.pending)}
               heldAmount={musdAmount(summary.data?.held)}
               isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
