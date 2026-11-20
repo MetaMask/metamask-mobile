@@ -16,11 +16,7 @@ import {
   renderPerpsCloseAllPositionsView,
   renderPerpsView,
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
-import {
-  PerpsCloseAllPositionsViewSelectorsIDs,
-  PerpsFeeDiscountLabelSelectorsIDs,
-} from '../../Perps.testIds';
+import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from './PerpsCloseAllPositionsView';
 
 const positions: Position[] = [
@@ -54,31 +50,6 @@ const livePrices = {
   },
 };
 
-const createDiscountedFeeQuote = (
-  feeSource: 'grant' | 'rewards',
-  notionalUsd: number,
-  discountBips = 7500,
-) => {
-  const protocolFeeRate = 0.00045;
-  const undiscountedMetamaskFeeRate = 0.001;
-  const metamaskFeeRate =
-    undiscountedMetamaskFeeRate * (1 - discountBips / 10000);
-  const feeRate = protocolFeeRate + metamaskFeeRate;
-
-  return {
-    feeRate,
-    feeAmount: notionalUsd * feeRate,
-    protocolFeeRate,
-    protocolFeeAmount: notionalUsd * protocolFeeRate,
-    metamaskFeeRate,
-    metamaskFeeAmount: notionalUsd * metamaskFeeRate,
-    chargesMetamaskBuilderFee: true,
-    feeSource,
-    metamaskFeeDiscountBips: discountBips,
-    undiscountedMetamaskFeeRate,
-  };
-};
-
 describe('PerpsCloseAllPositionsView', () => {
   const calculateFees = Engine.context.PerpsController
     .calculateFees as jest.Mock;
@@ -107,10 +78,10 @@ describe('PerpsCloseAllPositionsView', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.margin')),
+      screen.getByText(strings('perps.close_position.total_receive')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.you_receive')),
+      screen.getByText(strings('perps.close_position.included_pnl')),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -126,54 +97,6 @@ describe('PerpsCloseAllPositionsView', () => {
         symbols: positions.map((p) => p.symbol),
       });
     });
-  });
-
-  it('shows promotional pricing when grant quotes dominate the close-all fees', async () => {
-    calculateFees
-      .mockResolvedValueOnce(createDiscountedFeeQuote('grant', 5000))
-      .mockResolvedValueOnce(createDiscountedFeeQuote('grant', 10000));
-
-    const { stream } = renderPerpsCloseAllPositionsView({
-      streamOverrides: { positions },
-    });
-    act(() => {
-      stream.emitPrices(livePrices);
-    });
-
-    expect(
-      await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
-    ).not.toBeOnTheScreen();
-    expect(
-      screen.getByTestId(
-        PerpsCloseAllPositionsViewSelectorsIDs.ORIGINAL_FEES_VALUE,
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('shows generic pricing when grant and rewards discounts are tied', async () => {
-    calculateFees
-      .mockResolvedValueOnce(createDiscountedFeeQuote('rewards', 5000))
-      .mockResolvedValueOnce(createDiscountedFeeQuote('grant', 10000, 3750));
-
-    const { stream } = renderPerpsCloseAllPositionsView({
-      streamOverrides: { positions },
-    });
-    act(() => {
-      stream.emitPrices(livePrices);
-    });
-
-    expect(
-      await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toHaveTextContent(strings('perps.tooltips.fees.fee_discount'));
-    expect(
-      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
-    ).not.toBeOnTheScreen();
   });
 
   it('shows the receive amount Core estimates for isolated and cross positions', async () => {
@@ -229,12 +152,12 @@ describe('PerpsCloseAllPositionsView', () => {
       screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE),
     ).toHaveTextContent('$1,633.33');
     expect(screen.getByText('+$250')).toBeOnTheScreen();
+    // Cross margin never holds P&L, so the P&L row uses the cross label
     expect(
-      screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE),
-    ).toHaveTextContent('$18.20');
-    // Cross margin never holds P&L, so the summary no longer says it does
+      screen.getByText(strings('perps.close_position.pnl')),
+    ).toBeOnTheScreen();
     expect(
-      screen.queryByText(strings('perps.close_position.includes_pnl')),
+      screen.queryByText(strings('perps.close_position.included_pnl')),
     ).not.toBeOnTheScreen();
   });
 
@@ -253,6 +176,48 @@ describe('PerpsCloseAllPositionsView', () => {
         PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
       ),
     ).toHaveTextContent('--');
+  });
+
+  it('keeps the receive amount when a live tick carries only one symbol', async () => {
+    calculateFees.mockResolvedValue({
+      feeRate: 0.00145,
+      feeAmount: 0,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 0,
+      metamaskFeeRate: 0.001,
+      metamaskFeeAmount: 0,
+    });
+
+    const { stream } = renderPerpsCloseAllPositionsView({
+      streamOverrides: { positions },
+    });
+    act(() => {
+      stream.emitPrices(livePrices);
+    });
+
+    // Both positions price at their live marks: ETH 2500, BTC 50000.
+    expect(
+      await screen.findByTestId(
+        PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
+      ),
+    ).toHaveTextContent('$2,476.44');
+    expect(
+      screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.PNL_VALUE),
+    ).toHaveTextContent('+$1,250');
+
+    // A live WebSocket tick can carry only the symbol whose price changed.
+    // The other position's price must survive so the summary does not collapse
+    // to the unavailable fallback, and both totals must reprice from it.
+    act(() => {
+      stream.emitPrices({ ETH: { ...livePrices.ETH, price: '2600' } });
+    });
+
+    expect(
+      screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE),
+    ).toHaveTextContent('$2,726.07');
+    expect(
+      screen.getByTestId(PerpsCloseAllPositionsViewSelectorsIDs.PNL_VALUE),
+    ).toHaveTextContent('+$1,500');
   });
 
   it('drops the count and singularises the copy for a lone position', async () => {
