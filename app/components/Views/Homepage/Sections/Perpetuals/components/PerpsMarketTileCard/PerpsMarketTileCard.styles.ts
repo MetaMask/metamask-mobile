@@ -15,11 +15,14 @@ const styleSheet = (params: {
       height: vars.cardHeight,
       backgroundColor: theme.colors.background.muted,
       borderRadius: CARD_BORDER_RADIUS,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
       overflow: 'hidden',
     },
     content: {
       flex: 1,
-      padding: 16,
+      // 15 + 1px border keeps content where it was
+      padding: 15,
     },
     tokenLogoWrapper: {
       position: 'relative' as const,
@@ -34,8 +37,8 @@ const styleSheet = (params: {
     },
     sparklineContainer: {
       marginTop: 'auto' as const,
-      marginHorizontal: 16,
-      marginBottom: 16,
+      marginHorizontal: 15,
+      marginBottom: 15,
     },
     shimmerOverlay: {
       ...StyleSheet.absoluteFill,

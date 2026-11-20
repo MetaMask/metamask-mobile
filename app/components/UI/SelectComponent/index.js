@@ -29,13 +29,15 @@ const createStyles = (theme) => {
   return StyleSheet.create({
     pickerTrigger: {
       backgroundColor: colors.background.muted,
+      // Prototype: 1px border.muted; padding trimmed 1px to keep the footprint.
       padding: 0,
-      paddingTop: 12,
-      paddingBottom: 12,
-      paddingLeft: 16,
-      paddingRight: 16,
+      paddingTop: 11,
+      paddingBottom: 11,
+      paddingLeft: 15,
+      paddingRight: 15,
       borderRadius: 9999,
-      borderWidth: 0,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
     },
     selectedLabel: {
       flex: 1,

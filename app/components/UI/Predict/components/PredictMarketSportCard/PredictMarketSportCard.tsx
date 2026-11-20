@@ -281,7 +281,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       activeOpacity={0.9}
     >
       <Box
-        twClassName={`bg-muted rounded-[12px] overflow-hidden ${isCompact ? 'h-full' : ''}`}
+        // Prototype: all cards get a 1px border.muted; carousel cards use the wrapper's 16px radius.
+        twClassName={`bg-muted overflow-hidden ${isCompact ? 'h-full rounded-2xl' : 'rounded-[12px]'} border border-muted`}
       >
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">
@@ -325,7 +326,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
-                    twClassName={isCompact ? 'p-0' : 'px-1'}
+                    twClassName={`border border-muted ${isCompact ? 'p-0' : 'px-1'}`}
                     contentWrapperProps={{ twClassName: 'w-full' }}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}

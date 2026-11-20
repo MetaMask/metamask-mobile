@@ -54,9 +54,13 @@ const PillRow: React.FC<PillRowProps> = ({
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => onSelect(pill.key)}
                 testID={`${testIdPrefix}-pill-${pill.key}`}
+                // Prototype: unselected pills get a 1px border.muted; padding
+                // trimmed 1px so both states keep the same size.
                 style={tw.style(
-                  'rounded-full px-[12px] py-2',
-                  isSelected ? 'bg-icon-default' : 'bg-muted',
+                  'rounded-full',
+                  isSelected
+                    ? 'bg-icon-default px-[12px] py-2'
+                    : 'border border-muted bg-muted px-[11px] py-[7px]',
                 )}
               >
                 <Text

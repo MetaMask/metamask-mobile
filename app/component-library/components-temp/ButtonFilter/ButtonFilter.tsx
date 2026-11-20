@@ -28,7 +28,11 @@ const ButtonFilter = ({
 
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) => [
-      tw.style(isActive ? 'bg-icon-default' : 'bg-background-muted'),
+      tw.style(
+        isActive
+          ? 'bg-icon-default'
+          : 'bg-background-muted border border-muted',
+      ),
       typeof style === 'function' ? style({ pressed }) : style,
     ],
     [tw, isActive, style],
