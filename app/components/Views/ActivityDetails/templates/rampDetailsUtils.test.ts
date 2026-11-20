@@ -1,6 +1,9 @@
 import type { RampsOrder } from '@metamask/ramps-controller';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import I18n from '../../../../../locales/i18n';
 import {
+  formatRampActivityFiatAmount,
+  formatRampActivityFiatTotal,
   formatShortRampOrderId,
   getFiatOrderProviderOrderLink,
   getFiatOrderStatusDescription,
@@ -97,6 +100,51 @@ describe('rampDetailsUtils', () => {
 
     it('falls back to the unavailable string', () => {
       expect(valueOrUnavailable(undefined)).toBe('Not available');
+    });
+  });
+
+  describe('formatRampActivityFiatAmount', () => {
+    const originalLocale = I18n.locale;
+
+    afterEach(() => {
+      I18n.locale = originalLocale;
+    });
+
+    it.each([
+      [100.5, 'USD', '$100.50'],
+      ['1234.5', 'USD', '$1,234.50'],
+      [2.999, 'USD', '$3.00'],
+      [3, 'EUR', '€3.00'],
+      [0, 'USD', '$0.00'],
+      [0.004, 'USD', '<$0.01'],
+    ])('formats %p %s as %s', (amount, currency, expected) => {
+      expect(formatRampActivityFiatAmount(amount, currency)).toBe(expected);
+    });
+
+    it.each([undefined, ''])('returns undefined for %p', (amount) => {
+      expect(formatRampActivityFiatAmount(amount, 'USD')).toBeUndefined();
+    });
+
+    it('returns the raw value with the currency when the amount is not a number', () => {
+      expect(formatRampActivityFiatAmount('abc', 'USD')).toBe('abc USD');
+    });
+
+    it('formats with the app language', () => {
+      I18n.locale = 'de';
+
+      expect(formatRampActivityFiatAmount(1234.5, 'EUR')).toBe('1.234,50 €');
+    });
+  });
+
+  describe('formatRampActivityFiatTotal', () => {
+    it('subtracts the fee from the amount', () => {
+      expect(formatRampActivityFiatTotal('61.88', '3', 'EUR')).toBe('€58.88');
+    });
+
+    it('uses the amount when there is no fee', () => {
+      expect(formatRampActivityFiatTotal('6.27', undefined, 'USD')).toBe(
+        '$6.27',
+      );
     });
   });
 });

@@ -1,7 +1,7 @@
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
-import { renderFiat } from '../../../../util/number/bigint';
+import { getFormatters } from '../../../hooks/useFormatters';
 import {
   getRampOrderTransactionHash,
   mapRampOrderStatus,
@@ -10,8 +10,6 @@ import {
 } from '../../../../util/activity-adapters/adapters/ramp-order-helpers';
 import { mapRampsOrderStatus } from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
 import I18n, { strings } from '../../../../../locales/i18n';
-
-type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
 
 export function isRampSellOrder(order: FiatOrder) {
   return mapRampOrderType(order.orderType) === 'sell';
@@ -48,12 +46,12 @@ export function formatRampActivityFiatAmount(
     return undefined;
   }
   const numericAmount = Number(amount);
-  if (Number.isNaN(numericAmount)) {
+  if (!Number.isFinite(numericAmount)) {
     return `${amount} ${currency}`;
   }
-  return renderFiat(
+  return getFormatters().formatCurrencyWithMinThreshold(
     numericAmount,
-    currency.toLowerCase() as RenderFiatCurrencyCode,
+    currency,
   );
 }
 

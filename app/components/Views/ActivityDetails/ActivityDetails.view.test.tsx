@@ -349,7 +349,7 @@ describeForPlatforms('ActivityDetails — ramp buy / sell', () => {
     expect(getByText('EUR value')).toBeOnTheScreen();
     expect(getByText('€61.88')).toBeOnTheScreen();
     expect(getByText('Fees')).toBeOnTheScreen();
-    expect(getByText('€3')).toBeOnTheScreen();
+    expect(getByText('€3.00')).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('€58.88')).toBeOnTheScreen();
     expect(queryByText('Transaction fee')).toBeNull();
