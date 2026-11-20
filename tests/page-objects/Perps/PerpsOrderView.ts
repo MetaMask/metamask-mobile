@@ -168,6 +168,32 @@ class PerpsOrderView {
     return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
   }
 
+  /** Pressable wrapper that opens the amount keypad (`onPress` path). */
+  get amountTouchable(): Promise<AppiumElement> {
+    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.TOUCHABLE);
+  }
+
+  /**
+   * Opens the amount keypad via the touchable press target.
+   *
+   * Prefer `TOUCHABLE` over `AMOUNT_LABEL`: on the full-screen order surface the
+   * label sits under an accessible parent and iOS Appium intermittently reports
+   * `~perps-amount-display-amount` as not displayed after slider/amount updates.
+   */
+  async openAmountKeypad(): Promise<void> {
+    await Assertions.expectElementToExist(this.amountTouchable, {
+      description: 'Perps amount display touchable is present',
+      timeout: 30_000,
+    });
+    await Gestures.waitAndTap(this.amountTouchable, {
+      elemDescription: 'Open amount keypad by tapping amount touchable',
+      checkEnabled: true,
+      // iOS can report the pressable as mounted but not displayed after amount
+      // animation; existence + enabled is enough to open the keypad.
+      checkForDisplayed: false,
+    });
+  }
+
   getKeypadKey(key: string): Promise<AppiumElement> {
     if (PlatformDetector.isAndroid()) {
       return Matchers.getElementByID(`keypad-key-${key}`);
@@ -273,11 +299,7 @@ class PerpsOrderView {
     surface: PerpsOrderSurface,
     amount: string,
   ): Promise<void> {
-    await Gestures.waitAndTap(this.amountValue, {
-      elemDescription: 'Open amount keypad by tapping amount label',
-      checkEnabled: true,
-      checkVisibility: true,
-    });
+    await this.openAmountKeypad();
     await Assertions.expectElementToBeVisible(
       this.amountKeypadDoneButton(surface),
       { description: 'Amount keypad Done button is visible' },
@@ -356,14 +378,7 @@ class PerpsOrderView {
 
   // Required for next test
   async setAmountUSD(amount: string): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.amountValue, {
-      description: 'Amount value is visible',
-    });
-    await Gestures.waitAndTap(this.amountValue, {
-      elemDescription: 'Open amount keypad by tapping amount label',
-      checkEnabled: true,
-      checkVisibility: true,
-    });
+    await this.openAmountKeypad();
     await Gestures.waitAndTap(this.keypadDeleteButton, {
       checkForDisplayed: true,
       checkEnabled: true,
