@@ -125,9 +125,9 @@ export function setupWatchlistTokenApiMock(
     .query(true)
     .reply(200, (request: Request) => {
       const uri = nockRequestUri(request);
-      const assetIds = new URLSearchParams(
-        uri.slice(uri.indexOf('?') + 1),
-      ).get('assetIds');
+      const assetIds = new URLSearchParams(uri.slice(uri.indexOf('?') + 1)).get(
+        'assetIds',
+      );
       return filterWatchlistResponse(assetIds ?? undefined, tokens);
     })
     .persist();
