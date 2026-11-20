@@ -18,6 +18,7 @@ import SectionRow from '../../components/SectionRow';
 import TrendingTokenRowItem from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import WatchlistSuggestedSection from './components/WatchlistSuggestedSection';
+import WatchlistSuggestedPills from './components/WatchlistSuggestedPills';
 import WatchlistEmptyFallback from './components/WatchlistEmptyFallback';
 import WatchlistAnimatedRow from './components/WatchlistAnimatedRow';
 import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
@@ -163,6 +164,8 @@ const WatchlistSection = forwardRef<
 
   const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
   const showSuggestedSection = suggestedTokens.length > 0;
+  // Once the user has picked assets, keep suggestions compact (ASSETS-4186).
+  const showCompactSuggestions = displayTokens.length > 0;
   const showFallback =
     isEmpty && !isSuggestedLoading && suggestedTokens.length === 0;
 
@@ -200,13 +203,18 @@ const WatchlistSection = forwardRef<
             />
           </WatchlistAnimatedRow>
         ))}
-        {showSuggestedSection && (
-          <WatchlistSuggestedSection
-            tokens={suggestedTokens}
-            hasWatchlist={displayTokens.length > 0}
-            onAddPress={handleAddPress}
-          />
-        )}
+        {showSuggestedSection &&
+          (showCompactSuggestions ? (
+            <WatchlistSuggestedPills
+              tokens={suggestedTokens}
+              onAddPress={handleAddPress}
+            />
+          ) : (
+            <WatchlistSuggestedSection
+              tokens={suggestedTokens}
+              onAddPress={handleAddPress}
+            />
+          ))}
       </>
     );
   };

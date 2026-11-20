@@ -6,6 +6,9 @@ import WatchlistSection, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
+import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
+import { WatchlistAnalytics } from '../../../../UI/Assets/watchlist/constants/watchlistAnalytics';
+import { WatchlistSuggestedPillsTestIds } from './components/WatchlistSuggestedPills.testIds';
 
 let mockIsWatchlistEnabled = true;
 const mockNavigate = jest.fn();
@@ -152,10 +155,13 @@ jest.mock(
   },
 );
 
+const mockTrendingTokenPress = jest.fn();
 jest.mock(
   '../../../../UI/Trending/hooks/useTrendingTokenPress/useTrendingTokenPress',
   () => ({
-    useTrendingTokenPress: () => ({ onPress: jest.fn() }),
+    useTrendingTokenPress: (args: unknown) => ({
+      onPress: () => mockTrendingTokenPress(args),
+    }),
   }),
 );
 
@@ -265,7 +271,9 @@ describe('WatchlistSection', () => {
     const { getByTestId, queryByTestId } = renderSection();
 
     expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
     expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
     expect(getByTestId('row-ethereum')).toBeOnTheScreen();
     expect(getByTestId('row-solana')).toBeOnTheScreen();
@@ -276,7 +284,7 @@ describe('WatchlistSection', () => {
     expect(getByTestId('row-add-pepe')).toBeOnTheScreen();
   });
 
-  it('renders the Suggested sub-header and 5-2=3 suggestions when the watchlist has 2 items', () => {
+  const setupTwoItemWatchlist = () => {
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [makeWatchlistToken('eth'), makeWatchlistToken('btc')],
       isLoading: false,
@@ -295,22 +303,107 @@ describe('WatchlistSection', () => {
       ),
       isLoading: false,
     });
+  };
+
+  it('renders 5-2=3 suggestions as compact pills (not rows) when the watchlist has 2 items', () => {
+    setupTwoItemWatchlist();
 
     const { getByTestId, getByText, queryByTestId } = renderSection();
 
     expect(getByTestId('row-btc')).toBeOnTheScreen();
     expect(getByTestId('row-eth')).toBeOnTheScreen();
-    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
+    expect(
+      getByTestId(WatchlistSuggestedPillsTestIds.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(WatchlistSuggestedPillsTestIds.HEADER).props
+        .accessibilityRole,
+    ).toBe('header');
     expect(getByText('Suggested')).toBeOnTheScreen();
-    expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
-    expect(getByTestId('row-ethereum')).toBeOnTheScreen();
-    expect(getByTestId('row-solana')).toBeOnTheScreen();
-    expect(queryByTestId('row-bnb')).not.toBeOnTheScreen();
-    expect(queryByTestId('row-add-btc')).not.toBeOnTheScreen();
-    expect(queryByTestId('row-add-eth')).not.toBeOnTheScreen();
-    expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();
-    expect(getByTestId('row-add-solana')).toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
+    expect(queryByTestId('row-bitcoin')).not.toBeOnTheScreen();
+    expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
+    ['bitcoin', 'ethereum', 'solana'].forEach((name) => {
+      const assetId = `eip155:1/erc20:0x${name}`;
+      expect(
+        getByTestId(WatchlistSuggestedPillsTestIds.pill(assetId)),
+      ).toBeOnTheScreen();
+      const addButton = getByTestId(
+        WatchlistSuggestedPillsTestIds.addButton(assetId),
+      );
+      expect(addButton).toBeOnTheScreen();
+      expect(addButton.props.accessibilityLabel).toBe(
+        `Add ${name.toUpperCase()} to watchlist`,
+      );
+      expect(
+        getByTestId(WatchlistSuggestedPillsTestIds.pillBody(assetId)).props
+          .accessibilityLabel,
+      ).toBe(name.toUpperCase());
+      expect(getByText(name.toUpperCase())).toBeOnTheScreen();
+    });
+    expect(
+      queryByTestId(
+        WatchlistSuggestedPillsTestIds.pill('eip155:1/erc20:0xbnb'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        WatchlistSuggestedPillsTestIds.pill('eip155:1/erc20:0xeth'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('adds a suggested token via its pill add button with the same mutation as the row star', () => {
+    setupTwoItemWatchlist();
+
+    const { getByTestId } = renderSection();
+
+    fireEvent.press(
+      getByTestId(
+        WatchlistSuggestedPillsTestIds.addButton('eip155:1/erc20:0xsolana'),
+      ),
+    );
+
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+    expect(mockMutate).toHaveBeenCalledWith(
+      expect.objectContaining({ assetId: 'eip155:1/erc20:0xsolana' }),
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    );
+    expect(mockTrendingTokenPress).not.toHaveBeenCalled();
+
+    const { onSuccess } = mockMutate.mock.calls[0][1] as {
+      onSuccess: () => void;
+    };
+    act(() => {
+      onSuccess();
+    });
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
+        asset_id: 'eip155:1/erc20:0xsolana',
+      }),
+    );
+  });
+
+  it('opens token details with the homepage source when the pill body is pressed', () => {
+    setupTwoItemWatchlist();
+
+    const { getByTestId } = renderSection();
+
+    fireEvent.press(
+      getByTestId(
+        WatchlistSuggestedPillsTestIds.pillBody('eip155:1/erc20:0xbitcoin'),
+      ),
+    );
+
+    expect(mockTrendingTokenPress).toHaveBeenCalledTimes(1);
+    expect(mockTrendingTokenPress).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token: expect.objectContaining({ assetId: 'eip155:1/erc20:0xbitcoin' }),
+        tokenDetailsSource: TokenDetailsSource.WatchlistHomepage,
+      }),
+    );
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it('adds a suggested token to the watchlist when its add button is pressed', () => {
@@ -418,7 +511,9 @@ describe('WatchlistSection', () => {
     expect(getByTestId('row-eth')).toBeOnTheScreen();
     expect(getByTestId('row-ada')).toBeOnTheScreen();
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistSuggestedPillsTestIds.HEADER),
+    ).not.toBeOnTheScreen();
     expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
   });
 
