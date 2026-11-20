@@ -1,5 +1,10 @@
-import { TransactionType } from '@metamask/transaction-controller';
 import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import {
+  payFlagForTransactionType,
+  perpsPayFlagType,
   perpsProviderSelectionForType,
   perpsTransactionTypeForSelection,
 } from './perps-lighter-transaction-type';
@@ -100,5 +105,30 @@ describe('perpsProviderSelectionForType', () => {
       'hyperliquid',
     );
     expect(perpsProviderSelectionForType(undefined)).toBe('hyperliquid');
+  });
+});
+
+describe('payFlagForTransactionType', () => {
+  it('uses the Hyperliquid deposit flag for a Lighter deposit', () => {
+    const flags = { perpsDeposit: 25 };
+
+    const value = payFlagForTransactionType(flags, {
+      type: TransactionType.perpsLighterDeposit,
+    } as TransactionMeta);
+
+    expect(perpsPayFlagType(TransactionType.perpsLighterDeposit)).toBe(
+      TransactionType.perpsDeposit,
+    );
+    expect(value).toBe(25);
+  });
+
+  it('uses a flag set on the Lighter type when one exists', () => {
+    const flags = { perpsDeposit: 25, perpsLighterDeposit: 10 };
+
+    const value = payFlagForTransactionType(flags, {
+      type: TransactionType.perpsLighterDeposit,
+    } as TransactionMeta);
+
+    expect(value).toBe(10);
   });
 });

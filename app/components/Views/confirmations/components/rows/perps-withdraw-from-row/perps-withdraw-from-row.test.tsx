@@ -25,6 +25,12 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: () => ({
+    account: { totalBalance: '50.389' },
+    isInitialLoading: false,
+  }),
+}));
 
 const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
@@ -98,7 +104,7 @@ describe('PerpsWithdrawFromRow', () => {
       getByLabelText(
         `${strings('confirm.label.from')}, ${strings(
           'confirm.perps_withdraw_from.hyperliquid',
-        )}, $4,892.06`,
+        )}, $50.38`,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -106,7 +112,7 @@ describe('PerpsWithdrawFromRow', () => {
     ).toBeOnTheScreen();
     // The visual balance line is accessibility-hidden so VoiceOver does not repeat it.
     expect(
-      getByText('($4,892.06)', { includeHiddenElements: true }),
+      getByText('($50.38)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PerpsWithdrawFromSelectorsIDs.ROW));
@@ -121,14 +127,14 @@ describe('PerpsWithdrawFromRow', () => {
     expect(
       getByText(
         strings('confirm.perps_withdraw_from.available', {
-          amount: '$4,892.06',
+          amount: '$50.38',
         }),
       ),
     ).toBeOnTheScreen();
     expect(
       getByText(
         strings('confirm.perps_withdraw_from.available', {
-          amount: '$4,718.18',
+          amount: 'XXX.XX',
         }),
       ),
     ).toBeOnTheScreen();
@@ -142,13 +148,13 @@ describe('PerpsWithdrawFromRow', () => {
       getByText(strings('confirm.perps_withdraw_from.lighter')),
     ).toBeOnTheScreen();
     expect(
-      getByText('($4,718.18)', { includeHiddenElements: true }),
+      getByText('(XXX.XX)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.from')}, ${strings(
           'confirm.perps_withdraw_from.lighter',
-        )}, $4,718.18`,
+        )}, XXX.XX`,
       ),
     ).toBeOnTheScreen();
   });

@@ -1,4 +1,8 @@
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+  hasTransactionType,
+} from '@metamask/transaction-controller';
 
 export type PerpsProviderSelection = 'hyperliquid' | 'lighter';
 
@@ -74,4 +78,56 @@ export function perpsProviderSelectionForType(
   }
 
   return 'hyperliquid';
+}
+
+/**
+ * Pay flags are configured on the Hyperliquid transaction type. Selecting
+ * Lighter replaces that type, so a flag with no Lighter entry still applies.
+ *
+ * @param type - Type on the open confirmation.
+ * @returns The Hyperliquid type for a Lighter type, otherwise `type`.
+ */
+export function perpsPayFlagType(type: string | undefined): string | undefined {
+  switch (type) {
+    case TransactionType.perpsLighterDeposit:
+      return TransactionType.perpsDeposit;
+    case TransactionType.perpsLighterDepositAndOrder:
+      return TransactionType.perpsDepositAndOrder;
+    case TransactionType.perpsLighterWithdraw:
+      return TransactionType.perpsWithdraw;
+    default:
+      return type;
+  }
+}
+
+/**
+ * Flag value for this confirmation.
+ *
+ * An entry for the confirmation's own type wins, including a type on a nested
+ * transaction. A Lighter Perps type with no entry uses the Hyperliquid type.
+ *
+ * @param flags - Flag map keyed by transaction type.
+ * @param transactionMeta - Open confirmation.
+ * @returns The matching value, or undefined when no entry applies.
+ */
+export function payFlagForTransactionType<T>(
+  flags: Record<string, T>,
+  transactionMeta: TransactionMeta | undefined,
+): T | undefined {
+  for (const [flagType, value] of Object.entries(flags)) {
+    if (hasTransactionType(transactionMeta, [flagType as TransactionType])) {
+      return value;
+    }
+  }
+
+  const aliasedType = perpsPayFlagType(transactionMeta?.type);
+  if (
+    aliasedType &&
+    aliasedType !== transactionMeta?.type &&
+    Object.prototype.hasOwnProperty.call(flags, aliasedType)
+  ) {
+    return flags[aliasedType];
+  }
+
+  return undefined;
 }
