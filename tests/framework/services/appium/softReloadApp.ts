@@ -21,6 +21,11 @@ import {
 
 const logger = createAppiumLogger('softReloadApp');
 
+/** XCUITest `queryAppState`: 4 = running in foreground. */
+const IOS_APP_STATE_FOREGROUND = 4;
+const IOS_FOREGROUND_ATTEMPTS = 3;
+const IOS_FOREGROUND_RETRY_MS = 1_000;
+
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
     const timer = setTimeout(resolve, ms);
@@ -29,6 +34,81 @@ const sleep = (ms: number): Promise<void> =>
       timer.unref();
     }
   });
+
+type QueryAppStateDriver = WebdriverIO.Browser & {
+  queryAppState?: (bundleId: string) => Promise<number>;
+};
+
+/**
+ * Reads iOS app process state. Prefer the WDIO helper; fall back to the
+ * XCUITest `mobile: queryAppState` command.
+ */
+const queryIosAppState = async (
+  drv: QueryAppStateDriver,
+  bundleId: string,
+): Promise<number> => {
+  if (typeof drv.queryAppState === 'function') {
+    return drv.queryAppState(bundleId);
+  }
+  const state = await drv.execute('mobile: queryAppState', { bundleId });
+  return Number(state);
+};
+
+/**
+ * Soft-reload can return from `launchApp` while SpringBoard is still showing
+ * (MetaMask never reached the foreground). Callers then burn onboarding /
+ * waitForAppReady / fixture-bootstrap budgets against the home screen.
+ * Activate and re-check; fail fast so Playwright retry / session recreate can
+ * heal instead of a multi-minute timeout.
+ */
+async function ensureIosAppInForeground(
+  drv: WebdriverIO.Browser | undefined,
+  bundleId: string | undefined,
+  phase: string,
+): Promise<void> {
+  if (!drv || !bundleId || !PlatformDetector.isIOS()) {
+    return;
+  }
+
+  const queryDrv = drv as QueryAppStateDriver;
+
+  for (let attempt = 1; attempt <= IOS_FOREGROUND_ATTEMPTS; attempt++) {
+    let state: number;
+    try {
+      state = await queryIosAppState(queryDrv, bundleId);
+    } catch (error) {
+      if (isDeviceHealthError(error)) {
+        requestSharedSessionRecreate();
+      }
+      throw error;
+    }
+
+    if (state === IOS_APP_STATE_FOREGROUND) {
+      if (attempt > 1) {
+        logger.info(
+          `iOS app reached foreground after activate (phase=${phase}, attempt=${attempt})`,
+        );
+      }
+      return;
+    }
+
+    logger.warn(
+      `iOS app not in foreground after soft-reload ${phase} ` +
+        `(state=${state}, attempt=${attempt}/${IOS_FOREGROUND_ATTEMPTS}); ` +
+        `activating ${bundleId}`,
+    );
+    await drv.activateApp(bundleId);
+    await sleep(IOS_FOREGROUND_RETRY_MS);
+  }
+
+  const error = new Error(
+    `iOS app ${bundleId} not in foreground after soft-reload ${phase} ` +
+      `(${IOS_FOREGROUND_ATTEMPTS} activate attempts). Soft reload left ` +
+      `SpringBoard; refusing to burn bootstrap/onboarding budgets.`,
+  );
+  requestSharedSessionRecreate();
+  throw error;
+}
 
 /**
  * Soft-reload can leave the WDIO session alive while UiAutomator2 instrumentation
@@ -163,6 +243,14 @@ async function softReloadAppForFixturesOnce(
       AppiumUtilities.launchApp(currentDeviceDetails, { launchArgs }),
     );
 
+    // Before waiting on /state.json: a failed iOS launch leaves SpringBoard
+    // and the bootstrap waiter burns up to E2E_FIXTURE_BOOTSTRAP_TIMEOUT_MS.
+    await ensureIosAppInForeground(
+      drv,
+      currentDeviceDetails.appId,
+      'post-launch',
+    );
+
     const bootstrapStart = Date.now();
     if (shouldHandleMetroDevLauncherLocally()) {
       attemptedMetroDevLauncherDismissal = true;
@@ -192,6 +280,14 @@ async function softReloadAppForFixturesOnce(
     }
     throw error;
   }
+
+  // After bootstrap the process can still drop to background / SpringBoard
+  // before login or onboarding waits begin.
+  await ensureIosAppInForeground(
+    drv,
+    currentDeviceDetails.appId,
+    'post-bootstrap',
+  );
 
   await assertAndroidInstrumentationAlive(drv);
 
