@@ -25,6 +25,12 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount', () => ({
+  usePerpsLiveAccount: () => ({
+    account: { totalBalance: '50.389' },
+    isInitialLoading: false,
+  }),
+}));
 
 const mockUseTransactionMetadataRequest = jest.mocked(
   useTransactionMetadataRequest,
@@ -103,7 +109,7 @@ describe('PerpsReceiveToRow', () => {
       getByLabelText(
         `${strings('confirm.label.to')}, ${strings(
           'confirm.perps_receive_to.hyperliquid',
-        )}, $4,892.06`,
+        )}, $50.38`,
       ),
     ).toBeOnTheScreen();
     expect(
@@ -111,7 +117,7 @@ describe('PerpsReceiveToRow', () => {
     ).toBeOnTheScreen();
     // The visual balance line is accessibility-hidden so VoiceOver does not repeat it.
     expect(
-      getByText('($4,892.06)', { includeHiddenElements: true }),
+      getByText('($50.38)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(PerpsReceiveToSelectorsIDs.ROW));
@@ -125,12 +131,12 @@ describe('PerpsReceiveToRow', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: '$4,892.06' }),
+        strings('confirm.perps_receive_to.available', { amount: '$50.38' }),
       ),
     ).toBeOnTheScreen();
     expect(
       getByText(
-        strings('confirm.perps_receive_to.available', { amount: '$4,718.18' }),
+        strings('confirm.perps_receive_to.available', { amount: 'XXX.XX' }),
       ),
     ).toBeOnTheScreen();
 
@@ -143,13 +149,13 @@ describe('PerpsReceiveToRow', () => {
       getByText(strings('confirm.perps_receive_to.lighter')),
     ).toBeOnTheScreen();
     expect(
-      getByText('($4,718.18)', { includeHiddenElements: true }),
+      getByText('(XXX.XX)', { includeHiddenElements: true }),
     ).toBeOnTheScreen();
     expect(
       getByLabelText(
         `${strings('confirm.label.to')}, ${strings(
           'confirm.perps_receive_to.lighter',
-        )}, $4,718.18`,
+        )}, XXX.XX`,
       ),
     ).toBeOnTheScreen();
   });

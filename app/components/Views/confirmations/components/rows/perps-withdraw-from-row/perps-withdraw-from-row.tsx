@@ -36,21 +36,13 @@ import {
 } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { PerpsWithdrawFromSelectorsIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { usePerpsProviderBalance } from '../usePerpsProviderBalance';
 
 export type PerpsWithdrawSource = 'hyperliquid' | 'lighter';
 
 const SOURCES: PerpsWithdrawSource[] = ['hyperliquid', 'lighter'];
 
 export const DEFAULT_PERPS_WITHDRAW_SOURCE: PerpsWithdrawSource = 'hyperliquid';
-
-/**
- * Display amounts from the withdraw mock. This task does not read protocol
- * balances, so these stay constant until a later ticket wires them.
- */
-const PLACEHOLDER_AVAILABLE_BALANCE: Record<PerpsWithdrawSource, string> = {
-  hyperliquid: '$4,892.06',
-  lighter: '$4,718.18',
-};
 
 // Bundled images resolve to a numeric asset id.
 const HYPERLIQUID_BADGE_SRC = images.HYPE as number;
@@ -110,6 +102,7 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
   const providerFlagEnabled = useSelector(
     selectPerpsLighterProviderEnabledFlag,
   );
+  const providerBalance = usePerpsProviderBalance();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
 
@@ -141,7 +134,7 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
 
   const rowLabel = strings('confirm.label.from');
   const selectedLabel = strings(`confirm.perps_withdraw_from.${source}`);
-  const selectedBalance = PLACEHOLDER_AVAILABLE_BALANCE[source];
+  const selectedBalance = providerBalance[source];
 
   return (
     <>
@@ -210,7 +203,7 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
                       }
                       description={strings(
                         'confirm.perps_withdraw_from.available',
-                        { amount: PLACEHOLDER_AVAILABLE_BALANCE[option] },
+                        { amount: providerBalance[option] },
                       )}
                       startAccessory={<SourceAvatar source={option} />}
                       endAccessory={

@@ -80,7 +80,9 @@ export function PayTokenAmount({ amountHuman, disabled }: PayTokenAmountProps) {
   const isCustomAmountDeposit = hasTransactionType(transaction, [
     TransactionType.moneyAccountDeposit,
     TransactionType.perpsDeposit,
+    TransactionType.perpsLighterDeposit,
     TransactionType.perpsDepositAndOrder,
+    TransactionType.perpsLighterDepositAndOrder,
     TransactionType.predictDeposit,
     TransactionType.predictDepositAndOrder,
   ]);
