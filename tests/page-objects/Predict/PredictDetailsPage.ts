@@ -296,7 +296,10 @@ class PredictDetailsPage {
       delay: 1000,
       waitForInteractive: true,
     });
-    await Assertions.expectElementToBeVisible(this.container, {
+    // Success toast can cover market details after submit so Appium reports
+    // isDisplayed=false while the screen is still in the hierarchy. Specs
+    // dismiss the toast before tapping back.
+    await Assertions.expectElementToExist(this.container, {
       description: 'Market details screen after order submission',
       timeout: 60_000,
     });
