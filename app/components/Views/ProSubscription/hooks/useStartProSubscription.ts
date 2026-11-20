@@ -19,8 +19,9 @@ import {
 } from '@metamask/utils';
 import { v1 as random } from 'uuid';
 import Engine from '../../../../core/Engine';
-import { isProduction } from '../../../../util/environment';
+import ReactQueryService from '../../../../core/ReactQueryService';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
+import { isProduction } from '../../../../util/environment';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
@@ -32,6 +33,11 @@ import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAc
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
+import {
+  clearMoneyAccountPlusTrialEligibilityCache,
+  fetchPlusTrialEligibility,
+  refreshMoneyAccountPlusTrialEligibility,
+} from '../../../hooks/moneyAccountPlusTrialEligibility';
 import {
   membershipTopUpAwaitsExternalFunds,
   resolveProSubscriptionStartOutcome,
@@ -205,11 +211,42 @@ export function buildConfirmMembershipRequestData(
 }
 
 /**
+ * Expected checkout result: the cached trial answer is no longer true.
+ * This is not a failed start, so it is not logged and it does not show the
+ * join error. Checkout stops, and Benefits reloads the paid offer.
+ */
+class PlusTrialUnavailableError extends Error {
+  constructor() {
+    super('Plus trial is no longer available');
+    this.name = 'PlusTrialUnavailableError';
+  }
+}
+
+/**
+ * Reloads subscription history and asks the controller again before checkout
+ * continues. Benefits can still be showing a cached eligible answer from
+ * another session on this phone.
+ *
+ * A false answer refreshes the open Benefits screen and stops checkout. A
+ * rejected call still throws, so the user can retry, and the cached answer
+ * stays in place.
+ */
+async function assertStillEligibleForPlusTrial(): Promise<void> {
+  const isEligible = await fetchPlusTrialEligibility();
+  if (isEligible) {
+    return;
+  }
+
+  await refreshMoneyAccountPlusTrialEligibility(ReactQueryService.queryClient);
+  throw new PlusTrialUnavailableError();
+}
+
+/**
  * Raises a `confirm_membership` approval and waits for the user to accept or
  * reject it. Rejection propagates so the caller can treat it as a user cancel.
  *
  * @param plan - Checkout-ready Plus plan.
- * @param isTrial - Whether Benefits determined this user can start a trial.
+ * @param isTrial - Whether Benefits already loaded a trial for this user.
  */
 async function requestMembershipConsent(
   plan: SelectedPlusPlan,
@@ -339,6 +376,7 @@ function getStartSubscriptionErrorMessage(error: Error): string {
  * rejections are not logged; they clear any previous join error.
  *
  * @param error - Failure from balance check, top-up, or delegation start.
+ * A trial that is no longer available is rethrown without logging.
  * @param isMounted - Whether the hook is still mounted.
  * @param setMessage - Join-screen error setter.
  */
@@ -347,6 +385,10 @@ function reportStartSubscriptionError(
   isMounted: boolean,
   setMessage: (message: string | undefined) => void,
 ): never {
+  if (error instanceof PlusTrialUnavailableError) {
+    throw error;
+  }
+
   const loggedError = error instanceof Error ? error : new Error(String(error));
 
   if (isUserRejectedError(loggedError, loggedError.message)) {
@@ -461,6 +503,12 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             subscriptionParams,
           );
 
+        // Recheck on both the funded and top-up paths. Core recomputes the
+        // trial at checkout, so a stale cached answer must not reach it.
+        if (options?.isTrial) {
+          await assertStillEligibleForPlusTrial();
+        }
+
         let awaitsExternalFunds = false;
         if (hasSufficientBalance) {
           await requestMembershipConsent(plan, options?.isTrial ?? false);
@@ -484,6 +532,11 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             chainId,
             ...(useTestClock ? { useTestClock: true } : {}),
           });
+
+        // The Benefits screen may still be holding "eligible for trial".
+        clearMoneyAccountPlusTrialEligibilityCache(
+          ReactQueryService.queryClient,
+        );
 
         return {
           outcome: resolveProSubscriptionStartOutcome(
