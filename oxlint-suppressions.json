@@ -6036,9 +6036,6 @@
     }
   },
   "app/components/UI/Rewards/Views/CampaignsView.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -6562,9 +6559,6 @@
     }
   },
   "app/components/UI/Rewards/hooks/useBenefits.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     }

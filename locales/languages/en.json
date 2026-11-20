@@ -12995,6 +12995,9 @@
       "title_claim": "Claim Benefit",
       "action": "Claim",
       "empty-list": "You don’t have any benefits right now.",
+      "error_title": "Unable to load benefits",
+      "error_description": "We couldn't load your benefits. Try again.",
+      "retry_button": "Retry",
       "powered_by": "Powered by",
       "available_count": "{{count}} available"
     },
@@ -13263,6 +13266,12 @@
       "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
       "card_subtitle_cardholder": "Access your MetaMask Card benefits"
+    },
+    "money_dashboard": {
+      "overview_tab": "Overview"
+    },
+    "opt_in_section": {
+      "title": "Discover campaigns and benefits"
     },
     "campaigns_view": {
       "title": "Campaigns",
