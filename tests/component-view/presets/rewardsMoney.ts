@@ -440,6 +440,9 @@ const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
   revshare_rate_bps: null,
   revshare_earning_start: null,
   revshare_earning_end: null,
+  revshare_by_product: { perps: null, swaps: null, predict: null },
+  cashback_by_product: { perps: null, swaps: null, predict: null },
+  copy_trading_by_product: { perps: null, swaps: null },
 };
 
 export function referralMeFixture(

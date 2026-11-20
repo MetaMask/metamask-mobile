@@ -86,6 +86,17 @@ const createReferralMe = (
     revshare_earning_end: null,
     cashback_earning_start: null,
     cashback_earning_end: null,
+    revshare_by_product: {
+      perps: { rate_bps: 2500, source: 'DEFAULT' },
+      swaps: { rate_bps: 2500, source: 'DEFAULT' },
+      predict: null,
+    },
+    cashback_by_product: {
+      perps: { rate_bps: 500, source: null },
+      swaps: { rate_bps: 500, source: null },
+      predict: null,
+    },
+    copy_trading_by_product: { perps: null, swaps: null },
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,

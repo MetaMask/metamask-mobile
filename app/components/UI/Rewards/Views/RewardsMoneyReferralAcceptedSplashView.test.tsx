@@ -156,6 +156,13 @@ const buildReferralMe = (
     revshare_rate_bps: null,
     revshare_earning_start: null,
     revshare_earning_end: '2027-04-01T00:00:00.000Z',
+    revshare_by_product: { perps: null, swaps: null, predict: null },
+    cashback_by_product: {
+      perps: { rate_bps: 1000, source: null },
+      swaps: { rate_bps: 1000, source: null },
+      predict: null,
+    },
+    copy_trading_by_product: { perps: null, swaps: null },
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
@@ -287,6 +294,13 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
           revshare_rate_bps: null,
           revshare_earning_start: null,
           revshare_earning_end: '2027-04-01T00:00:00.000Z',
+          revshare_by_product: { perps: null, swaps: null, predict: null },
+          cashback_by_product: {
+            perps: { rate_bps: 1000, source: null },
+            swaps: { rate_bps: 1000, source: null },
+            predict: null,
+          },
+          copy_trading_by_product: { perps: null, swaps: null },
         },
       }),
     );

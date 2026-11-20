@@ -60,6 +60,13 @@ const buildReferralMe = (
     revshare_rate_bps: null,
     revshare_earning_start: null,
     revshare_earning_end: null,
+    revshare_by_product: { perps: null, swaps: null, predict: null },
+    cashback_by_product: {
+      perps: { rate_bps: 500, source: null },
+      swaps: { rate_bps: 500, source: null },
+      predict: null,
+    },
+    copy_trading_by_product: { perps: null, swaps: null },
   },
   localized_text: localizedText as ReferralMeDto['localized_text'],
   invite_hero: null,
