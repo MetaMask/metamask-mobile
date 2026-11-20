@@ -44,19 +44,18 @@ const CASHBACK_AND_FOLLOW_TRADE_SUMMARY = earningsSummaryFixture({
 });
 
 function commissionsPage(followTradeClaimOpen: boolean) {
-  return () =>
-    Promise.resolve({
-      results: [],
-      mechanisms: {
-        REFERRAL_REV_SHARE: { claim_open: false, reason: null },
-        SOCIAL_FOLLOW_TRADE: {
-          claim_open: followTradeClaimOpen,
-          reason: followTradeClaimOpen ? null : 'MECHANISM_NOT_CLAIMABLE',
-        },
+  return async () => ({
+    results: [],
+    mechanisms: {
+      REFERRAL_REV_SHARE: { claim_open: false, reason: null },
+      SOCIAL_FOLLOW_TRADE: {
+        claim_open: followTradeClaimOpen,
+        reason: followTradeClaimOpen ? null : 'MECHANISM_NOT_CLAIMABLE',
       },
-      has_more: false,
-      cursor: null,
-    });
+    },
+    has_more: false,
+    cursor: null,
+  });
 }
 
 function incomeCommissions({
@@ -66,22 +65,21 @@ function incomeCommissions({
   followTrade?: boolean;
   revShare?: boolean;
 }) {
-  return () =>
-    Promise.resolve({
-      results: [],
-      mechanisms: {
-        REFERRAL_REV_SHARE: {
-          claim_open: revShare,
-          reason: revShare ? null : 'MECHANISM_NOT_CLAIMABLE',
-        },
-        SOCIAL_FOLLOW_TRADE: {
-          claim_open: followTrade,
-          reason: followTrade ? null : 'MECHANISM_NOT_CLAIMABLE',
-        },
+  return async () => ({
+    results: [],
+    mechanisms: {
+      REFERRAL_REV_SHARE: {
+        claim_open: revShare,
+        reason: revShare ? null : 'MECHANISM_NOT_CLAIMABLE',
       },
-      has_more: false,
-      cursor: null,
-    });
+      SOCIAL_FOLLOW_TRADE: {
+        claim_open: followTrade,
+        reason: followTrade ? null : 'MECHANISM_NOT_CLAIMABLE',
+      },
+    },
+    has_more: false,
+    cursor: null,
+  });
 }
 
 const ON_DEVICE = '0x1111111111111111111111111111111111111111';
@@ -111,8 +109,8 @@ function installDeviceKeyring(address: string) {
     keyrings.length = 0;
   };
 }
-function authorizedClaim() {
-  return Promise.resolve({
+async function authorizedClaim() {
+  return {
     kind: 'authorized',
     body: {
       claim: { id: 'claim-1' },
@@ -120,11 +118,11 @@ function authorizedClaim() {
       excluded: [],
       status: 'OPENED',
     },
-  });
+  };
 }
 
 /** Proof asks for both addresses. The narrowed retry is accepted without signing. */
-function mixedAddressClaim(route: unknown, body: unknown) {
+async function mixedAddressClaim(route: unknown, body: unknown) {
   const request = (body ?? {}) as Record<string, unknown>;
   if (
     route === 'referral-rev-share' ||
@@ -133,7 +131,7 @@ function mixedAddressClaim(route: unknown, body: unknown) {
   ) {
     return authorizedClaim();
   }
-  return Promise.resolve({
+  return {
     kind: 'proof_required',
     body: {
       reason: 'PROOF_REQUIRED',
@@ -152,7 +150,7 @@ function mixedAddressClaim(route: unknown, body: unknown) {
         },
       ],
     },
-  });
+  };
 }
 
 function mixedSignSummary() {
@@ -178,8 +176,8 @@ function mixedSignSummary() {
   return summary;
 }
 
-function openedClaim() {
-  return Promise.resolve({
+async function openedClaim() {
+  return {
     kind: 'authorized',
     body: {
       claim: { id: 'claim-1' },
@@ -187,7 +185,7 @@ function openedClaim() {
       excluded: [],
       status: 'OPENED',
     },
-  });
+  };
 }
 
 describe('EarningsTab', () => {
@@ -479,14 +477,13 @@ describe('EarningsTab', () => {
           },
         },
         handlers: {
-          'RewardsMoneyController:initiateClaim': () =>
-            Promise.reject(
-              new RewardsMoneyClaimRefusalError(
-                status,
-                reason,
-                retryAfterSeconds,
-              ),
-            ),
+          'RewardsMoneyController:initiateClaim': async () => {
+            throw new RewardsMoneyClaimRefusalError(
+              status,
+              reason,
+              retryAfterSeconds,
+            );
+          },
         },
       });
 
@@ -820,15 +817,14 @@ describe('EarningsTab', () => {
               revShare: true,
               followTrade: true,
             }),
-            'RewardsMoneyController:getTaxMe': () =>
-              Promise.resolve({
-                state: 'ACTION_REQUIRED',
-                next_action: 'ANSWER_ATTESTATION',
-                reason: 'NO_ATTESTATION',
-                clears_until: null,
-                cleared: false,
-                can_change_answer: false,
-              }),
+            'RewardsMoneyController:getTaxMe': async () => ({
+              state: 'ACTION_REQUIRED',
+              next_action: 'ANSWER_ATTESTATION',
+              reason: 'NO_ATTESTATION',
+              clears_until: null,
+              cleared: false,
+              can_change_answer: false,
+            }),
             'RewardsMoneyController:initiateClaim': mixedAddressClaim,
           },
         });
@@ -994,15 +990,14 @@ describe('EarningsTab', () => {
           'RewardsMoneyController:getCommissions': incomeCommissions({
             revShare: true,
           }),
-          'RewardsMoneyController:getTaxMe': () =>
-            Promise.resolve({
-              state: 'ACTION_REQUIRED',
-              next_action: 'ANSWER_ATTESTATION',
-              reason: 'NO_ATTESTATION',
-              clears_until: null,
-              cleared: false,
-              can_change_answer: false,
-            }),
+          'RewardsMoneyController:getTaxMe': async () => ({
+            state: 'ACTION_REQUIRED',
+            next_action: 'ANSWER_ATTESTATION',
+            reason: 'NO_ATTESTATION',
+            clears_until: null,
+            cleared: false,
+            can_change_answer: false,
+          }),
         },
       });
 
