@@ -51,8 +51,8 @@ export interface MoneyVaultState {
 
 const ZERO = new BigNumber(0);
 
-const normalizeAddress = (address: string | undefined): string | undefined =>
-  address?.toLowerCase();
+const normalizeAddress = (address: unknown): string | undefined =>
+  typeof address === 'string' ? address.toLowerCase() : undefined;
 
 const parseUsd = (value: string | undefined): BigNumber => {
   if (value === undefined) {
@@ -112,7 +112,7 @@ export const matchesVault = (
  */
 export const findVault = <Vault extends MoneyVaultPositionLike>(
   vaults: Vault[] | undefined,
-  vaultAddress: string | undefined,
+  vaultAddress: unknown,
   vaultKey: string,
 ): Vault | undefined => {
   const normalizedVault = normalizeAddress(vaultAddress);

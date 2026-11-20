@@ -98,9 +98,10 @@ const setup = ({
   premiumRate = undefined as string | undefined,
   premiumRateLoading = false,
   premiumVaultAddress = undefined as string | undefined,
-  baseVaultConfig = { boringVault: BASE_VAULT_ADDRESS } as
-    | BaseVaultConfigFixture
-    | undefined,
+  baseVaultConfig = {
+    boringVault: BASE_VAULT_ADDRESS,
+  } as BaseVaultConfigFixture,
+  hasBaseVaultConfig = true,
 } = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyVaultApyRemoteConfig) {
@@ -115,7 +116,7 @@ const setup = ({
         : undefined;
     }
     if (selector === selectMoneyAccountVaultConfig) {
-      return baseVaultConfig;
+      return hasBaseVaultConfig ? baseVaultConfig : undefined;
     }
     return undefined;
   });
@@ -231,7 +232,7 @@ describe('useMoneyVaultApy', () => {
         isLoading: false,
         isError: false,
       },
-      baseVaultConfig: undefined,
+      hasBaseVaultConfig: false,
     });
 
     const { result } = renderHook(() => useMoneyVaultApy());

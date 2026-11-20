@@ -45,6 +45,16 @@ describe('findVault', () => {
     expect(findVault([standard], undefined, 'standard')).toBe(standard);
   });
 
+  it('ignores a non-string configured address', () => {
+    const standard = position({
+      vaultAddress: '0xOtherVault',
+      vaultKey: 'standard',
+      usd: '1',
+    });
+
+    expect(findVault([standard], 42, 'standard')).toBe(standard);
+  });
+
   it('returns undefined when no vault matches', () => {
     expect(
       findVault(
