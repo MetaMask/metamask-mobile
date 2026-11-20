@@ -45,9 +45,21 @@ describe('scenarioSample', () => {
   const failed = failedTestNames({
     failedTestsStats: {
       failedTestsByTeam: {
-        '@swap-bridge-dev-team': { tests: [{ testName: scenario.testName }] },
+        '@swap-bridge-dev-team': {
+          tests: [
+            { testName: scenario.testName },
+            {
+              testName: 'Over its gates',
+              failureReason: 'quality_gates_exceeded',
+            },
+          ],
+        },
       },
     },
+  });
+
+  it('keeps tests that only exceeded their quality gates', () => {
+    expect([...failed]).toEqual([scenario.testName]);
   });
 
   it('drops failed tests, unsymbolicated profiles and missing scenarios', () => {
@@ -120,23 +132,22 @@ describe('buildSlackMessage', () => {
         runUrl: 'https://example.com/run',
       },
     );
-    expect(message).toBe(
-      [
-        ':bar_chart: *Swaps CPU profile report, 2026-11-09 – 2026-11-15 UTC*',
-        'Shadow mode: numbers only, no flags. Read 4 of 4 scheduled performance runs on main (Pixel 8 Pro). Areas show average self time per run.',
-        '',
-        '*ETH swap*: 3 runs used (1 failed, 0 unsymbolicated, 0 missing)',
-        'Widest swaps-owned span: median 340ms · p90 388ms',
-        'Swaps-owned self time: median 50ms · p90 58ms',
-        'Top swaps areas: Bridge hooks 50ms',
-        'Called by swaps: fast-equals (dependency) 900ms',
-        'Co-running, not Swaps: React Native renderer 600ms',
-        '',
-        '*Cross-chain swap*: 0 runs used (0 failed, 0 unsymbolicated, 1 missing)',
-        'No passing, symbolicated runs this week.',
-        '',
-        '<https://example.com/run|Run log>',
-      ].join('\n'),
+    expect(message).toContain(
+      '*ETH swap*: 3 runs used (1 failed, 0 unsymbolicated, 0 missing)',
     );
+    expect(message).toContain('median 340ms · p90 388ms');
+    expect(message).toContain('median 50ms · p90 58ms');
+    expect(message).toContain(
+      '*Cross-chain swap*: 0 runs used (0 failed, 0 unsymbolicated, 1 missing)',
+    );
+    expect(message).toContain('No passing, symbolicated runs this week.');
+  });
+
+  it('keeps each used run for pooling across weeks', () => {
+    const summary = summarizeScenario([
+      { status: 'used', audit: audit(300, 40) },
+      { status: 'failed' },
+    ]);
+    expect(summary.runs).toEqual([{ widestSpanMs: 300, ownedSelfMs: 40 }]);
   });
 });

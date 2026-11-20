@@ -1,7 +1,7 @@
 /**
- * GitHub Actions entrypoint for swaps-cpu-profile-report.mjs. Downloads each
- * scheduled run's artifacts with `gh run download` (needs GH_TOKEN), posts
- * the report, and writes the weekly summary to `$OUT_DIR/summary.json`.
+ * GitHub Actions entrypoint for swaps-cpu-profile-report.mjs. Lists the
+ * scheduled runs and downloads their artifacts with `gh` (needs GH_TOKEN),
+ * posts the report, and writes the weekly summary to `$OUT_DIR/summary.json`.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -21,27 +21,30 @@ import {
   summarizeScenario,
 } from './swaps-cpu-profile-report.mjs';
 
-async function listRuns(repo, token, { start, end }) {
-  const params = new URLSearchParams({
-    event: 'schedule',
-    branch: 'main',
-    status: 'success',
-    created: `${start.toISOString()}..${end.toISOString()}`,
-    per_page: '100',
-  });
-  const response = await fetch(
-    `https://api.github.com/repos/${repo}/actions/workflows/${PERFORMANCE_WORKFLOW}/runs?${params}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-      },
-    },
+function listRuns(repo, { start, end }) {
+  const output = execFileSync(
+    'gh',
+    [
+      'run',
+      'list',
+      '-R',
+      repo,
+      '-w',
+      PERFORMANCE_WORKFLOW,
+      '-e',
+      'schedule',
+      '-b',
+      'main',
+      '--created',
+      `${start.toISOString()}..${end.toISOString()}`,
+      '-L',
+      '100',
+      '--json',
+      'databaseId',
+    ],
+    { encoding: 'utf8' },
   );
-  if (!response.ok) {
-    throw new Error(`GitHub workflow runs API HTTP ${response.status}`);
-  }
-  return (await response.json()).workflow_runs.map((run) => run.id);
+  return JSON.parse(output).map((run) => run.databaseId);
 }
 
 function readArtifactJson(repo, runId, artifact, file, directory) {
@@ -96,15 +99,15 @@ async function main() {
   const env = process.env;
   const dryRun = env.DRY_RUN === 'true';
   const repo = env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile';
-  if (!env.GH_TOKEN) {
-    throw new Error('GH_TOKEN is not set');
+  if (!env.GH_TOKEN || !env.OUT_DIR) {
+    throw new Error('GH_TOKEN or OUT_DIR is not set');
   }
   if (!dryRun && !env.SLACK_BOT_TOKEN) {
     throw new Error('SLACK_BOT_TOKEN is not set (or run with DRY_RUN=true)');
   }
 
   const window = lastWeek();
-  const runIds = await listRuns(repo, env.GH_TOKEN, window);
+  const runIds = listRuns(repo, window);
   const directory = fs.mkdtempSync(
     path.join(os.tmpdir(), 'swaps-cpu-profile-'),
   );
@@ -135,19 +138,16 @@ async function main() {
       console.error(`[skip] run ${runId}: ${error.message}`);
     }
   }
-  fs.rmSync(directory, { recursive: true, force: true });
 
   const scenarios = SCENARIOS.map((scenario, index) => ({
     ...scenario,
     summary: summarizeScenario(samples[index]),
   }));
-  if (env.OUT_DIR) {
-    fs.mkdirSync(env.OUT_DIR, { recursive: true });
-    fs.writeFileSync(
-      path.join(env.OUT_DIR, 'summary.json'),
-      `${JSON.stringify({ window, runIds, runsRead, scenarios }, null, 2)}\n`,
-    );
-  }
+  fs.mkdirSync(env.OUT_DIR, { recursive: true });
+  fs.writeFileSync(
+    path.join(env.OUT_DIR, 'summary.json'),
+    `${JSON.stringify({ window, runIds, runsRead, scenarios }, null, 2)}\n`,
+  );
   const message = buildSlackMessage(scenarios, {
     window,
     runsRead,

@@ -33,13 +33,21 @@ export function percentile(values, fraction) {
 export const scenarioKey = (testName) =>
   testName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
-/** Titles of the tests that failed in a run, from `summary.json` in `aggregated-reports`. */
+/**
+ * Titles of the tests that failed in a run, from `summary.json` in
+ * `aggregated-reports`. A test over its quality gates still completed the swap,
+ * so it is kept: dropping it would bias the numbers low.
+ */
 export function failedTestNames(summary) {
   const teams = Object.values(
     summary?.failedTestsStats?.failedTestsByTeam || {},
   );
   return new Set(
-    teams.flatMap((team) => (team.tests || []).map((test) => test.testName)),
+    teams.flatMap((team) =>
+      (team.tests || [])
+        .filter((test) => test.failureReason !== 'quality_gates_exceeded')
+        .map((test) => test.testName),
+    ),
   );
 }
 
@@ -113,16 +121,22 @@ export function summarizeScenario(samples) {
   if (audits.length === 0) {
     return { counts };
   }
-  const stats = (values) => ({
-    median: percentile(values, 0.5),
-    p90: percentile(values, 0.9),
-  });
+  const runs = audits.map((audit) => ({
+    widestSpanMs: audit.swapsWidestInclusiveMs || 0,
+    ownedSelfMs: audit.swapsOwnedSelfMs || 0,
+  }));
+  const stats = (field) => {
+    const values = runs.map((run) => run[field]);
+    return {
+      median: percentile(values, 0.5),
+      p90: percentile(values, 0.9),
+    };
+  };
   return {
     counts,
-    widestSpanMs: stats(
-      audits.map((audit) => audit.swapsWidestInclusiveMs || 0),
-    ),
-    ownedSelfMs: stats(audits.map((audit) => audit.swapsOwnedSelfMs || 0)),
+    runs,
+    widestSpanMs: stats('widestSpanMs'),
+    ownedSelfMs: stats('ownedSelfMs'),
     ownedAreas: topAreas(audits, 'swapsOwnedAreas'),
     calledBySwaps: topAreas(audits, 'nonSwapsOnPathAreas'),
     coRunning: topAreas(audits, 'nonSwapsConcurrentAreas'),
