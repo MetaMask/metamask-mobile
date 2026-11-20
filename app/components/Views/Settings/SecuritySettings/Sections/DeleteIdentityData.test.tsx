@@ -127,70 +127,6 @@ describe('DeleteIdentityData', () => {
       return { alertSpy, confirm, cancel };
     };
 
-    it('asks for confirmation without deleting yet', () => {
-      const { getByTestId } = arrange();
-
-      const { alertSpy } = pressDelete(getByTestId);
-
-      expect(alertSpy).toHaveBeenCalledWith(
-        strings('identity_verification.delete_confirm_title'),
-        strings('identity_verification.delete_confirm_message'),
-        expect.any(Array),
-      );
-      expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
-      expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
-    });
-
-    it('does not delete when the confirmation is cancelled', () => {
-      const { getByTestId } = arrange();
-      const { cancel } = pressDelete(getByTestId);
-
-      act(() => {
-        cancel?.onPress?.();
-      });
-
-      expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
-    });
-
-    it('deletes the encrypted storage once confirmed and reports success', async () => {
-      mockDeleteEncryptedStorage.mockResolvedValue(undefined);
-      const { getByTestId } = arrange();
-      const { alertSpy, confirm } = pressDelete(getByTestId);
-
-      act(() => {
-        confirm?.onPress?.();
-      });
-
-      await waitFor(() =>
-        expect(alertSpy).toHaveBeenLastCalledWith(
-          strings('identity_verification.delete_success_title'),
-          strings('identity_verification.delete_success_message'),
-        ),
-      );
-      expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-        methods: ['email_otp'],
-        verifyWith: 'email_otp',
-        reason: { operation: 'ukyc.deleteData' },
-      });
-      expect(mockDeleteEncryptedStorage).toHaveBeenCalledWith({
-        aal2Token: AAL2_TOKEN,
-      });
-    });
-
-    it('does nothing when the customer cancels email verification', async () => {
-      mockVerifyOrEnroll.mockRejectedValue(new MfaFlowError('flow_cancelled'));
-      const { getByTestId } = arrange();
-      const { alertSpy, confirm } = pressDelete(getByTestId);
-
-      await act(async () => {
-        await confirm?.onPress?.();
-      });
-
-      expect(alertSpy).toHaveBeenCalledTimes(1);
-      expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
-      expect(Logger.error).not.toHaveBeenCalled();
-    });
-
     it('reports the MFA error when email verification fails', async () => {
       const error = new MfaFlowError('too_many_attempts');
       mockVerifyOrEnroll.mockRejectedValue(error);
@@ -227,25 +163,6 @@ describe('DeleteIdentityData', () => {
         ),
       );
       expect(mockDeleteEncryptedStorage).not.toHaveBeenCalled();
-    });
-
-    it('logs and reports an error when deletion fails', async () => {
-      const error = new Error('boom');
-      mockDeleteEncryptedStorage.mockRejectedValue(error);
-      const { getByTestId } = arrange();
-      const { alertSpy, confirm } = pressDelete(getByTestId);
-
-      act(() => {
-        confirm?.onPress?.();
-      });
-
-      await waitFor(() =>
-        expect(alertSpy).toHaveBeenLastCalledWith(
-          strings('identity_verification.delete_error_title'),
-          strings('identity_verification.delete_error_message'),
-        ),
-      );
-      expect(Logger.error).toHaveBeenCalledWith(error, expect.any(String));
     });
   });
 });

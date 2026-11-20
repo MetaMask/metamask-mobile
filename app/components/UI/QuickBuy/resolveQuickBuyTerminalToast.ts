@@ -1,18 +1,13 @@
 import { isCrossChain, StatusTypes } from '@metamask/bridge-controller';
 import { REFRESH_INTERVAL_MS } from '@metamask/bridge-status-controller';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
-import type {
-  ToastLinkButtonOptions,
-  ToastRef,
-} from '../../../component-library/components/Toast/Toast.types';
+import { toast } from '@metamask/design-system-react-native';
 import Engine from '../../../core/Engine';
 import {
   playErrorNotification,
   playSuccessNotification,
 } from '../../../util/haptics';
-import type { Theme } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
-import ToastService from '../../../core/ToastService';
 import {
   incrementShareSheetCount,
   markClaimSheetSeen,
@@ -24,7 +19,10 @@ import {
   buildSpotPostTradeComposerParams,
   openPostTradeComposer,
 } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
-import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
+import {
+  buildQuickBuyToastOptions,
+  type QuickBuyToastLinkButtonOptions,
+} from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
   markQuickBuyTradeSettled,
@@ -155,7 +153,7 @@ function resolveFromMultichain(signature: string): TerminalOutcome | undefined {
 const buildPostToFeedLink = (
   trade: TrackedQuickBuyTrade,
   transactionHash: string | undefined,
-): ToastLinkButtonOptions | undefined => {
+): QuickBuyToastLinkButtonOptions | undefined => {
   const prompt = trade.postTradePrompt;
   if (prompt?.kind !== 'post_to_feed_toast' || !transactionHash) {
     return undefined;
@@ -164,7 +162,7 @@ const buildPostToFeedLink = (
     label: strings('social_leaderboard.post_trade_share.post_to_feed'),
     onPress: () => {
       const shareId = `share:${transactionHash}`;
-      ToastService.toastRef?.current?.closeToast();
+      toast.dismiss();
       const composerEntry = prompt.isCopyTrade
         ? SocialEvent.ComposerEntry.POST_TRADE_SPOT
         : SocialEvent.ComposerEntry.POST_TRADE_SWAP;
@@ -201,8 +199,6 @@ function emitTerminalToast(
   txMetaId: string,
   trade: TrackedQuickBuyTrade,
   outcome: TerminalOutcome,
-  showToast: ToastRef['showToast'],
-  theme: Theme,
   transactionHash: string | undefined,
   sharesDestinationTxHash: boolean,
 ): boolean {
@@ -230,18 +226,16 @@ function emitTerminalToast(
       },
     );
     if (!sessionUpdated) {
-      showToast(
+      toast(
         buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
           trade,
-          theme,
         }),
       );
     }
   } else {
-    showToast(
+    toast(
       buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
         trade,
-        theme,
         linkButtonOptions: isComplete
           ? buildPostToFeedLink(trade, transactionHash)
           : undefined,
@@ -276,11 +270,7 @@ function emitTerminalToast(
  * @returns `true` when a terminal toast was shown, `false` otherwise (untracked,
  * still pending, or no history yet).
  */
-export function resolveQuickBuyTerminalToast(
-  txMetaId: string,
-  showToast: ToastRef['showToast'],
-  theme: Theme,
-): boolean {
+export function resolveQuickBuyTerminalToast(txMetaId: string): boolean {
   const trade = getTrackedQuickBuyTrade(txMetaId);
   if (!trade) {
     awaitingDestinationTxHashSince.delete(txMetaId);
@@ -293,7 +283,7 @@ export function resolveQuickBuyTerminalToast(
     if (awaitingSince === undefined) {
       awaitingDestinationTxHashSince.set(txMetaId, Date.now());
       setTimeout(
-        () => resolveQuickBuyTerminalToast(txMetaId, showToast, theme),
+        () => resolveQuickBuyTerminalToast(txMetaId),
         QUICK_BUY_DESTINATION_TX_HASH_WAIT_MS,
       );
       return false;
@@ -322,8 +312,6 @@ export function resolveQuickBuyTerminalToast(
     txMetaId,
     trade,
     outcome,
-    showToast,
-    theme,
     transactionHash,
     sharesDestinationTxHash,
   );

@@ -2477,9 +2477,7 @@
         "funding": "Captação",
         "close": "Fechar",
         "reverse": "Inverter",
-        "share": "Enviar",
-        "isolated": "Isolada",
-        "cross": "Cruzar"
+        "share": "Enviar"
       },
       "order_card": {
         "size": "Tamanho",
@@ -3618,8 +3616,7 @@
     "cross_position": {
       "badge": "Cruzar",
       "no_liquidation_price": "N/D",
-      "liquidation_info": "Sobre o preço de liquidação cruzada",
-      "margin_used": "Margem da posição usada"
+      "liquidation_info": "Sobre o preço de liquidação cruzada"
     },
     "crossMargin": {
       "title": "Não há suporte para margem cruzada",
@@ -4116,8 +4113,7 @@
       "retry": "Tentar novamente",
       "review": "Conferir ordem",
       "buy": "Comprar",
-      "venue_changed": "O mercado de previsões mudou. Feche esta ordem para continuar.",
-      "delete": "Excluir"
+      "venue_changed": "O mercado de previsões mudou. Feche esta ordem para continuar."
     },
     "order_approval": {
       "title": "Confira sua ordem",
@@ -4898,9 +4894,7 @@
     "bullet3": "Outros materiais promocionais relevantes",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Concordo",
-    "cancel": "Não, obrigado",
-    "paragraph1a": "Além do ",
-    "link": "MetaMetrics"
+    "cancel": "Não, obrigado"
   },
   "multi_rpc_migration_modal": {
     "description": "Agora oferecemos suporte a várias RPCs para uma única rede. Sua RPC mais recente foi selecionada como a padrão para resolução de informações conflitantes",
@@ -9992,7 +9986,6 @@
     },
     "action": {
       "add": "Adicionar",
-      "transfer": "Enviar",
       "card": "Cartão",
       "details": "Detalhes"
     },
@@ -10114,8 +10107,6 @@
       "contact_support": "Falar com o suporte"
     },
     "transfer_sheet": {
-      "title": "Enviar fundos para",
-      "between_accounts": "Outra conta",
       "perps_account": "Conta de perps",
       "predictions_account": "Conta de previsões",
       "send_external": "Endereço externo",
@@ -11079,7 +11070,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{count}} ordens a cada {{interval}}",
-      "spend_summary": "Você gasta {{amount}} {{symbol}} a cada {{everyValue}} {{unit}} em {{repeatCount}} vezes",
+      "spend_summary": {
+        "swapping": "Trocando",
+        "for": "por",
+        "every": "a cada",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "uma vez",
         "other": "{{count}} times"

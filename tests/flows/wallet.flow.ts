@@ -48,8 +48,12 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import MoneyOnboardingView from '../page-objects/Money/MoneyOnboardingView';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
+import { NewUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/NewUserSheet/NewUserSheet.testIds';
 import type { CurrentDeviceDetails } from '../framework/fixtures/playwright';
-import { startPhase } from '../framework/telemetry/PhaseTimer.ts';
+import {
+  recordElapsedPhase,
+  startPhase,
+} from '../framework/telemetry/PhaseTimer.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
@@ -105,10 +109,15 @@ const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
   return !(await isLoginScreenDisplayed());
 };
 
+const LOGIN_APP_READY_PHASE = 'login_app_ready';
+const LOGIN_WALLET_HOME_PHASE = 'login_wallet_home';
+
 const completeUnlockedWalletHome = async (
   dismissPostLoginModals: () => Promise<void>,
 ): Promise<void> => {
-  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await recordElapsedPhase(LOGIN_WALLET_HOME_PHASE, () =>
+    waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000)),
+  );
   await dismissPostLoginModals();
 };
 
@@ -684,14 +693,26 @@ export const loginToApp = async (password?: string): Promise<void> => {
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
     // The sheet is absent when notifications are pre-granted (e.g. Perps).
-    const sheetPresent = await isOptionalElementVisible(
-      () => Matchers.getElementByExactText('Never miss a move'),
-      OPTIONAL_SHEET_MAX_ABSENT_MS,
-    );
-    if (!sheetPresent) {
+    // It has an existing-user and a new-user copy; both close with "Not now".
+    let titleId: string | undefined;
+    for (const id of [
+      ExistingUserSheetSelectorsIDs.TITLE,
+      NewUserSheetSelectorsIDs.TITLE,
+    ]) {
+      if (
+        await isOptionalElementVisible(
+          () => Matchers.getElementByID(id),
+          OPTIONAL_SHEET_MAX_ABSENT_MS,
+        )
+      ) {
+        titleId = id;
+        break;
+      }
+    }
+    if (!titleId) {
       return;
     }
-    const sheetTitle = Matchers.getElementByExactText('Never miss a move');
+    const sheetTitle = Matchers.getElementByID(titleId);
 
     try {
       try {
@@ -800,7 +821,9 @@ export const loginToAppPlaywright = async (
     return;
   }
 
-  const readyScreen = await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+  const readyScreen = await recordElapsedPhase(LOGIN_APP_READY_PHASE, () =>
+    waitForAppReady(resolveE2EWaitTimeoutMs(60_000)),
+  );
 
   if (readyScreen === 'wallet') {
     await afterWalletHomeReady();
@@ -827,7 +850,9 @@ export const loginToAppPlaywright = async (
   await LoginView.enterPassword(password ?? '');
   await LoginView.tapLoginButton();
 
-  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await recordElapsedPhase(LOGIN_WALLET_HOME_PHASE, () =>
+    waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000)),
+  );
   startPhase('test_body');
 };
 

@@ -314,7 +314,11 @@ const BridgeLimitOrderViewContent = ({
 
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const isMissingPrice = useHasMissingAssetsPriceData();
-  const { isBelowMinAmount, minAmountUsd } = useLimitOrderMinAmount({
+  const {
+    formattedMinAmountInSelectedCurrency,
+    hasError: hasMinAmountError,
+    isBelowMinAmount,
+  } = useLimitOrderMinAmount({
     sourceToken,
     sourceAmount,
   });
@@ -325,12 +329,13 @@ const BridgeLimitOrderViewContent = ({
     !hasValidLimitPrice ||
     isMissingPrice ||
     isHardwareWallet ||
+    hasMinAmountError ||
     isBelowMinAmount ||
     !feeTokenValidation.isValid;
   const createOrderLabel =
-    isBelowMinAmount && minAmountUsd !== undefined
+    isBelowMinAmount && formattedMinAmountInSelectedCurrency !== undefined
       ? strings('bridge.limit.min_order_amount', {
-          amount: formatAmountWithLocaleSeparators(String(minAmountUsd)),
+          amount: formattedMinAmountInSelectedCurrency,
         })
       : strings('bridge.limit.create_order');
   const expirationMinutes =
@@ -501,7 +506,7 @@ const BridgeLimitOrderViewContent = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleCreateOrderPress = useCallback(() => {
-    if (!feeTokenValidation.isValid) {
+    if (!feeTokenValidation.isValid || hasMinAmountError || isBelowMinAmount) {
       return;
     }
 
@@ -554,6 +559,8 @@ const BridgeLimitOrderViewContent = ({
     executionType,
     expirationMinutes,
     feeTokenValidation.isValid,
+    hasMinAmountError,
+    isBelowMinAmount,
     isLimitFiatMode,
     limitPrice,
     navigation,

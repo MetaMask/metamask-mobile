@@ -155,6 +155,7 @@ const defaultControllerReturn = {
   selectedPaymentMethod: mockPaymentMethods[0],
   setSelectedProvider: mockSetSelectedProvider,
   setSelectedProviderForAsset: jest.fn(),
+  selectProviderForAsset: jest.fn(),
   setSelectedPaymentMethod: mockSetSelectedPaymentMethod,
   userRegion: { regionCode: 'us', country: { currency: 'USD' } },
   selectedToken: {

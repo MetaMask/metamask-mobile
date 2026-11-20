@@ -23,6 +23,7 @@ import {
   isPerformanceSuiteActive,
 } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
 import WalletView from './WalletView';
 import { AccountHubSelectorsIDs } from '../../../app/components/Views/AccountHub/AccountHub.testIds';
@@ -909,17 +910,17 @@ class AccountListBottomSheet {
 
     const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
 
-    /** Safely check if a text element is visible — returns false if not found. */
-    const isTextVisible = async (text: string): Promise<boolean> => {
-      try {
-        const el = (await Matchers.getElementByNativeXPath(
-          this.getCatchAllXPath(text),
-        )) as AppiumElement;
-        return await el.isVisible();
-      } catch {
-        return false;
-      }
-    };
+    // Factory form required: a pre-started promise runs its XPath lookup under
+    // the session 3.5s implicit wait; isOptionalElementVisible overrides that
+    // to a short wait so an absent node costs ~maxAbsentMs, not ~7s.
+    const isTextVisible = (text: string): Promise<boolean> =>
+      isOptionalElementVisible(
+        () =>
+          Matchers.getElementByNativeXPath(
+            this.getCatchAllXPath(text),
+          ) as Promise<AppiumElement>,
+        500,
+      );
 
     // Step 1: Wait up to initialWaitTimeout for "Syncing" or "Discovering" to appear
     logger.debug(

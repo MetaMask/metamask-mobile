@@ -1440,7 +1440,7 @@ describe('handleUniversalLink', () => {
   });
 
   describe('ACTIONS.REWARDS', () => {
-    it('calls _handleRewards when action is REWARDS without referral', async () => {
+    it('calls _handleRewards for a rewards link with no query', async () => {
       const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}`;
       const rewardsUrlObj = {
         ...urlObj,
@@ -1461,14 +1461,14 @@ describe('handleUniversalLink', () => {
       expect(handled).toHaveBeenCalled();
     });
 
-    it('calls _handleRewards when action is REWARDS with referral code', async () => {
-      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}?referral=code123`;
+    it('calls _handleRewards when action is REWARDS with page=campaigns', async () => {
+      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}?page=campaigns`;
       const rewardsUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: rewardsUrl,
         pathname: `/${ACTIONS.REWARDS}`,
-        search: '?referral=code123',
+        search: '?page=campaigns',
       };
 
       await handleUniversalLink({
@@ -1484,13 +1484,13 @@ describe('handleUniversalLink', () => {
     });
 
     it('returns a startup intent in resolve mode without executing rewards navigation', async () => {
-      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}?referral=code123`;
+      const rewardsUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.REWARDS}?page=campaigns`;
       const rewardsUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: rewardsUrl,
         pathname: `/${ACTIONS.REWARDS}`,
-        search: '?referral=code123',
+        search: '?page=campaigns',
       };
       const intent: DeeplinkIntent = {
         target: {
@@ -1516,7 +1516,7 @@ describe('handleUniversalLink', () => {
 
       expect(result).toBe(intent);
       expect(createRewardsDeeplinkIntent).toHaveBeenCalledWith({
-        rewardsPath: '?referral=code123',
+        rewardsPath: '?page=campaigns',
       });
       expect(handleRewardsUrl).not.toHaveBeenCalled();
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();

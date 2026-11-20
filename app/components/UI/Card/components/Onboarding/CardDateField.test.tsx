@@ -3,6 +3,11 @@ import { Platform } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import CardDateField from './CardDateField';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-native-community/datetimepicker', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
