@@ -666,7 +666,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
       {
         failure: 'unrelated SDK error',
         error: new HyperliquidError('SDK failure'),
-        message: 'SDK failure',
+        expectedCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
         expectedCancels: undefined,
         expectedCloidIndexes: [] as number[],
       },
@@ -688,7 +688,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
           },
           'Unknown bulk status',
         ),
-        message: 'Unknown bulk status',
+        expectedCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
         expectedCancels: [{ a: 0, o: 101 }],
         expectedCloidIndexes: [1],
       },
@@ -710,7 +710,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
           },
           'Malformed bulk status',
         ),
-        message: 'Malformed bulk status',
+        expectedCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
         expectedCancels: [{ a: 0, o: 101 }],
         expectedCloidIndexes: [1],
       },
@@ -735,7 +735,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
           },
           'Hybrid bulk response',
         ),
-        message: 'Hybrid bulk response',
+        expectedCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
         expectedCancels: [{ a: 0, o: 101 }],
         expectedCloidIndexes: [2],
       },
@@ -757,13 +757,18 @@ describe('Perps order lifecycle — FLOW integration', () => {
           },
           'order 0: Multi-sig required',
         ),
-        message: PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED,
+        expectedCode: PERPS_ERROR_CODES.EXCHANGE_MULTI_SIG_REQUIRED,
         expectedCancels: undefined,
         expectedCloidIndexes: [] as number[],
       },
     ])(
       'preserves failure behavior for a $failure',
-      async ({ error, message, expectedCancels, expectedCloidIndexes }) => {
+      async ({
+        error,
+        expectedCode,
+        expectedCancels,
+        expectedCloidIndexes,
+      }) => {
         // Arrange
         const perps = buildPerpsFlowHarness();
         perps.harness.setupTradingReady();
@@ -789,7 +794,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
         // Assert
         expect(placeOrderResult).toMatchObject({
           success: false,
-          error: message,
+          error: expectedCode,
         });
         if (expectedCancels) {
           expect(
