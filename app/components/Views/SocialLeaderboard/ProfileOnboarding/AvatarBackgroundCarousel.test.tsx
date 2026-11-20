@@ -225,7 +225,7 @@ describe('AvatarBackgroundCarousel', () => {
       expect(screen.getByTestId(artTestId('vr'))).toHaveAnimatedStyle({
         opacity: 1,
       });
-      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+      expect(screen.getByTestId(artTestId('laser'))).toHaveAnimatedStyle({
         opacity: 0,
       });
     });
@@ -238,7 +238,7 @@ describe('AvatarBackgroundCarousel', () => {
 
       expect(flicker).toHaveAnimatedStyle({ opacity: 1 });
 
-      selectAvatar('royal');
+      selectAvatar('laser');
       flush(AVATAR_FLICKER_OUT_MS);
 
       expect(flicker).toHaveAnimatedStyle({ opacity: 0 });
@@ -251,10 +251,10 @@ describe('AvatarBackgroundCarousel', () => {
     it('fades the new avatar in and the previous one out', () => {
       const { selectAvatar } = renderCarousel();
 
-      selectAvatar('royal');
+      selectAvatar('laser');
       flush();
 
-      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+      expect(screen.getByTestId(artTestId('laser'))).toHaveAnimatedStyle({
         opacity: 1,
       });
       expect(screen.getByTestId(artTestId('vr'))).toHaveAnimatedStyle({
@@ -265,7 +265,7 @@ describe('AvatarBackgroundCarousel', () => {
     it('settles on the last avatar when switching mid-fade', () => {
       const { selectAvatar } = renderCarousel();
 
-      selectAvatar('royal');
+      selectAvatar('laser');
       flush(150);
       selectAvatar('goth');
       flush();
@@ -273,7 +273,7 @@ describe('AvatarBackgroundCarousel', () => {
       expect(screen.getByTestId(artTestId('goth'))).toHaveAnimatedStyle({
         opacity: 1,
       });
-      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+      expect(screen.getByTestId(artTestId('laser'))).toHaveAnimatedStyle({
         opacity: 0,
       });
       expect(screen.getByTestId(artTestId('vr'))).toHaveAnimatedStyle({
@@ -282,9 +282,9 @@ describe('AvatarBackgroundCarousel', () => {
     });
 
     it('shows the translated variant for a legacy preset id', () => {
-      renderCarousel('background3', 'crown');
+      renderCarousel('background3', 'glasses');
 
-      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+      expect(screen.getByTestId(artTestId('nerd'))).toHaveAnimatedStyle({
         opacity: 1,
       });
     });
@@ -301,10 +301,10 @@ describe('AvatarBackgroundCarousel', () => {
       mockGetHardwareTier.mockReturnValue('LOW');
       const { selectAvatar } = renderCarousel();
 
-      selectAvatar('royal');
+      selectAvatar('laser');
       flush(20);
 
-      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+      expect(screen.getByTestId(artTestId('laser'))).toHaveAnimatedStyle({
         opacity: 1,
       });
       expect(screen.queryByTestId(artTestId('vr'))).not.toBeOnTheScreen();

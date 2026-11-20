@@ -7,7 +7,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { fireEvent } from '@testing-library/react-native';
-import { RootState } from 'app/reducers';
+import { RootState } from '../../../reducers';
 import { backgroundState } from '../../../util/test/initial-root-state';
 
 const setShowMultiRpcModalSpy = jest.spyOn(

@@ -131,7 +131,7 @@ describe('PendingPostsButton', () => {
     expect(screen.getByLabelText('3 new updates')).toBeOnTheScreen();
   });
 
-  it('slides the Liquid Glass pill without mount animations', () => {
+  it('zooms the Liquid Glass pill in place without mount animations', () => {
     mockUseLiquidGlass.mockReturnValue({
       ...PLAIN_SURFACE,
       isGlassEnabled: true,
@@ -146,6 +146,9 @@ describe('PendingPostsButton', () => {
     expect(pill.props.entering).toBeUndefined();
     expect(pill.props.exiting).toBeUndefined();
     expect(pill.props.pointerEvents).toBe('auto');
+    expect(StyleSheet.flatten(pill.props.style)).toEqual(
+      expect.objectContaining({ transform: [{ scale: 1 }] }),
+    );
   });
 
   it('keeps the Liquid Glass pill mounted and hidden without pending updates', () => {
@@ -164,10 +167,13 @@ describe('PendingPostsButton', () => {
     expect(mockGlassView).toHaveBeenCalled();
     expect(pill.props.pointerEvents).toBe('none');
     expect(pill.props.importantForAccessibility).toBe('no-hide-descendants');
+    expect(StyleSheet.flatten(pill.props.style)).toEqual(
+      expect.objectContaining({ transform: [{ scale: 0 }] }),
+    );
     expect(screen.queryByLabelText(/new update/)).toBeNull();
   });
 
-  it('keeps the last count on the Liquid Glass pill while it slides out', () => {
+  it('keeps the last count on the Liquid Glass pill while it zooms out', () => {
     mockUseLiquidGlass.mockReturnValue({
       ...PLAIN_SURFACE,
       isBlurEnabled: true,

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -9,13 +9,14 @@ import {
   AvatarIconSize,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxAlignItems,
   BoxBackgroundColor,
   BoxJustifyContent,
+  Button,
   ButtonSize,
+  ButtonVariant,
   ButtonsAlignment,
   IconColor,
   IconName,
@@ -75,6 +76,14 @@ import {
   getPostTradeSharedAnalyticsProperties,
   type PostTradeAnalyticsCta,
 } from './PostTradeBottomSheet.analytics';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { usePostTradeTxHashes } from './usePostTradeTxHashes';
+import { incrementShareSheetCount } from '../../../../../util/social/postTradePromptStorage';
+import {
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
 
 export const getTradeSubtitle = ({
   sourceAmount,
@@ -140,6 +149,7 @@ const StatusIcon = ({ status }: { status: PostTradeStatus }) => {
 };
 
 export const PostTradeBottomSheet = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -166,7 +176,45 @@ export const PostTradeBottomSheet = () => {
     transactionMetaId: params.transactionMetaId,
     transactionHash: params.transactionHash,
   });
+  const { submittedTxHash, destinationTxHash } = usePostTradeTxHashes({
+    transactionMetaId: params.transactionMetaId,
+    transactionHash: params.transactionHash,
+  });
+  const socialPostTrade = params.socialPostTrade;
+  // Bridged buys share the destination hash. Everything else shares the
+  // submitted hash.
+  const socialShareTxHash =
+    socialPostTrade?.txHash === 'destination'
+      ? destinationTxHash
+      : submittedTxHash;
+  // The CTA is disabled until the swap completes. Success without a hash to
+  // share hides it, so the sheet never offers a post it cannot make.
+  const isCreatePostVisible =
+    Boolean(socialPostTrade) &&
+    status !== PostTradeStatus.Failed &&
+    (status !== PostTradeStatus.Success || Boolean(socialShareTxHash));
+  const isCreatePostEnabled =
+    status === PostTradeStatus.Success && Boolean(socialShareTxHash);
+  const hasCountedSocialShareRef = useRef(false);
   const lastHapticStatusRef = useRef<PostTradeStatus | null>(null);
+
+  // A sheet counts once it shows Create post enabled after the swap succeeds.
+  // A user who closes the sheet early never reaches this state, so the trade
+  // is not counted.
+  useEffect(() => {
+    if (
+      !socialPostTrade ||
+      !isCreatePostEnabled ||
+      hasCountedSocialShareRef.current
+    ) {
+      return;
+    }
+    hasCountedSocialShareRef.current = true;
+    incrementShareSheetCount(
+      socialPostTrade.countKey.address,
+      socialPostTrade.countKey.product,
+    );
+  }, [isCreatePostEnabled, socialPostTrade]);
 
   const getTimeModalOpenMs = useCallback(
     () => Date.now() - modalOpenedAtRef.current,
@@ -395,6 +443,23 @@ export const PostTradeBottomSheet = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
 
+  const handleCreatePost = () => {
+    if (!socialPostTrade || !isCreatePostEnabled || !socialShareTxHash) {
+      return;
+    }
+    trackButtonClicked('create_post');
+    shouldSkipDismissedTrackingRef.current = true;
+    sheetRef.current?.onCloseBottomSheet(() => {
+      openPostTradeComposer(
+        buildSpotPostTradeComposerParams({
+          transactionHash: socialShareTxHash,
+          chain: socialPostTrade.tradeInFlightChain,
+          preview: socialPostTrade.preview,
+        }),
+      );
+    });
+  };
+
   const footerButtonProps =
     status === PostTradeStatus.Failed
       ? {
@@ -427,13 +492,14 @@ export const PostTradeBottomSheet = () => {
       goBack={() => navigation.goBack()}
       onClose={handleDismiss}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
         twClassName="pt-4 h-auto"
       >
         <StatusIcon status={status} />
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box style={styles.content}>
         <Text variant={TextVariant.HeadingLg} style={styles.title}>
           {strings(`bridge.post_trade_modal.${titleType}_${status}`)}
@@ -453,12 +519,38 @@ export const PostTradeBottomSheet = () => {
         destToken={params.destToken}
         onTokenPress={handleSuggestionPress}
       />
-      <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Vertical}
-        secondaryButtonProps={footerButtonProps.secondaryButtonProps}
-        primaryButtonProps={footerButtonProps.primaryButtonProps}
-        style={styles.footer}
-      />
+      {isCreatePostVisible ? (
+        // Same layout as PostTradeShareBottomSheet: Create post is the filled
+        // primary action on top, and View activity is a text-only button below.
+        <Box twClassName="px-4 pb-6">
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            isDisabled={!isCreatePostEnabled}
+            onPress={handleCreatePost}
+            testID={PostTradeBottomSheetTestIds.CREATE_POST_BUTTON}
+          >
+            {strings('social_leaderboard.post_trade_share.create_post')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Tertiary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleViewActivity}
+            testID={PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON}
+          >
+            {strings('bridge.post_trade_modal.view_activity')}
+          </Button>
+        </Box>
+      ) : (
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Vertical}
+          secondaryButtonProps={footerButtonProps.secondaryButtonProps}
+          primaryButtonProps={footerButtonProps.primaryButtonProps}
+          style={styles.footer}
+        />
+      )}
     </BottomSheet>
   );
 };

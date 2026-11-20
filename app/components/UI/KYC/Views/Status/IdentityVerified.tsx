@@ -21,6 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import useVerifiedSuccessCascade from '../../hooks/useVerifiedSuccessCascade';
 import VerifiedCheckAnimation from '../../components/VerifiedCheckAnimation';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import MarketingMomentTitle from '../../../MarketingMomentTitle';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -65,6 +66,7 @@ const KycIdentityVerified = ({
   }, [onExit]);
 
   const handleContinue = useCallback(() => {
+    fireImpact(ImpactMoment.PrimaryCTA);
     onContinue();
   }, [onContinue]);
 

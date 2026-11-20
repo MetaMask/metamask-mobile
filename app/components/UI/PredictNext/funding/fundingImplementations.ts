@@ -7,13 +7,15 @@ import type { PredictFundingAction } from './types';
  * hold before a funding entry point appears, so a descriptor that lists
  * `deposit` ahead of the client flow still shows nothing.
  *
- * `legacy` runs today's Polymarket deposit and withdrawal. `next` has none:
- * PRED-1161 (deposit) and PRED-1163 (withdraw) add theirs here when they ship
- * real flows.
+ * `legacy` runs today's Polymarket deposit and withdrawal. `next` runs the
+ * Kalshi deposit (PRED-1161) whenever the Venue's catalog descriptor lists
+ * `deposit`, and Withdraw (PRED-1163) through `PredictFundingService` once
+ * the `predictConfig` flag `kalshiWithdrawalsEnabled` turns it on (`resolvePredictFunding`
+ * treats `'withdraw'` on Kalshi as not implemented while the flag is off).
  */
 export const PREDICT_FUNDING_IMPLEMENTATIONS: Readonly<
   Record<PredictImplementation, readonly PredictFundingAction[]>
 > = {
   legacy: ['deposit', 'withdraw'],
-  next: [],
+  next: ['deposit', 'withdraw'],
 };

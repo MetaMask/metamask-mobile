@@ -14,6 +14,7 @@ import { useTheme } from '../../../../../util/theme';
 import type { PredictGame, PredictTeam } from '../../types';
 import {
   getGameTeamOrder,
+  toGameTradingQuote,
   type GameSelection,
   type GameSelectionQuote,
 } from '../game';
@@ -50,18 +51,14 @@ const FooterButton = ({
   textColor?: string;
   onOrder: (quote: GameSelectionQuote) => void;
 }) => {
-  // The quote's Outcome carries the Game Selection tag for the dual-line
-  // chart and may be the No side; a Team control displays and trades the Yes
-  // side of the winner Market. A winner Market without a Yes Outcome fails
-  // closed like findGameTradingQuote: no price is shown and the control
-  // cannot order the tagged No side.
-  const yesOutcome = quote.market.outcomes.find(
-    (outcome) => outcome.side === 'yes',
-  );
-  const price = yesOutcome ? formatAskPrice(yesOutcome.askPrice) : undefined;
+  const tradingQuote = toGameTradingQuote(quote);
+  const price = tradingQuote
+    ? formatAskPrice(tradingQuote.outcome.askPrice)
+    : undefined;
   const displayLabel = price ? `${label} · ${price}` : label;
   const isTradeable =
-    yesOutcome !== undefined && isOutcomeTradeable(quote.market, yesOutcome);
+    tradingQuote !== undefined &&
+    isOutcomeTradeable(tradingQuote.market, tradingQuote.outcome);
 
   return (
     <Button
@@ -75,8 +72,8 @@ const FooterButton = ({
       size={ButtonSize.Lg}
       isDisabled={!isTradeable}
       onPress={() => {
-        if (yesOutcome) {
-          onOrder({ market: quote.market, outcome: yesOutcome });
+        if (tradingQuote) {
+          onOrder(tradingQuote);
         }
       }}
       style={[{ backgroundColor }]}

@@ -155,9 +155,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
       setAnalyticsEnabled(false);
       updateCachedConsent(false);
 
-      if (isDataCollectionForMarketingEnabled) {
-        dispatch(setDataCollectionForMarketing(false));
-      }
       Alert.alert(
         strings('app_settings.metametrics_opt_out'),
         strings('app_settings.metametrics_restart_required'),
@@ -182,20 +179,15 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     );
   };
 
-  const toggleDataCollectionForMarketing = async (value: boolean) => {
-    if (value) {
-      if (!analyticsEnabled) {
-        await toggleMetricsOptIn(true);
-      }
-      addMarketingConsentToTraits(value);
-    } else {
+  const toggleDataCollectionForMarketing = (value: boolean) => {
+    if (!value) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.DATA_COLLECTION,
       });
+    }
 
-      if (analyticsEnabled) {
-        addMarketingConsentToTraits(value);
-      }
+    if (analyticsEnabled) {
+      addMarketingConsentToTraits(value);
     }
 
     dispatch(setDataCollectionForMarketing(value));

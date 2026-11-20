@@ -148,8 +148,6 @@
           "cardLinkApiBlocked": false,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
-          "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
@@ -160,7 +158,6 @@
           "signInLink": null,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
           "cardLinkApiBlocked": false
         },
         "ClaimsController": {
@@ -237,6 +234,10 @@
         "MoneyAccountController": {
           "moneyAccounts": {},
           "defaultMoneyAccountId": null
+        },
+        "MoneyAccountLifecycleController": {
+          "moneyAccounts": {},
+          "addressRegistrations": {}
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -451,8 +452,13 @@
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
           "cachedUserDataByProvider": {},
+          "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
+          "effectiveProvider": "hyperliquid",
+          "hasExplicitDefaultProviderSelection": false,
+          "hasExplicitProviderSelection": false,
+          "hasMigratedToMultiProvider": false,
           "hasPlacedFirstOrder": {
             "mainnet": false,
             "testnet": false
@@ -825,6 +831,10 @@
       "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
+    "socialEarlyAccess": {
+      "profileId": null,
+      "hasAccess": false
+    },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"
@@ -904,7 +914,6 @@
       "campaignsLoading": false,
       "candidateSubscriptionId": null,
       "dismissedCampaignOutcomeToasts": {},
-      "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
       "moneyAccountSweepstakesDrawProofs": {},
@@ -916,9 +925,6 @@
       "ondoCampaignLeaderboardPositions": {},
       "ondoCampaignLeaderboards": {},
       "ondoCampaignPortfolio": {},
-      "optinAllowedForGeo": null,
-      "optinAllowedForGeoError": false,
-      "optinAllowedForGeoLoading": false,
       "pendingDeeplink": null,
       "pendingMasSeriesOptIn": {
         "needsRetry": false,
