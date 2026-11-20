@@ -34,12 +34,14 @@ export class VenueProfileFetchError extends Error {
   }
 }
 
+const RFC3986_EXTRA = "!'()*.";
+
 const encode = (value: string): string =>
-  encodeURIComponent(value).replace(
-    /[.!'()*]/gu,
-    (character) =>
-      `%${(character.codePointAt(0) as number).toString(16).toUpperCase()}`,
-  );
+  Array.from(encodeURIComponent(value), (character) =>
+    RFC3986_EXTRA.includes(character)
+      ? `%${(character.codePointAt(0) as number).toString(16).toUpperCase()}`
+      : character,
+  ).join('');
 
 const byteLength = (value: string): number =>
   new TextEncoder().encode(value).length;
@@ -146,38 +148,47 @@ export class RemoteVenueProfileClient {
       if (!response.ok) {
         throw new VenueProfileFetchError('http', response.status);
       }
-      const declared = Number(response.headers.get('content-length'));
-      if (Number.isFinite(declared) && declared > VENUE_PROFILE_MAX_BYTES) {
-        throw new VenueProfileFetchError('oversize');
-      }
-      let raw: string;
-      try {
-        raw = await response.text();
-      } catch {
-        throw new VenueProfileFetchError('invalid_body');
-      }
-      if (byteLength(raw) > VENUE_PROFILE_MAX_BYTES) {
-        throw new VenueProfileFetchError('oversize');
-      }
+      const raw = await this.#readBody(response);
       return {
         status: 'modified',
         raw,
         etag: response.headers.get('etag') ?? undefined,
       };
     } catch (error) {
-      if (error instanceof VenueProfileFetchError) {
-        throw error;
-      }
-      if (timedOut) {
-        throw new VenueProfileFetchError('timeout');
-      }
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw error;
-      }
-      throw new VenueProfileFetchError('network');
+      throw this.#classifyError(error, timedOut);
     } finally {
       clearTimeout(timeout);
       signal?.removeEventListener('abort', abort);
     }
+  }
+
+  async #readBody(response: Response): Promise<string> {
+    const declared = Number(response.headers.get('content-length'));
+    if (Number.isFinite(declared) && declared > VENUE_PROFILE_MAX_BYTES) {
+      throw new VenueProfileFetchError('oversize');
+    }
+    let raw: string;
+    try {
+      raw = await response.text();
+    } catch {
+      throw new VenueProfileFetchError('invalid_body');
+    }
+    if (byteLength(raw) > VENUE_PROFILE_MAX_BYTES) {
+      throw new VenueProfileFetchError('oversize');
+    }
+    return raw;
+  }
+
+  #classifyError(error: unknown, timedOut: boolean): Error {
+    if (error instanceof VenueProfileFetchError) {
+      return error;
+    }
+    if (timedOut) {
+      return new VenueProfileFetchError('timeout');
+    }
+    if (error instanceof Error && error.name === 'AbortError') {
+      return error;
+    }
+    return new VenueProfileFetchError('network');
   }
 }

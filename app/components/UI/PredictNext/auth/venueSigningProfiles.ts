@@ -18,11 +18,7 @@ import { sha256 } from '@noble/hashes/sha2';
 import packageJSON from '../../../../../package.json';
 import Logger from '../../../../util/Logger';
 import { applyVenueProfileCeiling } from './venueProfileCeiling';
-import {
-  SUPPORTED_DSL,
-  VENUE_PROFILE_ID,
-  type VenueIntentName,
-} from './venueProfileContract';
+import { VENUE_PROFILE_ID } from './venueProfileContract';
 import { RemoteVenueProfileClient } from './RemoteVenueProfileClient';
 import {
   BUNDLED_POLICY_RAW,
@@ -191,12 +187,16 @@ export type VenueProfileRefusal =
   | 'profile_ceiling';
 
 /** base64url SHA-256 over the raw profile bytes, unpadded. */
-export const venueProfileSha256 = (raw: string): string =>
-  Buffer.from(sha256(new TextEncoder().encode(raw)))
+export const venueProfileSha256 = (raw: string): string => {
+  let encoded = Buffer.from(sha256(new TextEncoder().encode(raw)))
     .toString('base64')
     .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/[=]+$/u, '');
+    .replaceAll('/', '_');
+  while (encoded.endsWith('=')) {
+    encoded = encoded.slice(0, -1);
+  }
+  return encoded;
+};
 
 const parsePolicy = (raw: string): VenueProfilePolicy | undefined => {
   let value: unknown;
@@ -779,7 +779,7 @@ export class VenueProfileResolver {
       return { reason: 'profile_malformed' };
     }
     const profile = validateSigningProfile(value);
-    if (!profile || profile.version !== expectedVersion) {
+    if (profile?.version !== expectedVersion) {
       return { reason: 'profile_malformed' };
     }
     const ceiling = applyVenueProfileCeiling(profile);

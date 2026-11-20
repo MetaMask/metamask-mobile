@@ -35,6 +35,34 @@ const isHttpPayload = (payload: unknown): payload is HttpRfc9421Payload =>
   payload !== null &&
   (payload as { kind?: unknown }).kind === 'http-rfc9421';
 
+const isWithinApi = (path: string): boolean => path.startsWith(API_PREFIX);
+
+const hasOnlyApiPaths = (profile: SigningProfile): boolean => {
+  const payloadPaths = Object.values(profile.payloads)
+    .filter(isHttpPayload)
+    .map((payload) => payload.path);
+  const readPaths = profile.reads.allow.map((read) => read.path);
+  return [...payloadPaths, ...readPaths].every(isWithinApi);
+};
+
+const carriesOrderInvariant = (profile: SigningProfile): boolean => {
+  const order = profile.intents.find((intent) => intent.id === 'order.place');
+  if (!order) {
+    return true;
+  }
+  const orderPayloads = order.payloads
+    .map((name) => profile.payloads[name])
+    .filter(isHttpPayload);
+  return (
+    orderPayloads.length > 0 &&
+    orderPayloads.every((payload) =>
+      (payload.invariants ?? []).some(
+        (invariant) => invariant.implementation === ORDER_INVARIANT,
+      ),
+    )
+  );
+};
+
 /**
  * Per-venue build ceiling. The registry may publish a profile that this
  * binary cannot honor — a newer DSL, an intent it does not implement, a path
@@ -53,38 +81,18 @@ export const applyVenueProfileCeiling = (
   if (!(SUPPORTED_DSL as readonly string[]).includes(profile.minDsl)) {
     return { ok: false, reason: 'unsupported_dsl' };
   }
-  for (const intent of profile.intents) {
-    if (!(KNOWN_INTENTS as readonly string[]).includes(intent.id)) {
-      return { ok: false, reason: 'unknown_intent' };
-    }
+  if (
+    profile.intents.some(
+      (intent) => !(KNOWN_INTENTS as readonly string[]).includes(intent.id),
+    )
+  ) {
+    return { ok: false, reason: 'unknown_intent' };
   }
-  const payloads = Object.entries(profile.payloads);
-  for (const [, payload] of payloads) {
-    if (!isHttpPayload(payload)) {
-      continue;
-    }
-    if (!payload.path.startsWith(API_PREFIX)) {
-      return { ok: false, reason: 'foreign_path' };
-    }
+  if (!hasOnlyApiPaths(profile)) {
+    return { ok: false, reason: 'foreign_path' };
   }
-  for (const read of profile.reads.allow) {
-    if (!read.path.startsWith(API_PREFIX)) {
-      return { ok: false, reason: 'foreign_path' };
-    }
-  }
-  const order = profile.intents.find((intent) => intent.id === 'order.place');
-  if (order) {
-    const orderPayloads = order.payloads
-      .map((name) => profile.payloads[name])
-      .filter(isHttpPayload);
-    const carriesInvariant = orderPayloads.every((payload) =>
-      (payload.invariants ?? []).some(
-        (invariant) => invariant.implementation === ORDER_INVARIANT,
-      ),
-    );
-    if (orderPayloads.length === 0 || !carriesInvariant) {
-      return { ok: false, reason: 'missing_order_invariant' };
-    }
+  if (!carriesOrderInvariant(profile)) {
+    return { ok: false, reason: 'missing_order_invariant' };
   }
   return { ok: true };
 };

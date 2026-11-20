@@ -250,14 +250,32 @@ export const sendSignedRead = async <Response>(
     return request;
   };
 
+  const retryAction = async (
+    response: Response,
+    retried: boolean,
+    allowRenew: boolean,
+  ): Promise<'refresh' | 'renew' | undefined> => {
+    const described = await readAttempt(response);
+    if (!retried && isProfileStale(described)) {
+      return 'refresh';
+    }
+    if (!allowRenew || retried || !isRenewable(described)) {
+      return undefined;
+    }
+    if (described.code === 'venue_authorization_invalid') {
+      deps.invalidateSigningSession();
+    }
+    return 'renew';
+  };
+
   const attempt = async (retried: boolean): Promise<Response> => {
     // Phase one: bearer-only. No header, no signature.
     requestSent = true;
     const first = await send();
     let proposed = await describedProposal(first);
     if (proposed === undefined) {
-      const described = await readAttempt(first);
-      if (!retried && isProfileStale(described)) {
+      const action = await retryAction(first, retried, false);
+      if (action === 'refresh') {
         await refreshVenueProfileAfterRefusal();
         return attempt(true);
       }
@@ -271,21 +289,14 @@ export const sendSignedRead = async <Response>(
       const response = await send(await sign(proposed), proposed);
       const next = await describedProposal(response);
       if (next === undefined) {
-        const described = await readAttempt(response);
-        if (!retried && isProfileStale(described)) {
+        const action = await retryAction(response, retried, true);
+        if (action === 'refresh') {
           await refreshVenueProfileAfterRefusal();
+        }
+        if (action) {
           return attempt(true);
         }
-        if (retried) {
-          return response;
-        }
-        if (!isRenewable(described)) {
-          return response;
-        }
-        if (described.code === 'venue_authorization_invalid') {
-          deps.invalidateSigningSession();
-        }
-        return attempt(true);
+        return response;
       }
       proposed = next;
     }

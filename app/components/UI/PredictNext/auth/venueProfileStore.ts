@@ -25,6 +25,24 @@ export const venueProfileCacheKey = (
   profileId: string,
 ): string => `predict.venue-profiles.${environment}.${profileId}`;
 
+const parseProfiles = (value: unknown): Record<string, string> => {
+  const profiles: Record<string, string> = {};
+  if (typeof value !== 'object' || value === null) {
+    return profiles;
+  }
+  for (const [version, profile] of Object.entries(value)) {
+    if (typeof profile === 'string') {
+      profiles[version] = profile;
+    }
+  }
+  return profiles;
+};
+
+const parseFloor = (value: unknown): number =>
+  typeof value === 'number' && Number.isSafeInteger(value)
+    ? Math.max(0, value)
+    : 0;
+
 /**
  * MMKV-backed cache of raw registry bytes and the admitted floor. It holds
  * no secrets: the policy and profiles are public and already in the bundle.
@@ -64,14 +82,6 @@ export class VenueProfileStore {
         return undefined;
       }
       const value = parsed as Partial<PersistedVenueProfiles>;
-      const profiles: Record<string, string> = {};
-      if (typeof value.profiles === 'object' && value.profiles !== null) {
-        for (const [version, profile] of Object.entries(value.profiles)) {
-          if (typeof profile === 'string') {
-            profiles[version] = profile;
-          }
-        }
-      }
       return {
         ...(typeof value.policyRaw === 'string'
           ? { policyRaw: value.policyRaw }
@@ -79,11 +89,8 @@ export class VenueProfileStore {
         ...(typeof value.policyEtag === 'string'
           ? { policyEtag: value.policyEtag }
           : {}),
-        profiles,
-        floor:
-          typeof value.floor === 'number' && Number.isSafeInteger(value.floor)
-            ? Math.max(0, value.floor)
-            : 0,
+        profiles: parseProfiles(value.profiles),
+        floor: parseFloor(value.floor),
         ...(typeof value.fetchedAt === 'number'
           ? { fetchedAt: value.fetchedAt }
           : {}),
