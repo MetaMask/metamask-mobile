@@ -121,31 +121,30 @@ export function summarizeScenario(samples) {
     widestSpanMs: audit.swapsWidestInclusiveMs || 0,
     ownedSelfMs: audit.swapsOwnedSelfMs || 0,
   }));
-  const stats = (field) => ({
-    median: percentile(
-      runs.map((run) => run[field]),
-      0.5,
-    ),
-    p90: percentile(
-      runs.map((run) => run[field]),
-      0.9,
-    ),
+  const stats = (values) => ({
+    median: percentile(values, 0.5),
+    p90: percentile(values, 0.9),
   });
   return {
     counts,
     runs,
-    widestSpanMs: stats('widestSpanMs'),
-    ownedSelfMs: stats('ownedSelfMs'),
+    widestSpanMs: stats(runs.map((run) => run.widestSpanMs)),
+    ownedSelfMs: stats(runs.map((run) => run.ownedSelfMs)),
     ownedAreas: topAreas(audits, 'swapsOwnedAreas'),
     calledBySwaps: topAreas(audits, 'nonSwapsOnPathAreas'),
     coRunning: topAreas(audits, 'nonSwapsConcurrentAreas'),
   };
 }
 
+/** Slack reads `<`, `>` and `&` as markup, so text taken from run artifacts is escaped. */
+const escapeSlack = (text) =>
+  text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const formatMs = (value) => `${Math.round(value).toLocaleString('en-US')}ms`;
 const formatAreas = (areas) =>
   areas.length
-    ? areas.map(({ area, avgMs }) => `${area} ${formatMs(avgMs)}`).join(', ')
+    ? areas
+        .map(({ area, avgMs }) => `${escapeSlack(area)} ${formatMs(avgMs)}`)
+        .join(', ')
     : 'none';
 
 export function buildSlackMessage(
@@ -154,7 +153,7 @@ export function buildSlackMessage(
 ) {
   const lines = [
     `:bar_chart: *Swaps CPU profile report, ${window.label}*`,
-    `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${devices.join(', ') || 'device unknown'}). Areas show average self time per run.`,
+    `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}). Areas show average self time per run.`,
   ];
   for (const { label, summary } of scenarios) {
     const { used, failed, unsymbolicated, missing } = summary.counts;

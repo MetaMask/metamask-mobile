@@ -21,10 +21,12 @@ import {
   summarizeScenario,
 } from './swaps-cpu-profile-report.mjs';
 
+const repo = process.env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile';
+const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'swaps-cpu-profile-'));
 const gh = (args) =>
   execFileSync('gh', args, { encoding: 'utf8', stdio: 'pipe' });
 
-function listRuns(repo, { start, end }) {
+function listRuns({ start, end }) {
   const created = `${start.toISOString()}..${end.toISOString()}`;
   const runs = gh(
     ['run', 'list', '-R', repo, '-w', PERFORMANCE_WORKFLOW]
@@ -34,7 +36,7 @@ function listRuns(repo, { start, end }) {
   return JSON.parse(runs).map((run) => run.databaseId);
 }
 
-function readArtifactJson(repo, runId, artifact, file, directory) {
+function readArtifactJson(runId, artifact, file) {
   const target = path.join(directory, `${runId}-${artifact}`);
   gh(['run', 'download', `${runId}`, '-R', repo, '-n', artifact, '-D', target]);
   return JSON.parse(fs.readFileSync(path.join(target, file), 'utf8'));
@@ -69,7 +71,6 @@ async function postToSlack(token, text) {
 async function main() {
   const env = process.env;
   const dryRun = env.DRY_RUN === 'true';
-  const repo = env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile';
   if (!env.GH_TOKEN || !env.OUT_DIR) {
     throw new Error('GH_TOKEN or OUT_DIR is not set');
   }
@@ -78,30 +79,23 @@ async function main() {
   }
 
   const window = lastWeek();
-  const runIds = listRuns(repo, window);
-  const directory = fs.mkdtempSync(
-    path.join(os.tmpdir(), 'swaps-cpu-profile-'),
-  );
+  const runIds = listRuns(window);
   const samples = SCENARIOS.map(() => []);
-  const devices = new Set();
+  const deviceNames = new Set();
   let runsRead = 0;
   for (const runId of runIds) {
     try {
       const report = readArtifactJson(
-        repo,
         runId,
         'app-profiling-analysis',
         'report.json',
-        directory,
       );
       const summary = readArtifactJson(
-        repo,
         runId,
         'aggregated-reports',
         'summary.json',
-        directory,
       );
-      summary.devices?.forEach(({ device }) => devices.add(device));
+      summary.devices?.forEach(({ device }) => deviceNames.add(device));
       const failed = failedTestNames(summary);
       SCENARIOS.forEach((scenario, index) =>
         samples[index].push(scenarioSample(report, failed, scenario)),
@@ -112,6 +106,7 @@ async function main() {
     }
   }
 
+  const devices = [...deviceNames];
   const scenarios = SCENARIOS.map((scenario, index) => ({
     ...scenario,
     summary: summarizeScenario(samples[index]),
@@ -119,12 +114,12 @@ async function main() {
   fs.mkdirSync(env.OUT_DIR, { recursive: true });
   fs.writeFileSync(
     path.join(env.OUT_DIR, 'summary.json'),
-    `${JSON.stringify({ window, runIds, runsRead, devices: [...devices], scenarios }, null, 2)}\n`,
+    `${JSON.stringify({ window, runIds, runsRead, devices, scenarios }, null, 2)}\n`,
   );
   const message = buildSlackMessage(scenarios, {
     window,
     runsRead,
-    devices: [...devices],
+    devices,
     runsFound: runIds.length,
     runUrl: env.GITHUB_RUN_URL || '',
   });

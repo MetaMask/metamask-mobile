@@ -142,4 +142,26 @@ describe('buildSlackMessage', () => {
     );
     expect(message).toContain('No passing, symbolicated runs this week.');
   });
+
+  it('escapes Slack markup in artifact-derived names', () => {
+    const sample = {
+      status: 'used',
+      audit: {
+        ...audit(300, 40),
+        swapsOwnedAreas: [{ area: '<!channel> & co', selfMs: 40 }],
+      },
+    };
+    const message = buildSlackMessage(
+      [{ label: 'ETH swap', summary: summarizeScenario([sample]) }],
+      {
+        window: { label: 'week' },
+        runsRead: 1,
+        runsFound: 1,
+        devices: ['<@U123>'],
+      },
+    );
+    expect(message).toContain('&lt;!channel&gt; &amp; co 40ms');
+    expect(message).toContain('(&lt;@U123&gt;)');
+    expect(message).not.toMatch(/<!channel>|<@U123>/);
+  });
 });

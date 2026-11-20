@@ -38,7 +38,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           OUT_DIR: /tmp/swaps-cpu-profile-report
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) && secrets.SLACK_BOT_TOKEN || '' }}
         run: node .github/scripts/swaps/cpu-profile-report/run-swaps-cpu-profile-report.mjs
 
       # The scheduled reports expire after 21 days; these summaries are the history.
