@@ -34,10 +34,7 @@ import {
   type DisplayOrder,
 } from '../../../utils/displayOrder';
 import { toDateFormat } from '../../../../../../util/date';
-import {
-  addCurrencySymbol,
-  renderFiat,
-} from '../../../../../../util/number/bigint';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import Text, {
   TextColor,
   TextVariant,
@@ -123,6 +120,7 @@ function DisplayOrderListItem({
     item.orderType,
   );
   const typeSlug = getOrderTypeSlug(item.orderType);
+  const { formatCurrency } = useFormatters();
 
   const title = item.providerName
     ? `${item.providerName}: ${strings(
@@ -166,10 +164,7 @@ function DisplayOrderListItem({
         >
           {item.fiatAmount == null
             ? '...'
-            : addCurrencySymbol(
-                renderFiat(Number(item.fiatAmount), ''),
-                item.fiatCurrencyCode,
-              )}
+            : formatCurrency(Number(item.fiatAmount), item.fiatCurrencyCode)}
         </Text>
       </ListItemColumnEnd>
     </ListItem>
