@@ -1,99 +1,59 @@
 import { selectCollectiblesEnabledFlag } from './featureFlags';
+// eslint-disable-next-line import-x/no-namespace
+import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('8.23.0'),
 }));
 
+jest.mock(
+  '../../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
+
 describe('selectCollectiblesEnabledFlag', () => {
-  it('returns true when flag is enabled and version is met', () => {
-    const state = {
-      settings: { basicFunctionalityEnabled: true },
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              collectiblesEnabled: {
-                enabled: true,
-                minimumVersion: '8.0.0',
-              },
-            },
-          },
-        },
-      },
-    };
+  let mockHasMinimumRequiredVersion: jest.SpyInstance;
 
-    expect(selectCollectiblesEnabledFlag(state)).toBe(true);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHasMinimumRequiredVersion = jest.spyOn(
+      remoteFeatureFlagModule,
+      'hasMinimumRequiredVersion',
+    );
+    mockHasMinimumRequiredVersion.mockReturnValue(true);
   });
 
-  it('returns false when flag is disabled', () => {
-    const state = {
-      settings: { basicFunctionalityEnabled: true },
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              collectiblesEnabled: {
-                enabled: false,
-                minimumVersion: '8.0.0',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    expect(selectCollectiblesEnabledFlag(state)).toBe(false);
+  afterEach(() => {
+    mockHasMinimumRequiredVersion?.mockRestore();
   });
 
-  it('returns false when version requirement is not met', () => {
-    const state = {
-      settings: { basicFunctionalityEnabled: true },
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              collectiblesEnabled: {
-                enabled: true,
-                minimumVersion: '999.0.0',
-              },
-            },
-          },
-        },
-      },
-    };
-
-    expect(selectCollectiblesEnabledFlag(state)).toBe(false);
-  });
-
-  it('returns false when flag is missing', () => {
-    const state = {
-      settings: { basicFunctionalityEnabled: true },
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {},
-          },
-        },
-      },
-    };
-
-    expect(selectCollectiblesEnabledFlag(state)).toBe(false);
-  });
-
-  it('returns false when flag is invalid', () => {
-    const state = {
-      settings: { basicFunctionalityEnabled: true },
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              collectiblesEnabled: 'invalid',
-            },
-          },
-        },
-      },
-    };
-
-    expect(selectCollectiblesEnabledFlag(state)).toBe(false);
+  it.each([
+    [
+      'enabled with version met',
+      { collectiblesEnabled: { enabled: true, minimumVersion: '8.0.0' } },
+      true,
+      true,
+    ],
+    [
+      'disabled',
+      { collectiblesEnabled: { enabled: false, minimumVersion: '8.0.0' } },
+      true,
+      false,
+    ],
+    [
+      'version not met',
+      { collectiblesEnabled: { enabled: true, minimumVersion: '999.0.0' } },
+      false,
+      false,
+    ],
+    ['missing', {}, true, false],
+    ['invalid', { collectiblesEnabled: 'invalid' }, true, false],
+  ])('returns %s: %s', (_description, remoteFlags, versionMet, expected) => {
+    mockHasMinimumRequiredVersion.mockReturnValue(versionMet);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const result = selectCollectiblesEnabledFlag.resultFunc(remoteFlags as any);
+    expect(result).toBe(expected);
   });
 });
