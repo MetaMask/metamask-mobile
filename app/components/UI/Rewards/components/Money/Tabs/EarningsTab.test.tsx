@@ -297,7 +297,7 @@ describe('EarningsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the breakdown and the claimable amount for a referrer while Social V1 is on', () => {
+  it('shows the breakdown and the lifetime balance for a referrer while Social V1 is on', () => {
     const { getByText, getByTestId, queryByTestId } = renderTab('referrer');
 
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
@@ -316,8 +316,8 @@ describe('EarningsTab', () => {
     expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).toBeOnTheScreen();
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    ).toHaveTextContent('$58.50');
+    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
     ).toBeOnTheScreen();
@@ -325,7 +325,9 @@ describe('EarningsTab', () => {
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
     ).toBeOnTheScreen();
     expect(getByText('$2.00')).toBeOnTheScreen();
-    expect(getByText('$58.50')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toHaveTextContent('$58.50');
   });
 
   it('shows the breakdown for a referee and keeps the claimable amount', () => {
@@ -653,7 +655,7 @@ describe('EarningsTab', () => {
   });
 
   it('does not offer Claim when the only balance is closed revenue share', () => {
-    const { queryByTestId, getByTestId } = renderTab('referrer', {
+    const { queryByTestId, getByTestId, getByText } = renderTab('referrer', {
       summary: {
         ...SUMMARY,
         claimable: '1000000',
@@ -673,9 +675,10 @@ describe('EarningsTab', () => {
       },
     });
 
+    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).toHaveTextContent('$1.00');
+    ).toHaveTextContent('$58.50');
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();

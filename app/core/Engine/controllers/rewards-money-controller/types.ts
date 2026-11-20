@@ -33,6 +33,7 @@ export type ReferralUserStatus = 'ACTIVE' | 'PAUSED';
 export type EarningOriginType =
   | 'SWAPS_FEE_CASHBACK'
   | 'PERPS_FEE_CASHBACK'
+  | 'PREDICT_FEE_CASHBACK'
   | 'REFERRAL_REV_SHARE'
   | 'SOCIAL_FOLLOW_TRADE';
 
