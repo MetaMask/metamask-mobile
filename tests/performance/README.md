@@ -645,10 +645,11 @@ Guard time never counts toward a metric:
   running `TimerHelper` / `TimerStore` timer
   (`TimerStore.excludeFromActiveTimers`). Overhead tracking is suspended while
   the guard runs, so the guard's own polls are not subtracted twice.
-- The phase timings attachment shows guard time as two extra phases:
-  `interrupting_screens_settle` and `interrupting_screens_recovery`. These
-  overlap their enclosing phase (for example `login`) and are a breakdown, not
-  additional time.
+- The phase timings attachment stores guard time as
+  `nested:interrupting_screens_settle` and
+  `nested:interrupting_screens_recovery`. The `nested:` prefix is the same one
+  `recordElapsedPhase` uses, so shard totals do not add it on top of the
+  enclosing phase.
 - Each dismissal is attached to the test as
   `interrupting-screen-dismissed-<screen>` (JSON with `source: registry | ai`,
   `trigger`, `locator`, `durationMs`, `duringActiveTimer`). When
@@ -709,8 +710,9 @@ locally:
    attachment with `trigger: "settle"`.
 3. In the TestMu session recording, check that the sheet slides up after
    Unlock and is closed with **No thanks** before the measured steps start.
-4. In `appium-phase-timings`, check that `interrupting_screens_settle` is
-   present and that the step timers do not include it.
+4. In `appium-phase-timings`, check that
+   `nested:interrupting_screens_settle` is present and that the step timers do
+   not include it.
 
 ## Environment Variables
 

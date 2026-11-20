@@ -48,7 +48,14 @@ export async function waitForWalletHomeReady(
       return true;
     }
     await deps.onNotReady();
-    if (dismissals < maxDismissals && (await deps.dismissInterruption())) {
+    const probeStartedAt = deps.now();
+    const dismissed =
+      dismissals < maxDismissals && (await deps.dismissInterruption());
+    // A page-source probe that finds nothing must not eat the readiness budget.
+    if (!dismissed) {
+      deadline += deps.now() - probeStartedAt;
+    }
+    if (dismissed) {
       dismissals++;
       deadline = Math.max(deadline, deps.now() + graceMs);
       continue;

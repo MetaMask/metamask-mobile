@@ -6,7 +6,11 @@ import {
 } from '../AppiumUtilities.ts';
 import TimerStore from '../TimerStore.ts';
 import { createAppiumLogger } from '../appiumLogger.ts';
-import { recordPhase } from '../telemetry/PhaseTimer.ts';
+import {
+  NESTED_PHASE_PREFIX,
+  isNestedPhase,
+  recordPhase,
+} from '../telemetry/PhaseTimer.ts';
 import {
   getElementForLocator,
   type RecoveredLocator,
@@ -192,6 +196,8 @@ export class InterruptingScreenGuard {
   #config: InterruptingScreenGuardConfig | undefined;
   #handling = false;
   #aiAttempts = 0;
+  /** Bumped by configure() so a timed-out test's leftover work cannot touch the next test. */
+  #generation = 0;
   readonly #adapter: InterruptingScreenDeviceAdapter;
 
   constructor(
@@ -204,6 +210,8 @@ export class InterruptingScreenGuard {
   configure(config: InterruptingScreenGuardConfig | undefined): void {
     this.#config = config;
     this.#aiAttempts = 0;
+    this.#handling = false;
+    this.#generation += 1;
   }
 
   /** False when unconfigured or while the guard itself is dismissing a screen. */
@@ -497,17 +505,26 @@ export class InterruptingScreenGuard {
     phase: string,
     fn: () => Promise<TResult>,
   ): Promise<TResult> {
+    const generation = this.#generation;
     this.#handling = true;
     const startedAt = this.#adapter.now();
     try {
       return await withOverheadTrackingSuspended(fn);
     } finally {
-      const elapsedMs = this.#adapter.now() - startedAt;
-      this.#handling = false;
-      TimerStore.excludeFromActiveTimers(elapsedMs);
-      recordPhase(phase, elapsedMs);
+      // A newer configure() means this work belongs to a test that already ended.
+      if (this.#generation === generation) {
+        const elapsedMs = this.#adapter.now() - startedAt;
+        this.#handling = false;
+        TimerStore.excludeFromActiveTimers(elapsedMs);
+        recordPhase(nestedPhase(phase), elapsedMs);
+      }
     }
   }
+}
+
+/** Shard totals skip `nested:` phases, which already sit inside their parent span. */
+function nestedPhase(phase: string): string {
+  return isNestedPhase(phase) ? phase : `${NESTED_PHASE_PREFIX}${phase}`;
 }
 
 /** Process-wide guard used by the shared Gestures / Assertions helpers. */

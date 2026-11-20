@@ -253,6 +253,37 @@ describe('InterruptingScreenGuard', () => {
     });
   });
 
+  describe('configure', () => {
+    it('drops leftover work so it cannot change the next test', async () => {
+      let release = () => undefined;
+      let firstRead = true;
+      const adapter = createAdapter([WALLET_HOME]);
+      adapter.getPageSource = () => {
+        if (firstRead) {
+          firstRead = false;
+          return new Promise((resolve) => {
+            release = () => resolve(WALLET_HOME);
+          });
+        }
+        return Promise.resolve(WALLET_HOME);
+      };
+      const guard = new InterruptingScreenGuard(adapter);
+      guard.configure({});
+      const pending = guard.settle({ windowMs: 1_000 });
+
+      guard.configure({});
+      TimerStore.createTimer('next');
+      TimerStore.startTimer('next');
+      const start = TimerStore.getTimer('next').start;
+      release();
+      await pending;
+
+      expect(guard.isActive()).toBe(true);
+      expect(TimerStore.getTimer('next').start).toBe(start);
+      expect(adapter.tapped).toEqual([]);
+    });
+  });
+
   describe('capturePageSource', () => {
     it('hands the page source to onPageSource', async () => {
       const adapter = createAdapter([WALLET_HOME]);

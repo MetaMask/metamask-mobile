@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
+import { buildSlackMessage } from './generate-slack-summary.mjs';
 import { fileURLToPath } from 'node:url';
 
 const scriptPath = path.join(
@@ -30,7 +31,12 @@ function render(summary, env = RUN_ENV) {
 
   const result = spawnSync('bash', [scriptPath, file], {
     encoding: 'utf8',
-    env: { ...process.env, ...env },
+    env: {
+      ...process.env,
+      ...env,
+      GITHUB_TOKEN: '',
+      GH_TOKEN: '',
+    },
   });
   assert.equal(result.status, 0, result.stderr);
 
@@ -156,6 +162,26 @@ test('escapes characters that would break the Slack JSON payload', () => {
 
   assert.match(text, /Swap "ETH"/);
   assert.match(text, /line one\nline two/);
+});
+
+test('does not call a crashed run a pass', () => {
+  const text = buildSlackMessage(
+    { uniqueTests: 0, failedTestsStats: { failedTestsByTeam: {} } },
+    { runIncomplete: true, runUrl: 'https://github.com/MetaMask/metamask-mobile/actions/runs/1' },
+  );
+
+  assert.match(text, /a test job failed before its results were recorded/);
+  assert.doesNotMatch(text, /all .* tests passed/);
+});
+
+test('fails when summary.json is not valid JSON', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'slack-summary-'));
+  const file = path.join(dir, 'summary.json');
+  fs.writeFileSync(file, '{');
+
+  const result = spawnSync('bash', [scriptPath, file], { encoding: 'utf8' });
+
+  assert.notEqual(result.status, 0);
 });
 
 test('reports a missing summary without a run link', () => {

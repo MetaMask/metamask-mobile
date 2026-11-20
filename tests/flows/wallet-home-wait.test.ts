@@ -87,6 +87,29 @@ describe('waitForWalletHomeReady', () => {
     expect(deps.dismissCalls).toBe(0);
   });
 
+  it('does not let a slow empty probe consume the readiness budget', async () => {
+    const deps = createDeps({
+      passMs: 100,
+      dismissMs: 4_000,
+      sheetUpUntilDismissed: false,
+    });
+    let checks = 0;
+    deps.isReady = async () => {
+      checks += 1;
+      deps.clock += 100;
+      return checks === 2;
+    };
+    deps.dismissInterruption = async () => {
+      deps.clock += 4_000;
+      return false;
+    };
+
+    const ready = await waitForWalletHomeReady(deps, { timeoutMs: 1_000 });
+
+    expect(ready).toBe(true);
+    expect(checks).toBe(2);
+  });
+
   it('stops extending the deadline when a sheet keeps reappearing', async () => {
     const deps = createDeps({
       passMs: 5_000,

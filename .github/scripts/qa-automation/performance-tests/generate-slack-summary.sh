@@ -6,6 +6,8 @@
 # inside a JSON "text" field.
 # Usage: ./generate-slack-summary.sh [summary.json]
 
+set -euo pipefail
+
 DIR="$(cd "$(dirname "$0")" && pwd)"
 TEXT="$(node "$DIR/generate-slack-summary.mjs" "$@")"
 printf '%s' "$TEXT" | jq -Rs '.' | sed 's/^"//; s/"$//'
