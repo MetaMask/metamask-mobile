@@ -11,9 +11,9 @@ export type PredictFundingAction = Extract<
  * Why a funding action cannot be offered. `resolving`: the Active Venue is
  * not known yet. `unavailable`: Predict is not available for the Active Venue
  * (`selectPredictAvailability`). `notImplemented`: this client has no flow
- * for the action on the Active Venue's implementation, whatever its
- * descriptor says. `unsupported`: the Active Venue's descriptor does not list
- * the action, or its capabilities are not resolved.
+ * for the action on the Active Venue's implementation, whatever its catalog
+ * says. `unsupported`: the Active Venue's catalog `actions` do not list the
+ * action, or its capabilities are not resolved.
  */
 export type PredictFundingUnavailableReason =
   | 'resolving'

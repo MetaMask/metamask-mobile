@@ -1,7 +1,5 @@
-import {
-  KALSHI_STATIC_VENUE_CATALOG,
-  POLYMARKET_STATIC_VENUE_CATALOG,
-} from '../config/venueCatalogs';
+import { POLYMARKET_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import {
   PREDICT_FEED_KEYS,
   PREDICT_VENUE_ACTIONS,
@@ -258,7 +256,6 @@ describe('resolveSurfaceFeeds', () => {
 
     expect(result).toEqual([
       { sectionId: 'now', feedKey: 'trending', feedId: 'venue-trending' },
-      { sectionId: 'macro', feedKey: 'politics', feedId: 'venue-politics' },
       { sectionId: 'rwas', feedKey: 'politics', feedId: 'venue-politics' },
     ]);
   });
@@ -272,7 +269,7 @@ describe('resolveSurfaceFeeds', () => {
     expect(result).toEqual([]);
   });
 
-  it('shows Kalshi V1 its football sections, Politics, and the Sports, Macro and RWAs tabs', () => {
+  it('shows Kalshi V1 its football sections, Politics, and the Sports and RWAs tabs', () => {
     const kalshi = resolveVenueCapabilities(
       KALSHI,
       read({ data: KALSHI_STATIC_VENUE_CATALOG }),
@@ -288,13 +285,11 @@ describe('resolveSurfaceFeeds', () => {
       'nfl-games',
       'college-football-games',
     ]);
-    // Macro and RWAs read the `politics` key, the Politics Category's Feed.
+    // RWAs reads the `politics` key, the Politics Category's Feed.
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.exploreTabs)).toEqual([
-      'macro',
       'rwas',
       'sports',
     ]);
-    expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.campaignRows)).toEqual([]);
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.nextHomeSections)).toEqual([
       'sports-football-nfl',
       'sports-football-ncaa',
@@ -329,13 +324,9 @@ describe('resolveSurfaceFeeds', () => {
     ]);
     expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.exploreTabs)).toEqual([
       'now',
-      'macro',
       'rwas',
       'crypto',
       'sports',
-    ]);
-    expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.campaignRows)).toEqual([
-      'predict-the-pitch',
     ]);
   });
 });

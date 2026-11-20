@@ -22,14 +22,9 @@ export const PREDICT_SURFACE_FEED_KEYS = {
   /** Prediction sections on the Explore (Trending) tabs (PRED-1408). */
   exploreTabs: {
     now: 'trending',
-    macro: 'politics',
     rwas: 'politics',
     crypto: 'crypto',
     sports: 'sports',
-  },
-  /** Rewards campaign rows. Predict The Pitch is a World Cup campaign. */
-  campaignRows: {
-    'predict-the-pitch': 'world-cup',
   },
   /** PredictNext Home preview sections, keyed by the Feed Screen each opens. */
   nextHomeSections: {
@@ -69,7 +64,6 @@ export const PREDICT_SURFACE_FEED_KEYS = {
 } as const satisfies {
   homepageSlots: Record<string, PredictFeedKey>;
   exploreTabs: Record<string, PredictFeedKey>;
-  campaignRows: Record<string, PredictFeedKey>;
   nextHomeSections: Record<string, PredictFeedKey>;
   nextFeedScreenTabs: Record<string, Record<string, PredictFeedKey>>;
 };

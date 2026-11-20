@@ -5410,6 +5410,13 @@
     "unknown": "Unknown",
     "stock": "Stock"
   },
+  "collectibles": {
+    "title": "Collectibles",
+    "home_section": {
+      "description": "Explore collectibles packs and cards.",
+      "open_collectibles": "Explore Collectibles"
+    }
+  },
   "collectible": {
     "collectible_address": "Address",
     "collectible_type": "Type",
@@ -13902,6 +13909,7 @@
       "money_account": "Money account",
       "renews_on": "Renews on",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} month on us",
       "months_on_us_other": "{{count}} months on us",
       "manage": "Manage plan",
