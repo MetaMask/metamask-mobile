@@ -1,11 +1,8 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
-import WatchlistSection, {
-  getSuggestedWatchlistTokens,
-} from './WatchlistSection';
+import { fireEvent, render } from '@testing-library/react-native';
+import WatchlistSection from './WatchlistSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
-import type { WatchlistTokenWithBalance } from '../../../../UI/Assets/watchlist/utils/addBalanceToTokens';
 
 let mockIsWatchlistEnabled = true;
 const mockNavigate = jest.fn();
@@ -35,19 +32,6 @@ jest.mock('../../../../UI/Assets/selectors/featureFlags', () => ({
   selectTokenWatchlistEnabled: jest.fn(),
 }));
 
-const mockToast = jest.fn();
-jest.mock('@metamask/design-system-react-native', () => {
-  const actualDesignSystem = jest.requireActual(
-    '@metamask/design-system-react-native',
-  );
-  return {
-    ...actualDesignSystem,
-    toast: Object.assign((...args: unknown[]) => mockToast(...args), {
-      dismiss: jest.fn(),
-    }),
-  };
-});
-
 const mockUseTokenWatchlistQuery = jest.fn();
 jest.mock(
   '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery',
@@ -65,32 +49,34 @@ jest.mock(
   }),
 );
 
-let mockWatchlistAssetIds: string[] = [];
-jest.mock('../../../../UI/Assets/watchlist/hooks/useTokenWatchlist', () => ({
-  useTokenWatchlistAssetIds: () => mockWatchlistAssetIds,
-}));
-
-const mockMutate = jest.fn();
+const mockAddMutation = { mutate: jest.fn() };
 jest.mock(
   '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations',
   () => ({
-    useTokenWatchlistAddItemMutation: () => ({
-      mutate: mockMutate,
-      isPending: false,
-    }),
+    useTokenWatchlistAddItemMutation: () => mockAddMutation,
   }),
 );
 
-const mockTrackEvent = jest.fn();
-const mockBuild = jest.fn().mockReturnValue({ event: 'mock' });
-const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
-const mockCreateEventBuilder = jest
-  .fn()
-  .mockReturnValue({ addProperties: mockAddProperties });
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
+const mockUseTokenWatchlistAssetIds = jest.fn();
+jest.mock('../../../../UI/Assets/watchlist/hooks/useTokenWatchlist', () => ({
+  useTokenWatchlistAssetIds: () => mockUseTokenWatchlistAssetIds(),
+}));
+
+const mockUseUnifiedWatchlist = jest.fn();
+jest.mock('../../../../UI/Watchlist/hooks/useUnifiedWatchlist', () => ({
+  useUnifiedWatchlist: () => mockUseUnifiedWatchlist(),
+}));
+
+const mockAddPerp = jest.fn();
+jest.mock('../../../../UI/Perps/hooks/usePerpsWatchlistActions', () => ({
+  usePerpsWatchlistActions: () => ({
+    addToWatchlist: mockAddPerp,
+  }),
+}));
+
+jest.mock('../../../../UI/Perps/hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({
+    navigateToMarketDetails: jest.fn(),
   }),
 }));
 
@@ -109,31 +95,63 @@ jest.mock('../../hooks/useSectionPerformance', () => ({
 jest.mock(
   '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem',
   () => {
-    const { Text, TouchableOpacity, View } = jest.requireActual('react-native');
+    const { Text, View } = jest.requireActual('react-native');
     const ReactActual = jest.requireActual('react');
-    const Mock = ({
-      token,
-      endAction,
-    }: {
-      token: { name: string };
-      endAction?: { type: string; onPress: () => void };
-    }) =>
+    const Mock = ({ token }: { token: { name: string } }) =>
       ReactActual.createElement(
         View,
         { testID: `row-${token.name}` },
         ReactActual.createElement(Text, null, token.name),
-        endAction?.type === 'watchlist'
-          ? ReactActual.createElement(TouchableOpacity, {
-              testID: `row-add-${token.name}`,
-              onPress: () => endAction.onPress(),
-            })
-          : null,
       );
     Mock.displayName = 'TrendingTokenRowItem';
     return {
       __esModule: true,
       default: ReactActual.memo(Mock),
     };
+  },
+);
+
+jest.mock('../../../../UI/Watchlist/WatchlistTokenRowItem', () => {
+  const { Text, View } = jest.requireActual('react-native');
+  const ReactActual = jest.requireActual('react');
+  const Mock = ({ token }: { token: { name: string } }) =>
+    ReactActual.createElement(
+      View,
+      { testID: `row-${token.name}` },
+      ReactActual.createElement(Text, null, token.name),
+    );
+  Mock.displayName = 'WatchlistTokenRowItem';
+  return {
+    __esModule: true,
+    default: ReactActual.memo(Mock),
+  };
+});
+
+const mockPerpsMarketRowItem = jest.fn();
+
+jest.mock(
+  '../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem',
+  () => {
+    const { Text, View } = jest.requireActual('react-native');
+    const ReactActual = jest.requireActual('react');
+
+    const Mock = ({
+      market,
+      showBadge,
+    }: {
+      market: { symbol: string };
+      showBadge?: boolean;
+    }) => {
+      mockPerpsMarketRowItem({ market, showBadge });
+      return ReactActual.createElement(
+        View,
+        { testID: `perps-row-${market.symbol}` },
+        ReactActual.createElement(Text, null, market.symbol),
+      );
+    };
+
+    Mock.displayName = 'PerpsMarketRowItem';
+    return { __esModule: true, default: ReactActual.memo(Mock) };
   },
 );
 
@@ -196,15 +214,18 @@ const makeToken = (name: string, isInWallet: boolean) => ({
   },
 });
 const makeWatchlistToken = (name: string) => makeToken(name, true);
-const makeSuggestedToken = (name: string) => makeToken(name, false);
-const makeSuggestedPool = (...names: string[]) =>
-  names.map((name) => makeToken(name, false));
+const makeWatchlistPerp = (symbol: string) => ({
+  kind: 'perp' as const,
+  key: `perp:hyperliquid:${symbol}`,
+  symbol,
+  status: 'resolved' as const,
+  market: { id: `hyperliquid:${symbol}`, symbol, name: symbol },
+});
 
 describe('WatchlistSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsWatchlistEnabled = true;
-    mockWatchlistAssetIds = [];
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: [],
       isLoading: false,
@@ -213,6 +234,36 @@ describe('WatchlistSection', () => {
     mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
       data: [],
       isLoading: false,
+    });
+    mockUseTokenWatchlistAssetIds.mockReturnValue([]);
+    mockUseUnifiedWatchlist.mockImplementation(() => {
+      const tokenQuery = mockUseTokenWatchlistQuery();
+      const tokenItems = (tokenQuery.data ?? [])
+        .slice()
+        .reverse()
+        .map((token: { assetId: string }) => ({
+          kind: 'token' as const,
+          key: `token:${token.assetId.toLowerCase()}`,
+          assetId: token.assetId,
+          token,
+        }));
+
+      return {
+        isUnifiedEnabled: false,
+        isPerpsEnabled: false,
+        orderedItems: tokenItems,
+        tokens: {
+          items: tokenItems,
+          isLoading: tokenQuery.isLoading,
+          error: null,
+        },
+        perps: { items: [], isLoading: false, error: null },
+        canUseLivePerpsPrices: false,
+        canRefresh: true,
+        isInitialLoading: false,
+        persistOrder: jest.fn(),
+        refresh: jest.fn(),
+      };
     });
   });
 
@@ -249,130 +300,309 @@ describe('WatchlistSection', () => {
     expect(getAllByTestId('trending-skeleton')).toHaveLength(5);
   });
 
-  it('renders up to 5 suggested tokens with add buttons when the watchlist is empty', () => {
-    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: makeSuggestedPool(
-        'bitcoin',
-        'ethereum',
-        'solana',
-        'bnb',
-        'pepe',
-        'doge',
-      ),
-      isLoading: false,
+  it('hides retry when token metadata is unavailable offline', () => {
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: false,
+      isPerpsEnabled: false,
+      orderedItems: [],
+      isOrderLoading: false,
+      tokens: {
+        items: [],
+        isLoading: false,
+        error: 'Watchlist metadata is unavailable offline',
+      },
+      perps: { items: [], isLoading: false, error: null },
+      suggestedPerps: [],
+      canUseLivePerpsPrices: false,
+      canRefresh: false,
+      canFetchSuggestions: false,
+      tokenMembershipAssetIds: ['eip155:1/slip44:60'],
+      isTokenMetadataComplete: false,
+      tokenCount: 1,
+      perpsCount: 0,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
+    });
+
+    const { getByText, queryByText } = renderSection();
+
+    expect(getByText('Unable to load watchlist items')).toBeOnTheScreen();
+    expect(queryByText('Try again')).not.toBeOnTheScreen();
+  });
+
+  it('shows the error row alongside partially hydrated legacy tokens', () => {
+    const token = makeWatchlistToken('watched');
+    const tokenItem = {
+      kind: 'token' as const,
+      key: `token:${token.assetId.toLowerCase()}`,
+      assetId: token.assetId,
+      token,
+    };
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: false,
+      isPerpsEnabled: false,
+      orderedItems: [tokenItem],
+      isOrderLoading: false,
+      tokens: {
+        items: [tokenItem],
+        isLoading: false,
+        error: 'Watchlist token metadata is incomplete',
+      },
+      perps: { items: [], isLoading: false, error: null },
+      suggestedPerps: [],
+      canUseLivePerpsPrices: false,
+      canRefresh: true,
+      canFetchSuggestions: true,
+      tokenMembershipAssetIds: [token.assetId, 'eip155:1/erc20:0xmissing'],
+      isTokenMetadataComplete: false,
+      tokenCount: 2,
+      perpsCount: 0,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
+    });
+
+    const { getByTestId } = renderSection();
+
+    expect(getByTestId('watchlist-error-row')).toBeOnTheScreen();
+    expect(getByTestId('row-watched')).toBeOnTheScreen();
+  });
+
+  it('interleaves token and Perps rows and caps the homepage preview at five', () => {
+    const tokens = ['eth', 'btc', 'sol', 'arb'].map(makeWatchlistToken);
+    const perps = ['ETH', 'BTC'].map(makeWatchlistPerp);
+
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: true,
+      isPerpsEnabled: true,
+      tokens: {
+        items: tokens.map((token) => ({
+          kind: 'token' as const,
+          key: `token:${token.assetId.toLowerCase()}`,
+          assetId: token.assetId,
+          token,
+        })),
+        isLoading: false,
+        error: null,
+      },
+      perps: { items: perps, isLoading: false, error: null },
+      orderedItems: [
+        {
+          kind: 'token' as const,
+          key: `token:${tokens[0].assetId.toLowerCase()}`,
+          assetId: tokens[0].assetId,
+          token: tokens[0],
+        },
+        perps[0],
+        {
+          kind: 'token' as const,
+          key: `token:${tokens[1].assetId.toLowerCase()}`,
+          assetId: tokens[1].assetId,
+          token: tokens[1],
+        },
+        perps[1],
+        ...tokens.slice(2).map((token) => ({
+          kind: 'token' as const,
+          key: `token:${token.assetId.toLowerCase()}`,
+          assetId: token.assetId,
+          token,
+        })),
+      ],
+      canUseLivePerpsPrices: false,
+      canRefresh: true,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
     });
 
     const { getByTestId, queryByTestId } = renderSection();
 
-    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
-    expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
-    expect(getByTestId('row-ethereum')).toBeOnTheScreen();
-    expect(getByTestId('row-solana')).toBeOnTheScreen();
-    expect(getByTestId('row-bnb')).toBeOnTheScreen();
-    expect(getByTestId('row-pepe')).toBeOnTheScreen();
-    expect(queryByTestId('row-doge')).not.toBeOnTheScreen();
-    expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();
-    expect(getByTestId('row-add-pepe')).toBeOnTheScreen();
-  });
-
-  it('renders the Suggested sub-header and 5-2=3 suggestions when the watchlist has 2 items', () => {
-    mockUseTokenWatchlistQuery.mockReturnValue({
-      data: [makeWatchlistToken('eth'), makeWatchlistToken('btc')],
-      isLoading: false,
-      refetch: jest.fn(),
-    });
-    mockWatchlistAssetIds = ['eip155:1/erc20:0xeth', 'eip155:1/erc20:0xbtc'];
-    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      // Watched tokens can appear in the pool and must be filtered out.
-      data: makeSuggestedPool(
-        'eth',
-        'btc',
-        'bitcoin',
-        'ethereum',
-        'solana',
-        'bnb',
+    expect(getByTestId('row-eth')).toBeDefined();
+    expect(getByTestId('perps-row-ETH')).toBeDefined();
+    expect(getByTestId('row-btc')).toBeDefined();
+    expect(getByTestId('perps-row-BTC')).toBeDefined();
+    expect(mockPerpsMarketRowItem.mock.calls).toHaveLength(2);
+    expect(
+      mockPerpsMarketRowItem.mock.calls.every(
+        ([{ showBadge }]) => showBadge === false,
       ),
-      isLoading: false,
-    });
-
-    const { getByTestId, getByText, queryByTestId } = renderSection();
-
-    expect(getByTestId('row-btc')).toBeOnTheScreen();
-    expect(getByTestId('row-eth')).toBeOnTheScreen();
-    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
-    expect(getByTestId('watchlist-suggested-header')).toBeOnTheScreen();
-    expect(getByText('Suggested')).toBeOnTheScreen();
-    expect(getByTestId('row-bitcoin')).toBeOnTheScreen();
-    expect(getByTestId('row-ethereum')).toBeOnTheScreen();
-    expect(getByTestId('row-solana')).toBeOnTheScreen();
-    expect(queryByTestId('row-bnb')).not.toBeOnTheScreen();
-    expect(queryByTestId('row-add-btc')).not.toBeOnTheScreen();
-    expect(queryByTestId('row-add-eth')).not.toBeOnTheScreen();
-    expect(getByTestId('row-add-bitcoin')).toBeOnTheScreen();
-    expect(getByTestId('row-add-solana')).toBeOnTheScreen();
+    ).toBe(true);
+    expect(getByTestId('row-sol')).toBeDefined();
+    expect(queryByTestId('row-arb')).toBeNull();
   });
 
-  it('adds a suggested token to the watchlist when its add button is pressed', () => {
-    const suggested = makeSuggestedToken('bitcoin');
-    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: [suggested],
-      isLoading: false,
-    });
-
-    const { getByTestId } = renderSection();
-
-    fireEvent.press(getByTestId('row-add-bitcoin'));
-
-    expect(mockMutate).toHaveBeenCalledTimes(1);
-    expect(mockMutate).toHaveBeenCalledWith(
-      suggested,
-      expect.objectContaining({ onSuccess: expect.any(Function) }),
-    );
-  });
-
-  it('does not toast on a successful homepage add — the optimistic move is the feedback', () => {
-    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: [makeSuggestedToken('bitcoin')],
-      isLoading: false,
-    });
-
-    const { getByTestId } = renderSection();
-
-    fireEvent.press(getByTestId('row-add-bitcoin'));
-
-    const { onSuccess } = mockMutate.mock.calls[0][1] as {
-      onSuccess: () => void;
-    };
-    act(() => {
-      onSuccess();
-    });
-
-    expect(mockToast).not.toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-    expect(mockTrackEvent).toHaveBeenCalledWith({ event: 'mock' });
-  });
-
-  it('shows suggested-token skeletons while suggestions are loading', () => {
-    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: undefined,
-      isLoading: true,
-    });
-
-    const { getAllByTestId, getByTestId } = renderSection();
-
-    expect(getByTestId('watchlist-suggested-skeleton')).toBeOnTheScreen();
-    expect(getAllByTestId('trending-skeleton')).toHaveLength(5);
-  });
-
-  it('renders the static fallback below the header when no suggested tokens are available', () => {
+  it('renders the static fallback when the watchlist has no saved items', () => {
     const { getByTestId, getByText, queryByTestId } = renderSection();
 
     expect(getByTestId('watchlist-empty-fallback')).toBeOnTheScreen();
     expect(getByTestId('watchlist-empty-icon')).toBeOnTheScreen();
     expect(getByText('You have no watchlist items yet')).toBeOnTheScreen();
+    expect(queryByTestId('row-bitcoin')).not.toBeOnTheScreen();
+  });
+
+  it('renders legacy suggestions when the unified rollout is disabled', () => {
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [makeWatchlistToken('suggested')],
+      isLoading: false,
+    });
+
+    const { getByTestId } = renderSection();
+
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(getByTestId('row-suggested')).toBeOnTheScreen();
+  });
+
+  it('renders legacy suggestions below saved items', () => {
+    mockUseTokenWatchlistQuery.mockReturnValue({
+      data: [makeWatchlistToken('watched')],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    mockUseTokenWatchlistAssetIds.mockReturnValue(['watched']);
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [makeWatchlistToken('suggested')],
+      isLoading: false,
+    });
+
+    const { getByTestId } = renderSection();
+
+    expect(getByTestId('row-watched')).toBeOnTheScreen();
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(getByTestId('row-suggested')).toBeOnTheScreen();
+  });
+
+  it('renders suggested Perps in the unified suggestion group', () => {
+    const suggestedPerp = makeWatchlistPerp('SOL').market;
+
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: true,
+      isPerpsEnabled: true,
+      orderedItems: [],
+      isOrderLoading: false,
+      tokens: { items: [], isLoading: false, error: null },
+      perps: { items: [], isLoading: false, error: null },
+      suggestedPerps: [suggestedPerp],
+      canUseLivePerpsPrices: false,
+      canRefresh: true,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
+    });
+
+    const { getByTestId } = renderSection();
+
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(getByTestId('perps-row-SOL')).toBeOnTheScreen();
+    expect(mockPerpsMarketRowItem).toHaveBeenCalledWith(
+      expect.objectContaining({ showBadge: false }),
+    );
+  });
+
+  it('renders unified suggestions below saved items', () => {
+    const watchedToken = makeWatchlistToken('watched');
+    const watchedItem = {
+      kind: 'token' as const,
+      key: `token:${watchedToken.assetId.toLowerCase()}`,
+      assetId: watchedToken.assetId,
+      token: watchedToken,
+    };
+
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: true,
+      isPerpsEnabled: true,
+      orderedItems: [watchedItem],
+      isOrderLoading: false,
+      tokens: { items: [watchedItem], isLoading: false, error: null },
+      perps: { items: [], isLoading: false, error: null },
+      suggestedPerps: [makeWatchlistPerp('SOL').market],
+      canUseLivePerpsPrices: false,
+      canRefresh: true,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
+    });
+
+    const { getByTestId } = renderSection();
+
+    expect(getByTestId('row-watched')).toBeOnTheScreen();
+    expect(getByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(getByTestId('perps-row-SOL')).toBeOnTheScreen();
+  });
+
+  it('keeps the homepage suggestion group capped at five items', () => {
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: true,
+      isPerpsEnabled: true,
+      orderedItems: [],
+      isOrderLoading: false,
+      tokens: { items: [], isLoading: false, error: null },
+      perps: { items: [], isLoading: false, error: null },
+      suggestedPerps: Array.from(
+        { length: 12 },
+        (_, index) => makeWatchlistPerp(`SUGGESTED-${index}`).market,
+      ),
+      canUseLivePerpsPrices: false,
+      canRefresh: true,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = renderSection();
+
+    expect(getByTestId('perps-row-SUGGESTED-0')).toBeOnTheScreen();
+    expect(getByTestId('perps-row-SUGGESTED-4')).toBeOnTheScreen();
+    expect(queryByTestId('perps-row-SUGGESTED-5')).not.toBeOnTheScreen();
+  });
+
+  it('uses authoritative membership to limit suggestions during partial hydration', () => {
+    const watchedToken = makeWatchlistToken('watched');
+    const watchedItem = {
+      kind: 'token' as const,
+      key: `token:${watchedToken.assetId.toLowerCase()}`,
+      assetId: watchedToken.assetId,
+      token: watchedToken,
+    };
+    mockUseUnifiedWatchlist.mockReturnValue({
+      isUnifiedEnabled: true,
+      isPerpsEnabled: true,
+      orderedItems: [watchedItem],
+      tokens: { items: [watchedItem], isLoading: false, error: null },
+      perps: { items: [], isLoading: false, error: null },
+      suggestedPerps: [],
+      canUseLivePerpsPrices: false,
+      canRefresh: true,
+      canFetchSuggestions: true,
+      tokenMembershipAssetIds: Array.from(
+        { length: 5 },
+        (_, index) => `eip155:1/erc20:0x${index}`,
+      ),
+      isTokenMetadataComplete: false,
+      tokenCount: 5,
+      perpsCount: 0,
+      isInitialLoading: false,
+      persistOrder: jest.fn(),
+      refresh: jest.fn(),
+    });
+    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
+      data: Array.from({ length: 5 }, (_, index) =>
+        makeWatchlistToken(`suggested-${index}`),
+      ),
+      isLoading: false,
+    });
+
+    const { queryByTestId } = renderSection();
+
     expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
-    expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
   });
 
   it('renders up to 5 tokens when watchlist has items (newest first)', () => {
@@ -400,26 +630,19 @@ describe('WatchlistSection', () => {
     expect(queryByTestId('row-eth')).toBeNull();
   });
 
-  it('hides the suggested section once the watchlist holds 5 tokens', () => {
+  it('renders only saved tokens when the watchlist holds 5 tokens', () => {
     const names = ['eth', 'btc', 'sol', 'doge', 'ada'];
     mockUseTokenWatchlistQuery.mockReturnValue({
       data: names.map(makeWatchlistToken),
       isLoading: false,
       refetch: jest.fn(),
     });
-    mockWatchlistAssetIds = names.map((name) => `eip155:1/erc20:0x${name}`);
-    mockUseSuggestedWatchlistItemsQuery.mockReturnValue({
-      data: makeSuggestedPool('bitcoin', 'ethereum', 'solana'),
-      isLoading: false,
-    });
 
     const { getByTestId, queryByTestId } = renderSection();
 
     expect(getByTestId('row-eth')).toBeOnTheScreen();
     expect(getByTestId('row-ada')).toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-section')).not.toBeOnTheScreen();
-    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
-    expect(queryByTestId('row-add-bitcoin')).not.toBeOnTheScreen();
+    expect(queryByTestId('row-bitcoin')).not.toBeOnTheScreen();
   });
 
   it('renders section header with watchlist testID', () => {
@@ -435,127 +658,5 @@ describe('WatchlistSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.WATCHLIST_FULL_VIEW,
     );
-  });
-});
-
-describe('getSuggestedWatchlistTokens', () => {
-  const makeSuggested = (symbol: string): WatchlistTokenWithBalance =>
-    ({
-      assetId: `eip155:1/erc20:0x${symbol}`,
-      symbol,
-      name: symbol,
-      decimals: 18,
-      balance: '0',
-      isInWallet: false,
-    }) as unknown as WatchlistTokenWithBalance;
-
-  const buildPool = (symbols: string[]): WatchlistTokenWithBalance[] =>
-    symbols.map(makeSuggested);
-
-  const buildWatchedIds = (
-    pool: WatchlistTokenWithBalance[],
-    watchedSymbols: string[],
-  ): string[] =>
-    pool
-      .filter((token) => watchedSymbols.includes(String(token.symbol)))
-      .map((token) => String(token.assetId));
-
-  const defaultPoolSymbols = ['a', 'b', 'c', 'd', 'e', 'f'];
-
-  interface SuggestedTokensTestCase {
-    description: string;
-    poolSymbols: string[];
-    watchedSymbols: string[];
-    expectedSymbols: string[];
-    limit?: number;
-    uppercaseWatchedIds?: boolean;
-  }
-
-  const testCases: SuggestedTokensTestCase[] = [
-    {
-      description:
-        'shows the full limit of suggestions when the watchlist is empty',
-      poolSymbols: defaultPoolSymbols,
-      watchedSymbols: [],
-      expectedSymbols: ['a', 'b', 'c', 'd', 'e'],
-    },
-    {
-      description:
-        'shows limit minus watchlist count suggestions (2 watched → 3)',
-      poolSymbols: defaultPoolSymbols,
-      watchedSymbols: ['a', 'b'],
-      expectedSymbols: ['c', 'd', 'e'],
-    },
-    {
-      description: 'excludes already-watchlisted tokens from the suggestions',
-      poolSymbols: defaultPoolSymbols,
-      watchedSymbols: ['d'],
-      expectedSymbols: ['a', 'b', 'c', 'e'],
-    },
-    {
-      description: 'compares asset IDs case-insensitively',
-      poolSymbols: defaultPoolSymbols,
-      watchedSymbols: ['a'],
-      expectedSymbols: ['b', 'c', 'd', 'e'],
-      uppercaseWatchedIds: true,
-    },
-    {
-      description: 'shows no suggestions once the watchlist reaches the limit',
-      poolSymbols: defaultPoolSymbols,
-      watchedSymbols: ['a', 'b', 'c', 'd', 'e'],
-      expectedSymbols: [],
-    },
-    {
-      description: 'shows no suggestions when the watchlist exceeds the limit',
-      poolSymbols: defaultPoolSymbols,
-      watchedSymbols: ['a', 'b', 'c', 'd', 'e', 'f'],
-      expectedSymbols: [],
-    },
-    {
-      description:
-        'returns fewer suggestions when the pool is smaller than the target',
-      poolSymbols: ['a'],
-      watchedSymbols: [],
-      expectedSymbols: ['a'],
-    },
-    {
-      description:
-        'returns an empty list when every suggested token is watched',
-      poolSymbols: ['a', 'b'],
-      watchedSymbols: ['a', 'b'],
-      expectedSymbols: [],
-    },
-    {
-      description: 'honors a custom limit',
-      poolSymbols: defaultPoolSymbols,
-      watchedSymbols: ['a'],
-      expectedSymbols: ['b', 'c'],
-      limit: 3,
-    },
-  ];
-
-  it.each(testCases)('$description', ({ ...testCase }) => {
-    const pool = buildPool(testCase.poolSymbols);
-    let watchedIds = buildWatchedIds(pool, testCase.watchedSymbols);
-    if (testCase.uppercaseWatchedIds) {
-      watchedIds = watchedIds.map((id) => id.toUpperCase());
-    }
-
-    const result = getSuggestedWatchlistTokens(
-      pool,
-      watchedIds,
-      testCase.limit,
-    );
-
-    expect(result.map((token) => token.symbol)).toEqual(
-      testCase.expectedSymbols,
-    );
-  });
-
-  it('caps at zero (no floor-of-one) once the watchlist is full', () => {
-    const pool = buildPool(defaultPoolSymbols);
-    const watchedIds = buildWatchedIds(pool, ['a', 'b', 'c', 'd', 'e']);
-
-    expect(getSuggestedWatchlistTokens(pool, watchedIds)).toEqual([]);
   });
 });

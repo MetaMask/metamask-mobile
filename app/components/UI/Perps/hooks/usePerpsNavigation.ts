@@ -174,13 +174,25 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       transactionActiveAbTests?: TransactionActiveAbTestEntry[],
       source_section?: string,
     ) => {
-      navigation.navigate(Routes.PERPS.MARKET_DETAILS, {
+      const params = {
         market,
         source,
         ...(transactionActiveAbTests?.length
           ? { transactionActiveAbTests }
           : {}),
         ...(source_section ? { source_section } : {}),
+      };
+
+      if (
+        navigation.getState()?.routeNames?.includes(Routes.PERPS.MARKET_DETAILS)
+      ) {
+        navigation.navigate(Routes.PERPS.MARKET_DETAILS, params);
+        return;
+      }
+
+      navigation.navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params,
       });
     },
     [navigation],
@@ -306,7 +318,6 @@ export const usePerpsNavigation = (): PerpsNavigationHandlers => {
       if (orderProvider === PROVIDER_CONFIG.LighterProvider) {
         if (
           params.providerId === PROVIDER_CONFIG.LighterProvider &&
-          activeProvider !== undefined &&
           activeProvider !== params.providerId
         ) {
           switchToOrderProvider()

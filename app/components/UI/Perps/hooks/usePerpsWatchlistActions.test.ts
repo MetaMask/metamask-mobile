@@ -47,14 +47,6 @@ jest.mock('./usePerpsEventTracking', () => ({
 }));
 
 const mockShowToast = jest.fn();
-const mockAdded = jest.fn((symbol: string) => ({
-  variant: 'success',
-  labelOptions: [{ label: `Added ${symbol} to watchlist` }],
-}));
-const mockRemoved = jest.fn((symbol: string) => ({
-  variant: 'info',
-  labelOptions: [{ label: `Removed ${symbol} from watchlist` }],
-}));
 const mockAddError = { variant: 'error', labelOptions: [] };
 const mockRemoveError = { variant: 'error', labelOptions: [] };
 const mockLimitReached = { variant: 'info', labelOptions: [] };
@@ -64,8 +56,6 @@ jest.mock('./usePerpsToasts', () => ({
     showToast: mockShowToast,
     PerpsToastOptions: {
       watchlist: {
-        added: mockAdded,
-        removed: mockRemoved,
         addError: mockAddError,
         removeError: mockRemoveError,
         limitReached: mockLimitReached,
@@ -91,23 +81,26 @@ describe('usePerpsWatchlistActions', () => {
   describe('feedback latency', () => {
     // TAT-3787: the toast and its haptic used to wait on the AUS network write
     // inside toggleWatchlistMarket, costing 500-1000ms after the press.
-    it('shows the added toast before the persist settles', async () => {
-      mockGetWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
+    it('does not show a toast before the persist settles', async () => {
+      let watchlist = ['BTC'];
+      mockGetWatchlistMarkets.mockImplementation(() => watchlist);
       let resolvePersist: () => void = () => undefined;
-      mockToggleWatchlistMarket.mockReturnValue(
-        new Promise<void>((resolve) => {
-          resolvePersist = resolve;
-        }),
+      mockToggleWatchlistMarket.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            watchlist = ['BTC', 'ETH'];
+            resolvePersist = resolve;
+          }),
       );
 
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
-      let pending: Promise<void> = Promise.resolve();
+      let pending: Promise<boolean> = Promise.resolve(false);
       await act(async () => {
         pending = result.current.addToWatchlist('ETH');
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(mockAdded('ETH'));
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockFlushState).toHaveBeenCalledTimes(1);
 
       await act(async () => {
@@ -118,23 +111,26 @@ describe('usePerpsWatchlistActions', () => {
       expect(mockFlushState).toHaveBeenCalledTimes(2);
     });
 
-    it('shows the removed toast before the persist settles', async () => {
-      mockGetWatchlistMarkets.mockReturnValue(['ETH']);
+    it('does not show a toast before the persist settles', async () => {
+      let watchlist = ['BTC'];
       let resolvePersist: () => void = () => undefined;
-      mockToggleWatchlistMarket.mockReturnValue(
-        new Promise<void>((resolve) => {
-          resolvePersist = resolve;
-        }),
+      mockGetWatchlistMarkets.mockImplementation(() => watchlist);
+      mockToggleWatchlistMarket.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            watchlist = [];
+            resolvePersist = resolve;
+          }),
       );
 
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
-      let pending: Promise<void> = Promise.resolve();
+      let pending: Promise<boolean> = Promise.resolve(true);
       await act(async () => {
         pending = result.current.removeFromWatchlist('BTC');
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockFlushState).toHaveBeenCalledTimes(1);
 
       await act(async () => {
@@ -164,12 +160,12 @@ describe('usePerpsWatchlistActions', () => {
 
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
-      let pending: Promise<void> = Promise.resolve();
+      let pending: Promise<boolean> = Promise.resolve(true);
       await act(async () => {
         pending = result.current.removeFromWatchlist('BTC');
       });
 
-      expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockFlushState).toHaveBeenCalledTimes(1);
 
       await act(async () => {
@@ -179,12 +175,18 @@ describe('usePerpsWatchlistActions', () => {
 
       expect(mockFlushState).toHaveBeenCalledTimes(2);
       expect(mockGetWatchlistMarkets()).toEqual(['BTC']);
-      expect(mockShowToast).not.toHaveBeenCalledWith(mockRemoveError);
+      await expect(pending).resolves.toBe(false);
+      expect(mockTrack).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(mockRemoveError);
     });
 
     it('keeps successful feedback when Redux state delivery throws', async () => {
       const flushError = new Error('Redux store does not exist');
-      mockGetWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
+      let watchlist = ['BTC'];
+      mockGetWatchlistMarkets.mockImplementation(() => watchlist);
+      mockToggleWatchlistMarket.mockImplementation(async () => {
+        watchlist = ['BTC', 'ETH'];
+      });
       mockFlushState.mockImplementation(() => {
         throw flushError;
       });
@@ -204,7 +206,7 @@ describe('usePerpsWatchlistActions', () => {
           [PERPS_EVENT_PROPERTY.ASSET]: 'ETH',
         }),
       );
-      expect(mockShowToast).toHaveBeenCalledWith(mockAdded('ETH'));
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockShowToast).not.toHaveBeenCalledWith(mockAddError);
       expect(Logger.error).toHaveBeenCalledWith(
         flushError,
@@ -229,7 +231,11 @@ describe('usePerpsWatchlistActions', () => {
     });
 
     it('fires PERPS_UI_INTERACTION analytics with FAVORITE_TOGGLED and FAVORITE_MARKET', async () => {
-      mockGetWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
+      let watchlist = ['BTC'];
+      mockGetWatchlistMarkets.mockImplementation(() => watchlist);
+      mockToggleWatchlistMarket.mockImplementation(async () => {
+        watchlist = ['BTC', 'ETH'];
+      });
 
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
@@ -250,13 +256,38 @@ describe('usePerpsWatchlistActions', () => {
       );
     });
 
+    it('returns false and skips analytics when persistence reverts the add', async () => {
+      let watchlist = ['BTC'];
+      mockGetWatchlistMarkets.mockImplementation(() => watchlist);
+      mockToggleWatchlistMarket.mockImplementation(async () => {
+        watchlist = ['BTC', 'ETH'];
+        await Promise.resolve();
+        watchlist = ['BTC'];
+      });
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+      let wasAdded = true;
+
+      await act(async () => {
+        wasAdded = await result.current.addToWatchlist('ETH');
+      });
+
+      expect(wasAdded).toBe(false);
+      expect(mockTrack).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(mockAddError);
+    });
+
     it('uses the provided source in analytics', async () => {
+      let watchlist = ['BTC'];
+      mockGetWatchlistMarkets.mockImplementation(() => watchlist);
+      mockToggleWatchlistMarket.mockImplementation(async () => {
+        watchlist = ['BTC', 'ETH'];
+      });
       const { result } = renderHook(() =>
         usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST),
       );
 
       await act(async () => {
-        await result.current.addToWatchlist('BTC');
+        await result.current.addToWatchlist('ETH');
       });
 
       expect(mockTrack).toHaveBeenCalledWith(
@@ -278,7 +309,7 @@ describe('usePerpsWatchlistActions', () => {
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
       await act(async () => {
-        await result.current.addToWatchlist('BTC');
+        await result.current.addToWatchlist('ETH');
       });
 
       expect(Logger.error).toHaveBeenCalledWith(
@@ -293,7 +324,7 @@ describe('usePerpsWatchlistActions', () => {
       expect(mockShowToast).toHaveBeenCalledWith(mockAddError);
     });
 
-    it('shows the added toast on successful add', async () => {
+    it('does not show a success toast on successful add', async () => {
       mockGetWatchlistMarkets.mockReturnValue(['BTC', 'ETH']);
 
       const { result } = renderHook(() => usePerpsWatchlistActions());
@@ -302,8 +333,7 @@ describe('usePerpsWatchlistActions', () => {
         await result.current.addToWatchlist('ETH');
       });
 
-      expect(mockAdded).toHaveBeenCalledWith('ETH');
-      expect(mockShowToast).toHaveBeenCalledWith(mockAdded('ETH'));
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('shows the limitReached toast and skips toggle when watchlist is full', async () => {
@@ -318,7 +348,6 @@ describe('usePerpsWatchlistActions', () => {
 
       expect(mockToggleWatchlistMarket).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledWith(mockLimitReached);
-      expect(mockAdded).not.toHaveBeenCalled();
     });
 
     it('does not call track when toggleWatchlistMarket throws', async () => {
@@ -329,9 +358,22 @@ describe('usePerpsWatchlistActions', () => {
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
       await act(async () => {
-        await result.current.addToWatchlist('BTC');
+        await result.current.addToWatchlist('ETH');
       });
 
+      expect(mockTrack).not.toHaveBeenCalled();
+    });
+
+    it('returns true without toggling when the market is already watched', async () => {
+      const { result } = renderHook(() => usePerpsWatchlistActions());
+      let wasAdded = false;
+
+      await act(async () => {
+        wasAdded = await result.current.addToWatchlist('BTC');
+      });
+
+      expect(wasAdded).toBe(true);
+      expect(mockToggleWatchlistMarket).not.toHaveBeenCalled();
       expect(mockTrack).not.toHaveBeenCalled();
     });
   });
@@ -348,7 +390,10 @@ describe('usePerpsWatchlistActions', () => {
     });
 
     it('fires UNFAVORITE_MARKET analytics', async () => {
-      mockGetWatchlistMarkets.mockReturnValue([]);
+      mockToggleWatchlistMarket.mockImplementationOnce(() => {
+        mockGetWatchlistMarkets.mockReturnValue([]);
+        return Promise.resolve();
+      });
 
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
@@ -367,8 +412,11 @@ describe('usePerpsWatchlistActions', () => {
       );
     });
 
-    it('shows the removed toast on successful remove', async () => {
-      mockGetWatchlistMarkets.mockReturnValue([]);
+    it('does not show a success toast on successful remove', async () => {
+      mockToggleWatchlistMarket.mockImplementationOnce(() => {
+        mockGetWatchlistMarkets.mockReturnValue([]);
+        return Promise.resolve();
+      });
 
       const { result } = renderHook(() => usePerpsWatchlistActions());
 
@@ -376,8 +424,7 @@ describe('usePerpsWatchlistActions', () => {
         await result.current.removeFromWatchlist('BTC');
       });
 
-      expect(mockRemoved).toHaveBeenCalledWith('BTC');
-      expect(mockShowToast).toHaveBeenCalledWith(mockRemoved('BTC'));
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
 
     it('calls Logger.error and shows the error toast on failure', async () => {
@@ -402,9 +449,6 @@ describe('usePerpsWatchlistActions', () => {
           }),
         }),
       );
-      // Previously no toast here, which held while the removed toast only fired
-      // after a successful write. It now shows optimistically, so the failure
-      // has to correct it rather than leave it contradicting the reverted star.
       expect(mockShowToast).toHaveBeenCalledWith(mockRemoveError);
     });
   });

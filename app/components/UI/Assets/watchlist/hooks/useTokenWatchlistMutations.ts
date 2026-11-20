@@ -154,12 +154,16 @@ const useWatchlistMutation = <TInput>({
   return useMutation<void, Error, TInput, WatchlistMutationContext>({
     mutationFn: (input) => tokenWatchlistBatcher.submit(toOp(input)),
     onMutate: async (input) => {
-      await queryClient.cancelQueries({
-        queryKey: tokenWatchlistQueryKeys.blob,
-      });
-      await queryClient.cancelQueries({
-        queryKey: tokenWatchlistQueryKeys.hydrated,
-      });
+      // Start cancellation synchronously, but do not delay visible feedback
+      // while React Query waits for both cancellation promises to settle.
+      const cancellation = Promise.all([
+        queryClient.cancelQueries({
+          queryKey: tokenWatchlistQueryKeys.blob,
+        }),
+        queryClient.cancelQueries({
+          queryKey: tokenWatchlistQueryKeys.hydrated,
+        }),
+      ]);
 
       const prevBlob = queryClient.getQueryData<WatchlistBlob>(
         tokenWatchlistQueryKeys.blob,
@@ -182,14 +186,16 @@ const useWatchlistMutation = <TInput>({
       queryClient.setQueryData<WatchlistTokenMetadata[]>(
         tokenWatchlistQueryKeys.hydrated,
         (old) => {
-          if (old === undefined) {
+          const addedTokens = optimisticTokens?.(input) ?? [];
+          if (old === undefined && addedTokens.length === 0) {
             return old;
           }
-          const tokens = [...(optimisticTokens?.(input) ?? []), ...old];
+          const tokens = [...addedTokens, ...(old ?? [])];
           return applyOptimisticToHydrated(tokens, nextAssets);
         },
       );
 
+      await cancellation;
       return { prevBlob, prevHydrated };
     },
     onError: (_err, _vars, ctx) => {

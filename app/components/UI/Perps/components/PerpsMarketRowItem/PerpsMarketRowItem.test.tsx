@@ -87,6 +87,18 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('BTC · $2.5B Vol')).toBeOnTheScreen();
     });
 
+    it('can hide the description prefix for watchlist rows', () => {
+      render(
+        <PerpsMarketRowItem
+          market={mockMarketData}
+          showDescriptionPrefix={false}
+        />,
+      );
+
+      expect(screen.getByText('$2.5B Vol')).toBeOnTheScreen();
+      expect(screen.queryByText('BTC · $2.5B Vol')).toBeNull();
+    });
+
     it('renders as a touchable component', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
@@ -525,6 +537,30 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.getByText('$55,000')).toBeOnTheScreen();
       // Should show updated volume (2 decimals with formatVolume)
       expect(screen.getByText('BTC · $3.00B Vol')).toBeOnTheScreen();
+    });
+
+    it('stops applying the cached live price when live prices are disabled', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '55000.00',
+          percentChange24h: '5.77',
+        },
+      });
+      const { rerender } = render(
+        <PerpsMarketRowItem market={mockMarketData} enableLivePrices />,
+      );
+
+      expect(screen.getByText('$55,000')).toBeOnTheScreen();
+
+      rerender(
+        <PerpsMarketRowItem market={mockMarketData} enableLivePrices={false} />,
+      );
+
+      expect(screen.getByText('$52,000')).toBeOnTheScreen();
+      expect(mockUsePerpsLivePrices).toHaveBeenLastCalledWith({
+        symbols: [],
+        throttleMs: 3000,
+      });
     });
 
     it('does not update when live price matches current price', () => {

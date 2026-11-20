@@ -1,4 +1,6 @@
 import '../../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
 import {
   renderWatchlistFullScreenViewWithRoutes,
   renderWatchlistSectionWithRoutes,
@@ -28,9 +30,13 @@ import {
 } from '@testing-library/react-native';
 import { WatchlistFullScreenViewSelectorsIDs } from './WatchlistFullScreenView.testIds';
 import { WatchlistSearchContentTestIds } from './WatchlistSearchContent.testIds';
+import { getPerpsMarketRowItemSelector } from '../../../../Perps/Perps.testIds';
 import { WatchlistSearchRowItemTestIds } from '../../components/WatchlistSearchRowItem/WatchlistSearchRowItem.testIds';
 import { WatchlistStarButtonTestIds } from '../../components/WatchlistStarButton.testIds';
-import { getTrendingTokenRowItemTestId } from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
+import {
+  getTrendingTokenRowAddButtonTestId,
+  getTrendingTokenRowItemTestId,
+} from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
 import { TrendingViewSelectorsIDs } from '../../../../../Views/TrendingView/TrendingView.testIds';
 import { WalletViewSelectorsIDs } from '../../../../../Views/Wallet/WalletView.testIds';
 import { formatPriceWithSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
@@ -40,8 +46,10 @@ const SEARCH_TOKEN = mockTrendingTokensData[1];
 
 const getRowTestId = (assetId: string) =>
   getTrendingTokenRowItemTestId(assetId);
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
   setupTrendingApiFetchMock(mockTrendingTokensData);
   setupWatchlistStorageMock();
   setupWatchlistTokenApiMock();
@@ -51,26 +59,25 @@ beforeEach(() => {
 afterEach(() => {
   clearWatchlistApiMocks();
   clearTrendingApiMocks();
+  netInfoMock.__resetMockNetInfo();
 });
 
 describeForPlatforms('WatchlistFullScreenView', () => {
-  it('loads and displays all token fields for each editable row (newest first)', async () => {
+  it('loads and displays all token fields for each watchlist row (newest first)', async () => {
     const { getAllByTestId } = renderWatchlistFullScreenViewWithRoutes({
       deterministicFiat: true,
     });
 
-    const editableRows = await waitFor(
+    const watchlistRows = await waitFor(
       () => {
-        const rows = getAllByTestId(
-          WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW,
-        );
+        const rows = getAllByTestId(WatchlistFullScreenViewSelectorsIDs.ROW);
         expect(rows).toHaveLength(NEWEST_FIRST_ASSET_IDS.length);
         return rows;
       },
       { timeout: 5000 },
     );
 
-    editableRows.forEach((row, index) => {
+    watchlistRows.forEach((row, index) => {
       const assetId = NEWEST_FIRST_ASSET_IDS[index];
       const tokenMeta = mockWatchlistTokensResponse.find(
         (token) => token.assetId === assetId,
@@ -97,35 +104,64 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     });
   });
 
-  it('removes a token in edit mode and persists the update to storage', async () => {
+  it('filters same-ticker token and Perps rows independently', async () => {
+    const tokenRowTestId = getRowTestId(NEWEST_FIRST_ASSET_IDS[0]);
+    const perpRowTestId = getPerpsMarketRowItemSelector.rowItem('ETH');
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['ETH'],
+        streamOverrides: {
+          marketData: [
+            {
+              symbol: 'ETH',
+              name: 'Ethereum Perpetual',
+              maxLeverage: '50x',
+              price: '$2,000.00',
+              change24h: '+$50.00',
+              change24hPercent: '+2.50%',
+              volume: '$1.5B',
+              openInterest: '$500M',
+            },
+          ],
+        },
+        deterministicFiat: true,
+      });
+
+    await findByTestId(tokenRowTestId);
+    await findByTestId(perpRowTestId);
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_PERPS),
+    );
+    await findByTestId(perpRowTestId);
+    expect(queryByTestId(tokenRowTestId)).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_TOKENS),
+    );
+    await findByTestId(tokenRowTestId);
+    expect(queryByTestId(perpRowTestId)).not.toBeOnTheScreen();
+  });
+
+  it('removes a token from the watchlist and persists the update to storage', async () => {
     const assetToRemove = NEWEST_FIRST_ASSET_IDS[0];
     const putScope = setupWatchlistStoragePutMock();
 
-    const { findByTestId, getAllByTestId, queryByTestId } =
+    const { findByTestId, queryByTestId } =
       renderWatchlistFullScreenViewWithRoutes({ deterministicFiat: true });
 
     await findByTestId(getRowTestId(assetToRemove));
 
-    fireEvent.press(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
-    );
-
-    const unwatchStars = getAllByTestId(
-      WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
-    );
-
     await act(async () => {
-      fireEvent.press(unwatchStars[0]);
+      fireEvent.press(
+        await findByTestId(getTrendingTokenRowAddButtonTestId(assetToRemove)),
+      );
     });
 
     await waitFor(() => {
       expect(queryByTestId(getRowTestId(assetToRemove))).not.toBeOnTheScreen();
     });
-    expect(putScope.isDone()).toBe(false);
-
-    fireEvent.press(
-      await findByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
-    );
 
     await waitFor(() => expect(putScope.isDone()).toBe(true));
     expect(

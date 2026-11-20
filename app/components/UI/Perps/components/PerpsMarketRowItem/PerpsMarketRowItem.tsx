@@ -5,9 +5,13 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   ButtonIcon,
   ButtonIconSize,
+  Box,
+  FontWeight,
   IconName,
   ListItem,
+  Text,
   TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
@@ -34,15 +38,23 @@ import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags'
 const PerpsMarketRowItem = ({
   market,
   onPress,
+  onLongPress,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   displayMetric = 'volume',
   showBadge = false,
   compact = false,
+  showDescriptionPrefix = true,
+  enableLivePrices = true,
   onAddPress,
+  onWatchlistPress,
+  isWatchlisted = false,
+  twClassName,
+  accessibilityActions,
+  onAccessibilityAction,
 }: PerpsMarketRowItemProps) => {
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
-    symbols: [market.symbol],
+    symbols: enableLivePrices ? [market.symbol] : [],
     throttleMs: 3000, // 3 seconds for list view
   });
 
@@ -50,7 +62,7 @@ const PerpsMarketRowItem = ({
 
   // Merge live price into market data
   const displayMarket = useMemo(() => {
-    const livePrice = livePrices[market.symbol];
+    const livePrice = enableLivePrices ? livePrices[market.symbol] : undefined;
     if (!livePrice) {
       return market;
     }
@@ -108,7 +120,7 @@ const PerpsMarketRowItem = ({
     }
 
     return updatedMarket;
-  }, [market, livePrices]);
+  }, [enableLivePrices, market, livePrices]);
 
   const handlePress = () => {
     onPress?.(displayMarket);
@@ -151,6 +163,7 @@ const PerpsMarketRowItem = ({
   const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
   const badgeType = getMarketBadgeType(displayMarket);
+  const descriptionBadgeType = showBadge ? badgeType : undefined;
 
   const assetLabel = useMemo(() => {
     const label =
@@ -164,12 +177,28 @@ const PerpsMarketRowItem = ({
   // so markets with no human-readable name still surface their ticker.
   const ticker = getPerpsDisplaySymbol(displayMarket.symbol);
 
-  const description = displayText ? `${ticker} \u00B7 ${displayText}` : ticker;
+  const descriptionPrefix = ticker;
+  const description = displayText
+    ? showDescriptionPrefix
+      ? `${descriptionPrefix} \u00B7 ${displayText}`
+      : displayText
+    : showDescriptionPrefix
+      ? descriptionPrefix
+      : '';
+  const shouldConstrainDescription =
+    compact || showBadge || !showDescriptionPrefix;
+  const rowTwClassName =
+    [compact ? 'py-2 min-h-0' : undefined, twClassName]
+      .filter(Boolean)
+      .join(' ') || undefined;
 
   return (
     <ListItem
       isInteractive
       onPress={handlePress}
+      onLongPress={onLongPress}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       testID={getPerpsMarketRowItemSelector.rowItem(market.symbol)}
       avatar={
         <PerpsTokenLogo
@@ -191,13 +220,46 @@ const PerpsMarketRowItem = ({
       titleEndAccessory={
         <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
       }
-      description={description}
-      descriptionEndAccessory={
-        showBadge && badgeType ? (
-          <PerpsBadge
-            type={badgeType}
-            testID={getPerpsMarketRowItemSelector.badge(displayMarket.symbol)}
-          />
+      description={descriptionBadgeType ? '\u200B' : description}
+      descriptionProps={
+        descriptionBadgeType
+          ? {
+              numberOfLines: 1,
+              // The visible description is rendered in the accessory below.
+              // Keep the ListItem's required description node zero-sized.
+              // eslint-disable-next-line react-native/no-inline-styles
+              style: { width: 0, height: 0, opacity: 0 },
+            }
+          : shouldConstrainDescription
+            ? {
+                numberOfLines: 1,
+                ellipsizeMode: 'tail',
+                // Keep the market badge inside the description column when the
+                // row is narrow; otherwise it can overflow into the price
+                // column.
+                // eslint-disable-next-line react-native/no-inline-styles
+                style: { flex: 1, minWidth: 0, flexShrink: 1 },
+              }
+            : undefined
+      }
+      descriptionStartAccessory={
+        descriptionBadgeType ? (
+          <Box twClassName="min-w-0 flex-1 flex-row items-center">
+            <PerpsBadge
+              type={descriptionBadgeType}
+              testID={getPerpsMarketRowItemSelector.badge(displayMarket.symbol)}
+            />
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              twClassName="min-w-0 flex-1"
+            >
+              {description}
+            </Text>
+          </Box>
         ) : undefined
       }
       value={displayMarket.price}
@@ -208,22 +270,31 @@ const PerpsMarketRowItem = ({
           : TextColor.ErrorDefault,
       }}
       endAccessory={
-        onAddPress ? (
+        onAddPress || onWatchlistPress ? (
           <ButtonIcon
-            iconName={IconName.Star}
+            iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
             size={ButtonIconSize.Md}
-            onPress={() => onAddPress(displayMarket)}
+            onPress={() => {
+              if (onWatchlistPress) {
+                onWatchlistPress(displayMarket);
+                return;
+              }
+              onAddPress?.(displayMarket);
+            }}
             accessibilityLabel={strings(
-              'perps.market_details.add_to_watchlist',
+              isWatchlisted
+                ? 'perps.market_details.remove_from_watchlist'
+                : 'perps.market_details.add_to_watchlist',
             )}
             testID={getPerpsMarketRowItemSelector.addButton(
               displayMarket.symbol,
             )}
+            twClassName="-mr-2"
           />
         ) : undefined
       }
-      accessoryGap={onAddPress ? 3 : undefined}
-      twClassName={compact ? 'py-2 min-h-0' : undefined}
+      accessoryGap={onAddPress || onWatchlistPress ? 3 : undefined}
+      twClassName={rowTwClassName}
     />
   );
 };

@@ -345,6 +345,42 @@ describe('useTokenWatchlistAddItemMutation (specifics)', () => {
   beforeEach(() => baseBeforeEach(EMPTY_BLOB));
   afterEach(baseAfterEach);
 
+  it('updates cold caches before query cancellation settles', async () => {
+    mockedRead.mockResolvedValue({ assets: [ASSET_A], version: 1 });
+    const { Wrapper, queryClient } = createWrapper();
+    seedCache(queryClient, { assets: [ASSET_A], version: 1 });
+    let resolveCancellation: () => void = () => undefined;
+    const cancellation = new Promise<void>((resolve) => {
+      resolveCancellation = resolve;
+    });
+    jest.spyOn(queryClient, 'cancelQueries').mockReturnValue(cancellation);
+    const { result, unmount } = renderHook(
+      () => useTokenWatchlistAddItemMutation(),
+      {
+        wrapper: Wrapper,
+      },
+    );
+    const addedToken = tokenFor(ASSET_B);
+
+    await act(async () => {
+      result.current.mutate(addedToken);
+      await Promise.resolve();
+    });
+
+    expect(queryClient.cancelQueries).toHaveBeenCalledTimes(2);
+    expect(readCache(queryClient)).toStrictEqual({
+      assets: [ASSET_A, ASSET_B],
+      version: 1,
+    });
+    expect(readHydratedCache(queryClient)).toStrictEqual([addedToken]);
+    expect(mockedWrite).not.toHaveBeenCalled();
+
+    unmount();
+    resolveCancellation();
+    await Promise.resolve();
+    await drainBatcher();
+  });
+
   it('appends multiple asset ids passed as an array and de-duplicates against existing assets', async () => {
     mockedRead.mockResolvedValue({ assets: [ASSET_A], version: 1 });
     const { Wrapper } = createWrapper();

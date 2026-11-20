@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react';
+import type { ListItem } from '@metamask/design-system-react-native';
 import {
   type PerpsMarketData,
   type SortField,
@@ -15,6 +17,10 @@ export interface PerpsMarketRowItemProps {
    * Callback when the row is pressed
    */
   onPress?: (market: PerpsMarketData) => void;
+  /**
+   * Callback when the row is long-pressed.
+   */
+  onLongPress?: () => void;
   /**
    * Size of the token icon (defaults to HOME_SCREEN_CONFIG.DefaultIconSize)
    */
@@ -41,8 +47,32 @@ export interface PerpsMarketRowItemProps {
    */
   compact?: boolean;
   /**
+   * Whether to include the ticker/pair prefix in the description.
+   * @default true
+   */
+  showDescriptionPrefix?: boolean;
+  /**
+   * Disables the row-level live price subscription for bounded/static rails.
+   */
+  enableLivePrices?: boolean;
+  /**
    * When provided, renders a trailing outline star button (e.g. add to watchlist).
    * The callback receives the current displayMarket (with live price merged in).
    */
   onAddPress?: (market: PerpsMarketData) => void;
+  /**
+   * When provided, renders a filled/outline favorite button for a market that
+   * already belongs to a watchlist.
+   */
+  onWatchlistPress?: (market: PerpsMarketData) => void;
+  /** Whether the favorite button should render as selected. */
+  isWatchlisted?: boolean;
+  /** Optional ListItem utility classes for embedding the row in a padded list. */
+  twClassName?: ComponentProps<typeof ListItem>['twClassName'];
+  accessibilityActions?: ComponentProps<
+    typeof ListItem
+  >['accessibilityActions'];
+  onAccessibilityAction?: ComponentProps<
+    typeof ListItem
+  >['onAccessibilityAction'];
 }

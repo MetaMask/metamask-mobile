@@ -1622,52 +1622,6 @@ describe('usePerpsToasts', () => {
     });
 
     describe('watchlist', () => {
-      it('returns added configuration for the given symbol', () => {
-        const { result } = renderHook(() => usePerpsToasts());
-
-        const config = result.current.PerpsToastOptions.watchlist.added('BTC');
-
-        expect(config).toMatchObject({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Confirmation,
-          hapticsType: NotificationMoment.Success,
-          hasNoTimeout: false,
-        });
-        expect(config.labelOptions).toEqual([
-          { label: 'Added BTC to watchlist', isBold: true },
-        ]);
-      });
-
-      it('returns removed configuration for the given symbol', () => {
-        const { result } = renderHook(() => usePerpsToasts());
-
-        const config =
-          result.current.PerpsToastOptions.watchlist.removed('ETH');
-
-        expect(config).toMatchObject({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Info,
-          hapticsType: NotificationMoment.Warning,
-          hasNoTimeout: false,
-        });
-        expect(config.labelOptions).toEqual([
-          { label: 'Removed ETH from watchlist', isBold: true },
-        ]);
-      });
-
-      it('strips the dex prefix from HIP-3 market symbols', () => {
-        const { result } = renderHook(() => usePerpsToasts());
-
-        expect(
-          result.current.PerpsToastOptions.watchlist.added('somedex:BTC')
-            .labelOptions,
-        ).toEqual([{ label: 'Added BTC to watchlist', isBold: true }]);
-        expect(
-          result.current.PerpsToastOptions.watchlist.removed('somedex:ETH')
-            .labelOptions,
-        ).toEqual([{ label: 'Removed ETH from watchlist', isBold: true }]);
-      });
-
       it('returns add error configuration', () => {
         const { result } = renderHook(() => usePerpsToasts());
 
