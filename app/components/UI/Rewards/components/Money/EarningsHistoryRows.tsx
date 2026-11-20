@@ -61,7 +61,7 @@ function earningIcon(origin: EarningOriginType): IconName {
     case 'REFERRAL_REV_SHARE':
       return IconName.UserCircleAdd;
     case 'SOCIAL_FOLLOW_TRADE':
-      return IconName.Copy;
+      return IconName.People;
     case 'PREDICT_FEE_CASHBACK':
       return IconName.Chart;
     // An undefined icon name crashes the design-system Icon.
