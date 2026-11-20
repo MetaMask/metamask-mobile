@@ -22,6 +22,8 @@ export enum MoneyPostOnboardingRedirectType {
 /** Card screen to open after Money onboarding when the redirect type is CARD. */
 export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
 
+export type MoneyEarningsTab = 'earnings' | 'apy' | 'allocation';
+
 export interface MoneyPreferredPaymentToken {
   address: Hex;
   chainId: Hex;
@@ -125,6 +127,10 @@ interface MoneyPotentialEarningsParams {
   overrideToUsd?: boolean;
 }
 
+interface MoneyEarningsParams {
+  activeTab?: MoneyEarningsTab;
+}
+
 /**
  * Selection returned by the rescue recipient screen. Only the account *id*
  * travels through navigation; the review screen resolves it against the
@@ -147,6 +153,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
+    MoneyEarnings: MoneyEarningsParams | undefined;
     MoneyPotentialEarnings: MoneyPotentialEarningsParams | undefined;
     MoneyMusdRescueSend: MoneyMusdRescueRecipientSelection | undefined;
     MoneyMusdRescueRecipient: { selectedRecipientId?: string } | undefined;

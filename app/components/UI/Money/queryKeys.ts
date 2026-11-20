@@ -1,6 +1,14 @@
 import { MoneyAccountBalanceService } from '@metamask/money-account-balance-service';
 import { MoneyAccountApiDataService } from '@metamask/money-account-api-data-service';
 
+export const MoneyQueryKeys = {
+  /**
+   * Temporary key for historical earnings fetched directly until
+   * MoneyAccountApiDataService supports this query.
+   */
+  FETCH_INTEREST_HISTORY: 'money:fetchInterestHistory',
+} as const;
+
 export const MoneyAccountBalanceServiceQueryKeys = {
   GET_MUSD_BALANCE: `${MoneyAccountBalanceService.name}:getMusdBalance`,
   GET_VMUSD_BALANCE: `${MoneyAccountBalanceService.name}:getVmusdBalance`,

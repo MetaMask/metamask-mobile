@@ -4281,6 +4281,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyEarningHistoryEnabled: {
+    name: 'earnMoneyEarningHistoryEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.21.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyDepositBrazeCampaignEnabled: {
     name: 'earnMoneyDepositBrazeCampaignEnabled',
     type: FeatureFlagType.Remote,
