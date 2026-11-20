@@ -10367,9 +10367,6 @@
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
     }
   },
   "app/components/UI/Ramp/Aggregator/Views/Settings/ActivationKeyForm.tsx": {
