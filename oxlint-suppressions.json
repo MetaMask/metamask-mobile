@@ -8620,7 +8620,7 @@
   },
   "app/components/Views/ProSubscription/screens/Benefits/hooks/useMoneyAccountPlusTrialEligibility.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 3
+      "count": 2
     }
   },
   "app/components/Views/QRAccountDisplay/QRAccountDisplay.test.tsx": {
@@ -8860,6 +8860,11 @@
     }
   },
   "app/components/Views/Settings/DeveloperOptions/SentryTest.tsx": {
+    "typescript/no-misused-promises": {
+      "count": 1
+    }
+  },
+  "app/components/Views/Settings/DeveloperOptions/SubscriptionDeveloperOptionsSection.tsx": {
     "typescript/no-misused-promises": {
       "count": 1
     }

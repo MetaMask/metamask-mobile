@@ -1012,6 +1012,7 @@
       "perpsChartPreferences": {
         "preferredCandlePeriod": "15m"
       },
+      "perpsCrossMarginConfirmedAccounts": {},
       "perpsMarketListPreferences": {
         "marketTypeFilter": "all",
         "showFavoritesOnly": false
