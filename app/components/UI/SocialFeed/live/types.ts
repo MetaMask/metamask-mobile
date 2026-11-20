@@ -15,7 +15,7 @@ export type SocialLivePriceKey = `spot:${CaipAssetType}` | `perp:${string}`;
 export interface SocialLivePriceSource {
   key: SocialLivePriceKey;
   kind: 'spot' | 'perp';
-  /** CAIP-19 id for the `market-data.v1` channel. Spot only. */
+  /** CAIP-19 id for the `ohlcv.v1` channel. Spot only. */
   assetId?: CaipAssetType;
   /** Hyperliquid market symbol (`BTC`, `xyz:NVDA`). Perps only. */
   symbol?: string;

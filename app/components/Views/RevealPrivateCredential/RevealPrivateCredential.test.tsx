@@ -23,10 +23,7 @@ import {
   SrpSecurityQuestionTwoSelectorsIDs,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Quiz/SRPQuiz/SrpQuizModal.testIds';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 
 const MOCK_PASSWORD = 'word1 word2 word3 word4';
 
@@ -54,6 +51,19 @@ const mockCreateEventBuilder = jest
 // Mock useAuthentication hook
 const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actualDesignSystem = jest.requireActual(
+    '@metamask/design-system-react-native',
+  );
+
+  return {
+    ...actualDesignSystem,
+    toast: Object.assign(jest.fn(), {
+      dismiss: jest.fn(),
+    }),
+  };
+});
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -1097,27 +1107,11 @@ describe('RevealPrivateCredential', () => {
   });
 
   describe('clipboard functionality', () => {
-    const mockShowToast = jest.fn();
-    const mockToastRef = {
-      current: { showToast: mockShowToast, closeToast: jest.fn() },
-    };
-
-    const renderWithClipboardProviders = (ui: React.ReactElement) =>
-      render(
-        <Provider store={store}>
-          <ThemeContext.Provider value={mockTheme}>
-            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              {ui}
-            </ToastContext.Provider>
-          </ThemeContext.Provider>
-        </Provider>,
-      );
-
     it('copies SRP to clipboard when copy button is pressed', async () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { getByTestId } = renderWithClipboardProviders(
+      const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential cancel={() => null} />,
       );
 
@@ -1146,7 +1140,7 @@ describe('RevealPrivateCredential', () => {
       mockReauthenticate.mockResolvedValue({ password: 'test-password' });
       mockRevealSRP.mockResolvedValue(MOCK_PASSWORD);
 
-      const { getByTestId } = renderWithClipboardProviders(
+      const { getByTestId } = renderWithProviders(
         <RevealPrivateCredential cancel={() => null} />,
       );
 
@@ -1167,16 +1161,11 @@ describe('RevealPrivateCredential', () => {
       fireEvent.press(copyButton);
 
       await waitFor(() => {
-        expect(mockShowToast).toHaveBeenCalledWith(
-          expect.objectContaining({
-            variant: ToastVariants.Plain,
-            labelOptions: expect.arrayContaining([
-              expect.objectContaining({
-                label: expect.any(String),
-              }),
-            ]),
-          }),
-        );
+        expect(toast).toHaveBeenCalledWith({
+          title: strings('reveal_credential.copied_to_clipboard'),
+          hasNoTimeout: false,
+          showCloseButton: false,
+        });
       });
     });
   });

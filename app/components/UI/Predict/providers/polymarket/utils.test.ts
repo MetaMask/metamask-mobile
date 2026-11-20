@@ -2,6 +2,7 @@ import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { Interface } from 'ethers/lib/utils';
+import { captureMessage } from '@sentry/react-native';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
@@ -14,6 +15,7 @@ import {
   type PredictOutcome,
   type PredictSportsLeague,
 } from '../../types';
+import type { PredictFeeCollection } from '../../types/flags';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
@@ -30,6 +32,7 @@ import {
   calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
+  clearMarketTagSlugsCache,
   createApiKey,
   deriveApiKey,
   encodeRouterRedeem,
@@ -389,6 +392,7 @@ describe('polymarket utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     clearClobMarketInfoSessionState();
+    clearMarketTagSlugsCache();
     mockSignTypedMessage.mockResolvedValue('0xsig');
     mockFindNetworkClientIdByChainId.mockReturnValue('test-network-client-id');
     mockGetNetworkClientById.mockReturnValue({
@@ -3264,6 +3268,66 @@ describe('polymarket utils', () => {
     expect(result).toEqual({ fees: waivedFees });
   });
 
+  describe('fee waiver market lookup', () => {
+    const waiverFeeCollection: PredictFeeCollection = {
+      enabled: true,
+      metamaskFee: 0.02,
+      providerFee: 0.03,
+      waiveList: ['middle-east'],
+      collector: '0x1111111111111111111111111111111111111111',
+      executors: [],
+      permit2Enabled: false,
+    };
+
+    it('fetches market tags once across repeated and overlapping previews', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          tags: [{ slug: 'middle-east' }],
+        }),
+      });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const results = await Promise.all([
+        calculateFees(params),
+        calculateFees(params),
+      ]);
+      results.push(await calculateFees(params));
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      for (const { fees } of results) {
+        expect(fees.totalFee).toBe(0);
+      }
+    });
+
+    it('retries the market tags lookup after a failure', async () => {
+      mockFetch
+        .mockRejectedValueOnce(new Error('gamma unavailable'))
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            tags: [{ slug: 'middle-east' }],
+          }),
+        });
+      const params = {
+        feeCollection: waiverFeeCollection,
+        marketId: 'market-1',
+        userBetAmount: 10,
+      };
+
+      const failed = await calculateFees(params);
+      const retried = await calculateFees(params);
+
+      expect(failed.fees.totalFee).toBe(0.5);
+      expect(retried.fees.totalFee).toBe(0);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it('uses configured service fees when no membership policy is available', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -4413,6 +4477,87 @@ describe('parseCryptoPriceProvider', () => {
     expect(parsePolymarketEvents([event], 'crypto')[0]).toEqual(
       expect.objectContaining({ cryptoPriceProvider: 'binance' }),
     );
+  });
+
+  describe('a crypto up/down market without a known vendor', () => {
+    const cryptoEvent = (
+      id: string,
+      resolutionSource?: string,
+    ): PolymarketApiEvent => ({
+      id,
+      slug: 'btc-updown-5m-1763000000',
+      title: 'Bitcoin Up or Down',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: 'series',
+          slug: 'btc-up-or-down-5m',
+          title: 'BTC Up or Down 5m',
+          recurrence: '5m',
+        },
+      ],
+      markets: [{ ...createPolymarketApiMarket(), resolutionSource }],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+    });
+
+    beforeEach(() => {
+      jest.mocked(captureMessage).mockClear();
+    });
+
+    it.each([
+      ['an unknown', 'unknown-source-event', 'https://pythdata.app/BTC'],
+      ['a missing', 'missing-source-event', undefined],
+    ])(
+      'warns Sentry once for %s resolution source',
+      (_case, id, resolutionSource) => {
+        const event = cryptoEvent(id, resolutionSource);
+
+        parsePolymarketEvents([event], 'crypto');
+        parsePolymarketEvents([event], 'crypto');
+
+        expect(jest.mocked(captureMessage).mock.calls).toEqual([
+          [
+            'Polymarket: crypto market settles on an unknown vendor',
+            {
+              level: 'warning',
+              tags: { feature: 'Predict', provider: 'polymarket' },
+              contexts: {
+                parsePolymarketEvents: {
+                  marketId: id,
+                  slug: 'btc-updown-5m-1763000000',
+                  symbol: 'BTC',
+                  resolutionSource: resolutionSource ?? null,
+                  defaultProvider: 'chainlink',
+                },
+              },
+            },
+          ],
+        ]);
+      },
+    );
+
+    it('does not warn for a known vendor or a market that is not crypto up/down', () => {
+      parsePolymarketEvents(
+        [
+          cryptoEvent(
+            'chainlink-source-event',
+            'https://data.chain.link/streams/btc-usd',
+          ),
+          { ...cryptoEvent('not-crypto-event'), tags: [] },
+        ],
+        'crypto',
+      );
+
+      expect(jest.mocked(captureMessage)).not.toHaveBeenCalled();
+    });
   });
 });
 

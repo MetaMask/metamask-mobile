@@ -17,7 +17,11 @@ const MarketSeparator = () => (
 export interface MarketListProps<T>
   extends Pick<
     FlatListProps<T>,
-    'initialNumToRender' | 'maxToRenderPerBatch' | 'windowSize'
+    | 'initialNumToRender'
+    | 'maxToRenderPerBatch'
+    | 'windowSize'
+    | 'onViewableItemsChanged'
+    | 'viewabilityConfig'
   > {
   data: readonly T[];
   keyExtractor: (item: T) => string;
@@ -41,6 +45,8 @@ export const MarketList = <T,>({
   initialNumToRender,
   maxToRenderPerBatch,
   windowSize,
+  onViewableItemsChanged,
+  viewabilityConfig,
   isSeparated,
 }: MarketListProps<T>) => {
   const tw = useTailwind();
@@ -75,6 +81,8 @@ export const MarketList = <T,>({
       initialNumToRender={initialNumToRender}
       maxToRenderPerBatch={maxToRenderPerBatch}
       windowSize={windowSize}
+      onViewableItemsChanged={onViewableItemsChanged}
+      viewabilityConfig={viewabilityConfig}
       extraData={extraData}
       renderItem={handleRenderItem}
       keyExtractor={keyExtractor}

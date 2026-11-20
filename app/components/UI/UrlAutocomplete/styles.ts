@@ -36,7 +36,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     bookmarkIco: {
       width: 26,
       height: 26,
-      marginRight: 7,
+      marginRight: 8,
       borderRadius: 13,
     },
     fallbackTextStyle: {

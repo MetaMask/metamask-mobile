@@ -3,7 +3,7 @@ import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/se
 /**
  * Shared readiness rules for Rewards tab time-to-content and RewardsHome routing.
  *
- * Mirrors RewardsHome + OnboardingMainStep's skeleton gate:
+ * Mirrors RewardsHome's skeleton gate:
  * - version blocked → update-required screen is content
  * - Money enabled but the referral persona unresolved → hold the tab (no home)
  * - referrer / referee → the Money dashboard is content
@@ -13,7 +13,6 @@ import type { MoneyDashboardPersona } from '../../../../reducers/rewardsMoney/se
  */
 export type RewardsTabContentVariant =
   | 'dashboard'
-  | 'onboarding'
   | 'update_required'
   | 'money_dashboard';
 

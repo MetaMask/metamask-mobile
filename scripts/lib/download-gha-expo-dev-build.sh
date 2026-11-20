@@ -201,12 +201,111 @@ find_latest_run_with_artifact() {
   return 1
 }
 
+resolve_local_commit() {
+  git -C "$REPO_ROOT" rev-parse --verify --quiet "${1}^{commit}" 2>/dev/null || true
+}
+
+# --match-checkout: instead of the newest artifact on the branch, pick the newest artifact
+# whose producing commit is an ancestor of (or equal to) the given ref. Because a feature
+# branch contains the main commits it was cut from, this returns the dev build that matches
+# what the checkout actually expects natively, instead of a newer main build that may
+# contain native modules the checked-out JS does not know about (or lack ones it needs).
+#
+# Same artifact query, run verification, and indeterminate-error handling as
+# find_latest_run_with_artifact; only the candidate filter differs. The ancestry checks are
+# local git operations, so they cost no API calls. MAX_CANDIDATE_RUNS still caps the
+# per-run verification calls.
+#
+# Never falls back to the latest build: silently returning a mismatched binary is exactly
+# the failure this mode exists to prevent.
+find_nearest_run_with_artifact() {
+  local artifact_name="$1"
+  local branch="$2"
+  local ref="$3"
+  local target_sha
+  local matches
+  local sorted
+  local created_at
+  local run_id
+  local head_sha
+  local checked=0
+  local unknown_commits=0
+  local verify_status
+
+  target_sha="$(resolve_local_commit "$ref")"
+  if [[ -z "$target_sha" ]]; then
+    echo -e "${RED}❌ Cannot resolve git ref \"${ref}\" in ${REPO_ROOT}${NC}" >&2
+    return 1
+  fi
+
+  if ! gh_api_capture "repos/${GITHUB_REPO}/actions/artifacts?name=${artifact_name}&per_page=100" \
+    --paginate \
+    --jq ".artifacts[] | select(.expired == false and .workflow_run.head_branch == \"${branch}\") | \"\(.created_at)|\(.workflow_run.id)|\(.workflow_run.head_sha)\""; then
+    report_gh_api_failure "Failed to query GitHub Actions artifacts for \"${artifact_name}\""
+    return 1
+  fi
+  matches="$GH_API_OUT"
+  # Newest first; see find_latest_run_with_artifact for why this is a plain string sort.
+  sorted="$(printf '%s\n' "$matches" | LC_ALL=C sort -r)"
+
+  while IFS='|' read -r created_at run_id head_sha; do
+    [[ -z "$run_id" || "$run_id" == "null" || -z "$head_sha" || "$head_sha" == "null" ]] && continue
+
+    # The commit may be missing locally (shallow clone, or not fetched yet). It cannot be
+    # proven to be an ancestor, so skip it rather than guess.
+    if ! git -C "$REPO_ROOT" cat-file -e "${head_sha}^{commit}" 2>/dev/null; then
+      unknown_commits=$((unknown_commits + 1))
+      continue
+    fi
+    if ! git -C "$REPO_ROOT" merge-base --is-ancestor "$head_sha" "$target_sha" 2>/dev/null; then
+      continue
+    fi
+
+    if (( checked >= MAX_CANDIDATE_RUNS )); then
+      echo -e "${YELLOW}Stopped after checking ${MAX_CANDIDATE_RUNS} candidate runs for \"${artifact_name}\"; pass --run <id> to target a specific run.${NC}" >&2
+      break
+    fi
+    checked=$((checked + 1))
+    verify_status=0
+    run_is_successful_expo_dev_build "$run_id" || verify_status=$?
+    case "$verify_status" in
+      0)
+        echo -e "${GREEN}✓ Nearest build to ${ref} (${target_sha:0:10}): commit ${head_sha:0:10} (${created_at})${NC}" >&2
+        echo "$run_id"
+        return 0
+        ;;
+      1)
+        echo -e "${YELLOW}Skipping run ${run_id}: not a completed successful \"${EXPO_DEV_WORKFLOW_FILE}\" run.${NC}" >&2
+        ;;
+      *)
+        echo -e "${YELLOW}Refusing to fall back to an older build for \"${artifact_name}\".${NC}" >&2
+        echo -e "${YELLOW}Check 'gh auth status' and your API rate limit, then retry — or pass --run ${run_id}.${NC}" >&2
+        return 1
+        ;;
+    esac
+  done <<< "$sorted"
+
+  echo -e "${RED}❌ No live \"${artifact_name}\" artifact on branch \"${branch}\" was built from a commit in the history of ${ref} (${target_sha:0:10})${NC}" >&2
+  if (( unknown_commits > 0 )); then
+    echo -e "${YELLOW}${unknown_commits} artifact(s) point at commits missing from this checkout. Try: git fetch origin ${branch}${NC}" >&2
+  fi
+  echo -e "${YELLOW}The checkout may predate the oldest live artifact (they expire after 90 days), or may not be based on \"${branch}\" (use --branch).${NC}" >&2
+  echo -e "${YELLOW}Drop --match-checkout to use the latest build, or pass --run <id>.${NC}" >&2
+  return 1
+}
+
 resolve_expo_dev_run() {
   local artifact_name="$1"
   local branch="$2"
   local run_id_override="$3"
+  local match_ref="${4:-}"
   local resolved_run_id
   local artifact_status
+
+  if [[ -n "$run_id_override" && -n "$match_ref" ]]; then
+    echo -e "${RED}❌ --run and --match-checkout are mutually exclusive${NC}" >&2
+    return 1
+  fi
 
   if [[ -n "$run_id_override" ]]; then
     validate_numeric_run_id "$run_id_override" || return 1
@@ -224,6 +323,10 @@ resolve_expo_dev_run() {
     fi
     resolved_run_id="$run_id_override"
     echo -e "${GREEN}✓ Using explicit run id: ${resolved_run_id}${NC}" >&2
+  elif [[ -n "$match_ref" ]]; then
+    echo -e "${BLUE}Looking up nearest '${artifact_name}' artifact on '${branch}' in the history of '${match_ref}'...${NC}" >&2
+    resolved_run_id="$(find_nearest_run_with_artifact "$artifact_name" "$branch" "$match_ref")" || return 1
+    echo -e "${GREEN}✓ Nearest run with artifact: ${resolved_run_id}${NC}" >&2
   else
     echo -e "${BLUE}Looking up latest '${artifact_name}' artifact on '${branch}'...${NC}" >&2
     resolved_run_id="$(find_latest_run_with_artifact "$artifact_name" "$branch")" || return 1

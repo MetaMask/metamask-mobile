@@ -1,6 +1,6 @@
 import {
   generateSessionId,
-  knowledgeStore,
+  writeSessionMetadata,
   type IPlatformDriver,
   type SessionLaunchInput,
   type StateSnapshotCapability,
@@ -17,15 +17,11 @@ import type {
 
 jest.mock('@metamask/client-mcp-core', () => ({
   generateSessionId: jest.fn().mockReturnValue('mm-test-session-id'),
-  knowledgeStore: {
-    writeSessionMetadata: jest.fn().mockResolvedValue('/tmp/session.json'),
-  },
+  writeSessionMetadata: jest.fn().mockResolvedValue('/tmp/session.json'),
 }));
 
 const mockGenerateSessionId = jest.mocked(generateSessionId);
-const mockWriteSessionMetadata = jest.mocked(
-  knowledgeStore.writeSessionMetadata,
-);
+const mockWriteSessionMetadata = jest.mocked(writeSessionMetadata);
 
 const state = {
   isLoaded: true,
@@ -193,18 +189,40 @@ describe('MetaMaskMobileSessionManager', () => {
     );
   });
 
-  it('generates an mm-prefixed session ID and persists session metadata', async () => {
-    await manager.launch(createLaunchInput({ goal: 'test goal' }));
+  it('generates an mm-prefixed session ID and persists session metadata to the default artifacts dir', async () => {
+    await manager.launch(createLaunchInput({ tags: ['smoke'] }));
 
     expect(mockGenerateSessionId).toHaveBeenCalledTimes(1);
+    expect(mockWriteSessionMetadata).toHaveBeenCalledTimes(1);
     expect(mockWriteSessionMetadata).toHaveBeenCalledWith(
+      'test-artifacts',
       expect.objectContaining({
         sessionId: 'mm-test-session-id',
-        goal: 'test goal',
         schemaVersion: 1,
+        tags: ['smoke'],
+        launch: expect.objectContaining({
+          stateMode: 'default',
+          extensionPath: '/tmp/MetaMask.app',
+        }),
       }),
     );
+    const metadata = mockWriteSessionMetadata.mock.calls[0][1];
+    expect(metadata).not.toHaveProperty('goal');
+    expect(metadata).not.toHaveProperty('flowTags');
     expect(manager.getSessionMetadata()).toEqual(
+      expect.objectContaining({ sessionId: 'mm-test-session-id' }),
+    );
+  });
+
+  it('persists session metadata to the workflow context artifacts dir', async () => {
+    manager.setWorkflowContext({
+      config: { environment: 'prod', artifactsDir: 'custom-artifacts' },
+    } as WorkflowContext);
+
+    await manager.launch(createLaunchInput());
+
+    expect(mockWriteSessionMetadata).toHaveBeenCalledWith(
+      'custom-artifacts',
       expect.objectContaining({ sessionId: 'mm-test-session-id' }),
     );
   });
@@ -212,9 +230,7 @@ describe('MetaMaskMobileSessionManager', () => {
   it('completes the launch even when session metadata persistence fails', async () => {
     mockWriteSessionMetadata.mockRejectedValueOnce(new Error('disk full'));
 
-    const result = await manager.launch(
-      createLaunchInput({ goal: 'test goal' }),
-    );
+    const result = await manager.launch(createLaunchInput());
 
     expect(result.extensionId).toBe('io.metamask.MetaMask');
     expect(manager.hasActiveSession()).toBe(true);

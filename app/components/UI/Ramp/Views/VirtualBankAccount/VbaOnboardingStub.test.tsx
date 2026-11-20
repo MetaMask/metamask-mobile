@@ -5,7 +5,7 @@ import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
   VbaOnboardingStubSelectorsIDs,
 } from './VbaOnboardingStub';
-import { VbaOnboardingErrorSelectorsIDs } from '../../../KYC/components/OnboardingError';
+import { KycOnboardingErrorSelectorsIDs } from '../../../KYC/components/OnboardingError';
 import { strings } from '../../../../../../locales/i18n';
 import { trackVbaEvent } from './vbaAnalytics';
 
@@ -52,7 +52,7 @@ describe('VbaOnboardingStub', () => {
       <VbaOnboardingStub variant="error" onContinue={mockOnContinue} />,
     );
 
-    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
+    expect(queryByTestId(KycOnboardingErrorSelectorsIDs.LIST)).toBeNull();
     expect(
       getByText(strings('virtual_bank_account.error.title')),
     ).toBeOnTheScreen();

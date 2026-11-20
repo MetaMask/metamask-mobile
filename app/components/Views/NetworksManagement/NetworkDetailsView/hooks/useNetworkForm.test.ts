@@ -265,16 +265,12 @@ describe('useNetworkForm', () => {
       act(() =>
         result.current.onRpcUrlChangeWithName(
           'https://other.rpc.io',
-          ['https://failover.rpc.io'],
           'Other',
           'Custom',
         ),
       );
 
       expect(result.current.form.rpcUrl).toBe('https://other.rpc.io');
-      expect(result.current.form.failoverRpcUrls).toEqual([
-        'https://failover.rpc.io',
-      ]);
       expect(result.current.form.rpcName).toBe('Other');
     });
 
@@ -286,7 +282,6 @@ describe('useNetworkForm', () => {
       act(() =>
         result.current.onRpcUrlChangeWithName(
           'https://other.rpc.io',
-          undefined,
           '',
           'Infura',
         ),
@@ -398,7 +393,6 @@ describe('useNetworkForm', () => {
       act(() =>
         result.current.onRpcUrlChangeWithName(
           'https://rpc.io',
-          undefined,
           'Name',
           'Custom',
         ),
@@ -416,7 +410,6 @@ describe('useNetworkForm', () => {
       act(() =>
         result.current.onRpcUrlChangeWithName(
           'https://rpc.io',
-          undefined,
           'Name',
           'Custom',
         ),

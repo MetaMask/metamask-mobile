@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -60,4 +59,3 @@ const SnapsSettingsList = () => {
 };
 
 export default React.memo(SnapsSettingsList);
-///: END:ONLY_INCLUDE_IF

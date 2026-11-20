@@ -8,6 +8,7 @@ import {
   useCreateLimitOrder,
   type CreateLimitOrderParams,
 } from '.';
+import { LimitOrderGeoRestrictedError } from './errors';
 
 const mockGetBearerToken = jest.fn();
 jest.mock('../getLimitOrdersBaseUrl', () => ({
@@ -166,6 +167,62 @@ describe('createLimitOrder', () => {
     } as Response);
 
     await expect(createLimitOrder(ORDER_PARAMS)).rejects.toThrow(/status 400/u);
+  });
+
+  it.each([
+    [
+      'the backend body',
+      {
+        statusCode: 403,
+        message: 'RWA_GEO_RESTRICTED',
+        routeFetchingErrorCTA: 'RWA_GEO_RESTRICTED',
+      },
+    ],
+    ['only the CTA', { routeFetchingErrorCTA: 'RWA_GEO_RESTRICTED' }],
+    ['only the message', { message: 'RWA_GEO_RESTRICTED' }],
+  ])('throws a geo-restricted error for a 403 carrying %s', async (_, body) => {
+    globalFetchSpy.mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => body,
+    } as Response);
+
+    await expect(createLimitOrder(ORDER_PARAMS)).rejects.toBeInstanceOf(
+      LimitOrderGeoRestrictedError,
+    );
+  });
+
+  it.each([
+    [
+      'a 403 for another reason',
+      403,
+      async () => ({ statusCode: 403, message: 'Forbidden' }),
+    ],
+    [
+      'a 403 without a JSON body',
+      403,
+      async () => {
+        throw new SyntaxError('Unexpected token');
+      },
+    ],
+    [
+      'a geo-restricted body on another status',
+      400,
+      async () => ({ routeFetchingErrorCTA: 'RWA_GEO_RESTRICTED' }),
+    ],
+  ])('throws the generic error for %s', async (_, status, json) => {
+    globalFetchSpy.mockResolvedValue({
+      ok: false,
+      status,
+      json,
+    } as unknown as Response);
+
+    const request = createLimitOrder(ORDER_PARAMS);
+
+    await expect(request).rejects.toThrow(new RegExp(`status ${status}`, 'u'));
+    await expect(request).rejects.not.toBeInstanceOf(
+      LimitOrderGeoRestrictedError,
+    );
   });
 
   it('throws a descriptive error when the response fails schema validation', async () => {

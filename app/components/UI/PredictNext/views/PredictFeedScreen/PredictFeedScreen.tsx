@@ -158,6 +158,7 @@ const FeedScreenFrame = ({
         title={definition.title}
         onBack={onBack}
         includesTopInset
+        testID={PredictFeedScreenTestIds.HEADER}
         backButtonProps={{ testID: PredictFeedScreenTestIds.BACK }}
       />
       <Box twClassName="flex-1">

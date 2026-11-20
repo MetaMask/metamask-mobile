@@ -73,9 +73,6 @@ export interface DeeplinkUrlParams {
   crypto_currency?: string;
   crypto_amount?: string;
 
-  // Home-specific parameters
-  previewToken?: string;
-
   // Privacy-specific parameters
   // Which privacy settings section to scroll to (e.g. 'metametrics',
   // 'data-collection')
@@ -181,6 +178,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.ANDROID_SDK,
   ACTIONS.MONEY,
   ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  ACTIONS.KYC,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

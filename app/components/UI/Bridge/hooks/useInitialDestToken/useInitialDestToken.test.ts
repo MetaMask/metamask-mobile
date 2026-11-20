@@ -8,6 +8,7 @@ import { getSwapDestToken } from '../../utils/getSwapDestToken';
 import { SolScope, BtcScope } from '@metamask/keyring-api';
 import { selectChainId } from '../../../../../selectors/networkController';
 import {
+  resetBridgeState,
   selectBip44DefaultPair,
   selectBridgeViewMode,
   selectSourceToken,
@@ -253,6 +254,73 @@ describe('useInitialDestToken', () => {
     rerender(undefined);
 
     expect(setDestToken).not.toHaveBeenCalled();
+  });
+
+  it('consumes a new destination token when the initialization key changes', async () => {
+    const firstToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000001',
+      symbol: 'FIRST',
+      name: 'First Token',
+      decimals: 18,
+      chainId: '0x1',
+    };
+    const secondToken: BridgeToken = {
+      ...firstToken,
+      address: '0x0000000000000000000000000000000000000002',
+      symbol: 'SECOND',
+      name: 'Second Token',
+    };
+    let initialDestToken = firstToken;
+    let initializationKey = 'trace-1';
+    const { rerender } = renderHookWithProvider(
+      () =>
+        useInitialDestToken(
+          mockSourceToken,
+          initialDestToken,
+          initializationKey,
+        ),
+      { state: initialState },
+    );
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(firstToken);
+    });
+    jest.mocked(setDestToken).mockClear();
+
+    initialDestToken = secondToken;
+    initializationKey = 'trace-2';
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(secondToken);
+    });
+  });
+
+  it('restores the default destination token for a new entry after state reset', async () => {
+    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
+      BridgeViewMode.Unified,
+    );
+    (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
+    let initializationKey = 'trace-1';
+    const { rerender, store } = renderHookWithProvider(
+      () => useInitialDestToken(mockSourceToken, undefined, initializationKey),
+      { state: initialState },
+    );
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledTimes(1);
+    });
+    jest.mocked(setDestToken).mockClear();
+
+    act(() => {
+      store.dispatch(resetBridgeState());
+    });
+    initializationKey = 'trace-2';
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(
+        getSwapDestToken(SolScope.Mainnet),
+      );
+    });
   });
 
   describe('BIP44 Bitcoin functionality', () => {

@@ -11,6 +11,7 @@ import {
   isPerpPosition,
 } from './perp';
 import { chainNameToId } from './chainMapping';
+import { readFeedItemId } from './feedItemId';
 import {
   formatAbbreviatedUsd,
   formatPercent,
@@ -202,6 +203,10 @@ export function buildFeedItemPresentation(
   };
 }
 
+/** Cards of one position share its trade timestamp, so prefer their own id. */
+const buildFeedItemRowId = (coreItem: CoreFeedItem): string =>
+  readFeedItemId(coreItem) ?? `${coreItem.positionId}-${coreItem.timestamp}`;
+
 /**
  * Builds the token avatar payload for the shared `PositionTokenAvatar`, which
  * resolves the icon via the Clicker URL → MetaMask CDN → monogram fallback
@@ -234,7 +239,7 @@ function mapPerpFeedItem(
   const displaySymbol = getPerpsDisplaySymbol(coreItem.tokenSymbol);
 
   return {
-    id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    id: buildFeedItemRowId(coreItem),
     traderId: coreItem.actor.profileId,
     username: coreItem.actor.name,
     traderAddress: coreItem.actor.address,
@@ -271,7 +276,7 @@ function mapSpotFeedItem(
   }
 
   return {
-    id: `${coreItem.positionId}-${coreItem.timestamp}`,
+    id: buildFeedItemRowId(coreItem),
     traderId: coreItem.actor.profileId,
     username: coreItem.actor.name,
     traderAddress: coreItem.actor.address,

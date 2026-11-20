@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import SnapBridge from './SnapBridge';
 import {
   ExcludedSnapPermissions,
@@ -15,4 +14,3 @@ export {
   detectSnapLocation,
 };
 export type { DetectSnapLocationOptions };
-///: END:ONLY_INCLUDE_IF

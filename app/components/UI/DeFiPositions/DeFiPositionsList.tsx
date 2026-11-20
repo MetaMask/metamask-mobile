@@ -103,11 +103,9 @@ const DeFiPositionsListV1: React.FC<DeFiPositionsListProps> = ({
 
   const handleDeFiRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await Engine.context.DeFiPositionsController._executePoll();
-    } finally {
-      setRefreshing(false);
-    }
+    await Engine.context.DeFiPositionsController._executePoll().finally(() =>
+      setRefreshing(false),
+    );
   }, []);
 
   const scrollViewProps = useMemo((): ScrollViewProps => {

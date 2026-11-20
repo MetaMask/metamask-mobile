@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { MOCK_RECURRING_OPEN_ORDER } from '../api/recurringOrders.mock';
 import {
-  type GetRecurringOrdersResponse,
+  type ListRecurringOrdersResponse,
   RecurringOrderState,
 } from '../api/recurringOrders.types';
 import { useRecurringOrders } from './useRecurringOrders';
@@ -25,11 +25,12 @@ const OPEN_STATES = [RecurringOrderState.Open];
 
 function createPage(
   orderId: string,
-  nextCursor?: string,
-): GetRecurringOrdersResponse {
+  endCursor?: string,
+): ListRecurringOrdersResponse {
   return {
     orders: [{ ...MOCK_RECURRING_OPEN_ORDER, id: orderId }],
-    nextCursor,
+    endCursor,
+    hasNextPage: Boolean(endCursor),
   };
 }
 
@@ -40,7 +41,7 @@ function createQueryResult({
   hasNextPage = false,
   isFetchingNextPage = false,
 }: {
-  pages?: GetRecurringOrdersResponse[];
+  pages?: ListRecurringOrdersResponse[];
   isLoading?: boolean;
   isError?: boolean;
   hasNextPage?: boolean;

@@ -398,7 +398,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
         {isFullView && !showOnlyMusd && (
-          <Box twClassName="px-4 pb-2">
+          <Box twClassName="px-4 pt-1 pb-2">
             <TextFieldSearch
               value={searchQuery}
               onChangeText={setSearchQuery}

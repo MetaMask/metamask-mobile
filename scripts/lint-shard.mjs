@@ -2,10 +2,10 @@
 /**
  * Shard the same file set as `yarn lint`'s ESLint invocation.
  *
- * The CLI passes the quoted glob of js, ts, and tsx files to ESLint 8.57
+ * The CLI passes the quoted glob of js, ts, and tsx files to ESLint 9
  * with --cache and no --ext.
- * Files are enumerated with ESLint's FileEnumerator so .eslintignore,
- * ignorePatterns, and default ignores match the unsharded command.
+ * Files are enumerated with the same finder the ESLint 9 CLI uses, so
+ * eslint.config.mjs ignores match the unsharded command.
  * Shards are a deterministic longest-first bin pack by file size.
  *
  * The messenger action types check runs once, on shard 1. Shards 2 and
@@ -37,10 +37,14 @@ function loadEslintApis() {
   if (!eslintApis) {
     const eslintRoot = path.dirname(require.resolve('eslint/package.json'));
     eslintApis = {
-      FileEnumerator: require(
-        path.join(eslintRoot, 'lib/cli-engine/file-enumerator.js'),
-      ).FileEnumerator,
       ESLint: require('eslint').ESLint,
+      helpers: require(path.join(eslintRoot, 'lib/eslint/eslint-helpers.js')),
+      WarningService: require(
+        path.join(eslintRoot, 'lib/services/warning-service.js'),
+      ).WarningService,
+      SuppressionsService: require(
+        path.join(eslintRoot, 'lib/services/suppressions-service.js'),
+      ).SuppressionsService,
     };
   }
   return eslintApis;
@@ -50,25 +54,29 @@ const LINT_PATTERNS = ['**/*.{js,ts,tsx}'];
 
 /**
  * @param {string} cwd
- * @returns {string[]} Absolute paths ESLint would lint for LINT_PATTERNS.
+ * @returns {Promise<string[]>} Absolute paths ESLint would lint for LINT_PATTERNS.
  */
-export function listLintFiles(cwd) {
-  const { FileEnumerator } = loadEslintApis();
-  const enumerator = new FileEnumerator({
+export async function listLintFiles(cwd) {
+  const { helpers, WarningService } = loadEslintApis();
+  const processed = helpers.processOptions({
     cwd,
-    // null matches the CLI: the glob selects extensions, not --ext.
-    extensions: null,
-    globInputPaths: true,
     errorOnUnmatchedPattern: true,
-    ignore: true,
   });
-  /** @type {string[]} */
-  const files = [];
-  for (const entry of enumerator.iterateFiles(LINT_PATTERNS)) {
-    if (!entry.ignored) {
-      files.push(entry.filePath);
-    }
-  }
+  const warningService = new WarningService();
+  const linter = helpers.createLinter(processed, warningService);
+  const configLoader = helpers.createConfigLoader(
+    processed,
+    helpers.createDefaultConfigs(),
+    linter,
+    warningService,
+  );
+  const files = await helpers.findFiles({
+    patterns: LINT_PATTERNS,
+    cwd,
+    globInputPaths: true,
+    configLoader,
+    errorOnUnmatchedPattern: true,
+  });
   files.sort();
   return files;
 }
@@ -113,22 +121,43 @@ function selfTest() {
   console.log('self-test ok');
 }
 
-async function lintPaths(cwd, files) {
-  const { ESLint } = loadEslintApis();
+export async function lintPaths(cwd, files) {
+  const { ESLint, SuppressionsService } = loadEslintApis();
   const eslint = new ESLint({
     cwd,
     cache: true,
     cacheStrategy: 'metadata',
-    useEslintrc: true,
     errorOnUnmatchedPattern: true,
   });
-  const results = await eslint.lintFiles(files);
+  const linted = await eslint.lintFiles(files);
+  // The ESLint class does not apply eslint-suppressions.json. The CLI does, so
+  // apply it here to match `yarn lint`. Suppressions for files outside this
+  // shard are not checked, because applySuppressions only looks at linted files.
+  const suppressions = new SuppressionsService({
+    filePath: path.join(cwd, 'eslint-suppressions.json'),
+    cwd,
+  });
+  const applied = suppressions.applySuppressions(
+    linted,
+    await suppressions.load(),
+  );
+  const results = applied.results;
   const formatter = await eslint.loadFormatter('stylish');
   const text = await formatter.format(results);
   if (text) {
     process.stdout.write(text);
   }
-  return results.reduce((sum, result) => sum + result.errorCount, 0);
+  // Same rule as the CLI: a suppression that no longer matches fails the run
+  // until it is pruned.
+  const unusedCount = Object.keys(applied.unused).length;
+  if (unusedCount > 0) {
+    process.stderr.write(
+      `There are ${unusedCount} suppressed file(s) with no matching errors. Run eslint --prune-suppressions.\n${JSON.stringify(applied.unused, null, 2)}\n`,
+    );
+  }
+  return (
+    results.reduce((sum, result) => sum + result.errorCount, 0) + unusedCount
+  );
 }
 
 /**
@@ -207,7 +236,7 @@ async function main() {
   const cwd = process.cwd();
   const files = args.filesFrom
     ? fs.readFileSync(String(args.filesFrom), 'utf8').split('\n').filter(Boolean)
-    : listLintFiles(cwd);
+    : await listLintFiles(cwd);
 
   if (args.list) {
     process.stdout.write(`${files.join('\n')}\n`);

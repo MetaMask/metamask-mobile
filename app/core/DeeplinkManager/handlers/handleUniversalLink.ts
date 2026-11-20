@@ -145,6 +145,7 @@ const SUPPORTED_ACTIONS = {
   PRIVACY: ACTIONS.PRIVACY,
   NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
   MONEY_ACCOUNT_DEPOSIT: ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  KYC: ACTIONS.KYC,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -189,6 +190,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
   SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  SUPPORTED_ACTIONS.KYC,
   SUPPORTED_ACTIONS.ASSET,
   SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS,
 ];
@@ -917,7 +919,13 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.MONEY: {
-      handleMoney();
+      handleMoney({ moneyPath: actionBasedRampPath });
+      break;
+    }
+    case SUPPORTED_ACTIONS.KYC: {
+      // The session id is not read yet. The Money account screen resumes the
+      // latest Iron KYC session.
+      handleMoney({ moneyPath: '?screen=account' });
       break;
     }
     case SUPPORTED_ACTIONS.PRIVACY: {

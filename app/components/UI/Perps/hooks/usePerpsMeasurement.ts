@@ -56,6 +56,11 @@ interface MeasurementOptions {
   // completes (e.g. the empty/position/order variant, which depends on loaded
   // data). Queryable in the Sentry spans dataset.
   endData?: Record<string, MeasurementValue>;
+  /**
+   * Start timestamp (from `getPerformanceTimestamp`) for the first measurement
+   * cycle, when the measured view mounts later than the moment it measures from.
+   */
+  startTime?: number;
 }
 
 /**
@@ -114,8 +119,10 @@ export const usePerpsMeasurement = ({
   debugContext = {},
   tags,
   endData,
+  startTime,
 }: MeasurementOptions) => {
   const hasCompleted = useRef(false);
+  const hasUsedStartTime = useRef(false);
   const previousStartState = useRef(false);
   const previousEndState = useRef(false);
   const traceStarted = useRef(false);
@@ -274,7 +281,11 @@ export const usePerpsMeasurement = ({
         id: traceId.current,
         data: debugContext as Record<string, string | number | boolean>,
         ...(tags ? { tags } : {}),
+        ...(startTime !== undefined && !hasUsedStartTime.current
+          ? { startTime }
+          : {}),
       });
+      hasUsedStartTime.current = true;
       traceStarted.current = true;
     }
 
@@ -320,6 +331,7 @@ export const usePerpsMeasurement = ({
     traceName,
     op,
     resetKey,
+    startTime,
     shouldStart,
     shouldEnd,
     shouldReset,

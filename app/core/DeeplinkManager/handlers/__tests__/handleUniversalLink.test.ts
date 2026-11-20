@@ -25,6 +25,7 @@ import { handleSwapUrl } from '../intent/handleSwapUrl';
 import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
+import { handleMoney } from '../legacy/handleMoney';
 import {
   createMoneyDepositDeeplinkIntent,
   handleMoneyDeposit,
@@ -80,6 +81,7 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../legacy/handleMoney');
 jest.mock('../intent/handleMoneyDeposit');
 jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
@@ -651,6 +653,55 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handlePrivacyUrl).toHaveBeenCalledWith({ privacyPath });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.MONEY', () => {
+    it('calls handleMoney with the path after the action', async () => {
+      const moneyPath = '?screen=account';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.MONEY}${moneyPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.MONEY}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleMoney).toHaveBeenCalledWith({ moneyPath });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.KYC', () => {
+    it('opens the Money account screen and ignores the session id query param', async () => {
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.KYC}?sessionId=fd45a61a-0795-454b-98ed-24d005dba30d`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.KYC}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleMoney).toHaveBeenCalledWith({
+        moneyPath: '?screen=account',
+      });
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -1635,7 +1686,7 @@ describe('handleUniversalLink', () => {
         createPredictDeeplinkIntent as jest.MockedFunction<
           typeof createPredictDeeplinkIntent
         >
-      ).mockReturnValueOnce(intent);
+      ).mockResolvedValueOnce(intent);
 
       const result = await handleUniversalLink({
         instance,

@@ -496,8 +496,16 @@ describe('Engine', () => {
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
+    // SamplePetnamesController is only registered when
+    // INCLUDE_SAMPLE_FEATURE=true (unset in this test run), so `Engine.state`
+    // omits it entirely even though the fixture has a default value for it.
+    const {
+      SamplePetnamesController: _unusedSamplePetnamesController,
+      ...restBackgroundState
+    } = backgroundState;
+
     const expectedState = {
-      ...backgroundState,
+      ...restBackgroundState,
       // Update application version here, so that we don't have to update
       // `initial-background-state.json` every release
       AppMetadataController: {
@@ -1299,6 +1307,15 @@ describe('Engine', () => {
     );
   });
 
+  describe('when the sample feature is disabled', () => {
+    it('omits SamplePetnamesController from the context and state', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(Engine.context).not.toHaveProperty('SamplePetnamesController');
+      expect(Engine.state).not.toHaveProperty('SamplePetnamesController');
+    });
+  });
+
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
       expect(() => Engine.state).toThrow('Engine does not exist');
@@ -1327,6 +1344,42 @@ describe('Engine', () => {
   });
 
   describe('resetState', () => {
+    it('clears profile metrics state', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for profile metrics state to clear before resetting circuit breakers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      let finishClear: () => void = () => undefined;
+      jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              finishClear = resolve;
+            }),
+        );
+      const resetCircuitBreakersSpy = jest
+        .spyOn(engine.context.ProfileMetricsService, 'resetCircuitBreakers')
+        .mockReturnValue(undefined);
+
+      const reset = engine.resetState();
+
+      expect(resetCircuitBreakersSpy).not.toHaveBeenCalled();
+
+      finishClear();
+      await reset;
+
+      expect(resetCircuitBreakersSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('calls MoneyAccountController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest

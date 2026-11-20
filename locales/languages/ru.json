@@ -131,7 +131,7 @@
       "title": "Недостаточно средств"
     },
     "money_account_no_funds": {
-      "message": "На вашем счете Money account пока нет средств для отправки. Сначала пополните счет."
+      "message": "Add funds to your Money account to send."
     },
     "fiat_buy_amount_limit": {
       "title": "Сумма вне допустимого диапазона"
@@ -1130,20 +1130,23 @@
     }
   },
   "virtual_bank_account": {
+    "loading_accessibility_label": "Загрузка",
     "create_virtual_bank_account": {
       "navbar_title": "Банковский счет",
-      "title": "Пополняйте счёт прямо из своего банка",
-      "description": "Получите реквизиты виртуального счёта, чтобы получать средства напрямую из своего местного банка.",
-      "feature_no_fees_title": "Пополнение без комиссии",
-      "feature_no_fees_description": "Мы не взимаем комиссию за пополнение. Ваш банк может взимать комиссию.",
+      "title": "Add funds from your bank",
+      "description": "Get account details to add funds from your bank to your Money account.",
+      "feature_no_fees_title": "No fees from MetaMask",
+      "feature_no_fees_description": "We don’t charge to add funds. Your bank may.",
       "feature_arrives_title": "Зачисление в течение {{timeframe}}",
       "feature_arrives_title_no_timeframe": "Зачисление в течение нескольких рабочих дней",
-      "feature_arrives_description": "Средства поступят, как только ваш перевод будет обработан.",
+      "feature_arrives_title_pix": "Поступает за считаные секунды",
+      "feature_arrives_title_eur": "Arrives in seconds to 1 business day",
+      "feature_arrives_description": "Funds arrive as soon as your transfer clears.",
       "feature_set_up_title": "Настройте один раз и пользуйтесь в любое время",
-      "feature_set_up_description": "Сохраните счёт как получателя в банковском приложении.",
-      "feature_earn_title": "Начните получать доход сразу",
-      "feature_earn_description": "Депозиты в mUSD приносят {{percentage}}% годовой процентной доходности (APY).",
-      "feature_earn_description_no_apy": "Депозиты в mUSD приносят годовую процентную доходность (APY).",
+      "feature_set_up_description": "Save these details as a payee in your banking app.",
+      "feature_earn_title": "Starts earning right away",
+      "feature_earn_description": "Funds earn {{percentage}}% APY as mUSD.",
+      "feature_earn_description_no_apy": "Funds earn APY as mUSD.",
       "disclaimers_error": "Не удалось загрузить условия использования.",
       "disclaimers_retry": "Повторить попытку",
       "agreement_prefix": "Продолжая, вы подтверждаете, что ознакомились со следующими документами и приняли их условия: ",
@@ -1152,85 +1155,12 @@
       "moonpay_privacy_policy_link": "Политика конфиденциальности MoonPay",
       "moonpay_terms_link": "Условия использования MoonPay",
       "powered_by": "На основе",
-      "button": "Получить реквизиты счета",
-      "feature_arrives_title_pix": "Поступает за считаные секунды"
-    },
-    "verify_identity": {
-      "title": "Подтвердите свою личность",
-      "description": "Обычно это занимает всего несколько минут. Подготовьте действительное удостоверение личности с фотографией, выданное государственным органом.",
-      "step_photograph_id": "Сфотографируйте удостоверение личности",
-      "step_take_selfie": "Сделать селфи",
-      "step_confirm_details": "Подтвердите свои данные",
-      "step_answer_questions": "Ответьте на несколько вопросов",
-      "footer": "Ваши данные шифруются и безопасно передаются нашим специалистам по проверке. Вы сможете ознакомиться с подробностями, прежде чем продолжить.",
-      "powered_by": "На основе",
-      "disclaimers_error": "Не удалось загрузить условия использования.",
-      "disclaimers_retry": "Повторить попытку",
-      "button": "Продолжить",
-      "terms_sheet_title": "Данные и конфиденциальность",
-      "terms_sheet_description": "Для подтверждения вашей личности ваши данные будут безопасно переданы указанным ниже специалистам. Прежде чем продолжить, ознакомьтесь с их политиками и условиями.",
-      "metamask_privacy_policy": "Политика конфиденциальности MetaMask",
-      "metamask_terms": "Условия использования MetaMask",
-      "terms_sheet_button": "Согласиться и начать проверку",
-      "subtitle": "Обычно это занимает несколько минут. Вам понадобится удостоверение личности, выданное государственным органом.",
-      "step_indicator": "Шаг {{current}} из {{total}}",
-      "partner_title": "Мы сотрудничаем с idOS для подтверждения вашей личности.",
-      "benefit_reuse_title": "Подтвердите личность один раз и используйте данные повторно.",
-      "benefit_reuse_description": "MetaMask надежно хранит зашифрованную копию ваших проверенных данных, чтобы вы могли быстрее регистрироваться у других партнеров.",
-      "benefit_control_title": "Вы управляете своими данными.",
-      "benefit_control_description": "Мы передаем ваши проверенные данные партнеру только с вашего согласия.",
-      "benefit_delete_title": "Удалите данные в любой момент.",
-      "benefit_delete_description": "Вы можете в любой момент удалить свои проверенные данные в настройках.",
-      "agreement": "Продолжая, я принимаю {{termsOfUse}} MetaMask, подтверждаю ознакомление с документом «{{privacyNotice}}» MetaMask и даю согласие на хранение моих данных в MetaMask и их передачу в idOS.",
-      "agreement_terms_of_use": "Условиями использования",
-      "agreement_privacy_notice": "Уведомлении о конфиденциальности",
-      "agree_and_continue_button": "Согласиться и продолжить",
-      "learn_more": "Узнайте подробнее."
-    },
-    "kyc_email": {
-      "error_title": "Не удалось начать проверку",
-      "error_description": "При открытии проверки электронной почты произошла ошибка. Повторите попытку."
-    },
-    "sumsub_kyc": {
-      "more_info_title": "Нам нужно немного больше информации",
-      "more_info_description": "Иногда для завершения проверки нужна дополнительная информация. Ознакомьтесь с требованиями ниже, чтобы продолжить.",
-      "more_info_item_title": "Подтверждение адреса",
-      "more_info_item_description": "Загрузите недавно выданный документ с вашим именем и текущим адресом проживания",
-      "more_info_button": "Продолжить",
-      "more_info_help": "Нужна помощь с проверкой?",
-      "error_title": "Не удалось начать проверку",
-      "error_description": "Что-то пошло не так при загрузке проверки личности. Повторите попытку.",
-      "retry": "Повторить попытку"
-    },
-    "kyc_taking_longer": {
-      "title": "Проверка вашей личности...",
-      "description": "Большинство проверок завершается примерно за 10 секунд. Вы можете вернуться позже. Мы сообщим вам, когда проверка будет завершена.",
-      "button": "Вернуться позже",
-      "description_few_minutes": "Большинство проверок занимает несколько минут. Вы можете вернуться позже. Мы сообщим вам, когда проверка завершится.",
-      "done_button": "Выполнено"
-    },
-    "identity_verified": {
-      "title": "Личность подтверждена",
-      "description": "Проверка личности завершена.",
-      "button": "Продолжить"
+      "button": "Получить реквизиты счета"
     },
     "creating_account": {
       "title": "Открываем ваш счет…",
       "description": "Большинство счетов открываются мгновенно.",
       "awaiting_provider": "Ожидаем, пока MoonPay одобрит ваш счет"
-    },
-    "kyc_rejected": {
-      "title": "Не удалось подтвердить вашу личность",
-      "description": "Некоторые данные требуют вашего внимания. Проверьте каждый пункт ниже, затем обратитесь в службу поддержки.",
-      "retry_description": "Некоторые данные требуют вашего внимания. Проверьте каждый пункт ниже, затем повторите попытку.",
-      "identity_document_title": "Проверьте удостоверение личности",
-      "identity_document_description": "Убедитесь, что документ действителен, изображение чёткое и документ виден целиком",
-      "selfie_title": "Сделайте селфи ещё раз",
-      "selfie_description": "Обеспечьте хорошее освещение, чтобы лицо было хорошо видно",
-      "details_title": "Проверьте ваши данные",
-      "details_description": "Убедитесь, что ваши данные соответствуют документам",
-      "button": "Связаться с поддержкой",
-      "retry_button": "Повторить попытку"
     },
     "account_provisioning_error": {
       "title": "Не удалось создать счет",
@@ -1271,6 +1201,7 @@
       "title": "Пополнить через Pix",
       "description": "Пополняйте напрямую из своего банка. Обычно средства поступают на ваш Money account в течение нескольких минут.",
       "provider_disclosure": "Услуги, связанные с виртуальными активами, в Бразилии оказывает сторонний поставщик, деятельность которого регулируется.",
+      "risk_disclosure": "Покупка и продажа криптоактивов сопряжены с риском. После передачи в блокчейн перевод криптоактива становится необратимым.",
       "provider_disclosure_link": "Узнайте подробнее.",
       "copia_cola_label": "Pix Copia e Cola",
       "pix_key_label": "Ключ Pix",
@@ -1280,18 +1211,48 @@
       "routing_number_label": "Код банка",
       "account_number_label": "Номер счета",
       "bank_name_label": "Название банка",
+      "iban_label": "IBAN",
+      "bic_label": "БИК",
+      "payment_reference_label": "Payment reference",
       "copy_label": "Копировать {{field}}",
       "copied_label": "Скопировано: {{field}}",
+      "copy_all_button": "Скопировать все реквизиты",
+      "copied_all_label": "Банковские реквизиты скопированы",
       "button": "Выполнено",
       "waiting_for_details": "Реквизиты вашего счета скоро появятся здесь.",
       "loading_details": "Загрузка реквизитов счета",
       "load_error": "Не удалось обновить данные депозита. Мы попробуем ещё раз.",
       "setup_error": "Не удалось создать счет.",
       "retry": "Повторить попытку"
+    }
+  },
+  "kyc": {
+    "verify_identity": {
+      "title": "Подтвердите свою личность",
+      "subtitle": "Обычно это занимает несколько минут. Вам понадобится удостоверение личности, выданное государственным органом.",
+      "step_indicator": "Шаг {{current}} из {{total}}",
+      "step_photograph_id": "Сфотографируйте удостоверение личности",
+      "step_take_selfie": "Сделать селфи",
+      "step_confirm_details": "Подтвердите свои данные",
+      "step_answer_questions": "Ответьте на несколько вопросов",
+      "partner_title": "Мы сотрудничаем с idOS для подтверждения вашей личности",
+      "benefit_reuse_title": "Подтвердите личность один раз и используйте данные повторно",
+      "benefit_reuse_description": "MetaMask securely stores an encrypted copy of your verification, so you can sign up with other partners faster.",
+      "benefit_control_title": "Вы управляете своими данными",
+      "benefit_control_description": "We only share your verification with a partner when you agree.",
+      "benefit_delete_title": "Удалите данные в любой момент",
+      "benefit_delete_description": "Delete your verification anytime in Settings.",
+      "agreement": "Продолжая, я принимаю {{termsOfUse}} MetaMask, подтверждаю ознакомление с документом «{{privacyNotice}}» MetaMask и даю согласие на хранение моих данных в MetaMask и их передачу в idOS.",
+      "agreement_terms_of_use": "Условиями использования",
+      "agreement_privacy_notice": "Уведомлении о конфиденциальности",
+      "disclaimers_error": "Не удалось загрузить условия использования.",
+      "disclaimers_retry": "Повторить попытку",
+      "agree_and_continue_button": "Согласиться и продолжить",
+      "learn_more": "Узнайте подробнее."
     },
     "partner_terms": {
       "title": "Наши партнеры по проверке личности",
-      "description": "idOS проверяет вашу личность. Для завершения проверки idOS привлекает Sumsub.",
+      "description": "idOS verifies your identity and works with Sumsub to complete it.",
       "section_title": "Условия и конфиденциальность",
       "idos_group_title": "idOS",
       "sumsub_group_title": "Sumsub",
@@ -1300,13 +1261,53 @@
       "sumsub_notice": "Уведомление Sumsub об обработке персональных данных",
       "sumsub_privacy_notice": "Уведомлении о конфиденциальности",
       "sumsub_biometrics_consent": "Согласие на обработку биометрических данных в Sumsub",
-      "biometric_consent": "Я прямо соглашаюсь на обработку организацией idOS Association изображений моего лица и полученных из них биометрических данных для подтверждения моей личности в порядке, описанном в документе «{{privacyNotice}}».",
+      "biometric_consent": "I explicitly consent to idOS Association processing my facial images and the biometric data derived from them to verify my identity, as described in the {{privacyNotice}}.",
       "biometric_consent_privacy_notice": "Уведомление о конфиденциальности idOS",
       "agreement": "Нажимая «Согласиться и продолжить», я принимаю документ «{{termsAndConditions}}».",
       "agreement_terms": "Условия использования idOS",
       "scroll_to_continue_button": "Прокрутите вниз, чтобы продолжить",
       "agree_to_consent_above_button": "Подтвердить согласие",
       "button": "Согласиться и продолжить"
+    },
+    "kyc_email": {
+      "error_title": "Не удалось начать проверку",
+      "error_description": "При открытии проверки электронной почты произошла ошибка. Повторите попытку."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "Нам нужно немного больше информации",
+      "more_info_description": "Иногда для завершения проверки нужна дополнительная информация. Ознакомьтесь с требованиями ниже, чтобы продолжить.",
+      "more_info_item_title": "Подтверждение адреса",
+      "more_info_item_description": "Загрузите недавно выданный документ с вашим именем и текущим адресом проживания",
+      "more_info_button": "Продолжить",
+      "more_info_help": "Нужна помощь с проверкой?",
+      "error_title": "Не удалось начать проверку",
+      "error_description": "Что-то пошло не так при загрузке проверки личности. Повторите попытку.",
+      "retry": "Повторить попытку"
+    },
+    "kyc_taking_longer": {
+      "title": "Проверка вашей личности...",
+      "description": "Большинство проверок завершается примерно за 10 секунд. Вы можете вернуться позже. Мы сообщим вам, когда проверка будет завершена.",
+      "button": "Вернуться позже",
+      "description_few_minutes": "Большинство проверок занимает несколько минут. Вы можете вернуться позже. Мы сообщим вам, когда проверка завершится.",
+      "done_button": "Выполнено"
+    },
+    "identity_verified": {
+      "title": "Личность подтверждена",
+      "description": "Проверка личности завершена.",
+      "button": "Продолжить"
+    },
+    "kyc_rejected": {
+      "title": "Не удалось подтвердить вашу личность",
+      "description": "Некоторые данные требуют вашего внимания. Проверьте каждый пункт ниже, затем обратитесь в службу поддержки.",
+      "retry_description": "Некоторые данные требуют вашего внимания. Проверьте каждый пункт ниже, затем повторите попытку.",
+      "identity_document_title": "Проверьте удостоверение личности",
+      "identity_document_description": "Убедитесь, что документ действителен, изображение чёткое и документ виден целиком",
+      "selfie_title": "Сделайте селфи ещё раз",
+      "selfie_description": "Обеспечьте хорошее освещение, чтобы лицо было хорошо видно",
+      "details_title": "Проверьте ваши данные",
+      "details_description": "Убедитесь, что ваши данные соответствуют документам",
+      "button": "Связаться с поддержкой",
+      "retry_button": "Повторить попытку"
     }
   },
   "social": {
@@ -1329,11 +1330,18 @@
       "report_reason_title": "Пожаловаться",
       "report_reason_description": "Выберите причину, которая лучше всего описывает проблему.",
       "report_reasons": {
-        "spam": "Спам",
-        "harassment": "Оскорбления или травля",
-        "misleading": "Ложная или вводящая в заблуждение информация",
-        "other": "Другое"
+        "scams_and_phishing": "Мошенничество и фишинг",
+        "impersonation": "Выдача себя за другого человека",
+        "financial_conduct": "Нарушения в сфере финансов",
+        "spam_and_fake_engagement": "Спам и накрутка активности",
+        "harassment_hate_and_threats": "Преследование, ненависть и угрозы",
+        "privacy": "Конфиденциальность",
+        "sexual_and_graphic_content": "Сексуальный и шокирующий контент",
+        "illegal_and_dangerous": "Противозаконные и опасные действия",
+        "profile_text": "Текст профиля"
       },
+      "impersonation_support_title": "Обратиться в службу поддержки",
+      "impersonation_support_description": "Обращения о выдаче себя за другого человека рассматривает наша служба поддержки. Специалисты запросят ваш адрес электронной почты и свяжутся с вами.",
       "submit_report": "Отправить",
       "post_hidden_confirmation": "Публикация скрыта",
       "user_blocked_confirmation": "Пользователь {{username}} заблокирован",
@@ -1386,20 +1394,25 @@
       "live_stream": {
         "paused": "Приостановлена",
         "live": "Идет сейчас",
-        "new_posts": {
-          "one": "Новых публикаций: {{count}}",
-          "other": "Новых публикаций: {{count}}"
+        "new_posts": "Новые: {{count}}",
+        "new_posts_capped": "Новые: более {{count}}",
+        "new_posts_accessibility": {
+          "one": "Новых обновлений: {{count}}",
+          "other": "Свежих обновлений: {{count}}"
         },
-        "new_posts_capped": "Новых публикаций: {{count}}+"
+        "new_posts_capped_accessibility": "Свежих обновлений: более {{count}}"
       },
       "following": "Подписки",
       "all": "Все",
       "trade": "Торговать",
       "just_now": "Только что",
       "age": {
-        "minutes": "{{count}} мин назад",
+        "minutes": "{{count}} мин. назад",
         "hours": "{{count}} ч назад",
-        "days": "{{count}} дн. назад"
+        "days": "{{count}} дн. назад",
+        "weeks": "{{count}} нед. назад",
+        "months": "{{count}} мес. назад",
+        "years": "{{count}} г. назад"
       },
       "action": {
         "perps_opened": "открыто",
@@ -1429,7 +1442,11 @@
         },
         "following": {
           "title": "Публикаций пока нет",
-          "description": "Подпишитесь на трейдеров, чтобы видеть здесь их публикации."
+          "description": "Пока никто ничего не опубликовал."
+        },
+        "following_suggestions": {
+          "title": "Рекомендуем вам",
+          "description": "Подпишитесь на нескольких трейдеров, чтобы в ленте подписок появились публикации."
         },
         "live": {
           "title": "Пока нет сделок",
@@ -1479,16 +1496,22 @@
         "entry": "Вход",
         "exit": "Выйти",
         "cost": "Стоимость",
+        "margin": "Маржа",
         "hold_time": "Время удержания",
         "buy": "Купить",
         "sell": "Продать",
+        "closed": "Закрыто",
+        "sold": "Продано",
+        "opened_ago": "Открыта · {{age}}",
         "closed_ago": "Закрыта · {{age}}",
-        "sold_ago": "Продано · {{age}}",
-        "opened_ago": "Открыта · {{age}}"
+        "sold_ago": "Продано · {{age}}"
       }
     },
     "translation": {
       "see_translation": "Посмотреть перевод",
+      "see_original": "Показать оригинал",
+      "see_more": "Подробнее",
+      "see_less": "Свернуть",
       "translating": "Выполняется перевод...",
       "translated_to_english": "Переведено на английский",
       "failed": "Не удалось перевести.",
@@ -1516,8 +1539,9 @@
       "section_tokens": "Токены",
       "section_perps": "Перпы",
       "empty_title": "Пока нет позиций для публикации",
-      "empty_help": "Почему я не вижу позицию?",
-      "hidden_position_body": "Здесь отображаются только позиции, включающие хотя бы одну сделку на сумму от 10 $. Более мелкие сделки, например регулярные покупки, пока не отслеживаются.",
+      "empty_help": "Почему видны не все позиции?",
+      "hidden_position_title": "Об отображаемых позициях",
+      "hidden_position_body": "Здесь отображаются только позиции, по которым есть сделка на сумму от 10 $. Более мелкие сделки, например регулярные покупки, пока не отслеживаются.",
       "got_it": "Понятно!",
       "empty_description": "Создайте позицию, чтобы поделиться ею здесь.",
       "empty_open": "Нет открытых позиций",
@@ -1528,7 +1552,8 @@
       "post_failed": "Не удалось создать публикацию. Повторите попытку.",
       "linked_account_missing": "Ваш привязанный к Social счет отсутствует в этом кошельке.",
       "showing_linked_account": "Показаны позиции счета {{account}}",
-      "post_pending_index": "Опубликовано. Публикация появится в ленте после индексации сделки."
+      "post_pending_index": "Опубликовано. Публикация появится в ленте после индексации сделки.",
+      "private_description": "В закрытых профилях нельзя размещать публикации. Сделайте профиль общедоступным, чтобы начать публиковать."
     },
     "post_trade_share": {
       "swap_in_progress": "Обмен в процессе",
@@ -1537,6 +1562,10 @@
       "order_in_progress": "Ордер выполняется",
       "order_complete": "Ордер выполнен",
       "order_failed": "Ордер не выполнен",
+      "close_in_progress": "Закрытие позиции",
+      "position_closed": "Позиция закрыта",
+      "close_failed": "Не удалось закрыть позицию",
+      "close_pair_label": "Закрыть {{position}}",
       "post_and_earn_title": "Публикуйте и зарабатывайте",
       "post_and_earn_body": "Вы получаете 15% от комиссий каждый раз, когда кто-то копирует вашу сделку",
       "create_post": "Создать публикацию",
@@ -1656,6 +1685,13 @@
     },
     "follow": "Подписаться",
     "following": "Подписки",
+    "share_link": {
+      "profile_title": "{{trader}} в MetaMask",
+      "profile_description": "Смотрите сделки трейдера {{trader}} в MetaMask",
+      "position_title": "Сделка трейдера {{trader}} с активом {{asset}}",
+      "position_description": "{{trader}} торгует активом {{asset}}",
+      "position_title_no_asset": "Сделка {{trader}}"
+    },
     "popular_traders": "Популярные трейдеры",
     "profiles_to_follow": {
       "title": "На кого подписаться",
@@ -1721,11 +1757,17 @@
       "error_loading_profile": "Не удалось загрузить профиль",
       "more_options": "Больше вариантов",
       "profile_options": "Параметры профиля",
-      "profile_options_description": "Блокировка скрывает публикации и позиции этого профиля на этом устройстве на время текущего сеанса. Вы также отпишетесь от него.",
+      "profile_options_description": "Пожалуйтесь на этот профиль или заблокируйте пользователя, чтобы скрыть его публикации и позиции на этом устройстве до конца текущего сеанса. При блокировке вы также отпишетесь от пользователя.",
+      "report_user": "Пожаловаться на @{{name}}",
       "block_user": "Заблокировать @{{name}}",
       "unblock": "Разблокировать",
       "blocked_title": "Вы заблокировали @{{name}}",
       "blocked_description": "Публикации и позиции этого пользователя скрыты на этом устройстве на время текущего сеанса.",
+      "private_title": "Это закрытый профиль",
+      "private_description": "@{{name}} скрывает свои результаты, позиции и публикации.",
+      "private_title_own": "Ваш профиль закрыт",
+      "private_description_own": "Ваши результаты, позиции и публикации скрыты от всех.",
+      "privacy_settings": "Настройки конфиденциальности",
       "twitter_link": "Смотреть в X (Twitter)",
       "sort": {
         "value": "Значение",
@@ -1745,6 +1787,8 @@
       "mutuals_tab": "Взаимные подписки: {{count}}",
       "win_rate": "Процент успешных сделок",
       "pnl": "П/У",
+      "realized_pnl": "Реализованная прибыль и убытки",
+      "unrealized_pnl": "Нереализованные П/У",
       "hold_time": "Время удержания",
       "avg_hold_time": "Ср. время удержания",
       "volume": "Объем",
@@ -1761,6 +1805,21 @@
       "section_tokens": "Токены",
       "section_perpetuals": "Бессрочные контракты",
       "not_counted_in_pnl": "Не учитывается в П/У",
+      "not_counted_section_a11y_one": "Не учитывается в П/У: 1 позиция. Узнайте почему",
+      "not_counted_section_a11y_other": "Не учитывается в П/У: {{count}} поз. Узнайте почему",
+      "not_counted_sheet_title": "Почему некоторые позиции не учитываются",
+      "not_counted_sheet_insider_label": "Инсайдер",
+      "not_counted_sheet_insider_body": "Этот трейдер получил токен в рамках распределения до его выхода в открытый доступ.",
+      "not_counted_sheet_insider_body_owner": "Вы получили токен в рамках распределения до его выхода в открытый доступ.",
+      "not_counted_sheet_developer_label": "Создатель контракта",
+      "not_counted_sheet_developer_body": "Этот трейдер развернул контракт токена.",
+      "not_counted_sheet_developer_body_owner": "Вы развернули контракт токена.",
+      "not_counted_sheet_unsupported_label": "Неподдерживаемый токен",
+      "not_counted_sheet_unsupported_body": "Мы не можем отслеживать П/У по неподдерживаемым токенам, например по депозитам в пулах кредитования.",
+      "not_counted_sheet_dismiss": "Понятно!",
+      "not_counted_note_one": "1 позиция не учтена в расчете прибыли и убытков",
+      "not_counted_note_other": "Позиций, не учтенных в расчете прибыли и убытков: {{count}}",
+      "not_counted_note_hint": "Переход к неучтенным позициям",
       "empty_open": "Нет открытых позиций",
       "empty_closed": "Закрытые позиции отсутствуют",
       "empty_open_tokens": "Нет открытых позиций по токенам",
@@ -1774,19 +1833,7 @@
       "no_profile_title": "Создайте свой профиль",
       "no_profile_description": "Получите имя пользователя, чтобы появиться в ленте.",
       "create_profile": "Создать профиль",
-      "retry": "Повторить попытку",
-      "not_counted_section_a11y_one": "Не учитывается в П/У: 1 позиция. Узнайте почему",
-      "not_counted_section_a11y_other": "Не учитывается в П/У: {{count}} поз. Узнайте почему",
-      "not_counted_sheet_title": "Почему некоторые позиции не учитываются",
-      "not_counted_sheet_insider_label": "Инсайдер",
-      "not_counted_sheet_insider_body": "Этот трейдер получил токен в рамках распределения до его выхода в открытый доступ.",
-      "not_counted_sheet_insider_body_owner": "Вы получили токен в рамках распределения до его выхода в открытый доступ.",
-      "not_counted_sheet_developer_label": "Создатель контракта",
-      "not_counted_sheet_developer_body": "Этот трейдер развернул контракт токена.",
-      "not_counted_sheet_developer_body_owner": "Вы развернули контракт токена.",
-      "not_counted_sheet_unsupported_label": "Неподдерживаемый токен",
-      "not_counted_sheet_unsupported_body": "Мы не можем отслеживать П/У по неподдерживаемым токенам, например по депозитам в пулах кредитования.",
-      "not_counted_sheet_dismiss": "Понятно!"
+      "retry": "Повторить попытку"
     },
     "terms": {
       "title": "Наши Условия использования обновлены",
@@ -1797,8 +1844,16 @@
       "scroll_to_bottom": "Прокрутить до конца",
       "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
     },
+    "trader_preview": {
+      "join": "Присоединиться к Social",
+      "referral_code": "Реферальный код: {{code}}",
+      "referral_accepted": "Реферальный код принят",
+      "referral_failed": "Не удалось принять реферальный код"
+    },
     "profile_onboarding": {
       "intro_title": "Следите за сделками в реальном времени",
+      "intro_title_activity": "Подписывайтесь на проверенных трейдеров и лучших авторов торговых сигналов",
+      "intro_title_post": "Получайте вознаграждения, когда кто-то повторяет ваши сделки",
       "live_activity": "Активность в реальном времени",
       "bought": "куплено",
       "sold": "продано",
@@ -1822,7 +1877,8 @@
       "username_too_long": "Используйте не более {{max}} символов.",
       "username_invalid": "Используйте буквы, цифры и знаки подчёркивания.",
       "username_unavailable": "Это имя пользователя недоступно. Выберите другое.",
-      "username_check_error": "Не удалось проверить это имя пользователя. Проверьте соединение и повторите попытку.",
+      "username_reserved": "Это имя пользователя недоступно. Выберите другое.",
+      "username_check_error": "Не удалось проверить это имя пользователя. Проверьте подключение и повторите попытку.",
       "connect_x_error": "Не удалось подключить X. Проверьте соединение и повторите попытку.",
       "save_error": "Не удалось создать профиль. Проверьте соединение и повторите попытку.",
       "try_again": "Повторить попытку",
@@ -1839,6 +1895,7 @@
       "link_account": "Выберите счет для привязки к профилю",
       "link_account_description": "Активность этого счета будет отображаться в вашем профиле начиная с сегодняшнего дня.",
       "select_account": "Выбрать счет",
+      "linked_account": "Linked account",
       "link_account_change_footnote": "Привязанный счет можно менять раз в 30 дней.",
       "share_trading_activity": "Делиться торговой активностью",
       "share_trading_activity_description": "Другие пользователи смогут видеть ваши сделки. Получайте 15% от комиссий, когда кто-то копирует ваши сделки.",
@@ -1854,6 +1911,11 @@
       "fees": "Получайте 15% от комиссий, когда кто-то копирует ваши сделки.",
       "private": "Адрес вашего счета остается скрытым.",
       "follow": "Другие трейдеры могут подписаться на ваш профиль."
+    },
+    "errors": {
+      "display_name_invalid": "Это имя недопустимо. Попробуйте другое.",
+      "display_name_too_long": "Используйте не более {{max}} символов.",
+      "display_name_check_error": "Не удалось проверить это имя. Проверьте подключение и повторите попытку."
     },
     "manage_profile": {
       "title": "Управление профилем",
@@ -1871,7 +1933,27 @@
       "save_error": "Не удалось сохранить изменения. Проверьте подключение и повторите попытку.",
       "bio_prohibited": "Часть описания недопустима. Отредактируйте его и повторите попытку.",
       "display_name_unavailable": "Это имя недоступно. Попробуйте другое.",
+      "linked_account_cooldown_default": "Привязанный аккаунт можно менять только раз в 30 дней.",
+      "linked_account_cooldown": "Связанный счет можно менять только раз в {{days}} дн.",
+      "x_account_already_linked": "Этот аккаунт X уже привязан к другому профилю. Используйте другой аккаунт X.",
+      "x_profile_already_linked": "К вашему профилю уже привязан другой аккаунт X. Отвяжите его, чтобы продолжить.",
+      "x_connection_expired": "Срок действия подключения к X истек. Подключите X заново и повторите попытку.",
+      "x_account_link_conflict": "Не удалось привязать этот аккаунт X. Повторите попытку.",
+      "session_expired": "Срок действия сеанса истек. Войдите снова и повторите попытку.",
+      "rate_limited": "Слишком много попыток. Повторите попытку чуть позже.",
+      "social_profiles_unavailable": "Социальные профили пока недоступны для вашего счета.",
+      "save_retry": "Не удалось сохранить изменения. Повторите попытку.",
+      "create_retry": "Не удалось создать профиль. Повторите попытку.",
+      "connect_x_retry": "Не удалось подключить X. Повторите попытку.",
+      "profile_not_found": "Не удалось найти ваш профиль.",
+      "profile_already_exists": "Такой профиль уже существует.",
+      "profile_changed": "Во время сохранения ваш профиль изменился. Повторите попытку.",
+      "username_immutable": "Имя пользователя нельзя изменить.",
+      "handle_check_unavailable": "Не удалось проверить это имя пользователя. Повторите попытку чуть позже.",
+      "server_error": "На нашей стороне произошла ошибка. Повторите попытку чуть позже.",
+      "input_rejected": "Некоторые введенные данные не приняты. Измените их и повторите попытку.",
       "username_unavailable": "Это имя пользователя недоступно. Выберите другое.",
+      "username_reserved": "Это имя пользователя недоступно. Выберите другое.",
       "username_too_short": "Используйте не менее {{min}} символов.",
       "username_too_long": "Используйте не более {{max}} символов.",
       "username_invalid": "Используйте буквы, цифры и знаки подчёркивания.",
@@ -1881,8 +1963,7 @@
       "trading_activity_footnote": "Изменения применяются сразу. Ваши данные профиля и публикации в любом случае остаются видимыми.",
       "trading_activity_info": "Подробнее о торговой активности",
       "linked_account_footnote": "Сделки с этого счета будут отображаться в вашей ленте и таблице лидеров.",
-      "avatar_accessibility_label": "Аватар вашего профиля",
-      "linked_account_cooldown": "Связанный счет можно менять только раз в {{days}} дн."
+      "avatar_accessibility_label": "Аватар вашего профиля"
     },
     "position_sheet": {
       "title": "Сделка {{username}}",
@@ -1890,6 +1971,11 @@
       "following": "Подписки",
       "today": "Сегодня",
       "market_cap_suffix": "(РК)",
+      "price_toggle": "Цена",
+      "market_cap_toggle": "РК",
+      "market_cap_toggle_accessibility_label": "Рыночная капитализация",
+      "open_asset_accessibility_hint": "Открывает страницу актива",
+      "open_market_accessibility_hint": "Открывает сведения о рынке",
       "posts_tab": "Публикации ({{count}})",
       "transactions_tab": "Транзакции ({{count}})",
       "no_posts": "Публикаций об этой сделке пока нет",
@@ -1925,9 +2011,7 @@
         "spot_added": "Куплено ещё",
         "spot_reduced": "Частично продано",
         "spot_closed": "Всё продано"
-      },
-      "open_asset_accessibility_hint": "Открывает страницу актива",
-      "open_market_accessibility_hint": "Открывает сведения о рынке"
+      }
     },
     "trader_position": {
       "market_cap": "По рыночной капитализации",
@@ -1976,6 +2060,7 @@
       "price_impact": "Влияние на цену",
       "est_points": "Прим. баллов",
       "no_quotes": "Нет доступных котировок для этого токена",
+      "insufficient_native_reserve": "Уменьшите сумму в {{ticker}}, чтобы сохранить резерв",
       "quote_details_empty_no_amount": "Введите сумму, чтобы увидеть детали котировки.",
       "quote_details_empty_no_quote": "Котировка сейчас недоступна. Попробуйте другую сумму.",
       "loading": "Загрузка...",
@@ -1985,7 +2070,9 @@
       "select_quote_title": "Выбрать котировку",
       "rate": "Курс",
       "get_new_quote": "Получить новую котировку",
-      "available_balance": "Доступно: {{amount}}",
+      "available_balance": "{{amount}} available",
+      "min_post_buy": "Buy ${{amount}} to post",
+      "min_post_sell": "Sell ${{amount}} to post",
       "toggle_amount_display": "Переключение между суммой в токенах и долларах",
       "receive": "Получить",
       "max": "Максимум",
@@ -1996,7 +2083,8 @@
       "toast_complete_sell": "Продано {{amount}} {{symbol}} за {{counter}}",
       "toast_failed_buy": "Не удалось купить {{symbol}}",
       "toast_failed_sell": "Не удалось продать {{symbol}}"
-    }
+    },
+    "share_preparing": "Подготовка ссылки"
   },
   "perps": {
     "basic_functionality_disabled_title": "Перпы недоступны",
@@ -2387,11 +2475,11 @@
         "tp_sl": "ТП/СЛ",
         "liq_price": "Цена ликв.",
         "funding": "Финансирование",
-        "isolated": "Изолированная",
-        "cross": "Кросс",
         "close": "Закрыть",
         "reverse": "Развернуть",
-        "share": "Поделиться"
+        "share": "Поделиться",
+        "isolated": "Изолированная",
+        "cross": "Кросс"
       },
       "order_card": {
         "size": "Размер",
@@ -3000,6 +3088,7 @@
       "marketsFailed": "Не удалось получить рынки",
       "bridgeContractNotFound": "Не удалось получить адрес контракта моста HyperLiquid",
       "providerNotAvailable": "Поставщик {{providerId}} недоступен",
+      "providerRouteRequired": "Choose a provider for this order and try again.",
       "withdrawFailed": "Не удалось вывести",
       "connectionRequired": "usePerpsConnection должен использоваться внутри PerpsConnectionProvider",
       "assetMappingFailed": "Не удалось создать карту сопоставления активов",
@@ -3021,11 +3110,14 @@
       "positionWouldFlip": "Этот ордер изменит направление вашей позиции. Сначала закройте существующую позицию.",
       "marginAdjustmentFailed": "Не удалось изменить маржу. Повторите попытку.",
       "tpslUpdateFailed": "Не удалось обновить тейк-профит/стоп-лосс. Повторите попытку.",
+      "tpslLegReplaceUnsupported": "Updating only take profit or only stop loss isn’t available for this provider. Update take profit and stop loss together instead.",
       "orderRejected": "Ордер отклонен. Проверьте параметры и повторите попытку.",
       "slippageExceeded": "Цена слишком сильно изменилась. Попробуйте использовать лимитный ордер или увеличить допустимое проскальзывание.",
       "priceMoved": "Цена изменилась на {{priceDelta}}%, что превышает допустимое проскальзывание {{maxSlippage}}%. Проверьте обновленную цену и повторите попытку.",
       "rateLimitExceeded": "Слишком много запросов. Подождите немного и повторите попытку.",
       "serviceUnavailable": "Сервис временно недоступен. Повторите попытку позже.",
+      "postOnlyWindow": "После обновления сети торговля временно ограничена и вскоре возобновится. Повторите попытку через несколько минут.",
+      "postOnlyWouldCross": "По этой цене ордер пересек бы спред, поэтому пассивный ордер не размещен. Измените цену или разместите ордер в обычном режиме.",
       "networkErrorSimple": "Произошла ошибка сети. Проверьте соединение и повторите попытку.",
       "insufficientBalance": "Недостаточно средств на балансе для выполнения этой операции. Проверьте доступные средства.",
       "connectionFailed": {
@@ -3047,9 +3139,7 @@
       "marginValidation": {
         "exceedsMaxRemovable": "Сумма превышает максимально допустимый размер удаляемой маржи",
         "insufficientMargin": "Позиция не имеет достаточно маржи для такого сокращения"
-      },
-      "postOnlyWindow": "После обновления сети торговля временно ограничена и вскоре возобновится. Повторите попытку через несколько минут.",
-      "postOnlyWouldCross": "По этой цене ордер пересек бы спред, поэтому пассивный ордер не размещен. Измените цену или разместите ордер в обычном режиме."
+      }
     },
     "position": {
       "title": "Позиции",
@@ -3197,12 +3287,16 @@
         "content": "Если цена достигнет этой точки, ваша позиция будет ликвидирована, и вы потеряете маржу. Чем больше кредитное плечо, тем выше вероятность этого."
       },
       "cross_liquidation_price": {
-        "title": "Цена кросс-ликвидации",
-        "content": "Эта цена меняется вместе с прибылью и убытками по другим вашим кросс-позициям, а также при изменении вашего кросс-баланса. Ликвидация может затронуть весь ваш кросс-баланс."
+        "title": "Цена ликвидации",
+        "content": "This price moves with the P&L of your other positions."
       },
       "cross_no_liquidation_price": {
-        "title": "Нет цены ликвидации",
-        "content": "При текущей стоимости счета эта позиция не имеет цены ликвидации. Это может измениться при изменении стоимости других ваших кросс-позиций. Ликвидация может затронуть весь ваш кросс-баланс."
+        "title": "Цена ликвидации",
+        "content": "This position has no liquidation price at your current account value. It can change with the P&L of your other positions."
+      },
+      "cross_liquidation_estimate_unavailable": {
+        "title": "Цена ликвидации",
+        "content": "We can't estimate a liquidation price for this order. Your cross position's liquidation price depends on the P&L of your other positions."
       },
       "liquidation_distance": {
         "title": "Расстояние ликвидации",
@@ -3234,6 +3328,22 @@
       "twap_runtime": {
         "title": "Время выполнения",
         "content": "Время выполнения — это продолжительность работы TWAP-ордера. Общий размер разбивается на субордера, которые отправляются через равные промежутки времени до истечения времени выполнения."
+      },
+      "account_ratio": {
+        "title": "Account ratio",
+        "content": "Represent the risk of your portfolio liquidation. When the value is greater than 95%, your portfolio may be liquidated."
+      },
+      "maintenance_margin": {
+        "title": "Maintenance margin",
+        "content": "The minimum account value to keep your cross positions open. If the account value falls below the maintenance margin requirement, the portfolio will be liquidated."
+      },
+      "account_leverage": {
+        "title": "Account leverage",
+        "content": "Account leverage = Total cross position value / Total collateral balance. High account leverage increases the risk of liquidation."
+      },
+      "cross_margin_usage": {
+        "title": "Cross margin usage",
+        "content": "The portion of the positions’ equity used to maintain open positions. You won’t be able to open new positions if this reaches 100%."
       },
       "closing_fees": {
         "title": "Комиссии за закрытие",
@@ -3404,6 +3514,9 @@
       "losers": "Лидеры падения",
       "recently_added": "Недавно добавленные",
       "social_feed": "Социальные вопросы",
+      "live_trades": "Сделки в реальном времени",
+      "live_trades_subtitle": "Top traders latest moves",
+      "win_rate": "Процент успешных сделок",
       "trending": "Популярное",
       "top_traders": "Лучшие трейдеры"
     },
@@ -3481,22 +3594,46 @@
     },
     "margin_mode": {
       "title": "Выберите режим маржи",
+      "title_with_market": "Режим маржи для {{market}}",
       "isolated_title": "Изолированная",
-      "isolated_description": "Каждая позиция использует только выделенную для нее маржу. Если она исчерпана, эта позиция ликвидируется, а остальные остаются нетронутыми. Вы можете настраивать маржу для каждой позиции отдельно.",
+      "isolated_description": "Каждая позиция использует только выделенную ей маржу. Если она будет израсходована, эта позиция будет ликвидирована, а остальные не пострадают.",
       "cross_title": "Кросс",
-      "cross_description": "Весь баланс вашего счета распределяется между всеми позициями. Прибыль по одной может защитить другую, но ликвидация может затронуть весь ваш баланс. Скоро появится.",
-      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
+      "cross_description": "Все позиции используют весь ваш баланс бессрочных контрактов. Прибыль по одной позиции может защитить другую, но при ликвидации вы рискуете потерять все позиции. Скоро станет доступно.",
+      "cross_description_available": "Все позиции используют весь ваш баланс бессрочных контрактов. Прибыль по одной позиции может защитить другую, но при ликвидации вы рискуете потерять все позиции.",
+      "locked_by_position": "Cannot switch margin mode with an open position.",
+      "locked_by_open_order": "Cannot switch margin mode with open orders."
+    },
+    "cross_margin_confirm": {
+      "title": "Подтвердите использование кросс-маржи",
+      "description": "Вы выбрали кросс-маржу для этого ордера. Ознакомьтесь с этим списком и подтвердите, что понимаете следующие условия:",
+      "collateral_title": "Обеспечение:",
+      "collateral_description": "Все позиции будут использовать весь ваш баланс бессрочных контрактов.",
+      "liquidation_title": "Ликвидация:",
+      "liquidation_description": "При ликвидации будут задействованы средства со всего вашего баланса бессрочных контрактов.",
+      "margin_title": "Маржа:",
+      "margin_description": "Нельзя добавлять маржу в позицию с кросс-маржой или выводить ее из такой позиции.",
+      "go_back": "Назад",
+      "confirm": "Подтвердить"
     },
     "cross_position": {
       "badge": "Кросс",
-      "margin_used": "Использованная маржа позиции",
-      "no_liquidation_price": "Нет цены ликвидации",
-      "liquidation_info": "О цене кросс-ликвидации"
+      "no_liquidation_price": "Н.Д.",
+      "liquidation_info": "О цене кросс-ликвидации",
+      "margin_used": "Использованная маржа позиции"
     },
     "crossMargin": {
       "title": "Кросс-маржа не поддерживается",
       "message": "Перпы MetaMask поддерживают только торговлю с изолированной маржой. Для торговли на MetaMask необходимо закрыть позицию кросс-маржи.",
       "dismiss": "Понятно"
+    },
+    "crossMarginRatio": {
+      "description": "Коэффициент кросс-маржи: {{ratio}}."
+    },
+    "crossMarginSummary": {
+      "account_ratio": "Account ratio",
+      "maintenance_margin": "Maintenance margin",
+      "account_leverage": "Account leverage",
+      "cross_margin_usage": "Cross margin usage"
     },
     "sort": {
       "volume": "Volume (24h)",
@@ -3524,6 +3661,14 @@
     },
     "provider_selector": {
       "title": "Выбор поставщика"
+    },
+    "selection_sheet": {
+      "save": "Сохранить"
+    },
+    "exchange_filter": {
+      "title": "Filter by exchange",
+      "tagline_lighter": "Low fee, high leverage",
+      "tagline_hyperliquid": "High volume, low slippage"
     },
     "market_type": {
       "filter_by": "Фильтровать по"
@@ -3789,6 +3934,10 @@
   },
   "predict_next": {
     "available_balance": "Доступный баланс",
+    "home_section": {
+      "position_info": "{{costBasis}} при {{outcome}} для получения {{payout}}",
+      "pnl_unavailable": "Недоступно"
+    },
     "balance_unavailable": {
       "title": "Баланс недоступен",
       "description": "Не удалось загрузить ваш доступный баланс.",
@@ -3809,12 +3958,31 @@
       "retry": "Повтор",
       "unavailable": "Сейчас нет доступных рынков."
     },
+    "home_categories": {
+      "title": "Категории",
+      "politics": "Политика",
+      "sports": "Спорт"
+    },
+    "home_feed": {
+      "trending": "Популярное",
+      "sports": "Спорт",
+      "games_error": "Не удалось загрузить матчи.",
+      "retry": "Повтор"
+    },
+    "get_started_banner": {
+      "title": "Начните за несколько шагов",
+      "body": "Подтвердите личность и войдите через Kalshi, чтобы торговать на рынках прогнозов."
+    },
     "event": {
       "your_positions": "Ваши позиции",
       "game_lines": "Линии игры",
       "outcomes": "Результаты",
       "view_all_markets": "Показать все рынки: {{count}}",
+      "standard_outcome_accessibility_label": "{{title}}, {{outcome}} {{price}}",
+      "card_closes": "Закрытие {{date}}",
+      "card_volume": "${{volume}}",
       "market_layout": {
+        "markets": "Рынки",
         "moneyline": "Манилайн",
         "spread": "Спред",
         "total_points": "Всего очков",
@@ -3839,7 +4007,14 @@
         "buy_price_unavailable": "Купить, цена недоступна",
         "holding": "Доли: {{shares}} по {{price}}",
         "holding_shares": "{{shares}} акции(-ий)"
-      }
+      },
+      "game_quote_price": "· {{price}}",
+      "game_quote_buy_accessibility_label": "{{team}}, {{price}}, купить",
+      "game_quote_price_accessibility_label": "{{team}}, {{price}}",
+      "game_quote_price_unavailable_accessibility_label": "{{team}}, цена недоступна"
+    },
+    "trending": {
+      "search_row_chance": "Вероятность исхода «{{outcome}}»: {{probability}}"
     },
     "search": {
       "placeholder": "Поиск рынков",
@@ -3855,6 +4030,9 @@
         "title": "Пока нет активности",
         "description": "Здесь появятся ваши сделки и расчёты."
       },
+      "activity_continue_description": "В истории есть и другие операции. Загрузите следующую страницу, чтобы продолжить просмотр.",
+      "activity_load_more": "Загрузить еще операции",
+      "settlements_permission_denied": "В этой демоверсии расчеты по контрактам недоступны. Ваши сделки по-прежнему отображаются.",
       "load_failed": "Ошибка загрузки.",
       "load_failed_retry": "Повторить попытку",
       "outcome_shares": "{{outcome}} · {{shares}} долей",
@@ -3892,6 +4070,9 @@
       "pnl_with_percent": "{{amount}} ({{percent}})",
       "settlements_complete_from": "Показаны все расчёты начиная с {{date}}. Более ранние могут отсутствовать."
     },
+    "amount_entry": {
+      "delete": "Удалить"
+    },
     "order_preview": {
       "amount": "Сумма в USD",
       "contracts": "Количество контрактов",
@@ -3912,22 +4093,31 @@
       "exchange_fee": "Комиссия биржи",
       "metamask_fee": "Комиссия MetaMask",
       "total_debit": "Общее списание",
+      "max_cost": "Максимальная стоимость (подписано)",
+      "proceeds_if_fully_filled": "Выручка при полном исполнении (подписано)",
+      "partial_fill_proceeds_description": "Эта сумма рассчитана при условии исполнения всех контрактов. При частичном исполнении выручка может быть меньше. Если ни один контракт не будет исполнен, вы ничего не получите и ничего не будет продано.",
       "to_win": "К выигрышу {{amount}}",
       "pay_with": "Оплатить с помощью",
-      "predict_balance": "Баланс прогнозов",
-      "total": "Итого",
-      "price_details": "Детали цены",
+      "predictions_balance": "Баланс Прогнозов",
+      "odds": "Коэффициенты",
+      "contracts_row": "Контракты",
+      "fees": "Комиссии",
+      "you_will_receive": "Вы получите",
+      "you_will_receive_value": "{{amount}} (средняя цена: {{price}})",
+      "estimated_payout": "Ожидаемая выплата",
       "terms": "Продолжая, вы принимаете условия платформы.",
+      "venue_terms": "Продолжая, вы принимаете условия {{venue}}.",
       "learn_more": "Подробнее",
       "submitting": "Отправка вашего ордера…",
       "done": "Готово",
       "close": "Закрыть",
-      "delete": "Удалить",
       "expired": "Срок действия этой котировки истек. Обновите, чтобы получить новую.",
       "refresh": "Обновить",
       "retry": "Повторить попытку",
       "review": "Проверить ордер",
-      "venue_changed": "Рынок прогнозов изменился. Закройте этот ордер, чтобы продолжить."
+      "buy": "Купить",
+      "venue_changed": "Рынок прогнозов изменился. Закройте этот ордер, чтобы продолжить.",
+      "delete": "Удалить"
     },
     "order_approval": {
       "title": "Проверьте свой заказ",
@@ -3957,15 +4147,91 @@
       "reconciling_title": "Ордер еще подтверждается",
       "reconciling_description": "Мы все еще проверяем, что произошло с вашим ордером. Следите за обновлениями здесь или позже посмотрите результат в разделе «История».",
       "keep_checking": "Продолжить проверку",
-      "requote": "Повторить попытку"
+      "requote": "Повторить попытку",
+      "needs_review_title": "Не удалось подтвердить этот ордер",
+      "needs_review_description": "Не удалось подтвердить результат исполнения ордера. Проверьте историю операций или обратитесь в службу поддержки.",
+      "done": "Выполнено"
     },
     "order_notification": {
       "not_placed_title": "Ордер не размещен",
       "not_placed_description": "Средства с вашего баланса не списаны. Получите новую котировку и повторите попытку."
     },
-    "home_section": {
-      "position_info": "{{costBasis}} при {{outcome}} для получения {{payout}}",
-      "pnl_unavailable": "Недоступно"
+    "withdraw": {
+      "title": "Вывести средства",
+      "amount_label": "Сумма",
+      "available_balance": "Available balance: {{amount}}",
+      "balance_loading": "Checking your available balance...",
+      "balance_unavailable": "We couldn't load your available balance.",
+      "below_minimum": "The minimum withdrawal is {{amount}}.",
+      "over_balance": "Enter an amount within your available balance.",
+      "offline": "You're offline. Reconnect to withdraw.",
+      "receive_row": "Получить",
+      "receive_sandbox_wallet": "Sandbox wallet",
+      "continue": "Продолжить",
+      "confirm": "Подтвердить",
+      "back": "Назад",
+      "submitting": "Submitting your withdrawal…",
+      "outcome_unknown": "We couldn't confirm this withdrawal. Check its status to recover the same withdrawal, not start another.",
+      "retry": "Check withdrawal",
+      "amount_row": "Сумма",
+      "network_row": "Сеть:",
+      "destination_row": "В",
+      "copy_destination": "Copy destination address",
+      "fee_row": "Комиссия",
+      "no_fee": "Без платы",
+      "expires_at": "Котировка действительна до {{time}}",
+      "phase": {
+        "input": "Введите сумму",
+        "confirm": "Проверить вывод средств",
+        "status": "Withdrawal status"
+      },
+      "full_balance": "Full available balance",
+      "sandbox_notice": {
+        "title": "Sandbox wallet",
+        "body": "This pays the sandbox wallet registered when you set up your demo account. It can't be changed here."
+      },
+      "status": {
+        "processing": {
+          "title": "Withdrawal processing",
+          "body": "This can take a few minutes. You can close this and check your balance later."
+        },
+        "settled": {
+          "title": "Withdrawal sent",
+          "body": "The venue transferred the funds. Your destination wallet may take a few minutes to show them."
+        },
+        "sweep_remainder": "Any amount above the per-withdrawal limit stays in your balance.",
+        "stalled": "We can't get the latest status right now. Check again.",
+        "manual_review": {
+          "title": "Withdrawal under review",
+          "body": "This withdrawal needs a manual review. Check your balance later, and contact support if it doesn't arrive."
+        },
+        "failed": {
+          "title": "Ошибка вывода средств",
+          "body": "The withdrawal couldn't be completed. Funds may have left your balance. Check your balance and destination wallet before trying again."
+        },
+        "returned": {
+          "title": "Withdrawal returned",
+          "body": "The funds came back to your balance."
+        },
+        "check_balance": "Check balance",
+        "done": "Выполнено"
+      },
+      "rejection": {
+        "insufficient_balance": "Not enough balance",
+        "insufficient_balance_body": "Your balance changed before this was placed. Nothing left your account.",
+        "amount_below_minimum": "Amount too small",
+        "amount_below_minimum_body": "The venue requires at least $1.00. Nothing left your account.",
+        "step_up_verification_required": "Требуется проверка",
+        "step_up_verification_required_body": "This withdrawal needs extra verification, which isn't available in the app yet. Nothing left your account.",
+        "venue_rejected": "Withdrawal not accepted",
+        "venue_rejected_body": "The venue refused this withdrawal. Nothing left your account."
+      },
+      "error": {
+        "preview_expired": "This quote expired. Start the withdrawal again.",
+        "venue_account_not_enabled": "Finish setting up Kalshi before withdrawing.",
+        "venue_unavailable": "The venue is unavailable right now. Try again in a moment.",
+        "generic": "Возникла какая-то проблема. Повторите попытку."
+      }
     }
   },
   "predict": {
@@ -4024,7 +4290,13 @@
       "price_unavailable": "цена недоступна",
       "option_accessibility_label": "Опция рынка для {{team}}, линия {{line}}, цена {{price}}",
       "outcome_accessibility_label": "{{team}}, линия {{line}}, цена {{price}}",
-      "choice_accessibility_label": "{{option}}, {{price}}"
+      "choice_accessibility_label": "{{option}}, {{price}}",
+      "threshold_option": "{{value}}+",
+      "threshold_title": "{{label}}: {{line}}",
+      "threshold_line": "{{label}} · {{line}}",
+      "threshold_order_outcome": "{{outcome}} · {{line}}",
+      "threshold_option_accessibility_label": "{{label}}, {{value}} или больше, {{outcome}} {{price}}",
+      "threshold_option_unlabelled_accessibility_label": "{{value}} или больше, {{outcome}} {{price}}"
     },
     "rules": {
       "event_accessibility_label": "Посмотреть правила события",
@@ -4619,16 +4891,16 @@
   },
   "experience_enhancer_modal": {
     "title": "Помогите нам улучшить ваш опыт",
-    "paragraph1a": "В дополнение к ",
-    "paragraph1b": ", мы хотели бы использовать данные (например, информацию из файлов cookie), чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями.",
-    "link": "MetaMetrics,",
+    "paragraph1b": "We’d like to use data (like information from cookies) to learn how you interact with our marketing communications.",
     "paragraph2": "Это помогает нам персонализировать то, чем мы делимся с вами, например:",
     "bullet1": "Последние разработки",
     "bullet2": "Функции продукта",
     "bullet3": "Другие соответствующие промоматериалы",
-    "footer": "Помните, что мы никогда не продаем предоставленные вами данные и вы можете отказаться от их предоставления в любое время.",
+    "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Я согласен(-на)",
-    "cancel": "Нет, спасибо"
+    "cancel": "Нет, спасибо",
+    "paragraph1a": "В дополнение к ",
+    "link": "MetaMetrics,"
   },
   "multi_rpc_migration_modal": {
     "description": "Теперь мы поддерживаем несколько RPC для одной сети. Ваш последний RPC был выбран в качестве RPC по умолчанию для разрешения проблемы с противоречивой информацией",
@@ -4677,6 +4949,8 @@
   },
   "wallet": {
     "title": "Кошелек",
+    "refreshing": "Обновление",
+    "updated": "Обновлено",
     "search_accessibility_label": "Поиск",
     "homepage_search_placeholder": "Поиск",
     "rewards_accessibility_label": "Награды",
@@ -4935,6 +5209,10 @@
     "title_nft": "Импорт NFT",
     "search_token": "Search",
     "custom_token": "Custom token",
+    "hidden_tokens": "Скрытые токены",
+    "unhide": "Показать",
+    "add_custom_token_cta": "Не можете найти свой токен? Добавьте пользовательский токен",
+    "no_hidden_tokens": "У вас нет скрытых токенов.",
     "tokens": {
       "cancel_add_token": "Отмена",
       "add_token": "Импорт"
@@ -4982,15 +5260,15 @@
     "agree": "Я согласен(-на)",
     "decline": "Нет, спасибо",
     "description_title": "Помогите нам улучшить Metamask",
-    "description_content_1": "Мы хотели бы запросить эти разрешения. Вы можете отказать или удалить данные об использовании в любое время.",
+    "description_content_1": "We’d like to request these permissions. You can opt out or delete your usage data anytime.",
     "description_content_2": "Когда мы собираем показатели, они всегда будут...",
     "description_content_3": "Узнайте, как мы защищаем вашу конфиденциальность при сборе данных об использовании вашего профиля.",
-    "gather_basic_usage_title": "Собирать основные данные об использовании",
+    "gather_basic_usage_title": "Basic usage data",
     "gather_basic_usage_description": "Мы будем собирать основные данные об использовании продукта. Мы можем связать эту информацию с данными, хранящимися ончейн.",
     "gather_basic_usage_learn_more": "Подробнее",
     "stay_informed": "Будьте в курсе",
-    "checkbox_marketing": "Рекламные новости",
-    "checkbox": "Мы будем использовать эти данные, чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями. Мы можем отправлять соответствующие новости (например, о функциях продукта).",
+    "checkbox_marketing": "Marketing data",
+    "checkbox": "We’ll collect data to learn how you interact with our marketing communications. We may use this data to share relevant news (like product updates).",
     "action_description_1_prefix": "Приватными:",
     "action_description_2_prefix": "Общие:",
     "action_description_3_prefix": "Необязательно:",
@@ -5338,16 +5616,6 @@
     "x_account_disconnect_error": "Не удалось отключить X. Проверьте соединение и повторите попытку.",
     "x_account_disconnect_success": "Аккаунт X отключён"
   },
-  "profile_drawer": {
-    "close": "Закрыть",
-    "scan": "Сканировать QR-код",
-    "create_profile": "Создать профиль",
-    "notifications": "Уведомления",
-    "activity": "Деятельность",
-    "subscriptions": "Подписки",
-    "settings": "Настройки",
-    "help_and_support": "Help and support"
-  },
   "app_settings": {
     "enabling_notifications": "Включение уведомлений...",
     "updating_notifications": "Обновление уведомлений...",
@@ -5355,6 +5623,12 @@
     "notifications_dismiss_modal": "Отклонить",
     "select_rpc_url": "Выберите URL-адрес RPC",
     "title": "Настройки",
+    "groups": {
+      "general": "Общие",
+      "security_and_privacy": "Безопасность и конфиденциальность",
+      "transactions_and_assets": "Транзакции и активы",
+      "more": "Еще"
+    },
     "current_conversion": "Базовая валюта",
     "current_language": "Текущий язык",
     "ipfs_gateway": "шлюз IPFS",
@@ -5377,6 +5651,9 @@
     "reveal_seed_words": "Показать секретную фразу для восстановления",
     "reset_account": "Сбросить счет",
     "state_logs_button": "Скачать журналы состояния",
+    "money_account_status": "Статус Money account",
+    "money_account_status_desc": "Просмотр отладочной информации о вашем Money account.",
+    "money_account_status_button": "Посмотреть статус Money account",
     "reveal_seed_words_button": "Показать секретную фразу для восстановления",
     "reset_account_button": "Сбросить счет",
     "reset_account_confirm_button": "Да, сбросить",
@@ -5432,6 +5709,7 @@
     "jazzicons": "Jazzicons",
     "blockies": "Blockies",
     "general_title": "Общие",
+    "preferences_and_display_title": "Настройки и отображение",
     "general_desc": "Конвертация валюты, основная валюта, язык и поисковая система.",
     "advanced_title": "Дополнительно",
     "advanced_desc": "Доступ к функциям разработчика, сброс счета, настройка тестовых сетей, журналы состояний и пользовательские RPC.",
@@ -5559,7 +5837,7 @@
     "metametrics_title": "Участвуйте в MetaMetrics",
     "metametrics_description": "Участвуйте в MetaMetrics и помогайте нам улучшить MetaMask.",
     "data_collection_title": "Сбор данных для маркетинга",
-    "data_collection_description": "Мы будем использовать MetaMetrics, чтобы узнать, как вы взаимодействуете с нашими маркетинговыми сообщениями. Мы можем делиться соответствующими новостями (например, новостями о функциях продукта и другими материалами).",
+    "data_collection_description": "We’ll collect data on how you interact with our marketing communications to personalize the updates we send you.",
     "batch_balance_requests_title": "Пакетные запросы баланса счета",
     "batch_balance_requests_description": "Получайте обновления баланса всех ваших счетов одновременно. Отключение этой функции приведет к тому, что другие с меньшей вероятностью будут связывать один счет с другим.",
     "third_party_title": "Получить входящие транзакции",
@@ -5613,10 +5891,10 @@
     "delete_metrics_description_part_one": "Это удалит исторические данные",
     "delete_metrics_description_part_two": "MetaMetrics,",
     "delete_metrics_description_part_three": "связанные с вашим кошельком.",
-    "delete_metrics_description_before_delete": "Ваш кошелек и счета останутся точно такими, какие они есть сейчас, после того, как эти данные будут удалены. Этот процесс может занять до 30 дней. Ознакомьтесь с нашей",
+    "delete_metrics_description_before_delete": "Your wallet and accounts will remain exactly as they are now. This process may take up to 30 days. View our",
     "delete_metrics_description_after_delete_part_one": "Вы инициировали это действие",
     "delete_metrics_description_after_delete_part_two": ". Этот процесс может занять до 30 дней. Ознакомьтесь с нашей",
-    "delete_metrics_description_privacy_policy": "Политикой конфиденциальности.",
+    "delete_metrics_description_privacy_policy": "Уведомлении о конфиденциальности.",
     "delete_metrics_button": "Удалить данные MetaMetrics",
     "check_status_button": "Проверить статус",
     "delete_metrics_confirm_modal_title": "Удалить данные MetaMetrics?",
@@ -7175,8 +7453,8 @@
     "tx_details_free": "Бесплатно",
     "tx_details_not_available": "Недоступен",
     "smart_contract_interaction": "Взаимодействие с контрактом",
-    "money_account_deposit": "Внести на Money Account",
-    "money_account_withdraw": "Перевести с Money Account",
+    "money_account_deposit": "Пополнение Money account",
+    "money_account_withdraw": "Перевод из Money account",
     "swaps_transaction": "Транзакция свопа",
     "bridge_transaction": "Мост",
     "approve": "Одобрить",
@@ -8025,7 +8303,10 @@
     "card_title": "Всегда показывать кнопку Карты MetaMask",
     "card_desc": "Карта MetaMask доступна только для жителей отдельных стран.",
     "daimo_demo_title": "Использовать демо-среду DaimoPay",
-    "daimo_demo_desc": "Переключение между демо- и рабочей средой DaimoPay для платежей по картам."
+    "daimo_demo_desc": "Переключение между демо- и рабочей средой DaimoPay для платежей по картам.",
+    "card_logout_title": "Карта MetaMask",
+    "card_logout_desc": "Выйдите из своего аккаунта MetaMask Card на этом устройстве для устранения неполадок или по просьбе службы поддержки MetaMask.",
+    "card_logout_cta": "Выйти из MetaMask Card"
   },
   "walletconnect_sessions": {
     "no_active_sessions": "У вас нет активных сеансов",
@@ -8776,6 +9057,17 @@
     "unrecognized_chain_ticker": "Похоже, символ этой сети не соответствует этому ID блокчейна.",
     "unrecognized_chain_id": "Мы не узнаем эту сеть. Убедитесь в правильности ID блокчейна до того, как продолжить."
   },
+  "identity_verification": {
+    "delete_section_title": "Удаление идентификационных данных",
+    "delete_section_description": "Ваши идентификационные данные будут безвозвратно удалены из MetaMask. Партнеры, у которых вы прошли проверку, сохранят свои копии. В дальнейшем вам может потребоваться пройти проверку заново.",
+    "delete_identity_data": "Удалить идентификационные данные",
+    "delete_confirm_title": "Удалить идентификационные данные?",
+    "delete_confirm_message": "Это действие нельзя отменить.",
+    "delete_success_title": "Идентификационные данные удалены",
+    "delete_success_message": "Ваши зашифрованные данные проверки личности удалены.",
+    "delete_error_title": "Не удалось удалить идентификационные данные",
+    "delete_error_message": "Возникла проблема, повторите попытку позже."
+  },
   "mfa": {
     "method_email": "Эл. почта",
     "method_passkey": "Ключ доступа",
@@ -8807,17 +9099,22 @@
     "otp": {
       "title": "Введите код подтверждения",
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
+      "description_unsent_with_email": "We'll send a 6-digit code to {{email}}. Enter it below to verify your email.",
+      "description_unsent": "We'll send a 6-digit code to your email. Enter it below to verify your email.",
       "description": "Мы отправили 6-значный код на вашу эл. почту. Введите его ниже, чтобы подтвердить ваш адрес эл. почты.",
       "description_totp": "Откройте приложение-аутентификатор и введите 6-значный код.",
       "retry": "Повторить попытку",
       "retry_in": "Повторите попытку через {{seconds}} с",
       "sending": "Отправка кода...",
-      "send_in": "Sending a new code in {{seconds}}s",
+      "send": "Send code",
+      "send_in": "Send code in {{seconds}}s",
       "resend": "Повторно отправить код",
       "resend_in": "Повторно отправить код через {{seconds}} с",
       "resent": "Мы отправили вам новый код.",
       "verifying": "Отправить код",
-      "get_new_code": "Получить новый код"
+      "paste": "Вставить",
+      "get_new_code": "Получить новый код",
+      "get_new_code_in": "Получить новый код через {{seconds}} с"
     },
     "totp_setup": {
       "title": "Настройка приложения-аутентификатора",
@@ -8842,11 +9139,13 @@
       "support_title": "Не удалось проверить ваши данные",
       "support_description": "Чтобы продолжить, обратитесь в службу поддержки.",
       "contact_support": "Связаться с поддержкой",
-      "done": "Выполнено"
+      "done": "Выполнено",
+      "passkey_exists_title": "Can't create passkey",
+      "passkey_exists_description": "A passkey already exists on this device. Try using a different password manager."
     },
     "errors": {
       "invalid_code": "Неверный код. Попробуйте еще раз",
-      "too_many_attempts": "Слишком много попыток. Запросите новый код.",
+      "too_many_attempts": "Слишком много неверных кодов. Получите новый код.",
       "invalid_passkey": "Не удалось проверить ваш ключ доступа. Повторите попытку.",
       "passkey_cancelled": "Запрос ключа доступа был отменен.",
       "email_taken": "Этот адрес эл. почты уже используется. Попробуйте другой.",
@@ -8868,6 +9167,7 @@
       "description": "Дополнительная защита транзакций Money account.",
       "manage": "Управление",
       "notice": "Эти методы дополнительно защищают транзакции по счету Money Account. С их помощью нельзя восстановить кошелек.",
+      "notice_social_login": "These methods add protection to Money account transactions and to recovering your wallet.",
       "add": "Добавить",
       "passkeys": "Ключи доступа",
       "passkey_count": {
@@ -8878,8 +9178,13 @@
       "passkey_name": "Ключ доступа №{{number}}",
       "passkey_name_with_provider": "Ключ доступа №{{number}} — {{provider}}",
       "added_on": "Добавлено: {{date}}",
+      "created": "Создан",
+      "last_used": "Использовалось последним",
+      "last_used_on": "Last used {{date}}",
+      "not_used_yet": "Not used yet",
       "used_for": "Используется для",
       "used_for_money": "Подтверждение транзакций Money",
+      "used_for_wallet_recovery": "Восстановление кошелька",
       "remove_passkey": "Удалить ключ доступа",
       "remove_passkey_description": "Этот ключ доступа будет удален со всех ваших устройств. Перед удалением убедитесь, что у вас есть другой способ входа.",
       "remove_email": "Удалить адрес электронной почты",
@@ -9579,6 +9884,9 @@
     "your_balance": "Ваш баланс",
     "apy_label": "{{percentage}}% годовых",
     "apy_currency_suffix": " • mUSD",
+    "apy_premium_tag": "Premium",
+    "apy_upgrading_pill": "Upgrading to Premium APY",
+    "apy_downgrading_pill": "Moving to standard APY",
     "apy_info_label": "Информация о годовом процентном доходе (APY)",
     "balance_unavailable": "Баланс недоступен",
     "balance_unavailable_value": "$—",
@@ -9596,28 +9904,53 @@
       "step_2": {
         "no_card_account": {
           "title": "Получите карту MetaMask Card",
-          "description": "Тратьте баланс и зарабатывайте на покупках.",
+          "description": "Тратьте свой баланс, пока он приносит доход, везде, где принимают Mastercard.",
           "cta_primary": "Получить карту",
           "cta_secondary": "Пропустить"
         },
         "unlinked_card_account": {
           "title": "Привяжите карту MetaMask Card",
-          "description": "Тратьте баланс и зарабатывайте на покупках.",
+          "description": "Тратьте свой баланс, пока он приносит доход, везде, где принимают Mastercard.",
           "cta_primary": "Привязать карту",
           "cta_secondary": "Пропустить"
         }
       }
     },
+    "splash": {
+      "eyebrow": "MetaMask Money",
+      "title": "Зарабатывайте, торгуйте и оплачивайте покупки с одного баланса",
+      "body_prefix": "MetaMask Money — это счет в стейблкоинах с доходностью до ",
+      "body_suffix": "— с возможностью торговать, переводить средства и оплачивать покупки.",
+      "body_no_apy": "MetaMask Money — это счет в стейблкоинах с возможностью торговать, переводить средства и оплачивать покупки.",
+      "benefit_convert_title": "Конвертация в MetaMask USD по курсу 1:1",
+      "benefit_convert_body": "Внесенные средства конвертируются в MetaMask USD по курсу 1:1 без комиссий.",
+      "benefit_earn_title": "Зарабатывайте автоматически",
+      "benefit_earn_body": "Доход зачисляется на ваш баланс в реальном времени. Получать его вручную не нужно.",
+      "benefit_trade_title": "Торгуйте с того же баланса",
+      "benefit_trade_body": "Используйте средства с баланса Money для обменов, торговли бессрочными контрактами и на рынках прогнозов.",
+      "benefit_withdraw_title": "Выводите средства в любое время",
+      "benefit_withdraw_body": "Без блокировок, предварительного уведомления и штрафов. Вы можете вывести свои деньги в любой момент.",
+      "benefit_send_title": "Переводите средства и оплачивайте покупки где угодно",
+      "benefit_send_body": "Переводите средства на любой кошелек или банковский счет либо оплачивайте покупки картой MetaMask Card.",
+      "cta": "Начните зарабатывать",
+      "close": "Закрыть"
+    },
     "vba_home_card": {
       "get_started": {
         "title": "Конвертируйте средства в цифровые доллары",
         "description": "Отправьте BRL, USD или EUR со своего банковского счета и получите mUSD на счет Money account. Без комиссий.",
+        "description_with_currency": "Send {{currency}} from your bank and get mUSD in your Money account. No fees.",
         "cta": "С чего начать"
       },
       "account_is_ready": {
         "title": "Все готово",
         "description": "Реквизиты вашего виртуального счета готовы.",
         "cta": "Посмотреть реквизиты счета"
+      },
+      "identity_verified": {
+        "title": "Личность подтверждена",
+        "description": "Теперь получите реквизиты виртуального счета, чтобы пополнять его со своего банковского счета.",
+        "cta": "Получить реквизиты счета"
       },
       "kyc_pending": {
         "title": "Проверка вашей личности...",
@@ -9634,11 +9967,6 @@
         "description": "Сейчас мы не можем предложить вам банковские переводы. Обратитесь за помощью в службу поддержки.",
         "cta": "Узнайте подробнее.",
         "dismiss": "Отклонить"
-      },
-      "identity_verified": {
-        "title": "Личность подтверждена",
-        "description": "Теперь получите реквизиты виртуального счета, чтобы пополнять его со своего банковского счета.",
-        "cta": "Получить реквизиты счета"
       }
     },
     "first_time_deposit": {
@@ -9654,8 +9982,8 @@
       "step2_body": "Переводите стейблкоины без комиссий за обмен. Средства начинают приносить доход сразу же.",
       "step2_footer_text": "Money Account использует инфраструктуру Veda.",
       "step3_title": "Тратьте где угодно",
-      "step3_body_card_eligible": "Получайте до {{percentage}}% кэшбэка за покупки, привязав Money Account к карте MetaMask.",
-      "step3_body_card_ineligible": "Скоро! Получите возврат до {{percentage}}% от покупок, привязав свой Money Account к карте MetaMask.",
+      "step3_body": "Используйте свою криптовалюту по всему миру — везде, где принимают Mastercard.",
+      "step3_body_coming_soon": "Скоро! Используйте свою криптовалюту по всему миру — везде, где принимают Mastercard.",
       "step3_footer_text": "Включает мониторинг от Steakhouse Financial.",
       "step4_title": "Торгуйте и зарабатывайте в одном месте",
       "step4_body": "Используйте свой денежный баланс для торговли в MetaMask, продолжая получать доходность.",
@@ -9718,14 +10046,21 @@
     "metamask_card": {
       "title": "Карта",
       "upsell_title": "Получить карту",
+      "setup": {
+        "finish_kyc_title": "Завершите подтверждение вашей личности",
+        "finish_kyc_description": "Продолжите с того места, где остановились, чтобы получить карту.",
+        "reviewing_title": "Проверка вашей личности...",
+        "reviewing_description": "Большинство заявок рассматривается в течение нескольких часов.",
+        "creating_title": "Создаем вашу карту",
+        "creating_description": "Это может занять немного времени.",
+        "continue": "Продолжить"
+      },
       "subtitle": "Тратьте свои деньги где угодно.",
       "virtual_card": "Виртуальная карта",
       "metal_card": "Металлическая карта",
-      "cashback": "{{percentage}}% кэшбэка в mUSD",
       "link_title": "Привязать карту",
-      "link_subtitle": "Тратьте баланс и зарабатывайте на покупках.",
-      "link_subtitle_no_apy": "Тратьте баланс и зарабатывайте на покупках.",
-      "link_bullet_cashback": "Получайте кэшбэк {{percentage}}% в mUSD",
+      "link_subtitle": "Тратьте свой баланс, пока он приносит доход, везде, где принимают Mastercard.",
+      "link_subtitle_no_apy": "Тратьте свой баланс, пока он приносит доход, везде, где принимают Mastercard.",
       "link_bullet_apy": "Зарабатывайте до ~{{apy}}% годовых",
       "link_pending_title": "Привязка вашей карты",
       "link_success_title": "Ваша карта готова к использованию",
@@ -9737,18 +10072,18 @@
       "update_success_title": "Ваш лимит расходов обновлен",
       "update_error": "Что-то пошло не так при обновлении лимита расходов",
       "link_card_sheet_title": "Тратьте и зарабатывайте",
-      "link_card_sheet_description_prefix": "Привяжите свою карту, чтобы вы могли тратить свой баланс Money и получать обратно mUSD за покупки — и все это зарабатывая до",
+      "link_card_sheet_description_prefix": "Привяжите карту, чтобы оплачивать покупки с баланса Money, продолжая получать доходность до",
       "link_card_sheet_description_suffix": " (переменная ставка).",
-      "link_card_sheet_description_no_apy": "Привяжите свою карту, чтобы вы могли тратить свой баланс Money и получать обратно mUSD за покупки.",
+      "link_card_sheet_description_no_apy": "Привяжите карту, чтобы оплачивать покупки с баланса Money везде, где принимают Mastercard.",
       "link_card_sheet_cta": "Привязать карту",
       "unlink_card_sheet_title_no_funding_source": "Отвязать Money Account?",
       "unlink_card_sheet_title_with_funding_source": "Вы уверены?",
-      "unlink_card_sheet_description_no_funding_source": "Вы перестанете получать доход от покупок. Будущие расходы по карте будут отклоняться, пока вы не настроите новый источник финансирования. Вы можете повторно подключить Money Account в любое время.",
-      "unlink_card_sheet_description_with_funding_source": "Вы перестанете получать доход от покупок. Будущие расходы по карте будут финансироваться из источника {{fundingSource}}. Вы можете повторно подключить Money Account в любое время.",
+      "unlink_card_sheet_description_no_funding_source": "Средства для покупок по карте больше не будут списываться с баланса Money. Новые платежи будут отклоняться, пока вы не выберете другой источник средств. Вы можете снова подключить Money account в любое время.",
+      "unlink_card_sheet_description_with_funding_source": "Средства для покупок по карте больше не будут списываться с баланса Money. Новым источником средств для оплаты станет {{fundingSource}}. Вы можете снова подключить Money account в любое время.",
       "unlink_card_sheet_another_money_account": "другой Money Account",
       "unlink_card_sheet_keep_linked": "Оставить подключенным",
       "unlink_card_sheet_unlink_account": "Отвязать счет",
-      "verification_pending": "Выполняется проверка вашей личности. Обычно это занимает менее 12 часов."
+      "verification_pending": "Результаты проверки вашей личности находятся на рассмотрении. Большинство заявок рассматривается в течение нескольких часов."
     },
     "what_you_get": {
       "title": "Бонусы",
@@ -9756,8 +10091,7 @@
       "benefit_auto_earn_variable": "(переменная ставка)",
       "benefit_dollar_backed": "Храните свои деньги в безопасности в mUSD, стейблкоине, обеспеченном долларом 1:1",
       "benefit_liquidity": "Получите полную ликвидность без блокировок, чтобы вы могли торговать или выводить средства в любое время",
-      "benefit_spend_prefix": "Тратьте средства у более чем 150 млн продавцов с картой MetaMask и зарабатывайте ",
-      "benefit_spend_cashback": "1-3% кэшбэка в mUSD",
+      "benefit_spend": "Оплачивайте покупки картой MetaMask Card более чем в 150 млн торговых точек",
       "benefit_transfer": "Отправляйте на любые ваши кошельки в MetaMask",
       "benefit_global": "Отправляйте и получайте средства по всему миру",
       "learn_more": "Подробнее"
@@ -9848,6 +10182,9 @@
     "apy_tooltip": {
       "title": "Годовая процентная доходность (годовые)",
       "paragraph_1": "Ваш Money Account автоматически зарабатывает до {{percentage}}%.",
+      "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Pro Premium APY.",
+      "migration_upgrading": "Your funds are moving to the Premium vault. The APY shown is for the vault your funds are in right now.",
+      "migration_downgrading": "Your funds are moving to the standard vault. The APY shown is for the vault your funds are in right now.",
       "paragraph_2": "Указанная ставка — это ориентировочная годовая процентная доходность (APY), основанная на текущих рыночных условиях. APY является переменной и не гарантируется. Средства поступают в хранилище DeFi, управляемое Veda с контролем рисков от Steakhouse Financial, которое генерирует доходность на устоявшихся рынках кредитования.",
       "paragraph_3": "При привязке карты MetaMask Card покупки будут списываться с этого баланса.",
       "paragraph_4": "Money Account работает на базе Monad.",
@@ -9924,6 +10261,7 @@
       "date": "Дата",
       "paid_with": "Оплачено с помощью",
       "you_deposited": "Вы внесли",
+      "amount_unavailable": "Сумма недоступна",
       "transaction_fees": "Комиссии за транзакцию",
       "paid_by_metamask": "Оплачено MetaMask",
       "total": "Итого",
@@ -9957,20 +10295,22 @@
       "description_3": "Money Account работает на базе Monad.",
       "faq_title": "Часто задаваемые вопросы",
       "faq_q1": "Что такое счет MetaMask Money Account?",
-      "faq_a1": "Счет, который приносит до {{percentage}}% переменной годовой доходности (APY). Вы вносите средства, которые хранятся на счете в виде mUSD, и получаете до {{percentage}}% APY. mUSD — это обеспеченный долларом стейблкоин от MetaMask. Вы можете использовать или выводить свои средства в любое время без штрафов. Вы можете тратить свои средства с помощью карты MetaMask Card у более чем 150 миллионов продавцов, принимающихся Mastercard, по всему миру.",
+      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You add funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_a1_no_apy": "Это счет с переменной годовой процентной доходностью (APY). Внесенные средства хранятся на счете в виде mUSD — стейблкоина MetaMask, обеспеченного долларами. Вы можете использовать или выводить средства в любое время без штрафов, а также оплачивать покупки картой MetaMask Card более чем в 150 млн торговых точек по всему миру, принимающих Mastercard.",
       "faq_q2": "Безопасен ли счет MetaMask Money Account?",
-      "faq_a2": "Да, но как и все продукты DeFi, он несет в себе риски. Это некастодиальный кошелек, что означает, что вы полностью контролируете свой счет с помощью своих приватных ключей.\n\nРиски включают сбои смарт-контрактов, уязвимости протоколов, нехватку ликвидности, сбои третьих сторон, а также юридические или регуляторные ограничения. Money Account не застрахован FDIC или каким-либо правительственным агентством. Существует риск потери средств.",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Secret Recovery Phrase. Risks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
       "faq_q3": "Кто контролирует мой MetaMask Money Account?",
-      "faq_a3": "Вы! MetaMask — это некастодиальный кошелек, то есть им управляют только закрытые ключи владельца счета. MetaMask не может получить доступ к вашим средствам, заморозить или переместить их. Это то, что отличает нас от традиционных банковских счетов и кастодиальных криптоплатформ — здесь нет третьей стороны, хранящей ваши средства.",
+      "faq_a3": "You do. MetaMask is self-custodial, so MetaMask can't access, freeze, or move your funds. That's what sets us apart from banks and custodial crypto platforms. No third party holds your funds. Your Money account is tied to your Secret Recovery Phrase, so back it up and keep it somewhere safe. Importing an account with a Private Key won't restore your Money account. If you lose your Secret Recovery Phrase, you lose access to your Money account funds.",
       "faq_q4": "Какие комиссии по MetaMask Money Account?",
-      "faq_a4": "За открытие Money Account и за внесение стейблкоинов комиссия не взимается. Комиссия будет взиматься при внесении токенов, не являющихся стейблкоинами. Также существуют комиссии, связанные с транзакциями по карте MetaMask Card, снятием наличных в банкоматах и расходами на вывод средств в местную валюту. ",
+      "faq_a4": "There's no fee to open a Money account and no fee to add stablecoins. You will get charged fees when adding non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
       "faq_a4_link": "Полную разбивку комиссий по карте смотрите здесь.",
       "faq_q5": "Сколько я могу заработать с MetaMask Money Account?",
       "faq_a5": "До {{percentage}}% годовых. Ставка является переменной и колеблется в зависимости от рыночных условий. Текущая ставка всегда видна внутри Money Account.",
+      "faq_a5_no_apy": "Ставка переменная и меняется в зависимости от рыночных условий. Текущая ставка всегда отображается в Money account.",
       "faq_q6": "Откуда берется доходность?",
-      "faq_a6": "Когда вы вносите средства, они направляются в проверенные протоколы DeFi, такие как Aave и Morpho, где они приносят доход от реальной экономической деятельности. Этот доход затем предоставляется вам в виде годовой процентной ставки (APY).\n\nСторонний поставщик услуг Steakhouse Financial контролирует распределение средств в протоколах. Veda, сторонний поставщик инфраструктуры, развертывает и поддерживает смарт-контракты хранилища, в которых находятся ваши средства.\n\nДоход не является процентами, выплачиваемыми MetaMask или эмитентом mUSD. Это ончейн-доход, генерируемый позициями в сторонних протоколах DeFi.",
-      "faq_q7": "Какие токены я могу внести на Money Account?",
-      "faq_a7": "Вы можете внести следующие стейблкоины и a-токены на свой Money Account без комиссий за конвертацию:\n\n{{tokenBullets}}\n\nВсе остальные токены EVM также можно внести на Money Account, но могут применяться стандартные комиссии. Вы также можете пополнить свой Money Account с помощью дебетовой карты, кредитной карты, банковского счета, PayPal, Apple Pay или Google Pay.\n\nПримечание: установлен первоначальный максимальный лимит на депозит в размере 100 000 $ на один токен для обеспечения ликвидности.",
+      "faq_a6": "When you add funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
+      "faq_q7": "What tokens can I add to my Money account?",
+      "faq_a7": "You can add the following stablecoins and aTokens to your Money account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be added to the Money account, but standard fees may apply. You can also fund your Money account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial limit of $100,000 per token to ensure liquidity.",
       "faq_q8": "Могу ли я вывести средства с MetaMask Money Account в любое время?",
       "faq_a8": "Да. Вы можете торговать, отправлять, тратить или выводить весь свой баланс в любое время без периодов уведомления, штрафов и комиссий за вывод средств со стороны MetaMask. В случае нехватки ликвидности возможны временные задержки.",
       "faq_q9": "Нужно ли мне проходить верификацию личности, чтобы использовать счет MetaMask Money Account?",
@@ -9995,6 +10335,44 @@
         "title": "Money Account уже на подходе",
         "description": "Мы запускаем Money Account постепенно, чтобы все работало без сбоев. Загляните позже."
       }
+    },
+    "account_status": {
+      "title": "Статус Money account",
+      "loading": "Загрузка…",
+      "no_account": "Для этого кошелька Money account не найден.",
+      "address_title": "Адрес Money account",
+      "copy": "Копировать {{label}}",
+      "copied": "Скопировано: {{label}}",
+      "not_available": "Недоступно",
+      "flag_not_set": "Не задано в удаленных флагах",
+      "debug_title": "Отладочная информация",
+      "chomp_api_url": "CHOMP API URL (remote flag)",
+      "metametrics_id": "Идентификатор MetaMetrics",
+      "profile_id": "Идентификатор профиля",
+      "summary_title": "Резюме",
+      "chomp_registration": "Регистрация CHOMP",
+      "summary": {
+        "registered": "Регистрация завершена",
+        "pending": "Ожидающий",
+        "incomplete": "Не завершено",
+        "unknown": "Неизвестно"
+      },
+      "request_error": "Некоторые запросы завершились с ошибкой. Потяните вниз, чтобы повторить попытку.",
+      "signals_title": "Сигналы",
+      "profile_association": "Привязка профиля",
+      "account_upgrade": "Обновление счета",
+      "intents": "Намерения",
+      "local_record": "Запись об обновлении на устройстве",
+      "local_record_completed_at": "Обновление на устройстве завершено {{date}}",
+      "signal": {
+        "complete": "Завершено",
+        "pending": "Ожидающий",
+        "missing": "Отсутствует",
+        "unknown": "Неизвестно"
+      },
+      "upgrades_title": "Обновления",
+      "intents_title": "Намерения",
+      "chain": "Сеть {{chainId}}"
     }
   },
   "stake": {
@@ -10342,12 +10720,32 @@
       "contract_deployment": "Этот сайт хочет, чтобы вы развернули контракт",
       "decrease_allowance": "Этот сайт хочет снизить лимит расходования ваших токенов."
     },
+    "perps_receive_to": {
+      "section": "Перпы",
+      "hyperliquid": "USDC on Hyperliquid",
+      "lighter": "USDC on Lighter",
+      "default": "По умолчанию",
+      "available": "Доступно: {{amount}}"
+    },
+    "perps_withdraw_from": {
+      "section": "Перпы",
+      "hyperliquid": "Hyperliquid balance",
+      "lighter": "Lighter balance",
+      "default": "По умолчанию",
+      "available": "Доступно: {{amount}}"
+    },
     "tooltip": {
       "perps_deposit": {
         "transaction_fee": "Мы обменяем ваши токены на USDC в HyperCore, сети, используемой перпами. Поставщики услуг свопов могут взимать комиссию, но MetaMask не взимает ее."
       },
       "predict_deposit": {
         "transaction_fee": "Мы обменяем ваши токены на pUSD в Polygon — сети, используемой Прогнозами. Поставщикик услуг обмена могут взимать комиссию, но MetaMask — нет."
+      },
+      "perps_withdraw": {
+        "swap_to_token": "MetaMask обменяет средства на нужный вам токен."
+      },
+      "predict_withdraw": {
+        "swap_to_token": "MetaMask обменяет средства на нужный вам токен."
       },
       "musd_conversion": {
         "transaction_fee": "В стоимость конвертации mUSD входят расходы сети, а также могут входить комиссии поставщика. При обмене на mUSD комиссия MetaMask не взимается."
@@ -10361,19 +10759,15 @@
       "title": {
         "transaction_fee": "Комиссии за транзакцию"
       },
-      "network_fee": "Комиссии сети зависят от загруженности сети и сложности транзакции.",
-      "perps_withdraw": {
-        "swap_to_token": "MetaMask обменяет средства на нужный вам токен."
-      },
-      "predict_withdraw": {
-        "swap_to_token": "MetaMask обменяет средства на нужный вам токен."
-      }
+      "network_fee": "Комиссии сети зависят от загруженности сети и сложности транзакции."
     },
     "spending_cap": "Лимит расходов",
     "withdraw": "Вывести",
     "nfts": "NFT",
     "permission_from": "Разрешение от",
     "spender": "Кто осуществляет расходы",
+    "expiration": "Срок действия",
+    "never_expires": "Срок действия не истекает",
     "request_from": "Запрос от",
     "staking_from": "Стейкинг от",
     "signing_in_with": "Вход через",
@@ -10475,11 +10869,13 @@
   "confirm_membership": {
     "title": "Подтвердить подписку",
     "plan_name": "Orange (Monthly)",
+    "plan_name_annual": "Orange (Annual)",
     "confirm_and_pay": "Confirm and pay",
     "start_trial": "Start your free trial",
     "billed_on": "Billed on",
     "disclaimer": {
       "part1": "By clicking \"{{confirmAndPay}}\", you authorize MetaMask to charge {{monthlyAmount}}/month. Renews on {{renewDate}}. Cancel anytime. You also accept the ",
+      "part1_annual": "By clicking \"{{confirmAndPay}}\", you authorize MetaMask to charge {{amount}}/year. Renews on {{renewDate}}. Cancel anytime. You also accept the ",
       "terms_of_use": "Условиями использования",
       "part2": " и ",
       "privacy_policy": "Политикой конфиденциальности",
@@ -10572,7 +10968,7 @@
       "metamask_fee_info_body": "Стандартная комиссия MetaMask составляет {{feePercentage}}%. Вам могут быть доступны скидки или частичный возврат комиссии, поэтому итоговая комиссия рассчитывается при исполнении ордера.",
       "metamask_fee_info_learn_more": "Узнайте подробнее.",
       "create_order": "Создать ордер",
-      "min_order_amount": "Min. order amount is ${{amount}}",
+      "min_order_amount": "Min. order amount is {{amount}}",
       "paying": "Оплата",
       "est_receiving": "Примерно к получению",
       "trigger_condition": "Условие срабатывания",
@@ -10611,7 +11007,7 @@
       "date_created": "Дата создания",
       "order_type": "Тип ордера",
       "order_type_limit": "Лимит",
-      "create_new_order": "Create new order"
+      "duplicate_order": "Дублирующий ордер"
     },
     "recurring": {
       "you_get": "Вы получаете",
@@ -10620,6 +11016,7 @@
       "times": "раз(-а)",
       "confirm": "Подтвердить",
       "preview_order": "Предпросмотр ордера",
+      "min_order_amount": "Min. order amount is {{amount}}",
       "confirm_title": "Подтвердить регулярный ордер",
       "unsupported_fee_token_pair": "Регулярные свопы для этой пары токенов недоступны. Чтобы продолжить, замените хотя бы один токен на один из следующих: {{supportedTokens}}",
       "fee_tokens_unavailable": "Не удалось загрузить список токенов для оплаты комиссии. Повторите попытку.",
@@ -10683,6 +11080,10 @@
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} ордера(-ов)",
       "spend_summary": "Вы тратите {{amount}} {{symbol}} каждые {{everyValue}} {{unit}} {{repeatCount}} раз(а)",
+      "repeat_summary": {
+        "one": "один раз",
+        "other": "{{count}} times"
+      },
       "percent_filled": "{{percent}}% исполнено",
       "completed": "Завершено",
       "cancelled": "Отменено",
@@ -10713,7 +11114,7 @@
       "swap_details_title": "{{source}} обменян в {{dest}}",
       "order_not_found": "Ордер не найден",
       "cancel_order": "Отменить ордер",
-      "duplicate_order": "Дублировать ордер",
+      "duplicate_order": "Дублирующий ордер",
       "cancel_confirmation_title": "Вы уверены?",
       "cancel_confirmation_body": "Если вы продолжите, мы отменим этот повторяющийся ордер. Вам придется создать новый ордер для повторного свопа."
     },
@@ -10787,7 +11188,6 @@
     "network_fee_info_title": "Комиссия сети",
     "network_fee_info_content": "Комиссии сети зависят от загруженности сети и сложности транзакции.",
     "network_fee_info_content_gasless": "Если у вас недостаточно нативных токенов, вы оплатите эту комиссию токенами из вашего свопа.",
-    "gas_fee_deduction": "-{{fee}} за газ",
     "batch_sell_network_fee_info_content": "Комиссии сети зависят от загруженности сети и сложности вашей транзакции. Если у вас недостаточно средств для оплаты комиссии, мы спишем ее из токена, в который вы конвертируете.",
     "network_fee_info_content_sponsored": "Комиссию сети оплачивает MetaMask, поэтому вы можете совершать транзакции, даже если у вас на счету нет {{nativeToken}}.",
     "points": "Прим. баллов",
@@ -11331,19 +11731,16 @@
         "name": "Виртуальная карта",
         "price": "Бесплатно",
         "feature_1": "Виртуальная карта для Apple Pay и Google Pay",
-        "feature_2": "Оплата криптовалютой (USDC, USDT, WETH и другие)",
-        "feature_3": "Кэшбэк 1% в mUSD с каждой покупки"
+        "feature_2": "Оплата криптовалютой (USDC, USDT, WETH и другие)"
       },
       "metal_card": {
         "name": "Металлическая карта",
         "price": "$199/год",
         "everything_in_virtual": "Все то же, что и для виртуальной карты, плюс:",
         "feature_1": "Премиальная металлическая карта с гравировкой",
-        "feature_2": "Кэшбэк 3% в mUSD на первые 10 000 $ в год",
         "feature_3": "Без комиссий за зарубежные транзакции"
       },
-      "earn_up_to_badge": "Получайте до 300 $ кэшбэка в mUSD ежегодно",
-      "upgrade_to_metal_label": "Или перейдите на план Metal и получайте трехкратные бонусы"
+      "upgrade_to_metal_label": "Или перейдите на Metal"
     },
     "review_order": {
       "title": "Проверьте свой заказ",
@@ -11363,7 +11760,7 @@
     "order_completed": {
       "title": "Ваша карта уже в пути",
       "subtitle": "Доставка должна занять от 4 до 6 недель.",
-      "description": "Настройте виртуальную карту и добавьте ее в свой цифровой кошелек, чтобы начать получать кэшбэк в mUSD.",
+      "description": "Настройте виртуальную карту и добавьте ее в цифровой кошелек, чтобы начать оплачивать покупки.",
       "set_up_card_button": "Настроить карту",
       "back_to_card_button": "Назад к карте"
     },
@@ -11404,9 +11801,9 @@
       "try_again": "Повторить попытку"
     },
     "card_onboarding": {
-      "title": "Тратьте и зарабатывайте",
-      "description": "MetaMask Card — это быстрый и простой способ тратить криптовалюту и получать до 3% кэшбэка в mUSD.",
-      "apply_now_button": "Настройте сейчас",
+      "title": "Тратьте где угодно",
+      "description": "MetaMask Card — быстрый и простой способ оплачивать покупки криптовалютой.",
+      "apply_now_button": "Get Card",
       "login_button": "Войти",
       "not_now_button": "Не сейчас",
       "sign_up": {
@@ -11462,9 +11859,11 @@
       "verify_identity": {
         "title": "Подтвердите свою личность",
         "description": "Наш партнер, компания Crypto Life, использует сервис Veriff для обеспечения безопасности вашего счета. ",
-        "terms_1": "Ваша информация поступает напрямую в Veriff и Crypto Life. MetaMask её никогда не видит.",
-        "terms_2": "Для одобрения вам понадобятся удостоверение личности и подтверждение адреса проживания. Обычно это занимает 5 минут.",
-        "terms_2_us": "Федеральное законодательство (Закон США о противодействии терроризму) требует от нас подтверждения вашей личности с помощью удостоверения личности и подтверждения адреса проживания в целях предотвращения терроризма и отмывания денег. Обычно это занимает 5 минут.",
+        "terms_1_title": "MetaMask не получает доступ к вашим данным",
+        "terms_1_description": "Они передаются напрямую в Veriff и Crypto Life.",
+        "terms_2_title": "Подготовьте удостоверение личности и документ, подтверждающий адрес",
+        "terms_2_description": "Обычно это занимает 5 минут.",
+        "terms_2_us_description": "Федеральное законодательство (Закон США о противодействии терроризму) требует от нас подтверждения вашей личности с помощью удостоверения личности и подтверждения адреса проживания в целях предотвращения терроризма и отмывания денег. Обычно это занимает 5 минут.",
         "verify_button": "Далее",
         "start_verification_error": "Ошибка начала проверки. Повторите попытку позже."
       },
@@ -11489,19 +11888,25 @@
       "verifying_veriff_kyc": {
         "title": "Ожидается одобрение",
         "description": "Наш партнер должен подтвердить вашу личность, чтобы одобрить вашу заявку.",
-        "helper_text": "Обычно это занимает несколько секунд. Не закрывайте приложение."
+        "helper_text": "Обычно это занимает несколько секунд. Не закрывайте приложение.",
+        "in_progress_title": "Проверка вашей личности...",
+        "in_progress_description": "Обычно это занимает несколько секунд. Не закрывайте приложение."
       },
       "immersve_kyc_processing": {
-        "title": "Ожидается одобрение",
-        "description": "Наш партнер должен подтвердить вашу личность, чтобы одобрить вашу заявку.",
-        "helper_text": "Обычно это занимает несколько секунд. Не закрывайте приложение.",
+        "loading_label": "Загрузка",
+        "in_progress_title": "Проверка вашей личности...",
+        "in_progress_description": "Обычно это занимает несколько секунд. Не закрывайте приложение.",
         "incomplete_title": "Завершите подтверждение вашей личности",
         "incomplete_description": "Вы закрыли проверку личности до её завершения. Продолжите, чтобы закончить.",
         "continue_button": "Продолжить проверку",
         "info_needed_title": "Требуется дополнительная информация",
         "info_needed_description": "Нам нужно немного больше информации, чтобы завершить вашу проверку. Продолжите, чтобы предоставить её.",
         "info_needed_button": "Продолжить проверку",
-        "expiring_error": "Срок действия вашего сеанса проверки истек. Обратитесь в службу поддержки, чтобы продолжить."
+        "expiring_error": "Срок действия вашего сеанса проверки истек. Обратитесь в службу поддержки, чтобы продолжить.",
+        "error_title": "Что-то пошло не так",
+        "try_again_button": "Повторить попытку",
+        "expired_title": "Срок действия сеанса проверки истек",
+        "back_to_home_button": "Назад на главную"
       },
       "immersve_kyc_modal": {
         "permission_error": "Для проверки личности необходим доступ к камере и микрофону. Предоставьте доступ и повторите попытку.",
@@ -11511,6 +11916,7 @@
       "immersve_funding_approval": {
         "title": "Настроить пополнение карты",
         "description": "Одобрите использование картой MetaMask ваших USDC в сети Base для покупок.",
+        "money_account_description": "Разрешите MetaMask Card использовать средства из Money account для оплаты покупок.",
         "helper_text": "Обычно это занимает несколько секунд. Не закрывайте приложение.",
         "confirm_button": "Одобрить пополнение",
         "retry_button": "Повторить попытку",
@@ -11518,7 +11924,8 @@
           "title": "Настроить пополнение карты",
           "description": "Одобрите MetaMask Card для повторного использования ваших USDC в сети Base, чтобы возобновить траты.",
           "confirm_button": "Одобрить пополнение"
-        }
+        },
+        "token_value": "USDC в сети Base"
       },
       "verifying_registration": {
         "title": "Проверка вашей личности...",
@@ -11541,11 +11948,18 @@
         "description": "Право на получение определяется на основании проверок и подтверждений, проводимых нашим партнером.",
         "close_button": "Назад на главную"
       },
-      "kyc_pending": {
-        "title": "Ожидается одобрение",
-        "description": "Наш партнер должен подтвердить вашу личность, чтобы одобрить вашу заявку.",
-        "footer_text": "Одобрение обычно занимает около 12 часов. Мы уведомим вас, когда будет принято решение.",
-        "got_it_button": "Понятно"
+      "kyc_rejected": {
+        "retry_title": "Не удалось подтвердить вашу личность",
+        "reasons": {
+          "id_document": "Не удалось проверить ваше удостоверение личности. Попробуйте еще раз с другим документом.",
+          "document_photo": "Фотография документа недостаточно четкая. Сделайте ее еще раз при лучшем освещении.",
+          "personal_details": "Не удалось подтвердить ваше имя, дату рождения или адрес.",
+          "proof_of_address": "Не удалось проверить документ, подтверждающий адрес.",
+          "biometrics": "Сканирование лица не подтвердило совпадение. Повторите попытку.",
+          "ineligible": "В настоящий момент вы не имеете права на получение карты MetaMask.",
+          "generic": "Попробуйте пройти проверку заново. Если она по-прежнему не проходит, обратитесь в службу поддержки.",
+          "generic_permanent": "Мы не можем завершить проверку для этого счета."
+        }
       },
       "personal_details": {
         "title": "Добавьте свою информацию",
@@ -11554,6 +11968,7 @@
         "last_name_label": "Фамилия",
         "date_of_birth_label": "Дата рождения",
         "nationality_label": "Гражданство",
+        "nationality_placeholder": "Выберите ваше гражданство",
         "ssn_label": "Номер социального страхования",
         "ssn_description": "Требуется эмитентом карты. Проверка кредитной истории проводиться не будет.",
         "invalid_ssn": "Недопустимый SSN",
@@ -11567,6 +11982,7 @@
         "address_line_2_label": "Строка адреса 2",
         "city_label": "Город",
         "state_label": "Штат",
+        "state_placeholder": "Выберите штат",
         "zip_code_label": "Почтовый индекс",
         "country_label": "Страна",
         "electronic_consent_1": "Я согласен(-на) с ",
@@ -11590,9 +12006,11 @@
         "description": "Укажите почтовый адрес, на который мы сможем отправить вашу карту."
       },
       "complete": {
-        "title": "Вы в деле!",
+        "title": "Вы проверены",
         "description": "Завершите настройку карты MetaMask Card, чтобы начать тратить криптовалюту.",
-        "confirm_button": "Завершить настройку"
+        "confirm_button": "Завершить настройку",
+        "money_account_description": "Готовим вашу карту. Она появится на главной странице раздела «Карта» через несколько мгновений.",
+        "money_account_confirm_button": "Продолжить"
       },
       "account_exists": {
         "title": "У вас уже есть счет",
@@ -11616,7 +12034,9 @@
         "success_toast_description": "Мы сообщим вам, когда карта станет доступна в вашей стране."
       },
       "region_selector": {
-        "title": "Выберите свой регион"
+        "title": "Выберите свой регион",
+        "search_label": "Поиск регионов",
+        "search_placeholder": "Поиск по стране"
       },
       "errors": {
         "no_region_results": "Нет регионов, соответствующих {{searchString}}",
@@ -11650,7 +12070,6 @@
       "enable_assets_button_label": "Активировать активы",
       "spending_limit_warning": "Вы почти достигли лимита расходов. Обновите, чтобы избежать отказов.",
       "spending_limit_available": "доступные",
-      "logout": "Выйти",
       "contact_support": "Связаться с поддержкой",
       "logout_confirmation_title": "Выйти из карты?",
       "logout_confirmation_message": "Вы уверены, что хотите выйти из своего счета Карты MetaMask?",
@@ -11692,14 +12111,25 @@
           "description": "Чтобы разблокировать карту, обратитесь в службу поддержки"
         },
         "kyc_pending": {
-          "title": "Выполняется проверка",
-          "description": "Выполняется проверка вашей личности. Обычно это занимает менее 12 часов."
+          "title": "Проверка вашей личности...",
+          "description": "Большинство заявок рассматривается в течение нескольких часов."
         }
       },
       "messages": {
         "card_provisioning": {
           "title": "Карта создается",
           "description": "Ваша карта создается. Это может занять несколько минут."
+        },
+        "setup_incomplete": {
+          "title": "Завершите настройку вашей карты",
+          "descriptions": {
+            "contact": "Добавьте контактные данные, чтобы продолжить.",
+            "kyc": "Подтвердите личность, чтобы продолжить.",
+            "expected_spend": "Расскажите, как вы планируете использовать карту, чтобы продолжить.",
+            "funding": "Разрешите списание средств, чтобы начать оплачивать покупки.",
+            "rejected": "Не удалось подтвердить вашу личность. Повторите попытку, чтобы продолжить."
+          },
+          "confirm_button_label": "Продолжить"
         }
       },
       "kyc_status": {
@@ -11880,10 +12310,10 @@
       "money_account_token_symbol": "mUSD",
       "use_money_account_cta": "Использовать Money Account",
       "spend_and_earn_title": "Тратьте и зарабатывайте",
-      "spend_and_earn_description_prefix": "Привяжите свой баланс к карте и получайте mUSD обратно за покупки. Кроме того, зарабатывайте до ",
+      "spend_and_earn_description_prefix": "Привяжите баланс к карте и оплачивайте покупки где угодно. А еще получайте доходность до ",
       "spend_and_earn_description_apy": "{{apy}}% годовых",
       "spend_and_earn_description_suffix": " (переменная ставка) на свой баланс.",
-      "spend_and_earn_description_no_apy": "Привяжите свой баланс к карте и получайте mUSD обратно за покупки.",
+      "spend_and_earn_description_no_apy": "Привяжите баланс к карте и оплачивайте покупки везде, где принимают Mastercard.",
       "spend_and_earn_cta": "Привязать карту"
     },
     "cashback_screen": {
@@ -11904,9 +12334,9 @@
         "confirm_button_label": "Настроить пополнение"
       },
       "money_account_required": {
-        "title": "Настроить Money Account",
-        "description": "Прежде чем вернуть mUSD, вам потребуется привязанный Money Account.",
-        "confirm_button_label": "Настроить Money Account"
+        "title": "Настройте Money account",
+        "description": "Чтобы получить кешбэк в mUSD, сначала привяжите Money account.",
+        "confirm_button_label": "Настроить Money account"
       }
     },
     "credit_screen": {
@@ -11927,9 +12357,9 @@
         "confirm_button_label": "Настроить пополнение"
       },
       "money_account_required": {
-        "title": "Настроить Money Account",
-        "description": "Вам нужен подключенный Money Account перед использованием кредита.",
-        "confirm_button_label": "Настроить Money Account"
+        "title": "Настройте Money account",
+        "description": "Чтобы использовать начисленные средства, сначала привяжите Money account.",
+        "confirm_button_label": "Настроить Money account"
       },
       "refund_info": {
         "title": "Баланс возвратов",
@@ -11988,8 +12418,16 @@
       "location_button_text_uk": "Великобритания",
       "email_label": "Эл. почта",
       "password_label": "Пароль",
+      "show_password": "Показать пароль",
+      "hide_password": "Скрыть пароль",
+      "email_code_label": "Код из электронного письма",
+      "request_email_code_button": "Получить код по электронной почте",
       "login_button": "Войти",
-      "siwe_button": "Войти через Ethereum",
+      "money_account_required": {
+        "title": "Настройте Money account",
+        "description": "Для получения карты в вашей стране необходим Money account.",
+        "confirm_button_label": "Настроить Money account"
+      },
       "continue_button": "Продолжить",
       "uk_login_button": "Войти с этим счетом",
       "signup_button": "Зарегистрироваться",
@@ -12026,6 +12464,7 @@
       "banner_resume_soft_body": "Завершите его до {{deadline}}. До этого момента вы можете пользоваться текущей картой.",
       "banner_bad_creds_title": "Не удалось выполнить вход",
       "banner_bad_creds_body": "Проверьте адрес электронной почты и пароль и повторите попытку.",
+      "banner_bad_code_body": "Проверьте код и повторите попытку.",
       "sign_in_help_title": "Какой вариант мой?",
       "sign_in_help_email_title": "Вы создавали пароль",
       "sign_in_help_email_body": "Войдите по электронной почте. Карты, выпущенные в Великобритании, переводятся на новую систему, поэтому после входа мы поможем вам выполнить переход.",
@@ -12079,7 +12518,9 @@
     },
     "card_otp_authentication": {
       "title": "Подтвердите свой номер телефона",
+      "title_authenticator": "Подтвердите приложение-аутентификатор",
       "description_with_phone_number": "Введите проверочный код, отправленный на\n{{maskedPhoneNumber}}",
+      "description_authenticator": "Введите код из приложения-аутентификатора.",
       "description_without_phone_number": "Мы отправили код подтверждения на ваш номер телефона. Введите код, чтобы продолжить.",
       "confirm_code_label": "Код подтверждения",
       "confirm_button": "Подтвердить",
@@ -12171,6 +12612,7 @@
     "close": "Закрыть"
   },
   "rewards": {
+    "today": "Сегодня",
     "rebate": {
       "banner": "Вы получаете возврат {{percent}}% комиссий",
       "tooltip_title": "Бонусы за торговлю",
@@ -12251,7 +12693,7 @@
       "already_referred": "Вас уже направил другой пользователь.",
       "cannot_use_own_referral_code": "Вы не можете использовать собственный реферальный код.",
       "referrer_cannot_be_referred": "Вы не можете воспользоваться приглашением другого пользователя.",
-      "active_trader_cannot_be_referred": "Вы не можете воспользоваться приглашением из-за недавней торговой активности.",
+      "active_trader_cannot_be_referred": "Этот реферальный код действителен только для новых трейдеров.",
       "rate_limited": "Слишком много попыток. Подождите немного.",
       "invalid_bonus_code": "Недействительный бонусный код",
       "already_redeemed": "Вы уже использовали этот бонусный код",
@@ -12383,31 +12825,13 @@
       "verifying_rewards": "Мы проверяем правильность всех данных, прежде чем вы сможете получить свои бонусы."
     },
     "onboarding": {
-      "not_supported_region_title": "Регион не поддерживается",
       "not_supported_region_description": "Вознаграждения пока не поддерживаются в вашем регионе. Мы работаем над расширением доступа, поэтому зайдите позже.",
-      "not_supported_hardware_account_title": "Счет не поддерживается",
       "not_supported_hardware_account_description": "Счета аппаратных кошельков пока не могут получать бонусы. Чтобы продолжить, смените счет.",
-      "not_supported_account_type_title": "Тип счета не поддерживается",
       "not_supported_account_type_description": "Сейчас в программе бонусов могут участвовать только внутренние счета Ethereum и Solana. Чтобы продолжить, смените счет.",
-      "not_supported_confirm_go_back": "Назад",
-      "not_supported_confirm_retry": "Повтор",
-      "auth_fail_title": "Ошибка аутентификации",
-      "auth_fail_description": "Не удалось пройти аутентификацию в программе бонусов. Проверьте соединение и повторите попытку.",
-      "geo_check_fail_title": "Невозможно определить право на участие",
-      "geo_check_fail_description": "Не удается определить, доступно ли участие в программе бонусов в вашем регионе. Проверьте соединение и повторите попытку.",
-      "intro_confirm_geo_loading": "Проверка региона...",
       "step_confirm": "Далее",
       "step_finish": "Вперед",
       "step_skip": "Пропустить",
-      "title": "Начните получать награды",
-      "description": "Выигрывайте призы, получайте бонусы и открывайте для себя больше способов заработка — просто используя MetaMask.",
-      "sign_up": "Присоединиться к Rewards",
-      "sign_up_loading": "Присоединение...",
-      "legal_disclaimer_1": "Присоединяясь, вы соглашаетесь с",
-      "legal_disclaimer_2": "Условиями использования",
-      "legal_disclaimer_3": ". Мы автоматически подключим все счета на этом устройстве и будем отслеживать ончейн-активность, чтобы награждать вас.",
-      "legal_disclaimer_4": "Узнайте подробнее",
-      "referral_label": "Реферальный код"
+      "description": "Выигрывайте призы, получайте бонусы и открывайте для себя больше способов заработка — просто используя MetaMask."
     },
     "settings": {
       "title": "Настройки бонусов",
@@ -12564,6 +12988,7 @@
       "entered": "Уже участвуете",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Согласиться",
+      "create_username": "Create a username",
       "opt_in_sheet_title": "Присоединиться к кампании",
       "geo_restriction_banner_title": "Недоступно в вашем регионе",
       "geo_restriction_banner_description": "Данная кампания недоступна в вашем регионе в связи с местными правилами.",
@@ -12740,6 +13165,8 @@
       "leaderboard_hypertracker_brand": "HyperTracker",
       "stats_notional_volume_threshold": "Требуется {{amount}} $",
       "stats_qualified_title": "Вы соответствуете требованиям",
+      "stats_pnl_gap_amount": "+{{pnlGap}}",
+      "stats_pnl_gap_to_prize_suffix": "to win {{place}} place",
       "stats_qualified_description": "Продолжайте торговать, чтобы улучшить свой П/У и подняться в рейтинге до окончания соревнования.",
       "stats_qualify_for_rank_title": "Пройти квалификацию для таблицы лидеров",
       "stats_qualify_for_rank_description": "Наторгуйте еще {{notionalRemaining}} номинального объема, чтобы получить право на участие.",
@@ -12865,8 +13292,8 @@
       "predict_claim": "Востребованные выигрыши",
       "predict_deposit": "Счет «Прогнозирование» пополнен",
       "predict_withdraw": "Вывод средств",
-      "money_account_deposit": "Пополнение Money Account",
-      "money_account_withdraw": "Перевод с Money Account",
+      "money_account_deposit": "Пополнение Money account",
+      "money_account_withdraw": "Перевод из Money account",
       "default": "Сведения о транзакции"
     },
     "label": {
@@ -13011,7 +13438,10 @@
     "switch_to_metamask_default_rpc": "Переключиться на RPC MetaMask по умолчанию",
     "check_network_connectivity": "Проверьте подключение к сети.",
     "check_network_connectivity_or": "Проверьте подключение к сети или",
-    "updated_to_metamask_default": "Обновлено на настройки MetaMask по умолчанию"
+    "updated_to_metamask_default": "Обновлено на настройки MetaMask по умолчанию",
+    "slow_network_title": "Медленное подключение",
+    "slow_network_description": "Загрузка данных может занять больше времени.",
+    "dismiss_slow_network": "Закрыть баннер медленного соединения"
   },
   "trending": {
     "title": "Обзор",
@@ -13053,7 +13483,7 @@
     "cancel": "Отмена",
     "perps": "Перпы",
     "rwa_perps_section": "Перпы",
-    "macro_stocks_commodity_perps": "Перпы",
+    "perps_trending_lists": "Популярные списки",
     "crypto_perps_section": "Перпы",
     "predictions": "Прогнозы",
     "no_results": "Результаты не найдены",
@@ -13082,7 +13512,7 @@
     },
     "tabs": {
       "now": "Сейчас",
-      "macro": "Макро",
+      "perps": "Перпы",
       "rwas": "Реальные активы (RWA)",
       "crypto": "Крипто",
       "sports": "Спорт",
@@ -13378,6 +13808,7 @@
       "load_error": "Не удалось загрузить ваши лимиты.",
       "pending_confirmation": "Цены для участников начнут действовать после подтверждения вашего участия.",
       "unavailable": "Цены для участников сейчас недоступны.",
+      "paused": "Member pricing is paused while your membership is deactivated.",
       "retry": "Повторить попытку"
     },
     "physical_card": {
@@ -13411,6 +13842,9 @@
         "title": "Ваша подписка отменена",
         "description": "Продлите подписку до {{date}}, чтобы и дальше получать 7% APY, 3% кэшбэка в mUSD и другие преимущества.",
         "action": "Продлить подписку"
+      },
+      "pending_cancel": {
+        "description": "Resume before {{date}} to keep 7% APY, 3% mUSD back, and more."
       }
     },
     "earned": {
@@ -13434,12 +13868,16 @@
       "paying_with": "Оплата с помощью",
       "money_account": "Money Account",
       "renews_on": "Продлевается",
+      "ends_on": "Ends on",
       "months_on_us_one": "{{count}} месяц бесплатно",
       "months_on_us_other": "Бесплатных месяцев: {{count}}",
       "manage": "Управление планом",
       "invoices": "Счета-фактуры",
+      "invoices_in_progress": "Opening invoices",
+      "invoices_failed": "We couldn't open your invoices. Try again.",
       "contact_support": "Связаться с поддержкой",
       "cancel_membership": "Отменить подписку",
+      "cancel_not_allowed": "Cancellation isn't available right now.",
       "resume_membership": "Возобновить подписку",
       "resume_in_progress": "Возобновление подписки",
       "resume_failed": "Не удалось возобновить подписку. Повторите попытку."
@@ -13457,7 +13895,13 @@
       "keep_membership": "Keep Orange",
       "cancel": "Отменить подписку",
       "cancellation_unavailable": "Сейчас невозможно отменить подписку. Повторите попытку позже.",
-      "cancellation_failed": "Не удалось отменить подписку. Повторите попытку."
+      "cancellation_failed": "Не удалось отменить подписку. Повторите попытку.",
+      "post_cancel_sheet": {
+        "title": "Your membership is canceled",
+        "period_end_description": "Renew before {{date}} to continue receiving {{apy}} APY, {{rate}} mUSD back, and more.",
+        "immediate_description": "Your membership has ended, so you no longer have {{apy}} APY, {{rate}} mUSD back, or other membership benefits.",
+        "got_it": "Понятно!"
+      }
     }
   },
   "pro_subscription": {
@@ -13466,17 +13910,19 @@
     "description_monthly": "{{monthlyPrice}}/мес.",
     "description_annual": "{{annualPrice}} при годовой подписке",
     "join_pro": "Улучшить тариф",
-    "join_error": "We couldn't start your Pro membership. Try again.",
+    "join_error": "We couldn't start your Orange membership. Try again.",
+    "join_error_geo_blocked": "MetaMask Orange isn't available in your location, so we couldn't start your membership.",
+    "join_error_feature_disabled": "MetaMask Orange isn't available right now, so we couldn't start your membership.",
     "join_orange": "Подключить Orange",
     "start_free_trial": "Начать бесплатное пробное использование",
     "free_trial_description": "No commitment, cancel anytime",
-    "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
+    "insufficient_balance": "Your Money account doesn't have enough balance to start Orange membership.",
     "enable_stripe_test_clocks": "Включить Stripe Test Clocks (только для разработки и тестирования)",
     "pro": "Оранжевый",
     "pricing": {
       "loading": "Загрузка тарифов...",
       "error": "Не удалось загрузить цены тарифов. Повторите попытку.",
-      "unavailable": "Тарифы Pro сейчас недоступны. Повторите попытку позже.",
+      "unavailable": "MetaMask Orange isn't available right now. Try again later.",
       "malformed": "Не удалось обработать цены тарифов. Повторите попытку.",
       "retry": "Повтор"
     },
@@ -13525,7 +13971,7 @@
     },
     "benefits_description": {
       "apy": {
-        "description": "Как у участника Pro, ваш счет Money account зарабатывает до ~7% годовых, выплачиваемых в mUSD. Обычные пользователи получают до ~4% годовых.",
+        "description": "As an Orange member, your Money account earns up to ~7% APY, paid in mUSD. Non-members earn up to ~4% APY.",
         "description2": "Годовая процентная доходность является переменной величиной и не гарантируется."
       },
       "cashback": {
@@ -13574,7 +14020,8 @@
     "success": {
       "title": "Вы перешли на новый уровень",
       "description": "Пора начинать зарабатывать.",
-      "cta": "Продолжить"
+      "cta": "Продолжить",
+      "continue_error": "We couldn't confirm your membership. Try again."
     }
   }
 }

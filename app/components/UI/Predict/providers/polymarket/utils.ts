@@ -5,6 +5,7 @@ import EthQuery from '@metamask/eth-query';
 import { Hex, numberToHex, stringToBytes } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { Interface } from 'ethers/lib/utils';
+import { captureMessage } from '@sentry/react-native';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
@@ -24,6 +25,7 @@ import {
   type PredictFeePolicy,
   type CryptoPriceProvider,
 } from '../../types';
+import { getCryptoSymbol, isCryptoUpDown } from '../../utils/cryptoUpDown';
 import { getRecurrence } from '../../utils/format';
 import {
   buildGameData,
@@ -998,11 +1000,19 @@ const RESOLUTION_SOURCE_HOST = /^https?:\/\/([^/?#:]+)/iu;
 const isHostOf = (host: string, domain: string): boolean =>
   host === domain || host.endsWith(`.${domain}`);
 
+const getResolutionSource = (
+  event: Pick<PolymarketApiEvent, 'resolutionSource'>,
+  markets: Pick<PolymarketApiMarket, 'resolutionSource'>[],
+): string | null | undefined =>
+  markets.find((market) => market.resolutionSource)?.resolutionSource ??
+  event.resolutionSource;
+
 /**
  * Reads the vendor a market settles against from its Gamma resolution source.
- * Settlement, not the series length, decides the vendor: on Gamma the hourly
- * and daily crypto up/down series resolve on binance.com USDT pairs, while the
- * 5m, 15m and 4h series resolve on data.chain.link streams.
+ * Settlement, not the series length, decides the vendor: 5m, 15m and 4h markets
+ * resolve on data.chain.link streams, and the hourly and daily series moved from
+ * binance.com USDT pairs to Chainlink on 2026-11-18, so one series can hold
+ * markets on both.
  *
  * @param event - Gamma event.
  * @param markets - The event's markets. Their own source wins over the event's.
@@ -1012,9 +1022,7 @@ export const parseCryptoPriceProvider = (
   event: Pick<PolymarketApiEvent, 'resolutionSource'>,
   markets: Pick<PolymarketApiMarket, 'resolutionSource'>[],
 ): CryptoPriceProvider | undefined => {
-  const source =
-    markets.find((market) => market.resolutionSource)?.resolutionSource ??
-    event.resolutionSource;
+  const source = getResolutionSource(event, markets);
   const host = source?.trim().match(RESOLUTION_SOURCE_HOST)?.[1]?.toLowerCase();
   if (!host) {
     return undefined;
@@ -1025,6 +1033,49 @@ export const parseCryptoPriceProvider = (
   }
 
   return isHostOf(host, 'chain.link') ? 'chainlink' : undefined;
+};
+
+const MAX_WARNED_DEFAULT_PROVIDER_MARKETS = 500;
+const warnedDefaultProviderMarkets = new Set<string>();
+
+/**
+ * Warns Sentry once per market when a crypto up/down market's resolution
+ * source is missing or names neither vendor. Its price streams then default
+ * to Chainlink, which may not be the vendor it settles on.
+ *
+ * @param market - The parsed market.
+ * @param resolutionSource - The Gamma source the vendor was read from.
+ */
+const warnDefaultCryptoPriceProvider = (
+  market: PredictMarket,
+  resolutionSource: string | null | undefined,
+): void => {
+  if (!isCryptoUpDown(market) || warnedDefaultProviderMarkets.has(market.id)) {
+    return;
+  }
+
+  if (
+    warnedDefaultProviderMarkets.size >= MAX_WARNED_DEFAULT_PROVIDER_MARKETS
+  ) {
+    warnedDefaultProviderMarkets.clear();
+  }
+  warnedDefaultProviderMarkets.add(market.id);
+  captureMessage('Polymarket: crypto market settles on an unknown vendor', {
+    level: 'warning',
+    tags: {
+      feature: PREDICT_CONSTANTS.FEATURE_NAME,
+      provider: POLYMARKET_PROVIDER_ID,
+    },
+    contexts: {
+      parsePolymarketEvents: {
+        marketId: market.id,
+        slug: market.slug,
+        symbol: getCryptoSymbol(market),
+        resolutionSource: resolutionSource ?? null,
+        defaultProvider: 'chainlink',
+      },
+    },
+  });
 };
 
 const parseTwapWindowSeconds = (
@@ -1230,36 +1281,42 @@ export const parsePolymarketEvents = (
       const twapWindowSeconds = parseTwapWindowSeconds(markets);
       const cryptoPriceProvider = parseCryptoPriceProvider(event, markets);
 
-      return [
-        {
-          id: event.id,
-          slug: event.slug,
-          providerId: POLYMARKET_PROVIDER_ID,
-          title: event.title,
-          description,
-          image: event.icon,
-          status: event.closed
-            ? PredictMarketStatus.CLOSED
-            : PredictMarketStatus.OPEN,
-          active: event.active,
-          recurrence: getRecurrence(event.series),
-          endDate: event.endDate,
-          category,
-          tags: tags.map((t) => t.slug),
-          outcomes,
-          ...(outcomeGroups && { outcomeGroups }),
-          liquidity: event.liquidity,
-          volume: event.volume,
-          game,
-          ...(priceToBeat !== undefined && { priceToBeat }),
-          ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
-          ...(cryptoPriceProvider && { cryptoPriceProvider }),
-          ...(seriesData && { series: seriesData }),
-          ...(event.parentEventId !== undefined && {
-            parentMarketId: event.parentEventId,
-          }),
-        } as PredictMarket,
-      ];
+      const parsedMarket = {
+        id: event.id,
+        slug: event.slug,
+        providerId: POLYMARKET_PROVIDER_ID,
+        title: event.title,
+        description,
+        image: event.icon,
+        status: event.closed
+          ? PredictMarketStatus.CLOSED
+          : PredictMarketStatus.OPEN,
+        active: event.active,
+        recurrence: getRecurrence(event.series),
+        endDate: event.endDate,
+        category,
+        tags: tags.map((t) => t.slug),
+        outcomes,
+        ...(outcomeGroups && { outcomeGroups }),
+        liquidity: event.liquidity,
+        volume: event.volume,
+        game,
+        ...(priceToBeat !== undefined && { priceToBeat }),
+        ...(twapWindowSeconds !== undefined && { twapWindowSeconds }),
+        ...(cryptoPriceProvider && { cryptoPriceProvider }),
+        ...(seriesData && { series: seriesData }),
+        ...(event.parentEventId !== undefined && {
+          parentMarketId: event.parentEventId,
+        }),
+      } as PredictMarket;
+      if (!cryptoPriceProvider) {
+        warnDefaultCryptoPriceProvider(
+          parsedMarket,
+          getResolutionSource(event, markets),
+        );
+      }
+
+      return [parsedMarket];
     } catch (err) {
       Logger.error(err instanceof Error ? err : new Error(String(err)), {
         feature: 'predict',
@@ -2281,6 +2338,26 @@ export function encodeRouterRedeem({
   ]) as Hex;
 }
 
+// Buy previews poll every second; a market's tags do not change between ticks.
+const marketTagSlugsCache = new Map<string, Promise<string[]>>();
+
+export const clearMarketTagSlugsCache = () => {
+  marketTagSlugsCache.clear();
+};
+
+const getMarketTagSlugs = (marketId: string): Promise<string[]> => {
+  const cached = marketTagSlugsCache.get(marketId);
+  if (cached) {
+    return cached;
+  }
+  const slugs = getMarketDetailsFromGammaApi({ marketId }).then(
+    (market) => market.tags?.map((t) => t.slug) ?? [],
+  );
+  marketTagSlugsCache.set(marketId, slugs);
+  slugs.catch(() => marketTagSlugsCache.delete(marketId));
+  return slugs;
+};
+
 async function waiveFees({
   marketId,
   waiveList,
@@ -2289,10 +2366,8 @@ async function waiveFees({
   waiveList: string[];
 }): Promise<boolean> {
   try {
-    const market = await getMarketDetailsFromGammaApi({ marketId });
-    const { tags } = market;
-    const slugs = tags?.map((t) => t.slug);
-    return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+    const slugs = await getMarketTagSlugs(marketId);
+    return slugs.some((slug) => waiveList?.includes(slug));
   } catch (error) {
     // A fee-waiver lookup failure must never fail the preview — degrade
     // to standard (non-waived) fees instead.

@@ -8,15 +8,15 @@ import {
 import type { MySocialProfile } from '../MyProfileView/hooks/useMyProfile';
 import { generateUsername, MAX_USERNAME_LENGTH } from './generateUsername';
 
+/** The length the profile API accepts for a display name. */
+export const MAX_DISPLAY_NAME_LENGTH = 50;
+
 /** X account returned by ProfileController.connectX during onboarding. */
 export interface XOnboardingIdentity {
   username: string;
   displayName: string;
   avatarUrl: string | null;
 }
-
-/** Used when the signed-in session has no profile id yet. The mock service accepts it. */
-export const SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID = 'social-v1-profile';
 
 export type ProfileOnboardingPath = 'manual' | 'x';
 
@@ -44,6 +44,11 @@ export interface ProfileOnboardingDraft {
   avatarBackgroundId: string;
   linkedAccountId: string | null;
   linkedAccountAddress: string | null;
+  /**
+   * A chosen account left the eligible set. Reconciliation must leave the
+   * selection empty until the user picks another account.
+   */
+  linkedAccountSelectionCleared: boolean;
   shareTradingActivity: boolean;
 }
 
@@ -103,6 +108,7 @@ export const createInitialOnboardingDraft = (): ProfileOnboardingDraft => {
     avatarBackgroundId: DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
     linkedAccountId: null,
     linkedAccountAddress: null,
+    linkedAccountSelectionCleared: false,
     shareTradingActivity: true,
   };
 };
@@ -123,6 +129,7 @@ export const startManualOnboarding = (
     ...initial,
     linkedAccountId: draft.linkedAccountId,
     linkedAccountAddress: draft.linkedAccountAddress,
+    linkedAccountSelectionCleared: draft.linkedAccountSelectionCleared,
   };
 };
 
@@ -241,6 +248,46 @@ export const onboardingProfileFingerprint = (
     avatar_url: params.avatar_url ?? null,
     trading_privacy: params.trading_privacy,
   });
+};
+
+/**
+ * Reconciles the draft's linked account with the accounts the profile can use.
+ *
+ * The current selection stays when that account is still eligible, and its
+ * address is refreshed if it changed. A selection that is no longer eligible
+ * is cleared and stays cleared, even when another account is available — the
+ * user picks the next one. A draft that has never had a selection gets the
+ * first eligible account. Returns the same draft when nothing changes.
+ */
+export const withEligibleLinkedAccount = (
+  draft: ProfileOnboardingDraft,
+  accounts: readonly { id: string; address: string }[],
+): ProfileOnboardingDraft => {
+  const selected = draft.linkedAccountId
+    ? accounts.find((account) => account.id === draft.linkedAccountId)
+    : undefined;
+  if (selected) {
+    return selected.address === draft.linkedAccountAddress
+      ? draft
+      : { ...draft, linkedAccountAddress: selected.address };
+  }
+  if (draft.linkedAccountId || draft.linkedAccountAddress) {
+    return {
+      ...draft,
+      linkedAccountId: null,
+      linkedAccountAddress: null,
+      linkedAccountSelectionCleared: true,
+    };
+  }
+  const firstAccount = accounts[0];
+  if (!firstAccount || draft.linkedAccountSelectionCleared) {
+    return draft;
+  }
+  return {
+    ...draft,
+    linkedAccountId: firstAccount.id,
+    linkedAccountAddress: firstAccount.address,
+  };
 };
 
 export const canContinueUsernameStep = (

@@ -4,6 +4,7 @@ import {
   Alignment,
   Fit,
   RiveView,
+  useRive,
   useRiveBoolean,
   useRiveFile,
   useRiveString,
@@ -13,6 +14,8 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import ProfileReadyRive from '../../../../animations/social_v1_profile-ready.riv';
 import Logger from '../../../../util/Logger';
+import { useTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import {
   PROFILE_ONBOARDING_RIVE_ASSETS,
@@ -25,6 +28,7 @@ import { useProfileOnboardingRiveEnabled } from './useProfileOnboardingRiveEnabl
 
 /** Pulls the avatar off the name and handle, into the card's avatar well. */
 const READY_AVATAR_LIFT = 48;
+const READY_PLAY_ONCE_MS = 4000;
 
 interface ProfileReadyAnimationProps {
   displayName: string;
@@ -36,6 +40,7 @@ interface ProfileReadyAnimationProps {
   isVerified?: boolean;
   /** Static content shown when the animation is skipped or fails. */
   fallback: React.ReactNode;
+  paused?: boolean;
 }
 
 /**
@@ -52,8 +57,10 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
   imageUrl,
   isVerified = false,
   fallback,
+  paused = false,
 }) => {
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
   const skipAnimation = !useProfileOnboardingRiveEnabled();
   const [hasRiveError, setHasRiveError] = useState(false);
 
@@ -68,6 +75,20 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     async: true,
   });
   const loadError = riveFileError ?? instanceError;
+  const { riveViewRef, setHybridRef } = useRive();
+
+  useEffect(() => {
+    if (!riveViewRef) return undefined;
+    if (paused) {
+      riveViewRef.pause().catch(() => undefined);
+      return undefined;
+    }
+    riveViewRef.play().catch(() => undefined);
+    const hold = setTimeout((): void => {
+      riveViewRef.pause().catch(() => undefined);
+    }, READY_PLAY_ONCE_MS);
+    return () => clearTimeout(hold);
+  }, [paused, riveViewRef]);
 
   useEffect(() => {
     if (loadError) {
@@ -86,6 +107,15 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     PROFILE_READY_RIVE_PATHS.IS_VERIFIED,
     instance,
   );
+  const { setValue: setLightMode } = useRiveBoolean(
+    PROFILE_READY_RIVE_PATHS.LIGHT_MODE,
+    instance,
+  );
+
+  useEffect(() => {
+    if (!instance) return;
+    setLightMode(themeAppearance === AppThemeKey.light);
+  }, [instance, setLightMode, themeAppearance]);
 
   useEffect(() => {
     if (!instance) return;
@@ -118,11 +148,12 @@ const ProfileReadyAnimation: React.FC<ProfileReadyAnimationProps> = ({
     <Box twClassName="w-full aspect-square">
       {riveFile && instance ? (
         <RiveView
+          hybridRef={setHybridRef}
           file={riveFile}
           artboardName={PROFILE_READY_RIVE_ARTBOARD}
           stateMachineName={PROFILE_READY_RIVE_STATE_MACHINE}
           dataBind={instance}
-          autoPlay
+          autoPlay={!paused}
           fit={Fit.Contain}
           alignment={Alignment.Center}
           style={tw.style('flex-1')}

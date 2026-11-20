@@ -1,6 +1,12 @@
+import Logger from '../../../../../util/Logger';
 import { PredictError, PredictErrorCode } from '../../errors';
 import type { PredictVenueId } from '../../types';
 import { parsePredictVenueCatalog } from './venueCatalog';
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
 
 const venueId = 'kalshi' as PredictVenueId;
 
@@ -27,6 +33,10 @@ const expectInvalidCatalog = (value: unknown) => {
 };
 
 describe('parsePredictVenueCatalog', () => {
+  beforeEach(() => {
+    jest.mocked(Logger.log).mockClear();
+  });
+
   it('parses a valid catalog', () => {
     const result = parsePredictVenueCatalog(createCatalog(), venueId);
 
@@ -37,9 +47,99 @@ describe('parsePredictVenueCatalog', () => {
         'nfl-games': 'sports-football-nfl-games',
         'nfl-props': 'sports-football-nfl-win-totals',
       },
+      categories: [],
       searchSupported: true,
     });
   });
+
+  it('keeps the Categories in catalog order', () => {
+    const result = parsePredictVenueCatalog(
+      createCatalog({ categories: ['nfl-props', 'nfl-games'] }),
+      venueId,
+    );
+
+    expect(result.categories).toEqual(['nfl-props', 'nfl-games']);
+  });
+
+  it('logs nothing for valid Categories or a catalog without the field', () => {
+    parsePredictVenueCatalog(
+      createCatalog({ categories: ['nfl-games'] }),
+      venueId,
+    );
+    const legacy = parsePredictVenueCatalog(createCatalog(), venueId);
+
+    expect(legacy.categories).toEqual([]);
+    expect(Logger.log).not.toHaveBeenCalled();
+  });
+
+  it('drops unknown, duplicate, and Feed-less Categories, and logs them', () => {
+    const result = parsePredictVenueCatalog(
+      createCatalog({
+        feeds: {
+          'nfl-games': 'sports-football-nfl-games',
+          'curling-live': 'curling',
+        },
+        categories: ['curling-live', 'nfl-games', 'politics', 'nfl-games'],
+      }),
+      venueId,
+    );
+
+    expect(result.categories).toEqual(['nfl-games']);
+    expect(Logger.log).toHaveBeenCalledTimes(1);
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[PredictNext] Dropped 3 Venue catalog Categories for kalshi',
+      { dropped: ['curling-live', 'politics', 'nfl-games'] },
+    );
+  });
+
+  it('keeps the valid Categories, actions, Feeds and search when an entry is not a string', () => {
+    const result = parsePredictVenueCatalog(
+      createCatalog({
+        categories: [7, 'nfl-props', { key: 'nfl-games' }, null, 'nfl-games'],
+      }),
+      venueId,
+    );
+
+    expect(result).toEqual({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: {
+        'nfl-games': 'sports-football-nfl-games',
+        'nfl-props': 'sports-football-nfl-win-totals',
+      },
+      categories: ['nfl-props', 'nfl-games'],
+      searchSupported: true,
+    });
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[PredictNext] Dropped 3 Venue catalog Categories for kalshi',
+      { dropped: [7, { key: 'nfl-games' }, null] },
+    );
+  });
+
+  it.each([
+    ['a string', 'nfl-games'],
+    ['an object', { 'nfl-games': true }],
+    ['null', null],
+  ])(
+    'keeps the rest of the catalog with no Categories when categories is %s',
+    (_name, categories) => {
+      const result = parsePredictVenueCatalog(
+        createCatalog({ categories }),
+        venueId,
+      );
+
+      expect(result.categories).toEqual([]);
+      expect(result.actions).toEqual(['buy', 'sell']);
+      expect(result.feeds).toEqual({
+        'nfl-games': 'sports-football-nfl-games',
+        'nfl-props': 'sports-football-nfl-win-totals',
+      });
+      expect(Logger.log).toHaveBeenCalledWith(
+        '[PredictNext] Dropped 1 Venue catalog Category for kalshi',
+        { dropped: [categories] },
+      );
+    },
+  );
 
   it('drops unknown and duplicate actions', () => {
     const result = parsePredictVenueCatalog(
@@ -81,6 +181,7 @@ describe('parsePredictVenueCatalog', () => {
       venueId: 'kalshi',
       actions: [],
       feeds: {},
+      categories: [],
       searchSupported: false,
     });
   });

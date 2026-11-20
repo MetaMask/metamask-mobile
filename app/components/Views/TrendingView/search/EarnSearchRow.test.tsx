@@ -8,9 +8,11 @@ import EarnSearchAssetRow from '../feeds/earn/EarnSearchAssetRow';
 import useEarnOpportunityNavigation, {
   getEarnAssetSelectionRedirectTarget,
 } from '../../../UI/Earn/hooks/useEarnOpportunityNavigation';
-import { useMoneyNavigation } from '../../../UI/Money/hooks/useMoneyNavigation';
+import { useMoneyCtaDepositNavigation } from '../../../UI/Money/hooks/useMoneyDepositNavigation';
 import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
 import { useEarnAnalytics } from '../../../UI/Earn/hooks/useEarnAnalytics';
+import { selectMoneyCtaEntryContext } from '../../../UI/Money/selectors/entry';
+import type { MoneyEntryContext } from '../../../UI/Money/navigation/moneyEntryDecision';
 import {
   EARN_MODULE_COMPONENT_NAMES,
   EARN_MODULE_ENTRY_POINTS,
@@ -24,8 +26,8 @@ import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => false),
 }));
-jest.mock('../../../UI/Money/hooks/useMoneyNavigation', () => ({
-  useMoneyNavigation: jest.fn(),
+jest.mock('../../../UI/Money/hooks/useMoneyDepositNavigation', () => ({
+  useMoneyCtaDepositNavigation: jest.fn(),
 }));
 jest.mock('../../../UI/Money/hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -72,8 +74,11 @@ jest.mock('../feeds/earn/EarnSearchAssetRow', () => ({
   ),
 }));
 
-const mockNavigateToMoneyHome = jest.fn();
-let mockIsOnboardingRedirectNeeded = false;
+const mockNavigateToMoneyDeposit = jest.fn();
+let mockMoneyEntryContext: MoneyEntryContext = {
+  accessBlockReason: undefined,
+  isOnboardingRedirectNeeded: false,
+};
 const mockNavigateFromEarnAsset = jest.fn();
 const mockTrackMoneySurfaceClicked = jest.fn();
 const mockTrackEarnSurfaceClicked = jest.fn();
@@ -129,12 +134,32 @@ const createEarnAsset = (): EarnSectionRankedAsset => ({
 describe('EarnSearchRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsOnboardingRedirectNeeded = false;
-    jest.mocked(useSelector).mockReturnValue(false);
-    jest.mocked(useMoneyNavigation).mockReturnValue({
-      isOnboardingRedirectNeeded: mockIsOnboardingRedirectNeeded,
-      navigateToMoneyHome: mockNavigateToMoneyHome,
-    } as unknown as ReturnType<typeof useMoneyNavigation>);
+    mockMoneyEntryContext = {
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: false,
+    };
+    jest
+      .mocked(useSelector)
+      .mockImplementation((selector) =>
+        selector === selectMoneyCtaEntryContext ? mockMoneyEntryContext : false,
+      );
+    mockNavigateToMoneyDeposit.mockImplementation(async ({ track } = {}) => {
+      track?.({
+        redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'money_onboarding'
+            : 'money_deposit',
+        button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'go_to_money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'go_to_money_onboarding'
+            : 'add_money',
+      });
+    });
+    jest.mocked(useMoneyCtaDepositNavigation).mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
+    } as unknown as ReturnType<typeof useMoneyCtaDepositNavigation>);
     jest.mocked(useEarnOpportunityNavigation).mockReturnValue({
       navigateFromEarnAsset: mockNavigateFromEarnAsset,
       navigateToDepositForExperience: jest.fn(),
@@ -151,7 +176,7 @@ describe('EarnSearchRow', () => {
     );
   });
 
-  it('tracks Money surface ownership and onboarding target', () => {
+  it('tracks Money surface ownership and deposit target', () => {
     const item = {
       kind: 'money-account',
       id: 'money-account',
@@ -167,14 +192,16 @@ describe('EarnSearchRow', () => {
     fireEvent.press(getByTestId('money-row'));
 
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith({
-      redirect_target: 'money_home',
+      redirect_target: 'money_deposit',
     });
     expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
       component_name: EARN_MODULE_COMPONENT_NAMES.EARN_SEARCH_ROW,
       screen_name: 'explore_search',
       entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE_SEARCH,
     });
-    expect(mockNavigateToMoneyHome).toHaveBeenCalledWith({ pop: false });
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+      track: expect.any(Function),
+    });
   });
 
   it('tracks Earn surface ownership and preserves Explore search source', () => {
@@ -208,7 +235,7 @@ describe('EarnSearchRow', () => {
     );
     expect(mockGetEarnAssetSelectionRedirectTarget).toHaveBeenCalledWith(
       item.asset,
-      false,
+      mockMoneyEntryContext,
     );
     expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
       item.asset,
@@ -246,7 +273,7 @@ describe('EarnSearchRow', () => {
 
       expect(mockGetEarnAssetSelectionRedirectTarget).toHaveBeenCalledWith(
         item.asset,
-        false,
+        mockMoneyEntryContext,
       );
       expect(mockTrackEarnSurfaceClicked).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -257,11 +284,10 @@ describe('EarnSearchRow', () => {
   );
 
   it('tracks Money onboarding as destination for new users', () => {
-    mockIsOnboardingRedirectNeeded = true;
-    jest.mocked(useMoneyNavigation).mockReturnValue({
+    mockMoneyEntryContext = {
+      accessBlockReason: undefined,
       isOnboardingRedirectNeeded: true,
-      navigateToMoneyHome: mockNavigateToMoneyHome,
-    } as unknown as ReturnType<typeof useMoneyNavigation>);
+    };
 
     const item = {
       kind: 'money-account',
@@ -279,6 +305,35 @@ describe('EarnSearchRow', () => {
 
     expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith({
       redirect_target: 'money_onboarding',
+    });
+  });
+
+  it('tracks the splash as destination for unseen first-time users', () => {
+    mockMoneyEntryContext = {
+      accessBlockReason: undefined,
+      isOnboardingRedirectNeeded: false,
+      isSplashRedirectNeeded: true,
+    };
+
+    const item = {
+      kind: 'money-account',
+      id: 'money-account',
+      balanceRaw: '0',
+      isBalanceLoading: false,
+      rateStatus: 'ready',
+    } as const;
+
+    const { getByTestId } = render(
+      <EarnSearchRow item={item} position={1} resultCount={3} />,
+    );
+
+    fireEvent.press(getByTestId('money-row'));
+
+    expect(mockTrackMoneySurfaceClicked).toHaveBeenCalledWith({
+      redirect_target: 'money_splash',
+    });
+    expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+      track: expect.any(Function),
     });
   });
 

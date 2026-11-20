@@ -21,6 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import { selectHasSocialV1Access } from '../../../../../selectors/featureFlagController/socialV1';
 import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
@@ -52,11 +53,6 @@ import {
   LEADERBOARD_LANDING_FEED_VARIANTS,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../../SocialLeaderboard/SocialV0View/abTestConfig';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_VARIANTS,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-} from '../../../SocialLeaderboard/SocialV1View/abTestConfig';
 import { useABTest } from '../../../../../hooks/useABTest';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -77,8 +73,14 @@ type TopTradersCarouselItem =
   | { kind: 'view_more' };
 
 interface TopTradersSectionProps {
-  sectionIndex: number;
-  totalSectionsLoaded: number;
+  /** Homepage-only; omit when rendered elsewhere (e.g. Explore). */
+  sectionIndex?: number;
+  totalSectionsLoaded?: number;
+  /** Analytics source for navigation and follow events. */
+  source?: 'home_carousel' | 'explore_perps';
+  /** Whether visible trader profiles are prefetched. Defaults to true. */
+  prefetchProfiles?: boolean;
+  chains?: string[];
 }
 
 /**
@@ -91,7 +93,14 @@ interface TopTradersSectionProps {
 const TopTradersSection = forwardRef<
   SectionRefreshHandle,
   TopTradersSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
+>((props, ref) => {
+  const {
+    sectionIndex,
+    totalSectionsLoaded,
+    source = 'home_carousel',
+    prefetchProfiles = true,
+    chains = SPOT_CHAINS,
+  } = props;
   const sectionViewRef = useRef<View>(null);
   const { followWithSetup } = useFollowWithNotificationSetup();
   const navigation = useNavigation<AppNavigationProp>();
@@ -114,9 +123,13 @@ const TopTradersSection = forwardRef<
     }
   }, [hasEverBeenVisible, isSectionVisible]);
 
+  // Off the homepage there is no scroll context: skip homepage analytics and fetch right away.
+  const isHomepageContext = sectionIndex !== undefined;
+
   // Keep the query warm after its first reveal. A continuous visibility gate
   // would re-enable this stale query and refetch whenever the user scrolls back.
-  const hasRequestedTraders = isSectionVisible || hasEverBeenVisible;
+  const hasRequestedTraders =
+    !isHomepageContext || isSectionVisible || hasEverBeenVisible;
 
   const {
     traders: allTraders,
@@ -128,7 +141,7 @@ const TopTradersSection = forwardRef<
     toggleFollow,
   } = useTopTraders({
     limit: HOME_TRADER_FETCH_LIMIT,
-    chains: SPOT_CHAINS,
+    chains,
     sort: DEFAULT_LEADERBOARD_SORT,
     timeframe: DEFAULT_TIMEFRAME,
     enabled: isEnabled && hasRequestedTraders,
@@ -175,24 +188,25 @@ const TopTradersSection = forwardRef<
   const sectionMountsVisibleRoot = isEnabled && !isEmpty;
 
   const { onLayout: homeViewedOnLayout } = useHomeViewedEvent({
-    sectionRef: sectionMountsVisibleRoot ? sectionViewRef : null,
+    sectionRef:
+      isHomepageContext && sectionMountsVisibleRoot ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
-    sectionIndex,
-    totalSectionsLoaded,
+    sectionIndex: sectionIndex ?? 0,
+    totalSectionsLoaded: totalSectionsLoaded ?? 0,
     isEmpty: traders.length === 0,
     itemCount: traders.length,
   });
 
   usePrefetchTraderProfiles(visibleTraderIds, {
-    enabled: isEnabled && hasTraders,
-    isSectionVisible,
+    enabled: isEnabled && hasTraders && prefetchProfiles,
+    isSectionVisible: isSectionVisible || !isHomepageContext,
   });
 
   const handleSectionLayout = useCallback(() => {
-    homeViewedOnLayout();
+    if (isHomepageContext) homeViewedOnLayout();
     sectionVisibleOnLayout();
-  }, [homeViewedOnLayout, sectionVisibleOnLayout]);
+  }, [isHomepageContext, homeViewedOnLayout, sectionVisibleOnLayout]);
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
@@ -208,7 +222,7 @@ const TopTradersSection = forwardRef<
     // Disable telemetry once we render the error UI so the in-flight TTC and
     // data-fetch spans get closed via the hook's cleanup instead of remaining
     // open until the user navigates away.
-    enabled: isEnabled && !showError,
+    enabled: isEnabled && !showError && isHomepageContext,
   });
 
   const carouselData = useMemo((): TopTradersCarouselItem[] => {
@@ -227,11 +241,7 @@ const TopTradersSection = forwardRef<
   // TSA-1042: where this entry point lands inside Follow Trading. Exposure is
   // emitted by the destination once it receives these params, so rendering the
   // homepage carousel does not count a user as exposed.
-  const { variant: bundleVariant } = useABTest(
-    SOCIAL_V1_AB_KEY,
-    SOCIAL_V1_VARIANTS,
-    { trackExposure: false },
-  );
+  const isSocialV1 = useSelector(selectHasSocialV1Access);
   const { variant: landingVariant } = useABTest(
     LEADERBOARD_LANDING_FEED_AB_KEY,
     LEADERBOARD_LANDING_FEED_VARIANTS,
@@ -239,29 +249,29 @@ const TopTradersSection = forwardRef<
   );
 
   const handleViewAll = useCallback(() => {
-    if (bundleVariant.useSocialV1) {
+    if (isSocialV1) {
       navigateToSocialLeaderboard(navigation.navigate, {
-        source: 'home_carousel',
+        source,
       });
       return;
     }
     navigateToSocialLeaderboard(navigation.navigate, {
-      source: 'home_carousel',
+      source,
       landingTab: landingVariant.landingTab,
       landingFeedAudience: landingVariant.landingFeedAudience,
     });
-  }, [navigation, bundleVariant, landingVariant]);
+  }, [navigation, isSocialV1, landingVariant, source]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      if (bundleVariant.useSocialV1) {
+      if (isSocialV1) {
         navigateToSocialV1Profile(navigation, {
           traderId,
           traderName,
           traderAddress: trader?.address,
           traderAvatarUri: trader?.avatarUri,
-          source: 'home_carousel',
+          source,
           traderRank: trader?.rank,
         });
         return;
@@ -270,11 +280,11 @@ const TopTradersSection = forwardRef<
         traderId,
         traderName,
         traderAddress: trader?.address,
-        source: 'home_carousel',
+        source,
         traderRank: trader?.rank,
       });
     },
-    [bundleVariant.useSocialV1, navigation, traders],
+    [isSocialV1, navigation, traders, source],
   );
 
   const handleFollowPress = useCallback(
@@ -282,7 +292,7 @@ const TopTradersSection = forwardRef<
       const trader = traders.find((t) => t.id === traderId);
       await followWithSetup(trader?.isFollowing ?? false, () =>
         toggleFollow(traderId, {
-          source: 'home_carousel',
+          source,
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
@@ -290,7 +300,7 @@ const TopTradersSection = forwardRef<
         }),
       );
     },
-    [traders, toggleFollow, followWithSetup],
+    [traders, toggleFollow, followWithSetup, source],
   );
 
   const onViewableItemsChanged = useRef(
@@ -353,7 +363,7 @@ const TopTradersSection = forwardRef<
         testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
-          <SectionDivider />
+          {isHomepageContext && <SectionDivider />}
           <SectionHeader
             title={title}
             isInteractive
@@ -381,7 +391,7 @@ const TopTradersSection = forwardRef<
         testID={TopTradersSectionSelectorsIDs.ROOT}
       >
         <Box paddingBottom={3}>
-          <SectionDivider />
+          {isHomepageContext && <SectionDivider />}
           <SectionHeader
             title={title}
             isInteractive

@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   ButtonSize,
@@ -18,6 +17,9 @@ import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsProModalPortal from './PerpsProModalPortal';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsProTwapTerminateSheetProps {
   twapOrder: TwapOrder;
@@ -40,6 +42,7 @@ const PerpsProTwapTerminateSheet = ({
   onConfirm,
   isTerminating = false,
 }: PerpsProTwapTerminateSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const handleConfirm = useCallback(() => {
     if (isTerminating) {
       return;
@@ -86,7 +89,8 @@ const PerpsProTwapTerminateSheet = ({
         isInteractable={!isTerminating}
         testID={PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{
             testID: PerpsProMarketViewSelectorsIDs.TWAP_TERMINATE_CLOSE,
@@ -95,7 +99,7 @@ const PerpsProTwapTerminateSheet = ({
           {strings('perps.pro_positions_panel.twap_terminate.title', {
             symbol: getPerpsDisplaySymbol(twapOrder.symbol),
           })}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
 
         <Box paddingHorizontal={4}>
           <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
