@@ -267,6 +267,15 @@ const renderTab = (
     />,
     {
       state: {
+        // The tab subscribes to accounts, which reads KeyringController.
+        // The engine slice starts empty unless a test supplies it.
+        engine: {
+          backgroundState: {
+            KeyringController: {
+              keyrings: [],
+            },
+          },
+        },
         rewardsMoney: {
           referralMe: {
             [PROFILE_ID]: {
