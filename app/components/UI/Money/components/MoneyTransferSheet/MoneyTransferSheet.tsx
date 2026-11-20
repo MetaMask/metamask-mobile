@@ -212,7 +212,7 @@ const MoneyTransferSheetContent = () => {
 
   const options: MoneySheetOption[] = [
     {
-      label: strings('money.transfer_sheet.between_accounts'),
+      label: strings('money.transfer_sheet.withdraw_to_accounts'),
       icon: IconName.Arrow2UpRight,
       onPress: handleBetweenAccounts,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
@@ -273,7 +273,7 @@ const MoneyTransferSheetContent = () => {
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       >
         <Text variant={TextVariant.HeadingSm}>
-          {strings('money.transfer_sheet.title')}
+          {strings('money.transfer_sheet.move_title')}
         </Text>
       </BottomSheetHeaderGlass>
       <View style={styles.list}>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Linking } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import {
@@ -24,7 +24,9 @@ import { formatSubscriptionFiat } from '../../../../../util/subscription/formatS
 let mockGoBack: jest.Mock;
 let mockNavigate: jest.Mock;
 const mockUnCancelSubscription = jest.fn();
+const mockGetBillingPortalUrl = jest.fn();
 const mockLoggerError = jest.fn();
+const BILLING_PORTAL_URL = 'https://billing.stripe.com/p/session/test';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -43,6 +45,8 @@ jest.mock('../../../../../core/Engine', () => ({
       SubscriptionController: {
         unCancelSubscription: (...args: unknown[]) =>
           mockUnCancelSubscription(...args),
+        getBillingPortalUrl: (...args: unknown[]) =>
+          mockGetBillingPortalUrl(...args),
       },
     },
   },
@@ -126,13 +130,14 @@ const pricing: PricingResponse = {
 };
 
 const createStoreState = (
-  membershipSubscription: Subscription = subscription,
+  membershipSubscription: Subscription | null = subscription,
 ) =>
   ({
     engine: {
       backgroundState: {
         SubscriptionController: {
-          subscriptions: [membershipSubscription],
+          subscriptions:
+            membershipSubscription === null ? [] : [membershipSubscription],
           trialedProducts: [],
           pricing,
         },
@@ -141,7 +146,7 @@ const createStoreState = (
   }) as unknown as RootState;
 
 const renderMembership = (
-  membershipSubscription: Subscription = subscription,
+  membershipSubscription: Subscription | null = subscription,
 ) =>
   render(
     <Provider store={configureStore(createStoreState(membershipSubscription))}>
@@ -157,6 +162,8 @@ describe('Membership', () => {
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
     mockUnCancelSubscription.mockResolvedValue(undefined);
+    mockGetBillingPortalUrl.mockResolvedValue({ url: BILLING_PORTAL_URL });
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -251,13 +258,89 @@ describe('Membership', () => {
       );
     });
 
-    it('renders the renews on row with renewal date', () => {
-      const { getByTestId } = renderMembership();
+    it('hides the money icon beside a card payment', () => {
+      const { queryByTestId } = renderMembership();
 
-      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex('Jul 20, 2027'),
-      );
+      expect(
+        queryByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeNull();
     });
+
+    it('shows the money icon beside a Money account payment', () => {
+      const { getByTestId } = renderMembership({
+        ...subscription,
+        paymentMethod: {
+          type: PAYMENT_TYPES.byCrypto,
+          crypto: {
+            payerAddress: '0x1111111111111111111111111111111111111111',
+            chainId: '0x1',
+            tokenSymbol: 'USDC',
+          },
+        },
+      });
+
+      expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.money_account')),
+      );
+      expect(
+        getByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the money icon when membership data is unavailable', () => {
+      const { getByTestId, queryByTestId } = renderMembership(null);
+
+      expect(getByTestId(MembershipTestIds.PAYING_WITH_ROW)).toHaveTextContent(
+        toRegex('--'),
+      );
+      expect(
+        queryByTestId(MembershipTestIds.PAYING_WITH_MONEY_ICON),
+      ).toBeNull();
+    });
+
+    it('renders the renews on row with renewal date', () => {
+      // Membership reads new Date(), and test setup only stubs Date.now.
+      // After 2027-07-20 this row becomes "Ended on".
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-10-07T00:00:00.000Z'));
+      try {
+        const { getByTestId } = renderMembership();
+
+        expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+          toRegex(strings('pro_hub.membership.renews_on')),
+        );
+        expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+          toRegex('Jul 20, 2027'),
+        );
+      } finally {
+        jest.useRealTimers();
+        Date.now = jest.fn(() => 123);
+      }
+    });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.paused,
+      SUBSCRIPTION_STATUSES.pastDue,
+    ])(
+      'says Ended on, not Renews on, for a %s plan whose period has passed',
+      (status) => {
+        const { getByTestId } = renderMembership({
+          ...subscription,
+          status,
+          currentPeriodEnd: '2020-01-15T12:00:00.000Z',
+        });
+
+        const endedRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+        expect(endedRow).toHaveTextContent(
+          toRegex(strings('pro_hub.membership.ended_on')),
+        );
+        expect(endedRow).toHaveTextContent(toRegex('Jan 15, 2020'));
+        expect(endedRow).not.toHaveTextContent(
+          strings('pro_hub.membership.renews_on'),
+        );
+      },
+    );
   });
 
   // ── Manage section ─────────────────────────────────────────────────────────
@@ -284,20 +367,46 @@ describe('Membership', () => {
       );
     });
 
-    it('renders the contact support row with correct label', () => {
-      const { getByTestId } = renderMembership();
-
-      expect(
-        getByTestId(MembershipTestIds.CONTACT_SUPPORT_ROW),
-      ).toHaveTextContent(strings('pro_hub.membership.contact_support'));
-    });
-
     it('renders the cancel membership row with correct label', () => {
       const { getByTestId } = renderMembership();
 
       expect(
         getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW),
       ).toHaveTextContent(strings('pro_hub.membership.cancel_membership'));
+    });
+
+    it.each([
+      CANCEL_TYPES.NOT_ALLOWED,
+      CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION,
+    ])(
+      'renders the cancel row disabled with a not allowed message when cancelType is %s',
+      (cancelType) => {
+        const { getByTestId, queryByTestId } = renderMembership({
+          ...subscription,
+          cancelType,
+        });
+
+        const cancelRow = getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW);
+        expect(cancelRow).toHaveTextContent(
+          strings('pro_hub.membership.cancel_membership'),
+          { exact: false },
+        );
+        expect(cancelRow.props.accessibilityState).toEqual(
+          expect.objectContaining({ disabled: true }),
+        );
+        expect(
+          getByTestId(MembershipTestIds.CANCEL_NOT_ALLOWED),
+        ).toHaveTextContent(strings('pro_hub.membership.cancel_not_allowed'));
+        expect(
+          queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW),
+        ).toBeNull();
+      },
+    );
+
+    it('does not show a not allowed message when cancellation is allowed', () => {
+      const { queryByTestId } = renderMembership();
+
+      expect(queryByTestId(MembershipTestIds.CANCEL_NOT_ALLOWED)).toBeNull();
     });
   });
 
@@ -312,6 +421,126 @@ describe('Membership', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PRO_HUB.CANCEL_MEMBERSHIP,
       );
+    });
+
+    it('opens the Stripe billing portal when invoices is pressed', async () => {
+      const { getByTestId, queryByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(mockGetBillingPortalUrl).toHaveBeenCalledTimes(1),
+      );
+      expect(Linking.openURL).toHaveBeenCalledWith(BILLING_PORTAL_URL);
+      expect(queryByTestId(MembershipTestIds.INVOICES_ERROR)).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('shows an error and does not open a URL when the portal request fails', async () => {
+      mockGetBillingPortalUrl.mockRejectedValueOnce(
+        new Error('request failed'),
+      );
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.INVOICES_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.invoices_failed'),
+        ),
+      );
+      expect(Linking.openURL).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: {
+            feature: 'money_account_plus',
+            operation: 'get_billing_portal_url',
+          },
+        }),
+      );
+    });
+
+    it('shows an error when the billing portal URL is not https', async () => {
+      mockGetBillingPortalUrl.mockResolvedValueOnce({
+        url: 'http://billing.stripe.com/p/session/test',
+      });
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.INVOICES_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.invoices_failed'),
+        ),
+      );
+      expect(Linking.openURL).not.toHaveBeenCalled();
+    });
+
+    it('logs open failures under the open_billing_portal tag, not the request tag', async () => {
+      jest
+        .spyOn(Linking, 'openURL')
+        .mockRejectedValueOnce(new Error('no handler'));
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.INVOICES_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.invoices_failed'),
+        ),
+      );
+      expect(mockGetBillingPortalUrl).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: {
+            feature: 'money_account_plus',
+            operation: 'open_billing_portal',
+          },
+        }),
+      );
+    });
+
+    it('does not request the portal again while the first request is in flight', async () => {
+      let resolvePortal: (value: { url: string }) => void = () => undefined;
+      mockGetBillingPortalUrl.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolvePortal = resolve;
+          }),
+      );
+      const { getByTestId } = renderMembership();
+
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+      fireEvent.press(getByTestId(MembershipTestIds.INVOICES_ROW));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(MembershipTestIds.INVOICES_ROW).props.accessibilityState,
+        ).toEqual({
+          disabled: true,
+          busy: true,
+        });
+      });
+      expect(mockGetBillingPortalUrl).toHaveBeenCalledTimes(1);
+
+      resolvePortal({ url: BILLING_PORTAL_URL });
+
+      await waitFor(() =>
+        expect(Linking.openURL).toHaveBeenCalledWith(BILLING_PORTAL_URL),
+      );
+    });
+
+    it('does not navigate when the disabled cancel row is pressed', () => {
+      const { getByTestId } = renderMembership({
+        ...subscription,
+        cancelType: CANCEL_TYPES.NOT_ALLOWED,
+      });
+
+      fireEvent.press(getByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('does not navigate before any row is pressed', () => {
@@ -365,6 +594,15 @@ describe('Membership', () => {
       expect(announceSpy).not.toHaveBeenCalledWith(
         strings('pro_hub.membership.resume_in_progress'),
       );
+    });
+
+    it('shows Ends on while a period-end cancellation is scheduled', () => {
+      const { getByTestId } = renderMembership(pendingCancellation);
+
+      const renewsOnRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+
+      expect(renewsOnRow).toHaveTextContent(toRegex('Ends on'));
+      expect(renewsOnRow).not.toHaveTextContent('pro_hub.membership.ends_on');
     });
 
     it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
@@ -426,14 +664,31 @@ describe('Membership', () => {
       });
     });
 
+    it('says Ends on for a past-due plan that is still scheduled to cancel', () => {
+      const { getByTestId, queryByTestId } = renderMembership({
+        ...pendingCancellation,
+        status: SUBSCRIPTION_STATUSES.pastDue,
+      });
+
+      const renewsOnRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+
+      expect(renewsOnRow).toHaveTextContent(toRegex('Ends on'));
+      expect(renewsOnRow).not.toHaveTextContent('pro_hub.membership.ends_on');
+      expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
+      expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+    });
+
     it('hides the membership action when the period end has passed', () => {
-      const { queryByTestId } = renderMembership({
+      const { getByTestId, queryByTestId } = renderMembership({
         ...pendingCancellation,
         currentPeriodEnd: '2020-01-01T00:00:00.000Z',
       });
 
       expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
       expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+        toRegex(strings('pro_hub.membership.ended_on')),
+      );
     });
 
     it('shows the resume error and does not navigate when uncancel fails', async () => {

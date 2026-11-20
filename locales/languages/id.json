@@ -2477,9 +2477,7 @@
         "funding": "Pendanaan",
         "close": "Tutup",
         "reverse": "Balik",
-        "share": "Bagikan",
-        "isolated": "Terisolasi",
-        "cross": "Silang"
+        "share": "Bagikan"
       },
       "order_card": {
         "size": "Ukuran",
@@ -3618,8 +3616,7 @@
     "cross_position": {
       "badge": "Silang",
       "no_liquidation_price": "T/A",
-      "liquidation_info": "Tentang harga likuidasi silang",
-      "margin_used": "Margin posisi yang digunakan"
+      "liquidation_info": "Tentang harga likuidasi silang"
     },
     "crossMargin": {
       "title": "Margin silang tidak didukung",
@@ -4116,8 +4113,7 @@
       "retry": "Coba lagi",
       "review": "Tinjau order",
       "buy": "Beli",
-      "venue_changed": "Pasar prediksi Anda berubah. Tutup order ini untuk melanjutkan.",
-      "delete": "Hapus"
+      "venue_changed": "Pasar prediksi Anda berubah. Tutup order ini untuk melanjutkan."
     },
     "order_approval": {
       "title": "Tinjau order",
@@ -4898,9 +4894,7 @@
     "bullet3": "Materi promosi lain yang relevan",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Saya setuju",
-    "cancel": "Tidak, terima kasih",
-    "paragraph1a": "Sebagai tambahan ",
-    "link": "MetaMetrics"
+    "cancel": "Tidak, terima kasih"
   },
   "multi_rpc_migration_modal": {
     "description": "Saat ini kami mendukung berbagai RPC untuk satu jaringan. RPC terbaru Anda telah dipilih sebagai RPC default untuk mengatasi informasi yang saling bertentangan",
@@ -9992,7 +9986,6 @@
     },
     "action": {
       "add": "Tambah",
-      "transfer": "Kirim",
       "card": "Kartu",
       "details": "Detail"
     },
@@ -10114,8 +10107,6 @@
       "contact_support": "Hubungi dukungan"
     },
     "transfer_sheet": {
-      "title": "Kirim dana ke",
-      "between_accounts": "Akun lain",
       "perps_account": "Akun perp",
       "predictions_account": "Akun Predictions",
       "send_external": "Alamat eksternal",
@@ -11079,7 +11070,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} order",
-      "spend_summary": "Anda menggunakan {{amount}} {{symbol}} setiap {{everyValue}} {{unit}} sebanyak {{repeatCount}} kali",
+      "spend_summary": {
+        "swapping": "Bertukar",
+        "for": "untuk",
+        "every": "setiap",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "satu kali",
         "other": "{{count}} times"

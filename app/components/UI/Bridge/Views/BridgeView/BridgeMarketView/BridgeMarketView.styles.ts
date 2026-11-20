@@ -37,15 +37,8 @@ export const createStyles = (params: { theme: Theme }) => {
     quoteContainer: {
       justifyContent: 'flex-start',
     },
-    destinationAccountSelectorContainer: {
-      paddingBottom: 12,
-    },
     dynamicContent: {
       justifyContent: 'flex-start',
-    },
-    keypadContainerWithDestinationPicker: {
-      justifyContent: 'flex-end',
-      paddingBottom: 8,
     },
     scrollView: {
       flex: 1,
@@ -55,9 +48,6 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     loadingContainer: {
       paddingTop: 8,
-    },
-    disclaimerText: {
-      textAlign: 'center',
     },
     destTokenArea: {
       // marginTop: 16,

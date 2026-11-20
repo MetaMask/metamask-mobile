@@ -113,7 +113,7 @@ const PopularTradersCarousel: React.FC = () => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-2')}
+            contentContainerStyle={tw.style('px-4 gap-3')}
             testID={PopularTradersCarouselSelectorsIDs.LIST}
           >
             {SKELETON_KEYS.map((key) => (
@@ -127,7 +127,7 @@ const PopularTradersCarousel: React.FC = () => {
             renderItem={renderCarouselItem}
             keyExtractor={keyExtractor}
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-2 items-stretch')}
+            contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
             testID={PopularTradersCarouselSelectorsIDs.LIST}
           />
         )}

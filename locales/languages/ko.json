@@ -2477,9 +2477,7 @@
         "funding": "펀딩",
         "close": "닫기",
         "reverse": "전환",
-        "share": "공유",
-        "isolated": "격리",
-        "cross": "교차"
+        "share": "공유"
       },
       "order_card": {
         "size": "규모",
@@ -3618,8 +3616,7 @@
     "cross_position": {
       "badge": "교차",
       "no_liquidation_price": "이용 불가",
-      "liquidation_info": "교차 청산 가격 정보",
-      "margin_used": "사용된 포지션 마진"
+      "liquidation_info": "교차 청산 가격 정보"
     },
     "crossMargin": {
       "title": "교차 마진 미지원",
@@ -4116,8 +4113,7 @@
       "retry": "다시 시도",
       "review": "주문 검토",
       "buy": "매수",
-      "venue_changed": "예측 시장이 변경되었습니다. 계속하려면 이 주문을 닫으세요.",
-      "delete": "삭제"
+      "venue_changed": "예측 시장이 변경되었습니다. 계속하려면 이 주문을 닫으세요."
     },
     "order_approval": {
       "title": "주문 검토",
@@ -4898,9 +4894,7 @@
     "bullet3": "기타 관련 프로모션 자료",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "동의합니다",
-    "cancel": "아니요, 괜찮습니다",
-    "paragraph1a": "또한 ",
-    "link": "MetaMetrics"
+    "cancel": "아니요, 괜찮습니다"
   },
   "multi_rpc_migration_modal": {
     "description": "이제 단일 네트워크에 대해 여러 개의 RPC를 지원합니다. 충돌하는 정보를 해결하기 위해 최근의 RPC를 기본값으로 선택했습니다",
@@ -9992,7 +9986,6 @@
     },
     "action": {
       "add": "추가",
-      "transfer": "전송",
       "card": "카드",
       "details": "세부 정보"
     },
@@ -10114,8 +10107,6 @@
       "contact_support": "지원팀에 문의"
     },
     "transfer_sheet": {
-      "title": "자금 전송 대상:",
-      "between_accounts": "다른 계정",
       "perps_account": "무기한 선물 계정",
       "predictions_account": "예측 계정",
       "send_external": "외부 주소",
@@ -11079,7 +11070,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}}개 주문",
-      "spend_summary": "총 {{repeatCount}}회에 걸쳐 {{everyValue}}{{unit}}마다 {{amount}} {{symbol}}씩 지출합니다",
+      "spend_summary": {
+        "swapping": "스왑 중",
+        "for": "대상:",
+        "every": "매",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "1회",
         "other": "{{count}} times"

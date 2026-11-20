@@ -2477,9 +2477,7 @@
         "funding": "Pagpopondo",
         "close": "Isara",
         "reverse": "Ibalik",
-        "share": "Ibahagi",
-        "isolated": "Naka-isolate",
-        "cross": "Cross"
+        "share": "Ibahagi"
       },
       "order_card": {
         "size": "Laki",
@@ -3618,8 +3616,7 @@
     "cross_position": {
       "badge": "Cross",
       "no_liquidation_price": "N/A",
-      "liquidation_info": "Tungkol sa cross liquidation price",
-      "margin_used": "Ginamit na margin ng posisyon"
+      "liquidation_info": "Tungkol sa cross liquidation price"
     },
     "crossMargin": {
       "title": "Hindi suportado ang cross margin",
@@ -4116,8 +4113,7 @@
       "retry": "Subukang muli",
       "review": "Suriin ang order",
       "buy": "Bumili",
-      "venue_changed": "Nagbago ang iyong market ng prediksyon. Isara ang order na ito para magpatuloy.",
-      "delete": "Tanggalin"
+      "venue_changed": "Nagbago ang iyong market ng prediksyon. Isara ang order na ito para magpatuloy."
     },
     "order_approval": {
       "title": "Suriin ang order mo",
@@ -4898,9 +4894,7 @@
     "bullet3": "Iba pang kaugnay na mga materyal sa promosyon",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "Sumasang-ayon ako",
-    "cancel": "Salamat na lang",
-    "paragraph1a": "Dagdag pa sa ",
-    "link": "MetaMetrics"
+    "cancel": "Salamat na lang"
   },
   "multi_rpc_migration_modal": {
     "description": "Sinusuportahan na namin ngayon ang maramihang RPC para sa isang network. Pinili ang pinakabago mong RPC bilang ang default para lutasin ang magkakasalungat na impormasyon",
@@ -9992,7 +9986,6 @@
     },
     "action": {
       "add": "Idagdag",
-      "transfer": "Ipadala",
       "card": "Card",
       "details": "Mga detalye"
     },
@@ -10114,8 +10107,6 @@
       "contact_support": "Kontakin ang suporta"
     },
     "transfer_sheet": {
-      "title": "Magpadala ng mga pondo sa",
-      "between_accounts": "Iba pang account",
       "perps_account": "Perps account",
       "predictions_account": "Account sa Predictions",
       "send_external": "Panlabas na address",
@@ -11079,7 +11070,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}} (na) order",
-      "spend_summary": "Gumagastos ka ng {{amount}} {{symbol}} kada {{everyValue}} {{unit}} sa loob ng {{repeatCount}} beses",
+      "spend_summary": {
+        "swapping": "Nagsu-swap",
+        "for": "para kay/sa",
+        "every": "bawat",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "isang beses",
         "other": "{{count}} times"

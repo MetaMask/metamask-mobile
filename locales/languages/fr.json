@@ -2477,9 +2477,7 @@
         "funding": "Approvisionnement",
         "close": "Fermer",
         "reverse": "Inverser",
-        "share": "Partager",
-        "isolated": "Isolée",
-        "cross": "Croisée"
+        "share": "Partager"
       },
       "order_card": {
         "size": "Taille",
@@ -3618,8 +3616,7 @@
     "cross_position": {
       "badge": "Croiser",
       "no_liquidation_price": "S.O.",
-      "liquidation_info": "À propos du prix de liquidation croisée",
-      "margin_used": "Marge de position utilisée"
+      "liquidation_info": "À propos du prix de liquidation croisée"
     },
     "crossMargin": {
       "title": "Marge croisée non prise en charge",
@@ -4116,8 +4113,7 @@
       "retry": "Réessayez",
       "review": "Vérifier l’ordre",
       "buy": "Acheter",
-      "venue_changed": "Votre marché des prédictions a changé. Fermez cet ordre pour continuer.",
-      "delete": "Supprimer"
+      "venue_changed": "Votre marché des prédictions a changé. Fermez cet ordre pour continuer."
     },
     "order_approval": {
       "title": "Vérifiez votre commande",
@@ -4898,9 +4894,7 @@
     "bullet3": "Autres matériels promotionnels pertinents",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "J’accepte",
-    "cancel": "Non, merci",
-    "paragraph1a": "En plus de ",
-    "link": "MetaMetrics"
+    "cancel": "Non, merci"
   },
   "multi_rpc_migration_modal": {
     "description": "Nous prenons désormais en charge plusieurs RPC pour un même réseau. Votre RPC le plus récent a été sélectionné par défaut afin de résoudre les problèmes liés à des informations contradictoires",
@@ -9992,7 +9986,6 @@
     },
     "action": {
       "add": "Ajouter",
-      "transfer": "Envoyer",
       "card": "Carte",
       "details": "Détails"
     },
@@ -10114,8 +10107,6 @@
       "contact_support": "Contacter le service d’assistance"
     },
     "transfer_sheet": {
-      "title": "Envoyer des fonds à",
-      "between_accounts": "Un autre compte",
       "perps_account": "Compte PERPS",
       "predictions_account": "Compte « Prédictions »",
       "send_external": "Adresse externe",
@@ -11079,7 +11070,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} / {{count}} ordres",
-      "spend_summary": "Vous dépensez {{amount}} {{symbol}} plus de {{repeatCount}} fois tou(te)s les {{everyValue}} {{unit}}",
+      "spend_summary": {
+        "swapping": "Échanger",
+        "for": "contre",
+        "every": "tous les/Toutes les",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "une fois",
         "other": "{{count}} times"

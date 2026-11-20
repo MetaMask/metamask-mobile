@@ -10,6 +10,18 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: () => mockSelectPerpsEnabledFlag(),
 }));
 
+jest.mock('../../../hooks/useSubscriptions', () => ({
+  __esModule: true,
+  default: () => ({
+    data: undefined,
+    error: null,
+    isFetching: false,
+    isEnabled: false,
+    refetch: jest.fn(),
+    dataUpdatedAt: 0,
+  }),
+}));
+
 jest.mock('../../../UI/Earn/selectors/featureFlags', () => {
   const actual = jest.requireActual('../../../UI/Earn/selectors/featureFlags');
   return {

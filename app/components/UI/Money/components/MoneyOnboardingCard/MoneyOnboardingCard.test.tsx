@@ -212,6 +212,16 @@ describe('MoneyOnboardingCard', () => {
   });
 
   describe('visibility guard', () => {
+    it('does not start a positions poll of its own', () => {
+      setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({
+        positionsRefetchInterval: false,
+      });
+    });
+
     it('returns null when currentStep equals MONEY_ONBOARDING_TOTAL_STEPS', () => {
       setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
 
@@ -661,7 +671,7 @@ describe('MoneyOnboardingCard', () => {
       );
     });
 
-    it('renders the Link card primary CTA when user is a cardholder but not authenticated', () => {
+    it('renders the Log in primary CTA when user is a cardholder but not authenticated', () => {
       setupDefaultMocks({
         currentStep: 1,
         isCardholder: true,
@@ -672,7 +682,7 @@ describe('MoneyOnboardingCard', () => {
       const { getByTestId } = render(<MoneyOnboardingCard />);
 
       expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
-        strings('money.onboarding.step_2.unlinked_card_account.cta_primary'),
+        strings('money.onboarding.step_2.unlinked_card_account.cta_log_in'),
       );
     });
 

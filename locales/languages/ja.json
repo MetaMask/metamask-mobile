@@ -2477,9 +2477,7 @@
         "funding": "入金",
         "close": "閉じる",
         "reverse": "反転",
-        "share": "共有",
-        "isolated": "分離",
-        "cross": "クロス"
+        "share": "共有"
       },
       "order_card": {
         "size": "サイズ",
@@ -3618,8 +3616,7 @@
     "cross_position": {
       "badge": "クロス",
       "no_liquidation_price": "該当なし",
-      "liquidation_info": "クロスマージン清算価格について",
-      "margin_used": "ポジションの証拠金使用額"
+      "liquidation_info": "クロスマージン清算価格について"
     },
     "crossMargin": {
       "title": "クロスマージンには対応していません",
@@ -4116,8 +4113,7 @@
       "retry": "もう一度お試しください",
       "review": "注文内容の確認",
       "buy": "購入",
-      "venue_changed": "予測市場が変更されました。続行するにはこの注文を閉じてください。",
-      "delete": "削除"
+      "venue_changed": "予測市場が変更されました。続行するにはこの注文を閉じてください。"
     },
     "order_approval": {
       "title": "ご注文内容の確認",
@@ -4898,9 +4894,7 @@
     "bullet3": "その他関連プロモーション資料",
     "footer": "We’ll never sell or share the data you provide. You can opt out anytime.",
     "accept": "同意します",
-    "cancel": "いいえ、結構です",
-    "paragraph1a": "さらに、",
-    "link": "MetaMetrics"
+    "cancel": "いいえ、結構です"
   },
   "multi_rpc_migration_modal": {
     "description": "1つのネットワークで複数のRPCがサポートされるようになりました。情報の矛盾を解決するため、最も最近のRPCがデフォルトのRPCとして選択されています",
@@ -9992,7 +9986,6 @@
     },
     "action": {
       "add": "追加",
-      "transfer": "送金",
       "card": "カード",
       "details": "詳細"
     },
@@ -10114,8 +10107,6 @@
       "contact_support": "サポートへのお問い合わせ"
     },
     "transfer_sheet": {
-      "title": "送金先",
-      "between_accounts": "別のアカウント",
       "perps_account": "パーペチュアルアカウント",
       "predictions_account": "予測市場アカウント",
       "send_external": "外部アドレス",
@@ -11079,7 +11070,12 @@
       },
       "pair": "{{source}} → {{dest}}",
       "schedule_summary": "{{interval}} × {{count}}回注文",
-      "spend_summary": "{{amount}} {{symbol}}を{{everyValue}} {{unit}}ごとに{{repeatCount}}回にわたり支出します",
+      "spend_summary": {
+        "swapping": "スワップ中",
+        "for": "for",
+        "every": "間隔:",
+        "repeats": "Repeats"
+      },
       "repeat_summary": {
         "one": "一度",
         "other": "{{count}} times"
