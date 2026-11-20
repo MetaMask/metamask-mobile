@@ -21,21 +21,22 @@ import {
   summarizeScenario,
 } from './swaps-cpu-profile-report.mjs';
 
-/** Splits on spaces, so no argument may contain one. */
-const gh = (command) =>
-  execFileSync('gh', command.split(' '), { encoding: 'utf8', stdio: 'pipe' });
+const gh = (args) =>
+  execFileSync('gh', args, { encoding: 'utf8', stdio: 'pipe' });
 
 function listRuns(repo, { start, end }) {
   const created = `${start.toISOString()}..${end.toISOString()}`;
   const runs = gh(
-    `run list -R ${repo} -w ${PERFORMANCE_WORKFLOW} -e schedule -b main --created ${created} -L 100 --json databaseId`,
+    ['run', 'list', '-R', repo, '-w', PERFORMANCE_WORKFLOW]
+      .concat(['-e', 'schedule', '-b', 'main', '--created', created])
+      .concat(['-L', '100', '--json', 'databaseId']),
   );
   return JSON.parse(runs).map((run) => run.databaseId);
 }
 
 function readArtifactJson(repo, runId, artifact, file, directory) {
   const target = path.join(directory, `${runId}-${artifact}`);
-  gh(`run download ${runId} -R ${repo} -n ${artifact} -D ${target}`);
+  gh(['run', 'download', `${runId}`, '-R', repo, '-n', artifact, '-D', target]);
   return JSON.parse(fs.readFileSync(path.join(target, file), 'utf8'));
 }
 
@@ -82,6 +83,7 @@ async function main() {
     path.join(os.tmpdir(), 'swaps-cpu-profile-'),
   );
   const samples = SCENARIOS.map(() => []);
+  const devices = new Set();
   let runsRead = 0;
   for (const runId of runIds) {
     try {
@@ -99,6 +101,7 @@ async function main() {
         'summary.json',
         directory,
       );
+      summary.devices?.forEach(({ device }) => devices.add(device));
       const failed = failedTestNames(summary);
       SCENARIOS.forEach((scenario, index) =>
         samples[index].push(scenarioSample(report, failed, scenario)),
@@ -116,11 +119,12 @@ async function main() {
   fs.mkdirSync(env.OUT_DIR, { recursive: true });
   fs.writeFileSync(
     path.join(env.OUT_DIR, 'summary.json'),
-    `${JSON.stringify({ window, runIds, runsRead, scenarios }, null, 2)}\n`,
+    `${JSON.stringify({ window, runIds, runsRead, devices: [...devices], scenarios }, null, 2)}\n`,
   );
   const message = buildSlackMessage(scenarios, {
     window,
     runsRead,
+    devices: [...devices],
     runsFound: runIds.length,
     runUrl: env.GITHUB_RUN_URL || '',
   });

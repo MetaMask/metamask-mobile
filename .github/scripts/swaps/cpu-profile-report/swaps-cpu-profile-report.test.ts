@@ -127,9 +127,11 @@ describe('buildSlackMessage', () => {
         window: { label: '2026-11-09 – 2026-11-15 UTC' },
         runsRead: 4,
         runsFound: 4,
+        devices: ['Pixel 8 Pro', 'Pixel 9'],
         runUrl: 'https://example.com/run',
       },
     );
+    expect(message).toContain('on main (Pixel 8 Pro, Pixel 9)');
     expect(message).toContain(
       '*ETH swap*: 3 runs used (1 failed, 0 unsymbolicated, 0 missing)',
     );

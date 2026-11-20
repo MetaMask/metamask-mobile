@@ -150,11 +150,11 @@ const formatAreas = (areas) =>
 
 export function buildSlackMessage(
   scenarios,
-  { window, runsRead, runsFound, runUrl = '' },
+  { window, runsRead, runsFound, devices, runUrl = '' },
 ) {
   const lines = [
     `:bar_chart: *Swaps CPU profile report, ${window.label}*`,
-    `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (Pixel 8 Pro). Areas show average self time per run.`,
+    `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${devices.join(', ') || 'device unknown'}). Areas show average self time per run.`,
   ];
   for (const { label, summary } of scenarios) {
     const { used, failed, unsymbolicated, missing } = summary.counts;
