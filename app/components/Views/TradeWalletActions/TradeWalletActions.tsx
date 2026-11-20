@@ -87,7 +87,7 @@ import {
   usePredictEntryActions,
 } from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
-import { selectCollectiblesEnabledFlag } from '../../UI/Collectibles/selectors/featureFlags';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
 import { collectiblesTestIds } from '../../UI/Collectibles/Collectibles.testIds';
 
 import BottomShape from './components/BottomShape';
@@ -305,7 +305,7 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
   const { openPredict } = usePredictEntryActions();
-  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabledFlag);
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
 
   const { getTarget } = usePerpsHeaderEntryNavigation();
 
