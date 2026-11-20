@@ -22,8 +22,8 @@ const discoverPath = path.join(
   'hyperexecute-discover-performance-tests.sh',
 );
 
-function discover(buildType, cwd = repoRoot) {
-  const env = { ...process.env };
+function discover(buildType, cwd = repoRoot, grepTags = '') {
+  const env = { ...process.env, GREP_TAGS: grepTags };
   if (buildType === undefined) {
     delete env.BUILD_TYPE;
   } else {
@@ -108,6 +108,31 @@ test('dev-onboarding discovery includes only the dev onboarding spec', () => {
   ]);
 });
 
+test('a shadow-only selection skips dev-onboarding instead of failing', () => {
+  const { status, specs, stderr } = discover(
+    'dev-onboarding',
+    repoRoot,
+    '@PerformanceShadow',
+  );
+
+  assert.equal(status, 0);
+  assert.deepEqual(specs, []);
+  assert.match(stderr, /No scenarios for BUILD_TYPE=dev-onboarding/);
+});
+
+test('a mixed shadow selection still discovers the dev onboarding spec', () => {
+  const { status, specs } = discover(
+    'dev-onboarding',
+    repoRoot,
+    '@Performance|@PerformanceShadow',
+  );
+
+  assert.equal(status, 0);
+  assert.deepEqual(specs, [
+    'tests/performance/dev-onboarding/social-onboarding.spec.ts',
+  ]);
+});
+
 test('onboarding discovery does not include the dev onboarding spec', () => {
   const { specs } = discover('onboarding');
 
@@ -143,4 +168,42 @@ test('an unknown BUILD_TYPE exits non-zero and names it', () => {
 
   assert.notEqual(status, 0);
   assert.match(stderr, /Unknown BUILD_TYPE: ios-smoke/);
+});
+
+test('scenario specs are discovered only when @PerformanceShadow is selected', () => {
+  const scenario =
+    'tests/performance/login/scenarios/scenarios.scenario.spec.ts';
+
+  assert.equal(discover('imported-wallet').specs.includes(scenario), false);
+  assert.equal(
+    discover('imported-wallet', repoRoot, '@PerformanceLogin').specs.includes(
+      scenario,
+    ),
+    false,
+  );
+  assert.ok(
+    discover('imported-wallet', repoRoot, '@PerformanceShadow').specs.includes(
+      scenario,
+    ),
+  );
+});
+
+test('a @PerformanceShadow-only selection lists only scenario specs', () => {
+  const { status, specs } = discover(
+    'imported-wallet',
+    repoRoot,
+    '@PerformanceShadow',
+  );
+
+  assert.equal(status, 0);
+  assert.ok(specs.length > 0);
+  assert.ok(specs.every((spec) => spec.endsWith('.scenario.spec.ts')));
+
+  const mixed = discover(
+    'imported-wallet',
+    repoRoot,
+    '@PerformanceLogin|@PerformanceShadow',
+  ).specs;
+  assert.ok(mixed.includes('tests/performance/login/eth-swap-flow.spec.ts'));
+  assert.ok(mixed.some((spec) => spec.endsWith('.scenario.spec.ts')));
 });

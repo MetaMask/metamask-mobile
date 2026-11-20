@@ -1,0 +1,29 @@
+{
+  "Open the Tokens section on the wallet home": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "homepage-section-title-tokens"
+      }
+    },
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "testID",
+        "value": "token-list"
+      },
+      "textPattern": "USDC|Bitcoin|Ethereum",
+      "proof": true
+    }
+  ],
+  "Tap ETH in the token list": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "asset-ETH"
+      }
+    }
+  ]
+}

@@ -38,10 +38,12 @@ export class ClaudeProvider implements AIProvider {
       );
     }
 
-    this.model = config.model ?? DEFAULT_MODEL;
+    // `||`: CI may set these to an empty string, which means unset.
+    this.model = config.model || process.env.ANTHROPIC_MODEL || DEFAULT_MODEL;
     this.maxTokens = config.maxTokens ?? DEFAULT_MAX_TOKENS;
 
-    const baseURL = config.baseURL ?? process.env.ANTHROPIC_BASE_URL;
+    const baseURL =
+      config.baseURL || process.env.ANTHROPIC_BASE_URL || undefined;
     this.client = new Anthropic({ apiKey, ...(baseURL && { baseURL }) });
   }
 

@@ -96,3 +96,34 @@ test('seedless onboarding specs use the seedless TestMu project', () => {
 
   assert.ok(args.includes('testmu-android-onboarding-seedless'));
 });
+
+test('scenario specs run through the TestMu config and its scenario project', () => {
+  const args = runWithFakeYarn(
+    '@PerformanceShadow',
+    'tests/performance/login/scenarios/scenarios.scenario.spec.ts',
+    'imported-wallet',
+  );
+
+  assert.ok(args.includes('tests/playwright.testmu.config.ts'));
+  assert.ok(args.includes('scenario-shadow-testmu-android'));
+  assert.equal(args.includes('tests/playwright.scenario-shadow.config.ts'), false);
+  assert.ok(args.includes('--grep'));
+  assert.ok(args.includes('@PerformanceShadow'));
+});
+
+test('onboarding scenario specs use the scenario onboarding projects', () => {
+  assert.ok(
+    runWithFakeYarn(
+      '@PerformanceShadow',
+      'tests/performance/onboarding/scenarios/scenarios.scenario.spec.ts',
+      'onboarding',
+    ).includes('scenario-shadow-testmu-android-onboarding'),
+  );
+  assert.ok(
+    runWithFakeYarn(
+      '@PerformanceShadow',
+      'tests/performance/onboarding/scenarios/seedless.scenario.spec.ts',
+      'onboarding',
+    ).includes('scenario-shadow-testmu-android-onboarding-seedless'),
+  );
+});

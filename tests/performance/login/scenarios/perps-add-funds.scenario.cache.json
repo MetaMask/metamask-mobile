@@ -1,0 +1,50 @@
+{
+  "Tap the Perpetuals section header on the wallet home (testID homepage-section-title-perps; scroll down to find it)": [
+    {
+      "type": "swipe",
+      "direction": "up"
+    },
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "homepage-section-title-perps"
+      }
+    }
+  ],
+  "Tap Skip on the Perps tutorial": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "perps-tutorial-skip-button"
+      }
+    },
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "testID",
+        "value": "perps-market-add-funds-button"
+      },
+      "proof": true
+    }
+  ],
+  "Enter 1 USD on the deposit keypad to add funds": [
+    {
+      "type": "tap",
+      "locator": {
+        "strategy": "testID",
+        "value": "keypad-key-1"
+      }
+    },
+    {
+      "type": "expect",
+      "locator": {
+        "strategy": "testID",
+        "value": "custom-amount-input-value"
+      },
+      "textPattern": "1",
+      "proof": true
+    }
+  ]
+}

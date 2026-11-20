@@ -138,7 +138,7 @@ jobs:
           AREA_LABELS=""
           while IFS= read -r label; do
             case "$label" in
-              run-performance-account-list-tests|run-performance-onboarding-tests|run-performance-login-tests|run-performance-swaps-tests|run-performance-launch-tests|run-performance-asset-loading-tests|run-performance-predict-tests|run-performance-perps-tests|run-performance-money-tests|run-performance-rewards-tests)
+              run-performance-account-list-tests|run-performance-onboarding-tests|run-performance-login-tests|run-performance-swaps-tests|run-performance-launch-tests|run-performance-asset-loading-tests|run-performance-predict-tests|run-performance-perps-tests|run-performance-money-tests|run-performance-rewards-tests|run-performance-shadow-tests)
                 if [ -n "$AREA_LABELS" ]; then
                   AREA_LABELS="${AREA_LABELS},${label}"
                 else

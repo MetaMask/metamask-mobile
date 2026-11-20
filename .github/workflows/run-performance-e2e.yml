@@ -347,6 +347,7 @@ jobs:
       !cancelled() &&
       needs.prepare.result == 'success' &&
       needs.prepare.outputs.run_tests == 'true' &&
+      needs.prepare.outputs.grep_pattern != '@PerformanceShadow' &&
       needs.check-testmu-credentials.result == 'success' &&
       !inputs.testmu_app_url_android_onboarding &&
       !inputs.testmu_app_url_android_imported_wallet
@@ -494,6 +495,7 @@ jobs:
       needs.prepare.outputs.run_tests == 'true' &&
       needs.check-testmu-credentials.result == 'success' &&
       needs.check-testmu-credentials.outputs.testmu_ready == 'true' &&
+      needs.prepare.outputs.grep_pattern != '@PerformanceShadow' &&
       needs.upload-main-dev.result == 'success' &&
       needs.upload-main-dev.outputs.main-dev-testmu-url != ''
     with:
@@ -512,6 +514,52 @@ jobs:
       he_concurrency: ${{ inputs.he_concurrency }}
       collect_hermes_cpuprofiles: ${{ inputs.collect_hermes_cpuprofiles == true }}
     secrets: inherit
+
+  # Reports @PerformanceShadow scenario outcomes in the job summary: each
+  # step whose learned cache failed or drifted, the correction the agent made,
+  # and the *.scenario.cache.json entry to copy by hand when the run passed
+  # every pinned check and threshold.
+  scenario-cache-report:
+    name: Scenario cache report
+    needs:
+      [
+        prepare,
+        run-android-onboarding-tests-testmu,
+        run-android-imported-wallet-tests-testmu,
+        run-android-dev-onboarding-tests-testmu,
+      ]
+    if: >-
+      always() && !cancelled() &&
+      needs.prepare.outputs.run_tests == 'true' &&
+      contains(needs.prepare.outputs.grep_pattern, '@PerformanceShadow')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout the branch that ran
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch_name }}
+
+      - name: Download test results
+        uses: actions/download-artifact@v7
+        with:
+          pattern: testmu-he-*-test-results-*
+          path: ${{ runner.temp }}/scenario-artifacts
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Yarn dependencies
+        run: yarn install --immutable
+
+      - name: Write the scenario cache report
+        run: |
+          yarn tsx .github/scripts/qa-automation/performance-tests/scenario-report.ts \
+            --artifacts "$RUNNER_TEMP/scenario-artifacts"
 
   aggregate-results:
     name: Aggregate All Test Results
