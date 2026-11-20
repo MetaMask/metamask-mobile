@@ -35,6 +35,7 @@ describe('isSafeDismissControl', () => {
     [['Skip']],
     [['Got it']],
     [['X']],
+    [['Close']],
   ])('allows dismiss control %j', (descriptors) => {
     expect(isSafeDismissControl(descriptors)).toBe(true);
   });
@@ -49,6 +50,9 @@ describe('isSafeDismissControl', () => {
     [['Sign']],
     [['Get started']],
     [['close-button', 'Accept and close']],
+    [['Close position']],
+    [['perps-close-position-button']],
+    [['enclosed']],
     [['Learn more']],
     [[]],
     [['', null, undefined]],

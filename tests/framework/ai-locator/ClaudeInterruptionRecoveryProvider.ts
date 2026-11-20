@@ -37,11 +37,14 @@ export interface InterruptionRecoveryProvider {
  * forward. A dismiss candidate matching any of these is never tapped.
  */
 const UNSAFE_ACTION_PATTERN =
-  /\b(accept|agree|i agree|confirm|sign|buy|purchase|pay|subscribe|approve|allow|enable|turn on|opt[\s-]?in|yes|continue|get started|try now|start|deposit|send|swap|trade|connect|submit|claim|upgrade|install|update|ok|okay|next|done|save|import|create|reveal|unlock|delete|remove|reset)\b/i;
+  /\b(accept|agree|i agree|confirm|sign|buy|purchase|pay|subscribe|approve|allow|enable|turn on|opt[\s-]?in|yes|continue|get started|try now|start|deposit|send|swap|trade|connect|submit|claim|upgrade|install|update|ok|okay|next|done|save|import|create|reveal|unlock|delete|remove|reset|close[\s_-]+(?:position|order|trade|market|long|short)s?)\b/i;
 
-/** At least one of the candidate's strings must look like a dismissal. */
+/**
+ * At least one of the candidate's strings must look like a dismissal.
+ * `close` is a whole word, so it matches a close button but not "enclosed".
+ */
 const DISMISS_ACTION_PATTERN =
-  /(no[\s,-]*thanks|not[\s-]now|close|dismiss|skip|cancel|later|got[\s-]it|^x$|^×$)/i;
+  /(no[\s,-]*thanks|not[\s-]now|\bclose\b|\bdismiss\b|\bskip\b|\bcancel\b|\blater\b|got[\s-]it|^x$|^×$)/i;
 
 /**
  * Guardrail for AI-suggested dismiss controls.
