@@ -301,6 +301,48 @@ function describeSelector(selector) {
  * the Appium framework says so, otherwise the reason label plus the first
  * line of the error. Falls back to the label alone.
  */
+/** Same labels as the Reason column of the performance PR comment. */
+export function formatFailureReason(reason) {
+  switch (reason) {
+    case 'quality_gates_exceeded':
+      return 'Quality gates exceeded';
+    case 'session_creation_failed':
+      return 'Session creation failed';
+    case 'no_performance_metrics':
+      return 'No performance metrics';
+    case 'timedOut':
+      return 'Timed out';
+    case 'test_error':
+    case 'failed':
+      return 'Test error';
+    default:
+      return reason ?? 'Unknown';
+  }
+}
+
+/**
+ * The Reason cell of the performance PR comment, and the Slack failure line.
+ * Quality-gate failures list the timers that broke their threshold. Other
+ * failures use the label plus the error text. Several gate violations are
+ * joined with `<br>` (the PR table); Slack replaces that with a separator.
+ */
+export function describeReportedFailure(test) {
+  const qualityGateText =
+    test?.failureReason === 'quality_gates_exceeded'
+      ? describeQualityGateViolations(test.qualityGates)
+      : null;
+
+  return (
+    qualityGateText ??
+    describeFailure(
+      formatFailureReason(test?.failureReason),
+      test?.failureReason === 'quality_gates_exceeded'
+        ? null
+        : test?.failureMessage,
+    )
+  );
+}
+
 export function describeFailure(reasonLabel, message) {
   if (!message) {
     return reasonLabel;
