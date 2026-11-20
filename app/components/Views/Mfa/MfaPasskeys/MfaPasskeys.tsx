@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -22,7 +22,10 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import Routes from '../../../../constants/navigation/Routes';
-import { useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
+import { verifyOrEnroll } from '../../../../util/identity/mfa/useMfa';
+import type { MfaReason } from '../../../../util/identity/mfa/engine/types';
+import Logger from '../../../../util/Logger';
 import { useTheme } from '../../../../util/theme';
 import { getActivePasskeys } from '../credentials';
 import { getAddedOn, getPasskeyName } from '../labels';
@@ -30,6 +33,10 @@ import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import SocialLinkEmailBottomSheet from '../../shared/SocialLinkEmailBottomSheet';
+import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryAfterEnroll';
+
+const ADD_PASSKEY_REASON: MfaReason = { operation: 'settings.addPasskey' };
 
 /**
  * The profile's passkeys: each opens its details, and the footer adds
@@ -44,21 +51,51 @@ const MfaPasskeys = () => {
   const { credentials, enroll } = useMfa();
   const passkeys = getActivePasskeys(credentials);
 
-  const addPasskey = () => {
-    enroll({
-      method: 'passkey',
-      reason: { operation: 'settings.addPasskey' },
-    })
-      .then(() =>
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          labelOptions: [{ label: strings('mfa.settings.passkey_added') }],
-          iconName: ToastIconName.Confirmation,
-          iconColor: theme.colors.success.default,
-          hasNoTimeout: false,
-        }),
-      )
-      .catch(() => undefined);
+  const [socialLinkPrompt, setSocialLinkPrompt] = useState<{
+    resolve: (email?: string) => void;
+  }>();
+
+  const closeSocialLinkPrompt = (email?: string) => {
+    socialLinkPrompt?.resolve(email);
+    setSocialLinkPrompt(undefined);
+  };
+
+  const addPasskey = async () => {
+    try {
+      await enroll({ method: 'passkey', reason: ADD_PASSKEY_REASON });
+    } catch {
+      return;
+    }
+
+    try {
+      await syncRecoveryAfterEnroll('passkey', {
+        verifyMfa: () =>
+          verifyOrEnroll({
+            methods: ['passkey'],
+            verifyWith: ['passkey'],
+            reason: ADD_PASSKEY_REASON,
+          }).then(() => undefined),
+        getSocialLinkEmail: isMfaDevBuild()
+          ? () =>
+              new Promise<string | undefined>((resolve) =>
+                setSocialLinkPrompt({ resolve }),
+              )
+          : undefined,
+      });
+    } catch (error) {
+      Logger.error(
+        error instanceof Error ? error : new Error('Recovery sync failed'),
+        { tags: { feature: 'mfa', operation: ADD_PASSKEY_REASON.operation } },
+      );
+    }
+
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [{ label: strings('mfa.settings.passkey_added') }],
+      iconName: ToastIconName.Confirmation,
+      iconColor: theme.colors.success.default,
+      hasNoTimeout: false,
+    });
   };
 
   return (
@@ -110,6 +147,12 @@ const MfaPasskeys = () => {
           {strings('mfa.settings.add_passkey')}
         </Button>
       </Box>
+      {socialLinkPrompt ? (
+        <SocialLinkEmailBottomSheet
+          onSubmit={closeSocialLinkPrompt}
+          onClose={() => closeSocialLinkPrompt(undefined)}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };
