@@ -1,5 +1,9 @@
 import '../../../../tests/component-view/mocks';
 import React from 'react';
+import Braze, {
+  type Banner,
+  type BannerCardsUpdatedEvent,
+} from '@braze/react-native-sdk';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import NetInfo from '@react-native-community/netinfo';
 import { PerpsMode } from '@metamask/perps-controller';
@@ -27,6 +31,8 @@ import {
 } from '../../../../tests/component-view/render';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
 import { MoneyBalanceCardTestIds } from '../../UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.testIds';
+import { BRAZE_BANNER_TEST_IDS } from '../../UI/BrazeBanner/BrazeBanner.testIds';
+import { BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID } from '../../../core/Braze/constants';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import { walletHomeOnboardingVisibleSteps } from '../../UI/WalletHomeOnboardingSteps/walletHomeOnboardingStepsModel';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
@@ -617,6 +623,219 @@ describeForPlatforms('Wallet', () => {
         queryByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
       ).not.toBeOnTheScreen();
       expect(getByTestId(MoneyBalanceCardTestIds.LABEL)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Braze growth banner', () => {
+    const WALLET1_ENTROPY_ID = 'wallet1';
+    const CANONICAL_PROFILE_ID = 'canonical-profile-1';
+
+    type BannerCardsUpdatedListener = (event: BannerCardsUpdatedEvent) => void;
+
+    const walletHomeBrazeBannerEvent = (): BannerCardsUpdatedEvent => ({
+      banners: [
+        {
+          trackingId: 'braze-banner-tracking-1',
+          placementId: BRAZE_BANNER_WALLET_HOME_PLACEMENT_ID,
+          stableKey: 'braze-banner-stable-key-1',
+          isTestSend: false,
+          isControl: false,
+          html: '',
+          expiresAt: -1,
+          properties: {
+            body: { type: 'string', value: 'Growth banner body' },
+            campaign_name: { type: 'string', value: 'Wallet home campaign' },
+          },
+        } as unknown as Banner,
+      ],
+    });
+
+    const primaryHdKeyringOverrides = {
+      engine: {
+        backgroundState: {
+          KeyringController: {
+            keyrings: [
+              {
+                accounts: ['0x0000000000000000000000000000000000000001'],
+                type: 'HD Key Tree',
+                metadata: { id: WALLET1_ENTROPY_ID, name: 'Wallet 1' },
+              },
+            ],
+          },
+        },
+      },
+    };
+
+    const canonicalProfileOverrides = {
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            srpSessionData: {
+              [WALLET1_ENTROPY_ID]: {
+                profile: { canonicalProfileId: CANONICAL_PROFILE_ID },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const fundedBalanceOverrides = {
+      engine: {
+        backgroundState: {
+          AssetsController: {
+            assetsBalance: {
+              'acc-1': {
+                'eip155:1/slip44:60': { amount: '1.5' },
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const onboardingChecklistOverrides = (stepIndex: number) => ({
+      onboarding: {
+        completedOnboarding: true,
+        walletHomeOnboardingStepsEligible: true,
+        walletHomeOnboardingSkipInitialBalanceWait: true,
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex },
+      },
+    });
+
+    const renderGrowthBannerWallet = (
+      options: {
+        hasCanonicalProfile?: boolean;
+        checklistStep?: number;
+        funded?: boolean;
+      } = {},
+    ) => {
+      const {
+        hasCanonicalProfile = true,
+        checklistStep,
+        funded = false,
+      } = options;
+      return renderComponentViewScreen(
+        Wallet as unknown as React.ComponentType,
+        { name: Routes.WALLET_VIEW },
+        {
+          state: initialStateWallet({ deterministicFiat: true })
+            .withRemoteFeatureFlags({
+              brazeBannerHomeMinVersion: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              carouselBanners: true,
+            })
+            .withOverrides({
+              engine: {
+                backgroundState: {
+                  ...primaryHdKeyringOverrides.engine.backgroundState,
+                  ...(hasCanonicalProfile
+                    ? canonicalProfileOverrides.engine.backgroundState
+                    : {}),
+                  ...(funded
+                    ? fundedBalanceOverrides.engine.backgroundState
+                    : {}),
+                },
+              },
+              ...(checklistStep !== undefined
+                ? onboardingChecklistOverrides(checklistStep)
+                : {}),
+            } as unknown as Record<string, unknown>)
+            .build(),
+          routeMessenger: createMockRouteMessenger(),
+        },
+      );
+    };
+
+    const brazeAddListener = () =>
+      Braze.addListener as unknown as jest.Mock<
+        { remove: () => void },
+        [event: string, callback: BannerCardsUpdatedListener]
+      >;
+
+    const bannerCardsUpdatedRegistrations = () =>
+      brazeAddListener().mock.calls.filter(
+        ([event]) => event === 'bannerCardsUpdated',
+      );
+
+    const emitWalletHomeBrazeBanner = () => {
+      const listener = bannerCardsUpdatedRegistrations().at(-1)?.[1];
+      if (!listener) {
+        throw new Error(
+          'BrazeBanner never registered the bannerCardsUpdated listener',
+        );
+      }
+      act(() => {
+        listener(walletHomeBrazeBannerEvent());
+      });
+    };
+
+    beforeEach(() => {
+      brazeAddListener().mockClear();
+    });
+
+    it('renders the Braze banner instead of the carousel when both growth flags are enabled', async () => {
+      const { findByTestId, queryByTestId } = renderGrowthBannerWallet();
+
+      await waitFor(() => {
+        expect(bannerCardsUpdatedRegistrations()).not.toHaveLength(0);
+      });
+      emitWalletHomeBrazeBanner();
+
+      expect(
+        await findByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.CAROUSEL_CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders no growth banner while the canonical profile ID is missing', async () => {
+      const { findByTestId, queryByTestId } = renderGrowthBannerWallet({
+        hasCanonicalProfile: false,
+      });
+
+      expect(
+        await findByTestId(WalletViewSelectorsIDs.WALLET_CONTAINER),
+      ).toBeOnTheScreen();
+
+      expect(
+        queryByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(bannerCardsUpdatedRegistrations()).toHaveLength(0);
+    });
+
+    it('keeps the Braze banner hidden for an unfunded wallet during the fund step', async () => {
+      const { findByTestId, queryByTestId } = renderGrowthBannerWallet({
+        checklistStep: 0,
+      });
+
+      expect(
+        await findByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
+      ).toBeOnTheScreen();
+
+      expect(
+        queryByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER),
+      ).not.toBeOnTheScreen();
+      expect(bannerCardsUpdatedRegistrations()).toHaveLength(0);
+    });
+
+    it('renders the Braze banner on a funded wallet once the checklist is past the fund step', async () => {
+      const { findByTestId } = renderGrowthBannerWallet({
+        checklistStep: 1,
+        funded: true,
+      });
+
+      expect(
+        await findByTestId(WalletHomeOnboardingStepsSelectors.PROGRESS_LABEL),
+      ).toBeOnTheScreen();
+      emitWalletHomeBrazeBanner();
+
+      expect(
+        await findByTestId(BRAZE_BANNER_TEST_IDS.CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 
