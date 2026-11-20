@@ -170,8 +170,7 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     setParams: jest.fn(),
   }),
-  useFocusEffect: (callback: () => void | (() => void)) =>
-    jest.requireActual('react').useEffect(callback, [callback]),
+  useFocusEffect: (callback: () => void) => callback(),
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -192,11 +191,10 @@ const mockDepositTokens = [
   },
 ];
 
-const defaultMoneyDepositTokens = () => ({
+const mockUseMoneyDepositTokens = jest.fn(() => ({
   tokens: mockDepositTokens as ReturnType<typeof Array.from>,
   isNoFeeToken: jest.fn(() => false),
-});
-const mockUseMoneyDepositTokens = jest.fn(defaultMoneyDepositTokens);
+}));
 
 jest.mock('../../hooks/useMoneyDepositTokens', () => ({
   useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
@@ -230,17 +228,15 @@ jest.mock('../../components/MoneyCardTiltAnimation', () => {
   };
 });
 
-const mockCardTransactionIndex = {
-  bySettlementHash: new Map(),
-  declined: [],
-  oldestFetchedTime: Number.NEGATIVE_INFINITY,
-  isFetching: false,
-  isSettling: false,
-  isError: false,
-};
-
 jest.mock('../../../Card/hooks/useCardTransactionIndex', () => ({
-  useCardTransactionIndex: () => mockCardTransactionIndex,
+  useCardTransactionIndex: () => ({
+    bySettlementHash: new Map(),
+    declined: [],
+    oldestFetchedTime: Number.NEGATIVE_INFINITY,
+    isFetching: false,
+    isSettling: false,
+    isError: false,
+  }),
 }));
 
 jest.mock('../../../Card/hooks/useCardCapabilities', () => ({
@@ -251,12 +247,9 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
-const mockEmptyMicrodeposits: never[] = [];
-const mockEmptyAutorampActivity: never[] = [];
-
 jest.mock('../../hooks/useMoneyMicrodeposits', () => ({
   useMoneyMicrodeposits: jest.fn(() => ({
-    microdeposits: mockEmptyMicrodeposits,
+    microdeposits: [],
     isLoading: false,
     refetch: jest.fn(),
   })),
@@ -275,7 +268,7 @@ jest.mock('../../hooks/useMoneyVbaTransfers', () => ({
 
 jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
   useNeobankAutorampActivity: jest.fn(() => ({
-    activity: mockEmptyAutorampActivity,
+    activity: [],
     refetch: jest.fn(),
   })),
 }));
@@ -861,7 +854,6 @@ describe('MoneyHomeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMoneyDepositTokens.mockImplementation(defaultMoneyDepositTokens);
     global.alert = jest.fn();
     mockRouteParams = undefined;
 
@@ -1230,7 +1222,7 @@ describe('MoneyHomeView', () => {
 
       renderWithProvider(<MoneyHomeView />);
 
-      expect(mockUseVbaHomeCardRefresh).toHaveBeenCalled();
+      expect(mockUseVbaHomeCardRefresh).toHaveBeenCalledTimes(1);
     });
 
     it('wires the VBA autoramp transaction refresh on mount', () => {
@@ -1240,7 +1232,7 @@ describe('MoneyHomeView', () => {
 
       renderWithProvider(<MoneyHomeView />);
 
-      expect(mockUseVbaTransactionRefresh).toHaveBeenCalled();
+      expect(mockUseVbaTransactionRefresh).toHaveBeenCalledTimes(1);
     });
 
     it('remounts the card with fresh dismiss state when the variant changes', () => {
@@ -2724,7 +2716,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings when its section header is pressed', () => {
-    mockUseMoneyDepositTokens.mockReturnValue({
+    mockUseMoneyDepositTokens.mockReturnValueOnce({
       tokens: Array.from({ length: 6 }, (_, i) => ({
         ...mockDepositTokens[0],
         address:
@@ -3652,7 +3644,7 @@ describe('MoneyHomeView', () => {
 
   describe('navigation handlers', () => {
     it('navigates to Potential Earnings when its header is pressed', () => {
-      mockUseMoneyDepositTokens.mockReturnValue({
+      mockUseMoneyDepositTokens.mockReturnValueOnce({
         tokens: Array.from({ length: 6 }, (_, i) => ({
           ...mockDepositTokens[0],
           address:
