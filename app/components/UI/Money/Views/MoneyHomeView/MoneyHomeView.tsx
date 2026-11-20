@@ -417,6 +417,8 @@ const MoneyHomeView = () => {
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else if (isBalanceLoading && !lastKnownTotalFiatFormatted) {
+    displayState = { kind: 'loading' };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -428,7 +430,8 @@ const MoneyHomeView = () => {
     };
   }
 
-  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
+  const showBalanceUnavailableBanner =
+    displayState.kind === 'unavailable' && !isBalanceLoading;
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
