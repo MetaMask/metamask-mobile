@@ -221,6 +221,14 @@ function createdDescriptions(calls) {
     .map((call) => adfToText(call.body.fields.description));
 }
 
+test('markers are found when their JSON body spans lines', () => {
+  const body = `intro\n<!-- ${ISSUE_MARKER} {"key":\n"a|b",\n"ratio":1.68} -->\n`;
+  assert.deepEqual(parseMarker(body, ISSUE_MARKER), { key: 'a|b', ratio: 1.68 });
+
+  const comment = `<!-- ${RECURRENCE_MARKER} {"runId":\n"1"} -->\n<!-- ${RECURRENCE_MARKER} {broken -->`;
+  assert.deepEqual(parseRecurrenceMarkers(comment), [{ runId: '1' }]);
+});
+
 test('markers round-trip through an issue body', () => {
   const marker = encodeMarker(ISSUE_MARKER, { key: 'a|b', ratio: 1.68 });
   const body = `### Describe the bug\n\ntext\n\n${marker}\n`;

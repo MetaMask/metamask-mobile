@@ -77,7 +77,7 @@ export function encodeMarker(kind, data) {
 }
 
 export function parseMarker(body, kind) {
-  const match = new RegExp(`<!-- ${kind} (\\{.*?\\}) -->`).exec(
+  const match = new RegExp(`<!-- ${kind} (\\{[\\s\\S]*?\\}) -->`).exec(
     String(body || ''),
   );
   if (!match) {
@@ -91,7 +91,10 @@ export function parseMarker(body, kind) {
 }
 
 export function parseRecurrenceMarkers(body) {
-  const pattern = new RegExp(`<!-- ${RECURRENCE_MARKER} (\\{.*?\\}) -->`, 'g');
+  const pattern = new RegExp(
+    `<!-- ${RECURRENCE_MARKER} (\\{[\\s\\S]*?\\}) -->`,
+    'g',
+  );
   const markers = [];
   for (const match of String(body || '').matchAll(pattern)) {
     try {
