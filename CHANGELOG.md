@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed every TransactionController update throwing "No metadata found for 'swapsTransactions'" after creating or importing a wallet, by no longer writing the legacy swapsTransactions key when resetting state
+- Fixed every TransactionController update throwing "No metadata found for 'swapsTransactions'" after creating or importing a wallet, by no longer writing the legacy swapsTransactions key when resetting state (#40207)
 - Fixed the MetaMask Money FAQ copy to clarify that the Money account is tied to the Secret Recovery Phrase, not a single account's Private Key
 
 ## [8.20.0]
