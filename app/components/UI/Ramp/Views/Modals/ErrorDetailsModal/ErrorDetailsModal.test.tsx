@@ -118,8 +118,9 @@ describe('ErrorDetailsModal', () => {
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
   });
 
-  it('opens support URL in InAppBrowser when available', async () => {
+  it('opens support URL in InAppBrowser before closing the sheet', async () => {
     (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+    (InAppBrowser.open as jest.Mock).mockResolvedValue({ type: 'cancel' });
 
     mockUseParams.mockReturnValue({
       errorMessage: 'Provider error occurred.',
@@ -136,10 +137,15 @@ describe('ErrorDetailsModal', () => {
         'https://support.transak.com',
       );
     });
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+    expect(
+      (InAppBrowser.open as jest.Mock).mock.invocationCallOrder[0],
+    ).toBeLessThan(mockOnCloseBottomSheet.mock.invocationCallOrder[0]);
   });
 
-  it('falls back to SimpleWebview when InAppBrowser is not available', async () => {
+  it('falls back to SimpleWebview without closing the sheet when InAppBrowser is not available', async () => {
     (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(false);
 
     mockUseParams.mockReturnValue({
@@ -161,7 +167,7 @@ describe('ErrorDetailsModal', () => {
         },
       });
     });
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
   });
 
   it('does not render contact support button when provider info is missing', () => {
