@@ -1,4 +1,4 @@
-import { getMoneyVaultState } from './moneyVaultState';
+import { findVault, getMoneyVaultState } from './moneyVaultState';
 
 const BASE_VAULT = '0xBaseVault';
 const PREMIUM_VAULT = '0xPremiumVault';
@@ -15,6 +15,46 @@ const position = ({
   vault_address: vaultAddress,
   vault_key: vaultKey,
   current_value_usd: usd,
+});
+
+describe('findVault', () => {
+  it('prefers the configured address over an earlier vault key match', () => {
+    const earlier = position({
+      vaultAddress: '0xOtherVault',
+      vaultKey: 'standard',
+      usd: '1',
+    });
+    const configured = position({
+      vaultAddress: BASE_VAULT,
+      vaultKey: 'custom',
+      usd: '1',
+    });
+
+    expect(
+      findVault([earlier, configured], BASE_VAULT.toLowerCase(), 'standard'),
+    ).toBe(configured);
+  });
+
+  it('falls back to the vault key when no address is configured', () => {
+    const standard = position({
+      vaultAddress: '0xOtherVault',
+      vaultKey: 'standard',
+      usd: '1',
+    });
+
+    expect(findVault([standard], undefined, 'standard')).toBe(standard);
+  });
+
+  it('returns undefined when no vault matches', () => {
+    expect(
+      findVault(
+        [position({ vaultKey: 'premium', usd: '1' })],
+        BASE_VAULT,
+        'standard',
+      ),
+    ).toBeUndefined();
+    expect(findVault(undefined, BASE_VAULT, 'standard')).toBeUndefined();
+  });
 });
 
 describe('getMoneyVaultState', () => {

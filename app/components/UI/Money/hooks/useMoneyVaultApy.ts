@@ -13,7 +13,7 @@ import { selectHasMoneyAccountPremiumApyEntitlement } from '../../../../selector
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import { selectMoneyVaultApyRemoteConfig } from '../selectors/featureFlags';
 import { parseApy, toApyPercent } from '../utils/apy';
-import { matchesVault } from '../utils/moneyVaultState';
+import { findVault } from '../utils/moneyVaultState';
 import useMoneyPremiumVaultRate from './useMoneyPremiumVaultRate';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
@@ -80,17 +80,11 @@ const useMoneyVaultApy = ({
     refetchInterval: FIVE_MINUTES_MS,
   }) as UseQueryResult<VaultsResponse>;
 
-  const baseVaultAddress = baseVaultConfig?.boringVault?.toLowerCase();
-  const configuredVault = baseVaultAddress
-    ? baseVaultApyQuery.data?.vaults.find(
-        (vault) => vault.vault_address.toLowerCase() === baseVaultAddress,
-      )
-    : undefined;
-  const standardVault = baseVaultApyQuery.data?.vaults.find((vault) =>
-    matchesVault(vault, undefined, 'standard'),
+  const baseVault = findVault(
+    baseVaultApyQuery.data?.vaults,
+    baseVaultConfig?.boringVault,
+    'standard',
   );
-  // A single pass would take an earlier `standard` entry over the configured vault.
-  const baseVault = configuredVault ?? standardVault;
   const serviceApy = parseApy(baseVault?.current_apy);
 
   // During first load with no cache, do not show fallback to avoid flicker.
