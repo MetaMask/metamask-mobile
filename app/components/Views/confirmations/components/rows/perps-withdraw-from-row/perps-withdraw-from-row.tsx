@@ -89,31 +89,15 @@ interface PerpsWithdrawFromRowProps {
   onSourceChange: (source: PerpsWithdrawSource) => void;
 }
 
-/**
- * From selector on the Perps withdraw amount screen. Choosing a source is
- * local UI: it does not write Redux, call a controller, or change the
- * withdrawal request.
- */
-export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
+// The balance hook needs `PerpsStreamProvider`, which only the Perps stack
+// mounts, so it must not run on custom-amount screens where the row is hidden.
+const PerpsWithdrawFromSelect: React.FC<PerpsWithdrawFromRowProps> = ({
   source,
   onSourceChange,
 }) => {
-  const transactionMeta = useTransactionMetadataRequest();
-  const providerFlagEnabled = useSelector(
-    selectPerpsLighterProviderEnabledFlag,
-  );
   const providerBalance = usePerpsProviderBalance();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
-
-  const isVisible =
-    isPerpsLighterConfirmationEnabled() &&
-    isLighterProviderEnabled() &&
-    providerFlagEnabled &&
-    hasTransactionType(transactionMeta, [
-      TransactionType.perpsWithdraw,
-      TransactionType.perpsLighterWithdraw,
-    ]);
 
   const closeSheet = useCallback(() => {
     setIsSheetVisible(false);
@@ -127,10 +111,6 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
     },
     [onSourceChange],
   );
-
-  if (!isVisible) {
-    return null;
-  }
 
   const rowLabel = strings('confirm.label.from');
   const selectedLabel = strings(`confirm.perps_withdraw_from.${source}`);
@@ -237,5 +217,37 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
         </Modal>
       )}
     </>
+  );
+};
+
+/**
+ * From selector on the Perps withdraw amount screen. Choosing a source is
+ * local UI: it does not write Redux, call a controller, or change the
+ * withdrawal request.
+ */
+export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
+  source,
+  onSourceChange,
+}) => {
+  const transactionMeta = useTransactionMetadataRequest();
+  const providerFlagEnabled = useSelector(
+    selectPerpsLighterProviderEnabledFlag,
+  );
+
+  const isVisible =
+    isPerpsLighterConfirmationEnabled() &&
+    isLighterProviderEnabled() &&
+    providerFlagEnabled &&
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsWithdraw,
+      TransactionType.perpsLighterWithdraw,
+    ]);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <PerpsWithdrawFromSelect source={source} onSourceChange={onSourceChange} />
   );
 };

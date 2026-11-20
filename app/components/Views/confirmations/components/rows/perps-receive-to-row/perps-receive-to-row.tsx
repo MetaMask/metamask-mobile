@@ -92,26 +92,15 @@ interface PerpsReceiveToRowProps {
   onDestinationChange: (destination: PerpsReceiveDestination) => void;
 }
 
-export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
+// The balance hook needs `PerpsStreamProvider`, which only the Perps stack
+// mounts, so it must not run on custom-amount screens where the row is hidden.
+const PerpsReceiveToSelect: React.FC<PerpsReceiveToRowProps> = ({
   destination,
   onDestinationChange,
 }) => {
-  const transactionMeta = useTransactionMetadataRequest();
-  const providerFlagEnabled = useSelector(
-    selectPerpsLighterProviderEnabledFlag,
-  );
   const providerBalance = usePerpsProviderBalance();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isSheetVisible, setIsSheetVisible] = useState(false);
-
-  const isVisible =
-    isPerpsLighterConfirmationEnabled() &&
-    isLighterProviderEnabled() &&
-    providerFlagEnabled &&
-    hasTransactionType(transactionMeta, [
-      TransactionType.perpsDeposit,
-      TransactionType.perpsLighterDeposit,
-    ]);
 
   const closeSheet = useCallback(() => {
     setIsSheetVisible(false);
@@ -125,10 +114,6 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
     },
     [onDestinationChange],
   );
-
-  if (!isVisible) {
-    return null;
-  }
 
   const rowLabel = strings('confirm.label.to');
   const selectedLabel = strings(`confirm.perps_receive_to.${destination}`);
@@ -240,5 +225,35 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
         </Modal>
       )}
     </>
+  );
+};
+
+export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
+  destination,
+  onDestinationChange,
+}) => {
+  const transactionMeta = useTransactionMetadataRequest();
+  const providerFlagEnabled = useSelector(
+    selectPerpsLighterProviderEnabledFlag,
+  );
+
+  const isVisible =
+    isPerpsLighterConfirmationEnabled() &&
+    isLighterProviderEnabled() &&
+    providerFlagEnabled &&
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ]);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <PerpsReceiveToSelect
+      destination={destination}
+      onDestinationChange={onDestinationChange}
+    />
   );
 };

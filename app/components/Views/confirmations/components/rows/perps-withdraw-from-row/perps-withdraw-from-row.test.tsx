@@ -25,11 +25,9 @@ jest.mock('react-native-device-info', () => ({
 }));
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+const mockUsePerpsLiveAccount = jest.fn();
 jest.mock('../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount', () => ({
-  usePerpsLiveAccount: () => ({
-    account: { totalBalance: '50.389' },
-    isInitialLoading: false,
-  }),
+  usePerpsLiveAccount: () => mockUsePerpsLiveAccount(),
 }));
 
 const mockUseTransactionMetadataRequest = jest.mocked(
@@ -87,6 +85,10 @@ describe('PerpsWithdrawFromRow', () => {
   beforeEach(() => {
     process.env.MM_PERPS_LIGHTER_CONFIRMATION_ENABLED = 'true';
     process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+    mockUsePerpsLiveAccount.mockReturnValue({
+      account: { totalBalance: '50.389' },
+      isInitialLoading: false,
+    });
   });
 
   afterEach(() => {
@@ -192,6 +194,20 @@ describe('PerpsWithdrawFromRow', () => {
 
   it('renders nothing when the transaction is not a perps withdraw', () => {
     const { queryByTestId } = renderRow(true, TransactionType.perpsDeposit);
+
+    expect(queryByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeNull();
+  });
+
+  it('renders nothing on a money account withdraw without PerpsStreamProvider', () => {
+    const { usePerpsLiveAccount } = jest.requireActual(
+      '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount',
+    );
+    mockUsePerpsLiveAccount.mockImplementation(usePerpsLiveAccount);
+
+    const { queryByTestId } = renderRow(
+      true,
+      TransactionType.moneyAccountWithdraw,
+    );
 
     expect(queryByTestId(PerpsWithdrawFromSelectorsIDs.ROW)).toBeNull();
   });
