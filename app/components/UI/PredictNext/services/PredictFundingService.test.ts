@@ -430,7 +430,10 @@ describe('PredictFundingService withdrawal flow', () => {
       await Promise.resolve();
 
       service.stopObserving();
-      const firstRejection = await expect(first).rejects.toMatchObject({
+      // Captured, not awaited: only the request below makes it reject. The
+      // autofix for `jest/valid-expect` would await it here and deadlock.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const firstRejection = expect(first).rejects.toMatchObject({
         name: 'AbortError',
       });
 
@@ -530,7 +533,9 @@ describe('PredictFundingService withdrawal flow', () => {
           signal: caller.signal,
         },
       );
-      const cancelled = await expect(second).rejects.toMatchObject({
+      // Captured, not awaited: `caller.abort()` below is what rejects it.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const cancelled = expect(second).rejects.toMatchObject({
         name: 'AbortError',
       });
       await Promise.resolve();
@@ -717,7 +722,9 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      const abandoned = await expect(oldCommit).rejects.toMatchObject({
+      // Captured, not awaited: `changeIdentity()` below is what rejects it.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const abandoned = expect(oldCommit).rejects.toMatchObject({
         code: PredictErrorCode.UNAUTHENTICATED,
       });
       await Promise.resolve();
@@ -760,7 +767,9 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      const cancelled = await expect(pending).rejects.toMatchObject({
+      // Captured, not awaited: the shared commit keeps running past it.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const cancelled = expect(pending).rejects.toMatchObject({
         name: 'AbortError',
       });
       expect(signal?.aborted).toBe(false);
