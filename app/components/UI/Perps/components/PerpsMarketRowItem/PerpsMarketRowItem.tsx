@@ -38,11 +38,15 @@ const PerpsMarketRowItem = ({
   displayMetric = 'volume',
   showBadge = false,
   compact = false,
+  enableLivePrices = true,
   onAddPress,
+  onWatchlistPress,
+  isWatchlisted = false,
+  twClassName,
 }: PerpsMarketRowItemProps) => {
   // Subscribe to live prices for just this symbol
   const livePrices = usePerpsLivePrices({
-    symbols: [market.symbol],
+    symbols: enableLivePrices ? [market.symbol] : [],
     throttleMs: 3000, // 3 seconds for list view
   });
 
@@ -50,7 +54,7 @@ const PerpsMarketRowItem = ({
 
   // Merge live price into market data
   const displayMarket = useMemo(() => {
-    const livePrice = livePrices[market.symbol];
+    const livePrice = enableLivePrices ? livePrices[market.symbol] : undefined;
     if (!livePrice) {
       return market;
     }
@@ -108,7 +112,7 @@ const PerpsMarketRowItem = ({
     }
 
     return updatedMarket;
-  }, [market, livePrices]);
+  }, [enableLivePrices, market, livePrices]);
 
   const handlePress = () => {
     onPress?.(displayMarket);
@@ -208,13 +212,21 @@ const PerpsMarketRowItem = ({
           : TextColor.ErrorDefault,
       }}
       endAccessory={
-        onAddPress ? (
+        onAddPress || onWatchlistPress ? (
           <ButtonIcon
-            iconName={IconName.Star}
+            iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
             size={ButtonIconSize.Md}
-            onPress={() => onAddPress(displayMarket)}
+            onPress={() => {
+              if (onWatchlistPress) {
+                onWatchlistPress(displayMarket);
+                return;
+              }
+              onAddPress?.(displayMarket);
+            }}
             accessibilityLabel={strings(
-              'perps.market_details.add_to_watchlist',
+              isWatchlisted
+                ? 'perps.market_details.remove_from_watchlist'
+                : 'perps.market_details.add_to_watchlist',
             )}
             testID={getPerpsMarketRowItemSelector.addButton(
               displayMarket.symbol,
@@ -222,8 +234,12 @@ const PerpsMarketRowItem = ({
           />
         ) : undefined
       }
-      accessoryGap={onAddPress ? 3 : undefined}
-      twClassName={compact ? 'py-2 min-h-0' : undefined}
+      accessoryGap={onAddPress || onWatchlistPress ? 3 : undefined}
+      twClassName={
+        [compact ? 'py-2 min-h-0' : undefined, twClassName]
+          .filter(Boolean)
+          .join(' ') || undefined
+      }
     />
   );
 };

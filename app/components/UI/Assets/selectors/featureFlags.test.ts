@@ -1,7 +1,9 @@
 import type { Json } from '@metamask/utils';
 import {
   ASSET_GLOBAL_WATCHLIST_FLAG_KEY,
+  ASSET_UNIFIED_WATCHLIST_FLAG_KEY,
   selectTokenWatchlistEnabled,
+  selectUnifiedWatchlistEnabled,
 } from './featureFlags';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../util/remoteFeatureFlag';
@@ -35,6 +37,10 @@ describe('selectTokenWatchlistEnabled', () => {
 
   it('exposes the LaunchDarkly flag key for registry alignment', () => {
     expect(ASSET_GLOBAL_WATCHLIST_FLAG_KEY).toBe('assetsGlobalWatchlistV1');
+  });
+
+  it('exposes the unified watchlist flag key for registry alignment', () => {
+    expect(ASSET_UNIFIED_WATCHLIST_FLAG_KEY).toBe('assetsUnifiedWatchlistV1');
   });
 
   const testCases: {
@@ -107,5 +113,33 @@ describe('selectTokenWatchlistEnabled', () => {
     expect(selectTokenWatchlistEnabled.resultFunc(state)).toStrictEqual(
       expected,
     );
+  });
+
+  it('enables the unified watchlist for a valid enabled flag', () => {
+    const result = selectUnifiedWatchlistEnabled.resultFunc({
+      [ASSET_UNIFIED_WATCHLIST_FLAG_KEY]: {
+        enabled: true,
+        minimumVersion: '7.73',
+      },
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('disables the unified watchlist when the flag is missing', () => {
+    const result = selectUnifiedWatchlistEnabled.resultFunc({});
+
+    expect(result).toBe(false);
+  });
+
+  it('disables the unified watchlist when the flag is disabled', () => {
+    const result = selectUnifiedWatchlistEnabled.resultFunc({
+      [ASSET_UNIFIED_WATCHLIST_FLAG_KEY]: {
+        enabled: false,
+        minimumVersion: '7.73',
+      },
+    });
+
+    expect(result).toBe(false);
   });
 });

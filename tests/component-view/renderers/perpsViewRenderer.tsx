@@ -467,7 +467,7 @@ const pricesChannel = (
   };
 };
 
-interface TestStreamManagerBundle {
+export interface TestStreamManagerBundle {
   streamManager: PerpsStreamManager;
   stream: PerpsStreamControls;
 }
@@ -567,7 +567,7 @@ export interface PerpsStreamOverrides {
 }
 
 /** Creates a minimal stream manager double so views using usePerpsStream() render without WebSocket. */
-function createTestStreamManager(
+export function createTestStreamManager(
   streamOverrides?: PerpsStreamOverrides,
 ): TestStreamManagerBundle {
   const positions =

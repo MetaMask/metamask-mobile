@@ -20,7 +20,10 @@ import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingT
 import WatchlistSuggestedSection from './components/WatchlistSuggestedSection';
 import WatchlistEmptyFallback from './components/WatchlistEmptyFallback';
 import WatchlistAnimatedRow from './components/WatchlistAnimatedRow';
-import { selectTokenWatchlistEnabled } from '../../../../UI/Assets/selectors/featureFlags';
+import {
+  selectTokenWatchlistEnabled,
+  selectUnifiedWatchlistEnabled,
+} from '../../../../UI/Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery';
 import { useSuggestedWatchlistItemsQuery } from '../../../../UI/Assets/watchlist/hooks/useSuggestedWatchlistItemsQuery';
 import { useTokenWatchlistAddItemMutation } from '../../../../UI/Assets/watchlist/hooks/useTokenWatchlistMutations';
@@ -41,6 +44,15 @@ import useHomeViewedEvent, {
 } from '../../hooks/useHomeViewedEvent';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { SectionRefreshHandle } from '../../types';
+import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
+import { useUnifiedWatchlist } from '../../../../UI/Watchlist/hooks/useUnifiedWatchlist';
+import WatchlistTokenRowItem from '../../../../UI/Watchlist/WatchlistTokenRowItem';
+import WatchlistUnavailablePerpRow from '../../../../UI/Watchlist/WatchlistUnavailablePerpRow';
+import WatchlistErrorRow from '../../../../UI/Watchlist/WatchlistErrorRow';
+import PerpsMarketRowItem from '../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
+import { usePerpsNavigation } from '../../../../UI/Perps/hooks/usePerpsNavigation';
+import { usePerpsWatchlistActions } from '../../../../UI/Perps/hooks/usePerpsWatchlistActions';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -76,7 +88,7 @@ interface WatchlistSectionProps {
   totalSectionsLoaded: number;
 }
 
-const WatchlistSection = forwardRef<
+const LegacyWatchlistSection = forwardRef<
   SectionRefreshHandle,
   WatchlistSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
@@ -227,6 +239,204 @@ const WatchlistSection = forwardRef<
       <SectionRow>{renderSectionContent()}</SectionRow>
     </View>
   );
+});
+
+const MixedWatchlistSection = forwardRef<
+  SectionRefreshHandle,
+  WatchlistSectionProps
+>(({ sectionIndex, totalSectionsLoaded }, ref) => {
+  const sectionViewRef = useRef<View>(null);
+  const navigation = useNavigation<AppNavigationProp>();
+  const {
+    items,
+    tokens,
+    perps,
+    canUseLivePerpsPrices,
+    canUseMotion,
+    canRefresh,
+    canFetchSuggestions,
+    isInitialLoading,
+    refresh,
+  } = useUnifiedWatchlist();
+  const { data: suggestedPool, isLoading: isSuggestedLoading } =
+    useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
+  const addMutation = useTokenWatchlistAddItemMutation();
+  const watchlistAssetIds = useTokenWatchlistAssetIds();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { navigateToMarketDetails } = usePerpsNavigation();
+  const { removeFromWatchlist } = usePerpsWatchlistActions(
+    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+  );
+  const displayItems = items.slice(0, MAX_ITEMS_DISPLAYED);
+  const suggestedTokens = useMemo(
+    () => getSuggestedWatchlistTokens(suggestedPool ?? [], watchlistAssetIds),
+    [suggestedPool, watchlistAssetIds],
+  );
+  const hasError = Boolean(tokens.error || perps.error);
+  const isEmpty = !isInitialLoading && displayItems.length === 0 && !hasError;
+  const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
+  const showSuggestedSection = suggestedTokens.length > 0;
+  const showFallback =
+    isEmpty && !isSuggestedLoading && suggestedTokens.length === 0;
+
+  const handleSectionPress = useCallback(() => {
+    navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
+  }, [navigation]);
+
+  const handleAddPress = useCallback(
+    (token: WatchlistTokenWithBalance) => {
+      const assetId = String(token.assetId);
+      addMutation.mutate(token, {
+        onSuccess: () => {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.WATCHLIST_TOKEN_ADDED)
+              .addProperties({
+                source: WatchlistAnalytics.ADD_SOURCE.HOMEPAGE,
+                asset_id: assetId,
+                asset_type: getWatchlistAssetType(assetId),
+                has_balance: token.isInWallet,
+              })
+              .build(),
+          );
+        },
+      });
+    },
+    [addMutation, createEventBuilder, trackEvent],
+  );
+
+  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+
+  const { onLayout } = useHomeViewedEvent({
+    sectionRef: sectionViewRef,
+    isLoading: isInitialLoading,
+    sectionName: HomeSectionNames.WATCHLIST,
+    sectionIndex,
+    totalSectionsLoaded,
+    isEmpty,
+    itemCount: displayItems.length,
+  });
+
+  useSectionPerformance({
+    sectionId: HomeSectionNames.WATCHLIST,
+    contentReady: !isInitialLoading,
+    isEmpty,
+    isLoading: isInitialLoading,
+    enabled: true,
+  });
+
+  const renderSectionContent = () => {
+    if (isInitialLoading && displayItems.length === 0) {
+      return Array.from({ length: MAX_ITEMS_DISPLAYED }, (_, index) => (
+        <TrendingTokensSkeleton key={`watchlist-skeleton-${index}`} />
+      ));
+    }
+
+    if (hasError && displayItems.length === 0) {
+      return <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />;
+    }
+
+    if (showFallback) {
+      return <WatchlistEmptyFallback />;
+    }
+
+    if (showSuggestedSkeletons) {
+      return (
+        <Box testID="watchlist-suggested-skeleton">
+          {Array.from({ length: SUGGESTED_SKELETON_COUNT }, (_, index) => (
+            <TrendingTokensSkeleton
+              key={`watchlist-suggested-skeleton-${index}`}
+            />
+          ))}
+        </Box>
+      );
+    }
+
+    return (
+      <>
+        {hasError ? (
+          <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />
+        ) : null}
+        {displayItems.map((item, index) => {
+          if (item.kind === 'token') {
+            return (
+              <WatchlistAnimatedRow key={item.key} enableMotion={canUseMotion}>
+                <WatchlistTokenRowItem
+                  token={item.token}
+                  position={index}
+                  tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+                />
+              </WatchlistAnimatedRow>
+            );
+          }
+
+          if (item.status === 'unavailable') {
+            return (
+              <WatchlistAnimatedRow key={item.key} enableMotion={canUseMotion}>
+                <WatchlistUnavailablePerpRow
+                  item={item}
+                  onRemove={() => {
+                    removeFromWatchlist(item.symbol).catch(() => undefined);
+                  }}
+                />
+              </WatchlistAnimatedRow>
+            );
+          }
+
+          return (
+            <WatchlistAnimatedRow key={item.key} enableMotion={canUseMotion}>
+              <PerpsMarketRowItem
+                market={item.market}
+                compact
+                showBadge
+                enableLivePrices={canUseLivePerpsPrices}
+                onPress={(market) =>
+                  navigateToMarketDetails(
+                    market,
+                    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+                  )
+                }
+              />
+            </WatchlistAnimatedRow>
+          );
+        })}
+        {showSuggestedSection ? (
+          <WatchlistSuggestedSection
+            tokens={suggestedTokens}
+            hasWatchlist={displayItems.length > 0}
+            onAddPress={handleAddPress}
+          />
+        ) : null}
+      </>
+    );
+  };
+
+  return (
+    <View ref={sectionViewRef} onLayout={onLayout}>
+      <SectionDivider />
+      <SectionHeader
+        title={strings('homepage.sections.watchlist')}
+        isInteractive
+        onPress={handleSectionPress}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')}
+      />
+      <SectionRow>{renderSectionContent()}</SectionRow>
+    </View>
+  );
+});
+
+const WatchlistSection = forwardRef<
+  SectionRefreshHandle,
+  WatchlistSectionProps
+>((props, ref) => {
+  const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
+  const isUnifiedWatchlistEnabled = useSelector(selectUnifiedWatchlistEnabled);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+
+  if (isTokenWatchlistEnabled && isUnifiedWatchlistEnabled && isPerpsEnabled) {
+    return <MixedWatchlistSection {...props} ref={ref} />;
+  }
+
+  return <LegacyWatchlistSection {...props} ref={ref} />;
 });
 
 export default WatchlistSection;
