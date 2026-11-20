@@ -204,7 +204,7 @@ describe('NFTsSection', () => {
     });
   });
 
-  it('reports detection failures as error content', async () => {
+  it('reports detection failures without marking content as ready', async () => {
     mockIsVisible = true;
     mockDetectNfts.mockRejectedValueOnce(new Error('detection failed'));
 
@@ -216,8 +216,9 @@ describe('NFTsSection', () => {
     await waitFor(() => {
       expect(mockUseSectionPerformance).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          contentReady: true,
+          contentReady: false,
           contentStateForTrace: 'error',
+          contentError: true,
           demandStarted: true,
           isLoading: false,
         }),

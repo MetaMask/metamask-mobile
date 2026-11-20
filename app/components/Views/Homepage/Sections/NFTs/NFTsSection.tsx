@@ -204,13 +204,18 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
       // Before detection runs, the mounted skeleton is only an idle
       // placeholder. A completed empty detection is valid TTC content.
       contentReady:
-        hasNfts || (hasDetected && !isDetecting && !isDetectionInFlight),
+        hasNfts ||
+        (hasDetected &&
+          !isDetecting &&
+          !isDetectionInFlight &&
+          !detectionError),
       demandStarted:
         isVisible &&
         (hasNfts || hasDetected || isDetecting || isDetectionInFlight),
       cacheState: hasNfts ? 'warm' : 'cold',
       isEmpty: !hasNfts,
       contentStateForTrace: detectionError && !hasNfts ? 'error' : undefined,
+      contentError: detectionError && !hasNfts,
       isLoading: isDetecting || isDetectionInFlight,
       enabled: true,
     });
