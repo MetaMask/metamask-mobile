@@ -9986,7 +9986,6 @@
     },
     "action": {
       "add": "追加",
-      "transfer": "送金",
       "card": "カード",
       "details": "詳細"
     },
@@ -10108,8 +10107,6 @@
       "contact_support": "サポートへのお問い合わせ"
     },
     "transfer_sheet": {
-      "title": "送金先",
-      "between_accounts": "別のアカウント",
       "perps_account": "パーペチュアルアカウント",
       "predictions_account": "予測市場アカウント",
       "send_external": "外部アドレス",

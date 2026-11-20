@@ -328,4 +328,63 @@ describe('PredictNext Withdraw workflow', () => {
     expect(callsTo(harness, OBSERVE_PATH)).toHaveLength(1);
     expect(callsTo(harness, COMMIT_PATH)).toHaveLength(0);
   });
+  describe('commit outcome from the API (PRED-1524)', () => {
+    it('quotes again without a read when the API says the commit was not placed', async () => {
+      const harness = buildHarness(
+        routePredictApi({
+          [PREVIEW_PATH]: { body: previewBody },
+          [COMMIT_PATH]: {
+            status: 503,
+            body: { code: 'venue_unavailable', outcome: 'not_placed' },
+          },
+        }),
+      );
+      const service = buildService(harness);
+      const preview = await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+        amount: '5.00' as PredictAmount,
+      });
+
+      const resolution = await service.reconcileWithdrawCommit(
+        KALSHI_VENUE_ID,
+        preview.previewId,
+      );
+
+      expect(resolution).toMatchObject({
+        outcome: 'not_placed',
+        error: { code: PredictErrorCode.VENUE_UNAVAILABLE },
+      });
+      expect(callsTo(harness, OBSERVE_PATH)).toHaveLength(0);
+    });
+
+    it.each([
+      ['a refusal code but no outcome', 422, { code: 'insufficient_balance' }],
+      ['a gateway page', 502, '<html>Bad Gateway</html>'],
+    ])(
+      'keeps the withdrawal unknown and reads it after %s',
+      async (_name, status, body) => {
+        const harness = buildHarness(
+          routePredictApi({
+            [PREVIEW_PATH]: { body: previewBody },
+            [COMMIT_PATH]: { status, body },
+            [OBSERVE_PATH]: {
+              status: 503,
+              body: { code: 'venue_unavailable' },
+            },
+          }),
+        );
+        const service = buildService(harness);
+        const preview = await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
+          amount: '5.00' as PredictAmount,
+        });
+
+        const resolution = await service.reconcileWithdrawCommit(
+          KALSHI_VENUE_ID,
+          preview.previewId,
+        );
+
+        expect(resolution.outcome).toBe('unknown');
+        expect(callsTo(harness, OBSERVE_PATH)).toHaveLength(1);
+      },
+    );
+  });
 });

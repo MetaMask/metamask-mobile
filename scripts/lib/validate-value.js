@@ -1,5 +1,5 @@
 /**
- * Shared hygiene checks for CI-injected values (GitHub secrets and builds.yml env values).
+ * Shared hygiene checks for CI-injected values (builds.yml env values).
  *
  * The goal is to catch operator mistakes (trailing newline, Windows line endings,
  * invisible characters pasted from rich text editors, etc.) at build time, before

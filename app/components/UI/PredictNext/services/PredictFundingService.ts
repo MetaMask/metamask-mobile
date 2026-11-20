@@ -5,7 +5,9 @@ import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
+import { isUnsentCommitFailure } from '../errors/commitOutcome';
 import type { VenueFundingAdapter } from '../adapters/types';
+import { clearAllSessionDepositTransfers } from '../funding';
 import {
   portfolioQueries,
   portfolioQueryFamilies,
@@ -32,6 +34,45 @@ export const PREDICT_FUNDING_SERVICE_NAME = 'PredictFundingService' as const;
 const TERMINAL_WITHDRAW_STATUSES: Partial<
   Record<PredictWithdrawReceiptStatus, true>
 > = { settled: true, failed: true, returned: true };
+
+/** What a Withdraw Commit resolved to. `not_placed` never left a Withdraw
+ * behind, so the amount can be quoted again. `unknown` may already be at the
+ * Venue: the caller keeps the Preview and must not submit it again. */
+export type WithdrawCommitResolution =
+  | { outcome: 'receipt'; receipt: PredictWithdrawReceipt }
+  | { outcome: 'not_placed'; error: PredictError }
+  | { outcome: 'unknown'; error: PredictError };
+
+const asPredictError = (error: unknown): PredictError =>
+  error instanceof PredictError
+    ? error
+    : PredictError.from(PredictErrorCode.UNKNOWN);
+
+/** A deadline or a cancelled transport is not proof the Commit missed the
+ * Venue. The name is the signal the platform gives us; status codes are not. */
+const isLostCommitTransport = (error: unknown): boolean =>
+  error instanceof Error &&
+  (error.name === 'AbortError' || error.name === 'TimeoutError');
+
+/** A receipt read that finds no Preview and no operation. This is read-side
+ * absence, not the commit's own `outcome`: the backend stores the operation
+ * before it calls the Venue, so no record means nothing was sent. Any other
+ * read failure proves nothing. */
+const isMissingWithdrawOperation = (error: unknown): boolean => {
+  if (!(error instanceof PredictError)) {
+    return false;
+  }
+  const bodyCode = error.metadata?.bodyCode;
+  return bodyCode === 'preview_not_found' || bodyCode === 'operation_not_found';
+};
+
+const resolutionFromReadError = (
+  recoveryError: unknown,
+  priorError: PredictError,
+): WithdrawCommitResolution => ({
+  outcome: isMissingWithdrawOperation(recoveryError) ? 'not_placed' : 'unknown',
+  error: recoveryError instanceof PredictError ? recoveryError : priorError,
+});
 
 /** Statuses after which a deposit needs nothing more from the app. Only
  * `failed` is final: see {@link stageOf}. */
@@ -312,7 +353,7 @@ export class PredictFundingService {
         PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
           metadata: {
             phase: 'commit',
-            mutationRelay: 'not_relayed_this_invocation',
+            requestSent: false,
           },
         }),
       );
@@ -466,7 +507,7 @@ export class PredictFundingService {
       throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED, {
         metadata: {
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
+          requestSent: false,
         },
       });
     }
@@ -530,6 +571,63 @@ export class PredictFundingService {
         signal.addEventListener('abort', abort);
       }
     });
+  }
+
+  /** Commits one approved Withdraw Preview. A Commit that provably changed
+   * nothing (never sent, or `outcome: not_placed` from the API) is
+   * `not_placed`. Any other failure may be at the Venue, so it is resolved by
+   * reading the same operation. An unauthenticated Commit stays `unknown`
+   * without that read: the caller asks {@link reconcileWithdrawObservation}
+   * when the person checks again, and this method never sends a second POST. */
+  async reconcileWithdrawCommit(
+    venueId: PredictVenueId,
+    previewId: string,
+  ): Promise<WithdrawCommitResolution> {
+    try {
+      return {
+        outcome: 'receipt',
+        receipt: await this.commitWithdrawPreview(venueId, previewId),
+      };
+    } catch (error) {
+      const predictError = asPredictError(error);
+      if (isLostCommitTransport(error)) {
+        return this.#readWithdrawResolution(venueId, previewId, predictError);
+      }
+      // A replaced session may have dispatched this Preview earlier: what
+      // this call proves says nothing about that one.
+      if (predictError.code === PredictErrorCode.UNAUTHENTICATED) {
+        return { outcome: 'unknown', error: predictError };
+      }
+      if (isUnsentCommitFailure(error)) {
+        return { outcome: 'not_placed', error: predictError };
+      }
+      // No guarantee: the Commit may be at the Venue. Read it to find out.
+      return this.#readWithdrawResolution(venueId, previewId, predictError);
+    }
+  }
+
+  /** Reads one Withdraw whose Commit reply was lost. Never submits. */
+  reconcileWithdrawObservation(
+    venueId: PredictVenueId,
+    previewId: string,
+    priorError: PredictError,
+  ): Promise<WithdrawCommitResolution> {
+    return this.#readWithdrawResolution(venueId, previewId, priorError);
+  }
+
+  async #readWithdrawResolution(
+    venueId: PredictVenueId,
+    previewId: string,
+    priorError: PredictError,
+  ): Promise<WithdrawCommitResolution> {
+    try {
+      return {
+        outcome: 'receipt',
+        receipt: await this.observeWithdraw(venueId, previewId),
+      };
+    } catch (recoveryError) {
+      return resolutionFromReadError(recoveryError, priorError);
+    }
   }
 
   /** Reads the canonical receipt. Never submits: an unresolved operation is
@@ -614,6 +712,7 @@ export class PredictFundingService {
     this.#statusByPreview.clear();
     this.#known.clear();
     this.#preparing.clear();
+    clearAllSessionDepositTransfers(this.#venueId);
   }
 
   /** Runtime composition registers the subscriptions it owns around this
@@ -788,7 +887,7 @@ export class PredictFundingService {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
         metadata: {
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
+          requestSent: false,
         },
       });
     }

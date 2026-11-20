@@ -24,7 +24,7 @@ Using this component requires a three step process:
 
 ```javascript
 // Replace import with relative path.
-import { ToastContextWrapper } from 'app/component-library/components/Toast';
+import { ToastContextWrapper } from '#app/component-library/components/Toast';
 
 const App = () => (
   <ToastContextWrapper>
@@ -37,7 +37,7 @@ const App = () => (
 
 ```javascript
 // Replace import with relative path.
-import Toast, { ToastContext } from 'app/component-library/components/Toast';
+import Toast, { ToastContext } from '#app/component-library/components/Toast';
 
 const SampleRootComponent = () => {
   const { toastRef } = useContext(ToastContext);
@@ -58,7 +58,7 @@ const SampleRootComponent = () => {
 import {
   ToastContext,
   ToastVariants,
-} from 'app/component-library/components/Toast';
+} from '#app/component-library/components/Toast';
 
 const { toastRef } = useContext(ToastContext);
 
