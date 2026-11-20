@@ -436,6 +436,63 @@ describe('EarningsTab', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows Pending for cashback under the claim minimum', async () => {
+    const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
+      persona: 'referee',
+      summary: earningsSummaryFixture({
+        claimable: '400000',
+        cashbackClaimable: '400000',
+        pending: '100000',
+      }),
+    });
+
+    expect(
+      await findByText(
+        `${REFERRAL_LOCALIZED_TEXT.pending} \u2022 ${REFERRAL_LOCALIZED_TEXT.mUSD}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$0.50');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('lists below-minimum cashback under Pending in the balance breakdown', async () => {
+    const { findByTestId } = renderEarningsTab({
+      persona: 'referee',
+      summary: earningsSummaryFixture({
+        claimable: '400000',
+        cashbackClaimable: '400000',
+        pending: '100000',
+      }),
+    });
+
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
+    );
+
+    const paramsProbe = await findByTestId(
+      getRouteParamsProbeTestId(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL),
+    );
+
+    expect(JSON.parse(String(paramsProbe.props.children))).toEqual(
+      expect.objectContaining({
+        variant: 'breakdown',
+        totals: expect.objectContaining({
+          claimable: '0',
+          pending: '500000',
+          held: '0',
+          blocked: '0',
+        }),
+      }),
+    );
+  });
+
   it('opens the paused sheet for held cashback under the $1 minimum', async () => {
     const { findByTestId, findByText, queryByTestId } = renderEarningsTab({
       persona: 'referee',

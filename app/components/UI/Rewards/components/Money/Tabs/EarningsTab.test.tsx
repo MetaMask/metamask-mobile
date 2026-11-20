@@ -426,53 +426,6 @@ describe('EarningsTab', () => {
     );
   });
 
-  it('moves open cashback under the minimum into Pending and the sheet', () => {
-    const { getByTestId, getByText, queryByTestId } = renderTab('referee', {
-      summary: {
-        ...SUMMARY,
-        claimable: '400000',
-        pending: '100000',
-        self_earned: {
-          ...SUMMARY.self_earned,
-          by_claim_family: {
-            REFERRAL_TRADE_FEE_CASHBACK: {
-              ...SUMMARY.self_earned.by_claim_family
-                .REFERRAL_TRADE_FEE_CASHBACK,
-              claimable: '400000',
-            },
-          },
-        },
-      },
-    });
-
-    expect(getByText('Pending • mUSD')).toBeOnTheScreen();
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).toHaveTextContent('$0.50');
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeNull();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
-    ).toBeNull();
-
-    fireEvent.press(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
-    );
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
-      expect.objectContaining({
-        variant: 'breakdown',
-        totals: expect.objectContaining({
-          claimable: '0',
-          pending: '500000',
-          held: '0',
-          blocked: '0',
-        }),
-      }),
-    );
-  });
-
   it('keeps Claim when cashback is claimable and held and blocked are positive', () => {
     const { getByTestId, queryByTestId } = renderTab('referee', {
       summary: {
