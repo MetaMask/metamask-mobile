@@ -9503,6 +9503,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
+
+  sentry: {
+    name: 'sentry',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      transactionSampleRates: {},
+    },
+    status: FeatureFlagStatus.Active,
+  },
 };
 
 // ============================================================================
