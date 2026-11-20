@@ -988,10 +988,6 @@ describe('App', () => {
       expect(Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS).toBeDefined();
     });
 
-    it('has transaction details route defined', () => {
-      expect(Routes.SHEET.TRANSACTION_DETAILS).toBeDefined();
-    });
-
     it('has import wallet tip route defined', () => {
       expect(Routes.SHEET.IMPORT_WALLET_TIP).toBeDefined();
     });
@@ -1273,10 +1269,6 @@ describe('App', () => {
   describe('Transaction screens', () => {
     it('has multichain transaction details route defined', () => {
       expect(Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS).toBeDefined();
-    });
-
-    it('has transaction details route defined', () => {
-      expect(Routes.SHEET.TRANSACTION_DETAILS).toBeDefined();
     });
   });
 
