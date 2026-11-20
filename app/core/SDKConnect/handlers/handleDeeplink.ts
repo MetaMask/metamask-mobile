@@ -88,6 +88,15 @@ const handleDeeplink = async ({
 
   try {
     if (channelExists) {
+      // The persisted peer key is authoritative: a deeplink cannot rebind an
+      // existing channel to a different peer.
+      if (otherPublicKey !== connections[channelId].otherPublicKey) {
+        DevLogger.log(
+          `handleDeeplink:: channel=${channelId} peer key mismatch --- REJECT`,
+        );
+        return;
+      }
+
       // is it already connected?
       let connected =
         sdkConnect.getConnected()[channelId]?.remote.isConnected() ?? false;
@@ -119,7 +128,6 @@ const handleDeeplink = async ({
             protocolVersion,
             initialConnection: false,
             trigger: 'deeplink',
-            updateKey: true,
           });
         }
       } else {

@@ -183,14 +183,12 @@ export class SDKConnect {
     initialConnection,
     protocolVersion,
     trigger,
-    updateKey,
     context,
   }: {
     channelId: string;
     otherPublicKey: string;
     context?: string;
     protocolVersion?: ConnectionProps['protocolVersion'];
-    updateKey?: boolean;
     trigger?: ConnectionProps['trigger'];
     initialConnection: boolean;
   }) {
@@ -199,7 +197,6 @@ export class SDKConnect {
       otherPublicKey,
       context,
       protocolVersion,
-      updateKey,
       trigger,
       initialConnection,
       instance: this,

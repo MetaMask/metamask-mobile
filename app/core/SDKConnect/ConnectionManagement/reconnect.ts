@@ -8,14 +8,12 @@ async function reconnect({
   otherPublicKey,
   initialConnection,
   trigger,
-  updateKey,
   context,
   instance,
 }: {
   channelId: string;
   otherPublicKey: string;
   context?: string;
-  updateKey?: boolean;
   protocolVersion?: ConnectionProps['protocolVersion'];
   trigger?: ConnectionProps['trigger'];
   initialConnection: boolean;
@@ -35,26 +33,6 @@ async function reconnect({
       instance.updateSDKLoadingState({ channelId, loading: false });
 
       return;
-    }
-
-    if (instance.state.paused && updateKey) {
-      instance.state.connections[channelId].otherPublicKey = otherPublicKey;
-      const currentOtherPublicKey =
-        instance.state.connections[channelId].otherPublicKey;
-      if (currentOtherPublicKey !== otherPublicKey) {
-        console.warn(
-          `SDKConnect::reconnect[${context}] existing=${
-            existingConnection !== undefined
-          } - update otherPublicKey -  ${currentOtherPublicKey} --> ${otherPublicKey}`,
-        );
-        if (existingConnection) {
-          existingConnection.remote.setOtherPublicKey(otherPublicKey);
-        }
-      } else {
-        DevLogger.log(
-          `SDKConnect::reconnect[${context}] - same otherPublicKey`,
-        );
-      }
     }
 
     // Update initial connection state
