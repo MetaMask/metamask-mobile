@@ -9962,7 +9962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^14.0.0, @metamask/core-backend@npm:^14.1.0":
+"@metamask/core-backend@npm:^14.1.0":
   version: 14.1.0
   resolution: "@metamask/core-backend@npm:14.1.0"
   dependencies:
@@ -11399,9 +11399,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:@metamask-previews/perps-controller@24.0.0-preview-baf573897":
-  version: 24.0.0-preview-baf573897
-  resolution: "@metamask-previews/perps-controller@npm:24.0.0-preview-baf573897"
+"@metamask/perps-controller@npm:^25.0.0":
+  version: 25.0.0
+  resolution: "@metamask/perps-controller@npm:25.0.0"
   dependencies:
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11412,8 +11412,8 @@ __metadata:
     "@nktkas/hyperliquid": "npm:^0.33.3"
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.3.0"
-    uuid: "npm:^14.0.2"
-  checksum: 10/307badd6d01961ecc82537136634efdb078646df41909901f0556cc0534f24d27802397b6239f90382faa64d1e60187ccfcb0dd845e9240436adadc92df282fb
+    uuid: "npm:^14.0.3"
+  checksum: 10/f7c1bda1e8288c007744aefab865e6c759872405ce7dc27a7976e7f5678cf222109da909a545be385d83c9fd4498c9d834bfabbbd82ea0eb323b5989b01a48e7
   languageName: node
   linkType: hard
 
@@ -38404,7 +38404,7 @@ __metadata:
     "@metamask/config-registry-controller": "npm:^6.0.0"
     "@metamask/connectivity-controller": "npm:^1.0.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/core-backend": "npm:^14.0.0"
+    "@metamask/core-backend": "npm:^14.1.0"
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
@@ -38475,7 +38475,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.3"
     "@metamask/object-multiplex": "npm:^2.1.0"
     "@metamask/permission-controller": "npm:^14.1.0"
-    "@metamask/perps-controller": "npm:^24.1.0"
+    "@metamask/perps-controller": "npm:^25.0.0"
     "@metamask/phishing-controller": "npm:^18.3.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"

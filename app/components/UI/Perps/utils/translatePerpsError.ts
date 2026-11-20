@@ -180,6 +180,15 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
+  [PERPS_ERROR_CODES.BATCH_INCOMPLETE]: 'perps.errors.batchIncomplete',
+  [PERPS_ERROR_CODES.ORDERS_FAILED]: 'perps.errors.ordersFailed',
+  [PERPS_ERROR_CODES.ORDER_NO_LONGER_OPEN]: 'perps.errors.orderNoLongerOpen',
+  [PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT]:
+    'perps.errors.orderScaleExposureExceedsIntent',
+  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED]:
+    'perps.errors.orderScaleSizeConservationFailed',
+  [PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE]:
+    'perps.errors.liquidationPriceUnavailable',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
   [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.iocCancel',

@@ -124,6 +124,12 @@ jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
       ...defaultResponse,
       success: false,
       error: error instanceof Error ? error.message : String(error),
+      ...(error !== null &&
+      typeof error === 'object' &&
+      'errorCode' in error &&
+      (error as { errorCode?: unknown }).errorCode !== undefined
+        ? { errorCode: (error as { errorCode?: unknown }).errorCode }
+        : {}),
     }),
   ),
 }));
