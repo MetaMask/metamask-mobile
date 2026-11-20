@@ -364,14 +364,20 @@ class AccountListBottomSheet {
     // Re-query after sync settle — never reuse a pre-sync element handle.
     const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
 
-    // FlashList does not mount an off-screen footer. Same bounded scroll this
-    // sheet uses for an account row, then tap the freshly queried control.
-    await Gestures.scrollIntoView(Promise.resolve(tapTarget), {
+    // FlashList + bottom tab bar: plain scrollIntoView stops on the first
+    // visible pixel and can leave Add account clipped under the nav (WDIO
+    // reports ~30ms no-op scrolls). Fully-visible nudges clear of that zone
+    // (same pattern as WalletHomeScroll). Post-#38832 residual: taps still
+    // "succeed" while create is abandoned and Account 3 never mounts.
+    await Gestures.scrollIntoViewFullyVisible(Promise.resolve(tapTarget), {
       direction: 'down',
       maxScrolls: 10,
     });
 
-    await Gestures.waitAndTap(Promise.resolve(tapTarget), {
+    // Scroll / FlashList remount can stale the pre-scroll handle — re-query.
+    const freshTapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
+
+    await Gestures.waitAndTap(Promise.resolve(freshTapTarget), {
       delay: options?.shouldWait ? 5000 : 0,
       timeout: 20_000,
       checkForDisplayed: true,
