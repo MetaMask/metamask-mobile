@@ -128,13 +128,6 @@ const formatEntries = (entries, prefix) =>
   });
 
 const recordBlockedRequest = (...args) => {
-  // eslint-disable-next-line no-console
-  console.log(
-    'N15 emission activeMocks:',
-    nock.activeMocks().length,
-    '| isActive:',
-    nock.isActive(),
-  );
   if (!currentTestActive) {
     return;
   }

@@ -28,6 +28,15 @@ const BRIDGE_API_ORIGIN = 'https://bridge.dev-api.cx.metamask.io';
 const STAKING_API_ORIGIN = 'https://staking.api.cx.metamask.io';
 const SECURITY_ALERTS_API_ORIGIN = 'https://example.com';
 const PRICE_ALERTS_API_ORIGIN = 'https://price-alerts.api.cx.metamask.io';
+// The Ramp SDK re-fetches its country cache when a deeplink intent settles and
+// aborts in-flight requests around unmount, so the re-fired request can land
+// after a test's ramp mocks are torn down. Answer it neutrally so the
+// straggler cannot surface as an unmocked request.
+const ON_RAMP_CACHE_ORIGINS = [
+  'https://on-ramp-cache.uat-api.cx.metamask.io',
+  'https://on-ramp-cache.api.cx.metamask.io',
+];
+const NEUTRAL_RAMP_COUNTRY_CACHE = { payments: [], crypto: [], fiat: [] };
 
 // A benign alert keeps the confirmations banner flow identical to a request
 // the app never sees an alert for.
@@ -49,33 +58,6 @@ const emptyTransactionsResponse = {
 };
 
 let installedDefaults: nock.Interceptor[] = [];
-
-/** Origins the shared defaults answer; used to detect a wiped state. */
-export const DEFAULT_ORIGINS = [
-  TOKEN_API_ORIGIN,
-  TOKENS_API_ORIGIN,
-  PRICE_API_ORIGIN,
-  ACCOUNTS_API_ORIGIN,
-  ...STATIC_ICON_ORIGINS,
-  BRIDGE_API_ORIGIN,
-  STAKING_API_ORIGIN,
-  SECURITY_ALERTS_API_ORIGIN,
-  PRICE_ALERTS_API_ORIGIN,
-];
-
-/**
- * Re-arms the shared defaults when everything was wiped — an anomalous state
- * (interceptors are lost to an unexplained module duplication in some Jest
- * workers). Returns true when a re-arm happened, so the caller can treat the
- * triggering request as lost to the anomaly instead of uncovered.
- */
-export function rearmDefaultMocksIfWiped(): boolean {
-  if (nock.activeMocks().length > 0) {
-    return false;
-  }
-  installDefaultApiMocks();
-  return true;
-}
 
 /** Nock's JSON body type; every default payload is plain JSON. */
 type JsonBody = Record<string, unknown> | unknown[] | string;
@@ -199,4 +181,9 @@ export function installDefaultApiMocks(): void {
     '/v1/alerts/watchlist',
     emptyWatchlistAlertsResult,
   );
+
+  for (const origin of ON_RAMP_CACHE_ORIGINS) {
+    add('get', origin, '/regions/countries', []);
+    add('get', origin, /^\/regions\/.*\/light/, NEUTRAL_RAMP_COUNTRY_CACHE);
+  }
 }
