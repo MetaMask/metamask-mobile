@@ -166,6 +166,7 @@ const config = {
     '.github/scripts/qa-automation/**',
 
     // Swaps performance budgets: reads Sentry and posts to Slack, doesn't build.
+    '.github/scripts/swaps/cpu-profile-report/**',
     '.github/scripts/swaps/performance-budgets/**',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
@@ -193,6 +194,7 @@ const config = {
     '.github/workflows/flaky-test-report.yml',
     '.github/workflows/analyze-app-profiling.yml',
     '.github/workflows/qa-stats.yml',
+    '.github/workflows/swaps-cpu-profile-report.yml',
     '.github/workflows/swaps-performance-budgets.yml',
     '.github/workflows/post-merge-validation.yml',
 

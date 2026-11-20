@@ -1,0 +1,52 @@
+# Weekly Swaps CPU profile report (shadow mode); scenarios and channel are in .github/scripts/swaps/cpu-profile-report/swaps-cpu-profile-report.config.mjs.
+
+name: Swaps CPU Profile Report
+
+on:
+  schedule:
+    - cron: '0 10 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Log the Slack message instead of posting it'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  report:
+    if: ${{ github.repository == 'MetaMask/metamask-mobile' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Build report
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OUT_DIR: /tmp/swaps-cpu-profile-report
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        run: node .github/scripts/swaps/cpu-profile-report/run-swaps-cpu-profile-report.mjs
+
+      # The scheduled reports expire after 21 days; these summaries are the history.
+      - name: Upload weekly summary
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: swaps-cpu-profile-summary
+          path: /tmp/swaps-cpu-profile-report/summary.json
+          if-no-files-found: ignore
+          retention-days: 90
