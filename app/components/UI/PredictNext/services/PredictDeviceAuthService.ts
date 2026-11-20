@@ -18,8 +18,8 @@ import {
   type VenueAuthenticationProfile,
 } from '../auth/venueAuthProfiles';
 import {
-  loadVenueProfile,
   readAllowed,
+  resolveVenueProfile,
   VENUE_AUTHORIZATION_HEADER,
   type SigningProfile,
 } from '../auth/venueSigningProfiles';
@@ -261,7 +261,8 @@ export class PredictDeviceAuthService {
     input: SignOperationInput = {},
   ): Promise<InvariantDisplay | undefined> {
     const snapshot = this.#captureSession();
-    const profile = snapshot ? await loadVenueProfile() : undefined;
+    const resolved = snapshot ? await resolveVenueProfile() : undefined;
+    const profile = resolved?.profile;
     if (
       !snapshot ||
       !profile ||
@@ -297,7 +298,8 @@ export class PredictDeviceAuthService {
     ) {
       return undefined;
     }
-    const profile = snapshot ? await loadVenueProfile() : undefined;
+    const resolved = snapshot ? await resolveVenueProfile() : undefined;
+    const profile = resolved?.profile;
     if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
       return undefined;
     }
@@ -370,7 +372,11 @@ export class PredictDeviceAuthService {
     const header: DeviceAuthHeader = {
       name: VENUE_AUTHORIZATION_HEADER,
       value: buildVenueAuthorization({
-        profile: { id: profile.id, version: profile.version },
+        profile: {
+          id: profile.id,
+          version: profile.version,
+          sha256: resolved.sha256,
+        },
         context,
         signatures,
         maxSignatures,
@@ -399,7 +405,8 @@ export class PredictDeviceAuthService {
     proposed: ProposedRead,
   ): Promise<DeviceAuthHeader | undefined> {
     const snapshot = this.#captureSession();
-    const profile = snapshot ? await loadVenueProfile() : undefined;
+    const resolved = snapshot ? await resolveVenueProfile() : undefined;
+    const profile = resolved?.profile;
     if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
       return undefined;
     }
@@ -456,7 +463,11 @@ export class PredictDeviceAuthService {
     return {
       name: VENUE_AUTHORIZATION_HEADER,
       value: buildVenueAuthorization({
-        profile: { id: profile.id, version: profile.version },
+        profile: {
+          id: profile.id,
+          version: profile.version,
+          sha256: resolved.sha256,
+        },
         context,
         signatures: [signature],
         maxSignatures,

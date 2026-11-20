@@ -1,12 +1,14 @@
 import {
-  BUNDLED_PROFILE_PUBLIC_KEYS,
-  SUPPORTED_DSL,
   loadVenueProfile,
   resetVenueProfile,
-  verifyProfileDocument,
+  validateSigningProfile,
   type HttpRfc9421Payload,
   type SigningProfile,
 } from './venueSigningProfiles';
+import {
+  BUNDLED_V2_RAW,
+  BUNDLED_V3_RAW,
+} from './venue-profiles/kalshi-demo-signing.raw';
 import {
   renderRequest,
   TemplateError,
@@ -14,26 +16,19 @@ import {
   type RequestTemplate,
   type TemplateInputs,
 } from './signing/profileTemplates';
-import v2Document from './venue-profiles/kalshi-trading-1.json';
-import v3Document from './venue-profiles/kalshi-trading-1.v3.json';
 
 const CLIENT_OPERATION_ID = '6f1c7a52-8f3e-4d8b-9c1e-2a4b5c6d7e8f';
 
-const verifyBundled = (bundled: unknown): Promise<SigningProfile> =>
-  verifyProfileDocument({
-    raw: JSON.stringify(bundled),
-    keys: BUNDLED_PROFILE_PUBLIC_KEYS,
-    lastAcceptedVersion: 0,
-    minDslSupported: SUPPORTED_DSL,
-  });
+const parseBundled = (raw: string): SigningProfile => {
+  const profile = validateSigningProfile(JSON.parse(raw));
+  if (!profile) {
+    throw new Error('bundled profile is invalid');
+  }
+  return profile;
+};
 
-let v2: SigningProfile;
-let v3: SigningProfile;
-
-beforeAll(async () => {
-  v2 = await verifyBundled(v2Document);
-  v3 = await verifyBundled(v3Document);
-});
+const v2 = parseBundled(BUNDLED_V2_RAW);
+const v3 = parseBundled(BUNDLED_V3_RAW);
 
 afterEach(() => {
   resetVenueProfile();
@@ -60,7 +55,7 @@ const renderDeposit = (inputs: TemplateInputs): RenderedRequest =>
   });
 
 describe('bundled signing profile documents', () => {
-  it('verifies both bundled documents under the bundled key', () => {
+  it('parses both bundled byte copies', () => {
     expect(v2.version).toBe(2);
     expect(v3.version).toBe(3);
   });

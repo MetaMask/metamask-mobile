@@ -31,6 +31,27 @@ describe('buildVenueAuthorization', () => {
     });
   });
 
+  it('carries the exact-bytes profile hash when pinned', () => {
+    const value = buildVenueAuthorization({
+      profile: {
+        id: 'kalshi-demo-signing',
+        version: 3,
+        sha256: 'SIdWaTHZdPIAQmAhvhmF28N3p6jGHo46kEBLR0L118w',
+      },
+      context,
+      signatures: [signature],
+      maxSignatures: 1,
+    });
+
+    expect(decode(value)).toMatchObject({
+      profile: {
+        id: 'kalshi-demo-signing',
+        version: 3,
+        sha256: 'SIdWaTHZdPIAQmAhvhmF28N3p6jGHo46kEBLR0L118w',
+      },
+    });
+  });
+
   it('allows an empty signature list and refuses more than the profile allows', () => {
     const build = (count: number) =>
       buildVenueAuthorization({

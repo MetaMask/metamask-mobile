@@ -7,7 +7,20 @@ import {
   type PredictDeviceAuthServiceMessenger,
 } from './PredictDeviceAuthService';
 import { KALSHI_AUTHENTICATION_PROFILE } from '../auth/venueAuthProfiles';
-import { resetVenueProfile } from '../auth/venueSigningProfiles';
+import {
+  resetVenueProfile,
+  setVenueProfileResolverForTesting,
+  VenueProfileResolver,
+  venueProfileSha256,
+} from '../auth/venueSigningProfiles';
+import { VENUE_PROFILE_ID } from '../auth/venueProfileContract';
+import { RemoteVenueProfileClient } from '../auth/RemoteVenueProfileClient';
+import { VenueProfileStore } from '../auth/venueProfileStore';
+import {
+  BUNDLED_POLICY_RAW,
+  BUNDLED_V2_RAW,
+  BUNDLED_V3_RAW,
+} from '../auth/venue-profiles/kalshi-demo-signing.raw';
 import { kalshiDepositSigningInputs } from '../adapters/remote/kalshiDepositSigning';
 import type { PredictAmount } from '../types';
 import envelope from '../contracts/v1/fixtures/funding-contract/deposit-envelope.json';
@@ -119,13 +132,15 @@ const depositInputs = (
 
 interface DecodedEnvelope {
   v: number;
-  profile: { id: string; version: number };
+  profile: { id: string; version: number; sha256?: string };
   signatures: {
     requestId: string;
     signatureInput: string;
     signature: string;
   }[];
 }
+
+const PROFILE_SHA256 = 'SIdWaTHZdPIAQmAhvhmF28N3p6jGHo46kEBLR0L118w';
 
 const decodeEnvelope = (value: string): DecodedEnvelope =>
   JSON.parse(Buffer.from(value, 'base64url').toString('utf8'));
@@ -147,6 +162,7 @@ beforeEach(() => {
     ledger = null;
     return true;
   });
+  setVenueProfileResolverForTesting(undefined);
   resetVenueProfile();
   jest.requireMock('uuid').v4.mockReturnValue(envelope.requestId);
   mockEnsureA2t.mockResolvedValue(envelope.a2t);
@@ -170,9 +186,11 @@ describe('funding.deposit signing', () => {
 
     expect(signed?.body).toBe(envelope.signedBody);
     expect(signed?.idempotencyKey).toBe(envelope.clientOperationId);
-    expect(signed?.header).toStrictEqual({
-      name: 'Venue-Authorization',
-      value: envelope.venueAuthorization,
+    expect(signed?.header.name).toBe('Venue-Authorization');
+    const fixture = decodeEnvelope(envelope.venueAuthorization);
+    expect(decodeEnvelope(signed?.header.value ?? '')).toStrictEqual({
+      ...fixture,
+      profile: { ...fixture.profile, sha256: PROFILE_SHA256 },
     });
   });
 
@@ -182,9 +200,67 @@ describe('funding.deposit signing', () => {
       confirmed: true,
     });
 
-    expect(decodeEnvelope(signed?.header.value ?? '').profile).toStrictEqual(
-      envelope.profile,
+    expect(decodeEnvelope(signed?.header.value ?? '').profile).toStrictEqual({
+      ...envelope.profile,
+      sha256: PROFILE_SHA256,
+    });
+  });
+
+  it('signs under a profile adopted from the registry', async () => {
+    const remote = JSON.stringify({
+      ...(JSON.parse(BUNDLED_V3_RAW) as object),
+      version: 4,
+    });
+    const respond = (body: string): Response =>
+      ({
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        text: async () => body,
+      }) as unknown as Response;
+    const fetchMock = jest.fn(async (url: string) =>
+      respond(
+        url.endsWith('/policy.json')
+          ? JSON.stringify({
+              id: VENUE_PROFILE_ID,
+              currentVersion: 4,
+              revokedVersions: [1],
+            })
+          : remote,
+      ),
     );
+    const resolver = new VenueProfileResolver({
+      client: new RemoteVenueProfileClient({
+        baseUrl: 'https://client-config.dev-api.cx.metamask.io',
+        clientVersion: '7.60.0',
+        fetch: fetchMock as unknown as typeof fetch,
+      }),
+      store: new VenueProfileStore({
+        environment: 'test',
+        profileId: VENUE_PROFILE_ID,
+        storage: {
+          getItem: async () => null,
+          setItem: async () => undefined,
+          removeItem: async () => undefined,
+        },
+      }),
+      bundledPolicyRaw: BUNDLED_POLICY_RAW,
+      bundledProfiles: { 2: BUNDLED_V2_RAW, 3: BUNDLED_V3_RAW },
+    });
+    setVenueProfileResolverForTesting(resolver);
+    await resolver.refresh();
+
+    const signed = await createService().signOperation('funding.deposit', {
+      inputs: depositInputs('25.50', 2550),
+      confirmed: true,
+    });
+
+    expect(decodeEnvelope(signed?.header.value ?? '').profile).toStrictEqual({
+      id: VENUE_PROFILE_ID,
+      version: 4,
+      sha256: venueProfileSha256(remote),
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it('produces a different signature for a changed amount', async () => {
@@ -235,7 +311,9 @@ describe('funding.deposit signing', () => {
       confirmed: false,
     });
 
-    expect(renewed?.header.value).toBe(envelope.venueAuthorization);
+    expect(
+      decodeEnvelope(renewed?.header.value ?? '').signatures,
+    ).toStrictEqual(decodeEnvelope(envelope.venueAuthorization).signatures);
   });
 
   it('still signs order.place under the same profile', async () => {

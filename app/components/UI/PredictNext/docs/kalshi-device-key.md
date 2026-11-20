@@ -79,6 +79,21 @@ build that payload, and mobile will check it against a template before
 signing. Mobile can also build the payload from a template the backend
 supplies. In both cases the template comes from outside this client.
 
+## Venue signing profiles
+
+The profile that renders and signs venue requests is readable JSON served by
+mm-config-registry (see [ADR-0005](./adr/0005-remote-venue-profiles.md)). The
+app resolves fresh remote → MMKV cache → bundled byte copy, applies the build
+ceiling, and sends the exact-bytes SHA-256 in the envelope. The profile is
+public: it contains no key material, and it cannot widen what this build signs
+beyond `venueProfileCeiling.ts`.
+
+A `venue_profile_update_required` or `venue_profile_not_ready` refusal forces
+one policy/profile refresh and one retry. Failures are logged as reason codes,
+never with envelope or body contents. When no copy is admissible, signed
+actions and signed reads fail with the unavailable error while browsing stays
+bearer-only.
+
 ## What a production key requires
 
 A non-exportable key has to be created by a new native module. `react-native-keychain` stores passwords. `expo-secure-store` stores strings. `react-native-quick-crypto` and `@noble/curves` generate software keys. None of them create a Secure Enclave or Android Keystore key, and none of them return the 64-byte `r || s` signature Kalshi requires. Adding the native module means a native rebuild (`yarn setup`, then an iOS and Android build). It cannot be done from JavaScript alone.

@@ -1,29 +1,48 @@
 /**
- * The signed venue profile document and its loader (ADR-0004).
+ * Venue profile resolution (ADR-0005).
  *
- * The app ships a signed document — `{payload, signature, keyId}` where the
- * payload is base64 JSON of a `SigningProfile` — bundled with the public keys
- * that verify it. The loader verifies the ES256 signature over the exact
- * payload STRING before decoding it, enforces the version floor and the DSL
- * capability, then exposes the profile's intents and payloads. This is the
- * mobile counterpart of predict-api's `venue-profile/` module; both sides
- * verify the same document. Remote delivery (mm-config-registry) is a later
- * phase and swaps the SOURCE, not this verifier.
+ * The profile used to be a signed document bundled with the app. It is now
+ * readable JSON served by mm-config-registry through the client-config host
+ * that matches this build's Predict cluster. The app resolves one snapshot
+ * per operation from: fresh remote → persisted cache → bundled byte copy.
  *
- * The demo trading profile is temporary (demo-only), like the onboarding
- * demo it complements: a future Universal KYC flow replaces both.
+ * Nothing here verifies a signature. The registry delivery path is the trust
+ * boundary, and the build ceiling (`venueProfileCeiling.ts`) limits what any
+ * delivered profile can make this binary sign. The SHA-256 of the exact bytes
+ * used travels in `Venue-Authorization.service` so predict-api can compare it
+ * with its own registry copy.
  */
 
-import { p256 } from '@noble/curves/nist';
 import { sha256 } from '@noble/hashes/sha2';
 
-// Version 3: version 2 plus the `funding.deposit` intent. Copied byte for
-// byte from predict-api's `kalshi-trading-1.v3.json`. The version 2 document
-// stays bundled beside it: predict-api still accepts it, and its tests pin
-// that version 3 left trading unchanged.
-import profileDocument from './venue-profiles/kalshi-trading-1.v3.json';
-import type { SigningProfile } from './signing/profileSchema';
+import packageJSON from '../../../../../package.json';
+import Logger from '../../../../util/Logger';
+import { applyVenueProfileCeiling } from './venueProfileCeiling';
+import {
+  SUPPORTED_DSL,
+  VENUE_PROFILE_ID,
+  type VenueIntentName,
+} from './venueProfileContract';
+import { RemoteVenueProfileClient } from './RemoteVenueProfileClient';
+import {
+  BUNDLED_POLICY_RAW,
+  BUNDLED_V2_RAW,
+  BUNDLED_V3_RAW,
+} from './venue-profiles/kalshi-demo-signing.raw';
+import {
+  getVenueProfileRegistryEnvironment,
+  getVenueProfileRegistryUrl,
+} from './venueProfileRegistryUrl';
+import {
+  VenueProfileStore,
+  type PersistedVenueProfiles,
+} from './venueProfileStore';
 
+export {
+  SUPPORTED_DSL,
+  VENUE_PROFILE_ID,
+  type VenueIntentName,
+} from './venueProfileContract';
 export type {
   BodyField,
   HttpRfc9421Payload,
@@ -35,123 +54,16 @@ export type {
   Transform,
 } from './signing/profileSchema';
 
+import type { SigningProfile } from './signing/profileSchema';
+
 /** The payload kinds the DSL renders. Only `http-rfc9421` renders today. */
 export type RenderedPayloadKind = 'http-rfc9421';
 
-/** The intents this build signs. `funding.deposit` needs profile version 3. */
-export type VenueIntentName =
-  | 'order.place'
-  | 'account.activate'
-  | 'funding.deposit';
+/** How often the registry is consulted while PredictNext is used. */
+export const VENUE_PROFILE_REFRESH_MS = 15 * 60 * 1000;
 
-/** Public keys that verify profile documents, PEM SPKI, as shipped. */
-export interface ProfileKeys {
-  readonly primary: string | undefined;
-  readonly backup: string | undefined;
-}
-
-/** Where a profile document comes from. Remote sources slot in later. */
-export interface ProfileSource {
-  /** The raw document bytes as a string. */
-  load(): Promise<string>;
-}
-
-/** The bundled copy of the document, imported at build time. */
-export class BundledProfileSource implements ProfileSource {
-  async load(): Promise<string> {
-    return JSON.stringify(profileDocument);
-  }
-}
-
-/** Verifies the bundled document and caches the parsed profile. */
-export class BundledSigningProfile {
-  readonly #source: ProfileSource;
-  readonly #keys: ProfileKeys;
-  readonly #minDslSupported: readonly string[];
-  #cached: SigningProfile | undefined;
-  #loading: Promise<SigningProfile> | undefined;
-
-  constructor(options: {
-    source: ProfileSource;
-    keys: ProfileKeys;
-    minDslSupported: readonly string[];
-  }) {
-    this.#source = options.source;
-    this.#keys = options.keys;
-    this.#minDslSupported = options.minDslSupported;
-  }
-
-  /**
-   * The verified profile. Returns undefined when the document cannot be
-   * verified (network sources may fail; the bundled one cannot in practice).
-   * Callers treat an undefined profile as "signing unavailable".
-   */
-  async load(): Promise<SigningProfile | undefined> {
-    this.#loading ??= this.#loadOnce().catch((error: unknown) => {
-      this.#loading = undefined;
-      throw error;
-    });
-    try {
-      return await this.#loading;
-    } catch {
-      return undefined;
-    }
-  }
-
-  /** Test seam: forget the memoized profile. */
-  reset(): void {
-    this.#cached = undefined;
-    this.#loading = undefined;
-  }
-
-  async #loadOnce(): Promise<SigningProfile> {
-    if (this.#cached) {
-      return this.#cached;
-    }
-    const raw = await this.#source.load();
-    const profile = await verifyProfileDocument({
-      raw,
-      keys: this.#keys,
-      // The bundled document is the floor: no earlier version can follow.
-      lastAcceptedVersion: 0,
-      minDslSupported: this.#minDslSupported,
-    });
-    this.#cached = profile;
-    return profile;
-  }
-}
-
-/** The keys shipped with this build. Dev keys for the phase-1 demo. */
-export const BUNDLED_PROFILE_PUBLIC_KEYS: ProfileKeys = {
-  primary: `-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO6DzzjIDaItyEUqlSai5yI/ZKlnJ
-G2o2a7OFAQpuVrcpqSdUTPcxLh2pjaDJxpqSbdPI9Foz+kjPX18Rxw20DA==
------END PUBLIC KEY-----`,
-  backup: undefined,
-};
-
-export const SUPPORTED_DSL = ['dsl-1'] as const;
-
-/** The one bundled profile. Remote sources replace the SOURCE, not this. */
-export const bundledSigningProfile = new BundledSigningProfile({
-  source: new BundledProfileSource(),
-  keys: BUNDLED_PROFILE_PUBLIC_KEYS,
-  minDslSupported: SUPPORTED_DSL,
-});
-
-/** Loads the bundled trading profile, verifying it on first use. */
-export const loadVenueProfile = (): Promise<SigningProfile | undefined> =>
-  bundledSigningProfile.load();
-
-/** Test seam: forget the memoized profile. */
-export const resetVenueProfile = (): void => {
-  bundledSigningProfile.reset();
-};
-
-/**
- * The `Venue-Authorization` header name. Onboarding uses the same header
- * name with its own (temporary, demo-only) envelope version.
- */
+/** The `Venue-Authorization` header name. Onboarding uses the same header
+ * name with its own (temporary, demo-only) envelope version. */
 export const VENUE_AUTHORIZATION_HEADER = 'Venue-Authorization';
 
 /** Header naming the venue GET a signed read covers: `<path>` or
@@ -161,6 +73,14 @@ export const VENUE_READ_HEADER = 'venue-read';
 /** The longest raw query the phone signs. predict-api proposes nothing
  * longer. */
 export const MAX_READ_QUERY_LENGTH = 2048;
+
+/** One resolved profile and the hash of the bytes it came from. */
+export interface VenueProfileSnapshot {
+  readonly profile: SigningProfile;
+  readonly version: number;
+  /** base64url SHA-256 over the exact raw profile bytes. */
+  readonly sha256: string;
+}
 
 /**
  * The RFC 9421 covered components for one request, from the profile's
@@ -253,226 +173,81 @@ function patternToRegExp(pattern: string): RegExp {
 }
 
 /* ------------------------------------------------------------------ */
-/* Document verification                                               */
+/* Policy and hashing                                                  */
 /* ------------------------------------------------------------------ */
 
-export const VENUE_PROFILE_DOCUMENT_MAX_BYTES = 64 * 1024;
-
-export type ProfileDocumentError =
-  | 'profile_document_malformed'
-  | 'profile_document_bad_signature'
-  | 'profile_document_unknown_key'
-  | 'profile_document_invalid_payload'
-  | 'profile_document_low_version';
-
-export class ProfileDocumentValidationError extends Error {
-  readonly code: ProfileDocumentError;
-
-  constructor(code: ProfileDocumentError, detail?: string) {
-    const suffix = detail === undefined ? '' : `: ${detail}`;
-    super(`Profile document rejected (${code})${suffix}.`);
-    this.name = 'ProfileDocumentValidationError';
-    this.code = code;
-  }
+export interface VenueProfilePolicy {
+  readonly id: string;
+  readonly currentVersion: number;
+  readonly revokedVersions: readonly number[];
 }
 
-interface ProfileDocument {
-  payload: string;
-  signature: string;
-  keyId: string;
-}
+export type VenueProfileRefusal =
+  | 'policy_malformed'
+  | 'profile_malformed'
+  | 'profile_low_version'
+  | 'profile_revoked'
+  | 'profile_below_floor'
+  | 'profile_ceiling';
 
-const parseDocument = (raw: string): ProfileDocument => {
-  let json: unknown;
+/** base64url SHA-256 over the raw profile bytes, unpadded. */
+export const venueProfileSha256 = (raw: string): string =>
+  Buffer.from(sha256(new TextEncoder().encode(raw)))
+    .toString('base64')
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replace(/[=]+$/u, '');
+
+const parsePolicy = (raw: string): VenueProfilePolicy | undefined => {
+  let value: unknown;
   try {
-    json = JSON.parse(raw);
+    value = JSON.parse(raw);
   } catch {
-    throw new ProfileDocumentValidationError(
-      'profile_document_malformed',
-      'not JSON',
-    );
+    return undefined;
   }
-  if (typeof json !== 'object' || json === null) {
-    throw new ProfileDocumentValidationError('profile_document_malformed');
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
   }
-  const record = json as Record<string, unknown>;
-  const payload = record.payload;
-  const signature = record.signature;
-  const keyId = record.keyId;
+  const record = value as Record<string, unknown>;
   if (
-    typeof payload !== 'string' ||
-    payload.length === 0 ||
-    typeof signature !== 'string' ||
-    signature.length === 0 ||
-    (keyId !== 'primary' && keyId !== 'backup')
+    record.id !== VENUE_PROFILE_ID ||
+    typeof record.currentVersion !== 'number' ||
+    !Number.isSafeInteger(record.currentVersion) ||
+    record.currentVersion < 1 ||
+    !Array.isArray(record.revokedVersions) ||
+    !record.revokedVersions.every(
+      (entry): entry is number =>
+        typeof entry === 'number' && Number.isSafeInteger(entry) && entry >= 1,
+    )
   ) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_malformed',
-      'envelope fields missing',
-    );
+    return undefined;
   }
-  return { payload, signature, keyId };
+  return {
+    id: record.id,
+    currentVersion: record.currentVersion,
+    revokedVersions: [...record.revokedVersions],
+  };
 };
 
-/** Standard base64 → bytes. */
-const fromBase64 = (value: string): Uint8Array => {
-  const binary = Buffer.from(value, 'base64');
-  return new Uint8Array(binary);
+/** Accepts a policy only if it cannot roll back what this device admitted. */
+const admitsPolicy = (
+  next: VenueProfilePolicy,
+  previous: VenueProfilePolicy | undefined,
+  floor: number,
+): boolean => {
+  if (next.currentVersion < floor) {
+    return false;
+  }
+  if (!previous) {
+    return true;
+  }
+  if (next.currentVersion < previous.currentVersion) {
+    return false;
+  }
+  return previous.revokedVersions.every((version) =>
+    next.revokedVersions.includes(version),
+  );
 };
-
-/**
- * PEM SPKI P-256 → the raw uncompressed point (0x04 ‖ X ‖ Y, 65 bytes).
- * Deterministic for P-256 SPKI: the point starts at a fixed DER offset.
- */
-const pemToRawPoint = (pem: string): Uint8Array => {
-  const body = pem
-    .split('\n')
-    .filter((line) => !line.includes('-----'))
-    .join('');
-  const der = fromBase64(body);
-  // RFC 5480 SPKI for P-256: 23 bytes of algorithm identifier, the 0x03
-  // BIT STRING tag, its 0x42 length, one unused-bit count byte, then the
-  // 65-byte 0x04-uncompressed point (0x04 marker first). `POINT_START` is
-  // the marker's own byte, where the returned point begins.
-  const POINT_START = 26;
-  if (
-    der.length !== POINT_START + 65 ||
-    der[POINT_START] !== 0x04 ||
-    der[POINT_START - 1] !== 0x00 ||
-    der[POINT_START - 2] !== 0x42 ||
-    der[POINT_START - 3] !== 0x03 // BIT STRING tag
-  ) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_unknown_key',
-      'not a P-256 SPKI point',
-    );
-  }
-  return der.slice(POINT_START, POINT_START + 65);
-};
-
-const verifyDocumentSignature = (
-  document: ProfileDocument,
-  keys: ProfileKeys,
-): void => {
-  if (document.payload.length > VENUE_PROFILE_DOCUMENT_MAX_BYTES) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_malformed',
-      'payload too large',
-    );
-  }
-  let rawSignature: Uint8Array;
-  try {
-    rawSignature = fromBase64(document.signature);
-  } catch {
-    throw new ProfileDocumentValidationError(
-      'profile_document_bad_signature',
-      'signature must be standard base64',
-    );
-  }
-  if (rawSignature.length !== 64) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_bad_signature',
-      'signature must be 64 bytes raw r||s, standard base64',
-    );
-  }
-  const payloadBytes = new TextEncoder().encode(document.payload);
-  const digest = sha256(payloadBytes);
-  const pem = document.keyId === 'primary' ? keys.primary : keys.backup;
-  if (!pem) {
-    throw new ProfileDocumentValidationError('profile_document_unknown_key');
-  }
-  let point: Uint8Array;
-  try {
-    point = pemToRawPoint(pem);
-  } catch (error) {
-    if (error instanceof ProfileDocumentValidationError) {
-      throw error;
-    }
-    throw new ProfileDocumentValidationError('profile_document_unknown_key');
-  }
-  // Signers in the wild emit high-s; ECDSA accepts both (n - s just flips
-  // the recovery y), and low-s is the wire norm. Normalize before verify.
-  try {
-    let signature = p256.Signature.fromBytes(rawSignature, 'compact');
-    if (signature.hasHighS()) {
-      signature = new p256.Signature(
-        signature.r,
-        p256.Point.Fn.neg(signature.s),
-      );
-    }
-    const ok = p256.verify(signature.toBytes('compact'), digest, point, {
-      lowS: true,
-    });
-    if (!ok) {
-      throw new ProfileDocumentValidationError(
-        'profile_document_bad_signature',
-      );
-    }
-  } catch (error) {
-    if (error instanceof ProfileDocumentValidationError) {
-      throw error;
-    }
-    throw new ProfileDocumentValidationError('profile_document_bad_signature');
-  }
-};
-
-interface ProfileDocumentInput {
-  raw: string;
-  keys: ProfileKeys;
-  lastAcceptedVersion: number;
-  minDslSupported: readonly string[];
-}
-
-/**
- * Verifies the document and returns the profile. `lastAcceptedVersion`
- * enforces monotonicity (a remote profile may not roll back); the bundled
- * copy loads with 0. Every check is synchronous, so a refusal surfaces as a
- * rejection rather than a throw from the calling frame.
- */
-export function verifyProfileDocument(
-  input: ProfileDocumentInput,
-): Promise<SigningProfile> {
-  try {
-    return Promise.resolve(validateProfileDocument(input));
-  } catch (error) {
-    return Promise.reject(error);
-  }
-}
-
-function validateProfileDocument(input: ProfileDocumentInput): SigningProfile {
-  const document = parseDocument(input.raw);
-  verifyDocumentSignature(document, input.keys);
-  let profileJson: unknown;
-  try {
-    profileJson = JSON.parse(
-      Buffer.from(document.payload, 'base64').toString('utf8'),
-    );
-  } catch {
-    throw new ProfileDocumentValidationError(
-      'profile_document_invalid_payload',
-      'payload is not base64 JSON',
-    );
-  }
-  const parsed = validateSigningProfile(profileJson);
-  if (!parsed) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_invalid_payload',
-    );
-  }
-  if (parsed.version < input.lastAcceptedVersion) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_low_version',
-      `version ${parsed.version} < accepted ${input.lastAcceptedVersion}`,
-    );
-  }
-  if (!input.minDslSupported.includes(parsed.minDsl)) {
-    throw new ProfileDocumentValidationError(
-      'profile_document_invalid_payload',
-      `minDsl ${parsed.minDsl} exceeds app capability`,
-    );
-  }
-  return parsed;
-}
 
 /* ------------------------------------------------------------------ */
 /* Payload validation                                                  */
@@ -737,7 +512,11 @@ const validateImplementation = (implementation: unknown): boolean => {
   );
 };
 
-function validateSigningProfile(value: unknown): SigningProfile | undefined {
+/** Structural validation of one profile body. Unknown top-level keys are
+ * ignored: the registry may add fields this build does not read. */
+export function validateSigningProfile(
+  value: unknown,
+): SigningProfile | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
@@ -778,3 +557,364 @@ function validateSigningProfile(value: unknown): SigningProfile | undefined {
   }
   return value as unknown as SigningProfile;
 }
+
+/* ------------------------------------------------------------------ */
+/* Resolver                                                            */
+/* ------------------------------------------------------------------ */
+
+interface LoadedProfile {
+  readonly profile: SigningProfile;
+  readonly raw: string;
+  readonly sha256: string;
+}
+
+export type VenueProfileLog = (
+  message: string,
+  detail?: string | number,
+) => void;
+
+export interface VenueProfileResolverOptions {
+  profileId?: string;
+  client?: RemoteVenueProfileClient;
+  store?: VenueProfileStore;
+  bundledPolicyRaw?: string;
+  bundledProfiles?: Readonly<Record<number, string>>;
+  now?: () => number;
+  log?: VenueProfileLog;
+}
+
+const BUNDLED_PROFILES: Readonly<Record<number, string>> = {
+  2: BUNDLED_V2_RAW,
+  3: BUNDLED_V3_RAW,
+};
+
+/**
+ * Resolves and pins one profile snapshot, and owns the persisted floor.
+ *
+ * `resolve()` never touches the network: entry points call `refresh()` in the
+ * background, so a screen always gets an answer immediately. `refresh()`
+ * fetches the policy with `If-None-Match`, and one profile body only when the
+ * policy names a version this device has no bytes for. A refused copy never
+ * replaces a previously admitted one.
+ */
+export class VenueProfileResolver {
+  readonly #profileId: string;
+  readonly #client: RemoteVenueProfileClient | undefined;
+  readonly #store: VenueProfileStore | undefined;
+  readonly #bundledPolicyRaw: string;
+  readonly #bundledProfiles: Readonly<Record<number, string>>;
+  readonly #now: () => number;
+  readonly #log: VenueProfileLog;
+
+  #loading: Promise<void> | undefined;
+  #loaded = false;
+  #policy: VenueProfilePolicy | undefined;
+  #etag: string | undefined;
+  #fetchedAt: number | undefined;
+  #floor = 0;
+  #documents = new Map<number, string>();
+  #snapshot: VenueProfileSnapshot | undefined;
+  #persisted: PersistedVenueProfiles | undefined;
+
+  constructor({
+    profileId = VENUE_PROFILE_ID,
+    client,
+    store,
+    bundledPolicyRaw = BUNDLED_POLICY_RAW,
+    bundledProfiles = BUNDLED_PROFILES,
+    now = Date.now,
+    log = (message, detail) => Logger.log(message, detail),
+  }: VenueProfileResolverOptions = {}) {
+    this.#profileId = profileId;
+    this.#client = client;
+    this.#store = store;
+    this.#bundledPolicyRaw = bundledPolicyRaw;
+    this.#bundledProfiles = bundledProfiles;
+    this.#now = now;
+    this.#log = log;
+  }
+
+  /** The current snapshot, from cache or bundle. Never blocks on network. */
+  async resolve(): Promise<VenueProfileSnapshot | undefined> {
+    await this.#load();
+    return this.#pick();
+  }
+
+  /** Whether a fetch is due, by the 15-minute cadence. */
+  isRefreshDue(): boolean {
+    return (
+      this.#fetchedAt === undefined ||
+      this.#now() - this.#fetchedAt >= VENUE_PROFILE_REFRESH_MS
+    );
+  }
+
+  /** Fetches the policy and (when new) one profile. Failures keep state. */
+  async refresh(): Promise<void> {
+    await this.#load();
+    if (!this.#client || !this.#store) {
+      return;
+    }
+    try {
+      const result = await this.#client.fetchPolicy({
+        id: this.#profileId,
+        etag: this.#etag,
+      });
+      if (result.status === 'modified') {
+        const next = parsePolicy(result.raw);
+        if (!next || !admitsPolicy(next, this.#policy, this.#floor)) {
+          this.#log('PredictNext: venue profile policy refused');
+          return;
+        }
+        const versionChanged =
+          next.currentVersion !== this.#policy?.currentVersion;
+        this.#policy = next;
+        this.#etag = result.etag ?? this.#etag;
+        if (versionChanged) {
+          await this.#fetchVersion(next.currentVersion);
+        }
+      } else {
+        this.#etag = result.etag ?? this.#etag;
+      }
+      this.#fetchedAt = this.#now();
+      await this.#persist();
+    } catch (error) {
+      this.#log(
+        'PredictNext: venue profile refresh failed',
+        error instanceof Error ? error.name : 'unknown',
+      );
+      return;
+    }
+    this.#pick();
+  }
+
+  /** One refetch after predict-api answered a profile code, then retry. */
+  async refreshAfterRefusal(): Promise<void> {
+    this.#fetchedAt = undefined;
+    await this.refresh();
+  }
+
+  /** Test seam: forget in-memory state, keep the persisted cache. */
+  reset(): void {
+    this.#loading = undefined;
+    this.#loaded = false;
+    this.#policy = undefined;
+    this.#etag = undefined;
+    this.#fetchedAt = undefined;
+    this.#floor = 0;
+    this.#documents = new Map();
+    this.#snapshot = undefined;
+    this.#persisted = undefined;
+  }
+
+  async #load(): Promise<void> {
+    this.#loading ??= this.#loadOnce().catch((error: unknown) => {
+      this.#loading = undefined;
+      throw error;
+    });
+    await this.#loading;
+  }
+
+  async #loadOnce(): Promise<void> {
+    if (this.#loaded) {
+      return;
+    }
+    for (const [version, raw] of Object.entries(this.#bundledProfiles)) {
+      this.#documents.set(Number(version), raw);
+    }
+    this.#policy = parsePolicy(this.#bundledPolicyRaw);
+    this.#persisted = await this.#store?.load();
+    const persisted = this.#persisted;
+    if (persisted) {
+      this.#floor = persisted.floor;
+      this.#etag = persisted.policyEtag;
+      this.#fetchedAt = persisted.fetchedAt;
+      for (const [version, raw] of Object.entries(persisted.profiles)) {
+        const numeric = Number(version);
+        if (Number.isSafeInteger(numeric) && numeric >= 1) {
+          this.#documents.set(numeric, raw);
+        }
+      }
+      if (persisted.policyRaw) {
+        const policy = parsePolicy(persisted.policyRaw);
+        if (policy && admitsPolicy(policy, this.#policy, this.#floor)) {
+          this.#policy = policy;
+        }
+      }
+    }
+    this.#loaded = true;
+    this.#pick();
+  }
+
+  async #fetchVersion(version: number): Promise<void> {
+    if (!this.#client || this.#documents.has(version)) {
+      return;
+    }
+    try {
+      const raw = await this.#client.fetchProfile({
+        id: this.#profileId,
+        version,
+      });
+      const parsed = this.#parse(raw, version);
+      if ('reason' in parsed) {
+        this.#log('PredictNext: venue profile refused', parsed.reason);
+        return;
+      }
+      this.#documents.set(version, raw);
+    } catch (error) {
+      this.#log(
+        'PredictNext: venue profile fetch failed',
+        error instanceof Error ? error.name : 'unknown',
+      );
+    }
+  }
+
+  #parse(
+    raw: string,
+    expectedVersion: number,
+  ): LoadedProfile | { reason: VenueProfileRefusal } {
+    let value: unknown;
+    try {
+      value = JSON.parse(raw);
+    } catch {
+      return { reason: 'profile_malformed' };
+    }
+    const profile = validateSigningProfile(value);
+    if (!profile || profile.version !== expectedVersion) {
+      return { reason: 'profile_malformed' };
+    }
+    const ceiling = applyVenueProfileCeiling(profile);
+    if (!ceiling.ok) {
+      return { reason: 'profile_ceiling' };
+    }
+    return { profile, raw, sha256: venueProfileSha256(raw) };
+  }
+
+  #pick(): VenueProfileSnapshot | undefined {
+    const policy = this.#policy;
+    if (!policy) {
+      if (this.#snapshot) {
+        return this.#snapshot;
+      }
+      this.#log(
+        'PredictNext: venue profile policy refused',
+        'policy_malformed',
+      );
+      return undefined;
+    }
+    if (policy.revokedVersions.includes(policy.currentVersion)) {
+      this.#log('PredictNext: venue profile revoked', policy.currentVersion);
+    }
+    const candidates = [...this.#documents.keys()]
+      .filter(
+        (version) =>
+          version <= policy.currentVersion &&
+          version >= this.#floor &&
+          !policy.revokedVersions.includes(version),
+      )
+      .sort((left, right) => right - left);
+
+    for (const version of candidates) {
+      const raw = this.#documents.get(version);
+      if (raw === undefined) {
+        continue;
+      }
+      const parsed = this.#parse(raw, version);
+      if ('reason' in parsed) {
+        this.#log('PredictNext: venue profile refused', parsed.reason);
+        continue;
+      }
+      this.#snapshot = {
+        profile: parsed.profile,
+        version,
+        sha256: parsed.sha256,
+      };
+      this.#raiseFloor(parsed.profile.version);
+      return this.#snapshot;
+    }
+    this.#snapshot = undefined;
+    this.#log('PredictNext: venue profile unavailable', policy.currentVersion);
+    return undefined;
+  }
+
+  #raiseFloor(version: number): void {
+    if (version <= this.#floor) {
+      return;
+    }
+    this.#floor = version;
+    if (this.#store) {
+      void this.#persist();
+    }
+  }
+
+  async #persist(): Promise<void> {
+    if (!this.#store) {
+      return;
+    }
+    const profiles: Record<string, string> = {};
+    for (const [version, raw] of this.#documents) {
+      profiles[String(version)] = raw;
+    }
+    await this.#store.save({
+      ...(this.#policy ? { policyRaw: JSON.stringify(this.#policy) } : {}),
+      ...(this.#etag ? { policyEtag: this.#etag } : {}),
+      profiles,
+      floor: this.#floor,
+      ...(this.#fetchedAt !== undefined ? { fetchedAt: this.#fetchedAt } : {}),
+    });
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* App-wide instance                                                   */
+/* ------------------------------------------------------------------ */
+
+const registryUrl = getVenueProfileRegistryUrl();
+const environment = getVenueProfileRegistryEnvironment();
+
+const defaultResolver = new VenueProfileResolver({
+  client: registryUrl
+    ? new RemoteVenueProfileClient({
+        baseUrl: registryUrl,
+        clientVersion: packageJSON.version,
+      })
+    : undefined,
+  store: environment
+    ? new VenueProfileStore({ environment, profileId: VENUE_PROFILE_ID })
+    : undefined,
+});
+
+let activeResolver = defaultResolver;
+
+/** The resolved profile snapshot, or undefined when nothing is admitted. */
+export const resolveVenueProfile = (): Promise<
+  VenueProfileSnapshot | undefined
+> => activeResolver.resolve();
+
+/** The resolved profile. Callers that need the hash use
+ * `resolveVenueProfile()` and pin that object. */
+export const loadVenueProfile = async (): Promise<SigningProfile | undefined> =>
+  (await activeResolver.resolve())?.profile;
+
+/** Fetches the registry unless the 15-minute cadence says it is not due. */
+export const refreshVenueProfile = async (force = false): Promise<void> => {
+  if (!force && !activeResolver.isRefreshDue()) {
+    return;
+  }
+  await activeResolver.refresh();
+};
+
+/** One refetch after predict-api answers `venue_profile_*`. */
+export const refreshVenueProfileAfterRefusal = (): Promise<void> =>
+  activeResolver.refreshAfterRefusal();
+
+/** Test seam: forget the memoized snapshot. */
+export const resetVenueProfile = (): void => {
+  activeResolver.reset();
+};
+
+/** Test seam: replace the app-wide resolver. */
+export const setVenueProfileResolverForTesting = (
+  resolver: VenueProfileResolver | undefined,
+): void => {
+  activeResolver = resolver ?? defaultResolver;
+};

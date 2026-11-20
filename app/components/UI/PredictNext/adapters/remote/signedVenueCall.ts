@@ -1,5 +1,10 @@
 import Logger from '../../../../../util/Logger';
 import {
+  refreshVenueProfileAfterRefusal,
+  resolveVenueProfile,
+  type VenueIntentName,
+} from '../../auth/venueSigningProfiles';
+import {
   TemplateError,
   type TemplateRule,
 } from '../../auth/signing/profileTemplates';
@@ -8,7 +13,6 @@ import type {
   SignOperationInput,
   SignedOperation,
 } from '../../auth/signing/signOperationTypes';
-import type { VenueIntentName } from '../../auth/venueSigningProfiles';
 
 /** Signs one canonical operation. Provided by the Engine. Returns the
  * envelope header plus the exact body bytes the signature covers; the
@@ -103,6 +107,12 @@ const isRenewable = (attempt: SignedAttempt): boolean =>
   (attempt.status === 403 && attempt.code === 'venue_authorization_invalid') ||
   (attempt.status === 409 && attempt.code === 'venue_signature_expired');
 
+/** predict-api wants a profile version this phone has not resolved yet. */
+const isProfileStale = (attempt: SignedAttempt): boolean =>
+  attempt.status === 409 &&
+  (attempt.code === 'venue_profile_update_required' ||
+    attempt.code === 'venue_profile_not_ready');
+
 /**
  * Renders and signs `operation`, then sends the call. There is one round
  * trip: the signed call is the first call. A response that says the
@@ -135,6 +145,15 @@ export const sendSigned = async <Response>(
       throw error;
     }
     if (!signed) {
+      // No admitted profile is the one refusal a refetch can fix. Locked,
+      // signed-out and disabled sessions resolve to undefined just the same;
+      // one refresh is harmless and the second answer is final.
+      if (!(await resolveVenueProfile())) {
+        await refreshVenueProfileAfterRefusal();
+        signed = await deps.signOperation(intent, signInput);
+      }
+    }
+    if (!signed) {
       throw new VenueSigningUnavailableError(requestSent);
     }
     return signed;
@@ -152,6 +171,10 @@ export const sendSigned = async <Response>(
       return response;
     }
     const described = await readAttempt(response);
+    if (!retried && isProfileStale(described)) {
+      await refreshVenueProfileAfterRefusal();
+      return attempt(true);
+    }
     if (!isRenewable(described)) {
       return response;
     }
@@ -200,6 +223,10 @@ export const sendSignedRead = async <Response>(
       }
       throw error;
     }
+    if (!header && !(await resolveVenueProfile())) {
+      await refreshVenueProfileAfterRefusal();
+      header = await deps.signRead(proposed);
+    }
     if (!header) {
       throw new VenueSigningUnavailableError(requestSent);
     }
@@ -229,6 +256,11 @@ export const sendSignedRead = async <Response>(
     const first = await send();
     let proposed = await describedProposal(first);
     if (proposed === undefined) {
+      const described = await readAttempt(first);
+      if (!retried && isProfileStale(described)) {
+        await refreshVenueProfileAfterRefusal();
+        return attempt(true);
+      }
       return first;
     }
     for (
@@ -239,10 +271,14 @@ export const sendSignedRead = async <Response>(
       const response = await send(await sign(proposed), proposed);
       const next = await describedProposal(response);
       if (next === undefined) {
+        const described = await readAttempt(response);
+        if (!retried && isProfileStale(described)) {
+          await refreshVenueProfileAfterRefusal();
+          return attempt(true);
+        }
         if (retried) {
           return response;
         }
-        const described = await readAttempt(response);
         if (!isRenewable(described)) {
           return response;
         }
