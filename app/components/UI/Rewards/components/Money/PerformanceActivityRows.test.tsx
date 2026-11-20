@@ -1,5 +1,10 @@
 import React from 'react';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import {
+  AvatarIcon,
+  IconName,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import type {
   CommissionEntryView,
   LedgerEarningEntryDto,
@@ -143,6 +148,22 @@ describe('PerformanceActivityRows', () => {
     );
 
     expect(getByText('Predictions')).toBeOnTheScreen();
+  });
+
+  it('labels a Predict cashback row with no fill source as Predictions', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <PerformanceRebateRow
+        item={rebate({
+          earning_origin_type: 'PREDICT_FEE_CASHBACK',
+          perps_source: null,
+          predict_source: null,
+        })}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Predictions')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Chart);
   });
 
   it('shows a partially voided rebate as the net credit in green', () => {

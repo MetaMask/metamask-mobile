@@ -27,6 +27,7 @@ import { useSwitchTokens } from '../../../hooks/useSwitchTokens';
 import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSourceAmountToMaxLength';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { useEnsureSameChainDestToken } from '../../../hooks/useEnsureSameChainDestToken';
+import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 
 export const useRecurringBuySwapInputs = () => {
   const dispatch = useDispatch();
@@ -65,6 +66,10 @@ export const useRecurringBuySwapInputs = () => {
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
+  const recurringOrderMinAmount = useRecurringOrderMinAmount({
+    sourceToken,
+    sourceAmount,
+  });
 
   const { destTokenAmount, isLoading } = useBridgeQuoteDataContext();
   const { handleSwitchTokens } = useSwitchTokens();
@@ -98,7 +103,8 @@ export const useRecurringBuySwapInputs = () => {
     sourceAmount !== undefined &&
     sourceAmount !== '.' &&
     Boolean(sourceToken?.decimals) &&
-    Boolean(destToken);
+    Boolean(destToken) &&
+    !recurringOrderMinAmount.isBelowMinAmount;
 
   useEffect(() => {
     if (hasValidBridgeInputs) {
@@ -171,9 +177,10 @@ export const useRecurringBuySwapInputs = () => {
     handleSourceMaxPress,
     handleSourcePresetAmountSelect,
     handleSourceTokenPress,
-    isDestAmountLoading: isLoading,
+    isDestAmountLoading: isLoading && !recurringOrderMinAmount.isBelowMinAmount,
     isFlipDisabled: !sourceToken || !destToken || !isDestNetworkEnabled,
     isQuoteSponsored,
+    recurringOrderMinAmount,
     sourceAmount,
     sourceAmountInput,
     sourceToken,
