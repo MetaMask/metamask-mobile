@@ -6,7 +6,6 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import VbaAccountCreateError from '../VbaAccountCreateError';
@@ -15,6 +14,7 @@ import {
   getAccountCreateErrorPrimaryAction,
 } from '../accountCreateError';
 import {
+  exitVbaOnboardingToMoneyHome,
   openCompletedVbaAccount,
   useOpenVbaOnboarding,
 } from '../hooks/useVbaOnboardingRouting';
@@ -57,10 +57,7 @@ const VbaAccountCreateErrorAdapter = () => {
   const { openSupportWithConsent } = useSupportConsent();
 
   const leave = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    exitVbaOnboardingToMoneyHome(navigation);
   }, [navigation]);
 
   const contactSupport = useCallback(() => {

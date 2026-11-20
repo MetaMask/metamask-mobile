@@ -9,7 +9,7 @@ jest.mock('react-native', () => ({
 }));
 const mockAppStateAddEventListener = AppState.addEventListener as jest.Mock;
 import { useSelector } from 'react-redux';
-import { ToastContext } from '../../../../component-library/components/Toast';
+import { toast } from '@metamask/design-system-react-native';
 import { useRewardsNotificationsNudge } from './useRewardsNotificationsNudge';
 import {
   selectIsMetamaskNotificationsEnabled,
@@ -19,15 +19,11 @@ import { isNotificationsFeatureEnabled } from '../../../../util/notifications/co
 
 const mockShowToast = jest.fn();
 const mockEnableNotifications = jest.fn();
-const mockOriginalCloseButtonPress = jest.fn();
 const mockEnableNotificationsNudge = jest.fn(
   (linkButtonOptions: { label: string; onPress: () => Promise<void> }) => ({
     variant: 'Plain',
     hasNoTimeout: true,
     linkButtonOptions,
-    closeButtonOptions: {
-      onPress: mockOriginalCloseButtonPress,
-    },
   }),
 );
 const mockLoadingToast = jest.fn((title: string, subtitle?: string) => ({
@@ -95,8 +91,15 @@ jest.mock('../../../../../locales/i18n', () => ({
   },
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockCloseToast = jest.fn();
 
 function mockSelectors({
   notificationsEnabled,
@@ -118,20 +121,7 @@ function renderNudgeHook(options?: {
   enabled?: boolean;
   onNotificationsEnabled?: () => void;
 }) {
-  const toastRef = {
-    current: {
-      showToast: jest.fn(),
-      closeToast: mockCloseToast,
-    },
-  };
-  const wrapper = ({ children }: { children: React.ReactNode }) =>
-    React.createElement(
-      ToastContext.Provider,
-      { value: { toastRef } },
-      children,
-    );
-
-  return renderHook(() => useRewardsNotificationsNudge(options), { wrapper });
+  return renderHook(() => useRewardsNotificationsNudge(options));
 }
 
 describe('useRewardsNotificationsNudge', () => {
@@ -179,9 +169,7 @@ describe('useRewardsNotificationsNudge', () => {
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         variant: 'Plain',
-        closeButtonOptions: expect.objectContaining({
-          onPress: expect.any(Function),
-        }),
+        onClose: expect.any(Function),
       }),
     );
 
@@ -193,7 +181,7 @@ describe('useRewardsNotificationsNudge', () => {
     });
 
     expect(mockEnableNotifications).toHaveBeenCalledTimes(1);
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenCalledTimes(2);
     expect(mockShowToast).toHaveBeenLastCalledWith(
       expect.objectContaining({ variant: 'loading' }),
@@ -237,7 +225,7 @@ describe('useRewardsNotificationsNudge', () => {
       await linkButtonOptions.onPress();
     });
 
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledTimes(1);
     expect(mockShowToast).toHaveBeenLastCalledWith(
       expect.objectContaining({ variant: 'error' }),
     );
@@ -339,7 +327,7 @@ describe('useRewardsNotificationsNudge', () => {
     await waitFor(() => {
       expect(action).toHaveBeenCalledTimes(1);
     });
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledTimes(1);
   });
 
   it('shows loading toast before deferred action runs via effect', async () => {
@@ -408,17 +396,16 @@ describe('useRewardsNotificationsNudge', () => {
     });
 
     const toastConfig = mockShowToast.mock.calls[0][0] as {
-      closeButtonOptions: { onPress: () => void };
+      onClose: () => void;
     };
     act(() => {
-      toastConfig.closeButtonOptions.onPress();
+      toastConfig.onClose();
     });
 
     notificationsEnabled = true;
     mockSelectors({ notificationsEnabled });
     rerender();
 
-    expect(mockOriginalCloseButtonPress).toHaveBeenCalledTimes(1);
     expect(action).not.toHaveBeenCalled();
   });
 
@@ -440,7 +427,7 @@ describe('useRewardsNotificationsNudge', () => {
 
     expect(mockGetPushPermission).toHaveBeenCalledTimes(1);
     expect(mockEnableNotifications).not.toHaveBeenCalled();
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledTimes(1);
     expect(mockOpenSystemSettings).toHaveBeenCalledTimes(1);
     expect(mockAppStateAddEventListener).toHaveBeenCalledWith(
       'change',
@@ -609,7 +596,7 @@ describe('useRewardsNotificationsNudge', () => {
       await linkButtonOptions.onPress();
     });
 
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledTimes(1);
     expect(mockOpenSystemSettings).not.toHaveBeenCalled();
   });
 
@@ -629,7 +616,7 @@ describe('useRewardsNotificationsNudge', () => {
       await linkButtonOptions.onPress();
     });
 
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledTimes(1);
   });
 
   it('closeEnableNotificationsNudge clears pending action and closes the toast', async () => {
@@ -650,7 +637,7 @@ describe('useRewardsNotificationsNudge', () => {
     mockSelectors({ notificationsEnabled });
     rerender();
 
-    expect(mockCloseToast).toHaveBeenCalledTimes(1);
+    expect(toast.dismiss).toHaveBeenCalledTimes(1);
     expect(action).not.toHaveBeenCalled();
   });
 });

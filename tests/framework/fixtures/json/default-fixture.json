@@ -148,8 +148,6 @@
           "cardLinkApiBlocked": false,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
-          "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
@@ -160,7 +158,6 @@
           "signInLink": null,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
           "cardLinkApiBlocked": false
         },
         "ClaimsController": {
