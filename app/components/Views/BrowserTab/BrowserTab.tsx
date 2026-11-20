@@ -968,8 +968,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           return false;
         }
 
-        // Check if this is an internal MetaMask deeplink that should be handled within the app
-        if (isInternalDeepLink(urlToLoad)) {
+        // Check if this is an internal MetaMask deeplink that should be handled within the app.
+        // Bare WalletConnect URIs (wc:) take the same route as metamask://wc?uri=: dapp
+        // connect kits send them on Android, and the webview cannot load them itself.
+        if (
+          isInternalDeepLink(urlToLoad) ||
+          urlToLoad.startsWith(`${PROTOCOLS.WC}:`)
+        ) {
           // Handle the deeplink internally instead of passing to OS
           SharedDeeplinkManager.getInstance()
             .parse(urlToLoad, {
