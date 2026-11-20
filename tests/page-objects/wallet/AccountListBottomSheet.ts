@@ -9,8 +9,8 @@ import { ConnectAccountBottomSheetSelectorsIDs } from '../../../app/components/V
 import { AccountCellIds } from '../../../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import Assertions from '../../framework/Assertions';
 import {
+  Assertions,
   type AppiumElement,
   createLogger,
   getDriver,
@@ -301,6 +301,10 @@ class AccountListBottomSheet {
           timeout: 10_000,
           checkForDisplayed: false,
           waitForInteractive: true,
+        });
+        await Assertions.expectElementToNotExist(this.backButton, {
+          description: 'Account list back button should be dismissed',
+          timeout: 5_000,
         });
       },
       {
