@@ -20,7 +20,7 @@ import {
   resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictFundingService } from '../../services/PredictFundingService';
 import { PredictAmountEntryTestIds } from '../../components/PredictAmountEntry';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
