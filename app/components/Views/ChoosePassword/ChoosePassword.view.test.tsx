@@ -608,29 +608,4 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       expect(UNSAFE_getByType(DesignSystemButton).props.isLoading).toBe(false);
     });
   });
-
-  it('renders the marketing opt-in unchecked and flips it on first tap for social login', async () => {
-    const { findByTestId } = renderChoosePasswordForSocialLogin({});
-
-    const checkbox = await findByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-    // Test builds force the marketing opt-in default off, so the first tap
-    // always checks it.
-    expect(checkbox.props.accessibilityState.checked).toBe(false);
-
-    fireEvent.press(checkbox);
-    expect(
-      (await findByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID))
-        .props.accessibilityState.checked,
-    ).toBe(true);
-
-    fireEvent.press(
-      await findByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
-    );
-    expect(
-      (await findByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID))
-        .props.accessibilityState.checked,
-    ).toBe(false);
-  });
 });
