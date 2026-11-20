@@ -25,9 +25,9 @@ import {
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/PredictWithdrawFlow.testIds';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 // eslint-disable-next-line import-x/no-namespace -- spy on named `endTrace` export
 import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
@@ -222,6 +222,29 @@ describe('PredictPortfolioScreen', () => {
       await view.findByTestId(PredictPortfolioScreenTestIds.UNREALIZED_PNL),
     ).toHaveTextContent('$0.00');
     expect(view.queryByText(/%/u)).not.toBeOnTheScreen();
+  });
+
+  it('offers Add funds only when the Kalshi catalog includes deposit, and opens the deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'withdraw'],
+    });
+    const off = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await off.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    expect(
+      off.queryByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    off.unmount();
+
+    resetPredictNextCatalog();
+    const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+
+    fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS));
+
+    expect(
+      await view.findByTestId('route-PredictNextDeposit'),
+    ).toBeOnTheScreen();
   });
 
   it('masks the Summary in privacy mode', async () => {

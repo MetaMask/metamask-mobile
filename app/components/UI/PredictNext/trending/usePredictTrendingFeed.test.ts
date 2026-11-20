@@ -5,7 +5,7 @@ import { useActiveVenue } from '../implementation/activeVenue';
 import { expectInactiveHookHasNoSideEffects } from '../implementation/inactiveHook.testUtils';
 import type { ActiveVenueResolution } from '../implementation/types';
 import { useVenueCapabilities } from '../capabilities';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import { SEARCH_QUERY_MAX_LENGTH } from '../hooks/useSearchEvents';
 import { readNextTrendingEvent } from './internal/nextMarkets';
 import {
@@ -172,7 +172,7 @@ describe('usePredictTrendingFeed', () => {
 
       await expectInactiveHookHasNoSideEffects({
         useInactiveHook: () =>
-          usePredictTrendingFeed({ tab: 'macro', enabled: false }),
+          usePredictTrendingFeed({ tab: 'rwas', enabled: false }),
         sideEffects: [mockGetMarkets, mockSearchMarkets],
         wrapper: createWrapper(),
       });
@@ -340,24 +340,21 @@ describe('usePredictTrendingFeed', () => {
       },
     );
 
-    it.each(['macro', 'rwas'] as const)(
-      "reads the %s tab from the descriptor's politics Feed",
-      async (tab) => {
-        givenVenue(KALSHI);
+    it("reads the rwas tab from the descriptor's politics Feed", async () => {
+      givenVenue(KALSHI);
 
-        const { result } = renderWithCapabilities(
-          { tab },
-          { feed: KALSHI_GAMES },
-        );
-        await waitForCatalog(result);
+      const { result } = renderWithCapabilities(
+        { tab: 'rwas' },
+        { feed: KALSHI_GAMES },
+      );
+      await waitForCatalog(result);
 
-        await waitFor(() => expect(result.current.feed.data).toHaveLength(2));
-        expect(callsTo(messenger, GET_FEED)).toEqual([
-          [GET_FEED, 'kalshi', 'politics-trump', { limit: 6 }],
-        ]);
-        expect(mockGetMarkets).not.toHaveBeenCalled();
-      },
-    );
+      await waitFor(() => expect(result.current.feed.data).toHaveLength(2));
+      expect(callsTo(messenger, GET_FEED)).toEqual([
+        [GET_FEED, 'kalshi', 'politics-trump', { limit: 6 }],
+      ]);
+      expect(mockGetMarkets).not.toHaveBeenCalled();
+    });
 
     it('ends loading empty when the Feed read fails', async () => {
       givenVenue(KALSHI);

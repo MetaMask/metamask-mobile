@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "8.22.0",
+  "version": "8.23.0",
   "private": true,
   "imports": {
     "#app/*": [
@@ -197,6 +197,7 @@
     "@metamask/kyc-controller": "npm:@metamask-previews/kyc-controller@0.16.0-preview-c62310f6e",
     "@metamask/network-controller": "^38.0.0",
     "@metamask/analytics-controller": "^4.3.0",
+    "@metamask/subscription-controller": "^15.3.0",
     "@metamask/utils": "^12.0.2",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -468,7 +469,7 @@
     "@metamask/stake-sdk": "^3.4.0",
     "@metamask/stellar-wallet-snap": "^2.1.0",
     "@metamask/storage-service": "^2.0.0",
-    "@metamask/subscription-controller": "^15.2.2",
+    "@metamask/subscription-controller": "^15.3.0",
     "@metamask/superstruct": "^3.4.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
     "@metamask/transaction-controller": "^74.2.0",

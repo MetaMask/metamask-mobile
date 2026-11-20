@@ -41,6 +41,7 @@ export const PredictOrderFlowTestIds = {
   EXPIRED: 'predict-order-flow-expired',
   REFRESH: 'predict-order-flow-refresh',
   ERROR: 'predict-order-flow-error',
+  ADD_FUNDS: 'predict-order-flow-add-funds',
   REVIEW: 'predict-order-flow-review',
   APPROVAL: 'predict-order-flow-approval',
   EXPIRY: 'predict-order-flow-expiry',

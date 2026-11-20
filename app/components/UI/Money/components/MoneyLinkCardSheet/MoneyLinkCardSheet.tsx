@@ -92,7 +92,10 @@ const MoneyLinkCardSheet = () => {
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
 
   useEffect(() => {
-    if (cardHomeDataStatus === 'idle') {
+    if (
+      cardHomeDataStatus === 'idle' &&
+      Engine.context.CardController.state.isAuthenticated
+    ) {
       Engine.context.CardController.fetchCardHomeData();
     }
   }, [cardHomeDataStatus]);

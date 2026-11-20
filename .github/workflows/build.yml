@@ -157,7 +157,6 @@ jobs:
         }}
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
-      secrets_json: ${{ steps.config.outputs.secrets_json }}
       tap_and_pay_sdk_repo_ssh: ${{ steps.config.outputs.tap_and_pay_sdk_repo_ssh }}
       signing_aws_role: ${{ steps.config.outputs.signing_aws_role }}
       signing_aws_secret: ${{ steps.config.outputs.signing_aws_secret }}
@@ -230,7 +229,6 @@ jobs:
           const config = yaml.load(fs.readFileSync('builds.yml', 'utf8'));
           const build = config.builds[process.env.BUILD_NAME];
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'github_environment=' + build.github_environment + '\n');
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           const env = build.env || {};
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'tap_and_pay_sdk_repo_ssh=' + (env.TAP_AND_PAY_SDK_REPO_SSH || '') + '\n');
           const signing = build.signing;
@@ -523,12 +521,6 @@ jobs:
           # Generate build-env.json capturing actual env values used in this build (non-critical)
           node scripts/apply-build-config.js "${BUILD_NAME}" --write-build-env || true
 
-      - name: Validate secrets
-        env:
-          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-          SECRETS_JSON: ${{ toJSON(secrets) }}
-        run: node scripts/validate-secrets-from-config.js
-
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
         if: matrix.platform == 'ios'
@@ -542,12 +534,6 @@ jobs:
           command: |
             node -e "require('fs').writeFileSync('ios/debug.xcconfig',''); require('fs').writeFileSync('ios/release.xcconfig','');"
             yarn pod:install
-
-      - name: Set secrets
-        env:
-          CONFIG_SECRETS: ${{ needs.prepare.outputs.secrets_json }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
-        run: node scripts/set-secrets-from-config.js
 
       # Android only: minimal env (SDK is pre-installed on Cirrus runner)
       - name: Set Android environment variables
@@ -610,6 +596,7 @@ jobs:
 
       # Signing: uses role + secret from builds.yml (skipped when builds.yml omits signing, e.g. simulator-only flask-dev)
       - name: Configure signing certificates
+        id: signing
         if: needs.prepare.outputs.signing_aws_role != ''
         uses: ./.github/actions/configure-signing
         with:
@@ -660,6 +647,63 @@ jobs:
           # download missing components, causing CXX1300. RN's CMakeLists.txt files
           # only require >= 3.13, so 3.22.1 is fully sufficient.
           CMAKE_VERSION: '3.22.1'
+          # Signer secret from configure-signing; empty when the build has no signing.
+          SIGNING_ENV_FILE: ${{ steps.signing.outputs.env-file }}
+          # App secrets are mapped on this step only, so no other step can read them. The
+          # same list is in eas-update-platform.yml, build-rc-repack.yml and
+          # build-android-upload-to-testmu.yml; keep them in sync.
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+          MM_KLIPY_API_KEY: ${{ secrets.MM_KLIPY_API_KEY }}
+          MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+          MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+          MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+          FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+          FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+          FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+          FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+          FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+          FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+          QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+          QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+          QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+          QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+          QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+          QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+          QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+          QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
+          QUICKNODE_ARC_URL: ${{ secrets.QUICKNODE_ARC_URL }}
+          QUICKNODE_ROBINHOOD_URL: ${{ secrets.QUICKNODE_ROBINHOOD_URL }}
+          QUICKNODE_ZKSYNC_URL: ${{ secrets.QUICKNODE_ZKSYNC_URL }}
+          QUICKNODE_MEGAETH_URL: ${{ secrets.QUICKNODE_MEGAETH_URL }}
+          IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+          MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
+          MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
+          MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+          # IN_BUILD_SRP and E2E_PASSWORD are repo-level secrets that every build can read;
+          # only the *-with-srp builds may bake them in.
+          ADDITIONAL_SRP_1: ${{ endsWith(inputs.build_name, '-with-srp') && secrets.IN_BUILD_SRP || '' }}
+          PREDEFINED_PASSWORD: ${{ endsWith(inputs.build_name, '-with-srp') && secrets.E2E_PASSWORD || '' }}
+          # main-dev-without-srp does not mock OAuth, so it never had the BYOA secret.
+          E2E_BYOA_AUTH_SECRET: ${{ endsWith(inputs.build_name, '-without-srp') && inputs.build_name != 'main-dev-without-srp' && secrets.E2E_BYOA_AUTH_SECRET || '' }}
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 55
@@ -700,6 +744,11 @@ jobs:
             # workers x heap still leaves room for clang/Gradle running alongside.
             export NODE_OPTIONS='--max-old-space-size=8192'
             export METRO_MAX_WORKERS='2'
+            # Gradle reads the keystore passwords from the environment; iOS signs from the keychain.
+            if [ "${{ matrix.platform }}" = "android" ] && [ -n "${SIGNING_ENV_FILE:-}" ]; then
+              # shellcheck source=/dev/null
+              . "$SIGNING_ENV_FILE"
+            fi
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"

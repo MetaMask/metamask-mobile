@@ -1,7 +1,7 @@
 import React from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createUIQueryClient } from '@metamask/react-data-query';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictEvent, PredictFeedId } from '../types';
 
 export const KALSHI_SPORTS_FEED_ID = KALSHI_STATIC_VENUE_CATALOG.feeds
