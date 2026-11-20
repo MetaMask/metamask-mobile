@@ -56,7 +56,6 @@ export {
 export { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Withdrawal specific hooks
-export { useWithdrawTokens } from './useWithdrawTokens';
 export { useWithdrawValidation } from './useWithdrawValidation';
 
 // Payment tokens hook

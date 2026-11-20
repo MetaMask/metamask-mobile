@@ -109,17 +109,6 @@ jest.mock('../../hooks', () => ({
     },
     networkFeeAmount: 1,
   })),
-  useWithdrawTokens: jest.fn(() => ({
-    destToken: {
-      symbol: 'USDC',
-      address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-      chainId: '0xa4b1',
-      decimals: 6,
-      name: 'USD Coin',
-      image: undefined,
-      currencyExchangeRate: 1,
-    },
-  })),
   usePerpsEventTracking: jest.fn(() => ({
     track: jest.fn(),
   })),
@@ -130,6 +119,7 @@ jest.mock('../../hooks', () => ({
     getMinimumAmount: jest.fn(() => '10.00'),
   })),
   usePerpsNetwork: jest.fn(() => 'mainnet'),
+  usePerpsConnection: jest.fn(() => ({ isInitialized: true })),
   usePerpsMeasurement: jest.fn(),
 }));
 
@@ -203,8 +193,9 @@ jest.mock('../../../../../core/Engine', () => ({
       withdraw: jest.fn(),
       getWithdrawalRoutes: jest.fn(() => [
         {
-          assetId: 'USDC-42161',
-          minimumAmount: '10',
+          assetId: jest.requireActual('@metamask/perps-controller')
+            .HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet,
+          chainId: 'eip155:42161',
         },
       ]),
     },
@@ -437,8 +428,7 @@ describe('PerpsWithdrawView', () => {
               name: 'PerpsWithdrawView',
               data: expect.objectContaining({
                 amount: '100.000000',
-                destination: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-                chainId: '0xa4b1',
+                chainId: 'eip155:42161',
                 isTestnet: false,
               }),
             },

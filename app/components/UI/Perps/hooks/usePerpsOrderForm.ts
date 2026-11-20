@@ -166,12 +166,14 @@ export function usePerpsOrderForm(
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
+    providerId,
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
-  const { marketData } = usePerpsMarketData(
-    initialSzDecimals == null ? initialAsset : '',
-  );
+  const { marketData } = usePerpsMarketData({
+    asset: initialSzDecimals == null ? initialAsset : '',
+    providerId,
+  });
   const assetSzDecimals =
     initialSzDecimals ??
     marketData?.szDecimals ??

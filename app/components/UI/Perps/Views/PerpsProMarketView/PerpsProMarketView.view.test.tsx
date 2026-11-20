@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react-native';
 import {
   HYPERLIQUID_TWAP_LIMITS,
+  DEFAULT_CANDLE_PERIOD,
   AggregatedOrderBookConnection,
   type ChaseOrder,
   type OrderBookData,
@@ -5685,6 +5686,56 @@ describe('Pro market Lighter limit order take profit and stop loss', () => {
     ).toBeOnTheScreen();
     await waitFor(() => expect(submit).toBeDisabled());
   });
+});
+
+it('uses the routed Lightweight chart outside the default venue', async () => {
+  const market = {
+    ...createEthMarketForViews(),
+    providerId: 'lighter' as const,
+  };
+  renderPerpsProMarketView({
+    initialParams: { market },
+    streamOverrides: {
+      marketData: [market],
+      liveCandles: {
+        symbol: market.symbol,
+        interval: DEFAULT_CANDLE_PERIOD,
+        candles: [
+          {
+            time: 1,
+            open: '2510',
+            high: '2510',
+            low: '2510',
+            close: '2510',
+            volume: '0',
+          },
+        ],
+      },
+    },
+    overrides: {
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            activeProvider: 'aggregated',
+            defaultProvider: 'hyperliquid',
+            effectiveProvider: 'hyperliquid',
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsAdvancedChartEnabledV2: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  expect(
+    await screen.findByTestId(PerpsProMarketViewSelectorsIDs.CHART_LIGHTWEIGHT),
+  ).toBeOnTheScreen();
 });
 
 describe('PerpsProMarketView section header button location', () => {

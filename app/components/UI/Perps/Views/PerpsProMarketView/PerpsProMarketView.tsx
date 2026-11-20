@@ -424,9 +424,16 @@ const PerpsProMarketView = ({
   const selectedCandlePeriod = useSelector(
     selectPerpsChartPreferredCandlePeriod,
   );
-  const isAdvancedChartEnabled = useSelector(
+  const isAdvancedChartFlagEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
+  const currentProviderId = market?.providerId ?? defaultProviderId;
+  // The shared Advanced adapter subscribes to the controller's default route.
+  const isAdvancedChartEnabled =
+    isAdvancedChartFlagEnabled &&
+    (activeProvider !== 'aggregated' ||
+      (currentProviderId !== undefined &&
+        currentProviderId === defaultProviderId));
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
   );
@@ -444,7 +451,6 @@ const PerpsProMarketView = ({
   const [isBalanceSheetVisible, setIsBalanceSheetVisible] = useState(false);
   const [chartDeliveryRevision, setChartDeliveryRevision] = useState(0);
   const currentSymbol = market?.symbol;
-  const currentProviderId = market?.providerId ?? defaultProviderId;
   const currentMarketIdentityKey = `${currentSymbol ?? ''}|${currentProviderId}`;
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const {
@@ -466,7 +472,7 @@ const PerpsProMarketView = ({
     symbol: market?.symbol || '',
     interval: selectedCandlePeriod,
     isAdvancedChartEnabled,
-    marketContextKey,
+    marketContextKey: marketSectionContextKey,
     isMarketContextReady,
   });
   const {
