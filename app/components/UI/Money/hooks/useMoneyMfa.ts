@@ -38,8 +38,9 @@ export type MoneyMfaStatus =
   | 'enabled'
   | 'off';
 
-const getReason = (): MfaReason => ({
+const getReason = (presentation?: MfaReason['presentation']): MfaReason => ({
   operation: 'money.mfa.setup',
+  presentation,
 });
 
 const getAddPasskeyReason = (): MfaReason => ({
@@ -138,29 +139,32 @@ export const useMoneyMfa = () => {
     [toastRef, theme],
   );
 
-  const turnOn = useCallback(async () => {
-    if (moneyAccountMigration.getStatus() === 'migrating') {
-      return;
-    }
-    try {
-      await verifyOrEnroll({
-        methods: MONEY_MFA_METHODS,
-        verifyWith: MONEY_MFA_METHODS,
-        maxSessionAgeMs: 0,
-        reason: getReason(),
-      });
-    } catch {
-      // The kit has already shown any error; backing out leaves 2FA as it was.
-      return;
-    }
-    if (moneyAccountMigration.getStatus() === 'done') {
-      moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
-      showToast('money.mfa.toast_on');
-      return;
-    }
-    moneyMfaStore.setState({ isMigrationBannerDismissed: false });
-    await migrate();
-  }, [verifyOrEnroll, showToast]);
+  const turnOn = useCallback(
+    async (presentation?: MfaReason['presentation']) => {
+      if (moneyAccountMigration.getStatus() === 'migrating') {
+        return;
+      }
+      try {
+        await verifyOrEnroll({
+          methods: MONEY_MFA_METHODS,
+          verifyWith: MONEY_MFA_METHODS,
+          maxSessionAgeMs: 0,
+          reason: getReason(presentation),
+        });
+      } catch {
+        // The kit has already shown any error; backing out leaves 2FA as it was.
+        return;
+      }
+      if (moneyAccountMigration.getStatus() === 'done') {
+        moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
+        showToast('money.mfa.toast_on');
+        return;
+      }
+      moneyMfaStore.setState({ isMigrationBannerDismissed: false });
+      await migrate();
+    },
+    [verifyOrEnroll, showToast],
+  );
 
   const addPasskey = useCallback(async () => {
     if (activeMethods.includes('passkey')) {

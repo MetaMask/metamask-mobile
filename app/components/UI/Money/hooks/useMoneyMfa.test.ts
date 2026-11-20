@@ -264,6 +264,23 @@ describe('useMoneyMfa', () => {
       });
     });
 
+    it('passes the requested presentation to the kit', async () => {
+      const { result } = arrange();
+
+      await act(async () => {
+        await result.current.turnOn('card');
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reason: expect.objectContaining({
+            operation: 'money.mfa.setup',
+            presentation: 'card',
+          }),
+        }),
+      );
+    });
+
     it('migrates, turns 2FA on and leaves the confirmation for Money home on first setup', async () => {
       const { result } = arrange();
 

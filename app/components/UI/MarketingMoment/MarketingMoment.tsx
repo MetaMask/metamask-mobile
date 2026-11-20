@@ -30,15 +30,11 @@ import type {
 
 const ACTION_ENTER_STEP = 3;
 
-const enterDown = (step: number) =>
-  FadeInDown.duration(AnimationDuration.Slowly).delay(
-    step * AnimationDuration.Quickly,
-  );
+const enterDown = (step: number, stepMs: number) =>
+  FadeInDown.duration(AnimationDuration.Slowly).delay(step * stepMs);
 
-const enterFade = (step: number) =>
-  FadeIn.duration(AnimationDuration.Slowly).delay(
-    step * AnimationDuration.Quickly,
-  );
+const enterFade = (step: number, stepMs: number) =>
+  FadeIn.duration(AnimationDuration.Slowly).delay(step * stepMs);
 
 /** Milliseconds until the footer actions have finished entering. */
 export const marketingMomentActionsEnteredAt =
@@ -58,6 +54,7 @@ const MarketingMomentContent = ({
   primaryAction,
   secondaryAction,
   background,
+  enterStepMs = AnimationDuration.Quickly,
   testID,
 }: Omit<MarketingMomentProps, 'theme'>) => {
   const tw = useTailwind();
@@ -105,7 +102,10 @@ const MarketingMomentContent = ({
           twClassName={`${copyClassName ?? 'mt-12'} shrink-0`}
         >
           {title ? (
-            <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>
+            <Animated.View
+              entering={enterDown(0, enterStepMs)}
+              style={tw.style('w-full')}
+            >
               {typeof title === 'string' ? (
                 <MarketingMomentTitle
                   {...titleTextProps}
@@ -123,7 +123,7 @@ const MarketingMomentContent = ({
             </Animated.View>
           ) : null}
           {description ? (
-            <Animated.View entering={enterDown(1)}>
+            <Animated.View entering={enterDown(1, enterStepMs)}>
               {typeof description === 'string' ? (
                 <Text
                   variant={TextVariant.BodyMd}
@@ -140,7 +140,7 @@ const MarketingMomentContent = ({
           ) : null}
           {children ? (
             <Animated.View
-              entering={enterDown(2)}
+              entering={enterDown(2, enterStepMs)}
               {...childrenWrapperAnimatedViewProps}
             >
               {children}
@@ -150,7 +150,7 @@ const MarketingMomentContent = ({
 
         {artwork ? (
           <Animated.View
-            entering={enterFade(2)}
+            entering={enterFade(2, enterStepMs)}
             style={tw.style('min-h-0 w-full flex-1')}
             {...artworkWrapperAnimatedViewProps}
           >
@@ -171,7 +171,7 @@ const MarketingMomentContent = ({
         )}
 
         {primaryAction || secondaryAction ? (
-          <Animated.View entering={enterDown(ACTION_ENTER_STEP)}>
+          <Animated.View entering={enterDown(ACTION_ENTER_STEP, enterStepMs)}>
             <Box
               flexDirection={BoxFlexDirection.Column}
               gap={2}
