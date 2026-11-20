@@ -120,7 +120,9 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica_consent.data_processing_consent')).toBeTruthy();
+      expect(
+        getByText('deposit.mica_consent.data_processing_consent'),
+      ).toBeTruthy();
     });
 
     const button = getByLabelText('deposit.mica.agreeAndContinue');
@@ -135,7 +137,9 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica_consent.data_processing_consent')).toBeTruthy();
+      expect(
+        getByText('deposit.mica_consent.data_processing_consent'),
+      ).toBeTruthy();
       expect(getByText('deposit.mica_consent.terms_link_text')).toBeTruthy();
       expect(getByText('deposit.mica_consent.privacy_link_text')).toBeTruthy();
     });
@@ -161,7 +165,9 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica_consent.data_processing_consent')).toBeTruthy();
+      expect(
+        getByText('deposit.mica_consent.data_processing_consent'),
+      ).toBeTruthy();
     });
   });
 });
