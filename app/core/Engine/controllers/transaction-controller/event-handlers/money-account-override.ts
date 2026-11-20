@@ -102,16 +102,18 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
   if (isBridgeDeposit) {
     console.log('=====MONEY ACCOUNT OVERRIDE');
 
-    TransactionPayController.setTransactionConfig(transaction.id, (config) => {
-      config.accountOverride = undefined;
-      config.isQuoteRequired = undefined;
-    });
+    // // TODO try removing this?
+    // TransactionPayController.setTransactionConfig(transaction.id, (config) => {
+    //   config.accountOverride = undefined;
+    //   config.isQuoteRequired = undefined;
+    // });
 
-    const moneyAccount = MoneyAccountController.getMoneyAccount();
-    moneyAccount?.address &&
-      refreshOverrideAccountBalances(moneyAccount.address);
+    // const moneyAccount = MoneyAccountController.getMoneyAccount();
+    // moneyAccount?.address &&
+    //   refreshOverrideAccountBalances(moneyAccount.address);
     return;
   }
+
   const existingOverride =
     TransactionPayController.state.transactionData[transaction.id]
       ?.accountOverride;

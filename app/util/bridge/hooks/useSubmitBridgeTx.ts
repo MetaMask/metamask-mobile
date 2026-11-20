@@ -1,6 +1,7 @@
 import {
   getQuotesReceivedProperties,
   SwapFeatureTag,
+  MoneyAccountAction,
   type MetaMetricsSwapsEventSource,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
@@ -17,7 +18,7 @@ import {
   CHAIN_VALUE_ORDER_AB_KEY,
   CHAIN_VALUE_ORDER_VARIANTS,
 } from '../../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
-import { useCallback, useMemo } from 'react';
+import { useMemo } from 'react';
 
 import {
   type TransactionActiveAbTestEntry,
@@ -35,8 +36,7 @@ import {
 } from '../../social/socialActivityStorage';
 import { captureException } from '@sentry/react-native';
 import { useBridgeSession } from '../../../components/UI/Bridge/hooks/useBridgeSession';
-import useThunkDispatch from '../../../components/hooks/useThunkDispatch';
-import { upgradeMoneyAccount } from '../../../actions/money';
+import { loadAssetsForAddresses } from '../../../core/Assets/accountGroupAssetLoader';
 
 function mergeTransactionActiveAbTests(
   ...groups: (TransactionActiveAbTestEntry[] | undefined)[]
@@ -89,19 +89,11 @@ export default function useSubmitBridgeTx() {
 
   const operation = useMemo(() => {
     return srcToken?.isMoneyToken
-      ? 'withdraw'
+      ? MoneyAccountAction.Withdraw
       : destToken?.isMoneyToken
-        ? 'deposit'
+        ? MoneyAccountAction.Deposit
         : undefined;
-  }, [srcToken, destToken]);
-
-  const dispatch = useThunkDispatch();
-
-  const upgradeMoneyAccountOnSubmit = useCallback(() => {
-    const abortController = new AbortController();
-    dispatch(upgradeMoneyAccount(abortController.signal));
-    return () => abortController.abort();
-  }, [dispatch]);
+  }, [srcToken?.isMoneyToken, destToken?.isMoneyToken]);
 
   const submitBridgeTx = async ({
     quoteResponse,
@@ -143,9 +135,7 @@ export default function useSubmitBridgeTx() {
           unifiedSwapBridgeContext.token_symbol_destination || undefined,
       },
     );
-    if (operation && ['withdraw', 'deposit'].includes(operation)) {
-      // upgradeMoneyAccountOnSubmit();
-    }
+
     return await withPendingTransactionActiveAbTests(
       mergedActiveAbTests,
       async () => {
@@ -189,6 +179,16 @@ export default function useSubmitBridgeTx() {
             },
           });
           throw error;
+        } finally {
+          if (!operation) {
+            return;
+          }
+          const moneyAccount =
+            Engine.context.MoneyAccountController.getMoneyAccount();
+          moneyAccount?.address &&
+            loadAssetsForAddresses([moneyAccount?.address]).catch(
+              (error: Error) => {},
+            );
         }
       },
     );
