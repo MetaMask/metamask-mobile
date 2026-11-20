@@ -64,6 +64,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'expo(nent)?',
   '@expo(nent)?/.*',
   '@noble/.*',
+  '@ethereumjs/util',
   '@nktkas/hyperliquid',
   '@metamask/abi-utils',
   '@metamask/account-tree-controller',
