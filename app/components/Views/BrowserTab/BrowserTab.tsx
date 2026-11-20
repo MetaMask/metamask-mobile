@@ -74,7 +74,10 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigateToPerpsHome } from '../../UI/Perps/utils/perpsModeSwitch';
 import { usePredictEntryActions } from '../../UI/PredictNext';
-import { isInternalDeepLink } from '../../../core/DeeplinkManager/util/deeplinks';
+import {
+  isInternalDeepLink,
+  isTransactionDeepLink,
+} from '../../../core/DeeplinkManager/util/deeplinks';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import {
   selectIpfsGateway,
@@ -123,6 +126,7 @@ import BrowserUrlBar, {
 import {
   createRequestId,
   getMaskedUrl,
+  getTransactionDeeplinkOrigin,
   isDisallowedExplicitPort,
   isDocumentUrlForUrlBarPayload,
   isENSUrl,
@@ -953,7 +957,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
      * Return `true` to continue loading the request and `false` to stop loading.
      */
     const onShouldStartLoadWithRequest = useCallback(
-      ({ url: urlToLoad }: { url: string }) => {
+      ({
+        url: urlToLoad,
+        isTopFrame,
+      }: {
+        url: string;
+        isTopFrame?: boolean;
+      }) => {
         if (!isTabActive) return false;
 
         if (isDisallowedExplicitPort(urlToLoad)) {
@@ -970,10 +980,19 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Check if this is an internal MetaMask deeplink that should be handled within the app
         if (isInternalDeepLink(urlToLoad)) {
+          // Transaction requests are attributed to the page that sent them so
+          // they are checked against that page's permissions.
+          const deeplinkOrigin = isTransactionDeepLink(urlToLoad)
+            ? getTransactionDeeplinkOrigin({
+                isTopFrame,
+                resolvedUrl: resolvedUrlRef.current,
+                loadingUrl: loadingUrlRef.current,
+              })
+            : AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER;
           // Handle the deeplink internally instead of passing to OS
           SharedDeeplinkManager.getInstance()
             .parse(urlToLoad, {
-              origin: AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER,
+              origin: deeplinkOrigin,
               browserCallBack: (url: string) => {
                 // If the deeplink handler wants to navigate to a different URL in the browser
                 if (url) {

@@ -1,7 +1,7 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { toHex } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
+import { CaipChainId, Hex, hexToBigInt } from '@metamask/utils';
 import { ParseOutput, parse } from 'eth-url-parser';
 import { Alert } from 'react-native';
 import { strings } from '../../../../locales/i18n';
@@ -25,6 +25,60 @@ import NavigationService from '../../NavigationService';
 import handleApproveUrl from './legacy/handleApproveUrl';
 import { mapDeeplinkOriginToInitSendLocation } from './handleSolanaUrl';
 import switchNetwork from '../../../util/networks/switchNetwork';
+import AppConstants from '../../AppConstants';
+import NotificationManager from '../../NotificationManager';
+import { getPermittedAccounts } from '../../Permissions';
+import Logger from '../../../util/Logger';
+
+/**
+ * Whether the request came from a page in the in-app browser, either with the
+ * page origin or with the placeholder used when the page cannot be verified.
+ */
+const isInAppBrowserOrigin = (origin: string) =>
+  origin === AppConstants.DEEPLINKS.ORIGIN_IN_APP_BROWSER ||
+  /^https?:\/\//i.test(origin);
+
+/**
+ * Chain the request runs on: the chain in the link, otherwise mainnet for
+ * redesigned confirmations or the selected network for the legacy flows.
+ */
+const getRequestChainId = (ethUrl: ParseOutput): Hex => {
+  if (ethUrl.chain_id) {
+    return toHex(ethUrl.chain_id);
+  }
+
+  if (isDeeplinkRedesignedConfirmationCompatible(ethUrl.function_name)) {
+    return CHAIN_IDS.MAINNET;
+  }
+
+  const { NetworkController } = Engine.context;
+  return NetworkController.getNetworkClientById(
+    NetworkController.state.selectedNetworkClientId,
+  ).configuration.chainId;
+};
+
+/**
+ * Transactions from deeplinks are sent from the selected account, so a page
+ * may only request one when that account is connected to it on the request
+ * chain.
+ */
+const isSelectedAccountPermittedForOrigin = (
+  origin: string,
+  ethUrl: ParseOutput,
+) => {
+  try {
+    const { address } = Engine.context.AccountsController.getSelectedAccount();
+    const scope: CaipChainId = `eip155:${hexToBigInt(
+      getRequestChainId(ethUrl),
+    ).toString(10)}`;
+    return getPermittedAccounts(origin, { scope }).some(
+      (account) => account.toLowerCase() === address.toLowerCase(),
+    );
+  } catch (error) {
+    Logger.error(error as Error, 'handleEthereumUrl: permission check failed');
+    return false;
+  }
+};
 
 /**
  * ERC-681: "With no indicated amount, the user should be prompted to enter the
@@ -92,6 +146,25 @@ async function handleEthereumUrl({
   } catch (e) {
     if (e) Alert.alert(strings('deeplink.invalid'), e.toString());
     return;
+  }
+
+  if (isInAppBrowserOrigin(origin)) {
+    // Permitted accounts are empty while locked, so a connected site would be
+    // reported as not connected.
+    if (!Engine.context.KeyringController.isUnlocked()) {
+      Logger.log('handleEthereumUrl: ignored in-app request while locked');
+      return;
+    }
+
+    if (!isSelectedAccountPermittedForOrigin(origin, ethUrl)) {
+      NotificationManager.showSimpleNotification({
+        status: 'simple_notification_rejected',
+        duration: 5000,
+        title: strings('deeplink.site_not_connected_title'),
+        description: strings('deeplink.site_not_connected_description'),
+      });
+      return;
+    }
   }
 
   const txMeta = { ...ethUrl, source: url };
