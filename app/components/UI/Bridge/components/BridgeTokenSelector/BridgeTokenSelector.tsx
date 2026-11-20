@@ -102,6 +102,10 @@ import { isArcUsdcErc20AssetId } from '../../../../../enablement/assets/arc';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { useMoneyToken } from '../../hooks/useBridgeMoneyToken';
+import {
+  getBridgeTokenSelectorRowKey,
+  isBridgeTokenSelectorRowSelected,
+} from './bridgeTokenSelectorRow';
 
 export interface BridgeTokenSelectorRouteParams {
   type: TokenSelectorType;
@@ -991,9 +995,7 @@ export const BridgeTokenSelectorContent: React.FC<
         return <SkeletonItem />;
       }
 
-      const isSelected =
-        selectedToken?.address === item.address &&
-        selectedToken?.chainId === item.chainId;
+      const isSelected = isBridgeTokenSelectorRowSelected(selectedToken, item);
 
       return (
         <BridgeTokenSelectorRow
@@ -1013,12 +1015,6 @@ export const BridgeTokenSelectorContent: React.FC<
       getIsNoFeeAsset,
       isRWAEnabled,
     ],
-  );
-
-  const keyExtractor = useCallback(
-    (item: BridgeToken | null, index: number) =>
-      item ? `${item.chainId}-${item.address}` : `skeleton-${index}`,
-    [],
   );
 
   // Load more results when user scrolls to the bottom
@@ -1181,7 +1177,7 @@ export const BridgeTokenSelectorContent: React.FC<
           contentContainerStyle={styles.tokensListContainer}
           data={displayData}
           renderItem={renderToken}
-          keyExtractor={keyExtractor}
+          keyExtractor={getBridgeTokenSelectorRowKey}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator
           showsHorizontalScrollIndicator={false}
