@@ -57,11 +57,34 @@ export function scenarioSample(report, failed, { testName }) {
   if (failed.has(testName)) {
     return { status: 'failed' };
   }
-  const audit = entry.profiles?.find(
-    (profile) =>
-      profile.symbolicated && profile.skillAudit && !profile.skillAudit.caveat,
-  )?.skillAudit;
-  return audit ? { status: 'used', audit } : { status: 'unsymbolicated' };
+  const audits = (entry.profiles || [])
+    .filter(
+      (profile) =>
+        profile.symbolicated &&
+        profile.skillAudit &&
+        !profile.skillAudit.caveat,
+    )
+    .map((profile) => profile.skillAudit);
+  return audits.length
+    ? { status: 'used', audit: mergeSegments(audits) }
+    : { status: 'unsymbolicated' };
+}
+
+/** A capture can span several Hermes segments: self time and areas add up, the widest span is the largest. */
+function mergeSegments(audits) {
+  const concat = (field) => audits.flatMap((audit) => audit[field] || []);
+  return {
+    swapsOwnedSelfMs: audits.reduce(
+      (total, audit) => total + (audit.swapsOwnedSelfMs || 0),
+      0,
+    ),
+    swapsWidestInclusiveMs: Math.max(
+      ...audits.map((audit) => audit.swapsWidestInclusiveMs || 0),
+    ),
+    swapsOwnedAreas: concat('swapsOwnedAreas'),
+    nonSwapsOnPathAreas: concat('nonSwapsOnPathAreas'),
+    nonSwapsConcurrentAreas: concat('nonSwapsConcurrentAreas'),
+  };
 }
 
 /** The three areas with the most self time per run on average; a run without the area counts as 0. */

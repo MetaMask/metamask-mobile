@@ -69,6 +69,29 @@ describe('scenarioSample', () => {
       'missing',
     );
   });
+
+  it('adds self time and areas across segments and keeps the widest span', () => {
+    const segments = {
+      scenarios: [
+        {
+          scenario: key,
+          profiles: [
+            { symbolicated: true, skillAudit: audit(300, 40) },
+            { symbolicated: true, skillAudit: audit(500, 10) },
+            { symbolicated: false, skillAudit: audit(900, 90) },
+          ],
+        },
+      ],
+    };
+    const sample = scenarioSample(segments, new Set(), scenario);
+    expect(sample.audit).toMatchObject({
+      swapsOwnedSelfMs: 50,
+      swapsWidestInclusiveMs: 500,
+    });
+    expect(summarizeScenario([sample]).ownedAreas).toEqual([
+      { area: 'Bridge hooks', avgMs: 50 },
+    ]);
+  });
 });
 
 describe('buildSlackMessage', () => {
