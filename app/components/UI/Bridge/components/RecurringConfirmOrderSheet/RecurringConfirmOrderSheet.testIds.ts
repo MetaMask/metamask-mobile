@@ -9,9 +9,13 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   PRICE_RANGE: 'recurring-confirm-price-range',
   PRICE_RANGE_TOKEN: 'recurring-confirm-price-range-token',
   EST_RECEIVING_PER_ORDER: 'recurring-confirm-est-receiving-per-order',
+  EST_RECEIVING_PER_ORDER_TOKEN:
+    'recurring-confirm-est-receiving-per-order-token',
   EST_RECEIVING_PER_ORDER_SKELETON:
     'recurring-confirm-est-receiving-per-order-skeleton',
   EST_RECEIVING_ALL_ORDERS: 'recurring-confirm-est-receiving-all-orders',
+  EST_RECEIVING_ALL_ORDERS_TOKEN:
+    'recurring-confirm-est-receiving-all-orders-token',
   EST_RECEIVING_ALL_ORDERS_SKELETON:
     'recurring-confirm-est-receiving-all-orders-skeleton',
   EXPIRES_AFTER: 'recurring-confirm-expires-after',

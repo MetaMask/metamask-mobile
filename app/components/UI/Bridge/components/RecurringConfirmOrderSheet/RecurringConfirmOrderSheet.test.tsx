@@ -308,7 +308,7 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows estimated dest amounts per order and across all orders', () => {
+  it('shows destination token metadata for estimated amounts', () => {
     const { getByTestId, queryByTestId } = renderSheet();
 
     expect(
@@ -316,18 +316,33 @@ describe('RecurringConfirmOrderSheet', () => {
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_per_order')}24.44`,
+      `${strings('bridge.recurring.est_receiving_per_order')}24.44 USDC`,
     );
     expect(
       getByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_all_orders')}244.4`,
+      `${strings('bridge.recurring.est_receiving_all_orders')}244.4 USDC`,
     );
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_TOKEN,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_TOKEN,
+      ),
+    ).toBeOnTheScreen();
     expect(
       queryByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_SKELETON,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_SKELETON,
       ),
     ).not.toBeOnTheScreen();
   });
@@ -370,14 +385,14 @@ describe('RecurringConfirmOrderSheet', () => {
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_per_order')}${formatMinimumReceived(destTokenAmount)}`,
+      `${strings('bridge.recurring.est_receiving_per_order')}${formatMinimumReceived(destTokenAmount)} USDC`,
     );
     expect(
       getByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_all_orders')}${formatMinimumReceived(receivingAll ?? destTokenAmount)}`,
+      `${strings('bridge.recurring.est_receiving_all_orders')}${formatMinimumReceived(receivingAll ?? destTokenAmount)} USDC`,
     );
   });
 
@@ -524,14 +539,14 @@ describe('RecurringConfirmOrderSheet', () => {
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_per_order')}--`,
+      `${strings('bridge.recurring.est_receiving_per_order')}-- USDC`,
     );
     expect(
       getByTestId(
         RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
       ),
     ).toHaveTextContent(
-      `${strings('bridge.recurring.est_receiving_all_orders')}--`,
+      `${strings('bridge.recurring.est_receiving_all_orders')}-- USDC`,
     );
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.NETWORK_FEE),
