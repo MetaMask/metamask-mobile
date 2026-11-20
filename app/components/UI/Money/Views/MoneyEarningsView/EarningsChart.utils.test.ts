@@ -1,4 +1,5 @@
 import type { EarningsPoint } from './earningsHistory';
+import { formatSignedUsd } from '../../utils/moneyFormatFiat';
 import {
   clampUsdToCents,
   formatAxisUsd,
@@ -6,7 +7,6 @@ import {
   formatMonthLabel,
   formatPointDateRange,
   formatPointPillLabel,
-  formatSignedUsd,
   getNiceUsdChartMaximum,
   getXAxisLabels,
 } from './EarningsChart.utils';

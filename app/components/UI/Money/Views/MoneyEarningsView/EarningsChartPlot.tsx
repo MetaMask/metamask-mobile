@@ -11,12 +11,12 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { formatSignedUsd } from '../../utils/moneyFormatFiat';
 import { isAvailableBucket, type EarningsPoint } from './earningsHistory';
 import {
   formatAxisUsd,
   formatPointDateRange,
   formatPointPillLabel,
-  formatSignedUsd,
   getChartBarHeight,
 } from './EarningsChart.utils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
