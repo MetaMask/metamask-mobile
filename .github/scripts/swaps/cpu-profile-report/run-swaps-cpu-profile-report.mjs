@@ -27,7 +27,8 @@ const gh = (args) =>
   execFileSync('gh', args, { encoding: 'utf8', stdio: 'pipe' });
 
 function listRuns({ start, end }) {
-  const created = `${start.toISOString()}..${end.toISOString()}`;
+  // `a..b` includes `b`, so the range stops one second before the next week starts.
+  const created = `${start.toISOString()}..${new Date(end - 1000).toISOString()}`;
   const runs = gh(
     ['run', 'list', '-R', repo, '-w', PERFORMANCE_WORKFLOW]
       .concat(['-e', 'schedule', '-b', 'main', '--created', created])
@@ -97,9 +98,13 @@ async function main() {
       );
       summary.devices?.forEach(({ device }) => deviceNames.add(device));
       const failed = failedTestNames(summary);
-      SCENARIOS.forEach((scenario, index) =>
-        samples[index].push(scenarioSample(report, failed, scenario)),
-      );
+      SCENARIOS.forEach((scenario, index) => {
+        const sample = scenarioSample(report, failed, scenario);
+        if (sample.status === 'ambiguous') {
+          console.warn(`[ambiguous] run ${runId}: ${scenario.label}`);
+        }
+        samples[index].push(sample);
+      });
       runsRead += 1;
     } catch (error) {
       console.error(`[skip] run ${runId}: ${error.message}`);

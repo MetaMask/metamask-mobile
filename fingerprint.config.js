@@ -165,9 +165,8 @@ const config = {
     // New scripts added here are assumed not to affect native compilation.
     '.github/scripts/qa-automation/**',
 
-    // Swaps performance budgets: reads Sentry and posts to Slack, doesn't build.
-    '.github/scripts/swaps/cpu-profile-report/**',
-    '.github/scripts/swaps/performance-budgets/**',
+    // Swaps CI reports: read Sentry or CI artifacts and post to Slack, don't build.
+    '.github/scripts/swaps/**',
 
     // Note: `.github/scripts/bump-ota-version-constants.sh` is intentionally NOT ignored,
     // since it writes OTA version metadata consumed by the release pipeline.

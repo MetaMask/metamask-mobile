@@ -2,7 +2,6 @@ import {
   buildSlackMessage,
   failedTestNames,
   lastWeek,
-  percentile,
   scenarioSample,
   summarizeScenario,
 } from './swaps-cpu-profile-report.mjs';
@@ -34,13 +33,6 @@ describe('lastWeek', () => {
   });
 });
 
-describe('percentile', () => {
-  it('interpolates between ranks', () => {
-    expect(percentile([1, 2, 3, 4], 0.5)).toBe(2.5);
-    expect(percentile([10, 20, 30, 40, 50, 60, 70, 80, 90, 100], 0.9)).toBe(91);
-  });
-});
-
 describe('scenarioSample', () => {
   const failed = failedTestNames({
     failedTestsStats: {
@@ -59,7 +51,7 @@ describe('scenarioSample', () => {
     expect([...failed]).toEqual([scenario.testName]);
   });
 
-  it('drops failed tests, unsymbolicated profiles and missing scenarios', () => {
+  it('drops failed, unsymbolicated, missing and ambiguous scenarios', () => {
     const symbolicated = { symbolicated: true, skillAudit: audit(340, 50) };
     expect(scenarioSample(report(symbolicated), failed, scenario).status).toBe(
       'failed',
@@ -77,6 +69,18 @@ describe('scenarioSample', () => {
     expect(scenarioSample({ scenarios: [] }, new Set(), scenario).status).toBe(
       'missing',
     );
+    expect(scenarioSample({ scenarios: [] }, failed, scenario).status).toBe(
+      'failed',
+    );
+    const twoDevices = {
+      scenarios: [
+        ...report(symbolicated).scenarios,
+        ...report(symbolicated).scenarios,
+      ],
+    };
+    expect(scenarioSample(twoDevices, new Set(), scenario).status).toBe(
+      'ambiguous',
+    );
   });
 
   it('adds self time and areas across segments and keeps the widest span', () => {
@@ -87,7 +91,6 @@ describe('scenarioSample', () => {
           profiles: [
             { symbolicated: true, skillAudit: audit(300, 40) },
             { symbolicated: true, skillAudit: audit(500, 10) },
-            { symbolicated: false, skillAudit: audit(900, 90) },
           ],
         },
       ],
@@ -101,6 +104,20 @@ describe('scenarioSample', () => {
       runs: [{ widestSpanMs: 500, ownedSelfMs: 50 }],
       ownedAreas: [{ area: 'Bridge hooks', avgMs: 50 }],
     });
+    const partial = {
+      scenarios: [
+        {
+          scenario: key,
+          profiles: [
+            { symbolicated: true, skillAudit: audit(300, 40) },
+            { symbolicated: true },
+          ],
+        },
+      ],
+    };
+    expect(scenarioSample(partial, new Set(), scenario).status).toBe(
+      'unsymbolicated',
+    );
   });
 });
 
@@ -116,7 +133,11 @@ describe('buildSlackMessage', () => {
       [
         {
           label: 'ETH swap',
-          summary: summarizeScenario([...used, { status: 'failed' }]),
+          summary: summarizeScenario([
+            ...used,
+            { status: 'failed' },
+            { status: 'ambiguous' },
+          ]),
         },
         {
           label: 'Cross-chain swap',
@@ -133,12 +154,12 @@ describe('buildSlackMessage', () => {
     );
     expect(message).toContain('on main (Pixel 8 Pro, Pixel 9)');
     expect(message).toContain(
-      '*ETH swap*: 3 runs used (1 failed, 0 unsymbolicated, 0 missing)',
+      '*ETH swap*: 3 used (1 failed, 0 unsymbolicated, 0 missing)\n1 skipped: ambiguous device match',
     );
     expect(message).toContain('median 340ms · p90 388ms');
     expect(message).toContain('median 50ms · p90 58ms');
     expect(message).toContain(
-      '*Cross-chain swap*: 0 runs used (0 failed, 0 unsymbolicated, 1 missing)',
+      '*Cross-chain swap*: 0 used (0 failed, 0 unsymbolicated, 1 missing)',
     );
     expect(message).toContain('No passing, symbolicated runs this week.');
   });

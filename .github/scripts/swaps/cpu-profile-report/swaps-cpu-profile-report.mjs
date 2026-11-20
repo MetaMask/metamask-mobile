@@ -21,7 +21,7 @@ export function lastWeek(now = new Date()) {
 }
 
 /** Linear interpolation between the closest ranks. */
-export function percentile(values, fraction) {
+function percentile(values, fraction) {
   const sorted = [...values].sort((a, b) => a - b);
   const rank = (sorted.length - 1) * fraction;
   const low = Math.floor(rank);
@@ -30,8 +30,7 @@ export function percentile(values, fraction) {
 }
 
 /** The analyzer keys scenarios on the profile file name derived from the test title. */
-export const scenarioKey = (testName) =>
-  testName.replace(/[^a-zA-Z0-9._-]/g, '_');
+const scenarioKey = (testName) => testName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
 /** Titles of the tests that failed in a run, from `summary.json` in `aggregated-reports`; a test only over its quality gates completed the swap, so it is kept. */
 export function failedTestNames(summary) {
@@ -49,28 +48,30 @@ export function failedTestNames(summary) {
 
 /**
  * One run's sample for a scenario. A failed test is dropped: its profile can
- * stop before the swap and would read as near-zero swaps time.
+ * stop before the swap and would read as near-zero swaps time. A run with any
+ * segment the analyzer couldn't audit is dropped too, since its total would be
+ * partial. The analyzer reports one entry per device and scenario, so more than
+ * one match (several devices) is dropped as ambiguous.
  */
 export function scenarioSample(report, failed, { testName }) {
-  const entry = report.scenarios?.find(
-    (scenario) => scenario.scenario === scenarioKey(testName),
-  );
-  if (!entry) {
-    return { status: 'missing' };
-  }
   if (failed.has(testName)) {
     return { status: 'failed' };
   }
-  const audits = (entry.profiles || [])
-    .filter(
-      (profile) =>
-        profile.symbolicated &&
-        profile.skillAudit &&
-        !profile.skillAudit.caveat,
-    )
-    .map((profile) => profile.skillAudit);
-  return audits.length
-    ? { status: 'used', audit: mergeSegments(audits) }
+  const entries = (report.scenarios || []).filter(
+    (scenario) => scenario.scenario === scenarioKey(testName),
+  );
+  if (entries.length !== 1) {
+    return { status: entries.length ? 'ambiguous' : 'missing' };
+  }
+  const profiles = entries[0].profiles || [];
+  const audited = profiles.every(
+    (profile) => profile.symbolicated && profile.skillAudit,
+  );
+  return profiles.length && audited
+    ? {
+        status: 'used',
+        audit: mergeSegments(profiles.map((profile) => profile.skillAudit)),
+      }
     : { status: 'unsymbolicated' };
 }
 
@@ -107,7 +108,13 @@ function topAreas(audits, field) {
 }
 
 export function summarizeScenario(samples) {
-  const counts = { used: 0, failed: 0, unsymbolicated: 0, missing: 0 };
+  const counts = {
+    used: 0,
+    failed: 0,
+    unsymbolicated: 0,
+    missing: 0,
+    ambiguous: 0,
+  };
   samples.forEach((sample) => {
     counts[sample.status] += 1;
   });
@@ -156,11 +163,14 @@ export function buildSlackMessage(
     `Shadow mode: numbers only, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}). Areas show average self time per run.`,
   ];
   for (const { label, summary } of scenarios) {
-    const { used, failed, unsymbolicated, missing } = summary.counts;
+    const { used, failed, unsymbolicated, missing, ambiguous } = summary.counts;
     lines.push(
       '',
-      `*${label}*: ${used} runs used (${failed} failed, ${unsymbolicated} unsymbolicated, ${missing} missing)`,
+      `*${label}*: ${used} used (${failed} failed, ${unsymbolicated} unsymbolicated, ${missing} missing)`,
     );
+    if (ambiguous) {
+      lines.push(`${ambiguous} skipped: ambiguous device match`);
+    }
     if (!summary.widestSpanMs) {
       lines.push('No passing, symbolicated runs this week.');
       continue;
