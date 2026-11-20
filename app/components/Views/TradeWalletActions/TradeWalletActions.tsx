@@ -492,8 +492,7 @@ function TradeWalletActions() {
         <ActionListItem
           label={strings('collectibles.title')}
           description={strings('collectibles.trade_menu.description')}
-          iconName={IconName.Card}
-          // TODO: open the Collectibles main page (GAC-72), via onboarding (GAC-106).
+          iconName={IconName.Gift}
           onPress={handleNavigateBack}
           testID={collectiblesTestIds.tradeMenuItem}
         />

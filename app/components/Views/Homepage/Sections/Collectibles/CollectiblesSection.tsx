@@ -1,5 +1,9 @@
-import React, { useImperativeHandle, useRef, type Ref } from 'react';
-import type { View as RNView } from 'react-native';
+import React, {
+  ComponentRef,
+  useImperativeHandle,
+  useRef,
+  type Ref,
+} from 'react';
 import {
   SectionDivider,
   SectionHeader,
@@ -34,7 +38,7 @@ export function CollectiblesSection({
   sectionIndex,
   totalSectionsLoaded,
 }: Props) {
-  const sectionViewRef = useRef<RNView>(null);
+  const sectionViewRef = useRef<ComponentRef<typeof View>>(null);
   const { data: packs, isPending, refetch } = useHomePacks();
   // A failed refetch keeps cached packs, so only hide when there's nothing to show.
   const isEmpty = !packs?.length;
@@ -72,9 +76,9 @@ export function CollectiblesSection({
   return (
     <View
       ref={sectionViewRef}
-      onLayout={onLayout}
       className="pb-3"
       testID={collectiblesTestIds.homeSection}
+      onLayout={onLayout}
     >
       <SectionDivider />
       <SectionHeader
@@ -82,13 +86,11 @@ export function CollectiblesSection({
         isInteractive
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
-      <View>
-        {isPending || !packs ? (
-          <CollectiblesCarouselSkeleton />
-        ) : (
-          <CollectiblesCarousel packs={packs} />
-        )}
-      </View>
+      {packs ? (
+        <CollectiblesCarousel packs={packs} />
+      ) : (
+        <CollectiblesCarouselSkeleton />
+      )}
     </View>
   );
 }
