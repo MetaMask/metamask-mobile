@@ -54,6 +54,7 @@ jest.mock('../../../hooks/usePredictNavigation', () => ({
 
 interface MockBtcLiveRowProps {
   series: typeof HOMEPAGE_PREDICT_SERIES_SLOT.series;
+  iconName?: string;
   onPress: (
     series: typeof HOMEPAGE_PREDICT_SERIES_SLOT.series,
     marketId: string | undefined,
@@ -70,6 +71,7 @@ jest.mock('./BtcLiveRow', () => ({
 
 interface MockChampionshipRowProps {
   state: ChampionshipRowState;
+  iconName?: string;
   onPress?: () => void;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   testID?: string;
@@ -206,6 +208,21 @@ describe('HomepagePredictDiscovery', () => {
       expect(getChampionshipRowProps()[0].testID).toBe(
         'homepage-predict-discovery-market-slot-2',
       );
+    });
+
+    it('passes each slot’s configured icon to its row', () => {
+      renderComponent({
+        slots: [
+          { ...HOMEPAGE_PREDICT_MARKET_SLOTS[0], iconName: 'Football' },
+          { ...HOMEPAGE_PREDICT_SERIES_SLOT, iconName: 'Trophy' },
+          HOMEPAGE_PREDICT_MARKET_SLOTS[2],
+        ],
+      });
+
+      expect(getChampionshipRowProps().map(({ iconName }) => iconName)).toEqual(
+        ['Football', undefined],
+      );
+      expect(getBtcLiveRowProps().iconName).toBe('Trophy');
     });
 
     it('rejects a market whose slug does not match its configured slot', () => {
