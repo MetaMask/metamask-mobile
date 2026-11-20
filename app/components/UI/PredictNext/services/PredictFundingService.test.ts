@@ -430,7 +430,10 @@ describe('PredictFundingService withdrawal flow', () => {
       await Promise.resolve();
 
       service.stopObserving();
-      const firstRejection = await expect(first).rejects.toMatchObject({
+      // Awaited after the next commit starts, while this one is still pending.
+      // Awaiting it here would settle it too early.
+      // eslint-disable-next-line jest/valid-expect
+      const firstRejection = expect(first).rejects.toMatchObject({
         name: 'AbortError',
       });
 
@@ -530,7 +533,9 @@ describe('PredictFundingService withdrawal flow', () => {
           signal: caller.signal,
         },
       );
-      const cancelled = await expect(second).rejects.toMatchObject({
+      // Awaited after caller.abort() below. Awaiting here hangs the test.
+      // eslint-disable-next-line jest/valid-expect
+      const cancelled = expect(second).rejects.toMatchObject({
         name: 'AbortError',
       });
       await Promise.resolve();
@@ -717,7 +722,9 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      const abandoned = await expect(oldCommit).rejects.toMatchObject({
+      // Awaited after the old session settles below. Awaiting here hangs the test.
+      // eslint-disable-next-line jest/valid-expect
+      const abandoned = expect(oldCommit).rejects.toMatchObject({
         code: PredictErrorCode.UNAUTHENTICATED,
       });
       await Promise.resolve();
@@ -760,7 +767,9 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      const cancelled = await expect(pending).rejects.toMatchObject({
+      // Awaited after the shared signal is checked below.
+      // eslint-disable-next-line jest/valid-expect
+      const cancelled = expect(pending).rejects.toMatchObject({
         name: 'AbortError',
       });
       expect(signal?.aborted).toBe(false);
