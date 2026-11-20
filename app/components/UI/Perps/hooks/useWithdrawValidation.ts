@@ -4,6 +4,7 @@ import Engine from '../../../../core/Engine';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   WITHDRAWAL_CONSTANTS,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   parseCurrencyString,
@@ -14,6 +15,7 @@ import { usePerpsLiveAccount } from './stream';
 
 interface UseWithdrawValidationParams {
   withdrawAmount: string;
+  providerId?: PerpsProviderType;
 }
 
 /**
@@ -23,8 +25,9 @@ interface UseWithdrawValidationParams {
  */
 export const useWithdrawValidation = ({
   withdrawAmount,
+  providerId,
 }: UseWithdrawValidationParams) => {
-  const { account } = usePerpsLiveAccount();
+  const { account } = usePerpsLiveAccount({ providerId });
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
@@ -44,8 +47,14 @@ export const useWithdrawValidation = ({
       ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
       : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
-    return routes.find((route) => route.assetId === usdcAssetId);
-  }, [isTestnet]);
+    return routes.find(
+      (route) =>
+        route.assetId === usdcAssetId &&
+        (providerId === undefined ||
+          route.providerId === providerId ||
+          route.providerId === undefined),
+    );
+  }, [isTestnet, providerId]);
 
   // Validation checks
   const hasInsufficientBalance = useMemo(() => {

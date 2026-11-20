@@ -21,7 +21,12 @@ import {
   PerpsOrderTransactionStatusType,
   PerpsTransaction,
 } from '../types/transactionHistory';
-import { formatPerpsUsdCents, formatPnl } from './formatUtils';
+import {
+  formatFundingPayment,
+  formatFundingRate,
+  formatPerpsUsdCents,
+  formatPnl,
+} from './formatUtils';
 import {
   formatOrderLabel,
   getInlineOrderLabelDirection,
@@ -962,11 +967,7 @@ export function transformFundingToTransactions(
   return funding.map((fundingItem) => {
     const { symbol, amountUsd, rate, timestamp } = fundingItem;
 
-    // Create safe amount strings
     const isPositive = BigNumber(amountUsd).isGreaterThan(0);
-    const amountUSDC = `${isPositive ? '+' : '-'}$${BigNumber(amountUsd)
-      .absoluteValue()
-      .toString()}`;
 
     return {
       id: `funding-${timestamp}-${symbol}`,
@@ -978,11 +979,9 @@ export function transformFundingToTransactions(
       asset: symbol,
       fundingAmount: {
         isPositive,
-        fee: amountUSDC,
+        fee: formatFundingPayment(amountUsd),
         feeNumber: parseFloat(amountUsd),
-        rate: `${BigNumber(rate ?? '0')
-          .multipliedBy(100)
-          .toString()}%`,
+        rate: formatFundingRate(rate),
       },
     };
   });

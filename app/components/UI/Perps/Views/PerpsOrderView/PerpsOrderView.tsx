@@ -580,7 +580,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   const { isInitialized } = usePerpsConnection();
   const { subscribeToPrices, updatePositionTPSL } = usePerpsTrading();
-  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
+  const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount({
+    providerId: orderProvider ?? undefined,
+  });
 
   // Get order form state from context; balanceForValidation respects custom token amount when set
   const {
@@ -1506,8 +1508,15 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       leverage: orderForm.leverage,
       direction: orderForm.direction,
       asset: orderForm.asset,
+      providerId: orderProvider ?? undefined,
     }),
-    [effectivePrice, orderForm.leverage, orderForm.direction, orderForm.asset],
+    [
+      effectivePrice,
+      orderForm.leverage,
+      orderForm.direction,
+      orderForm.asset,
+      orderProvider,
+    ],
   );
 
   // Real-time liquidation price calculation
@@ -2621,7 +2630,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     isCrossMarginEnabled && currentMarketPosition?.leverage?.type === 'cross';
   const orderFormLiquidationPrice = withholdsCrossLiquidationPrice
     ? ''
-    : liquidationPrice;
+    : (liquidationPrice ?? '');
   const liquidationInfoContentKey = withholdsCrossLiquidationPrice
     ? 'cross_liquidation_estimate_unavailable'
     : 'liquidation_price';
@@ -2837,7 +2846,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const isTradeSheetPayWithLoading = isLoadingAccount;
     const isTradeSheetMarginLoading =
       isLoadingMarketData || (hasValidAmount && marginRequired == null);
-    const parsedLiquidationPrice = Number.parseFloat(liquidationPrice);
+    const parsedLiquidationPrice = Number.parseFloat(liquidationPrice ?? '');
     const hasLiquidationPrice =
       !withholdsCrossLiquidationPrice &&
       hasValidAmount &&

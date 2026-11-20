@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import type { PerpsProviderType } from '@metamask/perps-controller';
+import { useEffect, useMemo, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 
 /**
@@ -13,6 +14,8 @@ export interface TopOfBookData {
 export interface UsePerpsTopOfBookOptions {
   /** Symbol to subscribe to top of book data */
   symbol: string;
+  /** Restrict the quote to this execution venue when provided. */
+  providerId?: PerpsProviderType;
 }
 
 /**
@@ -47,26 +50,33 @@ export interface UsePerpsTopOfBookOptions {
 export function usePerpsTopOfBook(
   options: UsePerpsTopOfBookOptions,
 ): TopOfBookData | undefined {
-  const { symbol } = options;
+  const { symbol, providerId } = options;
   const stream = usePerpsStream();
-  const [topOfBook, setTopOfBook] = useState<TopOfBookData | undefined>(
-    undefined,
+  const route = useMemo(
+    () => ({ symbol, providerId, stream }),
+    [symbol, providerId, stream],
   );
+  const [snapshot, setSnapshot] = useState<{
+    route: typeof route;
+    topOfBook: TopOfBookData | undefined;
+  }>();
 
   useEffect(() => {
-    if (!symbol) return;
+    if (!route.symbol) return;
 
-    const unsubscribe = stream.topOfBook.subscribeToSymbol({
-      symbol,
-      callback: (newTopOfBook) => {
-        setTopOfBook(newTopOfBook);
+    let active = true;
+    const unsubscribe = route.stream.topOfBook.subscribeToSymbol({
+      symbol: route.symbol,
+      providerId: route.providerId,
+      callback: (topOfBook) => {
+        if (active) setSnapshot({ route, topOfBook });
       },
     });
-
     return () => {
+      active = false;
       unsubscribe();
     };
-  }, [stream, symbol]);
+  }, [route]);
 
-  return topOfBook;
+  return snapshot?.route === route ? snapshot.topOfBook : undefined;
 }

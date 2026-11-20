@@ -119,31 +119,17 @@ const TWAP_FILL_HISTORY_PAGE_SIZE = 50;
 // Hyperliquid's `randomize` TWAP option varies individual suborder sizes by
 // up to 20%: https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
 const TWAP_RANDOMIZE_VARIANCE_PERCENT = 20;
-// Hyperliquid submits one TWAP suborder every 30 seconds, so the suborder count
-// is the runtime divided by this interval:
-// https://hyperliquid.gitbook.io/hyperliquid-docs/trading/order-types#twap
-const TWAP_SUBORDER_INTERVAL_SECONDS = 30;
-
 /**
- * Mobile-only TWAP input and copy configuration derived from the controller's
- * executable Hyperliquid limits. Controller v13 caps duration at 1,440 minutes
- * and exposes neither TWAP trigger price nor max price, so Mobile intentionally
- * omits those venue-documented fields until Core owns executable contracts.
+ * Mobile TWAP input, history and copy configuration. The order form validates
+ * against the selected venue's strategy rules from the controller.
  */
 export const PERPS_TWAP_UI_CONFIG = {
   MinutesPerHour: MINUTES_PER_HOUR,
   HoursPerDay: HOURS_PER_DAY,
   SecondsPerMinute: SECONDS_PER_MINUTE,
   MillisecondsPerSecond: MILLISECONDS_PER_SECOND,
-  SuborderIntervalSeconds: TWAP_SUBORDER_INTERVAL_SECONDS,
-  MinimumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
   MaximumDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
-  MinimumNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
   DefaultMinutes: String(TWAP_DEFAULT_DURATION_MINUTES),
-  MaximumDays: Math.floor(
-    HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes /
-      (HOURS_PER_DAY * MINUTES_PER_HOUR),
-  ),
   MaximumHours: HOURS_PER_DAY - 1,
   MaximumMinutes: MINUTES_PER_HOUR - 1,
   DurationRangeI18nValues: {
@@ -225,14 +211,6 @@ export const PERPS_SLIPPAGE_ESTIMATE_DISPLAY_DECIMALS = 2;
  * order forms, position rows and the stop-loss prompt (e.g. `TP 25%`).
  */
 export const PERPS_TPSL_PERCENT_DISPLAY_DECIMALS = 0;
-
-/**
- * Share of position notional kept back from the removable-margin maximum.
- * The exchange re-checks the transfer requirement at the mark price it sees on
- * submit, and isolated margin moves 1:1 with that price, so a max computed from
- * the last position snapshot with no headroom is rejected on any adverse tick.
- */
-export const MARGIN_REMOVAL_PRICE_MOVE_BUFFER = 0.01;
 
 /**
  * How long a remove-margin form trusts a fresh read that stopped a removal

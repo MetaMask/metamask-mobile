@@ -6,6 +6,7 @@ import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { recordPerpsAction } from '../utils/perpsActivityStorage';
 import {
+  getBatchOperationStatus,
   type Position,
   type ClosePositionsResult,
 } from '@metamask/perps-controller';
@@ -93,9 +94,15 @@ export const usePerpsCloseAllPositions = (
     });
 
     try {
-      const result = await Engine.context.PerpsController.closePositions({
-        symbols: positions.map((p) => p.symbol),
-      });
+      const targets = positions.flatMap(({ symbol, providerId }) =>
+        providerId ? [{ symbol, providerId }] : [],
+      );
+      const result = await Engine.context.PerpsController.closePositions(
+        targets.length === positions.length
+          ? { targets }
+          : { symbols: positions.map(({ symbol }) => symbol) },
+      );
+      const status = result.status ?? getBatchOperationStatus(result);
 
       const executionTime = Date.now() - startTime;
 
@@ -116,8 +123,7 @@ export const usePerpsCloseAllPositions = (
         onSuccess(result);
       }
 
-      // Navigate back on any success (full or partial)
-      if (navigateBackOnSuccess && result.successCount > 0) {
+      if (navigateBackOnSuccess && status === 'all') {
         if (navigation.canGoBack()) {
           navigation.goBack();
         } else {

@@ -9,6 +9,7 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import {
+  HYPERLIQUID_TWAP_LIMITS,
   AggregatedOrderBookConnection,
   type ChaseOrder,
   type OrderBookData,
@@ -445,6 +446,13 @@ const renderProMarketWithTriggeredOrdersFlag = (
   });
 };
 
+const hyperliquidTwapRules = {
+  minDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MinDurationMinutes,
+  maxDurationMinutes: HYPERLIQUID_TWAP_LIMITS.MaxDurationMinutes,
+  minNotionalUsd: HYPERLIQUID_TWAP_LIMITS.MinNotionalUsd,
+  sliceIntervalSeconds: HYPERLIQUID_TWAP_LIMITS.SliceIntervalSeconds,
+};
+
 const renderProMarketWithTwapFlag = (
   enabled: boolean,
   activeProvider: 'hyperliquid' | 'lighter' = 'hyperliquid',
@@ -457,6 +465,7 @@ const renderProMarketWithTwapFlag = (
             status: 'ready',
             providerId: 'hyperliquid',
             supportedStrategies: ['twap'],
+            strategyRules: { twap: hyperliquidTwapRules },
           }
         : {
             status: 'unavailable',

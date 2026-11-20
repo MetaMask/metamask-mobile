@@ -17,7 +17,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
+import {
+  getPositionFundingDirection,
+  PERPS_CONSTANTS,
+  type Position,
+} from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -36,6 +40,7 @@ import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import {
   formatPerpsFiat,
+  formatPositionFunding,
   formatPositionTriggerSummary,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -212,9 +217,12 @@ const PerpsProPositionCard = ({
     ranges: PRICE_RANGES_UNIVERSAL,
   });
   const isLong = parseFloat(position.size) > 0;
-  const marginDisplay = formatPerpsFiat(position.marginUsed, {
-    ranges: PRICE_RANGES_MINIMAL_VIEW,
-  });
+  const marginDisplay = formatPerpsFiat(
+    position.displayMarginUsed ?? position.marginUsed,
+    {
+      ranges: PRICE_RANGES_MINIMAL_VIEW,
+    },
+  );
 
   const tpDisplay =
     formatPositionTriggerSummary({
@@ -228,23 +236,14 @@ const PerpsProPositionCard = ({
     }) ?? PERPS_CONSTANTS.FallbackPriceDisplay;
   const tpSlDisplay = `${tpDisplay} / ${slDisplay}`;
 
-  // Positive cumulative funding is a cost (paid), negative is a payment (earned).
-  const fundingSinceOpen = parseFloat(
-    position.cumulativeFunding?.sinceOpen ?? '0',
-  );
-  const isNearZeroFunding = Math.abs(fundingSinceOpen) < 0.005;
-  let fundingColor: TextColor = TextColor.TextDefault;
-  if (!isNearZeroFunding && fundingSinceOpen > 0) {
-    fundingColor = TextColor.ErrorDefault;
-  } else if (!isNearZeroFunding && fundingSinceOpen < 0) {
-    fundingColor = TextColor.SuccessDefault;
-  }
-  const fundingDisplay = isNearZeroFunding
-    ? formatPerpsFiat(0, { ranges: PRICE_RANGES_MINIMAL_VIEW })
-    : `${fundingSinceOpen >= 0 ? '-' : '+'}${formatPerpsFiat(
-        Math.abs(fundingSinceOpen),
-        { ranges: PRICE_RANGES_MINIMAL_VIEW },
-      )}`;
+  const fundingSinceOpen = position.cumulativeFunding?.sinceOpen;
+  const fundingDirection = getPositionFundingDirection(fundingSinceOpen);
+  const fundingColor = {
+    cost: TextColor.ErrorDefault,
+    payment: TextColor.SuccessDefault,
+    none: TextColor.TextDefault,
+  }[fundingDirection];
+  const fundingDisplay = formatPositionFunding(fundingSinceOpen);
 
   const handlePress = onPress ? () => onPress(position) : undefined;
 

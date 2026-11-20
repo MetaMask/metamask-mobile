@@ -109,6 +109,6 @@ describe('getPerpsPositionHeaderDisplay', () => {
 
     const result = getPerpsPositionHeaderDisplay(position);
 
-    expect(result.roeText).toBe('+0.0%');
+    expect(result.roeText).toBe('--%');
   });
 });

@@ -404,6 +404,34 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  it('delivers and replays only the requested venue price for a shared symbol', () => {
+    mockSubscribeToPrices.mockReturnValue(jest.fn());
+    const lighterCallback = jest.fn();
+    testStreamManager.prices.subscribeToSymbols({
+      symbols: ['BTC'],
+      providerId: 'lighter',
+      callback: lighterCallback,
+    });
+    const { callback } = mockSubscribeToPrices.mock.calls[0][0];
+    callback([{ symbol: 'BTC', providerId: 'hyperliquid', price: '100' }]);
+    expect(lighterCallback).not.toHaveBeenCalled();
+
+    callback([{ symbol: 'BTC', providerId: 'lighter', price: '200' }]);
+    expect(lighterCallback).toHaveBeenCalledWith({
+      BTC: expect.objectContaining({ providerId: 'lighter', price: '200' }),
+    });
+
+    const cachedCallback = jest.fn();
+    testStreamManager.prices.subscribeToSymbols({
+      symbols: ['BTC'],
+      providerId: 'hyperliquid',
+      callback: cachedCallback,
+    });
+    expect(cachedCallback).toHaveBeenCalledWith({
+      BTC: expect.objectContaining({ providerId: 'hyperliquid', price: '100' }),
+    });
+  });
+
   it('throttles updates after first immediate update', async () => {
     let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
     mockSubscribeToPrices.mockImplementation(
@@ -4477,6 +4505,46 @@ describe('PerpsStreamManager', () => {
   });
 
   describe('TopOfBookStreamChannel', () => {
+    it('shares a symbol subscription while keeping venue books separate', () => {
+      mockSubscribeToPrices.mockReturnValue(jest.fn());
+      const hyperliquid = jest.fn();
+      const lighter = jest.fn();
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'hyperliquid',
+        callback: hyperliquid,
+      });
+      testStreamManager.topOfBook.subscribeToSymbol({
+        symbol: 'BTC',
+        providerId: 'lighter',
+        callback: lighter,
+      });
+      const { callback } = mockSubscribeToPrices.mock.calls[0][0];
+
+      callback([
+        {
+          symbol: 'BTC',
+          providerId: 'hyperliquid',
+          bestBid: '100',
+          bestAsk: '101',
+        },
+        {
+          symbol: 'BTC',
+          providerId: 'lighter',
+          bestBid: '200',
+          bestAsk: '201',
+        },
+      ]);
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      expect(hyperliquid).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '100', bestAsk: '101' }),
+      );
+      expect(lighter).toHaveBeenCalledWith(
+        expect.objectContaining({ bestBid: '200', bestAsk: '201' }),
+      );
+    });
+
     it('subscribes to top of book with includeOrderBook flag', () => {
       const callback = jest.fn();
 

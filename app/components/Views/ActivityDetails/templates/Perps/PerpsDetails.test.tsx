@@ -456,7 +456,7 @@ describe('PerpsDetails', () => {
     );
   });
 
-  it('renders funding rate and signed funding fee', () => {
+  it('renders the funding rate and rounds funding below the display precision', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
       id: 'funding-1',
@@ -479,7 +479,7 @@ describe('PerpsDetails', () => {
 
     expect(getByText('Rate')).toBeOnTheScreen();
     expect(getByText('Funding fee')).toBeOnTheScreen();
-    expect(getByText('+$0.00000001')).toBeOnTheScreen();
+    expect(getByText('$0.00')).toBeOnTheScreen();
   });
 
   it('formats perps fiat rows with the shared Perps formatter (universal ranges)', () => {

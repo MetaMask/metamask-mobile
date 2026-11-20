@@ -18,19 +18,25 @@ Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx` `PerpsStreamMan
 
 ## Stream channels
 
-| Channel            | Cache key                          | Scope                   | Stores                                   | Fed by                      |
-| ------------------ | ---------------------------------- | ----------------------- | ---------------------------------------- | --------------------------- |
-| `prices`           | `priceCache` Map                   | Global                  | Per-symbol price updates                 | WebSocket                   |
-| `positions`        | `'positions'`                      | Account                 | Positions                                | WebSocket and user snapshot |
-| `orders`           | `'orders'`                         | Account                 | Open orders                              | WebSocket and user snapshot |
-| `account`          | `'account'`                        | Account                 | Account state                            | WebSocket and user snapshot |
-| `fills`            | `'fills'`                          | Account                 | Recent fills, max 100                    | WebSocket                   |
-| `marketData`       | `'markets'`                        | Global                  | Market list                              | REST or Terminal snapshot   |
-| `oiCaps`           | `'oiCaps'`                         | Global                  | Symbols at open-interest cap             | WebSocket                   |
-| `topOfBook`        | `cachedTopOfBook`                  | Per symbol              | Best bid, ask, spread                    | WebSocket                   |
-| `focusedPrice`     | `cachedPriceUpdate`                | Per symbol              | Price of the focused market              | WebSocket                   |
-| `availableToTrade` | route key (`symbol`, `providerId`) | Account, per market     | Venue available to trade, long and short | WebSocket                   |
-| `candles`          | `CandleStreamChannel`              | Per symbol and interval | Candles                                  | WebSocket and history fetch |
+| Channel            | Cache key                          | Scope                             | Stores                                   | Fed by                      |
+| ------------------ | ---------------------------------- | --------------------------------- | ---------------------------------------- | --------------------------- |
+| `prices`           | `priceCache` Map                   | Global                            | Per-symbol price updates                 | WebSocket                   |
+| `positions`        | `'positions'`                      | Account                           | Positions                                | WebSocket and user snapshot |
+| `orders`           | `'orders'`                         | Account                           | Open orders                              | WebSocket and user snapshot |
+| `account`          | `'account'`                        | Account                           | Account state                            | WebSocket and user snapshot |
+| `fills`            | `'fills'`                          | Account                           | Recent fills, max 100                    | WebSocket                   |
+| `marketData`       | `'markets'`                        | Global                            | Market list                              | REST or Terminal snapshot   |
+| `oiCaps`           | `'oiCaps'`                         | Global                            | Symbols at open-interest cap             | WebSocket                   |
+| `topOfBook`        | `cachedTopOfBook`                  | Per symbol                        | Best bid, ask, spread                    | WebSocket                   |
+| `focusedPrice`     | `cachedPriceUpdate`                | Per symbol                        | Price of the focused market              | WebSocket                   |
+| `availableToTrade` | route key (`symbol`, `providerId`) | Account, per market               | Venue available to trade, long and short | WebSocket                   |
+| `candles`          | `CandleStreamChannel`              | Per provider, symbol and interval | Candles                                  | WebSocket and history fetch |
+
+For accounts spanning multiple venues, the account channel caches Core's combined snapshot and its per-venue states. Market order forms and withdrawals select the account for their execution venue. An unavailable venue never inherits the combined balance.
+
+The price and top-of-book channels cache venue-tagged updates by symbol and provider. The Pro order form reads the quote for its execution venue, including when two venues list the same symbol.
+
+Routed candle subscriptions cache separately from the default route. The controller's history method still reads the default route, so routed charts use the history from their live subscription.
 
 - Every channel supports `pause()` and `resume()`. Except in `candles`, pauses are counted and the last `resume()` replays the latest cached value. `candles` uses a boolean flag and replays nothing. The controller pauses channels by name through the `streamManager` platform dependency.
 - `clearCache()` drops the cache, unsubscribes, and sends each subscriber its empty value so it shows loading.

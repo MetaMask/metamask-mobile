@@ -43,24 +43,6 @@ export type PerpsActivityListItem = ActivityListItem & {
 
 export { formatPerpsTransactionDate, getPerpsAssetIconUrls, formatPerpsFiat };
 
-export function formatSignedPerpsFiat(
-  amount: number | string,
-  isPositive: boolean,
-): string {
-  const absolute = BigNumber(amount).absoluteValue();
-  const sign = isPositive ? '+' : '-';
-
-  if (absolute.isEqualTo(0)) {
-    return '$0';
-  }
-
-  if (absolute.isLessThan(0.01)) {
-    return `${sign}$${absolute.toFixed()}`;
-  }
-
-  return `${sign}${formatPerpsFiat(absolute.toString())}`;
-}
-
 export function getPerpsPositionSize(
   fill: PerpsTransaction['fill'],
 ): string | undefined {

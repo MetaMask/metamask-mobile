@@ -40,14 +40,13 @@ describe('resolveCancelAllSuccessFeedback', () => {
       action: 'partial',
       successCount: 1,
       totalCount: 2,
-      shouldCloseOverlay: true,
     });
   });
 
-  it('returns none when success is false and there are no failures', () => {
+  it('returns none when no orders matched', () => {
     const result = {
       success: false,
-      successCount: 1,
+      successCount: 0,
       failureCount: 0,
     } as CancelOrdersResult;
 

@@ -437,11 +437,11 @@ export const usePerpsClosePosition = (
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
-        if (result.success || isNoPositionFoundError(result.error)) {
+        if (result.success || isNoPositionFoundError(result)) {
           recordPerpsAction();
         }
 
-        if (!result.success && isNoPositionFoundError(result.error)) {
+        if (!result.success && isNoPositionFoundError(result)) {
           reconcileAlreadyClosed();
           return result;
         }

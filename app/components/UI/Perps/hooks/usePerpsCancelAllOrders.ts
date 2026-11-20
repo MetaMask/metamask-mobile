@@ -5,6 +5,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import {
+  getBatchOperationStatus,
   type Order,
   type CancelOrdersResult,
 } from '@metamask/perps-controller';
@@ -89,11 +90,17 @@ export const usePerpsCancelAllOrders = (
       // A filtered view must cancel exactly what it lists. Scope by orderId
       // rather than symbol: a single market can hold both a long and a short
       // order, and the side filter can select only one of them.
+      const targets = orders.flatMap(({ orderId, providerId }) =>
+        providerId ? [{ orderId, providerId }] : [],
+      );
       const result = await Engine.context.PerpsController.cancelOrders(
         isFiltered
-          ? { orderIds: orders.map((order) => order.orderId) }
+          ? targets.length === orders.length
+            ? { orders: targets }
+            : { orderIds: orders.map(({ orderId }) => orderId) }
           : { cancelAll: true },
       );
+      const status = result.status ?? getBatchOperationStatus(result);
 
       DevLogger.log('[usePerpsCancelAllOrders] Cancel result', {
         success: result.success,
@@ -106,8 +113,7 @@ export const usePerpsCancelAllOrders = (
         onSuccess(result);
       }
 
-      // Navigate back on any success (full or partial)
-      if (navigateBackOnSuccess && result.successCount > 0) {
+      if (navigateBackOnSuccess && status === 'all') {
         if (navigation.canGoBack()) {
           navigation.goBack();
         } else {
@@ -119,7 +125,7 @@ export const usePerpsCancelAllOrders = (
       // `failureCount` is 0 when the request matched no cancelable order at all,
       // so fall back to the listed count rather than returning quietly — a
       // silent return reads to the user as a dead button.
-      if (result.successCount === 0) {
+      if (status === 'none') {
         throw new Error(
           strings('perps.cancel_all_modal.error_message', {
             count: result.failureCount || orders.length,

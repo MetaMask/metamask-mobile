@@ -1,5 +1,4 @@
 import type {
-  AccountState,
   PerpsMarketData,
   PerpsProviderType,
   Position,
@@ -13,14 +12,6 @@ import {
   createFundedAccountForViews,
   createLongPositionForViews,
 } from '../fixtures/perpsViewFixtures';
-
-// These are synthetic two-exchange fixtures, not snapshots of what the
-// installed controller emits, and they carry no per-exchange availability yet.
-// Once perps-controller exposes `AccountState.providerStates`, tsc fails on the
-// next line. Then give each scenario per-exchange account states (Lighter down
-// = Lighter 'unavailable') and delete the alias.
-// @ts-expect-error Remove once AccountState exposes providerStates.
-export type PerpsAccountProviderStates = AccountState['providerStates'];
 
 interface ExchangeAccount {
   total: string;
@@ -136,6 +127,41 @@ export const perpsTwoExchangeState = (
         withdrawableBalance: String(Number((total - marginUsed).toFixed(2))),
         marginUsed: String(marginUsed),
         unrealizedPnl: String(unrealizedPnl),
+        providerStates: {
+          hyperliquid: {
+            status: 'available',
+            providerId: 'hyperliquid',
+            state: {
+              ...createFundedAccountForViews(
+                balances.hyperliquid?.total ?? '0',
+              ),
+              providerId: 'hyperliquid',
+            },
+          },
+          lighter: balances.lighter
+            ? {
+                status: 'available',
+                providerId: 'lighter',
+                state: {
+                  ...createFundedAccountForViews(balances.lighter.total),
+                  spendableBalance: String(
+                    Number(balances.lighter.total) -
+                      Number(balances.lighter.marginUsed ?? 0),
+                  ),
+                  marginUsed: balances.lighter.marginUsed ?? '0',
+                  unrealizedPnl: balances.lighter.unrealizedPnl ?? '0',
+                  providerId: 'lighter',
+                },
+              }
+            : { status: 'unavailable', providerId: 'lighter' },
+        },
+        aggregate: {
+          status: balances.lighter ? 'complete' : 'partial',
+          availableProviders: balances.lighter
+            ? ['hyperliquid', 'lighter']
+            : ['hyperliquid'],
+          unavailableProviders: balances.lighter ? [] : ['lighter'],
+        },
       },
       positions,
       orders: [],

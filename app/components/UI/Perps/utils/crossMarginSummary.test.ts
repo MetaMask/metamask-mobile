@@ -1,7 +1,6 @@
 import type { AccountState } from '@metamask/perps-controller';
 import {
   calculateCrossMarginAccountSummaryFromAccount,
-  estimateCrossLiquidationPrice,
   getCrossMarginRatioAlert,
   getCrossMarginRatioAlertLabel,
   getCrossMarginRatioTone,
@@ -106,87 +105,6 @@ describe('crossMarginSummary', () => {
     it('masks the ratio while privacy mode is on', () => {
       expect(getCrossMarginRatioAlertLabel(0.8, true)).toBe('••••••');
       expect(getCrossMarginRatioAlertLabel(0.8, false)).toBe('80%');
-    });
-  });
-
-  describe('estimateCrossLiquidationPrice', () => {
-    const params = {
-      entryPrice: 100,
-      size: 10,
-      maxLeverage: 50,
-      crossMarginSummary,
-      spotCollateral: '0',
-      providerId: 'hyperliquid' as const,
-    };
-
-    it.each([
-      [true, 25.2525],
-      [false, 173.2673],
-    ])(
-      'finds where equity meets maintenance margin (long: %s)',
-      (isLong, expected) => {
-        expect(
-          estimateCrossLiquidationPrice({ ...params, isLong }),
-        ).toBeCloseTo(expected, 4);
-      },
-    );
-
-    it('returns undefined on a venue other than Hyperliquid', () => {
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: false,
-          providerId: 'lighter',
-        }),
-      ).toBeUndefined();
-    });
-
-    it('returns undefined when the long cannot be liquidated', () => {
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          crossMarginSummary: { ...crossMarginSummary, accountValue: '5000' },
-        }),
-      ).toBeUndefined();
-    });
-
-    it('counts spot collateral and stays unknown while it is not published', () => {
-      // 500 of spot lifts the short's liquidation from 173.2673 to 222.7723
-      const withSpot = estimateCrossLiquidationPrice({
-        ...params,
-        isLong: false,
-        spotCollateral: '500',
-      });
-
-      expect(withSpot).toBeCloseTo(222.7723, 4);
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          spotCollateral: undefined,
-        }),
-      ).toBeUndefined();
-    });
-
-    it('returns undefined without a cross summary, size, or max leverage', () => {
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          crossMarginSummary: undefined,
-        }),
-      ).toBeUndefined();
-      expect(
-        estimateCrossLiquidationPrice({ ...params, isLong: true, size: 0 }),
-      ).toBeUndefined();
-      expect(
-        estimateCrossLiquidationPrice({
-          ...params,
-          isLong: true,
-          maxLeverage: 0,
-        }),
-      ).toBeUndefined();
     });
   });
 

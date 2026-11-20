@@ -1,4 +1,5 @@
-import { renderHook } from '@testing-library/react-hooks';
+import type { PerpsProviderType } from '@metamask/perps-controller';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { usePerpsTopOfBook } from './usePerpsTopOfBook';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 
@@ -6,7 +7,13 @@ jest.mock('../../providers/PerpsStreamManager');
 
 describe('usePerpsTopOfBook', () => {
   const mockUnsubscribe = jest.fn();
-  const mockSubscribeToSymbol = jest.fn(() => mockUnsubscribe);
+  const mockSubscribeToSymbol = jest.fn(
+    (
+      _params: Parameters<
+        ReturnType<typeof usePerpsStream>['topOfBook']['subscribeToSymbol']
+      >[0],
+    ) => mockUnsubscribe,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -57,5 +64,24 @@ describe('usePerpsTopOfBook', () => {
     rerender({ symbol: 'ETH' });
 
     expect(mockSubscribeToSymbol).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears same-symbol quotes until the new venue reports a book', () => {
+    const { result, rerender } = renderHook(
+      ({ providerId }: { providerId: PerpsProviderType }) =>
+        usePerpsTopOfBook({ symbol: 'BTC', providerId }),
+      { initialProps: { providerId: 'hyperliquid' } },
+    );
+    const [{ callback: hyperliquid }] = mockSubscribeToSymbol.mock.calls[0];
+    act(() => hyperliquid({ bestBid: '100', bestAsk: '101' }));
+    expect(result.current).toEqual({ bestBid: '100', bestAsk: '101' });
+
+    rerender({ providerId: 'lighter' });
+    act(() => hyperliquid({ bestBid: '102', bestAsk: '103' }));
+    expect(result.current).toBeUndefined();
+
+    const [{ callback: lighter }] = mockSubscribeToSymbol.mock.calls[1];
+    act(() => lighter({ bestBid: '200', bestAsk: '201' }));
+    expect(result.current).toEqual({ bestBid: '200', bestAsk: '201' });
   });
 });

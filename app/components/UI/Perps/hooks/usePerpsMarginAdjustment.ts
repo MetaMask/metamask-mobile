@@ -6,6 +6,7 @@ import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
 import {
+  calculateMaxRemovableMargin,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
@@ -13,7 +14,6 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { translatePerpsError } from '../utils/translatePerpsError';
-import { calculateMaxRemovableMargin } from '../utils/marginUtils';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 export interface UsePerpsMarginAdjustmentOptions {
@@ -59,7 +59,6 @@ export function usePerpsMarginAdjustment(
         const params = {
           currentMargin: parseFloat(position.marginUsed),
           positionSize: Math.abs(parseFloat(position.size)),
-          entryPrice: parseFloat(position.entryPrice),
           currentPrice: 0,
           positionLeverage: position.leverage?.value ?? 0,
           notionalValue: parseFloat(position.positionValue),
@@ -166,7 +165,7 @@ export function usePerpsMarginAdjustment(
         } else {
           DevLogger.log('Failed to adjust margin:', result.error);
 
-          const errorMessage = translatePerpsError(result.error);
+          const errorMessage = translatePerpsError(result);
           trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
 
           showToast(

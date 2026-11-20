@@ -119,6 +119,8 @@ Each channel's `connect()` calls `ensureReady()` before subscribing:
 
 Retries stop when no subscribers remain or after 150 attempts. Without the guard, the controller's `subscribeTo*` returns a no-op unsubscribe when no provider exists, the channel keeps it, and no callback ever fires, which leaves an endless skeleton.
 
+The Pro chart and order book pin their subscriptions to the selected venue when a route is needed. The dedicated aggregated order-book connection is Hyperliquid-only. Other venues use their controller-routed book and Core's grouping function.
+
 All channels except `candles` use `ensureReady()`. `marketData` skips it when the Terminal global snapshot is active. `CandleStreamChannel` runs its own reinitialization and `isInitialized` checks.
 
 Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx` `StreamChannel.ensureReady`, `deferConnect`, `awaitConnectionThenConnect`, `MAX_CONNECT_RETRIES`; `app/components/UI/Perps/providers/channels/CandleStreamChannel.ts`.

@@ -141,7 +141,8 @@ describe('usePerpsCloseAllPositions', () => {
       createMockPosition({ symbol: 'ETH' }),
     ];
     const mockResult = {
-      success: false,
+      success: true,
+      status: 'partial',
       successCount: 1,
       failureCount: 1,
       results: [],
@@ -160,7 +161,7 @@ describe('usePerpsCloseAllPositions', () => {
     await waitFor(() => {
       expect(result.current.isClosing).toBe(false);
     });
-    expect(mockNavigation.goBack).toHaveBeenCalled();
+    expect(mockNavigation.goBack).not.toHaveBeenCalled();
     expect(result.current.error).toBeNull();
   });
 

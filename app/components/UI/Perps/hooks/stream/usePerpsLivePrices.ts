@@ -1,10 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import { type PriceUpdate } from '@metamask/perps-controller';
+import type {
+  PerpsProviderType,
+  PriceUpdate,
+} from '@metamask/perps-controller';
+
+const EMPTY_PRICES: Record<string, PriceUpdate> = {};
 
 export interface UsePerpsLivePricesOptions {
   /** Array of symbols to subscribe to */
   symbols: string[];
+  /** Restrict updates to this execution venue when provided. */
+  providerId?: PerpsProviderType;
   /** Throttle delay in milliseconds (default: 1000ms to prevent excessive re-renders) */
   throttleMs?: number;
 }
@@ -24,42 +31,49 @@ export interface UsePerpsLivePricesOptions {
 export function usePerpsLivePrices(
   options: UsePerpsLivePricesOptions,
 ): Record<string, PriceUpdate> {
-  const { symbols, throttleMs = 1000 } = options; // 1 second default for balanced performance
+  const { symbols, providerId, throttleMs = 1000 } = options;
   const stream = usePerpsStream();
-  const [prices, setPrices] = useState<Record<string, PriceUpdate>>({});
-
-  // Memoize joined symbols to prevent unnecessary effect re-runs
-  const symbolsKey = useMemo(() => symbols.join(','), [symbols]);
+  const symbolsKey = JSON.stringify(symbols);
+  const route = useMemo(
+    () => ({ symbols: JSON.parse(symbolsKey) as string[], providerId, stream }),
+    [symbolsKey, providerId, stream],
+  );
+  const [snapshot, setSnapshot] = useState<{
+    route: typeof route;
+    prices: Record<string, PriceUpdate>;
+  }>();
 
   useEffect(() => {
-    if (symbols.length === 0) return;
+    if (route.symbols.length === 0) return;
 
-    const unsubscribe = stream.prices.subscribeToSymbols({
-      symbols,
-      callback: (newPrices) => {
-        if (!newPrices) {
+    let active = true;
+    const unsubscribe = route.stream.prices.subscribeToSymbols({
+      symbols: route.symbols,
+      providerId: route.providerId,
+      callback: (prices) => {
+        if (!active || !prices) return;
+
+        // The channel delivers ticks for changed symbols and an empty payload
+        // on cache clear. Merge prices only within the current subscription.
+        if (Object.keys(prices).length === 0) {
+          setSnapshot({ route, prices: EMPTY_PRICES });
           return;
         }
-        // Live WebSocket ticks deliver only the symbols that changed, so
-        // replacing would wipe every other subscribed symbol's price. Merge
-        // instead, and treat an empty payload as the channel's cache-clear
-        // signal so stale prices do not survive a reconnect or account switch.
-        if (Object.keys(newPrices).length === 0) {
-          setPrices({});
-          return;
-        }
-        setPrices((prev) => ({ ...prev, ...newPrices }));
+        setSnapshot((previous) => ({
+          route,
+          prices: {
+            ...(previous?.route === route ? previous.prices : EMPTY_PRICES),
+            ...prices,
+          },
+        }));
       },
       throttleMs,
     });
-
     return () => {
+      active = false;
       unsubscribe();
     };
-    // symbolsKey captures symbols changes via memoization, so symbols is intentionally omitted
-    // to prevent re-subscriptions when array reference changes but content is the same
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stream, symbolsKey, throttleMs]);
+  }, [route, throttleMs]);
 
-  return prices;
+  return snapshot?.route === route ? snapshot.prices : EMPTY_PRICES;
 }

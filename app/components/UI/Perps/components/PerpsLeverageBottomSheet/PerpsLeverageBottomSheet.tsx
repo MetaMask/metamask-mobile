@@ -200,7 +200,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       },
     );
 
-  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice);
+  const dynamicLiquidationPrice = Number.parseFloat(apiLiquidationPrice ?? '');
 
   // Cache last valid liquidation price so the UI always shows a value
   // instead of blinking a skeleton loader during passive price updates.
