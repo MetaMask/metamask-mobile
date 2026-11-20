@@ -2,16 +2,24 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import TokenDetailsPagePending from './TokenDetailsPagePending';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-
 const mockHeader = jest.fn((_props: Record<string, unknown>) => null);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: jest.fn() }),
 }));
 
-jest.mock('react-redux', () => ({
-  useSelector: () => false,
-}));
+let mockBrandRefreshEnabled = false;
+
+jest.mock('react-redux', () => {
+  const { selectTokenDetailsBrandRefreshEnabled: brandRefreshSelector } =
+    jest.requireActual(
+      '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh',
+    );
+  return {
+    useSelector: (selector: unknown) =>
+      selector === brandRefreshSelector ? mockBrandRefreshEnabled : false,
+  };
+});
 
 jest.mock('../../AssetOverview/Price/hooks/useTokenChartPreferences', () => ({
   useTokenChartPreferences: () => ({
@@ -69,6 +77,7 @@ const token = {
 
 describe('TokenDetailsPagePending', () => {
   beforeEach(() => {
+    mockBrandRefreshEnabled = false;
     mockHeader.mockClear();
   });
 
@@ -79,6 +88,7 @@ describe('TokenDetailsPagePending', () => {
       expect.objectContaining({
         showIdentityInHeader: false,
         hideContractAddress: true,
+        isGlass: false,
       }),
     );
 
@@ -89,5 +99,19 @@ describe('TokenDetailsPagePending', () => {
       serialized.indexOf('pending-price'),
     );
     expect(view.getByTestId('pending-header')).toBeOnTheScreen();
+  });
+
+  it('floats the glass header when brand refresh is enabled', () => {
+    mockBrandRefreshEnabled = true;
+
+    render(<TokenDetailsPagePending token={token} />);
+
+    expect(mockHeader).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGlass: true,
+        onLayout: expect.any(Function),
+        scrollY: expect.any(Object),
+      }),
+    );
   });
 });
