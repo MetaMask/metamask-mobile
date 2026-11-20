@@ -978,6 +978,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               if (depth < 5) {
                 navigation.navigate(Routes.RAMP.MICA_CONSENT, {
                   quote,
+                  quoteId: quote.quoteId,
                   ...(baseRouteParams ?? {}),
                 });
               } else {
@@ -995,19 +996,51 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
               if (depth < 5) {
                 navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
                   quote,
+                  quoteId: quote.quoteId,
                   metadata: {
-                    options: [],
+                    options: sourceOfIncomeForm.metadata?.options || [],
                     documentProofOptions: [],
                     expiresAt: '',
                     kycUrl: '',
                     workFlowRunId: '',
-                    ...sourceOfIncomeForm.metadata,
+                    ...(sourceOfIncomeForm.metadata || {}),
                   },
                   ...(baseRouteParams ?? {}),
                 });
               } else {
                 Logger.error(
                   new Error(`Source of income depth exceeded: ${depth}`),
+                );
+              }
+              return;
+            }
+
+            const additionalDetailsNationalityForm = formsRequired.find(
+              (f) => f.type === 'ADDITIONAL_DETAILS_NATIONALITY',
+            );
+            if (additionalDetailsNationalityForm) {
+              if (depth < 5) {
+                navigation.navigate(
+                  Routes.RAMP.ADDITIONAL_DETAILS_NATIONALITY,
+                  {
+                    quote,
+                    quoteId: quote.quoteId,
+                    metadata: {
+                      options: [],
+                      documentProofOptions: [],
+                      expiresAt: '',
+                      kycUrl: '',
+                      workFlowRunId: '',
+                      ...additionalDetailsNationalityForm.metadata,
+                    },
+                    ...(baseRouteParams ?? {}),
+                  },
+                );
+              } else {
+                Logger.error(
+                  new Error(
+                    `Additional details nationality depth exceeded: ${depth}`,
+                  ),
                 );
               }
               return;

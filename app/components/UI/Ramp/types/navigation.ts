@@ -13,6 +13,7 @@ import type { HeadlessHostParams } from '../Views/HeadlessHost/HeadlessHost';
 import type { RampsOrderDetailsParams } from '../utils/rampsNavigation';
 import type { MicaConsentParams } from '../Views/NativeFlow/MicaConsent';
 import type { SourceOfIncomeParams } from '../Views/NativeFlow/SourceOfIncome';
+import type { AdditionalDetailsNationalityParams } from '../Views/NativeFlow/AdditionalDetailsNationality';
 import type { SimpleRampBuildQuoteParams } from '../Aggregator/types/navigation';
 import type { BuildQuoteParams as RampAggregatorBuildQuoteParams } from '../Aggregator/Views/BuildQuote/BuildQuote';
 
@@ -51,6 +52,7 @@ export type RampScreensStackParamList = {
   RampHeadlessHost: HeadlessHostParams;
   RampMicaConsent: MicaConsentParams;
   RampSourceOfIncome: SourceOfIncomeParams;
+  RampAdditionalDetailsNationality: AdditionalDetailsNationalityParams;
 };
 
 /**

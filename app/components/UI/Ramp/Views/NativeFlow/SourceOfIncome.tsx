@@ -1,9 +1,8 @@
 /**
- * Collects source of funds, monthly volume, employment status, and nationality
- * for EEA users per MiCA requirements.
+ * Collects source of funds and monthly volume for MiCA SOURCE_OF_INCOME form.
  */
 
-import React, { useCallback, useState, useEffect } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +23,6 @@ import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import type {
   TransakAdditionalRequirement,
   TransakBuyQuote,
@@ -33,28 +31,24 @@ import { useSelector } from 'react-redux';
 import { useTransakController } from '../../hooks/useTransakController';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import {
-  isMicaMockModeEnabled,
-  mockSubmitSourceOfIncome,
-  EEA_COUNTRIES,
-} from '../../utils/micaMockMode';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
-import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import styleSheet from './SourceOfIncome.styles';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import PrivacySection from '../../components/PrivacySection';
 
-interface SourceOfIncomeMetadata
-  extends NonNullable<TransakAdditionalRequirement['metadata']> {
-  sourceOfFundsTypeOptions?: { name: string; value: string }[];
-  employmentStatusOptions?: { name: string; value: string }[];
-  countryOfCitizenshipOptions?: { name: string; value: string }[];
+interface SourceOfIncomeMetadata {
+  options?: Array<{ name: string; value: string }>;
+  documentProofOptions?: string[];
+  expiresAt?: string;
+  kycUrl?: string;
+  workFlowRunId?: string;
 }
 
 export interface SourceOfIncomeParams {
   quote: TransakBuyQuote;
+  quoteId: string;
   metadata: SourceOfIncomeMetadata;
   /** Optional callback to continue KYC flow (for testing or direct navigation) */
   onSourceOfIncomeSubmitted?: () => void;
@@ -65,11 +59,16 @@ const SourceOfIncome = (): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { quote, metadata, onSourceOfIncomeSubmitted, headlessSessionId } =
-    useParams<SourceOfIncomeParams>();
+  const {
+    quote,
+    quoteId,
+    metadata,
+    onSourceOfIncomeSubmitted,
+    headlessSessionId,
+  } = useParams<SourceOfIncomeParams>();
   const {
     submitSourceOfIncome: submitSourceOfIncomeController,
-    getUserDetails,
+    getKycRequirement,
     getAdditionalRequirements,
   } = useTransakController();
   const { routeAfterAuthentication } = useTransakRouting({
@@ -79,95 +78,11 @@ const SourceOfIncome = (): React.JSX.Element => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [retrying, setRetrying] = useState(false);
   const [monthlyVolume, setMonthlyVolume] = useState('');
   const [sourceOfFundsType, setSourceOfFundsType] = useState('');
-  const [employmentStatus, setEmploymentStatus] = useState('');
-  const [countryOfCitizenship, setCountryOfCitizenship] = useState('');
-  const [addressCountryCode, setAddressCountryCode] = useState<string>('');
-  const [userDetailsLoading, setUserDetailsLoading] = useState(true);
-  const [currentMetadata, setCurrentMetadata] =
-    useState<SourceOfIncomeMetadata>(metadata);
-
-  const handleRetryFetchRequirements = useCallback(async () => {
-    setRetrying(true);
-    setError(null);
-    try {
-      const freshRequirements = await getAdditionalRequirements(quote.quoteId);
-      const sourceOfIncomeForm = freshRequirements?.formsRequired?.find(
-        (f) => f.type === 'SOURCE_OF_INCOME',
-      );
-      if (sourceOfIncomeForm?.metadata) {
-        setCurrentMetadata({
-          options: [],
-          documentProofOptions: [],
-          expiresAt: '',
-          kycUrl: '',
-          workFlowRunId: '',
-          ...sourceOfIncomeForm.metadata,
-        });
-      }
-    } catch (err) {
-      Logger.error(
-        err as Error,
-        'SourceOfIncome: Failed to retry fetch requirements',
-      );
-      setError(
-        parseUserFacingError(
-          err,
-          strings('deposit.source_of_income.fetch_error'),
-        ),
-      );
-    } finally {
-      setRetrying(false);
-    }
-  }, [getAdditionalRequirements, quote.quoteId]);
-
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        const details = await getUserDetails();
-        setAddressCountryCode(details?.address?.countryCode || '');
-      } catch (err) {
-        Logger.error(
-          err as Error,
-          'SourceOfIncome: Failed to fetch user details',
-        );
-      } finally {
-        setUserDetailsLoading(false);
-      }
-    };
-    fetchUserDetails();
-  }, [getUserDetails]);
-
-  const regionIsoCode = userRegion?.country?.isoCode || '';
-  const effectiveCountryCode = addressCountryCode || regionIsoCode;
-  const isEEA = EEA_COUNTRIES.includes(effectiveCountryCode.toUpperCase());
 
   const sourceOfFundsOptions: { name: string; value: string }[] =
-    currentMetadata.sourceOfFundsTypeOptions || [];
-  const employmentStatusOptions: { name: string; value: string }[] =
-    currentMetadata.employmentStatusOptions || [];
-  const countryOfCitizenshipOptions: { name: string; value: string }[] =
-    currentMetadata.countryOfCitizenshipOptions || [];
-
-  const hasEEAFieldsMissing =
-    isEEA &&
-    !userDetailsLoading &&
-    (!employmentStatusOptions.length || !countryOfCitizenshipOptions.length);
-
-  useEffect(() => {
-    if (hasEEAFieldsMissing && !retrying) {
-      const timer = setTimeout(() => {
-        Logger.log(
-          'SourceOfIncome: Auto-retrying requirements fetch for EEA user with missing options',
-        );
-        handleRetryFetchRequirements();
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [hasEEAFieldsMissing, retrying, handleRetryFetchRequirements]);
+    metadata.options || [];
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -180,7 +95,6 @@ const SourceOfIncome = (): React.JSX.Element => {
   const handleSubmit = useCallback(async () => {
     setError(null);
 
-    // Validation
     if (
       !monthlyVolume ||
       Number.isNaN(Number(monthlyVolume)) ||
@@ -193,40 +107,22 @@ const SourceOfIncome = (): React.JSX.Element => {
       setError(strings('deposit.mica.sourceOfFundsRequired'));
       return;
     }
-    if (isEEA && !employmentStatus) {
-      setError(strings('deposit.mica.employmentStatusRequired'));
-      return;
-    }
-    if (isEEA && !countryOfCitizenship) {
-      setError(strings('deposit.mica.nationalityRequired'));
-      return;
-    }
 
     setLoading(true);
 
     try {
-      const requestData = {
+      const result = await submitSourceOfIncomeController(
         monthlyVolume,
         sourceOfFundsType,
-        ...(isEEA && { employmentStatus, countryOfCitizenship }),
-      };
+      );
 
-      let result;
-      if (isMicaMockModeEnabled()) {
-        result = await mockSubmitSourceOfIncome(requestData);
-      } else {
-        result = await submitSourceOfIncomeController(
-          monthlyVolume,
-          sourceOfFundsType,
-          employmentStatus,
-          countryOfCitizenship,
-        );
-      }
-
-      if (result && result.status === 'FAILED') {
+      if (result.status === 'FAILED') {
         setError(strings('deposit.mica.sourceOfIncomeSubmitError'));
         return;
       }
+
+      await getKycRequirement(quoteId);
+      await getAdditionalRequirements(quoteId);
 
       if (onSourceOfIncomeSubmitted) {
         onSourceOfIncomeSubmitted();
@@ -247,26 +143,16 @@ const SourceOfIncome = (): React.JSX.Element => {
   }, [
     monthlyVolume,
     sourceOfFundsType,
-    employmentStatus,
-    countryOfCitizenship,
-    isEEA,
+    quoteId,
+    getKycRequirement,
+    getAdditionalRequirements,
     onSourceOfIncomeSubmitted,
     quote,
     routeAfterAuthentication,
     submitSourceOfIncomeController,
   ]);
 
-  const isFormValid =
-    monthlyVolume &&
-    sourceOfFundsType &&
-    (!isEEA || (employmentStatus && countryOfCitizenship)) &&
-    !hasEEAFieldsMissing;
-
-  if (isMicaMockModeEnabled()) {
-    Logger.log('[MiCA Mock] SourceOfIncome screen rendered in mock mode', {
-      isEEA,
-    });
-  }
+  const isFormValid = monthlyVolume && sourceOfFundsType;
 
   return (
     <ScreenLayout>
@@ -309,24 +195,6 @@ const SourceOfIncome = (): React.JSX.Element => {
                 style={styles.errorBanner}
               />
             )}
-            {hasEEAFieldsMissing && !error && (
-              <BannerAlert
-                severity={BannerAlertSeverity.Error}
-                title={strings(
-                  'deposit.source_of_income.eea_fields_missing_title',
-                )}
-                description={strings(
-                  'deposit.source_of_income.eea_fields_missing_description',
-                )}
-                actionButtonProps={{
-                  variant: ButtonVariants.Link,
-                  label: strings('deposit.source_of_income.retry_button'),
-                  onPress: handleRetryFetchRequirements,
-                  disabled: retrying,
-                }}
-                style={styles.errorBanner}
-              />
-            )}
 
             <View style={styles.section}>
               <DepositTextField
@@ -357,38 +225,6 @@ const SourceOfIncome = (): React.JSX.Element => {
                 onValueChange={setSourceOfFundsType}
               />
             </View>
-
-            {isEEA && (
-              <>
-                <View style={styles.section}>
-                  <DepositSelectField
-                    label={strings(
-                      'deposit.source_of_income.employment_status_label',
-                    )}
-                    placeholder={strings(
-                      'deposit.source_of_income.employment_status_placeholder',
-                    )}
-                    options={employmentStatusOptions}
-                    selectedValue={employmentStatus}
-                    onValueChange={setEmploymentStatus}
-                  />
-                </View>
-
-                <View style={styles.section}>
-                  <DepositSelectField
-                    label={strings(
-                      'deposit.source_of_income.nationality_label',
-                    )}
-                    placeholder={strings(
-                      'deposit.source_of_income.nationality_placeholder',
-                    )}
-                    options={countryOfCitizenshipOptions}
-                    selectedValue={countryOfCitizenship}
-                    onValueChange={setCountryOfCitizenship}
-                  />
-                </View>
-              </>
-            )}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>

@@ -38,6 +38,7 @@ export const RAMP_V2_SCREEN_ID = {
   UNSUPPORTED_STATE_MODAL: 'unsupported_state_modal',
   MICA_CONSENT: 'mica_consent',
   SOURCE_OF_INCOME: 'source_of_income',
+  ADDITIONAL_DETAILS_NATIONALITY: 'additional_details_nationality',
 } as const;
 
 export type RampV2ScreenId =

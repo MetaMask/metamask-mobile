@@ -197,7 +197,7 @@
     "@metamask/network-controller": "^38.0.0",
     "@metamask/analytics-controller": "^4.3.0",
     "@metamask/utils": "^12.0.2",
-    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@30.1.0-preview-c4a9d828a",
+    "@metamask/ramps-controller": "npm:@metamask-previews/ramps-controller@30.1.0-preview-ba375515a",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
     "@appium/schema/json-schema": "^0.4.0",

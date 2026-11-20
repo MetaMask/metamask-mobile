@@ -26,24 +26,6 @@ import type {
   TransakOrder,
   RampsController,
 } from '@metamask/ramps-controller';
-import {
-  injectMicaTermsIds,
-  getMockConsentForm,
-  getMockSourceOfIncomeForm,
-  isMicaMockModeEnabled,
-} from '../utils/micaMockMode';
-
-interface RampsControllerWithMica extends RampsController {
-  transakSubmitMicaConsent: (
-    consentedAt: string,
-  ) => Promise<{ status: string }>;
-  transakSubmitSourceOfIncome: (
-    monthlyVolume: string,
-    sourceOfFundsType: string,
-    employmentStatus: string,
-    countryOfCitizenship: string,
-  ) => Promise<{ status: string }>;
-}
 
 export interface UseTransakControllerResult {
   transak: TransakState;
@@ -118,13 +100,15 @@ export interface UseTransakControllerResult {
   submitSsnDetails: (ssn: string, quoteId: string) => Promise<unknown>;
   submitMicaConsent: (
     consentedAt: string,
-  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' } | void>;
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' }>;
   submitSourceOfIncome: (
     monthlyVolume: string,
     sourceOfFundsType: string,
-    employmentStatus?: string,
-    countryOfCitizenship?: string,
-  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' } | void>;
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' }>;
+  submitAdditionalDetailsNationality: (
+    employmentStatus: string,
+    countryOfCitizenship: string,
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' }>;
   confirmPayment: (
     orderId: string,
     paymentMethodId: string,
@@ -245,11 +229,6 @@ export function useTransakController(): UseTransakControllerResult {
         isFeeExcludedFromFiat,
       );
 
-      // MiCA mock mode: inject termsIds for testing disclaimer display
-      if (__DEV__) {
-        return injectMicaTermsIds(quote);
-      }
-
       return quote;
     },
     [],
@@ -261,23 +240,11 @@ export function useTransakController(): UseTransakControllerResult {
     [],
   );
 
-  const getAdditionalRequirements = useCallback(async (quoteId: string) => {
-    // MiCA mock mode support (dev-only, off by default)
-    // TODO: Remove this once core is integrated and tested
-    if (__DEV__) {
-      if (isMicaMockModeEnabled()) {
-        // Simulate MiCA flow: return CONSENT first, then SOURCE_OF_INCOME
-        // In a real scenario, the server decides based on user state
-        const hasConsented = false; // Mock: toggle to test SOURCE_OF_INCOME
-        if (!hasConsented) {
-          return getMockConsentForm();
-        }
-        return getMockSourceOfIncomeForm();
-      }
-    }
-
-    return await getRampsController().transakGetAdditionalRequirements(quoteId);
-  }, []);
+  const getAdditionalRequirements = useCallback(
+    async (quoteId: string) =>
+      getRampsController().transakGetAdditionalRequirements(quoteId),
+    [],
+  );
 
   const createOrder = useCallback(
     async (quoteId: string, walletAddress: string, paymentMethodId: string) =>
@@ -396,14 +363,10 @@ export function useTransakController(): UseTransakControllerResult {
   );
 
   const submitMicaConsent = useCallback(
-    async (
-      consentedAt: string,
-    ): Promise<{ status: 'SUBMITTED' | 'FAILED' } | void> =>
-      (
-        getRampsController() as RampsControllerWithMica
-      ).transakSubmitMicaConsent(consentedAt) as Promise<{
+    async (consentedAt: string): Promise<{ status: 'SUBMITTED' | 'FAILED' }> =>
+      getRampsController().transakSubmitMicaConsent(consentedAt) as Promise<{
         status: 'SUBMITTED' | 'FAILED';
-      } | void>,
+      }>,
     [],
   );
 
@@ -411,17 +374,23 @@ export function useTransakController(): UseTransakControllerResult {
     async (
       monthlyVolume: string,
       sourceOfFundsType: string,
-      employmentStatus?: string,
-      countryOfCitizenship?: string,
-    ): Promise<{ status: 'SUBMITTED' | 'FAILED' } | void> =>
-      (
-        getRampsController() as RampsControllerWithMica
-      ).transakSubmitSourceOfIncome(
+    ): Promise<{ status: 'SUBMITTED' | 'FAILED' }> =>
+      getRampsController().transakSubmitSourceOfIncome(
         monthlyVolume,
         sourceOfFundsType,
-        employmentStatus || '',
-        countryOfCitizenship || '',
-      ) as Promise<{ status: 'SUBMITTED' | 'FAILED' } | void>,
+      ) as Promise<{ status: 'SUBMITTED' | 'FAILED' }>,
+    [],
+  );
+
+  const submitAdditionalDetailsNationality = useCallback(
+    async (
+      employmentStatus: string,
+      countryOfCitizenship: string,
+    ): Promise<{ status: 'SUBMITTED' | 'FAILED' }> =>
+      getRampsController().transakSubmitAdditionalDetailsNationality(
+        employmentStatus,
+        countryOfCitizenship,
+      ) as Promise<{ status: 'SUBMITTED' | 'FAILED' }>,
     [],
   );
 
@@ -465,6 +434,7 @@ export function useTransakController(): UseTransakControllerResult {
     getActiveOrders,
     submitMicaConsent,
     submitSourceOfIncome,
+    submitAdditionalDetailsNationality,
   };
 }
 

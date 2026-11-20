@@ -1162,6 +1162,7 @@
       "nationalityRequired": "Nationality is required",
       "sourceOfIncomeSubmitError": "Unable to submit source of income. Please try again.",
       "submitButton": "Submit",
+      "retry_button": "Retry",
       "buyDisclaimer": "Subject to regulatory disclosures: In line with the new Markets in Crypto-Assets regulation, Transak GmbH, a virtual asset service provider (VASP) authorised by Austria's Financial Market Authority (FMA) under the new Markets in Crypto-Assets Regulation (MiCAR), is legally required to inform you that: Crypto-assets are not considered legal tender in Austria. Crypto-assets and related services are not backed or regulated by the Austrian Central Bank. Crypto-assets are not covered by the deposit guarantee scheme or the investor compensation scheme. Crypto-asset services are not subject to EU financial services rules under MiFID II (Markets in Financial Instruments Directive). You may lose part or all of your invested capital. The value of crypto-assets can be extremely volatile and unpredictable. We do not offer advice in relation to crypto-assets. For more information, visit {{fmaLink}} and {{euLink}}.",
       "sellDisclaimer": "Subject to regulatory disclosures: In line with the new Markets in Crypto-Assets regulation, Transak GmbH, a virtual asset service provider (VASP) authorised by Austria's Financial Market Authority (FMA) under the new Markets in Crypto-Assets Regulation (MiCAR), is legally required to inform you that: Crypto-assets are not considered legal tender in Austria. Crypto-assets and related services are not backed or regulated by the Austrian Central Bank. Crypto-assets are not covered by the deposit guarantee scheme or the investor compensation scheme. Crypto-asset services are not subject to EU financial services rules under MiFID II (Markets in Financial Instruments Directive). You may lose part or all of your invested capital. The value of crypto-assets can be extremely volatile and unpredictable. We do not offer advice in relation to crypto-assets. For more information, visit {{fmaLink}} and {{euLink}}.",
       "fmaLink": "https://www.fma.gv.at",
@@ -1198,7 +1199,18 @@
       "terms_consent_prefix": "I agree with Transak's",
       "terms_link_text": "Terms of Use",
       "terms_consent_middle": "and",
-      "privacy_link_text": "Privacy Policy"
+      "privacy_link_text": "Privacy Policy",
+      "retry_button": "Retry"
+    },
+    "additional_details_nationality": {
+      "header_title": "Employment & Nationality",
+      "title": "Additional details",
+      "subtitle": "EU regulations require this information before you can buy crypto.",
+      "fields_missing_title": "Required fields unavailable",
+      "fields_missing_description": "Employment status and nationality options could not be loaded. Please try again.",
+      "retry_button": "Retry",
+      "fetch_error": "Unable to load form options. Please try again.",
+      "submitError": "Unable to submit. Please try again."
     }
   },
   "virtual_bank_account": {

@@ -34,12 +34,27 @@ import Checkbox from '../../../../../component-library/components/Checkbox';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import {
-  isMicaMockModeEnabled,
-  mockSubmitMicaConsent,
-} from '../../utils/micaMockMode';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import styleSheet from './MicaConsent.styles';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+
+/**
+ * Generates an ISO 8601 timestamp with timezone offset (e.g. 2024-01-15T10:30:00+01:00)
+ */
+function generateConsentTimestamp(): string {
+  const now = new Date();
+  const offsetMinutes = -now.getTimezoneOffset();
+  const offsetHours = Math.floor(Math.abs(offsetMinutes) / 60);
+  const offsetMins = Math.abs(offsetMinutes) % 60;
+  const offsetSign = offsetMinutes >= 0 ? '+' : '-';
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  const isoDate = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+  const isoTime = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+  const offset = `${offsetSign}${pad(offsetHours)}:${pad(offsetMins)}`;
+
+  return `${isoDate}T${isoTime}${offset}`;
+}
 
 /**
  * Transak returns `dob` as an ISO timestamp. Show the calendar date in UTC so
@@ -86,6 +101,7 @@ export function formatConsentAddress(
 
 export interface MicaConsentParams {
   quote: TransakBuyQuote;
+  quoteId: string;
   /** Optional callback to continue KYC flow (for testing or direct navigation) */
   onConsentSubmitted?: () => void;
   headlessSessionId?: string;
@@ -95,10 +111,14 @@ const MicaConsent = (): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
-  const { quote, onConsentSubmitted, headlessSessionId } =
+  const { quote, quoteId, onConsentSubmitted, headlessSessionId } =
     useParams<MicaConsentParams>();
-  const { getUserDetails, submitMicaConsent: submitMicaConsentController } =
-    useTransakController();
+  const {
+    getUserDetails,
+    submitMicaConsent: submitMicaConsentController,
+    getKycRequirement,
+    getAdditionalRequirements,
+  } = useTransakController();
   const { routeAfterAuthentication } = useTransakRouting({
     screenLocation: 'MicaConsent Screen',
   });
@@ -107,6 +127,10 @@ const MicaConsent = (): React.JSX.Element => {
   const [error, setError] = useState<string | null>(null);
   const [dataProcessingConsent, setDataProcessingConsent] = useState(false);
   const [termsAndPrivacyConsent, setTermsAndPrivacyConsent] = useState(false);
+  const [capturedConsentedAt, setCapturedConsentedAt] = useState<string | null>(
+    null,
+  );
+  const [retrying, setRetrying] = useState(false);
   const [userDetails, setUserDetails] = useState<TransakUserDetails | null>(
     null,
   );
@@ -150,6 +174,52 @@ const MicaConsent = (): React.JSX.Element => {
     );
   }, []);
 
+  const handleRetry = useCallback(async () => {
+    if (!capturedConsentedAt) {
+      Logger.error(new Error('MicaConsent: No captured consentedAt for retry'));
+      return;
+    }
+
+    setRetrying(true);
+    setError(null);
+    setLoading(true);
+
+    try {
+      const result = await submitMicaConsentController(capturedConsentedAt);
+
+      if (result.status === 'FAILED') {
+        setError(strings('deposit.mica.consentSubmitError'));
+        return;
+      }
+
+      await getKycRequirement(quoteId, { quoteId });
+      await getAdditionalRequirements(quoteId, { quoteId });
+
+      if (onConsentSubmitted) {
+        onConsentSubmitted();
+      } else {
+        await routeAfterAuthentication(quote);
+      }
+    } catch (err) {
+      Logger.error(err as Error, 'MicaConsent: Failed to retry consent');
+      setError(
+        parseUserFacingError(err, strings('deposit.mica.consentSubmitError')),
+      );
+    } finally {
+      setLoading(false);
+      setRetrying(false);
+    }
+  }, [
+    capturedConsentedAt,
+    submitMicaConsentController,
+    quoteId,
+    getKycRequirement,
+    getAdditionalRequirements,
+    onConsentSubmitted,
+    quote,
+    routeAfterAuthentication,
+  ]);
+
   const handleSubmit = useCallback(async () => {
     if (!dataProcessingConsent || !termsAndPrivacyConsent) {
       return;
@@ -159,19 +229,18 @@ const MicaConsent = (): React.JSX.Element => {
     setLoading(true);
 
     try {
-      const consentedAt = new Date().toISOString();
+      const consentedAt = generateConsentTimestamp();
+      setCapturedConsentedAt(consentedAt);
 
-      let result;
-      if (isMicaMockModeEnabled()) {
-        result = await mockSubmitMicaConsent(consentedAt);
-      } else {
-        result = await submitMicaConsentController(consentedAt);
-      }
+      const result = await submitMicaConsentController(consentedAt);
 
-      if (result && result.status === 'FAILED') {
+      if (result.status === 'FAILED') {
         setError(strings('deposit.mica.consentSubmitError'));
         return;
       }
+
+      await getKycRequirement(quoteId);
+      await getAdditionalRequirements(quoteId);
 
       if (onConsentSubmitted) {
         onConsentSubmitted();
@@ -189,17 +258,16 @@ const MicaConsent = (): React.JSX.Element => {
   }, [
     dataProcessingConsent,
     termsAndPrivacyConsent,
+    submitMicaConsentController,
+    quoteId,
+    getKycRequirement,
+    getAdditionalRequirements,
     onConsentSubmitted,
     quote,
     routeAfterAuthentication,
-    submitMicaConsentController,
   ]);
 
   const isFormValid = dataProcessingConsent && termsAndPrivacyConsent;
-
-  if (isMicaMockModeEnabled()) {
-    Logger.log('[MiCA Mock] MicaConsent screen rendered in mock mode');
-  }
 
   return (
     <ScreenLayout>
@@ -238,6 +306,16 @@ const MicaConsent = (): React.JSX.Element => {
                 title={strings('deposit.mica.errorTitle')}
                 description={error}
                 style={styles.errorBanner}
+                actionButtonProps={
+                  capturedConsentedAt
+                    ? {
+                        variant: ButtonVariants.Link,
+                        label: strings('deposit.mica.retry_button'),
+                        onPress: handleRetry,
+                        disabled: loading || retrying,
+                      }
+                    : undefined
+                }
               />
             )}
 

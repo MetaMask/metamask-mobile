@@ -18,6 +18,7 @@ import V2AdditionalVerification from './Views/NativeFlow/AdditionalVerification'
 import V2KycWebview from './Views/NativeFlow/KycWebview';
 import MicaConsent from './Views/NativeFlow/MicaConsent';
 import SourceOfIncome from './Views/NativeFlow/SourceOfIncome';
+import AdditionalDetailsNationality from './Views/NativeFlow/AdditionalDetailsNationality';
 import HeadlessHost from './Views/HeadlessHost';
 import UnsupportedTokenModal from './Views/Modals/UnsupportedTokenModal';
 import SettingsModal from './Views/Modals/SettingsModal';
@@ -115,6 +116,10 @@ const InstrumentedSourceOfIncome = withRampScreenPerformance(
   SourceOfIncome,
   RAMP_V2_SCREEN_ID.SOURCE_OF_INCOME,
 );
+const InstrumentedAdditionalDetailsNationality = withRampScreenPerformance(
+  AdditionalDetailsNationality,
+  RAMP_V2_SCREEN_ID.ADDITIONAL_DETAILS_NATIONALITY,
+);
 
 const overlayScreenOptions = {
   ...clearNativeStackNavigatorOptions,
@@ -169,6 +174,10 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.SOURCE_OF_INCOME}
       component={InstrumentedSourceOfIncome}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.ADDITIONAL_DETAILS_NATIONALITY}
+      component={InstrumentedAdditionalDetailsNationality}
     />
     <Stack.Screen
       name={Routes.RAMP.CHECKOUT}

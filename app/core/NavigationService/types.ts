@@ -572,6 +572,7 @@ export type RootStackParamList = {
   RampKycWebview: RampNavigationParamList['RampKycWebview'];
   RampMicaConsent: RampNavigationParamList['RampMicaConsent'];
   RampSourceOfIncome: RampNavigationParamList['RampSourceOfIncome'];
+  RampAdditionalDetailsNationality: RampNavigationParamList['RampAdditionalDetailsNationality'];
   RampPaymentSelectionModal: RampNavigationParamList['RampPaymentSelectionModal'];
   RampTokenNotAvailableModal: RampNavigationParamList['RampTokenNotAvailableModal'];
   RampProviderSelectionModal: RampNavigationParamList['RampProviderSelectionModal'];
