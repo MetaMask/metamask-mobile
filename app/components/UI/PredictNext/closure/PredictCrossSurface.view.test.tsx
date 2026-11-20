@@ -79,6 +79,8 @@ const BOTH_VENUES: PredictConfig = {
   enabled: true,
   venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
   venueSelection: { enabled: true },
+  // The journey asserts Kalshi's Home offers Withdraw.
+  kalshiWithdrawalsEnabled: true,
 };
 
 /** A non-US session: Polymarket is the regional default. */
@@ -493,15 +495,22 @@ describeForPlatforms('Predict dual-stack closure: one Venue everywhere', () => {
     expect(
       view.queryByTestId(PredictMarketListSelectorsIDs.CONTAINER),
     ).toBeNull();
+    // Funding entry points follow the Venue: Kalshi's Home offers Withdraw,
+    // and the legacy lane's does not, because it runs its own.
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
 
     // ── Back to Polymarket: parity with where the journey started.
     await switchVenueInPredict(view, 'polymarket');
+    // The legacy lane runs its own withdrawal in its market list screens:
+    // no PredictNext Withdraw entry point appears here.
+    expect(view.queryByTestId(PredictHomeTestIds.WITHDRAW, HIDDEN)).toBeNull();
     const kalshiReadsAtSwitch = kalshiReads();
     const polymarketAfter = await readSurfaces(view, 'polymarket');
     expectNoTraceOf(view, 'kalshi');
     expect(polymarketSnapshot(view, polymarketAfter)).toEqual(parityBefore);
     expect(kalshiReads()).toBe(kalshiReadsAtSwitch);
     // Navigation agrees again: a Polymarket result opens the legacy details.
+    expect(view.queryByTestId(PredictHomeTestIds.WITHDRAW, HIDDEN)).toBeNull();
     fireEvent.press(polymarketAfter.searchRow);
     expect(
       await view.findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN),

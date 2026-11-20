@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import Animated, { LinearTransition } from 'react-native-reanimated';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, SectionDivider } from '@metamask/design-system-react-native';
 import { AnimationDuration } from '@metamask/design-tokens';
 import AccountGroupBalance from '../../../../UI/Assets/components/Balance/AccountGroupBalance';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
@@ -61,11 +61,11 @@ const HomepageBalanceBreakdown = ({
           </Animated.View>
         </Box>
       ) : null}
-      {!hideRows ? (
-        <Box
-          testID={HomepageBalanceBreakdownTestIds.ROWS}
-          twClassName="mt-3 pt-2"
-        >
+      {!hideRows && visibleSliceKeys.length > 0 ? (
+        <Box testID={HomepageBalanceBreakdownTestIds.ROWS}>
+          <SectionDivider
+            testID={HomepageBalanceBreakdownTestIds.ROWS_DIVIDER}
+          />
           {visibleSliceKeys.map((key) => (
             <HomepageBalanceBreakdownRow
               key={key}

@@ -10,6 +10,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 
 const mockNavigate = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({

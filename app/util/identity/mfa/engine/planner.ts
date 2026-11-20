@@ -221,8 +221,9 @@ const addConfirmIfNeeded = (
 };
 
 /**
- * Plans a feature's `verifyOrEnroll` call: intro, then per missing method an
- * optional "confirm it's you" and its setup, then an optional verification.
+ * Plans a feature's `verifyOrEnroll` call: an intro when it asks for more than
+ * one method, then per missing method an optional "confirm it's you" and its
+ * setup, then an optional verification.
  * Recomputed from fresh state after every step.
  *
  * @param request - What the feature asked for.
@@ -254,7 +255,9 @@ export const planVerifyOrEnroll = (
   }
 
   const steps: PlanStep[] = [];
-  if (missing.length > 0 && !context.introShown) {
+  // The intro presents the methods as backups for each other, which takes
+  // more than one.
+  if (missing.length > 0 && request.methods.length > 1 && !context.introShown) {
     steps.push({ kind: 'intro', methods: request.methods, missing });
   }
 

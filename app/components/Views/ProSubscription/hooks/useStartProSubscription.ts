@@ -7,7 +7,10 @@ import {
   RECURRING_INTERVALS,
   SubscriptionDelegationServiceErrorMessage,
 } from '@metamask/subscription-controller';
-import { TransactionType } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import {
   isStrictHexString,
   isValidHexAddress,
@@ -16,6 +19,7 @@ import {
 } from '@metamask/utils';
 import { v1 as random } from 'uuid';
 import Engine from '../../../../core/Engine';
+import { isProduction } from '../../../../util/environment';
 import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../../util/Logger';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
@@ -23,21 +27,22 @@ import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountCon
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { MUSD_DECIMALS } from '../../../UI/Earn/constants/musd';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
+import { MoneyAccountAccessBlockedError } from '../../../UI/Money/utils/moneyAccountAccess';
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
 import type { ConfirmMembershipRequestData } from '../../../Approvals/ConfirmMembershipApproval/ConfirmMembershipApproval.types';
 import I18n, { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import {
+  membershipTopUpAwaitsExternalFunds,
   resolveProSubscriptionStartOutcome,
   type StartProSubscriptionOutcome,
 } from '../utils/proSubscriptionPaymentStatus';
 import { getMembershipFundingAmount } from '../utils/membershipFundingAmount';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from './isSubscriptionAlreadyStartingError';
 
 const PAYMENT_UNAVAILABLE_ERROR =
   'Money Account subscription payment is unavailable';
-const SUBSCRIPTION_IN_PROGRESS_ERROR =
-  'Money Account subscription is already starting';
 
 function isHexAddress(value: string | undefined): value is Hex {
   return isStrictHexString(value) && isValidHexAddress(value);
@@ -45,23 +50,34 @@ function isHexAddress(value: string | undefined): value is Hex {
 
 /**
  * Converts an mUSD base-unit shortfall into a USD amount string for MM Pay.
- * Pads the shortfall to cover vault deposit rounding losses and keeps full
- * 6-decimal precision (no rounding to cents).
+ * Pads the shortfall so vault deposit rounding still covers the price, then
+ * rounds that safe amount up to the next cent. The deposit sheet truncates
+ * anything past two decimals, which would drop the pad or show a sub-cent
+ * top-up as $0.00.
  *
  * @param balance - Current mUSD balance in base units (6 decimals).
  * @param requiredBalance - Required mUSD balance in base units (6 decimals).
- * @returns Padded shortfall in USD as a decimal string with up to 6 fractional digits.
+ * @returns Padded shortfall in USD, rounded up to two decimal places.
  */
 function getTopUpAmountUsd(balance: string, requiredBalance: string): string {
   const shortfall = BigInt(requiredBalance) - BigInt(balance);
   return new BigNumber(getMembershipFundingAmount(shortfall).toString())
     .shiftedBy(-MUSD_DECIMALS)
-    .toFixed();
+    .decimalPlaces(2, BigNumber.ROUND_CEIL)
+    .toFixed(2);
 }
 
 type InitiateDeposit = ReturnType<
   typeof useMoneyAccountDeposit
 >['initiateDeposit'];
+
+function selectedFiatPaymentMethodId(
+  transactionId: string,
+): string | undefined {
+  return Engine.context.TransactionPayController?.state.transactionData[
+    transactionId
+  ]?.fiatPayment?.selectedPaymentMethodId;
+}
 
 /**
  * Opens a membership-subscription top-up for the mUSD shortfall and waits
@@ -72,12 +88,13 @@ type InitiateDeposit = ReturnType<
  * @param initiateDeposit - Money Account deposit starter.
  * @param balance - Current mUSD balance in base units.
  * @param requiredBalance - Required mUSD balance in base units.
+ * @returns The approved top-up transaction.
  */
 async function topUpMembershipShortfall(
   initiateDeposit: InitiateDeposit,
   balance: string,
   requiredBalance: string,
-): Promise<void> {
+): Promise<TransactionMeta> {
   const batchId = createMoneyAccountBatchId();
   const { promise, cancel } = waitForMembershipTopUp(batchId);
 
@@ -93,7 +110,7 @@ async function topUpMembershipShortfall(
     throw error;
   }
 
-  await promise;
+  return await promise;
 }
 
 const MEMBERSHIP_DATE_FORMAT: Intl.DateTimeFormatOptions = {
@@ -142,7 +159,8 @@ function addCalendarMonths(date: Date, months: number): Date {
  * Builds the `requestData` payload for a `confirm_membership` approval.
  *
  * Annual plans show an equivalent monthly amount (`amount / 12`, rounded to
- * cents) in the sheet hero; the Total row still shows the full plan amount.
+ * cents) in the sheet hero. The Total row and the authorization disclaimer
+ * use the full plan amount and the plan interval.
  *
  * @param plan - Checkout-ready Plus plan.
  * @param isTrial - Whether Benefits determined this user can start a trial.
@@ -169,6 +187,7 @@ export function buildConfirmMembershipRequestData(
     return {
       monthlyAmount,
       totalAmount,
+      isAnnual,
       renewDate: billedOn,
       isTrial: true,
       billedOn,
@@ -180,6 +199,7 @@ export function buildConfirmMembershipRequestData(
   return {
     monthlyAmount,
     totalAmount,
+    isAnnual,
     renewDate: formatMembershipDate(renewDate),
   };
 }
@@ -291,9 +311,17 @@ function requireSubscriptionPayment(
  * Maps a failed subscription start to the message shown on the join screen.
  *
  * @param error - Error caught while starting the subscription.
- * @returns Localized join or insufficient-balance copy.
+ * @returns Localized join, access-blocked, or insufficient-balance copy.
  */
 function getStartSubscriptionErrorMessage(error: Error): string {
+  if (error instanceof MoneyAccountAccessBlockedError) {
+    return strings(
+      error.reason === 'geo_blocked'
+        ? 'pro_subscription.join_error_geo_blocked'
+        : 'pro_subscription.join_error_feature_disabled',
+    );
+  }
+
   const isInsufficientBalanceError =
     error.message ===
     SubscriptionDelegationServiceErrorMessage.InsufficientBalance;
@@ -345,6 +373,11 @@ export interface StartProSubscriptionResult {
 
 export interface StartProSubscriptionOptions {
   isTrial?: boolean;
+  /**
+   * When true outside production, asks the Subscription API to attach a
+   * Stripe test clock. Ignored in production builds.
+   */
+  enableTestClocks?: boolean;
 }
 
 export interface UseStartProSubscriptionResult {
@@ -372,10 +405,11 @@ export interface UseStartProSubscriptionResult {
  * `@metamask/subscription-controller` 13 removed `skipApproval`. The service
  * expects the caller to obtain consent before the call.
  *
- * Resolves after the subscription starts. A crypto payment (balance already
- * in the Money Account) returns `ready` and the caller shows the success
- * screen. An on-ramp or bridge top-up that is still provisional or awaiting
- * funds returns `processing`; the caller shows a toast and opens Pro Hub.
+ * Resolves after the subscription starts. A crypto payment, whether the Money
+ * Account already held the mUSD or MetaMask Pay moved crypto, returns `ready`
+ * and the caller shows the success screen. An on-ramp or card top-up that is
+ * still provisional or awaiting funds returns `processing`; the caller shows
+ * a toast and opens Pro Hub.
  * This hook does not navigate. The delegation start refreshes subscriptions
  * before it resolves.
  *
@@ -403,7 +437,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
       options?: StartProSubscriptionOptions,
     ): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
-        throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
+        throw new Error(SUBSCRIPTION_ALREADY_STARTING_MESSAGE);
       }
 
       isSubmittingRef.current = true;
@@ -427,26 +461,35 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
             subscriptionParams,
           );
 
+        let awaitsExternalFunds = false;
         if (hasSufficientBalance) {
           await requestMembershipConsent(plan, options?.isTrial ?? false);
         } else {
-          await topUpMembershipShortfall(
+          const topUp = await topUpMembershipShortfall(
             initiateDeposit,
             balance,
             requiredBalance,
           );
+          awaitsExternalFunds = membershipTopUpAwaitsExternalFunds(
+            Boolean(topUp.metamaskPay?.fiat),
+            selectedFiatPaymentMethodId(topUp.id),
+          );
         }
 
+        const useTestClock =
+          options?.enableTestClocks === true && !isProduction();
         const startedSubscription =
           await SubscriptionDelegationService.startSubscriptionWithDelegation({
             ...subscriptionParams,
             chainId,
+            ...(useTestClock ? { useTestClock: true } : {}),
           });
 
         return {
           outcome: resolveProSubscriptionStartOutcome(
             hasSufficientBalance,
             startedSubscription.status,
+            awaitsExternalFunds,
           ),
         };
       } catch (error) {

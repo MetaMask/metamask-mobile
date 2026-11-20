@@ -7,8 +7,9 @@ import { COMPOSER_FEED_AUTHOR, commentGifField } from './mapPositionToFeedItem';
 import type { SocialPostPerpsPreview } from './SocialPostComposerView.types';
 
 /**
- * Builds a sparse `perpsOpen` card from the order facts we have when
- * Hyperliquid accepts it. PnL and hold time wait until the fill is indexed.
+ * Builds a sparse `perpsOpen` card, or a `perpsClosed` one for a full close,
+ * from the order facts we have when Hyperliquid accepts it. Hold time, and
+ * PnL on an open, wait until the fill is indexed.
  */
 export const mapPerpsOrderInFlightToFeedItem = (
   preview: SocialPostPerpsPreview,
@@ -24,15 +25,12 @@ export const mapPerpsOrderInFlightToFeedItem = (
   const timestamp = options?.timestamp ?? Date.now();
   const id = `composer-in-flight-perps-${preview.tradeSymbol}`;
   const gif = commentGifField(options?.commentGifUrl);
-
-  return {
+  const base = {
     id,
     author,
     timestamp,
-    variant: 'perpsOpen',
     comment,
     ...gif,
-    tradeSymbol: preview.tradeSymbol,
     direction: preview.direction,
     leverageLabel: preview.leverageLabel,
     asset: {
@@ -50,7 +48,26 @@ export const mapPerpsOrderInFlightToFeedItem = (
     },
     costLabel: preview.costLabel,
     entryPriceLabel: preview.entryPriceLabel,
+  };
+
+  if (preview.action === 'close') {
+    return {
+      ...base,
+      variant: 'perpsClosed',
+      exitPriceLabel: preview.exitPriceLabel,
+      pnlLabel: preview.pnlLabel ?? '',
+      // A closed card reads its USD P&L from `valueLabel`, as the feed does.
+      valueLabel: preview.pnlValueLabel ?? '',
+      isPnlPositive: preview.isPnlPositive ?? true,
+      closedAtMs: timestamp,
+    };
+  }
+
+  return {
+    ...base,
+    variant: 'perpsOpen',
     valueLabel: '',
+    tradeSymbol: preview.tradeSymbol,
     pnlLabel: '',
     isPnlPositive: true,
     showCopyTrade: false,

@@ -16,6 +16,7 @@ import {
   useOpenVbaOnboarding,
 } from '../hooks/useVbaOnboardingRouting';
 import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
+import { useVbaEligibility } from '../hooks/useVbaEligibility';
 import { trackKycVerificationUpdated } from '../../../../KYC/utils/kycVerificationAnalytics';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
@@ -60,6 +61,7 @@ jest.mock('../../../../KYC/Views/Status/IdentityVerified');
 jest.mock('../../../../KYC/Views/SumSub/IdentityVerification');
 jest.mock('../../../../KYC/Views/Status/KycRejected');
 jest.mock('../hooks/useVbaOnboardingRouting');
+jest.mock('../hooks/useVbaEligibility');
 jest.mock('../../../../KYC/hooks/useKycStatusRedirect');
 jest.mock('../../../../KYC/utils/kycVerificationAnalytics', () => ({
   trackKycVerificationUpdated: jest.fn(),
@@ -73,6 +75,7 @@ const mockKycRejected = jest.mocked(KycRejected);
 const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
 const mockExitToMoneyHome = jest.mocked(exitVbaOnboardingToMoneyHome);
 const mockOpenVbaAccountSetup = jest.mocked(openVbaAccountSetup);
+const mockUseVbaEligibility = jest.mocked(useVbaEligibility);
 const mockUseVbaKycStatusRedirect = jest.mocked(useVbaKycStatusRedirect);
 const mockAdvance = jest.fn<Promise<void>, [unknown?]>();
 const mockLeave = jest.fn();
@@ -103,6 +106,15 @@ describe('VbaStatusAdapters', () => {
     mockAdvance.mockResolvedValue(undefined);
     mockUseOpenVbaOnboarding.mockReturnValue(mockAdvance);
     mockUseVbaKycStatusRedirect.mockReturnValue(mockLeave);
+    mockUseVbaEligibility.mockReturnValue({
+      isEligible: true,
+      isLoading: false,
+      isFlagEnabled: true,
+      isRegionEligible: true,
+      isDevBypassEnabled: false,
+      location: 'BR',
+      market: undefined,
+    });
     mockCanGoBack.mockReturnValue(true);
     mockUseSelector.mockReturnValue({
       finalStatus: 'rejected',
@@ -180,8 +192,31 @@ describe('VbaStatusAdapters', () => {
     expect(mockOpenVbaAccountSetup).toHaveBeenCalledWith(
       expect.objectContaining({ navigate: mockNavigate }),
       true,
+      undefined,
     );
     expect(mockExitToMoneyHome).not.toHaveBeenCalled();
+  });
+
+  it('passes the resolved market currency into account setup', () => {
+    mockUseSelector.mockReturnValue({ chooseCurrency: true });
+    mockUseVbaEligibility.mockReturnValue({
+      isEligible: true,
+      isLoading: false,
+      isFlagEnabled: true,
+      isRegionEligible: true,
+      isDevBypassEnabled: false,
+      location: 'DE',
+      market: { currency: 'EUR', regions: ['DE'] },
+    });
+
+    render(<VbaIdentityVerifiedAdapter />);
+    mockKycIdentityVerified.mock.calls[0][0].onContinue();
+
+    expect(mockOpenVbaAccountSetup).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      true,
+      'EUR',
+    );
   });
 
   it('sends identity verification exit to Money home', () => {

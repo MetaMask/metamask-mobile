@@ -1,4 +1,4 @@
-import { Box } from '@metamask/design-system-react-native';
+import { Box, TagSeverity } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import {
   getPerpsDisplaySymbol,
@@ -12,11 +12,18 @@ import type { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import { usePerpsOrderContext } from '../../../contexts/PerpsOrderContext';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
 import PerpsLeverageBottomSheet from '../../../components/PerpsLeverageBottomSheet';
 import PerpsMarginModeBottomSheet from '../../../components/PerpsMarginModeBottomSheet';
+import PerpsCrossMarginConfirmBottomSheet from '../../../components/PerpsCrossMarginConfirmBottomSheet';
+import { usePerpsCrossMarginSummary } from '../../../hooks/usePerpsCrossMarginSummary';
+import {
+  getCrossMarginRatioAlert,
+  getCrossMarginRatioAlertLabel,
+} from '../../../utils/crossMarginSummary';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
@@ -35,6 +42,7 @@ import PerpsProOrderForm from './PerpsProOrderForm/PerpsProOrderForm';
 import PerpsProTwapDurationBottomSheet from './PerpsProOrderForm/PerpsProTwapDurationBottomSheet';
 import { createStyles } from './PerpsProOrderFormPanel.styles';
 import { usePerpsProOrderForm } from './PerpsProOrderForm/usePerpsProOrderForm';
+import { usePerpsProCrossMarginConfirm } from './PerpsProOrderForm/usePerpsProCrossMarginConfirm';
 import { usePerpsProKeyboardScroll } from './PerpsProOrderForm/usePerpsProKeyboardScroll';
 
 const BASIC_ORDER_TYPES: readonly OrderType[] = ['market', 'limit'];
@@ -263,8 +271,10 @@ const PerpsProOrderFormPanel = ({
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
+    marginModeLockReason,
     refreshMarginModeLock,
     onMarginModeSelect,
+    onLockedMarginModePress,
   } = usePerpsProOrderForm({
     market,
     isTriggeredOrdersEnabled: areTriggeredOrdersEnabled,
@@ -300,7 +310,37 @@ const PerpsProOrderFormPanel = ({
     refreshMarginModeLock();
     setIsMarginModeVisible(true);
   }, [refreshMarginModeLock]);
-  const closeMarginMode = useCallback(() => setIsMarginModeVisible(false), []);
+  const {
+    isCrossConfirmVisible,
+    onMarginModeSelect: handleMarginModeSelect,
+    onMarginModeSheetClosed,
+    closeCrossConfirm,
+    confirmCrossMargin,
+  } = usePerpsProCrossMarginConfirm({ marginMode, onMarginModeSelect });
+  const closeMarginMode = useCallback(() => {
+    setIsMarginModeVisible(false);
+    onMarginModeSheetClosed();
+  }, [onMarginModeSheetClosed]);
+
+  const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
+    usePerpsCrossMarginSummary({ enabled: isCrossMarginAvailableForMarket });
+  const privacyMode = useSelector(selectPrivacyMode);
+  const crossMarginAlert = getCrossMarginRatioAlert(crossMarginTone);
+  const marginModeTag = useMemo(
+    () =>
+      marginMode === 'cross' &&
+      crossMarginRatio !== undefined &&
+      crossMarginAlert
+        ? {
+            label: getCrossMarginRatioAlertLabel(crossMarginRatio, privacyMode),
+            severity:
+              crossMarginAlert === 'danger'
+                ? TagSeverity.Danger
+                : TagSeverity.Warning,
+          }
+        : undefined,
+    [crossMarginAlert, crossMarginRatio, marginMode, privacyMode],
+  );
   const [isTwapDurationVisible, setIsTwapDurationVisible] = useState(false);
   const openTwapDuration = useCallback(
     () => setIsTwapDurationVisible(true),
@@ -412,6 +452,7 @@ const PerpsProOrderFormPanel = ({
             ? 'perps.margin_mode.cross_title'
             : 'perps.pro_order_form.isolated',
         )}
+        marginModeTag={marginModeTag}
         onMarginModePress={openMarginMode}
         leverageLabel={`${leverage}x`}
         onLeveragePress={onLeveragePress}
@@ -596,7 +637,22 @@ const PerpsProOrderFormPanel = ({
             selectedMarginMode={marginMode}
             isCrossMarginAvailable={isCrossMarginAvailableForMarket}
             isMarginModeLocked={isMarginModeLocked}
-            onMarginModeSelect={onMarginModeSelect}
+            lockReason={marginModeLockReason}
+            onLockedOptionPress={onLockedMarginModePress}
+            crossMarginRatio={crossMarginRatio}
+            onMarginModeSelect={handleMarginModeSelect}
+          />
+        </PerpsProModalPortal>
+      )}
+      {isCrossConfirmVisible && (
+        <PerpsProModalPortal
+          animationType="fade"
+          onRequestClose={closeCrossConfirm}
+        >
+          <PerpsCrossMarginConfirmBottomSheet
+            isVisible
+            onClose={closeCrossConfirm}
+            onConfirm={confirmCrossMargin}
           />
         </PerpsProModalPortal>
       )}
