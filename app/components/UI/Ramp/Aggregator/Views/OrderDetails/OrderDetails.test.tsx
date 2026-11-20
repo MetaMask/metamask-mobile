@@ -232,6 +232,29 @@ describe('OrderDetails', () => {
     ).toBeOnTheScreen();
   });
 
+  it('formats the fiat amounts with the order currency', () => {
+    const eurOrder: DeepPartial<FiatOrder> = {
+      ...mockOrder,
+      state: FIAT_ORDER_STATES.COMPLETED,
+      amount: '1234.5',
+      cryptoFee: '2.5',
+      currency: 'EUR',
+      currencySymbol: '€',
+      data: {
+        cryptoCurrency: { symbol: 'ETH', network: { shortName: 'ETH' } },
+        provider: { name: 'Test Provider' },
+        fiatCurrency: { decimals: 2 },
+        exchangeRate: 3000.5,
+      },
+    };
+    render(OrderDetails, [eurOrder]);
+
+    expect(screen.getAllByText('€1,232.00')).toHaveLength(2);
+    expect(screen.getByText('€2.50')).toBeOnTheScreen();
+    expect(screen.getByText('€1,234.50')).toBeOnTheScreen();
+    expect(screen.getByText('1 ETH @ €3,000.50')).toBeOnTheScreen();
+  });
+
   it('renders a cancelled order', () => {
     const cancelledOrder = {
       ...mockOrder,

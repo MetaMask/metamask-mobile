@@ -10,10 +10,7 @@ import {
 } from '../../../../../../reducers/fiatOrders';
 import { strings } from '../../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../../util/date';
-import {
-  addCurrencySymbol,
-  renderFiat,
-} from '../../../../../../util/number/bigint';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import { getOrderAmount } from '../../utils';
 import Text, {
   TextColor,
@@ -86,6 +83,7 @@ function getStatusColorAndText(order: FiatOrder): [TextColor, string] {
 
 function OrderListItem({ order }: Props) {
   const styles = createStyles();
+  const { formatCurrency } = useFormatters();
   const amount = getOrderAmount(order);
   const isBuy = order.orderType === 'BUY';
   const isDeposit = order.provider === 'DEPOSIT';
@@ -169,10 +167,7 @@ function OrderListItem({ order }: Props) {
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {order.amount == null
             ? '...'
-            : addCurrencySymbol(
-                renderFiat(Number(order.amount), ''),
-                order.currency,
-              )}
+            : formatCurrency(Number(order.amount), order.currency)}
         </Text>
       </ListItemColumnEnd>
     </ListItem>

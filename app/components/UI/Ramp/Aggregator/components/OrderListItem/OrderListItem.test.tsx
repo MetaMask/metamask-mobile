@@ -4,6 +4,7 @@ import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
+import { screen } from '@testing-library/react-native';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
@@ -240,5 +241,18 @@ describe('OrderListItem', () => {
       );
       unmount();
     });
+  });
+
+  it.each([
+    ['1234.5', 'USD', '$1,234.50'],
+    ['1234.5', 'EUR', '€1,234.50'],
+  ])('formats a %s %s fiat amount as %s', (amount, currency, expected) => {
+    renderWithProvider(
+      <OrderListItem
+        order={{ ...testOrders[0], amount, currency } as FiatOrder}
+      />,
+    );
+
+    expect(screen.getByText(expected)).toBeOnTheScreen();
   });
 });
