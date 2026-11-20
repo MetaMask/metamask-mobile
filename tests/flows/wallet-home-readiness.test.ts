@@ -32,11 +32,14 @@ jest.mock('../framework/PlatformLocator', () => ({
 
 import Matchers from '../framework/Matchers';
 import { isDeviceHealthError } from '../framework/services/appium/sessionRecovery';
-import { isWalletHomeReadyOnAndroid } from './wallet-home-readiness';
+import {
+  isLoginScreenDisplayed,
+  isWalletHomeReadyOnAndroid,
+} from './wallet-home-readiness';
 
 const visibleByTestId = new Map<string, boolean>();
 
-describe('isWalletHomeReadyOnAndroid', () => {
+describe('wallet-home-readiness', () => {
   beforeEach(() => {
     visibleByTestId.clear();
     jest.mocked(isDeviceHealthError).mockReturnValue(false);
@@ -53,41 +56,71 @@ describe('isWalletHomeReadyOnAndroid', () => {
       });
   });
 
-  it('returns false while the login screen is displayed', async () => {
-    visibleByTestId.set(LoginViewSelectors.CONTAINER, true);
-    visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, true);
-    visibleByTestId.set(WalletViewSelectorsIDs.ACCOUNT_ICON, true);
+  describe('isLoginScreenDisplayed', () => {
+    it('returns true when a login child indicator is displayed', async () => {
+      visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
+      visibleByTestId.set(LoginViewSelectors.PASSWORD_INPUT, true);
 
-    const ready = await isWalletHomeReadyOnAndroid();
+      await expect(isLoginScreenDisplayed()).resolves.toBe(true);
+    });
 
-    expect(ready).toBe(false);
+    it('returns true when only the login container is displayed', async () => {
+      visibleByTestId.set(LoginViewSelectors.CONTAINER, true);
+
+      await expect(isLoginScreenDisplayed()).resolves.toBe(true);
+    });
+
+    it('returns false when no login chrome is displayed', async () => {
+      await expect(isLoginScreenDisplayed()).resolves.toBe(false);
+    });
   });
 
-  it('returns true when the wallet container is displayed and login is hidden', async () => {
-    visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
-    visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, true);
+  describe('isWalletHomeReadyOnAndroid', () => {
+    it('returns false while the login screen is displayed', async () => {
+      visibleByTestId.set(LoginViewSelectors.CONTAINER, true);
+      visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, true);
+      visibleByTestId.set(WalletViewSelectorsIDs.ACCOUNT_ICON, true);
 
-    const ready = await isWalletHomeReadyOnAndroid();
+      const ready = await isWalletHomeReadyOnAndroid();
 
-    expect(ready).toBe(true);
-  });
+      expect(ready).toBe(false);
+    });
 
-  it('returns true when login is hidden and a child indicator is displayed', async () => {
-    visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
-    visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, false);
-    visibleByTestId.set(WalletViewSelectorsIDs.ACCOUNT_ICON, true);
+    it('returns false while a login child indicator is displayed', async () => {
+      visibleByTestId.set(LoginViewSelectors.PASSWORD_INPUT, true);
+      visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, true);
 
-    const ready = await isWalletHomeReadyOnAndroid();
+      const ready = await isWalletHomeReadyOnAndroid();
 
-    expect(ready).toBe(true);
-  });
+      expect(ready).toBe(false);
+    });
 
-  it('returns false when login is hidden and no wallet chrome is displayed', async () => {
-    visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
-    visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, false);
+    it('returns true when the wallet container is displayed and login is hidden', async () => {
+      visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
+      visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, true);
 
-    const ready = await isWalletHomeReadyOnAndroid();
+      const ready = await isWalletHomeReadyOnAndroid();
 
-    expect(ready).toBe(false);
+      expect(ready).toBe(true);
+    });
+
+    it('returns true when login is hidden and a child indicator is displayed', async () => {
+      visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
+      visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, false);
+      visibleByTestId.set(WalletViewSelectorsIDs.ACCOUNT_ICON, true);
+
+      const ready = await isWalletHomeReadyOnAndroid();
+
+      expect(ready).toBe(true);
+    });
+
+    it('returns false when login is hidden and no wallet chrome is displayed', async () => {
+      visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
+      visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, false);
+
+      const ready = await isWalletHomeReadyOnAndroid();
+
+      expect(ready).toBe(false);
+    });
   });
 });
