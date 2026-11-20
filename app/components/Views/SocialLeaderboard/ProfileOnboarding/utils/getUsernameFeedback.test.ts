@@ -19,7 +19,7 @@ describe('getUsernameFeedback', () => {
       getUsernameFeedback({
         ...checked,
         localError: 'Use at least 3 characters.',
-        claimError: 'This handle is unavailable. Choose another one.',
+        claimError: 'This username is unavailable. Choose another one.',
         status: 'tooShort',
       }),
     ).toEqual({ message: 'Use at least 3 characters.', tone: 'error' });
@@ -29,10 +29,10 @@ describe('getUsernameFeedback', () => {
     expect(
       getUsernameFeedback({
         ...checked,
-        claimError: 'This handle is unavailable. Choose another one.',
+        claimError: 'This username is unavailable. Choose another one.',
       }),
     ).toEqual({
-      message: 'This handle is unavailable. Choose another one.',
+      message: 'This username is unavailable. Choose another one.',
       tone: 'error',
     });
   });
@@ -59,11 +59,11 @@ describe('getUsernameFeedback', () => {
     expect(
       getUsernameFeedback({
         ...checked,
-        claimError: 'This handle is unavailable. Choose another one.',
+        claimError: 'This username is unavailable. Choose another one.',
         showAvailable: false,
       }),
     ).toEqual({
-      message: 'This handle is unavailable. Choose another one.',
+      message: 'This username is unavailable. Choose another one.',
       tone: 'error',
     });
   });
