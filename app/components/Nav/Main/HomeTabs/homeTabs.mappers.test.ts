@@ -152,7 +152,8 @@ describe('toNativeTabOptions', () => {
       showNewBadge: true,
     });
 
-    expect(options.tabBarAccessibilityLabel).toBe(
+    expect(options).toHaveProperty(
+      'tabBarAccessibilityLabel',
       `${strings('bottom_nav.social')}, ${strings('bridge.tabs.new_badge')}`,
     );
   });
