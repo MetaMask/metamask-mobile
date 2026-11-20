@@ -1,10 +1,15 @@
 // Pixel-coordinate math for the avatar DOM overlay.
 //
-// TradingView Advanced Charts exposes no public price/time→pixel converter, so
-// we derive one from the visible time range + visible price range + pane
-// height — the same technique `overlays/tradeMarkers/markerHitTest.ts` uses for
-// tap hit-testing. Kept as a self-contained module for the ASSETS-4102 spike;
-// the follow-up refactor should unify this with markerHitTest's copy.
+// The v30.1.0 Advanced Charts API (the version MetaMask loads) exposes no
+// public price→pixel converter on the main-source price scale:
+// IPriceScaleApi.priceToCoordinate only appears in newer Advanced Charts
+// releases (it's documented under /latest/ = v33.x, is absent from the v30.1.0
+// changelog, and is not present on the scale object at runtime). So we derive Y
+// from the visible price range + pane height — the same technique
+// overlays/tradeMarkers/markerHitTest.ts uses. Likewise the time scale only
+// exposes coordinateToTime (reverse), so X is derived from bar-index geometry
+// (barSpacing/rightOffset) in index.ts. Revisit both if the hosted
+// charting_library is upgraded to a version that adds priceToCoordinate.
 
 import { normalizeChartUnixSec } from '../../core/timeUtils';
 import type { TVActiveChart } from '../../core/types';

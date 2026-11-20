@@ -12,13 +12,21 @@ import type {
  * REMOVE this file (and the short-circuit that calls it) before merge.
  *
  * Design notes:
- * Timestamps are generated relative to `Date.now()` (in seconds, matching the
- * real API), recent-weighted (minutes to days) so markers land on loaded
- * candles — some visible at the default zoom, more as you zoom/scroll out.
- * `actor.imageUrl` points at the real social-assets avatar CDN (RN resolves it
- * to a data URI before the WebView renders it); one actor has `imageUrl: null`
- * to exercise the initials fallback. `intent` alternates enter/exit to exercise
- * the buy (+) / sell (-) badges.
+ * Timestamps are relative to `Date.now()` (seconds, matching the real API). The
+ * overlay declusters on zoom only when trades sit on DIFFERENT candles — trades
+ * on the same candle share one X and can never be pulled apart — so every trade
+ * is placed on its own distinct 4h candle. Offsets are arranged into three
+ * bunches of 4-5 trades on nearby candles (so each forms a bubble at the default
+ * zoom) separated by big gaps, plus two lone older trades. On a 4h chart this
+ * shows three count bubbles (5 / 4 / 4) at the default zoom that break into
+ * smaller clusters and then individual avatars as you zoom in. The most-recent
+ * trade is kept a few candles back (not on the live/forming candle) so no marker
+ * sits on the bar whose high updates every tick — that bar would make its marker
+ * jiggle/flash on each redraw. `actor.imageUrl`
+ * points at the real social-assets avatar CDN (RN resolves it to a data URI
+ * before the WebView renders it); one actor has `imageUrl: null` to exercise the
+ * initials fallback. `intent` alternates enter/exit to exercise the buy (+) /
+ * sell (-) badges.
  */
 
 const MIN = 60;
@@ -40,7 +48,8 @@ const MOCK_ACTORS: MockActorSpec[] = [
       imageUrl:
         'https://social-assets.dev-api.cx.metamask.io/t/sm/images/c0/c0b877a8-3d45-4892-aacc-eda69816c1e6',
     },
-    offsetsSec: [20 * MIN, 3 * HOUR, 26 * HOUR],
+    // bunch A (candle 3), bunch A (candle 6), bunch B (candle 18), bunch C (candle 32)
+    offsetsSec: [14 * HOUR, 26 * HOUR, 3 * DAY, 128 * HOUR],
   },
   {
     actor: {
@@ -50,7 +59,8 @@ const MOCK_ACTORS: MockActorSpec[] = [
       imageUrl:
         'https://social-assets.dev-api.cx.metamask.io/t/sm/images/7d/7d049264-d445-404a-9690-11fab60ffdd2.png',
     },
-    offsetsSec: [45 * MIN, 6 * HOUR, 50 * HOUR],
+    // bunch A (candle 1), bunch B (candle 15), bunch C (candle 34), lone old trade
+    offsetsSec: [7 * HOUR, 60 * HOUR, 136 * HOUR, 8 * DAY],
   },
   {
     actor: {
@@ -60,7 +70,8 @@ const MOCK_ACTORS: MockActorSpec[] = [
       imageUrl:
         'https://social-assets.dev-api.cx.metamask.io/t/sm/images/89/893b14d1-b09c-4e70-8192-6ed580b1c40f',
     },
-    offsetsSec: [90 * MIN, 14 * HOUR, 4 * DAY],
+    // bunch A (candle 2), bunch B (candle 16), bunch C (candle 30), lone old trade
+    offsetsSec: [10 * HOUR, 64 * HOUR, 5 * DAY, 10 * DAY],
   },
   {
     actor: {
@@ -69,7 +80,8 @@ const MOCK_ACTORS: MockActorSpec[] = [
       name: 'Dave Whale',
       imageUrl: null, // exercises the initials fallback
     },
-    offsetsSec: [2 * HOUR, 20 * HOUR, 6 * DAY],
+    // bunch A (candle 5), bunch B (candle 17), bunch C (candle 31)
+    offsetsSec: [22 * HOUR, 68 * HOUR, 124 * HOUR],
   },
 ];
 

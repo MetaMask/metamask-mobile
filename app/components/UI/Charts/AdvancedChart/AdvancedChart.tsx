@@ -105,6 +105,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onInitFailed,
       onCrosshairMove,
       onTradeMarkerPress,
+      onAvatarMarkerPress,
       onChartInteracted,
       onVisibleCandleCountChange,
       onChartTradingViewClicked,
@@ -568,6 +569,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             onTradeMarkerPress?.(message.payload.id);
             break;
 
+          case 'AVATAR_MARKER_PRESSED':
+            onAvatarMarkerPress?.(message.payload.ids);
+            break;
+
           case 'CHART_INTERACTED':
             onChartInteracted?.(message.payload);
             break;
@@ -583,6 +588,18 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             }
             break;
           }
+
+          case 'DEBUG':
+            // [ASSETS-4400] TEMP diagnostics — remove before merge. Re-logs
+            // webview-core DEBUG breadcrumbs (which already carry the
+            // `[ASSETS-4400][core]` tag) so they appear in Android logcat as
+            // `ReactNativeJS`. Only forwards our tagged messages to avoid noise
+            // from the benign `modular-bootstrap-ready` breadcrumb.
+            if (message.payload.message.includes('[ASSETS-4400]')) {
+              // eslint-disable-next-line no-console
+              console.log(message.payload.message);
+            }
+            break;
 
           case 'ERROR':
             if (!isChartReady) {
@@ -600,6 +617,24 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           case 'FETCH_OLDER_BARS_REQUEST': {
             const handler = onFetchOlderBarsRequestRef.current;
             const req = message.payload;
+            // [ASSETS-4400] TEMP diagnostics — remove before merge. Shows every
+            // older-bars request the TV library makes so we can see whether it
+            // back-fills the whole history (like the extension does) or stops
+            // quickly. `countBack` is what the library is trying to satisfy;
+            // many sequential requests with a large countBack = storm.
+            // eslint-disable-next-line no-console
+            console.log('[ASSETS-4400] FETCH_OLDER_BARS_REQUEST', {
+              requestId: req.requestId,
+              resolution: req.resolution,
+              countBack: req.countBack,
+              oldestLoadedTimeMs: req.oldestLoadedTimeMs,
+              oldestLoadedIso:
+                req.oldestLoadedTimeMs == null
+                  ? undefined
+                  : new Date(req.oldestLoadedTimeMs).toISOString(),
+              fromSec: req.fromSec,
+              toSec: req.toSec,
+            });
             const respond = (response: FetchOlderBarsResponse) => {
               postMessage({
                 type: 'FETCH_OLDER_BARS_RESPONSE',
@@ -644,6 +679,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onInitFailed,
         onCrosshairMove,
         onTradeMarkerPress,
+        onAvatarMarkerPress,
         onChartInteracted,
         onVisibleCandleCountChange,
         handleTradingViewOpen,

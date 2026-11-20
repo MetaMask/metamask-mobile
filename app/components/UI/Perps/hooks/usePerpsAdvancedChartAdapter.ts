@@ -287,6 +287,22 @@ export function usePerpsAdvancedChartAdapter({
         const olderBars = allBars.filter(
           (b) => b.time < req.oldestLoadedTimeMs,
         );
+        // [ASSETS-4400] TEMP diagnostics — remove before merge. Shows how many
+        // older bars Perps returns per request and whether history is
+        // exhausted (noData). Pair with the FETCH_OLDER_BARS_REQUEST log in
+        // AdvancedChart.tsx to count total pagination round-trips per switch.
+        // eslint-disable-next-line no-console
+        console.log('[ASSETS-4400] Perps fetchOlderBars result', {
+          symbol,
+          interval,
+          requestId: req.requestId,
+          countBackRequested: req.countBack,
+          totalCandlesInCache: allBars.length,
+          olderBarsReturned: olderBars.length,
+          noData: olderBars.length === 0,
+          oldestReturnedIso:
+            olderBars[0] && new Date(olderBars[0].time).toISOString(),
+        });
         return {
           requestId: req.requestId,
           seriesGeneration: req.seriesGeneration,

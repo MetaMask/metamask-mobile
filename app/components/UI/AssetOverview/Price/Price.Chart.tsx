@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
@@ -10,6 +10,7 @@ import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import LinePriceChart from '../PriceChart/PriceChart';
 import LinePriceChartWithSocialMarkers from '../PriceChart/LinePriceChartWithSocialMarkers';
 import { useFollowingTokenCandleAvatarMarkers } from '../../Charts/socialMarkers';
+import SocialMarkersBottomSheet from '../../Charts/socialMarkers/SocialMarkersBottomSheet';
 import { selectChartSocialMarkersEnabled } from '../../../../selectors/featureFlagController/chartSocialMarkers';
 import NoDataOverlay from '../NoDataOverlay/NoDataOverlay';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
@@ -230,7 +231,21 @@ export const PriceChartSection = ({
 
   // Follower avatar markers for the candlestick chart (ASSETS-4102).
   // Flag-gated inside the hook; returns [] when disabled / logged out / empty.
-  const candleAvatarMarkers = useFollowingTokenCandleAvatarMarkers(assetId);
+  const { markers: candleAvatarMarkers, byId: avatarMarkerLookup } =
+    useFollowingTokenCandleAvatarMarkers(assetId);
+
+  // Marker ids of the avatar group the user last tapped — drives the bottom
+  // sheet. A lone avatar yields one id; a cluster yields all its members.
+  const [selectedAvatarIds, setSelectedAvatarIds] = useState<string[] | null>(
+    null,
+  );
+  const handleAvatarMarkerPress = useCallback((ids: string[]) => {
+    setSelectedAvatarIds(ids.length ? ids : null);
+  }, []);
+  const handleAvatarSheetClose = useCallback(
+    () => setSelectedAvatarIds(null),
+    [],
+  );
 
   // The interval bar above the chart already adds 8px of bottom padding.
   let chartMarginTop = 'mt-3 ';
@@ -325,6 +340,7 @@ export const PriceChartSection = ({
             volumeOverlay
             chartType={chartType}
             avatarMarkers={candleAvatarMarkers}
+            onAvatarMarkerPress={handleAvatarMarkerPress}
             indicators={showChartIndicators ? indicatorsArray : []}
             selectedMAs={showChartIndicators ? selectedMAs : []}
             subPaneHeightRatio={chartPresets.subPaneHeightRatio}
@@ -363,6 +379,15 @@ export const PriceChartSection = ({
 
       {/* ── Bottom chrome ──────────────────────────────────────────────── */}
       <BottomChrome uniformSpacing={uniformSpacing} isGlass={isGlass} />
+
+      {/* Trades behind the tapped avatar marker / cluster (ASSETS-4102). */}
+      {selectedAvatarIds && (
+        <SocialMarkersBottomSheet
+          ids={selectedAvatarIds}
+          byId={avatarMarkerLookup}
+          onClose={handleAvatarSheetClose}
+        />
+      )}
     </>
   );
 };

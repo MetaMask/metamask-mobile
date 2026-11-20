@@ -279,6 +279,7 @@ export type OutboundMessageType =
   | 'INDICATOR_REMOVED'
   | 'LEGEND_RENDERED'
   | 'TRADE_MARKER_PRESSED'
+  | 'AVATAR_MARKER_PRESSED'
   | 'FETCH_OLDER_BARS_REQUEST'
   | 'ERROR'
   | 'DEBUG';
@@ -350,6 +351,15 @@ export interface TradeMarkerPressedPayload {
   id: string;
 }
 
+/**
+ * Fired when the user taps a follower avatar marker or cluster (ASSETS-4102).
+ * `ids` are the member marker ids in the tapped group — one for a lone avatar,
+ * several for a cluster — so RN can open a bottom sheet scoped to those trades.
+ */
+export interface AvatarMarkersPressedPayload {
+  ids: string[];
+}
+
 export interface OutboundPayloads {
   CHART_READY: ChartReadyPayload;
   CHART_LAYOUT_SETTLED: ChartLayoutSettledPayload;
@@ -361,6 +371,7 @@ export interface OutboundPayloads {
   INDICATOR_REMOVED: IndicatorRemovedPayload;
   LEGEND_RENDERED: LegendRenderedPayload;
   TRADE_MARKER_PRESSED: TradeMarkerPressedPayload;
+  AVATAR_MARKER_PRESSED: AvatarMarkersPressedPayload;
   FETCH_OLDER_BARS_REQUEST: FetchOlderBarsRequestPayload;
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;

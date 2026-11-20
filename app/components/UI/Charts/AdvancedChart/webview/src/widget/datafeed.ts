@@ -5,7 +5,7 @@
 // Phase 2 wires the default Price API paginator; Phase 6 swaps in
 // pagination/rnBacked.ts when consumers opt into the custom strategy.
 
-import { reportErrorToRN, safeStringify } from '../core/bridge';
+import { postToRN, reportErrorToRN, safeStringify } from '../core/bridge';
 import {
   getOhlcvData,
   getOhlcvPagination,
@@ -72,6 +72,23 @@ const PERPS_VARIABLE_TICK_SIZE = [
   '10000',
   '1',
 ].join(' ');
+
+// [ASSETS-4400] TEMP diagnostics — remove before merge. Routes through the
+// benign DEBUG channel (re-logged by AdvancedChart.tsx into logcat as
+// `ReactNativeJS`). Used to observe the Token Details (Strategy A) older-bars
+// `getBars` / countBack behaviour on an interval hot-reload — i.e. whether TDP
+// hits the same back-fill "storm" the extension does.
+function logA4400(message: string, extra?: Record<string, unknown>): void {
+  let suffix = '';
+  if (extra) {
+    try {
+      suffix = ` ${JSON.stringify(extra)}`;
+    } catch {
+      suffix = '';
+    }
+  }
+  postToRN('DEBUG', { message: `[ASSETS-4400][core] ${message}${suffix}` });
+}
 
 function getVariableTickSize(): string {
   return getConfiguredPriceDecimals() !== null
@@ -173,12 +190,26 @@ export const customDatafeed: TVDatafeed = {
       const { countBack, firstDataRequest } = periodParams;
 
       const bars = filterBarsForRange(fromMs, toMs, countBack);
+      const allBars = getOhlcvData();
+      // [ASSETS-4400] TEMP — every TV getBars call. A storm shows up as many
+      // sequential calls with `willServeFromMemory:false` and a large/growing
+      // `countBack`, each triggering a Strategy-A price-API fetch below.
+      logA4400('getBars', {
+        resolution,
+        countBack,
+        fromSec: periodParams.from,
+        toSec: periodParams.to,
+        firstDataRequest: Boolean(firstDataRequest),
+        inMemoryMatched: bars.length,
+        totalInMemory: allBars.length,
+        willServeFromMemory: bars.length > 0,
+      });
       if (bars.length > 0) {
         onResult(bars, { noData: false });
         return;
       }
 
-      const all = getOhlcvData();
+      const all = allBars;
       if (firstDataRequest || all.length === 0) {
         onResult([], { noData: true });
         return;

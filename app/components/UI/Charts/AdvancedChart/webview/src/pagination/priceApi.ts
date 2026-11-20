@@ -8,7 +8,7 @@
 // the layout-settle pending machinery and trade-marker refresh hook (those
 // belong to later phases / are gone after Phase 4).
 
-import { reportErrorToRN } from '../core/bridge';
+import { postToRN, reportErrorToRN } from '../core/bridge';
 import { notifyDataLifecycle } from '../core/dataLifecycle';
 import {
   bumpOhlcvGeneration,
@@ -57,10 +57,31 @@ export interface FetchOlderBarsResult {
  * Aborts with `noData: true` when ohlcvGeneration changes mid-flight (a newer
  * SET_OHLCV_DATA has invalidated this fetch).
  */
+// [ASSETS-4400] TEMP diagnostics — remove before merge. Benign DEBUG channel.
+function logA4400(message: string, extra?: Record<string, unknown>): void {
+  let suffix = '';
+  if (extra) {
+    try {
+      suffix = ` ${JSON.stringify(extra)}`;
+    } catch {
+      suffix = '';
+    }
+  }
+  postToRN('DEBUG', { message: `[ASSETS-4400][core] ${message}${suffix}` });
+}
+
 export async function fetchOlderBarsFromPriceApi(
   request: FetchOlderBarsRequest,
 ): Promise<FetchOlderBarsResult> {
   const pag = getOhlcvPagination();
+  // [ASSETS-4400] TEMP — Strategy-A older-bars fetch start. Each one is one
+  // network page; many in a row == the back-fill storm.
+  logA4400('fetchOlderBarsFromPriceApi:start', {
+    hasCursor: Boolean(pag.nextCursor),
+    hasMore: Boolean(pag.hasMore),
+    assetId: pag.assetId,
+    oldestAtDefer: request.oldestAtDefer,
+  });
   if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
     return { olderBars: [], noData: true };
   }
@@ -131,6 +152,15 @@ export async function fetchOlderBarsFromPriceApi(
   }
 
   const olderBars = newBars.filter((b) => b.time < request.oldestAtDefer);
+  // [ASSETS-4400] TEMP — how many bars this page returned vs how many were
+  // actually older than TV's current window, plus whether there's another page.
+  logA4400('fetchOlderBarsFromPriceApi:result', {
+    fetched: newBars.length,
+    olderBars: olderBars.length,
+    noData: olderBars.length === 0,
+    newCursor: parsed.nextCursor ?? null,
+    newHasMore: Boolean(parsed.hasNext),
+  });
   return { olderBars, noData: olderBars.length === 0 };
 }
 

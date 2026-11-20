@@ -224,6 +224,7 @@ export type WebViewToRNMessageType =
   | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
   | 'TRADE_MARKER_PRESSED'
+  | 'AVATAR_MARKER_PRESSED'
   | 'ERROR'
   | 'DEBUG'
   | 'FETCH_OLDER_BARS_REQUEST';
@@ -437,6 +438,14 @@ export interface TradeMarkerPressedPayload {
   id: string;
 }
 
+export interface AvatarMarkersPressedPayload {
+  /**
+   * Member marker ids in the tapped avatar group (one for a lone avatar,
+   * several for a cluster). Each matches an {@link AvatarMarker.id}.
+   */
+  ids: string[];
+}
+
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -450,6 +459,7 @@ export type WebViewToRNMessage =
   | { type: 'LEGEND_RENDERED' }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'TRADE_MARKER_PRESSED'; payload: TradeMarkerPressedPayload }
+  | { type: 'AVATAR_MARKER_PRESSED'; payload: AvatarMarkersPressedPayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | {
       type: 'VISIBLE_CANDLE_COUNT_CHANGED';
@@ -542,6 +552,18 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         return { type, payload: { id: obj.id } };
       }
       return null;
+
+    case 'AVATAR_MARKER_PRESSED': {
+      const { ids } = obj;
+      if (
+        Array.isArray(ids) &&
+        ids.length > 0 &&
+        ids.every((id): id is string => typeof id === 'string' && id.length > 0)
+      ) {
+        return { type, payload: { ids } };
+      }
+      return null;
+    }
 
     case 'CHART_INTERACTED':
       if (
@@ -778,6 +800,12 @@ export interface AdvancedChartProps {
    * reverse interaction: tapping a circle scrolls the trades list to that trade.
    */
   onTradeMarkerPress?: (id: string) => void;
+  /**
+   * Fired when the user taps a follower avatar marker or cluster. Receives the
+   * member marker ids in the tapped group so the caller can open a bottom sheet
+   * scoped to those trades (ASSETS-4102).
+   */
+  onAvatarMarkerPress?: (ids: string[]) => void;
   /**
    * User-driven chart interaction from the WebView: zoom (bar spacing), pan (visible range), or
    * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.
