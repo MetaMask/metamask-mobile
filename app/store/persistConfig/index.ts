@@ -185,10 +185,7 @@ const persistUserTransform = createTransform<UserState, PersistedUserState>(
   // is still locked.
   (outboundState) => ({
     ...outboundState,
-    moneySplashSeen:
-      outboundState.moneySplashSeen ??
-      outboundState.moneyOnboardingSeen ??
-      false,
+    moneySplashSeen: outboundState.moneySplashSeen ?? false,
     initialScreen: '',
     isAuthChecked: false,
     appServicesReady: false,

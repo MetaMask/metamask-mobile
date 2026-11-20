@@ -19,7 +19,7 @@ export enum MoneyPostOnboardingRedirectType {
   CARD = 'card',
 }
 
-/** Card screen to open after Money onboarding when the redirect type is CARD. */
+/** Card screen to open after the Money splash when the redirect type is CARD. */
 export type MoneyCardReturnScreen = 'authentication' | 'onboarding';
 
 export interface MoneyPreferredPaymentToken {
@@ -47,11 +47,9 @@ export type MoneyPostOnboardingRedirect =
       cardScreen: MoneyCardReturnScreen;
     };
 
-export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
+export interface MoneySplashParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: MoneyPostOnboardingRedirect;
 }
-
-export type MoneySplashParams = MoneyOnboardingParams;
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
   /**
@@ -143,7 +141,6 @@ export interface MoneyMusdRescueRecipientSelection {
 export type MoneyNavigationParamList = MoneyScreensStackParamList &
   MoneyModalsNavigationParamList &
   MoneyConfirmationsNavigationParamList & {
-    MoneyOnboarding: MoneyOnboardingParams | undefined;
     MoneySplash: MoneySplashParams | undefined;
     MoneyDepositDeeplink: MoneyDepositDeeplinkParams | undefined;
     MoneyFirstTimeDeposit: undefined;
