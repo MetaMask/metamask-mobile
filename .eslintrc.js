@@ -338,6 +338,7 @@ module.exports = {
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         '@typescript-eslint/only-throw-error': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -350,9 +351,8 @@ module.exports = {
         '@typescript-eslint/restrict-plus-operands': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/switch-exhaustiveness-check': 'off',
-        // Slow type checks the shared config also turns on. They are not on in
-        // Oxlint yet, because each has thousands of existing hits.
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        // A slow type check the shared config also turns on. It is not on in
+        // Oxlint yet, because it has thousands of existing hits.
         '@typescript-eslint/unbound-method': 'off',
         // The shared config leaves these off, so they are off in Oxlint too.
         '@typescript-eslint/consistent-type-imports': 'off',
