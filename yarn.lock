@@ -10980,20 +10980,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/mfa-recovery-controller@npm:@metamask-previews/mfa-recovery-controller@0.0.0-preview-8df707a0a":
-  version: 0.0.0-preview-8df707a0a
-  resolution: "@metamask-previews/mfa-recovery-controller@npm:0.0.0-preview-8df707a0a"
+"@metamask/mfa-recovery-controller@npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-e87f806f2":
+  version: 0.1.0-preview-e87f806f2
+  resolution: "@metamask-previews/mfa-recovery-controller@npm:0.1.0-preview-e87f806f2"
   dependencies:
     "@cubist-labs/cubesigner-sdk": "npm:^0.4.284"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/cryptography": "npm:^1.1.2"
-    "@metamask/keyring-controller": "npm:^28.2.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.1.1"
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
+    "@metamask/seedless-onboarding-controller": "npm:^12.1.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.2"
     json-stable-stringify: "npm:^1.3.0"
-  checksum: 10/c7bc6e6ad49f6d914345ee4c4fdb894d109c31ffdcc5235e4454c7e7a6fe8946b3f1790169e8065a75b6b1e3b1aba8e0a1fdac14acbd59d019a8f906058c9539
+  checksum: 10/7e3720406222fd712cf3dda53bf031d4a9de9f34f826fe53d86024cdac3c9e01844b9daacdb7999c7c5fe3f70c35e4e95d4795c573fbcce6149875fa713be830
   languageName: node
   linkType: hard
 
@@ -12005,7 +12005,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:^12.0.0":
+"@metamask/seedless-onboarding-controller@npm:^12.0.0, @metamask/seedless-onboarding-controller@npm:^12.1.0":
   version: 12.1.0
   resolution: "@metamask/seedless-onboarding-controller@npm:12.1.0"
   dependencies:
@@ -12532,9 +12532,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/toprf-secure-backup@file:./vendor/metamask-toprf-secure-backup-1.1.0-local.tgz::locator=metamask%40workspace%3A.":
+"@metamask/toprf-secure-backup@file:./metamask-toprf-secure-backup-1.1.0.tgz::locator=metamask%40workspace%3A.":
   version: 1.1.0
-  resolution: "@metamask/toprf-secure-backup@file:./vendor/metamask-toprf-secure-backup-1.1.0-local.tgz#./vendor/metamask-toprf-secure-backup-1.1.0-local.tgz::hash=9220d2&locator=metamask%40workspace%3A."
+  resolution: "@metamask/toprf-secure-backup@file:./metamask-toprf-secure-backup-1.1.0.tgz#./metamask-toprf-secure-backup-1.1.0.tgz::hash=5f8390&locator=metamask%40workspace%3A."
   dependencies:
     "@metamask/auth-network-utils": "npm:^0.4.0"
     "@noble/ciphers": "npm:^1.2.1"
@@ -12546,7 +12546,7 @@ __metadata:
     "@toruslabs/fetch-node-details": "npm:^15.0.0"
     "@toruslabs/http-helpers": "npm:^8.1.1"
     bn.js: "npm:^5.2.2"
-  checksum: 10/06c20960b7f3cc3a2133579e724b6ba64a189859585cc3e81549f98feaea9b74552ace924da13836609236c6313e6e32e90fcfcde9caf7f4d70d69f74c4bf5e9
+  checksum: 10/ac07a59f0c715b08b44b475ca247a9d088702028a6118d2c10ac5c1d0658511b8b6db491c83d7407e6a4144a9abce1a75ee6ebe0bbd9d7e5485604fadc30fed7
   languageName: node
   linkType: hard
 
@@ -38435,7 +38435,7 @@ __metadata:
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^0.2.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
-    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.0.0-preview-8df707a0a"
+    "@metamask/mfa-recovery-controller": "npm:@metamask-previews/mfa-recovery-controller@0.1.0-preview-e87f806f2"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"

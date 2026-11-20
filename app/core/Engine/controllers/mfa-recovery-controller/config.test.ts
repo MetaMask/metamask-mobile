@@ -1,6 +1,7 @@
 import { MFA_CONFIG, type MfaConfig } from './mfa-config';
 import {
   getCubistConfig,
+  getRegistrationUrl,
   getToprfRecoveryConfig,
   isMfaRecoveryConfigured,
   tryGetCubistEscrowConfig,
@@ -113,6 +114,20 @@ describe('getToprfRecoveryConfig', () => {
     expect(() =>
       getToprfRecoveryConfig(createValidConfig({ toprfAal2Audience: '' })),
     ).toThrow(MfaRecoveryControllerError);
+  });
+});
+
+describe('getRegistrationUrl', () => {
+  it('returns the configured registration URL', () => {
+    expect(getRegistrationUrl(createValidConfig())).toBe(
+      MFA_CONFIG.dev.registrationUrl,
+    );
+  });
+
+  it('falls back to the default when other Cubist values are missing', () => {
+    expect(
+      getRegistrationUrl(createValidConfig({ orgId: '', registrationUrl: '' })),
+    ).toBe(DEFAULT_REGISTRATION_URL);
   });
 });
 

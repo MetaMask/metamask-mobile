@@ -6,7 +6,10 @@ import type {
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
 import { mobilePasskeyAdapter } from '../../../../util/identity/mfa/passkeyAdapter';
 import type { MessengerClientInitFunction } from '../../types';
-import type { MfaRecoveryControllerInitMessenger } from '../../messengers/mfa-recovery-controller-messenger';
+import {
+  getRecoveryRegistrationLockProviderMessenger,
+  type MfaRecoveryControllerInitMessenger,
+} from '../../messengers/mfa-recovery-controller-messenger';
 import { isMfaRecoveryConfigured } from './config';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
 import { createSrpSiweSigner, getPrimarySrpSeed } from './auth/srp-siwe-signer';
@@ -48,6 +51,8 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
         | Partial<MfaRecoveryControllerState>
         | undefined,
     ),
+    lockProviderMessenger:
+      getRecoveryRegistrationLockProviderMessenger(initMessenger),
     isEnabled,
     isUnlocked: () =>
       initMessenger.call('KeyringController:getState').isUnlocked,

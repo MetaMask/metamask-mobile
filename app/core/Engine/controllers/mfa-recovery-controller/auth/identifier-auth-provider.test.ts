@@ -12,9 +12,11 @@ jest.mock('./passkey-identifier-auth-provider', () => ({
   PlatformPasskeyIdentifierAuthProvider: jest
     .fn()
     .mockImplementation(({ get }) => ({
-      getKeyBoundIdentifierToken: jest.fn(async (params) => ({
-        ...params,
-        providerAssertion: await get({ challenge: 'c' }),
+      getKeyBoundIdentifierLogin: jest.fn(async (params) => ({
+        token: {
+          ...params,
+          providerAssertion: await get({ challenge: 'c' }),
+        },
       })),
     })),
 }));
@@ -23,9 +25,11 @@ jest.mock('./social-identifier-auth-provider', () => ({
   SocialIdentifierAuthProvider: jest
     .fn()
     .mockImplementation(({ getIdToken }) => ({
-      getKeyBoundIdentifierToken: jest.fn(async (params) => ({
-        ...params,
-        providerAssertion: await getIdToken('nonce'),
+      getKeyBoundIdentifierLogin: jest.fn(async (params) => ({
+        token: {
+          ...params,
+          providerAssertion: await getIdToken('nonce'),
+        },
       })),
     })),
 }));
@@ -44,6 +48,7 @@ const SOCIAL: Identifier = {
 };
 
 const ADDRESS = '0x1234567890abcdef1234567890abcdef12345678';
+const CHECKSUMMED_ADDRESS = '0x1234567890AbcdEF1234567890aBcdef12345678';
 
 function createSiweSigner(signature = '0xsig'): SiweSigner & {
   getAddress: jest.Mock<Promise<string>, []>;
@@ -60,6 +65,7 @@ function createSiweSigner(signature = '0xsig'): SiweSigner & {
 describe('RecoveryIdentifierRouter', () => {
   const proofPublicKey = new Uint8Array([1, 2, 3]);
   const requestHash = '0xabc';
+  const notAfter = 1_700_000_300;
 
   it('routes passkey identifiers to the passkey provider', async () => {
     const getPasskeyAssertion = jest.fn().mockResolvedValue({
@@ -72,14 +78,15 @@ describe('RecoveryIdentifierRouter', () => {
       siweSigner: createSiweSigner(),
     });
 
-    const result = await router.getKeyBoundIdentifierToken({
+    const result = await router.getKeyBoundIdentifierLogin({
       identifier: PASSKEY,
       proofPublicKey,
       requestHash,
+      notAfter,
     });
 
     expect(getPasskeyAssertion).toHaveBeenCalledTimes(1);
-    expect(result.providerAssertion).toEqual({
+    expect(result.token.providerAssertion).toEqual({
       id: 'assertion',
       response: {},
     });
@@ -93,14 +100,15 @@ describe('RecoveryIdentifierRouter', () => {
       siweSigner: createSiweSigner(),
     });
 
-    const result = await router.getKeyBoundIdentifierToken({
+    const result = await router.getKeyBoundIdentifierLogin({
       identifier: SOCIAL,
       proofPublicKey,
       requestHash,
+      notAfter,
     });
 
     expect(getSocialIdToken).toHaveBeenCalledWith('nonce');
-    expect(result.providerAssertion).toBe('social-id-token');
+    expect(result.token.providerAssertion).toBe('social-id-token');
   });
 
   it('rejects unsupported identifier types', async () => {
@@ -111,7 +119,7 @@ describe('RecoveryIdentifierRouter', () => {
     });
 
     await expect(
-      router.getKeyBoundIdentifierToken({
+      router.getKeyBoundIdentifierLogin({
         identifier: {
           type: 'webauthn',
           namespace: 'metamask.io',
@@ -119,6 +127,7 @@ describe('RecoveryIdentifierRouter', () => {
         } as unknown as Identifier,
         proofPublicKey,
         requestHash,
+        notAfter,
       }),
     ).rejects.toEqual(
       new MfaRecoveryControllerError(
@@ -136,14 +145,15 @@ describe('RecoveryIdentifierRouter', () => {
       siweSigner,
     });
 
-    const result = await router.getKeyBoundIdentifierToken({
+    const result = await router.getKeyBoundIdentifierLogin({
       identifier: createSiweIdentifier(ADDRESS),
       proofPublicKey,
       requestHash,
+      notAfter,
     });
 
     expect(siweSigner.signMessage).toHaveBeenCalledTimes(1);
-    expect(result.providerAssertion).toEqual(
+    expect(result.token.providerAssertion).toEqual(
       expect.objectContaining({ signature: '0xsig' }),
     );
   });
@@ -152,43 +162,48 @@ describe('RecoveryIdentifierRouter', () => {
 describe('SiweIdentifierAuthProvider', () => {
   const proofPublicKey = new Uint8Array([1, 2, 3]);
   const requestHash = '0xabc';
+  const notAfter = 1_700_000_300;
 
-  it('signs a SIWE message bound to the proof key and request hash', async () => {
+  it('signs a SIWE message bound to the proof key, request hash, and expiry', async () => {
     const signer = createSiweSigner();
     const provider = new SiweIdentifierAuthProvider({ signer });
     const identifier = createSiweIdentifier(ADDRESS);
     const expectedNonce = bytesToHex(
       await sha256(
         stringToBytes(
-          JSON.stringify([bytesToHex(proofPublicKey), requestHash]),
+          JSON.stringify([bytesToHex(proofPublicKey), requestHash, notAfter]),
         ),
       ),
     );
 
-    const result = await provider.getKeyBoundIdentifierToken({
+    const result = await provider.getKeyBoundIdentifierLogin({
       identifier,
       proofPublicKey,
       requestHash,
+      notAfter,
     });
 
-    const { message, signature } = result.providerAssertion as {
+    const { message, signature } = result.token.providerAssertion as {
       message: string;
       signature: string;
     };
     expect(message).toContain(
       'metamask.io wants you to sign in with your Ethereum account:',
     );
-    expect(message).toContain(`\n${ADDRESS}\n`);
+    expect(message).toContain(`\n${CHECKSUMMED_ADDRESS}\n`);
     expect(message).toContain('Chain ID: 1');
     expect(message).toContain(`Nonce: ${expectedNonce}`);
     expect(signature).toBe('0xsig');
     expect(signer.getAddress).toHaveBeenCalledTimes(1);
     expect(signer.signMessage).toHaveBeenCalledWith(message);
     expect(result).toEqual({
-      identifier,
-      proofPublicKey,
-      requestHash,
-      providerAssertion: { message, signature: '0xsig' },
+      token: {
+        identifier,
+        proofPublicKey,
+        requestHash,
+        notAfter,
+        providerAssertion: { message, signature: '0xsig' },
+      },
     });
   });
 });

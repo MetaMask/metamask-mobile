@@ -25,22 +25,31 @@ describe('SocialIdentifierAuthProvider', () => {
     const provider = new SocialIdentifierAuthProvider({ getIdToken });
     const proofPublicKey = new Uint8Array([1, 2, 3]);
     const requestHash = '0xdead';
+    const notAfter = 1_700_000_300;
 
-    const result = await provider.getKeyBoundIdentifierToken({
+    const result = await provider.getKeyBoundIdentifierLogin({
       identifier: SOCIAL,
       proofPublicKey,
       requestHash,
+      notAfter,
     });
 
-    expect(keyBoundDigest).toHaveBeenCalledWith(proofPublicKey, requestHash);
+    expect(keyBoundDigest).toHaveBeenCalledWith(
+      proofPublicKey,
+      requestHash,
+      notAfter,
+    );
     expect(getIdToken).toHaveBeenCalledWith(
       bytesToHex(new Uint8Array([0xab, 0xcd])),
     );
     expect(result).toEqual({
-      identifier: SOCIAL,
-      proofPublicKey,
-      requestHash,
-      providerAssertion: 'social-id-token',
+      token: {
+        identifier: SOCIAL,
+        proofPublicKey,
+        requestHash,
+        notAfter,
+        providerAssertion: 'social-id-token',
+      },
     });
   });
 });

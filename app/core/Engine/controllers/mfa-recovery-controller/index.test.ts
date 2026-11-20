@@ -1,5 +1,6 @@
 import { mnemonicToSeed } from '@metamask/key-tree';
 import { selectMfaRecoveryEnabled } from '../../../../selectors/featureFlagController/mfaRecovery';
+import { getRecoveryRegistrationLockProviderMessenger } from '../../messengers/mfa-recovery-controller-messenger';
 import { createSrpSiweSigner } from './auth/srp-siwe-signer';
 import { isMfaRecoveryConfigured } from './config';
 import { createMfaRecoveryController } from './create-mfa-recovery-controller';
@@ -21,7 +22,14 @@ jest.mock('../../../../util/identity/mfa/passkeyAdapter', () => ({
   mobilePasskeyAdapter: { get: jest.fn() },
 }));
 
+jest.mock('../../messengers/mfa-recovery-controller-messenger', () => ({
+  getRecoveryRegistrationLockProviderMessenger: jest.fn(),
+}));
+
 const mockCreate = jest.mocked(createMfaRecoveryController);
+const mockGetLockProviderMessenger = jest.mocked(
+  getRecoveryRegistrationLockProviderMessenger,
+);
 const mockSelectEnabled = jest.mocked(selectMfaRecoveryEnabled.resultFunc);
 const mockIsConfigured = jest.mocked(isMfaRecoveryConfigured);
 
@@ -31,10 +39,14 @@ describe('mfaRecoveryControllerInit', () => {
   const initMessenger = {
     call: jest.fn(),
   };
+  const lockProviderMessenger = { kind: 'lock-provider' };
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreate.mockReturnValue(controller as never);
+    mockGetLockProviderMessenger.mockReturnValue(
+      lockProviderMessenger as never,
+    );
     mockSelectEnabled.mockReturnValue(true);
     mockIsConfigured.mockReturnValue(true);
   });
@@ -52,9 +64,11 @@ describe('mfaRecoveryControllerInit', () => {
     } as never);
 
     expect(created).toBe(controller);
+    expect(mockGetLockProviderMessenger).toHaveBeenCalledWith(initMessenger);
     expect(mockCreate).toHaveBeenCalledWith(
       expect.objectContaining({
         messenger: controllerMessenger,
+        lockProviderMessenger,
         state: { pendingOperation: null, other: 'keep' },
       }),
     );

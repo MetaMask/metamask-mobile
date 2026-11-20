@@ -9,7 +9,10 @@ import type {
   KeyringControllerGetStateAction,
   KeyringControllerWithKeyringV2UnsafeAction,
 } from '@metamask/keyring-controller';
-import type { MfaRecoveryControllerMessenger } from '@metamask/mfa-recovery-controller';
+import type {
+  MfaRecoveryControllerMessenger,
+  RecoveryRegistrationLockProviderMessenger,
+} from '@metamask/mfa-recovery-controller';
 import type { MfaRecoveryServiceMessenger } from '../../MfaRecovery/services/mfa-recovery-service';
 import type { RootMessenger } from '../types';
 
@@ -67,6 +70,24 @@ export function getMfaRecoveryControllerInitMessenger(
       'KeyringController:getState',
       'KeyringController:withKeyringV2Unsafe',
       'RemoteFeatureFlagController:getState',
+    ],
+    messenger,
+  });
+  return messenger;
+}
+
+/** Returns the messenger for the recovery registration lease provider. */
+export function getRecoveryRegistrationLockProviderMessenger(
+  initMessenger: MfaRecoveryControllerInitMessenger,
+): RecoveryRegistrationLockProviderMessenger {
+  const messenger: RecoveryRegistrationLockProviderMessenger = new Messenger({
+    namespace: 'RecoveryRegistrationLockProvider',
+    parent: initMessenger,
+  });
+  initMessenger.delegate({
+    actions: [
+      'AuthenticationController:getBearerToken',
+      'AuthenticationController:refreshCanonicalProfileId',
     ],
     messenger,
   });

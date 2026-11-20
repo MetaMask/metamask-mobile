@@ -1,15 +1,13 @@
 import { bytesToBase64 } from '@metamask/utils';
-import type {
-  Identifier,
-  RecoveryIdentifierAuthProvider,
+import {
+  getEscrowPasskeyChallenge,
+  type Identifier,
+  type KeyBoundIdentifierLogin,
+  type KeyBoundIdentifierTokenRequest,
+  type RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 import type { PasskeyAdapter } from '../../../../../util/identity/mfa/engine/types';
 import { MfaRecoveryControllerError } from '../errors';
-import { keyBoundDigest } from './key-bound-nonce';
-
-type KeyBoundIdentifierToken = Awaited<
-  ReturnType<RecoveryIdentifierAuthProvider['getKeyBoundIdentifierToken']>
->;
 
 /** Runs one platform passkey assertion ceremony. */
 export type PasskeyAssertionGetter = PasskeyAdapter['get'];
@@ -35,15 +33,11 @@ export class PlatformPasskeyIdentifierAuthProvider
     this.#get = get;
   }
 
-  async getKeyBoundIdentifierToken(params: {
-    identifier: Identifier;
-    proofPublicKey: Uint8Array;
-    requestHash: string;
-  }): Promise<KeyBoundIdentifierToken> {
+  async getKeyBoundIdentifierLogin(
+    params: KeyBoundIdentifierTokenRequest,
+  ): Promise<KeyBoundIdentifierLogin> {
     const { rpId, credentialId } = readPasskeyVerifier(params.identifier);
-    const challenge = base64Url(
-      await keyBoundDigest(params.proofPublicKey, params.requestHash),
-    );
+    const challenge = base64Url(await getEscrowPasskeyChallenge(params));
     const assertion = await this.#get({
       challenge,
       rpId,
@@ -51,10 +45,13 @@ export class PlatformPasskeyIdentifierAuthProvider
       userVerification: 'required',
     });
     return {
-      identifier: params.identifier,
-      proofPublicKey: params.proofPublicKey,
-      requestHash: params.requestHash,
-      providerAssertion: { id: assertion.id, response: assertion.response },
+      token: {
+        identifier: params.identifier,
+        proofPublicKey: params.proofPublicKey,
+        requestHash: params.requestHash,
+        notAfter: params.notAfter,
+        providerAssertion: { id: assertion.id, response: assertion.response },
+      },
     };
   }
 }

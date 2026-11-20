@@ -1,10 +1,13 @@
-import { bytesToHex, sha256, stringToBytes } from '@metamask/utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { bytesToHex } from '@metamask/utils';
 import type {
-  Identifier,
+  KeyBoundIdentifierLogin,
+  KeyBoundIdentifierTokenRequest,
   RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 import { SIWE_CHAIN_ID, SIWE_DOMAIN } from '../constants';
 import { MfaRecoveryControllerError } from '../errors';
+import { keyBoundDigest } from './key-bound-nonce';
 import {
   PlatformPasskeyIdentifierAuthProvider,
   type PasskeyAssertionGetter,
@@ -14,10 +17,6 @@ import {
   type SocialIdTokenProvider,
 } from './social-identifier-auth-provider';
 import type { SiweSigner } from './srp-siwe-signer';
-
-type KeyBoundIdentifierToken = Awaited<
-  ReturnType<RecoveryIdentifierAuthProvider['getKeyBoundIdentifierToken']>
->;
 
 /**
  * Signs key-bound SIWE identifier proofs with the primary SRP's
@@ -32,25 +31,20 @@ export class SiweIdentifierAuthProvider
     this.#signer = signer;
   }
 
-  async getKeyBoundIdentifierToken(params: {
-    identifier: Identifier;
-    proofPublicKey: Uint8Array;
-    requestHash: string;
-  }): Promise<KeyBoundIdentifierToken> {
+  async getKeyBoundIdentifierLogin(
+    params: KeyBoundIdentifierTokenRequest,
+  ): Promise<KeyBoundIdentifierLogin> {
     const address = await this.#signer.getAddress();
     const nonce = bytesToHex(
-      await sha256(
-        stringToBytes(
-          JSON.stringify([
-            bytesToHex(params.proofPublicKey),
-            params.requestHash,
-          ]),
-        ),
+      await keyBoundDigest(
+        params.proofPublicKey,
+        params.requestHash,
+        params.notAfter,
       ),
     );
     const message = [
       `${SIWE_DOMAIN} wants you to sign in with your Ethereum account:`,
-      address,
+      toChecksumHexAddress(address),
       '',
       'Authorize MetaMask MFA recovery.',
       '',
@@ -63,10 +57,13 @@ export class SiweIdentifierAuthProvider
     const signature = await this.#signer.signMessage(message);
 
     return {
-      identifier: params.identifier,
-      proofPublicKey: params.proofPublicKey,
-      requestHash: params.requestHash,
-      providerAssertion: { message, signature },
+      token: {
+        identifier: params.identifier,
+        proofPublicKey: params.proofPublicKey,
+        requestHash: params.requestHash,
+        notAfter: params.notAfter,
+        providerAssertion: { message, signature },
+      },
     };
   }
 }
@@ -108,11 +105,9 @@ export class RecoveryIdentifierRouter
     ]);
   }
 
-  async getKeyBoundIdentifierToken(params: {
-    identifier: Identifier;
-    proofPublicKey: Uint8Array;
-    requestHash: string;
-  }): Promise<KeyBoundIdentifierToken> {
+  async getKeyBoundIdentifierLogin(
+    params: KeyBoundIdentifierTokenRequest,
+  ): Promise<KeyBoundIdentifierLogin> {
     const provider = this.#providers.get(params.identifier.type);
     if (!provider) {
       throw new MfaRecoveryControllerError(
@@ -120,6 +115,6 @@ export class RecoveryIdentifierRouter
         'unsupported_identifier_type',
       );
     }
-    return await provider.getKeyBoundIdentifierToken(params);
+    return await provider.getKeyBoundIdentifierLogin(params);
   }
 }

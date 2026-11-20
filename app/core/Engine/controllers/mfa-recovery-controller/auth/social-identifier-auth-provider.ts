@@ -1,13 +1,10 @@
 import { bytesToHex } from '@metamask/utils';
 import type {
-  Identifier,
+  KeyBoundIdentifierLogin,
+  KeyBoundIdentifierTokenRequest,
   RecoveryIdentifierAuthProvider,
 } from '@metamask/mfa-recovery-controller';
 import { keyBoundDigest } from './key-bound-nonce';
-
-type KeyBoundIdentifierToken = Awaited<
-  ReturnType<RecoveryIdentifierAuthProvider['getKeyBoundIdentifierToken']>
->;
 
 /** Returns a fresh OIDC ID token whose `nonce` claim is the given value. */
 export type SocialIdTokenProvider = (nonce: string) => Promise<string>;
@@ -27,20 +24,25 @@ export class SocialIdentifierAuthProvider
     this.#getIdToken = getIdToken;
   }
 
-  async getKeyBoundIdentifierToken(params: {
-    identifier: Identifier;
-    proofPublicKey: Uint8Array;
-    requestHash: string;
-  }): Promise<KeyBoundIdentifierToken> {
+  async getKeyBoundIdentifierLogin(
+    params: KeyBoundIdentifierTokenRequest,
+  ): Promise<KeyBoundIdentifierLogin> {
     const nonce = bytesToHex(
-      await keyBoundDigest(params.proofPublicKey, params.requestHash),
+      await keyBoundDigest(
+        params.proofPublicKey,
+        params.requestHash,
+        params.notAfter,
+      ),
     );
     const idToken = await this.#getIdToken(nonce);
     return {
-      identifier: params.identifier,
-      proofPublicKey: params.proofPublicKey,
-      requestHash: params.requestHash,
-      providerAssertion: idToken,
+      token: {
+        identifier: params.identifier,
+        proofPublicKey: params.proofPublicKey,
+        requestHash: params.requestHash,
+        notAfter: params.notAfter,
+        providerAssertion: idToken,
+      },
     };
   }
 }

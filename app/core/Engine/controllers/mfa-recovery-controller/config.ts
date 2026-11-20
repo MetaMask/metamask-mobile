@@ -50,8 +50,7 @@ export function getCubistConfig(
       'MFA_CONFIG.receiptPublicKey',
     ),
     scopes: parseScopes(mfaConfig.sessionScopes),
-    registrationUrl:
-      mfaConfig.registrationUrl.trim() || DEFAULT_REGISTRATION_URL,
+    registrationUrl: getRegistrationUrl(mfaConfig),
     authAudience: getRequiredMfaConfig(
       mfaConfig.cubistAuthAudience,
       'MFA_CONFIG.cubistAuthAudience',
@@ -83,6 +82,13 @@ export type CubistEscrowConfig = Pick<
   CubistConfig,
   'wrapPublicKey' | 'receiptPublicKey' | 'authAudience'
 >;
+
+/** Returns the recovery registration service origin. */
+export function getRegistrationUrl(
+  mfaConfig: MfaConfig = getMfaConfig(),
+): string {
+  return mfaConfig.registrationUrl.trim() || DEFAULT_REGISTRATION_URL;
+}
 
 /**
  * Returns the pinned Cubist escrow keys and audience, or empty values when the
