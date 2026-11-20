@@ -174,7 +174,7 @@ const SourceOfIncome = (): React.JSX.Element => {
   }, [navigation]);
 
   const handleClose = useCallback(() => {
-    navigation.getParent()?.pop();
+    navigation.goBack();
   }, [navigation]);
 
   const handleSubmit = useCallback(async () => {
@@ -223,7 +223,7 @@ const SourceOfIncome = (): React.JSX.Element => {
         );
       }
 
-      if (result.status === 'FAILED') {
+      if (result && result.status === 'FAILED') {
         setError(strings('deposit.mica.sourceOfIncomeSubmitError'));
         return;
       }
@@ -290,7 +290,7 @@ const SourceOfIncome = (): React.JSX.Element => {
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
-            <DepositProgressBar currentStep={4} totalSteps={5} />
+            <DepositProgressBar steps={5} currentStep={4} />
 
             <View style={styles.section}>
               <Text variant={TextVariant.HeadingMd} style={styles.title}>
@@ -338,11 +338,10 @@ const SourceOfIncome = (): React.JSX.Element => {
                 onChangeText={setMonthlyVolume}
                 keyboardType="numeric"
                 autoCapitalize="none"
-                prefix="€"
-                caption={strings(
-                  'deposit.source_of_income.monthly_volume_helper',
-                )}
               />
+              <Text variant={TextVariant.BodySm} style={styles.caption}>
+                {strings('deposit.source_of_income.monthly_volume_helper')}
+              </Text>
             </View>
 
             <View style={styles.section}>

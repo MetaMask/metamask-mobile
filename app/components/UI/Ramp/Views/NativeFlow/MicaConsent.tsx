@@ -103,7 +103,7 @@ const MicaConsent = (): React.JSX.Element => {
   }, [navigation]);
 
   const handleClose = useCallback(() => {
-    navigation.getParent()?.pop();
+    navigation.goBack();
   }, [navigation]);
 
   const handleOpenTransakSupport = useCallback(() => {
@@ -130,7 +130,7 @@ const MicaConsent = (): React.JSX.Element => {
         result = await submitMicaConsentController(consentedAt);
       }
 
-      if (result.status === 'FAILED') {
+      if (result && result.status === 'FAILED') {
         setError(strings('deposit.mica.consentSubmitError'));
         return;
       }

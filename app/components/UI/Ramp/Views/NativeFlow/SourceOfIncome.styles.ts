@@ -38,6 +38,13 @@ const styleSheet = (params: { theme: Theme }) => {
     footerContent: {
       gap: 12,
     },
+    helperText: {
+      marginBottom: 8,
+    },
+    caption: {
+      marginTop: 4,
+      color: colors.text.alternative,
+    },
   });
 };
 

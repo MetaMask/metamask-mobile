@@ -116,13 +116,15 @@ export interface UseTransakControllerResult {
   submitPurposeOfUsageForm: (purpose: string[]) => Promise<void>;
   patchUser: (data: TransakPatchUserRequestBody) => Promise<unknown>;
   submitSsnDetails: (ssn: string, quoteId: string) => Promise<unknown>;
-  submitMicaConsent: (consentedAt: string) => Promise<void>;
+  submitMicaConsent: (
+    consentedAt: string,
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' } | void>;
   submitSourceOfIncome: (
     monthlyVolume: string,
     sourceOfFundsType: string,
     employmentStatus?: string,
     countryOfCitizenship?: string,
-  ) => Promise<void>;
+  ) => Promise<{ status: 'SUBMITTED' | 'FAILED' } | void>;
   confirmPayment: (
     orderId: string,
     paymentMethodId: string,
@@ -394,10 +396,14 @@ export function useTransakController(): UseTransakControllerResult {
   );
 
   const submitMicaConsent = useCallback(
-    async (consentedAt: string) =>
+    async (
+      consentedAt: string,
+    ): Promise<{ status: 'SUBMITTED' | 'FAILED' } | void> =>
       (
         getRampsController() as RampsControllerWithMica
-      ).transakSubmitMicaConsent(consentedAt),
+      ).transakSubmitMicaConsent(consentedAt) as Promise<{
+        status: 'SUBMITTED' | 'FAILED';
+      } | void>,
     [],
   );
 
@@ -407,7 +413,7 @@ export function useTransakController(): UseTransakControllerResult {
       sourceOfFundsType: string,
       employmentStatus?: string,
       countryOfCitizenship?: string,
-    ) =>
+    ): Promise<{ status: 'SUBMITTED' | 'FAILED' } | void> =>
       (
         getRampsController() as RampsControllerWithMica
       ).transakSubmitSourceOfIncome(
@@ -415,7 +421,7 @@ export function useTransakController(): UseTransakControllerResult {
         sourceOfFundsType,
         employmentStatus || '',
         countryOfCitizenship || '',
-      ),
+      ) as Promise<{ status: 'SUBMITTED' | 'FAILED' } | void>,
     [],
   );
 

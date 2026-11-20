@@ -24,35 +24,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   I18nEvents: { addListener: jest.fn() },
 }));
 
-const mockSubmitSourceOfIncome = jest.fn().mockResolvedValue(undefined);
-const mockGetUserDetails = jest.fn().mockResolvedValue({
-  address: { countryCode: 'US' },
-});
-const mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
-  formsRequired: [
-    {
-      type: 'SOURCE_OF_INCOME',
-      metadata: mockEEAMetadata,
-    },
-  ],
-});
-
-jest.mock('../../hooks/useTransakController', () => ({
-  useTransakController: () => ({
-    submitSourceOfIncome: mockSubmitSourceOfIncome,
-    getUserDetails: mockGetUserDetails,
-    getAdditionalRequirements: mockGetAdditionalRequirements,
-  }),
-}));
-
-const mockRouteAfterAuthentication = jest.fn();
-
-jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: () => ({
-    routeAfterAuthentication: mockRouteAfterAuthentication,
-  }),
-}));
-
 const mockEEAMetadata = {
   options: [],
   documentProofOptions: [],
@@ -85,6 +56,35 @@ const mockNonEEAMetadata = {
   ],
 };
 
+const mockSubmitSourceOfIncome = jest.fn().mockResolvedValue(undefined);
+const mockGetUserDetails = jest.fn().mockResolvedValue({
+  address: { countryCode: 'US' },
+});
+const mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
+  formsRequired: [
+    {
+      type: 'SOURCE_OF_INCOME',
+      metadata: mockEEAMetadata,
+    },
+  ],
+});
+
+jest.mock('../../hooks/useTransakController', () => ({
+  useTransakController: () => ({
+    submitSourceOfIncome: mockSubmitSourceOfIncome,
+    getUserDetails: mockGetUserDetails,
+    getAdditionalRequirements: mockGetAdditionalRequirements,
+  }),
+}));
+
+const mockRouteAfterAuthentication = jest.fn();
+
+jest.mock('../../hooks/useTransakRouting', () => ({
+  useTransakRouting: () => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  }),
+}));
+
 const mockUseParamsReturn = {
   quote: { quoteId: 'test-quote-id', fiatAmount: 100 },
   metadata: mockEEAMetadata,
@@ -109,7 +109,38 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 jest.mock('../../utils/micaMockMode', () => ({
   isMicaMockModeEnabled: jest.fn(() => false),
   mockSubmitSourceOfIncome: jest.fn().mockResolvedValue(undefined),
-  EEA_COUNTRIES: ['DE', 'FR', 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'GR', 'HU', 'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'IS', 'LI', 'NO'],
+  EEA_COUNTRIES: [
+    'DE',
+    'FR',
+    'AT',
+    'BE',
+    'BG',
+    'HR',
+    'CY',
+    'CZ',
+    'DK',
+    'EE',
+    'FI',
+    'GR',
+    'HU',
+    'IE',
+    'IT',
+    'LV',
+    'LT',
+    'LU',
+    'MT',
+    'NL',
+    'PL',
+    'PT',
+    'RO',
+    'SK',
+    'SI',
+    'ES',
+    'SE',
+    'IS',
+    'LI',
+    'NO',
+  ],
 }));
 
 jest.mock('../../hooks/useRampsUserRegion', () => ({
@@ -141,10 +172,18 @@ describe('SourceOfIncome', () => {
     await waitFor(() => {
       expect(getByText('deposit.source_of_income.title')).toBeTruthy();
       expect(getByText('deposit.source_of_income.subtitle')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.monthly_volume_label')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.source_of_funds_label')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.employment_status_label')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.nationality_label')).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.monthly_volume_label'),
+      ).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.source_of_funds_label'),
+      ).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.employment_status_label'),
+      ).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.nationality_label'),
+      ).toBeTruthy();
     });
   });
 
@@ -173,7 +212,9 @@ describe('SourceOfIncome', () => {
 
     await waitFor(() => {
       expect(mockGetUserDetails).toHaveBeenCalled();
-      expect(getByText('deposit.source_of_income.employment_status_label')).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.employment_status_label'),
+      ).toBeTruthy();
     });
   });
 
@@ -193,10 +234,18 @@ describe('SourceOfIncome', () => {
     await waitFor(() => {
       expect(getByText('deposit.source_of_income.title')).toBeTruthy();
       expect(getByText('deposit.source_of_income.subtitle')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.monthly_volume_label')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.source_of_funds_label')).toBeTruthy();
-      expect(queryByText('deposit.source_of_income.employment_status_label')).toBeNull();
-      expect(queryByText('deposit.source_of_income.nationality_label')).toBeNull();
+      expect(
+        getByText('deposit.source_of_income.monthly_volume_label'),
+      ).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.source_of_funds_label'),
+      ).toBeTruthy();
+      expect(
+        queryByText('deposit.source_of_income.employment_status_label'),
+      ).toBeNull();
+      expect(
+        queryByText('deposit.source_of_income.nationality_label'),
+      ).toBeNull();
     });
   });
 
@@ -208,7 +257,9 @@ describe('SourceOfIncome', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.source_of_income.continue_button')).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.continue_button'),
+      ).toBeTruthy();
     });
   });
 
@@ -224,8 +275,12 @@ describe('SourceOfIncome', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.source_of_income.employment_status_label')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.nationality_label')).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.employment_status_label'),
+      ).toBeTruthy();
+      expect(
+        getByText('deposit.source_of_income.nationality_label'),
+      ).toBeTruthy();
     });
   });
 });

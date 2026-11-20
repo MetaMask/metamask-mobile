@@ -251,7 +251,8 @@ function PaymentSelectionModal() {
   const allTermsIds = useMemo(() => {
     const termsSet = new Set<string>();
     quotes?.success?.forEach((quote) => {
-      quote.quote?.termsIds?.forEach((id) => termsSet.add(id));
+      const quoteData = quote.quote as { termsIds?: string[] };
+      quoteData.termsIds?.forEach((id: string) => termsSet.add(id));
     });
     return Array.from(termsSet);
   }, [quotes]);

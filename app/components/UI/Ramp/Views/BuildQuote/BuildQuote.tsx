@@ -909,7 +909,9 @@ function BuildQuote() {
                 {embeddedCheckout.renderOverlay?.({
                   interactive: canContinue,
                 })}
-                {selectedQuote?.quote?.termsIds ? (
+                {selectedQuote?.quote &&
+                'termsIds' in selectedQuote.quote &&
+                Array.isArray(selectedQuote.quote.termsIds) ? (
                   <MicaDisclaimer termsIds={selectedQuote.quote.termsIds} />
                 ) : null}
                 {isEmbeddedCheckoutVisible ? null : (
