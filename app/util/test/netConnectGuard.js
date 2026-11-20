@@ -17,6 +17,9 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 const nock = require('nock');
+const {
+  installDefaultApiMocks,
+} = require('../../../tests/component-view/api-mocking/defaults');
 
 /**
  * Hosts nock still lets through for real. Environmental noise only (e.g.
@@ -75,24 +78,42 @@ const unwindStaleNetConnectLayers = () => {
   }
 };
 
-/** Builds the blocked request from the shapes Nock passes to the `no match`
- * event (an options object, or a `(ClientRequest, options)` pair). */
-const extractRequestFromEvent = (target, options) => {
-  for (const candidate of [options, target]) {
-    if (
-      candidate &&
-      typeof candidate === 'object' &&
-      typeof candidate.host === 'string' &&
-      typeof candidate.path === 'string'
-    ) {
+/** Builds the blocked request from the shapes Nock 15 passes to the `no
+ * match` event: a URL-options object, a web-standard `Request`, or a
+ * `(ClientRequest, options)` pair. */
+const extractRequestFromEvent = (...args) => {
+  for (const candidate of args) {
+    if (!candidate || typeof candidate !== 'object') {
+      continue;
+    }
+    const url =
+      typeof candidate.url === 'string'
+        ? candidate.url
+        : typeof candidate.href === 'string'
+          ? candidate.href
+          : null;
+    if (url) {
+      try {
+        const parsed = new URL(url);
+        return {
+          method: String(candidate.method || 'GET').toUpperCase(),
+          scheme: parsed.protocol.replace(/:$/, ''),
+          host: parsed.host,
+          path: `${parsed.pathname}${parsed.search}`,
+        };
+      } catch {
+        continue;
+      }
+    }
+    const host = candidate.host ?? candidate.hostname;
+    if (typeof host === 'string' && typeof candidate.path === 'string') {
       return {
         method: String(candidate.method || 'GET').toUpperCase(),
-        scheme:
-          candidate.proto ||
-          String(candidate.protocol ?? 'http:').replace(/:$/, '') ||
-          'http',
-        host: candidate.host,
-        path: candidate.path || '/',
+        scheme: String(candidate.proto ?? candidate.protocol ?? 'https:')
+          .replace(/:$/, '')
+          .replace(/^https$/, 'https'),
+        host,
+        path: candidate.path,
       };
     }
   }
@@ -107,6 +128,8 @@ const formatEntries = (entries, prefix) =>
   });
 
 const recordBlockedRequest = (...args) => {
+  // eslint-disable-next-line no-console
+  console.log('N15 emission activeMocks:', nock.activeMocks().length, '| isActive:', nock.isActive());
   if (!currentTestActive) {
     return;
   }
@@ -264,6 +287,7 @@ const installNetConnectGuard = () => {
   beforeEach(() => {
     currentTestActive = true;
     blockNetConnect();
+    installDefaultApiMocks();
   });
   afterEach(() => checkBlockedRequests(expect.getState().currentTestName));
   afterAll(() => {

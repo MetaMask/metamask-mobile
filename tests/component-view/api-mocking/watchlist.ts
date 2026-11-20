@@ -18,6 +18,7 @@ import {
   clearAllNockMocks,
   disableNetConnect,
   teardownNock,
+  nockRequestUri,
 } from './nockHelpers';
 import { installDefaultApiMocks } from './defaults';
 import {
@@ -123,9 +124,11 @@ export function setupWatchlistTokenApiMock(
     .get('/assets')
     .query(true)
     .reply(200, (request: Request) => {
-      const url = new URL(request.url);
-      const assetIds = url.searchParams.get('assetIds') ?? undefined;
-      return filterWatchlistResponse(assetIds, tokens);
+      const uri = nockRequestUri(request);
+      const assetIds = new URLSearchParams(
+        uri.slice(uri.indexOf('?') + 1),
+      ).get('assetIds');
+      return filterWatchlistResponse(assetIds ?? undefined, tokens);
     })
     .persist();
 
