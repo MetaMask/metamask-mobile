@@ -19,6 +19,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 import {
   mockRwaTokensData,
   mockTrendingTokensData,
@@ -118,7 +119,7 @@ export function setupWatchlistTokenApiMock(
 ): nock.Scope {
   disableNetConnect();
 
-  return nock(TOKEN_API_BASE_URL)
+  const scope = nock(TOKEN_API_BASE_URL)
     .get('/assets')
     .query(true)
     .reply(200, (request: Request) => {
@@ -127,6 +128,9 @@ export function setupWatchlistTokenApiMock(
       return filterWatchlistResponse(assetIds, tokens);
     })
     .persist();
+
+  installDefaultApiMocks();
+  return scope;
 }
 
 /**
@@ -163,6 +167,7 @@ export function setupWatchlistSearchApiMock(
   );
   setupWatchlistTokenApiMock();
   setupReadOnlyNetworkStoreMock();
+  installDefaultApiMocks();
 }
 
 /**

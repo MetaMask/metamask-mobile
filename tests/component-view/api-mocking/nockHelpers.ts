@@ -20,7 +20,17 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+<<<<<<< HEAD
 import { closeTrackedSockets } from '../../../app/util/test/socketLeakGuard';
+import {
+  blockNetConnect,
+  installDefaultApiMocks,
+  isNetConnectGuardInstalled,
+  rearmDefaultMocksIfWiped,
+} from '../../../app/util/test/netConnectGuard';
+=======
+import { blockNetConnect } from '../../../app/util/test/netConnectGuard';
+>>>>>>> 0d35a1e0b0c (test(cv): net connect guard, neutral defaults, WebSocket tripwire)
 
 /**
  * Clears all nock interceptors. Call in afterEach of any test file that uses
@@ -32,6 +42,7 @@ export function clearAllNockMocks(): void {
   nock.cleanAll();
 }
 
+<<<<<<< HEAD
 /**
  * Restores nock to a clean state: removes all interceptors, re-enables net
  * connect, and deactivates interception entirely.
@@ -44,11 +55,22 @@ export function clearAllNockMocks(): void {
  * client's idle keep-alive sockets, which is what used to leave half-open TLS
  * sockets that broke later suites (e.g. ChoosePassword `read EINVAL` after
  * Ramp Quotes).
+=======
+/** Restores nock to a clean state: removes all interceptors, cycles
+ * restore/activate (so @mswjs/interceptors does not leave half-open TLS
+ * sockets that break later suites), reinstalls the shared default mocks, and
+ * restores the net connect state the run expects: blocked in component-view
+ * runs, re-enabled in other lanes so this file's state does not leak.
+>>>>>>> 0d35a1e0b0c (test(cv): net connect guard, neutral defaults, WebSocket tripwire)
  */
 export function teardownNock(): void {
   nock.cleanAll();
   nock.enableNetConnect();
   nock.restore();
+  if (isNetConnectGuardInstalled()) {
+    blockNetConnect();
+    installDefaultApiMocks();
+  }
 }
 
 /**
@@ -66,6 +88,7 @@ export function nockRequestUri(request: Request): string {
 
 /**
  * Disables real network connections for the current test run. Call at the
+<<<<<<< HEAD
  * start of your feature's setup (e.g. in setupXxxApiMock) so unmocked requests
  * fail fast instead of hitting the network.
  *
@@ -82,9 +105,18 @@ export function disableNetConnect(): void {
     nock.activate();
   }
   nock.disableNetConnect();
+  rearmDefaultMocksIfWiped();
   // Each enableNetConnect(matcher) call overwrites the previous allowlist
   // matcher (single assignment). Both patterns must be combined into
   // one regex so neither is lost. Include bs-local.com for BrowserStack Local
   // agents that may poll during local / CI component-view runs.
   nock.enableNetConnect(/127\.0\.0\.1|localhost|bs-local\.com/);
+=======
+ * start of your feature's setup (e.g. in setupXxxApiMock). Delegates to the
+ * component-view net connect guard, which also records every unmocked request
+ * and fails the test from its root-level `afterEach`.
+ */
+export function disableNetConnect(): void {
+  blockNetConnect();
+>>>>>>> 0d35a1e0b0c (test(cv): net connect guard, neutral defaults, WebSocket tripwire)
 }

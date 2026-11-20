@@ -135,6 +135,11 @@ ignores:
   - 'vm-browserify'
   - 'react-native-cli'
 
+  # Extended by the nock yarn patch: nock resolves it through its own
+  # package graph, so a direct declaration would pin a second copy of the
+  # interceptors build next to nock's.
+  - '@mswjs/interceptors'
+
   ## Missing dependencies to investigate
   - '@react-navigation/core'
   - 'app'
