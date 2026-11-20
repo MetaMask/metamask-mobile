@@ -4087,7 +4087,6 @@ export const SPOT_PRICES_SUPPORT_INFO: Record<string, string> = {
   '0x10b3e': 'eip155:68414/erc20:0x0000000000000000000000000000000000000000', // MapleStory Universe - no slip44
   '0x11d9b': 'eip155:73115/erc20:0x0000000000000000000000000000000000000000', // ICB Network - Native symbol: ICBX,
   '0x138de': 'eip155:80094/erc20:0x0000000000000000000000000000000000000000', // Berachain - Native symbol: Bera',
-  '0x13e31': 'eip155:81457/slip44:60', // Blast Mainnet - Native symbol: ETH
   '0x15b38': 'eip155:88888/erc20:0x0000000000000000000000000000000000000000', // Chiliz Chain - Native symbol: CHZ
   '0x17dcd': 'eip155:97741/erc20:0x0000000000000000000000000000000000000000', // Pepe Unchained Mainnet - Native symbol: PEPU
   '0x18232': 'eip155:98866/erc20:0x0000000000000000000000000000000000000000', // Plume Mainnet - Narive symbol: Plume
