@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View, BackHandler } from 'react-native';
+import { AccessibilityInfo, Pressable, View, BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -37,6 +37,11 @@ import useLimits from '../../hooks/useLimits';
 import useBalance from '../../hooks/useBalance';
 import useAddressBalance from '../../../../../hooks/useAddressBalance/useAddressBalance';
 import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.types';
+import { useTronAmountValidation } from '../../hooks/useTronAmountValidation';
+import { getMaxSendableTronAmount } from '../../../../../../core/Multichain/tron';
+import { CaipAssetType } from '@metamask/snaps-sdk';
+import { RootState } from '../../../../../../reducers';
+import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 
 import ScreenLayout from '../../components/ScreenLayout';
 import Row from '../../components/Row';
@@ -141,6 +146,7 @@ const BuildQuote = () => {
   const [error, setError] = useState<string | null>(null);
   const [isKeyboardFreshlyOpened, setIsKeyboardFreshlyOpened] = useState(false);
   const [intentHandled, setIntentHandled] = useState(false);
+  const maxRequestTokenRef = useRef(0);
   const nativeSymbol = useSelector(selectTicker);
   const networkConfigurationsByCaipChainId = useSelector(
     selectNetworkConfigurationsByCaipChainId,
@@ -173,6 +179,8 @@ const BuildQuote = () => {
     selectedAsset?.network?.chainId &&
       isNonEvmChainId(selectedAsset.network.chainId),
   );
+
+  const isTron = selectedAsset?.network?.chainId?.startsWith('tron:') ?? false;
 
   useEffect(() => {
     if (intent && !intentHandled && Object.keys(intent || {}).length > 0) {
@@ -394,6 +402,12 @@ const BuildQuote = () => {
         },
   );
 
+  const fromAccount = useSelector((state: RootState) =>
+    selectedAddress
+      ? getMemoizedInternalAccountByAddress(state, selectedAddress)
+      : undefined,
+  );
+
   let maxSellAmount: bigint | null = null;
   if (selectedAsset && isNonEvmAsset) {
     maxSellAmount = balanceBN ?? null;
@@ -470,6 +484,30 @@ const BuildQuote = () => {
     nativeTokenBalanceBN,
     selectedAsset,
   ]);
+
+  const {
+    isValidating: isTronValidating,
+    validationError: tronValidationError,
+    isDebouncing: isTronDebouncing,
+  } = useTronAmountValidation({
+    enabled: isSell && isTron && isOffRampNonEvmEnabled,
+    amount,
+    assetChainId: selectedAsset?.network?.chainId,
+    assetReference: selectedAsset?.assetId,
+    walletAddress: selectedAddress ?? undefined,
+  });
+
+  const previousTronValidationError = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (
+      tronValidationError &&
+      tronValidationError !== previousTronValidationError.current
+    ) {
+      AccessibilityInfo.announceForAccessibility(tronValidationError);
+    }
+    previousTronValidationError.current = tronValidationError;
+  }, [tronValidationError]);
 
   const displayBalance = useMemo(() => {
     if (!selectedAddress) {
@@ -578,6 +616,9 @@ const BuildQuote = () => {
         newValueAsNumber = Number(pressedKey);
       }
 
+      // Invalidate any in-flight Max request when user manually changes amount
+      maxRequestTokenRef.current = 0;
+
       setAmount(newValue);
       setAmountNumber(newValueAsNumber);
 
@@ -593,7 +634,10 @@ const BuildQuote = () => {
   );
 
   const handleQuickAmountPress = useCallback(
-    ({ value }: QuickAmount) => {
+    async ({ value }: QuickAmount) => {
+      // Invalidate any in-flight Max request from a previous quick amount
+      maxRequestTokenRef.current = 0;
+
       if (isBuy) {
         setAmount(`${value}`);
         setAmountNumber(value);
@@ -610,7 +654,41 @@ const BuildQuote = () => {
 
         let amountToSet = amountPercentage;
 
-        if (
+        if (value === 1 && isTron && isOffRampNonEvmEnabled && fromAccount) {
+          const assetChainId = selectedAsset?.network?.chainId;
+          const assetReference = selectedAsset?.assetId;
+
+          if (assetChainId && assetReference) {
+            // Track this request to detect if user changed amount during the async call
+            const requestToken = Date.now();
+            maxRequestTokenRef.current = requestToken;
+
+            try {
+              const maxResult = await getMaxSendableTronAmount(fromAccount, {
+                accountId: fromAccount.id,
+                assetId: `${assetChainId}/${assetReference}` as CaipAssetType,
+              });
+
+              // Discard if user changed amount during request
+              if (maxRequestTokenRef.current !== requestToken) {
+                return;
+              }
+
+              // Use Snap result if available, otherwise fall through to balance-based
+              if (maxResult?.amount) {
+                amountToSet = toTokenMinimalUnit(
+                  maxResult.amount,
+                  selectedAsset?.decimals ?? 0,
+                );
+              }
+            } catch {
+              // Fall back to the balance-based calculation only if request still valid
+              if (maxRequestTokenRef.current !== requestToken) {
+                return;
+              }
+            }
+          }
+        } else if (
           selectedAsset?.address === NATIVE_ADDRESS &&
           maxSellAmount !== null &&
           maxSellAmount < amountPercentage
@@ -630,9 +708,14 @@ const BuildQuote = () => {
     [
       balanceBN,
       isBuy,
+      isTron,
+      isOffRampNonEvmEnabled,
+      fromAccount,
       maxSellAmount,
       selectedAsset?.address,
       selectedAsset?.decimals,
+      selectedAsset?.network?.chainId,
+      selectedAsset?.assetId,
     ],
   );
 
@@ -707,6 +790,11 @@ const BuildQuote = () => {
       return;
     }
 
+    // Prevent navigation if Tron validation is pending or failed
+    if (isTronValidating || isTronDebouncing || tronValidationError) {
+      return;
+    }
+
     if (selectedAsset && currentFiatCurrency) {
       navigateWithDetails(
         navigation,
@@ -761,6 +849,9 @@ const BuildQuote = () => {
     selectedAsset,
     selectedPaymentMethodId,
     trackEvent,
+    isTronValidating,
+    isTronDebouncing,
+    tronValidationError,
   ]);
 
   const retryMethod = useCallback(() => {
@@ -773,7 +864,7 @@ const BuildQuote = () => {
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
     } else if (errorFiatCurrency) {
-      queryDefaultFiatCurrency();
+      void queryDefaultFiatCurrency();
       return queryGetFiatCurrencies();
     } else if (errorRegions) {
       return queryGetRegions();
@@ -1145,6 +1236,18 @@ const BuildQuote = () => {
                 </Text>
               </Row>
             )}
+            {tronValidationError && !hasInsufficientBalance && (
+              <Row>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={BuildQuoteSelectors.TRON_VALIDATION_ERROR}
+                  accessibilityRole="alert"
+                >
+                  {tronValidationError}
+                </Text>
+              </Row>
+            )}
             <Row>
               <PaymentMethodSelector
                 loading={
@@ -1183,7 +1286,13 @@ const BuildQuote = () => {
               size={ButtonSize.Lg}
               onPress={handleGetQuotePress}
               isFullWidth
-              isDisabled={amountNumber <= 0 || isFetching}
+              isDisabled={
+                amountNumber <= 0 ||
+                isFetching ||
+                isTronValidating ||
+                isTronDebouncing ||
+                Boolean(tronValidationError)
+              }
             >
               {strings('fiat_on_ramp_aggregator.get_quotes')}
             </Button>
