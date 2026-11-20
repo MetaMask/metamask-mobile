@@ -255,7 +255,7 @@ describe('InterruptingScreenGuard', () => {
 
   describe('configure', () => {
     it('stops leftover work before it taps or overlaps the next test', async () => {
-      let release = () => undefined;
+      let release: () => void = () => undefined;
       let reads = 0;
       let inFlightReads = 0;
       let maxInFlightReads = 0;
@@ -310,14 +310,16 @@ describe('InterruptingScreenGuard', () => {
     });
 
     it('does not charge leftover guard time to the next test timer', async () => {
-      let release = () => undefined;
+      let release: () => void = () => undefined;
       let firstRead = true;
       const adapter = createAdapter([WALLET_HOME]);
       adapter.getPageSource = () => {
         if (firstRead) {
           firstRead = false;
           return new Promise((resolve) => {
-            release = () => resolve(WALLET_HOME);
+            release = () => {
+              resolve(WALLET_HOME);
+            };
           });
         }
         return Promise.resolve(WALLET_HOME);

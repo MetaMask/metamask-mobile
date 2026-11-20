@@ -591,9 +591,11 @@ export class InterruptingScreenGuard {
     fn: () => Promise<TResult>,
   ): Promise<TResult> {
     const generation = this.#generation;
-    let release = () => undefined;
+    let release: () => void = () => undefined;
     const gate = new Promise<void>((resolve) => {
-      release = resolve;
+      release = () => {
+        resolve();
+      };
     });
     const previous = this.#turn;
     this.#turn = gate;
