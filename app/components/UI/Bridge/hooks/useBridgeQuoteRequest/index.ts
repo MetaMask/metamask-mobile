@@ -149,7 +149,7 @@ export const useBridgeQuoteRequest = (
         srcTokenAmount: normalizedSourceAmount,
         slippage: slippage ? Number(slippage) : undefined,
         walletAddress,
-        destWalletAddress:
+destWalletAddress:
           destToken?.isMoneyToken && primaryMoneyAccount?.address
             ? primaryMoneyAccount.address
             : (destAddress ?? walletAddress),
