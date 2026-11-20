@@ -1376,7 +1376,6 @@ export class Engine {
       batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
-      swapsTransactions: {},
     }));
 
     LoggingController.clear();
