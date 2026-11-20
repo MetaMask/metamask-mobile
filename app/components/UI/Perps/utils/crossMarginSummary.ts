@@ -1,11 +1,17 @@
 import {
+  buildMaintenanceSchedule,
   calculateAccountSummary,
+  formatPerpsFiat,
   getCrossCollateral,
+  PERPS_CONSTANTS,
+  PRICE_RANGES_UNIVERSAL,
+  resolveHyperLiquidMarginTiers,
   type AccountState,
   type CrossMarginSummary,
   type PerpsAccountSummary,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { strings } from '../../../../../locales/i18n';
 import type {
   HardwareTier,
   NetworkTier,
@@ -84,16 +90,134 @@ export const getCrossMarginSummaryThrottleMs = ({
 };
 
 /**
- * Estimates where a new cross position liquidates: the price at which the
- * cross collateral, after the position's P&L, falls to the maintenance margin
- * of the existing cross positions plus the new one. Maintenance margin is half
- * the initial margin at the market's max leverage, which is Hyperliquid's
- * rule, so other venues get no estimate. TAT-4668 moves this to
- * perps-controller.
+ * Hyperliquid margin-table ids below this are one tier whose max leverage is
+ * the table id. Ids at or above it need `meta.marginTables`, which this
+ * client does not have, so the estimate prices the lowest tier at the asset
+ * max leverage and is marked approximate.
+ */
+const HYPERLIQUID_TIERED_MARGIN_TABLE_ID = 50;
+
+type MaintenanceScheduleTier = ReturnType<
+  typeof buildMaintenanceSchedule
+>[number];
+
+const findMaintenanceTier = (
+  schedule: MaintenanceScheduleTier[],
+  notional: number,
+): MaintenanceScheduleTier | undefined =>
+  schedule.find(
+    (tier) => notional >= tier.lowerBound && notional < tier.upperBound,
+  );
+
+/**
+ * Same math as perps-controller `estimateCrossMaintenanceMargin` for one
+ * position, which is not exported by the installed version. TAT-4668 swaps
+ * this for the package export.
  *
- * @returns The liquidation price, or undefined when an input is missing (the
- * spot collateral included) or the position cannot be liquidated at a
- * positive price.
+ * @returns Maintenance margin in USD, or null when no tier covers the notional.
+ */
+const crossMaintenanceMargin = (
+  notional: number,
+  schedule: MaintenanceScheduleTier[],
+): number | null => {
+  const tier = findMaintenanceTier(schedule, Math.abs(notional));
+  return tier
+    ? Math.abs(notional) * tier.maintenanceMarginRate -
+        tier.maintenanceDeduction
+    : null;
+};
+
+/**
+ * Same math as perps-controller `estimateCrossLiquidationPrice` (the formula
+ * behind `calculateLiquidationPrice` with `marginType: 'cross'`), which is not
+ * exported by the installed version. TAT-4668 swaps this for the package
+ * export.
+ *
+ * @returns Liquidation price, or null when no positive price exists.
+ */
+const crossLiquidationPriceAtTier = ({
+  isLong,
+  markPrice,
+  positionSize,
+  accountValue,
+  maintenanceMargin,
+  schedule,
+}: {
+  isLong: boolean;
+  markPrice: number;
+  positionSize: number;
+  accountValue: number;
+  /** Maintenance of every cross position, this one included. */
+  maintenanceMargin: number;
+  schedule: MaintenanceScheduleTier[];
+}): number | null => {
+  const currentTier = findMaintenanceTier(schedule, positionSize * markPrice);
+  if (!currentTier || !(maintenanceMargin >= 0)) {
+    return null;
+  }
+  const side = isLong ? 1 : -1;
+  for (const tier of schedule) {
+    const denominator = positionSize * (side - tier.maintenanceMarginRate);
+    if (Math.abs(denominator) < Number.EPSILON) {
+      continue;
+    }
+    const liquidationPrice =
+      (maintenanceMargin -
+        accountValue +
+        currentTier.maintenanceDeduction -
+        tier.maintenanceDeduction +
+        positionSize * markPrice * (side - currentTier.maintenanceMarginRate)) /
+      denominator;
+    if (!Number.isFinite(liquidationPrice) || liquidationPrice <= 0) {
+      continue;
+    }
+    const notionalAtLiquidation = positionSize * liquidationPrice;
+    if (
+      notionalAtLiquidation >= tier.lowerBound &&
+      notionalAtLiquidation < tier.upperBound
+    ) {
+      return liquidationPrice;
+    }
+  }
+  return null;
+};
+
+export type CrossLiquidationContentKey =
+  | 'cross_liquidation_price'
+  | 'cross_no_liquidation_price'
+  | 'cross_liquidation_estimate_unavailable';
+
+export interface PresentedCrossLiquidation {
+  /** Row text: a price, `~price`, N/A, or the fallback dash. */
+  display: string;
+  /** Unformatted price for TP/SL checks. Empty when the row has no price. */
+  rawPrice: string;
+  contentKey: CrossLiquidationContentKey;
+}
+
+export type CrossLiquidationEstimate =
+  | { status: 'unknown' }
+  | { status: 'none' }
+  | { status: 'price'; price: number; approximate: boolean };
+
+/**
+ * Pre-trade cross liquidation estimate, using the formula of perps-controller
+ * `calculateLiquidationPrice` for cross orders.
+ *
+ * Within one maintenance tier this is
+ * `liq_price = price − side × (account_value − maintenance) / position_size / (1 − mmr × side)`
+ * with `mmr = 1 / (2 × tier max leverage)`, `account_value` the cross
+ * collateral, and `maintenance` that of every other position plus the
+ * resulting position at the entry price. The tier at the liquidation notional
+ * is used when it differs from the current one.
+ *
+ * An order that adds to or reduces a position uses the resulting size. Spot
+ * collateral that is not published yet is left out and the price is marked
+ * approximate, so the row still shows an estimate. A non-positive price means
+ * the position cannot be liquidated.
+ *
+ * @returns `unknown` when an input is missing, `none` when no positive
+ * liquidation price exists, or the price.
  */
 export const estimateCrossLiquidationPrice = ({
   entryPrice,
@@ -103,22 +227,36 @@ export const estimateCrossLiquidationPrice = ({
   crossMarginSummary,
   spotCollateral,
   providerId,
+  existingSignedSize = 0,
+  marginTableId,
 }: {
   entryPrice: number;
   /** Unsigned order size in base units. */
   size: number;
+  /** Direction of the order, not of the position it leaves behind. */
   isLong: boolean;
   maxLeverage: number;
   crossMarginSummary: CrossMarginSummary | undefined;
-  /** `AccountState.spotCollateral`: undefined while it is not known yet. */
+  /**
+   * `AccountState.spotCollateral`. Undefined while it is not known yet; the
+   * estimate then uses cross account value alone and is approximate.
+   */
   spotCollateral: string | undefined;
   /** Venue that takes the order. */
   providerId: PerpsProviderType;
-}): number | undefined => {
+  /** Signed size already open on this market. Positive is long. */
+  existingSignedSize?: number;
+  /** Hyperliquid `marginTableId`. Tiered tables make the price approximate. */
+  marginTableId?: number;
+}): CrossLiquidationEstimate => {
   if (providerId !== 'hyperliquid') {
-    return undefined;
+    return { status: 'unknown' };
   }
-  const collateral = getCrossCollateral(crossMarginSummary, spotCollateral);
+  const spotIsKnown = spotCollateral !== undefined;
+  const collateral = getCrossCollateral(
+    crossMarginSummary,
+    spotIsKnown ? spotCollateral : '0',
+  );
   const maintenanceMargin = toFiniteNumber(
     crossMarginSummary?.maintenanceMargin,
   );
@@ -127,20 +265,191 @@ export const estimateCrossLiquidationPrice = ({
     maintenanceMargin === undefined ||
     !(entryPrice > 0) ||
     !(size > 0) ||
-    !(maxLeverage > 0)
+    !(maxLeverage > 0) ||
+    !Number.isFinite(existingSignedSize)
   ) {
-    return undefined;
+    return { status: 'unknown' };
   }
-  const side = isLong ? 1 : -1;
-  const maintenanceFraction = 1 / (2 * maxLeverage);
-  const marginAvailable =
-    collateral - maintenanceMargin - size * entryPrice * maintenanceFraction;
-  const liquidationPrice =
-    entryPrice -
-    (side * marginAvailable) / size / (1 - maintenanceFraction * side);
-  return Number.isFinite(liquidationPrice) && liquidationPrice > 0
-    ? liquidationPrice
-    : undefined;
+  const signedOrder = (isLong ? 1 : -1) * size;
+  const signedResult = existingSignedSize + signedOrder;
+  const resultSize = Math.abs(signedResult);
+  if (!(resultSize > 0)) {
+    return { status: 'none' };
+  }
+  const tieredMarket =
+    marginTableId !== undefined &&
+    marginTableId >= HYPERLIQUID_TIERED_MARGIN_TABLE_ID;
+  const schedule = buildMaintenanceSchedule(
+    resolveHyperLiquidMarginTiers({ marginTableId, maxLeverage }) ?? [
+      { lowerBound: 0, maxLeverage },
+    ],
+  );
+  const existingMaintenance = crossMaintenanceMargin(
+    existingSignedSize * entryPrice,
+    schedule,
+  );
+  const resultMaintenance = crossMaintenanceMargin(
+    resultSize * entryPrice,
+    schedule,
+  );
+  if (existingMaintenance === null || resultMaintenance === null) {
+    return { status: 'unknown' };
+  }
+  const otherMaintenance = Math.max(0, maintenanceMargin - existingMaintenance);
+  const liquidationPrice = crossLiquidationPriceAtTier({
+    isLong: signedResult > 0,
+    markPrice: entryPrice,
+    positionSize: resultSize,
+    accountValue: collateral,
+    maintenanceMargin: otherMaintenance + resultMaintenance,
+    schedule,
+  });
+  if (liquidationPrice === null) {
+    return { status: 'none' };
+  }
+  return {
+    status: 'price',
+    price: liquidationPrice,
+    approximate: !spotIsKnown || tieredMarket,
+  };
+};
+
+/**
+ * Liquidation price to compare with a stop loss.
+ *
+ * The cross estimate prices the position left after the order. The check has
+ * to use that same side. A reduce that does not flip, or a full close, leaves
+ * the opposite side (or nothing). Feeding that price to the order side marks
+ * every stop unsafe; the check used to see an empty price and skip. Increasing
+ * or flipping keeps the price, because the remaining side is the order side.
+ * Callers that already validate against the remaining side pass that side as
+ * `checkIsLong` and keep the price.
+ */
+export const liquidationPriceForOrderSide = ({
+  liquidationPrice,
+  existingSignedSize,
+  orderSize,
+  orderIsLong,
+  checkIsLong = orderIsLong,
+}: {
+  liquidationPrice: string;
+  /** Signed size already open. Positive is long. */
+  existingSignedSize: number;
+  /** Unsigned order size in base units. */
+  orderSize: number;
+  /** Direction of the order, not of the position it leaves. */
+  orderIsLong: boolean;
+  /** Direction the stop-loss check will use. Defaults to the order. */
+  checkIsLong?: boolean;
+}): string => {
+  if (
+    !liquidationPrice ||
+    !Number.isFinite(existingSignedSize) ||
+    !(orderSize > 0)
+  ) {
+    return liquidationPrice;
+  }
+  const signedOrder = (orderIsLong ? 1 : -1) * orderSize;
+  const signedResult = existingSignedSize + signedOrder;
+  if (signedResult === 0 || signedResult > 0 !== checkIsLong) {
+    return '';
+  }
+  return liquidationPrice;
+};
+
+/**
+ * Turns a cross estimate into the order-row value. Callers that are not
+ * placing a cross order should keep their isolated price instead.
+ */
+export const presentCrossLiquidationEstimate = ({
+  estimate,
+  hasValidAmount,
+}: {
+  estimate: CrossLiquidationEstimate;
+  hasValidAmount: boolean;
+}): PresentedCrossLiquidation => {
+  if (hasValidAmount && estimate.status === 'price') {
+    const formatted = formatPerpsFiat(estimate.price, {
+      ranges: PRICE_RANGES_UNIVERSAL,
+    });
+    return {
+      display: estimate.approximate
+        ? strings('perps.order.approximate_price', { price: formatted })
+        : formatted,
+      rawPrice: String(estimate.price),
+      contentKey: 'cross_liquidation_price',
+    };
+  }
+  if (hasValidAmount && estimate.status === 'none') {
+    return {
+      display: strings('perps.cross_position.no_liquidation_price'),
+      rawPrice: '',
+      contentKey: 'cross_no_liquidation_price',
+    };
+  }
+  return {
+    display: PERPS_CONSTANTS.FallbackDataDisplay,
+    rawPrice: '',
+    contentKey: 'cross_liquidation_estimate_unavailable',
+  };
+};
+
+export type OrderLiquidationContentKey =
+  | 'liquidation_price'
+  | CrossLiquidationContentKey;
+
+export interface OrderLiquidationRow {
+  display: string;
+  contentKey: OrderLiquidationContentKey;
+  /** Price string for TP/SL. Empty when a cross order has no price. */
+  rawPrice: string;
+  /** Numeric price for the distance label, when the row shows a price. */
+  distancePrice?: number;
+}
+
+/**
+ * Picks the order-row liquidation value. Cross uses the pre-trade estimate.
+ * Isolated keeps the controller price.
+ */
+export const selectOrderLiquidationRow = ({
+  isCrossOrder,
+  crossEstimate,
+  hasValidAmount,
+  isolatedPrice,
+}: {
+  isCrossOrder: boolean;
+  crossEstimate: CrossLiquidationEstimate;
+  hasValidAmount: boolean;
+  isolatedPrice: string;
+}): OrderLiquidationRow => {
+  if (isCrossOrder) {
+    const presented = presentCrossLiquidationEstimate({
+      estimate: crossEstimate,
+      hasValidAmount,
+    });
+    return {
+      display: presented.display,
+      contentKey: presented.contentKey,
+      rawPrice: presented.rawPrice,
+      distancePrice:
+        hasValidAmount && crossEstimate.status === 'price'
+          ? crossEstimate.price
+          : undefined,
+    };
+  }
+  const parsedIsolatedPrice = Number.parseFloat(isolatedPrice);
+  const hasIsolatedPrice =
+    hasValidAmount &&
+    Number.isFinite(parsedIsolatedPrice) &&
+    parsedIsolatedPrice > 0;
+  return {
+    display: hasIsolatedPrice
+      ? formatPerpsFiat(isolatedPrice, { ranges: PRICE_RANGES_UNIVERSAL })
+      : PERPS_CONSTANTS.FallbackDataDisplay,
+    contentKey: 'liquidation_price',
+    rawPrice: isolatedPrice,
+    distancePrice: hasIsolatedPrice ? parsedIsolatedPrice : undefined,
+  };
 };
 
 export const getCrossMarginRatioTone = (
