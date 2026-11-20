@@ -2704,6 +2704,26 @@ describe('CustomAmountInfo', () => {
     });
   });
 
+  it('keeps the keypad and hides Buy crypto for a Predict deposit with a skipped prefill and a payment option', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '0',
+        depositPrefillStatus: DepositPrefillStatus.Skipped,
+      }),
+    );
+
+    const { getByTestId, queryByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
+  });
+
   it('keeps Buy crypto hidden for a Predict deposit while its prefill loads', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       type: TransactionType.predictDeposit,
