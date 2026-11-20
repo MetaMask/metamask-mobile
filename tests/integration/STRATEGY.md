@@ -126,10 +126,11 @@ When adding `harnesses/<domain>/`:
 
 Do **not** put domain rollout plans, coverage estimates, or Real/Mocked inventory at the `tests/integration/` root. Do **not** create a separate checklist file.
 
-| Domain             | Use-case matrix                                                                      | Domain strategy                                                    |
-| ------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| Perps              | `[harnesses/perps/perps-use-cases.md](harnesses/perps/perps-use-cases.md)`           | `[harnesses/perps/STRATEGY.md](harnesses/perps/STRATEGY.md)`       |
-| Networks / Core UX | `[harnesses/networks/core-ux-use-cases.md](harnesses/networks/core-ux-use-cases.md)` | `[harnesses/networks/STRATEGY.md](harnesses/networks/STRATEGY.md)` |
+| Domain             | Use-case matrix                                                                                            | Domain strategy                                                              |
+| ------------------ | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Perps              | `[harnesses/perps/perps-use-cases.md](harnesses/perps/perps-use-cases.md)`                                 | `[harnesses/perps/STRATEGY.md](harnesses/perps/STRATEGY.md)`                 |
+| Networks / Core UX | `[harnesses/networks/core-ux-use-cases.md](harnesses/networks/core-ux-use-cases.md)`                       | `[harnesses/networks/STRATEGY.md](harnesses/networks/STRATEGY.md)`           |
+| Notifications      | `[harnesses/notifications/notifications-use-cases.md](harnesses/notifications/notifications-use-cases.md)` | `[harnesses/notifications/STRATEGY.md](harnesses/notifications/STRATEGY.md)` |
 
 ## Where things live
 
