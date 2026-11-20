@@ -147,8 +147,9 @@ export function usePerpsAdvancedChartAdapter({
   }, [symbol, stream]);
 
   useEffect(() => {
-    // The WebView remounts for each symbol+interval. Clear the prior series
-    // before that instance loads so an empty response cannot leave old bars.
+    // A new symbol remounts the WebView; a new interval swaps the series in the
+    // live WebView. Clear the prior series so an empty response cannot leave
+    // old bars in state.
     setIsLoading(true);
     setOhlcvData([]);
     setRealtimeBar(undefined);

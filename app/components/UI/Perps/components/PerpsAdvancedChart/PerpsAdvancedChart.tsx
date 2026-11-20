@@ -318,10 +318,9 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   }, [szDecimals]);
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
-  const webViewInstanceKey = useMemo(
-    () => `${symbol}|${interval}|perps`,
-    [interval, symbol],
-  );
+  // Stable per symbol: interval changes swap the series inside the live
+  // WebView (setResolution) instead of paying a cold start.
+  const webViewInstanceKey = useMemo(() => `${symbol}|perps`, [symbol]);
 
   useEffect(() => {
     onLatestPriceChange?.(
