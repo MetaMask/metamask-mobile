@@ -225,11 +225,11 @@ Code: `app/components/UI/Perps/Views/PerpsClosePositionView/PerpsClosePositionVi
 
 ## PerpsCloseAllPositionsView
 
-Bottom sheet that closes every open position. Shows total margin, PnL and fees.
+Bottom sheet that closes every open position. Shows the total receive and P&L, plus a margin row when a margin mode applies.
 
-| Components                         | Hooks                                                                                                                                                 |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BottomSheet`, `PerpsCloseSummary` | `usePerpsLivePositions`, `usePerpsLivePrices`, `usePerpsCloseAllCalculations`, `usePerpsCloseAllPositions`, `usePerpsToasts`, `usePerpsEventTracking` |
+| Components                        | Hooks                                                                                                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BottomSheet`, `PerpsCloseTotals` | `usePerpsLivePositions`, `usePerpsLivePrices`, `usePerpsCloseAllCalculations`, `usePerpsCloseAllPositions`, `usePerpsToasts`, `usePerpsEventTracking` |
 
 - Confirm makes one batch call, `PerpsController.closePositions({ symbols })`.
 - Runs embedded in Home through an external `sheetRef`, or as the `MODALS.CLOSE_ALL_POSITIONS` route.
