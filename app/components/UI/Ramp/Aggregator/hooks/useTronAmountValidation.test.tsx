@@ -553,4 +553,66 @@ describe('useTronAmountValidation', () => {
       expect(result.current.validationError).toBeUndefined();
     });
   });
+
+  it('sets isDebouncing true during debounce period', () => {
+    const store = mockStore(mockState);
+    const { result } = renderHook(
+      () =>
+        useTronAmountValidation({
+          enabled: true,
+          amount: '10',
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress: mockAccount.address,
+        }),
+      { wrapper: createWrapper(store) },
+    );
+
+    // Should be debouncing immediately
+    expect(result.current.isDebouncing).toBe(true);
+    expect(result.current.isValidating).toBe(false);
+  });
+
+  it('resets isValidating when validate returns early due to missing data', async () => {
+    let requestResolve!: (value: unknown) => void;
+    const requestPromise = new Promise((resolve) => {
+      requestResolve = resolve;
+    });
+
+    mockValidateTronTransferAmount.mockImplementationOnce(() => requestPromise);
+
+    const store = mockStore(mockState);
+    const { result, rerender } = renderHook(
+      ({ walletAddress }: { walletAddress: string | undefined }) =>
+        useTronAmountValidation({
+          enabled: true,
+          amount: '10',
+          assetChainId: 'tron:728126428',
+          assetReference: 'slip44:195',
+          walletAddress,
+        }),
+      { wrapper: createWrapper(store), initialProps: { walletAddress: mockAccount.address } },
+    );
+
+    // Start validation
+    jest.runAllTimers();
+
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(true);
+    });
+
+    // Remove wallet address while request is in flight
+    rerender({ walletAddress: '' });
+
+    // isValidating should be reset to false immediately due to early return
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+    });
+
+    // Resolve the stale request
+    requestResolve({
+      valid: true,
+      errors: [],
+    });
+  });
 });

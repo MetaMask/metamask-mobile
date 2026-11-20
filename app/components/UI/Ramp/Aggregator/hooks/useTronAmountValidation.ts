@@ -24,6 +24,7 @@ interface UseTronAmountValidationParams {
 interface UseTronAmountValidationResult {
   isValidating: boolean;
   validationError: string | undefined;
+  isDebouncing: boolean;
 }
 
 /**
@@ -71,6 +72,7 @@ export function useTronAmountValidation({
   walletAddress,
 }: UseTronAmountValidationParams): UseTronAmountValidationResult {
   const [isValidating, setIsValidating] = useState(false);
+  const [isDebouncing, setIsDebouncing] = useState(false);
   const [validationError, setValidationError] = useState<string | undefined>();
   const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const latestValidationRef = useRef(0);
@@ -91,6 +93,7 @@ export function useTronAmountValidation({
       amount === '0'
     ) {
       setValidationError(undefined);
+      setIsValidating(false);
       return;
     }
 
@@ -137,10 +140,13 @@ export function useTronAmountValidation({
     if (!enabled || !amount || amount === '0') {
       setValidationError(undefined);
       setIsValidating(false);
+      setIsDebouncing(false);
       return;
     }
 
+    setIsDebouncing(true);
     validationTimeoutRef.current = setTimeout(() => {
+      setIsDebouncing(false);
       void validate();
     }, VALIDATION_DEBOUNCE_MS);
 
@@ -150,11 +156,13 @@ export function useTronAmountValidation({
       }
       // Invalidate on cleanup as well to ensure any in-flight request is ignored
       latestValidationRef.current = Date.now();
+      setIsDebouncing(false);
     };
   }, [enabled, amount, validate]);
 
   return {
     isValidating,
     validationError,
+    isDebouncing,
   };
 }

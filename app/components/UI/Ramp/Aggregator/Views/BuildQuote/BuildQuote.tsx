@@ -40,7 +40,6 @@ import { Asset } from '../../../../../hooks/useAddressBalance/useAddressBalance.
 import { useTronAmountValidation } from '../../hooks/useTronAmountValidation';
 import { getMaxSendableTronAmount } from '../../../../../../core/Multichain/tron';
 import { CaipAssetType } from '@metamask/snaps-sdk';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { RootState } from '../../../../../../reducers';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
 
@@ -489,6 +488,7 @@ const BuildQuote = () => {
   const {
     isValidating: isTronValidating,
     validationError: tronValidationError,
+    isDebouncing: isTronDebouncing,
   } = useTronAmountValidation({
     enabled: isSell && isTron && isOffRampNonEvmEnabled,
     amount,
@@ -790,6 +790,11 @@ const BuildQuote = () => {
       return;
     }
 
+    // Prevent navigation if Tron validation is pending or failed
+    if (isTronValidating || isTronDebouncing || tronValidationError) {
+      return;
+    }
+
     if (selectedAsset && currentFiatCurrency) {
       navigateWithDetails(
         navigation,
@@ -844,6 +849,9 @@ const BuildQuote = () => {
     selectedAsset,
     selectedPaymentMethodId,
     trackEvent,
+    isTronValidating,
+    isTronDebouncing,
+    tronValidationError,
   ]);
 
   const retryMethod = useCallback(() => {
@@ -856,7 +864,7 @@ const BuildQuote = () => {
     } else if (errorPaymentMethods) {
       return queryGetPaymentMethods();
     } else if (errorFiatCurrency) {
-      queryDefaultFiatCurrency();
+      void queryDefaultFiatCurrency();
       return queryGetFiatCurrencies();
     } else if (errorRegions) {
       return queryGetRegions();
@@ -1228,7 +1236,7 @@ const BuildQuote = () => {
                 </Text>
               </Row>
             )}
-            {tronValidationError && (
+            {tronValidationError && !hasInsufficientBalance && (
               <Row>
                 <Text
                   variant={TextVariant.BodySm}
@@ -1282,6 +1290,7 @@ const BuildQuote = () => {
                 amountNumber <= 0 ||
                 isFetching ||
                 isTronValidating ||
+                isTronDebouncing ||
                 Boolean(tronValidationError)
               }
             >

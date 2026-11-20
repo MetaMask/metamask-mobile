@@ -1872,4 +1872,5 @@ describe('BuildQuote View', () => {
       });
     });
   });
+
 });
