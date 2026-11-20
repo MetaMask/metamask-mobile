@@ -56,10 +56,14 @@ describe('useMoneySplashRedirect', () => {
 
       act(() => result.current.redirectAfterSplash());
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: { screen: expectedScreen },
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ROOT,
+        {
+          screen: Routes.CARD.HOME,
+          params: { screen: expectedScreen },
+        },
+        { pop: true },
+      );
       expect(mockInitiateDeposit).not.toHaveBeenCalled();
     },
   );

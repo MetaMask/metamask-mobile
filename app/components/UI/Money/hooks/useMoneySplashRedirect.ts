@@ -33,12 +33,16 @@ export const useMoneySplashRedirect = (
 
   const redirectAfterSplash = useCallback(() => {
     if (postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD) {
-      navigation.navigate(Routes.CARD.ROOT, {
-        screen: Routes.CARD.HOME,
-        params: {
-          screen: CARD_RETURN_ROUTES[postOnboardingRedirect.cardScreen],
+      navigation.navigate(
+        Routes.CARD.ROOT,
+        {
+          screen: Routes.CARD.HOME,
+          params: {
+            screen: CARD_RETURN_ROUTES[postOnboardingRedirect.cardScreen],
+          },
         },
-      });
+        { pop: true },
+      );
       return;
     }
 
