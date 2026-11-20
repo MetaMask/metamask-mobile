@@ -801,8 +801,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Failed to load PIN. Please try again.',
       'card.password_bottomsheet.description_view_pin':
         'Enter your wallet password to view your card PIN.',
+      'card.card_home.manage_card_options.cashback': 'mUSD back',
       'card.card_home.manage_card_options.cashback_description':
-        'Earn on all spending',
+        'View your balance',
       'card.card_home.manage_card_options.unlink_money_account':
         'Unlink Money account',
       'card.card_home.manage_card_options.unlink_money_account_description':
@@ -840,12 +841,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'money.metamask_card.link_bullet_apy') {
       const apy = (params as { apy?: number | string } | undefined)?.apy;
       return `Earn up to ~${apy}% APY`;
-    }
-    if (key === 'card.card_home.manage_card_options.cashback') {
-      const cashbackPercentage = (
-        params as { cashbackPercentage?: number | string } | undefined
-      )?.cashbackPercentage;
-      return `${cashbackPercentage}% mUSD Back`;
     }
     return key;
   },
@@ -6869,7 +6864,7 @@ describe('CardHome Component', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows standard cashback title for virtual card', () => {
+    it('shows the cashback row without a rate for a virtual card', () => {
       // Given: authenticated international user with virtual card
       setupMockSelectors({
         isAuthenticated: true,
@@ -6886,11 +6881,13 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: standard 1% title is shown
-      expect(screen.getByText('1% mUSD Back')).toBeOnTheScreen();
+      // Then: the row names the balance and does not promise a rate
+      expect(screen.getByText('mUSD back')).toBeOnTheScreen();
+      expect(screen.getByText('View your balance')).toBeOnTheScreen();
+      expect(screen.queryByText('1% mUSD Back')).not.toBeOnTheScreen();
     });
 
-    it('shows metal cashback title for metal card', () => {
+    it('shows the cashback row without a metal rate', () => {
       // Given: authenticated international user with metal card
       setupMockSelectors({
         isAuthenticated: true,
@@ -6907,8 +6904,9 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: metal 3% title is shown
-      expect(screen.getByText('3% mUSD Back')).toBeOnTheScreen();
+      // Then: metal cards do not advertise a higher mUSD back rate
+      expect(screen.getByText('mUSD back')).toBeOnTheScreen();
+      expect(screen.queryByText('3% mUSD Back')).not.toBeOnTheScreen();
     });
 
     it('navigates to cashback screen on press', () => {
@@ -7405,7 +7403,11 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
       ).toBeOnTheScreen();
-      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT),
+        ).queryByText(/mUSD back/),
+      ).not.toBeOnTheScreen();
     });
 
     it('hides link-mode content when Money Account linking is unavailable', () => {
@@ -7523,7 +7525,11 @@ describe('CardHome Component', () => {
         screen.getByText(strings('money.metamask_card.link_subtitle_no_apy')),
       ).toBeOnTheScreen();
       expect(screen.queryByText(/Earn up to .* APY/)).not.toBeOnTheScreen();
-      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT),
+        ).queryByText(/mUSD back/),
+      ).not.toBeOnTheScreen();
     });
 
     it('interpolates apyPercent into the subtitle and APY bullet when defined', () => {
@@ -7539,7 +7545,11 @@ describe('CardHome Component', () => {
         ),
       ).toBeOnTheScreen();
       expect(screen.getByText('Earn up to ~4% APY')).toBeOnTheScreen();
-      expect(screen.queryByText(/mUSD back/)).not.toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(MoneyMetaMaskCardTestIds.CONTENT),
+        ).queryByText(/mUSD back/),
+      ).not.toBeOnTheScreen();
     });
   });
 

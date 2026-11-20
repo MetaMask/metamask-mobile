@@ -194,6 +194,8 @@ const ManageCardOptions = ({
           account?.verificationStatus === 'VERIFIED' && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.cashback', {
+                // English no longer interpolates a rate. Other locales still do
+                // until they are retranslated, so keep supplying the value.
                 cashbackPercentage: card?.type === CardType.METAL ? '3' : '1',
               })}
               description={strings(

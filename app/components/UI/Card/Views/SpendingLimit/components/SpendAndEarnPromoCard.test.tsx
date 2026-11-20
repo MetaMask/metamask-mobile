@@ -39,7 +39,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
       return `${params?.apy}% APY`;
     }
     const map: Record<string, string> = {
-      'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
+      'card.card_spending_limit.spend_and_earn_title': 'Spend your crypto',
       'card.card_spending_limit.spend_and_earn_description_prefix':
         'Link your balance to your card and spend it anywhere. Plus, earn up to ',
       'card.card_spending_limit.spend_and_earn_description_suffix':
@@ -56,7 +56,6 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 describe('SpendAndEarnPromoCard', () => {
   const defaultProps = {
     apyPercent: 4,
-    cashbackPercent: 1,
     onPress: jest.fn(),
   };
   const analytics = {
@@ -73,7 +72,7 @@ describe('SpendAndEarnPromoCard', () => {
   it('renders the title, description with APY highlight, and CTA label', () => {
     render(<SpendAndEarnPromoCard {...defaultProps} />);
 
-    expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
+    expect(screen.getByText('Spend your crypto')).toBeOnTheScreen();
     expect(
       screen.getByText(
         /Link your balance to your card and spend it anywhere\. Plus, earn up to 4% APY \(variable\) on your balance\./,

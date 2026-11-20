@@ -64,10 +64,10 @@ export const REWARDS_VIEW_SELECTORS = {
   BENEFIT_EMPTY_DARK_ICON: 'rewards-view-benefit-empty-dark-icon',
   // Earn rewards section
   EARN_REWARDS_PREVIEW: 'rewards-view-earn-rewards-preview',
+  EARN_REWARDS_TILE: 'rewards-view-earn-rewards-tile',
   EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',
   EARN_REWARDS_MUSD_DISCLAIMER_LINK:
     'rewards-view-earn-rewards-musd-disclaimer-link',
-  EARN_REWARDS_CARD_CARD: 'rewards-view-earn-rewards-card-card',
   // Campaigns
   CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',
   CAMPAIGNS_PREVIEW_ACTIVE_TILE: 'rewards-view-campaigns-preview-active-tile',
