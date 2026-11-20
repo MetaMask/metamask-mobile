@@ -1,6 +1,8 @@
 import { ethers } from 'ethers';
 import { base58 } from 'ethers/lib/utils';
 import { SolScope } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
@@ -36,6 +38,7 @@ import {
   claimRoutesForSummary,
   routesSignableOnDevice,
   selectClaimRoutes,
+  canSignEarningAddress,
   evmAddressFromEarningAddress,
   bitcoinAddressFromEarningAddress,
   bitcoinProofHex,
@@ -66,7 +69,7 @@ jest.mock('../../../../core/Engine', () => ({
   default: {
     context: {
       NetworkController: { findNetworkClientIdByChainId: jest.fn() },
-      KeyringController: { withKeyringV2: jest.fn() },
+      KeyringController: { withKeyringV2: jest.fn(), state: { keyrings: [] } },
     },
     controllerMessenger: {
       subscribe: jest.fn(),
@@ -978,6 +981,46 @@ describe('isTaxDeterminationRefusal', () => {
         },
       ]),
     ).toBe(false);
+  });
+});
+
+describe('canSignEarningAddress', () => {
+  const ACCOUNT = '0x1111111111111111111111111111111111111111';
+  const OTHER = '0x2222222222222222222222222222222222222222';
+  const setKeyrings = (keyrings: { type: string; accounts: string[] }[]) => {
+    (
+      Engine.context.KeyringController as unknown as {
+        state: { keyrings: unknown[] };
+      }
+    ).state = { keyrings };
+  };
+
+  afterEach(() => {
+    setKeyrings([]);
+  });
+
+  it('signs for an EVM software key this phone holds', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.hd, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(true);
+  });
+
+  it('does not sign for a hardware account this phone lists', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.ledger, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
+  });
+
+  it('does not sign for a snap account this phone lists', () => {
+    setKeyrings([{ type: KeyringTypes.snap, accounts: [ACCOUNT] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
+  });
+
+  it('does not sign for an address no keyring on this phone holds', () => {
+    setKeyrings([{ type: ExtendedKeyringTypes.hd, accounts: [OTHER] }]);
+
+    expect(canSignEarningAddress(`eip155:${ACCOUNT}`)).toBe(false);
   });
 });
 

@@ -1553,6 +1553,38 @@ describe('useClaimEarnings', () => {
     }
   });
 
+  it('steps the wait caption down a minute at each minute boundary without a new refusal', async () => {
+    jest.useFakeTimers();
+    try {
+      mockEngineCall.mockRejectedValue(
+        new RewardsMoneyClaimRefusalError(429, 'CLAIM_COOLDOWN', 90),
+      );
+      const { result } = renderClaim();
+
+      await act(async () => {
+        await result.current.claim(summary(ONE_DOLLAR));
+      });
+      expect(result.current.claimWaitCaption).toBe(
+        "You can't claim just yet. Try again in 2 minutes.",
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+      expect(result.current.claimWaitCaption).toBe(
+        "You can't claim just yet. Try again in 1 minutes.",
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(60_000);
+      });
+      expect(result.current.isClaimWaiting).toBe(false);
+      expect(result.current.claimWaitCaption).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('shows the wait in minutes when a signature refusal carries Retry-After', async () => {
     mockEngineCall.mockRejectedValue(
       new RewardsMoneyClaimRefusalError(409, 'SIGNATURE_RESERVE', 61),
