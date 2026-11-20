@@ -82,27 +82,25 @@ actions (and proof element) that worked. Replays make no model calls; the
 model is asked only from the first cached action that no longer works.
 Commit it to share what was learned; delete it to start over.
 
-## Heal
+## Cache report
 
 Each run writes `tests/reporters/reports/scenario-outcome-<name>.json`. After a
-CI run, the `Heal agent-driven scenarios` job sorts each outcome into:
+CI run, the `Scenario cache report` job writes a table of every scenario to the
+job summary, and for each step whose cache failed or drifted (including drift a
+retry would hide): the cached action, the error, and the action Haiku found.
 
-- **heal**: only the cache is stale (all pinned checks passed, no threshold
-  failed, and the agent re-resolved the step: an invalid model-chosen timer end,
-  or a passing run that drifted, including across retries). It opens one
-  **draft** PR (`perf-scenario-heal/<run id>`, labels `team-qa`,
-  `perf-scenario-heal`) that changes only `*.scenario.cache.json`, and posts to
-  `#mm-qa-legends-ai-alerts` (secret `PERF_SCENARIO_HEAL_SLACK_WEBHOOK_URL`).
-- **report**: anything else (a pinned check, a threshold, a guard, a crash);
-  the job summary shows the reason.
+- **cache fix below**: every pinned check and threshold passed, so the report
+  includes the corrected entry, ready to paste into `*.scenario.cache.json`.
+- **report only**: a pinned check, a threshold, a guard or a crash; the reason
+  is shown and no cache entry is suggested.
 - **passed**: nothing to do.
 
-Heal PRs are never merged automatically, and code rejects any change to
-Markdown, pins, timers, thresholds or other files. Dry run on a downloaded run:
+Only cache entries are ever suggested; pins, timers and thresholds stay in the
+Markdown. Automatic heal PRs come in a follow-up PR. Locally, on a downloaded
+run:
 
 ```bash
 gh run download <run id> --pattern 'testmu-he-*-test-results-*' --dir /tmp/run
-SCENARIO_HEAL_DRY_RUN=true yarn tsx \
-  .github/scripts/qa-automation/performance-tests/scenario-heal.ts \
-  --artifacts /tmp/run --out /tmp/heal
+yarn tsx .github/scripts/qa-automation/performance-tests/scenario-report.ts \
+  --artifacts /tmp/run
 ```

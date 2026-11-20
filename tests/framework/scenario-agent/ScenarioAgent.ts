@@ -175,6 +175,8 @@ export class ScenarioAgent {
   private readonly cache: StepCache;
   private readonly learned: StepCache = {};
   private readonly conditions = new Map<string, boolean>();
+  /** Why a step's cached resolution failed, for the outcome report. */
+  private readonly cacheErrors = new Map<number, string>();
   private windowOpen = false;
   private readonly result: AgentRunResult = {
     status: 'PASS',
@@ -601,6 +603,7 @@ export class ScenarioAgent {
     if (cachedProof) {
       const issue = await problem(cachedProof);
       if (!issue) return cachedProof;
+      this.cacheErrors.set(step.number, `cached proof failed: ${issue}`);
       this.log(
         `Step ${step.number}: cached proof failed (${issue}); asking the agent`,
       );
@@ -738,6 +741,7 @@ export class ScenarioAgent {
         return;
       } catch (error) {
         if (error instanceof BlockingAlertError) throw error;
+        this.cacheErrors.set(step.number, errorMessage(error));
         this.log(
           `Step ${step.number}: cached replay not verified after ${done.length} action(s) (${errorMessage(error)}); asking the agent`,
         );
@@ -908,7 +912,8 @@ export class ScenarioAgent {
         );
         this.record(step, 'cache', [cached]);
         return;
-      } catch {
+      } catch (error) {
+        this.cacheErrors.set(step.number, errorMessage(error));
         this.log(
           `Step ${step.number}: cached element missing; asking the agent`,
         );
@@ -1046,7 +1051,10 @@ export class ScenarioAgent {
               run,
               await this.timeEnd(timer, end, endAlreadyVisible),
             );
-            if (!run.entry?.valid) state.failed = end.locator;
+            if (!run.entry?.valid) {
+              state.failed = end.locator;
+              this.cacheErrors.set(until.number, run.entry?.reason ?? '');
+            }
           };
           if (action.type === 'type') {
             // Like a person typing: the clock starts right after the last key
@@ -1209,11 +1217,13 @@ export class ScenarioAgent {
     source: StepSource,
     actions: AgentAction[],
   ): void {
+    const cacheError = this.cacheErrors.get(step.number);
     this.result.steps.push({
       number: step.number,
       text: step.text,
       source,
       actions,
+      ...(cacheError ? { cacheError } : {}),
     });
     // Pinned checks live in the Markdown; the cache never holds them.
     if (source === 'secret' || source === 'fixed') return;
