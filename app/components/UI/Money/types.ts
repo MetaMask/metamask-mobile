@@ -14,5 +14,6 @@
  */
 export type MoneyBalanceDisplayState =
   | { kind: 'noAccount' }
+  | { kind: 'loading' }
   | { kind: 'unavailable'; lastKnownValue?: string }
   | { kind: 'balance'; value: string };
