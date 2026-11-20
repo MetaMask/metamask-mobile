@@ -68,7 +68,11 @@ export class RemoteVenueProfileClient {
     fetch?: typeof fetch;
   }) {
     const url = new URL(baseUrl);
-    url.pathname = `${url.pathname.replace(/\/+$/u, '')}/`;
+    let pathname = url.pathname;
+    while (pathname.endsWith('/')) {
+      pathname = pathname.slice(0, -1);
+    }
+    url.pathname = `${pathname}/`;
     this.#baseUrl = url;
     this.#clientVersion = clientVersion;
     this.#fetch = fetchFn;
