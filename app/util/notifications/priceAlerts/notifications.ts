@@ -57,7 +57,7 @@ export async function displayPriceAlert(message: PriceAlertMessage) {
       const isAndroid = Platform.OS === 'android';
       const isUp = priceAlert.change >= 0;
       const color = isUp ? '#16794F' : '#B63131';
-      const trend = `<font color="${color}"><b>${change}</b></font>`;
+      const trend = `<font color="${color}"><b>${isUp ? '▲' : '▼'} ${change}</b></font>`;
       const body = isAndroid
         ? `${trend}  ·  ${priceAlert.description}`
         : `${change}  ·  ${priceAlert.description}`;
@@ -81,12 +81,7 @@ export async function displayPriceAlert(message: PriceAlertMessage) {
       }
 
       await notifee.createChannel(channel);
-      const picture = await writeSparkline(
-        id,
-        priceAlert.points,
-        priceAlert.change,
-        priceAlert.target,
-      );
+      const picture = await writeSparkline(id, priceAlert);
       await notifee.displayNotification({
         id,
         title,
@@ -94,7 +89,7 @@ export async function displayPriceAlert(message: PriceAlertMessage) {
         data: actionData,
         android: {
           ...android,
-          color: '#F6851B',
+          color: '#FA4B00',
           largeIcon,
           style: {
             type: AndroidStyle.BIGPICTURE,

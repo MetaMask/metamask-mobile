@@ -6,7 +6,7 @@ export const PRICE_ALERT_CATEGORY = 'mm-price-alert-v1';
 export const VIEW_TOKEN = 'price-alert-view-token';
 export const SWAP_TOKEN = 'price-alert-swap';
 
-interface PriceAlert {
+export interface PriceAlert {
   symbol: string;
   assetId: string;
   price: number;
@@ -32,7 +32,7 @@ const numberField = (value: unknown): number => {
 const isPrice = (value: number): boolean =>
   Number.isFinite(value) && value > 0 && value <= 1e12;
 
-const usd = (price: number): string =>
+export const usd = (price: number): string =>
   new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',

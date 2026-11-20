@@ -3,6 +3,7 @@ import Foundation
 struct PriceAlert {
   let kind: String
   let symbol: String
+  let asset: String
   let price: Double
   let change: Double
   let points: [Double]
@@ -39,6 +40,7 @@ struct PriceAlert {
     }
     self.kind = kind
     self.symbol = symbol
+    self.asset = asset
     self.price = price
     self.change = change
     self.points = points
