@@ -17,12 +17,12 @@ const MoneyEarningsFooter = (): React.ReactElement => {
   const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
 
-  const handleWithdraw = useCallback((): void => {
-    initiateWithdrawal();
+  const handleWithdraw = useCallback(async () => {
+    await initiateWithdrawal();
   }, [initiateWithdrawal]);
 
-  const handleAdd = useCallback((): void => {
-    navigateToMoneyDeposit();
+  const handleAdd = useCallback(async () => {
+    await navigateToMoneyDeposit();
   }, [navigateToMoneyDeposit]);
 
   return (

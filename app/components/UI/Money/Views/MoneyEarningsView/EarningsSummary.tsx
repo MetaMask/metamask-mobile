@@ -1,5 +1,4 @@
 import React from 'react';
-import BigNumber from 'bignumber.js';
 import {
   Box,
   BoxAlignItems,
@@ -10,7 +9,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { formatSignedUsd } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 interface EarningsSummaryProps {
@@ -27,11 +26,6 @@ interface SummaryRow {
 
 const isFiniteNumber = (value: number | undefined): value is number =>
   value !== undefined && Number.isFinite(value);
-
-const formatSignedUsd = (amountUsd: number): string => {
-  const formattedAmountUsd = moneyFormatUsd(new BigNumber(amountUsd));
-  return amountUsd > 0 ? `+${formattedAmountUsd}` : formattedAmountUsd;
-};
 
 const EarningsSummary = ({
   thisMonthUsd,
@@ -90,7 +84,7 @@ const EarningsSummary = ({
             }
             twClassName="text-right"
           >
-            {formatSignedUsd(valueUsd)}
+            {formatSignedUsd(valueUsd, { preserveSubCent: false })}
           </Text>
         </Box>
       ))}

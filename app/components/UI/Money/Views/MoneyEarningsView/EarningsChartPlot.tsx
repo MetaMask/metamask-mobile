@@ -17,12 +17,12 @@ import {
   formatPointDateRange,
   formatPointPillLabel,
   formatSignedUsd,
+  getChartBarHeight,
 } from './EarningsChart.utils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
-const CHART_HEIGHT = 160;
 const CHART_CONTAINER_HEIGHT = 200;
-const MINIMUM_BAR_HEIGHT = 2;
+const CHART_LEVEL_IDS = ['maximum', 'midpoint'] as const;
 
 interface EarningsChartPlotProps {
   points: EarningsPoint[];
@@ -75,7 +75,7 @@ const EarningsChartPlot = ({
       >
         {yAxisValuesUsd.map((_, index) => (
           <Box
-            key={`gridline-${index}`}
+            key={`gridline-${CHART_LEVEL_IDS[index]}`}
             testID={MoneyEarningsViewTestIds.CHART_GRIDLINE(index)}
             twClassName={`absolute left-0 right-0 h-px bg-border-muted ${
               index === 0 ? 'top-0' : 'top-1/2'
@@ -92,15 +92,11 @@ const EarningsChartPlot = ({
             const isAvailable = isAvailableBucket(point);
             const isSelected = activeIndex === index;
             const chartAmountUsd = chartAmountsUsd[index];
-            const barHeight =
-              isAvailable && chartAmountUsd === 0
-                ? MINIMUM_BAR_HEIGHT
-                : isAvailable && chartAmountUsd !== null && chartMaximumUsd > 0
-                  ? Math.max(
-                      MINIMUM_BAR_HEIGHT,
-                      (chartAmountUsd / chartMaximumUsd) * CHART_HEIGHT,
-                    )
-                  : 0;
+            const barHeight = getChartBarHeight(
+              isAvailable,
+              chartAmountUsd,
+              chartMaximumUsd,
+            );
             const dateLabel = formatPointDateRange(point, locale);
 
             return (
@@ -204,16 +200,16 @@ const EarningsChartPlot = ({
       </Box>
 
       <Box twClassName="absolute bottom-0 left-0 right-12 h-10 flex-row">
-        {xAxisLabels.map((label, index) => (
+        {points.map((point, index) => (
           <Text
-            key={`x-label-${index}`}
+            key={`x-label-${point.start}-${point.periodEndExclusive}`}
             testID={MoneyEarningsViewTestIds.CHART_X_LABEL(index)}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             twClassName="min-w-0 flex-1 text-center"
             numberOfLines={2}
           >
-            {label}
+            {xAxisLabels[index]}
           </Text>
         ))}
       </Box>
@@ -221,7 +217,7 @@ const EarningsChartPlot = ({
       <Box twClassName="absolute right-0 top-0 h-40 w-12">
         {yAxisValuesUsd.map((valueUsd, index) => (
           <Text
-            key={`y-label-${index}`}
+            key={`y-label-${CHART_LEVEL_IDS[index]}`}
             testID={MoneyEarningsViewTestIds.CHART_Y_LABEL(index)}
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}

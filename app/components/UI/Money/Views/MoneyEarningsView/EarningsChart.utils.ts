@@ -1,5 +1,5 @@
 import BigNumber from 'bignumber.js';
-import { DUST_THRESHOLD, moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { DUST_THRESHOLD, formatSignedUsd } from '../../utils/moneyFormatFiat';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import {
   getBucketDisplayDateRange,
@@ -9,11 +9,16 @@ import {
 
 type AxisLabelRange = '1W' | '1M' | '3M' | '6M' | '1Y';
 
+const CHART_HEIGHT = 160;
+const MINIMUM_BAR_HEIGHT = 2;
+
 const fmt = (
   locale: string,
   options: Intl.DateTimeFormatOptions,
 ): Intl.DateTimeFormat =>
   new Intl.DateTimeFormat(locale, { timeZone: 'UTC', ...options });
+
+export { formatSignedUsd };
 
 export const formatDate = (timestamp: string, locale: string): string =>
   getIntlDateTimeFormatter(locale, {
@@ -21,19 +26,6 @@ export const formatDate = (timestamp: string, locale: string): string =>
     day: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(timestamp));
-
-export const formatSignedUsd = (amountUsd: number): string => {
-  if (amountUsd !== 0 && Math.abs(amountUsd) < DUST_THRESHOLD) {
-    const preciseAmount = new BigNumber(amountUsd)
-      .toFixed(4)
-      .replace(/0+$/, '')
-      .replace(/\.$/, '');
-    return `${amountUsd > 0 ? '+' : ''}$${preciseAmount}`;
-  }
-
-  const formattedAmountUsd = moneyFormatUsd(new BigNumber(amountUsd));
-  return amountUsd > 0 ? `+${formattedAmountUsd}` : formattedAmountUsd;
-};
 
 export const formatMonthLabel = (timestamp: string, locale: string): string =>
   getIntlDateTimeFormatter(locale, {
@@ -56,8 +48,7 @@ const axisLabel = (
   previous: Date | null,
   locale: string,
 ): string => {
-  const monthChanged =
-    !previous || previous.getUTCMonth() !== start.getUTCMonth();
+  const monthChanged = previous?.getUTCMonth() !== start.getUTCMonth();
 
   switch (range) {
     case '1W':
@@ -89,12 +80,17 @@ export const formatPointDateRange = (
 export const formatPointPillLabel = (
   point: EarningsPoint,
   locale: string,
-): string =>
-  point.granularity === 'week'
-    ? formatPointDateRange(point, locale)
-    : point.granularity === 'month'
-      ? formatMonthLabel(point.start, locale)
-      : formatDate(point.start, locale);
+): string => {
+  if (point.granularity === 'week') {
+    return formatPointDateRange(point, locale);
+  }
+
+  if (point.granularity === 'month') {
+    return formatMonthLabel(point.start, locale);
+  }
+
+  return formatDate(point.start, locale);
+};
 
 export const getXAxisLabels = (
   points: EarningsPoint[],
@@ -140,4 +136,35 @@ export const getNiceUsdChartMaximum = (maximumAmountUsd: number): number => {
 
   const whole = Math.ceil(maximumAmountUsd);
   return whole % 2 === 0 ? whole : whole + 1;
+};
+
+/**
+ * Calculates the rendered height for an earnings chart bar.
+ *
+ * @param isAvailable - Whether the earnings bucket has available data.
+ * @param chartAmountUsd - The bucket amount in USD, or null when unavailable.
+ * @param chartMaximumUsd - The maximum chart amount in USD.
+ * @returns The bar height in pixels.
+ */
+export const getChartBarHeight = (
+  isAvailable: boolean,
+  chartAmountUsd: number | null,
+  chartMaximumUsd: number,
+): number => {
+  if (!isAvailable) {
+    return 0;
+  }
+
+  if (chartAmountUsd === 0) {
+    return MINIMUM_BAR_HEIGHT;
+  }
+
+  if (chartAmountUsd === null || chartMaximumUsd <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    MINIMUM_BAR_HEIGHT,
+    (chartAmountUsd / chartMaximumUsd) * CHART_HEIGHT,
+  );
 };

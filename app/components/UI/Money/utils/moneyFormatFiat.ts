@@ -50,3 +50,35 @@ export const moneyFormatFiat = (
  */
 export const moneyFormatUsd = (value: BigNumber): string =>
   formatMoney(value, 'en-US', 'USD');
+
+interface FormatSignedUsdOptions {
+  preserveSubCent?: boolean;
+}
+
+/**
+ * Formats a signed US-dollar value.
+ *
+ * @param amountUsd - The dollar amount to format.
+ * @param options - Formatting options.
+ * @param options.preserveSubCent - Whether to preserve values below one cent.
+ * @returns The formatted signed dollar amount.
+ */
+export const formatSignedUsd = (
+  amountUsd: number,
+  { preserveSubCent = true }: FormatSignedUsdOptions = {},
+): string => {
+  if (
+    preserveSubCent &&
+    amountUsd !== 0 &&
+    Math.abs(amountUsd) < DUST_THRESHOLD
+  ) {
+    const preciseAmount = amountUsd
+      .toFixed(4)
+      .replace(/0+$/, '')
+      .replace(/\.$/, '');
+    return `${amountUsd > 0 ? '+' : ''}$${preciseAmount}`;
+  }
+
+  const formattedAmountUsd = moneyFormatUsd(new BigNumber(amountUsd));
+  return amountUsd > 0 ? `+${formattedAmountUsd}` : formattedAmountUsd;
+};
