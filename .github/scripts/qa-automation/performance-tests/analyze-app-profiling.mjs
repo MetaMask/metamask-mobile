@@ -20,8 +20,8 @@
  *   … --weekly
  *   … --collect-only --run 123456789
  *   … --scheduled-exception --run 123456789
- *   … --scheduled-exception --run 123456789 --github-issues
- *   … --weekly --github-issues
+ *   … --scheduled-exception --run 123456789 --jira-issues
+ *   … --weekly --jira-issues
  *   … --scenario "Cold Start"
  *   … --current-dir ./downloaded-test-results --skip-ai
  *
@@ -140,7 +140,7 @@ function parseArgs(argv) {
     collectOnly: false,
     scheduledException: false,
     skipScenarioArtifacts: false,
-    githubIssues: false,
+    jiraIssues: false,
     now: null,
     maxRunsPerWeek: null,
     maxAnalysisMinutes: DEFAULT_ANALYSIS_BUDGET_MINUTES,
@@ -214,8 +214,8 @@ function parseArgs(argv) {
       case '--skip-scenario-artifacts':
         args.skipScenarioArtifacts = true;
         break;
-      case '--github-issues':
-        args.githubIssues = true;
+      case '--jira-issues':
+        args.jiraIssues = true;
         break;
       case '--now':
         args.now = next;
@@ -276,8 +276,8 @@ Options:
   --collect-only         Analyze one run without Slack-sized scenario zips
   --scheduled-exception  Collect one run and compare it with the average of the previous clean scheduled runs
   --skip-scenario-artifacts  Skip per-scenario profile bundles
-  --github-issues        With --scheduled-exception: open or reference one GitHub issue per finding.
-                         With --weekly: list the issues opened during the reported week
+  --jira-issues          With --scheduled-exception: open or reference one Jira ticket per finding.
+                         With --weekly: list the tickets opened during the reported week
   --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
   --repo <owner/name>    GitHub repo (default: ${DEFAULT_REPO})
@@ -2109,26 +2109,26 @@ function writeWindowOutputs(outputDirectory, window) {
 }
 
 /**
- * Issues the scheduled checks opened during the reported week. A GitHub
+ * Jira tickets the scheduled checks opened during the reported week. A Jira
  * error is reported in the digest instead of failing the whole Monday report.
  */
-function loadWeeklyIssues({ repo, bounds }) {
+async function loadWeeklyIssues({ bounds }) {
   try {
-    const items = listIssuesOpenedInWindow({
-      repo,
-      runGh,
+    const items = await listIssuesOpenedInWindow({
       sinceIso: bounds.thisWeek.since,
       untilIso: bounds.thisWeek.until,
     });
     console.log(
-      `🐙 GitHub issues opened this week: ${items.length}${
-        items.length ? ` (${items.map((issue) => `#${issue.number}`).join(', ')})` : ''
+      `🎫 Jira tickets opened this week: ${items.length}${
+        items.length
+          ? ` (${items.map((issue) => issue.jiraKey).join(', ')})`
+          : ''
       }`,
     );
     return { items };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.log(`ℹ️ Could not list this week's GitHub issues: ${message}`);
+    console.log(`⚠️ Could not list this week's Jira tickets: ${message}`);
     return { error: message };
   }
 }
@@ -2154,8 +2154,8 @@ function writeWeeklyOutputs(outputDirectory, weekly) {
 }
 
 /**
- * The notification files only. Rewritten after the GitHub issue sync adds
- * issue links to the findings, without touching `slack-cards.json`, which
+ * The notification files only. Rewritten after the Jira ticket sync adds
+ * ticket links to the findings, without touching `slack-cards.json`, which
  * the AI proposal may already have written.
  */
 function writeScheduledExceptionNotification(outputDirectory, exception) {
@@ -2675,12 +2675,12 @@ async function runScheduledExceptionAnalysis({
       callClaude,
     });
   }
-  // Scheduled findings on main open or comment on one GitHub issue per
-  // scenario. The team label is what routes that issue to the owning team's
-  // Jira project. The channel file is written after that sync so it can link
-  // the issue. An all-clear leaves the file absent.
-  if (exception.meta.hasFindings && args.githubIssues && !args.dryRun) {
-    const synced = syncProfilingRegressionIssues({
+  // Scheduled findings on main open or comment on one Jira ticket per
+  // scenario, in the owning team's project. The channel file is written
+  // after that sync so it can link the ticket. An all-clear leaves the file
+  // absent. Missing Jira credentials skip creation without failing the job.
+  if (exception.meta.hasFindings && args.jiraIssues && !args.dryRun) {
+    const synced = await syncProfilingRegressionIssues({
       exception,
       currentReport,
       frames: extractProfilingFrames(currentReport, exception.findings),
@@ -3076,9 +3076,7 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     lastWeekRunsAvailable: lastWeekComparable.runs.length,
     thisWeekDays: lastWeekComparable.thisWeekDays,
     lastWeekDays: lastWeekComparable.lastWeekDays,
-    issues: args.githubIssues
-      ? loadWeeklyIssues({ repo: args.repo, bounds })
-      : undefined,
+    issues: args.jiraIssues ? await loadWeeklyIssues({ bounds }) : undefined,
   });
   writeWeeklyOutputs(outputDirectory, weekly);
   console.log(
