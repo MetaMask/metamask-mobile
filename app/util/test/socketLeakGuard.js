@@ -98,4 +98,8 @@ const closeTrackedSockets = () => {
   collector.clear();
 };
 
-module.exports = { installSocketLeakGuard, trackOpenSockets, closeTrackedSockets };
+module.exports = {
+  installSocketLeakGuard,
+  trackOpenSockets,
+  closeTrackedSockets,
+};
