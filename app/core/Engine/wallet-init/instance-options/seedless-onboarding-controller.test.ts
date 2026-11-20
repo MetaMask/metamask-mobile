@@ -36,7 +36,7 @@ jest.mock('../../../Encryptor', () => {
       decrypt: mockDecryptFn,
       decryptWithDetail: mockDecryptWithDetailFn,
     })),
-    LEGACY_DERIVATION_OPTIONS: {
+    DERIVATION_OPTIONS_MINIMUM_OWASP2023: {
       algorithm: 'PBKDF2',
       params: { iterations: 600000 },
     },
@@ -136,6 +136,19 @@ describe('seedlessOnboardingEncryptorAdapter', () => {
     mockDecryptWithDetail.mockResolvedValue({
       vault: { test: 'decrypted-data' },
       exportedKeyString: 'key',
+    });
+  });
+
+  it('derives vault keys with the OWASP 2023 minimum PBKDF2 iterations', () => {
+    const { Encryptor } = jest.requireMock('../../../Encryptor') as {
+      Encryptor: jest.Mock;
+    };
+
+    expect(Encryptor).toHaveBeenCalledWith({
+      keyDerivationOptions: {
+        algorithm: 'PBKDF2',
+        params: { iterations: 600000 },
+      },
     });
   });
 
