@@ -325,6 +325,11 @@ export const selectBenefitsLoading = createSelector(
   (entry) => entry?.loading ?? false,
 );
 
+export const selectBenefitsError = createSelector(
+  [selectCurrentBenefitsEntry],
+  (entry) => entry?.error ?? false,
+);
+
 /** False until the current subscription's first benefits read settles. */
 export const selectBenefitsHasLoaded = createSelector(
   [selectCurrentBenefitsEntry],

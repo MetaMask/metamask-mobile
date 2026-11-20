@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -10,6 +10,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   selectBenefits,
+  selectBenefitsError,
   selectBenefitsHasLoaded,
 } from '../../../../../../reducers/rewards/selectors';
 import { useBenefits } from '../../../hooks/useBenefits';
@@ -17,6 +18,7 @@ import useTrackRewardsPageView from '../../../hooks/useTrackRewardsPageView';
 import BenefitCard from '../../Benefits/BenefitCard';
 import BenefitEmptyList from '../../Benefits/BenefitEmptyList';
 import TheMiracleFooter from '../../Benefits/TheMiracleFooter';
+import RewardsErrorBanner from '../../RewardsErrorBanner';
 import { BENEFITS_TAB_TEST_IDS } from './BenefitsTab.testIds';
 
 const SKELETON_ROWS = [0, 1, 2];
@@ -32,7 +34,19 @@ const BenefitsTab: React.FC = () => {
   const tw = useTailwind();
   const benefits = useSelector(selectBenefits);
   const hasLoaded = useSelector(selectBenefitsHasLoaded);
-  useBenefits();
+  const hasError = useSelector(selectBenefitsError);
+  const { getAllBenefits } = useBenefits();
+  // A read clears the stored error before it settles. Holding the banner
+  // through a retry keeps the empty state from showing in between.
+  const [isRetrying, setIsRetrying] = useState(false);
+  const retry = useCallback(async () => {
+    setIsRetrying(true);
+    try {
+      await getAllBenefits();
+    } finally {
+      setIsRetrying(false);
+    }
+  }, [getAllBenefits]);
   useTrackRewardsPageView({ page_type: 'benefits' });
 
   const hasBenefits = benefits.length > 0;
@@ -40,19 +54,35 @@ const BenefitsTab: React.FC = () => {
   if (!hasBenefits) {
     // The tab remounts on every selection and re-reads on mount. Only the
     // first read shows skeletons, so a known-empty list does not flash them.
+    let body: React.ReactNode;
+    if (hasError || isRetrying) {
+      // A failed read leaves the list empty. Say so rather than claim the
+      // user has no benefits; this scroller has no pull-to-refresh.
+      body = (
+        <RewardsErrorBanner
+          title={strings('rewards.benefits.error_title')}
+          description={strings('rewards.benefits.error_description')}
+          onConfirm={retry}
+          onConfirmLoading={isRetrying}
+          confirmButtonLabel={strings('rewards.benefits.retry_button')}
+          testID={BENEFITS_TAB_TEST_IDS.ERROR}
+        />
+      );
+    } else if (hasLoaded) {
+      body = <BenefitEmptyList />;
+    } else {
+      body = SKELETON_ROWS.map((row) => (
+        <Skeleton
+          key={row}
+          style={tw.style('h-28 rounded-lg')}
+          testID={`${BENEFITS_TAB_TEST_IDS.SKELETON}-${row}`}
+        />
+      ));
+    }
+
     return (
       <Box twClassName="gap-3 p-4" testID={BENEFITS_TAB_TEST_IDS.CONTAINER}>
-        {hasLoaded ? (
-          <BenefitEmptyList />
-        ) : (
-          SKELETON_ROWS.map((row) => (
-            <Skeleton
-              key={row}
-              style={tw.style('h-28 rounded-lg')}
-              testID={`${BENEFITS_TAB_TEST_IDS.SKELETON}-${row}`}
-            />
-          ))
-        )}
+        {body}
       </Box>
     );
   }

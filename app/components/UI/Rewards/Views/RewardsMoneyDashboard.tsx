@@ -22,6 +22,7 @@ import {
   Icon,
   IconName,
   IconSize,
+  Skeleton,
   Text,
   TextVariant,
   TitleStandard,
@@ -428,11 +429,29 @@ const RewardsMoneyDashboard: React.FC = () => {
 
   // Campaigns and benefits belong to the Rewards subscription, not to the
   // referral role, so both tabs ask for the opt-in until the user has one.
-  const optInSection = (
-    <Box twClassName="pt-4">
-      <RewardsOptInSection localizedText={referralMe.localized_text} />
-    </Box>
-  );
+  // The subscription lookup can still be running when this screen opens, and
+  // it reads as "no subscription" until it settles. Hold a skeleton for that
+  // gap so a subscribed user is never offered the opt-in.
+  const subscriptionPanel = (tab: React.ReactElement) => {
+    if (subscriptionId) {
+      return tab;
+    }
+    if (!subscriptionKnown) {
+      return (
+        <Box twClassName="p-4">
+          <Skeleton
+            style={tw.style('h-50 rounded-xl')}
+            testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SUBSCRIPTION_PENDING}
+          />
+        </Box>
+      );
+    }
+    return (
+      <Box twClassName="pt-4">
+        <RewardsOptInSection localizedText={referralMe.localized_text} />
+      </Box>
+    );
+  };
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsMoneyDashboard">
@@ -553,12 +572,12 @@ const RewardsMoneyDashboard: React.FC = () => {
                 ) : null}
                 {activeTab === 'campaigns' ? (
                   <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY}>
-                    {subscriptionId ? <CampaignsTab /> : optInSection}
+                    {subscriptionPanel(<CampaignsTab />)}
                   </Box>
                 ) : null}
                 {activeTab === 'benefits' ? (
                   <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_BODY}>
-                    {subscriptionId ? <BenefitsTab /> : optInSection}
+                    {subscriptionPanel(<BenefitsTab />)}
                   </Box>
                 ) : null}
               </Box>

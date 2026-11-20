@@ -595,6 +595,74 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     ).not.toBeOnTheScreen();
   });
 
+  it('holds a skeleton, not the opt-in, while the subscription lookup is pending', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionLookupPending: true,
+        geoLocation: 'US',
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SUBSCRIPTION_PENDING),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+
+    expect(
+      within(
+        await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_BODY),
+      ).getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SUBSCRIPTION_PENDING),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('reports a failed benefits read and recovers on Retry', async () => {
+    let failBenefits = true;
+    const { findByTestId, findByText, getByText, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getBenefits': () =>
+            failBenefits
+              ? Promise.reject(new Error('benefits unavailable'))
+              : Promise.resolve({
+                  benefits: [BENEFIT],
+                  limit: 200,
+                  lastFetched: 0,
+                }),
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB),
+    );
+
+    expect(await findByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.empty-list')),
+    ).not.toBeOnTheScreen();
+
+    failBenefits = false;
+    fireEvent.press(getByText(strings('rewards.benefits.retry_button')));
+
+    expect(await findByText(BENEFIT.longTitle)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.error_title')),
+    ).not.toBeOnTheScreen();
+  });
+
   it('asks for the opt-in in both tabs until the user has a Rewards subscription', async () => {
     const { findByTestId, getByTestId, queryByTestId } =
       renderRewardsMoneyDashboard({

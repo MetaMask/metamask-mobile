@@ -16,6 +16,7 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   PERFORMANCE_BODY: 'rewards-money-dashboard-performance-body',
   CAMPAIGNS_BODY: 'rewards-money-dashboard-campaigns-body',
   BENEFITS_BODY: 'rewards-money-dashboard-benefits-body',
+  SUBSCRIPTION_PENDING: 'rewards-money-dashboard-subscription-pending',
   TITLE_SECTION: 'rewards-money-dashboard-title-section',
   SCROLL_VIEW: 'rewards-money-dashboard-scroll-view',
   PANEL: 'rewards-money-dashboard-panel',
