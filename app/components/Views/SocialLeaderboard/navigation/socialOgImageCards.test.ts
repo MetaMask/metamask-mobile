@@ -166,11 +166,11 @@ describe('buildSocialTradeOgImageRequest', () => {
 
   it('sends the trader avatar and no promo code when the sharer has none', () => {
     const request = buildSocialTradeOgImageRequest(
-      tradeInput({ avatarUrl: 'foxicon://pirate/background2' }),
+      tradeInput({ avatarUrl: 'foxicon://laser/background2' }),
     );
 
     const trade = request?.kind === 'trade' ? request.trade : undefined;
-    expect(trade?.avatarUrl).toBe('foxicon://pirate/background2');
+    expect(trade?.avatarUrl).toBe('foxicon://laser/background2');
     expect(trade?.promoCode).toBeUndefined();
     expect(JSON.stringify(request)).not.toContain('promoCode');
   });
@@ -356,10 +356,19 @@ describe('toOgAvatarUrl', () => {
     ['a foxicon', 'foxicon://vr/background3', 'foxicon://vr/background3'],
     [
       'a legacy foxicon, with current ids',
-      'foxicon://crown/lime',
-      'foxicon://royal/background7',
+      'foxicon://glasses/lime',
+      'foxicon://nerd/background7',
     ],
-    ['an unknown foxicon', 'foxicon://dragon/background3', undefined],
+    [
+      'a retired foxicon, as the fallback avatar',
+      'foxicon://royal/background7',
+      'foxicon://astro/background4',
+    ],
+    [
+      'an unknown foxicon, as the fallback avatar',
+      'foxicon://dragon/background3',
+      'foxicon://astro/background4',
+    ],
     ['an http image', 'http://cdn.test/a.png', undefined],
     [
       'the shared ENS placeholder',

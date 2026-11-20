@@ -16,12 +16,15 @@ interface InviteTermsLinkProps {
   link: InviteTermsLinkValue | null;
   testID: string;
   disabled?: boolean;
+  /** Match the copy the link sits in. */
+  variant?: TextVariant;
 }
 
 export const InviteTermsLink = ({
   link,
   testID,
   disabled = false,
+  variant = TextVariant.BodyMd,
 }: InviteTermsLinkProps): React.ReactElement | null => {
   const navigation = useNavigation<AppNavigationProp>();
   const handlePress = useCallback((): void => {
@@ -43,7 +46,7 @@ export const InviteTermsLink = ({
 
   return (
     <TextButton
-      variant={TextVariant.BodyMd}
+      variant={variant}
       accessibilityState={disabled ? { disabled: true } : undefined}
       onPress={disabled ? undefined : handlePress}
       testID={testID}

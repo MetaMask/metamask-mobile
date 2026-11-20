@@ -6,6 +6,57 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
+const componentView = require('./scripts/eslint/component-view-plugin.js');
+const componentViewPlugin = {
+  meta: componentView.meta,
+  rules: componentView.rules,
+};
+
+// Warn, not error: these patterns already exist. no-restricted-syntax in
+// .eslintrc.js stays an error for jest.mock and fake timers, and a second
+// override would replace that list. The re-exported rule is a second
+// severity. TODO: flip to 'error' once the counts below are 0.
+const CV_SKILL_URL =
+  'https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md';
+const CV_NESTED_FIND_MESSAGE = `Do not nest findBy*/findAllBy* inside waitFor. findBy* already polls (waitFor + getBy) and the two share one timeout, so CI fails with "Timed out in waitFor." Use await findBy* or waitFor(() => { getBy*; expect(...) }). See the mobile-testing skill: ${CV_SKILL_URL}`;
+const CV_FIXED_SLEEP_MESSAGE = `Do not sleep on a fixed delay (setTimeout with a delay other than 0, or sleep()). A zero-delay flush (setTimeout(resolve, 0)) is allowed. Await the observable outcome with waitFor or findBy* instead of letting time pass. See the mobile-testing skill: ${CV_SKILL_URL}`;
+const CV_FIND_QUERY = '/^find(?:All)?By[A-Z]/';
+const cvFlakeSelectors = [
+  {
+    selector: `CallExpression[callee.name='waitFor'] CallExpression[callee.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.name='waitFor'] CallExpression[callee.property.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.property.name='waitFor'] CallExpression[callee.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.property.name='waitFor'] CallExpression[callee.property.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: "CallExpression[callee.name='sleep']",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+  {
+    selector: "CallExpression[callee.property.name='sleep']",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+  {
+    selector:
+      "CallExpression[callee.name='setTimeout'][arguments.1]:not([arguments.1.type='Literal'][arguments.1.value=0])",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+  {
+    selector:
+      "CallExpression[callee.object.name=/^(global|globalThis|window)$/][callee.property.name='setTimeout'][arguments.1]:not([arguments.1.type='Literal'][arguments.1.value=0])",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+];
 const here = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({
   baseDirectory: here,
@@ -46,8 +97,8 @@ const legacyBeforeTypescript = {
 
 // v15 is a flat config. The old `extends` key cannot load it. Apply it only
 // to TypeScript, then re-apply the *.{ts,tsx} override so rules that are off
-// today stay off. Drop projectService so type-aware parsing stays on today's
-// `parserOptions.project`.
+// today stay off. Drop projectService so ESLint does not load the TypeScript
+// project. Oxlint runs the rules that need type information.
 const typescriptBlocks = (
   Array.isArray(typescriptConfig) ? typescriptConfig : [typescriptConfig]
 ).map((block) => {
@@ -198,4 +249,19 @@ export default [
   ...overridesAfterTypescriptBlocks,
   // ESLint 9 warns on unused eslint-disable comments. ESLint 8 did not.
   { linterOptions: { reportUnusedDisableDirectives: 'off' } },
+  // Counts on this tree: nested findBy 13, fixed sleep 18, bare timeout 446,
+  // clearAllMocks without a reset 43. Sleep and timeout moved with main;
+  // nested findBy is the same 13 sites.
+  {
+    files: [
+      '**/*.view.test.{js,ts,tsx,jsx}',
+      'tests/component-view/**/*.{ts,tsx}',
+    ],
+    plugins: { 'component-view': componentViewPlugin },
+    rules: {
+      'component-view/no-restricted-syntax': ['warn', ...cvFlakeSelectors],
+      'component-view/no-bare-query-timeout': 'warn',
+      'component-view/no-clear-all-mocks-without-reset': 'warn',
+    },
+  },
 ];

@@ -73,8 +73,20 @@ describe('PredictNext public market data', () => {
     harnesses.splice(0).forEach((harness) => harness.destroy());
   });
 
-  it('serves the static Kalshi Venue catalog through the messenger without a network read', async () => {
-    const harness = buildPredictNextIntegrationHarness(() => ({ status: 500 }));
+  it('reads the deployment Kalshi Venue catalog through the authenticated chain', async () => {
+    const harness = buildPredictNextIntegrationHarness((url) =>
+      String(url).endsWith('/v1/venues/kalshi/catalog')
+        ? {
+            body: {
+              venueId: 'kalshi',
+              actions: ['buy', 'sell', 'deposit'],
+              feeds: { 'nfl-games': 'sports-football-nfl-games' },
+              categories: [],
+              searchSupported: true,
+            },
+          }
+        : { status: 404 },
+    );
 
     const result = await harness.messenger.call(
       'PredictMarketDataService:getVenueCatalog',
@@ -83,11 +95,34 @@ describe('PredictNext public market data', () => {
 
     expect(result).toMatchObject({
       venueId: 'kalshi',
-      actions: ['buy', 'sell'],
+      actions: ['buy', 'sell', 'deposit'],
       feeds: { 'nfl-games': 'sports-football-nfl-games' },
       searchSupported: true,
     });
-    expect(harness.fetchMock).not.toHaveBeenCalled();
+    expect(result.actions).not.toContain('withdraw');
+    expect(harness.getBearerTokenMock).toHaveBeenCalledTimes(1);
+    expect(harness.fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/v1/venues/kalshi/catalog',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-bearer-token',
+        }),
+      }),
+    );
+    harness.destroy();
+  });
+
+  it('rejects a failed Venue catalog read instead of serving bundled support', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({ status: 503 }));
+
+    await expect(
+      harness.messenger.call(
+        'PredictMarketDataService:getVenueCatalog',
+        KALSHI_VENUE_ID,
+      ),
+    ).rejects.toMatchObject({ code: 'VENUE_UNAVAILABLE' });
+    expect(harness.fetchMock).toHaveBeenCalled();
+    harness.destroy();
   });
 
   it('reads Balance through the authenticated service-to-transport chain', async () => {

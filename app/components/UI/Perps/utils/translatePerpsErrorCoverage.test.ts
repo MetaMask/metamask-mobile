@@ -124,6 +124,21 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     expect(unmapped).toStrictEqual([]);
   });
 
+  it('maps the v23 and v24 provider-route and TP/SL leg codes', () => {
+    const legReplaceCopy = resolveTranslation(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+    );
+
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+    ).toBe('perps.errors.tpslLegReplaceUnsupported');
+    expect(legReplaceCopy).toContain('together instead');
+    expect(legReplaceCopy).not.toContain('Try again');
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED],
+    ).toBe('perps.errors.providerRouteRequired');
+  });
+
   it('maps the v20 price-moved code to detailed price movement copy', () => {
     expect(ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PRICE_MOVED]).toBe(
       'perps.errors.priceMoved',

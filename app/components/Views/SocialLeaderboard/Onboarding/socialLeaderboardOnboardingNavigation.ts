@@ -5,15 +5,7 @@ import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/stora
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import type { SocialLeaderboardTabParams } from '../../../Nav/Main/types/navigation';
 import { selectAiSocialLeaderboardOnboardingEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import {
-  selectFeatureFlagThresholdGroups,
-  selectRemoteFeatureFlags,
-} from '../../../../selectors/featureFlagController';
-import { resolveABTestAssignment } from '../../../../util/abTest';
-import {
-  SOCIAL_V1_AB_KEY,
-  SocialV1Variant,
-} from '../SocialV1View/abTestConfig';
+import { selectHasSocialV1Access } from '../../../../selectors/featureFlagController/socialV1';
 import type { SocialShellTab } from '../shell/types';
 import {
   ensureSocialTermsAccepted,
@@ -62,16 +54,9 @@ export const shouldShowSocialLeaderboardOnboarding = (): boolean => {
   );
 };
 
-export const isSocialV1Treatment = (): boolean => {
-  const state = ReduxService.store.getState();
-  const { variantName } = resolveABTestAssignment(
-    selectRemoteFeatureFlags(state),
-    SOCIAL_V1_AB_KEY,
-    Object.values(SocialV1Variant),
-    selectFeatureFlagThresholdGroups(state),
-  );
-  return variantName === SocialV1Variant.Treatment;
-};
+/** Social V1 access: the TSA-1122 treatment bucket or early access. */
+export const isSocialV1Treatment = (): boolean =>
+  selectHasSocialV1Access(ReduxService.store.getState());
 
 export const getFollowTradingHomeRoute = ():
   | typeof Routes.SOCIAL.V1
