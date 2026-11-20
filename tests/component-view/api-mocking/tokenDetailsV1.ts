@@ -237,8 +237,7 @@ export function setupTokenDetailsV1ApiMocks(
       pagination: { hasMore: false },
     });
 
-  // The share/PnL header loads the wallet's open position in this asset; with
-  // no open position the composer card is skipped, which is the neutral state.
+  // No open position: the share/PnL composer card is skipped.
   nock(AppConstants.SOCIAL_API_URL)
     .persist()
     .get(/\/api\/v2\/traders\/[^/]+\/[^/]+\/open/)

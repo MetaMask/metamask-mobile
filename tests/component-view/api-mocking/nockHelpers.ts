@@ -32,16 +32,11 @@ export function clearAllNockMocks(): void {
   nock.cleanAll();
 }
 
-/**
- * Restores nock to a clean state: removes all interceptors, re-enables net
- * connect, and cycles restore/activate so @mswjs/interceptors (nock v14) does
- * not leave half-open TLS sockets that break later suites (e.g. ChoosePassword
- * `read EINVAL` after Ramp Quotes).
- *
- * The re-enable is deliberate: it stops this file's blocked state from
- * leaking into other suites in the same Jest worker. In component-view runs
- * the net connect guard re-blocks before every test (`testSetupView.js`), so
- * protection continues there.
+/** Restores nock to a clean state: removes all interceptors, cycles
+ * restore/activate (so @mswjs/interceptors does not leave half-open TLS
+ * sockets that break later suites), reinstalls the shared default mocks, and
+ * restores the net connect state the run expects: blocked in component-view
+ * runs, re-enabled in other lanes so this file's state does not leak.
  */
 export function teardownNock(): void {
   nock.cleanAll();
@@ -54,12 +49,9 @@ export function teardownNock(): void {
 
 /**
  * Disables real network connections for the current test run. Call at the
- * start of your feature's setup (e.g. in setupXxxApiMock) so unmocked requests
- * fail fast instead of hitting the network.
- *
- * Delegates to the component-view net connect guard, which also records every
- * unmocked request and fails the test from its root-level `afterEach` (see
- * `app/util/test/netConnectGuard.js`).
+ * start of your feature's setup (e.g. in setupXxxApiMock). Delegates to the
+ * component-view net connect guard, which also records every unmocked request
+ * and fails the test from its root-level `afterEach`.
  */
 export function disableNetConnect(): void {
   blockNetConnect();

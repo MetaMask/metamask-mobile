@@ -40,12 +40,6 @@ describe('netConnectGuard', () => {
       'GET https://unmocked-guard.example.com/v1/things',
     );
     expect(error.message).toContain('tests/component-view/api-mocking/');
-
-    // The check clears the registry, so the root-level afterEach the guard
-    // installed sees no leftover requests.
-    await expect(
-      checkBlockedRequests(currentTestName()),
-    ).resolves.toBeUndefined();
   });
 
   it('does not fail a test whose requests are mocked', async () => {

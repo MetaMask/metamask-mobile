@@ -3,19 +3,14 @@
  * or open an unmocked WebSocket.
  *
  * Nock rejects unmocked requests with `NetConnectNotAllowedError`, but app
- * code often catches that error (a service `catch` returning null, a loader
- * left up), so the failure never reaches the test. Nock also emits a
- * `no match` event on its global emitter at the request layer — before any
- * promise is rejected — so the guard records those events in a per-test
- * registry and a root-level `afterEach` fails the test when the registry is
- * non-empty, independent of how the app propagates the error. Nock's
- * interceptors never see Node's built-in WebSocket, so the setup also swaps
- * it for a stub that records every construction (`Unmocked WebSocket: <url>`).
- *
- * Both installs happen from `setupFilesAfterEnv` (`testSetupView.js`), so
- * blocking applies to every component-view test with no per-test opt-in. The
- * listener and the registries live on the per-file Nock module instance, so
- * they do not leak to the next suite in the same Jest worker.
+ * code often catches that error, so the failure never reaches the test. Nock
+ * also emits a `no match` event at the request layer — before any promise is
+ * rejected — so the guard records those events in a per-test registry and a
+ * root-level `afterEach` fails the test when the registry is non-empty,
+ * independent of how the app propagates the error. Nock never sees Node's
+ * built-in WebSocket, so the setup also stubs it (recorded the same way).
+ * Both installs happen from `setupFilesAfterEnv` (`testSetupView.js`) with
+ * no per-test opt-in; the state lives on the per-file Nock instance.
  */
 /* global globalThis */
 /* eslint-disable import-x/no-commonjs */
@@ -85,8 +80,7 @@ const unwindStaleNetConnectLayers = () => {
 };
 
 /** Builds the blocked request from the shapes Nock passes to the `no match`
- * event: a plain options object (host never mocked) or a
- * `(ClientRequest, options, body)` triple (host mocked, request unmatched). */
+ * event (an options object, or a `(ClientRequest, options)` pair). */
 const extractRequestFromEvent = (target, options) => {
   for (const candidate of [options, target]) {
     if (
@@ -109,12 +103,6 @@ const extractRequestFromEvent = (target, options) => {
   return null;
 };
 
-/** Renders `METHOD scheme://host/path` without a default port. */
-const formatRequest = ({ method, scheme, host, path }) => {
-  const hostWithoutDefaultPort = host.replace(/:(443|80)$/, '');
-  return `${method} ${scheme}://${hostWithoutDefaultPort}${path}`;
-};
-
 /** One entry per recorded key, with the repeat count beyond the first. */
 const formatEntries = (entries, prefix) =>
   Array.from(entries, ([key, count]) => {
@@ -122,13 +110,9 @@ const formatEntries = (entries, prefix) =>
     return count > 1 ? `${line} (${count} times)` : line;
   });
 
-/**
- * True when the armed nock registry already covers this request. Emissions of
- * such requests come from a stale nock layer a previous file left in the
- * fetch chain (its own interceptor registry is empty); the armed one would
- * answer the request, so the stale emission is an artifact, not an uncovered
- * request by the test.
- */
+/** True when the armed nock registry already covers this request: emissions
+ * of such requests come from a stale nock layer a previous file left in the
+ * fetch chain, not from a request the test left uncovered. */
 const isCoveredByActiveMocks = ({ method, host, path }) => {
   const barePath = path.split('?')[0];
   const keyPrefix = `${method} https://${host}`;
@@ -163,7 +147,7 @@ const recordBlockedRequest = (...args) => {
   if (isCoveredByActiveMocks(request)) {
     return;
   }
-  const key = formatRequest(request);
+  const key = `${request.method} ${request.scheme}://${request.host.replace(/:(443|80)$/, '')}${request.path}`;
   blockedRequests.set(key, (blockedRequests.get(key) ?? 0) + 1);
 };
 
@@ -196,7 +180,6 @@ const flushPendingRequests = async () => {
  * Fails the current test when it made unmocked HTTP requests or opened an
  * unmocked WebSocket, and resets both registries either way.
  *
- * @param {string | undefined} testName - Full name of the current test.
  * @throws {Error} With the blocked requests, their test, and the hints.
  */
 const checkBlockedRequests = async (testName) => {
@@ -233,8 +216,8 @@ const checkBlockedRequests = async (testName) => {
 /** Removes listeners a previous nock activation left on the shared
  * interceptor instances: restore disposes the patches but not the listeners,
  * so every restore/activate cycle would otherwise answer each request
- * several times (the extra answer then finds the request already handled and
- * throws `InterceptorError` from a timer callback). */
+ * several times, and the extra answer throws `InterceptorError` from a timer
+ * callback. */
 const removeStaleInterceptorListeners = () => {
   // eslint-disable-next-line import-x/no-extraneous-dependencies
   const nodeInterceptors = require('@mswjs/interceptors/presets/node');
@@ -244,10 +227,7 @@ const removeStaleInterceptorListeners = () => {
   }
 };
 
-/**
- * Blocks real network connections for the whole component-view run, keeping
- * the loopback allowlist (environmental noise only).
- */
+/** Blocks net connect for the run, keeping the loopback allowlist. */
 const blockNetConnect = () => {
   if (!nock.isActive()) {
     removeStaleInterceptorListeners();
@@ -294,13 +274,9 @@ const installWebSocketTripwire = () => {
   globalThis.WebSocket = createWebSocketTripwire();
 };
 
-/**
- * Installs the guard for this test file: blocks net connect, records every
- * `no match` into the per-test registry, re-blocks before each test, fails
- * the test in the root-level `afterEach` when a registry is non-empty, and
- * restores the file's Nock instance afterwards so its patches do not outlive
- * the file.
- */
+/** Installs the guard for this test file: blocks net connect, records every
+ * `no match`, re-blocks before each test, fails the test in the root-level
+ * `afterEach` when a registry is non-empty, and restores Nock afterwards. */
 const installNetConnectGuard = () => {
   if (installed) {
     return;

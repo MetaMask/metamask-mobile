@@ -2,10 +2,9 @@
  * Fake WebSocket for component view tests that exercise a live socket.
  *
  * The CV setup replaces `globalThis.WebSocket` with the net connect guard's
- * tripwire, which records every construction and fails the test afterwards.
- * A test that really needs a socket swaps the tripwire for the fake here,
- * scripts its frames, and asserts on what reached the wire. There is no
- * allowlist: a socket the fake did not serve is still reported.
+ * tripwire; a test that really needs a socket swaps the tripwire for this
+ * fake and scripts its frames. No allowlist: a socket the fake did not serve
+ * is still reported.
  */
 
 import { installWebSocketTripwire } from '../../../app/util/test/netConnectGuard';

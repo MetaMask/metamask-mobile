@@ -1,22 +1,16 @@
 /**
- * Neutral default API mocks shared by every component view test.
- *
- * Views routinely fire secondary requests (token metadata, spot prices,
- * charts, favicon HEAD checks, account transactions) that a test does not
- * assert on. The net connect guard fails any test whose request has no mock,
- * so those incidental requests need an answer. The defaults here return
- * empty or minimal valid payloads, so views render exactly what an empty
- * result renders.
+ * Neutral default API mocks shared by every component view test: secondary
+ * requests (token metadata, spot prices, charts, favicon HEAD checks,
+ * account transactions) that a test does not assert on get empty or minimal
+ * payloads, so views render exactly what an empty result renders.
  *
  * Precedence: nock answers with the interceptor registered FIRST for a scope,
- * so a feature mock must exist before the defaults are (re)installed.
- * `installDefaultApiMocks()` removes the defaults it installed previously and
- * registers them again, which puts them after every feature interceptor
- * registered in between. Feature setup helpers call it as their last step,
- * composed helpers re-call it after registering their extra feature mocks,
- * and `teardownNock()` reinstalls them after clearing. A helper that forgets
- * the final call leaves the defaults uninstalled and the guard reports the
- * blocked requests, so the mistake stays visible.
+ * so a feature mock must exist before the defaults are (re)installed —
+ * `installDefaultApiMocks()` removes and re-registers them, putting them
+ * after every feature interceptor registered in between. Feature setup
+ * helpers call it last and `teardownNock()` reinstalls them after clearing;
+ * a helper that forgets leaves the requests blocked and visible to the
+ * guard.
  */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
