@@ -1,4 +1,5 @@
 import React from 'react';
+import { earnRatesFixture } from '../../../../../../../tests/component-view/presets/rewardsMoney';
 import type { ReferralMeDto } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../RefererHeroCard';
@@ -79,14 +80,20 @@ const createReferralMe = (
   },
   referral_code_status: null,
   referred_by: null,
-  earn_rates: {
+  earn_rates: earnRatesFixture({
     revshare_rate_bps: 2500,
     cashback_rate_bps: 500,
-    revshare_earning_start: null,
-    revshare_earning_end: null,
-    cashback_earning_start: null,
-    cashback_earning_end: null,
-  },
+    revshare_by_product: {
+      perps: { rate_bps: 2500, source: 'DEFAULT' },
+      swaps: { rate_bps: 2500, source: 'DEFAULT' },
+      predict: null,
+    },
+    cashback_by_product: {
+      perps: { rate_bps: 500, source: null },
+      swaps: { rate_bps: 500, source: null },
+      predict: null,
+    },
+  }),
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
   excluded_regions: [],
