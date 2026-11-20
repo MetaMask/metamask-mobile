@@ -364,7 +364,7 @@ error, or delayed-readiness behavior not represented by the shared mock.
 Examples:
 
 - Shared mock:
-  [`RiveOnboardingStepper.test.tsx`](../components/UI/RiveOnboardingStepper/RiveOnboardingStepper.test.tsx)
+  [`FoxAnimation.test.tsx`](../components/UI/FoxAnimation/FoxAnimation.test.tsx)
 - Data-binding hooks:
   [`MoneyFirstTimeDepositView.test.tsx`](../components/UI/Money/Views/MoneyFirstTimeDepositView/MoneyFirstTimeDepositView.test.tsx)
 - Loading, readiness, and error behavior:
