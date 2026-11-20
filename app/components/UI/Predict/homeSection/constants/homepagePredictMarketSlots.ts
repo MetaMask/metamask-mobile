@@ -1,15 +1,20 @@
+import type { IconName } from '@metamask/design-system-react-native';
 import type { PredictSeries } from '../../types';
 import { BTC_UP_OR_DOWN_5M_SERIES } from '../../constants/btcUpDown5mSeries';
 
 export interface HomepagePredictSeriesSlot {
   type: 'series';
   series: PredictSeries;
+  /** Design-system icon for the row; the default glyph renders when unset. */
+  iconName?: IconName;
 }
 
 export interface HomepagePredictEventSlot {
   type: 'event';
   id: string;
   slug: string;
+  /** Design-system icon for the row; the default glyph renders when unset. */
+  iconName?: IconName;
 }
 
 export type HomepagePredictMarketSlot =
