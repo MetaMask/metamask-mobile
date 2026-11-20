@@ -1,9 +1,11 @@
 import { useEffect, useRef, type MutableRefObject } from 'react';
+import { toHex } from '@metamask/controller-utils';
 import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
   generateEIP7702BatchTransaction,
+  updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
 import {
   PaymentOverride,
@@ -14,6 +16,7 @@ import { BigNumber } from 'bignumber.js';
 
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { generateTransferData } from '../../../../../util/transactions';
 import type { PerpsReceiveDestination } from '../../components/rows/perps-receive-to-row';
 import type { PerpsWithdrawSource } from '../../components/rows/perps-withdraw-from-row';
 import {
@@ -22,6 +25,8 @@ import {
   userHasLighterAccount,
 } from '../../utils/lighter-usdc-deposit';
 import { perpsTransactionTypeForSelection } from '../../utils/perps-lighter-transaction-type';
+import { parseStandardTokenTransactionData } from '../../utils/transaction';
+import { getTokenTransferData } from '../../utils/transaction-pay';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 interface ConfirmationSnapshot {
@@ -261,6 +266,7 @@ export function useSyncPerpsLighterTransactionType({
       setPaymentOverride(transactionId, undefined);
 
       const snapshot = hyperliquidConfirmationRef.current;
+      const amount = snapshot ? readEnteredUsdcAmount(transactionId) : 0n;
       Engine.context.TransactionController.updateTransactionMetadata({
         transactionId,
         skipResimulate: true,
@@ -278,6 +284,7 @@ export function useSyncPerpsLighterTransactionType({
           meta.requiredAssets = snapshot.requiredAssets?.map((asset) => ({
             ...asset,
           }));
+          applyHyperliquidUsdcAmount(meta, amount);
         },
       });
     } catch (error: unknown) {
@@ -409,6 +416,58 @@ function readEnteredUsdcAmount(transactionId: string): bigint {
   }
 
   return BigInt(parsed.toFixed(0));
+}
+
+/**
+ * Re-encodes the restored Hyperliquid transfer with the amount committed while
+ * Lighter was selected, since the snapshot holds the amount from when Lighter
+ * was first chosen.
+ *
+ * @param meta - Restored Hyperliquid confirmation.
+ * @param amount - USDC amount in base units.
+ */
+function applyHyperliquidUsdcAmount(
+  meta: TransactionMeta,
+  amount: bigint,
+): void {
+  const transfer = getTokenTransferData(meta);
+  const recipient = parseStandardTokenTransactionData(transfer?.data)?.args
+    ?._to;
+
+  if (transfer && recipient) {
+    const data = generateTransferData('transfer', {
+      toAddress: recipient,
+      amount: amount.toString(16),
+    }) as Hex;
+
+    if (transfer.index === undefined) {
+      meta.txParams.data = data;
+      if (meta.nestedTransactions?.length === 1) {
+        meta.nestedTransactions = [{ ...meta.nestedTransactions[0], data }];
+      }
+    } else {
+      const batch = updateEIP7702BatchData({
+        from: meta.txParams.from as Hex,
+        transactions: meta.nestedTransactions ?? [],
+        updates: [{ transactionIndex: transfer.index, transactionData: data }],
+      });
+      meta.nestedTransactions = batch.nestedTransactions;
+      meta.txParams.data = batch.transactionData;
+    }
+  }
+
+  if (meta.requiredAssets?.length) {
+    meta.requiredAssets = [
+      { ...meta.requiredAssets[0], amount: toHex(amount) },
+      ...meta.requiredAssets.slice(1),
+    ];
+  }
+
+  meta.txParams.gas = undefined;
+  meta.gasLimitNoBuffer = undefined;
+  meta.gasUsed = undefined;
+  meta.simulationData = undefined;
+  meta.simulationFails = undefined;
 }
 
 /**

@@ -7,6 +7,8 @@ import { LIGHTER_BRIDGE_CONFIG } from '@metamask/perps-controller/constants/ligh
 
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { generateTransferData } from '../../../../../util/transactions';
+import { parseStandardTokenTransactionData } from '../../utils/transaction';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useSyncPerpsLighterTransactionType } from './useSyncPerpsLighterTransactionType';
 
@@ -290,6 +292,73 @@ describe('useSyncPerpsLighterTransactionType', () => {
     expect(meta.nestedTransactions?.[0].to).toBe(HYPERLIQUID_BRIDGE);
     expect(meta.requiredAssets?.[0].address).toBe(HYPERLIQUID_BRIDGE);
     expect(readPaymentOverride(1)).toBeUndefined();
+  });
+
+  it('restores the Hyperliquid transfer with the amount committed on Lighter', async () => {
+    const arbitrumUsdc = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+    const transferData = (amount: number) =>
+      generateTransferData('transfer', {
+        toAddress: HYPERLIQUID_BRIDGE,
+        amount: amount.toString(16),
+      });
+    const hyperliquidTransfer = {
+      ...hyperliquidDeposit,
+      txParams: {
+        ...hyperliquidDeposit.txParams,
+        to: arbitrumUsdc,
+        data: transferData(2_000_000),
+      },
+      nestedTransactions: [
+        { data: transferData(2_000_000), to: arbitrumUsdc, value: '0x0' },
+      ],
+      requiredAssets: [{ address: arbitrumUsdc, amount: '0x1e8480' }],
+    };
+    mockUseTransactionMetadataRequest.mockReturnValue(
+      hyperliquidTransfer as never,
+    );
+
+    const { rerender } = renderHook<
+      void,
+      {
+        destination: 'hyperliquid' | 'lighter';
+        source: 'hyperliquid' | 'lighter';
+      }
+    >(
+      ({ destination, source }) =>
+        useSyncPerpsLighterTransactionType({ destination, source }),
+      { initialProps: { destination: 'lighter', source: 'hyperliquid' } },
+    );
+
+    await waitFor(() => {
+      expect(mockUpdateTransactionMetadata).toHaveBeenCalledTimes(1);
+    });
+
+    Engine.context.TransactionPayController.state.transactionData = {
+      'tx-1': {
+        isLoading: false,
+        tokens: [{ amountHuman: '80', amountRaw: '80000000' }],
+      },
+    } as never;
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      ...hyperliquidTransfer,
+      chainId: '0x1',
+      networkClientId: 'mainnet',
+      type: TransactionType.perpsLighterDeposit,
+    } as never);
+
+    rerender({ destination: 'hyperliquid', source: 'hyperliquid' });
+
+    const meta = applyMetadataUpdate(1);
+    const decoded = parseStandardTokenTransactionData(meta.txParams.data);
+    expect(meta.type).toBe(TransactionType.perpsDeposit);
+    expect(meta.txParams.to).toBe(arbitrumUsdc);
+    expect(decoded?.args?._to.toLowerCase()).toBe(HYPERLIQUID_BRIDGE);
+    expect(decoded?.args?._value.toString()).toBe('80000000');
+    expect(meta.nestedTransactions?.[0].data).toBe(meta.txParams.data);
+    expect(meta.requiredAssets?.[0]).toStrictEqual({
+      address: arbitrumUsdc,
+      amount: '0x4c4b400',
+    });
   });
 
   it('leaves the confirmation unchanged when it already has the selected type', () => {
