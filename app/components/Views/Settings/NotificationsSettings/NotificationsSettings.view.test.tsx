@@ -306,6 +306,42 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     }
   });
 
+  it('carries the stored marketing consent into the notifications enable flow', async () => {
+    const enableSpy = jest
+      .spyOn(
+        Engine.context.NotificationServicesController,
+        'enableMetamaskNotifications',
+      )
+      .mockResolvedValue(undefined);
+
+    try {
+      const { getByTestId } = renderComponentViewScreen(
+        NotificationsSettings as unknown as React.ComponentType,
+        { name: 'NotificationsSettings' },
+        {
+          state: {
+            ...buildNotificationsState({ notificationsEnabled: false }),
+            security: { dataCollectionForMarketing: true },
+          },
+        },
+      );
+
+      fireEvent(
+        getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+        'onValueChange',
+        true,
+      );
+
+      await waitFor(() => {
+        expect(enableSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ hasMarketingConsent: true }),
+        );
+      });
+    } finally {
+      enableSpy.mockRestore();
+    }
+  });
+
   it('navigates to the wallet activity notification section when its row is pressed', async () => {
     const { getByText, findByTestId } = renderSettingsWithSectionRoute();
 

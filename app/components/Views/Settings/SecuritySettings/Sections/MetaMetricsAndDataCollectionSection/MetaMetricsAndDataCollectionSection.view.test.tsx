@@ -165,3 +165,93 @@ describeForPlatforms(
     });
   },
 );
+
+/**
+ * The consent-signal AND gate: marketing consent stores locally regardless of
+ * MetaMetrics, but the consent signal only goes out while MetaMetrics is on.
+ */
+describeForPlatforms(
+  'MetaMetricsAndDataCollectionSection — consent signal gate',
+  () => {
+    let identifySpy: jest.SpyInstance;
+    let trackEventSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      identifySpy = jest.spyOn(analytics, 'identify');
+      trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+    });
+
+    afterEach(() => {
+      clearSeedlessAuthServerMocks();
+      identifySpy.mockRestore();
+      trackEventSpy.mockRestore();
+    });
+
+    it('stores consent without sending consent signals while MetaMetrics is off', async () => {
+      setupSeedlessAuthServerMocks({});
+      const screen = renderSecuritySettingsMarketingSection({
+        dataCollectionForMarketing: false,
+        overrides: {
+          engine: {
+            backgroundState: {
+              AnalyticsController: { optedIn: false },
+            },
+          },
+        } as DeepPartial<RootState>,
+      });
+
+      const marketingSwitch = screen.getByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+      fireEvent(marketingSwitch, 'valueChange', true);
+
+      await waitFor(() => {
+        expect(
+          screen.store.getState().security.dataCollectionForMarketing,
+        ).toBe(true);
+      });
+      expect(renderedSwitchValue(marketingSwitch)).toBe(true);
+      expect(identifySpy).not.toHaveBeenCalled();
+      expect(
+        findTrackedEvent(
+          trackEventSpy,
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        ),
+      ).toBeUndefined();
+    });
+
+    it('sends the consent signal when MetaMetrics is on', async () => {
+      setupSeedlessAuthServerMocks({});
+      const screen = renderSecuritySettingsMarketingSection({
+        dataCollectionForMarketing: false,
+      });
+
+      const marketingSwitch = screen.getByTestId(
+        SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
+      );
+      fireEvent(marketingSwitch, 'valueChange', true);
+
+      await waitFor(() => {
+        expect(
+          screen.store.getState().security.dataCollectionForMarketing,
+        ).toBe(true);
+      });
+      expect(identifySpy).toHaveBeenCalledWith({
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+      });
+      expect(
+        findTrackedEvent(
+          trackEventSpy,
+          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
+        ),
+      ).toMatchObject({
+        properties: expect.objectContaining({
+          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+          location: 'settings',
+          updated_after_onboarding: true,
+        }),
+      });
+    });
+  },
+);
