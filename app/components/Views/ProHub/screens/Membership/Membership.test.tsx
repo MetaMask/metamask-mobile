@@ -299,14 +299,23 @@ describe('Membership', () => {
     });
 
     it('renders the renews on row with renewal date', () => {
-      const { getByTestId } = renderMembership();
+      // Membership reads new Date(), and test setup only stubs Date.now.
+      // After 2027-07-20 this row becomes "Ended on".
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-10-07T00:00:00.000Z'));
+      try {
+        const { getByTestId } = renderMembership();
 
-      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex(strings('pro_hub.membership.renews_on')),
-      );
-      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex('Jul 20, 2027'),
-      );
+        expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+          toRegex(strings('pro_hub.membership.renews_on')),
+        );
+        expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+          toRegex('Jul 20, 2027'),
+        );
+      } finally {
+        jest.useRealTimers();
+        Date.now = jest.fn(() => 123);
+      }
     });
 
     it.each([
