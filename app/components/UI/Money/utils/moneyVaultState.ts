@@ -144,7 +144,7 @@ const weightedApy = ({
   }
 
   // A missing leg is not a zero rate. Publishing the other vault's APY would
-  // close Money home's time-to-content span before GET_VAULT_APY returns.
+  // close Money home's time-to-content span before the base APY query returns.
   if (
     (baseUsd.gt(0) && baseApy === undefined) ||
     (premiumUsd.gt(0) && premiumApy === undefined)

@@ -731,9 +731,6 @@ jest.mock('../../app/core/Engine', () => {
       call: jest.fn((action: string, ...args: unknown[]) => {
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
-        if (action === 'MoneyAccountBalanceService:getVaultApy') {
-          return Promise.resolve({ apy: '0.042' });
-        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'
