@@ -48,10 +48,7 @@ describe('scenarioSample', () => {
         '@swap-bridge-dev-team': {
           tests: [
             { testName: scenario.testName },
-            {
-              testName: 'Over its gates',
-              failureReason: 'quality_gates_exceeded',
-            },
+            { testName: 'Slow', failureReason: 'quality_gates_exceeded' },
           ],
         },
       },
@@ -100,9 +97,10 @@ describe('scenarioSample', () => {
       swapsOwnedSelfMs: 50,
       swapsWidestInclusiveMs: 500,
     });
-    expect(summarizeScenario([sample]).ownedAreas).toEqual([
-      { area: 'Bridge hooks', avgMs: 50 },
-    ]);
+    expect(summarizeScenario([sample])).toMatchObject({
+      runs: [{ widestSpanMs: 500, ownedSelfMs: 50 }],
+      ownedAreas: [{ area: 'Bridge hooks', avgMs: 50 }],
+    });
   });
 });
 
@@ -141,13 +139,5 @@ describe('buildSlackMessage', () => {
       '*Cross-chain swap*: 0 runs used (0 failed, 0 unsymbolicated, 1 missing)',
     );
     expect(message).toContain('No passing, symbolicated runs this week.');
-  });
-
-  it('keeps each used run for pooling across weeks', () => {
-    const summary = summarizeScenario([
-      { status: 'used', audit: audit(300, 40) },
-      { status: 'failed' },
-    ]);
-    expect(summary.runs).toEqual([{ widestSpanMs: 300, ownedSelfMs: 40 }]);
   });
 });

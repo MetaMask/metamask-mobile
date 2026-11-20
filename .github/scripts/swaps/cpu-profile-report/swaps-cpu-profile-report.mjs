@@ -33,11 +33,7 @@ export function percentile(values, fraction) {
 export const scenarioKey = (testName) =>
   testName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
-/**
- * Titles of the tests that failed in a run, from `summary.json` in
- * `aggregated-reports`. A test over its quality gates still completed the swap,
- * so it is kept: dropping it would bias the numbers low.
- */
+/** Titles of the tests that failed in a run, from `summary.json` in `aggregated-reports`; a test only over its quality gates completed the swap, so it is kept. */
 export function failedTestNames(summary) {
   const teams = Object.values(
     summary?.failedTestsStats?.failedTestsByTeam || {},
@@ -125,13 +121,16 @@ export function summarizeScenario(samples) {
     widestSpanMs: audit.swapsWidestInclusiveMs || 0,
     ownedSelfMs: audit.swapsOwnedSelfMs || 0,
   }));
-  const stats = (field) => {
-    const values = runs.map((run) => run[field]);
-    return {
-      median: percentile(values, 0.5),
-      p90: percentile(values, 0.9),
-    };
-  };
+  const stats = (field) => ({
+    median: percentile(
+      runs.map((run) => run[field]),
+      0.5,
+    ),
+    p90: percentile(
+      runs.map((run) => run[field]),
+      0.9,
+    ),
+  });
   return {
     counts,
     runs,

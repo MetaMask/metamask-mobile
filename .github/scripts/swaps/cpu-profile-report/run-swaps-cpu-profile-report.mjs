@@ -21,51 +21,21 @@ import {
   summarizeScenario,
 } from './swaps-cpu-profile-report.mjs';
 
+/** Splits on spaces, so no argument may contain one. */
+const gh = (command) =>
+  execFileSync('gh', command.split(' '), { encoding: 'utf8', stdio: 'pipe' });
+
 function listRuns(repo, { start, end }) {
-  const output = execFileSync(
-    'gh',
-    [
-      'run',
-      'list',
-      '-R',
-      repo,
-      '-w',
-      PERFORMANCE_WORKFLOW,
-      '-e',
-      'schedule',
-      '-b',
-      'main',
-      '--created',
-      `${start.toISOString()}..${end.toISOString()}`,
-      '-L',
-      '100',
-      '--json',
-      'databaseId',
-    ],
-    { encoding: 'utf8' },
+  const created = `${start.toISOString()}..${end.toISOString()}`;
+  const runs = gh(
+    `run list -R ${repo} -w ${PERFORMANCE_WORKFLOW} -e schedule -b main --created ${created} -L 100 --json databaseId`,
   );
-  return JSON.parse(output).map((run) => run.databaseId);
+  return JSON.parse(runs).map((run) => run.databaseId);
 }
 
 function readArtifactJson(repo, runId, artifact, file, directory) {
   const target = path.join(directory, `${runId}-${artifact}`);
-  execFileSync(
-    'gh',
-    [
-      'run',
-      'download',
-      String(runId),
-      '-R',
-      repo,
-      '-n',
-      artifact,
-      '-D',
-      target,
-    ],
-    {
-      stdio: 'ignore',
-    },
-  );
+  gh(`run download ${runId} -R ${repo} -n ${artifact} -D ${target}`);
   return JSON.parse(fs.readFileSync(path.join(target, file), 'utf8'));
 }
 
