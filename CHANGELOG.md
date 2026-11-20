@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed the MetaMask Money FAQ copy to clarify that the Money account is tied to the Secret Recovery Phrase, not a single account's Private Key
-- Fixed personal_sign failing on a network a dapp just added, by syncing the accounts already permitted for that dapp onto the new chain
+- Fixed personal_sign failing on a network a dapp just added, by syncing the accounts already permitted for that dapp onto the new chain (#40208)
 
 ## [8.20.0]
 
