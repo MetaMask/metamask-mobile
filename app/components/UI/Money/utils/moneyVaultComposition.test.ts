@@ -1,5 +1,9 @@
 import type { VaultCompositionComponent } from '../types/moneyVaultComposition';
-import { formatVaultCompositionLabel } from './moneyVaultComposition';
+import {
+  formatVaultCompositionLabel,
+  formatVaultCompositionProtocolName,
+  getVaultCompositionPrimaryAssetSymbol,
+} from './moneyVaultComposition';
 
 const createComponent = (
   overrides: Partial<VaultCompositionComponent> = {},
@@ -77,6 +81,41 @@ describe('formatVaultCompositionLabel', () => {
   it('throws when the component has no asset symbol', () => {
     expect(() =>
       formatVaultCompositionLabel(createComponent({ assets: [] })),
+    ).toThrow(
+      'Cannot format vault composition component without an asset symbol',
+    );
+  });
+});
+
+describe('vault composition label helpers', () => {
+  it('returns the first asset symbol', () => {
+    const component = createComponent({
+      assets: [
+        { asset_symbol: 'mUSD', amount: '1', value_usd: '1' },
+        { asset_symbol: 'USDC', amount: '1', value_usd: '1' },
+      ],
+    });
+
+    const result = getVaultCompositionPrimaryAssetSymbol(component);
+
+    expect(result).toBe('mUSD');
+  });
+
+  it('formats liquidity buffer as cash reserve', () => {
+    const result = formatVaultCompositionProtocolName('liquidity_buffer');
+
+    expect(result).toBe('Cash reserve');
+  });
+
+  it('formats protocol versions with readable casing', () => {
+    const result = formatVaultCompositionProtocolName('morpho_v2');
+
+    expect(result).toBe('Morpho v2');
+  });
+
+  it('throws when the primary asset is missing', () => {
+    expect(() =>
+      getVaultCompositionPrimaryAssetSymbol(createComponent({ assets: [] })),
     ).toThrow(
       'Cannot format vault composition component without an asset symbol',
     );

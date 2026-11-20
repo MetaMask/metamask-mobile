@@ -1,6 +1,6 @@
 import type { VaultCompositionResponse } from '../types/moneyVaultComposition';
 import { getMoneyAccountApiBaseUrl } from './moneyAccountApi';
-
+import { USE_LOCAL_MONEY_ACCOUNT_API } from '../hooks/useMoneyVaultComposition';
 const DEBUG_LOCALHOST_BASE_URL = 'http://localhost:3000';
 
 /**
@@ -18,7 +18,9 @@ export const fetchMoneyVaultComposition = async (
   const normalizedAddress = address.toLowerCase();
   const url = new URL(
     `/v1/vaults/${normalizedAddress}/composition`,
-    DEBUG_LOCALHOST_BASE_URL,
+    USE_LOCAL_MONEY_ACCOUNT_API
+      ? DEBUG_LOCALHOST_BASE_URL
+      : getMoneyAccountApiBaseUrl(),
   );
   url.searchParams.set('chain_id', String(chainId));
 

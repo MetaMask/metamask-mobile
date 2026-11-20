@@ -7,6 +7,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../../../locales/i18n';
 import {
   formatVaultCompositionProtocolName,
   getVaultCompositionPrimaryAssetSymbol,
@@ -80,16 +81,31 @@ const MoneyVaultCompositionMarketRow = ({
       <Text
         testID={MoneyVaultCompositionMarketRowTestIds.ALLOCATION(componentKey)}
         variant={TextVariant.BodyMd}
-        twClassName="w-20 text-right"
+        twClassName="w-16 text-right"
       >
         {formatAllocationPercentage(component.allocation_fraction)}
       </Text>
       <Text
-        testID={MoneyVaultCompositionMarketRowTestIds.APY(componentKey)}
+        testID={MoneyVaultCompositionMarketRowTestIds.SUPPLY_APY(componentKey)}
         variant={TextVariant.BodyMd}
-        twClassName="w-20 text-right"
+        twClassName="w-16 text-right"
       >
-        {formatAllocationPercentage(component.organic_supply_apy)}
+        {component.organic_supply_apy === '0'
+          ? '—'
+          : formatAllocationPercentage(component.organic_supply_apy)}
+      </Text>
+      <Text
+        testID={MoneyVaultCompositionMarketRowTestIds.INCENTIVE_APR(
+          componentKey,
+        )}
+        variant={TextVariant.BodyMd}
+        twClassName="w-16 text-right"
+      >
+        {component.incentive_apr === null
+          ? strings('money.earnings.unavailable')
+          : component.incentive_apr === '0'
+            ? '—'
+            : formatAllocationPercentage(component.incentive_apr)}
       </Text>
     </Box>
   );

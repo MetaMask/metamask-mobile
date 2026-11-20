@@ -5,11 +5,13 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyVaultComposition } from '../../hooks/useMoneyVaultComposition';
 import type { VaultCompositionResponse } from '../../types/moneyVaultComposition';
 import type { MoneyVaultCompositionChartProps } from './components/MoneyVaultCompositionChart';
+import type { MoneyVaultCompositionMarketsTableProps } from './components/MoneyVaultCompositionMarketsTable';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import AllocationTab, { setAllocationScrollEnabled } from './AllocationTab';
 
 const mockUseMoneyVaultComposition = jest.mocked(useMoneyVaultComposition);
 const mockChart = jest.fn();
+const mockMarketsTable = jest.fn();
 const mockRefetch = jest.fn();
 const mockSetNativeProps = jest.fn();
 
@@ -21,6 +23,14 @@ jest.mock('./components/MoneyVaultCompositionChart', () => ({
   __esModule: true,
   default: (props: MoneyVaultCompositionChartProps) => {
     mockChart(props);
+    return null;
+  },
+}));
+
+jest.mock('./components/MoneyVaultCompositionMarketsTable', () => ({
+  __esModule: true,
+  default: (props: MoneyVaultCompositionMarketsTableProps) => {
+    mockMarketsTable(props);
     return null;
   },
 }));
@@ -137,6 +147,11 @@ describe('AllocationTab', () => {
       | MoneyVaultCompositionChartProps
       | undefined;
     expect(chartProps?.components).toBe(degradedData.components);
+    expect(mockMarketsTable).toHaveBeenCalledTimes(1);
+    const marketsTableProps = mockMarketsTable.mock.calls.at(-1)?.[0] as
+      | MoneyVaultCompositionMarketsTableProps
+      | undefined;
+    expect(marketsTableProps?.components).toBe(degradedData.components);
     expect(
       getByTestId(MoneyEarningsViewTestIds.ALLOCATION_DEGRADED),
     ).toBeOnTheScreen();
@@ -144,6 +159,19 @@ describe('AllocationTab', () => {
       queryByText(strings('money.earnings.allocation_degraded')),
     ).toBeOnTheScreen();
     expect(queryByText('internal reason')).not.toBeOnTheScreen();
+  });
+
+  it('forwards the parent composition data to the markets table once', () => {
+    setCompositionResult({ data: compositionData });
+
+    renderWithProvider(<AllocationTab />);
+
+    expect(mockMarketsTable).toHaveBeenCalledTimes(1);
+    expect(mockMarketsTable).toHaveBeenCalledWith(
+      expect.objectContaining({
+        components: compositionData.components,
+      }),
+    );
   });
 
   it('provides a scroll callback to the chart', () => {

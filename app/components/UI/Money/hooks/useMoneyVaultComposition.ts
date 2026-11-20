@@ -2,13 +2,14 @@ import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { MoneyQueryKeys } from '../queryKeys';
 import { fetchMoneyVaultComposition } from '../services/moneyVaultComposition';
 import type { VaultCompositionResponse } from '../types/moneyVaultComposition';
-import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 
 const VAULT_COMPOSITION_STALE_TIME = 15 * 60 * 1000; // 15 minutes
 // TODO: Remove after testing.
 const DEBUG_VAULT_ADDRESS = '0x1c8a336051d2024e318a229d01f9f6cf96efd316';
+
+export const USE_LOCAL_MONEY_ACCOUNT_API = true;
 
 export interface UseMoneyVaultCompositionOptions {
   enabled?: boolean;
@@ -25,8 +26,9 @@ export const useMoneyVaultComposition = ({
   enabled = true,
 }: UseMoneyVaultCompositionOptions = {}): UseQueryResult<VaultCompositionResponse> => {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  // const vaultAddress = vaultConfig?.boringVault;
-  const vaultAddress = DEBUG_VAULT_ADDRESS;
+  const vaultAddress = USE_LOCAL_MONEY_ACCOUNT_API
+    ? DEBUG_VAULT_ADDRESS
+    : vaultConfig?.boringVault;
   const chainId = vaultConfig?.chainId;
 
   const hasValidConfig = Boolean(vaultAddress && chainId);

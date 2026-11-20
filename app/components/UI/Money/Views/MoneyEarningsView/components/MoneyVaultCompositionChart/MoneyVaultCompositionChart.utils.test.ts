@@ -2,9 +2,12 @@ import type {
   VaultCompositionComponent,
   VaultCompositionResponse,
 } from '../../../../types/moneyVaultComposition';
+import { mockTheme } from '../../../../../../../util/theme';
 import {
   buildVaultCompositionChartModel,
   formatAllocationPercentage,
+  getVaultCompositionComponentColor,
+  getVaultCompositionComponentsInChartOrder,
 } from './MoneyVaultCompositionChart.utils';
 
 const createComponent = (
@@ -213,5 +216,70 @@ describe('formatAllocationPercentage', () => {
 
   it('shows a lower bound for positive percentages below one hundredth of a percent', () => {
     expect(formatAllocationPercentage('0.00005')).toBe('<0.01%');
+  });
+
+  it('throws for malformed allocation data', () => {
+    expect(() => formatAllocationPercentage('not-a-decimal')).toThrow(
+      "Cannot format invalid allocation fraction 'not-a-decimal'",
+    );
+  });
+});
+
+describe('getVaultCompositionComponentsInChartOrder', () => {
+  it('filters zero allocations and sorts positive allocations', () => {
+    const result = getVaultCompositionComponentsInChartOrder(
+      createComponents([
+        createComponent({
+          component_key: 'aave_v3_musd',
+          allocation_fraction: '0.2',
+        }),
+        createComponent({
+          component_key: 'direct_idle_usdc',
+          allocation_fraction: '0.8',
+        }),
+        createComponent({
+          component_key: 'morpho_v2_musd',
+          allocation_fraction: '0',
+        }),
+      ]),
+    );
+
+    expect(
+      result.map(({ component_key: componentKey }) => componentKey),
+    ).toEqual(['direct_idle_usdc', 'aave_v3_musd']);
+  });
+
+  it('returns no components when allocation data is invalid', () => {
+    const result = getVaultCompositionComponentsInChartOrder(
+      createComponents([
+        createComponent({ allocation_fraction: 'not-a-decimal' }),
+      ]),
+    );
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('getVaultCompositionComponentColor', () => {
+  it('uses the shared theme color for known component keys', () => {
+    const result = getVaultCompositionComponentColor(
+      'aave_v3_musd',
+      mockTheme.colors,
+    );
+
+    expect(result).toBe(mockTheme.colors.info.default);
+  });
+
+  it('keeps fallback colors stable for unknown component keys', () => {
+    const firstResult = getVaultCompositionComponentColor(
+      'future_component',
+      mockTheme.colors,
+    );
+    const secondResult = getVaultCompositionComponentColor(
+      'future_component',
+      mockTheme.colors,
+    );
+
+    expect(secondResult).toBe(firstResult);
   });
 });

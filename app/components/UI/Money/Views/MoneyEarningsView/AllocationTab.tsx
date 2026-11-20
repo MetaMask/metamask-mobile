@@ -14,6 +14,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyVaultComposition } from '../../hooks/useMoneyVaultComposition';
 import MoneyVaultCompositionChart from './components/MoneyVaultCompositionChart';
+import MoneyVaultCompositionMarketsTable from './components/MoneyVaultCompositionMarketsTable';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import { CHART_VIEWBOX_SIZE } from './components/MoneyVaultCompositionChart/MoneyVaultCompositionChart.utils';
 
@@ -126,7 +127,7 @@ const AllocationTab = (): React.ReactElement => {
     }
 
     return (
-      <Box twClassName="items-center">
+      <Box twClassName="items-center w-full">
         {data.data_freshness === 'degraded' ? (
           <Text
             testID={MoneyEarningsViewTestIds.ALLOCATION_DEGRADED}
@@ -141,6 +142,19 @@ const AllocationTab = (): React.ReactElement => {
           components={data.components}
           setScrollEnabled={setScrollEnabled}
         />
+        <Box twClassName="w-full gap-4">
+          <Text variant={TextVariant.HeadingMd} twClassName="self-start">
+            {strings('money.earnings.markets')}
+          </Text>
+          <MoneyVaultCompositionMarketsTable
+            components={data.components}
+            marketLabel={strings('money.earnings.market')}
+            allocationLabel={strings('money.earnings.allocation')}
+            supplyApyLabel={strings('money.earnings.supply_apy')}
+            incentiveAprLabel={strings('money.earnings.incentive_apr')}
+            networkLabel={strings('money.earnings.monad')}
+          />
+        </Box>
       </Box>
     );
   };
