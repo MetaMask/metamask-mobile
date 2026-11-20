@@ -56,7 +56,9 @@ import {
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
-import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import TokenDetailsStickyFooter, {
+  FLOATING_ACTIONS_BOTTOM_MARGIN,
+} from '../components/TokenDetailsStickyFooter';
 import { TokenDetailsTestIds } from './TokenDetails.testIds';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
@@ -299,6 +301,12 @@ const TokenDetails: React.FC<{
   // same flag. Flag off renders the plain footer, so the position machinery
   // (Social/profile/open-position) is never mounted — today's footer.
   const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  // The footer's floating actions overlap the list; pad it so the last rows clear them.
+  const [floatingActionsInset, setFloatingActionsInset] = useState(0);
+  const listBottomInset =
+    floatingActionsInset > 0
+      ? floatingActionsInset + FLOATING_ACTIONS_BOTTOM_MARGIN
+      : undefined;
   const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
   const shareUrl = useMemo(
@@ -593,7 +601,7 @@ const TokenDetails: React.FC<{
 
   const handleBuy = useCallback(() => {
     onCtaClicked?.();
-    onBuy();
+    void onBuy();
   }, [onBuy, onCtaClicked]);
 
   const handleSend = useCallback(async () => {
@@ -773,6 +781,7 @@ const TokenDetails: React.FC<{
             location={TransactionDetailLocation.AssetDetails}
             onScroll={handleMultichainScroll}
             refreshControlOffset={headerInset}
+            contentBottomInset={listBottomInset}
           />
         ) : (
           <>
@@ -797,6 +806,7 @@ const TokenDetails: React.FC<{
               hideEmptyState
               location={TransactionDetailLocation.AssetDetails}
               refreshControlOffset={headerInset}
+              contentBottomInset={listBottomInset}
             />
           </>
         )}
@@ -820,6 +830,9 @@ const TokenDetails: React.FC<{
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
           tokenKey={traderPositionTokenKey}
+          isFloatingActions
+          onFloatingActionsInsetChange={setFloatingActionsInset}
+          floatingActionsScrollY={headerScrollY}
         />
       ) : (
         <TokenDetailsStickyFooter
@@ -838,6 +851,9 @@ const TokenDetails: React.FC<{
           quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
           quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
           onOpenQuickBuy={openQuickBuy}
+          isFloatingActions
+          onFloatingActionsInsetChange={setFloatingActionsInset}
+          floatingActionsScrollY={headerScrollY}
         />
       )}
 

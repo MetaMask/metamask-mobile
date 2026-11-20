@@ -206,6 +206,14 @@ import {
 } from '../../../MarketInsights';
 import { MarketInsightsSelectorsIDs } from '../../../MarketInsights/MarketInsights.testIds';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import {
+  FLOATING_ACTIONS_BOTTOM_MARGIN,
+  useFloatingActionsScrollHide,
+} from '../../../../hooks/useFloatingActionsScrollHide';
+import FloatingActionButtonGlass from '../../../../../component-library/components-temp/ButtonGlass/FloatingActionButtonGlass';
+import { useTheme } from '../../../../../util/theme';
 import {
   selectPerpsEligibility,
   selectPerpsProvider,
@@ -1757,6 +1765,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   );
 
   const { styles } = useStyles(createStyles, {});
+  const { colors } = useTheme();
+
+  // The footer actions float on glass over the content and slide off the
+  // bottom on a scroll down, back on a scroll up.
+  const isGlassFooter = useIsGlassSurfaceEnabled(
+    selectPerpsBrandRefreshEnabled,
+  );
+  const [floatingFooterHeight, setFloatingFooterHeight] = useState(0);
+  // No surface below, so they sit on the safe area.
+  const floatingFooterBottom = edgeInsets?.bottom ?? 0;
+  const {
+    slideStyle: floatingFooterSlideStyle,
+    isHidden: isFloatingFooterHidden,
+  } = useFloatingActionsScrollHide({
+    scrollY: scrollYShared,
+    travel: floatingFooterHeight + floatingFooterBottom,
+  });
 
   const isRelatedMarketsVisible = useMemo(
     () =>
@@ -2058,9 +2083,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   // and Top traders, which unmount on Feed. A list footer would be recycled
   // and paint that label when the next page loads.
   const isFeedTabActive = isFeedScroller && activeSocialTab === 'feed';
-  const bottomInsetSpacer = edgeInsets && !hasActionsFooter && (
+  // Clears the floating footer, or the safe area when there is none.
+  const bottomInsetHeight = hasActionsFooter
+    ? floatingFooterBottom +
+      floatingFooterHeight +
+      FLOATING_ACTIONS_BOTTOM_MARGIN
+    : edgeInsets?.bottom;
+  const bottomInsetSpacer = Boolean(bottomInsetHeight) && (
     <View
-      style={{ height: edgeInsets.bottom }}
+      style={{ height: bottomInsetHeight }}
       testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
     />
   );
@@ -2360,13 +2391,29 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
         )}
       </View>
 
-      {/* Fixed Actions Footer */}
+      {/* Floating Actions Footer */}
       {hasActionsFooter && (
-        <View style={styles.actionsFooter}>
+        <Animated.View
+          testID={PerpsMarketDetailsViewSelectorsIDs.FLOATING_ACTIONS_FOOTER}
+          pointerEvents={isFloatingFooterHidden ? 'none' : 'box-none'}
+          accessibilityElementsHidden={isFloatingFooterHidden}
+          importantForAccessibility={
+            isFloatingFooterHidden ? 'no-hide-descendants' : 'auto'
+          }
+          style={[
+            styles.floatingActionsFooter,
+            { bottom: floatingFooterBottom },
+            floatingFooterSlideStyle,
+          ]}
+          onLayout={(event) =>
+            setFloatingFooterHeight(event.nativeEvent.layout.height)
+          }
+        >
           {/* Show Modify/Close buttons when position exists */}
           {hasLongShortButtons && existingPosition && (
             <View style={styles.actionsContainer} accessible={false}>
-              <DSButton
+              <FloatingActionButtonGlass
+                isGlass={isGlassFooter}
                 variant={ButtonVariant.Secondary}
                 size={ButtonSizeRNDesignSystem.Lg}
                 onPress={handleModifyPress}
@@ -2374,9 +2421,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
               >
                 {strings('perps.market.modify')}
-              </DSButton>
+              </FloatingActionButtonGlass>
 
-              <DSButton
+              <FloatingActionButtonGlass
+                isGlass={isGlassFooter}
+                tintColor={colors.icon.default}
                 variant={ButtonVariant.Primary}
                 size={ButtonSizeRNDesignSystem.Lg}
                 onPress={handleClosePosition}
@@ -2386,14 +2435,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 {parseFloat(existingPosition.size) >= 0
                   ? strings('perps.market.close_long')
                   : strings('perps.market.close_short')}
-              </DSButton>
+              </FloatingActionButtonGlass>
             </View>
           )}
 
           {/* Show Add funds CTA when no perps balance and no allowlist token to preselect */}
           {shouldShowAddFundsCTASection && (
             <View style={styles.actionsContainer} accessible={false}>
-              <DSButton
+              <FloatingActionButtonGlass
+                isGlass={isGlassFooter}
+                tintColor={colors.icon.default}
                 variant={ButtonVariant.Primary}
                 size={ButtonSizeRNDesignSystem.Lg}
                 onPress={handleAddFunds}
@@ -2401,13 +2452,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
                 testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
               >
                 {strings('perps.add_funds')}
-              </DSButton>
+              </FloatingActionButtonGlass>
             </View>
           )}
           {/* Show Long/Short buttons when no position exists and user can trade */}
           {shouldShowLongShortButtonsOnly && (
             <View style={styles.actionsContainer} accessible={false}>
               <PerpsDirectionButton
+                isGlass={isGlassFooter}
                 direction="long"
                 onPress={handleLongPress}
                 size={ButtonSizeRNDesignSystem.Lg}
@@ -2419,6 +2471,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               </PerpsDirectionButton>
 
               <PerpsDirectionButton
+                isGlass={isGlassFooter}
                 direction="short"
                 onPress={handleShortPress}
                 size={ButtonSizeRNDesignSystem.Lg}
@@ -2430,13 +2483,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
               </PerpsDirectionButton>
             </View>
           )}
-          {edgeInsets && (
-            <View
-              style={{ height: edgeInsets.bottom }}
-              testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_INSET_SPACER}
-            />
-          )}
-        </View>
+        </Animated.View>
       )}
 
       {/* More Candle Periods Bottom Sheet - Rendered at root level */}

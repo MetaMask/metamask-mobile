@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   waitFor,
+  within,
   type RenderResult,
 } from '@testing-library/react-native';
 import {
@@ -12,7 +13,9 @@ import {
 } from 'react-native-gesture-handler/jest-utils';
 import { ButtonVariant } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
+import TokenDetailsStickyFooter, {
+  FLOATING_ACTIONS_TEST_ID,
+} from './TokenDetailsStickyFooter';
 import { darkTheme } from '@metamask/design-tokens';
 import {
   LIGHT_MODE_SUCCESS_GREEN,
@@ -110,6 +113,26 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
+let mockIsGlassSurfaceEnabled = false;
+jest.mock('../../../hooks/useIsGlassSurfaceEnabled', () => ({
+  useIsGlassSurfaceEnabled: () => mockIsGlassSurfaceEnabled,
+}));
+
+jest.mock(
+  '../../../../component-library/components-temp/ButtonGlass/ButtonGlass',
+  () => {
+    const { View, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ testID, children, ...rest }: Record<string, unknown>) => (
+        <View testID={testID} isGlassButton {...rest}>
+          <Text>{children as React.ReactNode}</Text>
+        </View>
+      ),
+    };
+  },
+);
+
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
 let mockHasEligibleSwapTokens = true;
@@ -185,7 +208,150 @@ describe('TokenDetailsStickyFooter', () => {
     mockIsTokenTradable.mockReturnValue(true);
     mockIsStockToken.mockReturnValue(false);
     mockHasEligibleSwapTokens = true;
+    mockIsGlassSurfaceEnabled = false;
     setupSelectorMock();
+  });
+
+  describe('floating actions', () => {
+    const floatingProps = {
+      ...defaultProps,
+      isTokenDetailsV1: false,
+      hasTokenBalance: true,
+      quickBuyEntrypointLayout: 'buy_sell' as const,
+      onOpenQuickBuy: jest.fn(),
+      isFloatingActions: true,
+    };
+    const traderPositionPnl = { positionValue: '$17.24' };
+    const layout = (height: number) => ({
+      persist: jest.fn(),
+      nativeEvent: { layout: { x: 0, y: 0, width: 375, height } },
+    });
+
+    it('floats the actions on the safe area when there is no position sheet', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TokenDetailsStickyFooter {...floatingProps} />,
+      );
+
+      const floating = getByTestId(FLOATING_ACTIONS_TEST_ID);
+      // The mocked safe area is 0.
+      expect(floating).toHaveStyle({ position: 'absolute', bottom: 0 });
+      expect(
+        within(floating).getByTestId('token-details-footer-quick-buy'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+    });
+
+    it('hides the position sheet when there is no balance', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...floatingProps}
+          hasTokenBalance={false}
+          reserveTraderPositionLayout
+          traderPositionPnl={traderPositionPnl}
+        />,
+      );
+
+      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+      expect(getByTestId(FLOATING_ACTIONS_TEST_ID)).toHaveStyle({ bottom: 0 });
+    });
+
+    it('keeps the position sheet below and floats the actions 16px above it', async () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...floatingProps}
+          reserveTraderPositionLayout
+          traderPositionPnl={traderPositionPnl}
+        />,
+      );
+
+      const surface = getByTestId('token-details-sticky-footer-surface');
+      expect(
+        within(surface).queryByTestId('token-details-footer-quick-buy'),
+      ).toBeNull();
+
+      fireEvent(
+        getByTestId('token-details-sticky-footer'),
+        'layout',
+        layout(90),
+      );
+
+      // KeyboardAvoidingView forwards its layout asynchronously.
+      await waitFor(() =>
+        expect(getByTestId(FLOATING_ACTIONS_TEST_ID)).toHaveStyle({
+          bottom: 106,
+        }),
+      );
+    });
+
+    it('skips the empty sheet while the position is still loading', () => {
+      const { queryByTestId, getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...floatingProps}
+          reserveTraderPositionLayout
+        />,
+      );
+
+      expect(queryByTestId('token-details-sticky-footer')).toBeNull();
+      expect(getByTestId(FLOATING_ACTIONS_TEST_ID)).toBeOnTheScreen();
+    });
+
+    it('reports how far the floating actions reach from the screen bottom', () => {
+      const onFloatingActionsInsetChange = jest.fn();
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter
+          {...floatingProps}
+          onFloatingActionsInsetChange={onFloatingActionsInsetChange}
+        />,
+      );
+
+      fireEvent(getByTestId(FLOATING_ACTIONS_TEST_ID), 'layout', layout(48));
+
+      expect(onFloatingActionsInsetChange).toHaveBeenLastCalledWith(48);
+    });
+
+    it('draws Sell on secondary glass and Buy on tinted glass', () => {
+      mockIsGlassSurfaceEnabled = true;
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter {...floatingProps} />,
+      );
+
+      const sell = getByTestId('token-details-footer-quick-sell');
+      const buy = getByTestId('token-details-footer-quick-buy');
+      expect(sell).toHaveProp('isGlassButton', true);
+      expect(sell).toHaveProp('variant', ButtonVariant.Secondary);
+      expect(sell.props.tintColor).toBeUndefined();
+      expect(buy).toHaveProp('isGlassButton', true);
+      expect(buy).toHaveProp('variant', ButtonVariant.Primary);
+      expect(buy).toHaveProp('tintColor', expect.any(String));
+
+      fireEvent.press(buy);
+
+      expect(floatingProps.onOpenQuickBuy).toHaveBeenCalledWith('buy');
+    });
+
+    it('renders the floating actions beneath the position sheet', () => {
+      const { toJSON } = render(
+        <TokenDetailsStickyFooter
+          {...floatingProps}
+          traderPositionPnl={traderPositionPnl}
+        />,
+      );
+
+      const tree = JSON.stringify(toJSON());
+      expect(tree.indexOf(FLOATING_ACTIONS_TEST_ID)).toBeLessThan(
+        tree.indexOf('"token-details-sticky-footer"'),
+      );
+    });
+
+    it('keeps the plain buttons when glass is off', () => {
+      const { getByTestId } = render(
+        <TokenDetailsStickyFooter {...floatingProps} />,
+      );
+
+      expect(getByTestId('token-details-footer-quick-buy')).not.toHaveProp(
+        'isGlassButton',
+      );
+    });
   });
 
   describe('button visibility', () => {
