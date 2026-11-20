@@ -1586,54 +1586,68 @@ describe('SocialProfileOnboardingView', () => {
         normalized: 'hello_',
         errors: [],
       });
-    await renderOnboarding();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
-      ),
-    );
+    await openManualUsernameStep();
     const usernameInput = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
+    const unavailableCopy = strings(
+      'social_leaderboard.profile_onboarding.username_unavailable',
+    );
+    const tooShortCopy = strings(
+      'social_leaderboard.profile_onboarding.username_too_short',
+      { min: 3 },
+    );
 
+    // Clear call history so the wait below proves this edit scheduled a check.
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockClear();
     fireEvent.changeText(usernameInput, 'hello_');
+    // Availability is debounced 400ms. Wait for the taken status — the
+    // assertion subject — via the Engine call and the unavailable copy.
     await waitFor(
       () => {
         expect(
-          screen.getByText('This handle is unavailable. Choose another one.'),
-        ).toBeOnTheScreen();
+          Engine.context.ProfileController.checkUsernameAvailability,
+        ).toHaveBeenCalledWith('hello_');
+        expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
       },
       // Username availability is debounced 400ms before the taken result renders.
       { timeout: 3000 },
     );
 
     fireEvent.changeText(usernameInput, 'h');
-    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+    expect(screen.getByText(tooShortCopy)).toBeOnTheScreen();
+    expect(screen.queryByText(unavailableCopy)).not.toBeOnTheScreen();
     expect(
-      screen.queryByText('This handle is unavailable. Choose another one.'),
+      screen.queryByText(
+        strings('social_leaderboard.profile_onboarding.username_available'),
+        { exact: true },
+      ),
     ).not.toBeOnTheScreen();
-    expect(screen.queryByText('Username available')).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
         .props.accessibilityState?.disabled,
     ).toBe(true);
 
     fireEvent.changeText(usernameInput, 'ab');
-    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+    expect(screen.getByText(tooShortCopy)).toBeOnTheScreen();
 
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockClear();
     fireEvent.changeText(usernameInput, 'hello_');
     await waitFor(
       () => {
         expect(
-          screen.getByText('This handle is unavailable. Choose another one.'),
-        ).toBeOnTheScreen();
+          Engine.context.ProfileController.checkUsernameAvailability,
+        ).toHaveBeenCalledWith('hello_');
+        expect(screen.getByText(unavailableCopy)).toBeOnTheScreen();
       },
       // Username availability is debounced 400ms before the taken result renders.
       { timeout: 3000 },
     );
-    expect(
-      screen.queryByText('Use at least 3 characters.'),
-    ).not.toBeOnTheScreen();
+    expect(screen.queryByText(tooShortCopy)).not.toBeOnTheScreen();
   });
 
   it('stays on the username step when the availability check fails', async () => {
