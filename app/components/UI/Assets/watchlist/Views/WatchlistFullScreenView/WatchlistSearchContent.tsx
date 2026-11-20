@@ -28,21 +28,51 @@ import ExploreSearchBar from '../../../../../Views/TrendingView/components/Explo
 import CryptoMoversPillItem from '../../../../../Views/TrendingView/feeds/tokens/CryptoMoversPillItem';
 import { POPULAR_SEARCH_ASSETS } from '../../../../../Views/TrendingView/search/popularSearchAssets';
 import { useTokensFeed } from '../../../../../Views/TrendingView/feeds/tokens/useTokensFeed';
+import { usePerpsFeed } from '../../../../../Views/TrendingView/feeds/perps/usePerpsFeed';
 import TrendingTokensSkeleton from '../../../../Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import { strings } from '../../../../../../../locales/i18n';
 import WatchlistSearchRowItem from '../../components/WatchlistSearchRowItem/WatchlistSearchRowItem';
 import { WatchlistSearchContentTestIds } from './WatchlistSearchContent.testIds';
 import styleSheet from './WatchlistSearchContent.styles';
+import type { WatchlistFilter } from '../../../../Watchlist/types';
+import {
+  getPerpsWatchlistKey,
+  getTokenWatchlistKey,
+} from '../../../../Watchlist/utils';
+import { usePerpsWatchlistActions } from '../../../../Perps/hooks/usePerpsWatchlistActions';
+import { usePerpsNavigation } from '../../../../Perps/hooks/usePerpsNavigation';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import PerpsMarketRowItem from '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
+import WatchlistErrorRow from '../../../../Watchlist/WatchlistErrorRow';
 
 const DEBOUNCE_MS = 200;
 const SKELETON_COUNT = 5;
 
 interface WatchlistSearchContentProps {
   onDismiss: () => void;
+  activeFilter?: WatchlistFilter;
+  canUseLivePerpsPrices?: boolean;
 }
+
+type WatchlistSearchItem =
+  | { kind: 'header'; key: string; domain: 'tokens' | 'perps' }
+  | { kind: 'token'; key: string; token: TrendingAsset; index: number }
+  | {
+      kind: 'perp';
+      key: string;
+      market: PerpsMarketData;
+      index: number;
+      isWatchlisted: boolean;
+    };
 
 const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
   onDismiss,
+  activeFilter = 'tokens',
+  canUseLivePerpsPrices = false,
 }) => {
   const insets = useSafeAreaInsets();
   const topInsetPadding = insets.top + (Platform.OS === 'android' ? 16 : 0);
@@ -50,7 +80,9 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isListReady, setIsListReady] = useState(false);
-  const flashListRef = useRef<FlashListRef<TrendingAsset>>(null);
+  const flashListRef = useRef<FlashListRef<WatchlistSearchItem>>(null);
+  const networkTier = useNetworkTier();
+  const canFetchRemoteSearch = networkTier !== 'NONE';
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(searchQuery), DEBOUNCE_MS);
@@ -61,13 +93,68 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
 
   const { data, isLoading, loadMore, isLoadingMore, hasMore } = useTokensFeed({
     query: debouncedQuery,
+    enabled: canFetchRemoteSearch && activeFilter !== 'perps',
   });
+  const perps = usePerpsFeed({
+    query: debouncedQuery,
+    skipInitialFetch:
+      activeFilter === 'tokens' ||
+      debouncedQuery.trim().length === 0 ||
+      !canFetchRemoteSearch,
+  });
+  const { addToWatchlist, removeFromWatchlist } = usePerpsWatchlistActions(
+    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+  );
+  const { navigateToMarketDetails } = usePerpsNavigation();
 
-  const isFeedLoading = isDebouncing || isLoading;
+  const isFeedLoading =
+    isDebouncing ||
+    (activeFilter !== 'perps' && isLoading) ||
+    (activeFilter !== 'tokens' && perps.isLoading);
   const hasActiveQuery = debouncedQuery.trim().length > 0;
-  const listData = data;
+  const listData = useMemo<WatchlistSearchItem[]>(() => {
+    const items: WatchlistSearchItem[] = [];
+
+    if (activeFilter !== 'perps' && data.length > 0) {
+      items.push({ kind: 'header', key: 'header:tokens', domain: 'tokens' });
+      items.push(
+        ...data.map((token, index) => ({
+          kind: 'token' as const,
+          key: getTokenWatchlistKey(String(token.assetId)),
+          token,
+          index,
+        })),
+      );
+    }
+
+    if (activeFilter !== 'tokens' && hasActiveQuery && perps.data.length > 0) {
+      items.push({ kind: 'header', key: 'header:perps', domain: 'perps' });
+      items.push(
+        ...perps.data.map(({ market, isWatchlisted }, index) => ({
+          kind: 'perp' as const,
+          key: getPerpsWatchlistKey(market),
+          market,
+          index,
+          isWatchlisted,
+        })),
+      );
+    }
+
+    return items;
+  }, [activeFilter, data, hasActiveQuery, perps.data]);
+  const resultCount = listData.filter((item) => item.kind !== 'header').length;
+  const hasActivePerpsError =
+    activeFilter !== 'tokens' &&
+    hasActiveQuery &&
+    !perps.isLoading &&
+    Boolean(perps.error);
+  const hasOfflineSearch = hasActiveQuery && !canFetchRemoteSearch;
   const showEmptyResults =
-    hasActiveQuery && !isFeedLoading && listData.length === 0;
+    hasActiveQuery &&
+    !isFeedLoading &&
+    !hasOfflineSearch &&
+    !hasActivePerpsError &&
+    resultCount === 0;
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
@@ -81,7 +168,7 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
   }, [debouncedQuery]);
 
   useEffect(() => {
-    if (isFeedLoading || listData.length === 0 || isListReady) {
+    if (isFeedLoading || resultCount === 0 || isListReady) {
       return;
     }
 
@@ -104,29 +191,76 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
       cancelAnimationFrame(outerFrame);
       cancelAnimationFrame(innerFrame);
     };
-  }, [debouncedQuery, isFeedLoading, isListReady, listData.length]);
+  }, [debouncedQuery, isFeedLoading, isListReady, resultCount]);
 
   const handleCancel = useCallback(() => {
     setSearchQuery('');
     onDismiss();
   }, [onDismiss]);
 
-  const renderItem: ListRenderItem<TrendingAsset> = useCallback(
-    ({ item, index }) => <WatchlistSearchRowItem token={item} index={index} />,
-    [],
+  const renderItem: ListRenderItem<WatchlistSearchItem> = useCallback(
+    ({ item }) => {
+      if (item.kind === 'header') {
+        return (
+          <Box twClassName="py-3">
+            <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+              {item.domain === 'tokens'
+                ? strings('token_watchlist.tokens_tab')
+                : strings('perps.title')}
+            </Text>
+          </Box>
+        );
+      }
+
+      if (item.kind === 'token') {
+        return <WatchlistSearchRowItem token={item.token} index={item.index} />;
+      }
+
+      return (
+        <PerpsMarketRowItem
+          market={item.market}
+          onPress={(market) =>
+            navigateToMarketDetails(
+              market,
+              PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+            )
+          }
+          compact
+          enableLivePrices={canUseLivePerpsPrices}
+          isWatchlisted={item.isWatchlisted}
+          onAddPress={
+            item.isWatchlisted
+              ? undefined
+              : (market) => {
+                  addToWatchlist(market.symbol).catch(() => undefined);
+                }
+          }
+          onWatchlistPress={
+            item.isWatchlisted
+              ? (market) => {
+                  removeFromWatchlist(market.symbol).catch(() => undefined);
+                }
+              : undefined
+          }
+        />
+      );
+    },
+    [
+      addToWatchlist,
+      canUseLivePerpsPrices,
+      navigateToMarketDetails,
+      removeFromWatchlist,
+    ],
   );
 
-  const keyExtractor = useCallback(
-    (item: TrendingAsset, index: number) => item.assetId ?? String(index),
-    [],
-  );
+  const keyExtractor = useCallback((item: WatchlistSearchItem) => item.key, []);
 
   const footer = useMemo(
     () =>
       isLoadingMore && listData.length > 0 ? (
         <ActivityIndicator
           style={styles.loadingFooter}
-          accessibilityLabel="Loading more results"
+          accessibilityLabel={strings('token_watchlist.loading_more_results')}
         />
       ) : null,
     [isLoadingMore, listData.length, styles.loadingFooter],
@@ -153,19 +287,40 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
   );
 
   const handleEndReached = useCallback(() => {
-    if (isFeedLoading || listData.length === 0 || !hasMore || !loadMore) {
+    if (
+      isFeedLoading ||
+      activeFilter === 'perps' ||
+      resultCount === 0 ||
+      !hasMore ||
+      !loadMore
+    ) {
       return;
     }
     loadMore();
-  }, [hasMore, isFeedLoading, listData.length, loadMore]);
+  }, [activeFilter, hasMore, isFeedLoading, loadMore, resultCount]);
 
   const handleListLoad = useCallback(() => {
-    if (listData.length > 0) {
+    if (resultCount > 0) {
       setIsListReady(true);
     }
-  }, [listData.length]);
+  }, [resultCount]);
 
   const listHeaderComponent = useMemo(() => {
+    if (hasOfflineSearch) {
+      return (
+        <WatchlistErrorRow testID={WatchlistSearchContentTestIds.ERROR_STATE} />
+      );
+    }
+
+    if (hasActivePerpsError) {
+      return (
+        <WatchlistErrorRow
+          onRetry={perps.refetch}
+          testID={WatchlistSearchContentTestIds.ERROR_STATE}
+        />
+      );
+    }
+
     if (!showEmptyResults) {
       return null;
     }
@@ -202,7 +357,13 @@ const WatchlistSearchContent: React.FC<WatchlistSearchContentProps> = ({
         </Box>
       </View>
     );
-  }, [debouncedQuery, showEmptyResults]);
+  }, [
+    debouncedQuery,
+    hasActivePerpsError,
+    hasOfflineSearch,
+    perps.refetch,
+    showEmptyResults,
+  ]);
 
   return (
     <View

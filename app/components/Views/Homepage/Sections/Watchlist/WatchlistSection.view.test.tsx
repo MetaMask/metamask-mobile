@@ -22,7 +22,6 @@ import {
   getTrendingTokenRowAddButtonTestId,
 } from '../../../../UI/Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
 import { WatchlistFullScreenViewSelectorsIDs } from '../../../../UI/Assets/watchlist/Views/WatchlistFullScreenView/WatchlistFullScreenView.testIds';
-import { WatchlistEmptyCTATestIds } from '../../../../UI/Assets/watchlist/components/WatchlistEmptyCTA/WatchlistEmptyCTA.testIds';
 import { WatchlistStarButtonTestIds } from '../../../../UI/Assets/watchlist/components/WatchlistStarButton.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- mirrors WatchlistSection.tsx (ADR-0020 backlog)
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
@@ -58,6 +57,7 @@ describeForPlatforms('WatchlistSection', () => {
     });
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
+      // Membership and token metadata hydrate through separate requests.
       await findByTestId(getRowTestId(assetId), {}, { timeout: 5000 });
     }
 
@@ -138,21 +138,21 @@ describeForPlatforms('WatchlistSection', () => {
     await findByTestId(WatchlistStarButtonTestIds.BUTTON);
   });
 
-  it('shows the empty section state and navigates to the full-screen empty CTA', async () => {
+  it('shows suggestions in the empty section and navigates to the full-screen watchlist', async () => {
     setupWatchlistStorageMock(EMPTY_BLOB);
 
-    const { getByTestId, findByTestId } = renderWatchlistSectionWithRoutes();
+    const { getByTestId, findByTestId, queryByTestId } =
+      renderWatchlistSectionWithRoutes();
 
-    // Empty state = suggested rows with add buttons below the header
-    expect(
-      await findByTestId(getAddButtonTestId('eip155:1/slip44:60')),
-    ).toBeOnTheScreen();
+    expect(await findByTestId('watchlist-suggested-section')).toBeOnTheScreen();
+    expect(queryByTestId('watchlist-empty-fallback')).not.toBeOnTheScreen();
+    expect(queryByTestId('watchlist-suggested-header')).not.toBeOnTheScreen();
 
     fireEvent.press(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('watchlist')),
     );
 
-    await findByTestId(WatchlistEmptyCTATestIds.CONTAINER);
+    await findByTestId(WatchlistFullScreenViewSelectorsIDs.CONTAINER);
   });
 
   it('shows suggested tokens with star buttons and no helper copy in the empty state', async () => {
@@ -358,7 +358,7 @@ describeForPlatforms('WatchlistSection', () => {
     });
 
     await waitFor(() => expect(putScope.isDone()).toBe(true), {
-      timeout: 5000,
+      timeout: 5000, // The persisted update settles after the optimistic mutation.
     });
 
     // The add flips the section from the empty state to watchlist mode: the
@@ -368,6 +368,7 @@ describeForPlatforms('WatchlistSection', () => {
         expect(
           queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
         ).toBeNull(),
+      // The section rehydrates membership and token metadata after persistence.
       { timeout: 5000 },
     );
     expect(

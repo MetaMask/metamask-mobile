@@ -1,6 +1,8 @@
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { PerpsMarketData } from '@metamask/perps-controller';
 
+export type WatchlistFilter = 'all' | 'tokens' | 'perps';
+
 export interface UnifiedWatchlistToken {
   kind: 'token';
   key: string;
@@ -20,7 +22,7 @@ export interface UnifiedWatchlistUnavailablePerp {
   kind: 'perp';
   key: string;
   symbol: string;
-  status: 'unavailable';
+  status: 'unavailable' | 'stale';
 }
 
 export type UnifiedWatchlistPerp =
@@ -44,13 +46,16 @@ export interface UnifiedWatchlistResult {
   orderError: string | null;
   tokens: UnifiedWatchlistDomainState<UnifiedWatchlistToken>;
   perps: UnifiedWatchlistDomainState<UnifiedWatchlistPerp>;
+  suggestedPerps: PerpsMarketData[];
   canUseLivePerpsPrices: boolean;
   canUseMotion: boolean;
+  canUseGlass: boolean;
   canRefresh: boolean;
   canFetchSuggestions: boolean;
   tokenMembershipAssetIds: string[];
   isTokenMetadataComplete: boolean;
   tokenCount: number;
+  perpsCount: number;
   isInitialLoading: boolean;
   persistOrder: (keys: string[]) => Promise<void>;
   refresh: () => Promise<void>;

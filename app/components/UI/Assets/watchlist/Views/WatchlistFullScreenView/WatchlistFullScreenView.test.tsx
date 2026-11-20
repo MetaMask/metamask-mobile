@@ -16,6 +16,14 @@ const mockRemoveToken = jest.fn();
 const mockRemovePerp = jest.fn().mockResolvedValue(true);
 const mockPersistOrder = jest.fn().mockResolvedValue(undefined);
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
+const mockTrackEvent = jest.fn();
+const mockBuildAnalyticsEvent = jest.fn(() => ({ name: 'mock-event' }));
+const mockAddAnalyticsProperties = jest.fn(() => ({
+  build: mockBuildAnalyticsEvent,
+}));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddAnalyticsProperties,
+}));
 let mockReduceMotion = false;
 let mockLatestListProps: {
   dragEnabled: boolean;
@@ -76,13 +84,16 @@ const createResult = (
   orderError: null,
   tokens: { items: [TOKEN_A, TOKEN_B], isLoading: false, error: null },
   perps: { items: [], isLoading: false, error: null },
+  suggestedPerps: [],
   canUseLivePerpsPrices: true,
   canUseMotion: true,
+  canUseGlass: true,
   canRefresh: true,
   canFetchSuggestions: true,
   tokenMembershipAssetIds: [TOKEN_A.assetId, TOKEN_B.assetId],
   isTokenMetadataComplete: true,
   tokenCount: 2,
+  perpsCount: 0,
   isInitialLoading: false,
   persistOrder: mockPersistOrder,
   refresh: mockRefresh,
@@ -92,7 +103,7 @@ const createResult = (
 let mockUnifiedResult = createResult();
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => false),
+  useSelector: jest.fn(() => true),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -172,12 +183,27 @@ jest.mock('react-native-reorderable-list', () => {
 
 jest.mock('../../hooks/useTokenWatchlistMutations', () => ({
   useTokenWatchlistUpdateListMutation: () => ({ mutate: mockUpdateList }),
+  useTokenWatchlistAddItemMutation: () => ({ mutate: jest.fn() }),
   useTokenWatchlistRemoveItemMutation: () => ({ mutate: mockRemoveToken }),
+}));
+
+jest.mock('../../hooks/useSuggestedWatchlistItemsQuery', () => ({
+  useSuggestedWatchlistItemsQuery: () => ({
+    data: [],
+    isLoading: false,
+  }),
 }));
 
 jest.mock('../../hooks/useTrackWatchlistPageViewed', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
 }));
 
 jest.mock('../../../../Watchlist/WatchlistPerpsProvider', () => ({
@@ -191,7 +217,14 @@ jest.mock('../../../../Watchlist/hooks/useUnifiedWatchlist', () => ({
 
 jest.mock('../../../../Perps/hooks/usePerpsWatchlistActions', () => ({
   usePerpsWatchlistActions: () => ({
+    addToWatchlist: jest.fn().mockResolvedValue(true),
     removeFromWatchlist: mockRemovePerp,
+  }),
+}));
+
+jest.mock('../../../../Perps/hooks/usePerpsNavigation', () => ({
+  usePerpsNavigation: () => ({
+    navigateToMarketDetails: jest.fn(),
   }),
 }));
 
@@ -258,6 +291,11 @@ jest.mock('../../../../Watchlist/WatchlistErrorRow', () => {
   return { __esModule: true, default: MockError };
 });
 
+jest.mock('../../../../Watchlist/WatchlistSuggestedSection', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 describe('WatchlistFullScreenView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -304,6 +342,29 @@ describe('WatchlistFullScreenView', () => {
 
     expect(mockPersistOrder).toHaveBeenCalledWith([PERP.key, TOKEN_A.key]);
     expect(mockUpdateList).not.toHaveBeenCalled();
+  });
+
+  it('tracks filter selection with authoritative membership counts', () => {
+    mockUnifiedResult = createResult({
+      isUnifiedEnabled: true,
+      isPerpsEnabled: true,
+      orderedItems: [TOKEN_A, PERP],
+      isOrderReady: true,
+      tokenCount: 5,
+      perpsCount: 2,
+    });
+    const { getByTestId } = render(<WatchlistFullScreenView />);
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.FILTER_TOKENS),
+    );
+
+    expect(mockAddAnalyticsProperties).toHaveBeenCalledWith({
+      filter: 'tokens',
+      token_count: 5,
+      perps_count: 2,
+    });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 
   it('disables reorder while authoritative token metadata is incomplete', () => {

@@ -10,27 +10,29 @@ import {
   ListItem,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { formatPriceWithSubscriptNotation } from '../../../util/number/subscriptNotation';
+import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
-import { selectCurrentCurrency } from '../../../selectors/currencyRateController';
-import { formatPriceWithSubscriptNotation } from '../../../util/number/subscriptNotation';
 import { TokenDetailsSource } from '../TokenDetails/constants/constants';
+import { useTrendingTokenPress } from '../Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 import {
-  formatMarketStats,
   getCaipChainIdFromAssetId,
   getNetworkBadgeSrc,
+  formatMarketStats,
 } from '../Trending/components/TrendingTokenRowItem/utils';
+import TrendingTokenLogo from '../Trending/components/TrendingTokenLogo';
 import {
   getTrendingTokenRowAddButtonTestId,
   getTrendingTokenRowItemTestId,
 } from '../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem.testIds';
-import TrendingTokenLogo from '../Trending/components/TrendingTokenLogo';
-import { useTrendingTokenPress } from '../Trending/hooks/useTrendingTokenPress/useTrendingTokenPress';
 
 interface WatchlistTokenRowItemProps {
   token: TrendingAsset;
   position?: number;
+  onPress?: (token: TrendingAsset) => void;
   onLongPress?: () => void;
+  onAddPress?: () => void;
   onWatchlistPress?: () => void;
   isWatchlisted?: boolean;
   tokenDetailsSource?: TokenDetailsSource;
@@ -53,7 +55,9 @@ const getPriceChangeColor = (priceChange: number) => {
 const WatchlistTokenRowItem = ({
   token,
   position,
+  onPress,
   onLongPress,
+  onAddPress,
   onWatchlistPress,
   isWatchlisted = false,
   tokenDetailsSource = TokenDetailsSource.WatchlistFullscreen,
@@ -62,11 +66,12 @@ const WatchlistTokenRowItem = ({
   onAccessibilityAction,
 }: WatchlistTokenRowItemProps) => {
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
-  const { onPress } = useTrendingTokenPress({
+  const { onPress: defaultOnPress } = useTrendingTokenPress({
     token,
     index: position,
     tokenDetailsSource,
   });
+
   const caipChainId = useMemo(
     () => getCaipChainIdFromAssetId(token.assetId),
     [token.assetId],
@@ -75,6 +80,7 @@ const WatchlistTokenRowItem = ({
     () => getNetworkBadgeSrc(caipChainId),
     [caipChainId],
   );
+
   const priceChange = Number(token.priceChangePct?.h24);
   const hasPriceChange = Number.isFinite(priceChange);
   const subvalue =
@@ -85,14 +91,19 @@ const WatchlistTokenRowItem = ({
             priceChange,
           ).toFixed(2)}%`
         : undefined;
-  const handleWatchlistPress = useCallback(() => {
-    onWatchlistPress?.();
-  }, [onWatchlistPress]);
+
+  const handlePress = useCallback(() => {
+    if (onPress) {
+      onPress(token);
+      return;
+    }
+    defaultOnPress();
+  }, [defaultOnPress, onPress, token]);
 
   return (
     <ListItem
       isInteractive
-      onPress={onPress}
+      onPress={handlePress}
       onLongPress={onLongPress}
       accessibilityActions={accessibilityActions}
       onAccessibilityAction={onAccessibilityAction}
@@ -119,7 +130,14 @@ const WatchlistTokenRowItem = ({
         token.aggregatedUsdVolume ?? 0,
         currentCurrency,
       )}`}
-      descriptionProps={{ numberOfLines: 1, ellipsizeMode: 'tail' }}
+      descriptionProps={{
+        numberOfLines: 1,
+        ellipsizeMode: 'tail',
+        // Ensure the description yields to the price column before it can
+        // render beneath it on narrow watchlist rows.
+        // eslint-disable-next-line react-native/no-inline-styles
+        style: { flex: 1, minWidth: 0, flexShrink: 1 },
+      }}
       value={formatPriceWithSubscriptNotation(token.price, currentCurrency)}
       subvalue={subvalue}
       subvalueProps={{
@@ -129,11 +147,11 @@ const WatchlistTokenRowItem = ({
             : getPriceChangeColor(priceChange),
       }}
       endAccessory={
-        onWatchlistPress ? (
+        onAddPress || onWatchlistPress ? (
           <ButtonIcon
             iconName={isWatchlisted ? IconName.StarFilled : IconName.Star}
             size={ButtonIconSize.Md}
-            onPress={handleWatchlistPress}
+            onPress={onWatchlistPress ?? onAddPress}
             accessibilityLabel={strings(
               isWatchlisted
                 ? 'token_watchlist.remove_from_watchlist'
@@ -144,7 +162,7 @@ const WatchlistTokenRowItem = ({
           />
         ) : undefined
       }
-      accessoryGap={onWatchlistPress ? 3 : undefined}
+      accessoryGap={onAddPress || onWatchlistPress ? 3 : undefined}
       twClassName={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
     />
   );

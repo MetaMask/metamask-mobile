@@ -64,12 +64,28 @@ jest.mock('../../../../UI/Perps/hooks/usePerpsWatchlistActions', () => ({
 }));
 
 jest.mock('../../../../UI/Watchlist/WatchlistTokenRowItem', () => {
-  const { View } = jest.requireActual('react-native');
+  const { TouchableOpacity, View } = jest.requireActual('react-native');
   const ReactActual = jest.requireActual('react');
-  const Mock = ({ token }: { token: { assetId: string } }) =>
-    ReactActual.createElement(View, {
-      testID: `mixed-token-${token.assetId}`,
-    });
+  const Mock = ({
+    token,
+    onAddPress,
+  }: {
+    token: { assetId: string; name: string };
+    onAddPress?: () => void;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID: `row-${token.name}` },
+      ReactActual.createElement(View, {
+        testID: `mixed-token-${token.assetId}`,
+      }),
+      onAddPress
+        ? ReactActual.createElement(TouchableOpacity, {
+            testID: `row-add-${token.name}`,
+            onPress: onAddPress,
+          })
+        : null,
+    );
   Mock.displayName = 'WatchlistTokenRowItem';
   return { __esModule: true, default: Mock };
 });
@@ -269,25 +285,48 @@ describe('WatchlistSection', () => {
       data: [],
       isLoading: false,
     });
-    mockUseUnifiedWatchlist.mockReturnValue({
-      isUnifiedEnabled: false,
-      isPerpsEnabled: false,
-      orderedItems: [],
-      isOrderLoading: false,
-      isOrderReady: false,
-      orderError: null,
-      tokens: { items: [], isLoading: false, error: null },
-      perps: { items: [], isLoading: false, error: null },
-      canUseLivePerpsPrices: true,
-      canUseMotion: true,
-      canRefresh: true,
-      canFetchSuggestions: true,
-      tokenMembershipAssetIds: [],
-      isTokenMetadataComplete: true,
-      tokenCount: 0,
-      isInitialLoading: false,
-      persistOrder: jest.fn(),
-      refresh: jest.fn(),
+    mockUseUnifiedWatchlist.mockImplementation(() => {
+      const tokenQuery = mockUseTokenWatchlistQuery() as {
+        data?: WatchlistTokenWithBalance[];
+        isLoading: boolean;
+      };
+      const tokenItems = (tokenQuery.data ?? [])
+        .slice()
+        .reverse()
+        .map((token) => ({
+          kind: 'token' as const,
+          key: `token:${String(token.assetId).toLowerCase()}`,
+          assetId: String(token.assetId),
+          token,
+        }));
+
+      return {
+        isUnifiedEnabled: false,
+        isPerpsEnabled: false,
+        orderedItems: tokenItems,
+        isOrderLoading: false,
+        isOrderReady: false,
+        orderError: null,
+        tokens: {
+          items: tokenItems,
+          isLoading: tokenQuery.isLoading,
+          error: null,
+        },
+        perps: { items: [], isLoading: false, error: null },
+        suggestedPerps: [],
+        canUseLivePerpsPrices: true,
+        canUseMotion: true,
+        canUseGlass: true,
+        canRefresh: true,
+        canFetchSuggestions: true,
+        tokenMembershipAssetIds: mockWatchlistAssetIds,
+        isTokenMetadataComplete: true,
+        tokenCount: mockWatchlistAssetIds.length,
+        perpsCount: 0,
+        isInitialLoading: tokenQuery.isLoading,
+        persistOrder: jest.fn(),
+        refresh: jest.fn(),
+      };
     });
   });
 
