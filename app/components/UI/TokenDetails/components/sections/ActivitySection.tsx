@@ -1,4 +1,12 @@
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -7,9 +15,13 @@ import {
   Button,
   ButtonVariant,
 } from '@metamask/design-system-react-native';
-import type { Hex } from '@metamask/utils';
-import type { TransactionMeta } from '@metamask/transaction-controller';
+import { type CaipAssetType, type Hex } from '@metamask/utils';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../../reducers';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
@@ -21,8 +33,12 @@ import {
   type ActivityListItem,
   type GroupedActivityListItem,
 } from '../../../../../util/activity-adapters';
+import { mergeActivityItems } from '../../../../../util/activity-adapters/adapters/dedup';
+import { areAddressesEqual } from '../../../../../util/address';
 import ActivityListDateHeader from '../../../ActivityListItemRow/ActivityListDateHeader';
+import { ActivityListItemRow } from '../../../ActivityListItemRow/ActivityListItemRow';
 import AssetDetailsActivityListItem from '../../../Transactions/AssetDetailsActivityListItem';
+import { getActivityDetailsRoute } from '../../../../Views/ActivityList/getActivityDetailsRoute';
 import {
   mapTransactionToActivityItem,
   type TransactionWithImportTime,
@@ -30,12 +46,16 @@ import {
 import { filterDuplicateOutgoingTransactions } from '../../../Transactions/utils';
 import ActivityHeader from '../../../../Views/Asset/ActivityHeader';
 import { useTokenTransactions } from '../../hooks/useTokenTransactions';
+import { useTokenCaipAssetId } from '../../hooks/useTokenCaipAssetId';
 import type { TokenDetailsRouteParams } from '../../constants/constants';
+import { useTransactionsQuery } from '../../../../Views/ActivityList/useTransactionsQuery';
 
 export const TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID =
   'token-details-overview-tab-activity';
 export const TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID =
   'token-details-activity-show-more';
+export const TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID =
+  'token-details-activity-loading-more';
 
 /** Transaction rows shown before the first "View more" press. */
 export const DEFAULT_INITIAL_VISIBLE_ROWS = 3;
@@ -55,11 +75,21 @@ interface UseGroupedTokenActivityParams {
   isNonEvmAsset: boolean;
   assetSymbol: string;
   chainId?: Hex;
+  caipAssetId?: CaipAssetType;
+  selectedAddress?: string;
 }
 
 interface GroupedTokenActivityResult {
   groupedItems: GroupedActivityListItem[];
   transactionByActivityItem: Map<ActivityListItem, TransactionWithImportTime>;
+  apiItemCount: number;
+  hasNextApiPage: boolean;
+  isApiLoading: boolean;
+  isFetchingNextApiPage: boolean;
+  isApiError: boolean;
+  fetchNextVisiblePage: (options?: {
+    minVisibleItems?: number;
+  }) => Promise<void | undefined>;
 }
 
 /**
@@ -74,12 +104,85 @@ function useGroupedTokenActivity({
   isNonEvmAsset,
   assetSymbol,
   chainId,
+  caipAssetId,
+  selectedAddress,
 }: UseGroupedTokenActivityParams): GroupedTokenActivityResult {
-  return useMemo(() => {
+  const {
+    data: apiEvmTransactions,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    isFetchNextPageError,
+    fetchNextVisiblePage,
+  } = useTransactionsQuery(
+    caipAssetId ? { assetId: caipAssetId } : { enabled: false },
+  );
+  const autoFilledAssetIdRef = useRef<CaipAssetType | undefined>(undefined);
+
+  const tokenApiItems = useMemo(
+    () =>
+      caipAssetId
+        ? (apiEvmTransactions?.pages.flatMap((page) => page.data) ?? [])
+        : [],
+    [apiEvmTransactions, caipAssetId],
+  );
+  const localTransactionCount =
+    submittedTxs.length > 0
+      ? submittedTxs.length + confirmedTxs.length
+      : transactions.length;
+  const initialApiRowsNeeded = Math.max(
+    DEFAULT_INITIAL_VISIBLE_ROWS - localTransactionCount,
+    0,
+  );
+
+  useEffect(() => {
+    if (!caipAssetId || isLoading || !apiEvmTransactions) {
+      return;
+    }
+    if (autoFilledAssetIdRef.current === caipAssetId) {
+      return;
+    }
+    if (isError || isFetchNextPageError || isFetchingNextPage) {
+      return;
+    }
+
+    // One pass fills the first screen. View more loads anything older, so a
+    // short or failed scan cannot chain requests by itself.
+    autoFilledAssetIdRef.current = caipAssetId;
+    if (
+      !hasNextPage ||
+      initialApiRowsNeeded === 0 ||
+      tokenApiItems.length >= initialApiRowsNeeded
+    ) {
+      return;
+    }
+
+    Promise.resolve(
+      fetchNextVisiblePage({ minVisibleItems: initialApiRowsNeeded }),
+    ).catch(() => undefined);
+  }, [
+    caipAssetId,
+    apiEvmTransactions,
+    tokenApiItems.length,
+    initialApiRowsNeeded,
+    hasNextPage,
+    isLoading,
+    isFetchingNextPage,
+    isError,
+    isFetchNextPageError,
+    fetchNextVisiblePage,
+  ]);
+
+  const apiHistoryEnabled = Boolean(caipAssetId);
+  const groupedActivity = useMemo(() => {
     if (isNonEvmAsset) {
       return {
         groupedItems: [],
-        transactionByActivityItem: new Map(),
+        transactionByActivityItem: new Map<
+          ActivityListItem,
+          TransactionWithImportTime
+        >(),
       };
     }
 
@@ -87,25 +190,79 @@ function useGroupedTokenActivity({
       submittedTxs.length > 0
         ? [...submittedTxs].sort((a, b) => b.time - a.time).concat(confirmedTxs)
         : transactions;
-    const filteredTransactions =
+    const dedupedTransactions =
       filterDuplicateOutgoingTransactions(listTransactions);
+    const mappedLocalItems = dedupedTransactions.map((transaction) =>
+      mapTransactionToActivityItem({
+        transaction,
+        assetSymbol: assetSymbol || 'ETH',
+        currentChainId: chainId ?? ('0x1' as Hex),
+        tokenChainId: chainId ?? ('0x1' as Hex),
+      }),
+    );
+    const apiReceiveHashes = new Set(
+      tokenApiItems.flatMap((item) =>
+        item.type === 'receive' && item.hash ? [item.hash.toLowerCase()] : [],
+      ),
+    );
+    const visibleLocalActivity = dedupedTransactions.flatMap(
+      (transaction, index) => {
+        const activityItem = mappedLocalItems[index];
+        const from = transaction.txParams?.from;
+        const sameWalletSendHasReceive =
+          transaction.type === TransactionType.simpleSend &&
+          Boolean(from && selectedAddress) &&
+          !areAddressesEqual(from ?? '', selectedAddress ?? '') &&
+          Boolean(
+            activityItem.hash &&
+              apiReceiveHashes.has(activityItem.hash.toLowerCase()),
+          );
+        if (sameWalletSendHasReceive) {
+          return [];
+        }
+        return [{ transaction, activityItem }];
+      },
+    );
+    const filteredTransactions = visibleLocalActivity.map(
+      (entry) => entry.transaction,
+    );
+    const localActivityItemsFromTxs = visibleLocalActivity.map(
+      (entry) => entry.activityItem,
+    );
+
+    const localTypeByHash = new Map(
+      localActivityItemsFromTxs.flatMap((i) =>
+        i.hash ? [[i.hash.toLowerCase(), i.type]] : [],
+      ),
+    );
+    const apiItems = tokenApiItems.filter((api) => {
+      const localType = api.hash
+        ? localTypeByHash.get(api.hash.toLowerCase())
+        : undefined;
+      return (
+        !localType ||
+        localType === api.type ||
+        localType === 'contractInteraction'
+      );
+    });
+
+    const mergedActivityItems = mergeActivityItems(
+      localActivityItemsFromTxs,
+      apiItems,
+      [],
+    );
 
     const transactionByActivityItem = new Map<
       ActivityListItem,
       TransactionWithImportTime
     >();
-    const groupedItems = groupActivityListItems(
-      filteredTransactions.map((transaction) => {
-        const activityItem = mapTransactionToActivityItem({
-          transaction,
-          assetSymbol: assetSymbol || 'ETH',
-          currentChainId: chainId ?? ('0x1' as Hex),
-          tokenChainId: chainId ?? ('0x1' as Hex),
-        });
-        transactionByActivityItem.set(activityItem, transaction);
-        return activityItem;
-      }),
-    );
+    for (let i = 0; i < filteredTransactions.length; i++) {
+      const tx = filteredTransactions[i];
+      const activityItem = localActivityItemsFromTxs[i];
+      transactionByActivityItem.set(activityItem, tx);
+    }
+
+    const groupedItems = groupActivityListItems(mergedActivityItems);
 
     return { groupedItems, transactionByActivityItem };
   }, [
@@ -115,7 +272,19 @@ function useGroupedTokenActivity({
     transactions,
     assetSymbol,
     chainId,
+    tokenApiItems,
+    selectedAddress,
   ]);
+
+  return {
+    ...groupedActivity,
+    apiItemCount: tokenApiItems.length,
+    hasNextApiPage: apiHistoryEnabled && Boolean(hasNextPage),
+    isApiLoading: apiHistoryEnabled && (isLoading || isFetchingNextPage),
+    isFetchingNextApiPage: apiHistoryEnabled && isFetchingNextPage,
+    isApiError: apiHistoryEnabled && (isError || isFetchNextPageError),
+    fetchNextVisiblePage,
+  };
 }
 
 /**
@@ -124,9 +293,14 @@ function useGroupedTokenActivity({
  * pending/date headers sit in between. Trailing headers are only rendered
  * when at least one of their rows is visible.
  */
+function countActivityRows(groupedItems: GroupedActivityListItem[]) {
+  return groupedItems.filter((item) => item.type === 'item').length;
+}
+
 function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
   visibleItems: GroupedActivityListItem[];
   hasMore: boolean;
+  visibleRowCount: number;
   handleShowMore: () => void;
 } {
   const [visibleRowCount, setVisibleRowCount] = useState(
@@ -155,7 +329,7 @@ function useVisibleActivityRows(groupedItems: GroupedActivityListItem[]): {
     return { visibleItems: visibleGroupedItems, hasMore: hasHiddenRows };
   }, [groupedItems, visibleRowCount]);
 
-  return { visibleItems, hasMore, handleShowMore };
+  return { visibleItems, hasMore, visibleRowCount, handleShowMore };
 }
 
 const ActivitySection: React.FC<ActivitySectionProps> = ({
@@ -172,6 +346,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     confirmedTxs,
     loading: isActivityLoading,
     isNonEvmAsset,
+    selectedAddress,
   } = useTokenTransactions(token);
 
   const accountImportTime = useSelector(
@@ -183,9 +358,17 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
   );
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
 
+  const caipAssetId = useTokenCaipAssetId(token);
+
   const {
     groupedItems: activityGroupedItems,
     transactionByActivityItem: activityItemToTransaction,
+    apiItemCount,
+    hasNextApiPage,
+    isApiLoading,
+    isFetchingNextApiPage,
+    isApiError,
+    fetchNextVisiblePage,
   } = useGroupedTokenActivity({
     transactions,
     submittedTxs,
@@ -193,22 +376,81 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     isNonEvmAsset,
     assetSymbol,
     chainId,
+    caipAssetId: isNonEvmAsset ? undefined : (caipAssetId ?? undefined),
+    selectedAddress,
   });
 
-  const [visibleRowCount, setVisibleRowCount] = useState(
-    DEFAULT_INITIAL_VISIBLE_ROWS,
-  );
-  const { visibleItems, hasMore, handleShowMore } =
-    useVisibleActivityRows(activityGroupedItems);
+  const {
+    visibleItems,
+    hasMore: hasHiddenLoadedRows,
+    visibleRowCount,
+    handleShowMore: revealMoreLoadedRows,
+  } = useVisibleActivityRows(activityGroupedItems);
+
+  const handleShowMore = useCallback(() => {
+    const nextVisibleRowCount = visibleRowCount + ACTIVITY_EXPAND_STEP_ROWS;
+    const loadedRowCount = countActivityRows(activityGroupedItems);
+    if (hasNextApiPage && loadedRowCount < nextVisibleRowCount) {
+      Promise.resolve(
+        fetchNextVisiblePage({
+          minVisibleItems:
+            apiItemCount + (nextVisibleRowCount - loadedRowCount),
+        }),
+      ).catch(() => undefined);
+    }
+    revealMoreLoadedRows();
+  }, [
+    activityGroupedItems,
+    apiItemCount,
+    fetchNextVisiblePage,
+    hasNextApiPage,
+    revealMoreLoadedRows,
+    visibleRowCount,
+  ]);
 
   const hasActivity = activityGroupedItems.length > 0;
-  // Same header gate as the legacy Token Details view: the activity section
-  // shows while transactions are still loading or once any are listed.
+  // Receive-only accounts have no local txs. Keep the section up while the
+  // API read is in flight, after it fails, or while older pages can still
+  // hold this token.
   const showActivitySection =
-    !isNonEvmAsset && (isActivityLoading || hasActivity);
+    !isNonEvmAsset &&
+    (isActivityLoading ||
+      isApiLoading ||
+      isApiError ||
+      hasActivity ||
+      hasNextApiPage);
+  const isInitialApiLoad = isApiLoading && !isFetchingNextApiPage;
+  const hasMore = hasHiddenLoadedRows || (hasNextApiPage && !isInitialApiLoad);
+  const isLoadingOlderPages =
+    isFetchingNextApiPage && hasNextApiPage && !hasHiddenLoadedRows;
 
   if (!showActivitySection) {
     return null;
+  }
+
+  let footer: React.ReactNode = null;
+  if (isLoadingOlderPages) {
+    footer = (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        twClassName="pt-2 px-4"
+        testID={TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID}
+      >
+        <ActivityIndicator size="small" />
+      </Box>
+    );
+  } else if (hasMore) {
+    footer = (
+      <Box alignItems={BoxAlignItems.Center} twClassName="pt-2 px-4">
+        <Button
+          variant={ButtonVariant.Tertiary}
+          onPress={handleShowMore}
+          testID={TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID}
+        >
+          {strings('homepage.sections.view_more')}
+        </Button>
+      </Box>
+    );
   }
 
   return (
@@ -243,36 +485,38 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
             );
           }
           const transaction = activityItemToTransaction.get(item.item);
-          if (!transaction) {
-            return null;
+          if (transaction) {
+            return (
+              <AssetDetailsActivityListItem
+                key={getGroupedActivityListItemKey(item, index)}
+                transaction={transaction}
+                index={index}
+                assetSymbol={assetSymbol}
+                chainId={chainId}
+                tokenChainId={chainId}
+                navigation={navigation}
+                accountImportTime={accountImportTime}
+                networkConfigurations={networkConfigurationsByChainId}
+                bridgeHistory={bridgeHistory}
+              />
+            );
           }
           return (
-            <AssetDetailsActivityListItem
+            <ActivityListItemRow
               key={getGroupedActivityListItemKey(item, index)}
-              transaction={transaction}
+              item={item.item}
               index={index}
-              assetSymbol={assetSymbol}
-              chainId={chainId}
-              tokenChainId={chainId}
-              navigation={navigation}
-              accountImportTime={accountImportTime}
-              networkConfigurations={networkConfigurationsByChainId}
-              bridgeHistory={bridgeHistory}
+              onPress={(pressedItem) => {
+                const detailsRoute = getActivityDetailsRoute(pressedItem);
+                if (detailsRoute) {
+                  navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+                }
+              }}
             />
           );
         })}
 
-        {hasMore ? (
-          <Box alignItems={BoxAlignItems.Center} twClassName="pt-2 px-4">
-            <Button
-              variant={ButtonVariant.Tertiary}
-              onPress={handleShowMore}
-              testID={TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID}
-            >
-              {strings('homepage.sections.view_more')}
-            </Button>
-          </Box>
-        ) : null}
+        {footer}
       </Box>
     </>
   );

@@ -274,7 +274,7 @@ describe('useTokenTransactions', () => {
       expect(result.current.confirmedTxs.length).toBe(1);
     });
 
-    it('includes an ERC20 transfer on the recipient token page', async () => {
+    it('excludes received ERC20 transfers from local transactions', async () => {
       const transferData =
         `0xa9059cbb${MOCK_RECIPIENT.slice(2).padStart(64, '0')}` +
         '1'.padStart(64, '0');
@@ -290,6 +290,7 @@ describe('useTokenTransactions', () => {
           contractAddress: MOCK_TOKEN_ADDRESS,
         },
       });
+      // selectedAddress is MOCK_RECIPIENT, but tx.from is MOCK_ADDRESS
       setupMocks([tx], { selectedAddress: MOCK_RECIPIENT });
 
       const asset = createAsset({
@@ -306,9 +307,10 @@ describe('useTokenTransactions', () => {
         expect(result.current.transactionsUpdated).toBe(true);
       });
 
-      expect(result.current.confirmedTxs).toEqual([
-        expect.objectContaining({ id: 'tx-1' }),
-      ]);
+      // Local transactions are filtered to from === selectedAddress,
+      // so received transfers (from !== selectedAddress) don't appear here.
+      // They come from the API layer in useGroupedTokenActivity.
+      expect(result.current.confirmedTxs).toEqual([]);
     });
 
     it('excludes unrelated transactions from ERC20 token view', async () => {

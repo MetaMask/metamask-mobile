@@ -204,9 +204,20 @@ export const useTokenTransactions = (
   const allTransactions = useMemo(() => {
     // Redesign Activity hides gas_payment siblings and shows the fee on the
     // primary row; keep token-details lists in sync when that flag is on.
-    let transactions = evmTransactions.filter(
-      (tx: Transaction) => tx.type !== TransactionType.gasPayment,
-    );
+    const accountAddress = selectedAddress ?? '';
+    const isNativeEvmAsset = Boolean(asset.isNative || asset.isETH);
+    let transactions = evmTransactions.filter((tx: Transaction) => {
+      if (tx.type === TransactionType.gasPayment) {
+        return false;
+      }
+      if (areAddressesEqual(tx.txParams?.from ?? '', accountAddress)) {
+        return true;
+      }
+      if (!isNativeEvmAsset) {
+        return false;
+      }
+      return areAddressesEqual(tx.txParams?.to ?? '', accountAddress);
+    });
 
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
       const txs =
@@ -273,6 +284,7 @@ export const useTokenTransactions = (
     return transactions;
   }, [
     evmTransactions,
+    selectedAddress,
     asset.chainId,
     asset.address,
     asset.symbol,

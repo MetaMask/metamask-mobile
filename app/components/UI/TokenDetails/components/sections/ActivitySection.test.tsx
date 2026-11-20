@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectBridgeHistoryForAccount } from '../../../../../selectors/bridgeStatusController';
@@ -11,6 +12,7 @@ import {
 } from '../../hooks/useTokenTransactions';
 import { type TokenDetailsRouteParams } from '../../constants/constants';
 import ActivitySection, {
+  TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID,
   TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID,
   TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID,
 } from './ActivitySection';
@@ -39,6 +41,27 @@ jest.mock('../../hooks/useTokenTransactions', () => ({
   useTokenTransactions: jest.fn(),
 }));
 
+jest.mock('../../hooks/useTokenCaipAssetId', () => ({
+  useTokenCaipAssetId: jest.fn(),
+}));
+
+jest.mock('../../../../Views/ActivityList/hooks/useLocalActivityItems', () => ({
+  useLocalActivityItems: jest.fn(() => []),
+}));
+
+jest.mock('../../../../Views/ActivityList/useTransactionsQuery', () => ({
+  useTransactionsQuery: jest.fn(() => ({ data: { pages: [] } })),
+}));
+
+jest.mock('../../../../Views/ActivityList/getActivityDetailsRoute', () => ({
+  getActivityDetailsRoute: jest.fn(
+    (item: { chainId: string; hash: string }) => ({
+      chainId: item.chainId,
+      txIdentifier: item.hash,
+    }),
+  ),
+}));
+
 jest.mock('../../../../Views/Asset/ActivityHeader', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -53,6 +76,26 @@ jest.mock('../../../Transactions/AssetDetailsActivityListItem', () => {
     __esModule: true,
     default: ({ transaction }: { transaction: { id: string } }) => (
       <View testID={`mock-activity-item-${transaction.id}`} />
+    ),
+  };
+});
+
+jest.mock('../../../ActivityListItemRow/ActivityListItemRow', () => {
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  return {
+    ActivityListItemRow: ({
+      item,
+      onPress,
+    }: {
+      item: { hash?: string; type: string };
+      onPress?: (item: unknown) => void;
+    }) => (
+      <TouchableOpacity
+        testID={`mock-api-activity-item-${item.hash ?? item.type}`}
+        onPress={() => onPress?.(item)}
+      >
+        <View />
+      </TouchableOpacity>
     ),
   };
 });
@@ -100,6 +143,23 @@ const mockSelectSelectedInternalAccount = jest.mocked(
   selectSelectedInternalAccount,
 );
 const mockUseTokenTransactions = jest.mocked(useTokenTransactions);
+const mockUseTokenCaipAssetId = jest.mocked(
+  jest.requireMock('../../hooks/useTokenCaipAssetId').useTokenCaipAssetId,
+);
+const mockUseTransactionsQuery = jest.mocked(
+  jest.requireMock('../../../../Views/ActivityList/useTransactionsQuery')
+    .useTransactionsQuery,
+);
+
+const emptyTransactionsQueryResult = () => ({
+  data: { pages: [] as { data: unknown[] }[] },
+  isLoading: false,
+  isFetchingNextPage: false,
+  isError: false,
+  isFetchNextPageError: false,
+  hasNextPage: false,
+  fetchNextVisiblePage: jest.fn(),
+});
 
 const NOW = 1_700_000_000;
 
@@ -144,6 +204,8 @@ const mockTransactionsResult = (
 describe('ActivitySection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTransactionsQuery.mockReset();
+    mockUseTransactionsQuery.mockImplementation(emptyTransactionsQueryResult);
     mockUseSelector.mockImplementation((selector: unknown) =>
       (selector as (state: undefined) => unknown)(undefined),
     );
@@ -155,6 +217,7 @@ describe('ActivitySection', () => {
       navigate: jest.fn(),
     } as never);
     mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
+    mockUseTokenCaipAssetId.mockReturnValue('eip155:1/erc20:0xabc');
   });
 
   it('renders the activity rows grouped by date', () => {
@@ -172,12 +235,14 @@ describe('ActivitySection', () => {
       <ActivitySection token={token} />,
     );
 
-    expect(getByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeTruthy();
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID),
+    ).toBeOnTheScreen();
     expect(getAllByTestId(/^mock-date-header-\d+$/)).toHaveLength(2);
-    expect(getByTestId('mock-activity-item-tx-recent')).toBeTruthy();
-    expect(getByTestId('mock-activity-item-tx-latest')).toBeTruthy();
-    expect(getByTestId('mock-activity-item-tx-yesterday')).toBeTruthy();
-    expect(queryByTestId('mock-date-header-Pending')).toBeNull();
+    expect(getByTestId('mock-activity-item-tx-recent')).toBeOnTheScreen();
+    expect(getByTestId('mock-activity-item-tx-latest')).toBeOnTheScreen();
+    expect(getByTestId('mock-activity-item-tx-yesterday')).toBeOnTheScreen();
+    expect(queryByTestId('mock-date-header-Pending')).not.toBeOnTheScreen();
   });
 
   it('renders a pending header before the pending rows', () => {
@@ -193,14 +258,52 @@ describe('ActivitySection', () => {
     );
 
     expect(getAllByTestId(/^mock-date-header-/)).toHaveLength(2);
-    expect(getByTestId('mock-date-header-Pending')).toBeTruthy();
-    expect(getByTestId('mock-activity-item-tx-pending')).toBeTruthy();
-    expect(getByTestId('mock-activity-item-tx-confirmed')).toBeTruthy();
+    expect(getByTestId('mock-date-header-Pending')).toBeOnTheScreen();
+    expect(getByTestId('mock-activity-item-tx-pending')).toBeOnTheScreen();
+    expect(getByTestId('mock-activity-item-tx-confirmed')).toBeOnTheScreen();
   });
 
   it('hides the activity section when there are no transactions', () => {
     const { queryByTestId } = render(<ActivitySection token={token} />);
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeNull();
+  });
+
+  it('keeps the activity section visible while API history is loading', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      fetchNextVisiblePage: jest.fn(),
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps the activity section visible when API history fails', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      hasNextPage: false,
+      fetchNextVisiblePage: jest.fn(),
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID),
+    ).toBeOnTheScreen();
   });
 
   it('hides the activity section for non-EVM assets', () => {
@@ -211,8 +314,12 @@ describe('ActivitySection', () => {
       }),
     );
 
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
     const { queryByTestId } = render(<ActivitySection token={token} />);
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SECTION_TEST_ID)).toBeNull();
+    expect(useTransactionsQuery).toHaveBeenCalledWith({ enabled: false });
   });
 
   it('paginates by rows: 3 initially, +5 per "View more" press until all visible', () => {
@@ -230,21 +337,556 @@ describe('ActivitySection', () => {
       <ActivitySection token={token} />,
     );
 
-    expect(getByTestId('mock-activity-item-tx-0')).toBeTruthy();
-    expect(getByTestId('mock-activity-item-tx-1')).toBeTruthy();
-    expect(getByTestId('mock-activity-item-tx-2')).toBeTruthy();
-    expect(queryByTestId('mock-activity-item-tx-3')).toBeNull();
-    expect(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID)).toBeTruthy();
+    expect(getByTestId('mock-activity-item-tx-0')).toBeOnTheScreen();
+    expect(getByTestId('mock-activity-item-tx-1')).toBeOnTheScreen();
+    expect(getByTestId('mock-activity-item-tx-2')).toBeOnTheScreen();
+    expect(queryByTestId('mock-activity-item-tx-3')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID),
+    ).toBeOnTheScreen();
 
     // First press: +5 rows (8 visible), button still present.
     fireEvent.press(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID));
-    expect(getByTestId('mock-activity-item-tx-7')).toBeTruthy();
-    expect(queryByTestId('mock-activity-item-tx-8')).toBeNull();
-    expect(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID)).toBeTruthy();
+    expect(getByTestId('mock-activity-item-tx-7')).toBeOnTheScreen();
+    expect(queryByTestId('mock-activity-item-tx-8')).not.toBeOnTheScreen();
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID),
+    ).toBeOnTheScreen();
 
     // Second press: remaining 4 rows, button disappears once exhausted.
     fireEvent.press(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID));
-    expect(getByTestId('mock-activity-item-tx-11')).toBeTruthy();
+    expect(getByTestId('mock-activity-item-tx-11')).toBeOnTheScreen();
+    expect(
+      queryByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders API ERC-20 receives from useTransactionsQuery', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              {
+                chainId: 'eip155:1',
+                timestamp: NOW * 1000,
+                type: 'receive',
+                hash: '0xapiReceive',
+                status: 'confirmed',
+                data: {
+                  from: '0xSender',
+                  to: '0x123',
+                  token: {
+                    assetId: 'eip155:1/erc20:0xabc',
+                    decimals: 18,
+                    symbol: 'PEPE',
+                    amount: '100',
+                    direction: 'in',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [makeTransaction('tx-local', 60)],
+      }),
+    );
+
+    const mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+    } as never);
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(getByTestId('mock-activity-item-tx-local')).toBeOnTheScreen();
+    expect(
+      getByTestId('mock-api-activity-item-0xapiReceive'),
+    ).toBeOnTheScreen();
+
+    // Press the API row and verify navigation
+    fireEvent.press(getByTestId('mock-api-activity-item-0xapiReceive'));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+      chainId: 'eip155:1',
+      txIdentifier: '0xapiReceive',
+    });
+  });
+
+  it('keeps local swap over API receive with same hash (collision precedence)', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    const utils = jest.requireMock(
+      '../../../Transactions/AssetDetailsActivityListItem.utils',
+    );
+
+    const mapperSpy = jest
+      .spyOn(utils, 'mapTransactionToActivityItem')
+      .mockReturnValue({
+        chainId: 'eip155:137',
+        timestamp: NOW * 1000,
+        type: 'swap',
+        hash: '0xCollision',
+        status: 'confirmed',
+      });
+
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              {
+                chainId: 'eip155:137',
+                timestamp: NOW * 1000,
+                type: 'receive',
+                hash: '0xCollision',
+                status: 'confirmed',
+                data: {
+                  from: '0xSender',
+                  to: '0x123',
+                  token: {
+                    assetId: 'eip155:137/erc20:0xabc',
+                    decimals: 18,
+                    symbol: 'PEPE',
+                    amount: '100',
+                    direction: 'in',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [makeTransaction('0xCollision', 60)],
+      }),
+    );
+
+    const polygonToken = {
+      chainId: '0x89',
+      address: '0xabc',
+      symbol: 'PEPE',
+      decimals: 18,
+      name: 'Pepe',
+    } as unknown as TokenDetailsRouteParams;
+
+    mockUseTokenCaipAssetId.mockReturnValue('eip155:137/erc20:0xabc');
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={polygonToken} />,
+    );
+
+    expect(useTransactionsQuery).toHaveBeenCalledWith({
+      assetId: 'eip155:137/erc20:0xabc',
+    });
+
+    expect(getByTestId('mock-activity-item-0xCollision')).toBeOnTheScreen();
+    expect(
+      queryByTestId('mock-api-activity-item-0xCollision'),
+    ).not.toBeOnTheScreen();
+
+    mapperSpy.mockRestore();
+  });
+
+  it('shows the API receive instead of a same-wallet native send', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [{ data: [apiReceive('0xSelfSend')] }],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(queryByTestId('mock-activity-item-0xSelfSend')).toBeNull();
+    expect(getByTestId('mock-api-activity-item-0xSelfSend')).toBeOnTheScreen();
+  });
+
+  it('keeps a simple send from the selected account', () => {
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [
+          {
+            ...makeTransaction('tx-own-send', 60),
+            type: 'simpleSend',
+            txParams: {
+              from: '0x123',
+              to: '0x1111111111111111111111111111111111111111',
+            },
+          },
+        ],
+      }),
+    );
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(getByTestId('mock-activity-item-tx-own-send')).toBeOnTheScreen();
+  });
+
+  it('keeps a same-wallet native send when no API receive has that hash', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [{ data: [apiReceive('0xOther')] }],
+      },
+      isLoading: false,
+      isError: false,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+    expect(getByTestId('mock-api-activity-item-0xOther')).toBeOnTheScreen();
+  });
+
+  it('keeps a same-wallet native send while API history is loading', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+    expect(queryByTestId('mock-api-activity-item-0xSelfSend')).toBeNull();
+  });
+
+  it('keeps a same-wallet native send when API history fails', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    useTransactionsQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+  });
+
+  it('keeps a same-wallet native send when API history is disabled', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    mockUseTokenCaipAssetId.mockReturnValue(null);
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [{ data: [apiReceive('0xSelfSend')] }],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [sameWalletNativeSend('0xSelfSend')],
+      }),
+    );
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(getByTestId('mock-activity-item-0xSelfSend')).toBeOnTheScreen();
+    expect(queryByTestId('mock-api-activity-item-0xSelfSend')).toBeNull();
+  });
+
+  it('does not render API rows when caipAssetId is null', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+
+    mockUseTokenCaipAssetId.mockReturnValue(null);
+
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              {
+                chainId: 'eip155:1',
+                timestamp: NOW * 1000,
+                type: 'receive',
+                hash: '0xShouldNotRender',
+                status: 'confirmed',
+                data: {
+                  from: '0xSender',
+                  to: '0x123',
+                  token: {
+                    assetId: 'eip155:1/erc20:0xabc',
+                    decimals: 18,
+                    symbol: 'PEPE',
+                    amount: '100',
+                    direction: 'in',
+                  },
+                },
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
+
+    const { queryByTestId } = render(<ActivitySection token={token} />);
+
+    expect(useTransactionsQuery).toHaveBeenCalledWith({ enabled: false });
+    expect(
+      queryByTestId('mock-api-activity-item-0xShouldNotRender'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('fetches next page when first page has no matching rows', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+
+    const mockFetchNextVisiblePage = jest.fn();
+
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: false,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
+
+    render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).toHaveBeenCalledWith({
+      minVisibleItems: 3,
+    });
+  });
+
+  it('does not fetch next page after a failed fetch', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+
+    const mockFetchNextVisiblePage = jest.fn();
+
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: true,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
+
+    render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-fetch again after a next page fails', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    const mockFetchNextVisiblePage = jest.fn();
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: false,
+      isFetchNextPageError: true,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).not.toHaveBeenCalled();
+  });
+
+  it('does not auto-fetch when the first page already fills the list', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    const mockFetchNextVisiblePage = jest.fn();
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [
+              apiReceive('0x1'),
+              apiReceive('0x2', NOW * 1000 - 1000),
+              apiReceive('0x3', NOW * 1000 - 2000),
+            ],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: false,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).not.toHaveBeenCalled();
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID),
+    ).toBeOnTheScreen();
+  });
+
+  it('requests older API pages when View more runs out of loaded rows', () => {
+    const { useTransactionsQuery } = jest.requireMock(
+      '../../../../Views/ActivityList/useTransactionsQuery',
+    );
+    const mockFetchNextVisiblePage = jest.fn();
+    useTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [apiReceive('0xOnlyOne')],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isFetchingNextPage: false,
+      isError: false,
+      fetchNextVisiblePage: mockFetchNextVisiblePage,
+    });
+
+    const { getByTestId } = render(<ActivitySection token={token} />);
+
+    expect(mockFetchNextVisiblePage).toHaveBeenCalledWith({
+      minVisibleItems: 3,
+    });
+
+    fireEvent.press(getByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID));
+
+    expect(mockFetchNextVisiblePage).toHaveBeenLastCalledWith({
+      minVisibleItems: 8,
+    });
+  });
+
+  it('shows a loading indicator while the next API page is fetching', () => {
+    mockUseTransactionsQuery.mockReturnValue({
+      data: {
+        pages: [
+          {
+            data: [apiReceive('0xOnlyOne')],
+          },
+        ],
+      },
+      hasNextPage: true,
+      isLoading: false,
+      isFetchingNextPage: true,
+      isError: false,
+      fetchNextVisiblePage: jest.fn(),
+    });
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivitySection token={token} />,
+    );
+
+    expect(
+      getByTestId(TOKEN_DETAILS_ACTIVITY_LOADING_MORE_TEST_ID),
+    ).toBeOnTheScreen();
     expect(queryByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID)).toBeNull();
+    expect(getByTestId('mock-api-activity-item-0xOnlyOne')).toBeOnTheScreen();
   });
 });
+
+function sameWalletNativeSend(id: string) {
+  return {
+    ...makeTransaction(id, 60),
+    type: 'simpleSend',
+    hash: id,
+    txParams: {
+      from: '0x1111111111111111111111111111111111111111',
+      to: '0x123',
+    },
+  };
+}
+
+function apiReceive(hash: string, timestamp = NOW * 1000) {
+  return {
+    chainId: 'eip155:1',
+    timestamp,
+    type: 'receive',
+    hash,
+    status: 'confirmed',
+    data: {
+      from: '0xSender',
+      to: '0x123',
+      token: {
+        assetId: 'eip155:1/erc20:0xabc',
+        decimals: 18,
+        symbol: 'PEPE',
+        amount: '100',
+        direction: 'in',
+      },
+    },
+  };
+}
