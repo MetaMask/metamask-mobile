@@ -86,6 +86,8 @@ function incomeCommissions({
 const ON_DEVICE = '0x1111111111111111111111111111111111111111';
 const ELSEWHERE = '0x3333333333333333333333333333333333333333';
 const ONE_DOLLAR = '1000000';
+const EARNED_ELSEWHERE_COPY =
+  'Earned on accounts not on this device. Import the earning wallet to claim.';
 
 function addressRow(address: string) {
   return {
@@ -660,7 +662,7 @@ describe('EarningsTab', () => {
     ).toHaveLength(0);
   });
 
-  it('hides Claim when every claimable cashback address is on another phone', async () => {
+  it('keeps Available to claim with Claim when every cashback address is on another phone', async () => {
     const summary = earningsSummaryFixture({
       lifetimeTotal: ONE_DOLLAR,
       claimable: ONE_DOLLAR,
@@ -669,18 +671,23 @@ describe('EarningsTab', () => {
     summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
       [addressRow(ELSEWHERE)];
 
-    const { findByText, queryByTestId, engine } = renderEarningsTab({
-      persona: 'referee',
-      summary,
-      claimReady: true,
-    });
+    const { findByText, getByTestId, queryByTestId, engine } =
+      renderEarningsTab({
+        persona: 'referee',
+        summary,
+        claimReady: true,
+      });
 
+    expect(await findByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
+    const claimButton = getByTestId(
+      CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON,
+    );
+    expect(claimButton).toBeDisabled();
     expect(
-      await findByText('Earned on accounts not in this wallet'),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).not.toBeOnTheScreen();
+    fireEvent.press(claimButton);
     expect(
       callsFor(engine, 'RewardsMoneyController:initiateClaim'),
     ).toHaveLength(0);
@@ -727,7 +734,7 @@ describe('EarningsTab', () => {
     }
   });
 
-  it('hides Claim when follow-trade addresses are not on this phone', async () => {
+  it('keeps Available to claim with Claim when follow-trade addresses are not on this phone', async () => {
     const summary = earningsSummaryFixture({
       lifetimeTotal: ONE_DOLLAR,
       claimable: ONE_DOLLAR,
@@ -741,7 +748,7 @@ describe('EarningsTab', () => {
     }
     followTrade.by_address = [addressRow(ELSEWHERE)];
 
-    const { findByText, queryByTestId } = renderEarningsTab({
+    const { findByText, getByTestId, queryByTestId } = renderEarningsTab({
       persona: 'referrer',
       summary,
       claimReady: true,
@@ -752,11 +759,13 @@ describe('EarningsTab', () => {
       },
     });
 
+    expect(await findByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(await findByText(EARNED_ELSEWHERE_COPY)).toBeOnTheScreen();
     expect(
-      await findByText('Earned on accounts not in this wallet'),
-    ).toBeOnTheScreen();
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeDisabled();
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).not.toBeOnTheScreen();
   });
 
