@@ -1,6 +1,9 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import MicaConsent from './MicaConsent';
+import MicaConsent, {
+  formatConsentAddress,
+  formatConsentDob,
+} from './MicaConsent';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
 const mockNavigate = jest.fn();
@@ -33,6 +36,7 @@ const mockUserDetails = {
     addressLine1: '123 Main St',
     city: 'Berlin',
     postCode: '10117',
+    country: 'Germany',
     countryCode: 'DE',
   },
 };
@@ -109,7 +113,31 @@ describe('MicaConsent', () => {
     await waitFor(() => {
       expect(mockGetUserDetails).toHaveBeenCalled();
       expect(getByText('John Doe', { exact: false })).toBeTruthy();
+      expect(getByText('1 Jan 1990', { exact: false })).toBeTruthy();
+      expect(getByText(/123 Main St/)).toBeTruthy();
+      expect(getByText(/10117 Berlin, Germany/)).toBeTruthy();
     });
+  });
+
+  it('formats a Transak ISO date of birth without shifting the day', () => {
+    expect(formatConsentDob('1990-04-12T00:00:00.000Z', 'missing')).toBe(
+      '12 Apr 1990',
+    );
+    expect(formatConsentDob(undefined, 'missing')).toBe('missing');
+  });
+
+  it('formats the address as street, then postcode city and country', () => {
+    expect(
+      formatConsentAddress({
+        addressLine1: 'Friedrichstrasse 10',
+        addressLine2: '',
+        state: 'Berlin',
+        city: 'Berlin',
+        postCode: '10117',
+        country: 'Germany',
+        countryCode: 'DE',
+      }),
+    ).toBe('Friedrichstrasse 10\n10117 Berlin, Germany');
   });
 
   it('disables submit button until both consents are checked', async () => {

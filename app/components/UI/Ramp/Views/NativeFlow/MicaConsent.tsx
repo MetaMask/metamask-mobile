@@ -25,7 +25,11 @@ import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { useTransakController } from '../../hooks/useTransakController';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
+import type {
+  TransakBuyQuote,
+  TransakUserDetails,
+  TransakUserDetailsAddress,
+} from '@metamask/ramps-controller';
 import Checkbox from '../../../../../component-library/components/Checkbox';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -36,6 +40,49 @@ import {
 } from '../../utils/micaMockMode';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import styleSheet from './MicaConsent.styles';
+
+/**
+ * Transak returns `dob` as an ISO timestamp. Show the calendar date in UTC so
+ * a midnight timestamp does not shift into the previous day.
+ */
+export function formatConsentDob(
+  dob: string | undefined,
+  fallback: string,
+): string {
+  if (!dob) {
+    return fallback;
+  }
+  const date = new Date(dob);
+  if (Number.isNaN(date.getTime())) {
+    return dob;
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+/** Street on the first line, then postcode, city and country. */
+export function formatConsentAddress(
+  address: TransakUserDetailsAddress | undefined,
+): string {
+  if (!address) {
+    return '';
+  }
+  const street = [address.addressLine1, address.addressLine2]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(', ');
+  const locality = [address.postCode, address.city]
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(' ');
+  const country = address.country?.trim() || address.countryCode?.trim() || '';
+  const secondLine = [locality, country].filter(Boolean).join(', ');
+  return [street, secondLine].filter(Boolean).join('\n');
+}
 
 export interface MicaConsentParams {
   quote: TransakBuyQuote;
@@ -60,18 +107,9 @@ const MicaConsent = (): React.JSX.Element => {
   const [error, setError] = useState<string | null>(null);
   const [dataProcessingConsent, setDataProcessingConsent] = useState(false);
   const [termsAndPrivacyConsent, setTermsAndPrivacyConsent] = useState(false);
-  const [userDetails, setUserDetails] = useState<{
-    firstName?: string;
-    lastName?: string;
-    dob?: string;
-    mobileNumber?: string;
-    address?: {
-      addressLine1?: string;
-      city?: string;
-      postCode?: string;
-      countryCode?: string;
-    };
-  } | null>(null);
+  const [userDetails, setUserDetails] = useState<TransakUserDetails | null>(
+    null,
+  );
 
   // Fetch user details on mount
   React.useEffect(() => {
@@ -232,7 +270,10 @@ const MicaConsent = (): React.JSX.Element => {
                       >
                         {strings('deposit.mica.dob')}:{' '}
                       </Text>
-                      {userDetails.dob || strings('deposit.mica.notProvided')}
+                      {formatConsentDob(
+                        userDetails.dob,
+                        strings('deposit.mica.notProvided'),
+                      )}
                     </Text>
                     <Text
                       variant={TextVariant.BodyMd}
@@ -244,11 +285,8 @@ const MicaConsent = (): React.JSX.Element => {
                       >
                         {strings('deposit.mica_consent.address_label')}:{' '}
                       </Text>
-                      {userDetails.address?.addressLine1 || ''}
-                      {userDetails.address?.city ? ', ' : ''}
-                      {userDetails.address?.city || ''}
-                      {userDetails.address?.countryCode ? ', ' : ''}
-                      {userDetails.address?.countryCode || ''}
+                      {formatConsentAddress(userDetails.address) ||
+                        strings('deposit.mica.notProvided')}
                     </Text>
                     <Text
                       variant={TextVariant.BodyMd}
