@@ -157,6 +157,12 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       [sortedTokenKeys, shouldExcludeMusd],
     );
 
+    const hasStakedRow = useMemo(
+      () => sortedTokenKeys.some((tokenKey) => tokenKey.isStaked),
+      [sortedTokenKeys],
+    );
+    const showEmptyState = isZeroBalanceAccount && !hasStakedRow;
+
     const showTokensError = hasTokensError;
     // Soft-gate like extension: keep skeletons for unsettled loads only when
     // the list is empty or still just zero native / mUSD placeholders. Real
@@ -170,7 +176,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       });
 
     const refresh = useCallback(async () => {
-      if (isZeroBalanceAccount) {
+      if (showEmptyState) {
         await popularTokensListRef.current?.refresh();
       } else {
         try {
@@ -179,17 +185,17 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
           setHasTokensError(true);
         }
       }
-    }, [isZeroBalanceAccount, refreshTokensForGroup]);
+    }, [showEmptyState, refreshTokensForGroup]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
-    const itemCount = isZeroBalanceAccount ? 0 : displayTokenKeys.length;
-    const sectionIsEmpty = isZeroBalanceAccount || showTokensError;
+    const itemCount = showEmptyState ? 0 : displayTokenKeys.length;
+    const sectionIsEmpty = showEmptyState || showTokensError;
     const contentReady =
-      showTokensError || isZeroBalanceAccount || !isTokenListLoading;
+      showTokensError || showEmptyState || !isTokenListLoading;
     const contentState = getHomepageReadyContentState(
       showTokensError,
-      isZeroBalanceAccount,
+      showEmptyState,
     );
 
     useEffect(() => {
@@ -211,7 +217,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     useSectionPerformance({
       sectionId: HomeSectionNames.TOKENS,
       contentReady,
-      isEmpty: isZeroBalanceAccount || showTokensError,
+      isEmpty: showEmptyState || showTokensError,
       contentStateForTrace: showTokensError ? 'error' : undefined,
       isLoading: isTokenListLoading,
     });
@@ -247,7 +253,7 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
               })}
               onRetry={handleTokensRetry}
             />
-          ) : isZeroBalanceAccount ? (
+          ) : showEmptyState ? (
             <SectionRow>
               <PopularTokensList
                 ref={popularTokensListRef}

@@ -18,6 +18,7 @@ import { FlashListAssetKey } from '../TokenList';
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { selectAsset } from '../../../../../selectors/assets/assets-list';
+import { isTronNativeToken } from '../../../TokenDetails/utils/isTronNativeToken';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 
@@ -189,6 +190,16 @@ export const TokenListItem = React.memo(
       }),
     );
 
+    const tronLiquidNativeToken = useSelector((state: RootState) =>
+      asset?.isStaked && isTronNativeToken(asset)
+        ? selectAsset(state, {
+            address: assetKey.address,
+            chainId: assetKey.chainId as string,
+            isStaked: false,
+          })
+        : undefined,
+    );
+
     const isAssetInactive = useSelector((state: RootState) =>
       getIsAssetRequireActivate(state, { assetId: asset?.address ?? '' }),
     );
@@ -351,8 +362,13 @@ export const TokenListItem = React.memo(
             ) ?? undefined;
         }
 
+        const tokenToOpen =
+          token.isStaked && isTronNativeToken(token)
+            ? (tronLiquidNativeToken ?? token)
+            : token;
+
         navigation.navigate('Asset', {
-          ...token,
+          ...tokenToOpen,
           source: isFullView
             ? TokenDetailsSource.MobileTokenListPage
             : TokenDetailsSource.MobileTokenList,
@@ -365,6 +381,7 @@ export const TokenListItem = React.memo(
         shouldResolveCaipForSecurityBadge,
         caipAssetIdForSecurity,
         queryClient,
+        tronLiquidNativeToken,
       ],
     );
 
