@@ -15,7 +15,7 @@ import {
   type ScenarioOutcome,
 } from '../../../../tests/framework/scenario-agent/outcome';
 
-function walk(dir: string, found: string[] = []): string[] {
+export function walk(dir: string, found: string[] = []): string[] {
   if (!fs.existsSync(dir)) return found;
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
