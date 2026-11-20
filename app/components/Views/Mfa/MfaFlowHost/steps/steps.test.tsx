@@ -504,7 +504,7 @@ describe('CodeStep', () => {
       error: 'invalid_code',
     });
 
-    expect(getByText('This code isn’t correct. Try again')).toBeOnTheScreen();
+    expect(getByText('This code isn’t correct. Try again.')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });
@@ -760,7 +760,7 @@ describe('CodeStep', () => {
       'flow_expired',
       'That took too long. Enter the current code from your app.',
     ],
-    ['invalid_code', 'This code isn’t correct. Try again'],
+    ['invalid_code', 'This code isn’t correct. Try again.'],
   ] as const)('words %s for the authenticator app', (error, message) => {
     const { getByText } = renderCode(totpCode, { error });
 

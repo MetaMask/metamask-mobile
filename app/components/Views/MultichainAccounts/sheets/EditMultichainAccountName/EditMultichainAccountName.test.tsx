@@ -147,7 +147,7 @@ describe('EditMultichainAccountName', () => {
 
       expect(mockSetAccountGroupName).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(getByText('Account name cannot be empty')).toBeTruthy();
+      expect(getByText('Account name cannot be empty.')).toBeTruthy();
     });
 
     it('shows error when account group name is only whitespace', () => {
@@ -161,7 +161,7 @@ describe('EditMultichainAccountName', () => {
 
       expect(mockSetAccountGroupName).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(getByText('Account name cannot be empty')).toBeTruthy();
+      expect(getByText('Account name cannot be empty.')).toBeTruthy();
     });
   });
 

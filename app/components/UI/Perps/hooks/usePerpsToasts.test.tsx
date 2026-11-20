@@ -199,7 +199,7 @@ describe('usePerpsToasts', () => {
           hasNoTimeout: false,
         });
         expect(config.labelOptions).toEqual([
-          { label: 'Your Perps account was funded', isBold: true },
+          { label: 'Your Perps account was funded.', isBold: true },
           { label: '\n', isBold: false },
           { label: '$100 was added to Perps', isBold: false },
         ]);
@@ -362,7 +362,7 @@ describe('usePerpsToasts', () => {
           { isBold: false, label: '\n' },
           {
             isBold: false,
-            label: "You'll receive 99.00 USDC on Arbitrum within 5 minutes",
+            label: "You'll receive 99.00 USDC on Arbitrum within 5 minutes.",
           },
         ]);
       });
@@ -386,7 +386,7 @@ describe('usePerpsToasts', () => {
           result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalFailed();
 
         expect(config.labelOptions).toContainEqual({
-          label: 'An error occurred during withdrawal',
+          label: 'An error occurred during withdrawal.',
           isBold: false,
         });
       });
@@ -1158,7 +1158,7 @@ describe('usePerpsToasts', () => {
           hapticsType: NotificationMoment.Error,
         });
         expect(config.labelOptions).toEqual([
-          { label: 'Failed to close position', isBold: true },
+          { label: 'Failed to close position.', isBold: true },
           { label: '\n', isBold: false },
           { label: 'Your position is still active', isBold: false },
         ]);
@@ -1679,7 +1679,7 @@ describe('usePerpsToasts', () => {
           hapticsType: NotificationMoment.Error,
         });
         expect(config.labelOptions).toEqual([
-          { label: 'Failed to add market to watchlist', isBold: true },
+          { label: 'Failed to add market to watchlist.', isBold: true },
         ]);
       });
 
@@ -1694,7 +1694,7 @@ describe('usePerpsToasts', () => {
           hapticsType: NotificationMoment.Error,
         });
         expect(config.labelOptions).toEqual([
-          { label: 'Failed to remove market from watchlist', isBold: true },
+          { label: 'Failed to remove market from watchlist.', isBold: true },
         ]);
       });
 

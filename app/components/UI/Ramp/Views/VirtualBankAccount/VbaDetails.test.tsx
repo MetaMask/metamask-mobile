@@ -330,7 +330,7 @@ describe('VbaDetails', () => {
     );
     expect(
       getByText(
-        'Add funds directly from your bank. Funds usually land in your Money account within minutes.',
+        'Add funds directly from your bank. Funds usually land in your MetaMask Money within minutes.',
       ),
     ).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON)).toBeOnTheScreen();

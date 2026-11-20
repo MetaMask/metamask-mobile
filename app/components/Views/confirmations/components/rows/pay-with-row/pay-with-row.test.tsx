@@ -395,7 +395,9 @@ describe('PayWithRow', () => {
     it('renders money balance label without inline balance', () => {
       const { getByTestId, queryByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'MetaMask Money',
+      );
       expect(queryByTestId('pay-with-balance')).toBeNull();
     });
 
@@ -407,7 +409,9 @@ describe('PayWithRow', () => {
 
       const { getByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'MetaMask Money',
+      );
     });
 
     it('navigates to pay-with modal on press', async () => {
@@ -423,7 +427,9 @@ describe('PayWithRow', () => {
     it('renders money account row regardless of isResultReady when paymentOverride is MoneyAccount', () => {
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'MetaMask Money',
+      );
     });
 
     it('renders money account row on review page when paymentOverride is MoneyAccount even with flag default', () => {
@@ -435,7 +441,9 @@ describe('PayWithRow', () => {
 
       const { getByTestId } = renderMoneyAccount({ isResultReady: true });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'MetaMask Money',
+      );
     });
 
     it('renders money account row on initial page when money account is flag-defaulted', () => {
@@ -443,7 +451,9 @@ describe('PayWithRow', () => {
 
       const { getByTestId } = renderMoneyAccount();
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'MetaMask Money',
+      );
     });
 
     it('shows money account from the flag default before a pay token is chosen', () => {
@@ -461,7 +471,9 @@ describe('PayWithRow', () => {
         state: STATE_MOCK,
       });
 
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'MetaMask Money',
+      );
     });
 
     it('shows the selected token when the money-account override is cleared', () => {
@@ -514,7 +526,9 @@ describe('PayWithRow', () => {
       const { getByTestId } = renderMoneyAccount();
 
       expect(getByTestId('pay-with')).toBeDefined();
-      expect(getByTestId('pay-with-symbol')).toHaveTextContent('Money account');
+      expect(getByTestId('pay-with-symbol')).toHaveTextContent(
+        'MetaMask Money',
+      );
     });
   });
 

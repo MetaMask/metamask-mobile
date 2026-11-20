@@ -209,7 +209,7 @@ describe('FollowConnectionsView', () => {
 
     renderWithProvider(<FollowConnectionsView />);
 
-    expect(screen.getByText("Couldn't load this list")).toBeOnTheScreen();
+    expect(screen.getByText("Couldn't load this list.")).toBeOnTheScreen();
     expect(
       screen.queryByText('SocialService: My followers request failed: 404'),
     ).toBeNull();

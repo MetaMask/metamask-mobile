@@ -137,7 +137,7 @@ describe('PerpsCompetitionBanner', () => {
     await waitFor(() => {
       expect(getByText('Competition leaderboard')).toBeOnTheScreen();
       expect(
-        getByText('See where you rank in the Perps trading competition'),
+        getByText('See where you rank in the Perps trading competition.'),
       ).toBeOnTheScreen();
     });
   });

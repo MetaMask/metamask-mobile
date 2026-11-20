@@ -67,7 +67,7 @@ describe('SearchTokenResults', () => {
       searchQuery: '',
     });
 
-    expect(getByText('Search for any token and import it')).toBeOnTheScreen();
+    expect(getByText('Search for any token and import it.')).toBeOnTheScreen();
   });
 
   it('shows "no tokens found" when no results but has query', () => {

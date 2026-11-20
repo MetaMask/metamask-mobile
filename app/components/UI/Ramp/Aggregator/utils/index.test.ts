@@ -466,7 +466,7 @@ describe('getNotificationDetails', () => {
     });
     expect(cancelledDetails).toMatchInlineSnapshot(`
       {
-        "description": "Verify your payment method and card support",
+        "description": "Verify your payment method and card support.",
         "duration": 5000,
         "status": "cancelled",
         "title": "Your purchase was cancelled",
@@ -478,7 +478,7 @@ describe('getNotificationDetails', () => {
     });
     expect(failedDetails).toMatchInlineSnapshot(`
       {
-        "description": "Verify your payment method and card support",
+        "description": "Verify your payment method and card support.",
         "duration": 5000,
         "status": "error",
         "title": "Purchase of ETH failed. Try again momentarily.",
@@ -494,7 +494,7 @@ describe('getNotificationDetails', () => {
         "description": "Your ETH is now available",
         "duration": 5000,
         "status": "success",
-        "title": "Your purchase of 0.01 ETH was successful.",
+        "title": "Your purchase of 0.01 ETH was successful",
       }
     `);
   });

@@ -641,7 +641,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+        labelOptions: [{ label: 'Something went wrong linking your card.' }],
       });
     });
 
@@ -813,7 +813,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+        labelOptions: [{ label: 'Something went wrong linking your card.' }],
       });
     });
 
@@ -1727,7 +1727,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       const errorCall = mockShowToast.mock.calls.at(-1)?.[0];
       expect(errorCall).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+        labelOptions: [{ label: 'Something went wrong linking your card.' }],
         hasNoTimeout: false,
       });
     });
@@ -1790,7 +1790,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+        labelOptions: [{ label: 'Something went wrong linking your card.' }],
       });
     });
 
@@ -1836,7 +1836,7 @@ describe('useMoneyAccountCardLinkage', () => {
       });
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+        labelOptions: [{ label: 'Something went wrong unlinking your card.' }],
       });
     });
 
@@ -1915,7 +1915,9 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(returned).toBe(false);
       expect(mockShowToast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+          labelOptions: [
+            { label: 'Something went wrong unlinking your card.' },
+          ],
         }),
       );
     });
@@ -1976,7 +1978,7 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(mockShowToast).toHaveBeenLastCalledWith(
         expect.objectContaining({
           labelOptions: [
-            { label: 'Something went wrong updating your spending limit' },
+            { label: 'Something went wrong updating your spending limit.' },
           ],
         }),
       );
@@ -2121,7 +2123,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+        labelOptions: [{ label: 'Something went wrong linking your card.' }],
       });
     });
 
@@ -2157,7 +2159,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockShowToast).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          labelOptions: [{ label: 'Something went wrong linking your card' }],
+          labelOptions: [{ label: 'Something went wrong linking your card.' }],
         }),
       );
     });
@@ -2186,7 +2188,7 @@ describe('useMoneyAccountCardLinkage', () => {
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockShowToast.mock.calls[0][0]).toMatchObject({
-        labelOptions: [{ label: 'Something went wrong linking your card' }],
+        labelOptions: [{ label: 'Something went wrong linking your card.' }],
       });
     });
 

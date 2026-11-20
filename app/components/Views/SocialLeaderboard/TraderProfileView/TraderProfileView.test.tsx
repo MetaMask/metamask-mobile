@@ -1105,7 +1105,7 @@ describe('TraderProfileView', () => {
 
     it('displays the error message text', () => {
       renderWithProvider(<TraderProfileView />);
-      expect(screen.getByText("Couldn't load profile")).toBeOnTheScreen();
+      expect(screen.getByText("Couldn't load profile.")).toBeOnTheScreen();
     });
 
     it('displays the retry button', () => {

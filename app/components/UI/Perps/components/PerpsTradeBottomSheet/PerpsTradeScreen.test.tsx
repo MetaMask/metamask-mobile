@@ -640,7 +640,7 @@ describe('PerpsTradeScreen errors', () => {
     setTestOrderBookCurrency('base');
     render(<PerpsTradeScreen {...defaultProps} />);
 
-    fireEvent.press(screen.getByRole('button', { name: 'Show fiat value' }));
+    fireEvent.press(screen.getByRole('button', { name: 'Show USD value' }));
 
     expect(getTestOrderBookCurrency()).toBe('usd');
   });
@@ -650,14 +650,14 @@ describe('PerpsTradeScreen errors', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Show asset value' }));
     expect(
-      screen.getByRole('button', { name: 'Show fiat value' }),
+      screen.getByRole('button', { name: 'Show USD value' }),
     ).toBeOnTheScreen();
 
     unmount();
     render(<PerpsTradeScreen {...defaultProps} />);
 
     expect(
-      screen.getByRole('button', { name: 'Show fiat value' }),
+      screen.getByRole('button', { name: 'Show USD value' }),
     ).toBeOnTheScreen();
   });
 

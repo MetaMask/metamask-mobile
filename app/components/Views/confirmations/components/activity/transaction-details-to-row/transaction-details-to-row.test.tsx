@@ -165,7 +165,7 @@ describe('TransactionDetailsToRow', () => {
     });
 
     const { getByText } = render();
-    expect(getByText('Money account')).toBeDefined();
+    expect(getByText('MetaMask Money')).toBeDefined();
   });
 
   it('renders "Money account" label for predictWithdraw in money context', () => {
@@ -178,6 +178,6 @@ describe('TransactionDetailsToRow', () => {
     });
 
     const { getByText } = render();
-    expect(getByText('Money account')).toBeDefined();
+    expect(getByText('MetaMask Money')).toBeDefined();
   });
 });

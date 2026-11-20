@@ -143,7 +143,7 @@ describe('PerpsAmountDisplay', () => {
       // Assert
       expect(
         getByText(
-          'Not enough funds available. Deposit funds or select a different payment method',
+          'Not enough funds available. Deposit funds or select a different payment method.',
         ),
       ).toBeTruthy();
     });
@@ -229,7 +229,7 @@ describe('PerpsAmountDisplay', () => {
             showTokenAmount={showTokenAmount}
             onDisplayToggle={() => setShowTokenAmount((value) => !value)}
             displayToggleAccessibilityLabel={
-              showTokenAmount ? 'Show fiat value' : 'Show asset value'
+              showTokenAmount ? 'Show USD value' : 'Show asset value'
             }
           />
         );
@@ -249,7 +249,7 @@ describe('PerpsAmountDisplay', () => {
       expect(
         screen.getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL),
       ).toHaveTextContent('ETH');
-      expect(screen.getByLabelText('Show fiat value')).toBeOnTheScreen();
+      expect(screen.getByLabelText('Show USD value')).toBeOnTheScreen();
     });
 
     it('keeps a trailing decimal on an in-progress coin amount', () => {

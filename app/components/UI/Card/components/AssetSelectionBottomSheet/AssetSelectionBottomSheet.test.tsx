@@ -799,7 +799,7 @@ describe('AssetSelectionBottomSheet', () => {
         () => {
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              labelOptions: [{ label: 'Failed to update spend priority' }],
+              labelOptions: [{ label: 'Failed to update spend priority.' }],
             }),
           );
         },
@@ -832,7 +832,7 @@ describe('AssetSelectionBottomSheet', () => {
         () => {
           expect(mockShowToast).toHaveBeenCalledWith(
             expect.objectContaining({
-              labelOptions: [{ label: 'Failed to update spend priority' }],
+              labelOptions: [{ label: 'Failed to update spend priority.' }],
             }),
           );
         },
@@ -1024,7 +1024,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(getByText('Money account')).toBeOnTheScreen();
+      expect(getByText('MetaMask Money')).toBeOnTheScreen();
       expect(queryByText(/0xaa\.\.\./)).not.toBeOnTheScreen();
     });
 
@@ -1058,7 +1058,7 @@ describe('AssetSelectionBottomSheet', () => {
         delegationSettings,
       });
 
-      expect(getByText('Money account')).toBeOnTheScreen();
+      expect(getByText('MetaMask Money')).toBeOnTheScreen();
       expect(getByText(/0x1234\.\.\./)).toBeOnTheScreen();
     });
   });

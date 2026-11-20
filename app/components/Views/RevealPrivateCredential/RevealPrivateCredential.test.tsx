@@ -452,7 +452,7 @@ describe('RevealPrivateCredential', () => {
 
       expect(
         getByText(
-          'To reveal your Secret Recovery Phrase, you need to correctly answer two questions',
+          'To reveal your Secret Recovery Phrase, you need to correctly answer two questions.',
         ),
       ).toHaveStyle({ textAlign: 'center' });
     });

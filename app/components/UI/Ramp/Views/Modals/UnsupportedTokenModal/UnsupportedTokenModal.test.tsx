@@ -57,7 +57,7 @@ describe('UnsupportedTokenModal', () => {
     expect(getByText('Not available')).toBeOnTheScreen();
     expect(
       getByText(
-        'This token may not be available in your region or supported by any local payment providers',
+        'This token may not be available in your region or supported by any local payment providers.',
       ),
     ).toBeOnTheScreen();
   });

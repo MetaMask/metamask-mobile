@@ -52,7 +52,7 @@ describe('PredictPositionsEmpty', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByText(
-        'Your predictions will appear here, showing your stake and market movements',
+        'Your predictions will appear here, showing your stake and market movements.',
       ),
     ).toBeOnTheScreen();
     expect(screen.getByText('Browse markets')).toBeOnTheScreen();

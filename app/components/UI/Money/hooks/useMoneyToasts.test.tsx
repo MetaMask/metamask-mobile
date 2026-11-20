@@ -187,7 +187,7 @@ describe('useMoneyToasts', () => {
 
       expect(toastOptions.title).toBe('Deposit complete');
       expect(toastOptions.description).toBe(
-        '$1,000.00 added to Money account.',
+        '$1,000.00 added to MetaMask Money.',
       );
     });
 

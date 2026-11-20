@@ -232,7 +232,7 @@ describe('ErrorBoundary', () => {
 
     const textInput = await waitFor(() => {
       const input = getByPlaceholderText(
-        'Sharing details like how we can reproduce the bug will help us fix the problem.',
+        'Sharing details like how we can reproduce the bug will help us fix the problem',
       );
       expect(input).toBeOnTheScreen();
       return input;

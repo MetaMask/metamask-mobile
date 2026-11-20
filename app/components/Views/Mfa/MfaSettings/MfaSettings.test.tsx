@@ -101,12 +101,12 @@ describe('MfaSettings', () => {
   it('says what the methods protect for each kind of wallet', () => {
     expect(
       renderSettings([]).getByText(
-        'These methods add protection to Money account transactions. They can’t recover your wallet.',
+        'These methods add protection to MetaMask Money transactions. They can’t recover your wallet.',
       ),
     ).toBeOnTheScreen();
     expect(
       renderSettings([], 'vault').getByText(
-        'These methods add protection to Money account transactions and to recovering your wallet.',
+        'These methods add protection to MetaMask Money transactions and to recovering your wallet.',
       ),
     ).toBeOnTheScreen();
   });

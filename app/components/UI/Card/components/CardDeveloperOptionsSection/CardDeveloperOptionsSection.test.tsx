@@ -144,7 +144,7 @@ describe('CardDeveloperOptionsSection', () => {
           /Revoke the USDC spending-limit allowance that authorises Card/,
         ),
       ).toBeDefined();
-      expect(getByText('Unlink Money Account from Card')).toBeDefined();
+      expect(getByText('Unlink MetaMask Money from Card')).toBeDefined();
       expect(getByTestId(UNLINK_BUTTON_TEST_ID)).toBeDefined();
     });
 

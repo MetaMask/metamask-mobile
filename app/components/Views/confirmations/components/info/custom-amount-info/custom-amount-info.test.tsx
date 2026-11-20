@@ -727,7 +727,7 @@ describe('CustomAmountInfo', () => {
 
     expect(
       within(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).getByText(
-        'We’ll add $123.45 to your Money account to cover this payment.',
+        'We’ll add $123.45 to your MetaMask Money to cover this payment.',
       ),
     ).toBeOnTheScreen();
     expect(BalanceProjection).not.toHaveBeenCalled();
