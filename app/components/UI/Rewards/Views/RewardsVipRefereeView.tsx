@@ -396,7 +396,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
               <Button
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
-                disabled={!accountAddress}
+                isDisabled={!accountAddress}
                 onPress={handleContactPrioritySupport}
                 twClassName="w-full"
                 testID={
