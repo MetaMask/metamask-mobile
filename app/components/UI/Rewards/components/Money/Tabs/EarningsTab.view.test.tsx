@@ -1022,6 +1022,60 @@ describe('EarningsTab', () => {
     ).toHaveLength(0);
   });
 
+  it('opens the tax sheet when cashback is unsignable and revenue share is held for tax', async () => {
+    const summary = earningsSummaryFixture({
+      lifetimeTotal: '2000000',
+      claimable: ONE_DOLLAR,
+      held: ONE_DOLLAR,
+      cashbackClaimable: ONE_DOLLAR,
+      revShareLifetime: ONE_DOLLAR,
+    });
+    summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
+      [addressRow(ELSEWHERE)];
+    summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE = {
+      ...summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE,
+      claimable: '0',
+      held: ONE_DOLLAR,
+      blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+    };
+
+    const { findByTestId, getByTestId, engine } = renderEarningsTab({
+      persona: 'referrer',
+      summary,
+      claimReady: true,
+      initiateClaim: 'hang',
+      handlers: {
+        'RewardsMoneyController:getCommissions': incomeCommissions({
+          revShare: true,
+        }),
+        'RewardsMoneyController:getTaxMe': async () => ({
+          state: 'ACTION_REQUIRED',
+          next_action: 'ANSWER_ATTESTATION',
+          reason: 'NO_ATTESTATION',
+          clears_until: null,
+          cleared: false,
+          can_change_answer: false,
+        }),
+      },
+    });
+
+    await waitFor(() => {
+      expect(
+        getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+      ).not.toBeDisabled();
+    });
+    fireEvent.press(
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    );
+
+    expect(
+      await findByTestId(TAX_FORM_QUESTION_SHEET_TEST_IDS.TITLE),
+    ).toHaveTextContent(REFERRAL_LOCALIZED_TEXT.taxAttestationTitle);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
+  });
+
   it('still claims revenue share when cashback addresses are not on this phone', async () => {
     const summary = earningsSummaryFixture({
       lifetimeTotal: '2000000',

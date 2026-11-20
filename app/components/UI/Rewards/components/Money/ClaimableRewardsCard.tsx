@@ -156,8 +156,8 @@ export interface ClaimableRewardsCardProps {
   earnedElsewhereCaption?: string;
   /**
    * Disables Claim when every open route's claimable addresses are
-   * unsignable on this phone. The button stays the one `claimButtonState`
-   * picks.
+   * unsignable on this phone. A tax hold stays pressable: that press opens
+   * the tax sheet. The button stays the one `claimButtonState` picks.
    */
   claimBlockedOnDevice?: boolean;
   onClaim?: () => void;
@@ -290,13 +290,15 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     pending: pendingAmount ?? claimableAmount,
     balance: recordedAmount,
   }[headline];
-  const claimBlocked = button === 'claim' && claimBlockedOnDevice;
+  // A tax hold keeps Claim pressable. That press opens the tax sheet, and
+  // cashback this phone cannot sign is not submitted.
+  const claimBlocked = button === 'claim' && claimBlockedOnDevice && !taxHeld;
   const claimInProgress = button === 'claim' && isClaiming && !claimBlocked;
   const claimCoolingDown =
     button === 'claim' && isClaimWaiting && !claimInProgress;
   // A wait window keeps its own caption. The earned-elsewhere sentence does
   // not change the button. Claim is disabled only when every address is
-  // unsignable.
+  // unsignable and nothing is held for tax documentation.
   const caption =
     claimCoolingDown && claimWaitCaption
       ? {
