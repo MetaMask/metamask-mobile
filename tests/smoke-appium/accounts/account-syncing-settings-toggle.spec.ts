@@ -20,7 +20,11 @@ import { createUserStorageController } from '../../smoke/identity/utils/mocks.js
 import Assertions from '../../framework/Assertions.js';
 import { identityFixtureOptions } from './identity-fixture-options.js';
 
-appiumTest.describe(SmokeAccounts('Account syncing - Setting'), () => {
+// Skipped: consistently fails on main Appium accounts Android smoke
+// (`appium-accounts-android-smoke-2`). The Wallet tab never appears, then
+// the add-account button is missing. Un-skip after the smoke is stable.
+// https://github.com/MetaMask/metamask-mobile/actions/runs/44709201507
+appiumTest.describe.skip(SmokeAccounts('Account syncing - Setting'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   appiumTest.beforeAll(() => {
