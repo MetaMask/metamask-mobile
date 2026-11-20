@@ -15,6 +15,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Engine from '../../Engine';
+import { updatePermittedChains } from '../../Permissions';
 import { isSnapId } from '@metamask/snaps-utils';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 
@@ -257,6 +258,13 @@ export async function switchToNetwork({
           rpcUrl,
         },
       });
+
+      // The incremental grant adds the new chain to the origin's CAIP-25
+      // permission with an empty account list, so the first signing
+      // request on the new chain is rejected before it reaches the user.
+      // Sync the accounts already permitted for this origin onto the
+      // new scope, the same way the in-wallet permission editor does.
+      updatePermittedChains(origin, [`eip155:${parseInt(chainId, 16)}`]);
     } else if (hasApprovalRequestsForOrigin?.() && !autoApprove) {
       // We do not handle this case for now.
       // Mobile doesn't really support simultaneous approvals in the first place.
