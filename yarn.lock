@@ -12222,10 +12222,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^7.3.0":
-  version: 7.3.0
-  resolution: "@metamask/solana-wallet-snap@npm:7.3.0"
-  checksum: 10/91306254161447d1661909966992f2268838c06d753fefa12ad5afb1c8292542c83c1a434f0c0f291df62fa077dcb6b52e47cb3bad9f3f0d8b66e2789175e401
+"@metamask/solana-wallet-snap@npm:^7.4.0":
+  version: 7.4.0
+  resolution: "@metamask/solana-wallet-snap@npm:7.4.0"
+  checksum: 10/47c53619873e1b32e6fe2d9e4ce9b9ac469caec372651d906fce2ceaa0c2918d7726e0e86e6f75460fd580fbae283a219de34a8ad73c7fa0ff34416cf05e64ce
   languageName: node
   linkType: hard
 
@@ -12470,10 +12470,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "@metamask/tron-wallet-snap@npm:4.4.0"
-  checksum: 10/f5e53a7b7b6f918b40c866ad724414cf178818dd4cb21b93e436ae30536a1d96dc603e3b399463ef29feed55db5f14c1ce6b3df3aa080d80838e734afa3dd311
+"@metamask/tron-wallet-snap@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "@metamask/tron-wallet-snap@npm:4.5.0"
+  checksum: 10/95adc37142adbdaa1a1c3039b977846b53427b643c591ea51345aae5eac0124b4a8d3bf3eeac3d0f64cbf38528ed63544b07758ccda6a9705ecfc4b3d1718114
   languageName: node
   linkType: hard
 
@@ -38513,7 +38513,7 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^13.0.0"
     "@metamask/snaps-utils": "npm:^12.6.2"
     "@metamask/social-controllers": "npm:^3.22.0"
-    "@metamask/solana-wallet-snap": "npm:^7.3.0"
+    "@metamask/solana-wallet-snap": "npm:^7.4.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/stellar-wallet-snap": "npm:^2.1.0"
@@ -38528,7 +38528,7 @@ __metadata:
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^74.2.0"
     "@metamask/transaction-pay-controller": "npm:^31.2.1"
-    "@metamask/tron-wallet-snap": "npm:^4.4.0"
+    "@metamask/tron-wallet-snap": "npm:^4.5.0"
     "@metamask/utils": "npm:^12.0.2"
     "@metamask/wallet": "npm:^21.0.3"
     "@ngraveio/bc-ur": "npm:^1.1.6"
