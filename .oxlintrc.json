@@ -226,6 +226,7 @@
         "typescript/prefer-readonly": "error",
         "typescript/prefer-reduce-type-parameter": "error",
         "typescript/prefer-string-starts-ends-with": "error",
+        "typescript/promise-function-async": "error",
         "typescript/restrict-plus-operands": "error",
         "typescript/restrict-template-expressions": [
           "error",

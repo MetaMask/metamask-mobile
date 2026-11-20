@@ -346,13 +346,13 @@ module.exports = {
         '@typescript-eslint/prefer-readonly': 'off',
         '@typescript-eslint/prefer-reduce-type-parameter': 'off',
         '@typescript-eslint/prefer-string-starts-ends-with': 'off',
+        '@typescript-eslint/promise-function-async': 'off',
         '@typescript-eslint/restrict-plus-operands': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/switch-exhaustiveness-check': 'off',
         // Slow type checks the shared config also turns on. They are not on in
         // Oxlint yet, because each has thousands of existing hits.
         '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/promise-function-async': 'off',
         '@typescript-eslint/unbound-method': 'off',
         // The shared config leaves these off, so they are off in Oxlint too.
         '@typescript-eslint/consistent-type-imports': 'off',
