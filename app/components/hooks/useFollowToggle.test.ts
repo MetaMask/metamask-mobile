@@ -10,7 +10,6 @@ import {
   resetFollowingSyncForTests,
   syncFollowingState,
 } from '../../util/social/followingSync';
-import { FOLLOWING_FEED_QUERY_KEY_PREFIXES } from '../UI/SocialFeed/data/socialFeedQueries';
 import {
   resetFollowToggleSharedStateForTests,
   useFollowToggle,
@@ -27,6 +26,7 @@ jest.mock('../../selectors/socialController', () => ({
 
 jest.mock('../../selectors/keyringController', () => ({
   selectIsUnlocked: jest.fn(),
+  selectPrimaryHDKeyring: jest.fn(),
 }));
 
 jest.mock('../../selectors/accountsController', () => ({
@@ -202,54 +202,40 @@ describe('useFollowToggle', () => {
       });
     });
 
-    it('invalidates the following feed after a successful follow', async () => {
+    it('records the follow while the feed reload is still in flight', async () => {
+      mockInvalidateQueries.mockImplementation(
+        () => new Promise(() => undefined),
+      );
+
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
-        await result.current.toggleFollow();
+        await result.current.toggleFollow({
+          source: 'leaderboard',
+          traderAddress: '0xabc',
+          traderUsername: 'alice',
+          traderRank: 3,
+          traderAvatarUri: 'https://example.com/avatar.png',
+        });
       });
 
-      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
-      );
+      expect(mockTrack).toHaveBeenCalledTimes(1);
     });
 
-    it('invalidates the following feed after a successful unfollow', async () => {
-      selectorState.followingProfileIds = ['trader-1'];
+    it('refreshes the older following feed and leaves the v1 feed cached', async () => {
       const { result } = renderHook(() => useFollowToggle('trader-1'));
 
       await act(async () => {
         await result.current.toggleFollow();
       });
 
-      FOLLOWING_FEED_QUERY_KEY_PREFIXES.forEach((queryKey) =>
-        expect(mockInvalidateQueries).toHaveBeenCalledWith({ queryKey }),
-      );
-    });
-
-    it('keeps the follow and reports the failure when the following feed invalidation rejects', async () => {
-      mockInvalidateQueries.mockImplementation(({ queryKey }) =>
-        FOLLOWING_FEED_QUERY_KEY_PREFIXES.includes(queryKey)
-          ? Promise.reject(new Error('feed boom'))
-          : Promise.resolve(),
-      );
-      const { result } = renderHook(() => useFollowToggle('trader-1'));
-
-      await act(async () => {
-        await result.current.toggleFollow();
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: ['SocialService:fetchFeed', { scope: 'following' }],
       });
-
-      expect(result.current.isFollowing).toBe(true);
-      expect(Logger.error).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({
-          tags: expect.objectContaining({
-            surface: 'follow',
-            operation: 'invalidate_following_feed',
-            endpoint: 'feed',
-          }),
-        }),
+      const v1FeedInvalidated = mockInvalidateQueries.mock.calls.some(
+        ([query]) => query?.queryKey?.[1]?.scope === 'following_v1',
       );
+      expect(v1FeedInvalidated).toBe(false);
     });
 
     it('does not invalidate the fetchFollowing query when the API call rejects', async () => {
@@ -455,6 +441,7 @@ describe('useFollowToggleMany', () => {
       followed: [],
       unfollowed: [],
     });
+    mockInvalidateQueries.mockResolvedValue(undefined);
   });
 
   it('tracks follow state independently per trader id', async () => {

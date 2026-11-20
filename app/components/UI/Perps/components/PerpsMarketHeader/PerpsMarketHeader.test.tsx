@@ -20,6 +20,9 @@ import {
   playSelection,
 } from '../../../../../util/haptics';
 
+const walletButtonTestID = createProMarketHeaderTestIDs()
+  .walletButton as string;
+
 jest.mock('../../providers/PerpsStreamManager');
 
 jest.mock('../../hooks/stream', () => ({
@@ -378,6 +381,48 @@ describe('PerpsMarketHeader', () => {
     ).toBeOnTheScreen();
   });
 
+  it.each(['warning', 'danger'] as const)(
+    'badges the wallet button and names the account ratio for %s',
+    (walletRiskTone) => {
+      const { getByTestId, getByLabelText } = renderHeader({
+        onWalletPress: jest.fn(),
+        walletRiskTone,
+      });
+
+      expect(
+        getByTestId(`${walletButtonTestID}-risk-badge`, {
+          includeHiddenElements: true,
+        }),
+      ).toBeOnTheScreen();
+      expect(
+        getByLabelText(
+          `${strings('perps.market_details.wallet')}, ${strings(
+            'perps.crossMarginSummary.account_ratio',
+          )}`,
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it.each([['safe' as const], [undefined]])(
+    'leaves the wallet button plain for the %s risk level',
+    (walletRiskTone) => {
+      const { queryByTestId, getByLabelText } = renderHeader({
+        onWalletPress: jest.fn(),
+        walletRiskTone,
+      });
+
+      expect(
+        queryByTestId(`${walletButtonTestID}-risk-badge`, {
+          includeHiddenElements: true,
+        }),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByLabelText(strings('perps.market_details.wallet')),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('omits end actions when their handlers are not provided', () => {
     const { queryByTestId } = renderHeader();
 
@@ -484,6 +529,9 @@ describe('PerpsMarketHeader', () => {
       expect(
         within(capsule).getByTestId(testIDs.walletButton as string),
       ).toBeOnTheScreen();
+      expect(
+        within(capsule).getByTestId(`${testIDs.walletButton}-wrapper`),
+      ).toHaveStyle({ alignSelf: 'center' });
       expect(
         within(capsule).getByTestId(testIDs.favoriteButton as string),
       ).toBeOnTheScreen();

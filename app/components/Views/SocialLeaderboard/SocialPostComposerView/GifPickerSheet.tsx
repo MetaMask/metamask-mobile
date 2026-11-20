@@ -10,7 +10,6 @@ import { GestureHandlerRootView, FlatList } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   Skeleton,
   Text,
@@ -26,6 +25,8 @@ import { selectAiSocialGifApiEnabled } from '../../../../selectors/featureFlagCo
 import { GifPickerSheetSelectorsIDs } from './GifPickerSheet.testIds';
 import { useGifs } from './useGifs';
 import { useKlipyGifs } from './useKlipyGifs';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface PickerGif {
   id: string;
@@ -45,6 +46,7 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
   onSelect,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { height } = useWindowDimensions();
   const [query, setQuery] = useState('');
@@ -106,7 +108,8 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
             testID={GifPickerSheetSelectorsIDs.SHEET}
           >
             <Box style={tw.style({ height: panelHeight })}>
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={onClose}
                 closeButtonProps={{
                   testID: GifPickerSheetSelectorsIDs.CLOSE_BUTTON,
@@ -116,7 +119,7 @@ const GifPickerSheet: React.FC<GifPickerSheetProps> = ({
                 }}
               >
                 {strings('social_leaderboard.composer.gifs_title')}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
 
               <Box twClassName="px-4 py-2">
                 <TextFieldSearch

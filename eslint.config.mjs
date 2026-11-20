@@ -6,6 +6,57 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
+const componentView = require('./scripts/eslint/component-view-plugin.js');
+const componentViewPlugin = {
+  meta: componentView.meta,
+  rules: componentView.rules,
+};
+
+// Warn, not error: these patterns already exist. no-restricted-syntax in
+// .eslintrc.js stays an error for jest.mock and fake timers, and a second
+// override would replace that list. The re-exported rule is a second
+// severity. TODO: flip to 'error' once the counts below are 0.
+const CV_SKILL_URL =
+  'https://github.com/MetaMask/skills/blob/main/domains/testing/skills/mobile-testing/references/component-view.md';
+const CV_NESTED_FIND_MESSAGE = `Do not nest findBy*/findAllBy* inside waitFor. findBy* already polls (waitFor + getBy) and the two share one timeout, so CI fails with "Timed out in waitFor." Use await findBy* or waitFor(() => { getBy*; expect(...) }). See the mobile-testing skill: ${CV_SKILL_URL}`;
+const CV_FIXED_SLEEP_MESSAGE = `Do not sleep on a fixed delay (setTimeout with a delay other than 0, or sleep()). A zero-delay flush (setTimeout(resolve, 0)) is allowed. Await the observable outcome with waitFor or findBy* instead of letting time pass. See the mobile-testing skill: ${CV_SKILL_URL}`;
+const CV_FIND_QUERY = '/^find(?:All)?By[A-Z]/';
+const cvFlakeSelectors = [
+  {
+    selector: `CallExpression[callee.name='waitFor'] CallExpression[callee.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.name='waitFor'] CallExpression[callee.property.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.property.name='waitFor'] CallExpression[callee.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: `CallExpression[callee.property.name='waitFor'] CallExpression[callee.property.name=${CV_FIND_QUERY}]`,
+    message: CV_NESTED_FIND_MESSAGE,
+  },
+  {
+    selector: "CallExpression[callee.name='sleep']",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+  {
+    selector: "CallExpression[callee.property.name='sleep']",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+  {
+    selector:
+      "CallExpression[callee.name='setTimeout'][arguments.1]:not([arguments.1.type='Literal'][arguments.1.value=0])",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+  {
+    selector:
+      "CallExpression[callee.object.name=/^(global|globalThis|window)$/][callee.property.name='setTimeout'][arguments.1]:not([arguments.1.type='Literal'][arguments.1.value=0])",
+    message: CV_FIXED_SLEEP_MESSAGE,
+  },
+];
 const here = path.dirname(fileURLToPath(import.meta.url));
 const compat = new FlatCompat({
   baseDirectory: here,
@@ -46,8 +97,8 @@ const legacyBeforeTypescript = {
 
 // v15 is a flat config. The old `extends` key cannot load it. Apply it only
 // to TypeScript, then re-apply the *.{ts,tsx} override so rules that are off
-// today stay off. Drop projectService so type-aware parsing stays on today's
-// `parserOptions.project`.
+// today stay off. Drop projectService so ESLint does not load the TypeScript
+// project. Oxlint runs the rules that need type information.
 const typescriptBlocks = (
   Array.isArray(typescriptConfig) ? typescriptConfig : [typescriptConfig]
 ).map((block) => {
@@ -186,6 +237,123 @@ const overridesAfterTypescriptBlocks = withoutDuplicatePlugins(
   compat.config({ overrides: overridesAfterTypescript }),
 );
 
+// Oxlint runs these rules, with the same options, from .oxlintrc.json. They
+// are turned off here so each file is checked once. Rules that ESLint can
+// auto-fix are not in this list: lint-staged and lint:fix rely on eslint --fix.
+const rulesOwnedByOxlint = [
+  '@typescript-eslint/ban-ts-comment',
+  '@typescript-eslint/default-param-last',
+  '@typescript-eslint/no-dupe-class-members',
+  '@typescript-eslint/no-explicit-any',
+  '@typescript-eslint/no-misused-new',
+  '@typescript-eslint/no-namespace',
+  '@typescript-eslint/no-non-null-asserted-optional-chain',
+  '@typescript-eslint/no-non-null-assertion',
+  '@typescript-eslint/no-this-alias',
+  '@typescript-eslint/no-unnecessary-type-constraint',
+  '@typescript-eslint/no-unsafe-declaration-merging',
+  '@typescript-eslint/no-unsafe-function-type',
+  '@typescript-eslint/no-unused-expressions',
+  '@typescript-eslint/no-use-before-define',
+  '@typescript-eslint/no-useless-constructor',
+  '@typescript-eslint/parameter-properties',
+  '@typescript-eslint/prefer-for-of',
+  '@typescript-eslint/triple-slash-reference',
+  '@typescript-eslint/unified-signatures',
+  'array-callback-return',
+  'constructor-super',
+  'for-direction',
+  'getter-return',
+  'import-x/no-amd',
+  'import-x/no-mutable-exports',
+  'no-async-promise-executor',
+  'no-caller',
+  'no-case-declarations',
+  'no-class-assign',
+  'no-compare-neg-zero',
+  'no-cond-assign',
+  'no-const-assign',
+  'no-constant-condition',
+  'no-control-regex',
+  'no-debugger',
+  'no-delete-var',
+  'no-dupe-class-members',
+  'no-dupe-else-if',
+  'no-dupe-keys',
+  'no-duplicate-case',
+  'no-duplicate-imports',
+  'no-empty',
+  'no-empty-character-class',
+  'no-empty-function',
+  'no-empty-pattern',
+  'no-ex-assign',
+  'no-extend-native',
+  'no-fallthrough',
+  'no-func-assign',
+  'no-import-assign',
+  'no-invalid-regexp',
+  'no-irregular-whitespace',
+  'no-iterator',
+  'no-label-var',
+  'no-labels',
+  'no-lone-blocks',
+  'no-loop-func',
+  'no-misleading-character-class',
+  'no-new-func',
+  'no-new-wrappers',
+  'no-nonoctal-decimal-escape',
+  'no-proto',
+  'no-prototype-builtins',
+  'no-return-assign',
+  'no-script-url',
+  'no-self-assign',
+  'no-self-compare',
+  'no-sequences',
+  'no-setter-return',
+  'no-shadow-restricted-names',
+  'no-sparse-arrays',
+  'no-this-before-super',
+  'no-throw-literal',
+  'no-unexpected-multiline',
+  'no-unmodified-loop-condition',
+  'no-unreachable',
+  'no-unsafe-finally',
+  'no-unsafe-negation',
+  'no-use-before-define',
+  'no-useless-backreference',
+  'no-useless-call',
+  'no-useless-catch',
+  'no-useless-concat',
+  'no-useless-constructor',
+  'no-useless-escape',
+  'no-void',
+  'no-warning-comments',
+  'no-with',
+  'prefer-rest-params',
+  'prefer-spread',
+  'react/jsx-key',
+  'react/jsx-no-comment-textnodes',
+  'react/jsx-no-duplicate-props',
+  'react/jsx-no-undef',
+  'react/jsx-pascal-case',
+  'react/no-children-prop',
+  'react/no-danger-with-children',
+  'react/no-direct-mutation-state',
+  'react/no-find-dom-node',
+  'react/no-is-mounted',
+  'react/no-multi-comp',
+  'react/no-render-return-value',
+  'react/no-string-refs',
+  'react/no-unescaped-entities',
+  'react/no-unstable-nested-components',
+  'react/prefer-es6-class',
+  'react/react-in-jsx-scope',
+  'react/require-render-return',
+  'require-yield',
+  'use-isnan',
+  'valid-typeof',
+];
+
 export default [
   ...flatConfig,
   {
@@ -196,6 +364,27 @@ export default [
   { files: ['**/*.{js,jsx}'], rules: pinJavascriptToToday },
   { files: ['**/*.{ts,tsx}'], rules: pinTypescriptToToday },
   ...overridesAfterTypescriptBlocks,
+  // After every block that sets these rules, so 'off' wins. Oxlint cannot
+  // parse app/declarations, so ESLint keeps the rules there.
+  {
+    ignores: ['app/declarations/**'],
+    rules: Object.fromEntries(rulesOwnedByOxlint.map((rule) => [rule, 'off'])),
+  },
   // ESLint 9 warns on unused eslint-disable comments. ESLint 8 did not.
   { linterOptions: { reportUnusedDisableDirectives: 'off' } },
+  // Counts on this tree: nested findBy 13, fixed sleep 18, bare timeout 446,
+  // clearAllMocks without a reset 43. Sleep and timeout moved with main;
+  // nested findBy is the same 13 sites.
+  {
+    files: [
+      '**/*.view.test.{js,ts,tsx,jsx}',
+      'tests/component-view/**/*.{ts,tsx}',
+    ],
+    plugins: { 'component-view': componentViewPlugin },
+    rules: {
+      'component-view/no-restricted-syntax': ['warn', ...cvFlakeSelectors],
+      'component-view/no-bare-query-timeout': 'warn',
+      'component-view/no-clear-all-mocks-without-reset': 'warn',
+    },
+  },
 ];

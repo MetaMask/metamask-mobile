@@ -101,6 +101,17 @@ describe('usePerpsLivePositions', () => {
       });
     });
 
+    it('does NOT subscribe to positions when enabled is false', () => {
+      // Arrange
+      mockPositionsSubscribe.mockReturnValue(jest.fn());
+
+      // Act
+      renderHook(() => usePerpsLivePositions({ enabled: false }));
+
+      // Assert
+      expect(mockPositionsSubscribe).not.toHaveBeenCalled();
+    });
+
     it('does NOT subscribe to prices by default (useLivePnl: false)', () => {
       // Arrange - even with positions present, no price subscription by default
       mockChannelPositionsSnapshot = [{ ...mockPosition, symbol: 'BTC-PERP' }];

@@ -91,6 +91,7 @@ function logoClassName(
 const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
   providerIds,
   size = PERPS_AVAILABLE_BALANCE_LOGO_SIZE,
+  isDecorative = false,
   testID = PerpsProviderLogosSelectorsIDs.CONTAINER,
   twClassName,
 }) => {
@@ -108,9 +109,11 @@ const PerpsProviderLogos: React.FC<PerpsProviderLogosProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      accessible
-      accessibilityRole="image"
-      accessibilityLabel={accessibilityLabel}
+      accessible={!isDecorative}
+      accessibilityRole={isDecorative ? undefined : 'image'}
+      accessibilityLabel={isDecorative ? undefined : accessibilityLabel}
+      importantForAccessibility={isDecorative ? 'no-hide-descendants' : 'auto'}
+      accessibilityElementsHidden={isDecorative}
       testID={testID}
       twClassName={twClassName}
     >

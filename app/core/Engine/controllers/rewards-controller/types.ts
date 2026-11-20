@@ -495,6 +495,12 @@ export interface CampaignDto {
    * @example true
    */
   showUpcomingDate: boolean;
+
+  /**
+   * Whether opt-in requires a Social profile. Missing on older cached
+   * campaigns; treat that as false.
+   */
+  socialProfileRequired?: boolean;
 }
 
 /**
@@ -597,6 +603,7 @@ export type CampaignDtoState = {
   details: CampaignDetailsDtoState | null;
   featured: boolean;
   showUpcomingDate: boolean;
+  socialProfileRequired?: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -634,6 +641,11 @@ export interface CampaignLeaderboardEntry {
    * @example 'ABC123'
    */
   referralCode: string;
+
+  /**
+   * Social profile username captured at opt-in. Null when none was recorded.
+   */
+  profileUsername?: string | null;
 
   /**
    * The rate of return as a decimal ratio (0.15 = 15%, -0.05 = -5%)
@@ -1073,6 +1085,8 @@ export type OndoGmCampaignDepositsState = {
 export interface PerpsTradingCampaignLeaderboardEntry {
   rank: number;
   referralCode: string;
+  /** Social profile username captured at opt-in. Null when none was recorded. */
+  profileUsername?: string | null;
   /** Signed USD PnL for the campaign window */
   pnl: number;
   /** Cumulative volume traded during the competition window (USD) */
@@ -1147,6 +1161,7 @@ export type PerpsTradingCampaignLeaderboardState = {
   entries: {
     rank: number;
     referralCode: string;
+    profileUsername?: string | null;
     pnl: number;
     volume: number;
   }[];
@@ -1167,6 +1182,7 @@ export type PerpsTradingCampaignLeaderboardPositionFoundState = {
   neighbors: {
     rank: number;
     referralCode: string;
+    profileUsername?: string | null;
     pnl: number;
     volume: number;
   }[];
@@ -1221,6 +1237,7 @@ export type CampaignLeaderboardState = {
       entries: {
         rank: number;
         referralCode: string;
+        profileUsername?: string | null;
         rateOfReturn: number;
         qualifiedDays: number;
         qualified: boolean;
@@ -1248,6 +1265,7 @@ export type CampaignLeaderboardPositionFoundState = {
   neighbors: {
     rank: number;
     referralCode: string;
+    profileUsername?: string | null;
     rateOfReturn: number;
     qualifiedDays: number;
     qualified: boolean;
@@ -1396,6 +1414,7 @@ export type CampaignDetailsDto =
 export interface PredictThePitchLeaderboardEntryDto {
   rank: number;
   referralCode: string;
+  profileUsername?: string | null;
   roi: number;
 }
 
@@ -1471,6 +1490,7 @@ export interface PredictThePitchPrizePoolDto {
 export type PredictThePitchLeaderboardEntryState = {
   rank: number;
   referralCode: string;
+  profileUsername?: string | null;
   roi: number;
 };
 
@@ -3010,20 +3030,6 @@ export interface Patch {
   op: 'replace' | 'add' | 'remove';
   path: string[];
   value?: unknown;
-}
-
-/**
- * Geo rewards metadata containing location and support info
- */
-export interface GeoRewardsMetadata {
-  /**
-   * The geographic location string (e.g., 'US', 'CA-ON', 'FR')
-   */
-  geoLocation: string;
-  /**
-   * Whether the location is allowed for opt-in
-   */
-  optinAllowedForGeo: boolean;
 }
 
 /**

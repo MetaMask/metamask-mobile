@@ -11,7 +11,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -22,6 +22,7 @@ import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
 import { getLinkedAccountUpdateError } from './linkedAccountUpdateError';
+import { getProfileSaveErrorCopy } from '../errors/profileApiErrorMessageKeys';
 import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
@@ -38,11 +39,15 @@ const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
 const ManageProfileLinkedAccountView: React.FC = () => {
   const accounts = useLinkableSocialAccounts();
   const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const { isControllerBacked, linkedAddresses, updateProfile } =
+  const { isControllerBacked, profile, linkedAddresses, updateProfile } =
     useProfileController();
   const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const accountsRef = useRef(accounts);
+  const profileRef = useRef(profile);
+  accountsRef.current = accounts;
+  profileRef.current = profile;
 
   useEffect(() => {
     if (!errorMessage) {
@@ -64,8 +69,12 @@ const ManageProfileLinkedAccountView: React.FC = () => {
     : selectedAccount?.id;
 
   const handleAccountPress = useCallback(
-    async (nextLinkedAddresses: CaipAccountId[]): Promise<void> => {
-      if (!isControllerBacked) {
+    async (accountId: string): Promise<void> => {
+      const currentProfile = profileRef.current;
+      const account = accountsRef.current.find(
+        (candidate) => candidate.id === accountId,
+      );
+      if (!isControllerBacked || !currentProfile || !account) {
         return;
       }
 
@@ -73,11 +82,12 @@ const ManageProfileLinkedAccountView: React.FC = () => {
       setErrorMessage(null);
 
       try {
-        await updateProfile({ linked_addresses: nextLinkedAddresses });
+        await updateProfile({ linked_addresses: account.linkedAddresses });
         trackProfileEdited();
       } catch (error) {
         setErrorMessage(
           getLinkedAccountUpdateError(error) ??
+            getProfileSaveErrorCopy(error) ??
             strings('social_leaderboard.manage_profile.save_error'),
         );
       } finally {
@@ -98,9 +108,9 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         <Box twClassName="mt-2">
           <SocialAccountSectionList
             accounts={accounts}
-            disabled={!isControllerBacked || isUpdating}
+            disabled={!isControllerBacked || !profile || isUpdating}
             onSelect={(account) => {
-              void handleAccountPress(account.linkedAddresses);
+              void handleAccountPress(account.id);
             }}
             rowTestIdPrefix={ManageProfileLinkedAccountSelectorsIDs.ACCOUNT_ROW}
             selectedAccountId={selectedAccountId}

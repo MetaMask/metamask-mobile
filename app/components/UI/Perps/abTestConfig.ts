@@ -10,7 +10,7 @@ import type { ABTestAnalyticsMapping } from '../../../util/analytics/abTestAnaly
  *
  * LaunchDarkly: JSON threshold array, default 0% bottom sheets (`control`
  * served to 100%) until product signs off. See
- * `docs/perps/perps-ab-testing.md`.
+ * `docs/perps/ab-testing.md`.
  *
  * Consume via `usePerpsScreenVsBottomSheetAbTest()` — do not call `useABTest`
  * with this flag from conversion tickets.

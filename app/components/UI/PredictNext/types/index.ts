@@ -515,6 +515,93 @@ export interface PredictUnresolvedOrdersPage {
   nextCursor?: string;
 }
 
+/** How a Withdraw names its amount: one fixed USD figure, or the whole
+ * withdrawable balance. */
+export type PredictWithdrawMode = 'fixed' | 'sweep_all';
+
+/** Networks a withdrawal can pay out on. */
+export type PredictWithdrawNetwork = 'base';
+
+/** Where the payout destination came from: the sandbox wallet this client
+ * registered during demo setup, or a binding the Venue itself reported. A
+ * destination is always read-only; the phone never supplies one. */
+export type PredictWithdrawDestinationSource = 'configured_demo' | 'venue';
+
+export interface PredictWithdrawDestination {
+  address: string;
+  network: PredictWithdrawNetwork;
+  source: PredictWithdrawDestinationSource;
+}
+
+/** A Withdraw intent. Exactly one of a fixed USD amount or the whole balance;
+ * the client sends no identity, destination, or idempotency key. */
+export type PredictWithdrawPreviewParams =
+  | { amount: PredictAmount }
+  | { sweepAll: true };
+
+/** A server-authoritative Withdraw Quote. The backend resolves the payout
+ * destination and the expiry; the response carries no fee. A sweep omits
+ * `requestedAmount` rather than nulling it. */
+export interface PredictWithdrawPreview {
+  /** Opaque expiring token binding the quote to the authenticated intent. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  /** Present exactly on a `fixed` quote. */
+  requestedAmount?: PredictAmount;
+  destination: PredictWithdrawDestination;
+  expiresAt: PredictTimestamp;
+}
+
+/** Status of a committed withdrawal, as projected by the backend. `pending`
+ * and `processing` are in-progress: keep observing with the receipt GET,
+ * never another POST. `settled` means the funds left; `failed` and `returned`
+ * are terminal failures, and `returned` means the funds are back in the
+ * account. `rejected` means the Venue refused the withdrawal and nothing was
+ * sent. */
+export type PredictWithdrawReceiptStatus =
+  | 'pending'
+  | 'processing'
+  | 'settled'
+  | 'failed'
+  | 'returned'
+  | 'rejected';
+
+/** Why the Venue refused a `rejected` withdrawal. */
+export type PredictWithdrawRejectionCode =
+  | 'insufficient_balance'
+  | 'amount_below_minimum'
+  | 'step_up_verification_required'
+  | 'venue_rejected';
+
+/** The canonical result of a committed withdrawal. One Withdraw produces
+ * exactly one receipt, and repeated Commits of the same `previewId` converge
+ * on it. `needsManualReview` ends automatic observation: the outcome is
+ * unknown and support resolves it. */
+export interface PredictWithdrawReceipt {
+  /** Durable backend operation identity; stable across repeated Commits. */
+  operationId: string;
+  /** The committed Withdraw Preview; the idempotency key for re-observation. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  status: PredictWithdrawReceiptStatus;
+  /** Present exactly on a `rejected` receipt, and always present there. */
+  rejectionCode?: PredictWithdrawRejectionCode;
+  needsManualReview: boolean;
+  /** Present exactly on a `fixed` receipt. */
+  requestedAmount?: PredictAmount;
+  /** The amount the Venue reports as withdrawn; null until it reports one. */
+  withdrawnAmount: PredictAmount | null;
+  /** Venue transfer identifier once the Venue has produced one. */
+  venueTransferId: string | null;
+  destination: PredictWithdrawDestination;
+  createdAt: PredictTimestamp;
+  resolvedAt: PredictTimestamp | null;
+}
+
 export interface FetchPortfolioPageParams {
   cursor?: string;
   limit?: number;
@@ -673,6 +760,120 @@ export interface PredictActivityPage {
   /** Explicit demo-only Trades fallback. Production permission failures are
    * errors, not a successful page with silently missing Settlements. */
   settlementsDegradedReason?: 'venue_permission_denied';
+}
+
+/**
+ * The statuses a deposit shows the app. Each covers one or more statuses the
+ * backend stores (va-mmcx-predict-api `docs/FUNDING.md`). Only `failed` is
+ * final. A `cancelled` deposit moves on when a transfer turns up after it, a
+ * `completed` one goes to `under_review` when the credited transfer fails or
+ * is returned, and support moves an `under_review` one to `completed` or
+ * `failed`.
+ */
+export type PredictDepositStatus =
+  | 'awaiting_transfer'
+  | 'processing'
+  | 'completed'
+  | 'cancelled'
+  | 'failed'
+  | 'under_review';
+
+/** A `0x`-prefixed EVM address or transaction hash. */
+export type PredictHex = `0x${string}`;
+
+/**
+ * The Funding Plan: send exactly `amount` of the token at `tokenContract` on
+ * `chainId` to `depositAddress` before `planExpiresAt`. Typed fields only,
+ * never transaction data. The venue cannot settle a different amount without
+ * manual work.
+ */
+export interface PredictFundingPlan {
+  chainId: number;
+  tokenContract: PredictHex;
+  /** USD, two decimals. The token is a USD stablecoin. */
+  amount: PredictAmount;
+  depositAddress: PredictHex;
+  planExpiresAt: PredictTimestamp;
+}
+
+/**
+ * The values the device signs for a new deposit. Never request bytes: the
+ * phone renders the request from its signing profile.
+ */
+export interface PredictDepositSignRequest {
+  kind: 'sign_request';
+  amountCents: number;
+  clientOperationId: string;
+}
+
+/**
+ * What the app does next for a deposit. The set is closed: the app has one
+ * fixed handler per kind and stops on a kind it does not know. There is no
+ * generic "sign these bytes" or "send this transaction" step.
+ */
+export type PredictDepositNextStep =
+  /** Only the unsigned create call answers it, before a deposit exists. */
+  | PredictDepositSignRequest
+  | ({ kind: 'wallet_transfer' } & PredictFundingPlan)
+  /** The backend is working on it. Read the deposit again later. */
+  | { kind: 'wait' }
+  | { kind: 'done' }
+  /** Support has to look at it. Show the reference and never retry. */
+  | { kind: 'review'; supportReference: string };
+
+/** A deposit's own next step: a deposit never asks to be signed. */
+export type PredictDepositOperationStep = Exclude<
+  PredictDepositNextStep,
+  PredictDepositSignRequest
+>;
+
+/** One deposit operation, as the funding routes return it. */
+export interface PredictDepositOperation {
+  /** The backend's operation ID, not the venue's deposit ID. */
+  operationId: PredictEntityId;
+  status: PredictDepositStatus;
+  /** The USD amount the user asked to deposit, two decimals. */
+  amount: PredictAmount;
+  chainId: number;
+  tokenContract: PredictHex;
+  /** Null until the venue returns an address. Several deposits can share
+   * one address. */
+  depositAddress: PredictHex | null;
+  /** Null until the venue returns an address. The backend's deadline. */
+  planExpiresAt: PredictTimestamp | null;
+  /** Set once the transfer hash is reported. */
+  txHash: PredictHex | null;
+  createdAt: PredictTimestamp;
+  /** Null once the deposit needs nothing more from the app: it failed or was
+   * cancelled. */
+  next: PredictDepositOperationStep | null;
+}
+
+/**
+ * What starting a deposit answers: the values to sign, or the deposit the
+ * same `clientOperationId` already created.
+ */
+export type PredictDepositStart =
+  | { kind: 'sign_request'; signRequest: PredictDepositSignRequest }
+  | { kind: 'deposit'; deposit: PredictDepositOperation };
+
+/** Starts a deposit. `clientOperationId` is a UUID v4 the app makes once per
+ * deposit; it is the idempotency key the device signs. */
+export interface PredictDepositParams {
+  /** USD, at least 1, at most two decimals. */
+  amount: PredictAmount;
+  clientOperationId: string;
+}
+
+/** The deposit's transfer, reported from the user's wallet. */
+export interface PredictDepositTransferParams {
+  txHash: PredictHex;
+  chainId: number;
+}
+
+/** The explicit user approval that lets a deposit request be signed. */
+export interface PredictDepositApproval {
+  kind: 'user-approved';
 }
 
 export interface PredictReadOptions {

@@ -28,7 +28,7 @@ import {
 } from '../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../core/Engine';
 import { updateBgState } from '../../../../core/redux/slices/engine';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import { SEARCH_RESULT_LIMIT } from '../hooks/useSearchEvents';
 import { PredictNextRoutes } from '../navigation/routes';
@@ -428,11 +428,19 @@ describeForPlatforms('Browser URL autocomplete predictions on Kalshi', () => {
   it('opens the Kalshi Event on a result press', async () => {
     const view = renderAutocomplete(KALSHI_ONLY);
     typeQuery(view, 'packers');
-    const row = await view.findByTestId(
+    await waitFor(() =>
+      expect(
+        view.getByTestId(getPredictSearchResultRowTestId(NFL_1.id), HIDDEN),
+      ).toBeOnTheScreen(),
+    );
+
+    // Re-query right before the press: the list re-keys a row whenever a
+    // section above Predictions settles, and a press on the unmounted node
+    // found before that does nothing.
+    const row = view.getByTestId(
       getPredictSearchResultRowTestId(NFL_1.id),
       HIDDEN,
     );
-
     fireEvent.press(row);
 
     const params = await view.findByTestId(PREDICT_ROOT_PARAMS_PROBE);

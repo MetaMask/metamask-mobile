@@ -20,7 +20,7 @@ Optional boolean to control the expanded state of the Accordion Header.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| boolean    | No                                                     | false                                               |
+| boolean                                             | No                                                      | false                                                  |
 
 ### `onPress`
 
@@ -28,7 +28,7 @@ Optional function to trigger when pressing the Accordion Header.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| Function                                            | No                                                     |
+| Function                                            | No                                                      |
 
 ### `horizontalAlignment`
 
@@ -36,17 +36,17 @@ Optional prop to control the horizontal alignment of the AccordionHeader.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| AccordionHeaderHorizontalAlignment                   | No                                                     | AccordionHeaderHorizontalAlignment.Center              |
+| AccordionHeaderHorizontalAlignment                  | No                                                      | AccordionHeaderHorizontalAlignment.Center              |
 
 ## Usage
 
 ```javascript
 // Replace import with relative path.
-import AccordionHeader from 'app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader';
+import AccordionHeader from '#app/component-library/components/Accordions/Accordion/foundation/AccordionHeader/AccordionHeader';
 
-<AccordionHeader 
-  title={TITLE} 
-  isExpanded 
+<AccordionHeader
+  title={TITLE}
+  isExpanded
   onPress={ONPRESS_HANDLER}/>
   horizontalAlignment={AccordionHeaderHorizontalAlignment.Center};
 ```

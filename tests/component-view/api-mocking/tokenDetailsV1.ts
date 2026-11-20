@@ -25,6 +25,7 @@ import AppConstants from '../../../app/core/AppConstants';
 import {
   clearAllNockMocks,
   disableNetConnect,
+  nockRequestUri,
   teardownNock,
 } from './nockHelpers';
 
@@ -222,8 +223,12 @@ export function setupTokenDetailsV1ApiMocks(
   tokenApi.get('/assets').query(true).reply(200, []);
 
   const priceApi = nock(PRICE_API_BASE_URL).persist();
-  priceApi.get(/.*/).reply(200, priceReply);
-  priceApi.post(/.*/).reply(200, priceReply);
+  priceApi
+    .get(/.*/)
+    .reply(200, (request: Request) => priceReply(nockRequestUri(request)));
+  priceApi
+    .post(/.*/)
+    .reply(200, (request: Request) => priceReply(nockRequestUri(request)));
 
   nock(AppConstants.SOCIAL_API_URL)
     .persist()

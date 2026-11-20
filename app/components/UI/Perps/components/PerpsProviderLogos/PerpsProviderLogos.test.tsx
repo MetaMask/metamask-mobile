@@ -80,4 +80,32 @@ describe('PerpsProviderLogos', () => {
       screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
     ).toBeOnTheScreen();
   });
+
+  it('renders the marks but hides them from screen readers when decorative', () => {
+    render(<PerpsProviderLogos providerIds={['lighter']} isDecorative />);
+
+    // The container is rendered but hidden from the accessibility tree, so it
+    // is only findable when hidden elements are included.
+    const container = screen.getByTestId(
+      PerpsProviderLogosSelectorsIDs.CONTAINER,
+      { includeHiddenElements: true },
+    );
+    expect(container).toBeOnTheScreen();
+    expect(container).toHaveProp('accessibilityElementsHidden', true);
+    expect(container).toHaveProp(
+      'importantForAccessibility',
+      'no-hide-descendants',
+    );
+
+    // The mark still renders (hidden); default queries skip hidden elements.
+    expect(
+      screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+    ).toBeNull();
+    expect(screen.queryByLabelText('Lighter')).toBeNull();
+  });
 });

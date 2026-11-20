@@ -13,6 +13,8 @@ jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
   balance: 'Balance',
+  held: 'Held',
+  pending: 'Pending',
   mUSD: 'mUSD',
   claim: 'Claim',
   paused: 'Paused',
@@ -62,6 +64,23 @@ describe('claimButtonState', () => {
     );
     expect(claimButtonState('0', '50', false, '0', '12000000')).toBe('paused');
     expect(claimButtonState('0', '50', false, '0', '0')).toBe('claimed');
+    expect(
+      claimButtonState(
+        '0',
+        '0',
+        false,
+        '100000000',
+        '12000000',
+        false,
+        '400000',
+      ),
+    ).toBe('hidden');
+    expect(
+      claimButtonState('0', '50', false, '100000000', '0', false, '400000'),
+    ).toBe('claimed');
+    expect(
+      claimButtonState('0', '0', false, '2000000', '0', true, '400000'),
+    ).toBe('claim');
   });
 
   it('keeps Claim for a tax hold even when another balance is blocked', () => {
@@ -148,14 +167,109 @@ describe('ClaimableRewardsCard', () => {
   });
 
   it('renders a disabled Claimed button when only claimed is positive', () => {
-    const { getByTestId, queryByTestId } = renderCard('0', '50');
+    const { getByTestId, getByText, queryByTestId } = renderCard('0', '50');
 
+    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$4.00');
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeDisabled();
+  });
+
+  it('shows Pending and hides Claim when the open route is under the minimum', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="0"
+        pending="400000"
+        claimed="0"
+        claimableAmount="$0.00"
+        pendingAmount="$0.40"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+      />,
+    );
+
+    expect(getByText('Pending • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$0.40');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeNull();
+  });
+
+  it('shows Pending ahead of Paused when both are positive', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="0"
+        pending="400000"
+        claimed="50"
+        held="100000000"
+        blocked="12000000"
+        claimableAmount="$0.00"
+        pendingAmount="$0.40"
+        recordedAmount="$132.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+      />,
+    );
+
+    expect(getByText('Pending • mUSD')).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('shows Held and Claim ahead of Pending when the balance is tax-held', () => {
+    const onClaim = jest.fn();
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="0"
+        pending="400000"
+        claimed="0"
+        held="2000000"
+        heldAmount="$2.00"
+        taxHeld
+        claimableAmount="$0.00"
+        pendingAmount="$0.40"
+        recordedAmount="$2.40"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onClaim={onClaim}
+      />,
+    );
+
+    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$2.00');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON));
+    expect(onClaim).toHaveBeenCalledTimes(1);
   });
 
   it('hides the button when both balances are zero or missing', () => {

@@ -1,5 +1,3 @@
-import { ethers } from 'ethers';
-import balanceScannerAbi from './sdk/balanceScannerAbi.json';
 import { CardNetwork, CardNetworkInfo } from './types';
 import { CaipChainId } from '@metamask/utils';
 
@@ -36,13 +34,9 @@ export const CRB_PRIVACY_NOTICE_URL =
   'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
 export const CRB_PRIVACY_POLICY_URL =
   'https://www.crossriver.com/legal/privacy-notice';
-export const BALANCE_SCANNER_ABI =
-  balanceScannerAbi as ethers.ContractInterface;
 export const ARBITRARY_ALLOWANCE = 100000000000;
 export const DEPOSIT_SUPPORTED_TOKENS = ['USDC', 'USDT', 'mUSD'];
 export const BAANX_MAX_LIMIT = '2199023255551';
-export const AUTHENTICATED_CACHE_DURATION = 60 * 1000;
-export const UNAUTHENTICATED_CACHE_DURATION = 5 * 60 * 1000;
 export const SUPPORTED_ASSET_NETWORKS: CardNetwork[] = [
   'linea',
   'solana',

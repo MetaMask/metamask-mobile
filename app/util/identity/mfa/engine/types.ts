@@ -252,7 +252,7 @@ export interface MfaFlowState {
   busy: boolean;
   /** Code of an error to show on the current screen. */
   error?: MfaFlowErrorCode;
-  /** A new code was sent without the user asking (expired flow). */
+  /** A new email code was sent after the user asked for one. */
   codeResent?: boolean;
   /** When the next code may be requested. */
   resendAvailableAt?: number;
@@ -265,7 +265,7 @@ export type MfaFlowAction =
   | { type: 'choose'; method: MfaMethod }
   | { type: 'submitEmail'; email: string }
   | { type: 'submitCode'; code: string }
-  | { type: 'resend'; trigger?: 'user' | 'auto' }
+  | { type: 'resend' }
   | { type: 'retry' }
   | { type: 'errorCtaClicked'; cta: MfaErrorCta }
   | { type: 'dismiss' }
