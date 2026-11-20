@@ -46,11 +46,12 @@ class AccountListBottomSheet {
    */
   get accountList(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
-      // Exact match: contains("Accounts") also hits "Connect accounts" /
-      // "Edit accounts" nodes that can exist while displayed=false.
+      // AccountSelector exposes the "Accounts" title; Account Hub exposes
+      // its dedicated list marker instead of that title.
       const title = AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE;
+      const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
       return Matchers.getElementByNativeXPath(
-        `//*[@name='${title}' or @label='${title}' or @text='${title}']`,
+        `//*[@name='${title}' or @label='${title}' or @text='${title}' or @name='${accountHubList}' or @label='${accountHubList}']`,
       );
     }
     // AccountSelector sheet uses `account-list`; Account Hub uses
@@ -293,27 +294,22 @@ class AccountListBottomSheet {
   async tapBackButton(options: {
     onDismissed: () => Promise<void>;
   }): Promise<void> {
-    let dismissed = false;
     await Utilities.executeWithRetry(
       async () => {
-        if (!dismissed) {
-          await Assertions.expectElementToExist(this.backButton, {
-            description: 'Account list / Account Hub back button',
-            timeout: 3_000,
-          });
-          await Gestures.waitAndTap(this.backButton, {
-            elemDescription: 'Account list header back button',
-            timeout: 5_000,
-            checkForDisplayed: false,
-            waitForInteractive: true,
-          });
-          await Assertions.expectElementToNotExist(this.accountList, {
-            description: 'Account list should be dismissed',
-            timeout: 2_000,
-          });
-          dismissed = true;
-        }
-        await options.onDismissed();
+        await Assertions.expectElementToExist(this.backButton, {
+          description: 'Account list / Account Hub back button',
+          timeout: 3_000,
+        });
+        await Gestures.waitAndTap(this.backButton, {
+          elemDescription: 'Account list header back button',
+          timeout: 5_000,
+          checkForDisplayed: false,
+          waitForInteractive: true,
+        });
+        await Assertions.expectElementToNotExist(this.accountList, {
+          description: 'Account list should be dismissed',
+          timeout: 2_000,
+        });
       },
       {
         timeout: 90_000,
@@ -321,6 +317,7 @@ class AccountListBottomSheet {
         description: 'Dismiss account list via back button',
       },
     );
+    await options.onDismissed();
   }
 
   /**
@@ -986,10 +983,10 @@ class AccountListBottomSheet {
             throw new Error('Account sync indicators or footer are still busy');
           }
 
-          await Assertions.expectElementToExist(this.backButton, {
-            description: 'Account list back button ready after account sync',
-            timeout: 1_000,
-          });
+          if (Date.now() - startTime < initialWaitTimeout) {
+            stableReadySince = undefined;
+            throw new Error('Account sync is still settling');
+          }
 
           stableReadySince ??= Date.now();
           if (
