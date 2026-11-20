@@ -343,6 +343,53 @@ describe('useSectionPerformance', () => {
       );
     });
 
+    it('records content errors without presenting them as successful content', () => {
+      const { rerender } = renderHook(
+        ({ contentError, contentReady, isLoading }) =>
+          useSectionPerformance({
+            ...defaultConfig,
+            contentError,
+            contentReady,
+            contentStateForTrace: contentError ? 'error' : undefined,
+            isLoading,
+          }),
+        {
+          initialProps: {
+            contentError: false,
+            contentReady: false,
+            isLoading: true,
+          },
+        },
+      );
+
+      rerender({
+        contentError: true,
+        contentReady: false,
+        isLoading: false,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionTimeToContent,
+          data: expect.objectContaining({
+            content_state: 'error',
+            reason: 'content_error',
+            success: false,
+          }),
+        }),
+      );
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: TraceName.HomepageSectionDataFetch,
+          data: expect.objectContaining({
+            content_state: 'error',
+            reason: 'content_error',
+            success: false,
+          }),
+        }),
+      );
+    });
+
     it('tags content_state as empty when isEmpty is true', () => {
       const { rerender } = renderHook(
         ({ contentReady }) =>

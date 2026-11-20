@@ -25,8 +25,13 @@ interface UseSectionPerformanceConfig {
   /** True when the section is in an empty / placeholder state. */
   isEmpty: boolean;
   /**
-   * When set, sent as `content_state` on successful trace ends instead of
-   * deriving from `isEmpty` (e.g. `error` for connection / fetch error UI).
+   * True when loading resolved with no presentable content because the
+   * request failed. This ends TTC as a failed content result.
+   */
+  contentError?: boolean;
+  /**
+   * When set, sent as `content_state` on trace ends instead of deriving from
+   * `isEmpty` (e.g. `error` for connection / fetch error UI).
    */
   contentStateForTrace?: 'filled' | 'empty' | 'error';
   /**
@@ -107,6 +112,7 @@ export const useSectionPerformance = ({
   sectionId,
   contentReady,
   isEmpty,
+  contentError = false,
   contentStateForTrace,
   demandStarted,
   cacheState = 'unknown',
@@ -331,6 +337,35 @@ export const useSectionPerformance = ({
 
   // Time to Content — end span when content is ready
   useEffect(() => {
+    if (contentError) {
+      pendingTtcCompletion.current?.();
+      pendingTtcCompletion.current = null;
+      if (enabled && ttcStarted.current && !ttcEnded.current) {
+        annotateLatestTags(
+          TraceName.HomepageSectionTimeToContent,
+          ttcTraceId.current,
+        );
+        endTrace({
+          name: TraceName.HomepageSectionTimeToContent,
+          id: ttcTraceId.current,
+          data: {
+            ...tagsRef.current,
+            ...dataRef.current,
+            demand_started: true,
+            cache_state: ttcCacheState.current,
+            content_ready_at_demand: ttcContentReadyAtDemand.current,
+            success: false,
+            reason: 'content_error',
+            section_id: sectionId,
+            content_state: traceContentStateRef.current,
+          },
+        });
+        ttcStarted.current = false;
+        ttcEnded.current = true;
+      }
+      ttcReadyForCompletion.current = true;
+      return;
+    }
     if (!contentReady) {
       pendingTtcCompletion.current?.();
       pendingTtcCompletion.current = null;
@@ -417,6 +452,7 @@ export const useSectionPerformance = ({
   }, [
     enabled,
     contentReady,
+    contentError,
     generationKey,
     sectionId,
     traceContentState,
@@ -479,9 +515,10 @@ export const useSectionPerformance = ({
           ...dataRef.current,
           demand_started: true,
           cache_state: fetchCacheState.current,
-          success: true,
+          success: !contentError,
           section_id: sectionId,
           content_state: traceContentState,
+          ...(contentError ? { reason: 'content_error' } : {}),
         },
       });
       fetchStarted.current = false;
@@ -492,6 +529,7 @@ export const useSectionPerformance = ({
     generationKey,
     demandStarted,
     isLoading,
+    contentError,
     sectionId,
     traceContentState,
     cacheState,

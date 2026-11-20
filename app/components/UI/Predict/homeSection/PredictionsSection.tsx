@@ -333,11 +333,13 @@ const PredictionsSectionDefault = forwardRef<
       marketsLength: markets.length,
     });
 
-    let cacheState: 'cold' | 'unknown' | 'warm' = 'warm';
-    if (isLoading) {
+    let cacheState: 'cold' | 'unknown' | 'warm' = 'unknown';
+    if (hasPositions || (showTrendingAbove && markets.length > 0)) {
+      cacheState = 'warm';
+    } else if (isLoading) {
       cacheState = 'cold';
-    } else if (hasError) {
-      cacheState = 'unknown';
+    } else if (!hasError) {
+      cacheState = 'warm';
     }
 
     useSectionPerformance({
