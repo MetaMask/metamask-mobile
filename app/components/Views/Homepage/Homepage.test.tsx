@@ -306,6 +306,7 @@ jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
 
 jest.mock('../../UI/Assets/selectors/featureFlags', () => ({
   selectTokenWatchlistEnabled: jest.fn(() => false),
+  selectUnifiedWatchlistEnabled: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Assets/watchlist/hooks/useTokenWatchlistQuery', () => ({
