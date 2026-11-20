@@ -18,6 +18,7 @@ import NavigationService from '../../../../../core/NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { getActiveMfaFlow } from '../../../../../util/identity/mfa/engine/activeFlow';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   renderVbaDeleteIdentityData,
   restoreVbaReduxServiceStore,
@@ -124,7 +125,7 @@ const confirmAndSubmitEmailCode = async (
   );
 };
 
-describe('DeleteIdentityData view', () => {
+describeForPlatforms('DeleteIdentityData view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     resetControllerMocks();

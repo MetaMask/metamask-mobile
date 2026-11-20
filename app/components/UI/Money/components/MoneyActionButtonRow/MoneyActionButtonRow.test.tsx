@@ -32,7 +32,7 @@ describe('MoneyActionButtonRow', () => {
     const { getByText } = render(<MoneyActionButtonRow {...defaultProps} />);
 
     expect(getByText(strings('money.action.add'))).toBeOnTheScreen();
-    expect(getByText(strings('money.action.transfer'))).toBeOnTheScreen();
+    expect(getByText(strings('money.action.move'))).toBeOnTheScreen();
     expect(getByText(strings('money.action.card'))).toBeOnTheScreen();
   });
 

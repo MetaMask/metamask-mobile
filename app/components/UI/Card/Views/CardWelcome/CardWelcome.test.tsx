@@ -13,12 +13,6 @@ import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '10.0.0'),
 }));
-const mockTrackCardLinkRoutingDisagreement = jest.fn();
-jest.mock('../../util/trackCardLinkRoutingDisagreement', () => ({
-  trackCardLinkRoutingDisagreement: (...args: unknown[]) =>
-    mockTrackCardLinkRoutingDisagreement(...args),
-}));
-
 const mockUseCardPostAuthRedirect = jest.fn();
 
 jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
@@ -77,7 +71,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 
 const createTestStore = (
   initialState: {
-    cardholderAccounts?: string[];
     signInLink?: Record<string, unknown> | null;
     cardLinks?: Record<string, unknown>[] | null;
     cardLinkApiEnabled?: boolean;
@@ -89,7 +82,6 @@ const createTestStore = (
         state = {
           backgroundState: {
             CardController: {
-              cardholderAccounts: initialState.cardholderAccounts ?? [],
               signInLink: initialState.signInLink ?? null,
               cardLinks: initialState.cardLinks ?? null,
             },
@@ -157,7 +149,7 @@ describe('CardWelcome', () => {
 
   describe('Render', () => {
     beforeEach(() => {
-      store = createTestStore({ cardholderAccounts: [] });
+      store = createTestStore();
     });
 
     it('renders required UI elements', () => {
@@ -234,7 +226,7 @@ describe('CardWelcome', () => {
 
   describe('Navigation Flow', () => {
     it('navigates to onboarding root when verify account button pressed (Non-cardholder)', () => {
-      store = createTestStore({ cardholderAccounts: [] });
+      store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
           <CardWelcome />
@@ -254,7 +246,8 @@ describe('CardWelcome', () => {
 
     it('navigates to authentication when verify account button pressed (Cardholder)', () => {
       store = createTestStore({
-        cardholderAccounts: ['0x1234567890abcdef'],
+        cardLinkApiEnabled: true,
+        cardLinks: [cardLinkRow('baanx', 'active')],
       });
       const { getByTestId } = render(
         <Provider store={store}>
@@ -274,10 +267,9 @@ describe('CardWelcome', () => {
     });
 
     describe('when cardLinkApi is on', () => {
-      it('navigates to authentication for a linked user without the card_user label', () => {
+      it('navigates to authentication for a stored active link', () => {
         store = createTestStore({
           cardLinkApiEnabled: true,
-          cardholderAccounts: [],
           cardLinks: [cardLinkRow('immersve', 'active')],
         });
         const { getByTestId } = render(
@@ -294,20 +286,11 @@ describe('CardWelcome', () => {
           Routes.CARD.AUTHENTICATION,
           undefined,
         );
-        expect(mockTrackCardLinkRoutingDisagreement).toHaveBeenCalledWith(
-          expect.objectContaining({
-            source: 'card_links',
-            hasCard: true,
-            disagreesWithLegacy: true,
-          }),
-          'card_welcome',
-        );
       });
 
-      it('lets the stored links override the card_user label', () => {
+      it('sends a user whose only link is closed to onboarding', () => {
         store = createTestStore({
           cardLinkApiEnabled: true,
-          cardholderAccounts: ['eip155:0:0x1234567890abcdef'],
           cardLinks: [cardLinkRow('baanx', 'closed')],
         });
         const { getByTestId } = render(
@@ -326,10 +309,9 @@ describe('CardWelcome', () => {
         );
       });
 
-      it('falls back to the card_user label when there are no links yet', () => {
+      it('sends a user with no stored links to onboarding', () => {
         store = createTestStore({
           cardLinkApiEnabled: true,
-          cardholderAccounts: ['eip155:0:0x1234567890abcdef'],
           cardLinks: [],
         });
         const { getByTestId } = render(
@@ -343,7 +325,7 @@ describe('CardWelcome', () => {
         );
 
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.CARD.AUTHENTICATION,
+          Routes.CARD.ONBOARDING.ROOT,
           undefined,
         );
       });
@@ -351,7 +333,6 @@ describe('CardWelcome', () => {
 
     it('navigates to authentication when a sign-in link exists (non-cardholder)', () => {
       store = createTestStore({
-        cardholderAccounts: [],
         signInLink: {
           providerId: 'immersve',
           status: 'linked',
@@ -375,7 +356,7 @@ describe('CardWelcome', () => {
 
     it('forwards postAuthRedirect to onboarding when opened from Money (non-cardholder)', () => {
       mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
-      store = createTestStore({ cardholderAccounts: [] });
+      store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
           <CardWelcome />
@@ -392,7 +373,8 @@ describe('CardWelcome', () => {
     it('forwards postAuthRedirect to authentication when opened from Money (cardholder)', () => {
       mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
       store = createTestStore({
-        cardholderAccounts: ['0x1234567890abcdef'],
+        cardLinkApiEnabled: true,
+        cardLinks: [cardLinkRow('baanx', 'active')],
       });
       const { getByTestId } = render(
         <Provider store={store}>

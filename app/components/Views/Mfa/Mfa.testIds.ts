@@ -1,5 +1,6 @@
 export const MfaFlowSelectorsIDs = {
   CONTAINER: 'mfa-flow',
+  OTP_CONTAINER: 'mfa-flow-otp',
   BACK_BUTTON: 'mfa-flow-back-button',
   CLOSE_BUTTON: 'mfa-flow-close-button',
   PRIMARY_BUTTON: 'mfa-flow-primary-button',

@@ -94,11 +94,13 @@ jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
 
 const mockUseNetworkTier = jest.fn();
 jest.mock('../../../../hooks/useNetworkTier', () => ({
+  ...jest.requireActual('../../../../hooks/useNetworkTier'),
   useNetworkTier: () => mockUseNetworkTier(),
 }));
 
 const mockGetHardwareTier = jest.fn();
 jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
   getHardwareTier: () => mockGetHardwareTier(),
 }));
 
@@ -145,26 +147,6 @@ jest.mock(
     default: (props: Record<string, unknown>) => mockPerpsMarketTileCard(props),
   }),
 );
-
-jest.mock('../../../../util/deviceCapability', () => ({
-  ...jest.requireActual('../../../../util/deviceCapability'),
-  getHardwareTier: () => 'LOW',
-}));
-
-jest.mock('../../../../hooks/useNetworkTier', () => ({
-  ...jest.requireActual('../../../../hooks/useNetworkTier'),
-  useNetworkTier: () => 'SLOW_CELLULAR',
-}));
-
-jest.mock('../../../UI/RobinhoodBanner', () => ({
-  RobinhoodBanner: () => null,
-  RobinhoodBannerSurface: { ExploreCrypto: 'explore_crypto' },
-  useRobinhoodBanner: () => ({
-    dismiss: jest.fn(),
-    handlePress: jest.fn(),
-    shouldShow: false,
-  }),
-}));
 
 jest.mock('../../../UI/Trending/contexts', () => ({
   useTrendingQuickBuySheet: () => ({
@@ -440,6 +422,8 @@ describe('CryptoTab — Top Traders section', () => {
 describe('CryptoTab — Perps tiles', () => {
   it('passes the device tiers to each Perps tile', () => {
     arrangeMocks({ perpsEnabled: true });
+    mockGetHardwareTier.mockReturnValue('LOW');
+    mockUseNetworkTier.mockReturnValue('SLOW_CELLULAR');
     render(<CryptoTab {...defaultTabProps} />);
     const perpsCarousel = mockTileCarousel.mock.calls.find(
       ([props]) => props.testID === 'explore-crypto_perps-carousel',

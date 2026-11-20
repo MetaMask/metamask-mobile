@@ -3,6 +3,7 @@ import { userEvent, within } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import ToastService from '../../../../../core/ToastService';
 import { renderShortAddress } from '../../../../../util/address';
 import { formatTimestampToDateTime } from '../../../../../util/date';
 import {
@@ -65,11 +66,18 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
       isInternetReachable: true,
     });
     setupRecurringOrdersDataServiceMock();
+    ToastService.toastRef = {
+      current: {
+        showToast: jest.fn(),
+        closeToast: jest.fn(),
+      },
+    };
   });
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
     netInfoMock.__resetMockNetInfo();
+    ToastService.resetForTesting();
     jest.restoreAllMocks();
   });
 

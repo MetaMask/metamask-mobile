@@ -610,7 +610,7 @@ export default class DeeplinkProtocolService {
     return hexChainId;
   }
 
-  public getSelectedAccounts() {
+  public getSelectedAccounts(clientId = this.currentClientId ?? '') {
     const accountsController = (
       Engine.context as {
         AccountsController: AccountsController;
@@ -621,7 +621,7 @@ export default class DeeplinkProtocolService {
       accountsController.getSelectedAccount().address,
     );
 
-    let connectedAddresses = getPermittedAccounts(this.currentClientId ?? '');
+    let connectedAddresses = getPermittedAccounts(clientId);
 
     DevLogger.log(
       `DeeplinkProtocolService::clients_connected connectedAddresses`,
@@ -676,6 +676,46 @@ export default class DeeplinkProtocolService {
     return selectedInternalAccountChecksummedAddress;
   }
 
+  private rejectStaleAccountContext({
+    id,
+    message,
+    channelId,
+    scheme,
+  }: {
+    id: string;
+    message: string;
+    channelId: string;
+    scheme: string;
+  }) {
+    // The SDK resyncs its account and chain from these fields, so only share
+    // them with a known session.
+    const context = this.connections[channelId]
+      ? {
+          chainId: this.getChainId(),
+          accounts: this.getSelectedAccounts(channelId),
+        }
+      : {};
+
+    this.openDeeplink({
+      message: {
+        data: {
+          id,
+          error: { code: -32602, message },
+          jsonrpc: '2.0',
+          ...context,
+        },
+        name: 'metamask-provider',
+      },
+      clientId: channelId,
+      scheme,
+    }).catch((err) => {
+      Logger.log(
+        err,
+        `DeeplinkProtocolService::rejectStaleAccountContext error sending jsonrpc error message to client ${channelId}`,
+      );
+    });
+  }
+
   public handleMessage(params: {
     dappPublicKey: string;
     url: string;
@@ -684,22 +724,29 @@ export default class DeeplinkProtocolService {
     scheme: string;
     account: string; // account@chainid
   }) {
+    const account = params.account?.split('@') ?? [];
     let walletSelectedAddress = '';
     let walletSelectedChainId = '';
     let dappAccountChainId = '';
     let dappAccountAddress = '';
 
-    if (!params.account?.includes('@')) {
+    if (account.length !== 2) {
       DevLogger.log(
-        `DeeplinkProtocolService:: handleMessage invalid params.account format ${params.account}`,
+        'DeeplinkProtocolService:: handleMessage invalid params.account format',
       );
     } else {
-      const account = params.account.split('@');
       walletSelectedAddress = this.getSelectedAddress();
       walletSelectedChainId = this.getChainId();
       dappAccountChainId = account[1];
       dappAccountAddress = account[0];
     }
+
+    const hasAccountContext = Boolean(
+      walletSelectedAddress &&
+        walletSelectedChainId &&
+        dappAccountAddress &&
+        dappAccountChainId,
+    );
 
     DevLogger.log(
       'DeeplinkProtocolService:: handleMessage params from deeplink',
@@ -775,29 +822,21 @@ export default class DeeplinkProtocolService {
 
         const isRpcMethodToSkip = checkForRpcMethodToSkip();
 
-        if (isAccountChanged || (!isRpcMethodToSkip && isChainChanged)) {
-          const dynamicErrorMessage = `The selected ${
-            isAccountChanged ? 'account' : 'chain'
-          } has changed. Please try again.`;
+        // Any value that could not be derived would compare as unchanged, so a
+        // missing account or chain must fail closed instead of matching.
+        if (
+          !hasAccountContext ||
+          isAccountChanged ||
+          (!isRpcMethodToSkip && isChainChanged)
+        ) {
+          const changedContext =
+            !hasAccountContext || isAccountChanged ? 'account' : 'chain';
 
-          this.sendMessage(
-            {
-              data: {
-                id: data.id,
-                error: {
-                  code: -32602,
-                  message: dynamicErrorMessage,
-                },
-                jsonrpc: '2.0',
-              },
-              name: 'metamask-provider',
-            },
-            true,
-          ).catch((err) => {
-            Logger.log(
-              err,
-              `DeeplinkProtocolService::onMessageReceived error sending jsonrpc error message to client ${sessionId}`,
-            );
+          this.rejectStaleAccountContext({
+            id: data.id,
+            message: `The selected ${changedContext} has changed. Please try again.`,
+            channelId: sessionId,
+            scheme: params.scheme,
           });
 
           return;

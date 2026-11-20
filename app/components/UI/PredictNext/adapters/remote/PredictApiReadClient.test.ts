@@ -1342,5 +1342,77 @@ describe('PredictApiReadClient', () => {
       ).rejects.toMatchObject({ name: 'AbortError' });
       expect(fetchMock).not.toHaveBeenCalled();
     });
+
+    /** Answers only when the request's own signal aborts, so a never-settling
+     * transport can prove the client's deadline is what ended the wait. */
+    const hangingFetch = (onSignal: (signal: AbortSignal) => void): jest.Mock =>
+      jest.fn((_url: string, init?: RequestInit) => {
+        const signal = init?.signal as AbortSignal;
+        onSignal(signal);
+        return new Promise<Response>((_resolve, reject) => {
+          signal.addEventListener('abort', () => {
+            const error = new Error('The request was aborted.');
+            error.name = 'AbortError';
+            reject(error);
+          });
+        });
+      }) as unknown as jest.Mock;
+
+    it('aborts an in-flight commit after its own 30 second deadline', async () => {
+      jest.useFakeTimers();
+      try {
+        bearerOnlyClient();
+        let requestSignal: AbortSignal | undefined;
+        fetchMock.mockImplementation(
+          hangingFetch((signal) => {
+            requestSignal = signal;
+          }),
+        );
+
+        const pending = client.commitWithdraw(venueId, previewId);
+        const rejected = expect(pending).rejects.toMatchObject({
+          name: 'AbortError',
+        });
+        await jest.advanceTimersByTimeAsync(0);
+
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+        expect(requestSignal?.aborted).toBe(false);
+
+        await jest.advanceTimersByTimeAsync(30_000);
+
+        expect(requestSignal?.aborted).toBe(true);
+        await rejected;
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('aborts an in-flight observation after its own 15 second deadline', async () => {
+      jest.useFakeTimers();
+      try {
+        bearerOnlyClient();
+        let requestSignal: AbortSignal | undefined;
+        fetchMock.mockImplementation(
+          hangingFetch((signal) => {
+            requestSignal = signal;
+          }),
+        );
+
+        const pending = client.observeWithdraw(venueId, previewId);
+        const rejected = expect(pending).rejects.toMatchObject({
+          name: 'AbortError',
+        });
+        await jest.advanceTimersByTimeAsync(0);
+
+        expect(requestSignal?.aborted).toBe(false);
+
+        await jest.advanceTimersByTimeAsync(15_000);
+
+        expect(requestSignal?.aborted).toBe(true);
+        await rejected;
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 });

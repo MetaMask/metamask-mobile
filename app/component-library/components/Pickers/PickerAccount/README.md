@@ -32,7 +32,7 @@ Content to wrap in PickerAccount.
 
 ```javascript
 // Replace import with relative path.
-import PickerAccount from 'app/component-library/components/Pickers/PickerAccount';
+import PickerAccount from '#app/component-library/components/Pickers/PickerAccount';
 
 <PickerAccount
   accountAddress={ACCOUNT_ADDRESS}

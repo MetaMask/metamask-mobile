@@ -101,15 +101,29 @@ describeForPlatforms('KycRejected view', () => {
 
     await openVbaBankAccountFromMoney(view.findByTestId);
 
-    expect(
-      await view.findByTestId(KycRejectedSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycRejectedSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
     const contactSupport = view.getByTestId(
       KycRejectedSelectorsIDs.CONTACT_SUPPORT_BUTTON,
     );
     expect(contactSupport).toHaveTextContent(
       strings('kyc.kyc_rejected.button'),
     );
+    expect(
+      view.getByText(strings('kyc.kyc_rejected.description')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByText(strings('kyc.kyc_rejected.identity_document_description')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByText(strings('kyc.kyc_rejected.selfie_description')),
+    ).toBeOnTheScreen();
+    expect(
+      view.getByText(strings('kyc.kyc_rejected.details_description')),
+    ).toBeOnTheScreen();
     expect(
       view.queryByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON),
     ).not.toBeOnTheScreen();
@@ -141,9 +155,11 @@ describeForPlatforms('KycRejected view', () => {
 
     await openVbaBankAccountFromMoney(view.findByTestId);
 
-    expect(
-      await view.findByTestId(KycRejectedSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycRejectedSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
     expect(
       view.getByText(strings('kyc.kyc_rejected.retry_description')),
     ).toBeOnTheScreen();
@@ -159,8 +175,10 @@ describeForPlatforms('KycRejected view', () => {
     launchProviderFlow.mockImplementation(() => new Promise(() => undefined));
     fireEvent.press(view.getByTestId(KycRejectedSelectorsIDs.RETRY_BUTTON));
 
-    expect(
-      await view.findByTestId(KycSumSubSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        view.getByTestId(KycSumSubSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
   });
 });

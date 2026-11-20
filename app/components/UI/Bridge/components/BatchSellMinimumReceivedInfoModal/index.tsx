@@ -3,7 +3,6 @@ import type { AppStackNavigationProp } from '../../../../../core/NavigationServi
 import React from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ButtonIconSize,
   Text,
@@ -15,8 +14,12 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellMinimumReceivedInfoModalSelectorsIDs } from './BatchSellMinimumReceivedInfoModal.testIds';
 import { BatchSellMinimumReceivedInfoModalParams } from './BatchSellMinimumReceivedInfoModal.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export function BatchSellMinimumReceivedInfoModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellMinimumReceivedInfoModalParams>();
   const handleBack = sourceModal
@@ -27,7 +30,8 @@ export function BatchSellMinimumReceivedInfoModal() {
       testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={handleBack}
         backButtonProps={{
           testID: BatchSellMinimumReceivedInfoModalSelectorsIDs.BACK_BUTTON,
@@ -39,7 +43,7 @@ export function BatchSellMinimumReceivedInfoModal() {
         }}
       >
         {strings('bridge.minimum_received_tooltip_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
           variant={TextVariant.BodyMd}
