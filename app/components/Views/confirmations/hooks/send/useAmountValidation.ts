@@ -20,7 +20,7 @@ import {
 const AMOUNT_VALIDATION_DEBOUNCE_MS = 300;
 
 export const useAmountValidation = () => {
-  const { asset, value } = useSendContext();
+  const { asset, to, value } = useSendContext();
   const { decimals, rawBalanceBN } = useBalance();
   const { isNonEvmSendType } = useSendType();
   const { validateAmountWithSnap } = useSnapAmountOnInput();
@@ -158,9 +158,9 @@ export const useAmountValidation = () => {
 
   // Non-EVM: debounce to avoid a snap RPC call on every keystroke.
   // Deferred until the first Continue press so errors never flash while the
-  // user is still typing; after that it re-runs on every value change so
-  // amountError never goes stale. Cancel on cleanup gives real debounce
-  // semantics across keystrokes.
+  // user is still typing; after that it re-runs on every value or recipient
+  // change so amountError never goes stale. Cancel on cleanup gives real
+  // debounce semantics across keystrokes.
   useEffect(() => {
     if (isNonEvmSendType && hasAttemptedContinueRef.current) {
       debouncedSnapValidation();
@@ -168,7 +168,7 @@ export const useAmountValidation = () => {
     return () => {
       debouncedSnapValidation.cancel();
     };
-  }, [isNonEvmSendType, value, debouncedSnapValidation]);
+  }, [isNonEvmSendType, to, value, debouncedSnapValidation]);
 
   return { amountError, validateNonEvmAmountAsync };
 };
