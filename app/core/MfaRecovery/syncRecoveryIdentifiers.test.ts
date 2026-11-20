@@ -35,12 +35,12 @@ const NEW_PASSKEY: Identifier = {
 function createService({
   status = 'Enabled',
   unenrolledPasskeys = [] as Identifier[],
-  candidates = {} as Partial<Record<string, Identifier>>,
+  candidates = [] as Identifier[],
   enrolledPasskey = PASSKEY as Identifier | null,
 }: {
   status?: 'Enabled' | 'NotEnabled';
   unenrolledPasskeys?: Identifier[];
-  candidates?: Partial<Record<string, Identifier>>;
+  candidates?: Identifier[];
   /** `null` when Cubist does not have the passkey being removed. */
   enrolledPasskey?: Identifier | null;
 } = {}) {
@@ -69,7 +69,7 @@ describe('syncRecoveryAfterEnroll', () => {
   });
 
   it('gives the service the social link email prompt for setup', async () => {
-    createService({ status: 'NotEnabled', candidates: { siwe: SIWE } });
+    createService({ status: 'NotEnabled', candidates: [SIWE] });
     const getSocialLinkEmail = jest.fn();
 
     await syncRecoveryAfterEnroll('totp', { verifyMfa, getSocialLinkEmail });
@@ -111,24 +111,13 @@ describe('syncRecoveryAfterEnroll', () => {
   it('sets recovery up with the candidate identifiers on first enrollment', async () => {
     const service = createService({
       status: 'NotEnabled',
-      candidates: { siwe: SIWE, social: SOCIAL, passkey: PASSKEY },
+      candidates: [SIWE, SOCIAL, PASSKEY],
     });
 
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
     expect(service.setUp).toHaveBeenCalledWith([SIWE, SOCIAL, PASSKEY]);
     expect(service.addIdentifier).not.toHaveBeenCalled();
-  });
-
-  it('skips missing candidates when setting recovery up', async () => {
-    const service = createService({
-      status: 'NotEnabled',
-      candidates: { siwe: SIWE, passkey: undefined },
-    });
-
-    await syncRecoveryAfterEnroll('totp', { verifyMfa });
-
-    expect(service.setUp).toHaveBeenCalledWith([SIWE]);
   });
 
   it('adds a new passkey when recovery is set up', async () => {

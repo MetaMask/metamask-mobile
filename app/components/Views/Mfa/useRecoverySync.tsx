@@ -22,7 +22,7 @@ import { strings } from '../../../../locales/i18n';
 import SocialLinkEmailBottomSheet from '../shared/SocialLinkEmailBottomSheet';
 import RecoverySetupProgressBottomSheet from '../shared/RecoverySetupProgressBottomSheet';
 
-type RecoverySyncPhase = 'idle' | 'running' | 'verifying' | 'linking';
+type RecoverySyncPhase = 'idle' | 'running' | 'hidden' | 'linking';
 type RecoveryProgressCopy = 'setup' | 'update';
 
 // iOS drops a modal presented while another one is still being dismissed.
@@ -58,7 +58,6 @@ const useRecoverySync = (): RecoverySync => {
   const [phase, setPhase] = useState<RecoverySyncPhase>('idle');
   const [progressCopy, setProgressCopy] =
     useState<RecoveryProgressCopy>('setup');
-  const [isSocialLinkPromptShown, setIsSocialLinkPromptShown] = useState(false);
   const isMounted = useRef(true);
   const pendingResolve = useRef<((email?: string) => void) | undefined>(
     undefined,
@@ -90,23 +89,36 @@ const useRecoverySync = (): RecoverySync => {
   );
 
   const stepAsideWhile = useCallback(
-    (verify: () => Promise<unknown>) => async (): Promise<void> => {
-      showPhase('verifying');
-      try {
-        await waitForModalsToSettle();
-        await verify();
-      } finally {
-        await waitForModalsToSettle();
-        showPhase('running');
-      }
-    },
+    <Result,>(fn: () => Promise<Result>) =>
+      async (): Promise<Result> => {
+        showPhase('hidden');
+        try {
+          await waitForModalsToSettle();
+          return await fn();
+        } finally {
+          showPhase('hidden');
+          await waitForModalsToSettle();
+          showPhase('running');
+        }
+      },
     [showPhase],
   );
+
+  const askSocialLinkEmail = useCallback(async (): Promise<
+    string | undefined
+  > => {
+    if (!isMounted.current) {
+      return undefined;
+    }
+    showPhase('linking');
+    return new Promise<string | undefined>((resolve) => {
+      pendingResolve.current = resolve;
+    });
+  }, [showPhase]);
 
   const closeSocialLinkPrompt = useCallback((email?: string) => {
     pendingResolve.current?.(email);
     pendingResolve.current = undefined;
-    setIsSocialLinkPromptShown(false);
   }, []);
 
   const syncRecovery = useCallback(
@@ -117,37 +129,28 @@ const useRecoverySync = (): RecoverySync => {
       startProgress('setup');
       try {
         await syncRecoveryAfterEnroll(method, {
-          verifyMfa: stepAsideWhile(() =>
-            verifyOrEnroll({
+          verifyMfa: stepAsideWhile(async () => {
+            await verifyOrEnroll({
               methods: [method],
               verifyWith: [method],
               reason,
-            }),
-          ),
+            });
+          }),
           getSocialLinkEmail: isMfaDevBuild()
-            ? async (): Promise<string | undefined> => {
-                showPhase('linking');
-                try {
-                  await waitForModalsToSettle();
-                  if (!isMounted.current) {
-                    return undefined;
-                  }
-                  return await new Promise<string | undefined>((resolve) => {
-                    pendingResolve.current = resolve;
-                    setIsSocialLinkPromptShown(true);
-                  });
-                } finally {
-                  await waitForModalsToSettle();
-                  showPhase('running');
-                }
-              }
+            ? stepAsideWhile(askSocialLinkEmail)
             : undefined,
         });
       } finally {
         showPhase('idle');
       }
     },
-    [isMfaRecoveryEnabled, showPhase, startProgress, stepAsideWhile],
+    [
+      askSocialLinkEmail,
+      isMfaRecoveryEnabled,
+      showPhase,
+      startProgress,
+      stepAsideWhile,
+    ],
   );
 
   const removeRecoveryPasskey = useCallback(
@@ -161,7 +164,9 @@ const useRecoverySync = (): RecoverySync => {
       startProgress('update');
       try {
         await removePasskeyFromRecovery(credentialId, {
-          verifyMfa: stepAsideWhile(verifyMfa),
+          verifyMfa: stepAsideWhile(async () => {
+            await verifyMfa();
+          }),
         });
       } finally {
         showPhase('idle');
@@ -181,7 +186,7 @@ const useRecoverySync = (): RecoverySync => {
         }
       />
     );
-  } else if (phase === 'linking' && isSocialLinkPromptShown) {
+  } else if (phase === 'linking') {
     recoverySheets = (
       <SocialLinkEmailBottomSheet
         onSubmit={closeSocialLinkPrompt}

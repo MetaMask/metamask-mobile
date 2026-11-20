@@ -53,7 +53,6 @@ import {
   isSameIdentifier,
   MIN_CUBIST_IDENTIFIERS,
   type CubistIdentifierChangeResult,
-  type CubistIdentifierType,
 } from './recovery-identifiers';
 import {
   findSocialIdentifier,
@@ -370,7 +369,6 @@ export class MfaRecoveryService {
   async setUp(
     identifiers: readonly Identifier[] = [],
   ): Promise<MfaRecoverySetupResult> {
-    const messenger = this.#messenger;
     if (this.#seedlessState().envelope) {
       return 'already_enabled';
     }
@@ -378,7 +376,9 @@ export class MfaRecoveryService {
     const { address, authIdentifiers: approved } = await this.#prepare();
     let authIdentifiers = approved;
     if (!findSocialIdentifier(authIdentifiers, this.#seedlessState())) {
-      await this.#linkSocialLogin();
+      await this.linkSocialLogin(
+        (await this.#options.getSocialLinkEmail?.())?.trim() || undefined,
+      );
       authIdentifiers = await this.getAuthIdentifiers();
     }
     const { siweIdentifier } = toRunIdentifiers(authIdentifiers, address);
@@ -391,7 +391,7 @@ export class MfaRecoveryService {
 
     let recoverySecret = new Uint8Array(0);
     try {
-      const { epoch } = await messenger.call(
+      const { epoch } = await this.#messenger.call(
         'MfaRecoveryController:getIdentifiers',
       );
       if (epoch > 0) {
@@ -401,7 +401,7 @@ export class MfaRecoveryService {
         ({ recoverySecret } = await this.readRecoverySecret(siweIdentifier));
       } else {
         recoverySecret = this.createRecoverySecret();
-        await messenger.call(
+        await this.#messenger.call(
           'MfaRecoveryController:register',
           recoverySecret,
           registrationIdentifiers,
@@ -411,10 +411,11 @@ export class MfaRecoveryService {
       await this.openRecoverySession();
       // migrateToEnvelope rejects vaults whose data types are not migrated yet.
       // runMigrations is a no-op once they are.
-      await messenger.call('SeedlessOnboardingController:runMigrations');
-      await messenger.call('SeedlessOnboardingController:migrateToEnvelope', {
-        recoverySecret,
-      });
+      await this.#messenger.call('SeedlessOnboardingController:runMigrations');
+      await this.#messenger.call(
+        'SeedlessOnboardingController:migrateToEnvelope',
+        { recoverySecret },
+      );
       return 'enabled';
     } finally {
       recoverySecret.fill(0);
@@ -447,16 +448,17 @@ export class MfaRecoveryService {
    * Returns the identifier each type would be added with. Auth's identifiers
    * win, with fallbacks to the SRP signing key and the seedless login.
    */
-  async getCandidateIdentifiers(): Promise<
-    Partial<Record<CubistIdentifierType, Identifier>>
-  > {
+  async getCandidateIdentifiers(): Promise<Identifier[]> {
     const { authIdentifiers } = await this.#messenger.call(
       'MfaRecoveryController:getIdentifiers',
     );
-    return getCandidateIdentifiers(
+    const candidates = getCandidateIdentifiers(
       authIdentifiers,
       await this.getSiweAddress(),
       this.#seedlessState(),
+    );
+    return Object.values(candidates).filter(
+      (identifier): identifier is Identifier => identifier !== undefined,
     );
   }
 
@@ -483,14 +485,10 @@ export class MfaRecoveryService {
     }
 
     const current = withAuthCopies(identifiers, authIdentifiers);
-    await this.#messenger.call(
-      'MfaRecoveryController:updateIdentifiers',
+    const newEpoch = await this.#writeIdentifiers(
       pickAuthorizingIdentifier(current),
       [...current, identifier],
       epoch,
-    );
-    const { epoch: newEpoch } = await this.#messenger.call(
-      'MfaRecoveryController:getIdentifiers',
     );
     return {
       identifierType: identifier.type,
@@ -522,14 +520,10 @@ export class MfaRecoveryService {
       );
     }
 
-    await this.#messenger.call(
-      'MfaRecoveryController:updateIdentifiers',
+    const newEpoch = await this.#writeIdentifiers(
       pickAuthorizingIdentifier(remaining),
       remaining,
       epoch,
-    );
-    const { epoch: newEpoch } = await this.#messenger.call(
-      'MfaRecoveryController:getIdentifiers',
     );
     return { identifierType: target.type, change: 'removed', epoch: newEpoch };
   }
@@ -552,12 +546,6 @@ export class MfaRecoveryService {
     await this.verifyMfa();
     await this.#resumePendingOperation();
     return { address, authIdentifiers: await this.getAuthIdentifiers() };
-  }
-
-  async #linkSocialLogin(): Promise<void> {
-    const email =
-      (await this.#options.getSocialLinkEmail?.())?.trim() || undefined;
-    await this.linkSocialLogin(email);
   }
 
   async #requestApproval(
@@ -588,6 +576,24 @@ export class MfaRecoveryService {
     await this.verifyMfa();
     await this.#resumePendingOperation();
     return await this.#messenger.call('MfaRecoveryController:getIdentifiers');
+  }
+
+  /** Writes the identifier list and returns the epoch it is stored at. */
+  async #writeIdentifiers(
+    authorizing: Identifier,
+    next: Identifier[],
+    epoch: number,
+  ): Promise<number> {
+    await this.#messenger.call(
+      'MfaRecoveryController:updateIdentifiers',
+      authorizing,
+      next,
+      epoch,
+    );
+    const { epoch: newEpoch } = await this.#messenger.call(
+      'MfaRecoveryController:getIdentifiers',
+    );
+    return newEpoch;
   }
 
   #seedlessState() {

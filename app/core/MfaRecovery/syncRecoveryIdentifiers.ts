@@ -1,7 +1,5 @@
-import type { Identifier } from '@metamask/mfa-recovery-controller';
 import type { MfaMethod } from '../../util/identity/mfa/engine/types';
 import { createMfaRecoveryService } from './engineBindings';
-import type { MfaRecoveryService } from './services/mfa-recovery-service';
 import { PASSWORDLESS_RECOVERY_SETUP_OPERATION } from './setupPasswordlessRecovery';
 
 export interface SyncRecoveryAfterEnrollOptions {
@@ -14,21 +12,10 @@ export interface SyncRecoveryAfterEnrollOptions {
   getSocialLinkEmail?: () => Promise<string | undefined>;
 }
 
-export interface RemovePasskeyFromRecoveryOptions {
-  /** Proves the user so the recovery approvals are accepted. */
-  verifyMfa: () => Promise<void>;
-}
-
-function createService({
-  verifyMfa,
-  getSocialLinkEmail,
-}: SyncRecoveryAfterEnrollOptions): MfaRecoveryService {
-  return createMfaRecoveryService({
-    verifyMfa,
-    approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
-    getSocialLinkEmail,
-  });
-}
+export type RemovePasskeyFromRecoveryOptions = Pick<
+  SyncRecoveryAfterEnrollOptions,
+  'verifyMfa'
+>;
 
 /**
  * Keeps passwordless recovery in step with a newly enrolled method. Sets
@@ -43,14 +30,13 @@ export async function syncRecoveryAfterEnroll(
   method: MfaMethod,
   options: SyncRecoveryAfterEnrollOptions,
 ): Promise<void> {
-  const service = createService(options);
+  const service = createMfaRecoveryService({
+    ...options,
+    approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
+  });
 
   if (service.getStatus() === 'NotEnabled') {
-    const candidates = await service.getCandidateIdentifiers();
-    const identifiers = Object.values(candidates).filter(
-      (identifier): identifier is Identifier => identifier !== undefined,
-    );
-    await service.setUp(identifiers);
+    await service.setUp(await service.getCandidateIdentifiers());
     return;
   }
 
@@ -76,7 +62,10 @@ export async function removePasskeyFromRecovery(
   credentialId: string,
   { verifyMfa }: RemovePasskeyFromRecoveryOptions,
 ): Promise<void> {
-  const service = createService({ verifyMfa });
+  const service = createMfaRecoveryService({
+    verifyMfa,
+    approvalOperation: PASSWORDLESS_RECOVERY_SETUP_OPERATION,
+  });
 
   if (service.getStatus() === 'NotEnabled') {
     return;

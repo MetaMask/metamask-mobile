@@ -934,11 +934,21 @@ describe('MfaRecoveryService', () => {
       const controller = createController();
       const { service } = createService({ controller });
 
-      expect(await service.getCandidateIdentifiers()).toStrictEqual({
-        siwe: SIWE,
-        passkey: AUTH_PASSKEY,
-        social: SOCIAL,
-      });
+      expect(await service.getCandidateIdentifiers()).toStrictEqual([
+        SIWE,
+        AUTH_PASSKEY,
+        SOCIAL,
+      ]);
+    });
+
+    it('skips types with no candidate', async () => {
+      const controller = createController({ authIdentifiers: [] });
+      const { service } = createService({ controller });
+
+      expect(await service.getCandidateIdentifiers()).toStrictEqual([
+        SIWE,
+        SOCIAL,
+      ]);
     });
   });
 
