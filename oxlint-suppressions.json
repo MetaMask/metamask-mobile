@@ -1010,7 +1010,7 @@
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/index.ts": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/Bridge/hooks/useLegacySwapsBlockExplorer/index.ts": {
@@ -1079,11 +1079,6 @@
   },
   "app/components/UI/Bridge/hooks/useSwapsLimitOrderKeypad/index.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 3
-    }
-  },
-  "app/components/UI/Bridge/hooks/useLatestBalance/index.ts": {
-    "typescript/no-floating-promises": {
       "count": 3
     }
   },
