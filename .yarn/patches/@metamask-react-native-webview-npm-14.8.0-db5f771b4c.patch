@@ -1143,10 +1143,10 @@ index 0000000000000000000000000000000000000000..3f9aa9c998f9f2326a1100d43f992809
 \ No newline at end of file
 diff --git a/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java b/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
 new file mode 100644
-index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83ab192414
+index 0000000000000000000000000000000000000000..b97a115a7ce8ae911600944fb467e7f262a02bc7
 --- /dev/null
 +++ b/android/src/main/java/com/reactnativecommunity/webview/RNCWebViewClient.java
-@@ -0,0 +1,363 @@
+@@ -0,0 +1,374 @@
 +package com.reactnativecommunity.webview;
 +
 +import android.annotation.TargetApi;
@@ -1258,6 +1258,12 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +
 +    @Override
 +    public boolean shouldOverrideUrlLoading(WebView view, String url) {
++        // This overload carries no frame information. Report the top frame, which is
++        // the stricter answer for a caller that only allows a sub-frame load.
++        return shouldOverrideUrlLoading(view, url, true);
++    }
++
++    private boolean shouldOverrideUrlLoading(WebView view, String url, boolean isForMainFrame) {
 +        final RNCWebView rncWebView = (RNCWebView) view;
 +
 +        RNCWebChromeClient webChromeClient = (RNCWebChromeClient) rncWebView.getWebChromeClient();
@@ -1274,6 +1280,7 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +
 +            final WritableMap event = createWebViewEvent(view, url);
 +            event.putDouble("lockIdentifier", lockIdentifier);
++            event.putBoolean("isTopFrame", isForMainFrame);
 +            rncWebView.dispatchDirectShouldStartLoadWithRequest(event);
 +
 +            try {
@@ -1308,10 +1315,12 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +            progressChangedFilter.setWaitingForCommandLoadUrl(true);
 +
 +            int reactTag = RNCWebViewWrapper.getReactTagFromWebView(view);
++            final WritableMap fallbackEvent = createWebViewEvent(view, url);
++            fallbackEvent.putBoolean("isTopFrame", isForMainFrame);
 +            UIManagerHelper.getEventDispatcherForReactTag((ReactContext) view.getContext(), reactTag)
 +                    .dispatchEvent(new TopShouldStartLoadWithRequestEvent(
 +                            reactTag,
-+                            createWebViewEvent(view, url)));
++                            fallbackEvent));
 +            return true;
 +        }
 +    }
@@ -1320,7 +1329,9 @@ index 0000000000000000000000000000000000000000..e77fc1512dde3e922c7b4ab1aace2e83
 +    @Override
 +    public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
 +        final String url = request.getUrl().toString();
-+        return this.shouldOverrideUrlLoading(view, url);
++        // WebView raises this for sub-frame loads of non-http(s) schemes such as
++        // blob:, so the frame has to reach the app for it to tell them apart.
++        return this.shouldOverrideUrlLoading(view, url, request.isForMainFrame());
 +    }
 +
 +    @Override
@@ -3503,10 +3514,10 @@ index 0000000000000000000000000000000000000000..b87f4fab3841d432a157b5fb612c031c
 +}
 diff --git a/android/src/main/java/com/reactnativecommunity/webview/events/TopShouldStartLoadWithRequestEvent.kt b/android/src/main/java/com/reactnativecommunity/webview/events/TopShouldStartLoadWithRequestEvent.kt
 new file mode 100644
-index 0000000000000000000000000000000000000000..da4eb96640cc550ab8f5b5dbeb2063f66610351c
+index 0000000000000000000000000000000000000000..816a88890e12c08eb0782a9a1b8a88f7a7ec85f1
 --- /dev/null
 +++ b/android/src/main/java/com/reactnativecommunity/webview/events/TopShouldStartLoadWithRequestEvent.kt
-@@ -0,0 +1,29 @@
+@@ -0,0 +1,32 @@
 +package com.reactnativecommunity.webview.events
 +
 +import com.facebook.react.bridge.WritableMap
@@ -3523,8 +3534,11 @@ index 0000000000000000000000000000000000000000..da4eb96640cc550ab8f5b5dbeb2063f6
 +
 +  init {
 +    mData.putString("navigationType", "other")
-+    // Android does not raise shouldOverrideUrlLoading for inner frames
-+    mData.putBoolean("isTopFrame", true)
++    // RNCWebViewClient sets isTopFrame from WebResourceRequest.isForMainFrame().
++    // A caller that does not set it keeps the previous value.
++    if (!mData.hasKey("isTopFrame")) {
++      mData.putBoolean("isTopFrame", true)
++    }
 +  }
 +
 +  override fun getEventName(): String = EVENT_NAME
