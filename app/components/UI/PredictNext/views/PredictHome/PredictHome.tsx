@@ -31,7 +31,7 @@ import {
   POLITICS_FEED_SCREEN_ID,
   SPORTS_FEED_SCREEN_ID,
   getFeedScreen,
-  getKnownFeedScreenTitle,
+  getKnownFeedScreenLabel,
   type FeedScreenId,
 } from '../../navigation/feedScreens';
 import {
@@ -78,7 +78,7 @@ import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 /** A preview section's title: its Feed Screen's subtitle, else its title,
- * from the Venue catalog; the app's own title while the catalog lacks it. */
+ * from the Venue catalog; the app's own label while the catalog lacks it. */
 const sectionTitle = (
   sectionId: FeedScreenId,
   capabilities: PredictVenueCapabilities,
@@ -87,7 +87,7 @@ const sectionTitle = (
   return (
     feedScreen?.selectionLabel ??
     feedScreen?.title ??
-    getKnownFeedScreenTitle(sectionId)
+    getKnownFeedScreenLabel(sectionId)
   );
 };
 
@@ -274,6 +274,12 @@ const PredictHomeView = ({
     () => openFeedScreen(SPORTS_FEED_SCREEN_ID),
     [openFeedScreen],
   );
+  // Home's rows still come from hardcoded Feed keys (PRED-1528), so a header
+  // opens its Feed Screen only while the Venue catalog has it.
+  const canOpenSports = useMemo(
+    () => getFeedScreen(NFL_FEED_SCREEN_ID, capabilities) !== undefined,
+    [capabilities],
+  );
   const openSports = useCallback(
     () => openFeedScreen(NFL_FEED_SCREEN_ID),
     [openFeedScreen],
@@ -332,7 +338,11 @@ const PredictHomeView = ({
         events={section.events}
         isLoading={section.isLoading}
         isError={section.isError}
-        onOpen={() => openFeedScreen(section.sectionId)}
+        onOpen={
+          getFeedScreen(section.sectionId, capabilities)
+            ? () => openFeedScreen(section.sectionId)
+            : undefined
+        }
         onOpenEvent={openEvent}
         onOrder={canBuy ? openOrder : undefined}
         onRetry={section.refetch}
@@ -438,7 +448,7 @@ const PredictHomeView = ({
           <HomeSportsSection
             events={liveRows.sports}
             isLoading={isRowsLoading}
-            onOpen={openSports}
+            onOpen={canOpenSports ? openSports : undefined}
             onOpenEvent={openEvent}
             onOrder={canBuy ? openOrder : undefined}
             onLayout={onSectionLayout(SPORTS_ROW)}

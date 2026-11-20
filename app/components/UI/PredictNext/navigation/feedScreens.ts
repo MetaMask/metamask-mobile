@@ -46,6 +46,11 @@ const localized = (key: string, fallback: string): string => {
 export const getKnownFeedScreenTitle = (feedScreenId: FeedScreenId): string =>
   localized(`titles.${feedScreenId}`, '');
 
+/** The app's subtitle for a Feed Screen ID it knows, else its title, else an
+ * empty string. */
+export const getKnownFeedScreenLabel = (feedScreenId: FeedScreenId): string =>
+  localized(`subtitles.${feedScreenId}`, getKnownFeedScreenTitle(feedScreenId));
+
 /**
  * The Venue's Feed Screen `feedScreenId`, labelled, with the tabs whose Feed
  * the Venue serves. Undefined unless capabilities are ready and the catalog
