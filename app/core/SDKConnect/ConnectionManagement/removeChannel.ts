@@ -29,6 +29,20 @@ async function removeChannel({
     }`,
   );
 
+  // Revoke before any teardown so a failed revoke leaves the channel intact
+  // and the caller can retry.
+  if (engine) {
+    try {
+      revokeChannelPermissions(channelId);
+    } catch (error) {
+      DevLogger.log(
+        `SDKConnect::removeChannel channelId=${channelId} failed to revoke permissions`,
+        error,
+      );
+      return false;
+    }
+  }
+
   if (isDappConnection) {
     // Android SDK disabled for security reasons (pm-security #532, #534)
     instance.state.deeplinkingService?.removeConnection(channelId);
@@ -36,23 +50,16 @@ async function removeChannel({
 
   if (instance.state.connected[channelId]) {
     try {
-      const terminated = await instance.state.connected[
-        channelId
-      ].removeConnection({
+      await instance.state.connected[channelId].removeConnection({
         terminate: true,
         context: 'SDKConnect::removeChannel',
       });
-      if (!terminated) {
-        DevLogger.log(
-          `SDKConnect::removeChannel channelId=${channelId} terminated=${terminated} try again later`,
-        );
-        // don't delete channel, try again later
-        return terminated;
-      }
     } catch (err) {
+      // A failed remote close does not keep the session.
       console.error(`Can't remove connection ${channelId}`, err);
     }
   }
+
   delete instance.state.connected[channelId];
   delete instance.state.connections[channelId];
   delete instance.state.approvedHosts[
@@ -67,9 +74,6 @@ async function removeChannel({
   store.dispatch(removeApprovedHost(channelId));
 
   delete instance.state.connecting[channelId];
-  if (engine) {
-    revokeChannelPermissions(channelId);
-  }
 
   return true;
 }

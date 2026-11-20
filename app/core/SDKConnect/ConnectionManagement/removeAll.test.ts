@@ -15,6 +15,7 @@ describe('removeAll', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRemoveChannel.mockResolvedValue(true);
 
     mockInstance = {
       state: {
@@ -29,6 +30,20 @@ describe('removeAll', () => {
       loadDappConnections: jest.fn().mockResolvedValue({}),
       emit: jest.fn(),
     } as unknown as SDKConnect;
+  });
+
+  it('should keep session state when a channel is not revoked', async () => {
+    mockInstance.state.connections.channelA = {
+      otherPublicKey: 'a',
+    } as unknown as SDKConnect['state']['connections'][string];
+    mockInstance.state.approvedHosts = { host: 1 };
+    mockRemoveChannel.mockResolvedValueOnce(false);
+
+    const result = await removeAll(mockInstance);
+
+    expect(result).toBe(false);
+    expect(mockInstance.state.approvedHosts).toEqual({ host: 1 });
+    expect(mockInstance.state.connections.channelA).toBeDefined();
   });
 
   it('should remove each channel in connections', async () => {
