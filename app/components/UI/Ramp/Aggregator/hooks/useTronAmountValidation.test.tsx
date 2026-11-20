@@ -591,7 +591,10 @@ describe('useTronAmountValidation', () => {
           assetReference: 'slip44:195',
           walletAddress,
         }),
-      { wrapper: createWrapper(store), initialProps: { walletAddress: mockAccount.address } },
+      {
+        wrapper: createWrapper(store),
+        initialProps: { walletAddress: mockAccount.address },
+      },
     );
 
     // Start validation
