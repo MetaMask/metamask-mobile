@@ -75,6 +75,29 @@ const BENEFITS = [
   },
 ] as const;
 
+const resolveCtaAnalytics = (
+  redirect: MoneySplashParams['postOnboardingRedirect'],
+) => {
+  if (redirect?.type === MoneyPostOnboardingRedirectType.CARD) {
+    return {
+      button_intent: MONEY_BUTTON_INTENTS.CARD_HOME,
+      redirect_target: SCREEN_NAMES.CARD_HOME,
+    };
+  }
+
+  if (redirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT) {
+    return {
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
+    };
+  }
+
+  return {
+    button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+    redirect_target: SCREEN_NAMES.MONEY_HOME,
+  };
+};
+
 const BenefitRow = ({
   title,
   body,
@@ -134,8 +157,6 @@ export const MoneySplashView = () => {
   const handleStartEarning = useCallback(() => {
     const isDepositRedirect =
       postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.DEPOSIT;
-    const isCardRedirect =
-      postOnboardingRedirect?.type === MoneyPostOnboardingRedirectType.CARD;
 
     if (isDepositRedirect && depositStartedRef.current) {
       return;
@@ -147,17 +168,8 @@ export const MoneySplashView = () => {
 
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: isDepositRedirect
-        ? MONEY_BUTTON_INTENTS.ADD_MONEY
-        : isCardRedirect
-          ? MONEY_BUTTON_INTENTS.CARD_HOME
-          : MONEY_BUTTON_INTENTS.GO_TO_MONEY_HOME,
+      ...resolveCtaAnalytics(postOnboardingRedirect),
       label_key: 'money.splash.cta',
-      redirect_target: isDepositRedirect
-        ? SCREEN_NAMES.MONEY_DEPOSIT
-        : isCardRedirect
-          ? SCREEN_NAMES.CARD_HOME
-          : SCREEN_NAMES.MONEY_HOME,
     });
 
     redirectAfterSplash();
