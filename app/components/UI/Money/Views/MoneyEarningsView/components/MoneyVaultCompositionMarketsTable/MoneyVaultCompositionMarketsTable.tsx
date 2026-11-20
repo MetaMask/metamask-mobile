@@ -55,7 +55,9 @@ const MoneyVaultCompositionMarketsTable = ({
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
-          twClassName="w-20 text-right"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          twClassName="w-16 text-right"
         >
           {allocationLabel}
         </Text>

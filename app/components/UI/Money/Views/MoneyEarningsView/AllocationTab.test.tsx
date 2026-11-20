@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyVaultComposition } from '../../hooks/useMoneyVaultComposition';
 import type { VaultCompositionResponse } from '../../types/moneyVaultComposition';
 import type { MoneyVaultCompositionChartProps } from './components/MoneyVaultCompositionChart';
+import type { MoneyMarketExposureProps } from './components/MoneyMarketExposure';
 import type { MoneyVaultCompositionMarketsTableProps } from './components/MoneyVaultCompositionMarketsTable';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import AllocationTab, { setAllocationScrollEnabled } from './AllocationTab';
@@ -12,6 +13,7 @@ import AllocationTab, { setAllocationScrollEnabled } from './AllocationTab';
 const mockUseMoneyVaultComposition = jest.mocked(useMoneyVaultComposition);
 const mockChart = jest.fn();
 const mockMarketsTable = jest.fn();
+const mockMarketExposure = jest.fn();
 const mockRefetch = jest.fn();
 const mockSetNativeProps = jest.fn();
 
@@ -35,6 +37,14 @@ jest.mock('./components/MoneyVaultCompositionMarketsTable', () => ({
   },
 }));
 
+jest.mock('./components/MoneyMarketExposure', () => ({
+  __esModule: true,
+  default: (props: MoneyMarketExposureProps) => {
+    mockMarketExposure(props);
+    return null;
+  },
+}));
+
 const compositionData = {
   components: [
     {
@@ -43,6 +53,7 @@ const compositionData = {
       allocation_fraction: '0.6',
     },
   ],
+  protocols: [],
   data_freshness: 'live',
   stale_reason: null,
 } as unknown as VaultCompositionResponse;
@@ -172,6 +183,29 @@ describe('AllocationTab', () => {
         components: compositionData.components,
       }),
     );
+  });
+
+  it('forwards protocols unchanged to market exposure once', () => {
+    const protocols = [
+      {
+        protocol_key: 'aave_v3',
+        allocation_value_usd: '1',
+        allocation_fraction: '1',
+        organic_supply_apy: '0',
+        incentive_apr: null,
+        estimated_total_annual_rate: null,
+      },
+    ] as VaultCompositionResponse['protocols'];
+    const data = { ...compositionData, protocols };
+    setCompositionResult({ data });
+
+    renderWithProvider(<AllocationTab />);
+
+    expect(mockMarketExposure).toHaveBeenCalledTimes(1);
+    const marketExposureProps = mockMarketExposure.mock.calls.at(-1)?.[0] as
+      | MoneyMarketExposureProps
+      | undefined;
+    expect(marketExposureProps?.protocols).toBe(protocols);
   });
 
   it('provides a scroll callback to the chart', () => {

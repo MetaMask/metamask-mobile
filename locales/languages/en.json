@@ -10146,6 +10146,7 @@
       "chart_allocation_accessibility_label": "{{label}}, {{percentage}}",
       "cash_reserve": "Cash reserve",
       "markets": "Markets",
+      "protocol_exposure": "Protocol exposure",
       "market": "Market",
       "allocation": "Allocation",
       "supply_apy": "Supply APY",
