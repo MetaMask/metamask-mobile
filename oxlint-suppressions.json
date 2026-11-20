@@ -25880,7 +25880,7 @@
       "count": 2
     },
     "typescript/promise-function-async": {
-      "count": 6
+      "count": 8
     }
   },
   "tests/framework/AndroidWebViewCdpHelpers.test.ts": {
@@ -25904,6 +25904,9 @@
   },
   "tests/framework/AppiumAssertions.ts": {
     "typescript/await-thenable": {
+      "count": 1
+    },
+    "typescript/promise-function-async": {
       "count": 1
     }
   },
@@ -26005,6 +26008,9 @@
   "tests/framework/Gestures.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
+    },
+    "typescript/promise-function-async": {
+      "count": 2
     }
   },
   "tests/framework/Matchers.ts": {
@@ -26196,7 +26202,7 @@
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 1
+      "count": 3
     }
   },
   "tests/framework/fixtures/playwright/phaseTimer.fixture.ts": {
@@ -26206,6 +26212,21 @@
   },
   "tests/framework/fixtures/playwright/sessionLifecycle.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "tests/framework/interrupting-screens/InterruptingScreenGuard.test.ts": {
+    "typescript/promise-function-async": {
+      "count": 9
+    }
+  },
+  "tests/framework/interrupting-screens/InterruptingScreenGuard.ts": {
+    "typescript/promise-function-async": {
+      "count": 7
+    }
+  },
+  "tests/framework/interrupting-screens/InterruptingScreenGuard.wiring.test.ts": {
+    "typescript/promise-function-async": {
       "count": 1
     }
   },
