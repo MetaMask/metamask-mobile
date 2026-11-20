@@ -658,12 +658,18 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      # #mm-qa-legends-ai-alerts. An incoming webhook is fixed to one
+      # conversation, and PERFORMANCE_E2E_SLACK_WEBHOOK_URL delivers to a DM,
+      # so the TestMu run summary is posted with chat.postMessage. The app
+      # behind SLACK_BOT_TOKEN (metamask-wallet-platform-bot) must be a member
+      # of the channel.
       - name: Send Slack Notification
         uses: slackapi/slack-github-action@91efab103c0de0a537f72a35f6b8cda0ee76bf0a
         with:
-          webhook: ${{ secrets.PERFORMANCE_E2E_SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
             {
+              "channel": "C0C3WSWNKS5",
               "text": "${{ steps.summary.outputs.summary }}"
             }

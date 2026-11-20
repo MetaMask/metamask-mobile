@@ -13,7 +13,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -246,8 +245,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     'bridge.network_fee_info_content_sponsored',
                     { nativeToken: nativeTokenName },
                   )}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Medium}
                 />
               ),
             }}

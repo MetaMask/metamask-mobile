@@ -327,24 +327,17 @@ module.exports = {
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-wrapper-object-types': 'off',
         '@typescript-eslint/prefer-enum-initializers': 'off',
-        // Slow type checks. The shared ESLint config turns these on, but they
-        // need type information, so they stay off through the ESLint 9
-        // upgrade. Turn them on in Oxlint and park existing hits in
+        // Slow type checks. The shared config turns these on and they need type
+        // information. Oxlint owns them, as errors, for TypeScript files, with
+        // the shared config's options. Existing hits are in
         // oxlint-suppressions.json.
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/consistent-type-exports': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
-        '@typescript-eslint/no-duplicate-type-constituents': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
-        '@typescript-eslint/no-redundant-type-constituents': 'off',
-        '@typescript-eslint/no-throw-literal': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/only-throw-error': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -353,11 +346,21 @@ module.exports = {
         '@typescript-eslint/prefer-readonly': 'off',
         '@typescript-eslint/prefer-reduce-type-parameter': 'off',
         '@typescript-eslint/prefer-string-starts-ends-with': 'off',
-        '@typescript-eslint/promise-function-async': 'off',
         '@typescript-eslint/restrict-plus-operands': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/switch-exhaustiveness-check': 'off',
+        // Slow type checks the shared config also turns on. They are not on in
+        // Oxlint yet, because each has thousands of existing hits.
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+        '@typescript-eslint/promise-function-async': 'off',
         '@typescript-eslint/unbound-method': 'off',
+        // The shared config leaves these off, so they are off in Oxlint too.
+        '@typescript-eslint/consistent-type-imports': 'off',
+        '@typescript-eslint/no-duplicate-type-constituents': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
+        '@typescript-eslint/no-throw-literal': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         'no-restricted-syntax': [
           'error',
           {

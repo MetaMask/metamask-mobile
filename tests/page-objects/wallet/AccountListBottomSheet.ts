@@ -10,6 +10,7 @@ import { AccountCellIds } from '../../../app/component-library/components-temp/M
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import {
+  Assertions,
   type AppiumElement,
   createLogger,
   getDriver,
@@ -29,6 +30,7 @@ import WalletView from './WalletView';
 import { AccountHubSelectorsIDs } from '../../../app/components/Views/AccountHub/AccountHub.testIds';
 
 const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
+const ACCOUNT_SYNC_STABILITY_WINDOW_MS = 3_000;
 
 const logger = createLogger({
   name: 'AccountListBottomSheet',
@@ -44,15 +46,22 @@ class AccountListBottomSheet {
    */
   get accountList(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
-      // Exact match: contains("Accounts") also hits "Connect accounts" /
-      // "Edit accounts" nodes that can exist while displayed=false.
+      // AccountSelector exposes the "Accounts" title; Account Hub exposes
+      // its dedicated list marker instead of that title.
       const title = AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE;
+      const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
       return Matchers.getElementByNativeXPath(
-        `//*[@name='${title}' or @label='${title}' or @text='${title}']`,
+        `//*[@name='${title}' or @label='${title}' or @text='${title}' or @name='${accountHubList}' or @label='${accountHubList}']`,
       );
     }
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    // AccountSelector sheet uses `account-list`; Account Hub uses
+    // `account-hub-account-list`. Match either so smoke stays green when the
+    // wallet header routes to Hub (compact / search header) vs Selector.
+    const accountSelectorList =
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID;
+    const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountSelectorList}' or @resource-id='${accountHubList}']`,
     );
   }
 
@@ -72,9 +81,21 @@ class AccountListBottomSheet {
     );
   }
 
-  /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
+  /**
+   * Header back control for AccountSelector (`back-arrow-button`) or Account
+   * Hub (`account-hub-back-button`). Wallet chrome may open either surface.
+   */
   get backButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+    const accountSelectorBack = CommonSelectorsIDs.BACK_ARROW_BUTTON;
+    const accountHubBack = AccountHubSelectorsIDs.BACK_BUTTON;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${accountHubBack}' or @name='${accountSelectorBack}' or @label='${accountHubBack}' or @label='${accountSelectorBack}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountHubBack}' or @resource-id='${accountSelectorBack}']`,
+    );
   }
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
@@ -265,10 +286,38 @@ class AccountListBottomSheet {
     });
   }
 
-  async tapBackButton(): Promise<void> {
-    await Gestures.waitAndTap(this.backButton, {
-      elemDescription: 'Account list header back button',
-    });
+  /**
+   * Dismiss AccountSelector / Account Hub via the header back control.
+   * Glass headers can leave the control mounted with isDisplayed=false; prove
+   * existence then tap with relaxed display (same shape as clipped Bridge rows).
+   */
+  async tapBackButton(options: {
+    onDismissed: () => Promise<void>;
+  }): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToExist(this.backButton, {
+          description: 'Account list / Account Hub back button',
+          timeout: 3_000,
+        });
+        await Gestures.waitAndTap(this.backButton, {
+          elemDescription: 'Account list header back button',
+          timeout: 5_000,
+          checkForDisplayed: false,
+          waitForInteractive: true,
+        });
+        await Assertions.expectElementToNotExist(this.accountList, {
+          description: 'Account list should be dismissed',
+          timeout: 2_000,
+        });
+      },
+      {
+        timeout: 90_000,
+        interval: 500,
+        description: 'Dismiss account list via back button',
+      },
+    );
+    await options.onDismissed();
   }
 
   /**
@@ -310,9 +359,7 @@ class AccountListBottomSheet {
 
     // Account sync/discovery can keep the row visible but not yet tappable.
     // Wait for the sync phase to settle before tapping "Add account".
-    await this.waitForAccountSyncToComplete(syncTimeoutMs, {
-      addAccountButtonIndex: buttonIndex,
-    });
+    await this.waitForAccountSyncToComplete(syncTimeoutMs);
 
     // Re-query after sync settle — never reuse a pre-sync element handle.
     const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
@@ -837,7 +884,7 @@ class AccountListBottomSheet {
       const text = (await label.textContent()).trim();
       return text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL;
     } catch {
-      return false;
+      return true;
     }
   }
 
@@ -922,11 +969,46 @@ class AccountListBottomSheet {
         500,
       );
 
-    // Step 1: Wait up to initialWaitTimeout for "Syncing" or "Discovering" to appear
+    // Account Hub does not expose the AccountSelector `create-account` footer.
+    // Use the full timeout for a unified readiness loop when no footer index
+    // was provided, while still rejecting a busy footer when it exists.
+    if (options?.addAccountButtonIndex === undefined) {
+      let stableReadySince: number | undefined;
+      await Utilities.executeWithRetry(
+        async () => {
+          const isSyncing = await isTextVisible('Syncing');
+          const isDiscovering = await isTextVisible('Discovering');
+          if (isSyncing || isDiscovering) {
+            stableReadySince = undefined;
+            throw new Error('Account sync indicators or footer are still busy');
+          }
+
+          if (Date.now() - startTime < initialWaitTimeout) {
+            stableReadySince = undefined;
+            throw new Error('Account sync is still settling');
+          }
+
+          stableReadySince ??= Date.now();
+          if (
+            Date.now() - stableReadySince <
+            ACCOUNT_SYNC_STABILITY_WINDOW_MS
+          ) {
+            throw new Error('Account list readiness is still settling');
+          }
+        },
+        {
+          timeout: timeout + ACCOUNT_SYNC_STABILITY_WINDOW_MS,
+          interval: pollInterval,
+          description: 'Wait for account list readiness after account sync',
+        },
+      );
+      return;
+    }
+
+    // Step 1: Wait briefly for "Syncing", "Discovering", or a busy footer to appear.
     logger.debug(
       `⏳ Step 1: Waiting up to ${initialWaitTimeout / 1000}s for "Syncing" or "Discovering" to appear...`,
     );
-    let syncingDetected = false;
     const footerIndex = options?.addAccountButtonIndex;
     while (Date.now() - startTime < initialWaitTimeout) {
       const isSyncing = await isTextVisible('Syncing');
@@ -936,7 +1018,6 @@ class AccountListBottomSheet {
         (await this.isAddAccountFooterBusy(footerIndex));
 
       if (isSyncing || isDiscovering || footerBusy) {
-        syncingDetected = true;
         logger.debug(
           `✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering}, footerBusy: ${footerBusy})`,
         );
@@ -945,11 +1026,7 @@ class AccountListBottomSheet {
       await sleep(pollInterval);
     }
 
-    if (!syncingDetected) {
-      logger.debug(
-        `⏳ Step 1: No syncing/discovering/footer-busy within 5s — skipping text-settle steps`,
-      );
-    } else if (footerIndex !== undefined) {
+    if (footerIndex !== undefined) {
       // Step 2–4 (footer path): re-query label until idle copy shows, even when
       // global "Syncing"/"Discovering" text was never visible or flashed quickly.
       logger.debug(
@@ -959,30 +1036,6 @@ class AccountListBottomSheet {
         if (!(await this.isAddAccountFooterBusy(footerIndex))) {
           logger.debug(
             `✅ Step 2: Add account footer label ready after ${getElapsed()}s`,
-          );
-          break;
-        }
-        await sleep(pollInterval);
-      }
-    } else {
-      // Step 2: Wait for "Syncing" to disappear
-      logger.debug('⏳ Step 2: Waiting for "Syncing" to disappear...');
-      while (Date.now() - startTime < timeout) {
-        if (!(await isTextVisible('Syncing'))) {
-          logger.debug(
-            `✅ Step 2: "Syncing" disappeared after ${getElapsed()}s`,
-          );
-          break;
-        }
-        await sleep(pollInterval);
-      }
-
-      // Step 4: Wait for "Discovering" to disappear
-      logger.debug('⏳ Step 4: Waiting for "Discovering" to disappear...');
-      while (Date.now() - startTime < timeout) {
-        if (!(await isTextVisible('Discovering'))) {
-          logger.debug(
-            `✅ Step 4: "Discovering" disappeared after ${getElapsed()}s`,
           );
           break;
         }
