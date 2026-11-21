@@ -54,17 +54,49 @@ import {
   recordElapsedPhase,
   startPhase,
 } from '../framework/telemetry/PhaseTimer.ts';
+import { interruptingScreenGuard } from '../framework/interrupting-screens/InterruptingScreenGuard.ts';
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
   isWalletHomeReadyOnAppium,
 } from './wallet-home-readiness';
+import { waitForWalletHomeReady } from './wallet-home-wait';
 
 const logger = createLogger({
   name: 'WalletFlow',
 });
 
-const WALLET_HOME_POLL_INTERVAL_MS = 250;
+const WALLET_HOME_INTENT = 'wait for wallet home';
+
+const pollWalletHome = async (timeout: number): Promise<void> => {
+  const isAndroid = PlatformDetector.isAndroid();
+  const platform = isAndroid ? 'Android' : 'iOS';
+
+  const ready = await waitForWalletHomeReady(
+    {
+      isReady: isWalletHomeReadyOnAppium,
+      onNotReady: async () => {
+        if (isAndroid) {
+          await dismissAndroidSystemOverlaysPlaywright();
+        }
+      },
+      dismissInterruption: () =>
+        interruptingScreenGuard.dismissKnownScreen(WALLET_HOME_INTENT),
+      sleep,
+      now: () => Date.now(),
+    },
+    { timeoutMs: timeout },
+  );
+  if (ready) {
+    logger.debug(`Wallet home ready on ${platform}`);
+    return;
+  }
+
+  await interruptingScreenGuard.capturePageSource('wallet-home-timeout');
+  throw new Error(
+    `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
+  );
+};
 
 /**
  * Waits for the wallet home screen to be ready after login.
@@ -75,29 +107,21 @@ const WALLET_HOME_POLL_INTERVAL_MS = 250;
  * `wallet-screen` hierarchy existence is not readiness — that node can sit
  * under the lock screen. Child chrome covers the post-Perps withdraw case
  * where the parent `isDisplayed` probe fails.
+ *
+ * A sheet that slides up after Unlock (e.g. Experience Enhancer) hides the
+ * wallet chrome, so readiness can never pass while it is up. In performance
+ * runs the interrupting-screen guard checks for known sheets after every
+ * failed readiness pass, and a dismissal extends the deadline so readiness is
+ * re-checked. On timeout it attaches the page source and gets one
+ * dismiss-and-retry (AI fallback included).
  */
 export const waitForWalletHomePlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),
-): Promise<void> => {
-  const deadline = Date.now() + timeout;
-  const isAndroid = PlatformDetector.isAndroid();
-  const platform = isAndroid ? 'Android' : 'iOS';
-
-  while (Date.now() < deadline) {
-    if (await isWalletHomeReadyOnAppium()) {
-      logger.debug(`Wallet home ready on ${platform}`);
-      return;
-    }
-    if (isAndroid) {
-      await dismissAndroidSystemOverlaysPlaywright();
-    }
-    await sleep(WALLET_HOME_POLL_INTERVAL_MS);
-  }
-
-  throw new Error(
-    `Wallet home not ready within ${timeout}ms (${platform} wallet readiness indicators not satisfied)`,
+): Promise<void> =>
+  interruptingScreenGuard.retryAfterInterruption(
+    () => pollWalletHome(timeout),
+    { intent: WALLET_HOME_INTENT, trigger: 'wait-failure' },
   );
-};
 
 const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
   if (PlatformDetector.isAndroid()) {
@@ -793,10 +817,12 @@ export const dismissExperienceEnhancerModal = async (): Promise<void> => {
 /**
  * Logs into the application using the provided password or a default password.
  *
- * Default fixtures suppress push / marketing pre-prompts, so this path does
- * not probe or dismiss those sheets (MMQA-2214). Call
- * {@link dismissPushNotificationExistingUserSheet} /
- * {@link dismissExperienceEnhancerModal} explicitly when a flow needs them.
+ * Default fixtures suppress push / marketing pre-prompts, so smoke runs do
+ * not probe or dismiss those sheets (MMQA-2214). Performance runs configure
+ * the interrupting-screen guard, which watches for known sheets (e.g. the
+ * Experience Enhancer consent that slides up ~2s after unlock on the
+ * imported-wallet TestMu app) during a short settle window inside the `login`
+ * phase, before `test_body` starts. Outside performance the settle is a no-op.
  *
  * @async
  * @function loginToAppPlaywright
@@ -806,10 +832,13 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
+  const startTestBody = async (): Promise<void> => {
+    await interruptingScreenGuard.settle();
+    startPhase('test_body');
+  };
+
   const afterWalletHomeReady = async (): Promise<void> => {
-    await completeUnlockedWalletHome(async () => {
-      startPhase('test_body');
-    });
+    await completeUnlockedWalletHome(startTestBody);
   };
 
   startPhase('login');
@@ -853,7 +882,7 @@ export const loginToAppPlaywright = async (
   await recordElapsedPhase(LOGIN_WALLET_HOME_PHASE, () =>
     waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000)),
   );
-  startPhase('test_body');
+  await startTestBody();
 };
 
 const MM_CONNECT_UNLOCK_ATTEMPTS = 3;

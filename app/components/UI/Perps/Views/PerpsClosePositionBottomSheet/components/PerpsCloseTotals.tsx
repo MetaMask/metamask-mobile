@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { PERPS_CONSTANTS, type MarginMode } from '@metamask/perps-controller';
 import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
   KeyValueRow,
   KeyValueRowVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import PerpsBottomSheetTooltip from '../../../components/PerpsBottomSheetTooltip';
+import PerpsProModalPortal from '../../PerpsProMarketView/components/PerpsProModalPortal';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 import { formatPercentage } from '../../../utils/formatUtils';
+import { PERPS_INFO_BUTTON_HIT_SLOP } from '../../../constants/perpsConfig';
+import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import {
   formatCloseSummaryFiat,
   formatSignedCloseSummaryFiat,
@@ -35,60 +46,146 @@ export interface PerpsCloseTotalsProps {
   /** Cash the close returns; undefined while unavailable. */
   receiveAmount: number | undefined;
   /**
-   * Margin mode of the position. Cross margin never holds the P&L, so the
-   * P&L row is labelled `P&L` instead of `Included P&L`.
+   * Margin the close returns. Isolated margin includes its P&L, cross margin
+   * does not.
    */
+  margin?: number;
+  /** Margin mode of the position, used for the P&L label. */
   marginMode?: MarginMode;
+  /** Show the margin row when the margin mode is known. */
+  showMargin?: boolean;
+  /**
+   * Optional test IDs. A caller with its own selector namespace (the Close
+   * all sheet) passes its own IDs; defaults to the close position sheet's.
+   */
+  testIDs?: {
+    marginValue?: string;
+    receiveValue?: string;
+    pnlValue?: string;
+    pnlRow?: string;
+  };
 }
 
 /**
  * Receive and P&L rows for the close sheet. Deliberately shorter than
  * `PerpsCloseSummary`, which the full-screen close flow uses: the sheet drops
- * the margin, fees and rewards rows.
+ * the fees and rewards rows, and shows margin only when a mode is given.
  */
 const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   pnl,
   roePercentage,
   receiveAmount,
+  margin,
   marginMode,
-}) => (
-  <>
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      keyLabel={strings('perps.close_position.total_receive')}
-      value={formatCloseSummaryFiat(receiveAmount)}
-      valueTextProps={{
-        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE,
-      }}
-    />
+  showMargin = false,
+  testIDs,
+}) => {
+  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
+  const marginValueTestID =
+    testIDs?.marginValue ??
+    PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE;
+  const receiveValueTestID =
+    testIDs?.receiveValue ??
+    PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE;
+  const pnlValueTestID =
+    testIDs?.pnlValue ?? PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL;
+  const pnlRowTestID =
+    testIDs?.pnlRow ?? PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW;
+  const openMarginInfo = useCallback(() => setIsMarginInfoVisible(true), []);
+  const closeMarginInfo = useCallback(() => setIsMarginInfoVisible(false), []);
 
-    <KeyValueRow
-      variant={KeyValueRowVariant.Summary}
-      twClassName="mt-0.5"
-      // One native element carries the label with its value for automation.
-      accessible
-      testID={PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW}
-      keyLabel={strings(
-        // Cross margin never holds the P&L, so it is not "included".
-        marginMode === 'cross'
-          ? 'perps.close_position.pnl'
-          : 'perps.close_position.included_pnl',
-      )}
-      value={
-        pnl === undefined
-          ? PERPS_CONSTANTS.FallbackDataDisplay
-          : `${formatSignedCloseSummaryFiat(pnl)}${
-              roePercentage !== undefined
-                ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
-                : ''
-            }`
-      }
-      valueTextProps={{
-        color: getCloseSummaryPnlColor(pnl),
-        testID: PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL,
-      }}
-    />
-  </>
-);
+  return (
+    <>
+      {showMargin && marginMode ? (
+        <KeyValueRow
+          variant={KeyValueRowVariant.Summary}
+          keyLabel={strings('perps.close_position.margin')}
+          keyEndAccessory={
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
+              accessible={false}
+            >
+              <PerpsMarginModeTag
+                marginMode={marginMode}
+                testID={
+                  PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG
+                }
+              />
+              {/* The margin explainer says margin is the most you can lose,
+                  which only holds for isolated margin. */}
+              {marginMode === 'isolated' ? (
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  size={ButtonIconSize.Xs}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  accessibilityLabel={strings(
+                    'perps.trade_sheet.margin_info_accessibility_label',
+                  )}
+                  hitSlop={PERPS_INFO_BUTTON_HIT_SLOP}
+                  onPress={openMarginInfo}
+                  testID={
+                    PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON
+                  }
+                />
+              ) : null}
+            </Box>
+          }
+          value={formatCloseSummaryFiat(margin)}
+          valueTextProps={{
+            testID: marginValueTestID,
+          }}
+        />
+      ) : null}
+
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        keyLabel={strings('perps.close_position.total_receive')}
+        value={formatCloseSummaryFiat(receiveAmount)}
+        valueTextProps={{
+          testID: receiveValueTestID,
+        }}
+      />
+
+      <KeyValueRow
+        variant={KeyValueRowVariant.Summary}
+        twClassName="mt-0.5"
+        // One native element carries the label with its value for automation.
+        accessible
+        testID={pnlRowTestID}
+        keyLabel={strings(
+          // Cross margin never holds the P&L, so it is not "included".
+          marginMode === 'cross'
+            ? 'perps.close_position.pnl'
+            : 'perps.close_position.included_pnl',
+        )}
+        value={
+          pnl === undefined
+            ? PERPS_CONSTANTS.FallbackDataDisplay
+            : `${formatSignedCloseSummaryFiat(pnl)}${
+                roePercentage !== undefined
+                  ? ` (${formatSummaryPercentage(roePercentage, pnl)})`
+                  : ''
+              }`
+        }
+        valueTextProps={{
+          color: getCloseSummaryPnlColor(pnl),
+          testID: pnlValueTestID,
+        }}
+      />
+
+      {isMarginInfoVisible ? (
+        <PerpsProModalPortal onRequestClose={closeMarginInfo}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={closeMarginInfo}
+            contentKey="margin"
+          />
+        </PerpsProModalPortal>
+      ) : null}
+    </>
+  );
+};
 
 export default PerpsCloseTotals;

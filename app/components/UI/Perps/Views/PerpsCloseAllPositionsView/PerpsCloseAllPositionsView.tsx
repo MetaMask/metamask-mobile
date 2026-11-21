@@ -26,13 +26,12 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
-  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
-import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import PerpsCloseTotals from '../PerpsClosePositionBottomSheet/components/PerpsCloseTotals';
 import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -97,9 +96,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
-  // Check opt-in status for rewards
-  const { accountOptedIn, account: rewardsAccount } =
-    usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
 
   // Track screen viewed event
   usePerpsEventTracking({
@@ -394,35 +390,24 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             </View>
           </Box>
         ) : (
-          <PerpsCloseSummary
-            totalMargin={calculations.totalMargin}
-            marginMode={calculations.summaryMarginMode}
-            totalPnl={calculations.totalPnl}
-            totalFees={calculations.totalFees}
-            originalTotalFees={calculations.originalTotalFees}
-            feeDiscountPercentage={calculations.avgFeeDiscountPercentage}
-            feeDiscountKind={calculations.feeDiscountKind}
-            metamaskFeeRate={calculations.avgMetamaskFeeRate}
-            protocolFeeRate={calculations.avgProtocolFeeRate}
-            originalMetamaskFeeRate={calculations.avgOriginalMetamaskFeeRate}
-            receiveAmount={calculations.receiveAmount}
-            shouldShowRewards={calculations.shouldShowRewards}
-            estimatedPoints={calculations.totalEstimatedPoints}
-            bonusBips={calculations.avgBonusBips}
-            isLoadingFees={calculations.isLoading}
-            isLoadingRewards={calculations.isLoading}
-            hasRewardsError={calculations.hasError}
-            accountOptedIn={accountOptedIn}
-            rewardsAccount={rewardsAccount}
-            enableTooltips={false}
-            afterFees={<PerpsRebateBanner containerTwClassName="px-4 mb-3" />}
-            testIDs={{
-              feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
-              marginValue: PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
-              receiveValue:
-                PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
-            }}
-          />
+          <>
+            <PerpsCloseTotals
+              pnl={calculations.totalPnl}
+              receiveAmount={calculations.receiveAmount}
+              margin={calculations.totalMargin}
+              marginMode={calculations.summaryMarginMode}
+              showMargin
+              testIDs={{
+                marginValue:
+                  PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
+                receiveValue:
+                  PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
+                pnlValue: PerpsCloseAllPositionsViewSelectorsIDs.PNL_VALUE,
+                pnlRow: PerpsCloseAllPositionsViewSelectorsIDs.PNL_ROW,
+              }}
+            />
+            <PerpsRebateBanner containerTwClassName="px-4 mb-3" />
+          </>
         )}
       </Box>
 
