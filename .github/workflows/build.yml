@@ -632,6 +632,7 @@ jobs:
 
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
+        id: build-app
         timeout-minutes: 115
         env:
           # Must match Apply build config / artifact naming so build.sh loads the same
@@ -704,12 +705,17 @@ jobs:
           PREDEFINED_PASSWORD: ${{ endsWith(inputs.build_name, '-with-srp') && secrets.E2E_PASSWORD || '' }}
           # main-dev-without-srp does not mock OAuth, so it never had the BYOA secret.
           E2E_BYOA_AUTH_SECRET: ${{ endsWith(inputs.build_name, '-without-srp') && inputs.build_name != 'main-dev-without-srp' && secrets.E2E_BYOA_AUTH_SECRET || '' }}
+          SECRETS_ENVIRONMENT: ${{ needs.prepare.outputs.github_environment }}
         uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
         with:
           timeout_minutes: 55
           max_attempts: 2
           retry_wait_seconds: 60
           command: |
+            # source_branch can predate this check. The command runs without `set -e`.
+            if [ -f scripts/validate-step-secrets.js ]; then
+              node scripts/validate-step-secrets.js .github/workflows/build.yml build-app || exit 1
+            fi
             # AGP can leave a partial ndk/<version> directory after a failed
             # download (corrupt zip → "Error on ZipFile unknown archive"). The
             # next attempt then fails immediately with CXX1101 (missing
