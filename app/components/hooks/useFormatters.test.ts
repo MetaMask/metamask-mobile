@@ -1,41 +1,97 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useFormatters } from './useFormatters';
-import I18n from '../../../locales/i18n';
 
 jest.mock('../../../locales/i18n', () => ({
   __esModule: true,
-  default: { locale: 'en' },
+  default: { locale: 'en', translations: { de: {}, en: {}, es: {}, zh: {} } },
 }));
 
-const mockI18n = jest.mocked(I18n);
+jest.mock('expo-localization');
+
+const makeLocale = (tag: string, currencyCode: string | null) => ({
+  languageTag: tag,
+  languageCode: tag.split('-')[0],
+  languageScriptCode: null,
+  regionCode: tag.split('-')[1] || null,
+  languageRegionCode: tag.split('-')[1] || null,
+  textDirection: 'ltr' as const,
+  digitGroupingSeparator: ',',
+  decimalSeparator: '.',
+  measurementSystem: 'metric' as const,
+  currencyCode,
+  currencySymbol: '$',
+  languageCurrencyCode: currencyCode,
+  languageCurrencySymbol: '$',
+  temperatureUnit: 'celsius' as const,
+});
 
 describe('useFormatters', () => {
-  beforeEach(() => {
-    mockI18n.locale = 'en';
-  });
-
-  describe('formatCurrency', () => {
-    const enLocales = ['en', 'en-US', 'en-GB', 'en-CA', 'en-AU', 'en-NZ'];
-    const tests = [
-      { value: 100, currency: 'USD', expected: '$100.00' },
-      { value: 0.5, currency: 'USD', expected: '$0.50' },
-      { value: 1234.56, currency: 'USD', expected: '$1,234.56' },
-    ];
-    const localeTestCases = enLocales.flatMap((locale) =>
-      tests.map((testCase) => ({ ...testCase, locale })),
-    );
-
-    it.each(localeTestCases)(
-      'returns $ prefix for $value $currency, never US$ (using locale $locale)',
-      ({ value, currency, expected, locale }) => {
-        mockI18n.locale = locale;
-        const { result } = renderHook(() => useFormatters());
-
-        const formatted = result.current.formatCurrency(value, currency);
-
-        expect(formatted).toBe(expected);
-        expect(formatted).not.toContain('US$');
+  describe('currency formatting', () => {
+    it.each([
+      {
+        description: 'device en-CA (CAD) formats USD as US$100.00',
+        deviceLocale: makeLocale('en-CA', 'CAD'),
+        currency: 'USD',
+        fn: 'formatCurrency',
+        expected: 'US$100.00',
       },
-    );
+      {
+        description: 'device en-CA (CAD) formats CAD as $100.00',
+        deviceLocale: makeLocale('en-CA', 'CAD'),
+        currency: 'CAD',
+        fn: 'formatCurrency',
+        expected: '$100.00',
+      },
+      {
+        description: 'device en-GB (GBP) formats USD as $100.00',
+        deviceLocale: makeLocale('en-GB', 'GBP'),
+        currency: 'USD',
+        fn: 'formatCurrency',
+        expected: '$100.00',
+      },
+      {
+        description: 'device en-DE (EUR) formats USD as $100.00',
+        deviceLocale: makeLocale('en-DE', 'EUR'),
+        currency: 'USD',
+        fn: 'formatCurrency',
+        expected: '$100.00',
+      },
+      {
+        description: 'device en-AU (AUD) formats USD as USD 100.00',
+        deviceLocale: makeLocale('en-AU', 'AUD'),
+        currency: 'USD',
+        fn: 'formatCurrency',
+        expected: 'USD\u00A0100.00',
+      },
+      {
+        description:
+          'device en-CA (CAD) formatCurrencyCompact follows same rule (no bare $)',
+        deviceLocale: makeLocale('en-CA', 'CAD'),
+        currency: 'USD',
+        fn: 'formatCurrencyCompact',
+        expected: 'US$100.00',
+      },
+      {
+        description:
+          'device en-GB (GBP) formatCurrencyCompact allows $ for USD',
+        deviceLocale: makeLocale('en-GB', 'GBP'),
+        currency: 'USD',
+        fn: 'formatCurrencyCompact',
+        expected: '$100.00',
+      },
+    ])('$description', ({ deviceLocale, currency, fn, expected }) => {
+      jest.resetModules();
+      const I18n = require('../../../locales/i18n').default;
+      const { getLocales } = require('expo-localization');
+      const { useFormatters } = require('./useFormatters');
+
+      I18n.locale = 'en';
+      getLocales.mockReturnValue([deviceLocale]);
+
+      const { result } = renderHook(() => useFormatters());
+      const formatted = result.current[fn](100, currency);
+
+      expect(formatted).toBe(expected);
+    });
   });
 });

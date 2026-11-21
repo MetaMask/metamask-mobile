@@ -31674,6 +31674,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"expo-localization@npm:~57.0.0":
+  version: 57.0.2
+  resolution: "expo-localization@npm:57.0.2"
+  dependencies:
+    rtl-detect: "npm:^1.0.2"
+  peerDependencies:
+    expo: "*"
+    react: "*"
+  checksum: 10/a444f64b16b1e4834c37e9750ac84679d5715a298492dee32b93f2a355babf58136074ec075ff457a71d3c7cf90a1564814842c4216b954bcd092a20128853fe
+  languageName: node
+  linkType: hard
+
 "expo-manifests@npm:~57.0.2":
   version: 57.0.2
   resolution: "expo-manifests@npm:57.0.2"
@@ -38710,6 +38722,7 @@ __metadata:
     expo-haptics: "npm:~57.0.3"
     expo-image: "npm:~57.0.5"
     expo-local-authentication: "npm:~57.0.3"
+    expo-localization: "npm:~57.0.0"
     expo-modules-core: "npm:~57.0.18"
     expo-screen-capture: "patch:expo-screen-capture@npm%3A57.0.3#~/.yarn/patches/expo-screen-capture-npm-57.0.3-d0c787506f.patch"
     expo-screen-orientation: "npm:~57.0.2"
@@ -47057,6 +47070,13 @@ __metadata:
   dependencies:
     sdp: "npm:^2.6.0"
   checksum: 10/cfd57301dc67dfe22a191c3809bfa0d6e5cf7fdab4632a9787743f2ab83c3a8f6870cfc7785fe132aca5df912a6193edb807217dc978fab2cf4919ba408e725b
+  languageName: node
+  linkType: hard
+
+"rtl-detect@npm:^1.0.2":
+  version: 1.1.2
+  resolution: "rtl-detect@npm:1.1.2"
+  checksum: 10/d19089c3b5f7a6fbabfa2c4724fcdf8694f313d196d44c8eee3625ba2e46418afe65b4da38e3e92822985291efd0656d85daa4b2ef296a46a65a702d0b156876
   languageName: node
   linkType: hard
 
