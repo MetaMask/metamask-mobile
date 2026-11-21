@@ -78,6 +78,7 @@ export enum TraceName {
   RampScreenLoad = 'Ramp Screen Load',
   VbaScreenLoad = 'VBA Screen Load',
   KycScreenLoad = 'KYC Screen Load',
+  KycProviderFlow = 'KYC Provider Flow',
   VbaToPixInstructions = 'VBA To Pix Instructions',
   VbaHydrate = 'VBA Hydrate',
   VbaAutorampSetup = 'VBA Autoramp Setup',

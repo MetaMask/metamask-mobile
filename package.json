@@ -194,6 +194,7 @@
     "react-native-passkeys@npm:0.4.2": "patch:react-native-passkeys@npm%3A0.4.2#~/.yarn/patches/react-native-passkeys-npm-0.4.2-fe7bb0dac5.patch",
     "@tanstack/query-core": "5.103.2",
     "@tanstack/react-query": "5.103.2",
+    "@metamask/kyc-controller": "npm:@metamask-previews/kyc-controller@0.16.0-preview-c62310f6e",
     "@metamask/network-controller": "^38.0.0",
     "@metamask/analytics-controller": "^4.3.0",
     "@metamask/subscription-controller": "^15.3.0",
