@@ -15,4 +15,7 @@ export const collectiblesTestIds = {
   packsView: 'collectibles-packs-view',
   collectionView: 'collectibles-collection-view',
   marketplaceView: 'collectibles-marketplace-view',
+  buyButton: (code: string) => `collectibles-pack-tile-buy-${code}`,
+  buySheet: 'collectibles-buy-sheet',
+  buySheetClose: 'collectibles-buy-sheet-close',
 } as const;

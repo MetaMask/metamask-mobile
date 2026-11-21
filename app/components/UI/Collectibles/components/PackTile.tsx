@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLinkProps } from '@react-navigation/native';
 import {
   FontWeight,
   Icon,
@@ -14,6 +15,8 @@ import { collectiblesTestIds } from '../Collectibles.testIds';
 import { View } from '../../primitives/View';
 import { Text } from '../../primitives/Text';
 import { CapsuleGlass } from '../../primitives/CapsuleGlass';
+import { Pressable } from '../../primitives/Pressable';
+import { collectiblesRoutes, type CollectiblesParamList } from '../routeNames';
 
 // Tile width in px (w-48). The carousel snaps by it too.
 export const packTileWidth = 192;
@@ -30,6 +33,11 @@ export function PackTile({ pack }: Props) {
     pack.openedCount,
   );
   const isTrending = pack.openedCount >= flameThreshold;
+
+  const buySheetLink = useLinkProps<CollectiblesParamList>({
+    screen: collectiblesRoutes.buySheet,
+    params: { packCode: pack.code },
+  });
 
   return (
     <View className="w-48 gap-2" testID={collectiblesTestIds.tile(pack.code)}>
@@ -72,9 +80,21 @@ export function PackTile({ pack }: Props) {
         >
           {pack.subtitle}
         </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {pack.priceLabel}
-        </Text>
+        <Pressable
+          {...buySheetLink}
+          className="self-start"
+          pressedClassName="opacity-70"
+          accessibilityHint={strings('collectibles.buy_sheet.open_hint', {
+            name: pack.name,
+          })}
+          // Grows the small text target to about 44pt.
+          hitSlop={11}
+          testID={collectiblesTestIds.buyButton(pack.code)}
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {pack.priceLabel}
+          </Text>
+        </Pressable>
       </View>
     </View>
   );
