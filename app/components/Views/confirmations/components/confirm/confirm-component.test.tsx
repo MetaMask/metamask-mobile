@@ -24,6 +24,7 @@ import { ConfirmationUIType } from '../../ConfirmationView.testIds';
 import { TraceName, endTrace, trace } from '../../../../../util/trace';
 import { Confirm, ConfirmationLoader } from './confirm-component';
 import { TransactionType } from '@metamask/transaction-controller';
+import { ApprovalType } from '@metamask/controller-utils';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmReject } from '../../hooks/useConfirmReject';
@@ -581,6 +582,52 @@ describe('Confirm', () => {
     });
 
     expect(getByTestId('confirm-loader-default')).toBeDefined();
+  });
+
+  describe('pending approval without an info component', () => {
+    const permissionsApprovalState = cloneDeep(
+      personalSignatureConfirmationState,
+    );
+    permissionsApprovalState.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {
+        'permissions-approval-id': {
+          id: 'permissions-approval-id',
+          origin: 'wc-channel-id',
+          type: ApprovalType.WalletRequestPermissions,
+          time: 1727282253049,
+          requestData: {},
+          requestState: null,
+          expectsResult: true,
+        },
+      },
+      pendingApprovalCount: 1,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    it('shows the loader in the sheet and blocks dismissing it', () => {
+      const { getByTestId, queryByText, UNSAFE_getByType } = renderWithProvider(
+        <Confirm />,
+        { state: permissionsApprovalState },
+      );
+
+      expect(getByTestId('confirm-loader-default')).toBeDefined();
+      expect(queryByText('Signature request')).toBeNull();
+      expect(UNSAFE_getByType(BottomSheet).props.isInteractable).toBe(false);
+    });
+
+    it('shows the loader for full screen confirmations', () => {
+      jest.mocked(useFullScreenConfirmation).mockReturnValue({
+        isFullScreenConfirmation: true,
+      });
+
+      const { getByTestId, queryByText } = renderWithProvider(<Confirm />, {
+        state: permissionsApprovalState,
+      });
+
+      expect(getByTestId('confirm-loader-default')).toBeDefined();
+      expect(queryByText('Signature request')).toBeNull();
+    });
   });
 
   it('prevents dismissing the loading state before an approval request exists', () => {

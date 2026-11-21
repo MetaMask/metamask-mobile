@@ -83,6 +83,17 @@ const ConfirmationInfoComponentMap = {
   [ApprovalType.TransactionBatch]: () => TransactionBatch,
 };
 
+type ConfirmationInfoApprovalType = keyof typeof ConfirmationInfoComponentMap;
+
+export const hasConfirmationInfo = (
+  approvalType?: string,
+): approvalType is ConfirmationInfoApprovalType =>
+  approvalType !== undefined &&
+  Object.prototype.hasOwnProperty.call(
+    ConfirmationInfoComponentMap,
+    approvalType,
+  );
+
 interface InfoProps {
   route?: UnstakeConfirmationViewProps['route'];
 }
@@ -165,9 +176,12 @@ const Info = ({ route }: InfoProps) => {
   const signatureRequestVersion = requestData?.version;
   const transactionType = transactionMetadata?.type;
 
-  const InfoComponent = ConfirmationInfoComponentMap[
-    approvalRequest?.type as keyof typeof ConfirmationInfoComponentMap
-  ]({ signatureRequestVersion, transactionType });
+  if (!hasConfirmationInfo(approvalRequest.type)) return null;
+
+  const InfoComponent = ConfirmationInfoComponentMap[approvalRequest.type]({
+    signatureRequestVersion,
+    transactionType,
+  });
 
   if (!InfoComponent) return null;
 

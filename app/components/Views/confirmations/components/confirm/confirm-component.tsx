@@ -29,7 +29,7 @@ import { useConfirmationLoadMetrics } from '../../hooks/metrics/useConfirmationL
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
 import AlertBanner from '../alert-banner';
-import Info from '../info-root';
+import Info, { hasConfirmationInfo } from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
 import styleSheet from './confirm-component.styles';
@@ -252,6 +252,9 @@ function ConfirmInternal({
   fullscreenStyle,
 }: ConfirmProps) {
   const { approvalRequest } = useApprovalRequest();
+  // The first pending approval can change while the sheet is mounted, e.g.
+  // a WalletConnect request queued behind the signature being confirmed.
+  const isSupportedApproval = hasConfirmationInfo(approvalRequest?.type);
   const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { forceBottomSheet, bottomSheetHeightPercentage } =
@@ -324,21 +327,25 @@ function ConfirmInternal({
         testID={ConfirmationUIType.FLAT}
         onLayout={onFirstPaint}
       >
-        <ConfirmWrapped styles={styles} route={route} />
+        {approvalRequest && !isSupportedApproval ? (
+          <Loader />
+        ) : (
+          <ConfirmWrapped styles={styles} route={route} />
+        )}
       </View>
     );
   }
 
   return (
     <BottomSheet
-      isInteractable={Boolean(approvalRequest)}
+      isInteractable={isSupportedApproval}
       onClose={() => onReject()}
       testID={ConfirmationUIType.MODAL}
       twClassName={
         sheetMinHeight === undefined ? undefined : `min-h-[${sheetMinHeight}px]`
       }
     >
-      {approvalRequest ? (
+      {approvalRequest && isSupportedApproval ? (
         <View
           testID={approvalRequest.type}
           style={styles.confirmContainer}
