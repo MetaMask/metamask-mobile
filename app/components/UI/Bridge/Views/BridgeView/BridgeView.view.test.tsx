@@ -1118,6 +1118,86 @@ describeForPlatforms('BridgeView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the quoted dest money amount when dest has no fiat rate', async () => {
+    const moneyDest: BridgeToken = {
+      address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+      chainId: '0x1',
+      decimals: 6,
+      symbol: 'MUSD',
+      name: 'Money',
+      isMoneyToken: true,
+    };
+    const state = initialStateBridge({ deterministicFiat: true })
+      .withBridgeRecommendedQuoteEvmSimple({
+        destTokenAddress: moneyDest.address,
+      })
+      .withOverrides({
+        bridge: {
+          ...DEFAULT_BRIDGE,
+          sourceAmount: '1',
+          destToken: moneyDest,
+          selectedDestChainId: '0x1',
+          isDestTokenManuallySet: true,
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              inputPrimaryDenomination: 'token_amount',
+            },
+            TokenRatesController: {
+              marketData: {},
+            },
+            AssetsController: {
+              assetsPrice: {},
+            },
+          },
+        },
+      } as unknown as DeepPartial<RootState>)
+      .build();
+    const bridgeControllerState = (
+      (state as unknown as DeepPartial<RootState>).engine?.backgroundState as
+        | Record<string, unknown>
+        | undefined
+    )?.BridgeController as
+      | {
+          recommendedQuote: Record<string, unknown>;
+          quotes: Record<string, unknown>[];
+        }
+      | undefined;
+    const recommendedQuote = bridgeControllerState?.recommendedQuote;
+    const quoteWithTrade = merge({}, recommendedQuote, {
+      quote: {
+        aggregator: 'test-bridge',
+        protocols: ['test-bridge'],
+        steps: [],
+      },
+      trade: {
+        value: '0xde0b6b3a7640000',
+        gasLimit: 0,
+        effectiveGas: 0,
+      },
+    });
+
+    if (bridgeControllerState) {
+      bridgeControllerState.recommendedQuote = quoteWithTrade;
+      bridgeControllerState.quotes = [quoteWithTrade];
+    }
+
+    const { getByTestId, getByText, queryByText } = renderComponentViewScreen(
+      BridgeView as unknown as React.ComponentType,
+      { name: Routes.BRIDGE.BRIDGE_VIEW },
+      { state },
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_INPUT).props.value,
+      ).toBe('1');
+    });
+    expect(queryByText('$0.00')).toBeNull();
+    expect(getByText(strings('bridge.money_name'))).toBeOnTheScreen();
+  });
+
   it('resets source cursor to the end when input is focused again', async () => {
     const { getByTestId, getByText, findByDisplayValue } =
       defaultBridgeWithTokens({

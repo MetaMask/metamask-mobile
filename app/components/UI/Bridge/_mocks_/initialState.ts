@@ -166,6 +166,10 @@ export const bridgeTestState = {
         },
       },
       BridgeController: defaultBridgeControllerState,
+      MoneyAccountController: {
+        moneyAccounts: {},
+        defaultMoneyAccountId: null,
+      },
       TokenBalancesController: {
         tokenBalances: {
           [evmAccountAddress]: {

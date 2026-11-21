@@ -636,7 +636,28 @@ const BridgeMarketViewContent = ({
                   isLoading={!destTokenAmount && isLoading}
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
-                  showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  showFiatAmountAsPrimary={
+                    sourceAmountInput.isFiatMode ||
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    sourceToken?.isMoneyToken ||
+                    destToken?.isMoneyToken
+                  }
+                  secondaryValue={
+                    destToken?.isMoneyToken
+                      ? strings('bridge.money_name')
+                      : undefined
+                  }
+                  subtitle={
+                    destToken?.apy !== undefined
+                      ? strings('money.asset_overview.balance_cta.earn_apy', {
+                          apy: destToken.apy,
+                        })
+                      : undefined
+                  }
+                  hideFiatValueWhenUnpriced={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    destToken?.isMoneyToken || sourceToken?.isMoneyToken
+                  }
                 />
               </Box>
             </Box>

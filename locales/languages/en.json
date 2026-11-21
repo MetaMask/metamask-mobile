@@ -10956,6 +10956,8 @@
       "try_again": "Try again",
       "today": "Today"
     },
+          "money_name": "MetaMask USD",
+
     "limit": {
       "pair": "{{source}} → {{dest}}",
       "expiry": "Expires after: {{timeLeft}}",

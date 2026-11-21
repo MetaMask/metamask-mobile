@@ -1,5 +1,4 @@
 import React, { createRef } from 'react';
-import { CaipChainId } from '@metamask/utils';
 import {
   FeatureId,
   UnifiedSwapBridgeEventName,
@@ -17,6 +16,7 @@ import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockTrackUnifiedSwapBridgeEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
@@ -766,6 +766,36 @@ describe('TokenInputArea', () => {
       // Destination tokens never show max button
       expect(queryByText('Max')).toBeNull();
     });
+
+    it('does not display max button for a money source token', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+      const moneyToken: BridgeToken = {
+        ...nativeToken,
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      };
+
+      const { queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={moneyToken}
+              tokenBalance={tokenBalance}
+              onMaxPress={mockOnMaxPress}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
+      expect(queryByText('Max')).toBeNull();
+    });
   });
 
   describe('imperative handle (focus, blur, isFocused)', () => {
@@ -1140,6 +1170,38 @@ describe('TokenInputArea', () => {
       expect(getByTestId('token-input-input').props.value).toBe('1.5');
       expect(queryByText('$0.00')).toBeNull();
     });
+
+    it('shows quoted dest money amount as primary when dest is unpriced', () => {
+      mockUseDisplayCurrencyValue.mockReturnValue('$0.00');
+      const moneyToken: BridgeToken = {
+        ...mockToken,
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      };
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+              amount="1.5"
+              showFiatAmountAsPrimary
+              hideFiatValueWhenUnpriced
+              secondaryValue={strings('bridge.money_name')}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-input-input').props.value).toBe('1.5');
+      expect(queryByText('$0.00')).toBeNull();
+      expect(getByText(strings('bridge.money_name'))).toBeOnTheScreen();
+    });
   });
 
   describe('amount overrides', () => {
@@ -1464,6 +1526,64 @@ describe('TokenInputArea', () => {
       // Assert — shows formatted address (0x1234...7890), not formattedBalance ('100')
       expect(queryByText('100')).toBeNull();
       expect(getByText(/0x.*\.\.\./)).toBeTruthy();
+    });
+
+    // TokenInputArea is a presentational row, not a screen. Dest money APY
+    // copy is render-only ("shows X when prop Y"), which CV writing-tests drop.
+    it('shows the money subtitle override with a dotted underline', () => {
+      const moneyToken: BridgeToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f' as `0x${string}`,
+        isMoneyToken: true,
+      };
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+              subtitle="Earn 6.2% APY"
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('subtitle-underline')).toBeOnTheScreen();
+      expect(getByText('Earn 6.2% APY')).toBeOnTheScreen();
+      expect(queryByText(/0x.*\.\.\./)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the default subtitle when a money token has no override', () => {
+      const moneyToken: BridgeToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f' as `0x${string}`,
+        isMoneyToken: true,
+      };
+
+      const { getByText, queryByTestId } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(queryByTestId('subtitle-underline')).not.toBeOnTheScreen();
+      expect(getByText(/0x.*\.\.\./)).toBeOnTheScreen();
     });
 
     it('destination native token shows no address subtitle', () => {
