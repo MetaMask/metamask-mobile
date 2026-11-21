@@ -14,6 +14,12 @@ export const MONEY_ACCOUNT_DEPOSIT_TYPES = [
   TransactionType.membershipSubscription,
 ];
 
+export const CONVERT_DEPOSIT_TYPES = [
+  TransactionType.moneyAccountDeposit,
+  TransactionType.perpsDeposit,
+  TransactionType.predictDeposit,
+];
+
 export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.batch,
   TransactionType.contractInteraction,

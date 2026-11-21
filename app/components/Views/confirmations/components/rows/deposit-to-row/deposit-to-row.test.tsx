@@ -1,0 +1,184 @@
+import React from 'react';
+import { Text as MockText } from 'react-native';
+import { type PaymentMethod } from '@metamask/ramps-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
+import { strings } from '../../../../../../../locales/i18n';
+import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import { selectPerpsLighterProviderEnabledFlag } from '../../../../../UI/Perps/selectors/featureFlags';
+import {
+  isLighterProviderEnabled,
+  isPerpsLighterConfirmationEnabled,
+} from '../../../../../UI/Perps/utils/lighterFeatureFlags';
+import { POLYGON_PUSD } from '../../../constants/predict';
+import { useIsMoneyAccountPaymentOverride } from '../../../hooks/pay/useIsMoneyAccountPaymentOverride';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { PayWithOption } from '../../confirm/confirm-component';
+import { TokenIconProps } from '../../token-icon';
+import { DepositToRow, DepositToRowIDs } from './deposit-to-row';
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
+}));
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/pay/useIsMoneyAccountPaymentOverride');
+jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
+jest.mock('../../../../../UI/Perps/selectors/featureFlags', () => ({
+  selectPerpsLighterProviderEnabledFlag: jest.fn(),
+}));
+jest.mock('../../../../../UI/Perps/utils/lighterFeatureFlags', () => ({
+  isLighterProviderEnabled: jest.fn(),
+  isPerpsLighterConfirmationEnabled: jest.fn(),
+}));
+jest.mock('../../token-icon', () => ({
+  TokenIcon: (props: TokenIconProps) => (
+    <MockText testID="deposit-to-token-icon">
+      {`${props.address}:${props.chainId}:${props.symbol ?? ''}`}
+    </MockText>
+  ),
+  TokenIconVariant: { Default: 'default', Row: 'row', Hero: 'hero' },
+}));
+
+const useParamsMock = jest.mocked(useParams);
+const useTransactionMetadataRequestMock = jest.mocked(
+  useTransactionMetadataRequest,
+);
+const useIsMoneyAccountPaymentOverrideMock = jest.mocked(
+  useIsMoneyAccountPaymentOverride,
+);
+const useTransactionPaySelectedFiatPaymentMethodMock = jest.mocked(
+  useTransactionPaySelectedFiatPaymentMethod,
+);
+const selectPerpsLighterProviderEnabledFlagMock = jest.mocked(
+  selectPerpsLighterProviderEnabledFlag,
+);
+const isLighterProviderEnabledMock = jest.mocked(isLighterProviderEnabled);
+const isPerpsLighterConfirmationEnabledMock = jest.mocked(
+  isPerpsLighterConfirmationEnabled,
+);
+
+function renderRow() {
+  return renderWithProvider(<DepositToRow />, {
+    state: { engine: { backgroundState } },
+  });
+}
+
+describe('DepositToRow', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    useParamsMock.mockReturnValue({});
+    useIsMoneyAccountPaymentOverrideMock.mockReturnValue(false);
+    useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+    selectPerpsLighterProviderEnabledFlagMock.mockReturnValue(false);
+    isLighterProviderEnabledMock.mockReturnValue(false);
+    isPerpsLighterConfirmationEnabledMock.mockReturnValue(false);
+  });
+
+  it('renders "To" -> "Perps balance" with the perps balance icon for perpsDeposit', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { getByTestId, getByText } = renderRow();
+
+    expect(getByTestId(DepositToRowIDs.ROW)).toBeOnTheScreen();
+    expect(getByText(strings('confirm.label.to'))).toBeOnTheScreen();
+    expect(getByTestId(DepositToRowIDs.PERPS_ICON)).toBeOnTheScreen();
+    expect(getByTestId(DepositToRowIDs.VALUE)).toHaveTextContent(
+      strings('confirm.pay_with_bottom_sheet.perps_balance'),
+    );
+  });
+
+  it('renders "To" -> "Predict balance" with the Polygon pUSD TokenIcon for predictDeposit', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { getByTestId, getByText } = renderRow();
+
+    expect(getByTestId(DepositToRowIDs.ROW)).toBeOnTheScreen();
+    expect(getByText(strings('confirm.label.to'))).toBeOnTheScreen();
+    expect(getByTestId('deposit-to-token-icon')).toHaveTextContent(
+      `${POLYGON_PUSD.address}:${CHAIN_IDS.POLYGON}:${POLYGON_PUSD.symbol}`,
+    );
+    expect(getByTestId(DepositToRowIDs.VALUE)).toHaveTextContent(
+      strings('confirm.pay_with_bottom_sheet.predict_balance'),
+    );
+  });
+
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    TransactionType.perpsDepositAndOrder,
+    TransactionType.predictDepositAndOrder,
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+    TransactionType.contractInteraction,
+  ])('returns null for %s', (type) => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { queryByTestId } = renderRow();
+
+    expect(queryByTestId(DepositToRowIDs.ROW)).toBeNull();
+  });
+
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'returns null for %s when payWithOption is MoneyAccount',
+    (type) => {
+      useParamsMock.mockReturnValue({
+        payWithOption: PayWithOption.MoneyAccount,
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type,
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { queryByTestId } = renderRow();
+
+      expect(queryByTestId(DepositToRowIDs.ROW)).toBeNull();
+    },
+  );
+
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'returns null for %s when MoneyAccount payment override is active',
+    (type) => {
+      useIsMoneyAccountPaymentOverrideMock.mockReturnValue(true);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type,
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { queryByTestId } = renderRow();
+
+      expect(queryByTestId(DepositToRowIDs.ROW)).toBeNull();
+    },
+  );
+
+  it('returns null when a fiat payment method is selected', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+    useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue({
+      id: 'pm-card',
+    } as PaymentMethod);
+
+    const { queryByTestId } = renderRow();
+
+    expect(queryByTestId(DepositToRowIDs.ROW)).toBeNull();
+  });
+
+  it('returns null on perpsDeposit when PerpsReceiveToRow is visible', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+    selectPerpsLighterProviderEnabledFlagMock.mockReturnValue(true);
+    isLighterProviderEnabledMock.mockReturnValue(true);
+    isPerpsLighterConfirmationEnabledMock.mockReturnValue(true);
+
+    const { queryByTestId } = renderRow();
+
+    expect(queryByTestId(DepositToRowIDs.ROW)).toBeNull();
+  });
+});
