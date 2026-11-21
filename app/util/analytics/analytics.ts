@@ -1,6 +1,7 @@
 import {
   type AnalyticsEventProperties,
   type AnalyticsUserTraits,
+  type AnalyticsContext,
   analyticsControllerSelectors,
 } from '@metamask/analytics-controller';
 import { whenEngineReady } from './whenEngineReady';
@@ -25,7 +26,10 @@ import { enrichWithNavigationAttribution } from './navigationAnalyticsAttributio
  * Analytics helper interface
  */
 export interface AnalyticsHelper {
-  trackEvent: (event: AnalyticsTrackingEvent) => void;
+  trackEvent: (
+    event: AnalyticsTrackingEvent,
+    context?: AnalyticsContext,
+  ) => void;
   trackView: (name: string, properties?: AnalyticsEventProperties) => void;
   identify: (traits?: AnalyticsUserTraits) => void;
   optIn: () => Promise<void>;
@@ -59,8 +63,12 @@ const queueManager = createAnalyticsQueueManager({
  * Track an event
  *
  * @param event - AnalyticsTrackingEvent to track
+ * @param context - Optional context forwarded to the analytics platform
  */
-const trackEvent = (event: AnalyticsTrackingEvent): void => {
+const trackEvent = (
+  event: AnalyticsTrackingEvent,
+  context?: AnalyticsContext,
+): void => {
   let enrichedEvent = event;
 
   try {
@@ -80,7 +88,12 @@ const trackEvent = (event: AnalyticsTrackingEvent): void => {
     // Best-effort A/B enrichment — retain successful shared enrichment.
   }
 
-  queueManager.queueOperation('trackEvent', enrichedEvent).catch((error) => {
+  const queueOperation =
+    context === undefined
+      ? queueManager.queueOperation('trackEvent', enrichedEvent)
+      : queueManager.queueOperation('trackEvent', enrichedEvent, context);
+
+  queueOperation.catch((error) => {
     Logger.log('Analytics: Unhandled error in trackEvent', error);
   });
 };
