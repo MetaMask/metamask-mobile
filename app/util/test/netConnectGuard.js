@@ -20,9 +20,6 @@
 // module namespace, so fall back to its default export.
 const nockModule = require('nock');
 const nock = nockModule.default ?? nockModule;
-const {
-  installDefaultApiMocks,
-} = require('../../../tests/component-view/api-mocking/defaults');
 
 /**
  * Hosts nock still lets through for real. Environmental noise only (e.g.
@@ -290,7 +287,6 @@ const installNetConnectGuard = () => {
   beforeEach(() => {
     currentTestActive = true;
     blockNetConnect();
-    installDefaultApiMocks();
   });
   afterEach(() => checkBlockedRequests(expect.getState().currentTestName));
   afterAll(() => {
