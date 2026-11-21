@@ -36,18 +36,28 @@ Fixtures use actual [Coinbase Exchange ETH-USD candle closes](https://docs.cdp.c
 Send the same mixed FCM message to every install: `message.notification` contains the original title and body, `message.data` contains the price alert fields, and `message.apns.payload.aps` includes `mutable-content: 1`. The sender does not set a rich category or gate by client version. For direct APNs, use `aps.alert` for the original copy and put the custom fields alongside `aps`.
 
 ```mermaid
-flowchart TD
-    S["One FCM message: notification + data + APNs mutable-content"] --> A["Android: Firebase receiver delivers native intent"]
-    S --> I["iOS: APNs starts notification service extension"]
-    A --> V{"Valid v1 non-Braze alert?"}
-    V -->|No| F["Existing Firebase / Braze / RNFirebase route"]
-    V -->|Yes| P["Render and post native Big Picture with token and Swap actions"]
-    P -->|Success| N["Bypass Firebase default posting and RNFirebase delivery"]
-    P -->|Failure| F
-    I --> W{"Valid v1, and rewrite succeeds before timeout?"}
-    W -->|No| O["Original OS notification unchanged"]
-    W -->|Yes| R["Rewritten banner; attach PNG when chart is valid"]
-    R --> L["Category selects native long look and actions"]
+flowchart LR
+    Push["Firebase push with notification and data"]
+    subgraph Android
+        AndroidIntercept{"Interceptor accepts data"}
+        AndroidCard["Custom card from data only"]
+        AndroidDrop["Firebase notification dropped"]
+        AndroidDefault["Default notification from Firebase"]
+        AndroidIntercept -->|Valid and posted| AndroidCard
+        AndroidCard --> AndroidDrop
+        AndroidIntercept -->|Invalid or post failed| AndroidDefault
+    end
+    subgraph iOS
+        IOSIntercept{"Service extension accepts data"}
+        IOSCard["Custom banner with chart when available"]
+        IOSLongLook["Custom card on expansion"]
+        IOSDefault["Original notification from APNs"]
+        IOSIntercept -->|Valid and rewritten| IOSCard
+        IOSIntercept -->|Invalid or rewrite failed| IOSDefault
+        IOSCard --> IOSLongLook
+    end
+    Push --> AndroidIntercept
+    Push --> IOSIntercept
 ```
 
 On Android, the native service intercepts before Firebase’s background display, and the RNFirebase receiver bypasses candidates that the native service handles. Unknown versions, invalid alerts, and Braze pushes continue through the existing Firebase → Braze → RNFirebase path. A rich-post failure returns to Firebase's original notification path. Force stop is an OS limit: neither the rich nor default FCM path is expected to run until the app is reopened. Ordinary process death is not Force stop.
