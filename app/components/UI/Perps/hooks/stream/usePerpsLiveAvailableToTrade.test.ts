@@ -50,36 +50,36 @@ describe('usePerpsLiveAvailableToTrade', () => {
     );
   });
 
-  it('is unknown until the channel delivers a value', () => {
+  it('is unknown until the channel delivers a value', async () => {
     const { result } = renderHook(() =>
       usePerpsLiveAvailableToTrade({ symbol: 'BTC' }),
     );
     const initialValue = result.current;
 
-    act(() => lastSubscription().callback(btcValue));
+    await act(() => lastSubscription().callback(btcValue));
 
     expect(initialValue).toBeUndefined();
     expect(result.current).toEqual(btcValue);
   });
 
-  it('returns to unknown when the channel clears the value', () => {
+  it('returns to unknown when the channel clears the value', async () => {
     const { result } = renderHook(() =>
       usePerpsLiveAvailableToTrade({ symbol: 'BTC' }),
     );
-    act(() => lastSubscription().callback(btcValue));
+    await act(() => lastSubscription().callback(btcValue));
 
-    act(() => lastSubscription().callback(undefined));
+    await act(() => lastSubscription().callback(undefined));
 
     expect(result.current).toBeUndefined();
   });
 
-  it('returns to unknown when the stream fails', () => {
+  it('returns to unknown when the stream fails', async () => {
     const { result } = renderHook(() =>
       usePerpsLiveAvailableToTrade({ symbol: 'BTC' }),
     );
-    act(() => lastSubscription().callback(btcValue));
+    await act(() => lastSubscription().callback(btcValue));
 
-    act(() => lastSubscription().onError(new Error('closed')));
+    await act(() => lastSubscription().onError(new Error('closed')));
 
     expect(result.current).toBeUndefined();
   });
@@ -91,13 +91,13 @@ describe('usePerpsLiveAvailableToTrade', () => {
     expect(result.current).toBeUndefined();
   });
 
-  it('clears the previous market value and resubscribes when the market changes', () => {
+  it('clears the previous market value and resubscribes when the market changes', async () => {
     const { result, rerender } = renderHook(
       (props: UsePerpsLiveAvailableToTradeOptions) =>
         usePerpsLiveAvailableToTrade(props),
       { initialProps: { symbol: 'BTC' } },
     );
-    act(() => lastSubscription().callback(btcValue));
+    await act(() => lastSubscription().callback(btcValue));
 
     rerender({ symbol: 'ETH' });
 

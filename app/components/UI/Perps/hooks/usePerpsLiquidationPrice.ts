@@ -71,7 +71,7 @@ export const usePerpsLiquidationPrice = (
     if (!canEstimate) return;
 
     let current = true;
-    const timeout = setTimeout(async () => {
+    const updateEstimate = async () => {
       try {
         const price = await calculateLiquidationPrice(request.params);
         if (current) setResult({ request, price, error: null });
@@ -86,6 +86,9 @@ export const usePerpsLiquidationPrice = (
               : 'Failed to calculate liquidation price',
         });
       }
+    };
+    const timeout = setTimeout(() => {
+      void updateEstimate();
     }, debounceMs);
     return () => {
       current = false;

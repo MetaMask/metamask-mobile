@@ -27,28 +27,18 @@ export const crossMarginCapabilities = {
 
 /** Reset every Engine implementation modified by the margin-mode journeys. */
 export function resetMarginModeControllerMocks() {
-  const controller = Engine.context.PerpsController;
-  jest
-    .mocked(controller.getOrderCapabilities)
+  const controller = jest.mocked(Engine.context.PerpsController);
+  controller.getOrderCapabilities
     .mockReset()
     .mockResolvedValue(crossMarginCapabilities);
-  jest
-    .mocked(controller.getMarkets)
-    .mockReset()
-    .mockResolvedValue([crossMarginMarketInfo]);
-  jest.mocked(controller.getMarginModeLock).mockReset().mockResolvedValue({
+  controller.getMarkets.mockReset().mockResolvedValue([crossMarginMarketInfo]);
+  controller.getMarginModeLock.mockReset().mockResolvedValue({
     status: 'unlocked',
     providerId: 'hyperliquid',
   });
-  jest
-    .mocked(controller.calculateLiquidationPrice)
-    .mockReset()
-    .mockResolvedValue('2000');
-  jest
-    .mocked(controller.validateOrder)
-    .mockReset()
-    .mockResolvedValue({ isValid: true });
-  jest.mocked(controller.placeOrder).mockReset().mockResolvedValue({
+  controller.calculateLiquidationPrice.mockReset().mockResolvedValue('2000');
+  controller.validateOrder.mockReset().mockResolvedValue({ isValid: true });
+  controller.placeOrder.mockReset().mockResolvedValue({
     success: true,
     orderId: 'cross-margin-view-order',
   });
@@ -56,17 +46,16 @@ export function resetMarginModeControllerMocks() {
 
 /** Settle the initial read before opening a sheet that requests a fresh lock. */
 export async function openMarginModeSheet(waitForLock = true) {
+  const controller = jest.mocked(Engine.context.PerpsController);
   await waitFor(() =>
-    expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalled(),
+    expect(controller.getMarkets.mock.calls.length).toBeGreaterThan(0),
   );
   await act(async () => {
     await Promise.all(
-      jest
-        .mocked(Engine.context.PerpsController.getMarkets)
-        .mock.results.map(({ value }) => value),
+      controller.getMarkets.mock.results.map(({ value }) => value),
     );
   });
-  jest.mocked(Engine.context.PerpsController.getMarginModeLock).mockClear();
+  controller.getMarginModeLock.mockClear();
 
   fireEvent.press(await screen.findByTestId(formIds.MARGIN_MODE_BUTTON));
 
@@ -74,9 +63,7 @@ export async function openMarginModeSheet(waitForLock = true) {
   if (waitForLock) {
     await act(async () => {
       await Promise.all(
-        jest
-          .mocked(Engine.context.PerpsController.getMarginModeLock)
-          .mock.results.map(({ value }) => value),
+        controller.getMarginModeLock.mock.results.map(({ value }) => value),
       );
     });
   }

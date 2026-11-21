@@ -2,11 +2,7 @@ import {
   HYPERLIQUID_ASSET_CONFIGS,
   type AssetRoute,
 } from '@metamask/perps-controller';
-import type { RootState } from '../../../../reducers';
-import {
-  renderHookWithProvider,
-  type DeepPartial,
-} from '../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   HYPERLIQUID_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE,
@@ -52,7 +48,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '100';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.formattedQuoteData).toEqual({
@@ -68,7 +64,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '0';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.formattedQuoteData).toEqual({
@@ -85,7 +81,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.formattedQuoteData.receivingAmount).toBe('0 USDC');
@@ -97,7 +93,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '0.5';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.formattedQuoteData.receivingAmount).toBe('0 USDC');
@@ -111,7 +107,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '1';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.formattedQuoteData.receivingAmount).toBe('0 USDC');
@@ -125,7 +121,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '1.01';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.formattedQuoteData.receivingAmount).toBe(
@@ -139,7 +135,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '123.456789';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       // 123.456789 less the $1 fee, at two decimals.
@@ -154,7 +150,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '1000000';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       // 1,000,000 less the $1 fee, grouped like other fiat amounts.
@@ -170,7 +166,7 @@ describe('usePerpsWithdrawQuote', () => {
       testCases.forEach((amount) => {
         const { result } = renderHookWithProvider(
           () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-          { state: {} as DeepPartial<RootState> },
+          { state: {} },
         );
 
         // Invalid input should result in 0 USDC, not NaN USDC
@@ -188,7 +184,7 @@ describe('usePerpsWithdrawQuote', () => {
       testCases.forEach((amount) => {
         const { result } = renderHookWithProvider(
           () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-          { state: {} as DeepPartial<RootState> },
+          { state: {} },
         );
 
         expect(result.current.formattedQuoteData.receivingAmount).toBe(
@@ -205,7 +201,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '2';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.hasValidQuote).toBe(true);
@@ -218,7 +214,7 @@ describe('usePerpsWithdrawQuote', () => {
       testCases.forEach((amount) => {
         const { result } = renderHookWithProvider(
           () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-          { state: {} as DeepPartial<RootState> },
+          { state: {} },
         );
 
         expect(result.current.hasValidQuote).toBe(false);
@@ -236,7 +232,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '100';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       // Check that it uses the provider fee of $1.00
@@ -248,7 +244,7 @@ describe('usePerpsWithdrawQuote', () => {
     it('exposes the numeric network fee for arithmetic', () => {
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount: '100' }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.networkFeeAmount).toBe(HYPERLIQUID_WITHDRAWAL_FEE);
@@ -260,7 +256,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '100';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.isLoading).toBe(false);
@@ -275,7 +271,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '100';
       const { result } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result.current.formattedQuoteData.networkFee).toBe(
@@ -295,7 +291,7 @@ describe('usePerpsWithdrawQuote', () => {
       const amount = '100';
       const { result, rerender } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       const firstResult = result.current.formattedQuoteData;
@@ -312,7 +308,7 @@ describe('usePerpsWithdrawQuote', () => {
       // First render with amount 100
       const { result: result1 } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount: '100' }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result1.current.formattedQuoteData.receivingAmount).toBe(
@@ -322,7 +318,7 @@ describe('usePerpsWithdrawQuote', () => {
       // Second render with amount 200
       const { result: result2 } = renderHookWithProvider(
         () => usePerpsWithdrawQuote({ withdrawalRoute, amount: '200' }),
-        { state: {} as DeepPartial<RootState> },
+        { state: {} },
       );
 
       expect(result2.current.formattedQuoteData.receivingAmount).toBe(
