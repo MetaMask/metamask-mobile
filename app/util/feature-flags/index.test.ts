@@ -5,10 +5,15 @@ import {
   getFeatureFlagType,
   isAbTestOptionsArray,
   isMinimumRequiredVersionSupported,
+  resolveVersionedFlagValue,
 } from './index';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(),
+}));
+
+jest.mock('../version', () => ({
+  getBaseSemVerVersion: jest.fn(() => '8.13.0'),
 }));
 
 jest.mock('compare-versions', () => ({
@@ -269,6 +274,86 @@ describe('Feature Flags Utility Functions', () => {
       expect(isAbTestOptionsArray('control')).toBe(false);
       expect(isAbTestOptionsArray(null)).toBe(false);
       expect(isAbTestOptionsArray(undefined)).toBe(false);
+    });
+  });
+
+  describe('resolveVersionedFlagValue', () => {
+    const arms = [{ name: 'control', scope: { type: 'threshold', value: 1 } }];
+
+    // The client version is read once at module load, so cases that need a
+    // different build version load a fresh copy of the module.
+    const loadWithClientVersion = (clientVersion: string) => {
+      jest.resetModules();
+      jest.doMock('../version', () => ({
+        getBaseSemVerVersion: () => clientVersion,
+      }));
+      const { resolveVersionedFlagValue: resolve } =
+        jest.requireActual<typeof import('./index')>('./index');
+      return resolve;
+    };
+
+    it.each([
+      ['a threshold array', arms],
+      ['a boolean', true],
+      ['null', null],
+      ['undefined', undefined],
+    ])('returns %s unchanged', (_label, value) => {
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(value);
+    });
+
+    it('returns the entry for the highest version the build satisfies', () => {
+      const older = [{ name: 'old', scope: { type: 'threshold', value: 1 } }];
+      const value = {
+        versions: { '8.10.0': older, '8.13.0': arms, '8.20.0': older },
+      };
+
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(arms);
+    });
+
+    it('returns undefined when the build is below every version', () => {
+      const resolve = loadWithClientVersion('8.12.0');
+      const value = { versions: { '8.13.0': arms } };
+
+      const result = resolve(value);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('does not match a v-prefixed key on the same version, like the controller', () => {
+      const value = { versions: { 'v8.13.0': arms } };
+
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns the value unchanged when a version key is not semver', () => {
+      const value = { versions: { latest: arms } };
+
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(value);
+    });
+
+    it('returns the value unchanged when versions is not an object', () => {
+      const value = { versions: [arms] };
+
+      const result = resolveVersionedFlagValue(value);
+
+      expect(result).toBe(value);
+    });
+
+    it('returns undefined when the build version is unknown', () => {
+      const resolve = loadWithClientVersion('unknown');
+      const value = { versions: { '8.13.0': arms } };
+
+      const result = resolve(value);
+
+      expect(result).toBeUndefined();
     });
   });
 
