@@ -287,7 +287,9 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <PrivacySection>
-            {strings('deposit.source_of_income.privacy_text')}
+            <Text variant={TextVariant.BodySm}>
+              {strings('deposit.source_of_income.privacy_text')}
+            </Text>
           </PrivacySection>
 
           <Button

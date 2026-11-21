@@ -2,7 +2,7 @@
  * Collects source of funds and monthly volume for MiCA SOURCE_OF_INCOME form.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -19,6 +19,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
+import { useFormatters } from '../../../../hooks/useFormatters';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -39,7 +40,7 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import PrivacySection from '../../components/PrivacySection';
 
 interface SourceOfIncomeMetadata {
-  options?: Array<{ name: string; value: string }>;
+  options?: { name: string; value: string }[];
   documentProofOptions?: string[];
   expiresAt?: string;
   kycUrl?: string;
@@ -74,7 +75,15 @@ const SourceOfIncome = (): React.JSX.Element => {
   const { routeAfterAuthentication } = useTransakRouting({
     screenLocation: 'SourceOfIncome Screen',
   });
-  const { userRegion } = useRampsUserRegion();
+  const { formatCurrency } = useFormatters();
+
+  const currencySymbol = useMemo(() => {
+    if (!quote?.fiatCurrency) return '';
+    // Format a zero amount and keep only the symbol (e.g. "€0.00" -> "€").
+    return formatCurrency(0, quote.fiatCurrency, {
+      currencyDisplay: 'narrowSymbol',
+    }).replace(/[0-9.,\s\u00A0]/g, '');
+  }, [formatCurrency, quote?.fiatCurrency]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -206,6 +215,11 @@ const SourceOfIncome = (): React.JSX.Element => {
                 onChangeText={setMonthlyVolume}
                 keyboardType="numeric"
                 autoCapitalize="none"
+                startAccessory={
+                  currencySymbol ? (
+                    <Text variant={TextVariant.BodyMd}>{currencySymbol}</Text>
+                  ) : undefined
+                }
               />
               <Text variant={TextVariant.BodySm} style={styles.caption}>
                 {strings('deposit.source_of_income.monthly_volume_helper')}
@@ -232,7 +246,9 @@ const SourceOfIncome = (): React.JSX.Element => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content style={styles.footerContent}>
           <PrivacySection>
-            {strings('deposit.source_of_income.privacy_text')}
+            <Text variant={TextVariant.BodySm}>
+              {strings('deposit.source_of_income.privacy_text')}
+            </Text>
           </PrivacySection>
 
           <Button

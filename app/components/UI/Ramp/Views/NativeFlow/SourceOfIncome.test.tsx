@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { render, waitFor } from '@testing-library/react-native';
 import SourceOfIncome from './SourceOfIncome';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
@@ -24,27 +24,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
   I18nEvents: { addListener: jest.fn() },
 }));
 
-const mockEEAMetadata = {
-  options: [],
-  documentProofOptions: [],
-  expiresAt: '',
-  kycUrl: '',
-  workFlowRunId: '',
-  sourceOfFundsTypeOptions: [
-    { name: 'Salary payments', value: 'salary_payment' },
-    { name: 'Savings', value: 'savings' },
-  ],
-  employmentStatusOptions: [
-    { name: 'Mid-Level Employee', value: 'mid_level_employee' },
-    { name: 'Student', value: 'student' },
-  ],
-  countryOfCitizenshipOptions: [
-    { name: 'Germany', value: 'DE' },
-    { name: 'France', value: 'FR' },
-  ],
-};
+jest.mock('../../../../hooks/useFormatters', () => ({
+  useFormatters: () => ({
+    formatCurrency: (_amount: number, currency: string) =>
+      currency === 'EUR' ? '€0.00' : `${currency}0.00`,
+  }),
+}));
 
-const mockNonEEAMetadata = {
+const mockMetadata = {
   options: [],
   documentProofOptions: [],
   expiresAt: '',
@@ -56,24 +43,15 @@ const mockNonEEAMetadata = {
   ],
 };
 
-const mockSubmitSourceOfIncome = jest.fn().mockResolvedValue(undefined);
-const mockGetUserDetails = jest.fn().mockResolvedValue({
-  address: { countryCode: 'US' },
-});
-const mockGetAdditionalRequirements = jest.fn().mockResolvedValue({
-  formsRequired: [
-    {
-      type: 'SOURCE_OF_INCOME',
-      metadata: mockEEAMetadata,
-    },
-  ],
+const mockSubmitSourceOfIncome = jest.fn().mockResolvedValue({
+  status: 'SUBMITTED',
 });
 
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
     submitSourceOfIncome: mockSubmitSourceOfIncome,
-    getUserDetails: mockGetUserDetails,
-    getAdditionalRequirements: mockGetAdditionalRequirements,
+    getKycRequirement: jest.fn(),
+    getAdditionalRequirements: jest.fn(),
   }),
 }));
 
@@ -86,8 +64,9 @@ jest.mock('../../hooks/useTransakRouting', () => ({
 }));
 
 const mockUseParamsReturn = {
-  quote: { quoteId: 'test-quote-id', fiatAmount: 100 },
-  metadata: mockEEAMetadata,
+  quote: { quoteId: 'test-quote-id', fiatAmount: 100, fiatCurrency: 'EUR' },
+  quoteId: 'test-quote-id',
+  metadata: mockMetadata,
   headlessSessionId: undefined,
 };
 
@@ -108,61 +87,18 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('../../utils/micaMockMode', () => ({
   isMicaMockModeEnabled: jest.fn(() => false),
-  mockSubmitSourceOfIncome: jest.fn().mockResolvedValue(undefined),
-  EEA_COUNTRIES: [
-    'DE',
-    'FR',
-    'AT',
-    'BE',
-    'BG',
-    'HR',
-    'CY',
-    'CZ',
-    'DK',
-    'EE',
-    'FI',
-    'GR',
-    'HU',
-    'IE',
-    'IT',
-    'LV',
-    'LT',
-    'LU',
-    'MT',
-    'NL',
-    'PL',
-    'PT',
-    'RO',
-    'SK',
-    'SI',
-    'ES',
-    'SE',
-    'IS',
-    'LI',
-    'NO',
-  ],
-}));
-
-jest.mock('../../hooks/useRampsUserRegion', () => ({
-  useRampsUserRegion: () => ({
-    userRegion: { country: { isoCode: 'US' } },
+  mockSubmitSourceOfIncome: jest.fn().mockResolvedValue({
+    status: 'SUBMITTED',
   }),
 }));
 
 describe('SourceOfIncome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseParamsReturn.metadata = mockEEAMetadata;
-    mockGetUserDetails.mockResolvedValue({
-      address: { countryCode: 'US' },
-    });
+    mockUseParamsReturn.metadata = mockMetadata;
   });
 
-  it('renders correctly for EEA users with valid metadata', async () => {
-    mockGetUserDetails.mockResolvedValue({
-      address: { countryCode: 'DE' },
-    });
-
+  it('renders the title and subtitle copy', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
@@ -172,59 +108,10 @@ describe('SourceOfIncome', () => {
     await waitFor(() => {
       expect(getByText('deposit.source_of_income.title')).toBeTruthy();
       expect(getByText('deposit.source_of_income.subtitle')).toBeTruthy();
-      expect(
-        getByText('deposit.source_of_income.monthly_volume_label'),
-      ).toBeTruthy();
-      expect(
-        getByText('deposit.source_of_income.source_of_funds_label'),
-      ).toBeTruthy();
-      expect(
-        getByText('deposit.source_of_income.employment_status_label'),
-      ).toBeTruthy();
-      expect(
-        getByText('deposit.source_of_income.nationality_label'),
-      ).toBeTruthy();
     });
   });
 
-  it('calls getUserDetails on mount', async () => {
-    render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
-
-    await waitFor(() => {
-      expect(mockGetUserDetails).toHaveBeenCalled();
-    });
-  });
-
-  it('prefers address country code over region for EEA check', async () => {
-    mockGetUserDetails.mockResolvedValue({
-      address: { countryCode: 'DE' },
-    });
-
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
-
-    await waitFor(() => {
-      expect(mockGetUserDetails).toHaveBeenCalled();
-      expect(
-        getByText('deposit.source_of_income.employment_status_label'),
-      ).toBeTruthy();
-    });
-  });
-
-  it('renders correctly for non-EEA users', async () => {
-    mockUseParamsReturn.metadata = {
-      ...mockNonEEAMetadata,
-      employmentStatusOptions: [],
-      countryOfCitizenshipOptions: [],
-    };
-
+  it('renders monthly volume and source of funds only', async () => {
     const { getByText, queryByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
@@ -232,8 +119,6 @@ describe('SourceOfIncome', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.source_of_income.title')).toBeTruthy();
-      expect(getByText('deposit.source_of_income.subtitle')).toBeTruthy();
       expect(
         getByText('deposit.source_of_income.monthly_volume_label'),
       ).toBeTruthy();
@@ -249,7 +134,19 @@ describe('SourceOfIncome', () => {
     });
   });
 
-  it('renders continue button', async () => {
+  it('shows the fiat currency symbol inside the monthly volume field', async () => {
+    const { getByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <SourceOfIncome />
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(getByText('€')).toBeTruthy();
+    });
+  });
+
+  it('renders the continue button', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
         <SourceOfIncome />
@@ -259,27 +156,6 @@ describe('SourceOfIncome', () => {
     await waitFor(() => {
       expect(
         getByText('deposit.source_of_income.continue_button'),
-      ).toBeTruthy();
-    });
-  });
-
-  it('uses address country code over region for EEA determination', async () => {
-    mockGetUserDetails.mockResolvedValue({
-      address: { countryCode: 'DE' },
-    });
-
-    const { getByText } = render(
-      <ThemeContext.Provider value={mockTheme}>
-        <SourceOfIncome />
-      </ThemeContext.Provider>,
-    );
-
-    await waitFor(() => {
-      expect(
-        getByText('deposit.source_of_income.employment_status_label'),
-      ).toBeTruthy();
-      expect(
-        getByText('deposit.source_of_income.nationality_label'),
       ).toBeTruthy();
     });
   });
