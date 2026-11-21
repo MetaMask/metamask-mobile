@@ -54,7 +54,10 @@ import { homePositionsQueryKey, useHomePositions } from './useHomePositions';
 
 /** The UI Slot the Polymarket section renders its discovery list through. */
 const DISCOVERY_SLOT_ID = 'wallet-home.predict-empty-state';
-const DISCOVERY_LOADING: HomeDiscoveryState = { status: 'loading' };
+const DISCOVERY_LOADING: HomeDiscoveryState = {
+  status: 'loading',
+  isFetching: false,
+};
 
 export interface NextPredictHomeSectionProps {
   sectionIndex: number;
@@ -107,9 +110,18 @@ export const NextPredictHomeSection = forwardRef<
     setDiscovery(DISCOVERY_LOADING);
   }
   const isDiscoveryLoading = showsDiscovery && discovery.status === 'loading';
+  const isDiscoveryFetching =
+    showsDiscovery && discovery.status === 'loading' && discovery.isFetching;
   const discoveryCount =
     showsDiscovery && discovery.status === 'ready' ? discovery.itemCount : 0;
   const isLoading = isPositionsLoading || isDiscoveryLoading;
+  const isLoadingForPerformance = isPositionsLoading || isDiscoveryFetching;
+  const discoveryHasError =
+    showsDiscovery &&
+    discovery.status === 'hidden' &&
+    discovery.reason === 'error';
+  const demandStarted =
+    !showsDiscovery || discovery.status !== 'loading' || isDiscoveryFetching;
   const isRendered =
     isPositionsLoading ||
     hasPositions ||
@@ -168,17 +180,24 @@ export const NextPredictHomeSection = forwardRef<
     isEmpty: itemCount === 0,
     itemCount,
   });
+  const contentStateForTrace = discoveryHasError ? 'error' : undefined;
+  let cacheState: 'cold' | 'unknown' | 'warm' = 'unknown';
+  if (hasPositions || (discovery.status === 'ready' && discoveryCount > 0)) {
+    cacheState = 'warm';
+  } else if (isLoadingForPerformance) {
+    cacheState = 'cold';
+  }
+
   useSectionPerformance({
     sectionId: HomeSectionNames.PREDICT,
-    contentReady: !isLoading,
-    isEmpty: !isLoading && itemCount === 0,
-    contentStateForTrace:
-      showsDiscovery &&
-      discovery.status === 'hidden' &&
-      discovery.reason === 'error'
-        ? 'error'
-        : undefined,
-    isLoading,
+    contentReady: !isLoading && !discoveryHasError,
+    isEmpty: !isLoading && itemCount === 0 && !discoveryHasError,
+    demandStarted,
+    generationKey: showsDiscovery ? 'discovery' : 'positions',
+    cacheState,
+    contentStateForTrace,
+    contentError: discoveryHasError,
+    isLoading: isLoadingForPerformance,
   });
   const onLayout = useCallback(() => {
     onViewedLayout();

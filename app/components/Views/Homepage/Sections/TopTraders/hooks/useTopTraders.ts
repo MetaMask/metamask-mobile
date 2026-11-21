@@ -22,6 +22,7 @@ import { useSocialBlockLists } from '../../../../../UI/SocialFeed/hooks/useSocia
 import { readXHandle } from '../../../../../UI/SocialFeed/utils/xHandle';
 import {
   measureSocialDataFetch,
+  type SocialCacheState,
   type SocialDataFetchTab,
 } from '../../../../../../util/social/socialPerformance';
 
@@ -30,6 +31,7 @@ export interface UseTopTradersResult {
   isLoading: boolean;
   isFetching: boolean;
   hasFetched: boolean;
+  cacheState: SocialCacheState;
   error: string | null;
   refresh: () => Promise<void>;
   toggleFollow: (
@@ -70,19 +72,46 @@ export const useTopTraders = (
   const hasChains = options?.chains !== undefined;
   const hasSort = options?.sort !== undefined;
   const timeframe = options?.timeframe ?? '7d';
-  const fetchOptions: FetchLeaderboardOptions | null =
-    hasLimit || hasChains || hasSort
-      ? {
-          ...(hasLimit && { limit: options?.limit }),
-          ...(hasChains && { chains: options?.chains }),
-          ...(hasSort && { sort: options?.sort }),
-        }
-      : null;
+  const fetchOptions = useMemo<FetchLeaderboardOptions | null>(
+    () =>
+      hasLimit || hasChains || hasSort
+        ? {
+            ...(hasLimit && { limit: options?.limit }),
+            ...(hasChains && { chains: options?.chains }),
+            ...(hasSort && { sort: options?.sort }),
+          }
+        : null,
+    [
+      hasChains,
+      hasLimit,
+      hasSort,
+      options?.chains,
+      options?.limit,
+      options?.sort,
+    ],
+  );
 
-  const queryKey: [string, FetchLeaderboardOptions | null] = [
-    'SocialService:fetchLeaderboard',
-    fetchOptions,
-  ];
+  const queryKey = useMemo<[string, FetchLeaderboardOptions | null]>(
+    () => ['SocialService:fetchLeaderboard', fetchOptions],
+    [fetchOptions],
+  );
+  const isQueryEnabled = (options?.enabled ?? true) && isUnlocked;
+  const resolveCacheState = (): SocialCacheState =>
+    queryClient.getQueryData<LeaderboardResponse>(queryKey) === undefined
+      ? 'cold'
+      : 'warm';
+  const cacheStateRef = useRef<SocialCacheState>('cold');
+  const cacheStateQueryKeyRef = useRef<typeof queryKey | undefined>(undefined);
+  const wasQueryEnabledRef = useRef(isQueryEnabled);
+  const shouldResolveCacheState =
+    isQueryEnabled &&
+    (cacheStateQueryKeyRef.current !== queryKey || !wasQueryEnabledRef.current);
+  if (shouldResolveCacheState) {
+    cacheStateRef.current = resolveCacheState();
+    cacheStateQueryKeyRef.current = queryKey;
+  }
+  wasQueryEnabledRef.current = isQueryEnabled;
+  const cacheState = cacheStateRef.current;
   const performance = options?.performance;
   const tracedQueryFn =
     performance && fetchOptions
@@ -120,7 +149,7 @@ export const useTopTraders = (
     useQuery<LeaderboardResponse>({
       queryKey,
       ...(tracedQueryFn ? { queryFn: tracedQueryFn } : {}),
-      enabled: (options?.enabled ?? true) && isUnlocked,
+      enabled: isQueryEnabled,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
       placeholderData: options?.keepPreviousRanking
@@ -222,11 +251,21 @@ export const useTopTraders = (
       isLoading,
       isFetching,
       hasFetched: isFetched,
+      cacheState,
       error: formatSocialQueryErrorMessage(error),
       refresh,
       toggleFollow,
     }),
-    [traders, isLoading, isFetching, isFetched, error, refresh, toggleFollow],
+    [
+      cacheState,
+      traders,
+      isLoading,
+      isFetching,
+      isFetched,
+      error,
+      refresh,
+      toggleFollow,
+    ],
   );
 };
 

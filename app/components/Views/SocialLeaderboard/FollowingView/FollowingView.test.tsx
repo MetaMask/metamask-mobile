@@ -68,6 +68,7 @@ const mockUsePopularTraders = jest.fn(
     isLoading: false,
     isFetching: false,
     hasFetched: true,
+    cacheState: 'warm',
     error: null,
     refresh: jest.fn(),
     toggleFollow: jest.fn(),
