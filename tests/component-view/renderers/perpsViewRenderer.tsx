@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import Engine from '../../../app/core/Engine';
 import { Text } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -560,6 +561,12 @@ export interface PerpsStreamOverrides {
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
   /**
+   * Long and short USD strings delivered by `subscribeToAvailableToTrade`.
+   * Defaults to the account `spendableBalance` on both sides. `null` leaves
+   * the figure unknown.
+   */
+  availableToTrade?: { long: string; short: string } | null;
+  /**
    * Symbols at their open-interest cap. Delivered on subscribe and through
    * `emitOICaps`.
    */
@@ -700,11 +707,48 @@ const DefaultRouteProbe =
  * usePerpsStream() (e.g. PerpsMarketListView) render without errors.
  * When extraRoutes is provided, those routes are registered so navigation can be asserted.
  */
+const installAvailableToTradeMock = (
+  streamOverrides?: PerpsStreamOverrides,
+): void => {
+  const account = (streamOverrides?.account ?? initialAccount) as {
+    spendableBalance?: string;
+  };
+  const explicit = streamOverrides?.availableToTrade;
+  const subscribe = Engine.context.PerpsController
+    .subscribeToAvailableToTrade as jest.Mock;
+  if (explicit === null) {
+    subscribe.mockImplementation(() => () => undefined);
+    return;
+  }
+  const long = explicit?.long ?? String(account.spendableBalance ?? '1');
+  const short = explicit?.short ?? long;
+  subscribe.mockImplementation(
+    (params: {
+      symbol: string;
+      callback: (update: {
+        providerId: string;
+        symbol: string;
+        long: string;
+        short: string;
+      }) => void;
+    }) => {
+      params.callback({
+        providerId: 'hyperliquid',
+        symbol: params.symbol,
+        long,
+        short,
+      });
+      return () => undefined;
+    },
+  );
+};
+
 export function renderPerpsView(
   Component: React.ComponentType,
   routeName: string,
   options: RenderPerpsViewOptions = {},
 ) {
+  installAvailableToTradeMock(options.streamOverrides);
   const {
     overrides,
     initialParams,

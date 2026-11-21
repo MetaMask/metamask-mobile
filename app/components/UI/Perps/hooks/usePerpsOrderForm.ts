@@ -15,11 +15,11 @@ import {
   type OrderFormState,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import { usePerpsLivePositions, usePerpsLivePrices } from './stream';
 import {
-  usePerpsLiveAccount,
-  usePerpsLivePositions,
-  usePerpsLivePrices,
-} from './stream';
+  readAvailableToTradeUsd,
+  usePerpsLiveAvailableToTrade,
+} from './stream/usePerpsLiveAvailableToTrade';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
@@ -132,6 +132,17 @@ export interface UsePerpsOrderFormReturn {
   setEstimatedFeeRate: (rate: number) => void;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
+  /**
+   * Venue available to trade for the current side, in USD. Undefined until
+   * `subscribeToAvailableToTrade` reports it. Not used when a payment balance
+   * caps the order.
+   */
+  perpsAvailableToTrade: number | undefined;
+  /**
+   * True while the perps balance is the venue figure and that figure has not
+   * arrived. A selected payment balance does not wait on the stream.
+   */
+  isAvailableToTradeLoading: boolean;
 }
 
 /**
@@ -154,7 +165,6 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
-  const { account } = usePerpsLiveAccount();
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
@@ -189,15 +199,6 @@ export function usePerpsOrderForm(
   const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
   const perpsMode = useSelector(selectPerpsMode);
 
-  const spendableBalance = Number.parseFloat(
-    effectiveAvailableBalanceParam != null
-      ? effectiveAvailableBalanceParam.toString()
-      : (account?.spendableBalance?.toString() ?? '0'),
-  );
-
-  // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
-  const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
-
   // Determine default amount based on network
   const defaultAmount =
     currentNetwork === 'mainnet'
@@ -213,10 +214,63 @@ export function usePerpsOrderForm(
     savedConfig?.leverage ||
     TRADING_DEFAULTS.leverage;
 
-  // Priority for amount: navigation param > pending config > calculated default
-  // Use memoized calculation for initial amount to ensure it updates when dependencies change
+  // Navigation param > persisted global type > pending draft.
+  // Pending is per-market, so it must not override a type chosen on another market.
+  // Lite only offers market/limit; skip Pro-only types (twap, triggers) so they
+  // stay stored for Pro instead of being submitted from Lite.
+  const defaultOrderType =
+    [initialType, persistedOrderType, pendingConfig?.orderType].find((type) =>
+      isOrderTypeAllowedOnSurface(type, perpsMode),
+    ) ?? 'market';
+
+  // Navigation param > pending draft > long. Do not default the param to long
+  // or a short draft cannot restore when the route omits direction.
+  const defaultDirection =
+    initialDirection ?? pendingConfig?.direction ?? 'long';
+
+  const initialAmountSeed =
+    initialAmount ?? pendingConfig?.amount ?? fallbackAmount;
+
+  // Initialize form state with pending config if available. The venue
+  // available-to-trade stream arrives after mount, and the effect below
+  // replaces this seed once that figure can cap the amount.
+  const [orderForm, setOrderForm] = useState<OrderFormState>({
+    asset: initialAsset,
+    direction: defaultDirection,
+    amount: initialAmountSeed,
+    leverage: defaultLeverage,
+    balancePercent:
+      initialAmountSeed === '' ? 0 : TRADING_DEFAULTS.marginPercent,
+    takeProfitPrice: pendingConfig?.takeProfitPrice,
+    stopLossPrice: pendingConfig?.stopLossPrice,
+    limitPrice: pendingConfig?.limitPrice,
+    type: defaultOrderType,
+  });
+
+  const { availableToTrade } = usePerpsLiveAvailableToTrade({
+    symbol: orderForm.asset,
+  });
+  // A wallet or Money Account payment caps size at that balance. Perps
+  // balance is the venue's available to trade for this market and side.
+  const perpsAvailableToTrade = readAvailableToTradeUsd(
+    availableToTrade,
+    orderForm.direction,
+  );
+  const parsedPaymentBalance =
+    effectiveAvailableBalanceParam != null
+      ? Number.parseFloat(effectiveAvailableBalanceParam.toString())
+      : Number.NaN;
+  const hasPaymentBalance = Number.isFinite(parsedPaymentBalance);
+  const isAvailableToTradeLoading =
+    !hasPaymentBalance && perpsAvailableToTrade === undefined;
+  const spendableBalance = hasPaymentBalance
+    ? parsedPaymentBalance
+    : (perpsAvailableToTrade ?? 0);
+  const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
+
+  // Priority for amount: navigation param > pending config > calculated default.
+  // The memo updates when the venue figure arrives so the effect can cap the seed.
   const initialAmountValue = useMemo(() => {
-    // If we have a pending config with amount, use it (unless overridden by navigation param)
     if (initialAmount) {
       return initialAmount;
     }
@@ -238,7 +292,7 @@ export function usePerpsOrderForm(
       spendableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
       assetSzDecimals,
-      leverage: defaultLeverage, // Use default leverage for initial calculation
+      leverage: defaultLeverage,
     });
 
     const numericFallbackAmount = Number.parseFloat(fallbackAmount);
@@ -263,43 +317,6 @@ export function usePerpsOrderForm(
     assetSzDecimals,
     defaultLeverage,
   ]);
-
-  // Navigation param > persisted global type > pending draft.
-  // Pending is per-market, so it must not override a type chosen on another market.
-  // Lite only offers market/limit; skip Pro-only types (twap, triggers) so they
-  // stay stored for Pro instead of being submitted from Lite.
-  const defaultOrderType =
-    [initialType, persistedOrderType, pendingConfig?.orderType].find((type) =>
-      isOrderTypeAllowedOnSurface(type, perpsMode),
-    ) ?? 'market';
-
-  // Navigation param > pending draft > long. Do not default the param to long
-  // or a short draft cannot restore when the route omits direction.
-  const defaultDirection =
-    initialDirection ?? pendingConfig?.direction ?? 'long';
-
-  // Calculate initial balance percentage
-  const parsedInitialAmount = Number.parseFloat(initialAmountValue);
-  const initialMarginRequired = Number.isFinite(parsedInitialAmount)
-    ? parsedInitialAmount / defaultLeverage
-    : 0;
-  const initialBalancePercent =
-    spendableBalance > 0
-      ? Math.min((initialMarginRequired / spendableBalance) * 100, 100)
-      : TRADING_DEFAULTS.marginPercent;
-
-  // Initialize form state with pending config if available
-  const [orderForm, setOrderForm] = useState<OrderFormState>({
-    asset: initialAsset,
-    direction: defaultDirection,
-    amount: initialAmountValue, // Will be updated by useEffect when initialAmountValue is calculated
-    leverage: defaultLeverage,
-    balancePercent: Math.round(initialBalancePercent * 100) / 100,
-    takeProfitPrice: pendingConfig?.takeProfitPrice,
-    stopLossPrice: pendingConfig?.stopLossPrice,
-    limitPrice: pendingConfig?.limitPrice,
-    type: defaultOrderType,
-  });
 
   const [maxPossibleAmountOverride, setMaxPossibleAmountOverride] = useState<
     number | null
@@ -406,15 +423,39 @@ export function usePerpsOrderForm(
       ? maxPossibleAmountOverride
       : marginBasedMaxPossibleAmount;
 
-  // Update amount only once when the hook first calculates the initial value
-  // We use a ref to track if we've already set the initial amount to avoid overwriting user input
+  // Update amount only once when the hook first calculates the initial value.
+  // Any amount the user sets also settles it, so a late venue figure never
+  // overwrites their input.
   const hasSetInitialAmount = useRef(false);
+  const isInitialAmountCapPending =
+    !initialAmount &&
+    !pendingConfig?.amount &&
+    fallbackAmount !== '' &&
+    (isAvailableToTradeLoading || !currentPrice?.price);
   useEffect(() => {
-    if (!hasSetInitialAmount.current && initialAmountValue !== '0') {
-      setOrderForm((prev) => ({ ...prev, amount: initialAmountValue }));
-      hasSetInitialAmount.current = true;
+    // The default amount is capped by available to trade at the current
+    // price. Wait for both; a confirmed zero balance still commits.
+    if (hasSetInitialAmount.current || isInitialAmountCapPending) {
+      return;
     }
-  }, [initialAmountValue]);
+    const parsedAmount = Number.parseFloat(initialAmountValue);
+    const margin = Number.isFinite(parsedAmount)
+      ? parsedAmount / defaultLeverage
+      : 0;
+    const percent =
+      balanceForMax > 0 ? Math.min((margin / balanceForMax) * 100, 100) : 0;
+    setOrderForm((prev) => ({
+      ...prev,
+      amount: initialAmountValue,
+      balancePercent: Math.round(percent * 100) / 100,
+    }));
+    hasSetInitialAmount.current = true;
+  }, [
+    balanceForMax,
+    defaultLeverage,
+    initialAmountValue,
+    isInitialAmountCapPending,
+  ]);
 
   useEffect(() => {
     if (!pendingConfig) return;
@@ -508,6 +549,7 @@ export function usePerpsOrderForm(
 
   // Individual setters for common operations
   const setAmount = useCallback((amount: string) => {
+    hasSetInitialAmount.current = true;
     setOrderForm((prev) => ({ ...prev, amount: amount || '0' }));
   }, []);
 
@@ -622,6 +664,7 @@ export function usePerpsOrderForm(
       const raw = balanceForMax * orderForm.leverage * percentage;
       const clamped = Math.min(raw, maxPossibleAmount);
       const newAmount = Math.floor(clamped).toString();
+      hasSetInitialAmount.current = true;
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
     [balanceForMax, orderForm.leverage, maxPossibleAmount],
@@ -631,6 +674,7 @@ export function usePerpsOrderForm(
   // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
     if (balanceForMax === 0) return;
+    hasSetInitialAmount.current = true;
     setOrderForm((prev) => ({
       ...prev,
       amount: Math.floor(maxPossibleAmount).toString(),
@@ -643,6 +687,7 @@ export function usePerpsOrderForm(
       currentNetwork === 'mainnet'
         ? TRADING_DEFAULTS.amount.mainnet
         : TRADING_DEFAULTS.amount.testnet;
+    hasSetInitialAmount.current = true;
     setOrderForm((prev) => ({
       ...prev,
       amount: minAmount.toString(),
@@ -680,6 +725,8 @@ export function usePerpsOrderForm(
       setMaxPossibleAmountOverride,
       setEstimatedFeeRate,
       balanceForValidation: balanceForMax,
+      perpsAvailableToTrade,
+      isAvailableToTradeLoading,
     }),
     [
       orderForm,
@@ -711,6 +758,8 @@ export function usePerpsOrderForm(
       setMaxPossibleAmountOverride,
       setEstimatedFeeRate,
       balanceForMax,
+      perpsAvailableToTrade,
+      isAvailableToTradeLoading,
     ],
   );
 }

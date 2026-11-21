@@ -23,7 +23,9 @@ import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
  * returns the allowlist token with the highest balance to use as the default payment method.
  * Otherwise returns null (caller should default to "Perps balance").
  */
-export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPaymentToken | null {
+export function useDefaultPayWithTokenWhenNoPerpsBalance(
+  symbol?: string,
+): PerpsSelectedPaymentToken | null {
   const featureEnabled = useSelector(
     selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
   );
@@ -33,7 +35,7 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   );
   const activeProvider = useSelector(selectPerpsProvider);
   const currentNetwork = usePerpsNetwork();
-  const paymentTokens = usePerpsPaymentTokens();
+  const paymentTokens = usePerpsPaymentTokens(symbol);
 
   return useMemo(() => {
     if (!featureEnabled) {
