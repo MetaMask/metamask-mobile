@@ -23,6 +23,8 @@ import TextField from '../../../../../component-library/components/Form/TextFiel
 import { createV2OtpCodeNavDetails } from './OtpCode';
 import { validateEmail } from '../../utils/depositUtils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
+import { useKycProgress } from '../../hooks/useKycProgress';
+import { KYC_STEP } from '../../utils/kycProgress';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -51,6 +53,7 @@ export const createV2EnterEmailNavDetails =
   createNavigationDetails<V2EnterEmailParams>(Routes.RAMP.ENTER_EMAIL);
 
 const V2EnterEmail = () => {
+  const kycProgress = useKycProgress(KYC_STEP.EMAIL);
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<V2EnterEmailParams>();
@@ -169,7 +172,7 @@ const V2EnterEmail = () => {
           includesTopInset
         />
         <ScreenLayout.Content grow>
-          <DepositProgressBar steps={4} currentStep={0} />
+          <DepositProgressBar {...kycProgress} />
           <View style={styles.contentContainer}>
             <Text variant={TextVariant.HeadingLg} style={styles.title}>
               {strings('deposit.enter_email.title')}

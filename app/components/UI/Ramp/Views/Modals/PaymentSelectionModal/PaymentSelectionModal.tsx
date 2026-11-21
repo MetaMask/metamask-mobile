@@ -45,6 +45,7 @@ import {
 import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import MicaDisclaimer from '../../../components/MicaDisclaimer';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -247,6 +248,15 @@ function PaymentSelectionModal() {
     ],
   );
 
+  const allTermsIds = useMemo(() => {
+    const termsSet = new Set<string>();
+    quotes?.success?.forEach((quote) => {
+      const quoteData = quote.quote as { termsIds?: string[] };
+      quoteData.termsIds?.forEach((id: string) => termsSet.add(id));
+    });
+    return Array.from(termsSet);
+  }, [quotes]);
+
   const renderListContent = () => {
     if (paymentMethodsLoading) {
       return (
@@ -290,6 +300,11 @@ function PaymentSelectionModal() {
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
+        ListHeaderComponent={
+          allTermsIds.length > 0 ? (
+            <MicaDisclaimer termsIds={allTermsIds} />
+          ) : null
+        }
       />
     );
   };

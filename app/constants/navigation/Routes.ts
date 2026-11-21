@@ -40,6 +40,9 @@ const Routes = {
     ADDITIONAL_VERIFICATION: 'RampAdditionalVerification',
     KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
+    MICA_CONSENT: 'RampMicaConsent',
+    SOURCE_OF_INCOME: 'RampSourceOfIncome',
+    ADDITIONAL_DETAILS_NATIONALITY: 'RampAdditionalDetailsNationality',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
     VBA_ONBOARDING: 'RampVbaOnboarding',
     VBA_DETAILS: 'RampVbaDetails',

@@ -32,6 +32,8 @@ import { strings } from '../../../../../../locales/i18n';
 import DepositTextField from '../../components/DepositTextField';
 import { useForm } from '../../hooks/useForm';
 import DepositProgressBar from '../../components/DepositProgressBar';
+import { useKycProgress } from '../../hooks/useKycProgress';
+import { KYC_STEP } from '../../utils/kycProgress';
 import DepositDateField from '../../components/DepositDateField';
 import { VALIDATION_REGEX } from '../../constants/transak';
 import PoweredByTransak from '../../components/PoweredByTransak';
@@ -82,6 +84,7 @@ export interface V2BasicInfoParams {
 }
 
 const V2BasicInfo = (): React.JSX.Element => {
+  const kycProgress = useKycProgress(KYC_STEP.BASIC_INFO);
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
@@ -354,7 +357,7 @@ const V2BasicInfo = (): React.JSX.Element => {
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
-            <DepositProgressBar steps={4} currentStep={2} />
+            <DepositProgressBar {...kycProgress} />
             <Text variant={TextVariant.HeadingMd} style={styles.title}>
               {strings('deposit.basic_info.title')}
             </Text>

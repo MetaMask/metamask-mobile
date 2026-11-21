@@ -973,6 +973,79 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
             );
             const formsRequired = additionalRequirements?.formsRequired || [];
 
+            const consentForm = formsRequired.find((f) => f.type === 'CONSENT');
+            if (consentForm) {
+              if (depth < 5) {
+                navigation.navigate(Routes.RAMP.MICA_CONSENT, {
+                  quote,
+                  quoteId: quote.quoteId,
+                  ...(baseRouteParams ?? {}),
+                });
+              } else {
+                Logger.error(
+                  new Error(`MiCA consent depth exceeded: ${depth}`),
+                );
+              }
+              return;
+            }
+
+            const sourceOfIncomeForm = formsRequired.find(
+              (f) => f.type === 'SOURCE_OF_INCOME',
+            );
+            if (sourceOfIncomeForm) {
+              if (depth < 5) {
+                navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
+                  quote,
+                  quoteId: quote.quoteId,
+                  metadata: {
+                    options: sourceOfIncomeForm.metadata?.options || [],
+                    documentProofOptions: [],
+                    expiresAt: '',
+                    kycUrl: '',
+                    workFlowRunId: '',
+                    ...(sourceOfIncomeForm.metadata || {}),
+                  },
+                  ...(baseRouteParams ?? {}),
+                });
+              } else {
+                Logger.error(
+                  new Error(`Source of income depth exceeded: ${depth}`),
+                );
+              }
+              return;
+            }
+
+            const additionalDetailsNationalityForm = formsRequired.find(
+              (f) => f.type === 'ADDITIONAL_DETAILS_NATIONALITY',
+            );
+            if (additionalDetailsNationalityForm) {
+              if (depth < 5) {
+                navigation.navigate(
+                  Routes.RAMP.ADDITIONAL_DETAILS_NATIONALITY,
+                  {
+                    quote,
+                    quoteId: quote.quoteId,
+                    metadata: {
+                      options: [],
+                      documentProofOptions: [],
+                      expiresAt: '',
+                      kycUrl: '',
+                      workFlowRunId: '',
+                      ...additionalDetailsNationalityForm.metadata,
+                    },
+                    ...(baseRouteParams ?? {}),
+                  },
+                );
+              } else {
+                Logger.error(
+                  new Error(
+                    `Additional details nationality depth exceeded: ${depth}`,
+                  ),
+                );
+              }
+              return;
+            }
+
             const purposeOfUsageForm = formsRequired.find(
               (f) => f.type === 'PURPOSE_OF_USAGE',
             );
@@ -1011,8 +1084,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
               navigateToAdditionalVerificationCallback({
                 quote,
-                kycUrl: metadata.kycUrl,
-                workFlowRunId: metadata.workFlowRunId,
+                kycUrl: metadata.kycUrl || '',
+                workFlowRunId: metadata.workFlowRunId || '',
                 amount,
               });
               return;
