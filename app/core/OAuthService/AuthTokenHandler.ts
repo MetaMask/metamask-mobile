@@ -37,6 +37,8 @@ type RefreshJWTToken = (params: {
   idTokens: string[];
   accessToken: string;
   metadataAccessToken: string;
+  refreshToken?: string;
+  revokeToken?: string;
 }>;
 
 type RevokeRefreshToken = (params: {
@@ -125,6 +127,8 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     idTokens: string[];
     accessToken: string;
     metadataAccessToken: string;
+    refreshToken?: string;
+    revokeToken?: string;
   }> {
     const { connection, refreshToken } = params;
     const loginHandler = createLoginHandler(Platform.OS, connection, false, {
@@ -164,21 +168,26 @@ class AuthTokenHandler implements AuthTokenHandlerInterface {
     const refreshTokenData: AuthRefreshTokenResponse = await response.json();
     const idToken = refreshTokenData.id_token;
 
-    if (
-      !idToken ||
-      !refreshTokenData.access_token ||
-      !refreshTokenData.metadata_access_token
-    ) {
+    const missingFields = (
+      ['id_token', 'access_token', 'metadata_access_token'] as const
+    ).filter((field) => !refreshTokenData[field]);
+    if (missingFields.length > 0) {
       throw new Error(
-        'Failed to refresh JWT token - respoond json ' +
-          JSON.stringify(refreshTokenData),
+        `Failed to refresh JWT token - missing ${missingFields.join(', ')}`,
       );
     }
+
+    const { refresh_token: newRefreshToken, revoke_token: newRevokeToken } =
+      refreshTokenData;
 
     return {
       idTokens: [idToken],
       accessToken: refreshTokenData.access_token,
       metadataAccessToken: refreshTokenData.metadata_access_token,
+      // Core treats the refresh as rotated only when both are present.
+      ...(newRefreshToken && newRevokeToken
+        ? { refreshToken: newRefreshToken, revokeToken: newRevokeToken }
+        : {}),
     };
   }
 
