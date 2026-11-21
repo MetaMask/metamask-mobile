@@ -44,8 +44,9 @@ appiumTest.describe(SmokeSnaps('Snap Management Tests'), () => {
           await SnapSettingsView.setEnabled(false);
           await navigateFromSnapSettingsToBrowser();
 
-          await TestSnaps.tapButton('sendAlertButton');
-          await TestSnaps.expectDisabledSnapAlert();
+          // Re-tap / one reload until the disabled alert is visible — a single
+          // WebView tap can miss after returning from Snap Settings.
+          await TestSnaps.tapSendAlertAndExpectDisabled();
           await TestSnaps.dismissAlert();
         },
       );

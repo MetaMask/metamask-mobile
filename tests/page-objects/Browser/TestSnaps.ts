@@ -495,12 +495,73 @@ class TestSnaps {
     });
   }
 
+  /**
+   * Disabled-Snap alert matcher. Prefer a single UiAutomator-friendly clause on
+   * Android (`|` alternation in textMatches is unreliable); keep both orders on
+   * iOS where XCUITest handles the alternation.
+   */
+  private disabledSnapAlertMatcher(): string | RegExp {
+    if (PlatformDetector.isAndroid()) {
+      return /.*dialog-example-snap.*disabled.*/i;
+    }
+    return /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i;
+  }
+
   /** Single query — sequential substring asserts race the short-lived alert. */
-  async expectDisabledSnapAlert(): Promise<void> {
+  async expectDisabledSnapAlert(timeout = 30_000): Promise<void> {
     await this.expectSnapAlert(
-      /.*dialog-example-snap.*disabled.*|.*disabled.*dialog-example-snap.*/i,
-      30_000,
+      this.disabledSnapAlertMatcher(),
+      timeout,
       'disabled Snap alert dialog',
+    );
+  }
+
+  /**
+   * After disabling a Snap, the first Send Alert WebView tap can miss (Snap
+   * client still bound to the prior enabled session, or late remount after
+   * Settings → browser). Re-tap with a short visibility probe; after two
+   * missed cycles reload the open tab once (same recovery shape as the enable
+   * path / BitcoinTestDapp) and continue until the disabled alert is visible.
+   */
+  async tapSendAlertAndExpectDisabled(
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? 60_000;
+    let firstAttempt = true;
+    let reloaded = false;
+    let attempts = 0;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        attempts += 1;
+
+        if (!firstAttempt) {
+          const dialogAlreadyVisible = await Utilities.isElementVisible(
+            Matchers.getElementByText(this.disabledSnapAlertMatcher()),
+            1_000,
+          );
+          if (dialogAlreadyVisible) {
+            return;
+          }
+
+          if (!reloaded && attempts >= 3) {
+            reloaded = true;
+            await Browser.tapReloadButton();
+            await waitForTestSnapsToLoad();
+          }
+        }
+
+        firstAttempt = false;
+        await this.tapButton('sendAlertButton');
+        await this.expectDisabledSnapAlert(8_000);
+      },
+      {
+        timeout,
+        interval: 500,
+        maxRetries: 8,
+        elemDescription: 'Send Alert button / disabled Snap alert dialog',
+        description: 'Send disabled Snap alert until dialog is visible',
+      },
     );
   }
 
