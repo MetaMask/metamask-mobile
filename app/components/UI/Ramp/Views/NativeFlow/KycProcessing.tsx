@@ -4,6 +4,8 @@ import styleSheet from './KycProcessing.styles';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import DepositProgressBar from '../../components/DepositProgressBar';
+import { useKycProgress } from '../../hooks/useKycProgress';
+import { KYC_STEP } from '../../utils/kycProgress';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../locales/i18n';
@@ -50,6 +52,7 @@ export interface V2KycProcessingParams {
 }
 
 const V2KycProcessing = () => {
+  const kycProgress = useKycProgress(KYC_STEP.PROCESSING);
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
@@ -228,7 +231,7 @@ const V2KycProcessing = () => {
             includesTopInset
           />
           <ScreenLayout.Content grow>
-            <DepositProgressBar steps={4} currentStep={3} />
+            <DepositProgressBar {...kycProgress} />
             <View style={styles.container}>
               <Icon
                 name={IconName.CircleX}
@@ -275,7 +278,7 @@ const V2KycProcessing = () => {
             includesTopInset
           />
           <ScreenLayout.Content grow>
-            <DepositProgressBar steps={4} currentStep={3} />
+            <DepositProgressBar {...kycProgress} />
             <View style={styles.container}>
               <View style={styles.iconContainer}>
                 <Icon
@@ -327,7 +330,7 @@ const V2KycProcessing = () => {
           includesTopInset
         />
         <ScreenLayout.Content grow>
-          <DepositProgressBar steps={4} currentStep={3} />
+          <DepositProgressBar {...kycProgress} />
           <View style={styles.container}>
             <ActivityIndicator
               size="large"

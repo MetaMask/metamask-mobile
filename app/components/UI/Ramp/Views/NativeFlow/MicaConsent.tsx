@@ -401,11 +401,17 @@ const MicaConsent = (): React.JSX.Element => {
             </View>
 
             <View style={styles.section}>
-              <Checkbox
-                label={strings('deposit.mica_consent.data_processing_consent')}
-                isChecked={dataProcessingConsent}
-                onPress={() => setDataProcessingConsent(!dataProcessingConsent)}
-              />
+              <View style={styles.checkboxRow}>
+                <Checkbox
+                  isChecked={dataProcessingConsent}
+                  onPress={() =>
+                    setDataProcessingConsent(!dataProcessingConsent)
+                  }
+                />
+                <Text variant={TextVariant.BodyMd} style={styles.checkboxLabel}>
+                  {strings('deposit.mica_consent.data_processing_consent')}
+                </Text>
+              </View>
               <View style={styles.checkboxSpacing} />
               <View style={styles.checkboxRow}>
                 <Checkbox

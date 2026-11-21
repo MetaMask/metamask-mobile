@@ -10,41 +10,9 @@ import type {
 } from '@metamask/ramps-controller';
 import Logger from '../../../../util/Logger';
 import { isMicaMockModeEnabled } from './micaMockModeEnv';
+import { EEA_COUNTRIES } from './eeaCountries';
 
-export { isMicaMockModeEnabled };
-
-export const EEA_COUNTRIES = [
-  'AT',
-  'BE',
-  'BG',
-  'HR',
-  'CY',
-  'CZ',
-  'DK',
-  'EE',
-  'FI',
-  'FR',
-  'DE',
-  'GR',
-  'HU',
-  'IE',
-  'IT',
-  'LV',
-  'LT',
-  'LU',
-  'MT',
-  'NL',
-  'PL',
-  'PT',
-  'RO',
-  'SK',
-  'SI',
-  'ES',
-  'SE',
-  'IS',
-  'LI',
-  'NO',
-];
+export { isMicaMockModeEnabled, EEA_COUNTRIES };
 
 export function getMockConsentForm(): TransakAdditionalRequirementsResponse {
   Logger.log('[MiCA Mock] Returning mock CONSENT form');

@@ -37,6 +37,7 @@ import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
 import DepositProgressBar from '../../components/DepositProgressBar';
+import { getKycProgress, KYC_STEP } from '../../utils/kycProgress';
 import PrivacySection from '../../components/PrivacySection';
 
 interface SourceOfIncomeMetadata {
@@ -185,7 +186,9 @@ const SourceOfIncome = (): React.JSX.Element => {
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
-            <DepositProgressBar steps={5} currentStep={4} />
+            <DepositProgressBar
+              {...getKycProgress(KYC_STEP.SOURCE_OF_INCOME, true)}
+            />
 
             <View style={styles.section}>
               <Text variant={TextVariant.HeadingMd} style={styles.title}>

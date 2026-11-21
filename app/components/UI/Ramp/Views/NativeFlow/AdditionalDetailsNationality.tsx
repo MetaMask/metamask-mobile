@@ -38,6 +38,7 @@ import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
 import DepositProgressBar from '../../components/DepositProgressBar';
+import { getKycProgress, KYC_STEP } from '../../utils/kycProgress';
 import PrivacySection from '../../components/PrivacySection';
 
 interface AdditionalDetailsNationalityMetadata
@@ -214,7 +215,9 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
           showsVerticalScrollIndicator={false}
         >
           <ScreenLayout.Content>
-            <DepositProgressBar steps={6} currentStep={5} />
+            <DepositProgressBar
+              {...getKycProgress(KYC_STEP.NATIONALITY, true)}
+            />
 
             <View style={styles.section}>
               <Text variant={TextVariant.HeadingMd} style={styles.title}>
