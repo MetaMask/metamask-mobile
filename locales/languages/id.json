@@ -4152,6 +4152,36 @@
       "not_placed_title": "Order belum dibuat",
       "not_placed_description": "Tidak ada dana yang terpotong dari saldo Anda. Dapatkan kuotasi baru untuk mencoba lagi."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "Tarik",
       "amount_label": "Jumlah",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "Dicairkan sepenuhnya",
     "unknown": "Tidak dikenal",
     "stock": "Saham"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "Alamat",
@@ -9906,6 +9942,7 @@
           "title": "Hubungkan Kartu MetaMask",
           "description": "Gunakan saldo Anda selagi masih menghasilkan, di mana pun Mastercard diterima.",
           "cta_primary": "Tautkan kartu",
+          "cta_log_in": "Log in",
           "cta_secondary": "Lewati"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "—dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
       "body_no_apy": "MetaMask Money merupakan akun stablecoin yang dilengkapi dengan fitur untuk melakukan perdagangan, pengiriman, dan penggunaan.",
       "benefit_convert_title": "Dikonversi ke MetaMask USD, 1:1",
-      "benefit_convert_body": "Dana yang Anda tambahkan dikonversi dengan rasio 1:1 ke MetaMask USD, tanpa biaya apa pun.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Dapatkan secara otomatis",
       "benefit_earn_body": "Keuntungan masuk ke saldo Anda secara real-time, tanpa klaim apa pun.",
       "benefit_trade_title": "Berdagang dari saldo yang sama",
       "benefit_trade_body": "Danai swap, perp, dan prediksi langsung dari saldo Money Anda.",
-      "benefit_withdraw_title": "Tarik setiap saat",
-      "benefit_withdraw_body": "Tidak ada penguncian, periode pemberitahuan, ataupun penalti. Uang Anda sepenuhnya milik Anda dan dapat ditarik setiap saat.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Kirim atau gunakan di mana pun",
-      "benefit_send_body": "Kirim ke dompet atau bank mana pun, atau gunakan dengan Kartu MetaMask.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Mulai menghasilkan",
       "close": "Tutup"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "Tambah",
+      "move": "Move",
       "card": "Kartu",
       "details": "Detail"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "Kartu virtual",
       "metal_card": "Kartu logam",
       "link_title": "Tautkan kartu",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Gunakan saldo Anda selagi masih menghasilkan, di mana pun Mastercard diterima.",
       "link_subtitle_no_apy": "Gunakan saldo Anda selagi masih menghasilkan, di mana pun Mastercard diterima.",
       "link_bullet_apy": "Dapatkan hingga ~{{apy}}% APY",
@@ -10107,6 +10147,8 @@
       "contact_support": "Hubungi dukungan"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Akun perp",
       "predictions_account": "Akun Predictions",
       "send_external": "Alamat eksternal",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Termasuk biaya MetaMask sebesar {{feePercentage}}%",
     "discount_badge_promo": "Promo",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "Tidak ada biaya MM",
     "token_suspicious": "Mencurigakan",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "Diperpanjang pada",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} bulan gratis dari kami",
       "months_on_us_other": "{{count}} bulan gratis dari kami",
       "manage": "Kelola paket",

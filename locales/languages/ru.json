@@ -4152,6 +4152,36 @@
       "not_placed_title": "Ордер не размещен",
       "not_placed_description": "Средства с вашего баланса не списаны. Получите новую котировку и повторите попытку."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "Вывести средства",
       "amount_label": "Сумма",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "Полностью разводненная оценка",
     "unknown": "Неизвестно",
     "stock": "Акция"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "Адрес",
@@ -9906,6 +9942,7 @@
           "title": "Привяжите карту MetaMask Card",
           "description": "Тратьте свой баланс, пока он приносит доход, везде, где принимают Mastercard.",
           "cta_primary": "Привязать карту",
+          "cta_log_in": "Log in",
           "cta_secondary": "Пропустить"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "— с возможностью торговать, переводить средства и оплачивать покупки.",
       "body_no_apy": "MetaMask Money — это счет в стейблкоинах с возможностью торговать, переводить средства и оплачивать покупки.",
       "benefit_convert_title": "Конвертация в MetaMask USD по курсу 1:1",
-      "benefit_convert_body": "Внесенные средства конвертируются в MetaMask USD по курсу 1:1 без комиссий.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Зарабатывайте автоматически",
       "benefit_earn_body": "Доход зачисляется на ваш баланс в реальном времени. Получать его вручную не нужно.",
       "benefit_trade_title": "Торгуйте с того же баланса",
       "benefit_trade_body": "Используйте средства с баланса Money для обменов, торговли бессрочными контрактами и на рынках прогнозов.",
-      "benefit_withdraw_title": "Выводите средства в любое время",
-      "benefit_withdraw_body": "Без блокировок, предварительного уведомления и штрафов. Вы можете вывести свои деньги в любой момент.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Переводите средства и оплачивайте покупки где угодно",
-      "benefit_send_body": "Переводите средства на любой кошелек или банковский счет либо оплачивайте покупки картой MetaMask Card.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Начните зарабатывать",
       "close": "Закрыть"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "Добавить",
+      "move": "Move",
       "card": "Карта",
       "details": "Подробности"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "Виртуальная карта",
       "metal_card": "Металлическая карта",
       "link_title": "Привязать карту",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Тратьте свой баланс, пока он приносит доход, везде, где принимают Mastercard.",
       "link_subtitle_no_apy": "Тратьте свой баланс, пока он приносит доход, везде, где принимают Mastercard.",
       "link_bullet_apy": "Зарабатывайте до ~{{apy}}% годовых",
@@ -10107,6 +10147,8 @@
       "contact_support": "Связаться с поддержкой"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Счет перпов",
       "predictions_account": "Счет прогнозов",
       "send_external": "Внешний адрес",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Включает {{feePercentage}}% комиссии MetaMask",
     "discount_badge_promo": "Промо",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "ДАО",
     "no_mm_fee": "Без комиссии MM",
     "token_suspicious": "Подозрительный",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "Продлевается",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} месяц бесплатно",
       "months_on_us_other": "Бесплатных месяцев: {{count}}",
       "manage": "Управление планом",

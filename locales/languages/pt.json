@@ -4152,6 +4152,36 @@
       "not_placed_title": "Ordem não enviada",
       "not_placed_description": "Nenhum valor saiu do seu saldo. Obtenha uma nova cotação e tente novamente."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "Sacar",
       "amount_label": "Valor",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "Totalmente diluído",
     "unknown": "Desconhecida",
     "stock": "Ações"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "Endereço",
@@ -9906,6 +9942,7 @@
           "title": "Vincule seu cartão MetaMask",
           "description": "Use seu saldo enquanto ele rende, em qualquer lugar que aceite o Mastercard.",
           "cta_primary": "Vincular cartão",
+          "cta_log_in": "Log in",
           "cta_secondary": "Pular"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "—com negociação, envio e gastos integrados.",
       "body_no_apy": "A MetaMask Money é uma conta de moeda estável com negociação, envio e gastos integrados.",
       "benefit_convert_title": "Conversão para MetaMask USD, 1:1",
-      "benefit_convert_body": "Os fundos que você adicionar são convertidos na proporção 1:1 para MetaMask USD, sem taxas.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Ganhe automaticamente",
       "benefit_earn_body": "Os rendimentos caem no seu saldo em tempo real, sem precisar resgatar.",
       "benefit_trade_title": "Negocie usando o mesmo saldo",
       "benefit_trade_body": "Financie swaps, perps e previsões diretamente do seu saldo Money.",
-      "benefit_withdraw_title": "Saque quando quiser",
-      "benefit_withdraw_body": "Sem prazos de carência, aviso prévio ou multas. Seu dinheiro está sempre livre para você sacar.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Envie ou gaste em qualquer lugar",
-      "benefit_send_body": "Envie para qualquer carteira ou banco, ou gaste com o Cartão MetaMask.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Comece a ganhar",
       "close": "Fechar"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "Adicionar",
+      "move": "Move",
       "card": "Cartão",
       "details": "Detalhes"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "Cartão virtual",
       "metal_card": "Cartão Metal",
       "link_title": "Vincular cartão",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Use seu saldo enquanto ele rende, em qualquer lugar que aceite o Mastercard.",
       "link_subtitle_no_apy": "Use seu saldo enquanto ele rende, em qualquer lugar que aceite o Mastercard.",
       "link_bullet_apy": "Ganhe até ~{{apy}}% de APY",
@@ -10107,6 +10147,8 @@
       "contact_support": "Falar com o suporte"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Conta de perps",
       "predictions_account": "Conta de previsões",
       "send_external": "Endereço externo",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Inclui {{feePercentage}}% de taxa da MetaMask",
     "discount_badge_promo": "Promo",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "Sem taxa da MM",
     "token_suspicious": "Suspeito",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "Renova em",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} mês por nossa conta",
       "months_on_us_other": "{{count}} meses por nossa conta",
       "manage": "Gerenciar plano",

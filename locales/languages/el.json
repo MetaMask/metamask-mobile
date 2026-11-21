@@ -4152,6 +4152,36 @@
       "not_placed_title": "Η εντολή δεν υποβλήθηκε",
       "not_placed_description": "Το υπόλοιπό σας έχει εξαντληθεί. Ζητήστε νέα προσφορά και προσπαθήστε ξανά."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "Ανάληψη",
       "amount_label": "Ποσό",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "Πλήρως κατανεμημένα",
     "unknown": "Άγνωστο",
     "stock": "Μετοχές"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "Διεύθυνση",
@@ -9906,6 +9942,7 @@
           "title": "Συνδέστε την MetaMask Card",
           "description": "Ξοδέψτε το υπόλοιπό του λογαριασμού σας όσο αυτό αποδίδει, οπουδήποτε γίνεται δεκτή η Mastercard.",
           "cta_primary": "Σύνδεση κάρτας",
+          "cta_log_in": "Log in",
           "cta_secondary": "Παράλειψη"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "—με ενσωματωμένες δυνατότητες συναλλαγών, αποστολής χρημάτων και πληρωμών.",
       "body_no_apy": "Το MetaMask Money είναι ένας λογαριασμός stablecoin με ενσωματωμένες δυνατότητες συναλλαγών, αποστολής χρημάτων και πληρωμών.",
       "benefit_convert_title": "Μετατρέπει το MetaMask τα USD σε αναλογία 1:1",
-      "benefit_convert_body": "Τα χρήματα που καταθέτετε μετατρέπονται στο MetaMask σε USD με αναλογία 1:1, χωρίς χρεώσεις.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Κερδίζετε αυτόματα",
       "benefit_earn_body": "Τα κέρδη προστίθενται στο υπόλοιπό σας σε πραγματικό χρόνο, χωρίς να χρειάζεται να κάνετε κάτι.",
       "benefit_trade_title": "Κάντε συναλλαγές χρησιμοποιώντας το ίδιο υπόλοιπο",
       "benefit_trade_body": "Χρηματοδοτήστε τις συναλλαγές σας σε swaps, perps και προβλέψεις απευθείας από το υπόλοιπο του Money account.",
-      "benefit_withdraw_title": "Κάντε ανάληψη όποτε θέλετε",
-      "benefit_withdraw_body": "Χωρίς δέσμευση κεφαλαίων, περιόδους προειδοποίησης ή επιβαρύνσεις. Μπορείτε να αποσύρετε τα χρήματά σας όποτε θέλετε.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Στείλτε χρήματα ή πραγματοποιήστε πληρωμές παντού",
-      "benefit_send_body": "Στείλτε χρήματα σε οποιοδήποτε πορτοφόλι ή τραπεζικό λογαριασμό ή πραγματοποιήστε αγορές με την MetaMask Card.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Ξεκινήστε να κερδίζετε",
       "close": "Κλείσιμο"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "Προσθήκη",
+      "move": "Move",
       "card": "Κάρτα",
       "details": "Λεπτομέρειες"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "Εικονική κάρτα",
       "metal_card": "Μεταλλική κάρτα",
       "link_title": "Σύνδεση κάρτας",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Ξοδέψτε το υπόλοιπό του λογαριασμού σας όσο αυτό αποδίδει, οπουδήποτε γίνεται δεκτή η Mastercard.",
       "link_subtitle_no_apy": "Ξοδέψτε το υπόλοιπό του λογαριασμού σας όσο αυτό αποδίδει, οπουδήποτε γίνεται δεκτή η Mastercard.",
       "link_bullet_apy": "Κερδίστε έως και ~{{apy}}% APY",
@@ -10107,6 +10147,8 @@
       "contact_support": "Επικοινωνία με την υποστήριξη"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Λογαριασμός Perps",
       "predictions_account": "Λογαριασμός προβλέψεων",
       "send_external": "Εξωτερική διεύθυνση",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Περιλαμβάνει προμήθεια {{feePercentage}}% MetaMask",
     "discount_badge_promo": "Προσφορά",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "Χωρίς προμήθεια MM",
     "token_suspicious": "Ύποπτο",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "Ανανέωση στις",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} μήνας δωρεάν",
       "months_on_us_other": "{{count}} μήνες δωρεάν",
       "manage": "Διαχείριση προγράμματος",

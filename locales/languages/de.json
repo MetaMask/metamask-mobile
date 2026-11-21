@@ -4152,6 +4152,36 @@
       "not_placed_title": "Order nicht platziert",
       "not_placed_description": "Es wurde nichts von Ihrem Guthaben abgebucht. Fordern Sie ein neues Angebot an, um es erneut zu versuchen."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "Auszahlen",
       "amount_label": "Betrag",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "Vollständig verwässert",
     "unknown": "Unbekannt",
     "stock": "Aktie"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "Adresse",
@@ -9906,6 +9942,7 @@
           "title": "Verknüpfen Sie Ihre MetaMask Card",
           "description": "Geben Sie Ihr Guthaben aus, während es Gewinne erwirtschaftet, überall dort, wo Mastercard akzeptiert wird.",
           "cta_primary": "Karte verknüpfen",
+          "cta_log_in": "Log in",
           "cta_secondary": "Überspringen"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "und verfügt über integrierte Funktionen zum Handeln, Senden und Bezahlen.",
       "body_no_apy": "Der MetaMask Money Account ist ein Stablecoin-Konto mit direkt integrierten Funktionen zum Handeln, Senden und Bezahlen.",
       "benefit_convert_title": "Umtausch in MetaMask USD im Verhältnis 1:1",
-      "benefit_convert_body": "Von Ihnen eingezahlte Gelder werden gebührenfrei im Verhältnis 1:1 in MetaMask USD umgetauscht.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Automatisch verdienen",
       "benefit_earn_body": "Die Einnahmen werden Ihrem Konto in Echtzeit gutgeschrieben, ohne dass Sie etwas einfordern müssen.",
       "benefit_trade_title": "Mit demselben Guthaben handeln",
       "benefit_trade_body": "Finanzieren Sie Swaps, Perps und Prognosen direkt mit Ihrem Money Account-Guthaben.",
-      "benefit_withdraw_title": "Jederzeit abheben",
-      "benefit_withdraw_body": "Hier gibt es weder Sperr- und Kündigungsfristen noch Strafgebühren. Sie können jederzeit über Ihr Geld verfügen.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Flexibel überweisen und bezahlen",
-      "benefit_send_body": "Sie können Überweisungen an beliebige Wallets oder Banken tätigen und mit Ihrer MetaMask Card bezahlen.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Mit dem Verdienen beginnen",
       "close": "Schließen"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "Hinzufügen",
+      "move": "Move",
       "card": "Karte",
       "details": "Details"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "Virtuelle Karte",
       "metal_card": "Metallkarte",
       "link_title": "Karte verknüpfen",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Geben Sie Ihr Guthaben aus, während es Gewinne erwirtschaftet, überall dort, wo Mastercard akzeptiert wird.",
       "link_subtitle_no_apy": "Geben Sie Ihr Guthaben aus, während es Gewinne erwirtschaftet, überall dort, wo Mastercard akzeptiert wird.",
       "link_bullet_apy": "Verdienen Sie bis zu ~{{apy}} % effektiven Jahreszins",
@@ -10107,6 +10147,8 @@
       "contact_support": "Support kontaktieren"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Perps-Konto",
       "predictions_account": "Predictions-Konto",
       "send_external": "Externe Adresse",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Beinhaltet {{feePercentage}} % MetaMask-Gebühr",
     "discount_badge_promo": "Promotion",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "Keine MM-Gebühr",
     "token_suspicious": "Verdächtig",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "Verlängert sich am",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} Monat auf unsere Kosten",
       "months_on_us_other": "{{count}} Monate auf unsere Kosten",
       "manage": "Plan verwalten",

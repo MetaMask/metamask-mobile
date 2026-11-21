@@ -4152,6 +4152,36 @@
       "not_placed_title": "주문 접수 안 됨",
       "not_placed_description": "잔액은 차감되지 않았습니다. 최신 시세를 불러와 다시 시도하세요."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "출금",
       "amount_label": "금액",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "완전히 희석됨",
     "unknown": "알 수 없음",
     "stock": "재고"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "주소",
@@ -9906,6 +9942,7 @@
           "title": "MetaMask 카드 연결",
           "description": "Mastercard가 허용되는 모든 곳에서 수익이 쌓이는 동안 잔액을 사용하세요.",
           "cta_primary": "카드 연결",
+          "cta_log_in": "Log in",
           "cta_secondary": "건너뛰기"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "의 수익을 제공하는 스테이블코인 계정으로, 거래와 송금 및 결제 기능이 기본 내장되어 있습니다.",
       "body_no_apy": "MetaMask Money는 거래, 송금, 결제 기능이 기본 내장된 스테이블코인 계정입니다.",
       "benefit_convert_title": "MetaMask USD로 1:1 전환",
-      "benefit_convert_body": "입금한 자금은 수수료 없이 MetaMask USD로 1:1 전환됩니다.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "자동으로 수익 얻기",
       "benefit_earn_body": "별도로 청구할 필요 없이 수익이 실시간으로 잔고에 반영됩니다.",
       "benefit_trade_title": "동일한 잔고로 바로 거래",
       "benefit_trade_body": "Money 잔고에서 바로 스왑, 무기한 선물, 예측 시장 거래 자금을 조달하세요.",
-      "benefit_withdraw_title": "언제든지 출금 가능",
-      "benefit_withdraw_body": "락업이나 사전 신청 기간, 위약금이 없습니다. 자금을 언제든 자유롭게 출금할 수 있습니다.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "어디서나 송금 및 결제",
-      "benefit_send_body": "모든 지갑이나 은행으로 송금하거나 MetaMask Card로 결제하세요.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "수익 창출 시작",
       "close": "닫기"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "추가",
+      "move": "Move",
       "card": "카드",
       "details": "세부 정보"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "가상 카드",
       "metal_card": "메탈 카드",
       "link_title": "카드 연결",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Mastercard가 허용되는 모든 곳에서 수익이 쌓이는 동안 잔액을 사용하세요.",
       "link_subtitle_no_apy": "Mastercard가 허용되는 모든 곳에서 수익이 쌓이는 동안 잔액을 사용하세요.",
       "link_bullet_apy": "최대 ~{{apy}}% APY 수익 얻기",
@@ -10107,6 +10147,8 @@
       "contact_support": "지원팀에 문의"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "무기한 선물 계정",
       "predictions_account": "예측 계정",
       "send_external": "외부 주소",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "MetaMask 수수료 {{feePercentage}}%가 포함됩니다",
     "discount_badge_promo": "프로모션",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "MM 수수료 없음",
     "token_suspicious": "의심됨",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "갱신일",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}}개월 무료",
       "months_on_us_other": "{{count}}개월 무료",
       "manage": "플랜 관리",
