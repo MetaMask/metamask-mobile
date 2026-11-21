@@ -5414,6 +5414,10 @@
     "title": "Collectibles",
     "trade_menu": {
       "description": "Explore packs and cards"
+    },
+    "buy_sheet": {
+      "placeholder": "Buying packs is coming soon.",
+      "open_hint": "Opens the buy sheet for {{name}}"
     }
   },
   "collectible": {
