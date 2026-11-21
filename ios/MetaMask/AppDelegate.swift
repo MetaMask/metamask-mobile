@@ -174,6 +174,13 @@ class AppDelegate: ExpoAppDelegate {
     // straight to React Native.
     return RCTLinkingManager.application(application, open: url, options: options)
 #else
+    // `metamask://` links already carry their destination and are consumed by
+    // React Native Linking. Sending them through Branch adds an avoidable
+    // network round-trip before JS can handle them. Keep Branch for the other
+    // custom schemes until they are migrated too.
+    if url.scheme?.lowercased() == "metamask" {
+      return RCTLinkingManager.application(application, open: url, options: options)
+    }
     return RNBranch.application(application, open: url, options: options)
 #endif
   }
