@@ -191,6 +191,15 @@ describe('usePerpsCloseAllCalculations', () => {
     expect(result.current.originalTotalFees).toBe(25);
     expect(result.current.avgFeeDiscountPercentage).toBe(100);
     expect(result.current.feeDiscountKind).toBe('promotional');
+    expect(mockEstimatePoints).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activityContext: {
+          perpsContext: [
+            { type: 'CLOSE_POSITION', usdFeeValue: '0', coin: 'BTC' },
+          ],
+        },
+      }),
+    );
   });
 
   it('uses generic presentation for mixed grant and VIP close fees', async () => {
@@ -592,7 +601,7 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.feeDiscountKind).toBeUndefined();
     });
 
-    it('omits aggregate discount attribution when one fee quote is incomplete', async () => {
+    it('withholds aggregate discount and points when a fee quote is incomplete', async () => {
       // Arrange
       const positions = [
         createMockPosition({ symbol: 'BTC' }),
@@ -637,6 +646,8 @@ describe('usePerpsCloseAllCalculations', () => {
       expect(result.current.avgFeeDiscountPercentage).toBeUndefined();
       expect(result.current.feeSource).toBeUndefined();
       expect(result.current.feeDiscountKind).toBeUndefined();
+      expect(result.current.totalEstimatedPoints).toBeUndefined();
+      expect(mockEstimatePoints).not.toHaveBeenCalled();
     });
   });
 

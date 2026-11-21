@@ -852,6 +852,7 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY: 'perps-pro-order-form-summary',
   SUMMARY_MARGIN: 'perps-pro-order-form-summary-margin',
   SUMMARY_LIQUIDATION: 'perps-pro-order-form-summary-liquidation',
+  SUMMARY_LIQUIDATION_VALUE: 'perps-pro-order-form-summary-liquidation-value',
   SUMMARY_SLIPPAGE: 'perps-pro-order-form-summary-slippage',
   SUMMARY_SLIPPAGE_BUTTON: 'perps-pro-order-form-summary-slippage-button',
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
