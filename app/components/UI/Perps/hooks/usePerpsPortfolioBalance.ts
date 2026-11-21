@@ -54,9 +54,9 @@ export function usePerpsPortfolioBalance() {
           typeof providerBalance === 'object' &&
           'accountValue1dAgo' in providerBalance
         ) {
-          const balance1dAgoUsd = new BigNumber(
-            providerBalance.accountValue1dAgo || '0',
-          );
+          const historicalBalance = providerBalance.accountValue1dAgo;
+          if (!historicalBalance) continue;
+          const balance1dAgoUsd = new BigNumber(historicalBalance);
           historical1dAgoBalance += balance1dAgoUsd
             .multipliedBy(conversionRate)
             .toNumber();

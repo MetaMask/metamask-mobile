@@ -39,7 +39,10 @@ export function usePerpsSlice(toUserCurrency: FiatConverter): BalanceSlice {
       if (!row || typeof row !== 'object' || !('accountValue1dAgo' in row)) {
         return sum;
       }
-      return sum + new BigNumber(row.accountValue1dAgo || '0').toNumber();
+      const historicalBalance = row.accountValue1dAgo;
+      return historicalBalance
+        ? sum + new BigNumber(historicalBalance).toNumber()
+        : sum;
     }, 0);
     return toUserCurrency(totalUsd);
   }, [activeProvider, perpsBalances, toUserCurrency]);

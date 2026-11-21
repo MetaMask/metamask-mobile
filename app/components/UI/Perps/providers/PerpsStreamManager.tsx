@@ -1782,7 +1782,7 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
         const incoming = sourceProviderId
           ? fills.map((fill) => ({ ...fill, providerId: sourceProviderId }))
           : fills;
-        const existing = this.cache.get('fills') || [];
+        const existing = this.cache.get('fills') ?? [];
         let updated: OrderFill[];
         if (isSnapshot) {
           // A provider snapshot replaces only that provider's history.
@@ -2369,10 +2369,8 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
         requestedSymbol: params.symbol,
       });
       this.disconnect();
-      this.currentSymbol = params.symbol;
-    } else if (!this.currentSymbol) {
-      this.currentSymbol = params.symbol;
     }
+    this.currentSymbol = params.symbol;
 
     const unsubscribe = this.subscribe({
       // Registering the symbol lets the channel scope dispatch (via
@@ -2520,7 +2518,7 @@ class AvailableToTradeStreamChannel extends StreamChannel<
     >,
   ): PerpsAvailableToTrade | null {
     const key = params.symbols?.[0];
-    return (key && this.cache.get(key)) || null;
+    return key ? (this.cache.get(key) ?? null) : null;
   }
 
   protected getClearedData(): PerpsAvailableToTrade | undefined {
@@ -2528,7 +2526,7 @@ class AvailableToTradeStreamChannel extends StreamChannel<
   }
 
   public getSnapshot(): PerpsAvailableToTrade | null {
-    return (this.currentKey && this.cache.get(this.currentKey)) || null;
+    return this.currentKey ? (this.cache.get(this.currentKey) ?? null) : null;
   }
 
   public subscribeToMarket(params: {
@@ -3327,7 +3325,7 @@ export const PerpsStreamProvider: React.FC<{
     getE2EMockStreamManager() as PerpsStreamManager | null;
 
   const selectedManager: PerpsStreamManager =
-    testStreamManager || e2eMockStreamManager || streamManager;
+    testStreamManager ?? e2eMockStreamManager ?? streamManager;
 
   DevLogger.log('PerpsStreamProvider: Using stream manager:', {
     isTestManager: !!testStreamManager,

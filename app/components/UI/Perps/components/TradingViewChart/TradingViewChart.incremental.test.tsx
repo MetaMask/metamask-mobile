@@ -12,6 +12,7 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
+import { runWebViewSnippet } from '../../../../../../tests/tools/runWebViewSnippet';
 import TradingViewChart from './TradingViewChart';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -704,11 +705,10 @@ describe('TradingViewChart — incremental update routing', () => {
         },
       };
 
-      // eslint-disable-next-line no-new-func
-      new Function('range', 'window', template.slice(start, end))(
+      runWebViewSnippet(template.slice(start, end), {
         range,
-        windowStub,
-      );
+        window: windowStub,
+      });
 
       return {
         reportedCandleCount: posted[0]?.candleCount,
@@ -843,8 +843,11 @@ describe('TradingViewChart — incremental update routing', () => {
           postMessage: (raw: string) => posted.push(JSON.parse(raw)),
         },
       };
-      // eslint-disable-next-line no-new-func
-      new Function('window', template.slice(start, end))(windowStub);
+      runWebViewSnippet(template.slice(start, end), {
+        window: windowStub,
+        setTimeout,
+        clearTimeout,
+      });
       return { windowStub, posted, applyOptions };
     };
 

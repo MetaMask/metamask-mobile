@@ -6485,7 +6485,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 12
+      "count": 10
     }
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderForm/usePerpsProSizeInput.test.ts": {
@@ -6621,9 +6621,6 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
       "count": 1
     },
     "typescript/unbound-method": {
@@ -7252,9 +7249,6 @@
     }
   },
   "app/components/UI/Perps/components/TradingViewChart/TradingViewChart.incremental.test.tsx": {
-    "typescript/no-implied-eval": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -7557,11 +7551,6 @@
   },
   "app/components/UI/Perps/hooks/usePerpsLimitPriceInput.ts": {
     "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsLiquidationPrice.ts": {
-    "typescript/no-floating-promises": {
       "count": 1
     }
   },
@@ -8002,9 +7991,6 @@
     "typescript/no-base-to-string": {
       "count": 2
     },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 18
-    },
     "typescript/restrict-template-expressions": {
       "count": 2
     }
@@ -8097,9 +8083,6 @@
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 5
     },
     "typescript/promise-function-async": {
       "count": 1
@@ -25514,11 +25497,6 @@
     },
     "typescript/unbound-method": {
       "count": 1
-    }
-  },
-  "tests/component-view/helpers/perpsMarginModeTestHelpers.ts": {
-    "typescript/unbound-method": {
-      "count": 9
     }
   },
   "tests/component-view/helpers/perpsViewTestHelpers.ts": {
