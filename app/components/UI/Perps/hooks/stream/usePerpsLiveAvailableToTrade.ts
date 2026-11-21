@@ -28,12 +28,13 @@ export function usePerpsLiveAvailableToTrade({
   throttleMs = PERPS_AVAILABLE_TO_TRADE_THROTTLE_MS,
 }: UsePerpsLiveAvailableToTradeOptions): PerpsAvailableToTrade | undefined {
   const streamManager = usePerpsStream();
-  const [availableToTrade, setAvailableToTrade] = useState<
-    PerpsAvailableToTrade | undefined
-  >(undefined);
+  const [quote, setQuote] = useState<{
+    providerId: PerpsProviderType | undefined;
+    value: PerpsAvailableToTrade;
+  }>();
 
   useEffect(() => {
-    setAvailableToTrade(undefined);
+    setQuote(undefined);
     if (!symbol) {
       return undefined;
     }
@@ -42,13 +43,15 @@ export function usePerpsLiveAvailableToTrade({
       symbol,
       providerId,
       throttleMs,
-      callback: setAvailableToTrade,
-      onError: () => setAvailableToTrade(undefined),
+      callback: (value) => setQuote(value && { providerId, value }),
+      onError: () => setQuote(undefined),
     });
   }, [streamManager, symbol, providerId, throttleMs]);
 
-  return availableToTrade?.symbol === symbol &&
-    (providerId === undefined || availableToTrade?.providerId === providerId)
-    ? availableToTrade
+  return quote &&
+    quote.providerId === providerId &&
+    quote.value.symbol === symbol &&
+    (providerId === undefined || quote.value.providerId === providerId)
+    ? quote.value
     : undefined;
 }

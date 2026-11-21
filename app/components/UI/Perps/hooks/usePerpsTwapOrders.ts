@@ -385,7 +385,7 @@ export const usePerpsTwapOrders = (
             reconciliation.unconfirmedProviderIds.delete(providerId);
             for (const [identity, order] of mergedOrdersByIdentity) {
               if (
-                order.status === 'active' &&
+                isTwapOrderActive(order) &&
                 getTwapOrderProviderId(order) === providerId &&
                 !currentOrdersByIdentity.has(identity)
               ) {

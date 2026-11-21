@@ -115,4 +115,29 @@ describe('usePerpsLiveAvailableToTrade', () => {
 
     expect(unsubscribe).toHaveBeenCalledTimes(1);
   });
+
+  it('withholds the explicit venue quote on the first render of the default route', async () => {
+    const renderQuote = jest.fn<void, [PerpsAvailableToTrade | undefined]>();
+    const initialProps: UsePerpsLiveAvailableToTradeOptions = {
+      symbol: 'BTC',
+      providerId: 'hyperliquid',
+    };
+    const { result, rerender } = renderHook(
+      (options: UsePerpsLiveAvailableToTradeOptions) => {
+        const quote = usePerpsLiveAvailableToTrade(options);
+        renderQuote(quote);
+        return quote;
+      },
+      { initialProps },
+    );
+    await act(() => lastSubscription().callback(btcValue));
+    expect(result.current).toEqual(btcValue);
+    renderQuote.mockClear();
+
+    rerender({ symbol: 'BTC' });
+
+    expect(renderQuote).toHaveBeenNthCalledWith(1, undefined);
+    await act(() => lastSubscription().callback(btcValue));
+    expect(result.current).toEqual(btcValue);
+  });
 });
