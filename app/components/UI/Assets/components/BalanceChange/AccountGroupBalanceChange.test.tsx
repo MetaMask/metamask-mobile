@@ -8,14 +8,6 @@ import {
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import I18n from '../../../../../../locales/i18n';
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
-  strings: (key: string) => key,
-}));
-
-const mockI18n = jest.mocked(I18n);
-
 const baseState = {
   engine: {
     backgroundState: {
@@ -48,8 +40,10 @@ const getPercentText = (
 };
 
 describe('AccountGroupBalanceChange', () => {
-  beforeEach(() => {
-    mockI18n.locale = 'en';
+  const originalLocale = I18n.locale;
+
+  afterEach(() => {
+    I18n.locale = originalLocale;
   });
 
   describe('positive changes', () => {
@@ -267,7 +261,7 @@ describe('AccountGroupBalanceChange', () => {
 
   describe('US and French currency punctuation', () => {
     it('formats US currency with comma grouping and a decimal point', () => {
-      mockI18n.locale = 'en-US';
+      I18n.locale = 'en-US';
 
       expect(
         getAmountText({
@@ -279,7 +273,7 @@ describe('AccountGroupBalanceChange', () => {
     });
 
     it('formats French currency with narrow no-break space grouping and a decimal comma', () => {
-      mockI18n.locale = 'fr-FR';
+      I18n.locale = 'fr-FR';
 
       expect(
         getAmountText({
@@ -291,7 +285,7 @@ describe('AccountGroupBalanceChange', () => {
     });
 
     it('formats a negative French currency amount with locale grouping', () => {
-      mockI18n.locale = 'fr-FR';
+      I18n.locale = 'fr-FR';
 
       expect(
         getAmountText({
@@ -305,7 +299,7 @@ describe('AccountGroupBalanceChange', () => {
 
   describe('percent change locale', () => {
     it('formats the US percent change with a decimal point', () => {
-      mockI18n.locale = 'en-US';
+      I18n.locale = 'en-US';
 
       expect(
         getPercentText({
@@ -317,7 +311,7 @@ describe('AccountGroupBalanceChange', () => {
     });
 
     it('formats the French percent change with the app locale', () => {
-      mockI18n.locale = 'fr-FR';
+      I18n.locale = 'fr-FR';
 
       expect(
         getPercentText({
@@ -329,7 +323,7 @@ describe('AccountGroupBalanceChange', () => {
     });
 
     it('formats a negative German percent change with the app locale', () => {
-      mockI18n.locale = 'de-DE';
+      I18n.locale = 'de-DE';
 
       expect(
         getPercentText({

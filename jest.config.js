@@ -293,6 +293,7 @@ const config = {
     '^expo-image$': '<rootDir>/app/__mocks__/expo-image.js',
     '^expo$': '<rootDir>/app/__mocks__/expo.ts',
     '^expo-updates(/.*)?$': '<rootDir>/app/__mocks__/expo-updates.ts',
+    '^expo-localization(/.*)?$': '<rootDir>/app/__mocks__/expo-localization.ts',
     '^@metamask/design-system-react-native/spinner$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
