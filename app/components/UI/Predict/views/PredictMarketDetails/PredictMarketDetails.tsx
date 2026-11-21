@@ -55,6 +55,7 @@ import { useOpenOutcomes } from './hooks/useOpenOutcomes';
 import { useSelector } from 'react-redux';
 import { usePredictPreviewSheet } from '../../contexts';
 import PredictOffline from '../../components/PredictOffline';
+import { useScreenTransitionComplete } from '../../../../hooks/useScreenTransitionComplete';
 
 // Use theme tokens instead of hex values for multi-series charts
 
@@ -72,6 +73,8 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [userSelectedTab, setUserSelectedTab] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
+  // Hold the tab content (outcome rows) out of the opening transition.
+  const isDeferredReady = useScreenTransitionComplete();
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const nonRegTimeSportsMarketTypes = useSelector(
@@ -584,31 +587,38 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
 
         {/* Tab content - only show when market is loaded */}
-        {!isResolvedMarketLoading && !isMarketUnavailable && market && (
-          <PredictMarketDetailsTabContent
-            activeTab={activeTab}
-            tabsReady={tabsReady}
-            tabs={tabs}
-            market={market}
-            activePositions={activePositions}
-            claimablePositions={claimablePositions}
-            onPolymarketResolution={handlePolymarketResolution}
-            singleOutcomeMarket={singleOutcomeMarket}
-            multipleOutcomes={multipleOutcomes}
-            multipleOpenOutcomesPartiallyResolved={
-              multipleOpenOutcomesPartiallyResolved
-            }
-            winningOutcome={winningOutcome}
-            losingOutcome={losingOutcome}
-            winningOutcomeToken={winningOutcomeToken}
-            losingOutcomeToken={losingOutcomeToken}
-            openOutcomes={openOutcomes}
-            closedOutcomes={closedOutcomes}
-            entryPoint={entryPoint}
-            isResolvedExpanded={isResolvedExpanded}
-            onResolvedExpandedToggle={setIsResolvedExpanded}
-          />
-        )}
+        {!isResolvedMarketLoading &&
+          !isMarketUnavailable &&
+          market &&
+          (isDeferredReady ? (
+            <PredictMarketDetailsTabContent
+              activeTab={activeTab}
+              tabsReady={tabsReady}
+              tabs={tabs}
+              market={market}
+              activePositions={activePositions}
+              claimablePositions={claimablePositions}
+              onPolymarketResolution={handlePolymarketResolution}
+              singleOutcomeMarket={singleOutcomeMarket}
+              multipleOutcomes={multipleOutcomes}
+              multipleOpenOutcomesPartiallyResolved={
+                multipleOpenOutcomesPartiallyResolved
+              }
+              winningOutcome={winningOutcome}
+              losingOutcome={losingOutcome}
+              winningOutcomeToken={winningOutcomeToken}
+              losingOutcomeToken={losingOutcomeToken}
+              openOutcomes={openOutcomes}
+              closedOutcomes={closedOutcomes}
+              entryPoint={entryPoint}
+              isResolvedExpanded={isResolvedExpanded}
+              onResolvedExpandedToggle={setIsResolvedExpanded}
+            />
+          ) : (
+            <Box twClassName="px-3">
+              <PredictDetailsContentSkeleton />
+            </Box>
+          ))}
       </ScrollView>
 
       {!isMarketUnavailable && (
