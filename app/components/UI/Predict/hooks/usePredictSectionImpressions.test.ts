@@ -10,27 +10,40 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { LayoutChangeEvent } from 'react-native';
 import { DEFAULT_DWELL_MS } from '../utils/sectionViewTracker';
-import { usePredictSectionImpressions } from './usePredictSectionImpressions';
+import {
+  SECTION_IMPRESSION_SCROLL_SAMPLE_MS,
+  usePredictSectionImpressions,
+} from './usePredictSectionImpressions';
 
 // ---------------------------------------------------------------------------
-// Reanimated mock — captures the JS-thread callback registered via runOnJS so
-// tests can drive scroll updates without a native worklet environment.
+// Reanimated mock — captures the UI-thread reaction so tests can drive scroll
+// updates without a native worklet environment. Component-view cannot run that
+// reaction, so this unit test is the layer that can drive the sample window.
 // ---------------------------------------------------------------------------
 
 type AnimatedReactionCallback = (value: number) => void;
+interface MockSharedValue {
+  value: number | boolean;
+}
+const mockSharedSlots: MockSharedValue[] = [];
+let mockSharedCursor = 0;
 let capturedScrollCallback: AnimatedReactionCallback | null = null;
 
 jest.mock('react-native-reanimated', () => ({
+  useSharedValue: (initial: number | boolean): MockSharedValue => {
+    const index = mockSharedCursor;
+    mockSharedCursor += 1;
+    if (!mockSharedSlots[index]) {
+      mockSharedSlots[index] = { value: initial };
+    }
+    return mockSharedSlots[index];
+  },
   useAnimatedReaction: (
     _getter: () => number,
     callback: AnimatedReactionCallback,
-  ) => {
+  ): void => {
     capturedScrollCallback = callback;
   },
-  runOnJS:
-    <T extends (...args: unknown[]) => unknown>(fn: T) =>
-    (...args: Parameters<T>) =>
-      fn(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -60,6 +73,8 @@ const simulateScroll = (scrollY: number) => {
 describe('usePredictSectionImpressions', () => {
   beforeEach(() => {
     capturedScrollCallback = null;
+    mockSharedSlots.length = 0;
+    mockSharedCursor = 0;
     jest.useFakeTimers();
   });
 
@@ -172,6 +187,66 @@ describe('usePredictSectionImpressions', () => {
 
     // Timer should be cancelled — onSectionViewed must not fire after unmount.
     act(() => jest.advanceTimersByTime(200));
+    expect(onSectionViewed).not.toHaveBeenCalled();
+  });
+
+  it('does not count a section scrolled past before the sample window ends', () => {
+    const { result, onSectionViewed } = setup();
+
+    act(() => {
+      result.current.setViewportHeight(makeScrollViewLayoutEvent(800));
+      result.current.registerSection('trending')(makeLayoutEvent(2000, 400));
+    });
+
+    simulateScroll(2000);
+    simulateScroll(0);
+
+    act(() => {
+      jest.advanceTimersByTime(
+        SECTION_IMPRESSION_SCROLL_SAMPLE_MS + DEFAULT_DWELL_MS,
+      );
+    });
+
+    expect(onSectionViewed).not.toHaveBeenCalled();
+  });
+
+  it('counts a section reached inside the sample window once that window ends', () => {
+    const { result, onSectionViewed } = setup();
+
+    act(() => {
+      result.current.setViewportHeight(makeScrollViewLayoutEvent(800));
+      result.current.registerSection('trending')(makeLayoutEvent(2000, 400));
+    });
+
+    simulateScroll(0);
+    simulateScroll(2000);
+
+    act(() => jest.advanceTimersByTime(SECTION_IMPRESSION_SCROLL_SAMPLE_MS));
+    expect(onSectionViewed).not.toHaveBeenCalled();
+
+    act(() => jest.advanceTimersByTime(DEFAULT_DWELL_MS));
+
+    expect(onSectionViewed).toHaveBeenCalledTimes(1);
+    expect(onSectionViewed).toHaveBeenCalledWith('trending');
+  });
+
+  it('does not apply a trailing scroll sample after unmount', () => {
+    const { result, unmount, onSectionViewed } = setup();
+
+    act(() => {
+      result.current.setViewportHeight(makeScrollViewLayoutEvent(800));
+      result.current.registerSection('trending')(makeLayoutEvent(2000, 400));
+    });
+
+    simulateScroll(2000);
+    unmount();
+
+    act(() => {
+      jest.advanceTimersByTime(
+        SECTION_IMPRESSION_SCROLL_SAMPLE_MS + DEFAULT_DWELL_MS,
+      );
+    });
+
     expect(onSectionViewed).not.toHaveBeenCalled();
   });
 
