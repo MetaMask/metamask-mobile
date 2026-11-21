@@ -8,6 +8,7 @@ import Routes from '../../../app/constants/navigation/Routes';
 import NavigationService from '../../../app/core/NavigationService/NavigationService';
 import type { AppNavigationProp } from '../../../app/core/NavigationService/types';
 import { createRouteParamsProbe, renderScreenWithRoutes } from '../render';
+import { MONAD_VAULT } from '../presets/moneyAccount';
 import { moneySplashViewState } from '../presets/moneySplash';
 
 const engineCall = Engine.controllerMessenger.call as jest.Mock;
@@ -75,8 +76,19 @@ export function renderMoneySplashView({
   installNetworkClientMock();
   engineCall.mockReset();
   engineCall.mockImplementation((action: string, ...args: unknown[]) => {
-    if (action === 'MoneyAccountBalanceService:getVaultApy') {
-      return Promise.resolve(apy === null ? undefined : { apy: String(apy) });
+    if (action === 'MoneyAccountApiDataService:fetchVaults') {
+      return Promise.resolve({
+        vaults:
+          apy === null
+            ? []
+            : [
+                {
+                  vault_address: MONAD_VAULT.boringVault,
+                  vault_key: 'standard',
+                  current_apy: String(apy),
+                },
+              ],
+      });
     }
     if (baseEngineCall) {
       return baseEngineCall(action, ...args);
