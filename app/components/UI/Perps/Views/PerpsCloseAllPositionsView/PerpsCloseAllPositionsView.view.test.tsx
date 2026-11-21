@@ -99,6 +99,37 @@ describe('PerpsCloseAllPositionsView', () => {
     });
   });
 
+  it('shows the partial close count and keeps the bulk close sheet open', async () => {
+    const closePositions = jest.mocked(
+      Engine.context.PerpsController.closePositions,
+    );
+    closePositions.mockResolvedValueOnce({
+      success: true,
+      status: 'partial',
+      successCount: 1,
+      failureCount: 1,
+      results: [
+        { symbol: positions[0].symbol, success: true },
+        { symbol: positions[1].symbol, success: false },
+      ],
+    });
+    renderPerpsCloseAllPositionsView({
+      includeToasts: true,
+      streamOverrides: { positions },
+    });
+
+    const closeLabel = strings('perps.close_all_modal.close_count', {
+      count: 2,
+    });
+    fireEvent.press(await screen.findByText(closeLabel));
+
+    expect(
+      await screen.findByText('Closed 1 of 2 positions'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Positions closed')).not.toBeOnTheScreen();
+    expect(screen.getByText(closeLabel)).toBeOnTheScreen();
+  });
+
   it('shows the receive amount Core estimates for isolated and cross positions', async () => {
     // 0.145% close fee quoted for both positions
     calculateFees.mockResolvedValue({

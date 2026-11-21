@@ -181,8 +181,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
           });
         }
       } else if (status === 'partial') {
-        showErrorToast(
-          strings('perps.close_all_modal.success_title'),
+        showSuccessToast(
           strings('perps.close_all_modal.partial_success', {
             successCount: result.successCount,
             totalCount: result.successCount + result.failureCount,
@@ -190,13 +189,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         );
       }
     },
-    [
-      showSuccessToast,
-      showErrorToast,
-      externalSheetRef,
-      sheetRef,
-      onExternalClose,
-    ],
+    [showSuccessToast, externalSheetRef, sheetRef, onExternalClose],
   );
 
   // Handle error callback from hook
