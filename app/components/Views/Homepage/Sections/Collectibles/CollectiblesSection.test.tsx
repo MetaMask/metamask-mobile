@@ -75,8 +75,6 @@ describe('CollectiblesSection', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText(firstPack.name)).toBeOnTheScreen();
     expect(screen.getByText(firstPack.subtitle)).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(collectiblesTestIds.openButton(firstPack.code)),
-    ).toBeOnTheScreen();
+    expect(screen.getByText(firstPack.priceLabel)).toBeOnTheScreen();
   });
 });
