@@ -3,19 +3,11 @@ import type { AppNavigationProp } from '../../../../../../../core/NavigationServ
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
-import Banner, {
+import { StyleProp, View, ViewStyle } from 'react-native';
+import {
+  BannerAlert,
   BannerAlertSeverity,
-  BannerVariant,
-} from '../../../../../../../component-library/components/Banners/Banner';
-import { BannerProps } from '../../../../../../../component-library/components/Banners/Banner/Banner.types';
-import Button, {
-  ButtonVariants,
-} from '../../../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../../../component-library/hooks';
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import Engine from '../../../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../../../selectors/multichainAccounts/accounts';
@@ -27,20 +19,19 @@ import usePooledStakes from '../../../../hooks/usePooledStakes';
 import usePoolStakedClaim from '../../../../hooks/usePoolStakedClaim';
 import { useStakeContext } from '../../../../hooks/useStakeContext';
 import useStakingChain from '../../../../hooks/useStakingChain';
-import styleSheet from './ClaimBanner.styles';
 import { renderFromWei } from '../../../../../../../util/number';
 import { TokenI } from '../../../../../Tokens/types';
 import { getDecimalChainId } from '../../../../../../../util/networks';
 import { trace, TraceName } from '../../../../../../../util/trace';
 import { EVM_SCOPE } from '../../../../../Earn/constants/networks';
 
-type StakeBannerProps = Pick<BannerProps, 'style'> & {
+type StakeBannerProps = {
+  style?: StyleProp<ViewStyle>;
   claimableAmount: string;
   asset: TokenI;
 };
 
 const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
-  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [isSubmittingClaimTransaction, setIsSubmittingClaimTransaction] =
     useState(false);
@@ -178,36 +169,21 @@ const ClaimBanner = ({ claimableAmount, asset, style }: StakeBannerProps) => {
   const isLoadingOnClaim = shouldAttemptClaim || isSubmittingClaimTransaction;
 
   return (
-    <Banner
-      severity={BannerAlertSeverity.Success}
-      variant={BannerVariant.Alert}
-      style={style}
-      description={
-        <>
-          <Text>
-            {strings('stake.banner_text.has_claimable_eth', {
-              amountEth: claimableAmountEth,
-            })}
-          </Text>
-          <Button
-            testID={'claim-banner-claim-eth-button'}
-            variant={ButtonVariants.Link}
-            style={styles.claimButton}
-            label={
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={isLoadingOnClaim ? TextColor.Muted : TextColor.Primary}
-              >
-                {strings('stake.claim')} ETH
-              </Text>
-            }
-            onPress={onClaimPress}
-            disabled={isLoadingOnClaim}
-            loading={isLoadingOnClaim}
-          />
-        </>
-      }
-    />
+    <View style={style}>
+      <BannerAlert
+        severity={BannerAlertSeverity.Success}
+        description={strings('stake.banner_text.has_claimable_eth', {
+          amountEth: claimableAmountEth,
+        })}
+        actionButtonLabel={`${strings('stake.claim')} ETH`}
+        actionButtonOnPress={onClaimPress}
+        actionButtonProps={{
+          testID: 'claim-banner-claim-eth-button',
+          isDisabled: isLoadingOnClaim,
+          isLoading: isLoadingOnClaim,
+        }}
+      />
+    </View>
   );
 };
 
