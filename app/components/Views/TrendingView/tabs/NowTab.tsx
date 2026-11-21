@@ -407,6 +407,7 @@ const NowTabContent: React.FC<TabProps> = ({
           <>
             <SectionHeader
               title={strings('trending.stocks')}
+              contentTopInset={2}
               onViewAll={() =>
                 navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW)
               }
