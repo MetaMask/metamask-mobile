@@ -4152,6 +4152,36 @@
       "not_placed_title": "Lệnh chưa được đặt",
       "not_placed_description": "Số dư của bạn chưa bị trừ. Hãy lấy báo giá mới để thử lại."
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "Rút tiền",
       "amount_label": "Số tiền",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "Pha loãng hoàn toàn",
     "unknown": "Không xác định",
     "stock": "Cổ phiếu"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "Địa chỉ",
@@ -9906,6 +9942,7 @@
           "title": "Liên kết Thẻ MetaMask của bạn",
           "description": "Chi tiêu số dư của bạn trong khi vẫn sinh lời, ở bất kỳ đâu chấp nhận Mastercard.",
           "cta_primary": "Liên kết thẻ",
+          "cta_log_in": "Log in",
           "cta_secondary": "Bỏ qua"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "— tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
       "body_no_apy": "MetaMask Tài chính là tài khoản đồng ổn định tích hợp sẵn tính năng giao dịch, gửi tiền và chi tiêu.",
       "benefit_convert_title": "Chuyển đổi sang MetaMask USD theo tỷ lệ 1:1",
-      "benefit_convert_body": "Số tiền bạn nạp được chuyển đổi sang MetaMask USD theo tỷ lệ 1:1, hoàn toàn miễn phí.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Tự động sinh lời",
       "benefit_earn_body": "Số tiền sinh lời sẽ được cộng vào số dư của bạn ngay lập tức mà không cần phải nhận thủ công.",
       "benefit_trade_title": "Giao dịch từ cùng một số dư",
       "benefit_trade_body": "Sử dụng trực tiếp số dư Money để thực hiện các giao dịch hoán đổi, hợp đồng vĩnh cửu và tham gia dự đoán.",
-      "benefit_withdraw_title": "Rút tiền bất cứ lúc nào",
-      "benefit_withdraw_body": "Tiền không bị khóa. Bạn không cần báo trước hay chịu phạt. Bạn luôn có thể rút tiền của mình.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Gửi tiền hoặc chi tiêu ở bất cứ đâu",
-      "benefit_send_body": "Gửi tiền đến bất kỳ ví hoặc ngân hàng nào, hoặc chi tiêu bằng MetaMask Card.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Bắt đầu kiếm tiền",
       "close": "Đóng"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "Thêm",
+      "move": "Move",
       "card": "Thẻ",
       "details": "Chi tiết"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "Thẻ ảo",
       "metal_card": "Thẻ kim loại",
       "link_title": "Liên kết thẻ",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "Chi tiêu số dư của bạn trong khi vẫn sinh lời, ở bất kỳ đâu chấp nhận Mastercard.",
       "link_subtitle_no_apy": "Chi tiêu số dư của bạn trong khi vẫn sinh lời, ở bất kỳ đâu chấp nhận Mastercard.",
       "link_bullet_apy": "Sinh lời lên đến ~{{apy}}% APY",
@@ -10107,6 +10147,8 @@
       "contact_support": "Liên hệ bộ phận hỗ trợ"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "Tài khoản hợp đồng vĩnh cửu",
       "predictions_account": "Tài khoản dự đoán",
       "send_external": "Địa chỉ bên ngoài",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Bao gồm {{feePercentage}}% phí của MetaMask",
     "discount_badge_promo": "Khuyến mãi",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "Không có phí MM",
     "token_suspicious": "Đáng ngờ",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "Gia hạn vào",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "Tặng {{count}} tháng",
       "months_on_us_other": "Tặng {{count}} tháng",
       "manage": "Quản lý gói",

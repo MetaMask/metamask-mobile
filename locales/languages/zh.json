@@ -4152,6 +4152,36 @@
       "not_placed_title": "订单未下达",
       "not_placed_description": "您的余额未发生任何变动。请获取最新报价后重试。"
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "提取",
       "amount_label": "金额",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "已充分稀释",
     "unknown": "未知",
     "stock": "股票"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "地址",
@@ -9906,6 +9942,7 @@
           "title": "关联您的 MetaMask 卡",
           "description": "在任何受理万事达卡的地方，使用您的余额消费，同时赚取收益。",
           "cta_primary": "关联卡",
+          "cta_log_in": "Log in",
           "cta_secondary": "跳过"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "，还支持交易、转账和消费。",
       "body_no_apy": "MetaMask Money 是一个集交易、转账和消费功能于一体的稳定币账户。",
       "benefit_convert_title": "可按 1:1 兑换为 MetaMask USD",
-      "benefit_convert_body": "您存入的资金将免手续费按 1:1 兑换为 MetaMask USD。",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "自动赚取收益",
       "benefit_earn_body": "收益实时入账，无需手动领取。",
       "benefit_trade_title": "用同一笔余额进行交易",
       "benefit_trade_body": "直接使用 Money 余额进行兑换、永续合约交易和预测市场交易。",
-      "benefit_withdraw_title": "随时取出资金",
-      "benefit_withdraw_body": "无锁定期、无需提前通知，也不收取罚金。资金始终归您所有，可随时取出。",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "随处转账或消费",
-      "benefit_send_body": "可转至任意钱包或银行账户，也可使用 MetaMask 卡消费。",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "开始赚取",
       "close": "关闭"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "添加",
+      "move": "Move",
       "card": "卡",
       "details": "详情"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "虚拟卡",
       "metal_card": "金属卡",
       "link_title": "关联卡",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "在任何受理万事达卡的地方，使用您的余额消费，同时赚取收益。",
       "link_subtitle_no_apy": "在任何受理万事达卡的地方，使用您的余额消费，同时赚取收益。",
       "link_bullet_apy": "最高可赚取约 {{apy}}% APY",
@@ -10107,6 +10147,8 @@
       "contact_support": "联系支持团队"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "永续合约（Perps）账户",
       "predictions_account": "预测（Predictions）账户",
       "send_external": "外部地址",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "包含 {{feePercentage}}% MetaMask 费用",
     "discount_badge_promo": "促销",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "无 MM 费用",
     "token_suspicious": "可疑",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "续订日期",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "赠送您 {{count}} 个月",
       "months_on_us_other": "赠送您 {{count}} 个月",
       "manage": "管理计划",

@@ -4152,6 +4152,36 @@
       "not_placed_title": "ऑर्डर प्लेस नहीं किया गया",
       "not_placed_description": "आपकी बैलेंस राशि से कोई पैसा नहीं कटा। दोबारा कोशिश करने के लिए नई कोटेशन प्राप्त करें।"
     },
+    "deposit": {
+      "title": "Add Prediction funds",
+      "amount": "Deposit amount",
+      "pay_with": "Pay with",
+      "token_on_network": "{{token}} on {{network}}",
+      "available": "{{amount}} USDC available",
+      "balance_unavailable": "USDC balance unavailable",
+      "minimum": "Minimum $1",
+      "not_enough_usdc": "Not enough USDC on {{network}}",
+      "continue": "Continue",
+      "add_funds": "Add funds",
+      "plan_mismatch": "This deposit couldn't be verified, so nothing was sent. Try again.",
+      "rejected": "Transfer cancelled. No funds were moved.",
+      "failed": "Something went wrong. Your account wasn't funded.",
+      "transfer_mismatch": "The transfer doesn't match this deposit. Contact support.",
+      "processing_title": "Adding funds",
+      "processing_description": "{{amount}} will be available in about a minute.",
+      "done": "Done",
+      "in_progress": {
+        "title": "Deposit in progress",
+        "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
+        "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
+        "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "unknown": "A deposit is already in progress. Try again in a moment.",
+        "continue": "Continue",
+        "cancel": "Cancel deposit",
+        "close": "Got it",
+        "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      }
+    },
     "withdraw": {
       "title": "निकालें",
       "amount_label": "अमाउंट",
@@ -5379,6 +5409,12 @@
     "fully_diluted": "पूरी तरह से डाइल्यूट किया हुआ",
     "unknown": "अज्ञात",
     "stock": "स्टॉक"
+  },
+  "collectibles": {
+    "title": "Collectibles",
+    "trade_menu": {
+      "description": "Explore packs and cards"
+    }
   },
   "collectible": {
     "collectible_address": "पता",
@@ -9906,6 +9942,7 @@
           "title": "अपना MetaMask कार्ड लिंक करें",
           "description": "अपना बैलेंस पाने के साथ उसे खर्च करें, जहां भी मास्टरकार्ड स्वीकार किया जाता हो।",
           "cta_primary": "कार्ड लिंक करें",
+          "cta_log_in": "Log in",
           "cta_secondary": "छोड़ें"
         }
       }
@@ -9917,15 +9954,15 @@
       "body_suffix": "—तक कमाता है।",
       "body_no_apy": "MetaMask Money एक स्टेबलकॉइन अकाउंट है जिसमें ट्रेडिंग, भेजने और खर्च करने की बिल्ट-इन सुविधा है।",
       "benefit_convert_title": "MetaMask USD, 1:1 में कन्वर्ट होता है",
-      "benefit_convert_body": "आप जो फ़ंड डालते हैं, वे बिना किसी फ़ीस के 1:1 MetaMask USD में कन्वर्ट होते हैं।",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "ऑटोमैटिकली कमाएं",
       "benefit_earn_body": "कमाई रियल टाइम में आपके बैलेंस में आ जाती है, और आपको कुछ भी क्लेम नहीं करना होता।",
       "benefit_trade_title": "उसी बैलेंस से ट्रेड करें",
       "benefit_trade_body": "फंड स्वैप, पर्प्स और प्रेडिक्शन सीधे आपके Money बैलेंस से।",
-      "benefit_withdraw_title": "कभी भी निकालें",
-      "benefit_withdraw_body": "कोई लॉकअप, नोटिस पीरियड या पेनल्टी नहीं। आपका पैसा हमेशा आपका होता है, आप इसे कभी भी निकाल सकते हैं।",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "कहीं भी भेजें या खर्च करें",
-      "benefit_send_body": "किसी भी वॉलेट या बैंक में भेजें, या MetaMask कार्ड से खर्च करें।",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "कमाना शुरू करें",
       "close": "बंद करें"
     },
@@ -9986,6 +10023,7 @@
     },
     "action": {
       "add": "जोड़ें",
+      "move": "Move",
       "card": "कार्ड",
       "details": "विवरण"
     },
@@ -10052,6 +10090,8 @@
       "virtual_card": "वर्चुअल कार्ड",
       "metal_card": "मेटल कार्ड",
       "link_title": "कार्ड लिंक करें",
+      "sign_in_cta": "Log in",
+      "sign_in_prompt": "Log in to view your balance, card, and transaction details.",
       "link_subtitle": "अपना बैलेंस पाने के साथ उसे खर्च करें, जहां भी मास्टरकार्ड स्वीकार किया जाता हो।",
       "link_subtitle_no_apy": "अपना बैलेंस पाने के साथ उसे खर्च करें, जहां भी मास्टरकार्ड स्वीकार किया जाता हो।",
       "link_bullet_apy": "~{{apy}}% APY तक कमाएं",
@@ -10107,6 +10147,8 @@
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
     },
     "transfer_sheet": {
+      "move_title": "Move funds",
+      "withdraw_to_accounts": "Withdraw to accounts",
       "perps_account": "पर्प्स अकाउंट",
       "predictions_account": "प्रेडिक्शंस अकाउंट",
       "send_external": "बाहरी पता",
@@ -11218,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "इसमें {{feePercentage}}% MetaMask फीस शामिल है",
     "discount_badge_promo": "प्रोमो",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "कोई MM फीस नहीं",
     "token_suspicious": "संदिग्ध",
@@ -13865,6 +13908,7 @@
       "money_account": "Money Account",
       "renews_on": "को रीन्यू होता है",
       "ends_on": "Ends on",
+      "ended_on": "Ended on",
       "months_on_us_one": "{{count}} महीना हमारी ओर से",
       "months_on_us_other": "{{count}} महीने हमारी ओर से",
       "manage": "प्लान को प्रबंधित करें",
