@@ -236,7 +236,14 @@
         "typescript/switch-exhaustiveness-check": [
           "error",
           { "considerDefaultExhaustiveForUnions": true }
-        ]
+        ],
+        "typescript/unbound-method": "error"
+      }
+    },
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+      "rules": {
+        "typescript/unbound-method": "off"
       }
     },
     {
