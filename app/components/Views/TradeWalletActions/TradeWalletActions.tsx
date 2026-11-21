@@ -427,6 +427,10 @@ function TradeWalletActions() {
     handleNavigateBack();
   }, [handleNavigateBack, openPredict]);
 
+  const onCollectibles = useCallback(() => {
+    onActionSelected(() => navigate(collectiblesRoutes.root));
+  }, [onActionSelected, navigate]);
+
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
@@ -501,9 +505,7 @@ function TradeWalletActions() {
           label={strings('collectibles.title')}
           description={strings('collectibles.trade_menu.description')}
           iconName={IconName.Gift}
-          onPress={() =>
-            onActionSelected(() => navigate(collectiblesRoutes.root))
-          }
+          onPress={onCollectibles}
           testID={collectiblesTestIds.tradeMenuItem}
         />
       )}
