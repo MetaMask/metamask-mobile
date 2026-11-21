@@ -30,18 +30,24 @@ export function getTransactionPayControllerMessenger(
 
   rootMessenger.delegate({
     actions: [
+      'AccountTreeController:getState',
       'AccountsController:getState',
       'AssetsController:getState',
       'GasFeeController:getState',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getNetworkClientById',
       'NetworkController:getNetworkConfigurationByChainId',
+      'NetworkController:getState',
       'RampsController:getOrder',
       'RampsController:getQuoteWithFees',
+      'RampsController:getState',
       'RemoteFeatureFlagController:getState',
       'SentinelApiService:simulateTransactions',
+      'TransactionController:addTransactionBatch',
       'TransactionController:estimateGas',
       'TransactionController:estimateGasBatch',
+      'TransactionController:failTransaction',
+      'TransactionController:finalizeResumedTransaction',
       'TransactionController:getGasFeeTokens',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
@@ -50,6 +56,7 @@ export function getTransactionPayControllerMessenger(
     ],
     events: [
       'AssetsController:stateChange',
+      'KeyringController:unlock',
       'TransactionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
     ],
