@@ -5,7 +5,7 @@
       "body": "ETH is now $1,872.96."
     },
     "sound": "default",
-    "category": "mm-price-alert-v1"
+    "mutable-content": 1
   },
   "mm_delivery": "price_alert",
   "mm_ui": "price_alert@1",

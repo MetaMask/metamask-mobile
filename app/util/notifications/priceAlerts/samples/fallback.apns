@@ -4,7 +4,8 @@
       "title": "ETH crossed above $1,875",
       "body": "ETH is now $1,875.82."
     },
-    "sound": "default"
+    "sound": "default",
+    "mutable-content": 1
   },
   "mm_delivery": "price_alert",
   "mm_ui": "price_alert@2",

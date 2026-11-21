@@ -78,6 +78,9 @@
 		135A1E270000000000000012 = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
 		135A1E270000000000000013 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 135A1E270000000000000015 /* UserNotificationsUI.framework */; };
 		135A1E270000000000000016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 135A1E270000000000000017 /* Assets.xcassets */; };
+		135A1E280000000000000004 = {isa = PBXBuildFile; fileRef = 135A1E280000000000000003; };
+		135A1E280000000000000007 = {isa = PBXBuildFile; fileRef = 135A1E280000000000000002; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		135A1E28000000000000000F = {isa = PBXBuildFile; fileRef = 135A1E270000000000000010; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +113,7 @@
 			remoteInfo = RCTAesForked;
 		};
 		135A1E270000000000000008 = {isa = PBXContainerItemProxy; containerPortal = 83CBB9F71A601CBA00E9B192; proxyType = 1; remoteGlobalIDString = 135A1E270000000000000001; remoteInfo = PriceAlertContent; };
+		135A1E280000000000000008 = {isa = PBXContainerItemProxy; containerPortal = 83CBB9F71A601CBA00E9B192; proxyType = 1; remoteGlobalIDString = 135A1E280000000000000001; remoteInfo = PriceAlertService; };
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -140,7 +144,7 @@
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
-			files = (135A1E270000000000000007, );
+			files = (135A1E270000000000000007, 135A1E280000000000000007, );
 			name = "Embed Price Alert Content";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,6 +229,9 @@
 		135A1E270000000000000010 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriceAlert.swift; sourceTree = "<group>"; };
 		135A1E270000000000000015 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
 		135A1E270000000000000017 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		135A1E280000000000000002 = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PriceAlertService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		135A1E280000000000000003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		135A1E28000000000000000E = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -419,6 +426,7 @@
 			isa = PBXGroup;
 			children = (
 				135A1E27000000000000000D,
+				135A1E28000000000000000D,
 				C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */,
 				2EF283352B17EC4E00D7B4B1 /* Light-Swift-Untar-V2 */,
 				2EF283312B17EC1A00D7B4B1 /* RNTar.m */,
@@ -447,6 +455,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
 				135A1E270000000000000002,
+				135A1E280000000000000002,
 				2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */,
 			);
 			name = Products;
@@ -499,6 +508,7 @@
 			sourceTree = "<group>";
 		};
 		135A1E27000000000000000D = {isa = PBXGroup; children = (135A1E270000000000000010, 135A1E270000000000000003, 135A1E27000000000000000E, 135A1E270000000000000017 /* Assets.xcassets */, ); path = PriceAlertContent; sourceTree = "<group>"; };
+		135A1E28000000000000000D = {isa = PBXGroup; children = (135A1E280000000000000003, 135A1E28000000000000000E, ); path = PriceAlertService; sourceTree = "<group>"; };
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -525,6 +535,7 @@
 			dependencies = (
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
 				135A1E270000000000000009,
+				135A1E280000000000000009,
 			);
 			name = MetaMask;
 			productName = "Hello World";
@@ -567,6 +578,17 @@
 			name = PriceAlertContent;
 			productName = PriceAlertContent;
 			productReference = 135A1E270000000000000002;
+			productType = "com.apple.product-type.app-extension";
+		};
+		135A1E280000000000000001 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 135A1E28000000000000000A;
+			buildPhases = (135A1E280000000000000005, );
+			buildRules = ();
+			dependencies = ();
+			name = PriceAlertService;
+			productName = PriceAlertService;
+			productReference = 135A1E280000000000000002;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -617,6 +639,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* MetaMask */,
 				135A1E270000000000000001,
+				135A1E280000000000000001,
 				2EF282522B0FF86900D7B4B1 /* MetaMask-Flask */,
 			);
 		};
@@ -1022,6 +1045,7 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		135A1E270000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (135A1E27000000000000000F, 135A1E270000000000000004, ); runOnlyForDeploymentPostprocessing = 0; };
+		135A1E280000000000000005 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (135A1E28000000000000000F, 135A1E280000000000000004, ); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1036,6 +1060,7 @@
 			targetProxy = 2EF282562B0FF86900D7B4B1 /* PBXContainerItemProxy */;
 		};
 		135A1E270000000000000009 = {isa = PBXTargetDependency; target = 135A1E270000000000000001; targetProxy = 135A1E270000000000000008; };
+		135A1E280000000000000009 = {isa = PBXTargetDependency; target = 135A1E280000000000000001; targetProxy = 135A1E280000000000000008; };
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -1456,6 +1481,40 @@
 			};
 			name = Release;
 		};
+		135A1E28000000000000000B = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				INFOPLIST_FILE = PriceAlertService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 8.23.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.PriceAlertService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		135A1E28000000000000000C = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				INFOPLIST_FILE = PriceAlertService/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 8.23.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.PriceAlertService;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1487,6 +1546,7 @@
 			defaultConfigurationName = Debug;
 		};
 		135A1E27000000000000000A = {isa = XCConfigurationList; buildConfigurations = (135A1E27000000000000000B, 135A1E27000000000000000C, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Debug; };
+		135A1E28000000000000000A = {isa = XCConfigurationList; buildConfigurations = (135A1E28000000000000000B, 135A1E28000000000000000C, ); defaultConfigurationIsVisible = 0; defaultConfigurationName = Debug; };
 /* End XCConfigurationList section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;

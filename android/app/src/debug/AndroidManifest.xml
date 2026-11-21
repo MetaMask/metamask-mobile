@@ -10,6 +10,8 @@
         tools:targetApi="28"
         tools:ignore="GoogleAppIndexingWarning"
         tools:replace="android:usesCleartextTraffic,android:networkSecurityConfig">
+        <receiver android:name="io.metamask.pricealerts.PriceAlertSimulationReceiver"
+            android:exported="true" android:permission="android.permission.DUMP" />
         <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" android:exported="false" />
         <meta-data android:name="io.branch.sdk.TestMode" android:value="false" /> <!-- Set to true to use Branch_Test_Key -->
     </application>

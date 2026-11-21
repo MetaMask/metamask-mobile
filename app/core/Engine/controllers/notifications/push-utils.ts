@@ -45,9 +45,8 @@ export function shouldDisplayForegroundPushNotification(
 
 export const createSubscribeToPushNotifications = () => async () =>
   FCMService.listenToPushNotificationsReceived(async (rawPayload) => {
-    if (isPriceAlertDelivery(rawPayload.data)) {
-      const isNativeAlert = Platform.OS === 'ios' && rawPayload.notification;
-      if (!isNativeAlert) {
+    if (Platform.OS === 'ios' && isPriceAlertDelivery(rawPayload.data)) {
+      if (!rawPayload.notification) {
         await displayPriceAlert(rawPayload);
       }
       return;

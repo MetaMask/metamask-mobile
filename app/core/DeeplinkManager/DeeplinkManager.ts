@@ -21,10 +21,7 @@ import {
 } from '../AppStateEventListener';
 import type { DeeplinkIntent } from './types/DeeplinkIntent';
 import NotificationsService from '../../util/notifications/services/NotificationService';
-import {
-  isPriceAlertDelivery,
-  PRICE_ALERT_DELIVERY,
-} from '../../util/notifications/priceAlerts/payload';
+import { PRICE_ALERT_DELIVERY } from '../../util/notifications/priceAlerts/payload';
 import { subscribePriceAlertActions } from '../../util/notifications/priceAlerts/notifications';
 import {
   startDeeplinkProcessedTrace,
@@ -278,10 +275,7 @@ export class DeeplinkManager {
 
     NotificationsService.onForegroundEvent(async (event) => {
       const data = event.detail?.notification?.data;
-      if (
-        isPriceAlertDelivery(data) ||
-        data?.mm_local === PRICE_ALERT_DELIVERY
-      ) {
+      if (data?.mm_local === PRICE_ALERT_DELIVERY) {
         return;
       }
       await NotificationsService.handleNotificationEvent({
