@@ -396,6 +396,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
               receiveAmount={calculations.receiveAmount}
               margin={calculations.totalMargin}
               marginMode={calculations.summaryMarginMode}
+              showMargin
               testIDs={{
                 marginValue:
                   PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,

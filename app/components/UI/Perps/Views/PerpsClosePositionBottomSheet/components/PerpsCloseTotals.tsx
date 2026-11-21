@@ -47,11 +47,13 @@ export interface PerpsCloseTotalsProps {
   receiveAmount: number | undefined;
   /**
    * Margin the close returns. Isolated margin includes its P&L, cross margin
-   * does not. Shown only when `marginMode` is set.
+   * does not.
    */
   margin?: number;
-  /** Margin mode of the position; renders the margin row when set. */
+  /** Margin mode of the position, used for the P&L label. */
   marginMode?: MarginMode;
+  /** Show the margin row when the margin mode is known. */
+  showMargin?: boolean;
   /**
    * Optional test IDs. A caller with its own selector namespace (the Close
    * all sheet) passes its own IDs; defaults to the close position sheet's.
@@ -75,6 +77,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   receiveAmount,
   margin,
   marginMode,
+  showMargin = false,
   testIDs,
 }) => {
   const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
@@ -93,7 +96,7 @@ const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
 
   return (
     <>
-      {marginMode ? (
+      {showMargin && marginMode ? (
         <KeyValueRow
           variant={KeyValueRowVariant.Summary}
           keyLabel={strings('perps.close_position.margin')}

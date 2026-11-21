@@ -1,12 +1,9 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
 import { escapeRegExp } from 'lodash';
 import { strings } from '../../../../../../../locales/i18n';
 import PerpsCloseTotals from './PerpsCloseTotals';
-import {
-  PerpsBottomSheetTooltipSelectorsIDs,
-  PerpsClosePositionBottomSheetSelectorsIDs,
-} from '../../../Perps.testIds';
+import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -47,41 +44,42 @@ describe('PerpsCloseTotals', () => {
     expect(row).not.toHaveTextContent(/\[missing/iu);
   });
 
-  it('explains the margin when its info icon is pressed', () => {
+  it('never renders a Margin row for an isolated position', () => {
     render(
-      <PerpsCloseTotals
-        pnl={2}
-        receiveAmount={17}
-        margin={15}
-        marginMode="isolated"
-      />,
-    );
-    const infoButton = screen.getByTestId(
-      PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON,
-    );
-
-    expect(infoButton).toHaveProp('hitSlop', 12);
-
-    fireEvent.press(infoButton);
-
-    expect(
-      screen.getByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
-    ).toHaveTextContent(strings('perps.tooltips.margin.content'));
-  });
-
-  it('omits the margin explainer for cross margin, which can lose more than the margin', () => {
-    render(
-      <PerpsCloseTotals
-        pnl={2}
-        receiveAmount={17}
-        margin={15}
-        marginMode="cross"
-      />,
+      <PerpsCloseTotals pnl={2} receiveAmount={17} marginMode="isolated" />,
     );
 
     expect(
       screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
         PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_INFO_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_VALUE),
+    ).toHaveTextContent('$17');
+    expect(
+      screen.getByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.TOTAL_PNL_ROW,
+      ),
+    ).toHaveTextContent(new RegExp(`^${label}`));
+  });
+
+  it('never renders a Margin row for a cross position', () => {
+    render(<PerpsCloseTotals pnl={2} receiveAmount={17} marginMode="cross" />);
+
+    expect(
+      screen.queryByTestId(
+        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
       ),
     ).not.toBeOnTheScreen();
     // Cross margin never holds the P&L, so the row does not say it is included.
@@ -92,40 +90,5 @@ describe('PerpsCloseTotals', () => {
     ).toHaveTextContent(
       new RegExp(`^${escapeRegExp(strings('perps.close_position.pnl'))}`),
     );
-  });
-
-  it('omits the margin row when no margin mode is given', () => {
-    render(<PerpsCloseTotals pnl={2} receiveAmount={17} margin={15} />);
-
-    expect(
-      screen.queryByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
-      ),
-    ).not.toBeOnTheScreen();
-  });
-
-  it.each([
-    ['cross', 'perps.margin_mode.cross_title'],
-    ['isolated', 'perps.margin_mode.isolated_title'],
-  ] as const)('shows the %s margin with its mode tag', (marginMode, tagKey) => {
-    render(
-      <PerpsCloseTotals
-        pnl={2}
-        receiveAmount={17}
-        margin={15}
-        marginMode={marginMode}
-      />,
-    );
-
-    expect(
-      screen.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_MODE_TAG,
-      ),
-    ).toHaveTextContent(strings(tagKey));
-    expect(
-      screen.getByTestId(
-        PerpsClosePositionBottomSheetSelectorsIDs.MARGIN_VALUE,
-      ),
-    ).toHaveTextContent('$15');
   });
 });
