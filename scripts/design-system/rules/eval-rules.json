@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "id": "design-system/no-hardcoded-spacing",
+      "message": "Hard-coded spacing value \"{{value}}\" on \"{{key}}\". Use a Box spacing prop (1 unit = 4px, for example marginRight={2}) or twClassName. Intentional exception: add \"// ds-exception: <reason>\" on this line.",
+      "match": {
+        "node": "Property",
+        "key": { "pattern": "^(margin|padding)(Top|Right|Bottom|Left|Horizontal|Vertical|Start|End)?$|^(row|column)?[Gg]ap$" },
+        "value": { "type": "number", "except": [0] }
+      }
+    }
+  ]
+}
