@@ -4349,7 +4349,7 @@ export const usePerpsProOrderForm = ({
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 
-    const target = new BigNumber(liquidationPrice ?? NaN);
+    const target = new BigNumber(liquidationPrice ?? Number.NaN);
     if (!target.isFinite() || target.lte(0)) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }

@@ -447,7 +447,7 @@ export const usePerpsTwapOrders = (
 
   useEffect(() => {
     if (isContextReady && !skipInitialFetch) {
-      fetchTwapOrders();
+      void fetchTwapOrders();
     }
   }, [fetchTwapOrders, isContextReady, skipInitialFetch]);
 
@@ -516,12 +516,12 @@ export const usePerpsTwapOrders = (
     // Refresh immediately when live reconciliation starts or resumes. The
     // subscription supplies schedule deltas, while this read supplies slice
     // fills and the aggregated provider view.
-    fetchTwapOrders(true);
+    void fetchTwapOrders(true);
 
     // The venue's TWAP schedule stream does not contain slice-fill updates, so
     // keep this bounded REST refresh while reconciliation is not paused.
     const intervalId = setInterval(() => {
-      fetchTwapOrders(true);
+      void fetchTwapOrders(true);
     }, pollingInterval);
 
     return () => {

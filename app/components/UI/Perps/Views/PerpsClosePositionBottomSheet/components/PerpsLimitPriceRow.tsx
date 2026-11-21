@@ -61,11 +61,17 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
   // before them while the draft is empty, after them once a price is typed.
   const currencyPrefix = /^\s*[^\d.,\s]+\s*/u.exec(displayValue)?.[0] ?? '';
   const afterPrefix = displayValue.slice(currencyPrefix.length);
-  const currencySuffix = /\s*[^\d.,\s]+\s*$/u.exec(afterPrefix)?.[0] ?? '';
-  const digitsValue = afterPrefix.slice(
-    0,
-    afterPrefix.length - currencySuffix.length,
-  );
+  const suffixEnd = afterPrefix.trimEnd().length;
+  let suffixStart = suffixEnd;
+  while (suffixStart > 0 && /[^\d.,\s]/u.test(afterPrefix[suffixStart - 1])) {
+    suffixStart -= 1;
+  }
+  const digitsEnd =
+    suffixStart === suffixEnd
+      ? afterPrefix.length
+      : afterPrefix.slice(0, suffixStart).trimEnd().length;
+  const digitsValue = afterPrefix.slice(0, digitsEnd);
+  const currencySuffix = afterPrefix.slice(digitsEnd);
 
   const cursor = isEditing ? (
     <Animated.View
