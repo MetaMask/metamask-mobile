@@ -816,7 +816,7 @@ export function getCurrencySymbol(currencyCode) {
 }
 
 /**
- * @deprecated Use renderFiat instead from utils/number/bigint
+ * @deprecated Use `formatCurrency` from `useFormatters()` in components or `getFormatters()` in utils (`app/components/hooks/useFormatters`). See TMCU-386.
  * Formats a fiat value into a string ready to be rendered
  *
  * @param {number} value - number corresponding to a balance of an asset

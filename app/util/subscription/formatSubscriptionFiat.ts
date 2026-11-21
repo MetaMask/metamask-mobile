@@ -2,6 +2,7 @@ import I18n from '../../../locales/i18n';
 import { getIntlNumberFormatter } from '../intl';
 
 /**
+ * @deprecated Use `formatCurrency` from `useFormatters()` in components or `getFormatters()` in utils (`app/components/hooks/useFormatters`). See TMCU-386.
  * Formats a subscription amount as localized fiat using the device locale.
  *
  * @param amount - Amount in major currency units.
