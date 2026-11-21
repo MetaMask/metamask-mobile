@@ -16,6 +16,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 import type {
   AbsolutePriceAlert,
   PercentChangeAlert,
@@ -96,6 +97,8 @@ export function setupPriceAlertsApiMock(
     .query(true)
     .reply(200, alerts)
     .persist();
+
+  installDefaultApiMocks();
 }
 
 /**
