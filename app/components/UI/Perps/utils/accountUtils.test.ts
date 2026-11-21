@@ -370,7 +370,7 @@ describe('accountUtils', () => {
       // Total weighted = 250, total margin = 1500
       // weightedROE = (250 / 1500) * 100 = 16.666...
       const result = calculateWeightedReturnOnEquity(accounts);
-      expect(result).toBe('16.666666666666664');
+      expect(result).toBe('16.66666666666666666667');
     });
 
     it('handles mixed string and number inputs', () => {

@@ -35,6 +35,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import {
   formatPerpsFiat,
+  formatRoePercentage,
   parseCurrencyString,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
@@ -175,8 +176,7 @@ const PerpsHeroCardView: React.FC = () => {
     navigation.goBack();
   };
 
-  const pnlSign = data.pnl >= 0 ? '+' : '';
-  const pnlDisplay = `${pnlSign}${data.roe.toFixed(2)}%`;
+  const pnlDisplay = formatRoePercentage(data.roe, data.roe < 0);
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage

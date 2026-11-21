@@ -399,6 +399,8 @@ jest.mock('../../../../../component-library/hooks', () => ({
 
 // Mock i18n
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 

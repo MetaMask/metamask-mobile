@@ -8,9 +8,11 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
 import {
+  formatPercentage,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { PERPS_TPSL_PERCENT_DISPLAY_DECIMALS } from '../../constants/perpsConfig';
 import type { PerpsStopLossPromptBannerProps } from './PerpsStopLossPromptBanner.types';
 
 /** Delay before fade-out starts, allowing user to see success state */
@@ -113,7 +115,10 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
       // Format the percentage
       const formattedPercent =
         suggestedStopLossPercent !== undefined
-          ? `${suggestedStopLossPercent >= 0 ? '+' : ''}${suggestedStopLossPercent.toFixed(0)}%`
+          ? formatPercentage(
+              suggestedStopLossPercent,
+              PERPS_TPSL_PERCENT_DISPLAY_DECIMALS,
+            )
           : '';
 
       // Round liquidation distance for display

@@ -8,7 +8,6 @@ import type {
 import {
   formatTransactionDate as formatPerpsTransactionDate,
   formatPerpsFiat,
-  formatPositiveFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../../UI/Perps/utils/marketUtils';
@@ -42,29 +41,7 @@ export type PerpsActivityListItem = ActivityListItem & {
   type: PerpsActivityType;
 };
 
-export {
-  formatPerpsTransactionDate,
-  getPerpsAssetIconUrls,
-  formatPositiveFiat,
-};
-
-export function formatSignedPerpsFiat(
-  amount: number | string,
-  isPositive: boolean,
-): string {
-  const absolute = BigNumber(amount).absoluteValue();
-  const sign = isPositive ? '+' : '-';
-
-  if (absolute.isEqualTo(0)) {
-    return '$0';
-  }
-
-  if (absolute.isLessThan(0.01)) {
-    return `${sign}$${absolute.toFixed()}`;
-  }
-
-  return `${sign}${formatPerpsFiat(absolute.toString())}`;
-}
+export { formatPerpsTransactionDate, getPerpsAssetIconUrls, formatPerpsFiat };
 
 export function getPerpsPositionSize(
   fill: PerpsTransaction['fill'],
@@ -73,7 +50,7 @@ export function getPerpsPositionSize(
     return undefined;
   }
 
-  return formatPositiveFiat(
+  return formatPerpsFiat(
     BigNumber(fill.size).times(fill.entryPrice).absoluteValue().toString(),
   );
 }

@@ -6,6 +6,8 @@ import {
 } from './positionDisplay';
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => {
     if (key === 'perps.market.long') {
       return 'Long';
@@ -107,6 +109,6 @@ describe('getPerpsPositionHeaderDisplay', () => {
 
     const result = getPerpsPositionHeaderDisplay(position);
 
-    expect(result.roeText).toBe('+0.0%');
+    expect(result.roeText).toBe('--%');
   });
 });

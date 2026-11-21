@@ -4,16 +4,18 @@ import Engine from '../../../../core/Engine';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   WITHDRAWAL_CONSTANTS,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   parseCurrencyString,
   truncateToTwoDecimals,
 } from '../utils/formatUtils';
-import { usePerpsNetwork } from './index';
+import { usePerpsConnection, usePerpsNetwork } from './index';
 import { usePerpsLiveAccount } from './stream';
 
 interface UseWithdrawValidationParams {
   withdrawAmount: string;
+  providerId?: PerpsProviderType;
 }
 
 /**
@@ -23,8 +25,10 @@ interface UseWithdrawValidationParams {
  */
 export const useWithdrawValidation = ({
   withdrawAmount,
+  providerId,
 }: UseWithdrawValidationParams) => {
-  const { account } = usePerpsLiveAccount();
+  const { account } = usePerpsLiveAccount({ providerId });
+  const { isInitialized } = usePerpsConnection();
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
 
@@ -34,8 +38,8 @@ export const useWithdrawValidation = ({
     return truncateToTwoDecimals(parseCurrencyString(balance)).toString();
   }, [account]);
 
-  // Get withdrawal route for constraints
   const withdrawalRoute = useMemo(() => {
+    if (!isInitialized) return undefined;
     const controller = Engine.context.PerpsController;
     const routes = controller.getWithdrawalRoutes();
 
@@ -44,8 +48,12 @@ export const useWithdrawValidation = ({
       ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
       : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
-    return routes.find((route) => route.assetId === usdcAssetId);
-  }, [isTestnet]);
+    return routes.find(
+      (route) =>
+        route.assetId === usdcAssetId &&
+        (route.providerId === providerId || route.providerId === undefined),
+    );
+  }, [isInitialized, isTestnet, providerId]);
 
   // Validation checks
   const hasInsufficientBalance = useMemo(() => {
@@ -94,6 +102,7 @@ export const useWithdrawValidation = ({
   return {
     withdrawableBalance,
     withdrawalRoute,
+    isLoadingRoute: !isInitialized,
     hasInsufficientBalance,
     isBelowMinimum,
     hasAmount,

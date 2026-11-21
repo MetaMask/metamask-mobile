@@ -117,6 +117,8 @@ jest.mock('../../../../../util/address', () => ({
 
 // Mock i18n strings
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     const translations: Record<string, string> = {
       'perps.order.leverage': 'Leverage',

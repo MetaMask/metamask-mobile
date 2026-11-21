@@ -275,7 +275,9 @@ describe('usePerpsOrderForm', () => {
         },
       );
 
-      expect(mockUsePerpsMarketData).toHaveBeenCalledWith('');
+      expect(mockUsePerpsMarketData).toHaveBeenCalledWith(
+        expect.objectContaining({ asset: '' }),
+      );
     });
 
     it('keeps an empty surface fallback empty', () => {
@@ -1343,7 +1345,7 @@ describe('usePerpsOrderForm', () => {
         result.current.setEstimatedFeeRate(feeRate);
       });
       act(() => {
-        result.current.setEstimatedFeeRate(0);
+        result.current.setEstimatedFeeRate(undefined);
       });
 
       expect(result.current.maxPossibleAmount).toBe(unreservedMax);

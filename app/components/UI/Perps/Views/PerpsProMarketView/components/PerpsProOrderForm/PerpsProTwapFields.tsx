@@ -11,7 +11,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import React from 'react';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PERPS_TWAP_UI_CONFIG } from '../../../../constants/perpsConfig';
@@ -43,50 +42,6 @@ export const formatCompactTwapDuration = (
   const parts = days > 0 ? [`${days}${daySuffix}`] : [];
 
   parts.push(`${hours}${hourSuffix}`, `${minutes}${minuteSuffix}`);
-  return parts.join(' ');
-};
-
-const durationDayLabel = (count: number) =>
-  count === 1
-    ? strings('perps.pro_order_form.twap.duration_day')
-    : strings('perps.pro_order_form.twap.duration_days', { count });
-
-const durationHourLabel = (count: number) =>
-  count === 1
-    ? strings('perps.pro_order_form.twap.duration_hour')
-    : strings('perps.pro_order_form.twap.duration_hours', { count });
-
-const durationMinuteLabel = (count: number) =>
-  count === 1
-    ? strings('perps.pro_order_form.twap.duration_minute')
-    : strings('perps.pro_order_form.twap.duration_minutes', { count });
-
-/**
- * Spells the runtime out for the summary section — "30 mins", "1 hr 30 mins" —
- * rather than the compact "0h 30m" used inside the runtime field itself.
- */
-export const formatTwapRuntimeSummary = (durationMinutes: number): string => {
-  if (durationMinutes <= 0) {
-    return PERPS_CONSTANTS.FallbackDataDisplay;
-  }
-
-  const { MinutesPerHour, HoursPerDay } = PERPS_TWAP_UI_CONFIG;
-  const minutesPerDay = MinutesPerHour * HoursPerDay;
-  const days = Math.floor(durationMinutes / minutesPerDay);
-  const hours = Math.floor((durationMinutes % minutesPerDay) / MinutesPerHour);
-  const minutes = durationMinutes % MinutesPerHour;
-  const parts: string[] = [];
-
-  if (days > 0) {
-    parts.push(durationDayLabel(days));
-  }
-  if (hours > 0) {
-    parts.push(durationHourLabel(hours));
-  }
-  if (minutes > 0) {
-    parts.push(durationMinuteLabel(minutes));
-  }
-
   return parts.join(' ');
 };
 

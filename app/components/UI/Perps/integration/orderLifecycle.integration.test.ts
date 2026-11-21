@@ -9,9 +9,9 @@
  * Reference: tests/integration/AGENTS.md · MetaMask/skills integration-test
  */
 
-import { type Position } from '@metamask/perps-controller';
-
+// Install the harness mocks before importing the controller entrypoint.
 import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps/perps';
+import { PERPS_ERROR_CODES, type Position } from '@metamask/perps-controller';
 
 describe('Perps order lifecycle — integration', () => {
   describe('opening a position', () => {
@@ -197,7 +197,9 @@ describe('Perps order lifecycle — integration', () => {
 
       // Assert
       expect(result.success).toBe(false);
-      expect(result.error).toContain('TWAP capacity reached');
+      expect(result).toMatchObject({
+        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+      });
       expect(mocks.exchangeClient.twapOrder).toHaveBeenCalledTimes(1);
       expect(mocks.exchangeClient.order).not.toHaveBeenCalled();
     });

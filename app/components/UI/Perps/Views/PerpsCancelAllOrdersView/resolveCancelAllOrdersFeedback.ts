@@ -1,4 +1,8 @@
-import type { CancelOrdersResult } from '@metamask/perps-controller';
+import {
+  getBatchOperationStatus,
+  type CancelOrdersResult,
+  type WithBatchOperationStatus,
+} from '@metamask/perps-controller';
 
 export type CancelAllSuccessFeedback =
   | {
@@ -10,7 +14,6 @@ export type CancelAllSuccessFeedback =
       action: 'partial';
       successCount: number;
       totalCount: number;
-      shouldCloseOverlay: true;
     }
   | { action: 'none' };
 
@@ -20,13 +23,15 @@ export type CancelAllSuccessFeedback =
  * component-view tests own the interactive sheet flows.
  */
 export function resolveCancelAllSuccessFeedback(
-  result: CancelOrdersResult,
+  result: CancelOrdersResult | WithBatchOperationStatus<CancelOrdersResult>,
 ): CancelAllSuccessFeedback {
-  if (result.successCount <= 0) {
+  const status =
+    'status' in result ? result.status : getBatchOperationStatus(result);
+  if (status === 'none') {
     return { action: 'none' };
   }
 
-  if (result.success) {
+  if (status === 'all') {
     return {
       action: 'success',
       successCount: result.successCount,
@@ -34,16 +39,11 @@ export function resolveCancelAllSuccessFeedback(
     };
   }
 
-  if (result.failureCount > 0) {
-    return {
-      action: 'partial',
-      successCount: result.successCount,
-      totalCount: result.successCount + result.failureCount,
-      shouldCloseOverlay: true,
-    };
-  }
-
-  return { action: 'none' };
+  return {
+    action: 'partial',
+    successCount: result.successCount,
+    totalCount: result.successCount + result.failureCount,
+  };
 }
 
 export function resolveCancelAllErrorMessage(error: Error): string {

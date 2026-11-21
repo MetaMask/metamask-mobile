@@ -49,6 +49,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 });
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key: string) => {
     if (key === 'perps.order.leverage_modal.set') {
       return 'Set';

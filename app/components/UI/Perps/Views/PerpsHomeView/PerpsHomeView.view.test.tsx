@@ -326,6 +326,52 @@ describe('PerpsHomeView', () => {
     });
   });
 
+  it('withholds the portfolio subtotal until all enabled venues report', async () => {
+    const { stream } = renderPerpsHomeView({
+      overrides: eligibleOverrides,
+      streamOverrides: {
+        account: {
+          ...createFundedAccountForViews('100'),
+          aggregate: {
+            status: 'partial',
+            availableProviders: ['hyperliquid'],
+            unavailableProviders: [],
+            pendingProviders: ['lighter'],
+          },
+        },
+        positions: [createLongPositionForViews()],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    const balance = await screen.findByTestId(
+      PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+    );
+    expect(balance).toHaveTextContent('$---');
+    expect(
+      screen.queryByTestId(
+        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+      ),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE),
+    ).toBeNull();
+
+    act(() => {
+      stream.emitAccount({
+        ...createFundedAccountForViews('150'),
+        aggregate: {
+          status: 'complete',
+          availableProviders: ['hyperliquid', 'lighter'],
+          unavailableProviders: [],
+        },
+      });
+    });
+
+    await waitFor(() => expect(balance).toHaveTextContent('$150'));
+  });
+
   describe('exchange logos beside the available balance', () => {
     const previousLighterFlag = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
 

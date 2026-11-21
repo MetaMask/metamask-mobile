@@ -1,7 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import { BigNumber } from 'bignumber.js';
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -25,7 +24,7 @@ import {
   PerpsTransaction,
 } from '../../types/transactionHistory';
 import {
-  formatPerpsFiat,
+  formatFundingPayment,
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsFundingTransactionView.styles';
@@ -88,8 +87,6 @@ const PerpsFundingTransactionView: React.FC = () => {
     });
   };
 
-  const feeNumber = transaction.fundingAmount?.feeNumber || 0;
-
   // Funding detail rows based on design
   const detailRows = [
     {
@@ -98,15 +95,7 @@ const PerpsFundingTransactionView: React.FC = () => {
     },
     {
       label: strings('perps.transactions.funding.fee'),
-      value:
-        BigNumber(feeNumber).isLessThan(0.01) &&
-        BigNumber(feeNumber).isGreaterThan(-0.01)
-          ? `${transaction.fundingAmount?.isPositive ? '+' : '-'}$${Math.abs(
-              feeNumber,
-            )}`
-          : `${
-              transaction.fundingAmount?.isPositive ? '+' : '-'
-            }${formatPerpsFiat(Math.abs(feeNumber))}`,
+      value: formatFundingPayment(transaction.fundingAmount?.feeNumber),
     },
     {
       label: strings('perps.transactions.funding.rate'),

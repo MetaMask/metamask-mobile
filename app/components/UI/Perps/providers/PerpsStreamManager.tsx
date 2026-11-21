@@ -24,6 +24,7 @@ import {
   type PerpsMarketData,
   type PerpsUserDataSnapshot,
   type PerpsProviderType,
+  type PerpsAvailableToTrade,
   findEvmAccount,
 } from '@metamask/perps-controller';
 import { store } from '../../../../store';
@@ -254,8 +255,7 @@ abstract class StreamChannel<T> {
     sourceProviderId?: PerpsProviderType,
   ) {
     if (source === 'fresh') {
-      this.providerErrors.delete(sourceProviderId ?? 'default');
-      this.streamError = this.providerErrors.values().next().value ?? null;
+      this.clearProviderError(sourceProviderId);
     }
     this.deliveryRevision += 1;
     // Block emission while any pause is held (WebSocket continues receiving updates)
@@ -287,6 +287,18 @@ abstract class StreamChannel<T> {
    */
   public getLastDeliveredAt(): number | null {
     return this.lastDeliveredAt;
+  }
+
+  /** A fresh delivery from a provider ends that provider's failure. */
+  protected clearProviderError(sourceProviderId?: PerpsProviderType): void {
+    this.providerErrors.delete(sourceProviderId ?? 'default');
+    this.streamError = this.providerErrors.values().next().value ?? null;
+  }
+
+  /** Forget every provider failure, e.g. when the channel moves to another stream. */
+  protected clearProviderErrors(): void {
+    this.providerErrors.clear();
+    this.streamError = null;
   }
 
   /** Current provider failure, retained while other providers keep delivering. */
@@ -777,8 +789,7 @@ abstract class StreamChannel<T> {
   }
 
   public clearCache(): void {
-    this.providerErrors.clear();
-    this.streamError = null;
+    this.clearProviderErrors();
     this.invalidateSubscriptionContext();
     // End any first-data trace still open, so clearing the cache before first
     // data doesn't leave a span running until the 5-minute auto-clean.
@@ -827,6 +838,15 @@ abstract class StreamChannel<T> {
 }
 
 // Specific channel for prices
+const priceRouteKey = (symbol: string, providerId: PerpsProviderType) =>
+  JSON.stringify([symbol, providerId]);
+
+const getPriceUpdateProvider = (update: PriceUpdate) => {
+  if (update.providerId) return update.providerId;
+  const activeProvider = Engine.context.PerpsController.state?.activeProvider;
+  return activeProvider === 'aggregated' ? undefined : activeProvider;
+};
+
 class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private readonly symbols = new Set<string>();
   private prewarmUnsubscribe?: () => void;
@@ -880,6 +900,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private prewarmCycleId: number = 0;
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
+  private readonly routedPrices = new Map<string, PriceUpdate>();
 
   /**
    * Maps a raw price update to the cached PriceUpdate shape, stamping the
@@ -892,6 +913,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private toPriceUpdate(update: PriceUpdate): PriceUpdate {
     return {
       symbol: update.symbol,
+      providerId: getPriceUpdateProvider(update),
       price: update.price,
       timestamp: Date.now(),
       percentChange24h: update.percentChange24h,
@@ -904,6 +926,21 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       volume24h: update.volume24h,
       isTradable: update.isTradable ?? true,
     };
+  }
+
+  private publishPrices(updates: PriceUpdate[], emit = true): void {
+    const prices: Record<string, PriceUpdate> = {};
+    for (const update of updates) {
+      const price = this.toPriceUpdate(update);
+      this.priceCache.set(update.symbol, price);
+      prices[update.symbol] = price;
+      if (price.providerId) {
+        const key = priceRouteKey(update.symbol, price.providerId);
+        this.routedPrices.set(key, price);
+        prices[key] = price;
+      }
+    }
+    if (emit) this.notifySubscribersForSymbols(prices, Object.keys(prices));
   }
 
   protected connect() {
@@ -969,15 +1006,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         this.finishFirstDataTrace();
 
         // Update cache and build price map
-        const priceMap: Record<string, PriceUpdate> = {};
-        updates.forEach((update) => {
-          const priceUpdate = this.toPriceUpdate(update);
-          this.priceCache.set(update.symbol, priceUpdate);
-          priceMap[update.symbol] = priceUpdate;
-        });
-
-        // Scope dispatch to subscribers registered for the symbols in this tick.
-        this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
+        this.publishPrices(updates);
       },
     });
   }
@@ -986,6 +1015,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     if (this.priceCache.size === 0) return null;
     const cached: Record<string, PriceUpdate> = {};
     this.priceCache.forEach((value, key) => {
+      cached[key] = value;
+    });
+    this.routedPrices.forEach((value, key) => {
       cached[key] = value;
     });
     return cached;
@@ -1000,7 +1032,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
     const cached: Record<string, PriceUpdate> = {};
     params.symbols.forEach((symbol) => {
-      const price = this.priceCache.get(symbol);
+      const price =
+        this.routedPrices.get(symbol) ?? this.priceCache.get(symbol);
       if (price) {
         cached[symbol] = price;
       }
@@ -1013,7 +1046,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   }
 
   public getSnapshot(): Record<string, PriceUpdate> | null {
-    return this.getCachedData();
+    return this.priceCache.size === 0
+      ? null
+      : Object.fromEntries(this.priceCache);
   }
 
   /**
@@ -1027,6 +1062,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   public clearCache(): void {
     // Clear the price-specific cache
     this.priceCache.clear();
+    this.routedPrices.clear();
     // Cleanup pre-warm subscription
     this.cleanupPrewarm();
     // Call parent clearCache
@@ -1053,6 +1089,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
   subscribeToSymbols(params: {
     symbols: string[];
+    providerId?: PerpsProviderType;
     callback: (prices: Record<string, PriceUpdate>) => void;
     throttleMs?: number;
   }): () => void {
@@ -1068,16 +1105,21 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       this.connect();
     }
 
+    const { providerId } = params;
+    const keys = providerId
+      ? params.symbols.map((symbol) => priceRouteKey(symbol, providerId))
+      : params.symbols;
     return this.subscribe({
       // Registering symbols lets the channel scope dispatch to only the
       // subscribers interested in the symbols present in a given tick.
-      symbols: params.symbols,
+      symbols: keys,
       callback: (allPrices) => {
         // Filter to only requested symbols
         const filtered: Record<string, PriceUpdate> = {};
-        params.symbols.forEach((symbol) => {
-          if (allPrices?.[symbol]) {
-            filtered[symbol] = allPrices[symbol];
+        params.symbols.forEach((symbol, index) => {
+          const price = allPrices?.[keys[index]];
+          if (price) {
+            filtered[symbol] = price;
           }
         });
         params.callback(filtered);
@@ -1186,17 +1228,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             // Track first price data from WebSocket (only once per prewarm)
             this.finishFirstDataTrace();
 
-            const priceMap: Record<string, PriceUpdate> = {};
-            updates.forEach((update) => {
-              const priceUpdate = this.toPriceUpdate(update);
-              this.priceCache.set(update.symbol, priceUpdate);
-              priceMap[update.symbol] = priceUpdate;
-            });
-
-            if (this.subscribers.size > 0) {
-              // Scope dispatch to subscribers registered for the symbols in this tick.
-              this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
-            }
+            this.publishPrices(updates, this.subscribers.size > 0);
           },
         });
 
@@ -1750,7 +1782,7 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
         const incoming = sourceProviderId
           ? fills.map((fill) => ({ ...fill, providerId: sourceProviderId }))
           : fills;
-        const existing = this.cache.get('fills') || [];
+        const existing = this.cache.get('fills') ?? [];
         let updated: OrderFill[];
         if (isSnapshot) {
           // A provider snapshot replaces only that provider's history.
@@ -2079,13 +2111,14 @@ class OICapStreamChannel extends StreamChannel<string[]> {
 }
 
 // Top of book channel for best bid/ask data
+type PerpsTopOfBook = Pick<PriceUpdate, 'bestBid' | 'bestAsk' | 'spread'>;
+
 class TopOfBookStreamChannel extends StreamChannel<
-  { bestBid?: string; bestAsk?: string; spread?: string } | undefined
+  Record<string, PerpsTopOfBook> | undefined
 > {
   private currentSymbol: string | null = null;
-  private cachedTopOfBook:
-    | { bestBid?: string; bestAsk?: string; spread?: string }
-    | undefined = undefined;
+  private readonly routes = new Map<string, string>();
+  private cachedTopOfBook: Record<string, PerpsTopOfBook> | undefined;
   private firstDataTraceId?: string;
 
   protected endOpenFirstDataTrace(): void {
@@ -2130,8 +2163,10 @@ class TopOfBookStreamChannel extends StreamChannel<
         if (!this.isSubscriptionGenerationCurrent(subscriptionContext)) {
           return;
         }
-        const update = updates.find((u) => u.symbol === subscribedSymbol);
-        if (update) {
+        const selectedUpdates = updates.filter(
+          ({ symbol }) => symbol === subscribedSymbol,
+        );
+        if (selectedUpdates.length > 0) {
           // Track first top-of-book data (only once per connection)
           if (
             this.wsConnectionStartTime !== null &&
@@ -2152,35 +2187,44 @@ class TopOfBookStreamChannel extends StreamChannel<
             this.firstDataTraceId = undefined;
           }
 
-          const topOfBook = {
-            bestBid: update.bestBid,
-            bestAsk: update.bestAsk,
-            spread: update.spread,
-          };
-          this.cachedTopOfBook = topOfBook;
-          this.notifySubscribersForSymbols(topOfBook, [subscribedSymbol]);
+          const books: Record<string, PerpsTopOfBook> = {};
+          for (const update of selectedUpdates) {
+            const { bestBid, bestAsk, spread } = update;
+            const book = { bestBid, bestAsk, spread };
+            books[subscribedSymbol] ??= book;
+            const providerId = getPriceUpdateProvider(update);
+            if (providerId) {
+              books[priceRouteKey(subscribedSymbol, providerId)] = book;
+            }
+          }
+          this.cachedTopOfBook = { ...this.cachedTopOfBook, ...books };
+          this.notifySubscribersForSymbols(books, Object.keys(books));
         }
       },
     });
   }
 
-  protected getCachedData():
-    | { bestBid?: string; bestAsk?: string; spread?: string }
-    | undefined {
-    return this.cachedTopOfBook;
+  protected getCachedData(): Record<string, PerpsTopOfBook> | null {
+    return this.cachedTopOfBook ?? null;
   }
 
-  protected getClearedData():
-    | { bestBid?: string; bestAsk?: string; spread?: string }
-    | undefined {
+  protected getCachedDataForSubscription({
+    symbols,
+  }: Pick<
+    StreamSubscription<Record<string, PerpsTopOfBook> | undefined>,
+    'symbols'
+  >): Record<string, PerpsTopOfBook> | null {
+    return symbols?.some((key) => this.cachedTopOfBook?.[key])
+      ? this.getCachedData()
+      : null;
+  }
+
+  protected getClearedData(): undefined {
     return undefined;
   }
 
-  public getSnapshot():
-    | { bestBid?: string; bestAsk?: string; spread?: string }
-    | undefined
-    | null {
-    return this.cachedTopOfBook ?? null;
+  public getSnapshot(): Record<string, PerpsTopOfBook> | null {
+    return this.getCachedData();
   }
 
   public clearCache(): void {
@@ -2192,56 +2236,42 @@ class TopOfBookStreamChannel extends StreamChannel<
 
   subscribeToSymbol(params: {
     symbol: string;
-    callback: (
-      orderBook:
-        | { bestBid?: string; bestAsk?: string; spread?: string }
-        | undefined,
-    ) => void;
+    providerId?: PerpsProviderType;
+    callback: (orderBook: PerpsTopOfBook | undefined) => void;
   }): () => void {
-    if (!params.symbol) {
-      return () => undefined;
-    }
-    if (this.currentSymbol && this.currentSymbol !== params.symbol) {
-      DevLogger.log(
-        'TopOfBookStreamChannel: Warning - different symbol requested, staying on current',
-        {
-          currentSymbol: this.currentSymbol,
-          requestedSymbol: params.symbol,
-        },
-      );
+    const { symbol, providerId, callback } = params;
+    if (!symbol) return () => undefined;
 
-      // Force disconnect to clear old symbol
-      this.disconnect();
-
-      // Set new symbol
-      this.currentSymbol = params.symbol;
-    } else if (!this.currentSymbol) {
-      this.currentSymbol = params.symbol;
+    const key = providerId ? priceRouteKey(symbol, providerId) : symbol;
+    this.routes.set(key, symbol);
+    if (this.currentSymbol !== symbol) {
+      if (this.currentSymbol !== null) this.clearCache();
+      this.currentSymbol = symbol;
     }
 
     const unsubscribe = this.subscribe({
-      symbols: [params.symbol],
-      callback: params.callback,
+      symbols: [key],
+      callback: (books) => callback(books?.[key]),
     });
 
     return () => {
       unsubscribe();
+      if (!this.symbolSubscribers.has(key)) this.routes.delete(key);
       this.refocusToRemainingSymbol();
     };
   }
 
   private refocusToRemainingSymbol(): void {
-    if (this.subscribers.size === 0) {
+    if (this.subscribers.size === 0) return;
+    if (
+      this.currentSymbol &&
+      [...this.routes.values()].includes(this.currentSymbol)
+    ) {
       return;
     }
-    if (this.currentSymbol && this.symbolSubscribers.has(this.currentSymbol)) {
-      return;
-    }
-    const nextSymbol = this.symbolSubscribers.keys().next().value;
-    if (!nextSymbol) {
-      return;
-    }
-    this.disconnect();
+    const nextSymbol = this.routes.values().next().value;
+    if (!nextSymbol) return;
+    this.clearCache();
     this.currentSymbol = nextSymbol;
     this.connect();
   }
@@ -2253,10 +2283,7 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 
   public reconnect(): void {
-    const symbol =
-      this.currentSymbol && this.symbolSubscribers.has(this.currentSymbol)
-        ? this.currentSymbol
-        : this.symbolSubscribers.keys().next().value;
+    const symbol = this.currentSymbol ?? this.routes.values().next().value;
     this.disconnect();
     super.clearCache();
     if (symbol && this.subscribers.size > 0) {
@@ -2342,10 +2369,8 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
         requestedSymbol: params.symbol,
       });
       this.disconnect();
-      this.currentSymbol = params.symbol;
-    } else if (!this.currentSymbol) {
-      this.currentSymbol = params.symbol;
     }
+    this.currentSymbol = params.symbol;
 
     const unsubscribe = this.subscribe({
       // Registering the symbol lets the channel scope dispatch (via
@@ -2411,6 +2436,181 @@ class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
     super.clearCache();
     if (symbol && this.subscribers.size > 0) {
       this.currentSymbol = symbol;
+      this.connect();
+    }
+  }
+}
+
+interface AvailableToTradeRoute {
+  symbol: string;
+  providerId?: PerpsProviderType;
+}
+
+/**
+ * One market's available to trade per side, as the venue reports it
+ * (`PerpsController.subscribeToAvailableToTrade`). All subscribers of a market
+ * route share one controller subscription. Subscribers get `undefined` while
+ * the value is unknown: before the venue reports it, and after a reconnect
+ * (new account or network) clears it. A stream failure reaches `onError`.
+ */
+class AvailableToTradeStreamChannel extends StreamChannel<
+  PerpsAvailableToTrade | undefined
+> {
+  private currentKey: string | null = null;
+  private readonly routes = new Map<string, AvailableToTradeRoute>();
+
+  private static routeKey({ symbol, providerId }: AvailableToTradeRoute) {
+    return `${providerId ?? 'default'}:${symbol}`;
+  }
+
+  protected connect() {
+    const route = this.currentKey
+      ? this.routes.get(this.currentKey)
+      : undefined;
+    if (!this.currentKey || !route || this.wsSubscription) {
+      return;
+    }
+
+    if (!this.ensureReady()) return;
+
+    const key = this.currentKey;
+    const subscriptionContext = this.getSubscriptionContext();
+
+    this.wsSubscription =
+      Engine.context.PerpsController.subscribeToAvailableToTrade({
+        symbol: route.symbol,
+        providerId: route.providerId,
+        callback: (value: PerpsAvailableToTrade) => {
+          // A frame for the previous account can land after an account
+          // switch and before the connection manager reconnects.
+          if (
+            this.currentKey !== key ||
+            !this.isSubscriptionContextCurrent(subscriptionContext) ||
+            value.symbol !== route.symbol ||
+            (route.providerId !== undefined &&
+              value.providerId !== route.providerId)
+          ) {
+            return;
+          }
+          this.cache.set(key, value);
+          this.clearProviderError(route.providerId);
+          this.notifySubscribersForSymbols(value, [key]);
+        },
+        onError: (error: Error) => {
+          if (
+            this.currentKey !== key ||
+            !this.isSubscriptionContextCurrent(subscriptionContext)
+          ) {
+            return;
+          }
+          this.cache.delete(key);
+          // A value queued before the failure must not bring it back.
+          this.cancelPendingDeliveries(key);
+          this.notifyError(error, route.providerId);
+        },
+      });
+  }
+
+  protected getCachedDataForSubscription(
+    params: Pick<
+      StreamSubscription<PerpsAvailableToTrade | undefined>,
+      'symbols'
+    >,
+  ): PerpsAvailableToTrade | null {
+    const key = params.symbols?.[0];
+    return key ? (this.cache.get(key) ?? null) : null;
+  }
+
+  protected getClearedData(): PerpsAvailableToTrade | undefined {
+    return undefined;
+  }
+
+  public getSnapshot(): PerpsAvailableToTrade | null {
+    return this.currentKey ? (this.cache.get(this.currentKey) ?? null) : null;
+  }
+
+  public subscribeToMarket(params: {
+    symbol: string;
+    providerId?: PerpsProviderType;
+    callback: (value: PerpsAvailableToTrade | undefined) => void;
+    onError?: (error: Error) => void;
+    throttleMs?: number;
+  }): () => void {
+    const { symbol, providerId, callback, onError, throttleMs } = params;
+    const key = AvailableToTradeStreamChannel.routeKey({ symbol, providerId });
+    this.routes.set(key, { symbol, providerId });
+
+    if (this.currentKey !== key) {
+      // One venue stream at a time: an order form shows one market.
+      this.switchRoute(key);
+    }
+
+    const unsubscribe = this.subscribe({
+      symbols: [key],
+      callback,
+      onError,
+      throttleMs,
+    });
+
+    return () => {
+      unsubscribe();
+      if (!this.symbolSubscribers.has(key)) {
+        this.routes.delete(key);
+      }
+      this.refocusToRemainingRoute();
+    };
+  }
+
+  /** Keep streaming for a market that still has subscribers. */
+  private refocusToRemainingRoute(): void {
+    if (
+      this.subscribers.size === 0 ||
+      (this.currentKey && this.symbolSubscribers.has(this.currentKey))
+    ) {
+      return;
+    }
+    const nextKey = this.symbolSubscribers.keys().next().value;
+    if (!nextKey) {
+      return;
+    }
+    this.switchRoute(nextKey);
+    this.connect();
+  }
+
+  /** Errors belong to the route that reported them, not to the next one. */
+  private switchRoute(key: string): void {
+    this.disconnect();
+    this.clearProviderErrors();
+    // A cached value from the departing market is stale for its subscribers:
+    // a trade on the market they switched away from is not reflected in it.
+    // Drop it so returning to the route waits for a fresh venue value.
+    if (this.currentKey) {
+      this.cache.delete(this.currentKey);
+      this.cancelPendingDeliveries(this.currentKey);
+      this.notifySubscribersForSymbols(undefined, [this.currentKey]);
+    }
+    this.currentKey = key;
+  }
+
+  private cancelPendingDeliveries(key: string): void {
+    this.symbolSubscribers.get(key)?.forEach((id) => {
+      const subscriber = this.subscribers.get(id);
+      if (!subscriber) {
+        return;
+      }
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+    });
+  }
+
+  public reconnect(): void {
+    // A reconnect can mean a new account or network: the old value is no
+    // longer known, so subscribers go back to unknown before the next value.
+    this.clearCache();
+    if (this.subscribers.size > 0) {
       this.connect();
     }
   }
@@ -2821,6 +3021,7 @@ export class PerpsStreamManager {
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
   public readonly focusedPrice = new FocusedPriceStreamChannel();
+  public readonly availableToTrade = new AvailableToTradeStreamChannel();
   public readonly candles = new CandleStreamChannel(
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
@@ -3100,6 +3301,7 @@ export class PerpsStreamManager {
     this.oiCaps.reconnect();
     this.topOfBook.reconnect();
     this.focusedPrice.reconnect();
+    this.availableToTrade.reconnect();
     this.candles.reconnect();
     this.requestUserDataSnapshot();
   }
@@ -3123,7 +3325,7 @@ export const PerpsStreamProvider: React.FC<{
     getE2EMockStreamManager() as PerpsStreamManager | null;
 
   const selectedManager: PerpsStreamManager =
-    testStreamManager || e2eMockStreamManager || streamManager;
+    testStreamManager ?? e2eMockStreamManager ?? streamManager;
 
   DevLogger.log('PerpsStreamProvider: Using stream manager:', {
     isTestManager: !!testStreamManager,

@@ -78,6 +78,7 @@ jest.mock('../../utils/formatUtils', () => ({
           maximumFractionDigits: 2,
         })}`;
   }),
+  formatLiquidationDistancePercent: (value: number) => `${value.toFixed(2)}%`,
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));

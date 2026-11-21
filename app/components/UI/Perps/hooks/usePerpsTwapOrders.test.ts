@@ -491,7 +491,7 @@ describe('usePerpsTwapOrders', () => {
     expect(unsubscribe).toHaveBeenCalled();
   });
 
-  it('keeps fills a prior read resolved when the stream omits them', async () => {
+  it('keeps fills from an untagged read when the default venue stream omits them', async () => {
     // Arrange: the stream carries schedule state without slice fills
     const fill = buildTwapFill({ fillId: 'f1' });
     mockController.getTwapOrders.mockResolvedValue([
@@ -513,14 +513,17 @@ describe('usePerpsTwapOrders', () => {
       expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]),
     );
     await act(async () => {
-      pushStreamed?.([buildTwapOrder({ fills: [] })]);
+      pushStreamed?.([
+        buildTwapOrder({ providerId: 'hyperliquid', fills: [] }),
+      ]);
     });
 
     // Assert: the stream's empty fills must not erase the known ones
     expect(result.current.twapOrders[0]?.fills).toStrictEqual([fill]);
+    expect(result.current.twapOrders[0]?.providerId).toBe('hyperliquid');
   });
 
-  it('keeps a newer terminal REST schedule when an older active stream row arrives', async () => {
+  it('keeps a terminal REST schedule when an active stream row has a later timestamp', async () => {
     // Arrange
     const restFill = buildTwapFill({ fillId: 'rest-fill' });
     const streamFill = buildTwapFill({ fillId: 'stream-fill' });
@@ -545,7 +548,7 @@ describe('usePerpsTwapOrders', () => {
     // Act
     act(() => {
       pushStreamed?.([
-        buildTwapOrder({ lastUpdated: 4_000, fills: [streamFill] }),
+        buildTwapOrder({ lastUpdated: 6_000, fills: [streamFill] }),
       ]);
     });
 

@@ -4,6 +4,8 @@ import React from 'react';
 import PerpsLiquidationPriceValue from './PerpsLiquidationPriceValue';
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) =>
     key === 'perps.cross_position.no_liquidation_price'
       ? 'No liquidation price'

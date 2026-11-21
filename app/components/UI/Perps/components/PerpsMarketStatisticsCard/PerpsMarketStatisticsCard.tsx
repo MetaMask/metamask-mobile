@@ -15,7 +15,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -32,7 +31,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   symbol,
@@ -53,39 +52,47 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   const liveFunding = symbol ? livePrices[symbol]?.funding : undefined;
   const liveOraclePrice = symbol ? livePrices[symbol]?.markPrice : undefined;
 
-  const { fundingRate } = marketStats;
-
-  // A missing rate has no numeric value, so only text and color are derived.
   const fundingRateData = useMemo(() => {
+    // Undefined while the rate is unknown, so it is never coloured as a zero.
+    let fundingValue: number | undefined;
+    let displayText: string;
+    // The stats hook formats in the app language, so compare with the
+    // localized zero (e.g. `0,0000%` in de), not the en constant.
+    const zeroDisplay = formatFundingRate(0);
+
     if (liveFunding !== undefined) {
-      return {
-        displayText: formatFundingRate(liveFunding),
-        color:
-          liveFunding >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-      };
+      fundingValue = liveFunding;
+      displayText = formatFundingRate(liveFunding);
+    } else if (
+      marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay
+    ) {
+      // Unknown rate: show the placeholder, never read its leading '-' as a
+      // negative rate.
+      fundingValue = undefined;
+      displayText = marketStats.fundingRate;
+    } else if (
+      marketStats.fundingRate &&
+      marketStats.fundingRate !== zeroDisplay
+    ) {
+      fundingValue = marketStats.fundingRate.startsWith('-') ? -1 : 1;
+      displayText = marketStats.fundingRate;
+    } else {
+      fundingValue = 0;
+      displayText = zeroDisplay;
     }
 
-    if (fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay) {
-      return {
-        displayText: PERPS_CONSTANTS.FallbackPercentageDisplay,
-        color: TextColor.TextDefault,
-      };
-    }
-
-    if (fundingRate && fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay) {
-      return {
-        displayText: fundingRate,
-        color: fundingRate.startsWith('-')
-          ? TextColor.ErrorDefault
-          : TextColor.SuccessDefault,
-      };
+    let color: TextColor = TextColor.TextDefault;
+    if (fundingValue !== undefined) {
+      color =
+        fundingValue >= 0 ? TextColor.SuccessDefault : TextColor.ErrorDefault;
     }
 
     return {
-      displayText: FUNDING_RATE_CONFIG.ZeroDisplay,
-      color: TextColor.SuccessDefault,
+      value: fundingValue,
+      displayText,
+      color,
     };
-  }, [liveFunding, fundingRate]);
+  }, [liveFunding, marketStats.fundingRate]);
 
   const fundingValueContent = useMemo(
     () => (

@@ -42,17 +42,12 @@ const getSortValue = (
   position: Position,
   field: ProPositionSortField,
   fundingRatesBySymbol?: Readonly<Record<string, number | undefined>>,
-): number => {
-  switch (field) {
-    case 'positionValue':
-      return parseFloat(position.positionValue) || 0;
-    case 'unrealizedPnl':
-      return parseFloat(position.unrealizedPnl) || 0;
-    case 'fundingRate':
-      return fundingRatesBySymbol?.[position.symbol] ?? 0;
-    default:
-      return 0;
-  }
+): number | undefined => {
+  const value =
+    field === 'fundingRate'
+      ? fundingRatesBySymbol?.[position.symbol]
+      : Number.parseFloat(position[field]);
+  return Number.isFinite(value) ? value : undefined;
 };
 
 /**

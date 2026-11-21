@@ -25,13 +25,6 @@ export interface TotalPnLParams {
   positions: Position[];
 }
 
-export interface ExpectedPnLParams {
-  triggerPrice: number;
-  entryPrice: number;
-  size: number;
-  closingFee: number;
-}
-
 /**
  * Calculate P&L for a position.
  *
@@ -41,23 +34,6 @@ export interface ExpectedPnLParams {
 export function calculatePnL(params: PnLCalculationParams): number {
   const { entryPrice, currentPrice, size } = params;
   return (currentPrice - entryPrice) * size;
-}
-
-/**
- * Calculate expected profit/loss for TP/SL trigger, accounting for closing fees.
- * Reuses calculatePnL for gross P&L, then subtracts fees.
- *
- * @param params - Expected P&L calculation parameters
- * @returns The expected net profit or loss after fees
- */
-export function calculateExpectedPnL(params: ExpectedPnLParams): number {
-  const { triggerPrice, entryPrice, size, closingFee } = params;
-  const grossPnL = calculatePnL({
-    entryPrice,
-    currentPrice: triggerPrice,
-    size,
-  });
-  return grossPnL - closingFee;
 }
 
 /**

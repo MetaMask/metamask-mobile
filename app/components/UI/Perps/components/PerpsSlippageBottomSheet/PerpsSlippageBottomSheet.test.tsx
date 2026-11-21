@@ -10,6 +10,8 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
       'perps.slippage.config_title': 'Set slippage',

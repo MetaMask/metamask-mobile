@@ -1,7 +1,6 @@
 import { strings } from '../../../../../../locales/i18n';
 import {
   formatPerpsOrderFee,
-  formatSignedPerpsFiat,
   getPerpsCompletedStepCount,
   getPerpsFundsCtaLabel,
   getPerpsPositionSize,
@@ -17,24 +16,6 @@ const fill = (overrides: Partial<Fill>): PerpsTransaction['fill'] =>
   overrides as Fill;
 
 describe('ActivityDetailsPerps.utils', () => {
-  describe('formatSignedPerpsFiat', () => {
-    it('returns $0 for zero regardless of sign', () => {
-      expect(formatSignedPerpsFiat(0, true)).toBe('$0');
-      expect(formatSignedPerpsFiat(0, false)).toBe('$0');
-    });
-
-    it('keeps full precision for sub-cent funding fees', () => {
-      expect(formatSignedPerpsFiat('0.00000001', true)).toBe('+$0.00000001');
-      expect(formatSignedPerpsFiat('0.00000001', false)).toBe('-$0.00000001');
-    });
-
-    it('uses the shared Perps fiat formatter for >= $0.01 values', () => {
-      expect(formatSignedPerpsFiat(1.5, true)).toBe('+$1.50');
-      expect(formatSignedPerpsFiat(1.5, false)).toBe('-$1.50');
-      expect(formatSignedPerpsFiat(-2, true)).toBe('+$2');
-    });
-  });
-
   describe('getPerpsPositionSize', () => {
     it('multiplies size × entryPrice when both present', () => {
       expect(

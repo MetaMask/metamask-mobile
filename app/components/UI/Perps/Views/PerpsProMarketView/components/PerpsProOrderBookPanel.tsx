@@ -18,7 +18,12 @@ import {
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
+import {
+  getPerpsDisplaySymbol,
+  getPerpsOrderBookPriceFormat,
+  type PerpsOrderBookPriceFormat,
+  type PerpsProviderType,
+} from '@metamask/perps-controller';
 import { AnimationDuration } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -50,17 +55,16 @@ import {
 } from '../../../hooks/usePerpsProOrderBookPosition';
 import {
   formatPerpsFiat,
+  formatPerpsOrderBookPrice,
   PRICE_RANGES_UNIVERSAL,
 } from '../../../utils/formatUtils';
 import {
   calculateAggregationParams,
   calculateGroupingOptions,
   formatColumnValue,
-  formatOrderBookPrice,
   formatSpreadPercent,
   getDepthRatio,
   getDepthWidth,
-  getOrderBookPriceFormat,
   getOrderBookPriceValue,
   groupOrderBook,
   FAST_ORDER_BOOK_LEVELS,
@@ -68,7 +72,6 @@ import {
   selectDefaultGrouping,
   type OrderBookListCurrency,
   type OrderBookListMetric,
-  type OrderBookPriceFormat,
 } from '../../../utils/orderBookGrouping';
 import {
   getPerpsOrderBookSizeOnClickPreference,
@@ -84,6 +87,7 @@ type OrderBookViewMode = 'default' | 'buy' | 'sell';
 export interface PerpsProOrderBookPanelProps {
   /** Market symbol (e.g. 'BTC', 'xyz:TSLA'). */
   symbol: string;
+  providerId?: PerpsProviderType;
   /**
    * Fallback mid/market price used to derive grouping options before the raw
    * order book produces its own mid.
@@ -135,7 +139,7 @@ interface OrderBookRowProps {
   depthMax: number;
   depthBarColor: string;
   szDecimals?: number;
-  priceFormat: OrderBookPriceFormat | null;
+  priceFormat: PerpsOrderBookPriceFormat | null;
   onSelectPrice?: (price: string, size: string) => void;
   /** Side the order-book column is pinned to; mirrors the row when 'left'. */
   layout: PerpsProOrderBookPosition;
@@ -173,7 +177,7 @@ const OrderBookRow = ({
     width: `${depthWidthSv.value}%`,
   }));
 
-  const priceLabel = formatOrderBookPrice(level.price, priceFormat);
+  const priceLabel = formatPerpsOrderBookPrice(level.price, priceFormat);
 
   const priceCell = (
     <Text
@@ -428,6 +432,7 @@ const OrderBookLadderSkeleton = ({ testID }: { testID: string }) => {
  */
 const PerpsProOrderBookPanel = ({
   symbol,
+  providerId,
   marketPrice,
   szDecimals,
   isMarketContextReady = true,
@@ -466,7 +471,10 @@ const PerpsProOrderBookPanel = ({
     setIsConfigOpen(true);
   }, [playSelection]);
 
-  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(symbol);
+  const { savedGrouping, saveGrouping } = usePerpsOrderBookGrouping(
+    symbol,
+    providerId,
+  );
   const { orderBookPosition, setOrderBookPosition } =
     usePerpsProOrderBookPosition();
   const [selectedGrouping, setSelectedGrouping] = useState<number | null>(
@@ -506,6 +514,7 @@ const PerpsProOrderBookPanel = ({
   const { orderBook: rawOrderBook, dataSymbol: rawOrderBookSymbol } =
     usePerpsLiveOrderBook({
       symbol,
+      providerId,
       enabled: Boolean(symbol) && isMarketContextReady,
       resetKey: marketContextKey,
       // Leave nSigFigs at default 5 / no mantissa so this stays full-precision
@@ -557,10 +566,14 @@ const PerpsProOrderBookPanel = ({
   }, [currentGrouping, midPriceValue]);
 
   // One shared price format for the whole ladder, derived from the grouping
-  // step — see `getOrderBookPriceFormat` for why per-row magnitude formatting
-  // is not usable here.
+  // step — see Core `getPerpsOrderBookPriceFormat` for why per-row magnitude
+  // formatting is not usable here.
   const priceFormat = useMemo(
-    () => getOrderBookPriceFormat(currentGrouping, midPriceValue, szDecimals),
+    () =>
+      getPerpsOrderBookPriceFormat(currentGrouping, {
+        midPrice: midPriceValue,
+        szDecimals,
+      }),
     [currentGrouping, midPriceValue, szDecimals],
   );
 
@@ -594,6 +607,7 @@ const PerpsProOrderBookPanel = ({
     reconnect,
   } = usePerpsLiveOrderBook({
     symbol,
+    providerId,
     channel: 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
     resetKey: marketContextKey,
@@ -607,11 +621,11 @@ const PerpsProOrderBookPanel = ({
       aggregatedOrderBook
         ? groupOrderBook(
             aggregatedOrderBook,
-            null,
+            providerId && providerId !== 'hyperliquid' ? currentGrouping : null,
             ORDER_BOOK_AGGREGATED_LEVELS,
           )
         : null,
-    [aggregatedOrderBook],
+    [aggregatedOrderBook, providerId, currentGrouping],
   );
 
   const readinessBaselineRef = useRef({

@@ -5,13 +5,12 @@ import { type PriceUpdate } from '@metamask/perps-controller';
 
 // Mock the stream provider
 const mockSubscribeToSymbols = jest.fn();
+const mockPriceStream = {
+  prices: { subscribeToSymbols: mockSubscribeToSymbols },
+};
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
-  usePerpsStream: jest.fn(() => ({
-    prices: {
-      subscribeToSymbols: mockSubscribeToSymbols,
-    },
-  })),
+  usePerpsStream: jest.fn(() => mockPriceStream),
   PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
     children,
 }));
@@ -417,7 +416,7 @@ describe('usePerpsLivePrices', () => {
     });
   });
 
-  it('should reset prices when symbols change completely', async () => {
+  it('clears prices when the requested symbols change completely', async () => {
     let capturedCallback: (prices: Record<string, PriceUpdate>) => void =
       jest.fn();
     mockSubscribeToSymbols.mockImplementation((params) => {
@@ -451,9 +450,6 @@ describe('usePerpsLivePrices', () => {
     // Change to completely different symbols
     rerender({ symbols: ['SOL-PERP', 'AVAX-PERP'] });
 
-    // Prices should be reset (implementation may vary)
-    // This test assumes prices are maintained across symbol changes
-    // Update if the implementation clears prices on symbol change
-    expect(result.current['BTC-PERP']).toBeDefined();
+    expect(result.current).toEqual({});
   });
 });

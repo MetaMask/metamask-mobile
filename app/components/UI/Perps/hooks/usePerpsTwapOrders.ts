@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { TwapOrder } from '@metamask/perps-controller';
+import {
+  isTwapOrderActive,
+  mergeTwapOrders,
+  type TwapOrder,
+} from '@metamask/perps-controller';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
@@ -15,7 +19,6 @@ import {
 import {
   getTwapOrderIdentityKey,
   getTwapOrderProviderId,
-  reconcileTwapOrderExecution,
 } from '../utils/twapOrderUtils';
 import { handlePerpsCufTwapOrdersDelivered } from '../utils/perpsCufTrace';
 import { usePerpsMarketContext } from './usePerpsMarketContext';
@@ -30,28 +33,18 @@ const mergeTwapOrder = (
   retainedOrder: TwapOrder | undefined,
   authoritativeOrder: TwapOrder,
 ): TwapOrder => {
-  const fillsByIdentity = new Map(
-    (retainedOrder?.fills ?? []).map((fill) => [fill.fillId, fill]),
-  );
-  for (const fill of authoritativeOrder.fills) {
-    fillsByIdentity.set(fill.fillId, fill);
-  }
-
-  // Schedule state is versioned by the venue, not by delivery order. Equal
-  // versions deliberately prefer the incoming row so authoritative snapshots
-  // can refresh fields that do not participate in the version comparison.
-  const scheduleOrder =
-    !retainedOrder ||
-    authoritativeOrder.lastUpdated >= retainedOrder.lastUpdated
-      ? authoritativeOrder
+  // Both rows share the same Mobile provider key, including legacy rows
+  // without a tag. Keep an explicit venue once either source supplies it.
+  const providerId = authoritativeOrder.providerId ?? retainedOrder?.providerId;
+  const previous =
+    retainedOrder && retainedOrder.providerId !== providerId
+      ? { ...retainedOrder, providerId }
       : retainedOrder;
-
-  // Every TWAP row reaching this hook's consumers passes through here, so this
-  // is where the venue's stale execution totals get restated from the fills.
-  return reconcileTwapOrderExecution({
-    ...scheduleOrder,
-    fills: [...fillsByIdentity.values()],
-  });
+  const incoming =
+    authoritativeOrder.providerId === providerId
+      ? authoritativeOrder
+      : { ...authoritativeOrder, providerId };
+  return mergeTwapOrders(previous ? [previous] : [], [incoming])[0];
 };
 
 const mergeTwapOrderSnapshot = (
@@ -123,7 +116,7 @@ const reconcileTwapOrderStream = (
     if (
       isSnapshot &&
       providerWasSnapshotted &&
-      previousOrder.status === 'active'
+      isTwapOrderActive(previousOrder)
     ) {
       continue;
     }
@@ -392,7 +385,7 @@ export const usePerpsTwapOrders = (
             reconciliation.unconfirmedProviderIds.delete(providerId);
             for (const [identity, order] of mergedOrdersByIdentity) {
               if (
-                order.status === 'active' &&
+                isTwapOrderActive(order) &&
                 getTwapOrderProviderId(order) === providerId &&
                 !currentOrdersByIdentity.has(identity)
               ) {
@@ -454,7 +447,7 @@ export const usePerpsTwapOrders = (
 
   useEffect(() => {
     if (isContextReady && !skipInitialFetch) {
-      fetchTwapOrders();
+      void fetchTwapOrders();
     }
   }, [fetchTwapOrders, isContextReady, skipInitialFetch]);
 
@@ -523,12 +516,12 @@ export const usePerpsTwapOrders = (
     // Refresh immediately when live reconciliation starts or resumes. The
     // subscription supplies schedule deltas, while this read supplies slice
     // fills and the aggregated provider view.
-    fetchTwapOrders(true);
+    void fetchTwapOrders(true);
 
     // The venue's TWAP schedule stream does not contain slice-fill updates, so
     // keep this bounded REST refresh while reconciliation is not paused.
     const intervalId = setInterval(() => {
-      fetchTwapOrders(true);
+      void fetchTwapOrders(true);
     }, pollingInterval);
 
     return () => {

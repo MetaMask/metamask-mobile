@@ -2,9 +2,9 @@ import { Box, TagSeverity } from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import {
   getPerpsDisplaySymbol,
+  getStrategyRules,
   type OrderType,
   type PerpsMarketData,
-  type PerpsProviderType,
   type TriggerOrderType,
 } from '@metamask/perps-controller';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -26,7 +26,6 @@ import {
 } from '../../../utils/crossMarginSummary';
 import PerpsOrderTypeBottomSheet from '../../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomSheet';
-import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   selectPerpsCrossMarginEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
@@ -34,7 +33,7 @@ import {
   selectPerpsProTriggeredOrdersEnabledFlag,
   selectPerpsProTwapEnabledFlag,
 } from '../../../selectors/featureFlags';
-import { selectPerpsProvider } from '../../../selectors/perpsController';
+import { selectPerpsOrderProvider } from '../../../selectors/perpsController';
 import { usePerpsProvider } from '../../../hooks/usePerpsProvider';
 import { useIsPerpsProModeActive } from '../../../utils/perpsModeSwitch';
 import PerpsProModalPortal from './PerpsProModalPortal';
@@ -54,12 +53,7 @@ const TRIGGERED_ORDER_TYPES: readonly TriggerOrderType[] = [
 ];
 const TWAP_ORDER_TYPES: readonly OrderType[] = ['twap'];
 const SCALE_ORDER_TYPES: readonly OrderType[] = ['scale'];
-const TWAP_SUPPORTED_PROVIDER: PerpsProviderType =
-  PROVIDER_CONFIG.DefaultProvider;
 const CHASE_ORDER_TYPES: readonly OrderType[] = ['chase'];
-// Lighter rejects any explicit margin mode; only Hyperliquid places Cross.
-const CROSS_MARGIN_SUPPORTED_PROVIDER: PerpsProviderType =
-  PROVIDER_CONFIG.DefaultProvider;
 
 export interface PerpsProOrderFormPanelProps {
   market: PerpsMarketData;
@@ -98,18 +92,10 @@ const PerpsProOrderFormPanel = ({
   const isCrossMarginFlagEnabled = useSelector(
     selectPerpsCrossMarginEnabledFlag,
   );
-  const activeProvider = useSelector(selectPerpsProvider);
+  const defaultProviderId = useSelector(selectPerpsOrderProvider);
   const selectedProviderId =
-    market.providerId ??
-    (activeProvider === 'aggregated' ? undefined : activeProvider);
-  // Hyperliquid refuses Cross on HIP-3 dexes (non-null source). The form then
-  // reads the asset's isolated-only restriction from the venue, whichever
-  // backend serves the market list.
-  const isCrossMarginAvailable =
-    isProModeActive &&
-    isCrossMarginFlagEnabled &&
-    selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER &&
-    !market.marketSource;
+    market.providerId ?? defaultProviderId ?? undefined;
+  const isCrossMarginAvailable = isProModeActive && isCrossMarginFlagEnabled;
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
   const isChaseBaseEnabled = isProModeActive && isChaseFlagEnabled;
   const isTwapRolloutEnabled = isProModeActive && isTwapFlagEnabled;
@@ -117,14 +103,14 @@ const PerpsProOrderFormPanel = ({
   const {
     isLoadingOrderCapabilities,
     orderCapabilities,
-    supportsTwapOrders,
     supportsScaleOrders,
     supportsChaseOrders,
     checkOrderCapability,
     supportedTriggerOrderTypes,
     checkTriggerOrderSupport,
   } = usePerpsProvider(
-    isScaleBaseEnabled ||
+    isCrossMarginAvailable ||
+      isScaleBaseEnabled ||
       isTwapRolloutEnabled ||
       isChaseBaseEnabled ||
       areTriggeredOrdersEnabled
@@ -138,13 +124,8 @@ const PerpsProOrderFormPanel = ({
     orderCapabilities?.status === 'ready'
       ? orderCapabilities.providerId
       : undefined;
-  // Controller v13 exposes executable TWAP limits for Hyperliquid only.
-  // Keep other providers undiscoverable until the capability contract owns
-  // each provider's complete placement limits.
-  const isTwapEnabled =
-    isTwapRolloutEnabled &&
-    supportsTwapOrders &&
-    resolvedProviderId === TWAP_SUPPORTED_PROVIDER;
+  const twapRules = getStrategyRules(orderCapabilities ?? undefined, 'twap');
+  const isTwapEnabled = isTwapRolloutEnabled && twapRules !== undefined;
   const isTwapAvailabilityPending =
     isTwapRolloutEnabled && isLoadingOrderCapabilities;
   const resolvedScaleProviderId = resolvedProviderId;
@@ -284,6 +265,7 @@ const PerpsProOrderFormPanel = ({
     resolvedTriggerProviderId: resolvedProviderId,
     checkTriggerOrderSupport: checkSelectedTriggerOrderSupport,
     isTwapEnabled,
+    twapRules,
     isTwapAvailabilityPending,
     resolvedTwapProviderId: resolvedProviderId,
     checkTwapOrderSupport,
@@ -297,6 +279,12 @@ const PerpsProOrderFormPanel = ({
     chaseProviderId,
     isScreenFocused,
     isCrossMarginAvailable,
+    isLoadingOrderCapabilities,
+    supportsCrossMargin:
+      orderCapabilities?.status === 'ready'
+        ? orderCapabilities.supportedMarginModes?.includes('cross') === true
+        : undefined,
+    resolvedMarketProviderId: resolvedProviderId ?? selectedProviderId,
   });
 
   // The order book and form share one provider, so a focused field can be
@@ -323,7 +311,10 @@ const PerpsProOrderFormPanel = ({
   }, [onMarginModeSheetClosed]);
 
   const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
-    usePerpsCrossMarginSummary({ enabled: isCrossMarginAvailableForMarket });
+    usePerpsCrossMarginSummary({
+      enabled: isCrossMarginAvailableForMarket,
+      providerId: resolvedProviderId,
+    });
   const privacyMode = useSelector(selectPrivacyMode);
   const crossMarginAlert = getCrossMarginRatioAlert(crossMarginTone);
   const marginModeTag = useMemo(

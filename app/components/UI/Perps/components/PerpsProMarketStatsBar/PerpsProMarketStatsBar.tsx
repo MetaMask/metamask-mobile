@@ -16,7 +16,6 @@ import { ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
 import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
-import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
 import {
@@ -136,23 +135,19 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const livePriceUpdate = symbol ? livePrices[symbol] : undefined;
   const liveFunding = livePriceUpdate?.funding;
 
-  // Prefer the live WebSocket funding value, then a saved rate, then the
-  // missing or zero display. Same precedence as PerpsMarketStatisticsCard.
+  // Prefer the live WebSocket funding value, fall back to the stats hook, then
+  // to the zero display — identical precedence to PerpsMarketStatisticsCard.
   const fundingRateDisplay = useMemo(() => {
     if (liveFunding !== undefined) {
       return formatFundingRate(liveFunding);
     }
-    if (
-      marketStats.fundingRate &&
-      marketStats.fundingRate !== FUNDING_RATE_CONFIG.ZeroDisplay &&
-      marketStats.fundingRate !== PERPS_CONSTANTS.FallbackPercentageDisplay
-    ) {
+    // The stats hook formats in the app language: compare with and fall back
+    // to the localized zero (e.g. `0,0000%` in de), not the en constant.
+    const zeroDisplay = formatFundingRate(0);
+    if (marketStats.fundingRate && marketStats.fundingRate !== zeroDisplay) {
       return marketStats.fundingRate;
     }
-    if (marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay) {
-      return PERPS_CONSTANTS.FallbackPercentageDisplay;
-    }
-    return FUNDING_RATE_CONFIG.ZeroDisplay;
+    return zeroDisplay;
   }, [liveFunding, marketStats.fundingRate]);
 
   // Funding countdown — same calculator as FundingCountdown, formatted as
@@ -182,9 +177,10 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
         : TextColor.ErrorDefault;
     }
 
+    // The unknown-rate placeholder starts with '-' but is not a negative rate.
     if (
       !marketStats.fundingRate ||
-      marketStats.fundingRate === FUNDING_RATE_CONFIG.ZeroDisplay ||
+      marketStats.fundingRate === formatFundingRate(0) ||
       marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay
     ) {
       return TextColor.TextDefault;

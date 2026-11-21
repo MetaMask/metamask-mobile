@@ -13,6 +13,7 @@ import {
   selectPendingTradeConfiguration,
   selectSelectedOrderType,
   type OrderFormState,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import {
@@ -24,7 +25,10 @@ import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
-import { selectPerpsMode } from '../selectors/perpsController';
+import {
+  selectPerpsMode,
+  selectPerpsOrderProvider,
+} from '../selectors/perpsController';
 import {
   getMaxAllowedAmountAtExecutionPrice,
   getProspectiveExecutionPrice,
@@ -58,6 +62,7 @@ export interface PerpsOrderPriceFieldHandlers {
 }
 
 interface UsePerpsOrderFormParams {
+  providerId?: PerpsProviderType;
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
@@ -129,7 +134,7 @@ export interface UsePerpsOrderFormReturn {
    */
   setMaxPossibleAmountOverride: (amount: number | null) => void;
   /** Reserves the quoted trading fee (fraction of notional) in the margin-based max. */
-  setEstimatedFeeRate: (rate: number) => void;
+  setEstimatedFeeRate: (rate: number | undefined) => void;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
 }
@@ -142,6 +147,7 @@ export function usePerpsOrderForm(
   params: UsePerpsOrderFormParams = {},
 ): UsePerpsOrderFormReturn {
   const {
+    providerId: marketProviderId,
     initialAsset = 'BTC',
     initialDirection,
     initialAmount,
@@ -154,16 +160,20 @@ export function usePerpsOrderForm(
 
   const currentNetwork = usePerpsNetwork();
   const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
-  const { account } = usePerpsLiveAccount();
+  const defaultProviderId = useSelector(selectPerpsOrderProvider);
+  const providerId = marketProviderId ?? defaultProviderId ?? undefined;
+  const { account } = usePerpsLiveAccount({ providerId });
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
     symbols: [initialAsset],
+    providerId,
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
-  const { marketData } = usePerpsMarketData(
-    initialSzDecimals == null ? initialAsset : '',
-  );
+  const { marketData } = usePerpsMarketData({
+    asset: initialSzDecimals == null ? initialAsset : '',
+    providerId,
+  });
   const assetSzDecimals =
     initialSzDecimals ??
     marketData?.szDecimals ??
@@ -172,18 +182,23 @@ export function usePerpsOrderForm(
   // Get existing position leverage for this asset (protocol constraint)
   // Positions load asynchronously via WebSocket, so this may be undefined initially
   const existingPositionLeverage = useMemo(
-    () => positions.find((p) => p.symbol === initialAsset)?.leverage?.value,
-    [positions, initialAsset],
+    () =>
+      positions.find(
+        (p) =>
+          p.symbol === initialAsset &&
+          (p.providerId === undefined || p.providerId === providerId),
+      )?.leverage?.value,
+    [positions, initialAsset, providerId],
   );
 
   // Get saved trade configuration for this asset (user preference for new positions)
   const savedConfig = usePerpsSelector((state) =>
-    selectTradeConfiguration(state, initialAsset),
+    selectTradeConfiguration(state, initialAsset, providerId),
   );
 
   // Get pending trade configuration for this asset (temporary, expires after 30 seconds)
   const pendingConfig = usePerpsSelector((state) =>
-    selectPendingTradeConfiguration(state, initialAsset),
+    selectPendingTradeConfiguration(state, initialAsset, providerId),
   );
 
   const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
@@ -324,7 +339,7 @@ export function usePerpsOrderForm(
   // order surface from its own resolved fee quote (`usePerpsOrderFees`), so the
   // max size and the displayed fee never diverge. Fees are charged on top of
   // margin, so the max size must leave room for them.
-  const [estimatedFeeRate, setEstimatedFeeRate] = useState(0);
+  const [estimatedFeeRate, setEstimatedFeeRate] = useState<number>();
 
   const effectiveMaxSlippageBps = useMemo(
     () =>
@@ -342,7 +357,9 @@ export function usePerpsOrderForm(
   const marginBasedMaxPossibleAmount = useMemo(() => {
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
     const feeAdjustedBalance =
-      balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
+      estimatedFeeRate === undefined
+        ? balanceForMax
+        : balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(

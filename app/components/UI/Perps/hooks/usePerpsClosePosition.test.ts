@@ -83,6 +83,8 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key) => key),
 }));
 jest.mock('../../../../util/social/postTradePromptStorage', () => ({

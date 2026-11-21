@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import Engine from '../../../../core/Engine';
+import { formatPerpsFiat, formatPerpsUsdCents } from '../utils/formatUtils';
 import {
-  HYPERLIQUID_ASSET_CONFIGS,
+  PERPS_DISPLAY_PRECISION,
+  type AssetRoute,
   WITHDRAWAL_CONSTANTS,
 } from '@metamask/perps-controller';
 import {
@@ -12,6 +13,7 @@ import {
 
 interface PerpsWithdrawQuoteParams {
   amount: string;
+  withdrawalRoute?: AssetRoute;
 }
 
 interface FormattedQuoteData {
@@ -26,7 +28,10 @@ interface FormattedQuoteData {
  * Hook for calculating withdrawal quote data
  * Simple calculation since withdrawals have fixed fees and no bridging
  */
-export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
+export const usePerpsWithdrawQuote = ({
+  amount,
+  withdrawalRoute,
+}: PerpsWithdrawQuoteParams) => {
   // Parse and validate amount once
   const { parsedAmount, isValid } = useMemo(() => {
     const trimmedAmount = (amount || '').trim();
@@ -46,25 +51,13 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     return { parsedAmount: parsed, isValid: valid };
   }, [amount]);
 
-  // Get withdrawal route to access fee constraints
-  const withdrawalRoute = useMemo(() => {
-    const controller = Engine.context.PerpsController;
-    const routes = controller.getWithdrawalRoutes();
-    const isTestnet = controller.state.isTestnet;
-
-    // Find USDC route
-    const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
-
-    return routes.find((route) => route.assetId === usdcAssetId);
-  }, []);
+  // Numeric network fee, for arithmetic; never re-parse the localized display.
+  const networkFeeAmount: number =
+    withdrawalRoute?.constraints?.fees?.fixed ??
+    WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
 
   const formattedQuoteData = useMemo<FormattedQuoteData>(() => {
-    // Get fees from route constraints or use defaults
-    const networkFee =
-      withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
+    const networkFee = networkFeeAmount;
     const metamaskFee = METAMASK_WITHDRAWAL_FEE; // $0 currently
     const totalFees = networkFee + metamaskFee;
 
@@ -75,11 +68,11 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     const feeToken = withdrawalRoute?.constraints?.fees?.token || 'USDC';
     const networkFeeDisplay =
       feeToken === 'USDC'
-        ? `$${networkFee.toFixed(2)}`
+        ? formatPerpsUsdCents(networkFee)
         : `${networkFee} ${feeToken}`;
     const totalFeesDisplay =
       feeToken === 'USDC'
-        ? `$${totalFees.toFixed(2)}`
+        ? formatPerpsUsdCents(totalFees)
         : `${totalFees} ${feeToken}`;
 
     // Format estimated time from minutes (new) or use legacy string
@@ -100,9 +93,14 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
       metamaskFee: METAMASK_WITHDRAWAL_FEE_PLACEHOLDER, // "$0.00"
       totalFees: totalFeesDisplay,
       estimatedTime,
-      receivingAmount: `${receivingAmount.toFixed(2)} USDC`,
+      // A USDC amount: the fiat formatter without its currency symbol.
+      receivingAmount: `${formatPerpsFiat(receivingAmount, {
+        symbol: false,
+        minimumDecimals: 0,
+        maximumDecimals: PERPS_DISPLAY_PRECISION.Fee,
+      })} USDC`,
     };
-  }, [parsedAmount, isValid, withdrawalRoute]);
+  }, [parsedAmount, isValid, withdrawalRoute, networkFeeAmount]);
 
   // Simple validation
   const hasValidQuote = useMemo(() => {
@@ -137,6 +135,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
   return {
     formattedQuoteData,
+    networkFeeAmount,
     hasValidQuote,
     error,
     // These are not needed for withdrawals but kept for consistency with deposit hook

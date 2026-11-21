@@ -198,7 +198,7 @@ describe('transactionTransforms', () => {
 
         expect(transaction.fill).toMatchObject({
           fee: '0',
-          amount: '-$0.00',
+          amount: '$0.00',
           amountNumber: 0,
           isPositive: false,
         });
@@ -2559,7 +2559,7 @@ describe('transactionTransforms', () => {
           isPositive: true,
           fee: '+$5.25',
           feeNumber: 5.25,
-          rate: '0.01%',
+          rate: '0.0100%',
         },
       });
     });
@@ -2578,7 +2578,7 @@ describe('transactionTransforms', () => {
 
       expect(result[0].title).toBe('Paid funding fee');
       expect(result[0].fundingAmount.isPositive).toBe(false);
-      expect(result[0].fundingAmount.fee).toBe('-$3.5');
+      expect(result[0].fundingAmount.fee).toBe('-$3.50');
       expect(result[0].fundingAmount.feeNumber).toBe(-3.5);
     });
 
@@ -2664,7 +2664,7 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'USDC',
         depositWithdrawal: {
-          amount: '+$1000.00',
+          amount: '+$1,000.00',
           amountNumber: 1000,
           isPositive: true,
           asset: 'USDC',
@@ -2844,7 +2844,7 @@ describe('transactionTransforms', () => {
         timestamp: 1640995200000,
         asset: 'USDC',
         depositWithdrawal: {
-          amount: '+$1000.00',
+          amount: '+$1,000.00',
           amountNumber: 1000,
           isPositive: true,
           asset: 'USDC',

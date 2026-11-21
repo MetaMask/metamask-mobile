@@ -36,7 +36,7 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 describe('hyperLiquidValidation', () => {
   describe('createErrorResult', () => {
-    it('should create error result with Error message', () => {
+    it('normalizes an unrecognized Error to a typed failure', () => {
       const error = new Error('Test error');
       const defaultResponse = { success: true };
 
@@ -44,11 +44,16 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'Test error',
+        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          provider: 'hyperliquid',
+        },
       });
     });
 
-    it('should keep a string error message', () => {
+    it('normalizes an unrecognized string to a typed failure', () => {
       const error = 'string error';
       const defaultResponse = { success: true, data: null };
 
@@ -56,7 +61,12 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'string error',
+        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          provider: 'hyperliquid',
+        },
         data: null,
       });
     });
@@ -69,7 +79,12 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: 'Test error',
+        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        errorDetails: {
+          code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+          provider: 'hyperliquid',
+        },
         txHash: '0x123',
         amount: '100',
       });

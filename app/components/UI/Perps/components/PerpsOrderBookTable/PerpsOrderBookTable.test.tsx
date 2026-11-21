@@ -7,6 +7,8 @@ const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Mock the strings function
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'perps.order_book.total': 'Total',
@@ -85,21 +87,6 @@ jest.mock('../../../../hooks/useStyles', () => ({
     },
     theme: mockTheme,
   })),
-}));
-
-// Mock formatUtils
-jest.mock('../../utils/formatUtils', () => ({
-  formatPerpsFiat: jest.fn((value: number) => `$${value.toLocaleString()}`),
-  formatLargeNumber: jest.fn(
-    (value: number, options?: { decimals?: number }) => {
-      const decimals = options?.decimals ?? 0;
-      if (value >= 1_000_000)
-        return `${(value / 1_000_000).toFixed(decimals)}M`;
-      if (value >= 1_000) return `${(value / 1_000).toFixed(decimals)}K`;
-      return value.toFixed(decimals);
-    },
-  ),
-  PRICE_RANGES_UNIVERSAL: [],
 }));
 
 describe('PerpsOrderBookTable', () => {
@@ -431,7 +418,7 @@ describe('PerpsOrderBookTable', () => {
   // Note: Spread row was removed from the component - no longer displaying spread in table
 
   describe('unit display - base currency', () => {
-    it('formats totals with 4 decimals for values >= 1', () => {
+    it('formats base totals at up to 4 decimals for values >= 1', () => {
       const { getByText } = render(
         <PerpsOrderBookTable
           orderBook={mockOrderBookData}
@@ -440,11 +427,10 @@ describe('PerpsOrderBookTable', () => {
         />,
       );
 
-      // Total of 1.5 should be displayed as 1.5000
-      expect(getByText('1.5000')).toBeOnTheScreen();
+      expect(getByText('1.5')).toBeOnTheScreen();
     });
 
-    it('formats totals with 6 decimals for values < 1', () => {
+    it('formats base totals at up to 6 decimals for values < 1', () => {
       const smallTotalData: OrderBookData = {
         ...mockOrderBookData,
         bids: [
@@ -466,7 +452,7 @@ describe('PerpsOrderBookTable', () => {
         />,
       );
 
-      expect(getByText('0.000500')).toBeOnTheScreen();
+      expect(getByText('0.0005')).toBeOnTheScreen();
     });
 
     it('displays symbol in unit label', () => {
@@ -485,8 +471,8 @@ describe('PerpsOrderBookTable', () => {
   });
 
   describe('unit display - USD', () => {
-    it('formats totals in USD', () => {
-      const { getByTestId } = render(
+    it('formats USD totals in compact notation', () => {
+      const { getByText } = render(
         <PerpsOrderBookTable
           orderBook={mockOrderBookData}
           symbol="BTC"
@@ -494,10 +480,7 @@ describe('PerpsOrderBookTable', () => {
         />,
       );
 
-      // Should be using totalNotional values formatted as currency
-      expect(
-        getByTestId(PerpsOrderBookTableSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(getByText('$75.0K')).toBeOnTheScreen();
     });
 
     it('displays USD in unit label', () => {

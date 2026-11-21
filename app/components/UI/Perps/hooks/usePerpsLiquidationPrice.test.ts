@@ -1,5 +1,4 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 import { usePerpsTrading } from './usePerpsTrading';
 
@@ -67,7 +66,7 @@ describe('usePerpsLiquidationPrice', () => {
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
     });
-    expect(result.current.liquidationPrice).toBe('0.00');
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe('Calculation failed');
   });
 
@@ -89,9 +88,7 @@ describe('usePerpsLiquidationPrice', () => {
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
     });
-    expect(result.current.liquidationPrice).toBe(
-      PERPS_CONSTANTS.FallbackPriceDisplay,
-    );
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(
       'Invalid leverage: 100x exceeds maximum allowed leverage of 40x',
     );
@@ -109,7 +106,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     // Should immediately return without calculating
     expect(result.current.isCalculating).toBe(false);
-    expect(result.current.liquidationPrice).toBe('0.00');
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(null);
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
@@ -126,7 +123,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     // Should immediately return without calculating
     expect(result.current.isCalculating).toBe(false);
-    expect(result.current.liquidationPrice).toBe('0.00');
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(null);
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
@@ -143,7 +140,7 @@ describe('usePerpsLiquidationPrice', () => {
 
     // Should immediately return without calculating
     expect(result.current.isCalculating).toBe(false);
-    expect(result.current.liquidationPrice).toBe('0.00');
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe(null);
     expect(mockCalculateLiquidationPrice).not.toHaveBeenCalled();
   });
@@ -191,6 +188,38 @@ describe('usePerpsLiquidationPrice', () => {
     });
   });
 
+  it('ignores a Cross result from the previous account and preserves a real zero', async () => {
+    let resolvePrevious: (value: string) => void = () => undefined;
+    const previous = new Promise<string>((resolve) => {
+      resolvePrevious = resolve;
+    });
+    mockCalculateLiquidationPrice
+      .mockReturnValueOnce(previous)
+      .mockResolvedValueOnce('0.00');
+    const params = {
+      entryPrice: 50000,
+      leverage: 10,
+      direction: 'long' as const,
+      asset: 'BTC',
+      positionSize: 0.1,
+      marginType: 'cross' as const,
+      providerId: 'hyperliquid' as const,
+    };
+    const { result, rerender } = renderHook(
+      ({ contextKey }) => usePerpsLiquidationPrice(params, { contextKey }),
+      { initialProps: { contextKey: 'account-a' } },
+    );
+    await waitFor(() =>
+      expect(mockCalculateLiquidationPrice).toHaveBeenCalledWith(params),
+    );
+
+    rerender({ contextKey: 'account-b' });
+
+    await waitFor(() => expect(result.current.liquidationPrice).toBe('0.00'));
+    await act(async () => resolvePrevious('45000.00'));
+    expect(result.current.liquidationPrice).toBe('0.00');
+  });
+
   it('should handle non-Error objects in catch', async () => {
     mockCalculateLiquidationPrice.mockRejectedValue('String error');
 
@@ -206,7 +235,7 @@ describe('usePerpsLiquidationPrice', () => {
     await waitFor(() => {
       expect(result.current.isCalculating).toBe(false);
     });
-    expect(result.current.liquidationPrice).toBe('0.00');
+    expect(result.current.liquidationPrice).toBeUndefined();
     expect(result.current.error).toBe('Failed to calculate liquidation price');
   });
 });

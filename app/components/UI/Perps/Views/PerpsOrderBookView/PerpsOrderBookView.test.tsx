@@ -50,6 +50,8 @@ jest.mock('@react-navigation/native', () => {
 
 // Mock strings
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
       'perps.order_book.title': 'Order Book',
@@ -183,6 +185,13 @@ jest.mock('../../hooks', () => ({
     ],
     isLoading: false,
     error: null,
+  })),
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: { szDecimals: 5 },
+    isLoading: false,
+    isProviderMetadataAvailable: true,
+    error: null,
+    refetch: jest.fn(),
   })),
   usePositionManagement: jest.fn(() => ({
     showModifyActionSheet: false,

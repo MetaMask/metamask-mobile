@@ -89,6 +89,8 @@ jest.mock(
 );
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => {
     const translations: Record<string, string> = {
       'perps.market.recent_trades': 'Recent activity',
@@ -104,17 +106,14 @@ jest.mock('@metamask/perps-controller', () => {
     '@metamask/perps-controller/constants',
   );
 
-  const { calculateNetClosedPnl, formatPerpsFiat } = jest.requireActual(
-    '@metamask/perps-controller',
-  );
+  // History nets closed PnL and formats amounts with Core's real helpers.
+  const actual = jest.requireActual('@metamask/perps-controller');
 
   return {
+    ...actual,
     getPerpsDisplaySymbol: (symbol: string) => symbol,
-    // History nets closed PnL with Core's formula and formats fees with Core's
-    // fiat formatter.
-    calculateNetClosedPnl,
-    formatPerpsFiat,
     PERPS_CONSTANTS: {
+      ...actualConstants.PERPS_CONSTANTS,
       RecentActivityLimit: 3,
     },
     PERPS_EVENT_VALUE: {
