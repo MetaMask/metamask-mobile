@@ -1,0 +1,22 @@
+{
+  "aps": {
+    "alert": {
+      "title": "ETH crossed above $1,875",
+      "body": "ETH is now $1,875.82."
+    },
+    "sound": "default",
+    "mutable-content": 1
+  },
+  "mm_delivery": "price_alert",
+  "mm_ui": "price_alert@2",
+  "symbol": "ETH",
+  "asset_id": "eip155:1/slip44:60",
+  "deeplink": "https://link.metamask.io/asset?assetId=eip155%3A1%2Fslip44%3A60&source=price_alert_notification",
+  "kind": "threshold",
+  "price": "1875.82",
+  "target": "1875",
+  "direction": "above",
+  "change_pct": "0.79",
+  "fallback_title": "ETH crossed above $1,875",
+  "fallback_body": "ETH is now $1,875.82."
+}

@@ -41,6 +41,9 @@ import {
 import AppLockService from './app/core/AppLock/AppLockService';
 
 import { enableFreeze } from 'react-native-screens';
+import { registerPriceAlertNotifications } from './app/util/notifications/priceAlerts/register';
+
+registerPriceAlertNotifications();
 
 if (__DEV__) {
   require('./ReactotronConfig');
