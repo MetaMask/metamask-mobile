@@ -173,9 +173,11 @@ describe('onboardingReducer', () => {
       type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
       eligible: true,
       skipInitialBalanceWait: false,
+      eligibleAt: 1_700_000_000_000,
     } as const;
     const state = onboardingReducer(initialState, action);
     expect(state.walletHomeOnboardingStepsEligible).toBe(true);
+    expect(state.walletHomeOnboardingStepsEligibleAt).toBe(1_700_000_000_000);
     expect(state.walletHomeOnboardingSkipInitialBalanceWait).toBe(false);
   });
 
@@ -184,6 +186,7 @@ describe('onboardingReducer', () => {
       type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
       eligible: true,
       skipInitialBalanceWait: true,
+      eligibleAt: 1_700_000_000_000,
     } as const;
     const state = onboardingReducer(initialState, action);
     expect(state.walletHomeOnboardingStepsEligible).toBe(true);

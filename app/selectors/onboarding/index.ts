@@ -32,6 +32,12 @@ export const selectWalletHomeOnboardingStepsEligible = createSelector(
     onboardingState?.walletHomeOnboardingStepsEligible === true,
 );
 
+export const selectWalletHomeOnboardingStepsEligibleAt = createSelector(
+  selectOnboarding,
+  (onboardingState) =>
+    onboardingState?.walletHomeOnboardingStepsEligibleAt ?? null,
+);
+
 export const selectWalletHomeOnboardingSkipInitialBalanceWait = createSelector(
   selectOnboarding,
   (onboardingState) =>

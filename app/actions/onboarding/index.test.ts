@@ -105,11 +105,20 @@ describe('Onboarding actions', () => {
   });
 
   describe('setWalletHomeOnboardingStepsEligible', () => {
+    beforeEach(() => {
+      jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('creates an action to set eligibility with skipInitialBalanceWait true by default', () => {
       expect(setWalletHomeOnboardingStepsEligible(true)).toEqual({
         type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
         eligible: true,
         skipInitialBalanceWait: true,
+        eligibleAt: 1_700_000_000_000,
       });
     });
 
@@ -122,6 +131,7 @@ describe('Onboarding actions', () => {
         type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
         eligible: true,
         skipInitialBalanceWait: true,
+        eligibleAt: 1_700_000_000_000,
       });
     });
 
@@ -134,6 +144,16 @@ describe('Onboarding actions', () => {
         type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
         eligible: true,
         skipInitialBalanceWait: false,
+        eligibleAt: 1_700_000_000_000,
+      });
+    });
+
+    it('creates an action with a null eligibleAt when clearing eligibility', () => {
+      expect(setWalletHomeOnboardingStepsEligible(false)).toEqual({
+        type: SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
+        eligible: false,
+        skipInitialBalanceWait: false,
+        eligibleAt: null,
       });
     });
   });

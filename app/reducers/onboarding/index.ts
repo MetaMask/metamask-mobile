@@ -50,6 +50,12 @@ export interface OnboardingState {
   walletHomeOnboardingStepsEligible: boolean;
 
   /**
+   * Epoch ms when the user became eligible for the checklist. Ramp orders created before this
+   * do not complete the Fund step. Absent for users who became eligible before it existed.
+   */
+  walletHomeOnboardingStepsEligibleAt?: number | null;
+
+  /**
    * Session-only: show the first checklist step immediately without waiting for aggregated
    * balance fetch (fresh-from-onboarding path). Not persisted — unlock/relaunch uses loading shell.
    */
@@ -72,6 +78,7 @@ export const initialOnboardingState: OnboardingState = {
   pendingSocialLoginMarketingConsentBackfill: null,
   iosGoogleWarningSheetLastDismissedAt: null,
   walletHomeOnboardingStepsEligible: false,
+  walletHomeOnboardingStepsEligibleAt: null,
   walletHomeOnboardingSkipInitialBalanceWait: false,
   walletHomeOnboardingSteps: { ...WALLET_HOME_ONBOARDING_STEPS_INITIAL },
   pushNotificationOsPromptRequested: false,
@@ -144,6 +151,7 @@ const onboardingReducer = (
       return {
         ...state,
         walletHomeOnboardingStepsEligible: action.eligible,
+        walletHomeOnboardingStepsEligibleAt: action.eligibleAt,
         walletHomeOnboardingSkipInitialBalanceWait:
           action.eligible && action.skipInitialBalanceWait === true,
       };

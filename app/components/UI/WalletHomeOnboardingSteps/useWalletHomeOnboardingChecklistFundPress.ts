@@ -3,16 +3,11 @@ import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
-import { hasTestOverrides } from '../../../util/test/utils';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import { RAMPS_BUY_CUF_SURFACE } from '../Ramp/constants/rampsBuyCufTags';
 import { walletHomeOnboardingPrimaryLabelForStep } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingFundRampIntent } from './useWalletHomeOnboardingFundRampIntent';
-import {
-  cancelWalletHomeOnboardingFundFlow,
-  startWalletHomeOnboardingFundFlow,
-} from './walletHomeOnboardingFundFlow';
 
 type GoToBuyFromRampNavigation = ReturnType<
   typeof import('../Ramp/hooks/useRampNavigation').useRampNavigation
@@ -32,9 +27,6 @@ export function useWalletHomeOnboardingChecklistFundPress(
 
   return useCallback(
     (onLaunchFailure: () => void) => {
-      if (!hasTestOverrides) {
-        startWalletHomeOnboardingFundFlow();
-      }
       try {
         trackEvent(
           createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
@@ -50,7 +42,6 @@ export function useWalletHomeOnboardingChecklistFundPress(
             .build(),
         );
       } catch {
-        cancelWalletHomeOnboardingFundFlow();
         onLaunchFailure();
         return;
       }
@@ -62,7 +53,6 @@ export function useWalletHomeOnboardingChecklistFundPress(
           }),
         )
         .catch(() => {
-          cancelWalletHomeOnboardingFundFlow();
           onLaunchFailure();
         });
     },

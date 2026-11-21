@@ -22,7 +22,7 @@ export interface DisplayOrder {
   account: string;
 }
 
-function toEpochMs(value: unknown): number {
+export function toEpochMs(value: unknown): number {
   if (typeof value === 'number' && value > 0) return value;
   if (typeof value === 'string') {
     const ms = new Date(value).getTime();

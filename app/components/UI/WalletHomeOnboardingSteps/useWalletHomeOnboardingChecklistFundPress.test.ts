@@ -3,10 +3,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingChecklistFundPress } from './useWalletHomeOnboardingChecklistFundPress';
 import { MAINNET_MUSD_RAMP_ASSET_ID } from './fundRampPriorityAssets';
-import {
-  cancelWalletHomeOnboardingFundFlow,
-  consumeWalletHomeOnboardingFundFlowCompletion,
-} from './walletHomeOnboardingFundFlow';
 
 const mockUseWalletHomeOnboardingFundRampIntent = jest.fn();
 jest.mock('./useWalletHomeOnboardingFundRampIntent', () => ({
@@ -59,7 +55,6 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    cancelWalletHomeOnboardingFundFlow();
     mockUseRampsButtonClickData.mockReturnValue(defaultButtonClickData);
     mockUseWalletHomeOnboardingFundRampIntent.mockReturnValue({
       rampIntent: undefined,
@@ -118,7 +113,7 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
     );
   });
 
-  it('clears the active flow and notifies the caller when Buy launch fails', async () => {
+  it('notifies the caller when Buy launch fails', async () => {
     const onLaunchFailure = jest.fn();
     goToBuy.mockRejectedValueOnce(new Error('Buy launch failed'));
     const { result } = renderHook(() =>
@@ -132,6 +127,5 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
     });
 
     expect(onLaunchFailure).toHaveBeenCalledTimes(1);
-    expect(consumeWalletHomeOnboardingFundFlowCompletion()).toBe(false);
   });
 });
