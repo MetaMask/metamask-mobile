@@ -5414,6 +5414,9 @@
     "title": "Collectibles",
     "trade_menu": {
       "description": "Explore packs and cards"
+    },
+    "home": {
+      "empty": "No packs available right now"
     }
   },
   "collectible": {
