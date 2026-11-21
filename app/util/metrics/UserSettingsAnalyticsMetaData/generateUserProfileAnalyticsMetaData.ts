@@ -138,7 +138,7 @@ const generateUserProfileAnalyticsMetaData = (): AnalyticsUserTraits => {
         ? UserProfileProperty.ON
         : UserProfileProperty.OFF,
     [UserProfileProperty.SECURITY_PROVIDERS]:
-      preferencesController?.securityAlertsEnabled ? 'blockaid' : '',
+      preferencesController?.securityAlertsEnabled ? ['blockaid'] : [],
     [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
       isDataCollectionForMarketingEnabled,
     ),
