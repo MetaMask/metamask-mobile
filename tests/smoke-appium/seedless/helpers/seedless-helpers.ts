@@ -4,12 +4,13 @@ import Assertions from '../../../framework/Assertions.js';
 import Gestures from '../../../framework/Gestures.js';
 import Matchers from '../../../framework/Matchers.js';
 import { PlatformDetector } from '../../../framework/PlatformLocator.js';
-import { sleep } from '../../../framework/Utilities.js';
+import Utilities, { sleep } from '../../../framework/Utilities.js';
 import {
   getDriver,
   withImplicitWait,
 } from '../../../framework/AppiumUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
+import { LoginViewSelectors } from '../../../../app/components/Views/Login/LoginView.testIds.js';
 import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
@@ -296,23 +297,58 @@ export const completeTelegramNewUserOnboarding = (): Promise<void> =>
   completeSocialLoginOnboarding('telegram');
 
 /**
+ * Login readiness after lock. Prefer child indicators over the parent
+ * `login` container — on iOS the container can sit in the tree with
+ * `isDisplayed=false` while password / Unlock are already visible (same
+ * class of flake as wallet-home parent visibility).
+ */
+const IOS_LOGIN_READY_INDICATOR_IDS = [
+  LoginViewSelectors.PASSWORD_INPUT,
+  LoginViewSelectors.LOGIN_BUTTON_ID,
+  LoginViewSelectors.TITLE_ID,
+  LoginViewSelectors.CONTAINER,
+] as const;
+
+const isLoginIndicatorVisible = async (testId: string): Promise<boolean> => {
+  try {
+    return await withImplicitWait(500, async () => {
+      const el = (await Matchers.getElementByID(testId)) as AppiumElement;
+      return await el.isVisible();
+    });
+  } catch {
+    return false;
+  }
+};
+
+const isLoginScreenReady = async (): Promise<boolean> => {
+  if (PlatformDetector.isIOS()) {
+    for (const testId of IOS_LOGIN_READY_INDICATOR_IDS) {
+      if (await isLoginIndicatorVisible(testId)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  try {
+    await Assertions.expectElementToBeVisible(LoginView.container, {
+      description: 'Login screen after lock',
+      timeout: 1_000,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Confirms the native lock alert. On iOS the confirm button can go stale before
  * XPath-based taps complete, so we use Appium's alert API when available.
+ * Always re-check login readiness with child indicators — a false-negative on
+ * the parent container used to burn 30s waiting for Yes while Unlock was up.
  */
 const confirmLockAlert = async (): Promise<void> => {
-  const isLoginVisible = async (): Promise<boolean> => {
-    try {
-      await Assertions.expectElementToBeVisible(LoginView.container, {
-        description: 'Login screen after lock',
-        timeout: 1_000,
-      });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
-  if (await isLoginVisible()) {
+  if (await isLoginScreenReady()) {
     return;
   }
 
@@ -339,11 +375,35 @@ const confirmLockAlert = async (): Promise<void> => {
     }
   }
 
-  if (await isLoginVisible()) {
+  if (await isLoginScreenReady()) {
     return;
   }
 
-  await SettingsView.tapYesAlertButton();
+  // Race Yes visibility against login readiness so we do not wait 30s for Yes
+  // when the alert already dismissed and Unlock is on screen.
+  await Utilities.executeWithRetry(
+    async () => {
+      if (await isLoginScreenReady()) {
+        return;
+      }
+      await Gestures.waitAndTap(SettingsView.alertButton, {
+        elemDescription: 'Settings - Alert Yes Button',
+        timeout: 3_000,
+        delay: 0,
+        checkEnabled: false,
+      });
+      if (!(await isLoginScreenReady())) {
+        throw new Error('Login screen not ready after lock Yes tap');
+      }
+    },
+    {
+      timeout: 35_000,
+      interval: 500,
+      maxRetries: 10,
+      description: 'Confirm lock alert or detect login screen',
+      elemDescription: 'Lock Yes / login readiness',
+    },
+  );
 };
 
 /**
@@ -356,9 +416,10 @@ export const lockApp = async (): Promise<void> => {
 
   await confirmLockAlert();
 
-  await Assertions.expectElementToBeVisible(LoginView.container, {
+  // Prefer password field over parent container (iOS displayed=false flake).
+  await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
     description: 'Login screen should be visible after locking',
-    timeout: 30000,
+    timeout: 30_000,
   });
 };
 
