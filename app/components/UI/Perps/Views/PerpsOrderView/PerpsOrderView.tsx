@@ -122,10 +122,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
-import {
-  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
-  PERPS_ANALYTICS_SIZE_UNIT,
-} from '../../constants/perpsAnalytics';
+import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
 import {
   resolveShownPerpsSizeDenomination,
   toPerpsSizeUnitAnalyticsValue,
@@ -954,14 +951,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, [hasCustomTokenSelected, payTotals]);
 
   const combinedFees = useMemo(
-    () => estimatedFees + depositFeeUsd,
+    () =>
+      estimatedFees === undefined ? undefined : estimatedFees + depositFeeUsd,
     [estimatedFees, depositFeeUsd],
   );
 
   const feesToDisplay = hasCustomTokenSelected ? combinedFees : estimatedFees;
-  const undiscountedFeesToDisplay = hasCustomTokenSelected
-    ? undiscountedEstimatedFees + depositFeeUsd
-    : undiscountedEstimatedFees;
+  const undiscountedFeesToDisplay =
+    hasCustomTokenSelected && undiscountedEstimatedFees !== undefined
+      ? undiscountedEstimatedFees + depositFeeUsd
+      : undiscountedEstimatedFees;
 
   // Mirror the publish guard: while the deposit transaction exists but has no
   // executable quote and no validated direct or fiat route, a tap would be
@@ -976,8 +975,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const isFeesLoading =
     feeResults.isLoadingMetamaskFee ||
     (hasCustomTokenSelected && isPayStateNotReady);
+  // The deposit is sized from the fee, so an unknown fee also blocks: the
+  // deposit amount stays empty and the order would skip the deposit.
   const shouldBlockBecauseOfFeesLoading =
-    hasCustomTokenSelected && isPayStateNotReady;
+    hasCustomTokenSelected &&
+    (isPayStateNotReady || estimatedFees === undefined);
 
   const isMarketOrder = orderForm.type === 'market';
 
@@ -1526,6 +1528,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // Minimum order amount (in USD notional) for the current asset/network
   const { minimumOrderAmount } = useMinimumOrderAmount({
     asset: orderForm.asset,
+    providerId: orderProvider ?? undefined,
   });
 
   /**
@@ -1614,6 +1617,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isInputFocused || isLimitPriceFocused,
     originalUsdAmount: orderForm.amount,
+    minimumOrderAmount,
     maxLeverage: maxLeverage ?? undefined,
   });
 
@@ -1905,11 +1909,18 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     const currentAmount = parseFloat(orderForm.amount || '0');
 
     // If user-entered amount exceeds the max purchasable with current balance/leverage,
-    // snap it down to the maximum once input is closed.
-    if (currentAmount > maxPossibleAmount) {
+    // snap it down to the maximum once input is closed. An unknown balance has
+    // no max yet.
+    if (spendableBalance !== undefined && currentAmount > maxPossibleAmount) {
       commitAmount(String(maxPossibleAmount));
     }
-  }, [isInputFocused, orderForm.amount, maxPossibleAmount, commitAmount]);
+  }, [
+    isInputFocused,
+    orderForm.amount,
+    maxPossibleAmount,
+    commitAmount,
+    spendableBalance,
+  ]);
 
   const { handleDepositConfirm } = usePerpsOrderDepositTracking();
 
@@ -2366,10 +2377,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             return;
           }
 
+          // Same venue as the order, or Core falls back to the default one.
           const tpslResult = await updatePositionTPSL({
             symbol: orderForm.asset,
             takeProfitPrice: orderForm.takeProfitPrice,
             stopLossPrice: orderForm.stopLossPrice,
+            ...(orderParams.providerId !== undefined
+              ? { providerId: orderParams.providerId }
+              : {}),
           });
 
           // Show error toast if TP/SL update failed (order succeeded but TP/SL didn't)
@@ -2592,28 +2607,33 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   // A funded Perps balance is this view's default funding source and the
   // shared selection only reads the EOA token balance, so hold it back until
   // the live account proves the Perps balance cannot cover the order.
-  const perpsSpendableBalance = Number.parseFloat(
-    account?.spendableBalance?.toString() ?? '0',
-  );
+  // An unresolved account is not an empty one, so it also holds the selection.
+  const perpsSpendableBalance =
+    account?.spendableBalance == null
+      ? undefined
+      : Number.parseFloat(account.spendableBalance.toString());
   useMoneyAccountDepositAndOrder({
     disable:
       !isOpenComplete ||
       isLoadingAccount ||
+      perpsSpendableBalance === undefined ||
       perpsSpendableBalance >= PERPS_MIN_BALANCE_THRESHOLD,
   });
 
-  // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error
-  const amountTimesLeverage = Math.floor(spendableBalance * orderForm.leverage);
+  // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error.
+  // An unknown balance is not below the minimum.
+  const isBelowMinimumNotional =
+    spendableBalance !== undefined &&
+    Math.floor(spendableBalance * orderForm.leverage) < minimumOrderAmount;
 
-  const isAmountDisabled = amountTimesLeverage < minimumOrderAmount;
+  const isAmountDisabled = isBelowMinimumNotional;
 
   // Button label: show Insufficient funds when user's max notional is below minimum
   const orderButtonKey =
     orderForm.direction === 'long'
       ? 'perps.order.button.long'
       : 'perps.order.button.short';
-  const isInsufficientFunds =
-    !isLoadingAccount && amountTimesLeverage < minimumOrderAmount;
+  const isInsufficientFunds = !isLoadingAccount && isBelowMinimumNotional;
   const placeOrderLabel =
     isInsufficientFunds && !hasInsufficientFundsError
       ? strings('perps.order.validation.insufficient_funds')
@@ -2681,8 +2701,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         ? liveDragAmount
         : orderForm.amount;
       const currentAmount = parseFloat(effectiveAmount || '0');
-      const newMaxAmount = spendableBalance * leverage;
-      if (currentAmount > newMaxAmount) {
+      // An unknown balance has no max yet, so it must not zero the amount.
+      const newMaxAmount =
+        spendableBalance === undefined
+          ? undefined
+          : spendableBalance * leverage;
+      if (newMaxAmount !== undefined && currentAmount > newMaxAmount) {
         commitAmount(Math.floor(newMaxAmount).toString());
       } else if (isDraggingSlider) {
         commitAmount(effectiveAmount);
@@ -2697,7 +2721,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ? PERPS_EVENT_VALUE.DIRECTION.LONG
             : PERPS_EVENT_VALUE.DIRECTION.SHORT,
         [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
-        [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
+        [PERPS_EVENT_PROPERTY.PREVIOUS_LEVERAGE]: orderForm.leverage,
       };
       if (inputMethod) {
         eventProperties[PERPS_EVENT_PROPERTY.INPUT_METHOD] =
@@ -2785,9 +2809,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // The picker and margin checks use spendable balance. totalBalance still
     // includes margin locked by open positions and orders.
     const payWithBalance = formatPerpsFiat(
-      isPayTokenPerpsBalance
-        ? (account?.spendableBalance ?? '0')
-        : payTokenBalanceUsd,
+      isPayTokenPerpsBalance ? account?.spendableBalance : payTokenBalanceUsd,
       { ranges: PRICE_RANGES_MINIMAL_VIEW },
     );
     const marginDisplay =
@@ -3004,7 +3026,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 isOrderTypeDisabled={isMarketDataUnavailable || isPlacingOrder}
                 areLimitPricePresetsDisabled={assetData.price <= 0}
                 hasAmountError={
-                  spendableBalance > 0 && filteredErrors.length > 0
+                  spendableBalance !== undefined &&
+                  spendableBalance > 0 &&
+                  filteredErrors.length > 0
                 }
                 showAmountWarning={!isLoadingAccount && spendableBalance === 0}
                 amountWarningMessage={strings(
@@ -3051,7 +3075,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 onConfirm={handleLeverageConfirm}
                 leverage={orderForm.leverage}
                 minLeverage={1}
-                maxLeverage={maxLeverage ?? defaultMaxLeverage ?? 40}
+                maxLeverage={maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage}
                 currentPrice={assetData.price}
                 direction={orderForm.direction}
                 asset={orderForm.asset}
@@ -3121,7 +3145,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           isActive={isInputFocused}
           tokenAmount={livePositionSize}
           tokenSymbol={getPerpsDisplaySymbol(orderForm.asset)}
-          hasError={spendableBalance > 0 && !!filteredErrors.length}
+          hasError={
+            spendableBalance !== undefined &&
+            spendableBalance > 0 &&
+            !!filteredErrors.length
+          }
           isLoading={isLoadingAccount}
           twClassName="pt-4"
         />
@@ -3574,8 +3602,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
             // Check if current amount exceeds new maximum value and adjust if needed
             const currentAmount = parseFloat(effectiveAmount || '0');
-            const newMaxAmount = spendableBalance * leverage;
-            if (currentAmount > newMaxAmount) {
+            // An unknown balance has no max yet, so it must not zero the amount.
+            const newMaxAmount =
+              spendableBalance === undefined
+                ? undefined
+                : spendableBalance * leverage;
+            if (newMaxAmount !== undefined && currentAmount > newMaxAmount) {
               commitAmount(Math.floor(newMaxAmount).toString());
             } else if (isDraggingSlider) {
               commitAmount(effectiveAmount);
@@ -3591,7 +3623,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   ? PERPS_EVENT_VALUE.DIRECTION.LONG
                   : PERPS_EVENT_VALUE.DIRECTION.SHORT,
               [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
-              [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
+              [PERPS_EVENT_PROPERTY.PREVIOUS_LEVERAGE]: orderForm.leverage,
             };
 
             // Add input method if provided

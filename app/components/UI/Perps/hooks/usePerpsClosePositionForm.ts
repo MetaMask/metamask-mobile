@@ -45,6 +45,7 @@ import { usePerpsAbandonOrderTracking } from './usePerpsAbandonOrderTracking';
 import { usePerpsCloseInFlight } from './usePerpsClosePosition';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
+import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
 import {
@@ -331,10 +332,13 @@ export function usePerpsClosePositionForm(
   const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
+  // Market closes use the saved max slippage, as the order form does; Core's
+  // ORDER_SLIPPAGE_CONFIG is only the default behind it.
+  const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
   const effectiveMaxSlippageBps =
     effectiveOrderType === 'limit'
       ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
+      : maxSlippageBps;
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
@@ -644,6 +648,7 @@ export function usePerpsClosePositionForm(
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
     asset: position.symbol,
+    providerId: livePosition.providerId,
   });
 
   // Calculate remaining position value after partial close
@@ -763,7 +768,7 @@ export function usePerpsClosePositionForm(
       isPositionGone ||
       // Core tracking takes a numeric fee, so wait for the quote instead of
       // reporting an unknown fee as 0. A quoted 0 rate still submits.
-      feeResults.totalFeeRate === undefined
+      feeResults.totalFee === undefined
     ) {
       return;
     }
@@ -851,7 +856,7 @@ export function usePerpsClosePositionForm(
         ...(effectiveOrderType === 'market'
           ? {
               maxSlippageBps: effectiveMaxSlippageBps,
-              maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
+              maxSlippageSource,
             }
           : {}),
       },
@@ -876,7 +881,6 @@ export function usePerpsClosePositionForm(
     handleClosePosition,
     livePosition,
     feeResults.totalFee,
-    feeResults.totalFeeRate,
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.metamaskFee,
@@ -888,6 +892,7 @@ export function usePerpsClosePositionForm(
     routeSource,
     vipTier,
     effectiveMaxSlippageBps,
+    maxSlippageSource,
     priceData,
     position.symbol,
     closingValueString,

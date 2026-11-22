@@ -6,7 +6,6 @@ import {
   PERPS_CONSTANTS,
   PERPS_ERROR_CODES,
   SCALE_ORDER_COUNT,
-  TRADING_DEFAULTS,
   calculateMarginRequired,
   computeScalePriceLadder,
   computeTwapSlicePreview,
@@ -63,10 +62,7 @@ import { ensureError } from '../../../../../../../util/errorUtils';
 import { useVipTier } from '../../../../../Rewards/hooks/useVipTier';
 import { useComplianceGate } from '../../../../../Compliance';
 import type { PerpsTooltipContentKey } from '../../../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import {
-  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
-  PERPS_ANALYTICS_SIZE_UNIT,
-} from '../../../../constants/perpsAnalytics';
+import { PERPS_ANALYTICS_SIZE_UNIT } from '../../../../constants/perpsAnalytics';
 import { toPerpsSizeUnitAnalyticsValue } from '../../../../utils/perpsSizeDenomination';
 import {
   bpsToPercent,
@@ -77,6 +73,7 @@ import type { PerpsOrderPriceField } from '../../../../hooks/usePerpsOrderForm';
 import { usePerpsSavePendingConfig } from '../../../../hooks/usePerpsSavePendingConfig';
 import {
   useHasExistingPosition,
+  useMinimumOrderAmount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
@@ -992,10 +989,6 @@ export const usePerpsProOrderForm = ({
     showToast,
     PerpsToastOptions.formValidation.orderForm,
   ]);
-  const scaleMinimumOrderAmount =
-    network === 'mainnet'
-      ? TRADING_DEFAULTS.amount.mainnet
-      : TRADING_DEFAULTS.amount.testnet;
   const szDecimals =
     marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
   const maxLeverage =
@@ -1223,6 +1216,12 @@ export const usePerpsProOrderForm = ({
         : isTriggerOrderType(orderForm.type)
           ? resolvedTriggerProviderId
           : resolvedMarketProviderId;
+  // The venue's minimum order value; Core order capabilities first.
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: symbol,
+    providerId: orderProviderId,
+  });
+  const scaleMinimumOrderAmount = minimumOrderAmount;
   const priceProviderId = orderProviderId ?? resolvedMarketProviderId;
   const prices = usePerpsLivePrices({
     symbols: [symbol],
@@ -1386,6 +1385,7 @@ export const usePerpsProOrderForm = ({
     sizeSlider,
     effectiveUsdAmount,
     exactAssetAmount,
+    typedAssetSize,
     commitPendingSliderPreview,
     isAtMaxAmount,
   } = usePerpsProSizeInput({
@@ -1409,6 +1409,9 @@ export const usePerpsProOrderForm = ({
     new BigNumber(effectiveUsdAmount).eq(orderBookSizeFill.amount)
       ? orderBookFillSize
       : undefined;
+  // A typed coin size or a filled row size is sent as is, not re-derived
+  // from the USD projection.
+  const exactOrderSize = typedAssetSize ?? exactOrderBookFillSize;
   const isTwapEnabledRef = useRef(isTwapEnabled);
   const resolvedTwapProviderIdRef = useRef(resolvedTwapProviderId);
   const checkTwapOrderSupportRef = useRef(checkTwapOrderSupport);
@@ -1993,7 +1996,7 @@ export const usePerpsProOrderForm = ({
         isBuy: orderForm.direction === 'long',
         maxSlippageBps: resolvedMaxSlippageBps,
         isLoadingMarketData,
-        size: exactOrderBookFillSize,
+        size: exactOrderSize,
       }),
     [
       calculationUsdAmount,
@@ -2007,7 +2010,7 @@ export const usePerpsProOrderForm = ({
       szDecimals,
       isLoadingMarketData,
       resolvedMaxSlippageBps,
-      exactOrderBookFillSize,
+      exactOrderSize,
     ],
   );
   const submissionPositionSize =
@@ -2237,9 +2240,10 @@ export const usePerpsProOrderForm = ({
         (!isChaseEnabled || chaseProviderId === null)),
     // Providers re-derive the size from a USD amount, so exact sizes omit it.
     originalUsdAmount:
-      isExactFullClose || isScaleOrder || exactOrderBookFillSize !== undefined
+      isExactFullClose || isScaleOrder || exactOrderSize !== undefined
         ? undefined
         : effectiveUsdAmount,
+    minimumOrderAmount,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
     providerId:
@@ -3484,7 +3488,7 @@ export const usePerpsProOrderForm = ({
         effectivePrice: placementEffectivePrice,
         leverage: placementOrderForm.leverage,
         usdAmount:
-          placementIsExactFullClose || exactOrderBookFillSize !== undefined
+          placementIsExactFullClose || exactOrderSize !== undefined
             ? undefined
             : placementUsdAmount,
         maxSlippageBps: resolvedMaxSlippageBps,
@@ -3606,10 +3610,14 @@ export const usePerpsProOrderForm = ({
           return;
         }
 
+        // Same venue as the order, or Core falls back to the default one.
         const tpslResult = await updatePositionTPSL({
           symbol: orderForm.asset,
           takeProfitPrice: orderForm.takeProfitPrice,
           stopLossPrice: orderForm.stopLossPrice,
+          ...(orderParams.providerId !== undefined
+            ? { providerId: orderParams.providerId }
+            : {}),
         });
 
         if (!tpslResult.success) {
@@ -3737,8 +3745,16 @@ export const usePerpsProOrderForm = ({
         setLeverage(leverage);
 
         const currentAmount = Number.parseFloat(effectiveUsdAmount || '0');
-        const newMaxAmount = spendableBalance * leverage;
-        if (!reduceOnly && currentAmount > newMaxAmount) {
+        // An unknown balance has no max yet, so it must not zero the amount.
+        const newMaxAmount =
+          spendableBalance === undefined
+            ? undefined
+            : spendableBalance * leverage;
+        if (
+          !reduceOnly &&
+          newMaxAmount !== undefined &&
+          currentAmount > newMaxAmount
+        ) {
           setAmount(Math.floor(newMaxAmount).toString());
         }
 
@@ -3751,7 +3767,7 @@ export const usePerpsProOrderForm = ({
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
           [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: leverage,
-          [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: orderForm.leverage,
+          [PERPS_EVENT_PROPERTY.PREVIOUS_LEVERAGE]: orderForm.leverage,
         };
         if (inputMethod) {
           eventProperties[PERPS_EVENT_PROPERTY.INPUT_METHOD] =

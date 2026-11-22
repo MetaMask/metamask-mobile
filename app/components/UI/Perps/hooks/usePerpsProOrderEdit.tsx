@@ -17,6 +17,7 @@ import {
   hasOrderEditValueChanged,
   type OrderEditField,
 } from '../utils/orderEditUtils';
+import { toRequiredTrackingNumber } from '../utils/orderParams';
 import {
   getOrderPositionDirection,
   isLimitOrderEditable,
@@ -227,7 +228,8 @@ export const usePerpsProOrderEdit = ({
             newValue,
             editingOrderLeverage,
             {
-              totalFee: 0,
+              // No fee is quoted for an edit.
+              totalFee: toRequiredTrackingNumber(undefined),
               marketPrice: getOrderEditMarketPrice(
                 orderToEdit,
                 field,

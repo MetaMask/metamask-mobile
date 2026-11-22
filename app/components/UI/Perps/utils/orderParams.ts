@@ -37,8 +37,8 @@ export interface BuildPerpsOrderTrackingDataInput {
   /** Required margin string (converted to a number for the event). */
   marginRequired: string | undefined;
   feeResults: {
-    totalFee: number;
-    metamaskFee: number;
+    totalFee: number | undefined;
+    metamaskFee: number | undefined;
     metamaskFeeRate: number | undefined;
     feeDiscountPercentage?: number;
     estimatedPoints?: number;
@@ -63,6 +63,20 @@ export interface BuildPerpsOrderTrackingDataInput {
   maxSlippageSource?: MaxSlippageSource;
   estimatedSlippageBps?: number;
 }
+
+/**
+ * Core `TrackingData.totalFee` and `marketPrice` are required numbers, although
+ * Core leaves the fee property out when it is undefined and drops a falsy
+ * price. Until those types accept an unknown value, analytics is the only
+ * place an unresolved fee or price is sent as 0; displays and deposit sizing
+ * keep it unknown.
+ *
+ * @param value - Fee or price in USD, or null/undefined while unknown.
+ * @returns The value for the Core tracking payload.
+ */
+export const toRequiredTrackingNumber = (
+  value: number | null | undefined,
+): number => value ?? 0;
 
 /**
  * Pure assembly of the Perps order `trackingData` MetaMetrics payload shared by
@@ -92,7 +106,7 @@ export const buildPerpsOrderTrackingData = ({
   estimatedSlippageBps,
 }: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
   marginUsed: Number(marginRequired),
-  totalFee: feeResults.totalFee,
+  totalFee: toRequiredTrackingNumber(feeResults.totalFee),
   marketPrice,
   metamaskFee: feeResults.metamaskFee,
   metamaskFeeRate: feeResults.metamaskFeeRate,
@@ -305,6 +319,8 @@ export const buildEditOrderParamsFromOrder = ({
     ...(order.stopLossPrice?.trim()
       ? { stopLossPrice: order.stopLossPrice }
       : {}),
+    // Edit on the order's venue, or Core falls back to the default one.
+    ...(order.providerId !== undefined ? { providerId: order.providerId } : {}),
     trackingData,
   };
 };

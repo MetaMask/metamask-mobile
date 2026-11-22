@@ -88,13 +88,11 @@ import { usePerpsOrderContext } from '../../contexts/PerpsOrderContext';
 import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import {
-  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
-  PERPS_ANALYTICS_SIZE_UNIT,
-} from '../../constants/perpsAnalytics';
+import { PERPS_ANALYTICS_SIZE_UNIT } from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -1379,6 +1377,20 @@ function applyDefaultHookMocks() {
   (usePerpsMaxSlippage as jest.Mock).mockImplementation(
     mockDefaultUsePerpsMaxSlippage,
   );
+  // A test that overrides fees must not leave an unknown fee for the next one.
+  (
+    jest.requireMock('../../hooks') as { usePerpsOrderFees: jest.Mock }
+  ).usePerpsOrderFees.mockReturnValue({
+    totalFee: 45,
+    undiscountedTotalFee: 45,
+    protocolFee: 45,
+    metamaskFee: 0,
+    totalFeeRate: 0.00045,
+    protocolFeeRate: 0.00045,
+    metamaskFeeRate: 0,
+    isLoadingMetamaskFee: false,
+    error: null,
+  });
 
   mockUseIsPerpsBalanceSelected.mockReturnValue(false);
   mockUseTransactionPayToken.mockReturnValue({
@@ -1700,6 +1712,25 @@ describe('PerpsOrderView', () => {
       'marginInfo',
       'liquidationInfo',
     ]);
+  });
+
+  it('caps the Trade sheet leverage at the Core default without market data', () => {
+    // Arrange
+    (usePerpsMarketData as jest.Mock).mockReturnValue({
+      marketData: null,
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    useTradeSheetRoute();
+
+    // Act
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    // Assert
+    expect(getMockLeverageScreenProps().maxLeverage).toBe(
+      PERPS_CONSTANTS.DefaultMaxLeverage,
+    );
   });
 
   it('shows the market maximum leverage and the liquidation price on the Trade sheet', () => {
@@ -2077,6 +2108,32 @@ describe('PerpsOrderView', () => {
       expect(getMockTradeScreenProps().isFeeLoading).toBe(false);
     });
 
+    it('blocks a pay-with-token order while the order fee is unknown', () => {
+      // Arrange: the deposit is sized from the fee, so it cannot be sized yet
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      (
+        jest.requireMock('../../hooks') as { usePerpsOrderFees: jest.Mock }
+      ).usePerpsOrderFees.mockReturnValue({
+        totalFee: undefined,
+        undiscountedTotalFee: undefined,
+        protocolFee: undefined,
+        metamaskFee: undefined,
+        totalFeeRate: undefined,
+        protocolFeeRate: undefined,
+        metamaskFeeRate: undefined,
+        isLoadingMetamaskFee: false,
+        error: 'fee quote failed',
+      });
+      useTradeSheetRoute();
+
+      // Act
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      // Assert
+      expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+    });
+
     it('leaves the fee line unchanged when paying with perps balance', () => {
       mockUseIsPerpsBalanceSelected.mockReturnValue(true);
       mockPayTotals = payTotalsWithUsdFee('0.15');
@@ -2277,10 +2334,31 @@ describe('PerpsOrderView', () => {
     );
   });
 
+  it('shows the price placeholder for an unresolved Perps balance', () => {
+    // Arrange
+    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+    (usePerpsLiveAccountStream as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsLiveAccount,
+      account: {
+        ...defaultMockHooks.usePerpsLiveAccount.account,
+        spendableBalance: undefined,
+      },
+    });
+    useTradeSheetRoute();
+
+    // Act
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    // Assert: an unknown balance is not $0.00
+    expect(getMockTradeScreenProps().payWithBalance).toBe(
+      PERPS_CONSTANTS.FallbackPriceDisplay,
+    );
+  });
+
   it('leaves the Trade sheet as soon as the order is submitted, before execution settles', async () => {
     let resolveOrder: (result: { success: boolean }) => void = () => undefined;
     const placeOrder = jest.fn(
-      () =>
+      async () =>
         new Promise<{ success: boolean }>((resolve) => {
           resolveOrder = resolve;
         }),
@@ -2452,7 +2530,7 @@ describe('PerpsOrderView', () => {
       let resolveValidation: (result: ValidationResult) => void = () =>
         undefined;
       const validateNow = jest.fn(
-        () =>
+        async () =>
           new Promise<ValidationResult>((resolve) => {
             resolveValidation = resolve;
           }),
@@ -2478,7 +2556,7 @@ describe('PerpsOrderView', () => {
       });
       expect(validateNow).toHaveBeenCalledTimes(1);
 
-      const settleValidation = () =>
+      const settleValidation = async () =>
         act(async () => {
           resolveValidation(validResult);
           await submission;
@@ -2529,7 +2607,7 @@ describe('PerpsOrderView', () => {
 
     // Flushes the microtask chains behind `await validateOrderNow()` and
     // `await onDepositConfirm()` so each helper returns with the flow settled.
-    const flushAsync = () =>
+    const flushAsync = async () =>
       new Promise<void>((resolve) => setTimeout(resolve, 0));
 
     // The deposit tracker and the order view share the ToastService ref.
@@ -2577,7 +2655,7 @@ describe('PerpsOrderView', () => {
       let resolveConfirm: () => void = () => undefined;
       let confirmOptions: { onError?: (error: unknown) => void } | undefined;
       const onConfirm = jest.fn(
-        (confirmCallOptions?: { onError?: (error: unknown) => void }) =>
+        async (confirmCallOptions?: { onError?: (error: unknown) => void }) =>
           new Promise<void>((resolve) => {
             confirmOptions = confirmCallOptions;
             resolveConfirm = resolve;
@@ -2610,12 +2688,12 @@ describe('PerpsOrderView', () => {
       });
       const { unmount } = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      const submit = () =>
+      const submit = async () =>
         act(async () => {
           getMockTradeScreenProps().onSubmit();
           await flushAsync();
         });
-      const settleConfirm = (error?: unknown) =>
+      const settleConfirm = async (error?: unknown) =>
         act(async () => {
           if (error !== undefined) {
             confirmOptions?.onError?.(error);
@@ -2623,7 +2701,7 @@ describe('PerpsOrderView', () => {
           resolveConfirm();
           await flushAsync();
         });
-      const confirmDepositOnChain = () =>
+      const confirmDepositOnChain = async () =>
         act(async () => {
           onDepositConfirmed?.();
           await flushAsync();
@@ -3764,7 +3842,7 @@ describe('PerpsOrderView', () => {
       );
       expect(leverageChange?.props).toEqual(
         expect.objectContaining({
-          [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: 3,
+          [PERPS_EVENT_PROPERTY.PREVIOUS_LEVERAGE]: 3,
           [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: 10,
         }),
       );
@@ -6378,7 +6456,7 @@ describe('PerpsOrderView', () => {
           spendableBalance: '0',
         },
         isInitialLoading,
-      } as unknown as ReturnType<typeof usePerpsLiveAccountStream>);
+      });
     };
 
     // clearAllMocks keeps return values, so the funded default the rest of the
@@ -6386,11 +6464,7 @@ describe('PerpsOrderView', () => {
     afterEach(() => {
       jest
         .mocked(usePerpsLiveAccountStream)
-        .mockReturnValue(
-          defaultMockHooks.usePerpsLiveAccount as unknown as ReturnType<
-            typeof usePerpsLiveAccountStream
-          >,
-        );
+        .mockReturnValue(defaultMockHooks.usePerpsLiveAccount);
     });
 
     it('holds back money account selection while the Perps balance can fund the order', () => {
@@ -6856,7 +6930,7 @@ describe('PerpsOrderView', () => {
         [],
       );
       const hasWarningBuilder = allBuilders.some((b) =>
-        (b.addProperties as jest.Mock).mock.calls.some(
+        b.addProperties.mock.calls.some(
           (c: [Record<string, unknown>]) => c[0]?.error_type === 'warning',
         ),
       );

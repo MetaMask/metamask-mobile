@@ -280,6 +280,25 @@ describe('usePerpsOrderForm', () => {
       );
     });
 
+    it('keeps the balance unknown while the account is unresolved', () => {
+      // Arrange
+      mockUsePerpsLiveAccount.mockReturnValue({
+        account: null,
+        isInitialLoading: true,
+      });
+
+      // Act
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      // Assert: an unknown account is not an empty one
+      expect(result.current.balanceForValidation).toBeUndefined();
+      expect(result.current.orderForm.amount).toBe(
+        TRADING_DEFAULTS.amount.mainnet.toString(),
+      );
+    });
+
     it('keeps an empty surface fallback empty', () => {
       const { result } = renderHook(
         () => usePerpsOrderForm({ fallbackAmount: '' }),

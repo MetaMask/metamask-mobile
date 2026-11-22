@@ -287,8 +287,8 @@ export const getReduceOnlyMaxUsdAmount = ({
 export interface PayWithTokenDepositAmountInput {
   /** Margin from `deriveOrderSizing`, priced at mark for market orders. */
   marginRequired: string | undefined;
-  /** Estimated taker + builder fees for the order, in USD. */
-  estimatedFeesUsd: number;
+  /** Estimated taker + builder fees for the order, in USD; undefined while unknown. */
+  estimatedFeesUsd: number | undefined;
   orderType: OrderType;
   maxSlippageBps: number;
 }
@@ -302,7 +302,7 @@ export interface PayWithTokenDepositAmountInput {
  * Rounded up to cents so rounding never eats the headroom.
  *
  * @param input - Margin, fees, order type, and max slippage.
- * @returns The deposit amount in USD, or `''` while margin is unknown.
+ * @returns The deposit amount in USD, or `''` while margin or fees are unknown.
  */
 export const getPayWithTokenDepositAmount = ({
   marginRequired,
@@ -310,18 +310,20 @@ export const getPayWithTokenDepositAmount = ({
   orderType,
   maxSlippageBps,
 }: PayWithTokenDepositAmountInput): string => {
-  if (marginRequired == null) {
+  if (
+    marginRequired == null ||
+    estimatedFeesUsd === undefined ||
+    !Number.isFinite(estimatedFeesUsd)
+  ) {
     return '';
   }
 
   const isMarketOrder =
     !isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType);
   const slippageBufferBps = isMarketOrder ? maxSlippageBps : 0;
-  const fees = Number.isFinite(estimatedFeesUsd) ? estimatedFeesUsd : 0;
-
   return new BigNumber(marginRequired)
     .times(1 + slippageBufferBps / 10_000)
-    .plus(fees)
+    .plus(estimatedFeesUsd)
     .decimalPlaces(2, BigNumber.ROUND_UP)
     .toString(10);
 };

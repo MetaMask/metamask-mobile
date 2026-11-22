@@ -1,7 +1,7 @@
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from './perpsAnalytics';
+import { PERPS_ANALYTICS_SIZE_UNIT } from './perpsAnalytics';
 
 describe('perpsAnalytics', () => {
-  it('exports previous_leverage as the Segment property name', () => {
-    expect(PERPS_ANALYTICS_PREVIOUS_LEVERAGE).toBe('previous_leverage');
+  it('exports size_unit as the Segment property name', () => {
+    expect(PERPS_ANALYTICS_SIZE_UNIT).toBe('size_unit');
   });
 });

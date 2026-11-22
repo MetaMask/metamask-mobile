@@ -32,12 +32,21 @@ interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
   positionSize: string;
   assetPrice: number;
-  /** Max USD that can collateralize a new position (mirrors AccountState.spendableBalance). */
-  spendableBalance: number;
+  /**
+   * Max USD that can collateralize a new position (mirrors
+   * AccountState.spendableBalance); undefined while the account is unresolved,
+   * which skips the balance check instead of reporting insufficient balance.
+   */
+  spendableBalance: number | undefined;
   marginRequired: string;
   existingPositionLeverage?: number;
   skipValidation?: boolean;
   originalUsdAmount?: string; // Original USD input for validation (prevents precision loss from recalculation)
+  /**
+   * The venue's minimum order value in USD (`useMinimumOrderAmount`); omitted
+   * falls back to the network default.
+   */
+  minimumOrderAmount?: number;
   /** When true, passes reduceOnly through to protocol validation. */
   reduceOnly?: boolean;
   /**
@@ -125,7 +134,7 @@ interface BuildOrderParamsInput {
 
 interface ImmediateValidationInput {
   marginRequired: string;
-  spendableBalance: number;
+  spendableBalance: number | undefined;
   originalUsdAmount?: string;
   minimumOrderSize: number;
   reduceOnly?: boolean;
@@ -199,7 +208,7 @@ const getImmediateValidationErrors = ({
   const insufficientBalanceErrors: string[] = [];
   const requiredMargin = Number.parseFloat(marginRequired);
 
-  if (requiredMargin > spendableBalance) {
+  if (spendableBalance !== undefined && requiredMargin > spendableBalance) {
     const insufficientBalanceError = strings(
       'perps.order.validation.insufficient_balance',
       {
@@ -448,6 +457,7 @@ export function usePerpsOrderValidation(
     existingPositionLeverage,
     skipValidation,
     originalUsdAmount,
+    minimumOrderAmount,
     reduceOnly,
     isFullClose,
     triggerPrice,
@@ -514,7 +524,7 @@ export function usePerpsOrderValidation(
     ],
   );
 
-  const minimumOrderSize = getMinimumOrderSize(network);
+  const minimumOrderSize = minimumOrderAmount ?? getMinimumOrderSize(network);
   const immediateValidation = useMemo(
     () =>
       getImmediateValidationErrors({

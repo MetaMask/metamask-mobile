@@ -21,7 +21,8 @@ import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 /**
  * When the user has no perps balance and the pay-with-any-token allowlist is enabled,
  * returns the allowlist token with the highest balance to use as the default payment method.
- * Otherwise returns null (caller should default to "Perps balance").
+ * Otherwise, including while the perps account is unresolved, returns null
+ * (caller should default to "Perps balance").
  */
 export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPaymentToken | null {
   const featureEnabled = useSelector(
@@ -39,8 +40,12 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
     if (!featureEnabled) {
       return null;
     }
+    // An unresolved account is not an empty one; keep Perps balance.
+    if (perpsAccount?.spendableBalance == null) {
+      return null;
+    }
     const spendableBalance = Number.parseFloat(
-      perpsAccount?.spendableBalance?.toString() ?? '0',
+      perpsAccount.spendableBalance.toString(),
     );
 
     if (spendableBalance > PERPS_MIN_BALANCE_THRESHOLD) {

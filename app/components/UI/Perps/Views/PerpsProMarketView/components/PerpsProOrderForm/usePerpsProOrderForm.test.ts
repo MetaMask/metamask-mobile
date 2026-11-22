@@ -21,10 +21,7 @@ import {
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../../../locales/i18n';
-import {
-  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
-  PERPS_ANALYTICS_SIZE_UNIT,
-} from '../../../../constants/perpsAnalytics';
+import { PERPS_ANALYTICS_SIZE_UNIT } from '../../../../constants/perpsAnalytics';
 import {
   FAR_FROM_MARKET_WARNING_INTERACTION,
   FAR_FROM_MARKET_WARNING_TYPE,
@@ -328,6 +325,11 @@ jest.mock('../../../../hooks', () => ({
       isLoading: mockPositionStreamLoading,
     };
   },
+  useMinimumOrderAmount: () => ({
+    minimumOrderAmount: 10,
+    isLoading: false,
+    error: null,
+  }),
   usePerpsLiquidationPrice: (
     params: Parameters<typeof mockUsePerpsLiquidationPrice>[0],
   ) => mockUsePerpsLiquidationPrice(params),
@@ -5099,7 +5101,7 @@ describe('usePerpsProOrderForm', () => {
       },
     );
 
-    it('places the order without TP/SL then updates position TP/SL when flagged', async () => {
+    it('places the order without TP/SL then updates position TP/SL on the same venue', async () => {
       // Arrange: new market position with TP set -> handled separately
       mockOrderForm.takeProfitPrice = '95000';
       const { result } = renderProForm();
@@ -5109,14 +5111,16 @@ describe('usePerpsProOrderForm', () => {
         await result.current.onPlaceOrderPress();
       });
 
-      // Assert
+      // Assert: without providerId Core writes TP/SL on the default venue
       const params = mockExecuteOrder.mock.calls[0][0];
       expect(params.takeProfitPrice).toBeUndefined();
       expect(mockUpdatePositionTPSL).toHaveBeenCalledWith({
         symbol: 'BTC',
         takeProfitPrice: '95000',
         stopLossPrice: undefined,
+        providerId: params.providerId,
       });
+      expect(params.providerId).toBe('hyperliquid');
     });
 
     it('shows an error toast when the separate TP/SL update fails', async () => {
@@ -8911,7 +8915,7 @@ describe('usePerpsProOrderForm', () => {
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          [PERPS_ANALYTICS_PREVIOUS_LEVERAGE]: 5,
+          [PERPS_EVENT_PROPERTY.PREVIOUS_LEVERAGE]: 5,
           [PERPS_EVENT_PROPERTY.LEVERAGE_USED]: 10,
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.LEVERAGE_CHANGED,

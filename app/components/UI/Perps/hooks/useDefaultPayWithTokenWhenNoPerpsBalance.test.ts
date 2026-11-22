@@ -202,7 +202,7 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
     expect(result.current?.description).toBe('USDC');
   });
 
-  it('treats null perps account as zero balance and returns default token when allowlist has balance', () => {
+  it('returns null while the perps account is unresolved', () => {
     mockUsePerpsPaymentTokens.mockReturnValue([
       {
         address: '0xusdc',
@@ -220,8 +220,8 @@ describe('useDefaultPayWithTokenWhenNoPerpsBalance', () => {
       }),
     );
 
-    expect(result.current).not.toBeNull();
-    expect(result.current?.description).toBe('USDC');
+    // An unknown account is not an empty one: a funded user keeps Perps balance
+    expect(result.current).toBeNull();
   });
 
   it('excludes current perps provider chain tokens from allowlist result', () => {

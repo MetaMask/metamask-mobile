@@ -345,6 +345,38 @@ describe('PerpsOrderView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('shows the fee placeholder instead of $0 when the fee quote fails', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockRejectedValue(new Error('fee quote failed'));
+      const { stream } = renderPerpsOrderView({
+        overrides: withFeeDisplayVariant('control'),
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '120',
+          leverage: 4,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      await waitFor(() => {
+        expect(calculateFees).toHaveBeenCalled();
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+        ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+      });
+    });
+
     it("requests the opposite side as a limit execution (not this market order's own type) and renders both rates for treatment", async () => {
       const calculateFees = Engine.context.PerpsController
         .calculateFees as jest.Mock;
@@ -619,8 +651,7 @@ describe('PerpsOrderView', () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     placeOrder.mockResolvedValue({
       success: false,
-      error:
-        'order 0: Only post-only orders allowed immediately after network upgrade',
+      error: 'ORDER_POST_ONLY_WINDOW',
     });
     const { stream } = renderPerpsOrderView({
       includeToasts: true,

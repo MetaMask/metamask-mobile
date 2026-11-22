@@ -51,8 +51,7 @@ const emitEthPrice = (
     });
   });
 
-const POST_ONLY_WINDOW_ERROR =
-  'order 0: Only post-only orders allowed immediately after network upgrade';
+const POST_ONLY_WINDOW_ERROR = 'ORDER_POST_ONLY_WINDOW';
 
 const limitCloseEnabledOverrides = {
   engine: {
@@ -328,6 +327,62 @@ describe('PerpsClosePositionView', () => {
           position: expect.objectContaining({
             symbol: 'ETH',
             size: '1',
+          }),
+        }),
+      );
+    });
+  });
+
+  it('closes at the saved max slippage and reports it as user configured', async () => {
+    const closePosition = Engine.context.PerpsController
+      .closePosition as jest.Mock;
+    const position = createLongPositionForViews();
+    const savedMaxSlippage: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: { PerpsController: { maxSlippageBps: 150 } },
+      },
+    };
+
+    const { stream } = renderPerpsClosePositionView({
+      overrides: savedMaxSlippage,
+      initialParams: { position },
+      streamOverrides: {
+        account: createFundedAccountForViews('10000'),
+        positions: [position],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    act(() => {
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2500',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+
+    const confirmButton = await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    await waitFor(() => {
+      expect(confirmButton).not.toBeDisabled();
+    });
+
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      expect(closePosition).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'market',
+          maxSlippageBps: 150,
+          trackingData: expect.objectContaining({
+            maxSlippageBps: 150,
+            maxSlippageSource: 'user_configured',
           }),
         }),
       );

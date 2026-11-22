@@ -51,6 +51,7 @@ import {
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
 } from '../../utils/orderUtils';
+import { toRequiredTrackingNumber } from '../../utils/orderParams';
 
 interface OrderDetailsRouteParams {
   order: Order;
@@ -211,7 +212,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         orderDirection,
         order.size,
         order.symbol,
-        order.orderType,
+        order.triggerOrderType ?? order.orderType,
       ),
     );
 
@@ -219,9 +220,12 @@ const PerpsOrderDetailsView: React.FC = () => {
       const result = await cancelOrder({
         orderId: order.orderId,
         symbol: order.symbol,
+        ...(order.providerId !== undefined
+          ? { providerId: order.providerId }
+          : {}),
         trackingData: {
-          totalFee,
-          marketPrice: priceMetrics.effectivePrice ?? 0,
+          totalFee: toRequiredTrackingNumber(totalFee),
+          marketPrice: toRequiredTrackingNumber(priceMetrics.effectivePrice),
           source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
           ...toPerpsEntryAttribution({
             source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
@@ -234,7 +238,7 @@ const PerpsOrderDetailsView: React.FC = () => {
         showToast(
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             order.reduceOnly,
-            order.orderType,
+            order.triggerOrderType ?? order.orderType,
             orderDirection,
             order.size,
             order.symbol,

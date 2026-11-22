@@ -444,6 +444,18 @@ describe('buildEditOrderParamsFromOrder', () => {
     );
   });
 
+  it("edits on the order's venue", () => {
+    // Arrange / Act
+    const params = buildEditOrderParamsFromOrder({
+      order: { ...order, providerId: 'lighter' as const },
+      newLimitPrice: '3100',
+      trackingData: { totalFee: 0, marketPrice: 3100, source: 'test' },
+    });
+
+    // Assert: without it Core edits on the default venue
+    expect(params.providerId).toBe('lighter');
+  });
+
   it('builds limit edit params with updated size', () => {
     const params = buildEditOrderParamsFromOrder({
       order,

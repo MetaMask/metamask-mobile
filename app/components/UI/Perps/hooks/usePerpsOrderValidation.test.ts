@@ -344,6 +344,24 @@ describe('usePerpsOrderValidation', () => {
       });
     });
 
+    it('reports no insufficient balance while the balance is unknown', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: undefined,
+          marginRequired: '10.00',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.insufficientBalanceErrors).toEqual([]);
+    });
+
     it('excludes the minimum amount error from the insufficient balance errors', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 

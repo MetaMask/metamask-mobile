@@ -21,6 +21,7 @@ import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfir
 import { PerpsProMarketViewSelectorsIDs } from '../Perps.testIds';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
+import { toRequiredTrackingNumber } from '../utils/orderParams';
 import {
   getOrderPositionDirection,
   getValidOrderPrice,
@@ -351,7 +352,7 @@ export const usePerpsProPositionsPanelActions =
             orderDirection,
             order.size,
             order.symbol,
-            order.orderType,
+            order.triggerOrderType ?? order.orderType,
           ),
         );
 
@@ -359,9 +360,14 @@ export const usePerpsProPositionsPanelActions =
           const result = await cancelOrder({
             orderId: order.orderId,
             symbol: order.symbol,
+            // Cancel on the order's venue, or Core falls back to the default one.
+            ...(order.providerId !== undefined
+              ? { providerId: order.providerId }
+              : {}),
             trackingData: {
-              totalFee: 0,
-              marketPrice: effectivePrice ?? 0,
+              // No fee is quoted for a cancel.
+              totalFee: toRequiredTrackingNumber(undefined),
+              marketPrice: toRequiredTrackingNumber(effectivePrice),
               source: PRO_MARKET_SOURCE,
               ...toPerpsEntryAttribution({
                 source: PRO_MARKET_SOURCE,
@@ -373,7 +379,7 @@ export const usePerpsProPositionsPanelActions =
             showToast(
               PerpsToastOptions.orderManagement.shared.cancellationSuccess(
                 order.reduceOnly,
-                order.orderType,
+                order.triggerOrderType ?? order.orderType,
                 orderDirection,
                 order.size,
                 order.symbol,

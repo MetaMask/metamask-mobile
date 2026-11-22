@@ -2,10 +2,12 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useMinimumOrderAmount } from './useMinimumOrderAmount';
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
+import { usePerpsProvider } from './usePerpsProvider';
 
 // Mock the dependencies
 jest.mock('./usePerpsMarketData');
 jest.mock('./usePerpsNetwork');
+jest.mock('./usePerpsProvider');
 
 describe('useMinimumOrderAmount', () => {
   const mockUsePerpsMarketData = usePerpsMarketData as jest.MockedFunction<
@@ -15,8 +17,50 @@ describe('useMinimumOrderAmount', () => {
     typeof usePerpsNetwork
   >;
 
+  const mockUsePerpsProvider = usePerpsProvider as jest.Mock;
+  // Only `orderCapabilities` is read; the rest of the hook result is unused.
+  const mockOrderCapabilities = (
+    orderCapabilities: ReturnType<typeof usePerpsProvider>['orderCapabilities'],
+  ) => mockUsePerpsProvider.mockReturnValue({ orderCapabilities });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOrderCapabilities(null);
+  });
+
+  it("uses the venue's minimum order value from Core order capabilities", () => {
+    // Arrange
+    mockUsePerpsMarketData.mockReturnValue({
+      marketData: {
+        name: 'ETH',
+        szDecimals: 4,
+        maxLeverage: 50,
+        marginTableId: 1,
+      },
+      isLoading: false,
+      isProviderMetadataAvailable: true,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockUsePerpsNetwork.mockReturnValue('mainnet');
+    mockOrderCapabilities({
+      status: 'ready',
+      providerId: 'lighter',
+      supportedStrategies: [],
+      orderLimits: { sizeDecimals: 4, minOrderNotionalUsd: 1 },
+    });
+
+    // Act
+    const { result } = renderHook(() =>
+      useMinimumOrderAmount({ asset: 'ETH', providerId: 'lighter' }),
+    );
+
+    // Assert: not Hyperliquid's $10 default
+    expect(result.current.minimumOrderAmount).toBe(1);
+    expect(mockUsePerpsProvider).toHaveBeenCalledWith({
+      symbol: 'ETH',
+      providerId: 'lighter',
+    });
   });
 
   it('should return market-specific minimum when available', () => {

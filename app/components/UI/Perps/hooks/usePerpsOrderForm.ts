@@ -135,8 +135,12 @@ export interface UsePerpsOrderFormReturn {
   setMaxPossibleAmountOverride: (amount: number | null) => void;
   /** Reserves the quoted trading fee (fraction of notional) in the margin-based max. */
   setEstimatedFeeRate: (rate: number | undefined) => void;
-  /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
-  balanceForValidation: number;
+  /**
+   * Balance to use for validation and UI (Perps balance or selected token
+   * amount in USD when paying with custom token); undefined while the account
+   * is unresolved.
+   */
+  balanceForValidation: number | undefined;
 }
 
 /**
@@ -204,11 +208,13 @@ export function usePerpsOrderForm(
   const persistedOrderType = usePerpsSelector(selectSelectedOrderType);
   const perpsMode = useSelector(selectPerpsMode);
 
-  const spendableBalance = Number.parseFloat(
-    effectiveAvailableBalanceParam != null
-      ? effectiveAvailableBalanceParam.toString()
-      : (account?.spendableBalance?.toString() ?? '0'),
-  );
+  // Undefined while the account is unresolved: an unknown balance is not 0.
+  let spendableBalance: number | undefined;
+  if (effectiveAvailableBalanceParam != null) {
+    spendableBalance = effectiveAvailableBalanceParam;
+  } else if (account?.spendableBalance != null) {
+    spendableBalance = Number.parseFloat(account.spendableBalance.toString());
+  }
 
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
   const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
@@ -247,6 +253,11 @@ export function usePerpsOrderForm(
 
     if (fallbackAmount === '') {
       return '';
+    }
+
+    // Do not clamp to a balance that is not known yet.
+    if (balanceForMax === undefined) {
+      return fallbackAmount;
     }
 
     const tempMaxAmount = getMaxAllowedAmount({
@@ -299,7 +310,7 @@ export function usePerpsOrderForm(
     ? parsedInitialAmount / defaultLeverage
     : 0;
   const initialBalancePercent =
-    spendableBalance > 0
+    spendableBalance !== undefined && spendableBalance > 0
       ? Math.min((initialMarginRequired / spendableBalance) * 100, 100)
       : TRADING_DEFAULTS.marginPercent;
 
@@ -355,6 +366,10 @@ export function usePerpsOrderForm(
   // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
+    // No max while the balance is unknown; 0 disables the max clamps below.
+    if (balanceForMax === undefined) {
+      return 0;
+    }
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
     const feeAdjustedBalance =
       estimatedFeeRate === undefined
@@ -635,7 +650,7 @@ export function usePerpsOrderForm(
   // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
-      if (balanceForMax === 0) return;
+      if (!balanceForMax) return;
       const raw = balanceForMax * orderForm.leverage * percentage;
       const clamped = Math.min(raw, maxPossibleAmount);
       const newAmount = Math.floor(clamped).toString();
@@ -647,7 +662,7 @@ export function usePerpsOrderForm(
   // Handle max amount selection (respects custom token amount when set).
   // Uses maxPossibleAmount (includes margin buffer) to avoid "Insufficient margin" rejections.
   const handleMaxAmount = useCallback(() => {
-    if (balanceForMax === 0) return;
+    if (!balanceForMax) return;
     setOrderForm((prev) => ({
       ...prev,
       amount: Math.floor(maxPossibleAmount).toString(),

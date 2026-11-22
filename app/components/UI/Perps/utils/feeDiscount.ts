@@ -1,7 +1,9 @@
-import type {
-  FeeCalculationResult,
-  PerpsFeeSource,
+import {
+  PERPS_DISPLAY_PRECISION,
+  type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
+import { formatPercentageNumber } from './formatUtils';
 
 export type PerpsFeeDiscountKind = 'member' | 'vip' | 'promotional' | 'generic';
 
@@ -39,7 +41,9 @@ export function formatCombinedFeePercentage(
   if (!Number.isFinite(totalRate) || totalRate <= 0) {
     return undefined;
   }
-  return (totalRate * 100).toFixed(3);
+  return formatPercentageNumber(totalRate * 100, {
+    decimals: PERPS_DISPLAY_PRECISION.FeeRatePercent,
+  });
 }
 
 /**

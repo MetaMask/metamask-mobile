@@ -49,6 +49,7 @@ import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { toRequiredTrackingNumber } from '../../utils/orderParams';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -115,6 +116,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   // mid, so the exchange can value it below its mid-price notional.
   const { minimumOrderAmount } = useMinimumOrderAmount({
     asset: position.symbol,
+    providerId: position.providerId,
   });
   const isBelowMinimum =
     hasValidAmount &&
@@ -168,7 +170,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
     await handleFlipPosition(position, {
-      totalFee: feeResults.totalFee,
+      totalFee: toRequiredTrackingNumber(feeResults.totalFee),
       metamaskFee: feeResults.metamaskFee,
       metamaskFeeRate: feeResults.metamaskFeeRate,
       marketPrice: markPrice || price,

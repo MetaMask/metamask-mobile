@@ -1180,8 +1180,13 @@ export function usePerpsTPSLForm(
     symbol: asset,
   });
 
+  // An unknown closing fee leaves the expected PnL unknown.
   const expectedTakeProfitPnL =
-    takeProfitPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+    takeProfitPrice &&
+    positionSizeForPnL !== 0 &&
+    entryPrice &&
+    entryPrice > 0 &&
+    tpClosingFees.totalFee !== undefined
       ? calculateExpectedTriggerPnl({
           triggerPrice: Number.parseFloat(takeProfitPrice),
           entryPrice,
@@ -1207,7 +1212,11 @@ export function usePerpsTPSLForm(
   });
 
   const expectedStopLossPnL =
-    stopLossPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+    stopLossPrice &&
+    positionSizeForPnL !== 0 &&
+    entryPrice &&
+    entryPrice > 0 &&
+    slClosingFees.totalFee !== undefined
       ? calculateExpectedTriggerPnl({
           triggerPrice: Number.parseFloat(stopLossPrice),
           entryPrice,
