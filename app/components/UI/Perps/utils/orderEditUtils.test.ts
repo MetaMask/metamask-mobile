@@ -67,6 +67,10 @@ describe('orderEditUtils', () => {
   it('resolves market price, rollback value, and confirmed size', () => {
     expect(getOrderEditMarketPrice(baseOrder, 'price', '3100')).toBe(3100);
     expect(getOrderEditMarketPrice(baseOrder, 'size', '1.5')).toBe(3000);
+    // An order without a usable price leaves the tracking price unknown.
+    expect(
+      getOrderEditMarketPrice({ ...baseOrder, price: '0' }, 'size', '1.5'),
+    ).toBeUndefined();
     expect(getOrderEditPreviousValue(baseOrder, 'price')).toBe('3000');
     expect(getOrderEditPreviousValue(baseOrder, 'size')).toBe('2');
     expect(getOrderEditConfirmedSize(baseOrder, 'size', '1.5')).toBe('1.5');

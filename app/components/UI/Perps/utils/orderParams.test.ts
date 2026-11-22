@@ -3,6 +3,7 @@ import {
   buildPerpsOrderParams,
   buildPerpsOrderTrackingData,
   buildEditOrderParamsFromOrder,
+  toCoreTrackingData,
 } from './orderParams';
 
 const trackingData = buildPerpsOrderTrackingData({
@@ -332,6 +333,29 @@ describe('buildPerpsOrderTrackingData', () => {
       entryPoint: 'social_live_trades',
     });
     expect(buildPerpsOrderTrackingData(base)).not.toHaveProperty('entryPoint');
+  });
+
+  it('sends no tracking data rather than a 0 fee while the fee is unknown', () => {
+    // Arrange / Act
+    const result = buildPerpsOrderTrackingData({
+      ...base,
+      feeResults: { ...base.feeResults, totalFee: undefined },
+    });
+
+    // Assert: Core's TrackingData requires a number; an unknown fee is not 0.
+    expect(result).toBeUndefined();
+  });
+
+  it('builds tracking data only when the fee and price are known', () => {
+    expect(
+      toCoreTrackingData({ totalFee: 5, marketPrice: 90000, source: 'x' }),
+    ).toEqual({ totalFee: 5, marketPrice: 90000, source: 'x' });
+    expect(
+      toCoreTrackingData({ totalFee: undefined, marketPrice: 90000 }),
+    ).toBeUndefined();
+    expect(
+      toCoreTrackingData({ totalFee: 0, marketPrice: undefined }),
+    ).toBeUndefined();
   });
 
   it('marks trades without a custom token and omits pay-token fields', () => {

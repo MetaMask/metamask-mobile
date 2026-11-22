@@ -177,6 +177,14 @@ describe('Lighter Scale through the Pro market screen', () => {
       .mocked(controller.cancelOrder)
       .mockReset()
       .mockResolvedValue({ success: true });
+    // A real Lighter quote (standard accounts pay 0): with no quoted fee the
+    // order is tracked without a payload rather than with an invented 0.
+    jest.mocked(controller.calculateFees).mockResolvedValue({
+      feeRate: 0,
+      feeAmount: 0,
+      protocolFeeRate: 0,
+      metamaskFeeRate: 0,
+    });
     jest.clearAllMocks();
   });
   afterEach(async () => {

@@ -64,19 +64,37 @@ export interface BuildPerpsOrderTrackingDataInput {
   estimatedSlippageBps?: number;
 }
 
+type CoreTrackingData = NonNullable<OrderTrackingData>;
+
+/** Tracking fields as Mobile knows them: fee and price may still be unknown. */
+export type TrackingDataInput = Omit<
+  CoreTrackingData,
+  'totalFee' | 'marketPrice'
+> & {
+  totalFee: number | null | undefined;
+  marketPrice: number | null | undefined;
+};
+
+/** Cancelling or editing an order charges no fee. */
+export const NO_ORDER_ACTION_FEE_USD = 0;
+
+const hasKnownTrackingNumbers = (
+  input: TrackingDataInput,
+): input is TrackingDataInput & CoreTrackingData =>
+  typeof input.totalFee === 'number' && typeof input.marketPrice === 'number';
+
 /**
- * Core `TrackingData.totalFee` and `marketPrice` are required numbers, although
- * Core leaves the fee property out when it is undefined and drops a falsy
- * price. Until those types accept an unknown value, analytics is the only
- * place an unresolved fee or price is sent as 0; displays and deposit sizing
- * keep it unknown.
+ * Core `TrackingData.totalFee` and `marketPrice` are required numbers. An
+ * unknown fee or price is not sent as 0: the tracking payload is omitted
+ * instead (Needs Core: make both fields optional).
  *
- * @param value - Fee or price in USD, or null/undefined while unknown.
- * @returns The value for the Core tracking payload.
+ * @param input - Tracking fields with a possibly unknown fee or price.
+ * @returns The Core tracking payload, or undefined while either is unknown.
  */
-export const toRequiredTrackingNumber = (
-  value: number | null | undefined,
-): number => value ?? 0;
+export const toCoreTrackingData = (
+  input: TrackingDataInput,
+): CoreTrackingData | undefined =>
+  hasKnownTrackingNumbers(input) ? input : undefined;
 
 /**
  * Pure assembly of the Perps order `trackingData` MetaMetrics payload shared by
@@ -104,39 +122,42 @@ export const buildPerpsOrderTrackingData = ({
   maxSlippageBps,
   maxSlippageSource,
   estimatedSlippageBps,
-}: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
-  marginUsed: Number(marginRequired),
-  totalFee: toRequiredTrackingNumber(feeResults.totalFee),
-  marketPrice,
-  metamaskFee: feeResults.metamaskFee,
-  metamaskFeeRate: feeResults.metamaskFeeRate,
-  feeDiscountPercentage: feeResults.feeDiscountPercentage,
-  estimatedPoints: feeResults.estimatedPoints,
-  inputMethod,
-  source,
-  ...toPerpsEntryAttribution({ source, sourceSection }),
-  ...(feeResults.protocolFeeRate !== undefined
-    ? { hlFeeRate: feeResults.protocolFeeRate }
-    : {}),
-  tradeAction: derivePerpsTradeAction(currentMarketPosition, direction),
-  chartLibrary,
-  tradeWithToken: Boolean(hasCustomTokenSelected),
-  ...(hasCustomTokenSelected && payToken
-    ? {
-        mmPayTokenSelected: payToken.symbol ?? '',
-        mmPayNetworkSelected: String(payToken.chainId ?? ''),
-      }
-    : {}),
-  vipTier: vipTier ?? undefined,
-  vipDiscount: feeResults.feeDiscountPercentage,
-  ...(!isStrategyOrderType(orderType) && !isLimitExecutionOrderType(orderType)
-    ? {
-        ...(maxSlippageBps !== undefined ? { maxSlippageBps } : {}),
-        ...(maxSlippageSource !== undefined ? { maxSlippageSource } : {}),
-        ...(estimatedSlippageBps !== undefined ? { estimatedSlippageBps } : {}),
-      }
-    : {}),
-});
+}: BuildPerpsOrderTrackingDataInput): OrderTrackingData =>
+  toCoreTrackingData({
+    marginUsed: Number(marginRequired),
+    totalFee: feeResults.totalFee,
+    marketPrice,
+    metamaskFee: feeResults.metamaskFee,
+    metamaskFeeRate: feeResults.metamaskFeeRate,
+    feeDiscountPercentage: feeResults.feeDiscountPercentage,
+    estimatedPoints: feeResults.estimatedPoints,
+    inputMethod,
+    source,
+    ...toPerpsEntryAttribution({ source, sourceSection }),
+    ...(feeResults.protocolFeeRate !== undefined
+      ? { hlFeeRate: feeResults.protocolFeeRate }
+      : {}),
+    tradeAction: derivePerpsTradeAction(currentMarketPosition, direction),
+    chartLibrary,
+    tradeWithToken: Boolean(hasCustomTokenSelected),
+    ...(hasCustomTokenSelected && payToken
+      ? {
+          mmPayTokenSelected: payToken.symbol ?? '',
+          mmPayNetworkSelected: String(payToken.chainId ?? ''),
+        }
+      : {}),
+    vipTier: vipTier ?? undefined,
+    vipDiscount: feeResults.feeDiscountPercentage,
+    ...(!isStrategyOrderType(orderType) && !isLimitExecutionOrderType(orderType)
+      ? {
+          ...(maxSlippageBps !== undefined ? { maxSlippageBps } : {}),
+          ...(maxSlippageSource !== undefined ? { maxSlippageSource } : {}),
+          ...(estimatedSlippageBps !== undefined
+            ? { estimatedSlippageBps }
+            : {}),
+        }
+      : {}),
+  });
 
 export interface BuildPerpsOrderParamsInput {
   asset: string;

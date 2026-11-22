@@ -21,7 +21,10 @@ import PerpsFlipPositionConfirmSheet from '../components/PerpsFlipPositionConfir
 import { PerpsProMarketViewSelectorsIDs } from '../Perps.testIds';
 import { selectPerpsEligibility } from '../selectors/perpsController';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
-import { toRequiredTrackingNumber } from '../utils/orderParams';
+import {
+  NO_ORDER_ACTION_FEE_USD,
+  toCoreTrackingData,
+} from '../utils/orderParams';
 import {
   getOrderPositionDirection,
   getValidOrderPrice,
@@ -364,15 +367,14 @@ export const usePerpsProPositionsPanelActions =
             ...(order.providerId !== undefined
               ? { providerId: order.providerId }
               : {}),
-            trackingData: {
-              // No fee is quoted for a cancel.
-              totalFee: toRequiredTrackingNumber(undefined),
-              marketPrice: toRequiredTrackingNumber(effectivePrice),
+            trackingData: toCoreTrackingData({
+              totalFee: NO_ORDER_ACTION_FEE_USD,
+              marketPrice: effectivePrice,
               source: PRO_MARKET_SOURCE,
               ...toPerpsEntryAttribution({
                 source: PRO_MARKET_SOURCE,
               }),
-            },
+            }),
           });
 
           if (result.success) {

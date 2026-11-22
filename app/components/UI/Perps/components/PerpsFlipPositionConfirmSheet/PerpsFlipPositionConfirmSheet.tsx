@@ -49,7 +49,7 @@ import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { useSelector } from 'react-redux';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import { toRequiredTrackingNumber } from '../../utils/orderParams';
+import { toCoreTrackingData } from '../../utils/orderParams';
 
 const PerpsFlipPositionConfirmSheet: React.FC<
   PerpsFlipPositionConfirmSheetProps
@@ -171,21 +171,24 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     if (enableHaptics) {
       playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     }
-    await handleFlipPosition(position, {
-      totalFee: toRequiredTrackingNumber(feeResults.totalFee),
-      metamaskFee: feeResults.metamaskFee,
-      metamaskFeeRate: feeResults.metamaskFeeRate,
-      marketPrice: markPrice || price,
-      vipTier: vipTier ?? undefined,
-      vipDiscount: feeResults.feeDiscountPercentage,
-      ...toPerpsEntryAttribution({
+    await handleFlipPosition(
+      position,
+      toCoreTrackingData({
+        totalFee: feeResults.totalFee,
+        metamaskFee: feeResults.metamaskFee,
+        metamaskFeeRate: feeResults.metamaskFeeRate,
+        marketPrice: markPrice || price,
+        vipTier: vipTier ?? undefined,
+        vipDiscount: feeResults.feeDiscountPercentage,
+        ...toPerpsEntryAttribution({
+          source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+        }),
         source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
+        ...(feeResults.protocolFeeRate !== undefined
+          ? { hlFeeRate: feeResults.protocolFeeRate }
+          : {}),
       }),
-      source: PERPS_EVENT_VALUE.SOURCE.POSITION_SCREEN,
-      ...(feeResults.protocolFeeRate !== undefined
-        ? { hlFeeRate: feeResults.protocolFeeRate }
-        : {}),
-    });
+    );
   }, [
     position,
     enableHaptics,

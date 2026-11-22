@@ -178,16 +178,8 @@ describe('usePerpsMarginAdjustment', () => {
         }),
       );
       expect(mockOnSuccess).toHaveBeenCalled();
-      expect(mockTrack).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Perp Margin Adjustment Transaction',
-        }),
-        {
-          action: 'add',
-          asset: 'BTC',
-          status: 'success',
-        },
-      );
+      // Core's updateMargin emits Perp Risk Management; no second event.
+      expect(mockTrack).not.toHaveBeenCalled();
     });
 
     it('shows error toast on failed add margin', async () => {
@@ -214,17 +206,7 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith(
         'perps.errors.insufficientMargin',
       );
-      expect(mockTrack).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Perp Margin Adjustment Transaction',
-        }),
-        {
-          action: 'add',
-          asset: 'ETH',
-          error_message: 'perps.errors.insufficientMargin',
-          status: 'failed',
-        },
-      );
+      expect(mockTrack).not.toHaveBeenCalled();
     });
   });
 
@@ -431,17 +413,7 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith(
         'perps.errors.networkErrorSimple',
       );
-      expect(mockTrack).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Perp Margin Adjustment Transaction',
-        }),
-        {
-          action: 'add',
-          asset: 'ETH',
-          error_message: 'perps.errors.networkErrorSimple',
-          status: 'failed',
-        },
-      );
+      expect(mockTrack).not.toHaveBeenCalled();
     });
 
     it('captures remove action in Logger context', async () => {

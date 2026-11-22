@@ -51,7 +51,10 @@ import {
   inferTriggerConditionKey,
   isSyntheticOrderCancelable,
 } from '../../utils/orderUtils';
-import { toRequiredTrackingNumber } from '../../utils/orderParams';
+import {
+  NO_ORDER_ACTION_FEE_USD,
+  toCoreTrackingData,
+} from '../../utils/orderParams';
 
 interface OrderDetailsRouteParams {
   order: Order;
@@ -223,14 +226,14 @@ const PerpsOrderDetailsView: React.FC = () => {
         ...(order.providerId !== undefined
           ? { providerId: order.providerId }
           : {}),
-        trackingData: {
-          totalFee: toRequiredTrackingNumber(totalFee),
-          marketPrice: toRequiredTrackingNumber(priceMetrics.effectivePrice),
+        trackingData: toCoreTrackingData({
+          totalFee: NO_ORDER_ACTION_FEE_USD,
+          marketPrice: priceMetrics.effectivePrice,
           source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
           ...toPerpsEntryAttribution({
             source: PERPS_EVENT_VALUE.SOURCE.TRADE_SCREEN,
           }),
-        },
+        }),
       });
 
       // Show success/failure toast
@@ -260,7 +263,6 @@ const PerpsOrderDetailsView: React.FC = () => {
     navigation,
     showToast,
     PerpsToastOptions,
-    totalFee,
     priceMetrics.effectivePrice,
   ]);
 
