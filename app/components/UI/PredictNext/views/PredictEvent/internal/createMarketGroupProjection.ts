@@ -1,5 +1,6 @@
 import { PREDICT_MARKET_TYPES } from '../../../constants';
 import type { PredictMarket } from '../../../types';
+import { marketsShareProjectionStructure } from './createMarketLayoutProjection';
 import {
   hasConsistentLines,
   isMarketSelectorMarket,
@@ -141,6 +142,68 @@ export function createMarketGroupProjection(
       return group === undefined ? [] : [group];
     })
     .sort((left, right) => left.firstIndex - right.firstIndex);
+}
+
+const refreshGroupEntry = (
+  entry: MarketGroupProjection,
+  replace: (market: PredictMarket) => PredictMarket,
+): MarketGroupProjection => {
+  if (entry.type === 'standard') {
+    const market = replace(entry.market);
+    return market === entry.market ? entry : { ...entry, market };
+  }
+
+  let changed = false;
+  const markets = entry.markets.map((market) => {
+    const next = replace(market);
+    if (next !== market) {
+      changed = true;
+    }
+    return next;
+  });
+  return changed ? { ...entry, markets } : entry;
+};
+
+/**
+ * Swaps quoted Markets into an existing group projection. Line order and
+ * which Markets share a selector stay put, so untouched rows keep their
+ * identity. A group or layout change rebuilds.
+ */
+export function refreshMarketGroupProjection(
+  previousMarkets: readonly PredictMarket[],
+  previousProjection: readonly MarketGroupProjection[],
+  nextMarkets: readonly PredictMarket[],
+): readonly MarketGroupProjection[] {
+  if (previousMarkets === nextMarkets) {
+    return previousProjection;
+  }
+  if (!marketsShareProjectionStructure(previousMarkets, nextMarkets)) {
+    return createMarketGroupProjection(nextMarkets);
+  }
+
+  const replacements = new Map<PredictMarket, PredictMarket>();
+  for (let index = 0; index < nextMarkets.length; index += 1) {
+    const before = previousMarkets[index];
+    const after = nextMarkets[index];
+    if (before !== after) {
+      replacements.set(before, after);
+    }
+  }
+  if (replacements.size === 0) {
+    return previousProjection;
+  }
+
+  const replace = (market: PredictMarket): PredictMarket =>
+    replacements.get(market) ?? market;
+  let changed = false;
+  const next = previousProjection.map((entry) => {
+    const refreshed = refreshGroupEntry(entry, replace);
+    if (refreshed !== entry) {
+      changed = true;
+    }
+    return refreshed;
+  });
+  return changed ? next : previousProjection;
 }
 
 export default createMarketGroupProjection;

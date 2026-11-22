@@ -9,6 +9,7 @@ import type {
 } from '../../../types';
 import {
   createMarketLayoutProjection,
+  refreshMarketLayoutProjection,
   type MarketLayoutCard,
   type MarketLayoutProjection,
 } from './createMarketLayoutProjection';
@@ -598,5 +599,99 @@ describe('createMarketLayoutProjection', () => {
       ['spread', '1300'],
     ]);
     expect(tabs[0].sections[0]).not.toHaveProperty('volume');
+  });
+});
+
+describe('refreshMarketLayoutProjection', () => {
+  const retick = (market: PredictMarket): PredictMarket => ({
+    ...market,
+    lastPrice: '0.4' as PredictMarket['lastPrice'],
+  });
+
+  it('returns the same projection when the markets array is unchanged', () => {
+    const markets = [createMarket('a', { layout: layoutOf('spread', 0) })];
+    const projection = createMarketLayoutProjection(markets);
+
+    expect(refreshMarketLayoutProjection(markets, projection, markets)).toBe(
+      projection,
+    );
+  });
+
+  it('keeps an untouched section and matches a full rebuild after a quote', () => {
+    const markets = [
+      createMarket('quoted', {
+        layout: layoutOf('spread', 0, FULL_GAME),
+        volume: '10',
+      }),
+      createMarket('still', {
+        layout: layoutOf('moneyline', 1, FULL_GAME),
+        volume: '5',
+      }),
+    ];
+    const projection = createMarketLayoutProjection(markets);
+    const nextMarkets = [retick(markets[0]), markets[1]];
+    const refreshed = refreshMarketLayoutProjection(
+      markets,
+      projection,
+      nextMarkets,
+    );
+
+    expect(refreshed).toEqual(createMarketLayoutProjection(nextMarkets));
+    expect(refreshed.tabs[0].sections[1]).toBe(projection.tabs[0].sections[1]);
+    expect(refreshed.tabs[0].sections[0]).not.toBe(
+      projection.tabs[0].sections[0],
+    );
+    expect(refreshed.tabs[0].sections[0].periods[0].cards[0]).toMatchObject({
+      market: nextMarkets[0],
+    });
+  });
+
+  it('updates only the quoted section volume', () => {
+    const markets = [
+      createMarket('a', {
+        layout: layoutOf('spread', 0),
+        volume: '1',
+      }),
+      createMarket('b', {
+        layout: layoutOf('spread', 0),
+        volume: '2',
+      }),
+      createMarket('other', {
+        layout: layoutOf('moneyline', 1),
+        volume: '9',
+      }),
+    ];
+    const projection = createMarketLayoutProjection(markets);
+    const nextMarkets = [
+      { ...markets[0], volume: '4' },
+      markets[1],
+      markets[2],
+    ];
+    const refreshed = refreshMarketLayoutProjection(
+      markets,
+      projection,
+      nextMarkets,
+    );
+
+    expect(refreshed).toEqual(createMarketLayoutProjection(nextMarkets));
+    expect(refreshed.tabs[0].sections[0].volume).toBe('6');
+    expect(refreshed.tabs[0].sections[0].periods[0].cards[1]).toBe(
+      projection.tabs[0].sections[0].periods[0].cards[1],
+    );
+    expect(refreshed.tabs[0].sections[1]).toBe(projection.tabs[0].sections[1]);
+  });
+
+  it('rebuilds when a Market changes group', () => {
+    const layout = layoutOf('props', 0);
+    const markets = [
+      createMarket('a', { group: choice('a', 0), layout }),
+      createMarket('b', { group: choice('a', 1), layout }),
+    ];
+    const projection = createMarketLayoutProjection(markets);
+    const nextMarkets = [markets[0], { ...markets[1], group: choice('b', 0) }];
+
+    expect(
+      refreshMarketLayoutProjection(markets, projection, nextMarkets),
+    ).toEqual(createMarketLayoutProjection(nextMarkets));
   });
 });
