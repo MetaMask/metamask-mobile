@@ -118,8 +118,10 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     asset: position.symbol,
     providerId: position.providerId,
   });
+  // Unknown minimum: no local check; the venue still validates the order.
   const isBelowMinimum =
     hasValidAmount &&
+    minimumOrderAmount !== undefined &&
     parseFloat(usdAmount) <
       minimumOrderAmount *
         (1 + PERPS_SLIPPAGE_DEFAULT_BPS / BASIS_POINTS_DIVISOR);
@@ -366,7 +368,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
                 </View>
               )}
 
-            {isBelowMinimum && (
+            {isBelowMinimum && minimumOrderAmount !== undefined && (
               <PerpsValidationErrors
                 errors={[
                   strings('perps.flip_position.below_minimum', {

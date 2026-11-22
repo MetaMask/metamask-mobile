@@ -63,6 +63,32 @@ describe('useMinimumOrderAmount', () => {
     });
   });
 
+  it('returns undefined, not the Hyperliquid default, while capabilities load', () => {
+    // Arrange
+    mockUsePerpsMarketData.mockReturnValue({
+      marketData: {
+        name: 'ETH',
+        szDecimals: 4,
+        maxLeverage: 50,
+        marginTableId: 1,
+      },
+      isLoading: false,
+      isProviderMetadataAvailable: true,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockUsePerpsNetwork.mockReturnValue('mainnet');
+    mockOrderCapabilities(null);
+
+    // Act
+    const { result } = renderHook(() =>
+      useMinimumOrderAmount({ asset: 'ETH', providerId: 'lighter' }),
+    );
+
+    // Assert
+    expect(result.current.minimumOrderAmount).toBeUndefined();
+  });
+
   it('should return market-specific minimum when available', () => {
     mockUsePerpsMarketData.mockReturnValue({
       marketData: {
@@ -88,7 +114,7 @@ describe('useMinimumOrderAmount', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should return mainnet default when market data has no minimum', () => {
+  it('returns undefined on mainnet when neither venue nor market reports a minimum', () => {
     mockUsePerpsMarketData.mockReturnValue({
       marketData: {
         name: 'ETH',
@@ -108,12 +134,12 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'ETH' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(10); // Mainnet default ($10)
+    expect(result.current.minimumOrderAmount).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
   });
 
-  it('should return testnet default when on testnet', () => {
+  it('returns undefined on testnet when neither venue nor market reports a minimum', () => {
     mockUsePerpsMarketData.mockReturnValue({
       marketData: {
         name: 'SOL',
@@ -133,7 +159,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'SOL' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(10); // Testnet default ($10)
+    expect(result.current.minimumOrderAmount).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
   });
@@ -152,7 +178,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'BTC' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(10); // Falls back to default ($10)
+    expect(result.current.minimumOrderAmount).toBeUndefined();
     expect(result.current.isLoading).toBe(true);
     expect(result.current.error).toBe(null);
   });
@@ -172,7 +198,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'BTC' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(10); // Falls back to default ($10)
+    expect(result.current.minimumOrderAmount).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(errorMessage);
   });
@@ -191,7 +217,7 @@ describe('useMinimumOrderAmount', () => {
       useMinimumOrderAmount({ asset: 'XYZ' }),
     );
 
-    expect(result.current.minimumOrderAmount).toBe(10); // Testnet default ($10)
+    expect(result.current.minimumOrderAmount).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
     expect(result.current.error).toBe(null);
   });

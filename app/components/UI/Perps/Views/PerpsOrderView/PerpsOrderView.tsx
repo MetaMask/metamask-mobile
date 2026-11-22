@@ -2621,9 +2621,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   // Use the same calculation as handleMaxAmount in usePerpsOrderForm to avoid insufficient funds error.
-  // An unknown balance is not below the minimum.
+  // An unknown balance or minimum is not below the minimum.
   const isBelowMinimumNotional =
     spendableBalance !== undefined &&
+    minimumOrderAmount !== undefined &&
     Math.floor(spendableBalance * orderForm.leverage) < minimumOrderAmount;
 
   const isAmountDisabled = isBelowMinimumNotional;

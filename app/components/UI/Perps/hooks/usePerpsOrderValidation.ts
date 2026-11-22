@@ -5,7 +5,6 @@ import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   VALIDATION_THRESHOLDS,
-  TRADING_DEFAULTS,
   PERPS_ERROR_CODES,
   getMaxOrderValue,
   isLimitExecutionOrderType,
@@ -24,7 +23,6 @@ import {
   canonicalizeOrderPrice,
   type OrderFormFieldIssue,
 } from '../utils/triggerOrderValidation';
-import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
 
@@ -44,7 +42,7 @@ interface UsePerpsOrderValidationParams {
   originalUsdAmount?: string; // Original USD input for validation (prevents precision loss from recalculation)
   /**
    * The venue's minimum order value in USD (`useMinimumOrderAmount`); omitted
-   * falls back to the network default.
+   * while unknown, which skips the local minimum check.
    */
   minimumOrderAmount?: number;
   /** When true, passes reduceOnly through to protocol validation. */
@@ -136,7 +134,7 @@ interface ImmediateValidationInput {
   marginRequired: string;
   spendableBalance: number | undefined;
   originalUsdAmount?: string;
-  minimumOrderSize: number;
+  minimumOrderSize?: number;
   reduceOnly?: boolean;
   isFullClose?: boolean;
 }
@@ -151,7 +149,7 @@ interface ProtocolValidationErrorsInput {
   requestFieldIssues: OrderFormFieldIssue[];
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
-  minimumOrderSize: number;
+  minimumOrderSize?: number;
   suppressedProtocolErrors: ReadonlySet<string>;
   maxLeverage?: number;
 }
@@ -175,11 +173,6 @@ interface ValidationOutcome {
   attempt: ValidationAttempt;
   state: ValidationState;
 }
-
-const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
-  network === 'mainnet'
-    ? TRADING_DEFAULTS.amount.mainnet
-    : TRADING_DEFAULTS.amount.testnet;
 
 const isValidationReady = ({
   assetPrice,
@@ -222,7 +215,12 @@ const getImmediateValidationErrors = ({
 
   const usdAmount = Number.parseFloat(originalUsdAmount || '0');
   const skipMinimumAmount = Boolean(reduceOnly && isFullClose);
-  if (!skipMinimumAmount && usdAmount > 0 && usdAmount < minimumOrderSize) {
+  if (
+    !skipMinimumAmount &&
+    minimumOrderSize !== undefined &&
+    usdAmount > 0 &&
+    usdAmount < minimumOrderSize
+  ) {
     errors.push(
       strings('perps.order.validation.minimum_amount', {
         amount: minimumOrderSize.toString(),
@@ -282,7 +280,7 @@ const getProtocolErrorContext = ({
   error?: string;
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
-  minimumOrderSize: number;
+  minimumOrderSize?: number;
   maxLeverage?: number;
 }): Record<string, unknown> => {
   switch (error) {
@@ -309,7 +307,9 @@ const getProtocolErrorContext = ({
       };
     }
     case PERPS_ERROR_CODES.ORDER_SIZE_MIN:
-      return { amount: minimumOrderSize.toString() };
+      return minimumOrderSize === undefined
+        ? {}
+        : { amount: minimumOrderSize.toString() };
     case PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN:
       return { symbol: orderForm.asset };
     default:
@@ -471,7 +471,6 @@ export function usePerpsOrderValidation(
   } = params;
 
   const { validateOrder } = usePerpsTrading();
-  const network = usePerpsNetwork();
   const orderFormValidationData = useMemo<OrderFormValidationData>(
     () => ({
       asset: orderForm.asset,
@@ -524,7 +523,8 @@ export function usePerpsOrderValidation(
     ],
   );
 
-  const minimumOrderSize = minimumOrderAmount ?? getMinimumOrderSize(network);
+  // Unknown minimum: skip the local check; protocol validation still runs.
+  const minimumOrderSize = minimumOrderAmount;
   const immediateValidation = useMemo(
     () =>
       getImmediateValidationErrors({

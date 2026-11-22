@@ -146,6 +146,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
     if (
       !Number.isFinite(parsedSize) ||
       parsedSize <= 0 ||
+      minimumOrderAmount === undefined ||
       minimumOrderAmount <= 0
     ) {
       return '';

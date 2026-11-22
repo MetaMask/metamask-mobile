@@ -91,6 +91,28 @@ describe('usePerpsClosePositionValidation', () => {
     expect(result.current.errors).toHaveLength(0);
   });
 
+  it('skips the partial-close minimum checks while the minimum is unknown', async () => {
+    // Arrange
+    mockValidateClosePosition.mockResolvedValue({ isValid: true });
+
+    // Act
+    const { result } = renderHook(() =>
+      usePerpsClosePositionValidation({
+        ...defaultParams,
+        positionValue: 5,
+        closingValue: 2,
+        minimumOrderAmount: undefined,
+      }),
+    );
+    await waitFor(() => {
+      expect(result.current.isValidating).toBe(false);
+    });
+
+    // Assert
+    expect(result.current.errors).toEqual([]);
+    expect(mockValidateClosePosition).toHaveBeenCalled();
+  });
+
   it('should allow partial close even if remaining position is below minimum', async () => {
     mockValidateClosePosition.mockResolvedValue({ isValid: true });
 

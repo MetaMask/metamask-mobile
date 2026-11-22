@@ -21,7 +21,7 @@ interface UsePerpsClosePositionValidationParams {
   referencePrice?: number; // Reference (oracle/mark) price used for the deviation band; falls back to currentPrice
   positionSize: number; // Absolute size of the position
   positionValue: number; // Total position value in USD
-  minimumOrderAmount: number; // Minimum order size in USD
+  minimumOrderAmount?: number; // Minimum order size in USD; undefined while unknown skips the minimum checks
   closingValue: number; // Value being closed in USD
   remainingPositionValue: number; // Value remaining after close (kept for interface completeness)
   receiveAmount: number | undefined; // Amount user will receive after fees; undefined while unknown
@@ -175,19 +175,22 @@ export function usePerpsClosePositionValidation(
       // UI-specific validations that don't belong in the provider
 
       // Special case: if the total position is below minimum, user must close 100%
-      if (isPartialClose && positionValue < minimumOrderAmount) {
-        errors.push(
-          strings('perps.close_position.must_close_full_below_minimum'),
-        );
-      }
-      // Check minimum for partial closes (not for 100% closes)
-      // Skip this check if the entire position is below minimum (already handled above)
-      else if (isPartialClose && closingValue < minimumOrderAmount) {
-        errors.push(
-          strings('perps.order.validation.minimum_amount', {
-            amount: minimumOrderAmount.toString(),
-          }),
-        );
+      // Both minimum checks are skipped while the minimum is unknown.
+      if (isPartialClose && minimumOrderAmount !== undefined) {
+        if (positionValue < minimumOrderAmount) {
+          errors.push(
+            strings('perps.close_position.must_close_full_below_minimum'),
+          );
+        }
+        // Check minimum for partial closes (not for 100% closes)
+        // Skip this check if the entire position is below minimum (already handled above)
+        else if (closingValue < minimumOrderAmount) {
+          errors.push(
+            strings('perps.order.validation.minimum_amount', {
+              amount: minimumOrderAmount.toString(),
+            }),
+          );
+        }
       }
 
       // Warn if user will receive negative amount (but allow them to proceed)

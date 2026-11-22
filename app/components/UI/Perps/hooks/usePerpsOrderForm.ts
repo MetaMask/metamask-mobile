@@ -22,7 +22,7 @@ import {
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import { usePerpsNetwork } from './usePerpsNetwork';
+import { useMinimumOrderAmount } from './useMinimumOrderAmount';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
 import { usePerpsSelector } from './usePerpsSelector';
 import {
@@ -162,7 +162,6 @@ export function usePerpsOrderForm(
     effectiveAvailableBalance: effectiveAvailableBalanceParam,
   } = params;
 
-  const currentNetwork = usePerpsNetwork();
   const { maxSlippageBps, maxSlippageSource } = usePerpsMaxSlippage();
   const defaultProviderId = useSelector(selectPerpsOrderProvider);
   const providerId = marketProviderId ?? defaultProviderId ?? undefined;
@@ -219,12 +218,18 @@ export function usePerpsOrderForm(
   // When paying with a custom token, use selected token amount in USD (including 0); otherwise use Perps balance
   const balanceForMax = effectiveAvailableBalanceParam ?? spendableBalance;
 
-  // Determine default amount based on network
-  const defaultAmount =
-    currentNetwork === 'mainnet'
-      ? TRADING_DEFAULTS.amount.mainnet
-      : TRADING_DEFAULTS.amount.testnet;
-  const fallbackAmount = fallbackAmountParam ?? defaultAmount.toString();
+  // Default amount is the venue's minimum; empty while it is unknown.
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: initialAsset,
+    providerId,
+  });
+  const fallbackAmount =
+    fallbackAmountParam ?? minimumOrderAmount?.toString() ?? '';
+  const isDefaultAmountPending =
+    !initialAmount &&
+    !pendingConfig?.amount &&
+    fallbackAmountParam === undefined &&
+    minimumOrderAmount === undefined;
 
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
   const defaultLeverage =
@@ -441,12 +446,23 @@ export function usePerpsOrderForm(
   // Update amount only once when the hook first calculates the initial value
   // We use a ref to track if we've already set the initial amount to avoid overwriting user input
   const hasSetInitialAmount = useRef(false);
+  // Set while the default waits for the venue minimum; the late default then
+  // fills only an amount the user has not edited.
+  const waitedForDefaultAmount = useRef(false);
   useEffect(() => {
-    if (!hasSetInitialAmount.current && initialAmountValue !== '0') {
-      setOrderForm((prev) => ({ ...prev, amount: initialAmountValue }));
-      hasSetInitialAmount.current = true;
+    if (hasSetInitialAmount.current || initialAmountValue === '0') return;
+    if (isDefaultAmountPending) {
+      waitedForDefaultAmount.current = true;
+      return;
     }
-  }, [initialAmountValue]);
+    const keepUserAmount = waitedForDefaultAmount.current;
+    setOrderForm((prev) =>
+      keepUserAmount && prev.amount !== ''
+        ? prev
+        : { ...prev, amount: initialAmountValue },
+    );
+    hasSetInitialAmount.current = true;
+  }, [initialAmountValue, isDefaultAmountPending]);
 
   useEffect(() => {
     if (!pendingConfig) return;
@@ -671,15 +687,13 @@ export function usePerpsOrderForm(
 
   // Handle min amount selection
   const handleMinAmount = useCallback(() => {
-    const minAmount =
-      currentNetwork === 'mainnet'
-        ? TRADING_DEFAULTS.amount.mainnet
-        : TRADING_DEFAULTS.amount.testnet;
+    // No-op while the venue minimum is unknown.
+    if (minimumOrderAmount === undefined) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: minAmount.toString(),
+      amount: minimumOrderAmount.toString(),
     }));
-  }, [currentNetwork]);
+  }, [minimumOrderAmount]);
 
   return useMemo(
     () => ({

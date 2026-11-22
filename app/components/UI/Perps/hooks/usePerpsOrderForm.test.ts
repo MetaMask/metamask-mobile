@@ -11,6 +11,7 @@ import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
 import { usePerpsLivePrices } from './stream/usePerpsLivePrices';
 import { usePerpsLivePositions } from './stream/usePerpsLivePositions';
 import { usePerpsMarketData } from './usePerpsMarketData';
+import { useMinimumOrderAmount } from './useMinimumOrderAmount';
 import {
   TRADING_DEFAULTS,
   PerpsMode,
@@ -27,6 +28,7 @@ jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('./stream/usePerpsLivePrices');
 jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
+jest.mock('./useMinimumOrderAmount');
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -197,9 +199,18 @@ describe('usePerpsOrderForm', () => {
   const mockUsePerpsMarketData = usePerpsMarketData as jest.MockedFunction<
     typeof usePerpsMarketData
   >;
+  const mockUseMinimumOrderAmount =
+    useMinimumOrderAmount as jest.MockedFunction<typeof useMinimumOrderAmount>;
+  const mockMinimumOrderAmount = (minimumOrderAmount: number | undefined) =>
+    mockUseMinimumOrderAmount.mockReturnValue({
+      minimumOrderAmount,
+      isLoading: false,
+      error: null,
+    });
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMinimumOrderAmount(TRADING_DEFAULTS.amount.mainnet);
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
@@ -1211,6 +1222,74 @@ describe('usePerpsOrderForm', () => {
       expect(result.current.orderForm.amount).toBe(
         TRADING_DEFAULTS.amount.testnet.toString(),
       );
+    });
+
+    it("uses the venue's minimum for Min and the default amount", () => {
+      // Arrange: Lighter reports a $1 minimum, not Hyperliquid's $10
+      mockMinimumOrderAmount(1);
+
+      // Act
+      const { result } = renderHook(
+        () => usePerpsOrderForm({ providerId: 'lighter' }),
+        { wrapper: createWrapper() },
+      );
+      const defaultAmount = result.current.orderForm.amount;
+      act(() => {
+        result.current.setAmount('50');
+      });
+      act(() => {
+        result.current.handleMinAmount();
+      });
+
+      // Assert
+      expect(mockUseMinimumOrderAmount).toHaveBeenCalledWith({
+        asset: 'BTC',
+        providerId: 'lighter',
+      });
+      expect(defaultAmount).toBe('1');
+      expect(result.current.orderForm.amount).toBe('1');
+    });
+
+    it('waits for the venue minimum before setting the default amount', () => {
+      // Arrange: minimum unknown while capabilities load
+      mockMinimumOrderAmount(undefined);
+      const { result, rerender } = renderHook(
+        () => usePerpsOrderForm({ providerId: 'lighter' }),
+        { wrapper: createWrapper() },
+      );
+      const amountWhileUnknown = result.current.orderForm.amount;
+      act(() => {
+        result.current.handleMinAmount();
+      });
+      const amountAfterMinWhileUnknown = result.current.orderForm.amount;
+
+      // Act: the venue minimum resolves
+      mockMinimumOrderAmount(1);
+      rerender({});
+
+      // Assert
+      expect(amountWhileUnknown).toBe('');
+      expect(amountAfterMinWhileUnknown).toBe('');
+      expect(result.current.orderForm.amount).toBe('1');
+    });
+
+    it('keeps a user-entered amount when the venue minimum resolves', () => {
+      // Arrange
+      mockMinimumOrderAmount(undefined);
+      const { result, rerender } = renderHook(
+        () => usePerpsOrderForm({ providerId: 'lighter' }),
+        { wrapper: createWrapper() },
+      );
+      act(() => {
+        result.current.setAmount('25');
+      });
+
+      // Act
+      mockMinimumOrderAmount(1);
+      rerender({});
+
+      // Assert
+      expect(result.current.orderForm.amount).toBe('25');
     });
 
     it('clamps near-100% amounts to maxPossibleAmount', () => {

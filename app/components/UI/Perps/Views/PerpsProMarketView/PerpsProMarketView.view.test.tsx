@@ -5032,6 +5032,18 @@ describe('Pro order book size on click', () => {
   let ladderSpy: jest.SpyInstance | undefined;
   let unwireController: (() => void) | undefined;
 
+  beforeEach(() => {
+    // Hyperliquid reports its $10 order minimum through order capabilities.
+    jest
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+        orderLimits: { sizeDecimals: 4, minOrderNotionalUsd: 10 },
+      });
+  });
+
   // The ladder streams on its own Hyperliquid socket, not the Engine. Serving
   // it at that socket wrapper is the transport boundary, like nock for HTTP.
   const serveLadder = (bid: OrderBookLevel, midPrice = '2500') => {

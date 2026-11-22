@@ -164,6 +164,15 @@ describe('PerpsOrderView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Hyperliquid reports its $10 order minimum through order capabilities.
+    jest
+      .mocked(Engine.context.PerpsController.getOrderCapabilities)
+      .mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap', 'scale', 'chase'],
+        orderLimits: { sizeDecimals: 5, minOrderNotionalUsd: 10 },
+      });
     jest
       .mocked(Engine.context.PerpsController.updatePositionTPSL)
       .mockReset()

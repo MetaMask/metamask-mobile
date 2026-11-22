@@ -255,7 +255,8 @@ const SCALE_ERROR_I18N_KEYS: Record<ScaleOrderValidationCode, string> = {
 
 const getScaleValidationMessage = (
   code: ScaleOrderValidationCode,
-  minOrderValue: number,
+  // Undefined while unknown; `minimum_lot` is only raised with a known minimum.
+  minOrderValue: number | undefined,
 ): string =>
   strings(
     SCALE_ERROR_I18N_KEYS[code],
@@ -1746,6 +1747,7 @@ export const usePerpsProOrderForm = ({
       if (
         rungs.some(
           (rung) =>
+            scaleMinimumOrderAmount !== undefined &&
             Number(rung.size) * Number(rung.price) < scaleMinimumOrderAmount,
         )
       ) {

@@ -194,7 +194,11 @@ const PerpsProOrderBookColumn = ({
         if (new BigNumber(rowAmount).gt(0)) {
           // Compare the unrounded notional: cents rounding can lift a row just
           // under the minimum onto it, and the exact size would then be refused.
-          if (new BigNumber(size).times(selectedPrice).lt(minimumOrderAmount)) {
+          // An unknown minimum fills the row as is.
+          if (
+            minimumOrderAmount !== undefined &&
+            new BigNumber(size).times(selectedPrice).lt(minimumOrderAmount)
+          ) {
             setAmount(String(minimumOrderAmount));
           } else {
             fillOrderBookSize({

@@ -394,6 +394,7 @@ describe('usePerpsOrderValidation', () => {
           spendableBalance: 5,
           marginRequired: '10.00',
           originalUsdAmount: '3.59',
+          minimumOrderAmount: 10,
         }),
       );
 
@@ -940,11 +941,33 @@ describe('usePerpsOrderValidation', () => {
       expect(mockValidateOrder).toHaveBeenCalledTimes(2);
     });
 
+    it('skips the local minimum check while the minimum is unknown', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          originalUsdAmount: '1',
+          minimumOrderAmount: undefined,
+        }),
+      );
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      // Assert: no Hyperliquid $10 fallback; protocol validation still runs
+      expect(result.current.errors).not.toContain('Minimum order size is $10');
+      expect(mockValidateOrder).toHaveBeenCalled();
+    });
+
     it('validates immediately when the amount crosses above the minimum', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
       const belowMinimumParams = {
         ...defaultParams,
         originalUsdAmount: '1',
+        minimumOrderAmount: 10,
       };
       const { result, rerender } = renderHook(
         (props) => usePerpsOrderValidation(props),
@@ -1296,6 +1319,7 @@ describe('usePerpsOrderValidation', () => {
           ...defaultParams,
           orderForm: { ...defaultOrderForm, amount: '5' },
           originalUsdAmount: '5',
+          minimumOrderAmount: 10,
           reduceOnly: true,
           isFullClose: true,
           marginRequired: '0',
