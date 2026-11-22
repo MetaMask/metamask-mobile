@@ -2,21 +2,43 @@ import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
-  HYPERLIQUID_ASSET_CONFIGS,
   WITHDRAWAL_CONSTANTS,
+  type AssetRoute,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   parseCurrencyString,
   truncateToTwoDecimals,
 } from '../utils/formatUtils';
-import { usePerpsConnection, usePerpsNetwork } from './index';
+import { usePerpsConnection } from './index';
 import { usePerpsLiveAccount } from './stream';
 
 interface UseWithdrawValidationParams {
   withdrawAmount: string;
   providerId?: PerpsProviderType;
 }
+
+/**
+ * Withdrawal route the controller reports for the venue.
+ * Direct-provider routes carry no `providerId` and match any venue.
+ *
+ * @param providerId - Venue the withdrawal signs on.
+ * @returns The route, or undefined until the controller is initialized.
+ */
+export const useWithdrawalRoute = (
+  providerId?: PerpsProviderType,
+): AssetRoute | undefined => {
+  const { isInitialized } = usePerpsConnection();
+  // Routes are network-specific; a network switch re-initializes the
+  // controller, which recomputes them.
+  return useMemo(() => {
+    if (!isInitialized) return undefined;
+    return Engine.context.PerpsController.getWithdrawalRoutes().find(
+      (route) =>
+        route.providerId === providerId || route.providerId === undefined,
+    );
+  }, [isInitialized, providerId]);
+};
 
 /**
  * Hook to handle withdrawal validation logic
@@ -29,31 +51,13 @@ export const useWithdrawValidation = ({
 }: UseWithdrawValidationParams) => {
   const { account } = usePerpsLiveAccount({ providerId });
   const { isInitialized } = usePerpsConnection();
-  const perpsNetwork = usePerpsNetwork();
-  const isTestnet = perpsNetwork === 'testnet';
+  const withdrawalRoute = useWithdrawalRoute(providerId);
 
   // Truncate to 2 decimal places so validation matches the displayed balance.
   const withdrawableBalance = useMemo(() => {
     const balance = account?.withdrawableBalance || '0';
     return truncateToTwoDecimals(parseCurrencyString(balance)).toString();
   }, [account]);
-
-  const withdrawalRoute = useMemo(() => {
-    if (!isInitialized) return undefined;
-    const controller = Engine.context.PerpsController;
-    const routes = controller.getWithdrawalRoutes();
-
-    // Find USDC route
-    const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
-
-    return routes.find(
-      (route) =>
-        route.assetId === usdcAssetId &&
-        (route.providerId === providerId || route.providerId === undefined),
-    );
-  }, [isInitialized, isTestnet, providerId]);
 
   // Validation checks
   const hasInsufficientBalance = useMemo(() => {

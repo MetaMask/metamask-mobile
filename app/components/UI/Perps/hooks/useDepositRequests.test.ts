@@ -4,7 +4,11 @@ import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useDepositRequests } from './useDepositRequests';
 import { usePerpsSelector } from './usePerpsSelector';
-import { type PerpsControllerState } from '@metamask/perps-controller';
+import {
+  adaptHyperLiquidLedgerUpdateToUserHistoryItem,
+  type PerpsControllerState,
+  type RawLedgerUpdate,
+} from '@metamask/perps-controller';
 import type { RootState } from '../../../../reducers';
 import {
   createMockInternalAccount,
@@ -42,10 +46,13 @@ describe('useDepositRequests', () => {
     getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
   };
   let mockProvider: {
-    getUserNonFundingLedgerUpdates: jest.MockedFunction<
+    getUserHistory: jest.MockedFunction<
       (...args: unknown[]) => Promise<unknown>
     >;
   };
+  // Provider history as the Hyperliquid provider returns it.
+  const toHistory = (updates: RawLedgerUpdate[] | null | undefined) =>
+    adaptHyperLiquidLedgerUpdateToUserHistoryItem(updates ?? []);
 
   const mockPendingDeposits = [
     {
@@ -151,9 +158,7 @@ describe('useDepositRequests', () => {
 
     // Mock provider
     mockProvider = {
-      getUserNonFundingLedgerUpdates: jest
-        .fn()
-        .mockResolvedValue(mockLedgerUpdates),
+      getUserHistory: jest.fn().mockResolvedValue(toHistory(mockLedgerUpdates)),
     };
 
     // Mock controller
@@ -210,9 +215,7 @@ describe('useDepositRequests', () => {
       );
 
       expect(result.current.isLoading).toBe(false);
-      expect(
-        mockProvider.getUserNonFundingLedgerUpdates,
-      ).not.toHaveBeenCalled();
+      expect(mockProvider.getUserHistory).not.toHaveBeenCalled();
     });
   });
 
@@ -226,9 +229,8 @@ describe('useDepositRequests', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockProvider.getUserNonFundingLedgerUpdates).toHaveBeenCalledWith({
+      expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
         startTime: expect.any(Number),
-        endTime: undefined,
       });
       expect(result.current.depositRequests).toHaveLength(1); // Only completed with actual amount
       expect(result.current.isLoading).toBe(false);
@@ -245,9 +247,8 @@ describe('useDepositRequests', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockProvider.getUserNonFundingLedgerUpdates).toHaveBeenCalledWith({
+      expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
         startTime,
-        endTime: undefined,
       });
     });
 
@@ -263,9 +264,8 @@ describe('useDepositRequests', () => {
       const expectedStartTime = new Date();
       expectedStartTime.setHours(0, 0, 0, 0);
 
-      expect(mockProvider.getUserNonFundingLedgerUpdates).toHaveBeenCalledWith({
+      expect(mockProvider.getUserHistory).toHaveBeenCalledWith({
         startTime: expectedStartTime.getTime(),
-        endTime: undefined,
       });
     });
 
@@ -283,7 +283,7 @@ describe('useDepositRequests', () => {
       expect(result.current.depositRequests[0].amount).toBe('500');
     });
 
-    it('transforms ledger updates to deposit requests', async () => {
+    it('transforms provider history to deposit requests', async () => {
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
       });
@@ -293,7 +293,7 @@ describe('useDepositRequests', () => {
       });
 
       const deposit = result.current.depositRequests[0];
-      expect(deposit.id).toBe('deposit-0x456');
+      expect(deposit.id).toBe('history-0x456');
       expect(deposit.timestamp).toBe(1640995202000);
       expect(deposit.amount).toBe('500');
       expect(deposit.asset).toBe('USDC');
@@ -301,7 +301,7 @@ describe('useDepositRequests', () => {
       expect(deposit.txHash).toBe('0x456');
       expect(deposit.success).toBe(true);
       expect(deposit.status).toBe('completed');
-      expect(deposit.depositId).toBe('123');
+      expect(deposit.depositId).toBeUndefined();
     });
 
     it('handles PerpsController not available', async () => {
@@ -337,26 +337,8 @@ describe('useDepositRequests', () => {
       expect(result.current.depositRequests).toEqual([]);
     });
 
-    it('handles provider without getUserNonFundingLedgerUpdates method', async () => {
-      mockProvider = {} as unknown as typeof mockProvider;
-      mockController.getActiveProviderOrNull.mockReturnValue(mockProvider);
-
-      const { result } = renderHookWithProvider(() => useDepositRequests(), {
-        state: createMockState(),
-      });
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 0));
-      });
-
-      expect(result.current.error).toBe(
-        'Provider does not support non-funding ledger updates',
-      );
-      expect(result.current.depositRequests).toEqual([]);
-    });
-
     it('handles provider fetch errors', async () => {
-      mockProvider.getUserNonFundingLedgerUpdates.mockRejectedValue(
+      mockProvider.getUserHistory.mockRejectedValue(
         new Error('Provider error'),
       );
 
@@ -373,9 +355,7 @@ describe('useDepositRequests', () => {
     });
 
     it('handles non-Error exceptions', async () => {
-      mockProvider.getUserNonFundingLedgerUpdates.mockRejectedValue(
-        'String error',
-      );
+      mockProvider.getUserHistory.mockRejectedValue('String error');
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -522,8 +502,8 @@ describe('useDepositRequests', () => {
         },
       ];
 
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(
-        zeroAmountLedgerUpdates,
+      mockProvider.getUserHistory.mockResolvedValue(
+        toHistory(zeroAmountLedgerUpdates),
       );
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
@@ -552,8 +532,8 @@ describe('useDepositRequests', () => {
         },
       ];
 
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(
-        noTxHashLedgerUpdates,
+      mockProvider.getUserHistory.mockResolvedValue(
+        toHistory(noTxHashLedgerUpdates),
       );
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
@@ -593,8 +573,8 @@ describe('useDepositRequests', () => {
         },
       ];
 
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(
-        multipleDeposits,
+      mockProvider.getUserHistory.mockResolvedValue(
+        toHistory(multipleDeposits),
       );
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
@@ -621,27 +601,21 @@ describe('useDepositRequests', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockProvider.getUserNonFundingLedgerUpdates).toHaveBeenCalledTimes(
-        1,
-      );
+      expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(1);
 
       // Clear previous calls
-      mockProvider.getUserNonFundingLedgerUpdates.mockClear();
+      mockProvider.getUserHistory.mockClear();
 
       // Call refetch
       await act(async () => {
         await result.current.refetch();
       });
 
-      expect(mockProvider.getUserNonFundingLedgerUpdates).toHaveBeenCalledTimes(
-        1,
-      );
+      expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(1);
     });
 
     it('refetch handles errors gracefully', async () => {
-      mockProvider.getUserNonFundingLedgerUpdates.mockRejectedValue(
-        new Error('Refetch error'),
-      );
+      mockProvider.getUserHistory.mockRejectedValue(new Error('Refetch error'));
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -697,7 +671,7 @@ describe('useDepositRequests', () => {
           count: 1,
           deposits: expect.arrayContaining([
             expect.objectContaining({
-              id: 'deposit-0x456',
+              id: 'history-0x456',
               timestamp: expect.any(String),
               amount: '500',
               asset: 'USDC',
@@ -712,7 +686,7 @@ describe('useDepositRequests', () => {
 
   describe('edge cases', () => {
     it('handles empty ledger updates', async () => {
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue([]);
+      mockProvider.getUserHistory.mockResolvedValue(toHistory([]));
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -727,7 +701,7 @@ describe('useDepositRequests', () => {
     });
 
     it('handles undefined ledger updates', async () => {
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(undefined);
+      mockProvider.getUserHistory.mockResolvedValue(toHistory(undefined));
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -742,7 +716,7 @@ describe('useDepositRequests', () => {
     });
 
     it('handles null ledger updates', async () => {
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(null);
+      mockProvider.getUserHistory.mockResolvedValue(toHistory(null));
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
         state: createMockState(),
@@ -770,8 +744,8 @@ describe('useDepositRequests', () => {
         },
       ];
 
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(
-        ledgerUpdatesWithoutCoin,
+      mockProvider.getUserHistory.mockResolvedValue(
+        toHistory(ledgerUpdatesWithoutCoin),
       );
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {
@@ -800,8 +774,8 @@ describe('useDepositRequests', () => {
         },
       ];
 
-      mockProvider.getUserNonFundingLedgerUpdates.mockResolvedValue(
-        ledgerUpdatesWithoutNonce,
+      mockProvider.getUserHistory.mockResolvedValue(
+        toHistory(ledgerUpdatesWithoutNonce),
       );
 
       const { result } = renderHookWithProvider(() => useDepositRequests(), {

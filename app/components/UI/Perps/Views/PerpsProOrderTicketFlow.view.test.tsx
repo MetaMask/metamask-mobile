@@ -913,6 +913,8 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
             symbol: 'ETH',
             takeProfitPrice: PROBE_TAKE_PROFIT,
             stopLossPrice: PROBE_STOP_LOSS,
+            // The TP/SL write goes to the venue that filled the entry.
+            providerId: 'hyperliquid',
           }),
         { timeout: TIMEOUT_MS },
       );
@@ -1027,8 +1029,7 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
     async () => {
       jest.mocked(Engine.context.PerpsController.editOrder).mockResolvedValue({
         success: false,
-        error:
-          'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.',
+        error: 'ORDER_POST_ONLY_WOULD_CROSS',
       });
       renderTicket({
         orders: [createLimitOrderForViews({ price: '2400' })],

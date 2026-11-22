@@ -163,6 +163,28 @@ describe('usePerpsFeed', () => {
         expect(symbols).toEqual(['HIGH', 'MID', 'LOW']);
       }
     });
+
+    it('sorts markets with an unknown 24h change last instead of as 0%', () => {
+      const markets = [
+        makeMarket('UNKNOWN', '', 100),
+        makeMarket('LOSER', '-2', 50),
+        makeMarket('GAINER', '3', 75),
+      ];
+      (usePerpsMarkets as jest.Mock).mockReturnValue({
+        markets,
+        isLoading: false,
+        refresh: mockRefetch,
+        isRefreshing: false,
+      });
+
+      const { result } = renderFeed();
+
+      expect(result.current.data.map((d) => d.market.symbol)).toEqual([
+        'GAINER',
+        'LOSER',
+        'UNKNOWN',
+      ]);
+    });
   });
 
   describe('price-change mover filtering', () => {

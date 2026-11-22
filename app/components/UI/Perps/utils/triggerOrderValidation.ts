@@ -143,7 +143,8 @@ export const getRequiredTriggerSide = (
  * activate TP/SL orders; this check only validates the placement-side rule.
  *
  * @param input - Order type, side, typed trigger, and live mid.
- * @returns A typed issue, or `undefined` when the trigger is valid or N/A.
+ * @returns A typed issue, or `undefined` when the trigger is valid or N/A. A
+ * trigger that cannot be checked because the mid is unknown is `wrong_side`.
  */
 export const getTriggerPriceValidationIssue = ({
   orderType,
@@ -167,16 +168,13 @@ export const getTriggerPriceValidationIssue = ({
     return { code: 'positive' };
   }
 
-  const referencePrice = midPrice ?? 0;
-  if (!(referencePrice > 0)) {
-    return undefined;
-  }
-
   const requiredSide = getRequiredTriggerSide(orderType, direction);
+  // Without a usable mid the side cannot be checked, which is not a pass.
   const isOnValidSide =
-    requiredSide === 'above'
-      ? trigger > referencePrice
-      : trigger < referencePrice;
+    midPrice !== undefined &&
+    Number.isFinite(midPrice) &&
+    midPrice > 0 &&
+    (requiredSide === 'above' ? trigger > midPrice : trigger < midPrice);
 
   if (isOnValidSide) {
     return undefined;

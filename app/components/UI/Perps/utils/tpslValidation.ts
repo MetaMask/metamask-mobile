@@ -11,10 +11,8 @@
  */
 
 import {
-  isPositiveTriggerPrice,
   isStopLossSafeFromLiquidation,
-  isValidStopLossPrice,
-  isValidTakeProfitPrice,
+  validateTPSLPrices,
   type OrderType,
 } from '@metamask/perps-controller';
 // Re-export significant figures utilities from controller for backwards compatibility
@@ -51,7 +49,8 @@ export interface PerpsOrderTpSlWarnings {
  * Pure derivation of the order-form TP/SL warning flags shared by the lite
  * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. For priced
  * limit orders the limit price is the validation reference; otherwise the
- * market price is used. Mirrors the lite form's original inline logic exactly.
+ * market price is used. A set TP or SL that cannot be checked against the
+ * reference price is invalid.
  *
  * @param input - TP/SL warning inputs.
  * @returns The three warning flags plus the reference price type.
@@ -80,24 +79,17 @@ export const getPerpsOrderTpSlWarnings = ({
     : marketPrice;
   const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
 
+  // Core check per side. `unresolved` (no usable reference price) blocks
+  // like `invalid`: a side that cannot be checked is not a pass.
+  const tpslParams = { currentPrice: validationReferencePrice, direction };
   const isTakeProfitPriceInvalid = Boolean(
     takeProfitPrice?.trim() &&
-      (!isPositiveTriggerPrice(takeProfitPrice) ||
-        (validationReferencePrice > 0 &&
-          !isValidTakeProfitPrice(takeProfitPrice, {
-            currentPrice: validationReferencePrice,
-            direction,
-          }))),
+      validateTPSLPrices(takeProfitPrice, undefined, tpslParams) !== 'valid',
   );
 
   const isStopLossPriceInvalid = Boolean(
     stopLossPrice?.trim() &&
-      (!isPositiveTriggerPrice(stopLossPrice) ||
-        (validationReferencePrice > 0 &&
-          !isValidStopLossPrice(stopLossPrice, {
-            currentPrice: validationReferencePrice,
-            direction,
-          }))),
+      validateTPSLPrices(undefined, stopLossPrice, tpslParams) !== 'valid',
   );
 
   return {

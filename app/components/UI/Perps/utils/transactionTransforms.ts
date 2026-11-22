@@ -8,12 +8,16 @@ import {
   Funding,
   Order,
   OrderFill,
+  PERPS_ORDER_TYPE_LABELS,
   UserHistoryItem,
+  adaptTriggerOrderTypeFromSDK,
   calculateNetClosedPnl,
   getPerpsDisplaySymbol,
+  getTriggerDirection,
   isLimitExecutionOrderType,
   isTriggerOrderType,
   type OrderType,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import {
   FillType,
@@ -676,8 +680,14 @@ export function transformFillsToTransactions(
     }
 
     const isLiquidation = Boolean(liquidation);
-    const isTakeProfit = Boolean(detailedOrderType?.includes('Take Profit'));
-    const isStopLoss = Boolean(detailedOrderType?.includes('Stop'));
+    const fillTriggerType = adaptTriggerOrderTypeFromSDK(detailedOrderType);
+    const fillTriggerDirection =
+      fillTriggerType && getTriggerDirection(fillTriggerType);
+    const isTakeProfit =
+      fill.orderType === 'take_profit' ||
+      fillTriggerDirection === 'take_profit';
+    const isStopLoss =
+      fill.orderType === 'stop_loss' || fillTriggerDirection === 'stop';
 
     let title = '';
 
@@ -772,40 +782,67 @@ function resolveOrderExecutionType(
 }
 
 /**
- * Restores the user-facing conditional order type from provider terminology
- * and preserves the order's opening/closing direction.
+ * Labels a conditional order from its normalized type (Core
+ * `PERPS_ORDER_TYPE_LABELS`) and keeps its opening/closing direction.
  */
-function formatTriggeredOrderLabel(
-  order: Order,
-  executionType: NonNullable<PerpsTransaction['order']>['type'],
-): string {
-  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
-  const isLimit = executionType === 'limit';
-  let typeLabel: string;
+function formatTriggeredOrderLabel(order: Order, orderType: OrderType): string {
+  return `${strings(PERPS_ORDER_TYPE_LABELS[orderType].key)} ${getInlineOrderLabelDirection(order)}`;
+}
 
-  if (detailedOrderType.includes('take')) {
-    typeLabel = strings(
-      isLimit
-        ? 'perps.order.type.take_profit_limit.title'
-        : 'perps.order.type.take_profit_market.title',
+/**
+ * Order identity across venues: `orderId` is only unique within a provider,
+ * so aggregated lists key orders and fills by `providerId` + `orderId`.
+ *
+ * @param item - An order or a fill.
+ * @param item.providerId - Venue of the order, when tagged.
+ * @param item.orderId - Venue-local order id.
+ * @returns The provider-scoped order key.
+ */
+export const getProviderOrderKey = ({
+  providerId,
+  orderId,
+}: {
+  providerId?: PerpsProviderType;
+  orderId: string;
+}): string => `${providerId ?? ''}:${orderId}`;
+
+/**
+ * Total filled size per order (keyed by `getProviderOrderKey`). An order with
+ * a fill of unknown size gets no entry, so its fill is not under-counted.
+ *
+ * @param fills - Order fills.
+ * @returns Map of provider-scoped order key to total filled size.
+ */
+export function buildFillSizeByOrderKey(
+  fills: OrderFill[],
+): Map<string, BigNumber> {
+  const fillSizeByOrderKey = new Map<string, BigNumber>();
+  const unknownSizeKeys = new Set<string>();
+  for (const fill of fills) {
+    if (!fill.orderId) {
+      continue;
+    }
+    const key = getProviderOrderKey(fill);
+    const size = new BigNumber(fill.size);
+    if (!size.isFinite()) {
+      unknownSizeKeys.add(key);
+      continue;
+    }
+    fillSizeByOrderKey.set(
+      key,
+      (fillSizeByOrderKey.get(key) ?? new BigNumber(0)).plus(size),
     );
-  } else if (detailedOrderType.includes('stop')) {
-    typeLabel = strings(
-      isLimit
-        ? 'perps.order.type.stop_limit.title'
-        : 'perps.order.type.stop_market.title',
-    );
-  } else {
-    typeLabel = strings(isLimit ? 'perps.order.limit' : 'perps.order.market');
   }
-
-  return `${typeLabel} ${getInlineOrderLabelDirection(order)}`;
+  for (const key of unknownSizeKeys) {
+    fillSizeByOrderKey.delete(key);
+  }
+  return fillSizeByOrderKey;
 }
 
 /**
  * Transform abstract Order objects to PerpsTransaction format
  * @param orders - Array of abstract Order objects
- * @param fillSizeByOrderId - Optional map of orderId to total filled size (from actual fills).
+ * @param fillSizeByOrderKey - Optional map of `getProviderOrderKey` to total filled size (from actual fills).
  * When provided, uses actual fill data to calculate accurate filled percentages.
  * This is important because HyperLiquid's historical orders API returns sz=0 for all
  * completed orders, making it impossible to calculate partial fill percentages without fill data.
@@ -813,7 +850,7 @@ function formatTriggeredOrderLabel(
  */
 export function transformOrdersToTransactions(
   orders: Order[],
-  fillSizeByOrderId?: Map<string, BigNumber>,
+  fillSizeByOrderKey?: Map<string, BigNumber>,
 ): PerpsTransaction[] {
   return orders.map((order) => {
     const {
@@ -857,7 +894,7 @@ export function transformOrdersToTransactions(
         : undefined;
 
     const title = isTrigger
-      ? formatTriggeredOrderLabel(order, executionType)
+      ? formatTriggeredOrderLabel(order, normalizedOrderType)
       : formatOrderLabel(order);
     const subtitle = `${originalSize || '0'} ${getPerpsDisplaySymbol(symbol)}`;
 
@@ -886,7 +923,9 @@ export function transformOrdersToTransactions(
 
     // Calculate filled percentage - prefer actual fill data when available
     let filledPercent: string;
-    const actualFilledSize = fillSizeByOrderId?.get(orderId);
+    const actualFilledSize = fillSizeByOrderKey?.get(
+      getProviderOrderKey(order),
+    );
 
     if (actualFilledSize !== undefined) {
       // Use actual fill data for accurate percentage

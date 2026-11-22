@@ -157,7 +157,7 @@ export const usePerpsTerminateTwap = (
         showToast(
           PerpsToastOptions.orderManagement.shared.cancellationSuccess(
             twapOrder.reduceOnly,
-            'TWAP',
+            'twap',
             hasFills && !twapOrder.reduceOnly
               ? twapOrder.side === 'buy'
                 ? 'long'

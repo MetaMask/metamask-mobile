@@ -1276,8 +1276,7 @@ describe('PerpsMarketDetailsView', () => {
       );
       updatePositionTPSL.mockResolvedValueOnce({
         success: false,
-        error:
-          'order 0: Only post-only orders allowed immediately after network upgrade',
+        error: 'ORDER_POST_ONLY_WINDOW',
       });
       const position = createLongPositionForViews();
       const { stream } = renderPerpsMarketDetailsView({

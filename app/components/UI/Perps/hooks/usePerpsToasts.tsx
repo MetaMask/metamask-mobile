@@ -31,6 +31,7 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import { store } from '../../../../store';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
 import {
@@ -40,8 +41,13 @@ import {
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
+  PERPS_CONSTANTS,
+  PERPS_DISPLAY_PRECISION,
   PERPS_EVENT_VALUE,
+  PERPS_ORDER_TYPE_LABELS,
   OrderDirection,
+  type AssetRoute,
+  type OrderType,
   getPerpsDisplaySymbol,
   type MarginModeLockReason,
   type Position,
@@ -53,6 +59,18 @@ import {
   type PerpsErrorInput,
 } from '../utils/translatePerpsError';
 import { formatDurationForDisplay } from '../utils/time';
+
+const isPerpsOrderType = (value: string): value is OrderType =>
+  Object.hasOwn(PERPS_ORDER_TYPE_LABELS, value);
+
+/**
+ * Localized Core label for a normalized order type (`take_profit_limit` ->
+ * "Take limit"). Other values (e.g. a caller's own copy) pass through.
+ */
+const getOrderTypeToastLabel = (orderType: string): string =>
+  isPerpsOrderType(orderType)
+    ? strings(PERPS_ORDER_TYPE_LABELS[orderType].key)
+    : orderType;
 
 export type PerpsToastOptions = Omit<ToastOptions, 'labelOptions'> & {
   hapticsType: HapticNotificationMoment;
@@ -85,9 +103,11 @@ export interface PerpsToastOptionsConfig {
     };
     withdrawal: {
       withdrawalInProgress: PerpsToastOptions;
+      /** Net amount and network come from the withdrawal `route`; unknown renders `--`. */
       withdrawalSuccess: (
         amount: string,
         assetSymbol: string,
+        route?: AssetRoute,
       ) => PerpsToastOptions;
       withdrawalFailed: (error?: string) => PerpsToastOptions;
       withdrawalStartFailed: (onRetry: () => void) => PerpsToastOptions;
@@ -578,19 +598,39 @@ const usePerpsToasts = (): {
               strings('perps.withdrawal.processing_title'),
             ),
           },
-          withdrawalSuccess: (amount: string, assetSymbol: string) => ({
-            ...perpsBaseToastOptions.success,
-            labelOptions: getPerpsToastLabels(
-              strings('perps.withdrawal.success_toast'),
-              strings('perps.withdrawal.success_toast_description', {
-                amount: amount
-                  ? (Number.parseFloat(amount) - 1).toFixed(2)
-                  : undefined,
-                symbol: assetSymbol,
-                networkName: 'Arbitrum',
-              }),
-            ),
-          }),
+          withdrawalSuccess: (
+            amount: string,
+            assetSymbol: string,
+            route?: AssetRoute,
+          ) => {
+            const fee = route?.constraints?.fees?.fixed;
+            const networkName = route
+              ? selectNetworkConfigurationsByCaipChainId(store.getState())[
+                  route.chainId
+                ]?.name
+              : undefined;
+            return {
+              ...perpsBaseToastOptions.success,
+              labelOptions: getPerpsToastLabels(
+                strings('perps.withdrawal.success_toast'),
+                strings('perps.withdrawal.success_toast_description', {
+                  amount:
+                    // A USDC amount, formatted as the withdraw view's
+                    // receiving amount (usePerpsWithdrawQuote).
+                    amount && fee !== undefined
+                      ? formatPerpsFiat(Number.parseFloat(amount) - fee, {
+                          symbol: false,
+                          minimumDecimals: 0,
+                          maximumDecimals: PERPS_DISPLAY_PRECISION.Fee,
+                        })
+                      : PERPS_CONSTANTS.FallbackDataDisplay,
+                  symbol: assetSymbol,
+                  networkName:
+                    networkName ?? PERPS_CONSTANTS.FallbackDataDisplay,
+                }),
+              ),
+            };
+          },
           withdrawalFailed: (error?: string) => ({
             ...perpsBaseToastOptions.error,
             labelOptions: getPerpsToastLabels(
@@ -831,7 +871,8 @@ const usePerpsToasts = (): {
 
             // Title
             if (detailedOrderType) {
-              const orderTypeLowercase = detailedOrderType.toLowerCase();
+              const orderTypeLowercase =
+                getOrderTypeToastLabel(detailedOrderType).toLowerCase();
 
               labels.push(
                 strings('perps.order.cancelling_order_in_progress', {
@@ -870,7 +911,7 @@ const usePerpsToasts = (): {
             // Title
             if (detailedOrderType) {
               const orderTypeLowercase = capitalize(
-                detailedOrderType.toLowerCase(),
+                getOrderTypeToastLabel(detailedOrderType).toLowerCase(),
               );
 
               labels.push(

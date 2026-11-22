@@ -1,8 +1,10 @@
-import { capitalize } from 'lodash';
 import {
+  adaptTriggerOrderTypeFromSDK,
+  buildTriggerOrderType,
   isLimitExecutionOrderType,
   isTPSLOrder,
   isTriggerOrderType,
+  PERPS_ORDER_TYPE_LABELS,
   type OrderParams,
   type Order,
   type OrderDirection,
@@ -192,19 +194,11 @@ export const resolvePerpsTransactionOrderType = (
     return order.orderType;
   }
 
-  const detailedOrderType = order.detailedOrderType?.toLowerCase() ?? '';
-
-  if (detailedOrderType.includes('take profit')) {
-    return detailedOrderType.includes('limit')
-      ? 'take_profit_limit'
-      : 'take_profit_market';
-  }
-
-  if (detailedOrderType.includes('stop')) {
-    return detailedOrderType.includes('limit') ? 'stop_limit' : 'stop_market';
-  }
-
-  return order.orderType ?? order.type;
+  return (
+    adaptTriggerOrderTypeFromSDK(order.detailedOrderType) ??
+    order.orderType ??
+    order.type
+  );
 };
 
 export interface PerpsOrderPriceRowVisibility {
@@ -628,6 +622,10 @@ const buildSyntheticTriggerOrder = (
     status: 'open',
     timestamp: parentOrder.timestamp,
     detailedOrderType: syntheticDetailedType,
+    triggerOrderType: buildTriggerOrderType({
+      direction: triggerType === 'tp' ? 'take_profit' : 'stop',
+      execution: syntheticOrderType,
+    }),
     isTrigger: true,
     reduceOnly: true,
     triggerPrice: normalizedTriggerPrice,
@@ -754,46 +752,13 @@ export const getOrderPositionDirection = (order: Order): OrderDirection =>
   resolveOrderDirection(order.side, isClosingOrder(order));
 
 /**
- * Resolves the raw order type token from provider data before i18n or
- * title-casing. Prefers `detailedOrderType` when present; otherwise maps
- * `orderType` to canonical limit/market tokens shared by label formatters.
+ * Localized Core label of the order's normalized type: the trigger placement
+ * type when present, otherwise `orderType`.
  */
-const resolveOrderTypeString = (order: Order): string => {
-  const detailedType = order.detailedOrderType?.trim();
-  if (detailedType) {
-    return detailedType;
-  }
-
-  return order.orderType === 'limit' ? 'limit' : 'market';
-};
-
-/**
- * Formats a resolved order type token for compact UI pills with i18n for
- * canonical limit/market types and title-casing for provider-specific names.
- */
-const formatOrderTypeString = (typeString: string): string => {
-  const normalized = typeString.toLowerCase();
-  if (normalized === 'limit') {
-    return strings('perps.order.limit');
-  }
-  if (normalized === 'market') {
-    return strings('perps.order.market');
-  }
-  if (normalized === 'stop limit') {
-    return strings('perps.order.type.stop_limit.title');
-  }
-  if (normalized === 'stop market') {
-    return strings('perps.order.type.stop_market.title');
-  }
-  if (normalized === 'take profit limit') {
-    return strings('perps.order.type.take_profit_limit.title');
-  }
-  if (normalized === 'take profit market') {
-    return strings('perps.order.type.take_profit_market.title');
-  }
-
-  return capitalize(typeString);
-};
+const getOrderTypeLabel = (order: Order): string =>
+  strings(
+    PERPS_ORDER_TYPE_LABELS[order.triggerOrderType ?? order.orderType].key,
+  );
 
 const getLocalizedOrderDirectionLabel = (
   order: Order,
@@ -818,42 +783,23 @@ const getLocalizedOrderDirectionLabel = (
 
 /**
  * Format an order label following the pattern: [Type] [Close?] [Direction]
+ * from Core `PERPS_ORDER_TYPE_LABELS` and localized direction copy.
  *
- * Examples:
- * - Market Long
- * - Market Close Long
- * - Limit Short
- * - Limit Close Short
- * - Stop Market Close Long
- * - Take Limit Close Short
+ * Examples (English):
+ * - Market long
+ * - Market close long
+ * - Limit short
+ * - Stop market close long
+ * - Take limit close short
  *
  * @param order - The order object
  * @returns Formatted order label string
  */
-export const formatOrderLabel = (order: Order): string => {
-  const { side } = order;
-
-  const isClosing = isClosingOrder(order);
-  const direction = resolveOrderDirection(side, isClosing);
-  const resolvedTypeString = resolveOrderTypeString(order);
-  const isTrigger = isTriggerOrder(order);
-  const typeString = isTrigger
-    ? formatOrderTypeString(resolvedTypeString)
-    : resolvedTypeString;
-  const localizedDirection = isTrigger
-    ? getLocalizedOrderDirectionLabel(order, isClosing)
-    : direction;
-
-  // Build the label: [Type] [Close?] [Direction]
-  const label = isTrigger
-    ? `${typeString} ${localizedDirection}`
-    : isClosing
-      ? `${typeString} close ${direction}`
-      : `${typeString} ${direction}`;
-
-  // Preserve the legacy Lite label path for ordinary market/limit orders.
-  return isTrigger ? label : capitalize(label);
-};
+export const formatOrderLabel = (order: Order): string =>
+  `${getOrderTypeLabel(order)} ${getLocalizedOrderDirectionLabel(
+    order,
+    isClosingOrder(order),
+  )}`;
 
 /**
  * Format just the order type portion of an order label (no direction/close).
@@ -864,7 +810,7 @@ export const formatOrderLabel = (order: Order): string => {
  * @returns Formatted order type string for compact UI pills
  */
 export const formatOrderTypeLabel = (order: Order): string =>
-  formatOrderTypeString(resolveOrderTypeString(order));
+  getOrderTypeLabel(order);
 
 /**
  * Get just the direction portion of an order label

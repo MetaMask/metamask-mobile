@@ -288,7 +288,7 @@ describe('usePerpsTrading', () => {
     it.each([
       [
         'a cancelled original for a post-only would-cross modify',
-        'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.',
+        'ORDER_POST_ONLY_WOULD_CROSS',
         { reason: 'post_only_would_cross', originalOrder: 'cancelled' },
       ],
       [

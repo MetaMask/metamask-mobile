@@ -69,6 +69,12 @@ jest.mock('../../../../selectors/transactionController', () => ({
   selectTransactionMetadataById: jest.fn(() => mockDepositMeta),
 }));
 
+jest.mock('../../../../selectors/networkController', () => ({
+  selectNetworkConfigurationsByCaipChainId: jest.fn(() => ({
+    'eip155:1': { name: 'Ethereum' },
+  })),
+}));
+
 jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
 }));
@@ -355,6 +361,13 @@ describe('usePerpsToasts', () => {
           result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalSuccess(
             '100',
             'USDC',
+            {
+              assetId:
+                'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/default',
+              chainId: 'eip155:1',
+              contractAddress: '0x0000000000000000000000000000000000000001',
+              constraints: { fees: { fixed: 0.5, token: 'USDC' } },
+            },
           );
 
         expect(config.labelOptions).toEqual([
@@ -362,9 +375,23 @@ describe('usePerpsToasts', () => {
           { isBold: false, label: '\n' },
           {
             isBold: false,
-            label: "You'll receive 99.00 USDC on Arbitrum within 5 minutes",
+            label: "You'll receive 99.5 USDC on Ethereum within 5 minutes",
           },
         ]);
+      });
+
+      it('shows placeholders when the withdrawal route is unknown', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.accountManagement.withdrawal.withdrawalSuccess(
+            '100',
+            'USDC',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          isBold: false,
+          label: "You'll receive -- USDC on -- within 5 minutes",
+        });
       });
 
       it('returns withdrawal failed configuration with custom error', () => {
@@ -814,6 +841,29 @@ describe('usePerpsToasts', () => {
           variant: ToastVariants.Icon,
           iconName: IconName.Loading,
           hapticsType: NotificationMoment.Warning,
+        });
+      });
+
+      it('labels a normalized order type with its Core label when cancelling', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const shared = result.current.PerpsToastOptions.orderManagement.shared;
+
+        expect(
+          shared.cancellationInProgress(
+            'long',
+            '2.5',
+            'SOL',
+            'take_profit_limit',
+          ).labelOptions,
+        ).toContainEqual({
+          label: 'Cancelling take limit order',
+          isBold: true,
+        });
+        expect(
+          shared.cancellationSuccess(true, 'stop_market').labelOptions,
+        ).toContainEqual({
+          label: 'Stop market order cancelled',
+          isBold: true,
         });
       });
 

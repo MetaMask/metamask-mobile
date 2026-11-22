@@ -77,6 +77,7 @@ describe('PerpsProOrderCard', () => {
           takeProfitPrice: '220',
           stopLossPrice: '130',
           detailedOrderType: 'Stop Market',
+          triggerOrderType: 'stop_market',
           reduceOnly: true,
           isTrigger: true,
         }}
@@ -244,6 +245,7 @@ describe('PerpsProOrderCard', () => {
         ...baseOrder,
         side: 'sell' as const,
         detailedOrderType: 'Take Profit Limit',
+        triggerOrderType: 'take_profit_limit' as const,
         orderType: 'limit' as const,
         reduceOnly: true,
         isTrigger: true,
@@ -258,6 +260,7 @@ describe('PerpsProOrderCard', () => {
         ...baseOrder,
         side: 'sell' as const,
         detailedOrderType: 'Take Profit Market',
+        triggerOrderType: 'take_profit_market' as const,
         orderType: 'market' as const,
         reduceOnly: true,
         isTrigger: true,
@@ -272,6 +275,7 @@ describe('PerpsProOrderCard', () => {
         ...baseOrder,
         side: 'sell' as const,
         detailedOrderType: 'Stop Limit',
+        triggerOrderType: 'stop_limit' as const,
         orderType: 'limit' as const,
         reduceOnly: true,
         isTrigger: true,
@@ -286,6 +290,7 @@ describe('PerpsProOrderCard', () => {
         ...baseOrder,
         side: 'buy' as const,
         detailedOrderType: 'Stop Market',
+        triggerOrderType: 'stop_market' as const,
         orderType: 'market' as const,
         reduceOnly: true,
         isTrigger: true,
@@ -405,6 +410,7 @@ describe('PerpsProOrderCard', () => {
         order={{
           ...baseOrder,
           detailedOrderType: 'Stop Market',
+          triggerOrderType: 'stop_market',
           orderType: 'market',
           isTrigger: true,
         }}

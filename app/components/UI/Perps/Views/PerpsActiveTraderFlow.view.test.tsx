@@ -133,6 +133,7 @@ const shortMarketOrder: Order = {
   orderId: 'compact_order_2',
   symbol: 'BTC',
   side: 'sell',
+  orderType: 'market',
   detailedOrderType: 'Market',
   price: '45000',
   size: '0.1',

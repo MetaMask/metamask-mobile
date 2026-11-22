@@ -43,7 +43,7 @@ const EMPTY_DEPOSIT_REQUESTS: DepositRequest[] = [];
 /**
  * Hook to fetch deposit requests combining:
  * 1. Pending/bridging deposits from PerpsController state (real-time)
- * 2. Completed deposits from HyperLiquid API (historical)
+ * 2. Completed deposits from the active provider's `getUserHistory` (historical)
  *
  * This provides the complete deposit lifecycle from initiation to completion
  */
@@ -143,11 +143,6 @@ export const useDepositRequests = (
         return;
       }
 
-      // Check if provider has the getUserNonFundingLedgerUpdates method
-      if (!('getUserNonFundingLedgerUpdates' in provider)) {
-        throw new Error('Provider does not support non-funding ledger updates');
-      }
-
       // Use provided startTime or default to start of today (midnight UTC)
       const now = new Date();
       const startOfToday = new Date(
@@ -157,54 +152,27 @@ export const useDepositRequests = (
       ).getTime();
       const searchStartTime = startTime ?? startOfToday;
 
-      const updates = await (
-        provider as {
-          getUserNonFundingLedgerUpdates: (
-            params: unknown,
-          ) => Promise<unknown[]>;
-        }
-      ).getUserNonFundingLedgerUpdates({
+      // Provider history is already venue-adapted (`UserHistoryItem`).
+      const history = await provider.getUserHistory({
         startTime: searchStartTime,
-        endTime: undefined,
       });
 
-      // Transform ledger updates to deposit requests
-      // Handle cases where updates might be undefined or null
-      const updatesArray = Array.isArray(updates) ? updates : [];
-
-      // Get current account address for completed deposits
       // Since we're fetching deposits for the current account, all completed deposits belong to it
       // Note: selectedAddress is guaranteed to exist due to early return above
       const currentAccountAddress = selectedAddress;
 
-      const depositData = (
-        updatesArray as {
-          delta: {
-            coin?: string;
-            usdc: string;
-            type: string;
-            fee?: string;
-            nonce?: number;
-          };
-          hash: string;
-          time: number;
-        }[]
-      )
-        .filter((update) => {
-          const isDeposit = update.delta.type === 'deposit';
-          return isDeposit;
-        })
-        .map((update) => ({
-          id: `deposit-${update.hash}`,
-          timestamp: update.time,
-          amount: Math.abs(parseFloat(update.delta.usdc)).toString(),
-          asset: update.delta.coin || 'USDC', // Default to USDC if symbol is not specified (API uses 'coin')
+      const depositData: DepositRequest[] = history
+        .filter((item) => item.type === 'deposit')
+        .map((item) => ({
+          id: item.id,
+          timestamp: item.timestamp,
+          amount: item.amount,
+          asset: item.asset,
           accountAddress: currentAccountAddress, // Completed deposits belong to current account
-          txHash: update.hash,
-          success: true, // Completed deposits from ledger are successful
-          status: 'completed' as const, // HyperLiquid ledger updates are completed transactions
-          source: undefined, // Not available in ledger updates
-          depositId: update.delta.nonce?.toString(), // Use nonce as deposit ID if available
+          txHash: item.txHash,
+          success: item.status === 'completed',
+          status: item.status,
+          source: item.details.source || undefined,
         }));
 
       setCompletedDeposits(depositData);
@@ -225,7 +193,7 @@ export const useDepositRequests = (
     // Combine both sources and sort by timestamp (newest first)
     const combined = [...pendingDeposits, ...completedDeposits];
 
-    // Only show completed deposits with actual amounts from HyperLiquid API
+    // Only show completed deposits with actual amounts from provider history
     // Filter out pending/bridging deposits - only show when fully completed
     const uniqueDeposits = combined.filter((deposit) => {
       // Only include completed deposits with actual amounts (not "0" or "0.00")

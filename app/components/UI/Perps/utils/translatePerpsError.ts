@@ -144,70 +144,18 @@ const getErrorI18nKey = (
     : getPerpsErrorCopy(errorCode).key;
 
 /**
- * Pattern matching for common HyperLiquid API error messages.
- * Maps regex patterns to error codes for user-friendly translation.
+ * Prose fallback for failures that reach the client without an error code.
+ * Venue rejections (margin, balance, slippage, IOC, rate limit, network,
+ * post-only, no position, ...) are not listed: providers classify them into
+ * `errorCode` (Core `normalizeHyperLiquidError`). These messages have no Core
+ * classifier yet.
  *
  * IMPORTANT: Order matters - more specific patterns MUST come before general ones.
- * For example, "Transfer failed: network error" should match NETWORK_ERROR, not TRANSFER_FAILED.
  */
 const API_ERROR_PATTERNS: {
   pattern: RegExp;
   errorCode: PerpsErrorCode;
 }[] = [
-  // === SPECIFIC PATTERNS FIRST ===
-
-  // Network/service errors - check these early since they can appear in compound errors
-  // e.g., "Transfer failed: network error" should match NETWORK_ERROR
-  {
-    pattern: /timeout|timed out/i,
-    errorCode: PERPS_ERROR_CODES.CONNECTION_TIMEOUT,
-  },
-  {
-    pattern: /service unavailable|503|temporarily unavailable/i,
-    errorCode: PERPS_ERROR_CODES.SERVICE_UNAVAILABLE,
-  },
-  {
-    pattern: /network error|fetch failed|connection failed/i,
-    errorCode: PERPS_ERROR_CODES.NETWORK_ERROR,
-  },
-  // Rate limiting
-  {
-    pattern: /rate limit|too many requests|throttl/i,
-    errorCode: PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED,
-  },
-
-  // Margin/balance errors
-  {
-    pattern: /margin available|not enough margin|insufficient margin/i,
-    errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-  },
-  {
-    pattern: /insufficient balance|not enough balance/i,
-    errorCode: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
-  },
-
-  // Order execution errors
-  {
-    pattern: /reduce only|reduceOnly/i,
-    errorCode: PERPS_ERROR_CODES.REDUCE_ONLY_VIOLATION,
-  },
-  {
-    pattern: /position would flip|would flip position/i,
-    errorCode: PERPS_ERROR_CODES.POSITION_WOULD_FLIP,
-  },
-  {
-    pattern: /slippage|price moved too much/i,
-    errorCode: PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED,
-  },
-  {
-    pattern: /insufficient liquidity|no liquidity|IOC.*cancel/i,
-    errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
-  },
-  {
-    pattern: /order rejected|rejected order/i,
-    errorCode: PERPS_ERROR_CODES.ORDER_REJECTED,
-  },
-
   // Data errors
   {
     pattern:
@@ -230,14 +178,7 @@ const API_ERROR_PATTERNS: {
     errorCode: PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
   },
 
-  // Leverage errors
-  {
-    pattern: /cannot reduce.*leverage|leverage reduction/i,
-    errorCode: PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
-  },
-
   // === GENERIC PATTERNS LAST ===
-  // These are catch-all patterns that should only match if no specific pattern matched
   {
     pattern: /transfer failed/i,
     errorCode: PERPS_ERROR_CODES.TRANSFER_FAILED,
@@ -247,36 +188,6 @@ const API_ERROR_PATTERNS: {
     errorCode: PERPS_ERROR_CODES.SWAP_FAILED,
   },
 ];
-
-/** HyperLiquid only accepts post-only orders for a while after a network upgrade. */
-const POST_ONLY_WINDOW_PATTERN =
-  /only post-only orders allowed immediately after network upgrade/i;
-/** HyperLiquid refused a post-only order whose price would cross the spread. */
-const POST_ONLY_WOULD_CROSS_PATTERN =
-  /post only order would have immediately matched/i;
-
-/**
- * Venue rejections without a Core error code, mapped straight to copy. Checked
- * before API_ERROR_PATTERNS: the would-cross message embeds raw bbo prices that
- * generic patterns (e.g. /503/) could otherwise match.
- */
-const POST_ONLY_ERROR_PATTERNS: { pattern: RegExp; i18nKey: string }[] = [
-  {
-    pattern: POST_ONLY_WINDOW_PATTERN,
-    i18nKey: 'perps.errors.postOnlyWindow',
-  },
-  {
-    pattern: POST_ONLY_WOULD_CROSS_PATTERN,
-    i18nKey: 'perps.errors.postOnlyWouldCross',
-  },
-];
-
-function matchPostOnlyErrorKey(errorString: string): string | null {
-  return (
-    POST_ONLY_ERROR_PATTERNS.find(({ pattern }) => pattern.test(errorString))
-      ?.i18nKey ?? null
-  );
-}
 
 /**
  * Attempts to match an error string against known API error patterns.
@@ -328,11 +239,6 @@ export function translatePerpsError(
     );
   }
 
-  const postOnlyKey = matchPostOnlyErrorKey(errorInput.error);
-  if (postOnlyKey) {
-    return strings(postOnlyKey);
-  }
-
   const matchedErrorCode = matchApiErrorPattern(errorInput.error);
   if (matchedErrorCode) {
     return strings(
@@ -359,35 +265,22 @@ export function isPerpsErrorCode(
   );
 }
 
-/** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
-const NO_POSITION_FOUND_PATTERN = /No position found/i;
-
 /**
  * True when the venue rejected the request because the position was already
  * filled, closed, or liquidated — a stale-state race, not a user-side failure.
  */
 export function isNoPositionFoundError(error: unknown): boolean {
-  const failure = normalizePerpsError(error);
-  return (
-    isPerpsErrorCode(error, PERPS_ERROR_CODES.POSITION_NOT_FOUND) ||
-    NO_POSITION_FOUND_PATTERN.test(failure?.error ?? '')
-  );
+  return isPerpsErrorCode(error, PERPS_ERROR_CODES.POSITION_NOT_FOUND);
 }
 
-/** True when HyperLiquid refused the order because of its post-only window. */
+/** True when the venue refused the order because of its post-only window. */
 export function isPostOnlyWindowError(error: unknown): boolean {
-  return (
-    isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW) ||
-    POST_ONLY_WINDOW_PATTERN.test(normalizePerpsError(error)?.error ?? '')
-  );
+  return isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW);
 }
 
-/** True when HyperLiquid refused a post-only order that would cross the spread. */
+/** True when the venue refused a post-only order that would cross the spread. */
 export function isPostOnlyWouldCrossError(error: unknown): boolean {
-  return (
-    isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS) ||
-    POST_ONLY_WOULD_CROSS_PATTERN.test(normalizePerpsError(error)?.error ?? '')
-  );
+  return isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS);
 }
 
 /** Why an order edit was refused, and what happened to the order it replaced. */
@@ -497,11 +390,6 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
 
   // Try pattern matching for API error messages
   if (errorString) {
-    const postOnlyKey = matchPostOnlyErrorKey(errorString);
-    if (postOnlyKey) {
-      return strings(postOnlyKey);
-    }
-
     const matchedErrorCode = matchApiErrorPattern(errorString);
     if (matchedErrorCode) {
       debugLogger?.log('PerpsErrorHandler: Matched error pattern', {

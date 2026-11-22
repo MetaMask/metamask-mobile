@@ -5,11 +5,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
 import { formatPerpsFiat } from '../../../utils/formatUtils';
-import Engine from '../../../../../../core/Engine';
-import {
-  HYPERLIQUID_ASSET_CONFIGS,
-  WITHDRAWAL_CONSTANTS,
-} from '@metamask/perps-controller';
+import { useSelector } from 'react-redux';
+import { useWithdrawalRoute } from '../../../hooks/useWithdrawValidation';
+import { selectPerpsOrderProvider } from '../../../selectors/perpsController';
 import { METAMASK_WITHDRAWAL_FEE_PLACEHOLDER } from '../../../constants/perpsUIConfig';
 import {
   FontWeight,
@@ -23,37 +21,15 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
 }) => {
   const { styles } = useStyles(createStyles, {});
 
-  // Get withdrawal route to access fee constraints
-  const withdrawalRoute = useMemo(() => {
-    const controller = Engine.context.PerpsController;
-    const routes = controller.getWithdrawalRoutes();
-    const isTestnet = controller.state.isTestnet;
+  const providerId = useSelector(selectPerpsOrderProvider) ?? undefined;
+  const withdrawalRoute = useWithdrawalRoute(providerId);
 
-    // Find USDC route
-    const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
-
-    return routes.find((route) => route.assetId === usdcAssetId);
-  }, []);
-
-  // Get the actual network fee amount from route and format using existing utility
-  const networkFee = useMemo(() => {
-    const fee =
-      withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
-    return formatPerpsFiat(fee);
-  }, [withdrawalRoute]);
-
-  // Calculate total fees for display
-  const totalFees = useMemo(() => {
-    const providerFee =
-      withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
-    // MetaMask fee is currently 0
-    const metamaskFee = 0;
-    return formatPerpsFiat(providerFee + metamaskFee);
-  }, [withdrawalRoute]);
+  // MetaMask fee is currently 0, so the total equals the route's provider fee.
+  // An unknown fee renders the Core placeholder.
+  const networkFee = useMemo(
+    () => formatPerpsFiat(withdrawalRoute?.constraints?.fees?.fixed),
+    [withdrawalRoute],
+  );
 
   return (
     <View testID={testID}>
@@ -93,7 +69,7 @@ const WithdrawalFeesTooltipContent: React.FC<TooltipContentProps> = ({
           fontWeight={FontWeight.Medium}
           color={TextColor.TextDefault}
         >
-          {totalFees}
+          {networkFee}
         </Text>
       </View>
     </View>

@@ -396,7 +396,7 @@ describe('usePerpsMarginAdjustment', () => {
     });
 
     it('handles exceptions and logs via Logger.error', async () => {
-      const testError = new Error('Network error');
+      const testError = new Error('NETWORK_ERROR');
       mockUpdateMargin.mockRejectedValue(testError);
       const mockOnError = jest.fn();
 

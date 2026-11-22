@@ -217,6 +217,7 @@ describe('orderUtils', () => {
         side: 'sell',
         orderType: 'market',
         detailedOrderType: 'Stop Market',
+        triggerOrderType: 'stop_market',
         size: '1',
         originalSize: '1',
         price: '45000',
@@ -238,6 +239,7 @@ describe('orderUtils', () => {
         side: 'sell',
         orderType: 'limit',
         detailedOrderType: 'Take Profit Limit',
+        triggerOrderType: 'take_profit_limit',
         size: '1',
         originalSize: '1',
         price: '55000',
@@ -264,6 +266,7 @@ describe('orderUtils', () => {
           side,
           orderType: 'market',
           detailedOrderType: 'Stop Market',
+          triggerOrderType: 'stop_market',
           size: '1',
           originalSize: '1',
           price: '2800',
@@ -280,6 +283,54 @@ describe('orderUtils', () => {
         expect(result).toBe(expectedLabel);
       },
     );
+
+    it.each([
+      ['scale', 'Scale long'],
+      ['chase', 'Chase long'],
+      ['twap', 'TWAP long'],
+    ] as const)(
+      'labels a %s order with its Core order type',
+      (orderType, expectedLabel) => {
+        const order: Order = {
+          orderId: '1',
+          symbol: 'BTC',
+          side: 'buy',
+          orderType,
+          size: '1',
+          originalSize: '1',
+          price: '50000',
+          filledSize: '0',
+          remainingSize: '1',
+          status: 'open',
+          timestamp: Date.now(),
+          reduceOnly: false,
+          isTrigger: false,
+        };
+
+        expect(formatOrderLabel(order)).toBe(expectedLabel);
+      },
+    );
+
+    it('labels a trigger from triggerOrderType without venue prose', () => {
+      const order: Order = {
+        orderId: '1',
+        symbol: 'BTC',
+        side: 'sell',
+        orderType: 'limit',
+        triggerOrderType: 'take_profit_limit',
+        size: '1',
+        originalSize: '1',
+        price: '55000',
+        filledSize: '0',
+        remainingSize: '1',
+        status: 'open',
+        timestamp: Date.now(),
+        reduceOnly: true,
+        isTrigger: true,
+      };
+
+      expect(formatOrderLabel(order)).toBe('Take limit close long');
+    });
 
     it('formats a legacy trigger without reduce-only as a closing order', () => {
       const order: Order = {
@@ -305,19 +356,20 @@ describe('orderUtils', () => {
 
   describe('formatOrderTypeLabel', () => {
     it.each([
-      ['Stop Limit', 'limit', 'Stop limit'],
-      ['Stop Market', 'market', 'Stop market'],
-      ['Take Profit Limit', 'limit', 'Take limit'],
-      ['Take Profit Market', 'market', 'Take market'],
+      ['Stop Limit', 'stop_limit', 'limit', 'Stop limit'],
+      ['Stop Market', 'stop_market', 'market', 'Stop market'],
+      ['Take Profit Limit', 'take_profit_limit', 'limit', 'Take limit'],
+      ['Take Profit Market', 'take_profit_market', 'market', 'Take market'],
     ] as const)(
       'maps provider type %s to the selected order type label',
-      (detailedOrderType, orderType, expectedLabel) => {
+      (detailedOrderType, triggerOrderType, orderType, expectedLabel) => {
         const order: Order = {
           orderId: '1',
           symbol: 'BTC',
           side: 'buy',
           orderType,
           detailedOrderType,
+          triggerOrderType,
           size: '1',
           originalSize: '1',
           price: '50000',

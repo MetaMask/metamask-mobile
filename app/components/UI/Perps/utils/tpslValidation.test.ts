@@ -32,6 +32,32 @@ describe('TPSL Validation Utilities', () => {
       expect(warnings.isStopLossPriceInvalid).toBe(true);
     });
 
+    it('flags a set TP/SL that cannot be checked without a market price', () => {
+      const warnings = getPerpsOrderTpSlWarnings({
+        orderType: 'market',
+        direction: 'long',
+        takeProfitPrice: '3000',
+        stopLossPrice: '2000',
+        liquidationPrice: '',
+        marketPrice: Number.NaN,
+      });
+
+      expect(warnings.isTakeProfitPriceInvalid).toBe(true);
+      expect(warnings.isStopLossPriceInvalid).toBe(true);
+    });
+
+    it('keeps unset TP/SL valid without a market price', () => {
+      const warnings = getPerpsOrderTpSlWarnings({
+        orderType: 'market',
+        direction: 'long',
+        liquidationPrice: '',
+        marketPrice: 0,
+      });
+
+      expect(warnings.isTakeProfitPriceInvalid).toBe(false);
+      expect(warnings.isStopLossPriceInvalid).toBe(false);
+    });
+
     it('flags a non-positive take profit in the order form warnings', () => {
       // Arrange
       const input = {

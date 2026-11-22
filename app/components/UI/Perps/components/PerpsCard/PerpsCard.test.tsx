@@ -54,6 +54,15 @@ jest.mock('../../../../../../locales/i18n', () => ({
     if (key === 'perps.order.short_label' || key === 'perps.market.short') {
       return 'Short';
     }
+    if (key === 'perps.order.type.limit.title') {
+      return 'Limit';
+    }
+    if (key === 'perps.market.long_lowercase') {
+      return 'long';
+    }
+    if (key === 'perps.market.short_lowercase') {
+      return 'short';
+    }
     return key;
   },
 }));
@@ -443,6 +452,7 @@ describe('PerpsCard', () => {
         isTrigger: true,
         orderType: 'limit' as const,
         detailedOrderType: 'Take Profit Limit',
+        triggerOrderType: 'take_profit_limit' as const,
         triggerPrice: '0',
         price: '2800',
       };

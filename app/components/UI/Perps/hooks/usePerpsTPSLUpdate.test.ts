@@ -305,8 +305,7 @@ describe('usePerpsTPSLUpdate', () => {
     const { result } = renderHookWithToast({ onError });
     mockUpdatePositionTPSL.mockResolvedValue({
       success: false,
-      error:
-        'order 0: Only post-only orders allowed immediately after network upgrade',
+      error: 'ORDER_POST_ONLY_WINDOW',
     });
 
     // Act
@@ -329,7 +328,7 @@ describe('usePerpsTPSLUpdate', () => {
 
     mockUpdatePositionTPSL.mockResolvedValue({
       success: false,
-      error: 'Network error',
+      error: 'NETWORK_ERROR',
     });
 
     await act(async () => {
@@ -347,7 +346,7 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onError).toHaveBeenCalledWith('perps.errors.networkErrorSimple');
   });
 
-  it('shows already-closed toast when TP/SL update returns No position found', async () => {
+  it('shows already-closed toast when TP/SL update returns POSITION_NOT_FOUND', async () => {
     const onSuccess = jest.fn();
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onSuccess, onError });
@@ -355,7 +354,7 @@ describe('usePerpsTPSLUpdate', () => {
 
     mockUpdatePositionTPSL.mockResolvedValue({
       success: false,
-      error: 'No position found for ETH',
+      error: 'POSITION_NOT_FOUND',
     });
 
     let updateResult: { success: boolean } | undefined;
@@ -388,15 +387,13 @@ describe('usePerpsTPSLUpdate', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it('shows already-closed toast when TP/SL update throws No position found', async () => {
+  it('shows already-closed toast when TP/SL update throws POSITION_NOT_FOUND', async () => {
     const onSuccess = jest.fn();
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onSuccess, onError });
     const position = createMockPosition();
 
-    mockUpdatePositionTPSL.mockRejectedValue(
-      new Error('No position found for ETH'),
-    );
+    mockUpdatePositionTPSL.mockRejectedValue(new Error('POSITION_NOT_FOUND'));
 
     let updateResult: { success: boolean } | undefined;
     await act(async () => {
@@ -432,7 +429,7 @@ describe('usePerpsTPSLUpdate', () => {
     const onError = jest.fn();
     const { result } = renderHookWithToast({ onError });
     const position = createMockPosition();
-    const error = new Error('Network error');
+    const error = new Error('NETWORK_ERROR');
 
     mockUpdatePositionTPSL.mockRejectedValue(error);
 

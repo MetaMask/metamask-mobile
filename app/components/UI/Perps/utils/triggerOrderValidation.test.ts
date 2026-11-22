@@ -149,15 +149,18 @@ describe('getTriggerPriceValidationIssue', () => {
     },
   );
 
-  it('returns undefined when mid is missing even if the trigger is set', () => {
-    const issue = getTriggerPriceValidationIssue({
-      ...base,
-      triggerPrice: '2600',
-      midPrice: 0,
-    });
+  it.each([0, undefined, Number.NaN])(
+    'blocks a set trigger when mid is unknown (%s)',
+    (midPrice) => {
+      const issue = getTriggerPriceValidationIssue({
+        ...base,
+        triggerPrice: '2600',
+        midPrice,
+      });
 
-    expect(issue).toBeUndefined();
-  });
+      expect(issue).toEqual(expect.objectContaining({ code: 'wrong_side' }));
+    },
+  );
 
   it.each(triggerDirectionCases)(
     'accepts $direction $orderType strictly $requiredSide mid',

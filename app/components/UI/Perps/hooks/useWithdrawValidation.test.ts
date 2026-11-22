@@ -266,4 +266,26 @@ describe('useWithdrawValidation', () => {
 
     expect(result.current.withdrawalRoute).toEqual(testnetRoute);
   });
+
+  it('selects the Lighter route for a Lighter withdrawal', () => {
+    const lighterRoute = {
+      assetId:
+        'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/default',
+      chainId: 'eip155:1',
+      providerId: 'lighter',
+      constraints: { minAmount: '5', fees: { fixed: 0, token: 'USDC' } },
+    };
+    (
+      Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
+    ).mockReturnValue([
+      { ...mockRoute, providerId: 'hyperliquid' },
+      lighterRoute,
+    ]);
+
+    const { result } = renderHook(() =>
+      useWithdrawValidation({ withdrawAmount: '100', providerId: 'lighter' }),
+    );
+
+    expect(result.current.withdrawalRoute).toEqual(lighterRoute);
+  });
 });

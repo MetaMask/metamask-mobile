@@ -23,7 +23,21 @@ import type { CaipAccountId } from '@metamask/utils';
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('./useUserHistory');
-jest.mock('../utils/transactionTransforms');
+jest.mock('../utils/transactionTransforms', () => {
+  type MockTransactionTransforms =
+    typeof import('../utils/transactionTransforms');
+  const actual = jest.requireActual<MockTransactionTransforms>(
+    '../utils/transactionTransforms',
+  );
+  return {
+    ...jest.createMockFromModule<MockTransactionTransforms>(
+      '../utils/transactionTransforms',
+    ),
+    // Order keying is real so fill enrichment is exercised end to end.
+    buildFillSizeByOrderKey: actual.buildFillSizeByOrderKey,
+    getProviderOrderKey: actual.getProviderOrderKey,
+  };
+});
 jest.mock('./stream/usePerpsLiveFills');
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),

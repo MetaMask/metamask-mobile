@@ -2,14 +2,15 @@ import { useContext, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   filterMarketsByQuery,
+  MARKET_SORTING_CONFIG,
   MarketCategory,
+  sortMarkets,
   type PerpsMarketData,
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
 import { isEquityAsset } from '../../../../UI/Perps/utils/marketHours';
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
-import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import { PerpsConnectionContext } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
 import { selectPerpsWatchlistMarkets } from '../../../../UI/Perps/selectors/perpsController';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -68,27 +69,38 @@ export const PERPS_PRICE_CHANGE_SORT_DIRECTION: Record<
   losers: 'asc',
 };
 
-const sortByVolumeDesc = (a: PerpsMarketData, b: PerpsMarketData) => {
-  const av = (a as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
-  const bv = (b as PerpsMarketDataWithVolumeNumber).volumeNumber ?? 0;
-  return bv - av;
-};
+const hasKnownChange24h = (market: PerpsMarketData) =>
+  Number.isFinite(Number.parseFloat(market.change24hPercent));
 
-const sortByChange24hDesc = (a: PerpsMarketData, b: PerpsMarketData) =>
-  (parseFloat(b.change24hPercent) || 0) - (parseFloat(a.change24hPercent) || 0);
-
-const sortByChange24hAsc = (a: PerpsMarketData, b: PerpsMarketData) =>
-  (parseFloat(a.change24hPercent) || 0) - (parseFloat(b.change24hPercent) || 0);
-
-/** Maps each SortOptionId to the comparator used inside the feed. */
-const SORT_FNS: Record<
-  SortOptionId,
-  (a: PerpsMarketData, b: PerpsMarketData) => number
-> = {
-  volume: sortByVolumeDesc,
-  priceChange: sortByChange24hDesc,
-  openInterest: sortByVolumeDesc,
-  fundingRate: sortByVolumeDesc,
+/**
+ * Core `sortMarkets` by the option's field and direction. Markets with an
+ * unknown 24h change go last instead of sorting as 0%.
+ */
+const sortFeedMarkets = (
+  markets: PerpsMarketData[],
+  sortOptionId: SortOptionId,
+): PerpsMarketData[] => {
+  const option = MARKET_SORTING_CONFIG.SortOptions.find(
+    ({ id }) => id === sortOptionId,
+  );
+  if (!option) {
+    return markets;
+  }
+  if (option.field !== MARKET_SORTING_CONFIG.SortFields.PriceChange) {
+    return sortMarkets({
+      markets,
+      sortBy: option.field,
+      direction: option.direction,
+    });
+  }
+  return [
+    ...sortMarkets({
+      markets: markets.filter(hasKnownChange24h),
+      sortBy: option.field,
+      direction: option.direction,
+    }),
+    ...markets.filter((market) => !hasKnownChange24h(market)),
+  ];
 };
 
 const filterByVariant = (
@@ -117,13 +129,21 @@ export const filterAndSortByPriceChangeDirection = (
 ) => {
   switch (priceChangeDirection) {
     case 'gainers':
-      return markets
-        .filter((market) => parseFloat(market.change24hPercent) > 0)
-        .sort(sortByChange24hDesc);
+      return sortMarkets({
+        markets: markets.filter(
+          (market) => parseFloat(market.change24hPercent) > 0,
+        ),
+        sortBy: MARKET_SORTING_CONFIG.SortFields.PriceChange,
+        direction: PERPS_PRICE_CHANGE_SORT_DIRECTION.gainers,
+      });
     case 'losers':
-      return markets
-        .filter((market) => parseFloat(market.change24hPercent) < 0)
-        .sort(sortByChange24hAsc);
+      return sortMarkets({
+        markets: markets.filter(
+          (market) => parseFloat(market.change24hPercent) < 0,
+        ),
+        sortBy: MARKET_SORTING_CONFIG.SortFields.PriceChange,
+        direction: PERPS_PRICE_CHANGE_SORT_DIRECTION.losers,
+      });
   }
 };
 
@@ -154,9 +174,8 @@ export const usePerpsFeed = ({
   const filtered = useMemo<PerpsMarketData[]>(() => {
     if (connectionContext?.error) return [];
     const subset = filterByVariant(markets, variant);
-    const sortFn = SORT_FNS[PERPS_VARIANT_SORT_OPTION[variant]];
     if (!query) {
-      return [...subset].sort(sortFn);
+      return sortFeedMarkets(subset, PERPS_VARIANT_SORT_OPTION[variant]);
     }
     const queryFiltered = filterMarketsByQuery(subset, query);
     const fused = fuseSearch(queryFiltered, query, PERPS_FUSE_OPTIONS);

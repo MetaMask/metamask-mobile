@@ -62,6 +62,12 @@ export interface UsePerpsProSizeInputResult {
   effectiveUsdAmount: string;
   /** Exact base intent; slider previews continue to express a quote budget. */
   exactAssetAmount?: string;
+  /**
+   * Coin size the user typed, to send as the order size instead of
+   * re-deriving it from the USD projection. Undefined for USD, slider and
+   * canonical (projected) sizes.
+   */
+  typedAssetSize?: string;
   /** True when the user last committed the slider at its maximum. */
   isAtMaxAmount: boolean;
   commitPendingSliderPreview: () => boolean;
@@ -537,20 +543,14 @@ export const usePerpsProSizeInput = ({
       return;
     }
 
-    // Snap the asset field to the USD→asset round-trip so the display matches
-    // deriveOrderSizing / provider size (USD cents half-up, szDecimals down).
-    // Keep the committed USD (not re-derived from the snapped asset) so cents
-    // do not drift a second time after snap.
+    // The typed coin amount is the order size (`typedAssetSize`). Keep it as
+    // typed; the committed USD is only its projection, so a cents round trip
+    // cannot change the size sent.
     const nextUsdAmount = getUsdFromAsset(finalizedDraft, effectivePrice);
-    const snappedAssetAmount = getAssetFromUsd(
-      nextUsdAmount,
-      effectivePrice,
-      szDecimals,
-    );
     setUsdDraft(nextUsdAmount);
     setAssetDraftState({
-      value: snappedAssetAmount,
-      source: 'canonical',
+      value: finalizedDraft,
+      source: 'user',
       projected: true,
     });
     commitUsdAmount(nextUsdAmount || '0');
@@ -695,9 +695,8 @@ export const usePerpsProSizeInput = ({
       return usdAmount || '0';
     }
 
-    // Dirty asset drafts re-project against the live price. Once clean (after
-    // blur snap), use the committed USD so szDecimals snap does not re-round
-    // cents and change order sizing.
+    // A typed coin size re-projects against the live price. A canonical coin
+    // projection uses the committed USD.
     if (assetDraftState.source === 'user') {
       return getUsdFromAsset(assetDraft, effectivePrice) || '0';
     }
@@ -901,6 +900,14 @@ export const usePerpsProSizeInput = ({
       !isAtMaxAmount &&
       !keepSizeEmpty
         ? finalizeNumericTextInput(assetDraft)
+        : undefined,
+    typedAssetSize:
+      assetDraftState.source === 'user' &&
+      (showsAssetSize || hasAssetIntent) &&
+      sliderPreview === null &&
+      !isAtMaxAmount &&
+      !keepSizeEmpty
+        ? finalizeNumericTextInput(assetDraft) || undefined
         : undefined,
     isAtMaxAmount,
     commitPendingSliderPreview,
