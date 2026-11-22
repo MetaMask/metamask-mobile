@@ -10,10 +10,7 @@ interface CachedLocaleData {
 let cachedLocaleData: CachedLocaleData | undefined;
 
 function computeCurrencyDisplay(firstWithRegion: Locale | undefined) {
-  return firstWithRegion?.currencySymbol &&
-    firstWithRegion.currencySymbol !== '$'
-    ? 'narrowSymbol'
-    : 'symbol';
+  return firstWithRegion?.currencySymbol === '$' ? 'symbol' : 'narrowSymbol';
 }
 
 function refreshDeviceLocales() {

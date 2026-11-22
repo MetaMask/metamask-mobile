@@ -1,6 +1,9 @@
 jest.mock('../../../locales/i18n', () => ({
   __esModule: true,
-  default: { locale: 'en', translations: { de: {}, en: {}, es: {}, zh: {} } },
+  default: {
+    locale: 'en',
+    translations: { de: {}, en: {}, es: {}, fr: {}, zh: {} },
+  },
 }));
 
 jest.mock('expo-localization');
@@ -44,6 +47,16 @@ describe('useFormatters', () => {
     languageCurrencyCode: currencyCode,
     languageCurrencySymbol: currencySymbol,
     temperatureUnit: 'celsius' as const,
+  });
+
+  it('uses narrowSymbol when no region', () => {
+    mockI18n.locale = 'fr';
+    mockGetLocales.mockReturnValue([makeLocale('fr', null, null)]);
+
+    const { result } = renderHook(() => useFormatters());
+    const formatted = result.current.formatCurrency(100, 'USD');
+
+    expect(formatted).toBe('100,00\u00A0$');
   });
 
   describe('currency formatting', () => {
