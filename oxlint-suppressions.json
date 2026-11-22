@@ -2067,7 +2067,7 @@
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/useLatestBalance.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 38
+      "count": 39
     }
   },
   "app/components/UI/Bridge/hooks/useLegacySwapsBlockExplorer/index.ts": {
