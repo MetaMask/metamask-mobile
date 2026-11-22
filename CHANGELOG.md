@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed the MetaMask Money FAQ copy to clarify that the Money account is tied to the Secret Recovery Phrase, not a single account's Private Key
+- Fixed wallet_watchAsset rejecting tokens on the network a dapp selected over WalletConnect, it now validates against the dapp's network instead of the wallet's global network (#40155)
 
 ## [8.20.0]
 

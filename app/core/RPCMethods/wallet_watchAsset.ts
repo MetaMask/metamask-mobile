@@ -79,8 +79,13 @@ export const wallet_watchAsset = async ({
     };
   };
 }) => {
-  const { AssetsContractController, ApprovalController, AssetsController } =
-    Engine.context;
+  const {
+    AssetsContractController,
+    ApprovalController,
+    AssetsController,
+    SelectedNetworkController,
+    NetworkController,
+  } = Engine.context;
   if (!req.params) {
     throw new Error('wallet_watchAsset params is undefined');
   }
@@ -92,8 +97,28 @@ export const wallet_watchAsset = async ({
   } = req;
 
   const state = store.getState();
-  const chainId = selectEvmChainId(state);
-  const networkClientId = selectNetworkClientId(state);
+
+  // Resolve the network the requesting dapp selected for its connection,
+  // not the wallet's globally active network. wallet_switchEthereumChain
+  // and wallet_addEthereumChain only change the per-origin network, so a
+  // dapp on a custom network and the wallet UI can disagree about which
+  // network the dapp is on. The domain key matches the one the RPC
+  // middleware uses: the WalletConnect channel id when present, otherwise
+  // the dapp hostname. A domain with no selection of its own falls back
+  // to the globally active network, so behaviour is unchanged there, and
+  // a stale selection with no configuration behind it falls back too.
+  const domain = _pageMeta?.channelId ?? hostname;
+  const domainNetworkClientId =
+    SelectedNetworkController.getNetworkClientIdForDomain(domain);
+  const domainNetworkConfiguration =
+    NetworkController.getNetworkConfigurationByNetworkClientId(
+      domainNetworkClientId,
+    );
+  const networkClientId = domainNetworkConfiguration
+    ? domainNetworkClientId
+    : selectNetworkClientId(state);
+  const chainId =
+    domainNetworkConfiguration?.chainId ?? selectEvmChainId(state);
 
   checkTabActive();
   const requestOrigin = _pageMeta?.url ?? hostname;
@@ -104,7 +129,7 @@ export const wallet_watchAsset = async ({
     throw new Error(TOKEN_NOT_VALID);
   }
 
-  // Check if token exists on wallet's active network.
+  // Check if token exists on the network selected for the requesting dapp.
   const isTokenOnNetwork = await isSmartContractAddress(
     address,
     chainId,
