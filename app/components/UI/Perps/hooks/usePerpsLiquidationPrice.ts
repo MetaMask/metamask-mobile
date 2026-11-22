@@ -98,8 +98,20 @@ export const usePerpsLiquidationPrice = (
 
   const currentResult =
     canEstimate && result?.request === request ? result : undefined;
+  // While the draft only reprices, keep its last quote instead of flashing a
+  // placeholder; a quote for another account, market, venue or side never shows.
+  const lastQuote =
+    canEstimate &&
+    result !== undefined &&
+    result.request.contextKey === contextKey &&
+    result.request.params.asset === asset &&
+    result.request.params.providerId === providerId &&
+    result.request.params.direction === direction &&
+    result.request.params.marginType === marginType
+      ? result.price
+      : undefined;
   return {
-    liquidationPrice: currentResult?.price,
+    liquidationPrice: currentResult ? currentResult.price : lastQuote,
     isCalculating: canEstimate && currentResult === undefined,
     error: currentResult?.error ?? null,
   };

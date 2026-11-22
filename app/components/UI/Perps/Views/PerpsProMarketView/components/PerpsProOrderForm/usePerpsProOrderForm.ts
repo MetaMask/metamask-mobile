@@ -1919,15 +1919,15 @@ export const usePerpsProOrderForm = ({
     hasTwapDurationInput &&
     (twapPartError ||
       twapValidation?.error === PERPS_ERROR_CODES.ORDER_TWAP_DURATION_INVALID);
+  // The range copy needs the venue limits; until they load the field stays
+  // invalid without a message rather than showing unresolved placeholders.
   const twapDurationErrorMessage = twapDurationError
-    ? strings(
-        'perps.pro_order_form.twap.duration_range',
-        twapRules && {
-          minDurationMinutes: twapRules.minDurationMinutes,
-          maxDurationHours:
-            twapRules.maxDurationMinutes / PERPS_TWAP_UI_CONFIG.MinutesPerHour,
-        },
-      )
+    ? twapRules &&
+      strings('perps.pro_order_form.twap.duration_range', {
+        minDurationMinutes: twapRules.minDurationMinutes,
+        maxDurationHours:
+          twapRules.maxDurationMinutes / PERPS_TWAP_UI_CONFIG.MinutesPerHour,
+      })
     : twapDurationMissing
       ? strings('perps.errors.orderValidation.twapDurationRequired')
       : undefined;

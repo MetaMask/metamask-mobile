@@ -682,6 +682,7 @@ const renderProForm = (
   } = {},
   checkTwapSupport?: () => Promise<boolean>,
   isCrossMarginAvailable = false,
+  twapRules: typeof hyperliquidTwapRules | null = hyperliquidTwapRules,
 ) => {
   const checkTriggerOrderSupport =
     triggerGate.checkSupport ?? jest.fn().mockResolvedValue(true);
@@ -708,7 +709,7 @@ const renderProForm = (
           triggerGate.providerId ?? currentMarket.providerId,
         checkTriggerOrderSupport,
         isTwapEnabled,
-        twapRules: hyperliquidTwapRules,
+        twapRules: twapRules ?? undefined,
         isTwapAvailabilityPending,
         resolvedTwapProviderId,
         checkTwapOrderSupport,
@@ -1256,6 +1257,33 @@ describe('usePerpsProOrderForm', () => {
         expect(result.current.isPlaceOrderDisabled).toBe(true);
       },
     );
+
+    it('blocks an out-of-range TWAP hour without unresolved copy before the venue limits load', () => {
+      mockOrderForm.type = 'twap';
+      const { result } = renderProForm(
+        true,
+        true,
+        'hyperliquid',
+        false,
+        {},
+        {},
+        market,
+        {},
+        undefined,
+        false,
+        null,
+      );
+
+      act(() => {
+        result.current.twap.onHoursChange('99');
+      });
+
+      expect(result.current.twap.durationError).toBeUndefined();
+      expect(
+        result.current.notices.find((notice) => notice.id === 'twap-duration'),
+      ).toBeUndefined();
+      expect(result.current.isPlaceOrderDisabled).toBe(true);
+    });
 
     it('blocks TWAP totals below the controller-supported minimum', () => {
       mockOrderForm.type = 'twap';

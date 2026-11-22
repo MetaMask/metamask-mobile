@@ -188,6 +188,46 @@ describe('usePerpsLiquidationPrice', () => {
     });
   });
 
+  it('keeps the last quote while the same draft reprices, but not across markets', async () => {
+    let resolveRepriced: (value: string) => void = () => undefined;
+    mockCalculateLiquidationPrice
+      .mockResolvedValueOnce('45000.00')
+      .mockReturnValueOnce(
+        new Promise<string>((resolve) => {
+          resolveRepriced = resolve;
+        }),
+      )
+      .mockReturnValueOnce(new Promise<string>(() => undefined));
+    const draft = { leverage: 10, direction: 'long' as const, asset: 'BTC' };
+    const { result, rerender } = renderHook(
+      (props) => usePerpsLiquidationPrice(props),
+      { initialProps: { ...draft, entryPrice: 50000 } },
+    );
+    await waitFor(() =>
+      expect(result.current.liquidationPrice).toBe('45000.00'),
+    );
+
+    rerender({ ...draft, entryPrice: 50100 });
+
+    expect(result.current.liquidationPrice).toBe('45000.00');
+    expect(result.current.isCalculating).toBe(true);
+    await waitFor(() =>
+      expect(mockCalculateLiquidationPrice).toHaveBeenCalledTimes(2),
+    );
+    await act(async () => resolveRepriced('45090.00'));
+    await waitFor(() =>
+      expect(result.current.liquidationPrice).toBe('45090.00'),
+    );
+
+    rerender({ ...draft, asset: 'ETH', entryPrice: 3000 });
+
+    expect(result.current.liquidationPrice).toBeUndefined();
+    expect(result.current.isCalculating).toBe(true);
+    await waitFor(() =>
+      expect(mockCalculateLiquidationPrice).toHaveBeenCalledTimes(3),
+    );
+  });
+
   it('ignores a Cross result from the previous account and preserves a real zero', async () => {
     let resolvePrevious: (value: string) => void = () => undefined;
     const previous = new Promise<string>((resolve) => {
