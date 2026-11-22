@@ -535,8 +535,10 @@ const PerpsProOrderBookPanel = ({
     return null;
   }, [marketPrice, rawOrderBook?.midPrice, rawOrderBookSymbol, symbol]);
 
+  // No mid price, no ladder: a ladder derived from 0 is the wrong scale.
   const groupingOptions = useMemo(
-    () => calculateGroupingOptions(midPriceValue ?? 0),
+    () =>
+      midPriceValue === null ? [] : calculateGroupingOptions(midPriceValue),
     [midPriceValue],
   );
 
