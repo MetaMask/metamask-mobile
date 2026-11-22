@@ -5416,7 +5416,9 @@
       "description": "Explore packs and cards"
     },
     "home": {
-      "empty": "No packs available right now"
+      "empty": "No packs available right now",
+      "opens": "{{count}} opens",
+      "opens_trending": "{{count}} opens, trending"
     }
   },
   "collectible": {
