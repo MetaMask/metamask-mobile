@@ -10,7 +10,9 @@ import {
   parseCurrencyString,
   truncateToTwoDecimals,
 } from '../utils/formatUtils';
-import { usePerpsConnection } from './index';
+// Direct import: the hooks barrel pulls in toasts and selectors, which forms
+// an import cycle when the withdrawal fee tooltip loads this module.
+import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsLiveAccount } from './stream';
 
 interface UseWithdrawValidationParams {

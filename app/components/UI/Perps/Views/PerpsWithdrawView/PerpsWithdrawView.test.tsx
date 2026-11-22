@@ -123,6 +123,11 @@ jest.mock('../../hooks', () => ({
   usePerpsMeasurement: jest.fn(),
 }));
 
+// useWithdrawValidation imports this hook directly, not through the barrel.
+jest.mock('../../hooks/usePerpsConnection', () => ({
+  usePerpsConnection: jest.fn(() => ({ isInitialized: true })),
+}));
+
 // Mock components
 jest.mock('../../../../Base/Keypad', () => 'Keypad');
 jest.mock(

@@ -21,9 +21,8 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => 'lighter'),
 }));
 
-jest.mock('../../../hooks/index', () => ({
+jest.mock('../../../hooks/usePerpsConnection', () => ({
   usePerpsConnection: () => ({ isInitialized: true }),
-  usePerpsNetwork: () => 'mainnet',
 }));
 
 jest.mock('../../../hooks/stream', () => ({

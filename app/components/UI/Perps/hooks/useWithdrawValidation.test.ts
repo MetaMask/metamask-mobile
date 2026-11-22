@@ -16,9 +16,8 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 // Mock other hooks
-jest.mock('./index', () => ({
+jest.mock('./usePerpsConnection', () => ({
   usePerpsConnection: jest.fn(),
-  usePerpsNetwork: jest.fn(),
 }));
 
 jest.mock('./stream', () => ({
@@ -46,7 +45,7 @@ jest.mock('../../../../../locales/i18n', () => ({
   }),
 }));
 
-import { usePerpsConnection, usePerpsNetwork } from './index';
+import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsLiveAccount } from './stream';
 
 describe('useWithdrawValidation', () => {
@@ -72,7 +71,6 @@ describe('useWithdrawValidation', () => {
       },
       isInitialLoading: false,
     });
-    (usePerpsNetwork as jest.Mock).mockReturnValue('mainnet');
     (usePerpsConnection as jest.Mock).mockReturnValue({ isInitialized: true });
     (
       Engine.context.PerpsController.getWithdrawalRoutes as jest.Mock
@@ -244,7 +242,6 @@ describe('useWithdrawValidation', () => {
   });
 
   it('should handle testnet network', () => {
-    (usePerpsNetwork as jest.Mock).mockReturnValue('testnet');
     const testnetRoute = {
       assetId: HYPERLIQUID_ASSET_CONFIGS.usdc.testnet,
       chainId: 'eip155:421614',
