@@ -52,9 +52,14 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
   }, [height]);
 
   // Generate SVG paths for bid and ask depth curves
-  const { bidPath, askPath, priceRange } = useMemo(() => {
+  const { bidPath, askPath, priceRange } = useMemo((): {
+    bidPath: string;
+    askPath: string;
+    priceRange: { min?: number; max?: number };
+  } => {
+    // A one-sided book has no range: the labels render the Core placeholder.
     if (!orderBook?.bids?.length || !orderBook?.asks?.length) {
-      return { bidPath: '', askPath: '', priceRange: { min: 0, max: 0 } };
+      return { bidPath: '', askPath: '', priceRange: {} };
     }
 
     const { padding, innerWidth, innerHeight } = chartDimensions;
@@ -121,7 +126,7 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
   }, [orderBook, chartDimensions]);
 
   // Format price for labels
-  const formatPrice = (price: number): string =>
+  const formatPrice = (price: number | undefined): string =>
     formatPerpsFiat(price, {
       ranges: PRICE_RANGES_UNIVERSAL,
     });

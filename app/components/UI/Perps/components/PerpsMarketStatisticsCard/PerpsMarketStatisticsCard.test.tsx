@@ -271,17 +271,20 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(fundingRateText?.props.color).toBe(TextColor.SuccessDefault);
   });
 
-  it('falls back to the localized zero rate in a non-English app language', () => {
+  it('shows the unknown-rate placeholder, not the zero rate, when there is no rate', () => {
     I18n.locale = 'de';
     try {
-      const { getByText } = render(
+      const { getByText, queryByText } = render(
         <PerpsMarketStatisticsCard
           {...defaultProps}
           marketStats={{ ...mockMarketStats, fundingRate: '' }}
         />,
       );
 
-      expect(getByText('0,0000%')).toBeOnTheScreen();
+      expect(
+        getByText(PERPS_CONSTANTS.FallbackPercentageDisplay),
+      ).toBeOnTheScreen();
+      expect(queryByText('0,0000%')).toBeNull();
     } finally {
       I18n.locale = 'en-US';
     }

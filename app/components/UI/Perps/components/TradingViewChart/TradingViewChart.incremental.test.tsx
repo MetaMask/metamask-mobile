@@ -361,6 +361,20 @@ describe('TradingViewChart — incremental update routing', () => {
     expect(msg.nextLastTime).toBe(withNewBar.candles[2].time);
   });
 
+  it('template leaves unknown candle volume as a gap, not a zero bar', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+    expect(template).not.toMatch(
+      /parseFloat\(candle\.volume\) \* parseFloat\(candle\.close\)\) \|\| 0/,
+    );
+    expect(template).toContain(
+      'return Number.isFinite(value) ? value : undefined;',
+    );
+    expect(
+      template.match(/value: window\.getVolumeValue\(candle\),/g),
+    ).toHaveLength(4);
+  });
+
   it('template follows appended bars only when currently tracking realtime', () => {
     const template = createTradingViewChartTemplate(mockTheme, '', true);
 

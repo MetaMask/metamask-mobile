@@ -1,11 +1,11 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo } from 'react';
 import {
   usePerpsLivePositions,
   usePerpsLiveAccount,
   usePerpsLivePrices,
 } from './stream';
 import { usePerpsMarkets } from './usePerpsMarkets';
-import { calculateLiquidationDistance } from '../utils/liquidationDistance';
+import { formatLiquidationDistance } from '../utils/formatUtils';
 import {
   calculateMaxRemovableMargin,
   estimateLiquidationPriceAfterMarginChange,
@@ -42,18 +42,21 @@ export interface UsePerpsAdjustMarginDataReturn {
    * price-move headroom, so a tick after choosing Max does not invalidate it.
    */
   exchangeMaxAmount: number;
-  /** Current liquidation price */
-  currentLiquidationPrice: number;
-  /** New liquidation price after adjustment */
-  newLiquidationPrice: number;
-  /** Current liquidation distance percentage */
-  currentLiquidationDistance: number;
-  /** New liquidation distance percentage */
-  newLiquidationDistance: number;
-  /** Available balance for add mode */
-  spendableBalance: number;
-  /** Current market price */
-  currentPrice: number;
+  /** Current liquidation price; undefined while unknown */
+  currentLiquidationPrice: number | undefined;
+  /** New liquidation price after adjustment; undefined while unknown */
+  newLiquidationPrice: number | undefined;
+  /**
+   * Current liquidation distance from Core `formatLiquidationDistance`, e.g.
+   * `"20.00%"`; undefined while either price is unknown.
+   */
+  currentLiquidationDistance: string | undefined;
+  /** New liquidation distance, formatted the same way; undefined while unknown */
+  newLiquidationDistance: string | undefined;
+  /** Available balance for add mode; undefined while unknown */
+  spendableBalance: number | undefined;
+  /** Current market price; undefined while unknown */
+  currentPrice: number | undefined;
   /** 24h percent change from the price stream; null until available */
   percentChange24h: number | null;
   /** Whether this is add mode */
@@ -62,20 +65,25 @@ export interface UsePerpsAdjustMarginDataReturn {
   positionLeverage: number;
 }
 
-const parseFiniteNumber = (
+/** Parses a live value; undefined when it is missing or not finite. */
+const parseOptionalNumber = (
   value: string | number | null | undefined,
-  fallback = 0,
-): number => {
+): number | undefined => {
   if (
     value === null ||
     value === undefined ||
     (typeof value === 'string' && value.trim() === '')
   ) {
-    return fallback;
+    return undefined;
   }
   const parsedValue = Number(value);
-  return Number.isFinite(parsedValue) ? parsedValue : fallback;
+  return Number.isFinite(parsedValue) ? parsedValue : undefined;
 };
+
+const parseFiniteNumber = (
+  value: string | number | null | undefined,
+  fallback = 0,
+): number => parseOptionalNumber(value) ?? fallback;
 
 const parseMaxLeverage = (
   value: string | number | null | undefined,
@@ -151,7 +159,7 @@ export function usePerpsAdjustMarginData(
     return {
       currentMargin: currentMarginValue,
       positionValue: positionValueValue,
-      currentLiquidationPrice: parseFiniteNumber(position?.liquidationPrice),
+      currentLiquidationPrice: parseOptionalNumber(position?.liquidationPrice),
       positionSize: Math.abs(signedPositionSize),
       isLong: signedPositionSize > 0,
       parsedPositionLeverage: leverageValue,
@@ -166,7 +174,7 @@ export function usePerpsAdjustMarginData(
   }, [position]);
 
   const currentPrice = useMemo(
-    () => parseFiniteNumber(livePrices?.[symbol]?.price),
+    () => parseOptionalNumber(livePrices?.[symbol]?.price),
     [livePrices, symbol],
   );
 
@@ -178,7 +186,7 @@ export function usePerpsAdjustMarginData(
   }, [livePrices, symbol]);
 
   const spendableBalance = useMemo(
-    () => parseFiniteNumber(account?.spendableBalance),
+    () => parseOptionalNumber(account?.spendableBalance),
     [account],
   );
 
@@ -189,7 +197,9 @@ export function usePerpsAdjustMarginData(
   // headroom so it can validate an amount chosen before a tick.
   const { maxAmount, exchangeMaxAmount } = useMemo(() => {
     if (isAddMode) {
-      const addable = Math.max(0, spendableBalance);
+      // Nothing can be added until the balance is known.
+      const addable =
+        spendableBalance === undefined ? 0 : Math.max(0, spendableBalance);
       return { maxAmount: addable, exchangeMaxAmount: addable };
     }
     const removable = (priceMoveBufferRatio?: number) =>
@@ -225,7 +235,13 @@ export function usePerpsAdjustMarginData(
   // To avoid flicker on submit, the view resets inputAmount to 0 immediately,
   // which makes newMargin === currentMargin, returning currentLiquidationPrice.
   const newLiquidationPrice = useMemo(() => {
-    if (newMargin === 0 || positionSize === 0) return currentLiquidationPrice;
+    if (
+      currentLiquidationPrice === undefined ||
+      newMargin === 0 ||
+      positionSize === 0
+    ) {
+      return currentLiquidationPrice;
+    }
 
     return estimateLiquidationPriceAfterMarginChange({
       isLong,
@@ -244,21 +260,16 @@ export function usePerpsAdjustMarginData(
     maxLeverage,
   ]);
 
-  // Calculate liquidation distance
-  const calculateDistance = useCallback(
-    (liquidationPrice: number) =>
-      calculateLiquidationDistance(currentPrice, liquidationPrice),
-    [currentPrice],
-  );
-
+  // Core liquidation distance; undefined while either price is unknown, never
+  // 0 ("at liquidation").
   const currentLiquidationDistance = useMemo(
-    () => calculateDistance(currentLiquidationPrice),
-    [calculateDistance, currentLiquidationPrice],
+    () => formatLiquidationDistance(currentPrice, currentLiquidationPrice),
+    [currentPrice, currentLiquidationPrice],
   );
 
   const newLiquidationDistance = useMemo(
-    () => calculateDistance(newLiquidationPrice),
-    [calculateDistance, newLiquidationPrice],
+    () => formatLiquidationDistance(currentPrice, newLiquidationPrice),
+    [currentPrice, newLiquidationPrice],
   );
 
   return {

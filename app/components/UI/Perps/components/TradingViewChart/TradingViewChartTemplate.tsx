@@ -59,6 +59,13 @@ export const createTradingViewChartTemplate = (
         window.allCandleData = []; // Store all loaded data for zoom functionality
         window.currentInterval = null; // Track current interval for zoom reset on change
 
+        // USD notional (volume × close) of a volume bar. An unknown volume stays
+        // undefined, which Lightweight Charts draws as a gap, never a zero bar.
+        window.getVolumeValue = function(candle) {
+            const value = parseFloat(candle.volume) * parseFloat(candle.close);
+            return Number.isFinite(value) ? value : undefined;
+        };
+
         // Helper function to get date string in user's timezone (YYYY-MM-DD)
         window.getDateString = function(date, userTimezone) {
             const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: userTimezone });
@@ -955,7 +962,7 @@ export const createTradingViewChartTemplate = (
                             if (window.allCandleData && window.allCandleData.length > 0) {
                                 const volumeData = window.allCandleData.map(candle => ({
                                     time: candle.time,
-                                    value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
+                                    value: window.getVolumeValue(candle),
                                     color: window.coloredVolume
                                         ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
                                         : '${hexToRgba(theme.colors.border.muted, 0.3)}'
@@ -1340,7 +1347,7 @@ ${createLimitOrderOverlayScript({
                                         try {
                                             const volumeData = message.data.map(candle => ({
                                                 time: candle.time,
-                                                value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
+                                                value: window.getVolumeValue(candle),
                                                 color: window.coloredVolume
                                                     ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
                                                     : '${hexToRgba(theme.colors.border.muted, 0.3)}'
@@ -1437,7 +1444,7 @@ ${createLimitOrderOverlayScript({
                                     if (window.volumeSeries) {
                                         const volumePoint = {
                                             time: candle.time,
-                                            value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0,
+                                            value: window.getVolumeValue(candle),
                                             color: window.coloredVolume
                                                 ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
                                                 : '${hexToRgba(theme.colors.border.muted, 0.3)}'
@@ -1569,7 +1576,7 @@ ${createLimitOrderOverlayScript({
                                         if (window.allCandleData && window.allCandleData.length > 0) {
                                             const volumeData = window.allCandleData.map(candle => ({
                                                 time: candle.time,
-                                                value: (parseFloat(candle.volume) * parseFloat(candle.close)) || 0, // USD notional = volume × price
+                                                value: window.getVolumeValue(candle),
                                                 color: window.coloredVolume
                                                     ? (candle.close >= candle.open ? '${hexToRgba(theme.colors.success.default, 0.3)}' : '${hexToRgba(theme.colors.error.default, 0.3)}')
                                                     : '${hexToRgba(theme.colors.border.muted, 0.3)}'

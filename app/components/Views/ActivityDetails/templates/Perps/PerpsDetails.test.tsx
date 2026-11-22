@@ -2,7 +2,10 @@ import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import type { OrdinaryOrderType } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type OrdinaryOrderType,
+} from '@metamask/perps-controller';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import {
@@ -454,6 +457,39 @@ describe('PerpsDetails', () => {
       'BTC',
       1_765_361_640_000,
     );
+  });
+
+  it('renders the shared placeholder while the order fee is loading', () => {
+    mockUsePerpsRecordedOrderFees.mockReturnValueOnce({
+      totalFee: undefined,
+      isLoading: true,
+      hasError: false,
+    });
+    const transaction: PerpsTransaction = {
+      ...baseTransaction,
+      id: 'order-fee-loading',
+      type: 'order',
+      category: 'limit_order',
+      title: 'Take profit close short',
+      order: {
+        orderId: 'order-fee-loading',
+        text: PerpsOrderTransactionStatus.Canceled,
+        statusType: PerpsOrderTransactionStatusType.Canceled,
+        type: 'limit',
+        size: '10.23',
+        limitPrice: '98023',
+        filled: '45%',
+      },
+    };
+
+    const { getByText, queryByText } = renderWithProvider(
+      <PerpsDetails
+        item={perpsItem('marketCloseShort', transaction, 'cancelled')}
+      />,
+    );
+
+    expect(getByText(PERPS_CONSTANTS.FallbackDataDisplay)).toBeOnTheScreen();
+    expect(queryByText('—')).toBeNull();
   });
 
   it('renders the funding rate and rounds funding below the display precision', () => {

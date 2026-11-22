@@ -64,16 +64,14 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       fundingValue = liveFunding;
       displayText = formatFundingRate(liveFunding);
     } else if (
+      !marketStats.fundingRate ||
       marketStats.fundingRate === PERPS_CONSTANTS.FallbackPercentageDisplay
     ) {
-      // Unknown rate: show the placeholder, never read its leading '-' as a
-      // negative rate.
+      // Unknown rate: show the placeholder, never zero, and never read its
+      // leading '-' as a negative rate.
       fundingValue = undefined;
-      displayText = marketStats.fundingRate;
-    } else if (
-      marketStats.fundingRate &&
-      marketStats.fundingRate !== zeroDisplay
-    ) {
+      displayText = formatFundingRate(undefined);
+    } else if (marketStats.fundingRate !== zeroDisplay) {
       fundingValue = marketStats.fundingRate.startsWith('-') ? -1 : 1;
       displayText = marketStats.fundingRate;
     } else {

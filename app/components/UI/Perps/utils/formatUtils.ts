@@ -34,6 +34,8 @@ import {
   formatPnl as formatPnlEnUs,
   formatPositionSize as formatPositionSizeEnUs,
   formatWithSignificantDigits,
+  DECIMAL_PRECISION_CONFIG,
+  PERPS_CONSTANTS,
   PERPS_DISPLAY_PRECISION,
   PRICE_RANGES_UNIVERSAL,
 } from '@metamask/perps-controller';
@@ -1190,12 +1192,13 @@ export const formatVolume = (volume: PerpsDisplayValue): string =>
  * @example formatLeverage(5) => "5.0x"
  * @example formatLeverage(10.5) => "10.5x"
  * @example formatLeverage(1) => "1.0x"
+ * @example formatLeverage(NaN) => "--"
  */
 export const formatLeverage = (leverage: string | number): string => {
   const num = typeof leverage === 'string' ? parseFloat(leverage) : leverage;
 
   if (isNaN(num)) {
-    return '1x';
+    return PERPS_CONSTANTS.FallbackDataDisplay;
   }
 
   return `${num.toFixed(1)}x`;
@@ -1325,13 +1328,14 @@ export const parseCurrencyString = (formattedValue: string): number => {
  * display matches what the underlying flow can actually transact.
  *
  * Accepts raw numeric strings (e.g. "50.389"), formatted strings
- * (e.g. "$1,232.39"), or numbers. See `parseCurrencyString`.
+ * (e.g. "$1,232.39"), or numbers. See `parseCurrencyString`. An unknown
+ * balance renders the Core placeholder (`$---`), never `$0`.
  */
 export const formatPerpsBalance = (
   balance: string | number | null | undefined,
 ): string => {
   if (balance === null || balance === undefined || balance === '') {
-    return formatPerpsFiat(0);
+    return formatPerpsFiat(undefined);
   }
   const numeric =
     typeof balance === 'string' ? parseCurrencyString(balance) : balance;
@@ -1491,7 +1495,10 @@ export const formatLimitPriceInput = (price: string): string => {
   }
 
   const isTrailingDecimal = price.endsWith('.');
-  const typedDecimals = Math.min(price.split('.')[1]?.length || 0, 7);
+  const typedDecimals = Math.min(
+    price.split('.')[1]?.length || 0,
+    DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+  );
   // A trailing "." has no digit to format: format one placeholder decimal and
   // drop that digit below, so the separator lands where the locale puts it.
   const formatted = formatPerpsFiat(isTrailingDecimal ? `${price}0` : price, {
@@ -1499,7 +1506,7 @@ export const formatLimitPriceInput = (price: string): string => {
       {
         condition: () => true,
         threshold: 0.00000001,
-        maximumDecimals: 7,
+        maximumDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
         minimumDecimals: isTrailingDecimal ? 1 : typedDecimals,
       },
     ],

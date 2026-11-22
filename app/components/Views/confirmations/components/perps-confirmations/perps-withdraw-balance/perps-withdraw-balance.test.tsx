@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { usePerpsLiveAccount } from '../../../../../UI/Perps/hooks/stream/usePerpsLiveAccount';
@@ -63,7 +64,7 @@ describe('PerpsWithdrawBalance', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders a zero balance when the live account has no available balance', () => {
+  it('renders the placeholder balance when the live account is unknown', () => {
     mockUsePerpsLiveAccount.mockReturnValue({
       account: null,
       isInitialLoading: false,
@@ -72,7 +73,9 @@ describe('PerpsWithdrawBalance', () => {
     const { getByText } = renderComponent();
 
     expect(
-      getByText(`${strings('confirm.available_balance')}$0`),
+      getByText(
+        `${strings('confirm.available_balance')}${PERPS_CONSTANTS.FallbackPriceDisplay}`,
+      ),
     ).toBeOnTheScreen();
   });
 });

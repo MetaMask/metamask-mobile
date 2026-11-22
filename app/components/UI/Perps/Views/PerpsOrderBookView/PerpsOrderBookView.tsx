@@ -259,7 +259,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     if (Number.isFinite(baselineParsed) && baselineParsed > 0) {
       return baselineParsed;
     }
-    return marketPrice ?? 0;
+    return marketPrice ?? undefined;
   }, [focusedPrice, livePrices, symbol, marketPrice]);
 
   const spreadMetrics = useMemo(() => {
@@ -435,7 +435,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         title={`${displaySymbol}-USD`}
         titleProps={{ testID: PerpsMarketHeaderSelectorsIDs.ASSET_NAME }}
         description={
-          currentPrice > 0 ? (
+          currentPrice !== undefined && currentPrice > 0 ? (
             <LivePriceHeader
               symbol={symbol}
               testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}

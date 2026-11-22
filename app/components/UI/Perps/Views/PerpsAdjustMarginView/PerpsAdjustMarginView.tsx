@@ -50,7 +50,6 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
 import {
-  formatLiquidationDistancePercent,
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
@@ -91,8 +90,8 @@ const PerpsAdjustMarginView: React.FC = () => {
   // rather than values recalculating as position data updates from WebSocket.
   // Uses ref (not state) since setting this shouldn't trigger a re-render.
   const submittedEstimateRef = useRef<{
-    price: number;
-    distance: number;
+    price: number | undefined;
+    distance: string | undefined;
   } | null>(null);
 
   // Derived numeric value from string
@@ -140,6 +139,7 @@ const PerpsAdjustMarginView: React.FC = () => {
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
+    spendableBalance,
     isAddMode,
   } = usePerpsAdjustMarginData({
     symbol: routePosition?.symbol || '',
@@ -270,16 +270,6 @@ const PerpsAdjustMarginView: React.FC = () => {
   const handleTooltipClose = useCallback(() => {
     setSelectedTooltip(null);
   }, []);
-
-  const formatLiquidationDistance = useCallback(
-    (distance: number, liquidationPrice: number): string => {
-      if (liquidationPrice === 0) {
-        return PERPS_CONSTANTS.FallbackDataDisplay;
-      }
-      return formatLiquidationDistancePercent(distance);
-    },
-    [],
-  );
 
   const handleConfirm = useCallback(async () => {
     if (
@@ -413,9 +403,13 @@ const PerpsAdjustMarginView: React.FC = () => {
             ? strings('perps.adjust_margin.margin_available_to_add')
             : strings('perps.adjust_margin.margin_available_to_remove')
         }
-        value={formatPerpsFiat(flooredMaxAmount, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
-        })}
+        value={formatPerpsFiat(
+          // An unknown balance renders the placeholder, not $0.
+          isAddMode && spendableBalance === undefined
+            ? undefined
+            : flooredMaxAmount,
+          { ranges: PRICE_RANGES_MINIMAL_VIEW },
+        )}
         valueTextProps={{
           testID: PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE,
         }}
@@ -445,14 +439,8 @@ const PerpsAdjustMarginView: React.FC = () => {
           onPress: () => handleTooltipPress('liquidation_distance'),
         }}
         value={renderTransitionValue(
-          formatLiquidationDistance(
-            currentLiquidationDistance,
-            currentLiquidationPrice,
-          ),
-          formatLiquidationDistance(
-            displayNewLiquidationDistance,
-            displayNewLiquidationPrice,
-          ),
+          currentLiquidationDistance ?? PERPS_CONSTANTS.FallbackDataDisplay,
+          displayNewLiquidationDistance ?? PERPS_CONSTANTS.FallbackDataDisplay,
           PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
         )}
       />

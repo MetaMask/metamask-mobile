@@ -213,16 +213,19 @@ describe('PerpsProMarketStatsBar', () => {
       expect(fundingRateText?.props.color).toBe(TextColor.TextDefault);
     });
 
-    it('falls back to the localized zero when there is no rate', () => {
+    it('shows the unknown-rate placeholder, not the zero rate, when there is no rate', () => {
       I18n.locale = 'de';
       mockUsePerpsMarketStats.mockReturnValue({
         ...mockMarketStats,
         fundingRate: '',
       });
 
-      const { getByText } = renderComponent();
+      const { getByText, queryByText } = renderComponent();
 
-      expect(getByText('0,0000% / 39:24')).toBeOnTheScreen();
+      expect(
+        getByText(`${PERPS_CONSTANTS.FallbackPercentageDisplay} / 39:24`),
+      ).toBeOnTheScreen();
+      expect(queryByText('0,0000% / 39:24')).toBeNull();
     });
   });
 

@@ -82,9 +82,8 @@ jest.mock('../../../../../util/Logger', () => ({
 jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn((value) => {
     const num = typeof value === 'string' ? parseFloat(value) : value;
-    return `$${num.toFixed(2)}`;
+    return Number.isFinite(num) ? `$${num.toFixed(2)}` : '$---';
   }),
-  formatLiquidationDistancePercent: (value: number) => `${value.toFixed(2)}%`,
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));
@@ -257,8 +256,8 @@ describe('PerpsAdjustMarginView', () => {
       maxAmount: 1000, // Available balance for add mode
       currentLiquidationPrice: 1900,
       newLiquidationPrice: 1900,
-      currentLiquidationDistance: 5,
-      newLiquidationDistance: 5,
+      currentLiquidationDistance: '5.00%',
+      newLiquidationDistance: '5.00%',
       spendableBalance: 1000,
       currentPrice: 2000,
       isAddMode: true,
@@ -336,8 +335,8 @@ describe('PerpsAdjustMarginView', () => {
       maxAmount: 200, // Max removable margin
       currentLiquidationPrice: 1900,
       newLiquidationPrice: 1900,
-      currentLiquidationDistance: 5,
-      newLiquidationDistance: 5,
+      currentLiquidationDistance: '5.00%',
+      newLiquidationDistance: '5.00%',
       spendableBalance: 1000,
       currentPrice: 2000,
       isAddMode: false,
@@ -568,8 +567,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 0,
         currentLiquidationPrice: 0,
         newLiquidationPrice: 0,
-        currentLiquidationDistance: 0,
-        newLiquidationDistance: 0,
+        currentLiquidationDistance: undefined,
+        newLiquidationDistance: undefined,
         spendableBalance: 0,
         currentPrice: 0,
         isAddMode: true,
@@ -722,8 +721,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 1000,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: true,
@@ -758,8 +757,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 200, // Max removable margin
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -856,8 +855,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 0,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 0,
         currentPrice: 2000,
         isAddMode: true,
@@ -887,8 +886,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 1000,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1850,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 8,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '8.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: true,
@@ -932,8 +931,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 200,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1920,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 3,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '3.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -994,8 +993,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 200,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -1021,8 +1020,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 50,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -1077,8 +1076,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 200,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -1188,8 +1187,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 200,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -1262,8 +1261,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 200,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -1289,8 +1288,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 50,
         currentLiquidationPrice: 1900,
         newLiquidationPrice: 1900,
-        currentLiquidationDistance: 5,
-        newLiquidationDistance: 5,
+        currentLiquidationDistance: '5.00%',
+        newLiquidationDistance: '5.00%',
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: false,
@@ -1365,6 +1364,44 @@ describe('PerpsAdjustMarginView', () => {
       ).toHaveTextContent('5.00%');
     });
 
+    it('shows placeholders, not zeros, while price, balance and liquidation price are unknown', () => {
+      mockRouteParams = {
+        position: mockPosition,
+        mode: 'add',
+      };
+      mockUsePerpsAdjustMarginData.mockReturnValue({
+        position: mockPosition,
+        isLoading: false,
+        currentMargin: 500,
+        positionValue: 5000,
+        maxAmount: 0,
+        currentLiquidationPrice: undefined,
+        newLiquidationPrice: undefined,
+        currentLiquidationDistance: undefined,
+        newLiquidationDistance: undefined,
+        spendableBalance: undefined,
+        currentPrice: undefined,
+        isAddMode: true,
+        positionLeverage: 10,
+      });
+
+      render(<PerpsAdjustMarginView />);
+
+      expect(
+        screen.getByTestId(PerpsAdjustMarginViewSelectorsIDs.AVAILABLE_VALUE),
+      ).toHaveTextContent('$---');
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_PRICE_VALUE,
+        ),
+      ).toHaveTextContent('$---');
+      expect(
+        screen.getByTestId(
+          PerpsAdjustMarginViewSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
+        ),
+      ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay);
+    });
+
     it('shows fallback display when liquidation price is zero', () => {
       mockRouteParams = {
         position: mockPosition,
@@ -1378,8 +1415,8 @@ describe('PerpsAdjustMarginView', () => {
         maxAmount: 1000,
         currentLiquidationPrice: 0,
         newLiquidationPrice: 0,
-        currentLiquidationDistance: 0,
-        newLiquidationDistance: 0,
+        currentLiquidationDistance: undefined,
+        newLiquidationDistance: undefined,
         spendableBalance: 1000,
         currentPrice: 2000,
         isAddMode: true,

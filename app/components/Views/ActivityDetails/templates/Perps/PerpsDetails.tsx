@@ -11,6 +11,7 @@ import {
 } from '@metamask/design-system-react-native';
 import type { MetamaskPayMetadata } from '@metamask/transaction-controller';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_VALUE,
   getPerpsDisplaySymbol,
   type PerpsMarketData,
@@ -229,7 +230,7 @@ function OrderDetails({
   );
   const totalFeeValue =
     isFeeLoading || hasFeeError || totalFee === undefined
-      ? '—'
+      ? PERPS_CONSTANTS.FallbackDataDisplay
       : formatPerpsOrderFee(totalFee);
   const orderType = order ? resolvePerpsTransactionOrderType(order) : undefined;
   const { showTriggerPrice, showLimitPrice } =

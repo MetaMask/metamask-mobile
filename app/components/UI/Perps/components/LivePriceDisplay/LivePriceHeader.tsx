@@ -32,7 +32,8 @@ interface LivePriceHeaderProps {
    * PerpsOrderBookView), or the focused-price stream for ticket screens
    * (PerpsOrderHeader) — this component itself is source-agnostic.
    */
-  currentPrice: number;
+  /** Undefined while unknown; renders the price placeholder. */
+  currentPrice: number | undefined;
   /**
    * Optional 24h percent change override, bypassing this component's own
    * price-stream subscription. Pass `null` while the caller's own value is

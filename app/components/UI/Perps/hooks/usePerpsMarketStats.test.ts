@@ -170,6 +170,30 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
   });
 
+  it('keeps 24h high and low as the placeholder when a live price arrives without candles', () => {
+    // Arrange: a live price but no candle history
+    mockSubscribeToPrices.mockImplementation(({ callback }) => {
+      callback([mockPriceData.BTC]);
+      return jest.fn();
+    });
+    mockedUsePerpsLiveCandles.mockReturnValue({
+      candleData: null,
+      isLoading: false,
+      isLoadingMore: false,
+      hasHistoricalData: false,
+      error: null,
+      fetchMoreHistory: jest.fn(),
+    });
+
+    // Act
+    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
+
+    // Assert: the live price is known, but it is not a 24h high or low
+    expect(result.current.currentPrice).toBe(45000);
+    expect(result.current.high24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+    expect(result.current.low24h).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+  });
+
   it('displays default values when no market data is available', () => {
     // Arrange: Set up empty market data state
     mockSubscribeToPrices.mockImplementation(() => jest.fn());

@@ -1582,9 +1582,11 @@ describe('formatUtils', () => {
     });
 
     it('should handle invalid inputs', () => {
-      expect(formatLeverage('invalid')).toBe('1x');
-      expect(formatLeverage(NaN)).toBe('1x');
-      expect(formatLeverage('')).toBe('1x');
+      expect(formatLeverage('invalid')).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
+      expect(formatLeverage(NaN)).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+      expect(formatLeverage('')).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
     });
 
     it('should handle negative leverage', () => {
@@ -1690,10 +1692,14 @@ describe('formatUtils', () => {
       expect(formatPerpsBalance('$50.389')).toBe('$50.38');
     });
 
-    it('returns zero for null, undefined, or empty input', () => {
-      expect(formatPerpsBalance(null)).toBe('$0');
-      expect(formatPerpsBalance(undefined)).toBe('$0');
-      expect(formatPerpsBalance('')).toBe('$0');
+    it('returns the placeholder for null, undefined, or empty input', () => {
+      expect(formatPerpsBalance(null)).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      expect(formatPerpsBalance(undefined)).toBe(
+        PERPS_CONSTANTS.FallbackPriceDisplay,
+      );
+      expect(formatPerpsBalance('')).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
     });
   });
 
@@ -2845,6 +2851,10 @@ describe('formatUtils', () => {
 
     it('formats a complete number', () => {
       expect(formatLimitPriceInput('3000')).toBe('$3,000');
+    });
+
+    it('caps the draft at DECIMAL_PRECISION_CONFIG.MaxPriceDecimals', () => {
+      expect(formatLimitPriceInput('0.1234567')).toBe('$0.123457');
     });
 
     it.each([

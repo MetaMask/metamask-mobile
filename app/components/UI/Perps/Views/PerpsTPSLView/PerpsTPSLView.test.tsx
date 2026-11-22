@@ -78,7 +78,15 @@ jest.mock('../../utils/formatUtils', () => ({
           maximumFractionDigits: 2,
         })}`;
   }),
-  formatLiquidationDistancePercent: (value: number) => `${value.toFixed(2)}%`,
+  formatLiquidationDistance: jest.fn(
+    (entryPrice: unknown, liquidationPrice: unknown) => {
+      const entry = Number(entryPrice);
+      const liquidation = Number(liquidationPrice);
+      return entry > 0 && liquidation > 0
+        ? `${((Math.abs(entry - liquidation) / entry) * 100).toFixed(2)}%`
+        : undefined;
+    },
+  ),
   PRICE_RANGES_UNIVERSAL: {},
   PRICE_RANGES_MINIMAL_VIEW: {},
 }));

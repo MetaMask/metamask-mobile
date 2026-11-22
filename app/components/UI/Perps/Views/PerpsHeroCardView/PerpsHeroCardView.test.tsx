@@ -8,6 +8,7 @@ import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
+  PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
@@ -430,6 +431,20 @@ describe('PerpsHeroCardView', () => {
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
       expect(pnlText).toHaveTextContent('-10.0%');
+    });
+
+    it('displays the placeholder, not 0%, when the return on equity is unknown', () => {
+      mockUseRoute.mockReturnValue(
+        createMockRouteParams({ returnOnEquity: '' }) as never,
+      );
+
+      const { getByTestId } = render(<PerpsHeroCardView />);
+
+      const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
+
+      expect(pnlText).toHaveTextContent(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
     });
   });
 });

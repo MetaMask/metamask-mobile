@@ -34,6 +34,7 @@ import {
   getValidPerpsPrice,
   resolvePerpsTransactionOrderType,
 } from '../../utils/orderUtils';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
@@ -154,7 +155,7 @@ const PerpsOrderTransactionViewContent: React.FC = () => {
     {
       key: 'size',
       label: strings('perps.transactions.order.size'),
-      value: formatPerpsFiat(transaction.order?.size ?? 0),
+      value: formatPerpsFiat(transaction.order?.size),
     },
     ...priceRows,
     {
@@ -170,7 +171,7 @@ const PerpsOrderTransactionViewContent: React.FC = () => {
 
   const feeValue =
     isFeeLoading || hasFeeError || totalFee === undefined
-      ? '—'
+      ? PERPS_CONSTANTS.FallbackDataDisplay
       : formatFee(totalFee);
 
   const feeRows = [

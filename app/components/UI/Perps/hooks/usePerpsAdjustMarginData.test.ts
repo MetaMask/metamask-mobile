@@ -148,7 +148,9 @@ describe('usePerpsAdjustMarginData', () => {
       );
 
       expect(result.current.hasValidPositionData).toBe(true);
-      expect(result.current.currentLiquidationPrice).toBe(0);
+      expect(result.current.currentLiquidationPrice).toBeUndefined();
+      expect(result.current.newLiquidationPrice).toBeUndefined();
+      expect(result.current.currentLiquidationDistance).toBeUndefined();
     });
 
     it('returns isLoading true when positions are loading', () => {
@@ -206,7 +208,7 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.spendableBalance).toBe(10000);
     });
 
-    it('uses safe finite values when live numeric data is malformed', () => {
+    it('keeps malformed price, balance and liquidation price unknown, not 0', () => {
       mockUsePerpsLivePositions.mockReturnValue({
         positions: [
           {
@@ -247,9 +249,9 @@ describe('usePerpsAdjustMarginData', () => {
 
       expect(result.current.currentMargin).toBe(0);
       expect(result.current.positionValue).toBe(0);
-      expect(result.current.currentLiquidationPrice).toBe(0);
-      expect(result.current.currentPrice).toBe(0);
-      expect(result.current.spendableBalance).toBe(0);
+      expect(result.current.currentLiquidationPrice).toBeUndefined();
+      expect(result.current.currentPrice).toBeUndefined();
+      expect(result.current.spendableBalance).toBeUndefined();
       expect(result.current.maxAmount).toBe(0);
       expect(Number.isFinite(result.current.positionLeverage)).toBe(true);
       expect(result.current.hasValidPositionData).toBe(false);
@@ -409,12 +411,11 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      // currentPrice = 100000, liquidationPrice = 80000
-      // distance = |100000 - 80000| / 100000 * 100 = 20%
-      expect(result.current.currentLiquidationDistance).toBe(20);
+      // Core formatLiquidationDistance: |100000 - 80000| / 100000 = 20.00%
+      expect(result.current.currentLiquidationDistance).toBe('20.00%');
     });
 
-    it('returns 0 when current price is 0', () => {
+    it('returns undefined, never "at liquidation", when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: {
           price: '0',
@@ -432,7 +433,23 @@ describe('usePerpsAdjustMarginData', () => {
         }),
       );
 
-      expect(result.current.currentLiquidationDistance).toBe(0);
+      expect(result.current.currentLiquidationDistance).toBeUndefined();
+      expect(result.current.newLiquidationDistance).toBeUndefined();
+    });
+
+    it('returns undefined when there is no live price', () => {
+      mockUsePerpsLivePrices.mockReturnValue({});
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.currentPrice).toBeUndefined();
+      expect(result.current.currentLiquidationDistance).toBeUndefined();
     });
   });
 

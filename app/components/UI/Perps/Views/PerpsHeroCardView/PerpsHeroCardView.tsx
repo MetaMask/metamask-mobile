@@ -96,7 +96,9 @@ const PerpsHeroCardView: React.FC = () => {
     const isLong = Number.parseFloat(position.size) >= 0;
     const direction = isLong ? 'long' : 'short';
     const pnlValue = Number.parseFloat(position.unrealizedPnl);
-    const roeValue = Number.parseFloat(position.returnOnEquity || '0') * 100;
+    // Unknown return on equity stays undefined and renders the placeholder.
+    const parsedRoe = Number.parseFloat(position.returnOnEquity);
+    const roeValue = Number.isFinite(parsedRoe) ? parsedRoe * 100 : undefined;
     const entryPrice = position.entryPrice;
 
     const marketPriceParsed = parseCurrencyString(marketPrice ?? '');
@@ -176,7 +178,14 @@ const PerpsHeroCardView: React.FC = () => {
     navigation.goBack();
   };
 
-  const pnlDisplay = formatRoePercentage(data.roe, data.roe < 0);
+  const isRoeLoss = data.roe !== undefined && data.roe < 0;
+  const pnlDisplay = formatRoePercentage(data.roe, isRoeLoss);
+  let pnlStyle = styles.pnlPositive;
+  if (data.roe === undefined) {
+    pnlStyle = styles.priceValue;
+  } else if (isRoeLoss) {
+    pnlStyle = styles.pnlNegative;
+  }
   const directionText =
     data.direction.charAt(0).toUpperCase() + data.direction.slice(1);
   const directionBadgeText = data.leverage
@@ -243,7 +252,7 @@ const PerpsHeroCardView: React.FC = () => {
             <Text
               variant={TextVariant.AmountDisplayLg}
               fontFamily={FontFamily.Hero}
-              style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
+              style={pnlStyle}
               testID={getPerpsHeroCardViewSelector.pnlText(index)}
             >
               {pnlDisplay}
@@ -302,7 +311,7 @@ const PerpsHeroCardView: React.FC = () => {
     [
       styles,
       data.asset,
-      data.roe,
+      pnlStyle,
       data.entryPrice,
       data.markPrice,
       directionBadgeText,

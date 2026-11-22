@@ -136,18 +136,13 @@ const PerpsProMarketStatsBar: React.FC<PerpsProMarketStatsBarProps> = ({
   const liveFunding = livePriceUpdate?.funding;
 
   // Prefer the live WebSocket funding value, fall back to the stats hook, then
-  // to the zero display — identical precedence to PerpsMarketStatisticsCard.
+  // to the unknown-rate placeholder — identical precedence to
+  // PerpsMarketStatisticsCard. An unknown rate is never shown as zero.
   const fundingRateDisplay = useMemo(() => {
     if (liveFunding !== undefined) {
       return formatFundingRate(liveFunding);
     }
-    // The stats hook formats in the app language: compare with and fall back
-    // to the localized zero (e.g. `0,0000%` in de), not the en constant.
-    const zeroDisplay = formatFundingRate(0);
-    if (marketStats.fundingRate && marketStats.fundingRate !== zeroDisplay) {
-      return marketStats.fundingRate;
-    }
-    return zeroDisplay;
+    return marketStats.fundingRate || formatFundingRate(undefined);
   }, [liveFunding, marketStats.fundingRate]);
 
   // Funding countdown — same calculator as FundingCountdown, formatted as

@@ -67,7 +67,6 @@ import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
 import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import {
-  formatLiquidationDistancePercent,
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -96,8 +95,8 @@ interface PerpsAdjustMarginBottomSheetProps {
 }
 
 interface SubmittedEstimate {
-  price: number;
-  distance: number;
+  price: number | undefined;
+  distance: string | undefined;
   currentMargin: number;
   nextMargin: number;
 }
@@ -119,18 +118,10 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
     },
   });
 
-const formatLiquidationDistance = (
-  distance: number,
-  liquidationPrice: number,
-) =>
-  !Number.isFinite(distance) ||
-  !Number.isFinite(liquidationPrice) ||
-  liquidationPrice <= 0
-    ? PERPS_CONSTANTS.FallbackDataDisplay
-    : formatLiquidationDistancePercent(distance);
-
-const formatLiquidationPrice = (liquidationPrice: number) =>
-  Number.isFinite(liquidationPrice) && liquidationPrice > 0
+const formatLiquidationPrice = (liquidationPrice: number | undefined) =>
+  liquidationPrice !== undefined &&
+  Number.isFinite(liquidationPrice) &&
+  liquidationPrice > 0
     ? formatPerpsFiat(liquidationPrice, {
         ranges: PRICE_RANGES_UNIVERSAL,
       })
@@ -256,6 +247,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     newLiquidationPrice,
     currentLiquidationDistance,
     newLiquidationDistance,
+    spendableBalance,
     currentPrice,
     percentChange24h,
     isAddMode,
@@ -530,7 +522,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   const isConfirmDisabled =
     hasInvalidAmount || isAdjusting || isPositionGone || isPositionDataInvalid;
 
-  const isHeaderPriceLoading = !(currentPrice > 0);
+  const isHeaderPriceLoading = currentPrice === undefined || currentPrice <= 0;
 
   if (selectedTooltip) {
     return (
@@ -717,9 +709,13 @@ const PerpsAdjustMarginBottomSheet: React.FC<
                   ? strings('perps.adjust_margin.available_to_add')
                   : strings('perps.adjust_margin.available_to_remove')
               }
-              value={formatPerpsFiat(flooredMaxAmount, {
-                ranges: PRICE_RANGES_MINIMAL_VIEW,
-              })}
+              value={formatPerpsFiat(
+                // An unknown balance renders the placeholder, not $0.
+                isAddMode && spendableBalance === undefined
+                  ? undefined
+                  : flooredMaxAmount,
+                { ranges: PRICE_RANGES_MINIMAL_VIEW },
+              )}
               valueTextProps={{
                 testID:
                   PerpsAdjustMarginBottomSheetSelectorsIDs.AVAILABLE_VALUE,
@@ -769,14 +765,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
                 )} ${strings('navigation.info')}`,
               }}
               value={renderTransitionValue(
-                formatLiquidationDistance(
-                  currentLiquidationDistance,
-                  currentLiquidationPrice,
-                ),
-                formatLiquidationDistance(
-                  displayNewLiquidationDistance,
-                  displayNewLiquidationPrice,
-                ),
+                currentLiquidationDistance ??
+                  PERPS_CONSTANTS.FallbackDataDisplay,
+                displayNewLiquidationDistance ??
+                  PERPS_CONSTANTS.FallbackDataDisplay,
                 PerpsAdjustMarginBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
               )}
             />
