@@ -19,12 +19,10 @@ function renderItem({ item }: { item: HomePack }) {
   return <PackTile pack={item} />;
 }
 
-// FlashList positions cells absolutely, so a separator spaces the tiles.
 function TileGap() {
   return <View className="w-4" />;
 }
 
-// Three fixed tiles that never scroll, so a plain row is enough.
 export function CollectiblesCarouselSkeleton() {
   return (
     <View

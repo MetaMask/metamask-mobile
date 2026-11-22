@@ -5412,9 +5412,8 @@
   },
   "collectibles": {
     "title": "Collectibles",
-    "home_section": {
-      "description": "Explore collectibles packs and cards.",
-      "open_collectibles": "Explore Collectibles"
+    "trade_menu": {
+      "description": "Explore packs and cards"
     }
   },
   "collectible": {
@@ -11264,6 +11263,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
     "discount_badge_promo": "Promo",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "No MM fee",
     "token_suspicious": "Suspicious",
