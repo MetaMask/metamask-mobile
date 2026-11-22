@@ -362,6 +362,29 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.insufficientBalanceErrors).toEqual([]);
     });
 
+    it('blocks the order while the balance is unknown', async () => {
+      mockValidateOrder.mockResolvedValue({ isValid: true });
+
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          spendableBalance: undefined,
+          marginRequired: '10.00',
+        }),
+      );
+
+      await fastWaitFor(() => {
+        expect(result.current.isValidating).toBe(false);
+      });
+
+      expect(result.current.isValid).toBe(false);
+      let attempt: ValidationAttempt | undefined;
+      await act(async () => {
+        attempt = await result.current.validateNow();
+      });
+      expect(attempt?.isValid).toBe(false);
+    });
+
     it('excludes the minimum amount error from the insufficient balance errors', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 

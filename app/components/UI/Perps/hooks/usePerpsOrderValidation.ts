@@ -563,7 +563,11 @@ export function usePerpsOrderValidation(
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
+  // An unresolved account has no known balance: no insufficient-balance copy,
+  // but the order stays blocked until the balance is known.
+  const isBalanceKnown = spendableBalance !== undefined;
   const isLocallyValid =
+    isBalanceKnown &&
     localErrors.length === 0 &&
     !fieldIssues.some((issue) => !isAdvisoryOrderFormFieldIssue(issue));
 
@@ -805,9 +809,15 @@ export function usePerpsOrderValidation(
       };
     }
 
-    return performValidation(requestId, fieldIssues, localErrors);
+    const attempt = await performValidation(
+      requestId,
+      fieldIssues,
+      localErrors,
+    );
+    return isBalanceKnown ? attempt : { ...attempt, isValid: false };
   }, [
     clearValidationTimer,
+    isBalanceKnown,
     fieldIssues,
     localErrors,
     performValidation,
