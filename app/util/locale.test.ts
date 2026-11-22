@@ -21,13 +21,16 @@ const onAppStateChange = jest
   .mock.calls.find(([type]) => type === 'change')?.[1];
 
 describe('getFormattingLocale', () => {
-  beforeEach(() => {
+  it('registers AppState change listener', () => {
     expect(onAppStateChange).toBeDefined();
+  });
+
+  beforeEach(() => {
     jest.clearAllMocks();
     onAppStateChange?.('active');
   });
 
-  const makeLocale = (tag: string) => {
+  function makeLocale(tag: string) {
     const parts = tag.split('-');
     const lang = parts[0];
     const script = parts.length > 1 && parts[1].length === 4 ? parts[1] : null;
@@ -52,7 +55,7 @@ describe('getFormattingLocale', () => {
       languageCurrencySymbol: null,
       temperatureUnit: 'celsius' as const,
     };
-  };
+  }
 
   it.each([
     {
@@ -74,10 +77,25 @@ describe('getFormattingLocale', () => {
       expected: 'en-US',
     },
     {
-      description: 'keeps script when device matches app language',
+      description: 'uses device region even when languageTag differs',
+      appLocale: 'en',
+      deviceLocales: [
+        { ...makeLocale('en-US'), regionCode: 'DE', languageTag: 'en-US' },
+      ],
+      expected: 'en-DE',
+    },
+    {
+      description:
+        'adds Hans script for zh app with TW region (app Simplified, region Traditional)',
       appLocale: 'zh',
       deviceLocales: [makeLocale('zh-Hant-TW')],
-      expected: 'zh-Hant-TW',
+      expected: 'zh-Hans-TW',
+    },
+    {
+      description: 'uses zh-CN without script (app and region both Simplified)',
+      appLocale: 'zh',
+      deviceLocales: [makeLocale('zh-CN')],
+      expected: 'zh-CN',
     },
     {
       description: 'falls back to en for unsupported app language',

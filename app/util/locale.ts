@@ -3,7 +3,6 @@ import { getLocales, type Locale } from 'expo-localization';
 import I18n from '../../locales/i18n';
 
 interface CachedLocaleData {
-  locales: Locale[];
   firstWithRegion: Locale | undefined;
   currencyDisplay: 'narrowSymbol' | 'symbol';
 }
@@ -21,7 +20,6 @@ function refreshDeviceLocales() {
   const locales = getLocales();
   const firstWithRegion = locales.find((loc) => loc.regionCode);
   cachedLocaleData = {
-    locales,
     firstWithRegion,
     currencyDisplay: computeCurrencyDisplay(firstWithRegion),
   };
@@ -39,33 +37,37 @@ function getResolvedAppLanguage() {
   return I18n.translations && bare in I18n.translations ? bare : 'en';
 }
 
-interface ResolveParams {
-  appLanguage: string;
-  firstWithRegion: Locale | undefined;
+const traditionalZhRegions = new Set(['TW', 'HK', 'MO']);
+
+function getDefaultScriptForZh(region: string) {
+  return traditionalZhRegions.has(region.toUpperCase()) ? 'Hant' : 'Hans';
 }
 
-function resolveFormattingLocale({
-  appLanguage,
-  firstWithRegion,
-}: ResolveParams) {
-  if (!firstWithRegion?.regionCode) {
+function resolveFormattingLocale(
+  appLanguage: string,
+  deviceRegion: string | null,
+) {
+  if (!deviceRegion) {
     return appLanguage;
   }
 
-  if (firstWithRegion.languageCode === appLanguage) {
-    const candidate = firstWithRegion.languageTag;
-    try {
-      Intl.getCanonicalLocales(candidate);
-      return candidate;
-    } catch {
-      return appLanguage;
+  const parts = [appLanguage];
+
+  // Keep app's Simplified (Hans) script for Chinese when region default differs
+  if (appLanguage === 'zh') {
+    const appScript = 'Hans';
+    const regionDefaultScript = getDefaultScriptForZh(deviceRegion);
+    if (appScript !== regionDefaultScript) {
+      parts.push(appScript);
     }
   }
 
-  const withRegion = `${appLanguage}-${firstWithRegion.regionCode}`;
+  parts.push(deviceRegion);
+  const locale = parts.join('-');
+
   try {
-    Intl.getCanonicalLocales(withRegion);
-    return withRegion;
+    Intl.getCanonicalLocales(locale);
+    return locale;
   } catch {
     return appLanguage;
   }
@@ -79,8 +81,6 @@ export function getCurrencyDisplay() {
 export function getFormattingLocale() {
   const data = cachedLocaleData ?? refreshDeviceLocales();
   const appLanguage = getResolvedAppLanguage();
-  return resolveFormattingLocale({
-    appLanguage,
-    firstWithRegion: data.firstWithRegion,
-  });
+  const deviceRegion = data.firstWithRegion?.regionCode ?? null;
+  return resolveFormattingLocale(appLanguage, deviceRegion);
 }
