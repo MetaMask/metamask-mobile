@@ -228,6 +228,38 @@ describe('usePerpsLiquidationPrice', () => {
     );
   });
 
+  it.each([
+    ['leverage', { leverage: 20 }],
+    ['position size', { positionSize: 2 }],
+  ])('drops the last quote when the %s changes', async (_label, change) => {
+    mockCalculateLiquidationPrice
+      .mockReset()
+      .mockResolvedValueOnce('45000.00')
+      .mockReturnValueOnce(new Promise<string>(() => undefined));
+    const draft = {
+      leverage: 10,
+      direction: 'long' as const,
+      asset: 'BTC',
+      entryPrice: 50000,
+      positionSize: 1,
+    };
+    const { result, rerender } = renderHook(
+      (props) => usePerpsLiquidationPrice(props),
+      { initialProps: draft },
+    );
+    await waitFor(() =>
+      expect(result.current.liquidationPrice).toBe('45000.00'),
+    );
+
+    rerender({ ...draft, ...change });
+
+    expect(result.current.liquidationPrice).toBeUndefined();
+    expect(result.current.isCalculating).toBe(true);
+    await waitFor(() =>
+      expect(mockCalculateLiquidationPrice).toHaveBeenCalledTimes(2),
+    );
+  });
+
   it('ignores a Cross result from the previous account and preserves a real zero', async () => {
     let resolvePrevious: (value: string) => void = () => undefined;
     const previous = new Promise<string>((resolve) => {
