@@ -494,6 +494,15 @@ describe('wallet_watchAsset', () => {
       dappChainId,
       dappNetworkClientId,
     );
+    // The metadata fetch runs against the dapp network too. Without the
+    // client id it would use the global network and could return another
+    // token's decimals and symbol from the same address there.
+    expect(
+      MockEngine.context.AssetsContractController.getERC20TokenDecimals,
+    ).toHaveBeenCalledWith(correctWBTC.address, dappNetworkClientId);
+    expect(
+      MockEngine.context.AssetsContractController.getERC721AssetSymbol,
+    ).toHaveBeenCalledWith(correctWBTC.address, dappNetworkClientId);
     // The token is stored under the dapp network chain (eip155:4660 for
     // 0x1234), not the global network chain.
     expect(

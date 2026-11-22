@@ -156,11 +156,15 @@ export const wallet_watchAsset = async ({
     permittedAccounts?.[0] || selectedInternalAccountAddress;
   // This variables are to override the value of decimals and symbol from the dapp
   // if they are wrong accordingly to the token address
+  // Fetch the metadata from the same network the token was validated
+  // against. Without the client id these calls use the globally active
+  // network, so a token that only exists on the dapp network could pick
+  // up another token's decimals and symbol from the same address there.
   let fetchedDecimals, fetchedSymbol;
   try {
     [fetchedDecimals, fetchedSymbol] = await Promise.all([
-      AssetsContractController.getERC20TokenDecimals(address),
-      AssetsContractController.getERC721AssetSymbol(address),
+      AssetsContractController.getERC20TokenDecimals(address, networkClientId),
+      AssetsContractController.getERC721AssetSymbol(address, networkClientId),
     ]);
     //The catch it's only to prevent the fetch from the chain to fail
     // eslint-disable-next-line no-empty
