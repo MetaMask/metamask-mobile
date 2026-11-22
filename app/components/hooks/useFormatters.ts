@@ -9,8 +9,9 @@ let cachedLocale: string | undefined;
 let cachedCurrencyDisplay: 'narrowSymbol' | 'symbol' | undefined;
 
 /**
- * Returns the app-language formatters, memoized per locale. Safe to call
- * outside React; prefer {@link useFormatters} in components.
+ * Returns formatters for the app language and device region, memoized per
+ * locale. Safe to call outside React; prefer {@link useFormatters} in
+ * components.
  */
 export function getFormatters(): Formatters {
   const locale = getFormattingLocale();

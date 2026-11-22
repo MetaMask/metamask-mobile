@@ -6,8 +6,6 @@ jest.mock('../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('expo-localization');
-
 import I18n from '../../locales/i18n';
 import { getLocales, type Locale } from 'expo-localization';
 import { AppState } from 'react-native';
@@ -65,13 +63,13 @@ describe('getFormattingLocale', () => {
       expected: 'en-DE',
     },
     {
-      description: 'uses device locale when languages match',
+      description: 'combines matching app language with device region',
       appLocale: 'de',
       deviceLocales: [makeLocale('de-CH')],
       expected: 'de-CH',
     },
     {
-      description: 'uses device locale for exact match',
+      description: 'keeps en-US when app is en and region is US',
       appLocale: 'en',
       deviceLocales: [makeLocale('en-US')],
       expected: 'en-US',

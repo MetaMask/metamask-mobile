@@ -6,8 +6,6 @@ jest.mock('../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('expo-localization');
-
 import { renderHook } from '@testing-library/react-hooks';
 import { useFormatters } from './useFormatters';
 import I18n from '../../../locales/i18n';
@@ -28,11 +26,7 @@ describe('useFormatters', () => {
     onAppStateChange?.('active');
   });
 
-  const makeLocale = (
-    tag: string,
-    currencyCode: string | null,
-    currencySymbol: string | null,
-  ) => ({
+  const makeLocale = (tag: string, currencySymbol: string | null = null) => ({
     languageTag: tag,
     languageCode: tag.split('-')[0],
     languageScriptCode: null,
@@ -42,16 +36,16 @@ describe('useFormatters', () => {
     digitGroupingSeparator: ',',
     decimalSeparator: '.',
     measurementSystem: 'metric' as const,
-    currencyCode,
+    currencyCode: null,
     currencySymbol,
-    languageCurrencyCode: currencyCode,
+    languageCurrencyCode: null,
     languageCurrencySymbol: currencySymbol,
     temperatureUnit: 'celsius' as const,
   });
 
   it('uses narrowSymbol when no region', () => {
     mockI18n.locale = 'fr';
-    mockGetLocales.mockReturnValue([makeLocale('fr', null, null)]);
+    mockGetLocales.mockReturnValue([makeLocale('fr')]);
 
     const { result } = renderHook(() => useFormatters());
     const formatted = result.current.formatCurrency(100, 'USD');
@@ -59,57 +53,81 @@ describe('useFormatters', () => {
     expect(formatted).toBe('100,00\u00A0$');
   });
 
+  it('marks USD in a $ region even when the device symbol is CA$', () => {
+    mockI18n.locale = 'en';
+    mockGetLocales.mockReturnValue([makeLocale('de-CA', 'CA$')]);
+
+    const { result } = renderHook(() => useFormatters());
+
+    expect(result.current.formatCurrency(100, 'USD')).toBe('US$100.00');
+  });
+
+  it('does not mark USD in the US region', () => {
+    mockI18n.locale = 'fr';
+    mockGetLocales.mockReturnValue([makeLocale('fr-US', '$')]);
+
+    const { result } = renderHook(() => useFormatters());
+
+    expect(result.current.formatCurrency(100, 'USD')).toBe('100,00\u00A0$');
+  });
+
   describe('currency formatting', () => {
     it.each([
       {
-        description: 'device en-CA (CAD $) formats USD as US$100.00',
-        deviceLocale: makeLocale('en-CA', 'CAD', '$'),
+        description: 'device en-CA formats USD as US$100.00',
+        deviceLocale: makeLocale('en-CA'),
+        value: 100,
         currency: 'USD',
         fn: 'formatCurrency',
         expected: 'US$100.00',
       },
       {
-        description: 'device en-CA (CAD $) formats CAD as $100.00',
-        deviceLocale: makeLocale('en-CA', 'CAD', '$'),
+        description: 'device en-CA formats CAD as $100.00',
+        deviceLocale: makeLocale('en-CA'),
+        value: 100,
         currency: 'CAD',
         fn: 'formatCurrency',
         expected: '$100.00',
       },
       {
-        description: 'device en-GB (GBP £) formats USD as $100.00',
-        deviceLocale: makeLocale('en-GB', 'GBP', '£'),
+        description: 'device en-GB formats USD as $100.00',
+        deviceLocale: makeLocale('en-GB'),
+        value: 100,
         currency: 'USD',
         fn: 'formatCurrency',
         expected: '$100.00',
       },
       {
-        description: 'device en-AU (AUD $) formats USD as USD 100.00',
-        deviceLocale: makeLocale('en-AU', 'AUD', '$'),
+        description: 'device en-AU formats USD as USD 100.00',
+        deviceLocale: makeLocale('en-AU'),
+        value: 100,
         currency: 'USD',
         fn: 'formatCurrency',
         expected: 'USD\u00A0100.00',
       },
       {
-        description: 'device en-CA (CAD $) formatCurrencyCompact no bare $',
-        deviceLocale: makeLocale('en-CA', 'CAD', '$'),
+        description: 'device en-CA formatCurrencyCompact no bare $',
+        deviceLocale: makeLocale('en-CA'),
+        value: 1500000,
         currency: 'USD',
         fn: 'formatCurrencyCompact',
-        expected: 'US$100.00',
+        expected: 'US$1.50M',
       },
       {
-        description: 'device en-GB (GBP £) formatCurrencyCompact allows $',
-        deviceLocale: makeLocale('en-GB', 'GBP', '£'),
+        description: 'device en-GB formatCurrencyCompact allows $',
+        deviceLocale: makeLocale('en-GB'),
+        value: 1500000,
         currency: 'USD',
         fn: 'formatCurrencyCompact',
-        expected: '$100.00',
+        expected: '$1.50m',
       },
-    ])('$description', ({ deviceLocale, currency, fn, expected }) => {
+    ])('$description', ({ deviceLocale, value, currency, fn, expected }) => {
       mockI18n.locale = 'en';
       mockGetLocales.mockReturnValue([deviceLocale]);
 
       const { result } = renderHook(() => useFormatters());
       const formatted = result.current[fn as keyof typeof result.current](
-        100,
+        value,
         currency,
       );
 

@@ -19,7 +19,3 @@ export const getLocales = jest.fn(
       },
     ] as const,
 );
-
-export default {
-  getLocales,
-};

@@ -9,8 +9,13 @@ interface CachedLocaleData {
 
 let cachedLocaleData: CachedLocaleData | undefined;
 
+// Regions whose own currency is written as $, so USD needs marking (US$).
+// Copied from the extension; moves to core later.
+const dollarRegions = new Set(['CA', 'AU', 'NZ', 'SG', 'HK', 'MX', 'AR']);
+
 function computeCurrencyDisplay(firstWithRegion: Locale | undefined) {
-  return firstWithRegion?.currencySymbol === '$' ? 'symbol' : 'narrowSymbol';
+  const region = firstWithRegion?.regionCode;
+  return region && dollarRegions.has(region) ? 'symbol' : 'narrowSymbol';
 }
 
 function refreshDeviceLocales() {

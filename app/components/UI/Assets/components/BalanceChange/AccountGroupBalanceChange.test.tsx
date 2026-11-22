@@ -7,6 +7,8 @@ import {
 } from './constants';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import I18n from '../../../../../../locales/i18n';
+// eslint-disable-next-line import-x/no-namespace
+import * as localeUtils from '../../../../../util/locale';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -304,6 +306,10 @@ describe('AccountGroupBalanceChange', () => {
   });
 
   describe('percent change locale', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
     it('formats the US percent change with a decimal point', () => {
       mockI18n.locale = 'en-US';
 
@@ -338,6 +344,18 @@ describe('AccountGroupBalanceChange', () => {
           userCurrency: 'eur',
         }),
       ).toBe('(-1,23\u00a0%)');
+    });
+
+    it('formats the percent change with the device region', () => {
+      jest.spyOn(localeUtils, 'getFormattingLocale').mockReturnValue('en-DE');
+
+      expect(
+        getPercentText({
+          amountChangeInUserCurrency: 12.34,
+          percentChange: 1.23,
+          userCurrency: 'usd',
+        }),
+      ).toBe('(+1,23\u00a0%)');
     });
   });
 
