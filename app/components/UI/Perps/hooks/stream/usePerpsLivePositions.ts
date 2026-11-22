@@ -2,11 +2,7 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import {
-  calculateSignedRoEForPrice,
-  type Position,
-  type PriceUpdate,
-} from '@metamask/perps-controller';
+import { type Position, type PriceUpdate } from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
@@ -18,12 +14,12 @@ export interface UsePerpsLivePositionsOptions {
   enabled?: boolean;
   /** Throttle delay in milliseconds (default: 0 - no throttling for instant updates) */
   throttleMs?: number;
-  /** Whether to subscribe to price updates for live PnL calculations (default: false) */
+  /** Whether to subscribe to live prices for the position symbols, exposed as `prices` (default: false) */
   useLivePnl?: boolean;
 }
 
 export interface UsePerpsLivePositionsReturn {
-  /** Array of current positions with live PnL calculations */
+  /** Current positions with the controller's PnL, RoE and value */
   positions: Position[];
   /** Whether we're waiting for the first real WebSocket data (not cached) */
   isInitialLoading: boolean;
@@ -34,74 +30,10 @@ export interface UsePerpsLivePositionsReturn {
 }
 
 /**
- * Enrich positions with recalculated unrealizedPnl, returnOnEquity, and
- * positionValue based on the live price feed.
- *
- * Needs Core: there is no controller export for a live-mark position
- * recompute yet, so this stays local. It prices at the stream's `price`
- * (mid), so `positionValue / size` is not the mark price; read the mark from
- * `prices[symbol].markPrice` instead.
- */
-export function enrichPositionsWithLivePnL(
-  positions: Position[],
-  priceData: Record<string, PriceUpdate>,
-): Position[] {
-  if (!priceData || Object.keys(priceData).length === 0) {
-    return positions;
-  }
-
-  return positions.map((position) => {
-    const priceUpdate = priceData[position.symbol];
-    if (!priceUpdate) {
-      return position;
-    }
-
-    // Use mark price if available, fallback to mid price
-    const currentPrice = Number.parseFloat(
-      priceUpdate.price ?? priceUpdate.markPrice,
-    );
-
-    if (!currentPrice || Number.isNaN(currentPrice) || currentPrice <= 0) {
-      return position;
-    }
-
-    const entryPrice = Number.parseFloat(position.entryPrice);
-    const size = Number.parseFloat(position.size);
-    const leverage = position.leverage?.value;
-
-    if (Number.isNaN(entryPrice) || Number.isNaN(size) || entryPrice <= 0) {
-      return position;
-    }
-
-    const direction = size >= 0 ? 'long' : 'short';
-
-    const calculatedUnrealizedPnl = (currentPrice - entryPrice) * size;
-
-    const roePercentage = calculateSignedRoEForPrice(currentPrice.toString(), {
-      currentPrice,
-      direction,
-      leverage,
-      entryPrice,
-    });
-
-    // Core returns '' while leverage is unknown: keep the controller's ROE
-    // instead of inventing 1x or 0.
-    const returnOnEquity = roePercentage
-      ? (Number.parseFloat(roePercentage) / 100).toString()
-      : position.returnOnEquity;
-
-    return {
-      ...position,
-      unrealizedPnl: calculatedUnrealizedPnl.toString(),
-      returnOnEquity,
-      positionValue: (Math.abs(size) * currentPrice).toString(),
-    };
-  });
-}
-
-/**
- * Hook for real-time position updates via WebSocket subscription
- * with optional live PnL calculations based on current mark prices
+ * Hook for real-time position updates via WebSocket subscription.
+ * Positions carry the controller's `unrealizedPnl`, `returnOnEquity` and
+ * `positionValue` as delivered; with `useLivePnl` it also exposes the live
+ * prices (e.g. `prices[symbol].markPrice`) for the position symbols.
  *
  * @param options - Configuration options for the hook
  * @param options.throttleMs - Throttle delay in milliseconds (default: 0)
@@ -141,17 +73,11 @@ export function usePerpsLivePositions(
     useState(selectedAddress);
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
-  // Derive enriched positions synchronously to avoid one-frame flash
-  // where isInitialLoading is false but positions haven't been enriched yet
-  const positions = useMemo(() => {
-    if (rawPositionsAddress !== selectedAddress) {
-      return EMPTY_POSITIONS;
-    }
-    if (rawPositions.length === 0) {
-      return EMPTY_POSITIONS;
-    }
-    return enrichPositionsWithLivePnL(rawPositions, priceData);
-  }, [rawPositions, priceData, rawPositionsAddress, selectedAddress]);
+  // Positions for another account never show.
+  const positions =
+    rawPositionsAddress !== selectedAddress || rawPositions.length === 0
+      ? EMPTY_POSITIONS
+      : rawPositions;
 
   // Subscribe to position updates
   useEffect(() => {
