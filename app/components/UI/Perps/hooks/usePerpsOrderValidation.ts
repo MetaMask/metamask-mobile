@@ -766,14 +766,18 @@ export function usePerpsOrderValidation(
     if (!hasValidatedOnceRef.current || becameLocallyValid) {
       hasValidatedOnceRef.current = true;
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors);
+        performValidation(requestId, fieldIssues, localErrors).catch(
+          () => undefined,
+        );
       }
       return;
     }
 
     validationTimerRef.current = setTimeout(() => {
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors);
+        performValidation(requestId, fieldIssues, localErrors).catch(
+          () => undefined,
+        );
       }
       validationTimerRef.current = null;
     }, PERFORMANCE_CONFIG.ValidationDebounceMs);

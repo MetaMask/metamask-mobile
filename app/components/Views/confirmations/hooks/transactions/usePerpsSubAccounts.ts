@@ -71,7 +71,7 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
 
   useEffect(() => {
     if (evmAccounts.length > 0) {
-      fetchBalances();
+      fetchBalances().catch(() => undefined);
     }
   }, [evmAccounts, fetchBalances]);
 

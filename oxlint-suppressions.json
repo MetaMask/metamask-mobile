@@ -7327,11 +7327,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Perps/hooks/useDepositRequests.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/UI/Perps/hooks/useHasExistingPosition.ts": {
     "typescript/no-floating-promises": {
       "count": 1
@@ -7425,11 +7420,6 @@
   "app/components/UI/Perps/hooks/usePerpsClosePositionForm.ts": {
     "typescript/prefer-nullish-coalescing": {
       "count": 3
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsClosePositionValidation.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/UI/Perps/hooks/usePerpsDepositProgress.ts": {
@@ -7752,9 +7742,6 @@
     }
   },
   "app/components/UI/Perps/hooks/usePerpsOrderValidation.ts": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
@@ -7836,11 +7823,6 @@
     },
     "typescript/promise-function-async": {
       "count": 2
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsProPositionsPanelActions.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
     }
   },
   "app/components/UI/Perps/hooks/usePerpsProvider.test.ts": {
@@ -7932,9 +7914,6 @@
     }
   },
   "app/components/UI/Perps/hooks/usePerpsTransactionHistory.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -20035,9 +20014,6 @@
     }
   },
   "app/components/Views/confirmations/hooks/transactions/usePerpsSubAccounts.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }

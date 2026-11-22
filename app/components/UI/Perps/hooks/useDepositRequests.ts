@@ -230,7 +230,7 @@ export const useDepositRequests = (
   // Initial fetch when component mounts
   useEffect(() => {
     if (!skipInitialFetch) {
-      fetchCompletedDeposits();
+      fetchCompletedDeposits().catch(() => undefined);
     }
   }, [fetchCompletedDeposits, skipInitialFetch]);
 

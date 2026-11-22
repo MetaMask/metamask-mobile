@@ -146,7 +146,7 @@ export const usePerpsProPositionsPanelActions =
           }
 
           await action();
-        });
+        }).catch(() => undefined);
       },
       [gate, isEligible, showGeoBlockForSource],
     );

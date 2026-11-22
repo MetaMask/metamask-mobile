@@ -364,7 +364,7 @@ export const usePerpsTransactionHistory = ({
       // the screen was closed. Force a fresh fetch on mount / reconnect;
       // rate-limit burst absorption comes from the market-switch hooks, not
       // from activity-screen opens.
-      runFetch({ force: true });
+      runFetch({ force: true }).catch(() => undefined);
     }
   }, [skipInitialFetch, prevSkipInitialFetch, runFetch]);
 

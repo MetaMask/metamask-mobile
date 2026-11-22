@@ -301,7 +301,7 @@ export function usePerpsClosePositionValidation(
       return;
     }
 
-    performValidation();
+    performValidation().catch(() => undefined);
   }, [performValidation, symbol, currentPrice, skipValidation]);
 
   return validation;

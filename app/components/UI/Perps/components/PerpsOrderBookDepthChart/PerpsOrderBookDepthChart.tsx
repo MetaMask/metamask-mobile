@@ -191,7 +191,7 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
           </Defs>
 
           {/* Bid area */}
-          {bidPath && (
+          {Boolean(bidPath) && (
             <Path
               d={bidPath}
               fill="url(#bidGradient)"
@@ -201,7 +201,7 @@ const PerpsOrderBookDepthChart: React.FC<PerpsOrderBookDepthChartProps> = ({
           )}
 
           {/* Ask area */}
-          {askPath && (
+          {Boolean(askPath) && (
             <Path
               d={askPath}
               fill="url(#askGradient)"
