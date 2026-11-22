@@ -6197,7 +6197,7 @@
       "count": 1
     },
     "typescript/prefer-nullish-coalescing": {
-      "count": 5
+      "count": 3
     },
     "typescript/unbound-method": {
       "count": 2
@@ -6355,10 +6355,10 @@
       "count": 14
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 26
+      "count": 25
     },
     "typescript/promise-function-async": {
-      "count": 10
+      "count": 2
     }
   },
   "app/components/UI/Perps/Views/PerpsOrderView/PerpsOrderView.tsx": {
@@ -6776,9 +6776,6 @@
   "app/components/UI/Perps/components/PerpsBalanceBottomSheet/PerpsBalanceBottomSheet.tsx": {
     "typescript/no-floating-promises": {
       "count": 3
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 4
     }
   },
   "app/components/UI/Perps/components/PerpsBalanceBottomSheet/index.ts": {
@@ -7332,9 +7329,6 @@
   },
   "app/components/UI/Perps/hooks/useDepositRequests.ts": {
     "typescript/no-floating-promises": {
-      "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
       "count": 1
     }
   },
@@ -7941,9 +7935,6 @@
     "typescript/no-floating-promises": {
       "count": 1
     },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -7995,11 +7986,6 @@
   "app/components/UI/Perps/hooks/usePerpsWithdrawQuote.ts": {
     "typescript/prefer-nullish-coalescing": {
       "count": 3
-    }
-  },
-  "app/components/UI/Perps/hooks/usePerpsWithdrawStatus.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 5
     }
   },
   "app/components/UI/Perps/hooks/useStopLossPrompt.ts": {

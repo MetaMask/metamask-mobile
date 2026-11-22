@@ -32,6 +32,13 @@ describe('PerpsProUnrealizedPnl', () => {
     expect(screen.getByText('Close all')).toBeOnTheScreen();
   });
 
+  it('renders the placeholder when the aggregate is unknown', () => {
+    render(<PerpsProUnrealizedPnl positionCount={2} />);
+
+    expect(screen.getByText('$--- (--%)')).toBeOnTheScreen();
+    expect(screen.queryByText('+$0.00 (+0.0%)')).toBeNull();
+  });
+
   it('renders the close-all control as a tertiary button', () => {
     render(
       <PerpsProUnrealizedPnl

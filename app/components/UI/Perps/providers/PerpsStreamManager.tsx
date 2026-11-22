@@ -1732,9 +1732,9 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
           ...position,
           takeProfitPrice,
           stopLossPrice,
-          // Update counts based on whether TP/SL is set
-          takeProfitCount: takeProfitPrice ? 1 : 0,
-          stopLossCount: stopLossPrice ? 1 : 0,
+          // takeProfitCount / stopLossCount stay the controller's until the
+          // next stream push: one optimistic price says nothing about how
+          // many trigger legs the position has.
         };
       }
       return position;

@@ -78,18 +78,22 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     closeEligibilityModal,
   } = usePerpsHomeActions({ buttonLocation });
 
-  const totalBalance = perpsAccount?.totalBalance || '0';
-  const spendableBalance = perpsAccount?.spendableBalance || '0';
-  const unrealizedPnl = parseFloat(perpsAccount?.unrealizedPnl || '0');
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
+  // Unknown until the account loads: the formatters render the placeholder.
+  const totalBalance = perpsAccount?.totalBalance;
+  const spendableBalance = perpsAccount?.spendableBalance;
+  const unrealizedPnl = perpsAccount?.unrealizedPnl;
+  const roe = perpsAccount?.returnOnEquity;
+  const pnlValue =
+    unrealizedPnl === undefined ? undefined : parseFloat(unrealizedPnl);
 
-  const pnlColor = privacyMode
-    ? TextColor.TextDefault
-    : unrealizedPnl > 0
-      ? TextColor.SuccessDefault
-      : unrealizedPnl < 0
-        ? TextColor.ErrorDefault
-        : TextColor.TextDefault;
+  const pnlColor =
+    privacyMode || pnlValue === undefined
+      ? TextColor.TextDefault
+      : pnlValue > 0
+        ? TextColor.SuccessDefault
+        : pnlValue < 0
+          ? TextColor.ErrorDefault
+          : TextColor.TextDefault;
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();

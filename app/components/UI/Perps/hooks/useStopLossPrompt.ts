@@ -1,5 +1,8 @@
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
-import { type Position } from '@metamask/perps-controller';
+import {
+  calculateSignedRoEForPrice,
+  type Position,
+} from '@metamask/perps-controller';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
 export type StopLossPromptVariant = 'stop_loss' | 'add_margin';
@@ -207,29 +210,16 @@ export const useStopLossPrompt = ({
       return null;
     }
 
-    const entryPrice = parseFloat(position.entryPrice);
-    const slPrice = parseFloat(suggestedStopLossPrice);
-    const leverage = position.leverage?.value ?? 1;
-    const positionSize = parseFloat(position.size);
+    // Core returns '' while leverage or the side is unknown; never assume 1x.
+    const roe = calculateSignedRoEForPrice(suggestedStopLossPrice, {
+      currentPrice,
+      entryPrice: parseFloat(position.entryPrice),
+      leverage: position.leverage?.value,
+      direction: parseFloat(position.size) >= 0 ? 'long' : 'short',
+    });
 
-    if (
-      isNaN(entryPrice) ||
-      entryPrice <= 0 ||
-      isNaN(slPrice) ||
-      leverage <= 0
-    ) {
-      return null;
-    }
-
-    // Calculate ROE at the suggested stop loss price
-    // ROE = (priceChange / entryPrice) * leverage * direction
-    const isLong = positionSize >= 0;
-    const direction = isLong ? 1 : -1;
-    const priceChange = slPrice - entryPrice;
-    const roe = (priceChange / entryPrice) * leverage * direction * 100;
-
-    return roe;
-  }, [suggestedStopLossPrice, position]);
+    return roe === '' ? null : parseFloat(roe);
+  }, [suggestedStopLossPrice, position, currentPrice]);
 
   // Safety guard: Check if suggested SL price is too close to current price
   // If within 3% of mark price, we should show "add_margin" instead to avoid accidental immediate fills

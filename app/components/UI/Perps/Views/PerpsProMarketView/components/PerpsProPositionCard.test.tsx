@@ -52,7 +52,11 @@ describe('PerpsProPositionCard', () => {
       };
 
       render(
-        <PerpsProPositionCard position={cross} onEditMargin={jest.fn()} />,
+        <PerpsProPositionCard
+          position={cross}
+          markPrice="2900"
+          onEditMargin={jest.fn()}
+        />,
       );
 
       expect(screen.getByTestId('cross-margin-tag-pro-ETH')).toBeOnTheScreen();
@@ -186,25 +190,38 @@ describe('PerpsProPositionCard', () => {
     expect(screen.getByText('TP / SL')).toBeOnTheScreen();
   });
 
-  it('derives mark price and notional from positionValue', () => {
+  it('shows the stream mark price, not positionValue / size, as the mark price', () => {
     render(
       <PerpsProPositionCard
         position={{
           ...position,
-          // Live-enriched notional at mark $3,000 → mark display + header value
+          // Notional priced at mid $3,000; the venue mark is $2,950
           positionValue: '4500',
           size: '1.5',
         }}
+        markPrice="2950"
       />,
     );
 
     expect(screen.getByText(/1\.5 ETH • \$4,500/)).toBeOnTheScreen();
-    expect(screen.getByText('$3,000')).toBeOnTheScreen();
+    expect(screen.getByText('$2,950')).toBeOnTheScreen();
+    expect(screen.queryByText('$3,000')).toBeNull();
+  });
+
+  it('renders the placeholder mark price and no liquidation distance while the mark is unknown', () => {
+    render(<PerpsProPositionCard position={position} />);
+
+    expect(screen.getByText('$---')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE,
+      ),
+    ).toBeNull();
   });
 
   it('renders liquidation price, distance, and long trend separately', () => {
-    // Mark 4350 / 1.5 = 2900, liq 2500 → (2900 - 2500) / 2900 = 13.79%
-    render(<PerpsProPositionCard position={position} />);
+    // Mark 2900, liq 2500 → (2900 - 2500) / 2900 = 13.79%
+    render(<PerpsProPositionCard position={position} markPrice="2900" />);
 
     const liquidationValue = screen.getByTestId(
       PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE,
@@ -222,22 +239,19 @@ describe('PerpsProPositionCard', () => {
   });
 
   it('measures the liquidation distance against the live mark price', () => {
-    // Mark moves to 5000 / 1.5 = 3333.33, liq 2500 → 25.00%
-    render(
-      <PerpsProPositionCard
-        position={{ ...position, positionValue: '5000' }}
-      />,
-    );
+    // Mark moves to 3333.33, liq 2500 → 25.00%
+    render(<PerpsProPositionCard position={position} markPrice="3333.33" />);
 
     expect(screen.getByText('$2,500')).toBeOnTheScreen();
     expect(screen.getByText('25.00%')).toBeOnTheScreen();
   });
 
   it('reports the distance as a positive value for a short position', () => {
-    // Short: mark 4350 / 1.5 = 2900, liq 3200 → |2900 - 3200| / 2900 = 10.34%
+    // Short: mark 2900, liq 3200 → |2900 - 3200| / 2900 = 10.34%
     render(
       <PerpsProPositionCard
         position={{ ...position, size: '-1.5', liquidationPrice: '3200' }}
+        markPrice="2900"
       />,
     );
 
@@ -266,7 +280,7 @@ describe('PerpsProPositionCard', () => {
   });
 
   it('renders the liquidation price without a distance when size is zero', () => {
-    // No size means no derivable mark price, so no distance can be shown.
+    // No mark price from the stream, so no distance can be shown.
     render(<PerpsProPositionCard position={{ ...position, size: '0' }} />);
 
     expect(screen.getByText('$2,500')).toBeOnTheScreen();

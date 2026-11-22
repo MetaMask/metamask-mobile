@@ -145,16 +145,19 @@ describe('PerpsBalanceBottomSheet', () => {
     ).toHaveTextContent('+$50.25 (+5.5%)');
   });
 
-  it('defaults balance values to zero when the account has not loaded yet', () => {
+  it('renders placeholders, not zero, when the account has not loaded yet', () => {
     mockPerpsAccount = null;
     const { getByTestId } = renderSheet();
 
     expect(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.BALANCE_VALUE),
-    ).toHaveTextContent('$0');
+    ).toHaveTextContent('$---');
     expect(
       getByTestId(PerpsBalanceBottomSheetSelectorsIDs.AVAILABLE_VALUE),
-    ).toHaveTextContent('$0');
+    ).toHaveTextContent('$---');
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.PNL_VALUE),
+    ).toHaveTextContent('$--- (--%)');
   });
 
   it('closes the sheet when the close button is pressed', () => {

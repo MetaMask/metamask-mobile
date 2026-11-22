@@ -1222,6 +1222,40 @@ describe('PerpsProPositionsPanel', () => {
     expect(screen.getByText('ETH')).toBeOnTheScreen();
   });
 
+  it('shows the stream mark price on the position card', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      // positionValue / size = 51000, the stream mark is 50500
+      positions: [makePosition()],
+      isInitialLoading: false,
+      prices: {
+        BTC: {
+          symbol: 'BTC',
+          price: '51000',
+          markPrice: '50500',
+          timestamp: 0,
+          isTradable: true,
+        },
+      },
+    });
+
+    renderPanel('BTC');
+
+    expect(screen.getByText('$50,500')).toBeOnTheScreen();
+    expect(screen.queryByText('$51,000')).toBeNull();
+  });
+
+  it('shows the unknown aggregate PnL as the placeholder, not a settled zero', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [makePosition({ unrealizedPnl: '' })],
+      isInitialLoading: false,
+    });
+
+    renderPanel('BTC');
+
+    expect(screen.getByText('$--- (--%)')).toBeOnTheScreen();
+    expect(screen.queryByText('+$0.00 (+0.0%)')).toBeNull();
+  });
+
   it('uses filtered count and filtered empty copy for ticker-only with no match', () => {
     mockUsePerpsLivePositions.mockReturnValue({
       positions: [makePosition({ symbol: 'BTC' })],

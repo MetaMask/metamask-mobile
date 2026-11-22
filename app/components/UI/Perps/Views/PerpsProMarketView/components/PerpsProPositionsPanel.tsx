@@ -321,6 +321,7 @@ const PerpsProPositionsPanel = ({
     positions,
     isInitialLoading,
     deliveryRevision: positionsDeliveryRevision = 0,
+    prices: positionPrices,
   } = usePerpsLivePositions({ throttleMs: 1000, useLivePnl: true });
   const {
     orders,
@@ -835,6 +836,7 @@ const PerpsProPositionsPanel = ({
             <PerpsProPositionCard
               key={position.symbol}
               position={position}
+              markPrice={positionPrices?.[position.symbol]?.markPrice}
               testID={getPerpsProPositionRowSelector(position.symbol)}
               onPress={onSelectMarket ? handleSelectPositionMarket : undefined}
               onClose={handleClosePosition}

@@ -213,6 +213,7 @@ describe('usePerpsLivePositions', () => {
         positions: [],
         isInitialLoading: true,
         deliveryRevision: 0,
+        prices: {},
       });
 
       // Simulate positions update
@@ -230,6 +231,7 @@ describe('usePerpsLivePositions', () => {
           positions,
           isInitialLoading: false,
           deliveryRevision: 0,
+          prices: {},
         });
       });
     });
@@ -303,6 +305,7 @@ describe('usePerpsLivePositions', () => {
           positions: [],
           isInitialLoading: false,
           deliveryRevision: 0,
+          prices: {},
         });
       });
     });
@@ -328,6 +331,7 @@ describe('usePerpsLivePositions', () => {
         positions: [],
         isInitialLoading: true,
         deliveryRevision: 0,
+        prices: {},
       });
     });
 
@@ -360,6 +364,7 @@ describe('usePerpsLivePositions', () => {
           positions: validPositions,
           isInitialLoading: false,
           deliveryRevision: 0,
+          prices: {},
         });
       });
     });
@@ -432,6 +437,7 @@ describe('usePerpsLivePositions', () => {
           positions: firstPositions,
           isInitialLoading: false,
           deliveryRevision: 0,
+          prices: {},
         });
       });
 
@@ -449,6 +455,7 @@ describe('usePerpsLivePositions', () => {
           positions: secondPositions,
           isInitialLoading: false,
           deliveryRevision: 0,
+          prices: {},
         });
         expect(result.current.positions).not.toContain(mockPosition);
       });
@@ -1153,6 +1160,21 @@ describe('usePerpsLivePositions', () => {
 
       expect(enriched[0].unrealizedPnl).toBe('2000');
       expect(enriched[0].returnOnEquity).toBe('0.4');
+    });
+
+    it('keeps the controller ROE when leverage is unknown instead of assuming 1x', () => {
+      const position: Position = {
+        ...mockPosition,
+        entryPrice: '50000',
+        size: '1.0',
+        returnOnEquity: '0.25',
+        leverage: { type: 'isolated' },
+      };
+
+      const enriched = enrichPositionsWithLivePnL([position], basePriceData);
+
+      expect(enriched[0].unrealizedPnl).toBe('2000');
+      expect(enriched[0].returnOnEquity).toBe('0.25');
     });
 
     it('handles multiple positions with mixed price availability', () => {

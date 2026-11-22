@@ -831,6 +831,38 @@ describe('PerpsHomeView', () => {
       );
     });
 
+    it('positions section PnL subtitle shows the placeholder while the account is unknown', async () => {
+      // Arrange – positions are known, the account is not
+      const { stream } = renderPerpsHomeView({
+        overrides: eligibleOverrides,
+        streamOverrides: {
+          positions: [createLongPositionForViews()],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+      await screen.findByTestId(
+        `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-0`,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      // Act
+      act(() => {
+        stream.emitAccount(null);
+      });
+
+      // Assert – not a settled "+$0.00 (+0.0%)"
+      await waitFor(
+        () => {
+          expect(
+            screen.getByTestId(PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE),
+          ).toHaveTextContent('$--- (--%)');
+        },
+        { timeout: TIMEOUT_MS },
+      );
+    });
+
     it('balance display updates in real time when the account stream delivers a new total balance', async () => {
       // Arrange
       const { stream } = renderPerpsHomeView({

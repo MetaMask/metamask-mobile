@@ -461,9 +461,9 @@ const PerpsHomeView = () => {
   const isTestnet = network === 'testnet';
   const { isMultiProviderEnabled } = usePerpsProvider();
 
-  // Calculate P&L for positions subtitle
-  const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
-  const roe = parseFloat(perpsAccount?.returnOnEquity || '0');
+  // P&L for positions subtitle; unknown until the account loads
+  const unrealizedPnl = perpsAccount?.unrealizedPnl;
+  const roe = perpsAccount?.returnOnEquity;
 
   // Fetch all home screen data
   const {
@@ -503,7 +503,8 @@ const PerpsHomeView = () => {
   const hasPositions = positions.length > 0;
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
-      const pnlNum = parseFloat(unrealizedPnl);
+      const pnlNum =
+        unrealizedPnl === undefined ? undefined : parseFloat(unrealizedPnl);
 
       // Open (filled) positions only — hide when flat so spacing matches homepage sections
       if (!hasPositions || isAggregatePartial) {
@@ -515,11 +516,13 @@ const PerpsHomeView = () => {
       }
 
       const color =
-        pnlNum > 0
-          ? TextColor.SuccessDefault
-          : pnlNum < 0
-            ? TextColor.ErrorDefault
-            : TextColor.TextDefault;
+        pnlNum === undefined
+          ? TextColor.TextDefault
+          : pnlNum > 0
+            ? TextColor.SuccessDefault
+            : pnlNum < 0
+              ? TextColor.ErrorDefault
+              : TextColor.TextDefault;
 
       const subtitle = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
       const suffix = strings('perps.unrealized_pnl');

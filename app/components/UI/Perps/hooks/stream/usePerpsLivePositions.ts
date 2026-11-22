@@ -29,15 +29,18 @@ export interface UsePerpsLivePositionsReturn {
   isInitialLoading: boolean;
   /** Deliveries accepted by this selected-account subscription. */
   deliveryRevision?: number;
+  /** Latest price updates by symbol (only populated with `useLivePnl`). */
+  prices?: Record<string, PriceUpdate>;
 }
 
 /**
  * Enrich positions with recalculated unrealizedPnl, returnOnEquity, and
- * positionValue based on current mark price from the live price feed.
+ * positionValue based on the live price feed.
  *
- * `positionValue` must be refreshed alongside PnL — consumers derive mark /
- * notional from it (e.g. PerpsProPositionCard). Leaving it stale would show
- * live PnL next to an outdated mark price.
+ * Needs Core: there is no controller export for a live-mark position
+ * recompute yet, so this stays local. It prices at the stream's `price`
+ * (mid), so `positionValue / size` is not the mark price; read the mark from
+ * `prices[symbol].markPrice` instead.
  */
 export function enrichPositionsWithLivePnL(
   positions: Position[],
@@ -64,7 +67,7 @@ export function enrichPositionsWithLivePnL(
 
     const entryPrice = Number.parseFloat(position.entryPrice);
     const size = Number.parseFloat(position.size);
-    const leverage = position.leverage?.value ?? 1;
+    const leverage = position.leverage?.value;
 
     if (Number.isNaN(entryPrice) || Number.isNaN(size) || entryPrice <= 0) {
       return position;
@@ -81,14 +84,16 @@ export function enrichPositionsWithLivePnL(
       entryPrice,
     });
 
-    const calculatedRoe = roePercentage
-      ? Number.parseFloat(roePercentage) / 100
-      : 0;
+    // Core returns '' while leverage is unknown: keep the controller's ROE
+    // instead of inventing 1x or 0.
+    const returnOnEquity = roePercentage
+      ? (Number.parseFloat(roePercentage) / 100).toString()
+      : position.returnOnEquity;
 
     return {
       ...position,
       unrealizedPnl: calculatedUnrealizedPnl.toString(),
-      returnOnEquity: calculatedRoe.toString(),
+      returnOnEquity,
       positionValue: (Math.abs(size) * currentPrice).toString(),
     };
   });
@@ -246,5 +251,6 @@ export function usePerpsLivePositions(
     isInitialLoading:
       rawPositionsAddress !== selectedAddress || isInitialLoading,
     deliveryRevision,
+    prices: priceData,
   };
 }

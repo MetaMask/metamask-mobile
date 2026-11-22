@@ -2,7 +2,10 @@
  * P&L calculation utilities for Perps trading
  */
 
-import { type Position } from '@metamask/perps-controller';
+import {
+  calculateWeightedReturnOnEquity,
+  type Position,
+} from '@metamask/perps-controller';
 
 export interface PnLCalculationParams {
   entryPrice: number;
@@ -82,14 +85,20 @@ export function calculatePnLPercentageFromUnrealized(
  * Calculate total P&L for multiple positions.
  *
  * @param params - Parameters containing array of positions
- * @returns The sum of unrealized P&L across all positions
+ * @returns The sum of unrealized P&L across all positions, or `undefined`
+ * when any position's P&L is unknown
  */
-export function calculateTotalPnL(params: TotalPnLParams): number {
+export function calculateTotalPnL(params: TotalPnLParams): number | undefined {
   const { positions } = params;
-  return positions.reduce(
-    (sum, position) => sum + parseFloat(position.unrealizedPnl || '0'),
-    0,
-  );
+  let total = 0;
+  for (const position of positions) {
+    const pnl = parseFloat(position.unrealizedPnl);
+    if (!Number.isFinite(pnl)) {
+      return undefined;
+    }
+    total += pnl;
+  }
+  return total;
 }
 
 /**
@@ -117,46 +126,46 @@ export function calculateTotalPnLPercentage(params: TotalPnLParams): number {
 }
 
 export interface PositionAggregateTotals {
-  /** Σ unrealizedPnl across the given positions */
-  unrealizedPnl: string;
+  /** Σ unrealizedPnl across the given positions; `undefined` while any is unknown */
+  unrealizedPnl: string | undefined;
   /**
-   * Margin-weighted ROE as a percentage string (e.g. `"15"` for 15%).
-   *
-   * Contract (matches Hyperliquid `adaptAccountStateFromSDK`):
-   * `returnOnEquity = (Σ (position.returnOnEquity × marginUsed) / Σ marginUsed) × 100`
-   * where each position's `returnOnEquity` is the protocol decimal (0.10 = 10%).
-   *
-   * This equals Σpnl / Σmargin only when every supplied ROE equals pnl / margin.
+   * Margin-weighted ROE as a percentage string (e.g. `"15"` for 15%), from
+   * Core `calculateWeightedReturnOnEquity` over each position's protocol
+   * decimal ROE (0.10 = 10%) weighted by its `marginUsed`. `undefined` while
+   * any position's PnL, ROE or margin is unknown.
    */
-  returnOnEquity: string;
+  returnOnEquity: string | undefined;
 }
 
 /**
  * Aggregate unrealized P&L and margin-weighted ROE for a position subset
- * (e.g. ticker-filtered Pro positions).
+ * (e.g. ticker-filtered Pro positions). A position with an unknown figure
+ * leaves both totals unknown instead of counting it as zero.
  */
 export function calculatePositionAggregateTotals(
   positions: Position[],
 ): PositionAggregateTotals {
-  let unrealizedPnl = 0;
-  let weightedReturnOnEquity = 0;
-  let totalMarginUsed = 0;
+  const hasUnknownFigure = positions.some(
+    ({ unrealizedPnl, returnOnEquity, marginUsed }) =>
+      [unrealizedPnl, returnOnEquity, marginUsed].some(
+        (value) => !Number.isFinite(parseFloat(value)),
+      ),
+  );
+  if (hasUnknownFigure) {
+    return { unrealizedPnl: undefined, returnOnEquity: undefined };
+  }
 
-  positions.forEach((position) => {
-    const pnl = parseFloat(position.unrealizedPnl || '0') || 0;
-    const marginUsed = parseFloat(position.marginUsed || '0') || 0;
-    const returnOnEquity = parseFloat(position.returnOnEquity || '0') || 0;
-
-    unrealizedPnl += pnl;
-    weightedReturnOnEquity += returnOnEquity * marginUsed;
-    totalMarginUsed += marginUsed;
-  });
+  const unrealizedPnl = calculateTotalPnL({ positions });
+  const weightedReturnOnEquity = calculateWeightedReturnOnEquity(
+    positions.map(({ unrealizedPnl: pnl, returnOnEquity, marginUsed }) => ({
+      unrealizedPnl: pnl,
+      returnOnEquity,
+      marginUsed,
+    })),
+  );
 
   return {
-    unrealizedPnl: unrealizedPnl.toString(),
-    returnOnEquity:
-      totalMarginUsed > 0
-        ? ((weightedReturnOnEquity / totalMarginUsed) * 100).toString()
-        : '0',
+    unrealizedPnl: unrealizedPnl?.toString(),
+    returnOnEquity: (parseFloat(weightedReturnOnEquity) * 100).toString(),
   };
 }

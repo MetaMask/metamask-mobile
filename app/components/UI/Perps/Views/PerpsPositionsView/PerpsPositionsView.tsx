@@ -230,7 +230,7 @@ const PerpsPositionsView: React.FC = () => {
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={
-                privacyMode
+                privacyMode || totalUnrealizedPnl === undefined
                   ? TextColor.TextDefault
                   : totalUnrealizedPnl >= 0
                     ? TextColor.SuccessDefault

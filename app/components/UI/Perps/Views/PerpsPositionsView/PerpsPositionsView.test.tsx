@@ -430,6 +430,29 @@ describe('PerpsPositionsView', () => {
     });
   });
 
+  describe('Unknown position PnL', () => {
+    it('renders the placeholder total instead of a settled zero', async () => {
+      // Arrange
+      (usePerpsLivePositions as jest.Mock).mockReturnValue({
+        positions: mockPositions.map((position) => ({
+          ...position,
+          unrealizedPnl: '',
+        })),
+        isInitialLoading: false,
+      });
+
+      // Act
+      render(<PerpsPositionsView />);
+
+      // Assert
+      await waitFor(() => {
+        expect(screen.getByText('Total unrealized P&L')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('+$0.00')).toBeNull();
+      expect(screen.getAllByText('$---').length).toBeGreaterThan(0);
+    });
+  });
+
   describe('Position Cards Integration', () => {
     it('renders position cards with correct props', async () => {
       // Act

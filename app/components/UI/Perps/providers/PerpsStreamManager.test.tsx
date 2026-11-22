@@ -5022,7 +5022,7 @@ describe('PerpsStreamManager', () => {
           symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: undefined,
-          takeProfitCount: 1,
+          takeProfitCount: 0,
           stopLossCount: 0,
         }),
       ]);
@@ -5083,7 +5083,7 @@ describe('PerpsStreamManager', () => {
           takeProfitPrice: undefined,
           stopLossPrice: '2700',
           takeProfitCount: 0,
-          stopLossCount: 1,
+          stopLossCount: 0,
         }),
       ]);
 
@@ -5142,8 +5142,8 @@ describe('PerpsStreamManager', () => {
           symbol: 'ETH',
           takeProfitPrice: '3300',
           stopLossPrice: '2700',
-          takeProfitCount: 1,
-          stopLossCount: 1,
+          takeProfitCount: 0,
+          stopLossCount: 0,
         }),
       ]);
 
@@ -5207,8 +5207,73 @@ describe('PerpsStreamManager', () => {
           symbol: 'ETH',
           takeProfitPrice: undefined,
           stopLossPrice: undefined,
-          takeProfitCount: 0,
-          stopLossCount: 0,
+          takeProfitCount: 1,
+          stopLossCount: 1,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('keeps the controller trigger counts when a position has several legs', async () => {
+      let positionCallback:
+        | ((positions: ReturnType<typeof createMockPosition>[]) => void)
+        | null = null;
+      mockPositionsSubscribe.mockImplementation(
+        (params: {
+          callback: (
+            positions: ReturnType<typeof createMockPosition>[],
+          ) => void;
+        }) => {
+          positionCallback = params.callback;
+          return mockPositionsUnsubscribe;
+        },
+      );
+
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.positions.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockPositionsSubscribe).toHaveBeenCalled();
+      });
+
+      // Send initial position with two TP legs and one SL
+      const initialPosition = createMockPosition({
+        takeProfitPrice: undefined,
+        stopLossPrice: '2500',
+        takeProfitCount: 2,
+        stopLossCount: 1,
+      });
+      act(() => {
+        positionCallback?.([initialPosition]);
+      });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith([initialPosition]);
+      });
+
+      callback.mockClear();
+
+      // Apply optimistic update to one TP leg
+      act(() => {
+        testStreamManager.positions.updatePositionTPSLOptimistic(
+          'ETH',
+          '3300',
+          '2600',
+        );
+      });
+
+      expect(callback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          symbol: 'ETH',
+          takeProfitPrice: '3300',
+          stopLossPrice: '2600',
+          takeProfitCount: 2,
+          stopLossCount: 1,
         }),
       ]);
 
@@ -5273,8 +5338,8 @@ describe('PerpsStreamManager', () => {
         symbol: 'ETH',
         takeProfitPrice: '3300',
         stopLossPrice: '2700',
-        takeProfitCount: 1,
-        stopLossCount: 1,
+        takeProfitCount: 0,
+        stopLossCount: 0,
       });
 
       // Verify BTC position was NOT updated (should keep original values)
@@ -5434,8 +5499,8 @@ describe('PerpsStreamManager', () => {
           leverage: { type: 'isolated', value: 20 },
           takeProfitPrice: '3400',
           stopLossPrice: '2800',
-          takeProfitCount: 1,
-          stopLossCount: 1,
+          takeProfitCount: 0,
+          stopLossCount: 0,
         }),
       ]);
 

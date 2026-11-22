@@ -339,7 +339,7 @@ describe('pnlCalculations', () => {
           size: '1',
           entryPrice: '50000',
           positionValue: '51000',
-          unrealizedPnl: undefined as unknown as string,
+          unrealizedPnl: '',
           marginUsed: '25000',
           leverage: { type: 'cross', value: 2 },
           liquidationPrice: '40000',
@@ -353,7 +353,7 @@ describe('pnlCalculations', () => {
 
       const params: TotalPnLParams = { positions };
       const result = calculateTotalPnL(params);
-      expect(result).toBe(0); // Should default to 0 for missing values
+      expect(result).toBeUndefined(); // Unknown, not a settled 0
     });
   });
 
@@ -551,5 +551,37 @@ describe('pnlCalculations', () => {
       expect(result.returnOnEquity).toBe('5');
       expect(result.returnOnEquity).not.toBe('10');
     });
+
+    it.each([
+      ['unrealizedPnl', { unrealizedPnl: '' }],
+      ['returnOnEquity', { returnOnEquity: '' }],
+      ['marginUsed', { marginUsed: '' }],
+    ])(
+      'leaves both totals unknown when a position has no %s',
+      (_field, override) => {
+        const positions: Position[] = [
+          {
+            ...basePosition,
+            symbol: 'BTC',
+            unrealizedPnl: '100',
+            marginUsed: '1000',
+            returnOnEquity: '0.10',
+          },
+          {
+            ...basePosition,
+            symbol: 'ETH',
+            unrealizedPnl: '50',
+            marginUsed: '500',
+            returnOnEquity: '0.10',
+            ...override,
+          },
+        ];
+
+        expect(calculatePositionAggregateTotals(positions)).toEqual({
+          unrealizedPnl: undefined,
+          returnOnEquity: undefined,
+        });
+      },
+    );
   });
 });

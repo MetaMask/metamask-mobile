@@ -49,6 +49,8 @@ import { getPerpsPositionHeaderDisplay } from '../../../utils/positionDisplay';
 
 interface PerpsProPositionCardProps {
   position: Position;
+  /** Venue mark price from the price stream; unknown renders the placeholder. */
+  markPrice?: string;
   /** Test ID for the card container. */
   testID?: string;
   /** Switches the Pro screen to this position's market. */
@@ -176,6 +178,7 @@ const KeyValueItem = ({
  */
 const PerpsProPositionCard = ({
   position,
+  markPrice,
   testID,
   onPress,
   onClose,
@@ -191,7 +194,6 @@ const PerpsProPositionCard = ({
   const isCross = isCrossMarginEnabled && position.leverage.type === 'cross';
   const {
     displaySymbol,
-    absoluteSize,
     directionLabel,
     directionSeverity,
     description,
@@ -204,14 +206,13 @@ const PerpsProPositionCard = ({
   const canEditMargin =
     position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
-  // Mark price is not stored on the position; derive it from notional.
-  // With useLivePnl, enrichPositionsWithLivePnL keeps positionValue in sync
-  // with the live mark so this stays consistent with unrealized PnL.
+  // Mark price is not stored on the position: use the stream's mark, never
+  // positionValue / size (the stream's `price` is mid, not mark).
   const markPriceNum =
-    absoluteSize > 0 ? parseFloat(position.positionValue) / absoluteSize : NaN;
-  const markPriceDisplay = Number.isFinite(markPriceNum)
-    ? formatPerpsFiat(markPriceNum, { ranges: PRICE_RANGES_UNIVERSAL })
-    : PERPS_CONSTANTS.FallbackPriceDisplay;
+    markPrice === undefined ? undefined : parseFloat(markPrice);
+  const markPriceDisplay = formatPerpsFiat(markPrice, {
+    ranges: PRICE_RANGES_UNIVERSAL,
+  });
 
   const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
