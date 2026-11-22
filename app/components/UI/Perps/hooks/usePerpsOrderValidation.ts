@@ -307,9 +307,13 @@ const getProtocolErrorContext = ({
       };
     }
     case PERPS_ERROR_CODES.ORDER_SIZE_MIN:
-      return minimumOrderSize === undefined
-        ? {}
-        : { amount: minimumOrderSize.toString() };
+      // The copy has a literal `$`: an unknown minimum reads `$---`.
+      return {
+        amount:
+          minimumOrderSize === undefined
+            ? PERPS_CONSTANTS.FallbackPriceDisplay.replace('$', '')
+            : minimumOrderSize.toString(),
+      };
     case PERPS_ERROR_CODES.ORDER_UNKNOWN_COIN:
       return { symbol: orderForm.asset };
     default:

@@ -836,7 +836,7 @@ const PerpsProPositionsPanel = ({
             <PerpsProPositionCard
               key={position.symbol}
               position={position}
-              markPrice={positionPrices?.[position.symbol]?.markPrice}
+              markPrice={positionPrices?.[position.symbol]?.price}
               testID={getPerpsProPositionRowSelector(position.symbol)}
               onPress={onSelectMarket ? handleSelectPositionMarket : undefined}
               onClose={handleClosePosition}

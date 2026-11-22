@@ -49,7 +49,7 @@ import { getPerpsPositionHeaderDisplay } from '../../../utils/positionDisplay';
 
 interface PerpsProPositionCardProps {
   position: Position;
-  /** Venue mark price from the price stream; unknown renders the placeholder. */
+  /** Live mark (`PriceUpdate.price`) from the price stream; unknown renders the placeholder. */
   markPrice?: string;
   /** Test ID for the card container. */
   testID?: string;
@@ -206,8 +206,9 @@ const PerpsProPositionCard = ({
   const canEditMargin =
     position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
-  // Mark price is not stored on the position: use the stream's mark, never
-  // positionValue / size (the stream's `price` is mid, not mark).
+  // Mark price is not stored on the position: the panel passes the stream's
+  // live mark (`PriceUpdate.price`, as the Pro stats bar's Mark). The
+  // stream's `markPrice` field is the oracle price.
   const markPriceNum =
     markPrice === undefined ? undefined : parseFloat(markPrice);
   const markPriceDisplay = formatPerpsFiat(markPrice, {

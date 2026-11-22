@@ -962,6 +962,31 @@ describe('usePerpsOrderValidation', () => {
       expect(mockValidateOrder).toHaveBeenCalled();
     });
 
+    it('shows the placeholder minimum in a protocol minimum error while the minimum is unknown', async () => {
+      // Arrange
+      mockValidateOrder.mockResolvedValue({
+        isValid: false,
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+      });
+
+      // Act
+      const { result } = renderHook(() =>
+        usePerpsOrderValidation({
+          ...defaultParams,
+          originalUsdAmount: '1',
+          minimumOrderAmount: undefined,
+        }),
+      );
+
+      // Assert
+      await fastWaitFor(() => {
+        expect(result.current.errors).toContain('Minimum order size is $---');
+      });
+      expect(result.current.errors).not.toContain(
+        'Minimum order size is $undefined',
+      );
+    });
+
     it('validates immediately when the amount crosses above the minimum', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
       const belowMinimumParams = {
