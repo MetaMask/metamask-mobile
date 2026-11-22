@@ -178,7 +178,7 @@ export const runQuoteRequestCases = ({
         isMoneyAccountFeatureEnabled: false,
         hasMoneyAccount: false,
         primaryMoneyAccount: undefined,
-      } as ReturnType<typeof useMoneyAccountInfo>);
+      });
     });
 
     afterEach(() => {
@@ -1440,7 +1440,7 @@ export const runQuoteRequestCases = ({
           isMoneyAccountFeatureEnabled: true,
           hasMoneyAccount: false,
           primaryMoneyAccount: undefined,
-        } as ReturnType<typeof useMoneyAccountInfo>);
+        });
 
         const { result } = renderUseBridgeQuoteRequest({
           destToken: moneyToken,
@@ -1470,7 +1470,7 @@ export const runQuoteRequestCases = ({
           isMoneyAccountFeatureEnabled: true,
           hasMoneyAccount: false,
           primaryMoneyAccount: undefined,
-        } as ReturnType<typeof useMoneyAccountInfo>);
+        });
 
         const { result } = renderUseBridgeQuoteRequest({
           destToken: moneyToken,
@@ -1499,7 +1499,7 @@ export const runQuoteRequestCases = ({
           isMoneyAccountFeatureEnabled: true,
           hasMoneyAccount: false,
           primaryMoneyAccount: undefined,
-        } as ReturnType<typeof useMoneyAccountInfo>);
+        });
 
         const { result } = renderUseBridgeQuoteRequest({
           sourceToken: moneyToken,

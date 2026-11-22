@@ -322,7 +322,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '100.5';
 
@@ -358,7 +358,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '100.5';
 
@@ -390,7 +390,7 @@ describe('TokenInputArea', () => {
       address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
       symbol: 'ETH',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '1.5';
 
@@ -458,13 +458,13 @@ describe('TokenInputArea', () => {
       address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
       symbol: 'ETH',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const destToken: BridgeToken = {
       address: '0x0000000000000000000000000000000000000001', // Different token on same chain
       symbol: 'TOKEN1',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '1.5';
 
@@ -505,7 +505,7 @@ describe('TokenInputArea', () => {
       address: POLYGON_NATIVE_TOKEN, // 0x0000...001010
       symbol: 'POL',
       decimals: 18,
-      chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      chainId: CHAIN_IDS.POLYGON,
     };
     const tokenBalance = '10';
 
@@ -571,13 +571,13 @@ describe('TokenInputArea', () => {
       address: POLYGON_NATIVE_TOKEN, // 0x0000...001010
       symbol: 'POL',
       decimals: 18,
-      chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      chainId: CHAIN_IDS.POLYGON,
     };
     const destToken: BridgeToken = {
       address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC
       symbol: 'USDC',
       decimals: 6,
-      chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      chainId: CHAIN_IDS.POLYGON,
     };
     const tokenBalance = '10';
 
@@ -645,7 +645,7 @@ describe('TokenInputArea', () => {
       address: '0x0000000000000000000000000000000000000000',
       symbol: 'ETH',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '1.5';
 
@@ -931,7 +931,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
 
     it('shows currency value when token, amount > 0, and currencyValue are all provided', () => {
@@ -1209,7 +1209,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const renderAmountOverrideInput = (
       props: Partial<React.ComponentProps<typeof TokenInputArea>> = {},
@@ -1288,7 +1288,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
 
     it('shows TokenButton with symbol when token is provided', () => {
@@ -1336,7 +1336,7 @@ describe('TokenInputArea', () => {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'ETH',
         decimals: 18,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       const { getByTestId } = renderScreen(
@@ -1363,7 +1363,7 @@ describe('TokenInputArea', () => {
         address: POLYGON_NATIVE_TOKEN,
         symbol: 'POL',
         decimals: 18,
-        chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+        chainId: CHAIN_IDS.POLYGON,
       };
 
       const { getByTestId } = renderScreen(
@@ -1476,7 +1476,7 @@ describe('TokenInputArea', () => {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'ETH',
         decimals: 18,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       // Act
@@ -1505,7 +1505,7 @@ describe('TokenInputArea', () => {
         address: '0x1234567890123456789012345678901234567890',
         symbol: 'USDC',
         decimals: 6,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       // Act
@@ -1535,7 +1535,7 @@ describe('TokenInputArea', () => {
         address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
         symbol: 'MUSD',
         decimals: 6,
-        chainId: '0x8f' as `0x${string}`,
+        chainId: '0x8f',
         isMoneyToken: true,
       };
 
@@ -1564,7 +1564,7 @@ describe('TokenInputArea', () => {
         address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
         symbol: 'MUSD',
         decimals: 6,
-        chainId: '0x8f' as `0x${string}`,
+        chainId: '0x8f',
         isMoneyToken: true,
       };
 
@@ -1592,7 +1592,7 @@ describe('TokenInputArea', () => {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'ETH',
         decimals: 18,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       // Act
@@ -1668,7 +1668,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
 
     it('renders the amount label and hides the dest amount, fiat, and subtitle', () => {

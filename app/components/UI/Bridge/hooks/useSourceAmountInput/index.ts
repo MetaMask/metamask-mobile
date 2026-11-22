@@ -113,8 +113,8 @@ export const useSourceAmountInput = ({
   const [activeInputPrimaryDenomination, setActiveInputPrimaryDenomination] =
     useState<InputPrimaryDenomination>(inputPrimaryDenomination);
   const isFiatMode =
-    sourceToken?.isMoneyToken ||
-    (activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle);
+    (activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle) ||
+    sourceToken?.isMoneyToken;
   // Redux keeps the full Max amount for the quote; the first edit commits the
   // truncated string via setSourceAmount, which clears the Max flag.
   const tokenInputAmount = isMaxSourceAmount
@@ -347,11 +347,11 @@ export const useSourceAmountInput = ({
     isFiatMode,
     keypadCurrency: isFiatMode
       ? FIAT_KEYPAD_CURRENCY
-      : sourceToken?.symbol || 'ETH',
+      : (sourceToken?.symbol ?? 'ETH'),
     keypadDecimals: isFiatMode
       ? FIAT_INPUT_DECIMALS
       : (sourceToken?.decimals ?? Infinity),
-    keypadValue: amount || '0',
+    keypadValue: amount ?? '0',
     resetToTokenMode,
     secondaryValue,
     selection,

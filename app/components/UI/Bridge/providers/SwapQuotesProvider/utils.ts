@@ -73,7 +73,7 @@ export const buildGenericQuoteRequest = (input: {
     gasIncluded: Boolean(gasIncluded),
     gasIncluded7702: Boolean(gasIncluded7702),
     insufficientBal,
-    // @ts-expect-error - need to bump bridge-controller
+    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
     isMoneyAccount: Boolean(srcToken?.isMoneyToken || destToken?.isMoneyToken),
   };
 };
