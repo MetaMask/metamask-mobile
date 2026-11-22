@@ -514,6 +514,19 @@ describe('wallet_watchAsset', () => {
         chainId: dappChainId,
       }),
     );
+    // The approval request carries the dapp chain too, so the
+    // confirmation sheet shows that network and its balance instead of
+    // the globally active one.
+    expect(
+      MockEngine.context.ApprovalController.addAndShowApprovalRequest,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestData: expect.objectContaining({
+          chainId: dappChainId,
+          networkClientId: dappNetworkClientId,
+        }),
+      }),
+    );
   });
 
   it('falls back to the global network when the dapp has no per-origin selection', async () => {

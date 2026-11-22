@@ -187,12 +187,16 @@ export const wallet_watchAsset = async ({
 
   // Ask the user to confirm adding the suggested token before persisting it.
   // *This is an hotfix, this logic previously lived inside TokensController.watchAsset*
+  // Pass the resolved chain along so the confirmation sheet shows the
+  // dapp-selected network and its balance, not the globally active one.
   await ApprovalController.addAndShowApprovalRequest({
     origin: requestOrigin,
     type: ApprovalType.WatchAsset,
     requestData: {
       asset,
       interactingAddress,
+      chainId,
+      networkClientId,
       pageMeta: safePageMeta,
     },
   });

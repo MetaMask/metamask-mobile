@@ -12,6 +12,7 @@ import type BN4 from 'bnjs4';
 const useTokenBalance = (
   requestedTokenAddress: string,
   userCurrentAddress: string,
+  networkClientId?: string,
 ): [BN4 | null, boolean, boolean] => {
   // This hook should be only used with ERC20 tokens
   const [tokenBalance, setTokenBalance]: [
@@ -30,11 +31,17 @@ const useTokenBalance = (
     AssetsContractController.getERC20BalanceOf(
       requestedTokenAddress,
       userCurrentAddress,
+      networkClientId,
     )
       .then((balance: BN4) => setTokenBalance(balance))
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, [AssetsContractController, requestedTokenAddress, userCurrentAddress]);
+  }, [
+    AssetsContractController,
+    requestedTokenAddress,
+    userCurrentAddress,
+    networkClientId,
+  ]);
 
   return [tokenBalance, loading, error];
 };
