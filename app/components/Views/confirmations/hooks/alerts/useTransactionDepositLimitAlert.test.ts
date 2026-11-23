@@ -171,22 +171,6 @@ describe('useTransactionDepositLimitAlert', () => {
     ]);
   });
 
-  it('applies the perpsDeposit limit to a Lighter deposit', () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      txParams: { from: '0x0' },
-      type: TransactionType.perpsLighterDeposit,
-    } as unknown as TransactionMeta);
-
-    (selectDepositLimits as unknown as jest.Mock).mockReturnValue({
-      perpsDeposit: 25000,
-    });
-
-    const { result } = runHook({ pendingAmount: '30000' });
-
-    expect(result.current[0]?.key).toBe(AlertKeys.DepositLimit);
-    expect(result.current[0]?.isBlocking).toBe(true);
-  });
-
   it('matches any deposit type from the feature flag map', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       txParams: { from: '0x0' },

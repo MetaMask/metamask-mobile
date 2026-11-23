@@ -428,24 +428,6 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
     });
 
-    it('keeps the perpsDeposit prefill when the confirmation is a Lighter deposit', () => {
-      setupMocks({
-        transactionMeta: makeTransactionMeta({
-          type: TransactionType.perpsLighterDeposit,
-        }),
-        payToken: makePayToken({ balanceUsd: '6.91' }),
-        prefilledAmountDefault: { enabled: false },
-        prefilledAmountOverrides: {
-          perpsDeposit: { enabled: true },
-        },
-      });
-
-      const { result } = runHook();
-
-      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
-      expect(result.current.prefillAmount).toBe('3.45');
-    });
-
     it('keeps perpsDeposit prefill enabled when navigation provides an explicit amount', () => {
       useParamsMock.mockReturnValue({ amount: '5' });
       setupMocks({

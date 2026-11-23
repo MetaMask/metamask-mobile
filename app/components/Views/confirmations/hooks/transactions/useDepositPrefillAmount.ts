@@ -27,7 +27,6 @@ import {
   MoneyAccountDepositPrefillVariant,
 } from './abTestConfig';
 import { isMoneyAccountDepositPrefillEnabled } from './isMoneyAccountDepositPrefillEnabled';
-import { payFlagForTransactionType } from '../../utils/perps-lighter-transaction-type';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
@@ -102,17 +101,23 @@ export function useDepositPrefillAmount({
   const depositLimits = useSelector(selectDepositLimits);
   const stablecoins = useSelector(selectStablecoins);
 
-  const prefilledAmountConfig = useMemo(
-    (): PrefilledAmountConfig =>
-      payFlagForTransactionType(prefilledAmount.overrides, transactionMeta) ??
-      prefilledAmount.default,
-    [transactionMeta, prefilledAmount],
-  );
+  const prefilledAmountConfig = useMemo((): PrefilledAmountConfig => {
+    for (const [type, config] of Object.entries(prefilledAmount.overrides)) {
+      if (hasTransactionType(transactionMeta, [type as TransactionType])) {
+        return config;
+      }
+    }
+    return prefilledAmount.default;
+  }, [transactionMeta, prefilledAmount]);
 
-  const depositLimit = useMemo(
-    () => payFlagForTransactionType(depositLimits, transactionMeta),
-    [transactionMeta, depositLimits],
-  );
+  const depositLimit = useMemo(() => {
+    for (const [type, limit] of Object.entries(depositLimits)) {
+      if (hasTransactionType(transactionMeta, [type as TransactionType])) {
+        return limit;
+      }
+    }
+    return undefined;
+  }, [transactionMeta, depositLimits]);
 
   const isMoneyAccountDeposit = hasTransactionType(
     transactionMeta,

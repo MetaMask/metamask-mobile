@@ -8,6 +8,12 @@ import { BigNumber } from 'bignumber.js';
 
 import { UpdateTransactionPayAmountCall } from '../types/transactions';
 
+/**
+ * Temporary. Perps should own the Lighter deposit call data and the account
+ * lookup (likely in `PerpsController`). Move this out of confirmations once
+ * the perps package exports it, and delete this file.
+ */
+
 /** Ethereum mainnet USDC uses 6 decimals. */
 export const LIGHTER_USDC_DECIMALS = 6;
 
