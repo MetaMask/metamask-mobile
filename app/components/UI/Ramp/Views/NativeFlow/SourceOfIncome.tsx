@@ -21,15 +21,14 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import type {
-  TransakAdditionalRequirement,
-  TransakBuyQuote,
-} from '@metamask/ramps-controller';
+import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import { useSelector } from 'react-redux';
 import { useTransakController } from '../../hooks/useTransakController';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
@@ -43,6 +42,7 @@ import PrivacySection from '../../components/PrivacySection';
 
 interface SourceOfIncomeMetadata {
   options?: { name: string; value: string }[];
+  sourceOfFundsTypeOptions?: { name: string; value: string }[];
   documentProofOptions?: string[];
   expiresAt?: string;
   kycUrl?: string;
@@ -74,9 +74,21 @@ const SourceOfIncome = (): React.JSX.Element => {
     getKycRequirement,
     getAdditionalRequirements,
   } = useTransakController();
-  const { routeAfterAuthentication } = useTransakRouting({
-    screenLocation: 'SourceOfIncome Screen',
-  });
+  // For headless buy flows, post-auth resets must land back on the Host
+  // (which carries the live `headlessSessionId`) instead of BuildQuote.
+  const transakRoutingConfig = useMemo(
+    () => ({
+      screenLocation: 'SourceOfIncome Screen',
+      ...(headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+          }
+        : {}),
+    }),
+    [headlessSessionId],
+  );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
   const { formatCurrency } = useFormatters();
 
   const currencySymbol = useMemo(() => {
@@ -91,9 +103,49 @@ const SourceOfIncome = (): React.JSX.Element => {
   const [error, setError] = useState<string | null>(null);
   const [monthlyVolume, setMonthlyVolume] = useState('');
   const [sourceOfFundsType, setSourceOfFundsType] = useState('');
+  const [retrying, setRetrying] = useState(false);
 
   const sourceOfFundsOptions: { name: string; value: string }[] =
-    metadata.options ?? [];
+    metadata.sourceOfFundsTypeOptions ?? [];
+  const hasFieldsMissing = !sourceOfFundsOptions.length;
+
+  const handleRetryFetchRequirements = useCallback(async () => {
+    setRetrying(true);
+    setError(null);
+    try {
+      const freshRequirements = await getAdditionalRequirements(quoteId);
+      const form = freshRequirements?.formsRequired?.find(
+        (f) => f.type === 'SOURCE_OF_INCOME',
+      );
+      if (form?.metadata) {
+        navigation.navigate(Routes.RAMP.SOURCE_OF_INCOME, {
+          quote,
+          quoteId,
+          metadata: form.metadata,
+          ...(headlessSessionId ? { headlessSessionId } : {}),
+        });
+      }
+    } catch (err) {
+      Logger.error(
+        err as Error,
+        'SourceOfIncome: Failed to retry fetch requirements',
+      );
+      setError(
+        parseUserFacingError(
+          err,
+          strings('deposit.source_of_income.fetch_error'),
+        ),
+      );
+    } finally {
+      setRetrying(false);
+    }
+  }, [
+    getAdditionalRequirements,
+    quoteId,
+    navigation,
+    quote,
+    headlessSessionId,
+  ]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -205,6 +257,25 @@ const SourceOfIncome = (): React.JSX.Element => {
                 severity={BannerAlertSeverity.Error}
                 title={strings('deposit.mica.errorTitle')}
                 description={error}
+                style={styles.errorBanner}
+              />
+            )}
+
+            {hasFieldsMissing && !error && (
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                title={strings('deposit.source_of_income.fields_missing_title')}
+                description={strings(
+                  'deposit.source_of_income.source_of_funds_missing_description',
+                )}
+                actionButtonProps={{
+                  variant: ButtonVariants.Link,
+                  label: strings('deposit.source_of_income.retry_button'),
+                  onPress: () => {
+                    void handleRetryFetchRequirements();
+                  },
+                  disabled: retrying,
+                }}
                 style={styles.errorBanner}
               />
             )}

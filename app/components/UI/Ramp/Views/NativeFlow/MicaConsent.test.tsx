@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import MicaConsent, {
   formatConsentAddress,
   formatConsentDob,
@@ -46,23 +47,35 @@ const mockSubmitMicaConsent = jest
   .fn()
   .mockResolvedValue({ status: 'SUBMITTED' });
 
+const mockGetKycRequirement = jest.fn();
+const mockGetAdditionalRequirements = jest.fn();
+
 jest.mock('../../hooks/useTransakController', () => ({
   useTransakController: () => ({
     getUserDetails: mockGetUserDetails,
     submitMicaConsent: mockSubmitMicaConsent,
+    getKycRequirement: mockGetKycRequirement,
+    getAdditionalRequirements: mockGetAdditionalRequirements,
   }),
 }));
 
 const mockRouteAfterAuthentication = jest.fn();
+const mockUseTransakRouting = jest.fn();
 
 jest.mock('../../hooks/useTransakRouting', () => ({
-  useTransakRouting: () => ({
-    routeAfterAuthentication: mockRouteAfterAuthentication,
-  }),
+  useTransakRouting: (config: unknown) => {
+    mockUseTransakRouting(config);
+    return { routeAfterAuthentication: mockRouteAfterAuthentication };
+  },
 }));
 
-const mockUseParamsReturn = {
+const mockUseParamsReturn: {
+  quote: { quoteId: string; fiatAmount: number };
+  quoteId: string;
+  headlessSessionId: string | undefined;
+} = {
   quote: { quoteId: 'test-quote-id', fiatAmount: 100 },
+  quoteId: 'test-quote-id',
   headlessSessionId: undefined,
 };
 
@@ -89,7 +102,29 @@ jest.mock('../../utils/micaMockMode', () => ({
 describe('MicaConsent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseParamsReturn.headlessSessionId = undefined;
+    mockGetUserDetails.mockResolvedValue(mockUserDetails);
+    mockSubmitMicaConsent.mockResolvedValue({ status: 'SUBMITTED' });
+    mockGetKycRequirement.mockResolvedValue(undefined);
+    mockGetAdditionalRequirements.mockResolvedValue(undefined);
   });
+
+  const renderScreen = () =>
+    render(
+      <ThemeContext.Provider value={mockTheme}>
+        <MicaConsent />
+      </ThemeContext.Provider>,
+    );
+
+  const checkBothConsents = async (
+    utils: ReturnType<typeof renderScreen>,
+  ): Promise<void> => {
+    await waitFor(() => {
+      expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+    });
+    fireEvent.press(utils.getByTestId('mica-consent-data-processing-checkbox'));
+    fireEvent.press(utils.getByTestId('mica-consent-terms-checkbox'));
+  };
 
   it('renders correctly', async () => {
     const { getByText } = render(
@@ -99,7 +134,7 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.continueWithTransak')).toBeTruthy();
+      expect(getByText('deposit.mica.continueWithTransak')).toBeOnTheScreen();
     });
   });
 
@@ -112,10 +147,10 @@ describe('MicaConsent', () => {
 
     await waitFor(() => {
       expect(mockGetUserDetails).toHaveBeenCalled();
-      expect(getByText('John Doe', { exact: false })).toBeTruthy();
-      expect(getByText('1 Jan 1990', { exact: false })).toBeTruthy();
-      expect(getByText(/123 Main St/)).toBeTruthy();
-      expect(getByText(/10117 Berlin, Germany/)).toBeTruthy();
+      expect(getByText('John Doe', { exact: false })).toBeOnTheScreen();
+      expect(getByText('1 Jan 1990', { exact: false })).toBeOnTheScreen();
+      expect(getByText(/123 Main St/)).toBeOnTheScreen();
+      expect(getByText(/10117 Berlin, Germany/)).toBeOnTheScreen();
     });
   });
 
@@ -150,7 +185,7 @@ describe('MicaConsent', () => {
     await waitFor(() => {
       expect(
         getByText('deposit.mica_consent.data_processing_consent'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     const button = getByLabelText('deposit.mica.agreeAndContinue');
@@ -165,7 +200,9 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByTestId('mica-consent-data-processing-checkbox')).toBeTruthy();
+      expect(
+        getByTestId('mica-consent-data-processing-checkbox'),
+      ).toBeOnTheScreen();
     });
 
     const button = () => getByLabelText('deposit.mica.agreeAndContinue');
@@ -186,7 +223,9 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByTestId('mica-consent-data-processing-checkbox')).toBeTruthy();
+      expect(
+        getByTestId('mica-consent-data-processing-checkbox'),
+      ).toBeOnTheScreen();
     });
 
     const dataProcessing = getByTestId('mica-consent-data-processing-checkbox');
@@ -215,9 +254,13 @@ describe('MicaConsent', () => {
     await waitFor(() => {
       expect(
         getByText('deposit.mica_consent.data_processing_consent'),
-      ).toBeTruthy();
-      expect(getByText('deposit.mica_consent.terms_link_text')).toBeTruthy();
-      expect(getByText('deposit.mica_consent.privacy_link_text')).toBeTruthy();
+      ).toBeOnTheScreen();
+      expect(
+        getByText('deposit.mica_consent.terms_link_text'),
+      ).toBeOnTheScreen();
+      expect(
+        getByText('deposit.mica_consent.privacy_link_text'),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -229,7 +272,7 @@ describe('MicaConsent', () => {
     );
 
     await waitFor(() => {
-      expect(getByText('deposit.mica.agreeAndContinue')).toBeTruthy();
+      expect(getByText('deposit.mica.agreeAndContinue')).toBeOnTheScreen();
     });
   });
 
@@ -243,7 +286,220 @@ describe('MicaConsent', () => {
     await waitFor(() => {
       expect(
         getByText('deposit.mica_consent.data_processing_consent'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
+  });
+
+  it('keeps submit disabled when the user details fail to load', async () => {
+    mockGetUserDetails.mockRejectedValue(new Error('details unavailable'));
+    const utils = renderScreen();
+
+    await waitFor(() => {
+      expect(utils.getByText('deposit.mica.errorTitle')).toBeOnTheScreen();
+    });
+    fireEvent.press(utils.getByTestId('mica-consent-data-processing-checkbox'));
+    fireEvent.press(utils.getByTestId('mica-consent-terms-checkbox'));
+
+    expect(
+      utils.getByLabelText('deposit.mica.agreeAndContinue').props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
+  it('submits consent and continues the KYC flow', async () => {
+    const utils = renderScreen();
+    await checkBothConsents(utils);
+
+    await act(async () => {
+      fireEvent.press(utils.getByLabelText('deposit.mica.agreeAndContinue'));
+    });
+
+    expect(mockSubmitMicaConsent).toHaveBeenCalledWith(expect.any(String));
+    expect(mockGetKycRequirement).toHaveBeenCalledWith('test-quote-id');
+    expect(mockGetAdditionalRequirements).toHaveBeenCalledWith('test-quote-id');
+    expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(
+      mockUseParamsReturn.quote,
+    );
+  });
+
+  it('shows an error and does not continue when consent submission fails', async () => {
+    mockSubmitMicaConsent.mockResolvedValue({ status: 'FAILED' });
+    const utils = renderScreen();
+    await checkBothConsents(utils);
+
+    await act(async () => {
+      fireEvent.press(utils.getByLabelText('deposit.mica.agreeAndContinue'));
+    });
+
+    expect(
+      utils.getByText('deposit.mica.consentSubmitError'),
+    ).toBeOnTheScreen();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+  });
+
+  it('shows an error when consent submission throws', async () => {
+    mockSubmitMicaConsent.mockRejectedValue(new Error('boom'));
+    const utils = renderScreen();
+    await checkBothConsents(utils);
+
+    await act(async () => {
+      fireEvent.press(utils.getByLabelText('deposit.mica.agreeAndContinue'));
+    });
+
+    expect(utils.getByText('deposit.mica.errorTitle')).toBeOnTheScreen();
+    expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+  });
+
+  it('routes back to the headless host when a headless session is active', async () => {
+    mockUseParamsReturn.headlessSessionId = 'headless-1';
+
+    const utils = renderScreen();
+    await waitFor(() => {
+      expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+    });
+
+    expect(mockUseTransakRouting).toHaveBeenCalledWith(
+      expect.objectContaining({
+        baseRoute: 'RampHeadlessHost',
+        baseRouteParams: { headlessSessionId: 'headless-1' },
+      }),
+    );
+  });
+
+  it('does not override the base route outside headless flows', async () => {
+    const utils = renderScreen();
+    await waitFor(() => {
+      expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+    });
+
+    expect(mockUseTransakRouting.mock.calls[0][0].baseRoute).toBeUndefined();
+  });
+
+  describe('retry after a failed submission', () => {
+    const submitOnce = async (utils: ReturnType<typeof renderScreen>) => {
+      await checkBothConsents(utils);
+      await act(async () => {
+        fireEvent.press(utils.getByLabelText('deposit.mica.agreeAndContinue'));
+      });
+    };
+
+    it('resubmits with the originally captured consent timestamp', async () => {
+      mockSubmitMicaConsent.mockRejectedValueOnce(new Error('boom'));
+      const utils = renderScreen();
+      await submitOnce(utils);
+      const firstTimestamp = mockSubmitMicaConsent.mock.calls[0][0];
+
+      await act(async () => {
+        fireEvent.press(utils.getByText('deposit.mica.retry_button'));
+      });
+
+      expect(mockSubmitMicaConsent).toHaveBeenCalledTimes(2);
+      expect(mockSubmitMicaConsent).toHaveBeenLastCalledWith(firstTimestamp);
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(
+        mockUseParamsReturn.quote,
+      );
+    });
+
+    it('shows the submit error when the retry reports a failed status', async () => {
+      mockSubmitMicaConsent.mockRejectedValueOnce(new Error('boom'));
+      const utils = renderScreen();
+      await submitOnce(utils);
+      mockSubmitMicaConsent.mockResolvedValueOnce({ status: 'FAILED' });
+
+      await act(async () => {
+        fireEvent.press(utils.getByText('deposit.mica.retry_button'));
+      });
+
+      expect(
+        utils.getByText('deposit.mica.consentSubmitError'),
+      ).toBeOnTheScreen();
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+    });
+
+    it('shows an error when the retry throws', async () => {
+      mockSubmitMicaConsent.mockRejectedValue(new Error('still down'));
+      const utils = renderScreen();
+      await submitOnce(utils);
+
+      await act(async () => {
+        fireEvent.press(utils.getByText('deposit.mica.retry_button'));
+      });
+
+      expect(utils.getByText('deposit.mica.errorTitle')).toBeOnTheScreen();
+      expect(mockRouteAfterAuthentication).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('external links', () => {
+    let openURL: jest.SpyInstance;
+
+    beforeEach(() => {
+      openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+    });
+
+    afterEach(() => {
+      openURL.mockRestore();
+    });
+
+    it('opens Transak support from the support notice', async () => {
+      const utils = renderScreen();
+      await waitFor(() => {
+        expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        utils.getByText('deposit.mica_consent.support_link_text'),
+      );
+
+      expect(openURL).toHaveBeenCalledWith('https://support.transak.com');
+    });
+
+    it('opens the Transak terms of service from the consent label', async () => {
+      const utils = renderScreen();
+      await waitFor(() => {
+        expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+      });
+
+      fireEvent.press(utils.getByText('deposit.mica_consent.terms_link_text'));
+
+      expect(openURL).toHaveBeenCalledWith(
+        'https://transak.com/terms-of-service',
+      );
+    });
+
+    it('opens the Transak privacy policy from the consent label', async () => {
+      const utils = renderScreen();
+      await waitFor(() => {
+        expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        utils.getByText('deposit.mica_consent.privacy_link_text'),
+      );
+
+      expect(openURL).toHaveBeenCalledWith(
+        expect.stringContaining('transak.com'),
+      );
+    });
+  });
+
+  it('returns an unparseable date of birth unchanged', () => {
+    expect(formatConsentDob('not-a-date', 'missing')).toBe('not-a-date');
+  });
+
+  it('returns an empty string when there is no address', () => {
+    expect(formatConsentAddress(undefined)).toBe('');
+  });
+
+  it('navigates back from the header buttons', async () => {
+    const utils = renderScreen();
+    await waitFor(() => {
+      expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+    });
+
+    fireEvent.press(utils.getByTestId('deposit-back-navbar-button'));
+    fireEvent.press(utils.getByTestId('deposit-close-navbar-button'));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(2);
   });
 });

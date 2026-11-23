@@ -3,7 +3,7 @@
  * and requires acceptance of data processing consent and Terms/Privacy Policy.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Linking } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -21,6 +21,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
+import Routes from '../../../../../constants/navigation/Routes';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -119,9 +120,21 @@ const MicaConsent = (): React.JSX.Element => {
     getKycRequirement,
     getAdditionalRequirements,
   } = useTransakController();
-  const { routeAfterAuthentication } = useTransakRouting({
-    screenLocation: 'MicaConsent Screen',
-  });
+  // For headless buy flows, post-auth resets must land back on the Host
+  // (which carries the live `headlessSessionId`) instead of BuildQuote.
+  const transakRoutingConfig = useMemo(
+    () => ({
+      screenLocation: 'MicaConsent Screen',
+      ...(headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+          }
+        : {}),
+    }),
+    [headlessSessionId],
+  );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -267,7 +280,9 @@ const MicaConsent = (): React.JSX.Element => {
     routeAfterAuthentication,
   ]);
 
-  const isFormValid = dataProcessingConsent && termsAndPrivacyConsent;
+  // Consent is only valid once the user has seen the details being consented to.
+  const isFormValid =
+    dataProcessingConsent && termsAndPrivacyConsent && userDetails !== null;
 
   return (
     <ScreenLayout>

@@ -3,7 +3,7 @@
  * This is the ADDITIONAL_DETAILS_NATIONALITY form that appears after SOURCE_OF_INCOME.
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
@@ -67,9 +67,21 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
     getKycRequirement,
     getAdditionalRequirements,
   } = useTransakController();
-  const { routeAfterAuthentication } = useTransakRouting({
-    screenLocation: 'AdditionalDetailsNationality Screen',
-  });
+  // For headless buy flows, post-auth resets must land back on the Host
+  // (which carries the live `headlessSessionId`) instead of BuildQuote.
+  const transakRoutingConfig = useMemo(
+    () => ({
+      screenLocation: 'AdditionalDetailsNationality Screen',
+      ...(headlessSessionId
+        ? {
+            baseRoute: Routes.RAMP.HEADLESS_HOST,
+            baseRouteParams: { headlessSessionId },
+          }
+        : {}),
+    }),
+    [headlessSessionId],
+  );
+  const { routeAfterAuthentication } = useTransakRouting(transakRoutingConfig);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -961,6 +961,159 @@ describe('useTransakRouting', () => {
       );
     });
 
+    describe('MiCA additional forms', () => {
+      const mockAdditionalForms = (forms: unknown[]): void => {
+        mockGetUserDetails.mockResolvedValue({
+          firstName: 'John',
+          address: {},
+        });
+        mockGetKycRequirement.mockResolvedValue({
+          status: 'ADDITIONAL_FORMS_REQUIRED',
+          kycType: 'STANDARD',
+        });
+        mockGetAdditionalRequirements.mockResolvedValue({
+          formsRequired: forms,
+        });
+      };
+
+      const route = async (
+        config?: Parameters<typeof useTransakRouting>[0],
+        depth = 0,
+      ): Promise<void> => {
+        const { result } = renderHook(() => useTransakRouting(config));
+        await act(async () => {
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            25,
+            depth,
+          );
+        });
+      };
+
+      const loggedMessages = (): string[] =>
+        (
+          jest.requireMock('../../../../util/Logger').error as jest.Mock
+        ).mock.calls.map(([error]) => (error as Error).message);
+
+      it('navigates to the MiCA consent screen for a CONSENT form', async () => {
+        mockAdditionalForms([{ type: 'CONSENT' }]);
+
+        await route();
+
+        expect(mockNavigate).toHaveBeenCalledWith('RampMicaConsent', {
+          quote: mockQuote,
+          quoteId: 'test-quote-id',
+        });
+      });
+
+      it('forwards the headless session to the MiCA consent screen', async () => {
+        mockAdditionalForms([{ type: 'CONSENT' }]);
+
+        await route({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'hs-1' },
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampMicaConsent',
+          expect.objectContaining({ headlessSessionId: 'hs-1' }),
+        );
+      });
+
+      it('logs instead of navigating when the consent depth is exceeded', async () => {
+        mockAdditionalForms([{ type: 'CONSENT' }]);
+
+        await route(undefined, 5);
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(loggedMessages()).toContain('MiCA consent depth exceeded: 5');
+      });
+
+      it('navigates to source of income with the source of funds options', async () => {
+        const sourceOfFundsTypeOptions = [
+          { name: 'Savings', value: 'savings' },
+        ];
+        mockAdditionalForms([
+          { type: 'SOURCE_OF_INCOME', metadata: { sourceOfFundsTypeOptions } },
+        ]);
+
+        await route();
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampSourceOfIncome',
+          expect.objectContaining({
+            quoteId: 'test-quote-id',
+            metadata: expect.objectContaining({ sourceOfFundsTypeOptions }),
+          }),
+        );
+      });
+
+      it('falls back to empty metadata when source of income has none', async () => {
+        mockAdditionalForms([{ type: 'SOURCE_OF_INCOME' }]);
+
+        await route();
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampSourceOfIncome',
+          expect.objectContaining({
+            metadata: expect.objectContaining({ options: [] }),
+          }),
+        );
+      });
+
+      it('logs instead of navigating when the source of income depth is exceeded', async () => {
+        mockAdditionalForms([{ type: 'SOURCE_OF_INCOME' }]);
+
+        await route(undefined, 5);
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(loggedMessages()).toContain(
+          'Source of income depth exceeded: 5',
+        );
+      });
+
+      it('navigates to employment and nationality with its options', async () => {
+        const employmentStatusOptions = [
+          { name: 'Employed', value: 'employed' },
+        ];
+        const countryOfCitizenshipOptions = [{ name: 'Germany', value: 'DE' }];
+        mockAdditionalForms([
+          {
+            type: 'ADDITIONAL_DETAILS_NATIONALITY',
+            metadata: { employmentStatusOptions, countryOfCitizenshipOptions },
+          },
+        ]);
+
+        await route({
+          baseRoute: 'RampHeadlessHost',
+          baseRouteParams: { headlessSessionId: 'hs-1' },
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampAdditionalDetailsNationality',
+          expect.objectContaining({
+            quoteId: 'test-quote-id',
+            headlessSessionId: 'hs-1',
+            metadata: expect.objectContaining({
+              employmentStatusOptions,
+              countryOfCitizenshipOptions,
+            }),
+          }),
+        );
+      });
+
+      it('logs instead of navigating when the nationality depth is exceeded', async () => {
+        mockAdditionalForms([{ type: 'ADDITIONAL_DETAILS_NATIONALITY' }]);
+
+        await route(undefined, 5);
+
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(loggedMessages()).toContain(
+          'Additional details nationality depth exceeded: 5',
+        );
+      });
+    });
+
     it('handles ADDITIONAL_FORMS_REQUIRED with IDPROOF when user amount is omitted', async () => {
       mockGetUserDetails.mockResolvedValue({
         firstName: 'John',
