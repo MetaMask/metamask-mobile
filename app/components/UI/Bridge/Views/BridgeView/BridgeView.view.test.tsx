@@ -210,7 +210,7 @@ describeForPlatforms('BridgeView', () => {
       ).toHaveDisplayValue('2');
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON),
-      ).toHaveTextContent(strings('bridge.recurring.unit.week'));
+      ).toHaveTextContent(strings('bridge.recurring.unit_plural.week'));
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT),
       ).toHaveDisplayValue('8');
@@ -819,10 +819,7 @@ describeForPlatforms('BridgeView', () => {
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
     });
 
-    // Pre-existing flake: this test also fails on `main` (live-network data
-    // reaches the suite), so it is not a nock 15 regression. Skipped
-    // temporarily; to be fixed in a follow-up PR.
-    it.skip('clears quote-only state when switching tabs without changing shared inputs', async () => {
+    it('clears quote-only state when switching tabs without changing shared inputs', async () => {
       const { getByTestId, store } = defaultBridgeWithTokens({
         bridge: {
           destAmount: '2',

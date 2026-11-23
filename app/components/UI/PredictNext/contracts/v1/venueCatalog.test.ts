@@ -49,6 +49,7 @@ describe('parsePredictVenueCatalog', () => {
       },
       categories: [],
       searchSupported: true,
+      screens: [],
     });
   });
 
@@ -72,7 +73,7 @@ describe('parsePredictVenueCatalog', () => {
     expect(Logger.log).not.toHaveBeenCalled();
   });
 
-  it('drops unknown, duplicate, and Feed-less Categories, and logs them', () => {
+  it('drops duplicate and Feed-less Categories, and logs them', () => {
     const result = parsePredictVenueCatalog(
       createCatalog({
         feeds: {
@@ -84,11 +85,11 @@ describe('parsePredictVenueCatalog', () => {
       venueId,
     );
 
-    expect(result.categories).toEqual(['nfl-games']);
+    expect(result.categories).toEqual(['curling-live', 'nfl-games']);
     expect(Logger.log).toHaveBeenCalledTimes(1);
     expect(Logger.log).toHaveBeenCalledWith(
-      '[PredictNext] Dropped 3 Venue catalog Categories for kalshi',
-      { dropped: ['curling-live', 'politics', 'nfl-games'] },
+      '[PredictNext] Dropped 2 Venue catalog Categories for kalshi',
+      { dropped: ['politics', 'nfl-games'] },
     );
   });
 
@@ -109,6 +110,7 @@ describe('parsePredictVenueCatalog', () => {
       },
       categories: ['nfl-props', 'nfl-games'],
       searchSupported: true,
+      screens: [],
     });
     expect(Logger.log).toHaveBeenCalledWith(
       '[PredictNext] Dropped 3 Venue catalog Categories for kalshi',
@@ -150,7 +152,7 @@ describe('parsePredictVenueCatalog', () => {
     expect(result.actions).toEqual(['buy', 'withdraw']);
   });
 
-  it('drops unknown Feed keys', () => {
+  it('keeps a Feed key the app has never seen, because the API owns the vocabulary', () => {
     const result = parsePredictVenueCatalog(
       createCatalog({
         feeds: { 'nfl-games': 'nfl-games-feed', 'curling-live': 'curling' },
@@ -158,7 +160,33 @@ describe('parsePredictVenueCatalog', () => {
       venueId,
     );
 
+    expect(result.feeds).toEqual({
+      'nfl-games': 'nfl-games-feed',
+      'curling-live': 'curling',
+    });
+    expect(Logger.log).not.toHaveBeenCalled();
+  });
+
+  it('drops and logs a Feed that is not kebab-case or has no Feed ID, and keeps the rest', () => {
+    const result = parsePredictVenueCatalog(
+      createCatalog({
+        feeds: {
+          'nfl-games': 'nfl-games-feed',
+          'NFL Props': 'nfl-props-feed',
+          'nfl-live': '',
+          'nfl-odds': 7,
+        },
+        categories: ['nfl-games', 'nfl-live'],
+      }),
+      venueId,
+    );
+
     expect(result.feeds).toEqual({ 'nfl-games': 'nfl-games-feed' });
+    expect(result.categories).toEqual(['nfl-games']);
+    expect(Logger.log).toHaveBeenCalledWith(
+      '[PredictNext] Dropped 3 Venue catalog Feeds for kalshi',
+      { dropped: ['NFL Props', 'nfl-live', 'nfl-odds'] },
+    );
   });
 
   it('ignores unknown top-level fields', () => {
@@ -183,6 +211,7 @@ describe('parsePredictVenueCatalog', () => {
       feeds: {},
       categories: [],
       searchSupported: false,
+      screens: [],
     });
   });
 
@@ -200,16 +229,147 @@ describe('parsePredictVenueCatalog', () => {
     ['feeds that are an array', createCatalog({ feeds: ['nfl-games'] })],
     ['missing searchSupported', createCatalog({ searchSupported: undefined })],
     ['a string searchSupported', createCatalog({ searchSupported: 'true' })],
-    [
-      'a known Feed key without a Feed ID',
-      createCatalog({ feeds: { 'nfl-games': '' } }),
-    ],
-    [
-      'a known Feed key with a non-string Feed ID',
-      createCatalog({ feeds: { 'nfl-games': 7 } }),
-    ],
   ])('rejects %s', (_name, value) => {
     expectInvalidCatalog(value);
+  });
+
+  describe('screens', () => {
+    const nflScreen = {
+      id: 'sports-football-nfl',
+      title: 'Sports',
+      subtitle: 'NFL',
+      tabs: [
+        { id: 'games', title: 'Games', feed: 'nfl-games' },
+        { id: 'props', title: 'Props', feed: 'nfl-props' },
+      ],
+    };
+
+    it('keeps the Feed Screens and their tabs in catalog order', () => {
+      const sports = {
+        id: 'sports',
+        title: 'Sports',
+        tabs: [{ id: 'nfl', title: 'NFL', feed: 'nfl-games' }],
+      };
+
+      const result = parsePredictVenueCatalog(
+        createCatalog({ screens: [nflScreen, sports] }),
+        venueId,
+      );
+
+      expect(result.screens).toEqual([nflScreen, sports]);
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('drops unknown screen and tab fields', () => {
+      const result = parsePredictVenueCatalog(
+        createCatalog({
+          screens: [
+            {
+              ...nflScreen,
+              icon: 'football',
+              tabs: [{ ...nflScreen.tabs[0], badge: 'new' }],
+            },
+          ],
+        }),
+        venueId,
+      );
+
+      expect(result.screens).toEqual([
+        { ...nflScreen, tabs: [nflScreen.tabs[0]] },
+      ]);
+    });
+
+    it('drops a malformed or repeated tab, and a tab on a Feed key missing from feeds, and logs them', () => {
+      const badTabs = [
+        { id: 'Props', title: 'Props', feed: 'nfl-props' },
+        { id: 'live', title: '', feed: 'nfl-games' },
+        { id: 'odds', title: 'Odds', feed: 'nfl-odds' },
+        { id: 'games', title: 'Games again', feed: 'nfl-props' },
+        'props',
+      ];
+
+      const result = parsePredictVenueCatalog(
+        createCatalog({
+          screens: [{ ...nflScreen, tabs: [nflScreen.tabs[0], ...badTabs] }],
+        }),
+        venueId,
+      );
+
+      expect(result.screens).toEqual([
+        { ...nflScreen, tabs: [nflScreen.tabs[0]] },
+      ]);
+      expect(Logger.log).toHaveBeenCalledTimes(1);
+      expect(Logger.log).toHaveBeenCalledWith(
+        '[PredictNext] Dropped 5 Venue catalog Feed Screen tabs for kalshi',
+        { dropped: badTabs },
+      );
+    });
+
+    it('drops a malformed or repeated screen, and one left without tabs, keeping the rest of the catalog', () => {
+      const badScreens = [
+        { ...nflScreen, id: 'Sports NFL' },
+        { ...nflScreen, title: '' },
+        { ...nflScreen, tabs: 'games' },
+        { ...nflScreen, title: 'Sports again' },
+        {
+          id: 'curling',
+          title: 'Curling',
+          tabs: [{ id: 'live', title: 'Live', feed: 'curling-live' }],
+        },
+        { id: 'empty', title: 'Empty', tabs: [] },
+        null,
+      ];
+
+      const result = parsePredictVenueCatalog(
+        createCatalog({
+          categories: ['nfl-games'],
+          screens: [nflScreen, ...badScreens],
+        }),
+        venueId,
+      );
+
+      expect(result.screens).toEqual([nflScreen]);
+      expect(result.categories).toEqual(['nfl-games']);
+      expect(result.actions).toEqual(['buy', 'sell']);
+      expect(Logger.log).toHaveBeenCalledWith(
+        '[PredictNext] Dropped 7 Venue catalog Feed Screens for kalshi',
+        { dropped: badScreens },
+      );
+    });
+
+    it('drops a subtitle that is not a non-empty string and keeps the screen', () => {
+      const result = parsePredictVenueCatalog(
+        createCatalog({ screens: [{ ...nflScreen, subtitle: 7 }] }),
+        venueId,
+      );
+
+      const { subtitle: _subtitle, ...withoutSubtitle } = nflScreen;
+      expect(result.screens).toEqual([withoutSubtitle]);
+    });
+
+    it.each([
+      ['a string', 'sports'],
+      ['an object', { id: 'sports' }],
+      ['null', null],
+    ])(
+      'keeps the rest of the catalog with no screens when screens is %s',
+      (_name, screens) => {
+        const result = parsePredictVenueCatalog(
+          createCatalog({ screens }),
+          venueId,
+        );
+
+        expect(result.screens).toEqual([]);
+        expect(result.feeds).toEqual({
+          'nfl-games': 'sports-football-nfl-games',
+          'nfl-props': 'sports-football-nfl-win-totals',
+        });
+        expect(Logger.log).toHaveBeenCalledWith(
+          '[PredictNext] Dropped 1 Venue catalog Feed Screen for kalshi',
+          { dropped: [screens] },
+        );
+      },
+    );
   });
 
   it('rejects a catalog for another Venue instead of using it', () => {

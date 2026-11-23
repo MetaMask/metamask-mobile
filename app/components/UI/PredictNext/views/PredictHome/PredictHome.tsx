@@ -27,12 +27,11 @@ import {
   KalshiDebugTestIds,
 } from '../../onboarding/KalshiDebugPanel';
 import {
-  FEED_SCREENS,
   NFL_FEED_SCREEN_ID,
   POLITICS_FEED_SCREEN_ID,
-  TRENDING_FEED_SCREEN_ID,
-  resolveFeedScreenTabs,
-  type FeedScreenDefinition,
+  SPORTS_FEED_SCREEN_ID,
+  getFeedScreen,
+  getKnownFeedScreenLabel,
   type FeedScreenId,
 } from '../../navigation/feedScreens';
 import {
@@ -59,6 +58,7 @@ import type {
   PredictVenueId,
 } from '../../types';
 import { TraceName } from '../../../../../util/trace';
+import { DepositStatusLine } from '../../components/DepositStatusLine';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
 import { HomeCategoriesSection } from './internal/HomeCategoriesSection';
@@ -78,9 +78,18 @@ import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
-const sectionTitle = (sectionId: FeedScreenId) => {
-  const feedScreen: FeedScreenDefinition = FEED_SCREENS[sectionId];
-  return feedScreen.selectionLabel ?? feedScreen.title;
+/** A preview section's title: its Feed Screen's subtitle, else its title,
+ * from the Venue catalog; the app's own label while the catalog lacks it. */
+const sectionTitle = (
+  sectionId: FeedScreenId,
+  capabilities: PredictVenueCapabilities,
+) => {
+  const feedScreen = getFeedScreen(sectionId, capabilities);
+  return (
+    feedScreen?.selectionLabel ??
+    feedScreen?.title ??
+    getKnownFeedScreenLabel(sectionId)
+  );
 };
 
 // The reads before Politics feed the Trending and Sports rows. Categories sit
@@ -255,16 +264,22 @@ const PredictHomeView = ({
       }),
     [navigation, venueId],
   );
-  // The Trending header opens the Trending Feed Screen, and only when the
-  // Venue supports one of its tabs.
+  // The Trending header opens the Sports Feed Screen, whose league tabs are
+  // the Feeds Trending ranks (PRED-1525 serves no Trending screen), and only
+  // when the Venue catalog has it.
   const canOpenTrending = useMemo(
-    () =>
-      resolveFeedScreenTabs(TRENDING_FEED_SCREEN_ID, capabilities).length > 0,
+    () => getFeedScreen(SPORTS_FEED_SCREEN_ID, capabilities) !== undefined,
     [capabilities],
   );
   const openTrending = useCallback(
-    () => openFeedScreen(TRENDING_FEED_SCREEN_ID),
+    () => openFeedScreen(SPORTS_FEED_SCREEN_ID),
     [openFeedScreen],
+  );
+  // Home's rows still come from hardcoded Feed keys (PRED-1528), so a header
+  // opens its Feed Screen only while the Venue catalog has it.
+  const canOpenSports = useMemo(
+    () => getFeedScreen(NFL_FEED_SCREEN_ID, capabilities) !== undefined,
+    [capabilities],
   );
   const openSports = useCallback(
     () => openFeedScreen(NFL_FEED_SCREEN_ID),
@@ -320,11 +335,15 @@ const PredictHomeView = ({
         key={section.sectionId}
         feedScreenId={section.sectionId}
         onLayout={onSectionLayout(section.sectionId)}
-        title={sectionTitle(section.sectionId)}
+        title={sectionTitle(section.sectionId, capabilities)}
         events={section.events}
         isLoading={section.isLoading}
         isError={section.isError}
-        onOpen={() => openFeedScreen(section.sectionId)}
+        onOpen={
+          getFeedScreen(section.sectionId, capabilities)
+            ? () => openFeedScreen(section.sectionId)
+            : undefined
+        }
         onOpenEvent={openEvent}
         onOrder={canBuy ? openOrder : undefined}
         onRetry={section.refetch}
@@ -411,6 +430,12 @@ const PredictHomeView = ({
             isLoading={balanceQuery.isPending}
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
+            depositStatus={
+              <DepositStatusLine
+                venueId={venueId}
+                testID={PredictHomeTestIds.DEPOSIT_STATUS}
+              />
+            }
           />
           <PortfolioActions
             onPositionsPress={openPortfolio}
@@ -430,7 +455,7 @@ const PredictHomeView = ({
           <HomeSportsSection
             events={liveRows.sports}
             isLoading={isRowsLoading}
-            onOpen={openSports}
+            onOpen={canOpenSports ? openSports : undefined}
             onOpenEvent={openEvent}
             onOrder={canBuy ? openOrder : undefined}
             onLayout={onSectionLayout(SPORTS_ROW)}
