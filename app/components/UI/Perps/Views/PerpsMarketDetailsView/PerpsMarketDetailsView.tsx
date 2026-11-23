@@ -623,6 +623,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     state: Extract<PerpsMarketDetailSectionState, 'content' | 'empty'>;
   } | null>(null);
   const [advancedChartResetKey, setAdvancedChartResetKey] = useState(0);
+  const [inlineViewportRevision, setInlineViewportRevision] = useState(0);
   const [chartDeliveryRevision, setChartDeliveryRevision] = useState(0);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
 
@@ -1721,6 +1722,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   const handleFullscreenChartClose = useCallback(() => {
     setIsFullscreenChartVisible(false);
+    // Re-frame the inline Advanced chart to the fullscreen chart's persisted
+    // zoom without remounting its WebView.
+    setInlineViewportRevision((revision) => revision + 1);
   }, []);
 
   // Determine market hours content key based on current status - recalculated on each render to stay current
@@ -2004,6 +2008,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     detailChartContent = (
       <PerpsAdvancedChart
         key={`${market.symbol}-${marketContextKey}-${advancedChartResetKey}`}
+        viewportRevision={inlineViewportRevision}
         symbol={market.symbol}
         interval={selectedCandlePeriod}
         visibleCandleCount={

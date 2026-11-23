@@ -40,6 +40,8 @@ import performance from 'react-native-performance';
 
 export interface PerpsAdvancedChartProps {
   symbol: string;
+  /** Bump to re-frame the live chart to the current viewport without a remount. */
+  viewportRevision?: number;
   interval: CandlePeriod;
   visibleCandleCount: number;
   height: number;
@@ -212,6 +214,7 @@ function getPerpsChartVisibilityTrace(
  */
 const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   symbol,
+  viewportRevision,
   interval,
   visibleCandleCount,
   height,
@@ -640,6 +643,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onVisibleCandleCountChange={onVisibleCandleCountChange}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
+      viewportRevision={viewportRevision}
       currentPriceLineColorOverride={positionLineColors.currentPrice}
       volumeSuccessColorOverride={volumeColors.success}
       volumeErrorColorOverride={volumeColors.error}

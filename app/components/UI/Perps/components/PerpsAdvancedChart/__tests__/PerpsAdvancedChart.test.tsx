@@ -204,6 +204,12 @@ describe('PerpsAdvancedChart', () => {
     expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|4h');
   });
 
+  it('forwards viewportRevision to the AdvancedChart', () => {
+    renderChart({ viewportRevision: 3 });
+
+    expect(latestAdvancedChartProps().viewportRevision).toBe(3);
+  });
+
   it('notifies the parent when the latest adapter close changes', () => {
     const onLatestPriceChange = jest.fn();
     mockUsePerpsAdvancedChartAdapter.mockReturnValue({
