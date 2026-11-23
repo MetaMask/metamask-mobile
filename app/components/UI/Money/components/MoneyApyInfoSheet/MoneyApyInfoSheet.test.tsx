@@ -204,12 +204,14 @@ describe('MoneyApyInfoSheet', () => {
       vaultApyQuery: { isLoading: false },
     } as unknown as ReturnType<typeof useMoneyVaultApy>);
 
-    const { queryByTestId, getByText } = renderWithProvider(
+    const { queryByTestId, queryByText, getByText } = renderWithProvider(
       <MoneyApyInfoSheet />,
     );
 
     expect(queryByTestId(MoneyApyInfoSheetTestIds.APY_TITLE)).toBeNull();
     expect(getByText(strings('money.apy_tooltip.subtitle'))).toBeOnTheScreen();
+    expect(getByText(strings('money.apy_tooltip.lead'))).toBeOnTheScreen();
+    expect(queryByText(/earns up to/)).toBeNull();
   });
 
   describe('analytics', () => {

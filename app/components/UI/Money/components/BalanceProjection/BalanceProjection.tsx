@@ -126,7 +126,11 @@ export function BalanceProjection({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
         >
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="shrink"
+          >
             {`${labelText} `}
           </Text>
           <Pressable

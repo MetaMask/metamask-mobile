@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
@@ -106,17 +106,19 @@ const MoneyApyInfoSheet = () => {
             >
               {strings('money.apy_tooltip.lead')}
             </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings(
-                isPremiumCopy
-                  ? 'money.apy_tooltip.paragraph_1_premium'
-                  : 'money.apy_tooltip.paragraph_1',
-                { percentage: resolvedApy },
-              )}
-            </Text>
+            {hasApy ? (
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings(
+                  isPremiumCopy
+                    ? 'money.apy_tooltip.paragraph_1_premium'
+                    : 'money.apy_tooltip.paragraph_1',
+                  { percentage: resolvedApy },
+                )}
+              </Text>
+            ) : null}
             {migrationCopyKey ? (
               <Text
                 variant={TextVariant.BodyMd}
