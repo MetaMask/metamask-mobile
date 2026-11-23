@@ -1031,21 +1031,78 @@ describe('MainNavigator', () => {
       ]);
     });
 
-    it('includes Bridge routes', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
+    describe('Bridge routes', () => {
+      const resolveBridgeRootOptions = (
+        route: Record<string, unknown>,
+      ): Record<string, unknown> => {
+        const container = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const bridgeScreen = getScreenProps(container).find(
+          (screen) => screen?.name === Routes.BRIDGE.ROOT,
+        );
+        const resolveOptions = bridgeScreen?.options as unknown as (args: {
+          route: Record<string, unknown>;
+        }) => Record<string, unknown>;
+
+        return resolveOptions({
+          route: { key: 'bridge-root', name: Routes.BRIDGE.ROOT, ...route },
+        });
+      };
+
+      it('slides the Bridge stack in from the right', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options).toMatchObject(slideFromRightNativeOptions);
+        expect(options).not.toHaveProperty('gestureEnabled');
       });
 
-      const screenProps = getScreenProps(container);
-      const bridgeScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.BRIDGE.ROOT,
+      it('enables the full screen back gesture before the Bridge stack renders', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it('enables the full screen back gesture while BridgeView is focused', () => {
+        const options = resolveBridgeRootOptions({
+          state: {
+            index: 0,
+            routes: [{ name: Routes.BRIDGE.BRIDGE_VIEW }],
+          },
+        });
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it.each([
+        Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        Routes.BRIDGE.RECURRING_SWAP_DETAILS,
+        Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+        Routes.BRIDGE.TOKEN_SELECTOR,
+      ])(
+        'leaves the back gesture to the Bridge stack while %s is pushed over BridgeView',
+        (nestedRouteName) => {
+          const options = resolveBridgeRootOptions({
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.BRIDGE.BRIDGE_VIEW },
+                { name: nestedRouteName },
+              ],
+            },
+          });
+
+          expect(options).not.toHaveProperty('fullScreenGestureEnabled');
+        },
       );
 
-      expect(bridgeScreen).toBeDefined();
-      expect(bridgeScreen?.options).toMatchObject({
-        fullScreenGestureEnabled: true,
+      it('leaves the back gesture to the platform default when a nested Bridge screen is opened directly', () => {
+        const options = resolveBridgeRootOptions({
+          params: { screen: Routes.BRIDGE.RECURRING_ORDER_DETAILS },
+        });
+
+        expect(options).not.toHaveProperty('fullScreenGestureEnabled');
       });
-      expect(bridgeScreen?.options).not.toHaveProperty('gestureEnabled');
     });
 
     it('includes Earn routes', () => {
