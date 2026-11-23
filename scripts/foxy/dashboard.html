@@ -161,22 +161,34 @@
   @media (max-width: 1000px) { .dgrid { grid-template-columns: 1fr; } }
   .panel { overflow-wrap: anywhere; background: var(--color-background-alternative); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); padding: 12px 14px; min-width: 0; }
   .panel h3 { display: flex; align-items: center; margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); font-weight: 600; }
-  .summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; }
-  .meth { padding: 2px 8px; border-radius: var(--r-ctl); background: var(--color-primary-muted); color: var(--color-primary-default); font-weight: 700; font-size: 12px; font-family: var(--font-family-mono); }
-  .url { font-family: var(--font-family-mono); font-size: 12px; color: var(--color-text-alternative); word-break: break-all; flex: 1 1 320px; }
+  /* request & response: an overview, then flat Request and Response sections made of one kind of row */
+  .ov-line { display: flex; align-items: flex-start; gap: 10px; }
+  .meth { flex: none; height: 20px; padding: 0 7px; border-radius: var(--r-ctl); background: var(--color-primary-muted); color: var(--color-primary-default); font: 700 11.5px/20px var(--font-family-mono); letter-spacing: .02em; }
+  .url { min-width: 0; font-family: var(--font-family-mono); font-size: 12.5px; line-height: 20px; color: var(--color-text-alternative); overflow-wrap: anywhere; }
   .url b { color: var(--color-text-default); font-weight: 600; }
-  .stat { color: var(--color-text-alternative); font-size: 12px; } .stat b { color: var(--color-text-default); font-weight: 600; }
-  details.sec { border-top: 1px solid var(--color-border-muted); padding: 8px 0; }
-  details.sec:first-of-type { border-top: 0; }
-  details.sec > summary { cursor: pointer; font-weight: 600; font-size: 12.5px; color: var(--color-text-default); list-style: none; display: flex; gap: 8px; align-items: center; }
-  details.sec > summary::before { content: '▸'; color: var(--color-text-muted); transition: transform .12s; }
-  details.sec[open] > summary::before { transform: rotate(90deg); }
-  details.sec > summary .n { color: var(--color-text-muted); font-weight: 400; }
-  details.sub { margin: 8px 0 0 14px; }
-  details.sub > summary { cursor: pointer; font-weight: 500; color: var(--color-text-alternative); list-style: none; display: flex; align-items: center; gap: 8px; }
-  details.sub > summary::before { content: '▸'; color: var(--color-text-muted); transition: transform .12s; }
-  details.sub[open] > summary::before { transform: rotate(90deg); }
-  details.sub > summary .n { color: var(--color-text-muted); font-weight: 400; }
+  .ov-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 12px 16px; margin: 14px 0 0; }
+  .ov-meta dt { font-size: 11.5px; line-height: 16px; color: var(--color-text-muted); }
+  .ov-meta dd { display: flex; align-items: center; min-height: 22px; margin: 2px 0 0; font-size: 13px; font-weight: 500; color: var(--color-text-default); font-variant-numeric: tabular-nums; }
+  .ov-meta dd .na { color: var(--color-text-muted); font-weight: 400; }
+  .io-sec { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-border-muted); }
+  .io-sec > h4 { margin: 0 0 4px; font-size: 13px; line-height: 20px; font-weight: 600; letter-spacing: -.005em; color: var(--color-text-default); }
+  .io-err { margin: 2px 0 6px; font-size: 12.5px; color: var(--color-error-default); }
+  details.row > summary { display: flex; align-items: center; gap: 8px; min-height: 32px; margin: 0 -8px; padding: 0 8px; border-radius: var(--r-ctl); cursor: pointer; list-style: none; font-size: 13px; color: var(--color-text-alternative); }
+  details.row > summary::-webkit-details-marker { display: none; }
+  details.row > summary:hover { background: var(--fill-1); color: var(--color-text-default); }
+  details.row > summary::before { content: ''; flex: none; width: 5px; height: 5px; margin: 0 4px 0 2px; border-right: 1.5px solid var(--color-text-muted); border-bottom: 1.5px solid var(--color-text-muted); transform: rotate(-45deg); transition: transform .12s; }
+  details.row[open] > summary::before { transform: rotate(45deg); }
+  details.row > summary .cnt { font-size: 12px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+  details.row.static > summary { cursor: default; pointer-events: none; }
+  details.row.static > summary::before { visibility: hidden; }
+  details.row > .rb { margin: 2px 0 10px; }
+  .io .kv { grid-template-columns: fit-content(240px) minmax(0, 1fr); column-gap: 20px; row-gap: 5px; margin: 0; padding: 10px 12px; border-radius: var(--r-box); background: var(--well); font-size: 12px; line-height: 18px; }
+  .io .kv .k { color: var(--color-text-alternative); }
+  .io .kv .v { color: var(--color-text-default); }
+  .io .kv .cp { width: 18px; height: 18px; min-width: 18px; margin: -1px 0 -1px 6px; }
+  .io .kv .cp svg { width: 12px; height: 12px; }
+  .io pre.body { margin: 0; padding: 10px 12px; line-height: 1.55; background: var(--well); }
+  .panel h3 .cp.lab { margin-left: 6px; } .panel h3 .cp.lab.right { margin-left: auto; }
   .kv { display: grid; grid-template-columns: minmax(90px, 28%) minmax(0, 1fr); column-gap: 14px; row-gap: 3px; margin-top: 6px; font-family: var(--font-family-mono); font-size: 12px; }
   .kv .r { display: contents; }
   .kv .k { color: var(--color-text-alternative); overflow-wrap: anywhere; word-break: break-all; }
@@ -586,7 +598,8 @@
   .card { padding: 14px 18px; }
 
   /* solid shapes, no strokes (Linear-style): tonal fills carry the hierarchy, dividers do the separating */
-  :root { --fill-1: rgba(var(--fx),.065); --fill-2: rgba(var(--fx),.11); --fill-3: rgba(var(--fx),.16); }
+  :root { --fill-1: rgba(var(--fx),.065); --fill-2: rgba(var(--fx),.11); --fill-3: rgba(var(--fx),.16); --well: rgba(var(--bx),.35); }
+  html[data-theme="light"] { --well: rgba(var(--fx),.045); }
   button, input, select, textarea, .tabs, .pill, .chip, .chip.party, .chip.none, .panel, pre.body, .seg, .ownerpill, .cp.lab, .cp.abs, .tfmt, .pchip, textarea.note, .ph-pill, .stripin .mk b, .mkpop, .actions, kbd, kbd.k, .field kbd, dialog#help, .step .no, .mkadd select, .presets button { border-color: transparent !important; }
   kbd, kbd.k, .field kbd { border-bottom-width: 1px; }
   button, input, select, textarea.note, .pill, .ownerpill, .pchip, .ph-pill, .cp.lab, .cp.abs, .chip.party, .chip.none, .presets button { background: var(--fill-1); }
@@ -599,7 +612,7 @@
   .chip { background: color-mix(in srgb, var(--c, #888) 20%, transparent); }
   .chip.none { color: var(--color-text-muted); }
   .panel { background: var(--surface-1); }
-  pre.body { background: rgba(var(--bx),.35); }
+  pre.body { background: var(--well); }
   .mkpop, .actions { background: var(--surface-2); box-shadow: 0 20px 56px rgba(0,0,0,.7), inset 0 1px 0 rgba(var(--fx),.05); }
   dialog#help { background: var(--surface-1); box-shadow: 0 28px 90px rgba(0,0,0,.85), inset 0 1px 0 rgba(var(--fx),.05); }
   .hnav { background: rgba(var(--fx),.025); }
@@ -1602,26 +1615,36 @@ function renderChain(r, d) {
   return `<div class="chain-note">Oldest caller first. The stack ends where an <code>await</code> hid earlier callers.</div>${nodes}${net}${wrappers}${legend}`;
 }
 
+/** The panel's header actions: copy the URL, or the whole request as cURL. */
+function ioActions(r, d) {
+  return `${cp(r.url, 'Copy full URL', { label: 'Copy URL', right: true })}${cp(toCurl(r, d?.detail?.request), 'Copy as cURL (header values already redacted)', { label: 'Copy cURL' })}`;
+}
+
 function renderIO(r, d) {
   const req = d?.detail?.request, res = d?.detail?.response;
   const qp = queryParams(r.url), qn = Object.keys(qp).length;
   const hdrReq = req?.headers, hdrRes = res?.headers;
   const bodyOff = '<div class="hint">Body capture is off. Set <code>FOXY_BODIES="true"</code> in <code>.js.env</code> to record request and response previews.</div>';
-  const summary = `<div class="summary"><span class="meth">${esc(r.method)}</span><span class="url"><b>${esc(r.host)}</b>${esc(r.path)}</span>
-    ${stPill(stClass(r), r.error ? 'error' : r.status ?? '…', stBucket(r.error ? 'error' : r.status))}
-    <span class="stat">started <b>+${tf(r.relMs)}</b></span>${r.durationMs != null ? `<span class="stat">took <b>${r.durationMs} ms</b></span>` : ''}${r.sizeBytes != null ? `<span class="stat">size <b>${bytes(r.sizeBytes)}</b></span>` : ''}<span class="stat">via <b>${esc(r.transport || 'fetch')}</b></span><span style="display:flex;gap:6px;margin-left:auto">${cp(r.url, 'Copy full URL', { label: 'Copy URL' })}${cp(toCurl(r, req), 'Copy as cURL (header values already redacted)', { label: 'Copy cURL' })}</span></div>`;
-  const request = `<details class="sec" open><summary>Request</summary>
-      <details class="sub" open><summary>Query Parameters<span class="n">${qn}</span>${qn ? cp(kvLines(qp, '='), 'Copy all query parameters', { right: true }) : ''}</summary>${qn ? kvTable(qp) : '<div class="hint">None</div>'}</details>
-      <details class="sub"><summary>Headers<span class="n">${hdrReq ? Object.keys(hdrReq).length : 0}</span>${hdrReq && Object.keys(hdrReq).length ? cp(kvLines(hdrReq, ': '), 'Copy request headers', { right: true }) : ''}</summary>${hdrReq && Object.keys(hdrReq).length ? kvTable(hdrReq) : '<div class="hint">None captured</div>'}</details>
-      <details class="sub" ${req?.bodyPreview != null ? 'open' : ''}><summary>Body<span class="n">${req?.bodyBytes != null ? bytes(req.bodyBytes) : 'none'}</span></summary>${req?.bodyPreview != null ? bodyBlock(req.bodyPreview, 'request body') : req?.bodyBytes ? bodyOff : '<div class="hint">No request body</div>'}</details>
-    </details>`;
-  const response = `<details class="sec" open><summary>Response</summary>
-      ${r.error ? `<div class="hint" style="color:var(--color-error-default)">${esc(r.error)}</div>` : ''}
-      <details class="sub" open><summary>Status</summary>${kvTable({ status: r.status != null ? `${r.status} ${res?.statusText ?? ''}`.trim() : r.error ? 'failed (no response)' : 'pending', duration: r.durationMs != null ? `${r.durationMs} ms` : '', size: r.sizeBytes != null ? bytes(r.sizeBytes) : 'unknown' })}</details>
-      <details class="sub"><summary>Headers<span class="n">${hdrRes ? Object.keys(hdrRes).length : 0}</span>${hdrRes && Object.keys(hdrRes).length ? cp(kvLines(hdrRes, ': '), 'Copy response headers', { right: true }) : ''}</summary>${hdrRes && Object.keys(hdrRes).length ? kvTable(hdrRes) : '<div class="hint">None captured</div>'}</details>
-      <details class="sub" ${res?.bodyPreview != null ? 'open' : ''}><summary>Body</summary>${res?.bodyPreview != null ? bodyBlock(res.bodyPreview, 'response body') : bodyOff}</details>
-    </details>`;
-  return summary + request + response;
+  const size = (o) => (o ? Object.keys(o).length : 0);
+  // One kind of row for everything: a title, a quiet detail, a copy button that shows on hover. A row with nothing to show says so and does not expand.
+  const row = (title, { count = '', none = '', body = '', open = false, copy, copyTitle }) => (body
+    ? `<details class="row" ${open ? 'open' : ''}><summary class="hv"><span>${title}</span>${count !== '' ? `<span class="cnt">${count}</span>` : ''}${copy ? cp(copy, copyTitle, { right: true, ho: true }) : ''}</summary><div class="rb">${body}</div></details>`
+    : `<details class="row static"><summary><span>${title}</span><span class="cnt">${none}</span></summary></details>`);
+  const headers = (h, copyTitle) => row('Headers', { count: size(h), none: d ? 'None captured' : 'Loading…', body: size(h) ? kvTable(h) : '', copy: kvLines(h, ': '), copyTitle });
+  const na = '<span class="na">—</span>';
+  const meta = (label, value) => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
+  const overview = `<div class="ov"><div class="ov-line"><span class="meth">${esc(r.method)}</span><span class="url"><b>${esc(r.host)}</b>${esc(r.path)}</span></div>
+    <dl class="ov-meta">${meta('Status', stPill(stClass(r), r.error ? 'error' : r.status ?? '…', stBucket(r.error ? 'error' : r.status), res?.statusText || ''))}${meta('Started', `+${tf(r.relMs)}`)}${meta('Duration', r.durationMs != null ? fmtMs(r.durationMs) : na)}${meta('Size', r.sizeBytes != null ? bytes(r.sizeBytes) : na)}${meta('Via', esc(r.transport || 'fetch'))}</dl></div>`;
+  const request = `<section class="io-sec"><h4>Request</h4>
+    ${qn ? row('Query parameters', { count: qn, body: kvTable(qp), open: true, copy: kvLines(qp, '='), copyTitle: 'Copy all query parameters' }) : ''}
+    ${headers(hdrReq, 'Copy request headers')}
+    ${req?.bodyPreview != null ? row('Body', { count: req.bodyBytes != null ? bytes(req.bodyBytes) : '', body: bodyBlock(req.bodyPreview, 'request body'), open: true })
+      : req?.bodyBytes ? row('Body', { count: bytes(req.bodyBytes), body: bodyOff }) : row('Body', { none: d ? 'None' : 'Loading…' })}</section>`;
+  const response = `<section class="io-sec"><h4>Response</h4>${r.error ? `<div class="io-err">${esc(r.error)}</div>` : ''}
+    ${headers(hdrRes, 'Copy response headers')}
+    ${res?.bodyPreview != null ? row('Body', { count: res.bodyBytes != null ? bytes(res.bodyBytes) : '', body: bodyBlock(res.bodyPreview, 'response body'), open: true })
+      : d ? row('Body', { count: res?.bodyBytes != null ? bytes(res.bodyBytes) : 'Not captured', body: bodyOff }) : row('Body', { none: 'Loading…' })}</section>`;
+  return `<div class="io">${overview}${request}${response}</div>`;
 }
 
 /** Readable stack, innermost first, wrappers omitted. */
@@ -1678,7 +1701,7 @@ function renderDetailRow(r, cols) {
   const d = fetchDetail(r.key);
   return `<tr class="detail"><td colspan="${cols}">${viewStrip(r)}<div class="dgrid">
     <section class="panel"><h3>Call Chain${d ? cp(stackText(r, d), 'Copy stack trace', { right: true, label: 'Copy Stack' }) : ''}</h3>${renderChain(r, d)}</section>
-    <section class="panel"><h3>Request &amp; Response</h3>${renderIO(r, d)}</section></div></td></tr>`;
+    <section class="panel"><h3>Request &amp; Response${ioActions(r, d)}</h3>${renderIO(r, d)}</section></div></td></tr>`;
 }
 
 // ============================================================================
