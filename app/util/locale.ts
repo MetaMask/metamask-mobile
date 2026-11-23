@@ -65,11 +65,9 @@ function resolveFormattingLocale(
   }
 
   parts.push(deviceRegion);
-  const locale = parts.join('-');
 
   try {
-    Intl.getCanonicalLocales(locale);
-    return locale;
+    return Intl.getCanonicalLocales(parts.join('-'))[0];
   } catch {
     return appLanguage;
   }
