@@ -1,6 +1,10 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { Box, Text } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonVariant,
+  Text,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type {
   CardLedgerEntry,
@@ -86,7 +90,9 @@ const CardCashbackView: React.FC<CardCashbackViewProps> = ({
 
   return (
     <Box>
-      <Text>{strings('card.card_home.cashback_screen.title')}</Text>
+      <Text accessibilityRole="header">
+        {strings('card.card_home.cashback_screen.title')}
+      </Text>
       {rate ? <Text testID={CardCashbackSelectors.RATE}>{rate}</Text> : null}
       <Text testID={CardCashbackSelectors.CLAIMABLE}>
         {`${strings('card.card_home.cashback_screen.claimable')} ${formatMusdBaseUnits(summary.claimable)}`}
@@ -112,14 +118,14 @@ const CardCashbackView: React.FC<CardCashbackViewProps> = ({
         </Text>
       ) : null}
       {showClaim ? (
-        <Pressable
-          accessibilityRole="button"
-          disabled={isClaiming}
+        <Button
+          variant={ButtonVariant.Primary}
+          isLoading={isClaiming}
           onPress={onClaim}
           testID={CardCashbackSelectors.CLAIM}
         >
-          <Text>{strings('card.card_home.cashback_screen.claim')}</Text>
-        </Pressable>
+          {strings('card.card_home.cashback_screen.claim')}
+        </Button>
       ) : null}
       <Box testID={CardCashbackSelectors.LEDGER}>
         {ledger.length === 0 ? (

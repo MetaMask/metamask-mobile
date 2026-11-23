@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { selectRewardsMoneyControllerEnabled } from '../../../../../selectors/featureFlagController/rewardsMoneyController';
 import type {
@@ -57,7 +59,12 @@ const CardCashback: React.FC = () => {
       mpcAccount={mpcAccount}
       isClaiming={isClaiming}
       onClaim={() => {
-        claim().catch(() => setFailed(true));
+        claim().catch(() => {
+          setFailed(true);
+          AccessibilityInfo.announceForAccessibility(
+            strings('card.card_home.cashback_screen.unavailable'),
+          );
+        });
       }}
     />
   );

@@ -59,6 +59,9 @@ describe('CardCashbackView', () => {
     expect(view.getByTestId(CardCashbackSelectors.RATE)).toHaveTextContent(
       'card.card_home.cashback_screen.rate:3',
     );
+    expect(view.getByRole('header')).toHaveTextContent(
+      'card.card_home.cashback_screen.title',
+    );
     fireEvent.press(view.getByTestId(CardCashbackSelectors.CLAIM));
     expect(onClaim).toHaveBeenCalledTimes(1);
   });
