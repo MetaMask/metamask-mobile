@@ -1225,6 +1225,7 @@ describe('KalshiRemoteAdapter', () => {
           },
           values: { count: '40.00', price: '0.4700' },
           approvalGeneration: 0,
+          profile: REVIEW_PROFILE,
           confirmed: true,
         },
       );
@@ -1454,6 +1455,7 @@ describe('KalshiRemoteAdapter', () => {
           },
           values: { count: '70.00', price: '0.4000' },
           approvalGeneration: 0,
+          profile: REVIEW_PROFILE,
           confirmed: true,
         },
       );

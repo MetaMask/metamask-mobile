@@ -316,7 +316,7 @@ export const buildPredictNextIntegrationHarness = (
         if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
           throw new Error(`Missing harness review payload for ${operation}`);
         }
-        return renderRequest(
+        const display = renderRequest(
           payloadName,
           {
             class: 'mutation',
@@ -332,6 +332,12 @@ export const buildPredictNextIntegrationHarness = (
             nowMs: Date.now(),
           },
         ).display;
+        return display
+          ? {
+              display,
+              profile: { version: profile.version, sha256: 'test-profile' },
+            }
+          : undefined;
       },
     },
   );

@@ -755,6 +755,24 @@ const renderIntent = async (
   );
 };
 
+/** Renders the review sheet's figures and the profile identity they came from. */
+const previewIntent = async (
+  operation: string,
+  input?: Parameters<SignOperation>[1],
+) => {
+  const [request, profile] = await Promise.all([
+    renderIntent(operation, input),
+    loadVenueProfile(),
+  ]);
+  if (!request.display) {
+    return undefined;
+  }
+  return {
+    display: request.display,
+    profile: { version: profile?.version ?? 1, sha256: 'test-profile' },
+  };
+};
+
 /** Installs the Engine rendering seam used by the adapter's review dependency. */
 export const installPredictNextPreviewOperation = (): void => {
   (
@@ -764,7 +782,7 @@ export const installPredictNextPreviewOperation = (): void => {
     previewOperation: async (
       operation: string,
       input?: Parameters<SignOperation>[1],
-    ) => (await renderIntent(operation, input)).display,
+    ) => previewIntent(operation, input),
   };
 };
 
@@ -807,8 +825,7 @@ export const composePredictNextOrderService = (
     }),
     {
       getApprovalGeneration: () => 0,
-      previewOperation: (operation, input) =>
-        renderIntent(operation, input).then((request) => request.display),
+      previewOperation: previewIntent,
     },
   );
   return new PredictOrderService({
@@ -842,8 +859,7 @@ export const composePredictNextPortfolioTrading = () => {
     }),
     {
       getApprovalGeneration: () => 0,
-      previewOperation: (operation, input) =>
-        renderIntent(operation, input).then((request) => request.display),
+      previewOperation: previewIntent,
     },
   );
   const portfolioService = new PredictPortfolioService({

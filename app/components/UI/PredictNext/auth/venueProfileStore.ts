@@ -32,7 +32,11 @@ const parseProfiles = (value: unknown): Record<string, string> => {
     return profiles;
   }
   for (const [version, profile] of Object.entries(value)) {
-    if (typeof profile === 'string') {
+    if (
+      typeof profile === 'string' &&
+      /^[1-9]\d*$/u.test(version) &&
+      Number.isSafeInteger(Number(version))
+    ) {
       profiles[version] = profile;
     }
   }

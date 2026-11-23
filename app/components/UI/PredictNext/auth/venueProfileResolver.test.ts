@@ -54,6 +54,10 @@ class FakeClient {
   }
 }
 
+type GetSigningProfile = (options?: {
+  signal?: AbortSignal;
+}) => Promise<{ id: string; version: number }>;
+
 const build = (
   options: {
     storage?: MemoryStorage;
@@ -61,9 +65,7 @@ const build = (
     target?: number;
     now?: () => number;
     environment?: 'dev' | 'uat';
-    getSigningProfile?: (options?: {
-      signal?: AbortSignal;
-    }) => Promise<{ id: string; version: number }>;
+    getSigningProfile?: GetSigningProfile;
   } = {},
 ) => {
   const storage = options.storage ?? memoryStorage();
@@ -73,12 +75,11 @@ const build = (
     storage,
   });
   const client = options.client ?? new FakeClient();
-  const getSigningProfile =
-    options.getSigningProfile ??
+  const getSigningProfile = (options.getSigningProfile ??
     jest.fn(async () => ({
       id: VENUE_PROFILE_ID,
       version: options.target ?? 1,
-    }));
+    }))) as jest.MockedFunction<GetSigningProfile>;
   const log = jest.fn();
   const resolver = new VenueProfileResolver({
     client: client as unknown as RemoteVenueProfileClient,

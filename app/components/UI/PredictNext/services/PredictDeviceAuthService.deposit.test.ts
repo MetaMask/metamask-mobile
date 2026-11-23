@@ -209,7 +209,7 @@ describe('funding.deposit signing', () => {
         ok: true,
         status: 200,
         headers: { get: () => null },
-        text: async () => body,
+        arrayBuffer: async () => new TextEncoder().encode(body).buffer,
       }) as unknown as Response;
     const fetchMock = jest.fn(async (url: string) =>
       respond(url.endsWith('/revoked.json') ? BUNDLED_REVOKED_RAW : remote),

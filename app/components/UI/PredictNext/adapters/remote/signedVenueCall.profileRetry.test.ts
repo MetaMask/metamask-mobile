@@ -2,7 +2,11 @@ import {
   refreshVenueProfileAfterRefusal,
   resolveVenueProfile,
 } from '../../auth/venueSigningProfiles';
-import { sendSigned, sendSignedRead } from './signedVenueCall';
+import {
+  sendSigned,
+  sendSignedRead,
+  type SignedAttempt,
+} from './signedVenueCall';
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -82,14 +86,14 @@ describe('profile refetch retry', () => {
         'order.place',
         undefined,
         send,
-        (reply) => reply,
+        (reply: SignedAttempt): SignedAttempt => reply,
       );
-      const refusal = await expect(pending).rejects.toMatchObject({
+      const refusal = pending.catch((error: unknown) => error);
+      await jest.advanceTimersByTimeAsync(10_000);
+      await expect(refusal).resolves.toMatchObject({
         name: 'VenueSigningUnavailableError',
         requestSent: true,
       });
-      await jest.advanceTimersByTimeAsync(10_000);
-      await refusal;
 
       expect(send).toHaveBeenCalledTimes(1);
       expect(sign).toHaveBeenCalledTimes(1);
