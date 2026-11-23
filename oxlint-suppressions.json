@@ -16987,11 +16987,6 @@
       "count": 3
     }
   },
-  "app/components/Views/SDK/SDKSessionsManager/SDKSessionAccountListItem.tsx": {
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
   "app/components/Views/SDK/SDKSessionsManager/SDKSessionItem.tsx": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
