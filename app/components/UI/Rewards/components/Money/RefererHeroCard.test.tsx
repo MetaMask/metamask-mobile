@@ -10,7 +10,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
-import { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
 import RefererHeroCard, { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard';
 
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
@@ -204,13 +203,12 @@ describe('RefererHeroCard', () => {
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
   });
 
-  it('shows a dash and hides Share when the referral code is missing', () => {
-    const { getByTestId, queryByTestId } = renderHero({ referralCode: null });
+  it('shows a dash when the referral code is missing', () => {
+    const { getByTestId } = renderHero({ referralCode: null });
 
     expect(
       getByTestId(REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE),
     ).toHaveTextContent('-');
-    expect(queryByTestId(REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON)).toBeNull();
   });
 
   it('shows a dash on metric cards when the summary failed without cached data', () => {
@@ -276,31 +274,8 @@ describe('RefererHeroCard', () => {
     );
   });
 
-  it('opens the inline share sheet from the Share button', () => {
-    const { getByTestId } = renderWithProvider(
-      <RefererHeroCard
-        profileId={PROFILE_ID}
-        referralCode={{ ...REFERRAL_CODE, share_url: null }}
-        localizedText={LOCALIZED_TEXT}
-      />,
-      {
-        state: {
-          user: { appTheme: AppThemeKey.light },
-          rewardsMoney: {
-            referralMe: {},
-            earningsSummary: {},
-          },
-        },
-      },
-    );
-
-    fireEvent.press(getByTestId(REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON));
-
-    expect(getByTestId(SHARE_CODE_SHEET_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-  });
-
-  it('hides the code and share when the code is not active', () => {
-    const { getByTestId, queryByText, queryByTestId } = renderHero({
+  it('hides the code when the code is not active', () => {
+    const { getByTestId, queryByText } = renderHero({
       referralData: {
         referral_code_status: 'PAUSED',
       } as ReferralMeDto,
@@ -310,7 +285,6 @@ describe('RefererHeroCard', () => {
       getByTestId(REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE),
     ).toHaveTextContent('-');
     expect(queryByText('SOPHIE')).toBeNull();
-    expect(queryByTestId(REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON)).toBeNull();
   });
 
   it('shows how long the revenue-share offer has left', () => {

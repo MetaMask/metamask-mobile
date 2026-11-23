@@ -10371,9 +10371,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-ledger-bridge-keyring@npm:^13.1.0":
-  version: 13.1.2
-  resolution: "@metamask/eth-ledger-bridge-keyring@npm:13.1.2"
+"@metamask/eth-ledger-bridge-keyring@npm:^13.2.0":
+  version: 13.2.0
+  resolution: "@metamask/eth-ledger-bridge-keyring@npm:13.2.0"
   dependencies:
     "@ethereumjs/rlp": "npm:^5.0.2"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10389,7 +10389,7 @@ __metadata:
     "@metamask/keyring-sdk": "npm:^4.2.1"
     hdkey: "npm:^2.1.0"
     rxjs: "npm:^7.8.2"
-  checksum: 10/f894a29f627ab4c2a52fecdfa7f2248791836593deb73d2cd4b91611697d618537a25bad35b22fead47d8289c21e0c0d50d26a28e6174b14eaa0f0738e5aadd6
+  checksum: 10/5640a8560fbc17dc3c6826f6b949fc51a6e446c21d963dbdf0573ca0fee4a22e4877f6b61d87d4fdbc9a9752c4b3c8eba35ab538b0585c8dfe34c9e9903e5958
   languageName: node
   linkType: hard
 
@@ -11589,49 +11589,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-metrics-controller@npm:5.2.2":
-  version: 5.2.2
-  resolution: "@metamask/profile-metrics-controller@npm:5.2.2"
+"@metamask/profile-metrics-controller@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "@metamask/profile-metrics-controller@npm:5.3.0"
   dependencies:
     "@metamask/accounts-controller": "npm:^40.2.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/keyring-controller": "npm:^28.2.2"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/polling-controller": "npm:^17.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.1.1"
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
     "@metamask/snaps-controllers": "npm:^19.0.1"
-    "@metamask/snaps-sdk": "npm:^11.0.0"
+    "@metamask/snaps-sdk": "npm:^11.2.0"
     "@metamask/snaps-utils": "npm:^12.1.2"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/transaction-controller": "npm:^74.0.0"
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/transaction-controller": "npm:^74.3.0"
+    "@metamask/utils": "npm:^12.0.2"
     async-mutex: "npm:^0.5.0"
-    uuid: "npm:^14.0.2"
-  checksum: 10/16e463a0f217ce80993389f40e5cdcb08a51696ff75f3fdfa80e6dec3bb8021d69524b9f72ca0f4970e406fb518fafd3d2e903b634dd5ec9dea9334028e01b27
-  languageName: node
-  linkType: hard
-
-"@metamask/profile-metrics-controller@patch:@metamask/profile-metrics-controller@npm%3A5.2.2#~/.yarn/patches/@metamask-profile-metrics-controller-npm-5.2.2-7e448057a0.patch":
-  version: 5.2.2
-  resolution: "@metamask/profile-metrics-controller@patch:@metamask/profile-metrics-controller@npm%3A5.2.2#~/.yarn/patches/@metamask-profile-metrics-controller-npm-5.2.2-7e448057a0.patch::version=5.2.2&hash=8cabaa"
-  dependencies:
-    "@metamask/accounts-controller": "npm:^40.2.0"
-    "@metamask/base-controller": "npm:^10.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.2.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/polling-controller": "npm:^17.0.0"
-    "@metamask/profile-sync-controller": "npm:^36.1.1"
-    "@metamask/snaps-controllers": "npm:^19.0.1"
-    "@metamask/snaps-sdk": "npm:^11.0.0"
-    "@metamask/snaps-utils": "npm:^12.1.2"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/transaction-controller": "npm:^74.0.0"
-    "@metamask/utils": "npm:^12.0.1"
-    async-mutex: "npm:^0.5.0"
-    uuid: "npm:^14.0.2"
-  checksum: 10/03641e82b735226af8f725aabcaf37a6ad0fe11b703c633839ce48074cc8438a7dc0d0d85be9a5785a33fa7be4b81cf9d24dea6093948a56edad4fbbb1bd2c0a
+    uuid: "npm:^14.0.3"
+  checksum: 10/0bd4bfd55f1f99bf0db2ea9b75df145d710b641f83d32606ed679ad585d8d7d2d37dc573a2caf8376cf534f2f1e243bb2068003e4e7681450923b0a6def1cd0c
   languageName: node
   linkType: hard
 
@@ -12707,17 +12684,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/interceptors@npm:^0.41.0":
-  version: 0.41.3
-  resolution: "@mswjs/interceptors@npm:0.41.3"
+"@mswjs/interceptors@npm:^0.45.11":
+  version: 0.45.12
+  resolution: "@mswjs/interceptors@npm:0.45.12"
   dependencies:
-    "@open-draft/deferred-promise": "npm:^2.2.0"
-    "@open-draft/logger": "npm:^0.3.0"
-    "@open-draft/until": "npm:^2.0.0"
+    "@open-draft/until": "npm:^3.0.1"
+    "@types/debug": "npm:^4.1.13"
+    debug: "npm:^4.4.3"
     is-node-process: "npm:^1.2.0"
     outvariant: "npm:^1.4.3"
-    strict-event-emitter: "npm:^0.5.1"
-  checksum: 10/96b6c535fd27c8aed57f2dad380ea31e09026bf6ef960420bc0e30a2ccff269c8121f21f20423f4edd2ef1ed7db6173295950a3c4529693e6bca12eca1be4347
+    rettime: "npm:^0.11.12"
+  checksum: 10/4f96940fd89595438902dd91ef89f00a61af23869d3e0cc023fd16229f94c422946fbffa09f421feb91ea9a3982cf9270f25f27dfa3dd9e32281350a09ce2b40
   languageName: node
   linkType: hard
 
@@ -13611,27 +13588,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@open-draft/deferred-promise@npm:^2.2.0":
-  version: 2.2.0
-  resolution: "@open-draft/deferred-promise@npm:2.2.0"
-  checksum: 10/bc3bb1668a555bb87b33383cafcf207d9561e17d2ca0d9e61b7ce88e82b66e36a333d3676c1d39eb5848022c03c8145331fcdc828ba297f88cb1de9c5cef6c19
-  languageName: node
-  linkType: hard
-
-"@open-draft/logger@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@open-draft/logger@npm:0.3.0"
-  dependencies:
-    is-node-process: "npm:^1.2.0"
-    outvariant: "npm:^1.4.0"
-  checksum: 10/7a280f170bcd4e91d3eedbefe628efd10c3bd06dd2461d06a7fdbced89ef457a38785847f88cc630fb4fd7dfa176d6f77aed17e5a9b08000baff647433b5ff78
-  languageName: node
-  linkType: hard
-
-"@open-draft/until@npm:^2.0.0":
-  version: 2.1.0
-  resolution: "@open-draft/until@npm:2.1.0"
-  checksum: 10/622be42950afc8e89715d0fd6d56cbdcd13e36625e23b174bd3d9f06f80e25f9adf75d6698af93bca1e1bf465b9ce00ec05214a12189b671fb9da0f58215b6f4
+"@open-draft/until@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "@open-draft/until@npm:3.0.1"
+  checksum: 10/ffb5073b9fbbb7847a6805bd4c851968442ce0eff184cb2d052a988c328befdf639cf2eb2a18b91ced972639d5ab2fe40d8fe5da2199809422892555194e42b3
   languageName: node
   linkType: hard
 
@@ -20965,7 +20925,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/debug@npm:^4.0.0, @types/debug@npm:^4.1.7":
+"@types/debug@npm:^4.0.0, @types/debug@npm:^4.1.13, @types/debug@npm:^4.1.7":
   version: 4.1.13
   resolution: "@types/debug@npm:4.1.13"
   dependencies:
@@ -38556,7 +38516,7 @@ __metadata:
     "@metamask/eth-hd-keyring": "npm:^16.0.0"
     "@metamask/eth-json-rpc-filters": "npm:^9.0.0"
     "@metamask/eth-json-rpc-middleware": "npm:^26.0.1"
-    "@metamask/eth-ledger-bridge-keyring": "npm:^13.1.0"
+    "@metamask/eth-ledger-bridge-keyring": "npm:^13.2.0"
     "@metamask/eth-money-keyring": "npm:^5.0.0"
     "@metamask/eth-money-mpc-keyring": "npm:^0.3.1"
     "@metamask/eth-qr-keyring": "npm:^3.0.2"
@@ -38616,7 +38576,7 @@ __metadata:
     "@metamask/preferences-controller": "npm:^24.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-controller": "npm:^3.1.0"
-    "@metamask/profile-metrics-controller": "patch:@metamask/profile-metrics-controller@npm%3A5.2.2#~/.yarn/patches/@metamask-profile-metrics-controller-npm-5.2.2-7e448057a0.patch"
+    "@metamask/profile-metrics-controller": "npm:^5.3.0"
     "@metamask/profile-sync-controller": "npm:^36.1.2"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^30.1.0"
@@ -38874,7 +38834,7 @@ __metadata:
     luxon: "npm:^3.5.0"
     mockttp: "npm:^3.15.2"
     multihashes: "npm:0.4.14"
-    nock: "npm:^14.0.11"
+    nock: "npm:^15.0.6"
     number-to-bn: "npm:1.7.0"
     nyc: "npm:^15.1.0"
     openai: "npm:^6.25.0"
@@ -40573,14 +40533,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nock@npm:^14.0.11":
-  version: 14.0.11
-  resolution: "nock@npm:14.0.11"
+"nock@npm:^15.0.6":
+  version: 15.0.6
+  resolution: "nock@npm:15.0.6"
   dependencies:
-    "@mswjs/interceptors": "npm:^0.41.0"
-    json-stringify-safe: "npm:^5.0.1"
-    propagate: "npm:^2.0.0"
-  checksum: 10/2fc579f3bee5148ebfacdfc7588a1f45205b139dcc6e32a5bef436f74f479383c7445a9812f433908600f62a0e142ff4bbbe7da7d5e9ed1781bad278b792cf98
+    "@mswjs/interceptors": "npm:^0.45.11"
+  checksum: 10/785c23ea89a38ca2ba99aff26c552dcca5c4c2c60ddbcf38b69881c239ce907f60a98fb7c6dadadd5bd60035ed4a400f7abfc38681a6732f7f721dc680cead34
   languageName: node
   linkType: hard
 
@@ -41566,7 +41524,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"outvariant@npm:^1.4.0, outvariant@npm:^1.4.3":
+"outvariant@npm:^1.4.3":
   version: 1.4.3
   resolution: "outvariant@npm:1.4.3"
   checksum: 10/3a7582745850cb344d49641867a4c080858c54f4091afd91b9c0765ba6e471c2bc841348f0fff344845ddd0a4db42fd5d68c6f7ebaf32d4b676a3a9987b2488a
@@ -43959,13 +43917,6 @@ __metadata:
     object-assign: "npm:^4.1.1"
     react-is: "npm:^16.8.1"
   checksum: 10/1d2b6462559e78e4ab15775b5f9ca21bbdcf94c0c6597624a407f9f5ce2cac8c02997bc59cc517b54f64aa1e95e5134c86755ee99a24659bc023d7b2b3096e15
-  languageName: node
-  linkType: hard
-
-"propagate@npm:^2.0.0":
-  version: 2.0.1
-  resolution: "propagate@npm:2.0.1"
-  checksum: 10/8c761c16e8232f82f6d015d3e01e8bd4109f47ad804f904d950f6fe319813b448ca112246b6bfdc182b400424b155b0b7c4525a9bb009e6fa950200157569c14
   languageName: node
   linkType: hard
 
@@ -47022,6 +46973,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"rettime@npm:^0.11.12":
+  version: 0.11.12
+  resolution: "rettime@npm:0.11.12"
+  checksum: 10/a85faa82ca460c43f216df1b8db71747c54bc3c269fb99d8bddb9bed5bfd600da4c1ad2ea9368b68f98692d6d1014ff767e40576e024a1b5d8b7abb2e46e58bf
+  languageName: node
+  linkType: hard
+
 "reusify@npm:^1.0.4":
   version: 1.0.4
   resolution: "reusify@npm:1.0.4"
@@ -48873,13 +48831,6 @@ __metadata:
     fast-fifo: "npm:^1.3.2"
     text-decoder: "npm:^1.1.0"
   checksum: 10/4969d7032b16497172afa2f8ac889d137764963ae564daf1611a03225dd62d9316d51de8098b5866d21722babde71353067184e7a3e9795d6dc17c902904a780
-  languageName: node
-  linkType: hard
-
-"strict-event-emitter@npm:^0.5.1":
-  version: 0.5.1
-  resolution: "strict-event-emitter@npm:0.5.1"
-  checksum: 10/25c84d88be85940d3547db665b871bfecea4ea0bedfeb22aae8db48126820cfb2b0bc2fba695392592a09b1aa36b686d6eede499e1ecd151593c03fe5a50d512
   languageName: node
   linkType: hard
 
