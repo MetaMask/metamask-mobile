@@ -64,7 +64,7 @@ export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
           Engine.context.RewardsMoneyController.initiateClaim(route, body),
         canSignEarningAddress: (earningAddress) => {
           const from = evmAddressFromEarningAddress(earningAddress);
-          return Boolean(from) && !isHardwareAccount(from ?? '');
+          return from !== null && !isHardwareAccount(from);
         },
         signMessage: async (message, earningAddress) => {
           const from = evmAddressFromEarningAddress(earningAddress);

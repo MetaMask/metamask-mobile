@@ -23,12 +23,28 @@ export const CardCashbackSelectors = {
   RATE: 'card-cashback-rate',
 };
 
+function stripLeadingZeros(value: string): string {
+  let index = 0;
+  while (index < value.length - 1 && value[index] === '0') {
+    index += 1;
+  }
+  return value.slice(index);
+}
+
+function stripTrailingZeros(value: string): string {
+  let end = value.length;
+  while (end > 0 && value[end - 1] === '0') {
+    end -= 1;
+  }
+  return value.slice(0, end);
+}
+
 /** mUSD base units use 6 decimal places. */
 export function formatMusdBaseUnits(value: string): string {
   if (!/^\d+$/.test(value)) return value;
   const padded = value.padStart(7, '0');
-  const whole = padded.slice(0, -6).replace(/^0+(?=\d)/, '');
-  const fraction = padded.slice(-6).replace(/0+$/, '');
+  const whole = stripLeadingZeros(padded.slice(0, -6));
+  const fraction = stripTrailingZeros(padded.slice(-6));
   return fraction.length > 0 ? `${whole}.${fraction}` : whole;
 }
 

@@ -8,7 +8,7 @@ import type { CardSummaryResponse } from '../../../../../core/Engine/controllers
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, string>) =>
-    vars ? `${key}:${vars.rate}` : key,
+    vars ? `${key}:${vars.rate ?? vars.amount}` : key,
 }));
 
 const summary = {
@@ -28,6 +28,8 @@ describe('CardCashbackView', () => {
   it('formats mUSD base units with six decimals', () => {
     expect(formatMusdBaseUnits('30000')).toBe('0.03');
     expect(formatMusdBaseUnits('1000000')).toBe('1');
+    expect(formatMusdBaseUnits('10000')).toBe('0.01');
+    expect(formatMusdBaseUnits('nope')).toBe('nope');
   });
 
   it('shows the summary and claims when the account can sign', () => {
@@ -94,5 +96,58 @@ describe('CardCashbackView', () => {
       view.getByTestId(CardCashbackSelectors.CLAIM_ERROR),
     ).toBeOnTheScreen();
     expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
+  });
+
+  it('shows the unavailable message when the summary is missing', () => {
+    const view = render(<CardCashbackView status="unavailable" />);
+
+    expect(
+      view.getByTestId(CardCashbackSelectors.UNAVAILABLE),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the minimum when the balance is below it', () => {
+    const view = render(
+      <CardCashbackView
+        status="ready"
+        summary={{
+          ...summary,
+          claimable: '1000',
+          minimum_musd_base_units: '10000',
+        }}
+        ledger={[
+          {
+            type: 'earning',
+            id: 'fact-2',
+            musd_amount: '',
+          },
+        ]}
+        canClaim
+      />,
+    );
+
+    expect(view.getByText(/below_minimum:0\.01/)).toBeOnTheScreen();
+    expect(view.getByText('fact-2')).toBeOnTheScreen();
+    expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
+  });
+
+  it('shows a blocking reason and the pairing message', () => {
+    const view = render(
+      <CardCashbackView
+        status="ready"
+        summary={{
+          ...summary,
+          blocking_reason: 'held',
+          pairing_pending: true,
+          claimable: '',
+          minimum_musd_base_units: '',
+        }}
+        canClaim
+      />,
+    );
+
+    expect(view.getByText('held')).toBeOnTheScreen();
+    expect(view.getByTestId(CardCashbackSelectors.PAIRING)).toBeOnTheScreen();
+    expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
   });
 });

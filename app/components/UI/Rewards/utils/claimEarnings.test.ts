@@ -1884,6 +1884,8 @@ describe('claim metrics', () => {
   it('names the claim route', () => {
     expect(claimTypeForRoute('referral-trade-fee-cashback')).toBe('cashback');
     expect(claimTypeForRoute('referral-rev-share')).toBe('rev_share');
+    expect(claimTypeForRoute('social-follow-trade')).toBe('follow_trade');
+    expect(claimTypeForRoute('card-cashback')).toBe('card_cashback');
   });
 
   it('marks only a signing-budget deferral as partial', () => {

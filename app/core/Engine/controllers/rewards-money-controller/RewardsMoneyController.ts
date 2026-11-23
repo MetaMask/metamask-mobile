@@ -695,7 +695,7 @@ export class RewardsMoneyController extends BaseController<
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
     }
-    return this.messenger.call('RewardsMoneyDataService:getCardSummary');
+    return await this.messenger.call('RewardsMoneyDataService:getCardSummary');
   }
 
   async getCardLedger(
@@ -705,7 +705,7 @@ export class RewardsMoneyController extends BaseController<
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
     }
-    return this.messenger.call(
+    return await this.messenger.call(
       'RewardsMoneyDataService:getCardLedger',
       cursor,
       limit,
@@ -719,7 +719,7 @@ export class RewardsMoneyController extends BaseController<
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
     }
-    return this.messenger.call(
+    return await this.messenger.call(
       'RewardsMoneyDataService:getCardClaimHistory',
       cursor,
       limit,
@@ -730,7 +730,10 @@ export class RewardsMoneyController extends BaseController<
     if (this.#isDisabled()) {
       throw new Error('Rewards Money is disabled');
     }
-    return this.messenger.call('RewardsMoneyDataService:getCardClaim', id);
+    return await this.messenger.call(
+      'RewardsMoneyDataService:getCardClaim',
+      id,
+    );
   }
 
   async getEarningsLedger(

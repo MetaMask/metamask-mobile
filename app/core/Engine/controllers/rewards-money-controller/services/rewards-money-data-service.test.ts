@@ -207,6 +207,46 @@ describe('RewardsMoneyDataService', () => {
         expect.any(Object),
       );
     });
+
+    it('omits the cursor when a card page is the first page', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({ results: [], has_more: false, cursor: null }),
+      );
+
+      await service.getCardLedger();
+      await service.getCardClaimHistory();
+
+      const urls = mockFetch.mock.calls.map((call) => String(call[0]));
+      expect(urls[0]).toContain('/earnings/card/ledger?');
+      expect(urls[0]).not.toContain('cursor=');
+      expect(urls[1]).toContain('/earnings/card/claim/me?');
+      expect(urls[1]).not.toContain('cursor=');
+    });
+
+    it('sends the claim-history cursor and throws when a card read fails', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({ results: [], has_more: false, cursor: null }),
+      );
+      await service.getCardClaimHistory('cursor-2');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('cursor=cursor-2'),
+        expect.any(Object),
+      );
+
+      mockFetch.mockResolvedValue(notOk(500));
+      await expect(service.getCardSummary()).rejects.toThrow(
+        'Get card summary failed: 500',
+      );
+      await expect(service.getCardLedger()).rejects.toThrow(
+        'Get card ledger failed: 500',
+      );
+      await expect(service.getCardClaimHistory()).rejects.toThrow(
+        'Get card claim history failed: 500',
+      );
+      await expect(service.getCardClaim('claim/1')).rejects.toThrow(
+        'Get card claim failed: 500',
+      );
+    });
   });
 
   describe('authentication', () => {

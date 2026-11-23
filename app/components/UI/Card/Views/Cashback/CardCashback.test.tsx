@@ -1,10 +1,13 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
 import CardCashback from './CardCashback';
 import { CardCashbackSelectors } from './CardCashbackView';
 
 const mockClaim = jest.fn();
+let mockRewardsEnabled = true;
+let mockOnSubmitted: (() => Promise<void>) | undefined;
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -17,17 +20,20 @@ jest.mock('react-redux', () => ({
 jest.mock(
   '../../../../../selectors/featureFlagController/rewardsMoneyController',
   () => ({
-    selectRewardsMoneyControllerEnabled: () => true,
+    selectRewardsMoneyControllerEnabled: () => mockRewardsEnabled,
   }),
 );
 
 jest.mock('./useCardCashbackClaim', () => ({
-  useCardCashbackClaim: () => ({
-    claim: mockClaim,
-    isClaiming: false,
-    canClaim: true,
-    mpcAccount: false,
-  }),
+  useCardCashbackClaim: (onSubmitted?: () => Promise<void>) => {
+    mockOnSubmitted = onSubmitted;
+    return {
+      claim: mockClaim,
+      isClaiming: false,
+      canClaim: true,
+      mpcAccount: false,
+    };
+  },
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -52,7 +58,15 @@ jest.mock('../../../../../core/Engine', () => ({
 
 describe('CardCashback', () => {
   beforeEach(() => {
+    mockRewardsEnabled = true;
+    mockOnSubmitted = undefined;
     mockClaim.mockReset();
+    jest
+      .mocked(Engine.context.RewardsMoneyController.getCardSummary)
+      .mockClear();
+    jest
+      .mocked(Engine.context.RewardsMoneyController.getCardLedger)
+      .mockClear();
     jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(() => undefined);
@@ -118,5 +132,51 @@ describe('CardCashback', () => {
     expect(view.queryByTestId(CardCashbackSelectors.UNAVAILABLE)).toBeNull();
     expect(view.queryByTestId(CardCashbackSelectors.CLAIM_ERROR)).toBeNull();
     expect(AccessibilityInfo.announceForAccessibility).not.toHaveBeenCalled();
+  });
+
+  it('keeps Claim when the claim is submitted and the balance reloads', async () => {
+    mockClaim.mockResolvedValue('submitted');
+    const view = render(<CardCashback />);
+
+    await waitFor(() => {
+      expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
+    });
+    const loaded = jest.mocked(
+      Engine.context.RewardsMoneyController.getCardSummary,
+    ).mock.calls.length;
+
+    await act(async () => {
+      fireEvent.press(view.getByTestId(CardCashbackSelectors.CLAIM));
+    });
+    await mockOnSubmitted?.();
+
+    expect(
+      jest.mocked(Engine.context.RewardsMoneyController.getCardSummary).mock
+        .calls.length,
+    ).toBeGreaterThan(loaded);
+    expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
+    expect(view.queryByTestId(CardCashbackSelectors.CLAIM_ERROR)).toBeNull();
+  });
+
+  it('shows unavailable when the summary cannot be loaded', async () => {
+    jest
+      .mocked(Engine.context.RewardsMoneyController.getCardSummary)
+      .mockRejectedValueOnce(new Error('down'));
+    const view = render(<CardCashback />);
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId(CardCashbackSelectors.UNAVAILABLE),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it('shows unavailable when rewards money is off', () => {
+    mockRewardsEnabled = false;
+    const view = render(<CardCashback />);
+
+    expect(
+      view.getByTestId(CardCashbackSelectors.UNAVAILABLE),
+    ).toBeOnTheScreen();
   });
 });

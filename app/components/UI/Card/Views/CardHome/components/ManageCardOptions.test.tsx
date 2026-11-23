@@ -596,4 +596,39 @@ describe('ManageCardOptions transaction history gating', () => {
 
     expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
   });
+
+  it('shows 1% for a verified virtual card and 3% for metal', () => {
+    const virtual = renderComponent(
+      buildCapabilities({
+        supportsCashback: true,
+        supportsFundingLimits: false,
+      }),
+      { providerId: 'baanx', account: { verificationStatus: 'VERIFIED' } },
+    );
+    expect(virtual.getByText('1% mUSD Back')).toBeOnTheScreen();
+
+    const metal = renderComponent(
+      buildCapabilities({
+        supportsCashback: true,
+        supportsFundingLimits: false,
+      }),
+      {
+        providerId: 'baanx',
+        card: { ...CARD, type: CardType.METAL },
+        account: { verificationStatus: 'VERIFIED' },
+      },
+    );
+    expect(metal.getByText('3% mUSD Back')).toBeOnTheScreen();
+
+    const unverified = renderComponent(
+      buildCapabilities({
+        supportsCashback: true,
+        supportsFundingLimits: false,
+      }),
+      { providerId: 'baanx', account: { verificationStatus: null } },
+    );
+    expect(
+      unverified.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
+    ).toBeNull();
+  });
 });

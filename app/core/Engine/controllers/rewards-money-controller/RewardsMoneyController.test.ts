@@ -439,6 +439,24 @@ describe('RewardsMoneyController', () => {
       );
     });
 
+    it('throws for card reads when disabled', async () => {
+      await expect(controller.getCardSummary()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getCardLedger()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getCardClaimHistory()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getCardClaim('claim-1')).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
     it('throws for list reads when disabled', async () => {
       await expect(controller.getEarningsLedger()).rejects.toThrow(
         'Rewards Money is disabled',
@@ -667,6 +685,51 @@ describe('RewardsMoneyController', () => {
 
       await expect(controller.getReferralMe()).resolves.toBeDefined();
       expect(referralCalls()).toHaveLength(2);
+    });
+
+    it('reads the card summary, ledger, and claims', async () => {
+      const summary = { claimable: '30000' };
+      const ledger = { results: [] };
+      const history = { results: [], cursor: null };
+      const claim = { id: 'claim-1' };
+      mockMessenger.call.mockImplementation((action): any => {
+        if (action === 'RewardsMoneyDataService:getCardSummary') {
+          return summary;
+        }
+        if (action === 'RewardsMoneyDataService:getCardLedger') {
+          return ledger;
+        }
+        if (action === 'RewardsMoneyDataService:getCardClaimHistory') {
+          return history;
+        }
+        if (action === 'RewardsMoneyDataService:getCardClaim') {
+          return claim;
+        }
+        return undefined;
+      });
+
+      await expect(controller.getCardSummary()).resolves.toBe(summary);
+      await expect(controller.getCardLedger('cursor-1', 10)).resolves.toBe(
+        ledger,
+      );
+      await expect(controller.getCardClaimHistory(null, 5)).resolves.toBe(
+        history,
+      );
+      await expect(controller.getCardClaim('claim-1')).resolves.toEqual(claim);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getCardLedger',
+        'cursor-1',
+        10,
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getCardClaimHistory',
+        null,
+        5,
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getCardClaim',
+        'claim-1',
+      );
     });
 
     it('caches earnings summary by origin-type scope', async () => {

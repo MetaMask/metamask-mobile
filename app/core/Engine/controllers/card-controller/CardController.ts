@@ -539,7 +539,11 @@ export class CardController extends BaseController<
                 (group) => group.accounts ?? [],
               ),
             )
-            .sort()
+            .sort((left, right) => {
+              if (left < right) return -1;
+              if (left > right) return 1;
+              return 0;
+            })
             .join(','),
         ].join('|'),
     );
