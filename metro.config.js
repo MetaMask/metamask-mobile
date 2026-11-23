@@ -283,39 +283,6 @@ module.exports = function (baseConfig) {
                     platform,
                   );
                 }
-                // @metamask/design-system-react-native 0.56.2 through 0.57.0's
-                // CJS build assigns `exports.x = x` at the top of
-                // dist/components/Slider/Slider.utilities.cjs, before the
-                // `'worklet'` function declarations. The worklets Babel plugin
-                // (babel.config.js applies it to every transformed file,
-                // including this prebuilt dist) rewrites those declarations
-                // into `var x = workletFactory(...)` at the same position, so
-                // the top-of-file assignments capture the hoisted,
-                // still-undefined `var` and every exported worklet helper
-                // stays `undefined` — any design-system Slider would crash at
-                // runtime with "resolveValueToTrackPercent is not a function".
-                // Metro resolves this package through its CJS build because
-                // metro.transform.js does not forward Metro's import-location
-                // plugin (making `require` the only matching package-exports
-                // condition). The ESM build compiles `export function` into a
-                // fused `var x = exports.x = workletFactory(...)`, which keeps
-                // exports intact, so redirect the one broken CJS module to its
-                // ESM sibling (same pattern as the perps-controller redirect
-                // above) until upstream publishes a fixed build.
-                if (
-                  moduleName === './Slider.utilities.cjs' &&
-                  (context.originModulePath ?? '')
-                    .replace(/\\/g, '/')
-                    .includes('/@metamask/design-system-react-native/')
-                ) {
-                  return {
-                    type: 'sourceFile',
-                    filePath: path.resolve(
-                      __dirname,
-                      'node_modules/@metamask/design-system-react-native/dist/components/Slider/Slider.utilities.mjs',
-                    ),
-                  };
-                }
                 // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
                 // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
                 // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
