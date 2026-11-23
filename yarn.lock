@@ -10025,11 +10025,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.56.2":
-  version: 0.56.2
-  resolution: "@metamask/design-system-react-native@npm:0.56.2"
+"@metamask/design-system-react-native@npm:^0.57.0":
+  version: 0.57.0
+  resolution: "@metamask/design-system-react-native@npm:0.57.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.45.1"
+    "@metamask/design-system-shared": "npm:^0.46.0"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.14.0
@@ -10043,18 +10043,18 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/537236e6211f796bbbd2d5fa2449d11c335e640afe287a5d319780f33d015d457c83a0c1e4833504e3622d7abf8a6dda4c29ef28f349b886e1eae7c580e6be5c
+  checksum: 10/03f070623ba6d26818f0b7a6176e561a9b0ca79d6e203e8a3dc271baa19ceb72f4a2eb318212c832f441fa1a3dec1e61604b7e0baeb9e24ed0900e57a216e115
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.45.1":
-  version: 0.45.1
-  resolution: "@metamask/design-system-shared@npm:0.45.1"
+"@metamask/design-system-shared@npm:^0.46.0":
+  version: 0.46.0
+  resolution: "@metamask/design-system-shared@npm:0.46.0"
   dependencies:
     "@metamask/utils": "npm:^11.12.1"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/1cb05ff0264027f00ded2f5222e3645832fa7a59979fc8d7ca7cf5eea5342e593eac7d6ff6d56a2d96a10beb2d8839cc22734bb83f89d390b449eefa2d88bb3d
+  checksum: 10/b82123ae2f7a49ed35eee16219b1a0a1ebbb5c05e74cac0052c3e5597cf129d9fa1cdf99189d3d3b5bb1a3d6cbac0ec734f25671333536fc6987810a8abb8ae3
   languageName: node
   linkType: hard
 
@@ -38408,7 +38408,7 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.56.2"
+    "@metamask/design-system-react-native": "npm:^0.57.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.14.0"
     "@metamask/design-tokens": "npm:^13.0.0"
     "@metamask/device-mcp": "npm:^0.8.0"
