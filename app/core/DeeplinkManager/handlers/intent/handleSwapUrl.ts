@@ -339,23 +339,29 @@ function getInitialRouteParams(
  *
  * All parameters are optional, allows partial deep linking
  */
-const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => ({
-  type: 'main-stack',
-  routeName: Routes.BRIDGE.ROOT,
-  params: {
-    screen: Routes.BRIDGE.BRIDGE_VIEW,
-    params,
-  },
-});
+const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => {
+  const tracedParams = startSwapBridgePageLoadTrace(params, {
+    appStartType: getDeeplinkProcessedAppStartType(),
+  });
+
+  return {
+    type: 'main-stack',
+    routeName: Routes.BRIDGE.ROOT,
+    params: {
+      screen: Routes.BRIDGE.BRIDGE_VIEW,
+      params: tracedParams,
+    },
+  };
+};
 
 /**
- * Resolve the Bridge params for a swap deeplink. Token metadata lookup and
+ * Resolve the navigation target for a swap deeplink. Token metadata lookup and
  * chain enabling must complete before navigation, so this builder is async and
  * fully resolves the Bridge params up front.
  */
-const resolveSwapRouteParams = async (
+const resolveSwapTarget = async (
   swapPath: string,
-): Promise<BridgeRouteParams> => {
+): Promise<DeeplinkIntent['target']> => {
   // Parse URL parameters
   const urlParams = getSwapUrlParams(swapPath);
 
@@ -396,7 +402,7 @@ const resolveSwapRouteParams = async (
       ? ethers.utils.formatUnits(atomicAmount, sourceToken.decimals)
       : undefined;
 
-  return {
+  return bridgeTarget({
     sourceToken: sourceToken ?? undefined,
     destToken: destToken ?? undefined,
     sourceAmount: sourceAmount ?? undefined,
@@ -404,28 +410,15 @@ const resolveSwapRouteParams = async (
     bridgeViewMode: BridgeViewMode.Unified,
     location: MetaMetricsSwapsEventSource.MainView,
     ...initialRouteParams,
-  };
+  });
 };
 
 export const createSwapDeeplinkIntent = async ({
   swapPath,
-}: HandleSwapUrlParams): Promise<DeeplinkIntent> => {
-  const routeParams = await resolveSwapRouteParams(swapPath);
-  const intent: DeeplinkIntent = {
-    target: bridgeTarget(routeParams),
-    // Executors read `target` after `prepare`, so the trace starts just before
-    // navigation instead of at resolve.
-    prepare: () => {
-      resetSwapSessionBeforeDeeplink();
-      intent.target = bridgeTarget(
-        startSwapBridgePageLoadTrace(routeParams, {
-          appStartType: getDeeplinkProcessedAppStartType(),
-        }),
-      );
-    },
-  };
-  return intent;
-};
+}: HandleSwapUrlParams): Promise<DeeplinkIntent> => ({
+  target: await resolveSwapTarget(swapPath),
+  prepare: resetSwapSessionBeforeDeeplink,
+});
 
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
   const initialRouteParams = getInitialRouteParams(getSwapUrlParams(swapPath));

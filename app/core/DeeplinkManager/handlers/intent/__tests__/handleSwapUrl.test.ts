@@ -951,30 +951,17 @@ describe('handleSwapUrl', () => {
     );
   });
 
-  it('starts the trace in prepare with the Deeplink Processed app start type', async () => {
-    const mockStartTrace = startSwapBridgePageLoadTrace as jest.Mock;
-    mockStartTrace.mockImplementationOnce((params: object) => ({
-      ...params,
-      swapViewTraceId: 'trace-id',
-    }));
+  it('starts the trace with the Deeplink Processed app start type', async () => {
     (getDeeplinkProcessedAppStartType as jest.Mock).mockReturnValueOnce('cold');
 
-    const intent = await createSwapDeeplinkIntent({
+    await createSwapDeeplinkIntent({
       swapPath:
         'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     });
 
-    expect(mockStartTrace).not.toHaveBeenCalled();
-
-    await intent.prepare?.();
-
-    expect(mockStartTrace).toHaveBeenCalledWith(
+    expect(startSwapBridgePageLoadTrace).toHaveBeenCalledWith(
       expect.objectContaining({ sourceToken: expectedSourceToken }),
       { appStartType: 'cold' },
     );
-    expect(intent.target.params).toStrictEqual({
-      screen: 'BridgeView',
-      params: expect.objectContaining({ swapViewTraceId: 'trace-id' }),
-    });
   });
 });
