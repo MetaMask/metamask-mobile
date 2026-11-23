@@ -31,6 +31,7 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 }));
 
 jest.mock('@metamask/controller-utils', () => ({
+  ...jest.requireActual('@metamask/controller-utils'),
   handleFetch: jest.fn().mockResolvedValue({}),
 }));
 

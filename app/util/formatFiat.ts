@@ -1,6 +1,11 @@
 import { BigNumber } from 'bignumber.js';
-import I18n from '../../locales/i18n';
-import { getIntlNumberFormatter } from './intl';
+import { getFormatters } from '../components/hooks/useFormatters';
+
+// Intl accepts any three-letter code. The shared formatters drop the code for anything else, so those are handled here.
+const INTL_CURRENCY_CODE = /^[A-Za-z]{3}$/u;
+
+const isNumericString = (value: string): value is `${number}` =>
+  Number.isFinite(Number(value));
 
 /**
  * Resolves the fraction-digit options passed to Intl.
@@ -48,23 +53,15 @@ const formatFiat = (
     fiatAmount.toFixed(2, BigNumber.ROUND_DOWN) === '0.00' &&
     !fiatAmount.isZero();
 
-  const value = isSmall ? 0.01 : fiatAmount.toFixed();
-  let result: string;
+  const value = isSmall ? '0.01' : fiatAmount.toFixed();
 
-  try {
-    result = getIntlNumberFormatter(I18n.locale, {
-      style: 'currency',
-      currency,
-      currencyDisplay: 'narrowSymbol',
-      ...getFractionDigitOptions(hasDecimals, fractionDigits),
-      // string is valid parameter for format function
-      // for some reason it gives TS issue
-      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/format#number
-    }).format(value as unknown as number);
-  } catch (error) {
-    // Fallback for unknown or unsupported currencies
-    result = `${value} ${currency}`;
-  }
+  const result =
+    currency && INTL_CURRENCY_CODE.test(currency) && isNumericString(value)
+      ? getFormatters().formatCurrency(value, currency, {
+          currencyDisplay: 'narrowSymbol',
+          ...getFractionDigitOptions(hasDecimals, fractionDigits),
+        })
+      : `${value} ${currency}`;
 
   return isSmall ? `<${result}` : result;
 };

@@ -250,6 +250,7 @@ jest.mock('../hooks/useMoneyAccountSweepstakesIngestLag', () => ({
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
+  locale: 'en-US',
   strings: (key: string) => key,
 }));
 

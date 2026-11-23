@@ -25,7 +25,7 @@ import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlus
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
 import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from '../../hooks/isSubscriptionAlreadyStartingError';
 import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
-import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
+import { formatSubscriptionFiat } from '../../../../../util/subscription/formatSubscriptionFiat';
 import type {
   MoneyAccountPlusPricingView,
   PlanPricingView,

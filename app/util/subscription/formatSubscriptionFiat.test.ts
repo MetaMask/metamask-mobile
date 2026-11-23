@@ -23,4 +23,28 @@ describe('formatSubscriptionFiat', () => {
 
     expect(result).toBe('10 NOT-A-CURRENCY');
   });
+
+  it.each([
+    ['en-US', 8, 'usd', '$8.00'],
+    ['en-US', 8, 'cad', '$8.00'],
+    ['en-US', 1200, 'jpy', '¥1,200.00'],
+    ['de-DE', 7.99, 'eur', '7,99\u00a0€'],
+  ] as const)(
+    'formats %s %s %s as %s',
+    (locale, amount, currency, expected) => {
+      I18n.locale = locale;
+
+      const result = formatSubscriptionFiat(amount, currency);
+
+      expect(result).toBe(expected);
+    },
+  );
+
+  it('keeps the currency code for a four-letter code', () => {
+    I18n.locale = 'en-US';
+
+    const result = formatSubscriptionFiat(8, 'usdc');
+
+    expect(result).toBe('8 USDC');
+  });
 });

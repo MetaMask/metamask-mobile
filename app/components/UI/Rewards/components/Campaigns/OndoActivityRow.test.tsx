@@ -19,6 +19,7 @@ jest.mock('../../../AssetOverview/Balance/Balance', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  locale: 'en-US',
   strings: (key: string) => {
     const translations: Record<string, string> = {
       'rewards.ondo_campaign_activity.type_deposit': 'Deposit',
