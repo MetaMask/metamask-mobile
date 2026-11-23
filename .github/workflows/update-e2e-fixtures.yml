@@ -34,6 +34,11 @@ on:
         required: false
         type: boolean
         default: false
+      apk_run_id:
+        description: 'Optional: reuse the main-e2e Android APK from this CI run ID instead of building one. Skips the build; cannot open a PR.'
+        required: false
+        type: string
+        default: ''
       runner_provider:
         description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
@@ -63,7 +68,7 @@ env:
 jobs:
   build-android:
     name: Build Android E2E APK
-    if: ${{ github.repository == 'MetaMask/metamask-mobile' }}
+    if: ${{ github.repository == 'MetaMask/metamask-mobile' && !inputs.apk_run_id }}
     permissions:
       contents: read
       id-token: write # required for AWS OIDC role assumption when fetching signing keystores
@@ -78,6 +83,13 @@ jobs:
   update-fixtures:
     name: Export & validate fixtures
     needs: build-android
+    # The build is skipped when an existing APK run is supplied.
+    if: >-
+      ${{
+        !cancelled() &&
+        github.repository == 'MetaMask/metamask-mobile' &&
+        (needs.build-android.result == 'success' || needs.build-android.result == 'skipped')
+      }}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
@@ -135,6 +147,9 @@ jobs:
           name: main-e2e-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
           runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+          # Empty run-id downloads from this run's build job.
+          run-id: ${{ inputs.apk_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
       # The spec throws when it had to update the fixture, so a failing step is
       # expected here. The "Evaluate" step below tells that apart from a real
@@ -172,6 +187,8 @@ jobs:
 
       - name: Evaluate fixture validation result
         id: evaluate
+        env:
+          APK_RUN_ID: ${{ inputs.apk_run_id }}
         run: |
           RESULT_FILE="tests/reports/fixture-validation-result.json"
 
@@ -195,6 +212,12 @@ jobs:
           fi
           echo "SHOULD_COMMIT=${SHOULD_COMMIT}" >> "$GITHUB_OUTPUT"
 
+          if [ -n "$APK_RUN_ID" ]; then
+            APK_SOURCE="reused from CI run \`${APK_RUN_ID}\`"
+          else
+            APK_SOURCE="built in this run"
+          fi
+
           # Surface the outcome on the run page so a dry run (or a quiet week)
           # is readable without opening the logs or downloading artifacts.
           {
@@ -202,6 +225,7 @@ jobs:
             echo ""
             echo "- Fixture update needed: \`${SHOULD_COMMIT}\`"
             echo "- Run ref: \`${GITHUB_REF_NAME}\` (\`${GITHUB_SHA::12}\`)"
+            echo "- APK source: ${APK_SOURCE}"
             echo ""
             echo "<details><summary>Validation result</summary>"
             echo ""
@@ -260,6 +284,7 @@ jobs:
       ${{
         needs.update-fixtures.outputs.SHOULD_COMMIT == 'true' &&
         inputs.dry_run != true &&
+        !inputs.apk_run_id &&
         github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
       }}
     runs-on: >-
