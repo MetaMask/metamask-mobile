@@ -172,7 +172,7 @@ describe('useWatchlistEditDraft', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
-  it('does not fire removal events when mutation fails', () => {
+  it('returns false and does not fire removal events when mutation fails', async () => {
     const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
     const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
     const queryTokens = [btc, eth];
@@ -194,10 +194,12 @@ describe('useWatchlistEditDraft', () => {
     act(() => {
       result.current.onRemoveFromDraft(String(btc.assetId));
     });
-    act(() => {
-      result.current.handleDonePress();
+    let didCommit = true;
+    await act(async () => {
+      didCommit = await result.current.handleDonePress();
     });
 
+    expect(didCommit).toBe(false);
     expect(mockMutate).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });

@@ -1,7 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { Pressable, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
-import ReorderableList from 'react-native-reorderable-list';
+import ReorderableList, {
+  type ReorderableListReorderEvent,
+  useReorderableDrag,
+} from 'react-native-reorderable-list';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -21,10 +24,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
-import {
-  useTokenWatchlistRemoveItemMutation,
-  useTokenWatchlistUpdateListMutation,
-} from '../../hooks/useTokenWatchlistMutations';
+import { useTokenWatchlistUpdateListMutation } from '../../hooks/useTokenWatchlistMutations';
 import useTrackWatchlistPageViewed from '../../hooks/useTrackWatchlistPageViewed';
 import { WatchlistAnalytics } from '../../constants/watchlistAnalytics';
 import { mapWatchlistTokenToTrendingAsset } from '../../../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
@@ -45,10 +45,12 @@ import {
   selectUnifiedWatchlistEnabled,
 } from '../../../selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../../../Perps/selectors/featureFlags';
-import WatchlistPerpsProvider from '../../../../Watchlist/WatchlistPerpsProvider';
+import { TEMPORARY_ENABLE_WATCHLIST_PERPS } from '../../../../Watchlist/watchlistFeatureOverrides';
 import { useUnifiedWatchlist } from '../../../../Watchlist/hooks/useUnifiedWatchlist';
-import type { UnifiedWatchlistItem } from '../../../../Watchlist/types';
-import WatchlistTokenRowItem from '../../../../Watchlist/WatchlistTokenRowItem';
+import type {
+  UnifiedWatchlistItem,
+  UnifiedWatchlistPerp,
+} from '../../../../Watchlist/types';
 import WatchlistUnavailablePerpRow from '../../../../Watchlist/WatchlistUnavailablePerpRow';
 import WatchlistErrorRow from '../../../../Watchlist/WatchlistErrorRow';
 import PerpsMarketRowItem from '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
@@ -58,9 +60,15 @@ import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import type { CaipAssetType } from '@metamask/utils';
-import type { PerpsStreamManager } from '../../../../Perps/providers/PerpsStreamManager';
-import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
+import {
+  PerpsStreamProvider,
+  type PerpsStreamManager,
+} from '../../../../Perps/providers/PerpsStreamManager';
+import Icon, {
+  IconColor as LegacyIconColor,
+  IconName as LegacyIconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
@@ -74,6 +82,96 @@ const rowLayoutAnimation = LinearTransition.duration(ANIMATION_DURATION);
 interface WatchlistFullViewRouteParams {
   source?: string;
 }
+
+const restoreKeysAtBaselinePositions = (
+  draftKeys: string[],
+  baselineKeys: readonly string[],
+  restoredKeys: ReadonlySet<string>,
+): string[] => {
+  const result = [...draftKeys];
+  baselineKeys.forEach((key, index) => {
+    if (restoredKeys.has(key) && !result.includes(key)) {
+      result.splice(Math.min(index, result.length), 0, key);
+    }
+  });
+  return result;
+};
+
+interface MixedPerpsRowProps {
+  item: UnifiedWatchlistPerp;
+  isEditMode: boolean;
+  canUseLivePerpsPrices: boolean;
+  onPress: (market: PerpsMarketData) => void;
+  onRemove: () => void;
+}
+
+const MixedPerpsRow = ({
+  item,
+  isEditMode,
+  canUseLivePerpsPrices,
+  onPress,
+  onRemove,
+}: MixedPerpsRowProps) => {
+  const { styles } = useStyles(styleSheet, {});
+  const drag = useReorderableDrag();
+  const rowClassName = isEditMode ? 'px-0' : '-mx-4 w-auto px-4';
+
+  const row =
+    item.status === 'resolved' ? (
+      <PerpsMarketRowItem
+        market={item.market}
+        compact
+        showBadge={false}
+        enableLivePrices={canUseLivePerpsPrices}
+        onPress={onPress}
+        twClassName={rowClassName}
+      />
+    ) : (
+      <WatchlistUnavailablePerpRow
+        item={item}
+        onRemove={onRemove}
+        showRemoveAction={false}
+        twClassName={rowClassName}
+      />
+    );
+
+  if (!isEditMode) {
+    return row;
+  }
+
+  return (
+    <View style={styles.editableRow}>
+      <Pressable
+        style={styles.dragArea}
+        onLongPress={drag}
+        delayLongPress={300}
+        testID={WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE}
+        accessibilityRole="button"
+        accessibilityLabel="Drag to reorder"
+      >
+        <View style={styles.dragHandle} pointerEvents="none">
+          <Icon
+            name={LegacyIconName.DragGrid}
+            size={IconSize.Md}
+            color={LegacyIconColor.Muted}
+          />
+        </View>
+        <View style={styles.editableRowContent} pointerEvents="none">
+          {row}
+        </View>
+      </Pressable>
+      <View style={styles.unwatchStar}>
+        <ButtonIcon
+          iconName={IconName.Trash}
+          size={ButtonIconSize.Md}
+          onPress={onRemove}
+          testID={WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR}
+          accessibilityLabel="Remove from watchlist"
+        />
+      </View>
+    </View>
+  );
+};
 
 const LegacyWatchlistFullScreenView = () => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
@@ -144,10 +242,6 @@ const LegacyWatchlistFullScreenView = () => {
   const keyExtractor = useCallback((item: TrendingAsset) => item.assetId, []);
 
   const endAccessory = useMemo(() => {
-    if (isSearchMode) {
-      return null;
-    }
-
     if (isEditMode) {
       const doneButton = (
         <ButtonBase
@@ -211,7 +305,6 @@ const LegacyWatchlistFullScreenView = () => {
     handleSearchPress,
     hasItems,
     isEditMode,
-    isSearchMode,
   ]);
 
   const listContent = useMemo(() => {
@@ -326,20 +419,45 @@ const MixedWatchlistFullScreenView = () => {
     perps,
     canUseLivePerpsPrices,
     canRefresh,
+    tokenCount,
     isInitialLoading,
+    isOrderReady,
+    orderError,
+    persistOrder,
     refresh,
   } = useUnifiedWatchlist();
-  const removeTokenMutation = useTokenWatchlistRemoveItemMutation();
+  const updateTokenListMutation = useTokenWatchlistUpdateListMutation();
   const { removeFromWatchlist: removePerpFromWatchlist } =
-    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST);
+    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST, {
+      showToasts: false,
+    });
   const { navigateToMarketDetails } = usePerpsNavigation();
   const [isSearchMode, setIsSearchMode] = useState(false);
-  const hasItems = items.length > 0;
-  const hasError = Boolean(tokens.error || perps.error);
+  const [draftItems, setDraftItems] = useState<UnifiedWatchlistItem[] | null>(
+    null,
+  );
+  const baselineItemsRef = useRef<UnifiedWatchlistItem[]>([]);
+  const isCommittingRef = useRef(false);
+  const isEditMode = draftItems !== null;
+  const {
+    handleEditPress: handleTokenEditPress,
+    handleDonePress: handleTokenDonePress,
+    onRemoveFromDraft: onRemoveTokenFromDraft,
+  } = useWatchlistEditDraft({
+    queryTokens: tokens.items.map((token) => token.token),
+    autoCommitWhenEmpty: false,
+    reverseStorageOrder: false,
+    updateListMutation: updateTokenListMutation,
+  });
+
+  const visibleItems = draftItems ?? items;
+
+  const hasItems = visibleItems.length > 0;
+  const hasError = Boolean(tokens.error || perps.error || orderError);
   const isEmpty = !isInitialLoading && !hasItems && !hasError;
 
   useTrackWatchlistPageViewed({
-    tokenCount: tokens.items.length,
+    tokenCount,
     isEmpty,
     isLoading: isInitialLoading,
     source: routeParams?.source ?? WatchlistAnalytics.PAGE_VIEW_SOURCE.HOMEPAGE,
@@ -361,59 +479,165 @@ const MixedWatchlistFullScreenView = () => {
     [navigateToMarketDetails],
   );
 
+  const handleEditPress = useCallback(() => {
+    if (!isOrderReady) {
+      return;
+    }
+    baselineItemsRef.current = visibleItems;
+    setDraftItems(visibleItems);
+    handleTokenEditPress();
+  }, [handleTokenEditPress, isOrderReady, visibleItems]);
+
+  const handleDonePress = useCallback(async () => {
+    if (draftItems === null || isCommittingRef.current) {
+      return;
+    }
+
+    isCommittingRef.current = true;
+    const baselineItems = baselineItemsRef.current;
+    const draftKeys = draftItems.map((item) => item.key);
+    const draftKeySet = new Set(draftKeys);
+    const removedTokenKeys = baselineItems
+      .filter((item) => item.kind === 'token' && !draftKeySet.has(item.key))
+      .map((item) => item.key);
+    const removedPerps = baselineItems.filter(
+      (item): item is UnifiedWatchlistPerp =>
+        item.kind === 'perp' && !draftKeySet.has(item.key),
+    );
+
+    try {
+      const [didCommitTokens, perpRemovalResults] = await Promise.all([
+        handleTokenDonePress(),
+        Promise.all(
+          removedPerps.map(async (item) => ({
+            key: item.key,
+            didRemove: await removePerpFromWatchlist(item.symbol),
+          })),
+        ),
+      ]);
+      const restoredKeys = new Set(
+        perpRemovalResults
+          .filter(({ didRemove }) => !didRemove)
+          .map(({ key }) => key),
+      );
+      if (!didCommitTokens) {
+        removedTokenKeys.forEach((key) => restoredKeys.add(key));
+      }
+      const finalOrder = restoreKeysAtBaselinePositions(
+        draftKeys,
+        baselineItems.map((item) => item.key),
+        restoredKeys,
+      );
+
+      if (isOrderReady) {
+        await persistOrder(finalOrder);
+      }
+    } catch {
+      // Membership hooks already restore their own state on failure.
+    } finally {
+      baselineItemsRef.current = [];
+      setDraftItems(null);
+      isCommittingRef.current = false;
+    }
+  }, [
+    draftItems,
+    handleTokenDonePress,
+    isOrderReady,
+    persistOrder,
+    removePerpFromWatchlist,
+  ]);
+
+  const handleRemoveFromWatchlist = useCallback(
+    (item: UnifiedWatchlistItem) => {
+      setDraftItems(
+        (currentItems) =>
+          currentItems?.filter((currentItem) => currentItem.key !== item.key) ??
+          null,
+      );
+
+      if (item.kind === 'token') {
+        onRemoveTokenFromDraft(item.assetId);
+      }
+    },
+    [onRemoveTokenFromDraft],
+  );
+
+  const handleReorder = useCallback(
+    ({ from, to }: ReorderableListReorderEvent) => {
+      if (!isOrderReady || draftItems === null) {
+        return;
+      }
+      if (
+        from < 0 ||
+        to < 0 ||
+        from >= draftItems.length ||
+        to >= draftItems.length
+      ) {
+        return;
+      }
+
+      const nextItems = draftItems.slice();
+      const [movedItem] = nextItems.splice(from, 1);
+      if (!movedItem) {
+        return;
+      }
+
+      nextItems.splice(to, 0, movedItem);
+      setDraftItems(nextItems);
+    },
+    [draftItems, isOrderReady],
+  );
+
   const renderItem = useCallback(
     ({ item, index }: { item: UnifiedWatchlistItem; index: number }) => {
       if (item.kind === 'token') {
         return (
-          <WatchlistTokenRowItem
+          <WatchlistEditableRow
             token={item.token}
             position={index}
-            isWatchlisted
-            onWatchlistPress={() => {
-              removeTokenMutation.mutate(item.assetId as CaipAssetType);
-            }}
-            tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
-          />
-        );
-      }
-
-      if (item.status === 'unavailable') {
-        return (
-          <WatchlistUnavailablePerpRow
-            item={item}
-            onRemove={() => {
-              removePerpFromWatchlist(item.symbol).catch(() => undefined);
-            }}
-            twClassName="py-2 min-h-0"
+            isEditMode={isEditMode}
+            onRemoveFromDraft={() => handleRemoveFromWatchlist(item)}
           />
         );
       }
 
       return (
-        <PerpsMarketRowItem
-          market={item.market}
-          compact
-          showBadge
-          enableLivePrices={canUseLivePerpsPrices}
-          isWatchlisted
-          onWatchlistPress={() => {
-            removePerpFromWatchlist(item.symbol).catch(() => undefined);
-          }}
+        <MixedPerpsRow
+          item={item}
+          isEditMode={isEditMode}
+          canUseLivePerpsPrices={canUseLivePerpsPrices}
           onPress={handlePerpPress}
+          onRemove={() => handleRemoveFromWatchlist(item)}
         />
       );
     },
     [
       canUseLivePerpsPrices,
       handlePerpPress,
-      removePerpFromWatchlist,
-      removeTokenMutation,
+      handleRemoveFromWatchlist,
+      isEditMode,
     ],
   );
 
   const endAccessory = useMemo(() => {
-    if (isSearchMode) {
-      return null;
+    if (isEditMode) {
+      const doneButton = (
+        <ButtonBase
+          size={ButtonBaseSize.Md}
+          onPress={handleDonePress}
+          testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
+          accessibilityLabel={strings('token_watchlist.done')}
+          twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
+        >
+          {strings('token_watchlist.done')}
+        </ButtonBase>
+      );
+
+      return isGlassHeader ? (
+        <CapsuleGlass twClassName="shrink-0">{doneButton}</CapsuleGlass>
+      ) : (
+        doneButton
+      );
     }
 
     const searchButton = (
@@ -427,13 +651,42 @@ const MixedWatchlistFullScreenView = () => {
         twClassName={HEADER_ICON_BUTTON_CLASS}
       />
     );
+    const editButton =
+      hasItems && isOrderReady ? (
+        <ButtonIcon
+          iconProps={{ color: IconColor.IconDefault }}
+          iconName={IconName.Edit}
+          size={ButtonIconSize.Md}
+          onPress={handleEditPress}
+          testID={WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON}
+          accessibilityLabel={strings('token_watchlist.edit')}
+          twClassName={HEADER_ICON_BUTTON_CLASS}
+        />
+      ) : null;
+    const headerActions = (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
+        {searchButton}
+        {editButton}
+      </Box>
+    );
 
     return isGlassHeader ? (
-      <CapsuleGlass twClassName="shrink-0 px-2">{searchButton}</CapsuleGlass>
+      <CapsuleGlass twClassName="shrink-0 px-2">{headerActions}</CapsuleGlass>
     ) : (
-      searchButton
+      headerActions
     );
-  }, [isGlassHeader, isSearchMode]);
+  }, [
+    handleDonePress,
+    handleEditPress,
+    hasItems,
+    isEditMode,
+    isGlassHeader,
+    isOrderReady,
+  ]);
 
   const listContent = useMemo(() => {
     if (isInitialLoading && !hasItems) {
@@ -452,7 +705,7 @@ const MixedWatchlistFullScreenView = () => {
       return <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />;
     }
 
-    if (!hasItems) {
+    if (!hasItems && !isEditMode) {
       return (
         <View style={styles.emptyContentContainer}>
           <WatchlistEmptyCTA source="watchlist_fullscreen_empty_cta" />
@@ -461,14 +714,22 @@ const MixedWatchlistFullScreenView = () => {
     }
 
     return (
-      <View style={styles.listContainer}>
+      <View
+        style={[
+          styles.listContainer,
+          isEditMode && styles.listContainerEditMode,
+        ]}
+      >
         {hasError ? (
           <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />
         ) : null}
-        <FlatList
-          data={items}
+        <ReorderableList
+          data={visibleItems}
           renderItem={renderItem}
           keyExtractor={(item) => item.key}
+          onReorder={handleReorder}
+          dragEnabled={isEditMode && isOrderReady}
+          itemLayoutAnimation={isEditMode ? rowLayoutAnimation : undefined}
           showsVerticalScrollIndicator={false}
           testID={WatchlistFullScreenViewSelectorsIDs.MIXED_LIST}
         />
@@ -478,12 +739,16 @@ const MixedWatchlistFullScreenView = () => {
     canRefresh,
     hasError,
     hasItems,
+    handleReorder,
     isInitialLoading,
-    items,
+    isEditMode,
+    isOrderReady,
     refresh,
     renderItem,
     styles.emptyContentContainer,
     styles.listContainer,
+    styles.listContainerEditMode,
+    visibleItems,
   ]);
 
   return (
@@ -496,11 +761,15 @@ const MixedWatchlistFullScreenView = () => {
           isGlass={isGlassHeader}
           isFloating={false}
           includesTopInset
-          onBack={handleBack}
-          backButtonProps={{
-            accessibilityLabel: strings('navigation.back'),
-            testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
-          }}
+          onBack={isEditMode ? undefined : handleBack}
+          backButtonProps={
+            isEditMode
+              ? undefined
+              : {
+                  accessibilityLabel: strings('navigation.back'),
+                  testID: WatchlistFullScreenViewSelectorsIDs.BACK_BUTTON,
+                }
+          }
           endAccessory={endAccessory}
           testID={WatchlistFullScreenViewSelectorsIDs.HEADER}
         />
@@ -534,8 +803,11 @@ const WatchlistFullScreenView = ({
   testStreamManager,
 }: WatchlistFullScreenViewProps = {}) => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedWatchlistEnabled = useSelector(selectUnifiedWatchlistEnabled);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isUnifiedWatchlistEnabled =
+    useSelector(selectUnifiedWatchlistEnabled) ||
+    TEMPORARY_ENABLE_WATCHLIST_PERPS;
+  const isPerpsEnabled =
+    useSelector(selectPerpsEnabledFlag) || TEMPORARY_ENABLE_WATCHLIST_PERPS;
 
   if (
     !isTokenWatchlistEnabled ||
@@ -546,9 +818,9 @@ const WatchlistFullScreenView = ({
   }
 
   return (
-    <WatchlistPerpsProvider testStreamManager={testStreamManager}>
+    <PerpsStreamProvider testStreamManager={testStreamManager}>
       <MixedWatchlistFullScreenView />
-    </WatchlistPerpsProvider>
+    </PerpsStreamProvider>
   );
 };
 

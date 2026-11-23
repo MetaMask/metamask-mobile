@@ -64,6 +64,7 @@ const WatchlistEditableRow = ({
           token={token}
           position={position}
           tokenDetailsSource={TokenDetailsSource.WatchlistFullscreen}
+          twClassName={isEditMode ? undefined : '-mx-4 w-auto px-4'}
         />
       </View>
     </>
@@ -89,18 +90,17 @@ const WatchlistEditableRow = ({
         <View style={styles.dragArea}>{rowBody}</View>
       )}
 
-      <View
-        style={isEditMode ? styles.unwatchStar : styles.editControlHidden}
-        pointerEvents={isEditMode ? 'auto' : 'none'}
-      >
-        <ButtonIcon
-          iconName={IconName.Trash}
-          size={ButtonIconSize.Md}
-          onPress={handleUnwatch}
-          testID={WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR}
-          accessibilityLabel="Remove from watchlist"
-        />
-      </View>
+      {isEditMode ? (
+        <View style={styles.unwatchStar}>
+          <ButtonIcon
+            iconName={IconName.Trash}
+            size={ButtonIconSize.Md}
+            onPress={handleUnwatch}
+            testID={WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR}
+            accessibilityLabel="Remove from watchlist"
+          />
+        </View>
+      ) : null}
     </View>
   );
 };

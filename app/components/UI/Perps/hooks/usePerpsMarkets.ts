@@ -341,6 +341,12 @@ export const usePerpsMarkets = (
           }
         }
       },
+      onError: (streamError) => {
+        if (!isActive) return;
+        setError(streamError.message);
+        setIsLoading(false);
+        setHasResolvedInitialData(true);
+      },
       throttleMs: 0, // No throttle for market data updates
     });
 

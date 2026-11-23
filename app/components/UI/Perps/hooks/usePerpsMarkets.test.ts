@@ -143,6 +143,23 @@ describe('usePerpsMarkets', () => {
       expect(typeof result.current.refresh).toBe('function');
     });
 
+    it('ends initial loading when the market stream fails', async () => {
+      mockSubscribe.mockImplementation(({ onError }) => {
+        setTimeout(() => onError(new Error('Market stream failed')), 0);
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.hasResolvedInitialData).toBe(true);
+      expect(result.current.error).toBe('Market stream failed');
+    });
+
     it('returns initial state with loading false when skipInitialFetch is true', () => {
       // Act
       const { result } = renderHook(() =>

@@ -12,6 +12,7 @@ import {
   setupWatchlistSearchApiMock,
   setupReadOnlyNetworkStoreMock,
   clearWatchlistApiMocks,
+  getWatchlistStorageBlob,
   mockWatchlistAssetIds,
   mockWatchlistTokensResponse,
 } from '../../../../../../../tests/component-view/api-mocking/watchlist';
@@ -108,8 +109,8 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     });
   });
 
-  it('renders mixed same-ticker rows without token edit controls', async () => {
-    const { findByTestId, queryByTestId } =
+  it('keeps mixed rows read-only until edit mode', async () => {
+    const { findByTestId, getByTestId, getAllByTestId, queryByTestId } =
       renderWatchlistFullScreenViewWithRoutes({
         unifiedWatchlist: true,
         perpsWatchlistSymbols: ['ETH'],
@@ -124,6 +125,7 @@ describeForPlatforms('WatchlistFullScreenView', () => {
               change24hPercent: '+2.50%',
               volume: '$1.5B',
               openInterest: '$500M',
+              marketType: 'index',
             },
           ],
         },
@@ -136,25 +138,101 @@ describeForPlatforms('WatchlistFullScreenView', () => {
       await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+      queryByTestId(getPerpsMarketRowItemSelector.badge('ETH')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    );
+
+    expect(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      getAllByTestId(WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR).length,
+    ).toBeGreaterThan(0);
+    expect(
+      getAllByTestId(WatchlistFullScreenViewSelectorsIDs.DRAG_HANDLE),
+    ).toHaveLength(
+      getAllByTestId(WatchlistFullScreenViewSelectorsIDs.EDITABLE_ROW).length +
+        1,
+    );
+
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    );
+    expect(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps watched Perps loading until the first market snapshot resolves', async () => {
+    const { findByTestId, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['ETH'],
+        streamOverrides: { marketData: null },
+      });
+
+    expect(
+      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getUnavailablePerpRowTestId('ETH')),
     ).not.toBeOnTheScreen();
   });
 
-  it('removes an unavailable watched Perps market', async () => {
-    const toggleWatchlistMarket = Engine.context.PerpsController
-      .toggleWatchlistMarket as jest.Mock;
-    toggleWatchlistMarket.mockClear();
+  it('does not treat a cold offline token watchlist as empty', async () => {
+    netInfoMock.__setMockNetInfo({
+      type: 'none',
+      isInternetReachable: false,
+    });
+
     const { findByTestId } = renderWatchlistFullScreenViewWithRoutes({
       unifiedWatchlist: true,
-      perpsWatchlistSymbols: ['DOGE'],
-      streamOverrides: { marketData: [] },
+      perpsWatchlistSymbols: [],
     });
+
+    expect(await findByTestId('watchlist-error-row')).toBeOnTheScreen();
+  });
+
+  it('removes an unavailable watched Perps market from edit mode', async () => {
+    const toggleWatchlistMarket = Engine.context.PerpsController
+      .toggleWatchlistMarket as jest.Mock;
+    const getWatchlistMarkets = Engine.context.PerpsController
+      .getWatchlistMarkets as jest.Mock;
+    toggleWatchlistMarket.mockClear();
+    getWatchlistMarkets.mockReturnValueOnce(['DOGE']).mockReturnValueOnce([]);
+    const { findByTestId, getByTestId, getAllByTestId, queryByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['DOGE'],
+        streamOverrides: { marketData: [] },
+      });
 
     expect(
       await findByTestId(getUnavailablePerpRowTestId('DOGE')),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getUnavailablePerpRemoveButtonTestId('DOGE')),
+    ).not.toBeOnTheScreen();
+
     fireEvent.press(
-      await findByTestId(getUnavailablePerpRemoveButtonTestId('DOGE')),
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    );
+    const unwatchButtons = getAllByTestId(
+      WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
+    );
+    const unavailablePerpButton = unwatchButtons[unwatchButtons.length - 1];
+    if (!unavailablePerpButton) {
+      throw new Error('Expected an unavailable Perps remove button');
+    }
+    fireEvent.press(unavailablePerpButton);
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
     );
 
     await waitFor(() => {
@@ -162,12 +240,55 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     });
   });
 
+  it('restores an unavailable Perps row when removal fails', async () => {
+    const toggleWatchlistMarket = Engine.context.PerpsController
+      .toggleWatchlistMarket as jest.Mock;
+    const getWatchlistMarkets = Engine.context.PerpsController
+      .getWatchlistMarkets as jest.Mock;
+    getWatchlistMarkets.mockReturnValueOnce(['DOGE']);
+    toggleWatchlistMarket.mockRejectedValueOnce(
+      new Error('Persistence failed'),
+    );
+    const { findByTestId, getByTestId, getAllByTestId } =
+      renderWatchlistFullScreenViewWithRoutes({
+        unifiedWatchlist: true,
+        perpsWatchlistSymbols: ['DOGE'],
+        streamOverrides: { marketData: [] },
+      });
+
+    await findByTestId(getUnavailablePerpRowTestId('DOGE'));
+    fireEvent.press(
+      await findByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
+    );
+    const removeButtons = getAllByTestId(
+      WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
+    );
+    const perpRemoveButton = removeButtons[removeButtons.length - 1];
+    if (!perpRemoveButton) {
+      throw new Error('Expected the Perps remove button');
+    }
+    fireEvent.press(perpRemoveButton);
+    fireEvent.press(
+      getByTestId(WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(toggleWatchlistMarket).toHaveBeenCalledWith('DOGE');
+    });
+    expect(
+      await findByTestId(getUnavailablePerpRowTestId('DOGE')),
+    ).toBeOnTheScreen();
+  });
+
   it('removes a token in edit mode and persists the update to storage', async () => {
-    const assetToRemove = NEWEST_FIRST_ASSET_IDS[0];
+    const assetToRemove = mockWatchlistAssetIds[2];
     const putScope = setupWatchlistStoragePutMock();
 
     const { findByTestId, getAllByTestId, queryByTestId } =
-      renderWatchlistFullScreenViewWithRoutes({ deterministicFiat: true });
+      renderWatchlistFullScreenViewWithRoutes({
+        deterministicFiat: true,
+        unifiedWatchlist: true,
+      });
 
     await findByTestId(getRowTestId(assetToRemove));
 
@@ -178,9 +299,14 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     const unwatchStars = getAllByTestId(
       WatchlistFullScreenViewSelectorsIDs.UNWATCH_STAR,
     );
+    const tokenIndex = mockWatchlistAssetIds.indexOf(assetToRemove);
+    const tokenUnwatchStar = unwatchStars[tokenIndex];
+    if (!tokenUnwatchStar) {
+      throw new Error('Expected the token remove button');
+    }
 
     await act(async () => {
-      fireEvent.press(unwatchStars[0]);
+      fireEvent.press(tokenUnwatchStar);
     });
 
     await waitFor(() => {
@@ -193,6 +319,9 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     );
 
     await waitFor(() => expect(putScope.isDone()).toBe(true));
+    expect(
+      getWatchlistStorageBlob().assets.map((id) => id.toLowerCase()),
+    ).toEqual(mockWatchlistAssetIds.slice(0, 2).map((id) => id.toLowerCase()));
     expect(
       queryByTestId(getRowTestId(NEWEST_FIRST_ASSET_IDS[1])),
     ).toBeOnTheScreen();

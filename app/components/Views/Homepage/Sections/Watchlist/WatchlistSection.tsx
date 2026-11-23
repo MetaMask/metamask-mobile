@@ -46,13 +46,21 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import type { SectionRefreshHandle } from '../../types';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import { useUnifiedWatchlist } from '../../../../UI/Watchlist/hooks/useUnifiedWatchlist';
-import WatchlistTokenRowItem from '../../../../UI/Watchlist/WatchlistTokenRowItem';
 import WatchlistUnavailablePerpRow from '../../../../UI/Watchlist/WatchlistUnavailablePerpRow';
 import WatchlistErrorRow from '../../../../UI/Watchlist/WatchlistErrorRow';
 import PerpsMarketRowItem from '../../../../UI/Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
 import { usePerpsNavigation } from '../../../../UI/Perps/hooks/usePerpsNavigation';
 import { usePerpsWatchlistActions } from '../../../../UI/Perps/hooks/usePerpsWatchlistActions';
-import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
+import {
+  getPerpsWatchlistKey,
+  getTokenWatchlistKey,
+  selectWatchlistSuggestions,
+} from '../../../../UI/Watchlist/utils';
+import { TEMPORARY_ENABLE_WATCHLIST_PERPS } from '../../../../UI/Watchlist/watchlistFeatureOverrides';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -211,6 +219,7 @@ const LegacyWatchlistSection = forwardRef<
               token={token}
               position={index}
               tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+              twClassName="-mx-4 w-auto px-4"
             />
           </WatchlistAnimatedRow>
         ))}
@@ -253,33 +262,60 @@ const MixedWatchlistSection = forwardRef<
     items,
     tokens,
     perps,
+    suggestedPerps,
     canUseLivePerpsPrices,
     canUseMotion,
     canRefresh,
     canFetchSuggestions,
+    tokenMembershipAssetIds,
+    tokenCount,
+    perpsCount,
+    orderError,
+    isOrderReady,
+    persistOrder,
     isInitialLoading,
     refresh,
   } = useUnifiedWatchlist();
   const { data: suggestedPool, isLoading: isSuggestedLoading } =
     useSuggestedWatchlistItemsQuery({ enabled: canFetchSuggestions });
   const addMutation = useTokenWatchlistAddItemMutation();
-  const watchlistAssetIds = useTokenWatchlistAssetIds();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { navigateToMarketDetails } = usePerpsNavigation();
-  const { removeFromWatchlist } = usePerpsWatchlistActions(
-    PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
-  );
+  const { addToWatchlist: addPerpToWatchlist, removeFromWatchlist } =
+    usePerpsWatchlistActions(PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST, {
+      showToasts: false,
+    });
   const displayItems = items.slice(0, MAX_ITEMS_DISPLAYED);
-  const suggestedTokens = useMemo(
-    () => getSuggestedWatchlistTokens(suggestedPool ?? [], watchlistAssetIds),
-    [suggestedPool, watchlistAssetIds],
+  const remainingSuggestedCount = Math.max(
+    0,
+    SUGGESTED_WATCHLIST_LIMIT - (tokenCount + perpsCount),
   );
-  const hasError = Boolean(tokens.error || perps.error);
+  const suggestedRows = useMemo(
+    () =>
+      selectWatchlistSuggestions(suggestedPool ?? [], suggestedPerps, {
+        limit: remainingSuggestedCount,
+        watchlistedTokenAssetIds: tokenMembershipAssetIds,
+        watchlistedTokenSymbols: tokens.items.map((item) =>
+          String(item.token.symbol),
+        ),
+        watchlistedPerpSymbols: perps.items.map((item) => item.symbol),
+      }),
+    [
+      perps.items,
+      remainingSuggestedCount,
+      suggestedPerps,
+      suggestedPool,
+      tokenMembershipAssetIds,
+      tokens.items,
+    ],
+  );
+  const hasError = Boolean(tokens.error || perps.error || orderError);
   const isEmpty = !isInitialLoading && displayItems.length === 0 && !hasError;
-  const showSuggestedSkeletons = isEmpty && isSuggestedLoading;
-  const showSuggestedSection = suggestedTokens.length > 0;
+  const showSuggestedSkeletons =
+    isEmpty && isSuggestedLoading && suggestedRows.length === 0;
+  const showSuggestedSection = suggestedRows.length > 0;
   const showFallback =
-    isEmpty && !isSuggestedLoading && suggestedTokens.length === 0;
+    isEmpty && !isSuggestedLoading && suggestedRows.length === 0;
 
   const handleSectionPress = useCallback(() => {
     navigation.navigate(Routes.WALLET.WATCHLIST_FULL_VIEW);
@@ -300,10 +336,43 @@ const MixedWatchlistSection = forwardRef<
               })
               .build(),
           );
+          if (isOrderReady) {
+            const addedKey = getTokenWatchlistKey(assetId);
+            persistOrder([
+              ...items
+                .filter((item) => item.key !== addedKey)
+                .map((item) => item.key),
+              addedKey,
+            ]).catch(() => undefined);
+          }
         },
       });
     },
-    [addMutation, createEventBuilder, trackEvent],
+    [
+      addMutation,
+      createEventBuilder,
+      isOrderReady,
+      items,
+      persistOrder,
+      trackEvent,
+    ],
+  );
+
+  const handleAddPerpPress = useCallback(
+    async (market: PerpsMarketData) => {
+      const didAdd = await addPerpToWatchlist(market.symbol);
+      if (!didAdd || !isOrderReady) {
+        return;
+      }
+      const addedKey = getPerpsWatchlistKey(market.symbol);
+      await persistOrder([
+        ...items
+          .filter((item) => item.key !== addedKey)
+          .map((item) => item.key),
+        addedKey,
+      ]).catch(() => undefined);
+    },
+    [addPerpToWatchlist, isOrderReady, items, persistOrder],
   );
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -362,10 +431,11 @@ const MixedWatchlistSection = forwardRef<
           if (item.kind === 'token') {
             return (
               <WatchlistAnimatedRow key={item.key} enableMotion={canUseMotion}>
-                <WatchlistTokenRowItem
+                <TrendingTokenRowItem
                   token={item.token}
                   position={index}
                   tokenDetailsSource={TokenDetailsSource.WatchlistHomepage}
+                  twClassName="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
             );
@@ -379,6 +449,7 @@ const MixedWatchlistSection = forwardRef<
                   onRemove={() => {
                     removeFromWatchlist(item.symbol).catch(() => undefined);
                   }}
+                  twClassName="-mx-4 w-auto px-4"
                 />
               </WatchlistAnimatedRow>
             );
@@ -389,8 +460,9 @@ const MixedWatchlistSection = forwardRef<
               <PerpsMarketRowItem
                 market={item.market}
                 compact
-                showBadge
+                showBadge={false}
                 enableLivePrices={canUseLivePerpsPrices}
+                twClassName="-mx-4 w-auto px-4"
                 onPress={(market) =>
                   navigateToMarketDetails(
                     market,
@@ -403,9 +475,18 @@ const MixedWatchlistSection = forwardRef<
         })}
         {showSuggestedSection ? (
           <WatchlistSuggestedSection
-            tokens={suggestedTokens}
+            rows={suggestedRows}
             hasWatchlist={displayItems.length > 0}
             onAddPress={handleAddPress}
+            onPerpPress={(market) =>
+              navigateToMarketDetails(
+                market,
+                PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+              )
+            }
+            onAddPerpPress={handleAddPerpPress}
+            canUseLivePerpsPrices={canUseLivePerpsPrices}
+            enableMotion={canUseMotion}
           />
         ) : null}
       </>
@@ -431,8 +512,11 @@ const WatchlistSection = forwardRef<
   WatchlistSectionProps
 >((props, ref) => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedWatchlistEnabled = useSelector(selectUnifiedWatchlistEnabled);
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isUnifiedWatchlistEnabled =
+    useSelector(selectUnifiedWatchlistEnabled) ||
+    TEMPORARY_ENABLE_WATCHLIST_PERPS;
+  const isPerpsEnabled =
+    useSelector(selectPerpsEnabledFlag) || TEMPORARY_ENABLE_WATCHLIST_PERPS;
 
   if (isTokenWatchlistEnabled && isUnifiedWatchlistEnabled && isPerpsEnabled) {
     return <MixedWatchlistSection {...props} ref={ref} />;

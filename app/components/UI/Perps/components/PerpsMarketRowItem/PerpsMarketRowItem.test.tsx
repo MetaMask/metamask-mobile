@@ -1123,24 +1123,5 @@ describe('PerpsMarketRowItem', () => {
       expect(mockOnAddPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress).not.toHaveBeenCalled();
     });
-
-    it('calls the watchlist action for a watched market', () => {
-      const onWatchlistPress = jest.fn();
-      render(
-        <PerpsMarketRowItem
-          market={mockMarketData}
-          isWatchlisted
-          onWatchlistPress={onWatchlistPress}
-        />,
-      );
-
-      fireEvent.press(
-        screen.getByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
-      );
-
-      expect(onWatchlistPress).toHaveBeenCalledWith(
-        expect.objectContaining({ symbol: mockMarketData.symbol }),
-      );
-    });
   });
 });

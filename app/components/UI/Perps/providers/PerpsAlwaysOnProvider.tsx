@@ -26,6 +26,7 @@ import { usePerpsEventTracking } from '../hooks/usePerpsEventTracking';
 import { usePerpsChaseOrders } from '../hooks/usePerpsChaseOrders';
 import { selectPerpsMobileChaseEnabledFlag } from '../selectors/featureFlags';
 import { selectIsMetaMaskPushNotificationsEnabled } from '../../../../selectors/notifications';
+import { TEMPORARY_ENABLE_WATCHLIST_PERPS } from '../../Watchlist/watchlistFeatureOverrides';
 import { useFeatureNotificationsStatus } from '../../../Views/Settings/NotificationsSettings/hooks/useFeatureNotificationsStatus';
 import { subscribeToSuspendedChaseOrders } from '../services/ChaseOrderSuspensionEvents';
 import { isChaseOrderHandleVisible } from '../services/ChaseOrderVisibility';
@@ -87,7 +88,8 @@ const ChaseNotificationPreference = ({
 export const PerpsAlwaysOnProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const isPerpsEnabled =
+    useSelector(selectPerpsEnabledFlag) || TEMPORARY_ENABLE_WATCHLIST_PERPS;
   const isPerpsEnabledRef = useRef(isPerpsEnabled);
   const { track } = usePerpsEventTracking();
   const isChaseEnabled = useSelector(selectPerpsMobileChaseEnabledFlag);

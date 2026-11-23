@@ -8,6 +8,7 @@ import {
   selectUnifiedWatchlistEnabled,
 } from '../../Assets/selectors/featureFlags';
 import { useTokenWatchlistQuery } from '../../Assets/watchlist/hooks/useTokenWatchlistQuery';
+import { useTokenWatchlistMembershipQuery } from '../../Assets/watchlist/hooks/useTokenWatchlist';
 import { mapWatchlistTokenToTrendingAsset } from '../../../Views/Homepage/Sections/Watchlist/utils/mapWatchlistTokenToTrendingAsset';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -23,9 +24,13 @@ import {
   createUnavailableWatchlistPerp,
   createUnifiedWatchlistPerp,
   createUnifiedWatchlistToken,
+  getTokenWatchlistKey,
 } from '../utils';
+import { TEMPORARY_ENABLE_WATCHLIST_PERPS } from '../watchlistFeatureOverrides';
+import { useWatchlistOrder } from './useWatchlistOrder';
 
 const EMPTY_SYMBOLS: string[] = [];
+const EMPTY_ASSET_IDS: string[] = [];
 
 /**
  * Resolves independently-owned token and Perps memberships into rows for the
@@ -33,8 +38,11 @@ const EMPTY_SYMBOLS: string[] = [];
  */
 export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedEnabled = useSelector(selectUnifiedWatchlistEnabled);
-  const isPerpsFeatureEnabled = useSelector(selectPerpsEnabledFlag);
+  const isUnifiedEnabled =
+    useSelector(selectUnifiedWatchlistEnabled) ||
+    TEMPORARY_ENABLE_WATCHLIST_PERPS;
+  const isPerpsFeatureEnabled =
+    useSelector(selectPerpsEnabledFlag) || TEMPORARY_ENABLE_WATCHLIST_PERPS;
   const watchlistSymbols =
     useSelector(selectPerpsWatchlistMarkets) ?? EMPTY_SYMBOLS;
   const networkTier = useNetworkTier();
@@ -44,6 +52,12 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     isTokenWatchlistEnabled && isUnifiedEnabled && isPerpsFeatureEnabled;
   const isOffline = networkTier === 'NONE';
 
+  const {
+    data: tokenMembershipBlob,
+    isLoading: isTokenMembershipLoading,
+    error: tokenMembershipError,
+    refetch: refetchTokenMembership,
+  } = useTokenWatchlistMembershipQuery(isTokenWatchlistEnabled);
   const {
     data: tokenData,
     isLoading: isTokenLoading,
@@ -55,6 +69,7 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     isLoading: isPerpsLoading,
     error: perpsError,
     refresh: refreshPerps,
+    hasResolvedInitialData: hasResolvedPerpsData,
   } = usePerpsMarkets({
     skipInitialFetch: !isPerpsEnabled || isOffline,
     showZeroVolume: true,
@@ -64,15 +79,43 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   const tokens = useMemo<UnifiedWatchlistToken[]>(
     () =>
       (isTokenWatchlistEnabled ? (tokenData ?? []) : [])
-        .slice()
-        .reverse()
         .map(mapWatchlistTokenToTrendingAsset)
         .map(createUnifiedWatchlistToken),
     [isTokenWatchlistEnabled, tokenData],
   );
+  const tokenMembershipAssetIds = isTokenWatchlistEnabled
+    ? (tokenMembershipBlob?.assets ?? EMPTY_ASSET_IDS)
+    : EMPTY_ASSET_IDS;
+  const hydratedTokenKeys = useMemo(
+    () => new Set(tokens.map((item) => item.key)),
+    [tokens],
+  );
+  const isTokenMetadataComplete =
+    !isTokenWatchlistEnabled ||
+    (tokenMembershipBlob !== undefined &&
+      (tokenMembershipAssetIds.length === 0 ||
+        (tokenData !== undefined &&
+          tokenMembershipAssetIds.every((assetId) =>
+            hydratedTokenKeys.has(getTokenWatchlistKey(assetId)),
+          ))));
+  const tokenMetadataCoverageError =
+    isTokenWatchlistEnabled &&
+    tokenMembershipBlob !== undefined &&
+    tokenData !== undefined &&
+    !isTokenMetadataComplete
+      ? 'Some watchlist metadata is unavailable'
+      : null;
+  const isTokenHydrationUnavailable =
+    isTokenWatchlistEnabled &&
+    isOffline &&
+    tokenMembershipAssetIds.length > 0 &&
+    tokenData === undefined &&
+    !tokenError;
+  const isPerpsMetadataTerminal =
+    !isPerpsEnabled || isOffline || hasResolvedPerpsData || Boolean(perpsError);
 
   const perps = useMemo<UnifiedWatchlistPerp[]>(() => {
-    if (!isPerpsEnabled) {
+    if (!isPerpsEnabled || !isPerpsMetadataTerminal) {
       return [];
     }
 
@@ -86,43 +129,102 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
         ? createUnifiedWatchlistPerp(market)
         : createUnavailableWatchlistPerp(symbol);
     });
-  }, [isPerpsEnabled, markets, watchlistSymbols]);
+  }, [isPerpsEnabled, isPerpsMetadataTerminal, markets, watchlistSymbols]);
 
-  const items = useMemo(
+  const availableItems = useMemo(
     () => buildWatchlistItems(tokens, perps),
     [perps, tokens],
   );
+  const isMixedOrderHydrationReady =
+    isPerpsEnabled &&
+    isTokenMetadataComplete &&
+    isPerpsMetadataTerminal &&
+    !isTokenMembershipLoading &&
+    !isPerpsLoading;
+  const {
+    orderedItems: items,
+    isLoading: isOrderLoading,
+    isReady: isOrderReady,
+    error: orderError,
+    retry: retryOrder,
+    persistOrder,
+  } = useWatchlistOrder(availableItems, {
+    enabled: isPerpsEnabled,
+    isReady: isMixedOrderHydrationReady,
+  });
+
+  const suggestedPerps = useMemo(() => {
+    if (!isPerpsEnabled || isOffline) {
+      return [];
+    }
+    const watchedSymbols = new Set(
+      watchlistSymbols.map((symbol) => symbol.toLowerCase()),
+    );
+    return markets.filter(
+      (market) => !watchedSymbols.has(market.symbol.toLowerCase()),
+    );
+  }, [isOffline, isPerpsEnabled, markets, watchlistSymbols]);
 
   const refresh = useCallback(async () => {
-    const refreshes: Promise<unknown>[] = [refetchTokens()];
+    const refreshes: Promise<unknown>[] = [];
+    if (isTokenWatchlistEnabled) {
+      refreshes.push(refetchTokenMembership());
+    }
+    if (!isOffline) {
+      refreshes.push(refetchTokens());
+    }
     if (isPerpsEnabled && !isOffline) {
       refreshes.push(refreshPerps());
     }
+    if (isPerpsEnabled && orderError) {
+      refreshes.push(retryOrder());
+    }
     await Promise.allSettled(refreshes);
-  }, [isOffline, isPerpsEnabled, refetchTokens, refreshPerps]);
+  }, [
+    isOffline,
+    isPerpsEnabled,
+    isTokenWatchlistEnabled,
+    orderError,
+    refetchTokenMembership,
+    refetchTokens,
+    refreshPerps,
+    retryOrder,
+  ]);
 
   return {
-    isUnifiedEnabled,
-    isPerpsEnabled,
     items,
+    isOrderReady,
+    orderError,
     tokens: {
       items: tokens,
-      isLoading: !isOffline && isTokenLoading,
-      error: tokenError?.message ?? null,
+      error: isTokenWatchlistEnabled
+        ? (tokenMembershipError?.message ??
+          tokenError?.message ??
+          tokenMetadataCoverageError ??
+          (isTokenHydrationUnavailable
+            ? 'Watchlist metadata is unavailable offline'
+            : null))
+        : null,
     },
     perps: {
       items: perps,
-      isLoading: isPerpsEnabled && isPerpsLoading,
       error: isPerpsEnabled ? perpsError : null,
     },
+    suggestedPerps,
     canUseLivePerpsPrices:
       isPerpsEnabled && canUseWatchlistLivePrices(hardwareTier, networkTier),
     canUseMotion: canUseWatchlistMotion(hardwareTier, networkTier),
-    canRefresh: !isOffline,
+    canRefresh: !isOffline || Boolean(orderError),
     canFetchSuggestions: !isOffline && hardwareTier !== 'LOW',
+    tokenMembershipAssetIds,
+    tokenCount: isTokenWatchlistEnabled ? tokenMembershipAssetIds.length : 0,
+    perpsCount: isPerpsEnabled ? watchlistSymbols.length : 0,
     isInitialLoading:
-      (!isOffline && isTokenLoading) ||
-      (isPerpsEnabled && isPerpsLoading && !isOffline),
+      (isTokenWatchlistEnabled &&
+        (isTokenMembershipLoading || (!isOffline && isTokenLoading))) ||
+      (isPerpsEnabled && isPerpsLoading && !isOffline) ||
+      isOrderLoading,
+    persistOrder,
     refresh,
   };
 };

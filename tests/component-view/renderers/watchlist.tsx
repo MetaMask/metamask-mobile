@@ -10,11 +10,11 @@ import { TokenDetails } from '../../../app/components/UI/TokenDetails/Views/Toke
 import { AccessRestrictedProvider } from '../../../app/components/UI/Compliance';
 import { HardwareWalletProvider } from '../../../app/core/HardwareWallet/HardwareWalletProvider';
 import { initialStateWatchlist } from '../presets/watchlist';
-import WatchlistPerpsProvider from '../../../app/components/UI/Watchlist/WatchlistPerpsProvider';
 import {
   createTestStreamManager,
   type PerpsStreamOverrides,
 } from './perpsViewRenderer';
+import { PerpsStreamProvider } from '../../../app/components/UI/Perps/providers/PerpsStreamManager';
 
 interface RenderWatchlistOptions {
   overrides?: DeepPartial<RootState>;
@@ -69,9 +69,9 @@ export function renderWatchlistSectionWithRoutes(
   const WatchlistSectionWithPerps = (
     props: React.ComponentProps<typeof WatchlistSection>,
   ) => (
-    <WatchlistPerpsProvider testStreamManager={streamManager}>
+    <PerpsStreamProvider testStreamManager={streamManager}>
       <WatchlistSection {...props} />
-    </WatchlistPerpsProvider>
+    </PerpsStreamProvider>
   );
   const WatchlistFullViewWithPerps = () => (
     <WatchlistFullScreenView testStreamManager={streamManager} />

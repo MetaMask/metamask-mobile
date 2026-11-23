@@ -90,7 +90,135 @@ describeForPlatforms('WatchlistSection', () => {
   });
 
   it('renders same-ticker token and Perps rows when unified watchlist is enabled', async () => {
-    const { findByTestId } = renderWatchlistSectionWithRoutes({
+    const { findByTestId, queryByTestId } = renderWatchlistSectionWithRoutes({
+      unifiedWatchlist: true,
+      perpsWatchlistSymbols: ['ETH'],
+      streamOverrides: {
+        marketData: [
+          {
+            symbol: 'ETH',
+            name: 'Ethereum Perpetual',
+            maxLeverage: '50x',
+            price: '$2,000.00',
+            change24h: '+$50.00',
+            change24hPercent: '+2.50%',
+            volume: '$1.5B',
+            openInterest: '$500M',
+            marketType: 'index',
+          },
+        ],
+      },
+    });
+
+    expect(
+      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.badge('ETH')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders two token suggestions followed by three Perps suggestions', async () => {
+    setupWatchlistStorageMock(EMPTY_BLOB);
+    clearAllNockMocks();
+    setupWatchlistTokenApiMock([
+      {
+        assetId: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        decimals: 18,
+        marketData: {
+          price: '90000.00',
+          pricePercentChange1d: '1.10',
+          marketCap: 900_000_000_000,
+          totalVolume: 20_000_000_000,
+        },
+      },
+      ...mockWatchlistTokensResponse,
+    ]);
+    setupReadOnlyNetworkStoreMock();
+
+    const suggestedPerps = ['SOL', 'XRP', 'DOGE', 'AVAX'].map((symbol) => ({
+      symbol,
+      name: `${symbol} Perpetual`,
+      maxLeverage: '50x',
+      price: '$2,000.00',
+      change24h: '+$50.00',
+      change24hPercent: '+2.50%',
+      volume: '$1.5B',
+      openInterest: '$500M',
+      marketType: 'index',
+    }));
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderWatchlistSectionWithRoutes({
+        unifiedWatchlist: true,
+        streamOverrides: { marketData: suggestedPerps },
+      });
+
+    await findByTestId(
+      getAddButtonTestId('bip122:000000000019d6689c085ae165831e93/slip44:0'),
+    );
+    expect(
+      getByTestId(getAddButtonTestId('eip155:1/slip44:60')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('SOL')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.badge('SOL')),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('XRP')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('DOGE')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.addButton('AVAX')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not suggest a Perps market matching a watched token', async () => {
+    setupWatchlistStorageMock({
+      assets: [mockWatchlistAssetIds[0]],
+      version: 1,
+    });
+
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderWatchlistSectionWithRoutes({
+        unifiedWatchlist: true,
+        streamOverrides: {
+          marketData: ['ETH', 'SOL', 'XRP', 'DOGE'].map((symbol) => ({
+            symbol,
+            name: `${symbol} Perpetual`,
+            maxLeverage: '50x',
+            price: '$2,000.00',
+            change24h: '+$50.00',
+            change24hPercent: '+2.50%',
+            volume: '$1.5B',
+            openInterest: '$500M',
+          })),
+        },
+      });
+
+    expect(
+      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getPerpsMarketRowItemSelector.addButton('ETH')),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsMarketRowItemSelector.addButton('SOL')),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not suggest a token matching a watched Perps market', async () => {
+    setupWatchlistStorageMock(EMPTY_BLOB);
+
+    const { findByTestId, queryByTestId } = renderWatchlistSectionWithRoutes({
       unifiedWatchlist: true,
       perpsWatchlistSymbols: ['ETH'],
       streamOverrides: {
@@ -110,11 +238,11 @@ describeForPlatforms('WatchlistSection', () => {
     });
 
     expect(
-      await findByTestId(getRowTestId(mockWatchlistAssetIds[0])),
-    ).toBeOnTheScreen();
-    expect(
       await findByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
     ).toBeOnTheScreen();
+    expect(
+      queryByTestId(getAddButtonTestId('eip155:1/slip44:60')),
+    ).not.toBeOnTheScreen();
   });
 
   it('navigates to the full-screen watchlist when the section header is pressed', async () => {

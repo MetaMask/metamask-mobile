@@ -21,14 +21,25 @@ interface UsePerpsWatchlistActionsResult {
    * optimistic local update and syncs to AuthenticatedUserStorageService.
    * Falls back to local-only when unauthenticated.
    */
-  addToWatchlist: (symbol: string) => Promise<void>;
+  addToWatchlist: (symbol: string) => Promise<boolean>;
   /**
    * Removes a market from the watchlist.
    *
    * Same optimistic-update and AUS sync behaviour as addToWatchlist.
    */
-  removeFromWatchlist: (symbol: string) => Promise<void>;
+  removeFromWatchlist: (symbol: string) => Promise<boolean>;
 }
+
+interface UsePerpsWatchlistActionsOptions {
+  showToasts?: boolean;
+}
+
+const includesSymbol = (symbols: string[], symbol: string): boolean => {
+  const normalizedSymbol = symbol.toLowerCase();
+  return symbols.some(
+    (watchedSymbol) => watchedSymbol.toLowerCase() === normalizedSymbol,
+  );
+};
 
 /**
  * Provides add/remove watchlist actions with analytics and error reporting.
@@ -39,18 +50,26 @@ interface UsePerpsWatchlistActionsResult {
  */
 export const usePerpsWatchlistActions = (
   source: string = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
+  { showToasts = true }: UsePerpsWatchlistActionsOptions = {},
 ): UsePerpsWatchlistActionsResult => {
   const { track } = usePerpsEventTracking();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const addToWatchlist = useCallback(
-    async (symbol: string): Promise<void> => {
+    async (symbol: string): Promise<boolean> => {
       try {
         const controller = Engine.context.PerpsController;
+        const watchlistBefore = controller.getWatchlistMarkets();
 
-        if (controller.getWatchlistMarkets().length >= WATCHLIST_LIMIT) {
-          showToast(PerpsToastOptions.watchlist.limitReached);
-          return;
+        if (includesSymbol(watchlistBefore, symbol)) {
+          return true;
+        }
+
+        if (watchlistBefore.length >= WATCHLIST_LIMIT) {
+          if (showToasts) {
+            showToast(PerpsToastOptions.watchlist.limitReached);
+          }
+          return false;
         }
 
         // Not awaited: the controller applies its local update synchronously
@@ -60,7 +79,19 @@ export const usePerpsWatchlistActions = (
         const persisted = controller.toggleWatchlistMarket(symbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
-        if (watchlistAfter.includes(symbol)) {
+        if (includesSymbol(watchlistAfter, symbol)) {
+          if (showToasts) {
+            showToast(PerpsToastOptions.watchlist.added(symbol));
+          }
+        }
+
+        flushEngineState();
+        await persisted.finally(() => {
+          flushEngineState();
+        });
+        const finalWatchlist = controller.getWatchlistMarkets();
+        const didAdd = includesSymbol(finalWatchlist, symbol);
+        if (didAdd) {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
               PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
@@ -68,15 +99,10 @@ export const usePerpsWatchlistActions = (
               PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET,
             [PERPS_EVENT_PROPERTY.ASSET]: symbol,
             [PERPS_EVENT_PROPERTY.SOURCE]: source,
-            [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
+            [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: finalWatchlist.length,
           });
-          showToast(PerpsToastOptions.watchlist.added(symbol));
         }
-
-        flushEngineState();
-        await persisted.finally(() => {
-          flushEngineState();
-        });
+        return didAdd;
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
           tags: {
@@ -90,21 +116,40 @@ export const usePerpsWatchlistActions = (
           },
         });
 
-        showToast(PerpsToastOptions.watchlist.addError);
+        if (showToasts) {
+          showToast(PerpsToastOptions.watchlist.addError);
+        }
+        return false;
       }
     },
-    [source, track, showToast, PerpsToastOptions],
+    [source, track, showToast, showToasts, PerpsToastOptions],
   );
 
   const removeFromWatchlist = useCallback(
-    async (symbol: string): Promise<void> => {
+    async (symbol: string): Promise<boolean> => {
       try {
         const controller = Engine.context.PerpsController;
+        const watchlistBefore = controller.getWatchlistMarkets();
+        if (!includesSymbol(watchlistBefore, symbol)) {
+          return true;
+        }
         // Not awaited before the toast — see addToWatchlist.
         const persisted = controller.toggleWatchlistMarket(symbol);
 
         const watchlistAfter = controller.getWatchlistMarkets();
-        if (!watchlistAfter.includes(symbol)) {
+        if (!includesSymbol(watchlistAfter, symbol)) {
+          if (showToasts) {
+            showToast(PerpsToastOptions.watchlist.removed(symbol));
+          }
+        }
+
+        flushEngineState();
+        await persisted.finally(() => {
+          flushEngineState();
+        });
+        const finalWatchlist = controller.getWatchlistMarkets();
+        const didRemove = !includesSymbol(finalWatchlist, symbol);
+        if (didRemove) {
           track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
             [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
               PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
@@ -112,15 +157,10 @@ export const usePerpsWatchlistActions = (
               PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
             [PERPS_EVENT_PROPERTY.ASSET]: symbol,
             [PERPS_EVENT_PROPERTY.SOURCE]: source,
-            [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
+            [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: finalWatchlist.length,
           });
-          showToast(PerpsToastOptions.watchlist.removed(symbol));
         }
-
-        flushEngineState();
-        await persisted.finally(() => {
-          flushEngineState();
-        });
+        return didRemove;
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
           tags: {
@@ -134,10 +174,13 @@ export const usePerpsWatchlistActions = (
           },
         });
 
-        showToast(PerpsToastOptions.watchlist.removeError);
+        if (showToasts) {
+          showToast(PerpsToastOptions.watchlist.removeError);
+        }
+        return false;
       }
     },
-    [source, track, showToast, PerpsToastOptions],
+    [source, track, showToast, showToasts, PerpsToastOptions],
   );
 
   return { addToWatchlist, removeFromWatchlist };

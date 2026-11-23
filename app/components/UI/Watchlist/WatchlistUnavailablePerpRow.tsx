@@ -16,12 +16,14 @@ export const getUnavailablePerpRemoveButtonTestId = (symbol: string) =>
 interface WatchlistUnavailablePerpRowProps {
   item: UnifiedWatchlistUnavailablePerp;
   onRemove: () => void;
+  showRemoveAction?: boolean;
   twClassName?: string;
 }
 
 const WatchlistUnavailablePerpRow = ({
   item,
   onRemove,
+  showRemoveAction = true,
   twClassName,
 }: WatchlistUnavailablePerpRowProps) => (
   <ListItem
@@ -29,17 +31,19 @@ const WatchlistUnavailablePerpRow = ({
     description={strings('token_watchlist.market_data_unavailable')}
     testID={getUnavailablePerpRowTestId(item.symbol)}
     endAccessory={
-      <ButtonIcon
-        iconName={IconName.StarFilled}
-        size={ButtonIconSize.Md}
-        onPress={onRemove}
-        testID={getUnavailablePerpRemoveButtonTestId(item.symbol)}
-        accessibilityLabel={strings(
-          'perps.market_details.remove_from_watchlist',
-        )}
-      />
+      showRemoveAction ? (
+        <ButtonIcon
+          iconName={IconName.StarFilled}
+          size={ButtonIconSize.Md}
+          onPress={onRemove}
+          testID={getUnavailablePerpRemoveButtonTestId(item.symbol)}
+          accessibilityLabel={strings(
+            'perps.market_details.remove_from_watchlist',
+          )}
+        />
+      ) : undefined
     }
-    twClassName={twClassName}
+    twClassName={['py-2 min-h-0', twClassName].filter(Boolean).join(' ')}
   />
 );
 

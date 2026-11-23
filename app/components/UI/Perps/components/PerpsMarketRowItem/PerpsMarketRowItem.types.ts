@@ -50,12 +50,6 @@ export interface PerpsMarketRowItemProps {
    * The callback receives the current displayMarket (with live price merged in).
    */
   onAddPress?: (market: PerpsMarketData) => void;
-  /**
-   * When provided, renders a favorite control for an existing watchlist row.
-   */
-  onWatchlistPress?: (market: PerpsMarketData) => void;
-  /** Whether the favorite control is selected. */
-  isWatchlisted?: boolean;
   /** Optional utility classes when embedding the row in another list. */
   twClassName?: string;
 }

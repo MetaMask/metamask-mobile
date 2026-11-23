@@ -23,6 +23,8 @@ import {
 
 interface UseWatchlistEditDraftParams {
   queryTokens: TrendingAsset[];
+  autoCommitWhenEmpty?: boolean;
+  reverseStorageOrder?: boolean;
   updateListMutation: {
     mutate: (
       assetIds: CaipAssetType[],
@@ -39,13 +41,15 @@ interface UseWatchlistEditDraftResult {
   isEditMode: boolean;
   displayTokens: TrendingAsset[];
   handleEditPress: () => void;
-  handleDonePress: () => void;
+  handleDonePress: () => Promise<boolean>;
   handleReorder: (event: ReorderableListReorderEvent) => void;
   onRemoveFromDraft: (assetId: string) => void;
 }
 
 export const useWatchlistEditDraft = ({
   queryTokens,
+  autoCommitWhenEmpty = true,
+  reverseStorageOrder = true,
   updateListMutation,
 }: UseWatchlistEditDraftParams): UseWatchlistEditDraftResult => {
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -105,9 +109,9 @@ export const useWatchlistEditDraft = ({
     [createEventBuilder, trackEvent],
   );
 
-  const commitPendingChanges = useCallback(() => {
+  const commitPendingChanges = useCallback(async (): Promise<boolean> => {
     if (draft === null) {
-      return;
+      return true;
     }
 
     const changed = !ordersMatch(draft.order, baselineOrderRef.current);
@@ -115,35 +119,54 @@ export const useWatchlistEditDraft = ({
     if (!changed) {
       setDraft(null);
       setIsEditMode(false);
-      return;
+      return true;
     }
 
-    const storageOrder = getStorageOrderFromDraft(draft, queryAssetIdSet);
+    const storageOrder = getStorageOrderFromDraft(
+      draft,
+      queryAssetIdSet,
+      reverseStorageOrder,
+    );
 
     if (
       storageOrder.length === 0 &&
       baselineOrderRef.current.length > 0 &&
       draft.order.length > 0
     ) {
-      return;
+      return false;
     }
 
-    updateListMutation.mutate(storageOrder as CaipAssetType[], {
-      onSuccess: () => {
-        trackRemovedTokens(storageOrder);
-      },
-      onError: () => {
-        setDraft(null);
-      },
-    });
     setIsEditMode(false);
-  }, [draft, queryAssetIdSet, trackRemovedTokens, updateListMutation]);
+    return new Promise((resolve) => {
+      updateListMutation.mutate(storageOrder as CaipAssetType[], {
+        onSuccess: () => {
+          trackRemovedTokens(storageOrder);
+          resolve(true);
+        },
+        onError: () => {
+          setDraft(null);
+          resolve(false);
+        },
+      });
+    });
+  }, [
+    draft,
+    queryAssetIdSet,
+    reverseStorageOrder,
+    trackRemovedTokens,
+    updateListMutation,
+  ]);
 
   useEffect(() => {
-    if (isEditMode && displayTokens.length === 0) {
-      commitPendingChanges();
+    if (autoCommitWhenEmpty && isEditMode && displayTokens.length === 0) {
+      commitPendingChanges().catch(() => undefined);
     }
-  }, [commitPendingChanges, displayTokens.length, isEditMode]);
+  }, [
+    autoCommitWhenEmpty,
+    commitPendingChanges,
+    displayTokens.length,
+    isEditMode,
+  ]);
 
   const handleEditPress = useCallback(() => {
     baselineOrderRef.current = getTokenAssetIdOrder(queryTokens);
@@ -183,9 +206,10 @@ export const useWatchlistEditDraft = ({
     [],
   );
 
-  const handleDonePress = useCallback(() => {
-    commitPendingChanges();
-  }, [commitPendingChanges]);
+  const handleDonePress = useCallback(
+    () => commitPendingChanges(),
+    [commitPendingChanges],
+  );
 
   return {
     isEditMode,
