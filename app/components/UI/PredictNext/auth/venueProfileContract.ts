@@ -10,7 +10,7 @@ export const SUPPORTED_DSL = ['dsl-1'] as const;
 /** The one profile id this build accepts. */
 export const VENUE_PROFILE_ID = 'kalshi-demo-signing';
 
-/** The intents this build signs. `funding.deposit` needs profile version 3. */
+/** The intents this build signs. */
 export type VenueIntentName =
   | 'order.place'
   | 'account.activate'

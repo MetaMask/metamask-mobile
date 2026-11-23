@@ -1,14 +1,15 @@
 import StorageWrapper from '../../../../store/storage-wrapper';
 
-/** Persisted cache for one registry environment and profile id. */
+/** Persisted cache for one Predict cluster and profile id. */
 export interface PersistedVenueProfiles {
-  policyRaw?: string;
-  policyEtag?: string;
+  targetVersion?: number;
+  revokedRaw?: string;
+  revokedEtag?: string;
   /** Raw profile bytes keyed by version, exactly as served. */
   profiles: Record<string, string>;
-  /** Highest `currentVersion` ever admitted. Never decreases. */
+  /** Highest profile version used. Never decreases. */
   floor: number;
-  /** When the policy was last fetched from the registry. */
+  /** When the refresh last completed. */
   fetchedAt?: number;
 }
 
@@ -21,7 +22,7 @@ export interface VenueProfileStorage {
 }
 
 export const venueProfileCacheKey = (
-  environment: string,
+  environment: 'dev' | 'uat',
   profileId: string,
 ): string => `predict.venue-profiles.${environment}.${profileId}`;
 
@@ -45,11 +46,11 @@ const parseFloor = (value: unknown): number =>
 
 /**
  * MMKV-backed cache of raw registry bytes and the admitted floor. It holds
- * no secrets: the policy and profiles are public and already in the bundle.
+ * no secrets: revocations and profiles are public and already in the bundle.
  */
 export class VenueProfileStore {
   readonly #storage: VenueProfileStorage;
-  readonly #environment: string;
+  readonly #environment: 'dev' | 'uat';
   readonly #profileId: string;
 
   constructor({
@@ -57,7 +58,7 @@ export class VenueProfileStore {
     profileId,
     storage = StorageWrapper,
   }: {
-    environment: string;
+    environment: 'dev' | 'uat';
     profileId: string;
     storage?: VenueProfileStorage;
   }) {
@@ -83,11 +84,16 @@ export class VenueProfileStore {
       }
       const value = parsed as Partial<PersistedVenueProfiles>;
       return {
-        ...(typeof value.policyRaw === 'string'
-          ? { policyRaw: value.policyRaw }
+        ...(typeof value.targetVersion === 'number' &&
+        Number.isSafeInteger(value.targetVersion) &&
+        value.targetVersion > 0
+          ? { targetVersion: value.targetVersion }
           : {}),
-        ...(typeof value.policyEtag === 'string'
-          ? { policyEtag: value.policyEtag }
+        ...(typeof value.revokedRaw === 'string'
+          ? { revokedRaw: value.revokedRaw }
+          : {}),
+        ...(typeof value.revokedEtag === 'string'
+          ? { revokedEtag: value.revokedEtag }
           : {}),
         profiles: parseProfiles(value.profiles),
         floor: parseFloor(value.floor),

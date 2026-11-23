@@ -3,10 +3,10 @@ import {
   validateSigningProfile,
   type SigningProfile,
 } from './venueSigningProfiles';
-import { BUNDLED_V3_RAW } from './venue-profiles/kalshi-demo-signing.raw';
+import { BUNDLED_V1_RAW } from './venue-profiles/kalshi-demo-signing.raw';
 
 const bundled = (): SigningProfile => {
-  const profile = validateSigningProfile(JSON.parse(BUNDLED_V3_RAW));
+  const profile = validateSigningProfile(JSON.parse(BUNDLED_V1_RAW));
   if (!profile) {
     throw new Error('bundled profile is invalid');
   }
@@ -33,6 +33,46 @@ const withPayloadPath = (path: string): SigningProfile => {
 describe('applyVenueProfileCeiling', () => {
   it('admits the bundled profile', () => {
     expect(applyVenueProfileCeiling(bundled())).toEqual({ ok: true });
+  });
+
+  it('admits a payload using a future API version', () => {
+    expect(
+      applyVenueProfileCeiling(
+        withPayloadPath('/trade-api/v3/isv/wallet/register'),
+      ),
+    ).toEqual({ ok: true });
+  });
+
+  it('admits a read using a future API version', () => {
+    const profile = bundled();
+    expect(
+      applyVenueProfileCeiling({
+        ...profile,
+        reads: {
+          ...profile.reads,
+          allow: [{ method: 'GET', path: '/trade-api/v3/portfolio/balance' }],
+        },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it('refuses a payload with only a matching prefix fragment', () => {
+    expect(
+      applyVenueProfileCeiling(withPayloadPath('/trade-api-other/v3/register')),
+    ).toEqual({ ok: false, reason: 'foreign_path' });
+  });
+
+  it('refuses a read with only a matching prefix fragment', () => {
+    const profile = bundled();
+    expect(
+      applyVenueProfileCeiling({
+        ...profile,
+        reads: {
+          ...profile.reads,
+          allow: [{ method: 'GET', path: '/trade-api-other/v3/balance' }],
+        },
+      }),
+    ).toEqual({ ok: false, reason: 'foreign_path' });
   });
 
   it('refuses another profile id', () => {

@@ -11,7 +11,6 @@ jest.mock('../../../../../util/Logger', () => ({
 
 // One refetch of the registry, then one retry of the same attempt.
 jest.mock('../../auth/venueSigningProfiles', () => ({
-  ...jest.requireActual('../../auth/venueSigningProfiles'),
   resolveVenueProfile: jest.fn().mockResolvedValue({}),
   refreshVenueProfileAfterRefusal: jest.fn().mockResolvedValue(undefined),
 }));

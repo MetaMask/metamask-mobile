@@ -16,7 +16,11 @@ const decode = (value: string) =>
 describe('buildVenueAuthorization', () => {
   it('encodes version, profile, credential and signatures as unpadded base64url', () => {
     const value = buildVenueAuthorization({
-      profile: { id: 'kalshi-demo-signing', version: 1 },
+      profile: {
+        id: 'kalshi-demo-signing',
+        version: 1,
+        sha256: 'aCy-mcVXsZiOK5q4dei4zgDi3j3asmeGF206uKL6D9A',
+      },
       context,
       signatures: [signature],
       maxSignatures: 1,
@@ -25,18 +29,22 @@ describe('buildVenueAuthorization', () => {
     expect(value).toMatch(/^[A-Za-z0-9_-]+$/u);
     expect(decode(value)).toEqual({
       v: VENUE_AUTHORIZATION_VERSION,
-      profile: { id: 'kalshi-demo-signing', version: 1 },
+      profile: {
+        id: 'kalshi-demo-signing',
+        version: 1,
+        sha256: 'aCy-mcVXsZiOK5q4dei4zgDi3j3asmeGF206uKL6D9A',
+      },
       credential: context,
       signatures: [signature],
     });
   });
 
-  it('carries the exact-bytes profile hash when pinned', () => {
+  it('carries the required exact-bytes profile hash', () => {
     const value = buildVenueAuthorization({
       profile: {
         id: 'kalshi-demo-signing',
-        version: 3,
-        sha256: 'SIdWaTHZdPIAQmAhvhmF28N3p6jGHo46kEBLR0L118w',
+        version: 1,
+        sha256: 'aCy-mcVXsZiOK5q4dei4zgDi3j3asmeGF206uKL6D9A',
       },
       context,
       signatures: [signature],
@@ -46,8 +54,8 @@ describe('buildVenueAuthorization', () => {
     expect(decode(value)).toMatchObject({
       profile: {
         id: 'kalshi-demo-signing',
-        version: 3,
-        sha256: 'SIdWaTHZdPIAQmAhvhmF28N3p6jGHo46kEBLR0L118w',
+        version: 1,
+        sha256: 'aCy-mcVXsZiOK5q4dei4zgDi3j3asmeGF206uKL6D9A',
       },
     });
   });
@@ -55,7 +63,11 @@ describe('buildVenueAuthorization', () => {
   it('allows an empty signature list and refuses more than the profile allows', () => {
     const build = (count: number) =>
       buildVenueAuthorization({
-        profile: { id: 'p', version: 1 },
+        profile: {
+          id: 'p',
+          version: 1,
+          sha256: 'aCy-mcVXsZiOK5q4dei4zgDi3j3asmeGF206uKL6D9A',
+        },
         context,
         signatures: Array.from({ length: count }, () => signature),
         maxSignatures: 2,

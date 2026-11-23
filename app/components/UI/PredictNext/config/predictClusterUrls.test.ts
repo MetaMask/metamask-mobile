@@ -4,6 +4,10 @@ import {
   resolvePredictDeviceAuthIssuerUrl,
   type ClusterReading,
 } from './predictClusterUrls';
+import {
+  resolveVenueProfileRegistryUrl,
+  VENUE_PROFILE_REGISTRY_URL,
+} from '../auth/venueProfileRegistryUrl';
 
 const DEV_API_URL = 'https://predict-api.dev-api.cx.metamask.io';
 const UAT_API_URL = 'https://predict-api.uat-api.cx.metamask.io';
@@ -81,5 +85,42 @@ describe.each([
     expect(resolveUrl(reading(ApiEnv.Prod), 'https://predict.example')).toBe(
       'https://predict.example',
     );
+  });
+});
+
+describe('venue profile registry', () => {
+  it('uses the same fixed registry URL for dev and uat', () => {
+    expect(VENUE_PROFILE_REGISTRY_URL).toBe(
+      'https://pub-4571681e7ae145b0abdff881a1172b04.r2.dev/predict/venue-profiles',
+    );
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Dev))).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
+    );
+    expect(resolveVenueProfileRegistryUrl(reading(ApiEnv.Uat))).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
+    );
+  });
+
+  it('allows the local development default cluster', () => {
+    expect(resolveVenueProfileRegistryUrl(unsetReading(true))).toBe(
+      VENUE_PROFILE_REGISTRY_URL,
+    );
+  });
+
+  it('disables remote registry reads without a supported cluster', () => {
+    expect(
+      resolveVenueProfileRegistryUrl(reading(ApiEnv.Prod)),
+    ).toBeUndefined();
+    expect(
+      resolveVenueProfileRegistryUrl(reading(ApiEnv.Prod, true)),
+    ).toBeUndefined();
+    expect(resolveVenueProfileRegistryUrl(unsetReading(false))).toBeUndefined();
+    expect(
+      resolveVenueProfileRegistryUrl({
+        rawApiEnv: 'staging',
+        apiEnv: ApiEnv.Prod,
+        isDevelopment: true,
+      }),
+    ).toBeUndefined();
   });
 });

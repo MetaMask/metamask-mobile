@@ -79,6 +79,7 @@ const createMarketHistory = (overrides = {}) => ({
 });
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
+  getSigningProfile: jest.fn(),
   fetchVenueStatus: jest.fn(),
   fetchVenueCatalog: jest.fn(),
   fetchBalance: jest.fn(),

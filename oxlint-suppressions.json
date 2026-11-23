@@ -9565,21 +9565,8 @@
       "count": 1
     }
   },
-  "app/components/UI/PredictNext/auth/venueSigningProfileDocument.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/PredictNext/auth/venueSigningProfileV3.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/auth/venueSigningProfiles.ts": {
     "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 2
-    },
-    "typescript/promise-function-async": {
       "count": 2
     }
   },

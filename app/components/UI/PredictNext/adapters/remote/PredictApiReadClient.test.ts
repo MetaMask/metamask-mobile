@@ -114,6 +114,119 @@ describe('PredictApiReadClient', () => {
     });
   });
 
+  describe('getSigningProfile', () => {
+    it('requests the public endpoint without resolving a bearer token', async () => {
+      const getBearerToken = jest.fn().mockRejectedValue(new Error('locked'));
+      const profile = { id: 'kalshi-demo-signing', version: 1 };
+      fetchMock.mockResolvedValue(createResponse({ json: profile }));
+      client = new PredictApiReadClient({
+        baseUrl: 'https://predict.example/api/',
+        clientVersion: '7.0.0',
+        fetch: fetchMock,
+        getBearerToken,
+      });
+      const signal = new AbortController().signal;
+
+      await expect(
+        client.getSigningProfile(venueId, { signal }),
+      ).resolves.toEqual(profile);
+
+      expect(getBearerToken).not.toHaveBeenCalled();
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://predict.example/api/v1/venues/kalshi/signing-profile',
+        {
+          method: 'GET',
+          headers: {
+            Accept: 'application/json',
+            'x-metamask-clientproduct': 'metamask-mobile',
+            'x-metamask-clientversion': '7.0.0',
+          },
+          signal,
+        },
+      );
+    });
+
+    it('encodes the venue as one path segment', async () => {
+      fetchMock.mockResolvedValue(
+        createResponse({ json: { id: 'kalshi-demo-signing', version: 1 } }),
+      );
+
+      await client.getSigningProfile('venue/one' as PredictVenueId);
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        'https://predict.example/api/v1/venues/venue%2Fone/signing-profile',
+        expect.anything(),
+      );
+    });
+
+    it.each([1, Number.MAX_SAFE_INTEGER])(
+      'accepts positive safe integer version %s',
+      async (version) => {
+        const profile = { id: 'kalshi-demo-signing', version };
+        fetchMock.mockResolvedValue(createResponse({ json: profile }));
+
+        await expect(client.getSigningProfile(venueId)).resolves.toEqual(
+          profile,
+        );
+      },
+    );
+
+    it.each([
+      null,
+      [],
+      'profile',
+      {},
+      { id: 1, version: 1 },
+      { version: 1 },
+      { id: 'kalshi-demo-signing' },
+      ...[
+        0,
+        -1,
+        1.5,
+        Number.MAX_SAFE_INTEGER + 1,
+        NaN,
+        Infinity,
+        '1',
+        null,
+      ].map((version) => ({ id: 'kalshi-demo-signing', version })),
+    ])('rejects an invalid signing profile response %j', async (json) => {
+      fetchMock.mockResolvedValue(createResponse({ json }));
+
+      await expect(client.getSigningProfile(venueId)).rejects.toEqual(
+        new PredictHttpError(200),
+      );
+    });
+
+    it('rejects malformed JSON using the response status', async () => {
+      const response = createResponse();
+      jest.mocked(response.json).mockRejectedValue(new SyntaxError('invalid'));
+      fetchMock.mockResolvedValue(response);
+
+      await expect(client.getSigningProfile(venueId)).rejects.toEqual(
+        new PredictHttpError(200),
+      );
+    });
+
+    it('preserves HTTP error status and code', async () => {
+      fetchMock.mockResolvedValue(errorResponse(503, 'unavailable'));
+
+      await expect(client.getSigningProfile(venueId)).rejects.toMatchObject({
+        status: 503,
+        bodyCode: 'unavailable',
+      });
+    });
+
+    it('does not dispatch an aborted request', async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      await expect(
+        client.getSigningProfile(venueId, { signal: controller.signal }),
+      ).rejects.toMatchObject({ name: 'AbortError' });
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
   it('fails before HTTP when the API URL is not configured', async () => {
     client = new PredictApiReadClient({
       clientVersion: '7.0.0',
@@ -1370,7 +1483,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.commitWithdraw(venueId, previewId);
-        const rejected = expect(pending).rejects.toMatchObject({
+        const rejected = await expect(pending).rejects.toMatchObject({
           name: 'AbortError',
         });
         await jest.advanceTimersByTimeAsync(0);
@@ -1399,7 +1512,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.observeWithdraw(venueId, previewId);
-        const rejected = expect(pending).rejects.toMatchObject({
+        const rejected = await expect(pending).rejects.toMatchObject({
           name: 'AbortError',
         });
         await jest.advanceTimersByTimeAsync(0);

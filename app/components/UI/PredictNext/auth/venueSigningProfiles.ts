@@ -1,10 +1,9 @@
 /**
  * Venue profile resolution (ADR-0005).
  *
- * The profile used to be a signed document bundled with the app. It is now
- * readable JSON served by mm-config-registry through the client-config host
- * that matches this build's Predict cluster. The app resolves one snapshot
- * per operation from: fresh remote → persisted cache → bundled byte copy.
+ * predict-api names the target version. Immutable profile bytes and the
+ * revocation list come only from the registry URL compiled into this build.
+ * Resolution uses downloaded bytes, the persisted cache, then the bundle.
  *
  * Nothing here verifies a signature. The registry delivery path is the trust
  * boundary, and the build ceiling (`venueProfileCeiling.ts`) limits what any
@@ -21,18 +20,18 @@ import { applyVenueProfileCeiling } from './venueProfileCeiling';
 import { VENUE_PROFILE_ID } from './venueProfileContract';
 import { RemoteVenueProfileClient } from './RemoteVenueProfileClient';
 import {
-  BUNDLED_POLICY_RAW,
-  BUNDLED_V2_RAW,
-  BUNDLED_V3_RAW,
+  BUNDLED_REVOKED_RAW,
+  BUNDLED_V1_RAW,
 } from './venue-profiles/kalshi-demo-signing.raw';
+import { getVenueProfileRegistryUrl } from './venueProfileRegistryUrl';
+import { getApiEnv } from '../../../../core/apiEnv';
 import {
-  getVenueProfileRegistryEnvironment,
-  getVenueProfileRegistryUrl,
-} from './venueProfileRegistryUrl';
-import {
-  VenueProfileStore,
-  type PersistedVenueProfiles,
-} from './venueProfileStore';
+  getPredictApiUrl,
+  resolvePredictCluster,
+} from '../config/predictClusterUrls';
+import { PredictApiReadClient } from '../adapters/remote/PredictApiReadClient';
+import type { PredictVenueId } from '../types';
+import { VenueProfileStore } from './venueProfileStore';
 
 export {
   SUPPORTED_DSL,
@@ -169,19 +168,12 @@ function patternToRegExp(pattern: string): RegExp {
 }
 
 /* ------------------------------------------------------------------ */
-/* Policy and hashing                                                  */
+/* Revocations and hashing                                              */
 /* ------------------------------------------------------------------ */
 
-export interface VenueProfilePolicy {
-  readonly id: string;
-  readonly currentVersion: number;
-  readonly revokedVersions: readonly number[];
-}
-
 export type VenueProfileRefusal =
-  | 'policy_malformed'
+  | 'revoked_malformed'
   | 'profile_malformed'
-  | 'profile_low_version'
   | 'profile_revoked'
   | 'profile_below_floor'
   | 'profile_ceiling';
@@ -198,63 +190,38 @@ export const venueProfileSha256 = (raw: string): string => {
   return encoded;
 };
 
-const parsePolicy = (raw: string): VenueProfilePolicy | undefined => {
-  let value: unknown;
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const parseRevoked = (raw: string): ReadonlySet<number> | undefined => {
   try {
-    value = JSON.parse(raw);
+    const value: unknown = JSON.parse(raw);
+    if (
+      !isRecord(value) ||
+      value.id !== VENUE_PROFILE_ID ||
+      Object.keys(value).some(
+        (key) => key !== 'id' && key !== 'revokedVersions',
+      ) ||
+      !Array.isArray(value.revokedVersions) ||
+      !value.revokedVersions.every(
+        (version: unknown): version is number =>
+          typeof version === 'number' &&
+          Number.isSafeInteger(version) &&
+          version > 0,
+      ) ||
+      new Set(value.revokedVersions).size !== value.revokedVersions.length
+    ) {
+      return undefined;
+    }
+    return new Set(value.revokedVersions);
   } catch {
     return undefined;
   }
-  if (typeof value !== 'object' || value === null) {
-    return undefined;
-  }
-  const record = value as Record<string, unknown>;
-  if (
-    record.id !== VENUE_PROFILE_ID ||
-    typeof record.currentVersion !== 'number' ||
-    !Number.isSafeInteger(record.currentVersion) ||
-    record.currentVersion < 1 ||
-    !Array.isArray(record.revokedVersions) ||
-    !record.revokedVersions.every(
-      (entry): entry is number =>
-        typeof entry === 'number' && Number.isSafeInteger(entry) && entry >= 1,
-    )
-  ) {
-    return undefined;
-  }
-  return {
-    id: record.id,
-    currentVersion: record.currentVersion,
-    revokedVersions: [...record.revokedVersions],
-  };
-};
-
-/** Accepts a policy only if it cannot roll back what this device admitted. */
-const admitsPolicy = (
-  next: VenueProfilePolicy,
-  previous: VenueProfilePolicy | undefined,
-  floor: number,
-): boolean => {
-  if (next.currentVersion < floor) {
-    return false;
-  }
-  if (!previous) {
-    return true;
-  }
-  if (next.currentVersion < previous.currentVersion) {
-    return false;
-  }
-  return previous.revokedVersions.every((version) =>
-    next.revokedVersions.includes(version),
-  );
 };
 
 /* ------------------------------------------------------------------ */
 /* Payload validation                                                  */
 /* ------------------------------------------------------------------ */
-
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null && !Array.isArray(value);
 
 const isScalar = (value: unknown): value is string | number | boolean =>
   typeof value === 'string' ||
@@ -577,15 +544,15 @@ export interface VenueProfileResolverOptions {
   profileId?: string;
   client?: RemoteVenueProfileClient;
   store?: VenueProfileStore;
-  bundledPolicyRaw?: string;
+  getSigningProfile?: () => Promise<{ id: string; version: number }>;
+  bundledRevokedRaw?: string;
   bundledProfiles?: Readonly<Record<number, string>>;
   now?: () => number;
   log?: VenueProfileLog;
 }
 
 const BUNDLED_PROFILES: Readonly<Record<number, string>> = {
-  2: BUNDLED_V2_RAW,
-  3: BUNDLED_V3_RAW,
+  1: BUNDLED_V1_RAW,
 };
 
 /**
@@ -593,34 +560,36 @@ const BUNDLED_PROFILES: Readonly<Record<number, string>> = {
  *
  * `resolve()` never touches the network: entry points call `refresh()` in the
  * background, so a screen always gets an answer immediately. `refresh()`
- * fetches the policy with `If-None-Match`, and one profile body only when the
- * policy names a version this device has no bytes for. A refused copy never
- * replaces a previously admitted one.
+ * asks predict-api for the target, fetches revocations with `If-None-Match`,
+ * and downloads the target only when its bytes are not held.
  */
 export class VenueProfileResolver {
   readonly #profileId: string;
   readonly #client: RemoteVenueProfileClient | undefined;
   readonly #store: VenueProfileStore | undefined;
-  readonly #bundledPolicyRaw: string;
+  readonly #getSigningProfile: VenueProfileResolverOptions['getSigningProfile'];
+  readonly #bundledRevokedRaw: string;
   readonly #bundledProfiles: Readonly<Record<number, string>>;
   readonly #now: () => number;
   readonly #log: VenueProfileLog;
 
   #loading: Promise<void> | undefined;
   #loaded = false;
-  #policy: VenueProfilePolicy | undefined;
+  #targetVersion: number | undefined;
+  #revoked: ReadonlySet<number> | undefined;
+  #revokedRaw: string | undefined;
   #etag: string | undefined;
   #fetchedAt: number | undefined;
   #floor = 0;
   #documents = new Map<number, string>();
   #snapshot: VenueProfileSnapshot | undefined;
-  #persisted: PersistedVenueProfiles | undefined;
 
   constructor({
     profileId = VENUE_PROFILE_ID,
     client,
     store,
-    bundledPolicyRaw = BUNDLED_POLICY_RAW,
+    getSigningProfile,
+    bundledRevokedRaw = BUNDLED_REVOKED_RAW,
     bundledProfiles = BUNDLED_PROFILES,
     now = Date.now,
     log = (message, detail) => Logger.log(message, detail),
@@ -628,7 +597,8 @@ export class VenueProfileResolver {
     this.#profileId = profileId;
     this.#client = client;
     this.#store = store;
-    this.#bundledPolicyRaw = bundledPolicyRaw;
+    this.#getSigningProfile = getSigningProfile;
+    this.#bundledRevokedRaw = bundledRevokedRaw;
     this.#bundledProfiles = bundledProfiles;
     this.#now = now;
     this.#log = log;
@@ -648,43 +618,64 @@ export class VenueProfileResolver {
     );
   }
 
-  /** Fetches the policy and (when new) one profile. Failures keep state. */
+  /** Refresh failures preserve the last answer and downloaded bytes. */
   async refresh(): Promise<void> {
     await this.#load();
-    if (!this.#client || !this.#store) {
-      return;
-    }
-    try {
-      const result = await this.#client.fetchPolicy({
-        id: this.#profileId,
-        etag: this.#etag,
-      });
-      if (result.status === 'modified') {
-        const next = parsePolicy(result.raw);
-        if (!next || !admitsPolicy(next, this.#policy, this.#floor)) {
-          this.#log('PredictNext: venue profile policy refused');
-          return;
+    if (this.#getSigningProfile) {
+      try {
+        const target = await this.#getSigningProfile();
+        if (
+          target.id === this.#profileId &&
+          Number.isSafeInteger(target.version) &&
+          target.version > 0
+        ) {
+          this.#targetVersion = target.version;
+        } else {
+          this.#log('PredictNext: venue profile refused', 'profile_malformed');
         }
-        const versionChanged =
-          next.currentVersion !== this.#policy?.currentVersion;
-        this.#policy = next;
-        this.#etag = result.etag ?? this.#etag;
-        if (versionChanged) {
-          await this.#fetchVersion(next.currentVersion);
-        }
-      } else {
-        this.#etag = result.etag ?? this.#etag;
+      } catch {
+        this.#log('PredictNext: venue profile target fetch failed');
       }
-      this.#fetchedAt = this.#now();
-      await this.#persist();
-    } catch (error) {
-      this.#log(
-        'PredictNext: venue profile refresh failed',
-        error instanceof Error ? error.name : 'unknown',
-      );
-      return;
     }
+    if (this.#client) {
+      try {
+        const result = await this.#client.fetchRevoked({
+          id: this.#profileId,
+          etag: this.#etag,
+        });
+        if (result.status === 'modified') {
+          const next = parseRevoked(result.raw);
+          if (
+            next &&
+            (!this.#revoked ||
+              [...this.#revoked].every((version) => next.has(version)))
+          ) {
+            this.#revoked = next;
+            this.#revokedRaw = result.raw;
+            this.#etag = result.etag;
+          } else {
+            this.#log(
+              'PredictNext: venue profile refused',
+              'revoked_malformed',
+            );
+          }
+        } else {
+          this.#etag = result.etag ?? this.#etag;
+        }
+      } catch {
+        this.#log('PredictNext: venue profile revocations fetch failed');
+      }
+      if (
+        this.#targetVersion !== undefined &&
+        this.#targetVersion >= this.#floor &&
+        !this.#revoked?.has(this.#targetVersion)
+      ) {
+        await this.#fetchVersion(this.#targetVersion);
+      }
+    }
+    this.#fetchedAt = this.#now();
     this.#pick();
+    await this.#persist();
   }
 
   /** One refetch after predict-api answered a profile code, then retry. */
@@ -697,13 +688,14 @@ export class VenueProfileResolver {
   reset(): void {
     this.#loading = undefined;
     this.#loaded = false;
-    this.#policy = undefined;
+    this.#targetVersion = undefined;
+    this.#revoked = undefined;
+    this.#revokedRaw = undefined;
     this.#etag = undefined;
     this.#fetchedAt = undefined;
     this.#floor = 0;
     this.#documents = new Map();
     this.#snapshot = undefined;
-    this.#persisted = undefined;
   }
 
   async #load(): Promise<void> {
@@ -721,12 +713,15 @@ export class VenueProfileResolver {
     for (const [version, raw] of Object.entries(this.#bundledProfiles)) {
       this.#documents.set(Number(version), raw);
     }
-    this.#policy = parsePolicy(this.#bundledPolicyRaw);
-    this.#persisted = await this.#store?.load();
-    const persisted = this.#persisted;
+    this.#targetVersion =
+      Math.max(0, ...Object.keys(this.#bundledProfiles).map(Number)) ||
+      undefined;
+    this.#revokedRaw = this.#bundledRevokedRaw;
+    this.#revoked = parseRevoked(this.#bundledRevokedRaw);
+    const persisted = await this.#store?.load();
     if (persisted) {
       this.#floor = persisted.floor;
-      this.#etag = persisted.policyEtag;
+      this.#etag = persisted.revokedEtag;
       this.#fetchedAt = persisted.fetchedAt;
       for (const [version, raw] of Object.entries(persisted.profiles)) {
         const numeric = Number(version);
@@ -734,10 +729,16 @@ export class VenueProfileResolver {
           this.#documents.set(numeric, raw);
         }
       }
-      if (persisted.policyRaw) {
-        const policy = parsePolicy(persisted.policyRaw);
-        if (policy && admitsPolicy(policy, this.#policy, this.#floor)) {
-          this.#policy = policy;
+      this.#targetVersion = persisted.targetVersion ?? this.#targetVersion;
+      if (persisted.revokedRaw) {
+        const revoked = parseRevoked(persisted.revokedRaw);
+        if (
+          revoked &&
+          (!this.#revoked ||
+            [...this.#revoked].every((version) => revoked.has(version)))
+        ) {
+          this.#revoked = revoked;
+          this.#revokedRaw = persisted.revokedRaw;
         }
       }
     }
@@ -779,7 +780,10 @@ export class VenueProfileResolver {
       return { reason: 'profile_malformed' };
     }
     const profile = validateSigningProfile(value);
-    if (profile?.version !== expectedVersion) {
+    if (
+      profile?.version !== expectedVersion ||
+      profile.id !== this.#profileId
+    ) {
       return { reason: 'profile_malformed' };
     }
     const ceiling = applyVenueProfileCeiling(profile);
@@ -790,30 +794,32 @@ export class VenueProfileResolver {
   }
 
   #pick(): VenueProfileSnapshot | undefined {
-    const policy = this.#policy;
-    if (!policy) {
-      if (this.#snapshot) {
-        return this.#snapshot;
-      }
-      this.#log(
-        'PredictNext: venue profile policy refused',
-        'policy_malformed',
-      );
+    const target = this.#targetVersion;
+    if (target !== undefined && target < this.#floor) {
+      this.#log('PredictNext: venue profile refused', 'profile_below_floor');
+      this.#snapshot = undefined;
       return undefined;
     }
-    if (policy.revokedVersions.includes(policy.currentVersion)) {
-      this.#log('PredictNext: venue profile revoked', policy.currentVersion);
+    if (!this.#revoked) {
+      this.#snapshot = undefined;
+      return undefined;
     }
-    const candidates = [...this.#documents.keys()]
-      .filter(
-        (version) =>
-          version <= policy.currentVersion &&
-          version >= this.#floor &&
-          !policy.revokedVersions.includes(version),
-      )
-      .sort((left, right) => right - left);
-
+    // The floor is also the last successfully used version across restarts.
+    const candidates = [
+      target,
+      this.#snapshot?.version ?? (this.#floor || undefined),
+      ...Object.keys(this.#bundledProfiles)
+        .map(Number)
+        .sort((left, right) => right - left),
+    ];
     for (const version of candidates) {
+      if (
+        version === undefined ||
+        version < this.#floor ||
+        this.#revoked.has(version)
+      ) {
+        continue;
+      }
       const raw = this.#documents.get(version);
       if (raw === undefined) {
         continue;
@@ -828,11 +834,11 @@ export class VenueProfileResolver {
         version,
         sha256: parsed.sha256,
       };
-      this.#raiseFloor(parsed.profile.version);
+      this.#raiseFloor(version);
       return this.#snapshot;
     }
     this.#snapshot = undefined;
-    this.#log('PredictNext: venue profile unavailable', policy.currentVersion);
+    this.#log('PredictNext: venue profile unavailable', target);
     return undefined;
   }
 
@@ -842,7 +848,7 @@ export class VenueProfileResolver {
     }
     this.#floor = version;
     if (this.#store) {
-      void this.#persist();
+      this.#persist().catch(() => undefined);
     }
   }
 
@@ -855,8 +861,13 @@ export class VenueProfileResolver {
       profiles[String(version)] = raw;
     }
     await this.#store.save({
-      ...(this.#policy ? { policyRaw: JSON.stringify(this.#policy) } : {}),
-      ...(this.#etag ? { policyEtag: this.#etag } : {}),
+      ...(this.#targetVersion !== undefined
+        ? { targetVersion: this.#targetVersion }
+        : {}),
+      ...(this.#revokedRaw !== undefined
+        ? { revokedRaw: this.#revokedRaw }
+        : {}),
+      ...(this.#etag ? { revokedEtag: this.#etag } : {}),
       profiles,
       floor: this.#floor,
       ...(this.#fetchedAt !== undefined ? { fetchedAt: this.#fetchedAt } : {}),
@@ -869,9 +880,21 @@ export class VenueProfileResolver {
 /* ------------------------------------------------------------------ */
 
 const registryUrl = getVenueProfileRegistryUrl();
-const environment = getVenueProfileRegistryEnvironment();
+const environment = resolvePredictCluster({
+  rawApiEnv: process.env.MM_API_ENV,
+  apiEnv: getApiEnv(),
+  isDevelopment: __DEV__,
+});
 
 const defaultResolver = new VenueProfileResolver({
+  getSigningProfile: registryUrl
+    ? async () =>
+        new PredictApiReadClient({
+          baseUrl: getPredictApiUrl(),
+          clientVersion: packageJSON.version,
+          getBearerToken: async () => undefined,
+        }).getSigningProfile('kalshi' as PredictVenueId)
+    : undefined,
   client: registryUrl
     ? new RemoteVenueProfileClient({
         baseUrl: registryUrl,
@@ -886,7 +909,7 @@ const defaultResolver = new VenueProfileResolver({
 let activeResolver = defaultResolver;
 
 /** The resolved profile snapshot, or undefined when nothing is admitted. */
-export const resolveVenueProfile = (): Promise<
+export const resolveVenueProfile = async (): Promise<
   VenueProfileSnapshot | undefined
 > => activeResolver.resolve();
 
@@ -904,7 +927,7 @@ export const refreshVenueProfile = async (force = false): Promise<void> => {
 };
 
 /** One refetch after predict-api answers `venue_profile_*`. */
-export const refreshVenueProfileAfterRefusal = (): Promise<void> =>
+export const refreshVenueProfileAfterRefusal = async (): Promise<void> =>
   activeResolver.refreshAfterRefusal();
 
 /** Test seam: forget the memoized snapshot. */

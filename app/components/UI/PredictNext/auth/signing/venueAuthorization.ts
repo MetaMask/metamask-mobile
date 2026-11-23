@@ -16,7 +16,7 @@ export const buildVenueAuthorization = (input: {
   /** The resolved profile this signature was rendered from. `sha256` is the
    * base64url digest of the exact registry bytes; predict-api compares it
    * with its own copy. */
-  profile: { id: string; version: number; sha256?: string };
+  profile: { id: string; version: number; sha256: string };
   context: DeviceSigningContext;
   signatures: readonly DeviceSignature[];
   maxSignatures: number;

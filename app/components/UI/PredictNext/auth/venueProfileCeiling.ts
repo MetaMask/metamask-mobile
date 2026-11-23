@@ -9,7 +9,7 @@ import {
 } from './venueProfileContract';
 
 const VENUE_ID = 'kalshi';
-const API_PREFIX = '/trade-api/v2/';
+const API_PREFIX = '/trade-api/';
 const ORDER_INVARIANT = 'binary-limit-order-v1';
 const KNOWN_INTENTS: readonly VenueIntentName[] = [
   'order.place',

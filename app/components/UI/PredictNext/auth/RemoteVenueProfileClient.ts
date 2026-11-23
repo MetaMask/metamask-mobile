@@ -1,6 +1,6 @@
-import { VENUE_PROFILE_REGISTRY_PATH } from './venueProfileRegistryUrl';
+import { VENUE_PROFILE_REGISTRY_URL } from './venueProfileRegistryUrl';
 
-/** Hard ceiling on one profile or policy body, matching predict-api. */
+/** Hard ceiling on one profile or revocation body, matching predict-api. */
 export const VENUE_PROFILE_MAX_BYTES = 64 * 1024;
 
 /** One registry request cannot hold a resolve for long. */
@@ -47,7 +47,7 @@ const byteLength = (value: string): number =>
   new TextEncoder().encode(value).length;
 
 /**
- * Reads one policy or profile file from the client-config registry host.
+ * Reads one revocation list or profile file from the registry.
  *
  * Bodies are read as text, never JSON, because the profile's SHA-256 covers
  * the exact bytes the registry published. Timeout, size limit and status are
@@ -59,11 +59,11 @@ export class RemoteVenueProfileClient {
   readonly #fetch: typeof fetch;
 
   constructor({
-    baseUrl,
+    baseUrl = VENUE_PROFILE_REGISTRY_URL,
     clientVersion,
     fetch: fetchFn = global.fetch,
   }: {
-    baseUrl: string;
+    baseUrl?: string;
     clientVersion: string;
     fetch?: typeof fetch;
   }) {
@@ -78,7 +78,7 @@ export class RemoteVenueProfileClient {
     this.#fetch = fetchFn;
   }
 
-  fetchPolicy({
+  async fetchRevoked({
     id,
     etag,
     signal,
@@ -87,7 +87,7 @@ export class RemoteVenueProfileClient {
     etag?: string;
     signal?: AbortSignal;
   }): Promise<VenueProfileFetchResult> {
-    return this.#read(`${encode(id)}/policy.json`, etag, signal);
+    return this.#read(`${encode(id)}/revoked.json`, etag, signal);
   }
 
   async fetchProfile({
@@ -115,10 +115,7 @@ export class RemoteVenueProfileClient {
     etag: string | undefined,
     signal: AbortSignal | undefined,
   ): Promise<VenueProfileFetchResult> {
-    const url = new URL(
-      `${VENUE_PROFILE_REGISTRY_PATH}/${relativePath}`,
-      this.#baseUrl,
-    );
+    const url = new URL(relativePath, this.#baseUrl);
     const controller = new AbortController();
     const abort = () => controller.abort();
     signal?.addEventListener('abort', abort, { once: true });
