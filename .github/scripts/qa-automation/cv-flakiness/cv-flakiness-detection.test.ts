@@ -22,15 +22,16 @@ function writeJestStub(stubDir: string, options: JestStubOptions): string {
     `
 const fs = require('node:fs');
 const args = process.argv.slice(2);
-const outputFileIndex = args.indexOf('--outputFile');
-const outputFile = outputFileIndex !== -1 ? args[outputFileIndex + 1] : '';
-const seedIndex = args.indexOf('--seed');
-const seed = seedIndex !== -1 ? args[seedIndex + 1] : '';
+const option = (name) => {
+  const index = args.indexOf(name);
+  return index !== -1 ? args[index + 1] : '';
+};
+const outputFile = option('--outputFile');
+const seed = option('--seed');
 const files = args.filter(
   (arg, index) =>
     arg.endsWith('.view.test.tsx') &&
-    args[index - 1] !== '--outputFile' &&
-    args[index - 1] !== '--seed',
+    !['--outputFile', '--seed'].includes(args[index - 1]),
 );
 const callsPath = process.env.STUB_CALLS_PATH;
 if (callsPath) {
@@ -41,17 +42,12 @@ const sleepMs = ${JSON.stringify(options.sleepMs ?? 0)};
 setTimeout(() => {
   const testResults = files.map((file) => {
     const failed = Boolean(failSubstring) && file.includes(failSubstring);
-    return {
-      name: file,
+    const assertion = {
+      fullName: failed ? 'Stub failing test name' : 'Stub passing test name',
       status: failed ? 'failed' : 'passed',
-      assertionResults: [
-        {
-          fullName: failed ? 'Stub failing test name' : 'Stub passing test name',
-          status: failed ? 'failed' : 'passed',
-          failureMessages: failed ? ['Stub failure message'] : [],
-        },
-      ],
+      failureMessages: failed ? ['Stub failure message'] : [],
     };
+    return { name: file, status: failed ? 'failed' : 'passed', assertionResults: [assertion] };
   });
   if (outputFile) {
     fs.writeFileSync(outputFile, JSON.stringify({ testResults }));
@@ -193,11 +189,8 @@ describe('cv-flakiness-detection', () => {
   });
 
   afterEach(() => {
-    while (createdDirs.length > 0) {
-      const dir = createdDirs.pop();
-      if (dir) {
-        rmSync(dir, { recursive: true, force: true });
-      }
+    for (const dir of createdDirs.splice(0)) {
+      rmSync(dir, { recursive: true, force: true });
     }
   });
 

@@ -10,16 +10,13 @@
  * invocation once per repetition, with the file order shuffled per repetition
  * and `--randomize` shuffling test order inside each file.
  *
- * Behaviour:
- *   - Only files that exist on the checkout are run; deleted paths are listed
- *     in the summary and skipped.
- *   - The file list is capped at MAX_FILES so a mega-PR cannot blow up the job.
- *   - The `skip-cv-flakiness-detection` label opts a PR out (fail-open: a
- *     GitHub API error also skips, like the E2E mechanism).
- *   - A failure in any repetition fails the job and names every failing test.
- *   - TIME_BUDGET_MINUTES caps total repetition time. When the budget runs out,
- *     remaining repetitions are dropped with a warning instead of failing —
- *     a budget artifact must not block a merge.
+ * Behaviour: only files that exist on the checkout are run (deleted paths are
+ * reported and skipped), the list is capped at MAX_FILES, the
+ * `skip-cv-flakiness-detection` label opts a PR out (fail-open: a GitHub API
+ * error also skips, like the E2E mechanism), a failure in any repetition fails
+ * the job and names every failing test, and TIME_BUDGET_MINUTES stops further
+ * repetitions with a warning instead of failing — a budget artifact must not
+ * block a merge.
  *
  * Env:
  *   CHANGED_CV_TEST_FILES   Space-separated changed component view test paths.
