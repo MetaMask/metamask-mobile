@@ -107,6 +107,7 @@ describe('buildLighterDepositRequest', () => {
     );
     expect(options).toStrictEqual(
       expect.objectContaining({
+        isInternal: true,
         networkClientId: 'mainnet',
         origin: 'metamask',
         requireApproval: true,
