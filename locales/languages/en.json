@@ -4206,11 +4206,26 @@
         "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
         "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
         "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "under_review_label": "Your deposit of {{amount}} is under review. Support reference:",
         "unknown": "A deposit is already in progress. Try again in a moment.",
         "continue": "Continue",
         "cancel": "Cancel deposit",
         "close": "Got it",
         "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      },
+      "status": {
+        "awaiting_transfer": "Deposit waiting for your transfer",
+        "processing": "Deposit processing",
+        "under_review": "Deposit under review · Ref {{reference}}",
+        "under_review_label": "Deposit under review · Ref",
+        "copy_reference": "Copy support reference",
+        "reference_copied": "Support reference copied",
+        "failed": "Deposit failed",
+        "cancelled": "Deposit cancelled"
+      },
+      "notification": {
+        "completed_title": "Deposit complete",
+        "completed_description": "{{amount}} is ready to trade."
       }
     },
     "withdraw": {

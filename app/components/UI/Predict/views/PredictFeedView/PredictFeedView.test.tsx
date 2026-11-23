@@ -12,6 +12,7 @@ import {
 import type { PredictFeedConfigResult } from '../../hooks/usePredictFeedConfig';
 import type { UsePredictMarketListResult } from '../../hooks/usePredictMarketList';
 import type { UsePredictSearchResult } from '../../hooks/usePredictSearch';
+import { TraceName } from '../../../../../util/trace';
 import { deduplicateSeriesMarkets } from '../../utils/feed';
 
 let mockPredictBrandRefreshEnabled = false;
@@ -65,6 +66,7 @@ const mockClearSearchAndClose = jest.fn();
 const mockUsePredictFeedConfig = jest.fn();
 const mockUsePredictFeedMarketList = jest.fn();
 const mockUsePredictSearch = jest.fn();
+const mockUsePredictMeasurement = jest.fn();
 const mockPredictMarketProps = jest.fn();
 const mockSearchOverlayProps = jest.fn();
 
@@ -116,6 +118,11 @@ jest.mock('../../hooks/usePredictFeedMarketList', () => ({
 
 jest.mock('../../hooks/usePredictSearch', () => ({
   usePredictSearch: () => mockUsePredictSearch(),
+}));
+
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: (...args: unknown[]) =>
+    mockUsePredictMeasurement(...args),
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -875,6 +882,59 @@ describe('PredictFeedView', () => {
       expect(
         screen.queryByTestId(PredictFeedViewSelectorsIDs.CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('feed TTI measurement', () => {
+    const latestConditions = (): boolean[] | undefined => {
+      const calls = mockUsePredictMeasurement.mock.calls as [
+        { conditions?: boolean[] },
+      ][];
+      return calls[calls.length - 1]?.[0]?.conditions;
+    };
+
+    it('keeps PredictFeedView open while the list is still in its initial fetch', () => {
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ isLoading: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          conditions: [true, false],
+        }),
+      );
+    });
+
+    it('keeps PredictFeedView open when the feed config is not ready', () => {
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({ status: 'not-found' }),
+      );
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ isLoading: false }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([true, false]);
+    });
+
+    it('ends PredictFeedView once the list, empty state, or error can render', () => {
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([true, true]);
+    });
+
+    it('does not treat the search overlay as feed content', () => {
+      mockUsePredictSearch.mockReturnValue(
+        searchResult({ isSearchVisible: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([false, true]);
     });
   });
 });
