@@ -83,16 +83,18 @@ supplies. In both cases the template comes from outside this client.
 
 The profile that renders and signs venue requests is readable JSON served by
 mm-config-registry (see [ADR-0005](./adr/0005-remote-venue-profiles.md)). The
-app resolves fresh remote → MMKV cache → bundled byte copy, applies the build
-ceiling, and sends the exact-bytes SHA-256 in the envelope. The profile is
-public: it contains no key material, and it cannot widen what this build signs
-beyond `venueProfileCeiling.ts`.
+phone asks predict-api for the version its cluster is configured to use, then
+downloads that version and `revoked.json` from the registry URL constant,
+falling back to the last answer, the MMKV cache, and finally a bundled byte
+copy of version 1. It applies the build ceiling, refuses a revoked version or
+one below the stored floor, and sends the exact-bytes SHA-256 in the envelope.
+The profile is public: it contains no key material, and it cannot widen what
+this build signs beyond `venueProfileCeiling.ts`.
 
 A `venue_profile_update_required` or `venue_profile_not_ready` refusal forces
-one policy/profile refresh and one retry. Failures are logged as reason codes,
-never with envelope or body contents. When no copy is admissible, signed
-actions and signed reads fail with the unavailable error while browsing stays
-bearer-only.
+one profile refresh and one retry. Failures are logged as reason codes, never
+with envelope or body contents. When no copy is admissible, signed actions and
+signed reads fail with the unavailable error while browsing stays bearer-only.
 
 ## What a production key requires
 
