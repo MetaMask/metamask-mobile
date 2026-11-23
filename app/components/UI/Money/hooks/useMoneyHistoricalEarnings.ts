@@ -20,8 +20,7 @@ export const useMoneyHistoricalEarnings = ({
 }: UseMoneyHistoricalEarningsOptions = {}): UseQueryResult<InterestHistoryResponse> => {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
-  // const normalizedAddress = primaryMoneyAccount?.address?.toLowerCase();
-  const normalizedAddress = '0x0A5360656589BC9272F9aA1FF773255052D6D068';
+  const normalizedAddress = primaryMoneyAccount?.address?.toLowerCase();
   const configuredChainId = vaultConfig?.chainId;
   const chainId =
     configuredChainId === undefined ? undefined : Number(configuredChainId);
