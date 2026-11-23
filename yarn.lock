@@ -38529,7 +38529,7 @@ __metadata:
     "@metamask/snaps-rpc-methods": "npm:^19.0.0"
     "@metamask/snaps-sdk": "npm:^13.0.0"
     "@metamask/snaps-utils": "npm:^12.6.2"
-    "@metamask/social-controllers": "npm:^3.22.0"
+    "@metamask/social-controllers": "npm:@metamask-previews/social-controllers@3.22.0-preview-20f24a578"
     "@metamask/solana-wallet-snap": "npm:^7.3.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
