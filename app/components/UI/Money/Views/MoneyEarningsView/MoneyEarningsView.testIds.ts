@@ -22,6 +22,13 @@ export const MoneyEarningsViewTestIds = {
     `money-earnings-view-chart-gridline-${index}`,
   RANGE_SELECTOR: 'money-earnings-view-range-selector',
   SUMMARY: 'money-earnings-view-summary',
+  SUMMARY_ROW: (index: number): string =>
+    `money-earnings-view-summary-row-${index}`,
+  SUMMARY_ROW_DATE: (index: number): string =>
+    `money-earnings-view-summary-row-date-${index}`,
+  SUMMARY_ROW_VALUE: (index: number): string =>
+    `money-earnings-view-summary-row-value-${index}`,
+  SUMMARY_NOTE: 'money-earnings-view-summary-note',
   ADD_BUTTON: 'money-earnings-view-add-button',
   LOADING: 'money-earnings-view-loading',
   ERROR: 'money-earnings-view-error',

@@ -10106,6 +10106,7 @@
       "lifetime": "Lifetime",
       "projected_in_1_year": "Projected in 1 year",
       "projection_disclaimer": "Based on current balance and APY",
+      "payouts_disclaimer": "Interest payouts are accrued daily and paid in MetaMask USD",
       "chart_bucket_accessibility_label": "{{date}}, {{amount}}",
       "chart_bucket_unavailable_accessibility_label": "{{date}}, unavailable",
       "earn_more": "Earn more",

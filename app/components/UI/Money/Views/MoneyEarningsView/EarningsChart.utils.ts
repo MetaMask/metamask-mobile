@@ -69,6 +69,51 @@ export const formatPointDateRange = (
   return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
 };
 
+/**
+ * Formats an earnings bucket date for its summary row.
+ *
+ * @param point - Earnings bucket to format.
+ * @param locale - Locale used for the formatted date.
+ * @returns A locale-aware date label based on the bucket granularity.
+ */
+export const formatEarningsPointDate = (
+  point: EarningsPoint,
+  locale: string,
+): string => {
+  const { displayStart, displayEnd } = getBucketDisplayDateRange(point);
+
+  switch (point.granularity) {
+    case 'day':
+      return getIntlDateTimeFormatter(locale, {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }).format(new Date(displayStart));
+    case 'week': {
+      const formatter = getIntlDateTimeFormatter(locale, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: 'UTC',
+      });
+      const startLabel = formatter.format(new Date(displayStart));
+      const endLabel = formatter.format(new Date(displayEnd));
+
+      return startLabel === endLabel
+        ? startLabel
+        : `${startLabel} – ${endLabel}`;
+    }
+    case 'month':
+      return getIntlDateTimeFormatter(locale, {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }).format(new Date(displayStart));
+  }
+};
+
 export const getXAxisLabels = (
   points: EarningsPoint[],
   range: EarningsRange,

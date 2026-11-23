@@ -4,7 +4,6 @@ import type { ReactTestInstance } from 'react-test-renderer';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
-import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
 import type {
   InterestHistoryAvailability,
   InterestHistoryBucket,
@@ -18,15 +17,7 @@ jest.mock('../../hooks/useMoneyHistoricalEarnings', () => ({
   useMoneyHistoricalEarnings: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountProjectedEarnings', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
 const mockUseMoneyHistoricalEarnings = jest.mocked(useMoneyHistoricalEarnings);
-const mockUseMoneyAccountProjectedEarnings = jest.mocked(
-  useMoneyAccountProjectedEarnings,
-);
 const mockRefetchHistoricalEarnings = jest.fn();
 
 const getOnPress = (
@@ -45,17 +36,6 @@ const getOnPress = (
   }
 
   throw new Error('onPress handler not found');
-};
-
-const setProjectedEarningsResult = (
-  result: Partial<ReturnType<typeof useMoneyAccountProjectedEarnings>> = {},
-): void => {
-  mockUseMoneyAccountProjectedEarnings.mockReturnValue({
-    balanceFiat: 60000,
-    apyDecimal: 0.04,
-    projectedAmount: 2400,
-    ...result,
-  });
 };
 
 const available: InterestHistoryAvailability = {
@@ -179,13 +159,7 @@ describe('EarningsTab', () => {
       isError: false,
       refetch: jest.fn(),
     } as unknown as ReturnType<typeof useMoneyHistoricalEarnings>);
-    mockUseMoneyAccountProjectedEarnings.mockReturnValue({
-      balanceFiat: 60000,
-      apyDecimal: 0.04,
-      projectedAmount: 2400,
-    });
     setHistoricalEarningsResult();
-    setProjectedEarningsResult();
   });
 
   it('renders the selected range total and date range in the hero', () => {
@@ -326,6 +300,29 @@ describe('EarningsTab', () => {
     );
   });
 
+  it('formats a non-zero sub-cent earnings row as less than one cent', () => {
+    const subCentRange = createRange(
+      '30d',
+      [createBucket('2026-11-15T00:00:00.000Z', '0.001')],
+      '0.001',
+    );
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        ranges: [
+          ...historicalEarnings.ranges.filter(({ range }) => range !== '30d'),
+          subCentRange,
+        ],
+      },
+    });
+
+    const { getByTestId } = renderWithProvider(<EarningsTab />);
+
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_VALUE(0)),
+    ).toHaveTextContent('+<$0.01');
+  });
+
   it('formats a zero range total as zero dollars', () => {
     const zeroRange = createRange(
       '30d',
@@ -348,47 +345,62 @@ describe('EarningsTab', () => {
     );
   });
 
-  it('displays the authoritative 30-day total in the summary', () => {
+  it('displays selected range bucket earnings newest first with payout note', () => {
     const { getByTestId, getByText } = renderWithProvider(<EarningsTab />);
 
     expect(getByTestId(MoneyEarningsViewTestIds.SUMMARY)).toBeOnTheScreen();
-    expect(getByText('+$200.00')).toBeOnTheScreen();
-  });
-
-  it('displays the one-year total as Lifetime', () => {
-    const { getByText } = renderWithProvider(<EarningsTab />);
-
-    expect(getByText(strings('money.earnings.lifetime'))).toBeOnTheScreen();
-    expect(getByText('+$300.00')).toBeOnTheScreen();
-  });
-
-  it('displays the projected annual value from balance and APY', () => {
-    const { getByText } = renderWithProvider(<EarningsTab />);
-
     expect(
-      getByText(strings('money.earnings.projected_in_1_year')),
-    ).toBeOnTheScreen();
-    expect(getByText('+$2,400.00')).toBeOnTheScreen();
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_VALUE(0)),
+    ).toHaveTextContent('+$10.00');
     expect(
-      getByText(strings('money.earnings.projection_disclaimer')),
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_VALUE(1)),
+    ).toHaveTextContent('+$20.00');
+    expect(
+      getByText(strings('money.earnings.payouts_disclaimer')),
     ).toBeOnTheScreen();
   });
 
-  it('hides the projected row when balance or APY is unavailable', () => {
-    setProjectedEarningsResult({
-      balanceFiat: undefined,
-      apyDecimal: undefined,
-      projectedAmount: undefined,
+  it('updates row dates when the selected range changes', () => {
+    const { getByLabelText, getByTestId } = renderWithProvider(<EarningsTab />);
+
+    fireEvent.press(getByLabelText(strings('money.earnings.range_1w')));
+
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_DATE(0)),
+    ).toHaveTextContent('Sunday, Nov 15, 2026');
+
+    fireEvent.press(getByLabelText(strings('money.earnings.range_3m')));
+
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_DATE(0)),
+    ).toHaveTextContent('November 2026');
+  });
+
+  it('omits unavailable buckets from the earnings rows', () => {
+    const unavailableBucket = createBucket('2026-10-18T00:00:00.000Z', null, {
+      earnings: 'unavailable',
+      usd_pricing: 'unavailable',
+    });
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        ranges: [
+          createRange(
+            '30d',
+            [unavailableBucket, createBucket('2026-11-15T00:00:00.000Z', '10')],
+            '10',
+          ),
+        ],
+      },
     });
 
-    const { getByTestId, queryByText } = renderWithProvider(<EarningsTab />);
+    const { getByTestId, queryByTestId } = renderWithProvider(<EarningsTab />);
 
-    expect(getByTestId(MoneyEarningsViewTestIds.SUMMARY)).toBeOnTheScreen();
     expect(
-      queryByText(strings('money.earnings.projected_in_1_year')),
-    ).not.toBeOnTheScreen();
+      getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_VALUE(0)),
+    ).toHaveTextContent('+$10.00');
     expect(
-      queryByText(strings('money.earnings.projection_disclaimer')),
+      queryByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW(1)),
     ).not.toBeOnTheScreen();
   });
 
@@ -553,6 +565,5 @@ describe('EarningsTab', () => {
     renderWithProvider(<EarningsTab />);
 
     expect(mockUseMoneyHistoricalEarnings).toHaveBeenCalledWith();
-    expect(mockUseMoneyAccountProjectedEarnings).toHaveBeenCalledWith();
   });
 });

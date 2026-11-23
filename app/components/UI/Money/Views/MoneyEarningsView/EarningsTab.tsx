@@ -2,8 +2,8 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import I18n from '../../../../../../locales/i18n';
 import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
-import useMoneyAccountProjectedEarnings from '../../hooks/useMoneyAccountProjectedEarnings';
 import type { InterestHistoryResponse } from '../../types/moneyInterestHistory';
 import EarningsChart from './EarningsChart';
 import EarningsHero from './EarningsHero';
@@ -22,6 +22,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const EarningsTab = (): React.ReactElement => {
   const tw = useTailwind();
+  const locale = I18n.locale;
   const {
     data,
     isLoading,
@@ -55,26 +56,10 @@ const EarningsTab = (): React.ReactElement => {
       activePointIndex === null ? undefined : chartPoints[activePointIndex],
     [activePointIndex, chartPoints],
   );
-  const thirtyDayTotalUsd = useMemo(
-    () =>
-      getAuthoritativeRangeTotalUsd(
-        getSelectedRange(historicalEarningsResponse, '30D'),
-      ) ?? Number.NaN,
-    [historicalEarningsResponse],
-  );
-  const oneYearTotalUsd = useMemo(
-    () =>
-      getAuthoritativeRangeTotalUsd(
-        getSelectedRange(historicalEarningsResponse, '1Y'),
-      ) ?? Number.NaN,
-    [historicalEarningsResponse],
-  );
   const selectedRangeTotalUsd = useMemo(
     () => getAuthoritativeRangeTotalUsd(selectedRangeData) ?? Number.NaN,
     [selectedRangeData],
   );
-  const { projectedAmount: projectedOneYearUsd } =
-    useMoneyAccountProjectedEarnings();
   const hasUnavailableRange =
     selectedRangeData !== undefined &&
     (selectedRangeData.availability.earnings !== 'available' ||
@@ -83,14 +68,13 @@ const EarningsTab = (): React.ReactElement => {
     !isLoading &&
     !isError &&
     !hasMalformedHistory &&
-    Number.isFinite(thirtyDayTotalUsd) &&
-    Number.isFinite(oneYearTotalUsd) &&
     Number.isFinite(selectedRangeTotalUsd) &&
     chartPoints.some(isAvailableBucket);
 
-  const handleRetry = useCallback(() => {
-    void refetchHistoricalEarnings();
-  }, [refetchHistoricalEarnings]);
+  const handleRetry = useCallback(
+    () => refetchHistoricalEarnings(),
+    [refetchHistoricalEarnings],
+  );
 
   const handleRangeChange = useCallback((range: EarningsRange): void => {
     setActivePointIndex(null);
@@ -130,11 +114,7 @@ const EarningsTab = (): React.ReactElement => {
       />
       {hasHistoricalEarnings ? (
         <Box twClassName="py-4">
-          <EarningsSummary
-            thisMonthUsd={thirtyDayTotalUsd}
-            lifetimeUsd={oneYearTotalUsd}
-            projectedOneYearUsd={projectedOneYearUsd}
-          />
+          <EarningsSummary points={chartPoints} locale={locale} />
         </Box>
       ) : null}
     </ScrollView>

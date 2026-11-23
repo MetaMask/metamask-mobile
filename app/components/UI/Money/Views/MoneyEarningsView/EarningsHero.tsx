@@ -1,5 +1,4 @@
 import React from 'react';
-import BigNumber from 'bignumber.js';
 import {
   Box,
   FontWeight,
@@ -11,7 +10,7 @@ import {
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import type { InterestHistoryGranularity } from '../../types/moneyInterestHistory';
-import { DUST_THRESHOLD, moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { formatSignedUsdWithThreshold } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 interface EarningsHeroProps {
@@ -22,11 +21,6 @@ interface EarningsHeroProps {
   rangeStart: string;
   rangeEndExclusive: string;
 }
-
-const formatEarningsAmountUsd = (amountUsd: number): string =>
-  amountUsd !== 0 && Math.abs(amountUsd) < DUST_THRESHOLD
-    ? '<$0.01'
-    : moneyFormatUsd(new BigNumber(amountUsd));
 
 const formatPeriodDateRange = (
   periodStart: string,
@@ -67,7 +61,6 @@ const EarningsHero = ({
   rangeStart,
   rangeEndExclusive,
 }: EarningsHeroProps): React.ReactElement => {
-  const prefix = totalEarnedUsd > 0 ? '+' : '';
   const color =
     totalEarnedUsd > 0 ? TextColor.SuccessDefault : TextColor.TextDefault;
 
@@ -83,7 +76,7 @@ const EarningsHero = ({
         fontWeight={FontWeight.Bold}
         color={color}
       >
-        {`${prefix}${formatEarningsAmountUsd(totalEarnedUsd)}`}
+        {formatSignedUsdWithThreshold(totalEarnedUsd)}
       </Text>
       <Text
         testID={MoneyEarningsViewTestIds.HERO_PERIOD_DATE}

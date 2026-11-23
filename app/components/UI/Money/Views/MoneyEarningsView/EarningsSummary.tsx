@@ -1,95 +1,73 @@
 import React from 'react';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
+  ContentVariant,
   FontWeight,
+  ListItem,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { formatSignedUsd } from '../../utils/moneyFormatFiat';
+import { formatSignedUsdWithThreshold } from '../../utils/moneyFormatFiat';
+import { isAvailableBucket, type EarningsPoint } from './earningsHistory';
+import { formatEarningsPointDate } from './EarningsChart.utils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 interface EarningsSummaryProps {
-  thisMonthUsd: number;
-  lifetimeUsd: number;
-  projectedOneYearUsd: number | undefined;
+  points: EarningsPoint[];
+  locale: string;
 }
 
-interface SummaryRow {
-  label: string;
-  valueUsd: number;
-  sublabel?: string;
-}
-
-const isFiniteNumber = (value: number | undefined): value is number =>
-  value !== undefined && Number.isFinite(value);
+type AvailableEarningsPoint = EarningsPoint & { amountUsd: number };
 
 const EarningsSummary = ({
-  thisMonthUsd,
-  lifetimeUsd,
-  projectedOneYearUsd,
+  points,
+  locale,
 }: EarningsSummaryProps): React.ReactElement => {
-  const rows: SummaryRow[] = [
-    {
-      label: strings('money.earnings.last_30_days'),
-      valueUsd: thisMonthUsd,
-    },
-    // TODO: Replace 1Y earnings with lifetime earnings once added to interest history response.
-    // 1Y is not a valid lifetime substitute after the account is older than one year.
-    {
-      label: strings('money.earnings.lifetime'),
-      valueUsd: lifetimeUsd,
-    },
-    ...(isFiniteNumber(projectedOneYearUsd)
-      ? [
-          {
-            label: strings('money.earnings.projected_in_1_year'),
-            valueUsd: projectedOneYearUsd,
-            sublabel: strings('money.earnings.projection_disclaimer'),
-          },
-        ]
-      : []),
-  ];
+  const rows = points
+    .filter((point): point is AvailableEarningsPoint =>
+      isAvailableBucket(point),
+    )
+    .sort((firstPoint, secondPoint) =>
+      secondPoint.start.localeCompare(firstPoint.start),
+    );
 
   return (
     <Box testID={MoneyEarningsViewTestIds.SUMMARY}>
-      {rows.map(({ label, valueUsd, sublabel }) => (
-        <Box
-          key={label}
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="justify-between gap-4 py-4"
-        >
-          <Box twClassName="min-w-0 flex-1">
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {label}
-            </Text>
-            {sublabel ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {sublabel}
-              </Text>
-            ) : null}
-          </Box>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={
-              valueUsd > 0 ? TextColor.SuccessDefault : TextColor.TextDefault
-            }
-            twClassName="text-right"
-          >
-            {formatSignedUsd(valueUsd, { preserveSubCent: false })}
-          </Text>
-        </Box>
+      {rows.map((point, index) => (
+        <ListItem
+          key={point.start}
+          variant={ContentVariant.OneLine}
+          title={formatEarningsPointDate(point, locale)}
+          titleProps={{
+            fontWeight: FontWeight.Medium,
+            variant: TextVariant.BodyMd,
+            testID: MoneyEarningsViewTestIds.SUMMARY_ROW_DATE(index),
+          }}
+          value={formatSignedUsdWithThreshold(point.amountUsd)}
+          valueProps={{
+            color:
+              point.amountUsd > 0
+                ? TextColor.SuccessDefault
+                : TextColor.TextDefault,
+            fontWeight: FontWeight.Medium,
+            variant: TextVariant.BodyMd,
+            testID: MoneyEarningsViewTestIds.SUMMARY_ROW_VALUE(index),
+          }}
+          twClassName="p-0"
+          testID={MoneyEarningsViewTestIds.SUMMARY_ROW(index)}
+        />
       ))}
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        testID={MoneyEarningsViewTestIds.SUMMARY_NOTE}
+      >
+        {strings('money.earnings.payouts_disclaimer')}
+      </Text>
     </Box>
   );
 };
 
-export default EarningsSummary;
+export default React.memo(EarningsSummary);

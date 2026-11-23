@@ -4,6 +4,7 @@ import {
   clampUsdToCents,
   formatAxisUsd,
   formatDate,
+  formatEarningsPointDate,
   formatPointDateRange,
   getNiceUsdChartMaximum,
   getXAxisLabels,
@@ -68,6 +69,75 @@ describe('EarningsChart.utils', () => {
           'en-US',
         ),
       ).toBe('Nov 9 – Nov 15');
+    });
+
+    it.each([
+      [
+        'day',
+        '2026-11-19T00:00:00.000Z',
+        '2026-11-20T00:00:00.000Z',
+        'Thursday, Nov 19, 2026',
+      ],
+      [
+        'week',
+        '2026-11-13T00:00:00.000Z',
+        '2026-11-20T00:00:00.000Z',
+        'Nov 13, 2026 – Nov 19, 2026',
+      ],
+      [
+        'month',
+        '2026-11-13T00:00:00.000Z',
+        '2026-11-20T00:00:00.000Z',
+        'November 2026',
+      ],
+    ] as const)(
+      'formats %s earnings row dates',
+      (granularity, start, periodEndExclusive, expected) => {
+        const point = createPoint({
+          start,
+          periodEndExclusive,
+          granularity,
+        });
+
+        const result = formatEarningsPointDate(point, 'en-US');
+
+        expect(result).toBe(expected);
+      },
+    );
+
+    it('formats weekly earnings rows without DateTimeFormat.formatRange', () => {
+      const formatRangeDescriptor = Object.getOwnPropertyDescriptor(
+        Intl.DateTimeFormat.prototype,
+        'formatRange',
+      );
+
+      Object.defineProperty(Intl.DateTimeFormat.prototype, 'formatRange', {
+        configurable: true,
+        value: undefined,
+      });
+
+      try {
+        const result = formatEarningsPointDate(
+          createPoint({
+            start: '2026-11-13T00:00:00.000Z',
+            periodEndExclusive: '2026-11-20T00:00:00.000Z',
+            granularity: 'week',
+          }),
+          'en-US',
+        );
+
+        expect(result).toBe('Nov 13, 2026 – Nov 19, 2026');
+      } finally {
+        if (formatRangeDescriptor) {
+          Object.defineProperty(
+            Intl.DateTimeFormat.prototype,
+            'formatRange',
+            formatRangeDescriptor,
+          );
+        } else {
+          Reflect.deleteProperty(Intl.DateTimeFormat.prototype, 'formatRange');
+        }
+      }
     });
   });
 

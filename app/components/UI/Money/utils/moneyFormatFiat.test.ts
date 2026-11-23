@@ -5,6 +5,7 @@ import { AssetType } from '../../../Views/confirmations/types/token';
 import { MONEY_DEFAULT_FIAT_CURRENCY } from '../constants/fiat';
 import {
   formatSignedUsd,
+  formatSignedUsdWithThreshold,
   moneyFormatFiat,
   moneyFormatUsd,
   moneySafeTokenFiatCurrency,
@@ -188,6 +189,12 @@ describe('moneyFormatFiat', () => {
       const result = formatSignedUsd(-0.001, { preserveSubCent: false });
 
       expect(result).toBe('$0.00');
+    });
+
+    it('formats positive sub-cent values as a signed less-than-cent amount', () => {
+      const result = formatSignedUsdWithThreshold(0.001);
+
+      expect(result).toBe('+<$0.01');
     });
   });
 

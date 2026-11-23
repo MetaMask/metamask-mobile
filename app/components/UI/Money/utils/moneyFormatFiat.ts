@@ -82,3 +82,18 @@ export const formatSignedUsd = (
   const formattedAmountUsd = moneyFormatUsd(new BigNumber(amountUsd));
   return amountUsd > 0 ? `+${formattedAmountUsd}` : formattedAmountUsd;
 };
+
+/**
+ * Formats a signed US-dollar value with non-zero sub-cent values shown as
+ * less than one cent.
+ *
+ * @param amountUsd - The dollar amount to format.
+ * @returns The formatted signed dollar amount.
+ */
+export const formatSignedUsdWithThreshold = (amountUsd: number): string => {
+  if (amountUsd !== 0 && Math.abs(amountUsd) < DUST_THRESHOLD) {
+    return `${amountUsd > 0 ? '+' : ''}<$0.01`;
+  }
+
+  return formatSignedUsd(amountUsd, { preserveSubCent: false });
+};
