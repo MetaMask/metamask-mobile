@@ -819,10 +819,7 @@ describeForPlatforms('BridgeView', () => {
       expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
     });
 
-    // Pre-existing flake: this test also fails on `main` (live-network data
-    // reaches the suite), so it is not a nock 15 regression. Skipped
-    // temporarily; to be fixed in a follow-up PR.
-    it.skip('clears quote-only state when switching tabs without changing shared inputs', async () => {
+    it('clears quote-only state when switching tabs without changing shared inputs', async () => {
       const { getByTestId, store } = defaultBridgeWithTokens({
         bridge: {
           destAmount: '2',

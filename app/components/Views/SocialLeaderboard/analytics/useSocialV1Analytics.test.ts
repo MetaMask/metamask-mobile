@@ -385,6 +385,28 @@ describe('useSocialFeedInteractions', () => {
     );
   });
 
+  it('adds the post id and author trader id to a copy trade tap', () => {
+    const { result } = renderHook(() =>
+      useSocialFeedInteractions(Screen.TRENDING, {
+        source: SocialEvent.Source.SOCIAL_TRENDING,
+      }),
+    );
+    result.current.onCopyTradeInteraction({
+      ...position,
+      post_id: 'comment-1',
+      author_trader_id: 'trader-1',
+    });
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      expect.objectContaining({
+        interaction_type: Interaction.COPY_TRADE_TAPPED,
+        post_id: 'comment-1',
+        author_trader_id: 'trader-1',
+        ...position,
+      }),
+    );
+  });
+
   it('adds the post id and author trader id to a reaction', () => {
     const { result } = renderHook(() =>
       useSocialFeedInteractions(Screen.TRENDING),

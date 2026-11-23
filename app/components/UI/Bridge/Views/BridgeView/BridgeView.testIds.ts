@@ -16,6 +16,7 @@ export const BridgeViewSelectorsIDs = {
    */
   QUOTE_KEYPAD_DISMISS_TARGET: 'quote-keypad-dismiss-target',
   FEE_DISCLAIMER: 'bridge-fee-disclaimer',
+  FEE_DISCLAIMER_FREE_BADGE: 'bridge-fee-disclaimer-free-badge',
   QUOTE_DETAILS_SKELETON: 'bridge-quote-details-skeleton',
   MISSING_PRICE_BANNER: 'bridge-missing-price-banner',
   NO_QUOTES_BANNER: 'bridge-no-quotes',
