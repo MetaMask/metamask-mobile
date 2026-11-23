@@ -17431,7 +17431,7 @@
       "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 1
+      "count": 2
     },
     "typescript/promise-function-async": {
       "count": 1
