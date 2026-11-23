@@ -25,7 +25,9 @@ interface FeedPreviewSectionProps {
   events: readonly PredictEvent[];
   isLoading: boolean;
   isError: boolean;
-  onOpen: () => void;
+  /** Opens the section's Feed Screen. Without it the header is plain text
+   * with no chevron. */
+  onOpen?: () => void;
   onOpenEvent: (event: PredictEvent) => void;
   onOrder?: (
     event: PredictEvent,
@@ -68,17 +70,27 @@ export const FeedPreviewSection = ({
       twClassName="gap-3"
       onLayout={onLayout}
     >
-      <Pressable
-        testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
-        accessibilityRole="button"
-        accessibilityLabel={`View ${title}`}
-        onPress={onOpen}
-      >
-        <Box twClassName="flex-row items-center gap-1">
-          <Text variant={TextVariant.HeadingMd}>{title}</Text>
-          <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
-        </Box>
-      </Pressable>
+      {onOpen ? (
+        <Pressable
+          testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
+          accessibilityRole="button"
+          accessibilityLabel={`View ${title}`}
+          onPress={onOpen}
+        >
+          <Box twClassName="flex-row items-center gap-1">
+            <Text variant={TextVariant.HeadingMd}>{title}</Text>
+            <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
+          </Box>
+        </Pressable>
+      ) : (
+        <Text
+          testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
+          accessibilityRole="header"
+          variant={TextVariant.HeadingMd}
+        >
+          {title}
+        </Text>
+      )}
 
       {isLoading ? (
         <Box
