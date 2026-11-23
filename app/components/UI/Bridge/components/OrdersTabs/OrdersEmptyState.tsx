@@ -3,7 +3,6 @@ import { Image } from 'react-native';
 import {
   Box,
   BoxAlignItems,
-  BoxJustifyContent,
   TabEmptyState,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -34,11 +33,7 @@ export function OrdersEmptyState({
   );
 
   return (
-    <Box
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      twClassName="grow"
-    >
+    <Box alignItems={BoxAlignItems.Center} twClassName="grow pt-12">
       <TabEmptyState
         testID={testID}
         icon={
