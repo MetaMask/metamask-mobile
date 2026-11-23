@@ -12,6 +12,7 @@ import {
   checkPlaceOrderError,
 } from './predictErrorHandler';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -46,6 +47,10 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn(), log: jest.fn() },
+}));
+
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: { isEnabled: jest.fn() },
 }));
 
 // Byte-exact error.message from Sentry event 21edcb35 (NSURLErrorCannotConnectToHost).
@@ -324,6 +329,7 @@ describe('predictErrorHandler', () => {
       jest.mocked(Logger.log).mockClear();
       jest.mocked(Logger.error).mockClear();
       jest.mocked(addBreadcrumb).mockClear();
+      jest.mocked(analytics.isEnabled).mockReset().mockReturnValue(true);
     });
 
     it('logs a breadcrumb for an iOS connectivity failure', () => {
@@ -352,6 +358,27 @@ describe('predictErrorHandler', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(error, errorContext);
       expect(addBreadcrumb).not.toHaveBeenCalled();
+    });
+
+    it('does not add a breadcrumb when metrics consent is denied', () => {
+      jest.mocked(analytics.isEnabled).mockReturnValue(false);
+      const error = new Error(NSURL_CANNOT_CONNECT_ERROR_MESSAGE);
+
+      reportPredictError(error, errorContext);
+
+      expect(addBreadcrumb).not.toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('stops adding breadcrumbs after metrics consent is withdrawn', () => {
+      const error = new Error(NSURL_CANNOT_CONNECT_ERROR_MESSAGE);
+      reportPredictError(error, errorContext);
+      jest.mocked(analytics.isEnabled).mockReturnValue(false);
+
+      reportPredictError(error, errorContext);
+
+      expect(addBreadcrumb).toHaveBeenCalledTimes(1);
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 

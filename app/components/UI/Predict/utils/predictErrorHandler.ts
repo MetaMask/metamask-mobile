@@ -2,6 +2,7 @@ import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { addBreadcrumb } from '@sentry/react-native';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { analytics } from '../../../../util/analytics/analytics';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
 import {
   getPredictErrorMessages,
@@ -119,6 +120,11 @@ function addPredictNetworkBreadcrumb(
   error: unknown,
   errorContext: LoggerErrorOptions,
 ): void {
+  // Sentry stores breadcrumbs even when disabled, and opting out does not re-init it.
+  if (!analytics.isEnabled()) {
+    return;
+  }
+
   const code = NETWORK_FAILURE_CODE.exec(ensureError(error).message)
     ?.slice(1)
     .find(Boolean);

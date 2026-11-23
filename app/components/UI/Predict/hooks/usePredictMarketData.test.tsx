@@ -18,6 +18,9 @@ jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { log: jest.fn(), error: jest.fn() },
 }));
+jest.mock('../../../../util/analytics/analytics', () => ({
+  analytics: { isEnabled: jest.fn(() => true) },
+}));
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {

@@ -110,7 +110,11 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 jest.mock('../../../../../util/analytics/analytics', () => ({
-  analytics: { identify: jest.fn(), trackEvent: jest.fn() },
+  analytics: {
+    identify: jest.fn(),
+    trackEvent: jest.fn(),
+    isEnabled: jest.fn(() => true),
+  },
 }));
 
 jest.mock('../../../../../util/transactions', () => ({

@@ -200,6 +200,7 @@ jest.mock('@metamask/controller-utils', () => {
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
+    isEnabled: jest.fn(() => true),
   },
 }));
 
