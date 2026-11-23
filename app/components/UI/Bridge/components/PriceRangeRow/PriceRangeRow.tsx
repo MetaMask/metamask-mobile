@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable } from 'react-native';
+import { Image, TouchableOpacity } from 'react-native';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -133,14 +133,7 @@ const PriceRangeRow = ({
     oneLineWidth > availableOneLineWidth;
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      testID={PriceRangeRowSelectorsIDs.ROW}
-      style={({ pressed }) =>
-        tw.style('w-full px-4 pt-4 pb-4', pressed && 'bg-pressed')
-      }
-    >
+    <Box twClassName="w-full px-4 pt-4 pb-4">
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -173,71 +166,86 @@ const PriceRangeRow = ({
           color={TextColor.TextAlternative}
           twClassName="flex-1"
         >
-          {strings('bridge.recurring.price_range.label')}
+          {strings('bridge.recurring.price_range.input_label')}
         </Text>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-          twClassName="max-w-[50%] shrink"
-        >
-          {oneLineLabel && token ? (
+        <Box twClassName="max-w-[50%] shrink">
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel={strings(
+              'bridge.recurring.price_range.input_label',
+            )}
+            accessibilityValue={{
+              text:
+                oneLineLabel ?? strings('bridge.recurring.price_range.not_set'),
+            }}
+            activeOpacity={0.6}
+            onPress={onPress}
+            testID={PriceRangeRowSelectorsIDs.ROW}
+          >
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="min-w-0 shrink"
+              gap={1}
             >
-              <BadgeWrapper
-                testID={PriceRangeRowSelectorsIDs.AVATAR}
-                twClassName="self-center"
-                position={BadgeWrapperPosition.BottomRight}
-                badge={
-                  <Box
-                    twClassName="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
-                    style={{
-                      width: PRICE_RANGE_NETWORK_BADGE_SIZE,
-                      height: PRICE_RANGE_NETWORK_BADGE_SIZE,
-                    }}
+              {oneLineLabel && token ? (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="min-w-0 shrink"
+                >
+                  <BadgeWrapper
+                    testID={PriceRangeRowSelectorsIDs.AVATAR}
+                    twClassName="self-center"
+                    position={BadgeWrapperPosition.BottomRight}
+                    badge={
+                      <Box
+                        twClassName="overflow-hidden border-2 border-background-default bg-default rounded-[2px]"
+                        style={{
+                          width: PRICE_RANGE_NETWORK_BADGE_SIZE,
+                          height: PRICE_RANGE_NETWORK_BADGE_SIZE,
+                        }}
+                      >
+                        {networkImageSource ? (
+                          <Image
+                            source={networkImageSource}
+                            style={tw.style('h-full w-full')}
+                          />
+                        ) : null}
+                      </Box>
+                    }
                   >
-                    {networkImageSource ? (
-                      <Image
-                        source={networkImageSource}
-                        style={tw.style('h-full w-full')}
-                      />
-                    ) : null}
-                  </Box>
-                }
-              >
-                <AvatarToken
-                  name={token.symbol}
-                  src={tokenImageSource}
-                  size={AvatarTokenSize.Xs}
-                />
-              </BadgeWrapper>
-              <PriceRangeValue
-                minLabel={minLabel}
-                maxLabel={maxLabel}
-                shouldStack={shouldStack}
+                    <AvatarToken
+                      name={token.symbol}
+                      src={tokenImageSource}
+                      size={AvatarTokenSize.Xs}
+                    />
+                  </BadgeWrapper>
+                  <PriceRangeValue
+                    minLabel={minLabel}
+                    maxLabel={maxLabel}
+                    shouldStack={shouldStack}
+                  />
+                </Box>
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Regular}
+                  color={TextColor.TextDefault}
+                  testID={PriceRangeRowSelectorsIDs.VALUE}
+                >
+                  {strings('bridge.recurring.price_range.not_set')}
+                </Text>
+              )}
+              <Icon
+                name={IconName.ArrowRight}
+                size={IconSize.Sm}
+                color={IconColor.IconAlternative}
               />
             </Box>
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Regular}
-              color={TextColor.TextDefault}
-              testID={PriceRangeRowSelectorsIDs.VALUE}
-            >
-              {strings('bridge.recurring.price_range.not_set')}
-            </Text>
-          )}
-          <Icon
-            name={IconName.ArrowRight}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
+          </TouchableOpacity>
         </Box>
       </Box>
-    </Pressable>
+    </Box>
   );
 };
 

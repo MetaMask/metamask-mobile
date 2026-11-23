@@ -14,7 +14,6 @@ import { useTheme } from '../../../../../../util/theme';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   ButtonSize,
   ButtonsAlignment,
@@ -46,6 +45,8 @@ import { GasSpeed } from '../../gas/gas-speed';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 const NetworkFeeRow = ({
   fiat,
@@ -161,6 +162,7 @@ export function CancelSpeedupModal({
   onClose,
   confirmDisabled = false,
 }: CancelSpeedupModalProps) {
+  const isGlassHeader = useIsGlassHeader();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -268,7 +270,9 @@ export function CancelSpeedupModal({
       onBackButtonPress={onClose}
     >
       <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-        <BottomSheetHeader onClose={close}>{title}</BottomSheetHeader>
+        <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={close}>
+          {title}
+        </BottomSheetHeaderGlass>
         <Box style={tw.style('px-3')}>
           <Box gap={4}>
             <InfoSection>

@@ -19,7 +19,7 @@ import {
 } from '../../../../utils/format';
 import { PREDICT_PORTFOLIO_TEST_IDS } from './PredictPortfolio.testIds';
 
-const PRIMARY_SKELETON_HEIGHT = 56;
+const PRIMARY_SKELETON_HEIGHT = typography.sAmountDisplayLg.lineHeight;
 const SECONDARY_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
 
 export interface PredictPortfolioSummaryProps {

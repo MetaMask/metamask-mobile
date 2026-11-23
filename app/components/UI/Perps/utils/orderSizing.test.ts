@@ -65,6 +65,28 @@ describe('deriveOrderSizing', () => {
     expect(result.marginRequired).toBeUndefined();
   });
 
+  it('sizes and margins an exact base size instead of deriving one from the amount', () => {
+    // Arrange: $331.67 at 81,690 derives 0.00407 (the size covering the
+    // amount); an order-book row of 0.00406 must keep its own size.
+    const input = {
+      ...base,
+      amount: '331.67',
+      orderType: 'limit' as const,
+      limitPrice: '81690',
+      szDecimals: 5,
+    };
+
+    // Act
+    const derived = deriveOrderSizing(input);
+    const exact = deriveOrderSizing({ ...input, size: '0.00406' });
+
+    // Assert
+    expect(derived.positionSize).toBe('0.00407');
+    expect(exact.positionSize).toBe('0.00406');
+    // 0.00406 x 81,690 / 5x leverage
+    expect(exact.marginRequired).toBe('66.33');
+  });
+
   it('returns no margin when the amount is empty', () => {
     // Arrange / Act
     const result = deriveOrderSizing({

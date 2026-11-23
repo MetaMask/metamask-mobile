@@ -56,6 +56,12 @@ const DEPENDENCIES_TO_TRANSPILE = [
   'd3-transition',
   'internmap',
   'lodash-es',
+  // nock 15.x is ESM-only ("type": "module"), and so are its @mswjs/interceptors
+  // runtime dependencies; Jest must transpile all of them for require().
+  'nock',
+  '@mswjs/interceptors',
+  '@open-draft/until',
+  'rettime',
   'react-native-wagmi-charts',
   'react-native-nitro-modules',
   '@notifee',
@@ -73,11 +79,17 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/authenticated-user-storage',
   '@metamask/base-controller',
   '@metamask/base-data-service',
+  // ESM-only; split out of @metamask/utils 12.0.1.
+  '@metamask/byte-utils',
+  '@metamask/error-utils',
+  '@metamask/node-utils',
+  '@metamask/type-utils',
   '@metamask/address-book-controller',
   // 3.x ships ESM-only under dist/*.js (2.x used a CJS build).
   '@metamask/analytics-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
+  '@metamask/chain-agnostic-permission',
   '@metamask/client-controller',
   '@metamask/chomp-api-service',
   '@metamask/client-utils',
@@ -91,24 +103,34 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/eth-block-tracker',
   '@metamask/eth-json-rpc-middleware',
   '@metamask/eth-json-rpc-provider',
+  '@metamask/eth-sig-util',
   '@metamask/delegation-controller',
   '@metamask/delegation-core',
   '@metamask/delegation-deployments',
+  // 4.x ships ESM-only under dist/*.js.
+  '@metamask/eip-5792-middleware',
   // ESM-only; the Money MPC keyring V2 adapter.
   '@metamask/eth-money-mpc-keyring',
   '@metamask/gas-fee-controller',
   // 2.x ships ESM-only under dist/*.js.
   '@metamask/geolocation-controller',
+  // 6.x ships ESM-only under dist/*.js.
+  '@metamask/gator-permissions-controller',
   '@metamask/keyring-controller',
+  '@metamask/key-tree',
   '@metamask/kyc-controller',
   '@metamask/logging-controller',
   '@metamask/money-account-balance-service',
-  // 5.x ships ESM-only under dist/*.js (3.x used CJS).
+  // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',
+  '@metamask/money-account-lifecycle-controller',
+  // 2.x ships ESM-only under dist/*.js (1.x used a CJS build).
+  '@metamask/money-account-controller',
   '@metamask/money-account-api-data-service',
   '@metamask/money-account-utils',
   '@metamask/multichain-account-service',
   '@metamask/multichain-network-controller',
+  '@metamask/network-connection-banner-controller',
   '@metamask/network-controller',
   '@metamask/network-enablement-controller',
   '@metamask/notification-services-controller',
@@ -119,6 +141,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/profile-controller',
   '@metamask/profile-sync-controller',
   '@metamask/ramps-controller',
+  // 7.x ships ESM-only under dist/*.js.
+  '@metamask/remote-feature-flag-controller',
   '@metamask/sentinel-api-service',
   '@metamask/seedless-onboarding-controller',
   '@metamask/snap-account-service',
@@ -147,6 +171,8 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // ESM-only, and reached through `@metamask/kyc-controller`'s nested v12 copy,
   // which cannot hoist onto the CJS v11 the rest of the repo resolves.
   '@metamask/utils',
+  // 2.1+ ships ESM-only under dist/*.js (2.0.x used a CJS build).
+  '@shopify/flash-list',
   '@tommasini/react-native-scrollable-tab-view',
   '@veriff/react-native-sdk',
   '@sumsub/react-native-mobilesdk-module',
@@ -157,6 +183,18 @@ const DEPENDENCIES_TO_TRANSPILE = [
   // We need to transpile it to avoid errors when running the tests.
   '@metamask/passkey-controller',
   '@metamask/accounts-controller',
+  '@metamask/sample-controllers',
+  '@metamask/multichain-api-middleware',
+  '@open-rpc/.*',
+  '@metamask/json-rpc-engine',
+  '@metamask/json-rpc-middleware-stream',
+  '@metamask/eip1193-permission-middleware',
+  '@metamask/ai-controllers',
+  '@metamask/app-metadata-controller',
+  '@metamask/compliance-controller',
+  '@metamask/earn-controller',
+  '@metamask/multichain-transactions-controller',
+  '@metamask/react-data-query',
 ];
 
 const config = {

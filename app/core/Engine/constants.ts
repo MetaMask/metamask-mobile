@@ -32,6 +32,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'KycService',
   'QrSyncProvisioningService',
   'SocialService',
+  'SocialRealtimeService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
   'MoneyAccountApiDataService',
@@ -42,6 +43,8 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'PredictLiveDataService',
   'PredictPortfolioService',
   'PredictOrderService',
+  'PredictFundingService',
+  'PredictDeviceAuthService',
   'RecurringOrdersDataService',
   'LimitOrdersDataService',
   'SentinelFeeTokensDataService',
@@ -79,7 +82,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'TransactionController:stateChange',
   'TransactionPayController:stateChange',
   'MultichainNetworkController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   'SnapController:stateChange',
   'SnapRegistryController:stateChange',
   'SubjectMetadataController:stateChange',
@@ -89,29 +91,28 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'NotificationServicesPushController:stateChange',
   'SnapInterfaceController:stateChange',
   'CronjobController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   'MultichainTransactionsController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
   'MoneyAccountController:stateChange',
   'MoneyAccountUpgradeController:stateChanged',
+  'MoneyAccountLifecycleController:stateChanged',
   'PerpsController:stateChange',
   'RewardsController:stateChange',
   'RewardsMoneyController:stateChange',
   'DeFiPositionsController:stateChange',
   'DeFiPositionsControllerV2:stateChanged',
   'SeedlessOnboardingController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
-  'SamplePetnamesController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
+  ...(process.env.INCLUDE_SAMPLE_FEATURE === 'true'
+    ? (['SamplePetnamesController:stateChange'] as const)
+    : []),
   'NetworkConnectionBannerController:stateChanged',
   'NetworkEnablementController:stateChange',
   'PredictController:stateChange',
   'CardController:stateChange',
   'UiSlotsController:stateChanged',
+  'PredictVenueController:stateChanged',
   'ClientController:stateChange',
   'DelegationController:stateChange',
   'ProfileMetricsController:stateChange',

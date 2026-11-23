@@ -121,6 +121,24 @@ describe('useTronUnstake', () => {
   });
 
   describe('initialization', () => {
+    it('returns safe defaults when token is missing', async () => {
+      const { result } = renderHook(() => useTronUnstake({ token: undefined }));
+
+      expect(result.current.isTronAsset).toBe(false);
+      expect(result.current.isTronEnabled).toBe(false);
+      expect(result.current.stakedTrxTotal).toBe(0);
+      expect(result.current.tronWithdrawalToken).toBeUndefined();
+
+      await act(async () => {
+        expect(await result.current.validateUnstakeAmount('1')).toBeNull();
+        expect(await result.current.confirmUnstake('1')).toBeNull();
+      });
+
+      expect(mockValidateTronUnstakeAmount).not.toHaveBeenCalled();
+      expect(mockConfirmTronUnstake).not.toHaveBeenCalled();
+      expect(mockComputeStakeFee).not.toHaveBeenCalled();
+    });
+
     it('returns isTronAsset true for TRX token', () => {
       const { result } = renderHook(() =>
         useTronUnstake({ token: mockTrxToken }),

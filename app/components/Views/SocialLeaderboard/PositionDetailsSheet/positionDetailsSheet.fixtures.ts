@@ -1,9 +1,25 @@
-import type { Position, Trade } from '@metamask/social-controllers';
+import type {
+  AuthorComment,
+  Position,
+  Trade,
+} from '@metamask/social-controllers';
 import type { SocialV1FeedAuthor } from '../../../UI/SocialFeed/types';
 
 export const HOUR_MS = 60 * 60 * 1000;
 export const DAY_MS = 24 * HOUR_MS;
 export const NOW_MS = Date.UTC(2026, 9, 13, 12, 0, 0);
+
+export const buildComment = (
+  overrides: Partial<AuthorComment> = {},
+): AuthorComment => ({
+  uid: 'comment-1',
+  text: 'Remember everyone, play nice',
+  timestamp: (NOW_MS - HOUR_MS) / 1000,
+  sourceLanguage: null,
+  translations: {},
+  engagement: { reactions: [], userReaction: null, replyCount: 0 },
+  ...overrides,
+});
 
 export const buildTrade = (overrides: Partial<Trade> = {}): Trade => ({
   direction: 'buy',

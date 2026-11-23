@@ -1,18 +1,25 @@
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { TokenSortBottomSheet } from './TokenSortBottomSheet';
 import { useSelector } from 'react-redux';
+import { TokenSortBottomSheet, getSortOption } from './TokenSortBottomSheet';
 import Engine from '../../../../core/Engine';
 import { selectTokenSortConfig } from '../../../../selectors/preferencesController';
-import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(),
+const mockGoBack = jest.fn();
+let mockRouteParams: { searchQuery?: string } | undefined;
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useRoute: () => ({ params: mockRouteParams }),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+    canGoBack: () => true,
+    navigate: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -23,94 +30,212 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('@react-navigation/native', () => {
-  const reactNavigationModule = jest.requireActual('@react-navigation/native');
-  return {
-    ...reactNavigationModule,
-    useNavigation: () => ({
-      navigate: jest.fn(),
-      goBack: jest.fn(),
-      isFocused: jest.fn(() => true),
-    }),
-  };
-});
+const mockTrackFiltering = jest.fn();
+jest.mock('../hooks/useTokenListFilteringEvent', () => ({
+  useTokenListFilteringEvent: () => mockTrackFiltering,
+}));
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => key),
+}));
+
+const BALANCE_DESC = {
+  key: 'tokenFiatAmount',
+  order: 'dsc',
+  sortCallback: 'stringNumeric',
+};
 
 describe('TokenSortBottomSheet', () => {
+  const mockSortConfig = (config: Record<string, string> = BALANCE_DESC) => {
+    (useSelector as jest.Mock).mockImplementation((selector) =>
+      selector === selectTokenSortConfig ? config : null,
+    );
+  };
+
+  const renderSheet = () => render(<TokenSortBottomSheet />);
+
   beforeEach(() => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectTokenSortConfig) {
-        return {
-          key: 'tokenFiatAmount',
-          order: 'dsc',
-          sortCallback: 'stringNumeric',
-        }; // Default token sort config
-      } else if (selector === selectCurrentCurrency) {
-        return 'USD';
-      }
-      return null;
-    });
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
+    mockSortConfig();
+    mockRouteParams = { searchQuery: 'eth' };
   });
 
-  it('renders correctly with the default sort option selected', () => {
-    const { queryByTestId } = render(<TokenSortBottomSheet />);
+  it('renders the title, both options, Reset and Apply', () => {
+    const { getByTestId, getByText } = renderSheet();
 
-    expect(queryByTestId(WalletViewSelectorsIDs.SORT_BY)).toBeTruthy();
+    expect(getByTestId(WalletViewSelectorsIDs.SORT_BY)).toBeOnTheScreen();
     expect(
-      queryByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
-    ).toBeTruthy();
+      getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
+    ).toBeOnTheScreen();
     expect(
-      queryByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
-    ).toBeTruthy();
+      getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
+    ).toBeOnTheScreen();
+    expect(getByText('wallet.sort_reset')).toBeOnTheScreen();
+    expect(getByText('wallet.sort_apply')).toBeOnTheScreen();
   });
 
-  it('triggers PreferencesController to sort by token fiat amount when first cell is pressed', async () => {
-    const { getByTestId } = render(<TokenSortBottomSheet />);
+  it('shows the direction label only on the selected option', () => {
+    const { getByText, queryByText } = renderSheet();
+
+    expect(getByText('wallet.sort_high_to_low')).toBeOnTheScreen();
+    expect(queryByText('wallet.sort_a_to_z')).not.toBeOnTheScreen();
+  });
+
+  it('marks only the selected option as checked', () => {
+    const { getByTestId } = renderSheet();
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
+    ).toBeChecked();
+    expect(
+      getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
+    ).not.toBeChecked();
+  });
+
+  it('flips the direction when the selected option is pressed again', () => {
+    const { getByTestId, getByText } = renderSheet();
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE));
 
-    await waitFor(() => {
-      expect(
-        Engine.context.PreferencesController.setTokenSortConfig,
-      ).toHaveBeenCalledWith({
-        key: 'tokenFiatAmount',
-        order: 'dsc',
-        sortCallback: 'stringNumeric',
-      });
-    });
+    expect(getByText('wallet.sort_low_to_high')).toBeOnTheScreen();
   });
 
-  it('triggers PreferencesController to sort alphabetically when the second cell is pressed', async () => {
-    const { getByTestId } = render(<TokenSortBottomSheet />);
+  it('selects a new option with its default direction', () => {
+    const { getByTestId, getByText } = renderSheet();
 
     fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+
+    expect(getByText('wallet.sort_a_to_z')).toBeOnTheScreen();
+  });
+
+  it('does not save anything until Apply is pressed', () => {
+    const { getByTestId } = renderSheet();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+
+    expect(
+      Engine.context.PreferencesController.setTokenSortConfig,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('saves the draft sort when Apply is pressed', async () => {
+    const { getByTestId } = renderSheet();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
 
     await waitFor(() => {
       expect(
         Engine.context.PreferencesController.setTokenSortConfig,
       ).toHaveBeenCalledWith({
         key: 'name',
-        sortCallback: 'alphaNumeric',
         order: 'asc',
+        sortCallback: 'alphaNumeric',
       });
     });
   });
 
-  it('displays the correct selection based on tokenSortConfig', () => {
-    (useSelector as jest.Mock).mockImplementation((selector) => {
-      if (selector === selectTokenSortConfig) {
-        return { key: 'symbol', order: 'dsc', sortCallback: 'stringNumeric' };
-      }
-      return null;
+  it('pops the route when Apply is pressed', async () => {
+    const { getByTestId } = renderSheet();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+  });
+
+  it('pops the route without saving when the close button is pressed', async () => {
+    const { getByTestId } = renderSheet();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_CLOSE));
+
+    await waitFor(() => expect(mockGoBack).toHaveBeenCalled());
+    expect(
+      Engine.context.PreferencesController.setTokenSortConfig,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('restores the default sort in the draft when Reset is pressed', async () => {
+    mockSortConfig({
+      key: 'name',
+      order: 'dsc',
+      sortCallback: 'alphaNumeric',
+    });
+    const { getByTestId } = renderSheet();
+
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_RESET));
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+    await waitFor(() => {
+      expect(
+        Engine.context.PreferencesController.setTokenSortConfig,
+      ).toHaveBeenCalledWith(BALANCE_DESC);
+    });
+  });
+
+  describe('analytics', () => {
+    it('tracks sorted with the new sort and the search query when Apply changes the field', () => {
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).toHaveBeenCalledTimes(1);
+      expect(mockTrackFiltering).toHaveBeenCalledWith('sorted', {
+        searchQuery: 'eth',
+        sort: { key: 'name', order: 'asc' },
+      });
     });
 
-    const { queryByTestId } = render(<TokenSortBottomSheet />);
+    it('tracks a direction flip on the same field', () => {
+      const { getByTestId } = renderSheet();
 
-    expect(
-      queryByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL),
-    ).toBeTruthy();
+      fireEvent.press(
+        getByTestId(WalletViewSelectorsIDs.SORT_DECLINING_BALANCE),
+      );
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).toHaveBeenCalledWith('sorted', {
+        searchQuery: 'eth',
+        sort: { key: 'tokenFiatAmount', order: 'asc' },
+      });
+    });
+
+    it('does not track when Apply leaves the sort unchanged', () => {
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
+    });
+
+    it('does not track on Reset or Close', () => {
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_RESET));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_CLOSE));
+
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
+    });
+
+    it('does not track when not opened from the Tokens list', () => {
+      mockRouteParams = undefined;
+      const { getByTestId } = renderSheet();
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_ALPHABETICAL));
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.SORT_APPLY));
+
+      expect(mockTrackFiltering).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getSortOption', () => {
+    it('returns balance for the balance key', () => {
+      expect(getSortOption({ key: 'tokenFiatAmount' }).id).toBe('balance');
+    });
+
+    it('treats any other key as name', () => {
+      expect(getSortOption({ key: 'symbol' }).id).toBe('name');
+    });
   });
 });

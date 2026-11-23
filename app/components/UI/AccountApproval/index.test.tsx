@@ -10,6 +10,8 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountApprovalSelectorsIDs } from './AccountApproval.testIds';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { CONNECTING_TO_A_DECEPTIVE_SITE } from '../../../constants/urls';
+import createStyles from './styles';
+import { mockTheme } from '../../../util/theme';
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../util/analytics/analytics', () => ({
@@ -135,6 +137,20 @@ describe('AccountApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetPhishingTestResultAsync.mockResolvedValue({ result: false });
+  });
+
+  it('uses a 16 horizontal gutter for the sheet content and actions', () => {
+    const styles = createStyles(mockTheme.colors, mockTheme.typography);
+
+    expect(styles.accountCardWrapper.paddingHorizontal).toBe(16);
+    expect(styles.warning.paddingHorizontal).toBe(16);
+    expect(styles.actionContainer.paddingHorizontal).toBe(16);
+    expect(styles.bottom.marginHorizontal).toBe(16);
+    expect(styles.intro_reconnect.marginLeft).toBe(16);
+    expect(styles.intro_reconnect.marginRight).toBe(16);
+    expect(styles.touchableOption.marginLeft).toBe(16);
+    expect(styles.touchableOption.marginRight).toBe(16);
+    expect(styles.rememberme.marginLeft).toBe(16);
   });
 
   it('renders correctly', () => {

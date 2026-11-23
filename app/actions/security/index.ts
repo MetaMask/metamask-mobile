@@ -10,6 +10,8 @@ export enum ActionType {
   SET_NFT_AUTO_DETECTION_MODAL_OPEN = 'SET_NFT_AUTO_DETECTION_MODAL_OPEN',
   SET_MULTI_RPC_MIGRATION_MODAL_OPEN = 'SET_MULTI_RPC_MIGRATION_MODAL_OPEN',
   SET_OS_AUTH_ENABLED = 'SET_OS_AUTH_ENABLED',
+  SET_SHOULD_SHOW_CONSENT_SHEET = 'SET_SHOULD_SHOW_CONSENT_SHEET',
+  SET_DATA_SHARING_PREFERENCE = 'SET_DATA_SHARING_PREFERENCE',
 }
 
 export interface AllowLoginWithRememberMeUpdated
@@ -42,12 +44,24 @@ export interface SetOsAuthEnabled
   enabled: boolean;
 }
 
+export interface SetShouldShowConsentSheet
+  extends ReduxAction<ActionType.SET_SHOULD_SHOW_CONSENT_SHEET> {
+  shouldShow: boolean;
+}
+
+export interface SetDataSharingPreference
+  extends ReduxAction<ActionType.SET_DATA_SHARING_PREFERENCE> {
+  preference: boolean;
+}
+
 export type Action =
   | AllowLoginWithRememberMeUpdated
   | SetDataCollectionForMarketing
   | SetNftAutoDetectionModalOpen
   | SetMultiRpcMigrationModalOpen
-  | SetOsAuthEnabled;
+  | SetOsAuthEnabled
+  | SetShouldShowConsentSheet
+  | SetDataSharingPreference;
 
 export const setAllowLoginWithRememberMe = (
   enabled: boolean,
@@ -82,4 +96,18 @@ export const setDataCollectionForMarketing = (
 export const setOsAuthEnabled = (enabled: boolean): SetOsAuthEnabled => ({
   type: ActionType.SET_OS_AUTH_ENABLED,
   enabled,
+});
+
+export const setShouldShowConsentSheet = (
+  shouldShow: boolean,
+): SetShouldShowConsentSheet => ({
+  type: ActionType.SET_SHOULD_SHOW_CONSENT_SHEET,
+  shouldShow,
+});
+
+export const setDataSharingPreference = (
+  preference: boolean,
+): SetDataSharingPreference => ({
+  type: ActionType.SET_DATA_SHARING_PREFERENCE,
+  preference,
 });

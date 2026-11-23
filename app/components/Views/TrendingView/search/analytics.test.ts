@@ -3,8 +3,10 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
   getExploreSearchResultCount,
+  getExploreSearchSessionId,
   getSearchQueryLength,
   getTotalSectionResultCount,
+  renewEndedExploreSearchSession,
   trackExplorePredictTrendingAssetViewed,
   trackExploreSearchAbandoned,
   trackExploreSearchEvent,
@@ -18,6 +20,11 @@ jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
   },
+}));
+
+const mockUuidV4 = jest.fn(() => 'search-session-id');
+jest.mock('uuid', () => ({
+  v4: () => mockUuidV4(),
 }));
 
 const mockTrackEvent = analytics.trackEvent as jest.MockedFunction<
@@ -223,6 +230,57 @@ describe('useInstrumentedSearchEffect', () => {
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
+  it('does not fire again on refocus within the same search session', () => {
+    const { rerender } = renderHook(
+      ({ focusCount }: { focusCount: number }) =>
+        useInstrumentedSearchEffect({
+          searchQuery: 'eth',
+          isLoading: false,
+          focusCount,
+          getPill,
+          getSections,
+        }),
+      { initialProps: { focusCount: 0 } },
+    );
+
+    act(() => {
+      rerender({ focusCount: 1 });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires again on refocus for the query on screen when a new search session started', () => {
+    mockUuidV4
+      .mockReturnValueOnce('session-1')
+      .mockReturnValueOnce('session-2');
+    trackExploreSearchOpened('nav_bar');
+    const { rerender } = renderHook(
+      ({ focusCount }: { focusCount: number }) =>
+        useInstrumentedSearchEffect({
+          searchQuery: 'eth',
+          isLoading: false,
+          focusCount,
+          getPill,
+          getSections,
+        }),
+      { initialProps: { focusCount: 0 } },
+    );
+    trackExploreSearchOpened('nav_bar');
+    mockTrackEvent.mockClear();
+
+    act(() => {
+      rerender({ focusCount: 1 });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      interaction_type: 'searched',
+      search_query: 'eth',
+      search_session_id: 'session-2',
+    });
+  });
+
   it('resets and fires again after the query is cleared then re-entered', () => {
     const { rerender } = renderHook(
       ({ query }: { query: string }) =>
@@ -288,6 +346,7 @@ describe('Explore search analytics', () => {
           interaction_type: 'opened',
           search_query: '',
           entry_point: entryPoint,
+          search_session_id: 'search-session-id',
         });
       },
     );
@@ -329,6 +388,7 @@ describe('Explore search analytics', () => {
         entry_point: 'home',
         tab_name: 'all',
         result_count: 12,
+        search_session_id: 'search-session-id',
       });
     });
 
@@ -352,6 +412,7 @@ describe('Explore search analytics', () => {
         entry_point: 'home',
         tab_name: 'all',
         result_count: 4,
+        search_session_id: 'search-session-id',
       });
     });
 
@@ -367,6 +428,7 @@ describe('Explore search analytics', () => {
         query_length: 0,
         abandon_reason: 'back',
         entry_point: 'explore',
+        search_session_id: 'search-session-id',
       });
     });
 
@@ -438,6 +500,120 @@ describe('Explore search analytics', () => {
       expect(lastEventProperties()).toMatchObject({
         entry_point: 'nav_bar',
         abandon_reason: 'navigate_away',
+      });
+    });
+  });
+
+  describe('search_session_id', () => {
+    const sentSessionIds = () =>
+      mockTrackEvent.mock.calls.map(
+        ([event]) => event.properties.search_session_id,
+      );
+
+    it('carries the id minted on opened through the rest of the session', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: 'eth',
+        tab_name: 'all',
+        result_count: 3,
+      });
+      trackExploreSearchEvent({
+        interaction_type: 'tab_switched',
+        search_query: 'eth',
+        tab_name: 'tokens',
+        previous_tab: 'all',
+      });
+      trackExploreSearchEvent({
+        interaction_type: 'scrolled',
+        search_query: 'eth',
+        tab_name: 'tokens',
+      });
+      trackExploreSearchEvent({
+        interaction_type: 'result_clicked',
+        search_query: 'eth',
+        tab_name: 'tokens',
+        position: 0,
+      });
+
+      expect(sentSessionIds()).toEqual(Array(5).fill('search-session-id'));
+    });
+
+    it('mints a new id on each open', () => {
+      mockUuidV4
+        .mockReturnValueOnce('session-1')
+        .mockReturnValueOnce('session-2');
+
+      trackExploreSearchOpened('home');
+      trackExploreSearchAbandoned('cancel', '');
+      trackExploreSearchOpened('nav_bar');
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: 'eth',
+      });
+
+      expect(sentSessionIds()).toEqual([
+        'session-1',
+        'session-1',
+        'session-2',
+        'session-2',
+      ]);
+    });
+
+    it('starts a new id when the user returns to search after abandoned', () => {
+      mockUuidV4
+        .mockReturnValueOnce('session-1')
+        .mockReturnValueOnce('session-2');
+
+      trackExploreSearchOpened('nav_bar');
+      trackExploreSearchAbandoned('navigate_away', 'eth');
+      renewEndedExploreSearchSession();
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: 'eth',
+      });
+      trackExploreSearchAbandoned('back', 'eth');
+
+      expect(sentSessionIds()).toEqual([
+        'session-1',
+        'session-1',
+        'session-2',
+        'session-2',
+      ]);
+      expect(mockTrackEvent.mock.calls[3][0].properties).toMatchObject({
+        interaction_type: 'abandoned',
+        entry_point: 'nav_bar',
+      });
+    });
+
+    it('keeps the id when the user returns to search before the session ended', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'result_clicked',
+        search_query: 'eth',
+      });
+
+      renewEndedExploreSearchSession();
+
+      expect(mockUuidV4).toHaveBeenCalledTimes(1);
+      expect(getExploreSearchSessionId()).toBe('search-session-id');
+    });
+
+    it('omits the id when search was never opened', async () => {
+      await jest.isolateModulesAsync(async () => {
+        const isolatedSearchAnalytics = await import('./analytics');
+        const { analytics: isolatedAnalytics } = await import(
+          '../../../../util/analytics/analytics'
+        );
+
+        isolatedSearchAnalytics.trackExploreSearchEvent({
+          interaction_type: 'searched',
+          search_query: 'eth',
+        });
+
+        expect(
+          jest.mocked(isolatedAnalytics.trackEvent).mock.calls[0][0].properties,
+        ).not.toHaveProperty('search_session_id');
       });
     });
   });

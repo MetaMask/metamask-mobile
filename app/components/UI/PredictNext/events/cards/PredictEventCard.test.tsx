@@ -8,7 +8,25 @@ import type {
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
-import { PredictEventCard } from './PredictEventCard';
+import { EventCardGame } from './EventCardGame';
+import { EventCardStandard } from './EventCardStandard';
+import {
+  PredictEventCard,
+  type PredictEventCardVariant,
+} from './PredictEventCard';
+
+// Spy on the child cards while keeping their real rendering.
+jest.mock('./EventCardGame', () => {
+  const actual = jest.requireActual('./EventCardGame');
+  return { ...actual, EventCardGame: jest.fn(actual.EventCardGame) };
+});
+jest.mock('./EventCardStandard', () => {
+  const actual = jest.requireActual('./EventCardStandard');
+  return { ...actual, EventCardStandard: jest.fn(actual.EventCardStandard) };
+});
+
+const mockEventCardGame = jest.mocked(EventCardGame);
+const mockEventCardStandard = jest.mocked(EventCardStandard);
 
 const gameEvent = (
   sportId: string,
@@ -93,7 +111,7 @@ describe('PredictEventCard', () => {
       screen.getByTestId('predict-next-game-team-routed-event-away'),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId('predict-next-event-image-routed-event'),
+      screen.queryByTestId('predict-next-outcome-routed-event-yes'),
     ).not.toBeOnTheScreen();
   });
 
@@ -127,8 +145,132 @@ describe('PredictEventCard', () => {
     );
 
     expect(
-      screen.getByTestId('predict-next-event-image-routed-event'),
+      screen.getByTestId('predict-next-outcome-routed-event-yes'),
     ).toBeOnTheScreen();
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+  it('renders the trending card for a non-game Event with the trending variant', () => {
+    render(
+      <PredictEventCard
+        event={{ ...standardEvent(), category: 'Politics' }}
+        variant="trending"
+        onPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('predict-next-event-category-routed-event'),
+    ).toHaveTextContent('POLITICS');
+    expect(
+      screen.getByTestId('predict-next-outcome-row-routed-event-market-1'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-next-event-live-routed-event'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('predict-next-outcome-routed-event-no'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it.each([undefined, 'compact', 'featured', 'small'] as const)(
+    'renders the default standard card for a non-game Event with the %s variant',
+    (variant) => {
+      render(
+        <PredictEventCard
+          event={standardEvent()}
+          variant={variant}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-outcome-routed-event-yes-avatar'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-outcome-routed-event-yes'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-outcome-routed-event-no'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-event-header-routed-event'),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  it.each(['featured', 'trending'] as const)(
+    'renders the featured game card for a game Event with the %s variant',
+    (variant) => {
+      render(
+        <PredictEventCard
+          event={gameEvent('basketball')}
+          variant={variant}
+          onPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        screen.getByTestId('predict-next-game-header-routed-event'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-next-game-live-dot-routed-event'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('predict-next-event-category-routed-event'),
+      ).not.toBeOnTheScreen();
+    },
+  );
+
+  describe('variant mapping', () => {
+    beforeEach(() => {
+      mockEventCardGame.mockClear();
+      mockEventCardStandard.mockClear();
+    });
+
+    it.each<[PredictEventCardVariant | undefined, string]>([
+      [undefined, 'compact'],
+      ['compact', 'compact'],
+      ['small', 'small'],
+      ['featured', 'featured'],
+      ['trending', 'featured'],
+    ])(
+      'renders a game Event with %s as the %s game card',
+      (variant, expected) => {
+        render(
+          <PredictEventCard
+            event={gameEvent('basketball')}
+            variant={variant}
+            onPress={jest.fn()}
+          />,
+        );
+
+        expect(mockEventCardGame).toHaveBeenCalledTimes(1);
+        expect(mockEventCardGame.mock.calls[0][0].variant).toBe(expected);
+        expect(mockEventCardStandard).not.toHaveBeenCalled();
+      },
+    );
+
+    it.each<[PredictEventCardVariant | undefined, string]>([
+      [undefined, 'default'],
+      ['compact', 'default'],
+      ['small', 'default'],
+      ['featured', 'default'],
+      ['trending', 'trending'],
+    ])(
+      'renders a non-game Event with %s as the %s standard card',
+      (variant, expected) => {
+        render(
+          <PredictEventCard
+            event={standardEvent()}
+            variant={variant}
+            onPress={jest.fn()}
+          />,
+        );
+
+        expect(mockEventCardStandard).toHaveBeenCalledTimes(1);
+        expect(mockEventCardStandard.mock.calls[0][0].variant).toBe(expected);
+        expect(mockEventCardGame).not.toHaveBeenCalled();
+      },
+    );
   });
 });

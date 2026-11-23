@@ -9,6 +9,7 @@ import {
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Warm Start to Login Screen Performance Test
@@ -41,6 +42,7 @@ perfTest.describe(
           currentDeviceDetails.platform,
         );
 
+        await enableHermesAppProfiling();
         await AppiumGestures.backgroundApp(40);
         await AppiumGestures.activateApp(currentDeviceDetails);
 

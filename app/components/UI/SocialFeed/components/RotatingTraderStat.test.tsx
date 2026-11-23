@@ -1,20 +1,17 @@
 import { act, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import RotatingTraderStat, { TRADER_STAT_FADE_MS } from './RotatingTraderStat';
+import RotatingTraderStat from './RotatingTraderStat';
+import { TraderStatRotationContext } from './TraderStatRotationContext';
 
 const TEST_ID = 'trader-stat';
 const INTERVAL_MS = 5000;
 
 const LABELS = ['$50K P&L (30d)', '17.2K followers', '92% win rate'];
 
-/** Advance past one hold plus the fade-out that swaps the text. */
-const advanceOneRotation = () => {
+const advance = (ms: number) => {
   act(() => {
-    jest.advanceTimersByTime(INTERVAL_MS);
-  });
-  act(() => {
-    jest.advanceTimersByTime(TRADER_STAT_FADE_MS);
+    jest.advanceTimersByTime(ms);
   });
 };
 
@@ -36,33 +33,64 @@ describe('RotatingTraderStat', () => {
   it('advances through the stats in order', () => {
     renderWithProvider(<RotatingTraderStat labels={LABELS} testID={TEST_ID} />);
 
-    advanceOneRotation();
-    expect(screen.getByTestId(TEST_ID)).toHaveTextContent('17.2K followers');
+    advance(INTERVAL_MS);
+    const showedSecond = screen.queryByText('17.2K followers') !== null;
+    advance(INTERVAL_MS);
 
-    advanceOneRotation();
+    expect(showedSecond).toBe(true);
     expect(screen.getByTestId(TEST_ID)).toHaveTextContent('92% win rate');
   });
 
   it('wraps back to the first stat', () => {
     renderWithProvider(<RotatingTraderStat labels={LABELS} testID={TEST_ID} />);
 
-    advanceOneRotation();
-    advanceOneRotation();
-    advanceOneRotation();
+    advance(INTERVAL_MS * 3);
 
     expect(screen.getByTestId(TEST_ID)).toHaveTextContent('$50K P&L (30d)');
   });
 
-  // The swap happens at the midpoint of the fade, so the old text must still
-  // be there while the label is fading out.
-  it('keeps the current stat until the fade-out completes', () => {
+  it('holds the current stat until the rotation tick', () => {
     renderWithProvider(<RotatingTraderStat labels={LABELS} testID={TEST_ID} />);
 
-    act(() => {
-      jest.advanceTimersByTime(INTERVAL_MS);
-    });
+    advance(INTERVAL_MS - 1);
 
     expect(screen.getByTestId(TEST_ID)).toHaveTextContent('$50K P&L (30d)');
+  });
+
+  it('rotates stats mounted at different times together', () => {
+    const first = renderWithProvider(
+      <RotatingTraderStat labels={LABELS} testID="first-stat" />,
+    );
+    advance(1000);
+    const second = renderWithProvider(
+      <RotatingTraderStat labels={LABELS} testID="second-stat" />,
+    );
+
+    advance(INTERVAL_MS - 1000);
+
+    expect(first.getByTestId('first-stat')).toHaveTextContent(
+      '17.2K followers',
+    );
+    expect(second.getByTestId('second-stat')).toHaveTextContent(
+      '17.2K followers',
+    );
+  });
+
+  it('rotates only while its page is on screen', () => {
+    const renderOnPage = (onScreen: boolean) => (
+      <TraderStatRotationContext.Provider value={onScreen}>
+        <RotatingTraderStat labels={LABELS} testID={TEST_ID} />
+      </TraderStatRotationContext.Provider>
+    );
+    const { rerender } = renderWithProvider(renderOnPage(false));
+
+    advance(INTERVAL_MS);
+    const labelWhileOffScreen = screen.queryByText('$50K P&L (30d)') !== null;
+    rerender(renderOnPage(true));
+    advance(INTERVAL_MS);
+
+    expect(labelWhileOffScreen).toBe(true);
+    expect(screen.getByTestId(TEST_ID)).toHaveTextContent('17.2K followers');
   });
 
   it('never rotates a lone stat', () => {
@@ -70,7 +98,7 @@ describe('RotatingTraderStat', () => {
       <RotatingTraderStat labels={['92% win rate']} testID={TEST_ID} />,
     );
 
-    advanceOneRotation();
+    advance(INTERVAL_MS);
 
     expect(screen.getByTestId(TEST_ID)).toHaveTextContent('92% win rate');
   });

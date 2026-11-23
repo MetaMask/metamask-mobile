@@ -1,5 +1,6 @@
 import type {
   SocialFilterNetwork,
+  SocialFilterPositionStatus,
   SocialFilterTimeframe,
   SocialFilterType,
   SocialFilterVerification,
@@ -13,7 +14,6 @@ import {
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
-import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../../../UI/SocialFeed/utils/traderStats';
 import type {
   SocialTimeframe,
   SocialTypeFilter,
@@ -41,15 +41,22 @@ export const DEFAULT_FILTERS: SocialShellFilters = {
   type: 'all',
   traderCohort: 'all',
   verification: 'all',
+  positionStatus: 'all',
   timeframe: '7d',
   network: 'all',
   marketCap: { ...MARKET_CAP_RANGE },
   volume24h: { ...VOLUME_24H_RANGE },
 };
 
+/** Default filter state for the Social V1 Leaderboard tab. */
+export const DEFAULT_LEADERBOARD_FILTERS: SocialShellFilters = {
+  ...DEFAULT_FILTERS,
+  timeframe: '30d',
+};
+
 /**
- * Seed per-tab filter state. Every tab starts from the same defaults; the
- * sheet hides sections per tab but the underlying model is shared in shape.
+ * Seed per-tab filter state. The sheet hides sections per tab but the
+ * underlying model is shared in shape.
  */
 export const DEFAULT_TAB_FILTER_STATE: Record<
   SocialShellTab,
@@ -57,8 +64,8 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
 > = {
   trending: { ...DEFAULT_FILTERS },
   following: { ...DEFAULT_FILTERS },
-  liveTrades: { ...DEFAULT_FILTERS },
-  leaderboard: { ...DEFAULT_FILTERS },
+  live: { ...DEFAULT_FILTERS },
+  leaderboard: { ...DEFAULT_LEADERBOARD_FILTERS },
 };
 
 export const TYPE_OPTIONS: SocialFilterType[] = ['all', 'tokens', 'perps'];
@@ -73,33 +80,20 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   predictions: 'social_leaderboard.shell.filters.type.predictions',
 };
 
-export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = [
-  'all',
-  'shrimp',
-  'dolphin',
-  'whale',
-];
+/** Following has no sized cohort left, so the sheet hides this section. */
+export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = ['all'];
 
-export const COHORT_OPTIONS_LIVE_TRADES: SocialTraderCohort[] = [
-  'all',
-  'following',
-  'shrimp',
-  'dolphin',
-  'whale',
-];
+export const COHORT_OPTIONS_LIVE: SocialTraderCohort[] = ['all', 'following'];
 
 export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'all',
   'following',
-  'shrimp',
-  'dolphin',
-  'whale',
   // TODO: add `verified` once the leaderboard payload has a real verified field
   // (the row badge is mocked today).
 ];
 
-/** @deprecated Use COHORT_OPTIONS_LIVE_TRADES. Kept for existing imports. */
-export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE_TRADES;
+/** @deprecated Use COHORT_OPTIONS_LIVE. Kept for existing imports. */
+export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE;
 
 /** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
 export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
@@ -113,12 +107,21 @@ export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
 };
 
-export const COHORT_LEADING_EMOJI: Partial<Record<SocialTraderCohort, string>> =
-  {
-    shrimp: LEADERBOARD_COHORT_LEADING_EMOJI.shrimp,
-    dolphin: LEADERBOARD_COHORT_LEADING_EMOJI.dolphin,
-    whale: LEADERBOARD_COHORT_LEADING_EMOJI.whale,
-  };
+export const POSITION_STATUS_OPTIONS: SocialFilterPositionStatus[] = [
+  'all',
+  'open',
+  'closed',
+];
+
+/** All reuses the asset-type All string. */
+export const POSITION_STATUS_LABEL_KEY: Record<
+  SocialFilterPositionStatus,
+  string
+> = {
+  all: 'social_leaderboard.shell.filters.type.all',
+  open: 'social_leaderboard.shell.filters.position_status.open',
+  closed: 'social_leaderboard.shell.filters.position_status.closed',
+};
 
 export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [
   'all',

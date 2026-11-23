@@ -76,9 +76,12 @@ describe('TraderRow', () => {
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
 
-    const image = screen.UNSAFE_getByType(Image);
-    expect(image.props.cachePolicy).toBe('memory-disk');
-    expect(image.props.recyclingKey).toBe(baseTrader.id);
+    const avatar = screen
+      .UNSAFE_getAllByType(Image)
+      .find((image) => image.props.recyclingKey === baseTrader.id);
+
+    expect(avatar?.props.cachePolicy).toBe('memory-disk');
+    expect(avatar?.props.recyclingKey).toBe(baseTrader.id);
   });
 
   it('renders Maskicon fallback when avatarUri is absent', () => {

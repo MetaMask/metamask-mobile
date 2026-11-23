@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
@@ -16,11 +17,15 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import NftGrid from '../../UI/NftGrid/NftGrid';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 
 const NftFullView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
+  const isGlassHeader =
+    useSelector(selectHomeBrandRefreshSurfacesEnabled) === true;
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -31,22 +36,32 @@ const NftFullView = () => {
       style={tw.style('flex-1 bg-default pb-4', { paddingTop: insets.top })}
       edges={['left', 'right', 'bottom']}
     >
-      <Box twClassName="flex-row items-center h-14 px-2">
-        <ButtonIcon
-          size={ButtonIconSize.Md}
-          iconName={IconName.ArrowLeft}
-          onPress={handleBackPress}
-          testID="back-button"
+      {isGlassHeader ? (
+        <HeaderStandardGlass
+          isGlass
+          isFloating={false}
+          title={strings('wallet.collectibles')}
+          onBack={handleBackPress}
+          backButtonProps={{ testID: 'back-button' }}
         />
-        <Box
-          twClassName="absolute inset-0 items-center justify-center"
-          pointerEvents="none"
-        >
-          <Text variant={TextVariant.HeadingSm}>
-            {strings('wallet.collectibles')}
-          </Text>
+      ) : (
+        <Box twClassName="flex-row items-center h-14 px-2">
+          <ButtonIcon
+            size={ButtonIconSize.Md}
+            iconName={IconName.ArrowLeft}
+            onPress={handleBackPress}
+            testID="back-button"
+          />
+          <Box
+            twClassName="absolute inset-0 items-center justify-center"
+            pointerEvents="none"
+          >
+            <Text variant={TextVariant.HeadingSm}>
+              {strings('wallet.collectibles')}
+            </Text>
+          </Box>
         </Box>
-      </Box>
+      )}
       <Box twClassName="flex-1">
         <NftGrid isFullView />
       </Box>

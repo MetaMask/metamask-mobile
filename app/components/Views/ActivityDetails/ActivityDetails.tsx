@@ -6,7 +6,6 @@ import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -30,13 +29,16 @@ import {
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { usePerpsDetailsItem } from './templates/Perps/usePerpsDetailsItem';
-import { usePredictDetailsItem } from './templates/PredictDetails/usePredictDetailsItem';
+import { usePredictActivityDetailsItem } from '../../UI/PredictNext';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
 import { useLocalTransactionMeta } from './hooks/useLocalTransactionMeta';
 import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 function ActivityDetailsProviders({ children }: { children: ReactNode }) {
   return (
@@ -47,6 +49,7 @@ function ActivityDetailsProviders({ children }: { children: ReactNode }) {
 }
 
 function ActivityDetailsScreen() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
   const { item: perpsItem, isLoading: isPerpsLoading } = usePerpsDetailsItem(
     txIdentifier,
@@ -57,7 +60,10 @@ function ActivityDetailsScreen() {
       fetchByHash: !perpsItem && !isPerpsLoading,
     });
   const { item: predictItem, isLoading: isPredictLoading } =
-    usePredictDetailsItem(activityItem ? undefined : txIdentifier, chainId);
+    usePredictActivityDetailsItem(
+      activityItem ? undefined : txIdentifier,
+      chainId,
+    );
   const item = perpsItem ?? activityItem ?? predictItem;
   const waiting = Boolean(
     isPerpsLoading || isPredictLoading || (!item && isActivityFetching),
@@ -138,7 +144,9 @@ function ActivityDetailsScreen() {
       testID={ActivityDetailsSelectorsIDs.SCREEN}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           testID={ActivityDetailsSelectorsIDs.HEADER}
           includesTopInset
           title={title}

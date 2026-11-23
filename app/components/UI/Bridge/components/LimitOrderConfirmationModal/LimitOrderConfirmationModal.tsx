@@ -7,7 +7,6 @@ import {
   BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -31,6 +30,10 @@ import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
+import { InsufficientBalanceBanner } from './InsufficientBalanceBanner';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const LimitOrderConfirmationModal = ({
   sourceToken,
@@ -46,12 +49,14 @@ export const LimitOrderConfirmationModal = ({
   delegationFee,
   feeToken,
   usdExchangeRate,
+  insufficientBalance,
   primaryButton,
   error,
   onClose,
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
 }: LimitOrderConfirmationModalProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -94,7 +99,8 @@ export const LimitOrderConfirmationModal = ({
       goBack={goBack}
       onClose={onClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: LimitOrderConfirmationModalSelectorsIDs.CLOSE_BUTTON,
@@ -104,7 +110,7 @@ export const LimitOrderConfirmationModal = ({
           source: sourceToken?.symbol ?? '',
           dest: destToken?.symbol ?? '',
         })}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {error && (
         <Box paddingHorizontal={3} paddingBottom={2}>
           <BannerAlert
@@ -117,6 +123,10 @@ export const LimitOrderConfirmationModal = ({
           />
         </Box>
       )}
+      <InsufficientBalanceBanner
+        insufficientBalance={insufficientBalance}
+        sourceTokenSymbol={sourceToken?.symbol ?? ''}
+      />
       {usdExchangeRate && (
         <Box paddingHorizontal={3} paddingBottom={2}>
           <BannerAlert

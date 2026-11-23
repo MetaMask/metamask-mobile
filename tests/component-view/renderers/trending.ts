@@ -1,10 +1,16 @@
 import '../mocks';
 import React, { useEffect } from 'react';
+import { Pressable, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
-import { renderScreenWithRoutes } from '../render';
+import {
+  createComponentViewQueryClient,
+  createRouteParamsProbe,
+  getRouteProbeTestId,
+  renderScreenWithRoutes,
+} from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ExploreFeed } from '../../../app/components/Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
@@ -60,13 +66,15 @@ function withQueryClient(
   Component: React.ComponentType<unknown>,
 ): React.ComponentType<unknown> {
   return function WrappedWithQueryClient(props: unknown) {
-    const queryClient = React.useMemo(
-      () =>
-        new QueryClient({
-          defaultOptions: { queries: { retry: false, gcTime: 0 } },
-        }),
-      [],
-    );
+    // The app's query client answers data-service queries (PredictNext
+    // reads) through the Engine messenger, so this one does too.
+    const queryClient = React.useMemo(() => {
+      const client = createComponentViewQueryClient();
+      client.setDefaultOptions({
+        queries: { ...client.getDefaultOptions().queries, gcTime: 0 },
+      });
+      return client;
+    }, []);
 
     return React.createElement(
       QueryClientProvider,
@@ -122,6 +130,12 @@ export function renderTrendingViewWithRoutes(
         name: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
         Component: RWATokensFullView as unknown as React.ComponentType<unknown>,
       },
+      // Predict entries resolve to this root route; the probe shows the
+      // screen and params an intent opened.
+      {
+        name: Routes.PREDICT.ROOT,
+        Component: createRouteParamsProbe(Routes.PREDICT.ROOT),
+      },
     ],
     { state },
     initialParams,
@@ -132,6 +146,26 @@ export function renderTrendingViewWithRoutes(
  * Renders ExploreSearchScreen directly (skips navigating from ExploreFeed),
  * so tests start on the search screen without pressing the search button first.
  */
+export const BROWSER_HOME_PROBE_BACK_BUTTON = 'route-browser-home-back';
+
+// Route probe that can go back, so tests can return to search after leaving it.
+const BrowserHomeProbe = () => {
+  const navigation = useNavigation();
+
+  return React.createElement(
+    Pressable,
+    {
+      testID: BROWSER_HOME_PROBE_BACK_BUTTON,
+      onPress: () => navigation.goBack(),
+    },
+    React.createElement(
+      Text,
+      { testID: getRouteProbeTestId(Routes.BROWSER.HOME) },
+      Routes.BROWSER.HOME,
+    ),
+  );
+};
+
 export function renderExploreSearchScreenWithRoutes(
   options: RenderTrendingViewOptions = {},
 ): ReturnType<typeof renderScreenWithRoutes> {
@@ -141,7 +175,7 @@ export function renderExploreSearchScreenWithRoutes(
   return renderScreenWithRoutes(
     ExploreSearchScreen as unknown as React.ComponentType,
     { name: Routes.EXPLORE_SEARCH },
-    [{ name: Routes.BROWSER.HOME }],
+    [{ name: Routes.BROWSER.HOME, Component: BrowserHomeProbe }],
     { state },
     initialParams,
   );

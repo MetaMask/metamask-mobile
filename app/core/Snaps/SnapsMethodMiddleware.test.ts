@@ -1,6 +1,16 @@
+import { SubjectType } from '@metamask/permission-controller';
+import { createSnapsMethodMiddleware } from '@metamask/snaps-rpc-methods';
+import { captureException } from '@sentry/react-native';
+
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
-import { trackSnapEvent } from './SnapsMethodMiddleware';
+import snapMethodMiddlewareBuilder, {
+  trackSnapEvent,
+} from './SnapsMethodMiddleware';
+
+jest.mock('@metamask/snaps-rpc-methods', () => ({
+  createSnapsMethodMiddleware: jest.fn(),
+}));
 
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: { trackEvent: jest.fn() },
@@ -64,5 +74,51 @@ describe('trackSnapEvent', () => {
     expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({});
     expect(mockEventBuilder.addSensitiveProperties).toHaveBeenCalledWith({});
     expect(analytics.trackEvent).toHaveBeenCalledWith(mockBuiltEvent);
+  });
+});
+
+describe('snapMethodMiddlewareBuilder trackError', () => {
+  const controllerMessenger = {} as Parameters<
+    typeof snapMethodMiddlewareBuilder
+  >[0];
+  const error = new Error('snap failed');
+  const eventId = 'event-id';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(captureException).mockReturnValue(eventId);
+  });
+
+  it('tags snap subject errors with feature and snap_id and returns the Sentry event id', () => {
+    const origin = 'npm:@metamask/tron-wallet-snap';
+
+    snapMethodMiddlewareBuilder(controllerMessenger, origin, SubjectType.Snap);
+
+    const trackError = jest.mocked(createSnapsMethodMiddleware).mock.calls[0][1]
+      .trackError;
+    const returnedEventId = trackError(error);
+
+    expect(captureException).toHaveBeenCalledWith(error, {
+      tags: { feature: 'snaps', snap_id: origin },
+    });
+    expect(returnedEventId).toBe(eventId);
+  });
+
+  it('reports website subject errors without a snap_id tag and returns the Sentry event id', () => {
+    const origin = 'https://example.com/path?account=0xabc';
+
+    snapMethodMiddlewareBuilder(
+      controllerMessenger,
+      origin,
+      SubjectType.Website,
+    );
+
+    const trackError = jest.mocked(createSnapsMethodMiddleware).mock.calls[0][1]
+      .trackError;
+    const returnedEventId = trackError(error);
+
+    expect(captureException).toHaveBeenCalledTimes(1);
+    expect(captureException).toHaveBeenCalledWith(error);
+    expect(returnedEventId).toBe(eventId);
   });
 });

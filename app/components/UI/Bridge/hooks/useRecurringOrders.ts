@@ -1,10 +1,11 @@
+import { useEffect, useMemo } from 'react';
 import { useInfiniteQuery } from '@metamask/react-data-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { focusManager, useQueryClient } from '@tanstack/react-query';
 import type { CaipChainId } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import type {
-  GetRecurringOrdersResponse,
-  RecurringOrderStatus,
+  ListRecurringOrdersResponse,
+  RecurringOrderState,
 } from '../api/recurringOrders.types';
 import {
   RECURRING_ORDERS_PAGE_LIMIT,
@@ -13,30 +14,59 @@ import {
 
 interface UseRecurringOrdersParams {
   walletAddress?: string;
-  status: RecurringOrderStatus[];
+  orderStates: RecurringOrderState[];
   chainId?: CaipChainId;
   enabled?: boolean;
+  refetchInterval?: number;
 }
 
 export function useRecurringOrders({
   walletAddress,
-  status,
+  orderStates,
   chainId,
   enabled = true,
+  refetchInterval,
 }: UseRecurringOrdersParams) {
   const queryClient = useQueryClient();
-  const descriptor = recurringOrdersQueries.getRecurringOrders({
-    walletAddress: walletAddress ?? '',
-    status,
-    chainId,
-    limit: RECURRING_ORDERS_PAGE_LIMIT,
-  });
-  const query = useInfiniteQuery<GetRecurringOrdersResponse>({
+  const descriptor = useMemo(
+    () =>
+      recurringOrdersQueries.getRecurringOrders({
+        walletAddress: walletAddress ?? '',
+        orderStates,
+        chainId,
+        limit: RECURRING_ORDERS_PAGE_LIMIT,
+      }),
+    [chainId, orderStates, walletAddress],
+  );
+  const isEnabled = enabled && Boolean(walletAddress);
+  const query = useInfiniteQuery<ListRecurringOrdersResponse>({
     queryKey: descriptor.queryKey,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.endCursor : undefined,
     initialPageParam: undefined as string | undefined,
-    enabled: enabled && Boolean(walletAddress),
+    enabled: isEnabled,
   });
+
+  useEffect(() => {
+    if (!isEnabled || !refetchInterval) {
+      return undefined;
+    }
+
+    const interval = setInterval(() => {
+      if (!focusManager.isFocused()) {
+        return;
+      }
+
+      queryClient
+        .invalidateQueries(
+          { queryKey: descriptor.queryKey, exact: true },
+          { cancelRefetch: false },
+        )
+        .catch(() => undefined);
+    }, refetchInterval);
+
+    return () => clearInterval(interval);
+  }, [descriptor.queryKey, isEnabled, queryClient, refetchInterval]);
 
   function fetchNextPage() {
     if (!query.hasNextPage || query.isFetchingNextPage) {

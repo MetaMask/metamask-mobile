@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import { IconName, TextColor } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
@@ -8,6 +9,7 @@ import {
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import type { MoneyTransactionDisplayInfo } from '../../Money/hooks/useMoneyTransactionDisplayInfo';
 import type { MoneyActivityStatus } from '../../Money/utils/classifyMoneyActivity';
+import { moneyFormatUsd } from '../../Money/utils/moneyFormatFiat';
 import { formatCardAmount } from './cardTransactionAmount';
 
 const TYPE_LABEL_KEY: Record<CardTransactionType, string> = {
@@ -68,6 +70,22 @@ function mapCardTransactionStatus(
   }
 }
 
+/**
+ * True when the card provider's outcome for a transaction is not a successful
+ * spend. A declined or reversed transaction can still have settled on-chain,
+ * in which case its Accounts-API activity row looks like any other successful
+ * purchase — only the provider knows otherwise. See
+ * `accountsApiActivityDisplayInfo`.
+ */
+export function isUnsuccessfulCardTransactionStatus(
+  status: CardTransactionStatus,
+): boolean {
+  return (
+    status === CardTransactionStatus.Failed ||
+    status === CardTransactionStatus.Reversed
+  );
+}
+
 function getTransactionLabel(tx: CardTransaction): string {
   return strings(TYPE_LABEL_KEY[tx.type]);
 }
@@ -108,6 +126,33 @@ export function cardTransactionDisplayInfo(
     isIncoming: !tx.isDebit,
     icon: IconName.Card,
     status: mapCardTransactionStatus(tx.status),
+    // Activity rows only render this line when asked. Card charges live here.
+    showPrimaryAmount: true,
+  };
+}
+
+/**
+ * Money activity-list projection for an unsettled card authorisation.
+ *
+ * The list shows only the USD billing amount, using the same signed
+ * {@link moneyFormatUsd} line as other Money rows. Merchant currency stays on
+ * {@link cardTransactionDisplayInfo} for the details screen.
+ */
+export function cardTransactionListDisplayInfo(
+  tx: CardTransaction,
+): MoneyTransactionDisplayInfo {
+  const details = cardTransactionDisplayInfo(tx);
+  const billing = new BigNumber(tx.billingAmount.value);
+  const sign = tx.isDebit ? '-' : '+';
+
+  return {
+    ...details,
+    fiatAmount: billing.isFinite()
+      ? `${sign}${moneyFormatUsd(billing.abs())}`
+      : '',
+    showPrimaryAmount: false,
+    isFiatAmountMuted: false,
+    isPrimaryAmountPending: false,
   };
 }
 

@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   FontWeight,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -28,6 +27,9 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { SwitchAccountModalSelectorIDs } from '../../../../../../components/Views/confirmations/components/modals/switch-account-type-modal/SwitchAccountModal.testIds';
 import AppConstants from '../../../../../../core/AppConstants';
 import { SMART_ACCOUNT_MODAL_TEST_IDS } from './SmartAccountModal.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 interface RootNavigationParamList extends ParamListBase {
   SmartAccount: {
@@ -38,6 +40,7 @@ interface RootNavigationParamList extends ParamListBase {
 type SmartAccountModalProp = RouteProp<RootNavigationParamList, 'SmartAccount'>;
 
 const SmartAccountModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const route = useRoute<SmartAccountModalProp>();
   const { account } = route.params;
   const { styles } = useStyles(styleSheet, {});
@@ -72,7 +75,9 @@ const SmartAccountModal = () => {
       edges={['left', 'right', 'bottom']}
       testID={SMART_ACCOUNT_MODAL_TEST_IDS.SAFE_AREA}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         title={strings('multichain_accounts.account_details.smart_account')}
         onBack={() => navigation.goBack()}

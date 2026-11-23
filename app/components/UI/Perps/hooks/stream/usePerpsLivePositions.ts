@@ -2,8 +2,11 @@ import { useEffect, useMemo, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { type Position, type PriceUpdate } from '@metamask/perps-controller';
-import { calculateRoEForPrice } from '../../utils/tpslValidation';
+import {
+  calculateSignedRoEForPrice,
+  type Position,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 
@@ -11,6 +14,8 @@ import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccou
 const EMPTY_POSITIONS: Position[] = [];
 
 export interface UsePerpsLivePositionsOptions {
+  /** Whether to subscribe to position updates (default: true) */
+  enabled?: boolean;
   /** Throttle delay in milliseconds (default: 0 - no throttling for instant updates) */
   throttleMs?: number;
   /** Whether to subscribe to price updates for live PnL calculations (default: false) */
@@ -69,17 +74,12 @@ export function enrichPositionsWithLivePnL(
 
     const calculatedUnrealizedPnl = (currentPrice - entryPrice) * size;
 
-    const roePercentage = calculateRoEForPrice(
-      currentPrice.toString(),
-      calculatedUnrealizedPnl >= 0, // isProfit
-      true, // isForPositionBoundTpsl - true for existing positions
-      {
-        currentPrice,
-        direction,
-        leverage,
-        entryPrice,
-      },
-    );
+    const roePercentage = calculateSignedRoEForPrice(currentPrice.toString(), {
+      currentPrice,
+      direction,
+      leverage,
+      entryPrice,
+    });
 
     const calculatedRoe = roePercentage
       ? Number.parseFloat(roePercentage) / 100
@@ -106,7 +106,7 @@ export function enrichPositionsWithLivePnL(
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
+  const { enabled = true, throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
   const selectedAddress = useSelector(selectPerpsSelectedAccountAddress);
   const initialChannelPositions = stream.positions.getSnapshot();
@@ -150,6 +150,9 @@ export function usePerpsLivePositions(
 
   // Subscribe to position updates
   useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         acceptedDeliveryRef.current = false;
@@ -187,7 +190,7 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [selectedAddress, stream, throttleMs]);
+  }, [enabled, selectedAddress, stream, throttleMs]);
 
   // Derive the unique set of symbols from the current positions so we only
   // subscribe to the prices we actually need (instead of the full price channel).

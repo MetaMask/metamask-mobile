@@ -132,6 +132,13 @@ jest.mock('../../../../util/haptics', () => ({
   ImpactMoment: { PrimaryCTA: 'primaryCta' },
 }));
 
+jest.mock('../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
+}));
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));

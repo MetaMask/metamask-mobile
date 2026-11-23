@@ -3,6 +3,10 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import TextWithTooltip from './text-with-tooltip';
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 describe('TextWithTooltip', () => {
   it('renders correctly', async () => {
     const { getByText } = render(

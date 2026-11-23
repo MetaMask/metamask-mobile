@@ -12,7 +12,12 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import type { PredictGame, PredictTeam } from '../../types';
-import type { GameSelectionQuote } from '../game';
+import {
+  getGameTeamOrder,
+  toGameTradingQuote,
+  type GameSelection,
+  type GameSelectionQuote,
+} from '../game';
 import { formatAskPrice } from '../shared/formatting';
 import { isOutcomeTradeable } from '../shared/tradeable';
 import { MarketFooterCardTestIds } from './MarketFooterCard.testIds';
@@ -46,18 +51,14 @@ const FooterButton = ({
   textColor?: string;
   onOrder: (quote: GameSelectionQuote) => void;
 }) => {
-  // The quote's Outcome carries the Game Selection tag for the dual-line
-  // chart and may be the No side; a Team control displays and trades the Yes
-  // side of the winner Market. A winner Market without a Yes Outcome fails
-  // closed like findGameTradingQuote: no price is shown and the control
-  // cannot order the tagged No side.
-  const yesOutcome = quote.market.outcomes.find(
-    (outcome) => outcome.side === 'yes',
-  );
-  const price = yesOutcome ? formatAskPrice(yesOutcome.askPrice) : undefined;
+  const tradingQuote = toGameTradingQuote(quote);
+  const price = tradingQuote
+    ? formatAskPrice(tradingQuote.outcome.askPrice)
+    : undefined;
   const displayLabel = price ? `${label} · ${price}` : label;
   const isTradeable =
-    yesOutcome !== undefined && isOutcomeTradeable(quote.market, yesOutcome);
+    tradingQuote !== undefined &&
+    isOutcomeTradeable(tradingQuote.market, tradingQuote.outcome);
 
   return (
     <Button
@@ -71,8 +72,8 @@ const FooterButton = ({
       size={ButtonSize.Lg}
       isDisabled={!isTradeable}
       onPress={() => {
-        if (yesOutcome) {
-          onOrder({ market: quote.market, outcome: yesOutcome });
+        if (tradingQuote) {
+          onOrder(tradingQuote);
         }
       }}
       style={[{ backgroundColor }]}
@@ -100,31 +101,43 @@ export const MarketFooterCard = ({
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const inverseText = colors.overlay.inverse;
+  const teams: Record<
+    GameSelection,
+    { team: PredictTeam; quote: GameSelectionQuote; fallbackColor: string }
+  > = {
+    away: {
+      team: game.awayTeam,
+      quote: awayQuote,
+      fallbackColor: colors.info.default,
+    },
+    home: {
+      team: game.homeTeam,
+      quote: homeQuote,
+      fallbackColor: colors.success.default,
+    },
+  };
 
   return (
     <Box
       testID={MarketFooterCardTestIds.ROOT}
-      twClassName="flex-row gap-[10px] px-4 pt-2"
+      twClassName="flex-row gap-2 px-4 pt-2"
       style={{ paddingBottom: Math.max(insets.bottom, 8) }}
     >
-      <FooterButton
-        selection="away"
-        quote={awayQuote}
-        label={teamAbbreviation(game.awayTeam)}
-        accessibilityName={game.awayTeam.name}
-        backgroundColor={game.awayTeam.primaryColor ?? colors.info.default}
-        textColor={inverseText}
-        onOrder={onOrder}
-      />
-      <FooterButton
-        selection="home"
-        quote={homeQuote}
-        label={teamAbbreviation(game.homeTeam)}
-        accessibilityName={game.homeTeam.name}
-        backgroundColor={game.homeTeam.primaryColor ?? colors.success.default}
-        textColor={inverseText}
-        onOrder={onOrder}
-      />
+      {getGameTeamOrder(game).map((selection) => {
+        const { team, quote, fallbackColor } = teams[selection];
+        return (
+          <FooterButton
+            key={selection}
+            selection={selection}
+            quote={quote}
+            label={teamAbbreviation(team)}
+            accessibilityName={team.name}
+            backgroundColor={team.primaryColor ?? fallbackColor}
+            textColor={inverseText}
+            onOrder={onOrder}
+          />
+        );
+      })}
       {drawQuote ? (
         <FooterButton
           selection="draw"

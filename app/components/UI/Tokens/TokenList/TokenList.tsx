@@ -114,9 +114,10 @@ const TokenListComponent = ({
       SCROLL_TO_TOKEN_EVENT,
       ({ address, chainId }: { address: string; chainId: string }) => {
         // Find the index of the token in the display list
+        const eventAddress = address?.toLowerCase();
         const tokenIndex = displayTokenKeys.findIndex(
           (item) =>
-            item.address?.toLowerCase() === address?.toLowerCase() &&
+            item.address?.toLowerCase() === eventAddress &&
             item.chainId === chainId,
         );
 
@@ -127,11 +128,13 @@ const TokenListComponent = ({
         // For FlashList mode, use scrollToIndex
         if (isFullView) {
           if (listRef.current) {
-            listRef.current.scrollToIndex({
-              index: tokenIndex,
-              animated: true,
-              viewPosition: 0.5, // Center the item in the viewport
-            });
+            listRef.current
+              .scrollToIndex({
+                index: tokenIndex,
+                animated: true,
+                viewPosition: 0.5, // Center the item in the viewport
+              })
+              .catch(() => undefined);
           }
         } else {
           // For .map() mode, emit event with index for parent ScrollView to handle
@@ -236,6 +239,8 @@ const TokenListComponent = ({
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
         data={displayTokenKeys}
         removeClippedSubviews={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         renderItem={renderTokenListItem}
         keyExtractor={(item, idx) => `${getTokenKey(item)}-${idx}`}
         refreshControl={

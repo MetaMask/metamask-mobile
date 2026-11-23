@@ -55,6 +55,11 @@ export interface QuickBuyAnalyticsContext {
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
   traderTradeType?: 'buy' | 'sell';
   /**
+   * True when this sheet was opened from a Copy trade action. Independent of
+   * `copyTradeOrigin`, which is absent when the post has no comment id.
+   */
+  isCopyTrade?: boolean;
+  /**
    * Latest price of the buy token in the user's display currency, supplied by
    * the host (e.g. the trader position chart feed). Used as the pre-quote
    * exchange-rate source for tokens the user does not hold — for which the
@@ -73,10 +78,15 @@ export interface QuickBuyRootProps {
   initialTradeMode?: QuickBuyTradeMode;
   analyticsContext: QuickBuyAnalyticsContext;
   /**
-   * When true, a confirmed swap opens the Social post-swap share sheet instead
+   * When true, a confirmed swap opens the Social post-trade share sheet instead
    * of Quick Buy's pending/complete/failed toasts.
    */
-  postSwapShare?: boolean;
+  postTradeShare?: boolean;
+  /**
+   * Screen that opened this Quick Buy. A failed post-trade share reopens only
+   * that screen.
+   */
+  postTradeShareOwner?: string;
   /** Social post being copied; a submitted swap records a copy-trade intent. */
   copyTradeOrigin?: CopyTradeOrigin;
   children?: ReactNode;

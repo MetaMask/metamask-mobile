@@ -3,6 +3,7 @@ import EarnBalance from '.';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import StakingBalance from '../../../Stake/components/StakingBalance/StakingBalance';
+import { MOCK_ETH_MAINNET_ASSET } from '../../../Stake/__mocks__/stakeMockData';
 import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import { earnSelectors } from '../../../../../selectors/earnController';
@@ -146,6 +147,16 @@ describe('EarnBalance', () => {
       renderWithProvider(<EarnBalance asset={mockEth as unknown as TokenI} />);
 
       expect(StakingBalance).toHaveBeenCalled();
+    });
+
+    it('passes glass through to the staking balance', () => {
+      renderWithProvider(
+        <EarnBalance asset={MOCK_ETH_MAINNET_ASSET} isGlass />,
+      );
+
+      expect(jest.mocked(StakingBalance).mock.calls.at(-1)?.[0]).toEqual(
+        expect.objectContaining({ isGlass: true }),
+      );
     });
 
     it('renders when asset is supported stablecoin', () => {

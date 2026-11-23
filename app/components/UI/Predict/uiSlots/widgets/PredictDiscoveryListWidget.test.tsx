@@ -2,30 +2,24 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import type { UiSlot } from '../../../../../core/Engine/controllers/ui-slots-controller/types';
 import { BTC_UP_OR_DOWN_5M_SERIES } from '../../constants/btcUpDown5mSeries';
-import { useHomepagePredictMarketSlots } from '../../../../Views/Homepage/Sections/Predictions/hooks';
+import { useHomepagePredictMarketSlots } from '../../homeSection/hooks';
 import { PredictDiscoveryListHostContext } from './PredictDiscoveryListContext';
 import { PredictDiscoveryListWidget } from './PredictDiscoveryListWidget';
 import type { PredictHomepageMarketSlotReference } from '../types';
-import { HOMEPAGE_PREDICT_MARKET_SLOTS } from '../../../../Views/Homepage/Sections/Predictions/constants/homepagePredictMarketSlots';
+import { HOMEPAGE_PREDICT_MARKET_SLOTS } from '../../homeSection/constants/homepagePredictMarketSlots';
 
 const mockHomepagePredictDiscovery = jest.fn((_props: unknown) => null);
 
-jest.mock(
-  '../../../../Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery',
-  () => ({
-    __esModule: true,
-    default: (props: unknown) => mockHomepagePredictDiscovery(props),
-  }),
-);
-jest.mock('../../../../Views/Homepage/Sections/Predictions/hooks', () => ({
+jest.mock('../../homeSection/components/HomepagePredictDiscovery', () => ({
+  __esModule: true,
+  default: (props: unknown) => mockHomepagePredictDiscovery(props),
+}));
+jest.mock('../../homeSection/hooks', () => ({
   useHomepagePredictMarketSlots: jest.fn(),
 }));
-jest.mock(
-  '../../../../Views/Homepage/Sections/Predictions/hooks/useTreatmentDiscoveryFeedsLoading',
-  () => ({
-    useTreatmentDiscoveryFeedsLoading: () => false,
-  }),
-);
+jest.mock('../../homeSection/hooks/useTreatmentDiscoveryFeedsLoading', () => ({
+  useTreatmentDiscoveryFeedsLoading: () => false,
+}));
 
 const reference: PredictHomepageMarketSlotReference = {
   id: 'markets',
@@ -92,6 +86,70 @@ describe('PredictDiscoveryListWidget', () => {
       ],
     });
     expect(mockHomepagePredictDiscovery).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes configured row icons through and drops names this build does not ship', () => {
+    const host = {
+      enabled: true,
+      title: 'Predictions',
+      onViewAll: jest.fn(),
+      headerTestIdKey: 'predictions' as const,
+      registerDiscoveryRefetch: jest.fn(),
+      reportDiscoveryLoading: jest.fn(),
+    };
+    const slotWithIcons: UiSlot = {
+      ...slot,
+      dataReferences: [
+        {
+          ...reference,
+          params: {
+            ...reference.params,
+            items: [
+              {
+                type: 'event',
+                id: 'event-1',
+                slug: 'event-one',
+                iconName: 'Basketball',
+              },
+              {
+                type: 'series',
+                seriesId: 'btc-up-or-down-5m',
+                iconName: 'Trophy',
+              },
+              {
+                type: 'event',
+                id: 'event-2',
+                slug: 'event-two',
+                iconName: 'FutureIcon',
+              },
+            ],
+          },
+        },
+      ],
+    };
+
+    render(
+      <PredictDiscoveryListHostContext.Provider value={host}>
+        <PredictDiscoveryListWidget slot={slotWithIcons} />
+      </PredictDiscoveryListHostContext.Provider>,
+    );
+
+    const { slots } = jest.mocked(useHomepagePredictMarketSlots).mock
+      .calls[0][0];
+    expect(slots).toStrictEqual([
+      {
+        type: 'event',
+        id: 'event-1',
+        slug: 'event-one',
+        iconName: 'Basketball',
+      },
+      {
+        type: 'series',
+        series: BTC_UP_OR_DOWN_5M_SERIES,
+        iconName: 'Trophy',
+      },
+      { type: 'event', id: 'event-2', slug: 'event-two' },
+    ]);
   });
 
   it('uses bundled slots and resets loading during unmount', () => {

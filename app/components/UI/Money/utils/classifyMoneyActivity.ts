@@ -5,11 +5,7 @@ import {
 } from '@metamask/transaction-controller';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { areAddressesEqual } from '../../../../util/address';
-import {
-  isMusdOnMoneyAccountChain,
-  isMusdToken,
-} from '../../Earn/constants/musd';
+import { isMusdToken } from '../../Earn/constants/musd';
 import {
   isPerpsPredictMoneyDeposit,
   isPerpsPredictMoneyWithdraw,
@@ -41,7 +37,6 @@ export function getMoneyActivityStatus(
 
 export type MoneyActivityKind =
   | 'deposited'
-  | 'vba_deposit'
   | 'received'
   | 'converted'
   | 'sent'
@@ -82,11 +77,7 @@ function isMusdPayToken(tx: TransactionMeta): boolean {
   return isMusdToken(tx.metamaskPay?.tokenAddress);
 }
 
-export function classifyMoneyActivity(
-  tx: TransactionMeta,
-  moneyVbaActivityDepositFromAddresses: readonly string[] = [],
-  moneyAddress?: string,
-): MoneyActivityKind {
+export function classifyMoneyActivity(tx: TransactionMeta): MoneyActivityKind {
   const { moneyActivityTitleKey } = tx as MoneyActivityTransactionMeta;
   if (moneyActivityTitleKey) {
     return TITLE_KEY_TO_KIND[moneyActivityTitleKey] ?? 'received';
@@ -104,23 +95,6 @@ export function classifyMoneyActivity(
   const type = resolveMoneyTransactionType(tx);
   if (!type) {
     return 'deposited';
-  }
-
-  if (
-    type === TransactionType.incoming &&
-    tx.status === TransactionStatus.confirmed &&
-    isMusdOnMoneyAccountChain(
-      tx.transferInformation?.contractAddress,
-      tx.chainId,
-    ) &&
-    Boolean(moneyAddress) &&
-    areAddressesEqual(tx.txParams?.to ?? '', moneyAddress ?? '') &&
-    Boolean(tx.txParams?.from) &&
-    moneyVbaActivityDepositFromAddresses.some((address) =>
-      areAddressesEqual(tx.txParams?.from ?? '', address),
-    )
-  ) {
-    return 'vba_deposit';
   }
 
   switch (type) {
@@ -145,7 +119,6 @@ export function classifyMoneyActivity(
 
 const KIND_LABEL_KEY: Record<MoneyActivityKind, string> = {
   deposited: 'money.transaction.deposited',
-  vba_deposit: 'money.transaction.deposited',
   received: 'money.transaction.received',
   converted: 'money.transaction.converted',
   sent: 'money.transaction.sent',
@@ -186,7 +159,6 @@ export function moneyActivityLabel(
 export function moneyActivityKindToIcon(kind: MoneyActivityKind): IconName {
   switch (kind) {
     case 'deposited':
-    case 'vba_deposit':
       return IconName.Add;
     case 'received':
       return IconName.Arrow2Down;

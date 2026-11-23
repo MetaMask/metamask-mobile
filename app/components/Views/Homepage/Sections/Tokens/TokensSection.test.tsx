@@ -29,13 +29,19 @@ jest.mock('../../../../UI/Ramp/hooks/useRampNavigation', () => ({
 
 const mockUseIsZeroBalanceAccount = jest.fn();
 const mockUsePopularTokens = jest.fn();
+const mockUseAssetsHaveLoaded = jest.fn();
 
 jest.mock('./hooks', () => ({
   useIsZeroBalanceAccount: () => mockUseIsZeroBalanceAccount(),
   usePopularTokens: () => mockUsePopularTokens(),
 }));
 
+jest.mock('../../../../UI/Assets/hooks/useAssetsHaveLoaded', () => ({
+  useAssetsHaveLoaded: () => mockUseAssetsHaveLoaded(),
+}));
+
 const mockSortedTokenKeys = jest.fn();
+const mockAssetsByChain = jest.fn();
 const mockAccountGroupBalance = jest.fn();
 
 let mockPopularNetworks: string[] = [];
@@ -52,6 +58,8 @@ jest.mock('../../../../../selectors/assets/assets-list', () => ({
   makeSelectSortedAssetsBySelectedAccountGroupForChainIdsByBalance:
     (chainIds: string[]) => (state: unknown) =>
       mockSortedTokenKeys(state, chainIds),
+  selectAssetsBySelectedAccountGroup: (state: unknown) =>
+    mockAssetsByChain(state),
 }));
 
 jest.mock('../../../../../selectors/assets/balances', () => ({
@@ -349,7 +357,9 @@ describe('TokensSection', () => {
     jest.clearAllMocks();
     mockRefresh.mockResolvedValue(undefined);
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
+    mockUseAssetsHaveLoaded.mockReturnValue(true);
     mockSortedTokenKeys.mockReturnValue([]);
+    mockAssetsByChain.mockReturnValue({});
     mockPopularNetworks = ['eip155:1', '0xa'];
     // Default null: balance selectors not yet initialized (cold start).
     // Prevents the heuristic from firing in tests that don't set up balance data.
@@ -379,6 +389,8 @@ describe('TokensSection', () => {
 
   it('only notifies Homepage after primary content becomes ready', () => {
     const onContentReadyChange = jest.fn();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
+    mockAssetsByChain.mockReturnValue({});
 
     const { rerender } = renderWithProvider(
       <TokensSection
@@ -390,6 +402,7 @@ describe('TokensSection', () => {
 
     expect(onContentReadyChange).not.toHaveBeenCalled();
 
+    mockUseAssetsHaveLoaded.mockReturnValue(true);
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 
     rerender(
@@ -401,6 +414,76 @@ describe('TokensSection', () => {
     );
 
     expect(onContentReadyChange).toHaveBeenCalledWith(true);
+  });
+
+  it('notifies Homepage when unsettled assets already include a real balance', () => {
+    const onContentReadyChange = jest.fn();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
+    mockPopularNetworks = ['eip155:1'];
+    mockAssetsByChain.mockReturnValue({
+      '0x1': [
+        {
+          assetId: 'eip155:1/slip44:60',
+          chainId: '0x1',
+          isNative: true,
+          balance: '1',
+          fiat: { balance: 3000 },
+        },
+      ],
+    });
+    mockSortedTokenKeys.mockReturnValue([
+      {
+        address: 'eip155:1/slip44:60',
+        chainId: '0x1',
+        isStaked: false,
+      },
+    ]);
+
+    renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).toHaveBeenCalledWith(true);
+  });
+
+  it('keeps the skeleton when only a custom-network balance is present', () => {
+    const onContentReadyChange = jest.fn();
+    mockUseAssetsHaveLoaded.mockReturnValue(false);
+    mockPopularNetworks = ['eip155:1'];
+    mockAssetsByChain.mockReturnValue({
+      '0x1': [
+        {
+          assetId: 'eip155:1/slip44:60',
+          chainId: '0x1',
+          isNative: true,
+          balance: '0',
+          fiat: { balance: 0 },
+        },
+      ],
+      '0x539': [
+        {
+          assetId: 'eip155:1337/slip44:60',
+          chainId: '0x539',
+          isNative: true,
+          balance: '5',
+          fiat: { balance: 20 },
+        },
+      ],
+    });
+
+    renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        onContentReadyChange={onContentReadyChange}
+      />,
+    );
+
+    expect(onContentReadyChange).not.toHaveBeenCalled();
   });
 
   it('renders "Tokens" title for zero balance account', () => {
@@ -675,7 +758,7 @@ describe('TokensSection', () => {
     expect(screen.queryByTestId('error-state')).toBeNull();
   });
 
-  it('renders ErrorState when account has balance but selector returns no tokens', () => {
+  it('keeps the token list when the account has balance but no homepage tokens', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(false);
     mockSortedTokenKeys.mockReturnValue([]);
     mockAccountGroupBalance.mockReturnValue({
@@ -687,29 +770,10 @@ describe('TokensSection', () => {
       <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
 
-    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
-    expect(screen.getByText('Unable to load tokens')).toBeOnTheScreen();
-  });
-
-  it('retries data fetch when retry is pressed on heuristic error', async () => {
-    mockUseIsZeroBalanceAccount.mockReturnValue(false);
-    mockSortedTokenKeys.mockReturnValue([]);
-    mockAccountGroupBalance.mockReturnValue({
-      totalBalanceInUserCurrency: 100,
-      userCurrency: 'usd',
-    });
-
-    renderWithProvider(
-      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    expect(screen.getByTestId('error-state')).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(screen.getByTestId('error-state-retry-button'));
-    });
-
-    expect(mockRefresh).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId('error-state')).toBeNull();
+    expect(
+      screen.getByTestId(homepageSectionTitleTestId('tokens')),
+    ).toBeOnTheScreen();
   });
 
   it('does not show RemoveTokenBottomSheet by default', () => {

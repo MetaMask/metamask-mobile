@@ -98,6 +98,7 @@ export const createMockInfrastructure =
       // === Rewards (DI — no RewardsController in Core yet) ===
       rewards: {
         getPerpsDiscountForAccount: jest.fn().mockResolvedValue(0),
+        getPerpsTradingFeeGrant: jest.fn().mockResolvedValue(null),
       },
 
       // === Disk Cache (cold-start persistence) ===
@@ -116,6 +117,11 @@ export const createMockPerpsControllerState = (
   overrides: Partial<PerpsControllerState> = {},
 ): PerpsControllerState => ({
   activeProvider: 'hyperliquid',
+  defaultProvider: 'hyperliquid',
+  effectiveProvider: null,
+  hasExplicitDefaultProviderSelection: false,
+  hasExplicitProviderSelection: false,
+  hasMigratedToMultiProvider: false,
   isTestnet: false,
   initializationState: 'initialized' as InitializationState,
   initializationError: null,

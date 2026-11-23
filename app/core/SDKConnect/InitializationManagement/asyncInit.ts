@@ -13,7 +13,21 @@ import Logger from '../../../util/Logger';
 import SDKConnect, { ApprovedHosts, SDKSessions } from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
 import { wait } from '../utils/wait.util';
+import { revokeChannelPermissions } from '../utils/revokeChannelPermissions.util';
 import AppConstants from '../../../../app/core/AppConstants';
+
+function revokeExpiredChannel(channelId: string) {
+  try {
+    revokeChannelPermissions(channelId);
+  } catch (error) {
+    // connectToChannel revokes again before a channel without a session can
+    // be reused, so a leftover permission cannot authorize it.
+    Logger.log(
+      error,
+      `SDKConnect::init() - failed to revoke expired channel ${channelId}`,
+    );
+  }
+}
 
 const asyncInit = async ({
   navigation,
@@ -68,6 +82,7 @@ const asyncInit = async ({
           `SDKConnect::init() - removing expired connection ${id} ${sdkHostId}`,
           connInfo,
         );
+        revokeExpiredChannel(id);
       }
     }
     DevLogger.log(

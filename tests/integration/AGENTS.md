@@ -41,6 +41,8 @@ Agent index for **integration tests** (`app/**/*.integration.test.ts`). Jest tes
 - **Mocked:** HTTP fetch and app-shell base URL/client version configuration
 - **Factory:** `buildPredictNextIntegrationHarness(responder)`
 - **Returns:** `{ messenger, marketDataService, portfolioService, fetchMock, getBearerTokenMock, destroy }`
+- **Active Venue factory:** `buildPredictVenueIntegrationHarness({ persisted, geolocationWaitMs })`. Real `GeolocationApiService`, `GeolocationController` with its Engine-start init, and `PredictVenueController`; the geolocation HTTP fetch is mocked and stays pending until answered.
+- **Returns:** `{ venueController, geolocationController, geolocationFetchMock, respondWithCountry, failGeolocation, persistedVenueState, destroy }`
 
 ---
 

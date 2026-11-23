@@ -19,9 +19,19 @@ export enum Flow {
 }
 
 /**
+ * Where a bridge-flow signing session was started. Swap is the default; Quick
+ * Buy is a bottom sheet with no `BRIDGE_VIEW` to return to, and it hands its
+ * bridge slice over to this screen to own.
+ */
+export enum BridgeEntryPoint {
+  Swap = 'swap',
+  QuickBuy = 'quickBuy',
+}
+
+/**
  * Kind of navigation to perform when the user cancels.
- * - `GoBack`: pop the current screen (send flow — multiple entry points).
- * - `Navigate`: push a specific route (bridge flow — always `BRIDGE_VIEW`).
+ * - `GoBack`: pop the current screen (send flow and Quick Buy — multiple entry points).
+ * - `Navigate`: push a specific route (swap — always `BRIDGE_VIEW`).
  */
 export enum CancelTargetType {
   GoBack = 'goBack',
@@ -47,6 +57,8 @@ export interface SubmissionParams {
     PostTradeBottomSheetParams,
     'sourceAmount' | 'destAmount' | 'sourceToken' | 'destToken'
   >;
+  /** Id from `registerHwSubmissionOutcomeListener`, notified once when the session ends. */
+  outcomeListenerId?: string;
 }
 
 /**
@@ -55,6 +67,8 @@ export interface SubmissionParams {
  */
 export interface HardwareWalletsSwapsRouteParams {
   flow?: Flow;
+  /** Bridge only. Defaults to `BridgeEntryPoint.Swap`. */
+  bridgeEntryPoint?: BridgeEntryPoint;
   submissionParams?: SubmissionParams;
   preparedTxMeta?: TransactionMeta;
   gasTokenAddress?: string;
@@ -78,6 +92,8 @@ export interface FlowStrategy {
   flow: Flow;
   /** Convenience boolean for the few downstream APIs that take `isSendFlow: boolean`. */
   isSendFlow: boolean;
+  /** Bridge flow started from Quick Buy: goes back on success and resets the bridge slice on unmount. */
+  isQuickBuy: boolean;
   /** Address of the signing wallet. Send: from prepared tx; bridge: bridge selector. */
   walletAddress?: string;
   /** Display amount for step rows. Send: route-params displayContext; bridge: source selector. */
@@ -167,6 +183,7 @@ export function resolveFlowStrategy(input: {
     return {
       flow: Flow.Send,
       isSendFlow: true,
+      isQuickBuy: false,
       // Send flows are never swaps — even with dest data present, send copy wins.
       isSwap: false,
       walletAddress: routeParams.preparedTxMeta?.txParams.from,
@@ -200,10 +217,12 @@ export function resolveFlowStrategy(input: {
 
   // Same-chain swap: missing dest data degrades to send copy (extension parity).
   const isSwap = isSameChainSwap(sourceToken, effectiveDestToken);
+  const isQuickBuy = routeParams.bridgeEntryPoint === BridgeEntryPoint.QuickBuy;
 
   return {
     flow: Flow.Bridge,
     isSendFlow: false,
+    isQuickBuy,
     walletAddress: bridgedWalletAddress,
     displayedAmount: sourceAmount,
     displayedTokenSymbol: sourceToken?.symbol,
@@ -213,9 +232,11 @@ export function resolveFlowStrategy(input: {
     gasTokenSymbol: undefined,
     trackerOptions: { flow: Flow.Bridge },
     submitOptions: { submissionParams: routeParams.submissionParams },
-    cancelTarget: {
-      type: CancelTargetType.Navigate,
-      route: Routes.BRIDGE.BRIDGE_VIEW,
-    },
+    cancelTarget: isQuickBuy
+      ? { type: CancelTargetType.GoBack }
+      : {
+          type: CancelTargetType.Navigate,
+          route: Routes.BRIDGE.BRIDGE_VIEW,
+        },
   };
 }

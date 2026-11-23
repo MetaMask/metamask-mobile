@@ -5,7 +5,7 @@ import {
   screen,
   within,
 } from '@testing-library/react-native';
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TagSeverity } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
@@ -333,6 +333,15 @@ describe('PerpsProOrderForm', () => {
 
       expect(onChaseMaxDistanceUnitChange).toHaveBeenCalledWith('percent');
       expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
+    });
+
+    it('forwards Chase max distance focus to onChaseMaxDistanceFocus', () => {
+      const onChaseMaxDistanceFocus = jest.fn();
+      renderForm({ orderType: 'chase', onChaseMaxDistanceFocus });
+
+      fireEvent(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+      expect(onChaseMaxDistanceFocus).toHaveBeenCalledTimes(1);
     });
 
     it('formats an empty Chase percentage distance with its unit', () => {
@@ -1363,6 +1372,18 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onSizeSkewInfoPress).toHaveBeenCalledTimes(1);
     });
 
+    it('renders the margin mode and leverage chevrons from Figma', () => {
+      renderForm();
+
+      expect(
+        screen.getByTestId(`${ids.MARGIN_MODE_BUTTON}-chevron`),
+      ).toHaveProp('name', IconName.ArrowDown);
+      expect(screen.getByTestId(`${ids.LEVERAGE_BUTTON}-chevron`)).toHaveProp(
+        'name',
+        IconName.ArrowDown,
+      );
+    });
+
     it('renders the order type chevron from Figma', () => {
       renderForm();
 
@@ -1892,6 +1913,36 @@ describe('PerpsProOrderForm', () => {
     });
   });
 
+  describe('Fee Display Format A/B test', () => {
+    it('passes feeDisplayMode and both rates through to PerpsFeesDisplay for treatment', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          feeDisplayMode: 'percentage',
+          takerFeeRate: 0.00143,
+          makerFeeRate: 0.00114,
+        },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', 'percentage');
+      expect(feesValue).toHaveProp('takerFeeRate', 0.00143);
+      expect(feesValue).toHaveProp('makerFeeRate', 0.00114);
+    });
+
+    it('leaves PerpsFeesDisplay in dollar mode with no rates when feeDisplayMode is omitted', () => {
+      renderForm({
+        summary: { margin: '--', liquidationPrice: '--' },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', undefined);
+      expect(feesValue).toHaveProp('takerFeeRate', undefined);
+      expect(feesValue).toHaveProp('makerFeeRate', undefined);
+    });
+  });
+
   describe('Figma layout', () => {
     it('uses 16-point spacing between form sections', () => {
       renderForm();
@@ -1958,6 +2009,24 @@ describe('PerpsProOrderForm', () => {
       expect(marginModeStyle.flexBasis).toBe('0%');
       expect(leverageStyle.flexGrow).toBe(1);
       expect(leverageStyle.flexBasis).toBe('0%');
+    });
+
+    it('gives margin mode a larger share of the row when the ratio tag is shown', () => {
+      renderForm({
+        marginModeLabel: 'Cross',
+        marginModeTag: { label: '63,9 %', severity: TagSeverity.Warning },
+      });
+
+      const marginModeStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.MARGIN_MODE_BUTTON).props.style,
+      );
+      const leverageStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.LEVERAGE_BUTTON).props.style,
+      );
+
+      expect(screen.getByTestId(ids.MARGIN_MODE_TAG)).toBeOnTheScreen();
+      expect(marginModeStyle.flexGrow).toBe(2);
+      expect(leverageStyle.flexGrow).toBe(1);
     });
 
     it('uses 4-point spacing between summary rows', () => {

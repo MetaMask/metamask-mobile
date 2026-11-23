@@ -4,6 +4,7 @@ import ReduxService from './redux';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { Authentication } from './Authentication/Authentication';
+import { signOutCardAfterPasswordChange } from './signOutCardAfterPasswordChange';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
@@ -96,4 +97,7 @@ export const recreateVaultsWithNewPassword = async (
     await Authentication.syncKeyringEncryptionKey();
   }
   Engine.setSelectedAddress(selectedAddress);
+  // Card logout is a remote call with no timeout. It must not delay the
+  // password change or sit before the seedless key sync.
+  signOutCardAfterPasswordChange().catch(() => undefined);
 };

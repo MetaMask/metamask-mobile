@@ -9,7 +9,6 @@ import {
 
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Text,
   TextColor,
@@ -28,6 +27,8 @@ import Icon, {
 import { useStyles } from '../../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import stylesheet from './account-picker-row.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export interface SubAccountBase {
   id: string;
@@ -60,6 +61,7 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
   searchPlaceholder,
   testIDs,
 }: AccountPickerRowContentProps<T>) {
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(stylesheet, {});
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [isPickerVisible, setIsPickerVisible] = useState(false);
@@ -176,9 +178,12 @@ export function AccountPickerRowContent<T extends SubAccountBase>({
               keyboardAvoidingViewEnabled={false}
               onClose={handleSheetClosed}
             >
-              <BottomSheetHeader onClose={handleModalRequestClose}>
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
+                onClose={handleModalRequestClose}
+              >
                 {title}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
               <View style={styles.searchContainer}>
                 <Icon
                   name={IconName.Search}

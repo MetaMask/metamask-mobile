@@ -40,6 +40,7 @@ export default (colors: ThemeColors) =>
     buttonsContainer: {
       flexDirection: 'row',
       paddingTop: 24,
+      gap: 8,
     },
     button: {
       flex: 1,
@@ -52,7 +53,6 @@ export default (colors: ThemeColors) =>
       textAlign: 'center',
     },
     bottom: { paddingTop: 20 },
-    spacer: { width: 20 },
     icon: { alignSelf: 'center', marginBottom: 10 },
     loaderWrapper: {
       flex: 1,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Linking, Platform } from 'react-native';
-import { act, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import AgenticCliDashboardWebview from './index';
 import { AgenticCliDashboardWebviewService } from './AgenticCliDashboardWebviewService';
 import Logger from '../../../util/Logger';
@@ -45,9 +45,29 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
+let mockGlassHeadersEnabled = false;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockGlassHeadersEnabled,
+}));
+
+const mockHeaderStandardGlass = jest.fn();
+
 jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions',
-  () => (options: unknown) => options,
+  '../../../component-library/components-temp/HeaderStandardGlass',
+  () => ({
+    __esModule: true,
+    default: (props: { title: string; onBack: () => void }) => {
+      const { Text, TouchableOpacity } = jest.requireActual('react-native');
+      mockHeaderStandardGlass(props);
+      return (
+        <TouchableOpacity testID="dashboard-header-back" onPress={props.onBack}>
+          <Text>{props.title}</Text>
+        </TouchableOpacity>
+      );
+    },
+  }),
 );
 
 jest.mock('../../../util/Logger', () => ({
@@ -137,6 +157,7 @@ describe('AgenticCliDashboardWebview', () => {
   beforeEach(() => {
     jest.useRealTimers();
     jest.clearAllMocks();
+    mockGlassHeadersEnabled = false;
     mockBeforeRemoveCallback.current = null;
     jest.replaceProperty(Platform, 'OS', 'ios');
     mockUseParams.mockReturnValue(params);
@@ -154,9 +175,9 @@ describe('AgenticCliDashboardWebview', () => {
       expect(getByTestId('agentic-dashboard-webview')).toBeOnTheScreen(),
     );
 
-    expect(mockSetOptions).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'Select project' }),
-    );
+    expect(mockSetOptions).toHaveBeenCalledWith({
+      header: expect.any(Function),
+    });
     expect(mockWebViewProps).toHaveBeenLastCalledWith(
       expect.objectContaining({
         source: {
@@ -166,6 +187,64 @@ describe('AgenticCliDashboardWebview', () => {
       }),
     );
     unmount();
+  });
+
+  describe('header', () => {
+    const renderHeader = () => {
+      render(<AgenticCliDashboardWebview />);
+      const { header } = mockSetOptions.mock.calls.at(-1)?.[0] ?? {};
+
+      if (typeof header !== 'function') {
+        throw new Error('header option was not set');
+      }
+
+      return render(header());
+    };
+
+    it('renders a plain in-flow header that closes the dashboard when glassHeaders is off', () => {
+      const { getByTestId, getByText } = renderHeader();
+
+      fireEvent.press(getByTestId('dashboard-header-back'));
+
+      expect(getByText('Select project')).toBeOnTheScreen();
+      expect(mockHeaderStandardGlass).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isGlass: false,
+          isFloating: false,
+          includesTopInset: false,
+          twClassName: 'bg-default rounded-t-2xl',
+        }),
+      );
+      expect(mockReject).toHaveBeenCalledWith(
+        'request-1',
+        expect.objectContaining({ message: 'Dashboard approval closed.' }),
+      );
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('renders a glass in-flow header when glassHeaders is on', () => {
+      mockGlassHeadersEnabled = true;
+
+      renderHeader();
+
+      expect(mockHeaderStandardGlass).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isGlass: true,
+          isFloating: false,
+          includesTopInset: false,
+        }),
+      );
+    });
+
+    it('includes the top inset on Android', () => {
+      jest.replaceProperty(Platform, 'OS', 'android');
+
+      renderHeader();
+
+      expect(mockHeaderStandardGlass).toHaveBeenLastCalledWith(
+        expect.objectContaining({ includesTopInset: true }),
+      );
+    });
   });
 
   it('resolves and closes when the dashboard posts an approved message', async () => {

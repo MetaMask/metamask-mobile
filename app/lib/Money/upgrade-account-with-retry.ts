@@ -2,7 +2,6 @@ import {
   isMoneyAccountUpgradeStepError,
   isTerminalMoneyAccountUpgradeError,
 } from '@metamask/money-account-upgrade-controller';
-import type { Hex } from '@metamask/utils';
 
 /**
  * Delays between retry attempts. Once the schedule is exhausted the last
@@ -39,6 +38,48 @@ export const isMoneyAccountUpgradeAbortedError = (
 ): error is MoneyAccountUpgradeAbortedError =>
   error instanceof Error && error.name === 'MoneyAccountUpgradeAbortedError';
 
+const NETWORK_FAILURE_MESSAGES = [
+  'Network request failed',
+  'Network request timed out',
+  'Failed to fetch',
+  'fetch failed',
+];
+
+/**
+ * Whether `error` is a request failure that may succeed if re-issued: a
+ * CHOMP 429 or 5xx, an open circuit breaker, or a network failure. These
+ * surface unwrapped (not as step errors) when the lifecycle controller's
+ * identities fetch fails before the upgrade itself starts.
+ *
+ * Checked structurally rather than via `instanceof`, matching the
+ * controller packages' cross-realm-safe error guards.
+ *
+ * @param error - The value to test.
+ * @returns Whether re-issuing the request may succeed.
+ */
+const isTransientRequestError = (error: unknown): boolean => {
+  if (error instanceof TypeError) {
+    return NETWORK_FAILURE_MESSAGES.includes(error.message);
+  }
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  if ((error as { isBrokenCircuitError?: unknown }).isBrokenCircuitError) {
+    return true;
+  }
+  const { httpStatus } = error as { httpStatus?: unknown };
+  return (
+    error.name === 'ChompApiError' &&
+    typeof httpStatus === 'number' &&
+    (httpStatus === 429 || httpStatus >= 500)
+  );
+};
+
+const isRetryableUpgradeError = (error: unknown): boolean =>
+  isMoneyAccountUpgradeStepError(error)
+    ? !isTerminalMoneyAccountUpgradeError(error)
+    : isTransientRequestError(error);
+
 /**
  * Runs the Money Account upgrade sequence, retrying failed attempts with
  * capped exponential backoff (10s, 20s, 40s, then every 60s). There is no
@@ -47,14 +88,14 @@ export const isMoneyAccountUpgradeAbortedError = (
  * screen) is what ends the run.
  *
  * `upgradeAccount` is idempotent and resumable, so a retry only re-runs the
- * steps that have not yet succeeded. Rethrows the error without further
- * attempts when the failure is terminal (see
- * `isTerminalMoneyAccountUpgradeError`) or when it is not a step failure at
- * all (e.g. the controller was not initialized).
+ * steps that have not yet succeeded. Retries non-terminal step failures and
+ * transient request failures (see {@link isTransientRequestError}).
+ * Rethrows anything else without further attempts: a terminal step failure
+ * (see `isTerminalMoneyAccountUpgradeError`) or a deterministic error (e.g.
+ * there is no Money Account to upgrade).
  *
  * @param upgradeAccount - Runs a single upgrade attempt, e.g.
- * `Engine.context.MoneyAccountUpgradeController.upgradeAccount`.
- * @param address - The Money Account address to upgrade.
+ * `Engine.context.MoneyAccountLifecycleController.upgradeMoneyAccount`.
  * @param options - Retry options.
  * @param options.signal - Aborts waiting between attempts and prevents
  * further attempts. An abort while an attempt is in flight does not
@@ -63,13 +104,12 @@ export const isMoneyAccountUpgradeAbortedError = (
  * {@link MoneyAccountUpgradeAbortedError}.
  * @param options.onRetry - Called with each failure that will be retried and
  * the (1-indexed) attempt that produced it. Failures that end the run — a
- * terminal error or a non-step error — are rethrown instead, so between
+ * terminal or otherwise non-retryable error — are rethrown instead, so between
  * `onRetry` and the returned promise every failure surfaces exactly once.
  * Must not throw.
  */
 export async function upgradeAccountWithRetry(
-  upgradeAccount: (address: Hex) => Promise<void>,
-  address: Hex,
+  upgradeAccount: () => Promise<void>,
   {
     signal,
     onRetry,
@@ -83,13 +123,10 @@ export async function upgradeAccountWithRetry(
       throw new MoneyAccountUpgradeAbortedError();
     }
     try {
-      await upgradeAccount(address);
+      await upgradeAccount();
       return;
     } catch (error) {
-      const retryable =
-        isMoneyAccountUpgradeStepError(error) &&
-        !isTerminalMoneyAccountUpgradeError(error);
-      if (!retryable) {
+      if (!isRetryableUpgradeError(error)) {
         throw error;
       }
       onRetry?.(error, attempt);

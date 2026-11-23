@@ -9,6 +9,7 @@ import { useTokenMarketData } from './useTokenMarketData';
 import { tokenMarketDataKeys } from '../queries/tokenMarketData';
 import { getAssetsPrice } from '../../../../selectors/assets/assets-controller';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
+import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 import Logger from '../../../../util/Logger';
 
 jest.mock('react-redux', () => ({
@@ -155,6 +156,19 @@ describe('useTokenMarketData', () => {
     const url = mockHandleFetch.mock.calls[0][0] as string;
     expect(url).toContain('vsCurrency=eur');
     expect(url).toContain('includeMarketData=true');
+  });
+
+  // No provider here, which is the case every caller outside Token Details V1
+  // is in. The provider half is covered in PriceApiHostContext.test.
+  it('requests prod outside a PriceApiHostProvider', async () => {
+    mockState();
+    mockHandleFetch.mockResolvedValue({ [ASSET_ID]: buildPrice() });
+
+    const { result } = renderTokenMarketData();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    const url = mockHandleFetch.mock.calls[0][0] as string;
+    expect(url.startsWith(`${PRICE_API_BASE_URL}/v3/spot-prices?`)).toBe(true);
   });
 
   it('resolves to null when the API has no entry for the asset', async () => {
