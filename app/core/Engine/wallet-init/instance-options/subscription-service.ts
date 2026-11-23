@@ -1,4 +1,3 @@
-import { Env } from '@metamask/subscription-controller';
 import type { WalletOptions } from '@metamask/wallet';
 import { captureException } from '@sentry/react-native';
 import { ApiEnv, getApiEnv } from '../../../apiEnv';
@@ -7,15 +6,19 @@ type SubscriptionServiceInstanceOptions = NonNullable<
   WalletOptions['instanceOptions']['subscriptionService']
 >;
 
-const SUBSCRIPTION_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
-  [ApiEnv.Dev]: Env.DEV,
-  [ApiEnv.Uat]: Env.UAT,
-  [ApiEnv.Prod]: Env.PRD,
+/**
+ * SubscriptionService base URL for each API cluster. Hosts have no trailing
+ * slash and omit `/v1`; the service appends the API version itself.
+ */
+const SUBSCRIPTION_API_URL_BY_API_ENV: Record<ApiEnv, string> = {
+  [ApiEnv.Dev]: 'https://subscription.dev-api.cx.metamask.io',
+  [ApiEnv.Uat]: 'https://subscription.uat-api.cx.metamask.io',
+  [ApiEnv.Prod]: 'https://subscription.api.cx.metamask.io',
 };
 
 /**
- * Mobile supplies fetch, env (aligned with AuthenticationController via
- * `getApiEnv`), and Sentry error capture for the wallet-owned
+ * Mobile supplies fetch, the base URL (aligned with AuthenticationController
+ * via `getApiEnv`), and Sentry error capture for the wallet-owned
  * SubscriptionService.
  *
  * @returns The mobile SubscriptionService instance options.
@@ -23,7 +26,7 @@ const SUBSCRIPTION_ENV_BY_API_ENV: Record<ApiEnv, Env> = {
 export function getSubscriptionServiceInstanceOptions(): SubscriptionServiceInstanceOptions {
   return {
     fetchFunction: fetch,
-    env: SUBSCRIPTION_ENV_BY_API_ENV[getApiEnv()],
+    baseUrl: SUBSCRIPTION_API_URL_BY_API_ENV[getApiEnv()],
     captureException,
   };
 }

@@ -1,4 +1,3 @@
-import { Env } from '@metamask/shield-controller';
 import { captureException } from '@sentry/react-native';
 import { getShieldApiServiceInstanceOptions } from './shield-api-service';
 
@@ -17,31 +16,35 @@ describe('getShieldApiServiceInstanceOptions', () => {
     }
   });
 
-  it('builds options with fetch, production env, and Sentry capture by default', () => {
+  it('builds options with fetch, production base URL, and Sentry capture by default', () => {
     delete process.env.MM_API_ENV;
 
     const options = getShieldApiServiceInstanceOptions();
 
     expect(options).toEqual({
       fetchFunction: fetch,
-      env: Env.PRD,
+      baseUrl: 'https://ruleset-engine.api.cx.metamask.io',
       captureException,
     });
   });
 
-  it('maps MM_API_ENV=dev to Env.DEV', () => {
+  it('uses the dev base URL when MM_API_ENV=dev', () => {
     process.env.MM_API_ENV = 'dev';
 
     const options = getShieldApiServiceInstanceOptions();
 
-    expect(options.env).toBe(Env.DEV);
+    expect(options.baseUrl).toBe(
+      'https://ruleset-engine.dev-api.cx.metamask.io',
+    );
   });
 
-  it('maps MM_API_ENV=uat to Env.UAT', () => {
+  it('uses the uat base URL when MM_API_ENV=uat', () => {
     process.env.MM_API_ENV = 'uat';
 
     const options = getShieldApiServiceInstanceOptions();
 
-    expect(options.env).toBe(Env.UAT);
+    expect(options.baseUrl).toBe(
+      'https://ruleset-engine.uat-api.cx.metamask.io',
+    );
   });
 });

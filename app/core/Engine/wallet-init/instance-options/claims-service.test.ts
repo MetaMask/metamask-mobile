@@ -1,4 +1,3 @@
-import { Env } from '@metamask/claims-controller';
 import { captureException } from '@sentry/react-native';
 import { getClaimsServiceInstanceOptions } from './claims-service';
 
@@ -17,31 +16,31 @@ describe('getClaimsServiceInstanceOptions', () => {
     }
   });
 
-  it('builds options with fetch, production env, and Sentry capture by default', () => {
+  it('builds options with fetch, production base URL, and Sentry capture by default', () => {
     delete process.env.MM_API_ENV;
 
     const options = getClaimsServiceInstanceOptions();
 
     expect(options).toEqual({
       fetchFunction: fetch,
-      env: Env.PRD,
+      baseUrl: 'https://claims.api.cx.metamask.io',
       captureException,
     });
   });
 
-  it('maps MM_API_ENV=dev to Env.DEV', () => {
+  it('uses the dev base URL when MM_API_ENV=dev', () => {
     process.env.MM_API_ENV = 'dev';
 
     const options = getClaimsServiceInstanceOptions();
 
-    expect(options.env).toBe(Env.DEV);
+    expect(options.baseUrl).toBe('https://claims.dev-api.cx.metamask.io');
   });
 
-  it('maps MM_API_ENV=uat to Env.UAT', () => {
+  it('uses the uat base URL when MM_API_ENV=uat', () => {
     process.env.MM_API_ENV = 'uat';
 
     const options = getClaimsServiceInstanceOptions();
 
-    expect(options.env).toBe(Env.UAT);
+    expect(options.baseUrl).toBe('https://claims.uat-api.cx.metamask.io');
   });
 });
