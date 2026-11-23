@@ -238,7 +238,6 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
     amount,
     cryptoFee,
     cryptoAmount,
-    currencySymbol,
     currency,
     txHash,
     cryptocurrency,
@@ -258,9 +257,11 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
     (order.data as Order)?.exchangeRate ??
     Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
-  const { formatCurrency } = useFormatters();
-  const formatFiat = (value: number | string) =>
-    formatCurrency(Number(value), currency) || '...';
+  const { formatCurrency, formatCurrencyWithMinThreshold } = useFormatters();
+  const formatFiat = (value: number | string | undefined) =>
+    (currency && formatCurrency(Number(value), currency)) || '...';
+  const formatRate = (value: number) =>
+    (currency && formatCurrencyWithMinThreshold(value, currency)) || '...';
 
   const handleExplorerLinkPress = useCallback(
     (url: string) => {
@@ -316,23 +317,13 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
           >
             {renderAmount} {cryptocurrency}
           </Text>
-          {orderData?.fiatCurrency?.decimals !== undefined && currencySymbol ? (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={styles.textCenter}
-            >
-              {formatFiat(amountOut)}
-            </Text>
-          ) : (
-            <Text
-              variant={TextVariant.BodySM}
-              color={TextColor.Alternative}
-              style={styles.textCenter}
-            >
-              ... {currency}
-            </Text>
-          )}
+          <Text
+            variant={TextVariant.BodySM}
+            color={TextColor.Alternative}
+            style={styles.textCenter}
+          >
+            {formatFiat(amountOut)}
+          </Text>
         </Group>
 
         {Boolean(orderLink) && (
@@ -478,11 +469,9 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                   </Text>
                 </ListItemColumn>
                 <ListItemColumn style={styles.flexZero}>
-                  {order.cryptocurrency &&
-                  isFinite(exchangeRate) &&
-                  currency ? (
+                  {order.cryptocurrency && isFinite(exchangeRate) ? (
                     <Text variant={TextVariant.BodySMBold}>
-                      1 {order.cryptocurrency} @ {formatFiat(exchangeRate)}
+                      1 {order.cryptocurrency} @ {formatRate(exchangeRate)}
                     </Text>
                   ) : (
                     <Text variant={TextVariant.BodySMBold}>...</Text>
@@ -503,14 +492,12 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                   </Text>
                 </ListItemColumn>
                 <ListItemColumn>
-                  {orderData?.fiatCurrency?.decimals !== undefined &&
-                  amountOut &&
-                  currency ? (
+                  {amountOut ? (
                     <Text variant={TextVariant.BodySMBold}>
                       {formatFiat(
                         order.orderType === OrderOrderTypeEnum.Buy
                           ? amountOut
-                          : (amount as number),
+                          : amount,
                       )}
                     </Text>
                   ) : (
@@ -528,14 +515,12 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                 </Text>
               </ListItemColumn>
               <ListItemColumn>
-                {cryptoFee &&
-                currency &&
-                orderData?.fiatCurrency?.decimals !== undefined ? (
+                {cryptoFee ? (
                   <Text variant={TextVariant.BodySMBold}>
                     {formatFiat(
                       order.orderType === OrderOrderTypeEnum.Buy
-                        ? (cryptoFee as number)
-                        : orderData.totalFeesFiat,
+                        ? cryptoFee
+                        : orderData?.totalFeesFiat,
                     )}
                   </Text>
                 ) : (
@@ -558,14 +543,11 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                 </Text>
               </ListItemColumn>
               <ListItemColumn>
-                {currencySymbol &&
-                amount &&
-                currency &&
-                orderData?.fiatCurrency?.decimals !== undefined ? (
+                {amount ? (
                   <Text variant={TextVariant.BodySMBold}>
                     {formatFiat(
                       order.orderType === OrderOrderTypeEnum.Buy
-                        ? (amount as number)
+                        ? amount
                         : amountOut,
                     )}
                   </Text>

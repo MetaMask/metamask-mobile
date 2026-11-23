@@ -113,11 +113,11 @@ describe('Quote Component', () => {
   ])(
     'formats the %s fiat amount with its currency rules',
     (symbol, denomSymbol, amountOutInFiat, expected) => {
-      const quote = {
+      const quote: QuoteResponse = {
         ...mockQuote,
-        fiat: { symbol, denomSymbol, decimals: 2 } as FiatCurrency,
+        fiat: { id: symbol, name: symbol, symbol, denomSymbol, decimals: 2 },
         amountOutInFiat,
-      } as QuoteResponse;
+      };
 
       const { getByText } = renderWithProvider(
         <Quote quote={quote} showInfo={jest.fn()} rampType={RampType.BUY} />,
@@ -127,6 +127,17 @@ describe('Quote Component', () => {
       expect(getByText(expected)).toBeTruthy();
     },
   );
+
+  it('shows an ellipsis when the fiat amount is not a number', () => {
+    const quote: QuoteResponse = { ...mockQuote, amountOutInFiat: NaN };
+
+    const { getByText } = renderWithProvider(
+      <Quote quote={quote} showInfo={jest.fn()} rampType={RampType.BUY} />,
+      { state: defaultState },
+    );
+
+    expect(getByText('≈ ...')).toBeTruthy();
+  });
 
   it('calls onPress when not highlighted and pressed', () => {
     const onPressMock = jest.fn();

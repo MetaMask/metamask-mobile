@@ -230,7 +230,7 @@ const Quote: React.FC<Props> = ({
                   {crypto?.symbol}
                 </>
               ) : (
-                `≈ ${formatCurrency(amountOut, fiatCode)}`
+                `≈ ${formatCurrency(amountOut, fiatCode) || '...'}`
               )}
             </Text>
           </ListItemColumn>
@@ -238,7 +238,10 @@ const Quote: React.FC<Props> = ({
           <ListItemColumn>
             <Text variant={TextVariant.BodyLGMedium}>
               {isBuyQuote(quote, rampType) ? (
-                <>≈ {formatCurrency(amountOutInFiat ?? price, fiatCode)}</>
+                <>
+                  ≈{' '}
+                  {formatCurrency(amountOutInFiat ?? price, fiatCode) || '...'}
+                </>
               ) : (
                 <>
                   {renderFromTokenMinimalUnit(

@@ -165,9 +165,9 @@ function OrderListItem({ order }: Props) {
           {amount} {order.cryptocurrency}
         </Text>
         <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {order.amount == null
+          {order.amount == null || !order.currency
             ? '...'
-            : formatCurrency(Number(order.amount), order.currency)}
+            : formatCurrency(Number(order.amount), order.currency) || '...'}
         </Text>
       </ListItemColumnEnd>
     </ListItem>

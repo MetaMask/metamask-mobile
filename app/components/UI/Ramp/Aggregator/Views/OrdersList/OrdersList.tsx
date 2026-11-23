@@ -162,9 +162,10 @@ function DisplayOrderListItem({
           variant={TextVariant.BodySM}
           color={TextColor.Alternative}
         >
-          {item.fiatAmount == null
+          {item.fiatAmount == null || !item.fiatCurrencyCode
             ? '...'
-            : formatCurrency(Number(item.fiatAmount), item.fiatCurrencyCode)}
+            : formatCurrency(Number(item.fiatAmount), item.fiatCurrencyCode) ||
+              '...'}
         </Text>
       </ListItemColumnEnd>
     </ListItem>
