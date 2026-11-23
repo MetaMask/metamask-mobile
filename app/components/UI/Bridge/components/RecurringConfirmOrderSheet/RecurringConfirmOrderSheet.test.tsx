@@ -115,6 +115,7 @@ function renderSheet({
   },
   fiatToUsdRate = 1,
   goBack = jest.fn(),
+  isPriceRangeConversionReady = true,
   isSubmitting = false,
   onConfirm = jest.fn(),
   onEditSlippagePress = jest.fn(),
@@ -127,6 +128,7 @@ function renderSheet({
   delegationFee?: EIP7702UpgradeFee;
   fiatToUsdRate?: number;
   goBack?: () => void;
+  isPriceRangeConversionReady?: boolean;
   isSubmitting?: boolean;
   onConfirm?: () => void;
   onEditSlippagePress?: () => void;
@@ -152,7 +154,7 @@ function renderSheet({
         currentCurrency={currentCurrency}
         delegationFee={delegationFee}
         fiatToUsdRate={fiatToUsdRate}
-        isPriceRangeConversionReady
+        isPriceRangeConversionReady={isPriceRangeConversionReady}
         isSubmitting={isSubmitting}
         onConfirm={onConfirm}
         onEditSlippagePress={onEditSlippagePress}
@@ -196,6 +198,19 @@ describe('RecurringConfirmOrderSheet', () => {
     ).toHaveTextContent(
       `${strings('bridge.recurring.paying_all_orders')}1,200 ETH`,
     );
+  });
+
+  it('shows source placeholders when the source amount is unavailable', () => {
+    const { getByTestId } = renderSheet({
+      state: buildState({ sourceAmount: undefined }),
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_PER_ORDER),
+    ).toHaveTextContent(`${strings('bridge.recurring.paying_per_order')}--`);
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PAYING_ALL_ORDERS),
+    ).toHaveTextContent(`${strings('bridge.recurring.paying_all_orders')}--`);
   });
 
   it('shows dest token as receiving without an amount', () => {
@@ -267,6 +282,29 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('uses the destination token for a destination-side price range', () => {
+    const { getByTestId } = renderSheet({
+      state: buildState({
+        sourceToken: undefined,
+        recurring: {
+          everyValue: '1',
+          everyUnit: 'day',
+          repeatCount: '10',
+          priceRange: {
+            tokenSide: 'dest',
+            currency: 'USD',
+            min: '20',
+            max: '30',
+          },
+        },
+      }),
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_RANGE_TOKEN),
+    ).toBeOnTheScreen();
+  });
+
   it('shows the local currency notice when EUR is selected for a configured range', () => {
     const state = buildState({
       recurring: {
@@ -293,6 +331,37 @@ describe('RecurringConfirmOrderSheet', () => {
     ).toHaveTextContent(
       strings('bridge.recurring.local_currency_notice', {
         rate: '2.00',
+        currency: 'EUR',
+      }),
+    );
+  });
+
+  it('shows an unavailable rate when the fiat conversion rate is invalid', () => {
+    const state = buildState({
+      recurring: {
+        everyValue: '1',
+        everyUnit: 'day',
+        repeatCount: '10',
+        priceRange: {
+          tokenSide: 'source',
+          currency: 'EUR',
+          min: '900',
+          max: '1100',
+        },
+      },
+    });
+
+    const { getByTestId } = renderSheet({
+      currentCurrency: 'EUR',
+      fiatToUsdRate: 0,
+      state,
+    });
+
+    expect(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.LOCAL_CURRENCY_NOTICE),
+    ).toHaveTextContent(
+      strings('bridge.recurring.local_currency_notice', {
+        rate: '--',
         currency: 'EUR',
       }),
     );
@@ -600,6 +669,37 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('omits destination metadata when the destination token is unavailable', () => {
+    const { getByTestId, queryByTestId } = renderSheet({
+      state: buildState({ destToken: undefined }),
+    });
+
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER,
+      ),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.est_receiving_per_order')}24.44`,
+    );
+    expect(
+      getByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS,
+      ),
+    ).toHaveTextContent(
+      `${strings('bridge.recurring.est_receiving_all_orders')}244.4`,
+    );
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_PER_ORDER_TOKEN,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(
+        RecurringConfirmOrderSheetSelectorsIDs.EST_RECEIVING_ALL_ORDERS_TOKEN,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows the MetaMask fee disclaimer from the quote', () => {
     const { getByTestId } = renderSheet();
 
@@ -878,6 +978,22 @@ describe('RecurringConfirmOrderSheet', () => {
 
     expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
     fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('disables Confirm while the price range conversion is pending', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId } = renderSheet({
+      isPriceRangeConversionReady: false,
+      onConfirm,
+    });
+
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+    fireEvent.press(confirmButton);
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
