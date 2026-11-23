@@ -85,7 +85,7 @@ describe('useSitesData', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('should use the default limit of 100', async () => {
+    it('should use the default limit of 200', async () => {
       const mockDateNow = 1234567890;
       jest.spyOn(Date, 'now').mockReturnValue(mockDateNow);
 
@@ -99,7 +99,7 @@ describe('useSitesData', () => {
 
       await waitFor(() => {
         expect(fetch).toHaveBeenCalledWith(
-          `https://nft.api.cx.metamask.io/explore/sites?limit=100&ts=${mockDateNow}`,
+          `https://nft.api.cx.metamask.io/explore/sites?limit=200&ts=${mockDateNow}`,
         );
       });
 
