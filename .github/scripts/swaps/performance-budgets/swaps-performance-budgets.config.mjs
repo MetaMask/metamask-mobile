@@ -30,9 +30,8 @@ export const BUDGET_RULES = [
   {
     label: 'Mobile Swap View Loaded (mid-tier Android)',
     projectId: MOBILE,
-    // Deeplinks start this span on a different path. Swap to `!app_start_type:cold` only once
-    // aligned deeplink spans (#40312) dominate, since older releases don't carry the tag.
-    query: `environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance result:success !entry_point:deeplink ${MOBILE_MID_TIER}`,
+    // Only warm deeplinks measure the same interval as in-app opens; releases before #40312 don't tag them.
+    query: `environment:production span.name:"Swap View Loaded" span.op:bridge.screen.performance result:success (!entry_point:deeplink OR app_start_type:warm) ${MOBILE_MID_TIER}`,
     guardrailMs: 1411,
   },
   {
