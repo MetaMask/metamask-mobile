@@ -277,12 +277,12 @@ export const renderVbaVendorTermsWithCaller = (
 
 export const renderVbaDetails = (options: RenderVbaOptions = {}) => {
   const result = renderScreenWithRoutes(
-    VbaDetails as unknown as React.ComponentType,
+    VbaDetails,
     { name: Routes.RAMP.VBA_DETAILS },
     [],
     { state: buildVbaState(options) },
   );
-  bindVbaReduxServiceStore(result.store as unknown as ReduxStore);
+  bindVbaReduxServiceStore(result.store);
   return result;
 };
 
