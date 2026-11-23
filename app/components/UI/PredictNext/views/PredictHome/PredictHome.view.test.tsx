@@ -21,6 +21,7 @@ import awaitingTransferDeposit from '../../contracts/v1/fixtures/funding-contrac
 import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cancelled.json';
 import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
 import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
+import { makeFailedDeposit } from '../../funding/deposit/testUtils';
 import { PredictError, PredictErrorCode } from '../../errors';
 import { POLYMARKET_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
@@ -2073,11 +2074,7 @@ describe('PredictHome', () => {
     });
 
     it.each([
-      [
-        'failed',
-        { ...cancelledDeposit, status: 'failed', next: null },
-        'Deposit failed',
-      ],
+      ['failed', makeFailedDeposit(), 'Deposit failed'],
       ['cancelled', cancelledDeposit, 'Deposit cancelled'],
     ])(
       'shows %s deposit status once and removes it on the next visit',
@@ -2106,12 +2103,9 @@ describe('PredictHome', () => {
     );
 
     describe('accessibility', () => {
-      const failedDeposit = {
-        ...cancelledDeposit,
-        operationId: transferReportedDeposit.operationId,
-        status: 'failed',
-        next: null,
-      };
+      const failedDeposit = makeFailedDeposit({
+        operationId: transferReportedDeposit.operationId as PredictEntityId,
+      });
       const underReviewDeposit = {
         ...needsReviewDeposit,
         operationId: transferReportedDeposit.operationId,

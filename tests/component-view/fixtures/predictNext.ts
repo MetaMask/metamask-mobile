@@ -31,6 +31,9 @@ import type {
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen.testIds';
+import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
+import type { PredictVenueControllerState } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
+import type { PredictConfiguredVenue } from '../../../app/components/UI/PredictNext/implementation/types';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -964,6 +967,61 @@ export const routePredictPortfolioServicesTo = (
   };
   return () => {
     controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
+
+export const BOTH_VENUES_PREDICT_CONFIG: PredictConfig = {
+  enabled: true,
+  venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
+  venueSelection: { enabled: true },
+};
+
+export const predictVenueState = (
+  venue: PredictConfiguredVenue,
+): PredictVenueControllerState => ({
+  venueSelectionPreference: venue,
+  lastActiveVenue: venue,
+  sessionDefault: null,
+});
+
+/**
+ * Routes `Engine.controllerMessenger` event subscriptions to `rootMessenger`
+ * so view-level toast bridges observe events published by test services.
+ *
+ * @param rootMessenger - The messenger tests publish controller events on.
+ * @returns A restore function for `afterEach` cleanup.
+ */
+export const routeControllerMessengerEventsTo = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never>,
+): (() => void) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and restoring puts the original mock back.
+  controllerMessenger.subscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        subscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).subscribe(event, callback);
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        unsubscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).unsubscribe(event, callback);
+  };
+  return () => {
     controllerMessenger.subscribe = originalSubscribe;
     controllerMessenger.unsubscribe = originalUnsubscribe;
   };

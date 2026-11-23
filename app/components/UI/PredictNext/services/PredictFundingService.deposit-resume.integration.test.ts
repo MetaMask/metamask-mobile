@@ -1,8 +1,4 @@
-import {
-  TransactionStatus,
-  TransactionType,
-  type TransactionMeta,
-} from '@metamask/transaction-controller';
+import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness,
   routePredictApi,
@@ -13,9 +9,11 @@ import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import awaitingTransfer from '../contracts/v1/fixtures/funding-contract/awaiting-transfer.json';
 import credited from '../contracts/v1/fixtures/funding-contract/credited.json';
 import transferReported from '../contracts/v1/fixtures/funding-contract/transfer-reported.json';
-import { depositTransferRequestId } from '../funding/deposit/depositTransferExecutor';
-import { encodeUsdcTransfer } from '../funding/deposit/usdcTransfer';
-import type { PredictAmount, PredictHex } from '../types';
+import {
+  flushMicrotasks,
+  makeDepositTransferTx,
+} from '../funding/deposit/testUtils';
+import type { PredictHex } from '../types';
 import { PredictFundingService } from './PredictFundingService';
 
 const OPERATION_ID = awaitingTransfer.operationId;
@@ -28,25 +26,17 @@ const POSITIONS_PATH = '/v1/venues/kalshi/positions';
 const ACTIVITY_PATH = '/v1/venues/kalshi/activity';
 
 const TX_HASH = transferReported.txHash as PredictHex;
-const TRANSFER_DATA = encodeUsdcTransfer(
-  awaitingTransfer.depositAddress as PredictHex,
-  awaitingTransfer.amount as PredictAmount,
-);
-
-const flushMicrotasks = async () => {
-  for (let index = 0; index < 10; index += 1) {
-    await Promise.resolve();
-  }
-};
 
 describe('PredictFundingService deposit resume across service restart', () => {
   const harnesses: PredictNextIntegrationHarness[] = [];
   const services: PredictFundingService[] = [];
 
   const callsTo = (harness: PredictNextIntegrationHarness, path: string) =>
-    harness.fetchMock.mock.calls.filter(
-      ([url]) => new URL(String(url)).pathname === path,
-    );
+    harness.fetchMock.mock.calls.filter(([url]) => {
+      const urlString =
+        typeof url === 'string' ? url : url instanceof URL ? url.href : url.url;
+      return new URL(urlString).pathname === path;
+    });
 
   afterEach(() => {
     services.splice(0).forEach((service) => service.destroy());
@@ -142,22 +132,13 @@ describe('PredictFundingService deposit resume across service restart', () => {
       'awaiting_transfer',
     );
 
-    transactions.push({
-      id: 'tx-broadcast-1',
-      chainId: `0x${awaitingTransfer.chainId.toString(16)}`,
-      networkClientId: 'base-sepolia',
-      status: TransactionStatus.submitted,
-      time: nowMs,
-      type: TransactionType.tokenMethodTransfer,
-      hash: TX_HASH,
-      requestId: depositTransferRequestId(OPERATION_ID),
-      txParams: {
-        from: '0x1111111111111111111111111111111111111111',
-        to: awaitingTransfer.tokenContract,
-        data: TRANSFER_DATA,
-        value: '0x0',
-      },
-    } as TransactionMeta);
+    transactions.push(
+      makeDepositTransferTx(awaitingTransfer, {
+        id: 'tx-broadcast-1',
+        time: nowMs,
+        hash: TX_HASH,
+      }),
+    );
 
     // 2. Kill session A BEFORE reportDepositTransfer ever happens.
     sessionA.service.destroy();
@@ -175,9 +156,9 @@ describe('PredictFundingService deposit resume across service restart', () => {
 
     // Exactly one transfer report went over the wire.
     expect(callsTo(sessionB.harness, TRANSFER_PATH)).toHaveLength(1);
-    expect(
-      JSON.parse(String(callsTo(sessionB.harness, TRANSFER_PATH)[0][1]?.body)),
-    ).toEqual({
+    const transferBody = callsTo(sessionB.harness, TRANSFER_PATH)[0][1]?.body;
+    expect(typeof transferBody).toBe('string');
+    expect(JSON.parse(transferBody as string)).toEqual({
       txHash: TX_HASH,
       chainId: awaitingTransfer.chainId,
     });

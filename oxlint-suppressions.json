@@ -9633,11 +9633,6 @@
       "count": 1
     }
   },
-  "app/components/UI/PredictNext/funding/deposit/reconcileDepositTransfer.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/funding/deposit/reconcileDepositTransfer.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -25510,7 +25505,7 @@
       "count": 5
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 6
     },
     "typescript/unbound-method": {
       "count": 1

@@ -5,13 +5,15 @@ import {
 } from '@metamask/messenger';
 import {
   TransactionStatus,
-  TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 
 import { PredictError, PredictErrorCode } from '../errors';
-import { depositTransferRequestId } from '../funding/deposit/depositTransferExecutor';
-import { encodeUsdcTransfer } from '../funding/deposit/usdcTransfer';
+import {
+  flushMicrotasks,
+  makeDepositTransferTx,
+  makeFailedDeposit,
+} from '../funding/deposit/testUtils';
 import type { VenueFundingAdapter } from '../adapters/types';
 import type {
   PredictAmount,
@@ -1583,11 +1585,7 @@ describe('PredictFundingService deposit flow', () => {
         'PredictPortfolioService:getPortfolioSummary',
         venueId,
       ];
-      const closedByReview = deposit({
-        ...needsReview,
-        status: 'failed',
-        next: null,
-      });
+      const closedByReview = makeFailedDeposit();
       const invalidatedKeys = (): unknown[] =>
         messenger.mock.call.mock.calls.map(([, { queryKey }]) => queryKey);
 
@@ -1800,37 +1798,13 @@ describe('PredictFundingService deposit flow', () => {
 
   describe('deposit resume, polling, and status', () => {
     const HASH = transferReported.txHash as PredictHex;
-    const CREATED_AT_MS = Date.parse(awaitingTransfer.createdAt);
-    const TRANSFER_DATA = encodeUsdcTransfer(
-      awaitingTransfer.depositAddress as PredictHex,
-      awaitingTransfer.amount as PredictAmount,
-    );
     const makeTx = (
       overrides: Partial<TransactionMeta> = {},
     ): TransactionMeta =>
-      ({
-        id: 'tx-1',
-        chainId: `0x${awaitingTransfer.chainId.toString(16)}`,
-        networkClientId: 'base-sepolia',
-        status: TransactionStatus.submitted,
-        time: CREATED_AT_MS + 1000,
-        type: TransactionType.tokenMethodTransfer,
+      makeDepositTransferTx(awaitingTransfer, {
         hash: HASH,
-        requestId: depositTransferRequestId(OPERATION_ID),
-        txParams: {
-          from: '0x1111111111111111111111111111111111111111',
-          to: awaitingTransfer.tokenContract,
-          data: TRANSFER_DATA,
-          value: '0x0',
-        },
         ...overrides,
-      }) as TransactionMeta;
-
-    const flushMicrotasks = async () => {
-      for (let index = 0; index < 8; index += 1) {
-        await Promise.resolve();
-      }
-    };
+      });
 
     const createResumableService = ({
       transactions = [] as TransactionMeta[],
@@ -2032,11 +2006,7 @@ describe('PredictFundingService deposit flow', () => {
     });
 
     it('publishes depositStatusChanged and clears one-time failed/cancelled notices on acknowledge', async () => {
-      const failedDeposit = deposit({
-        ...awaitingTransfer,
-        status: 'failed',
-        next: null,
-      });
+      const failedDeposit = makeFailedDeposit();
       await service.prepareDeposit(venueId, PARAMS, APPROVAL);
       expect(service.getDepositStatus(venueId)).toStrictEqual(awaitingTransfer);
 

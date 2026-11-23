@@ -15,6 +15,11 @@ import type {
 } from '../../types';
 import { depositTransferRequestId } from './depositTransferExecutor';
 import {
+  DEFAULT_DEPOSIT_SENDER,
+  DEFAULT_DEPOSIT_TX_HASH,
+  makeDepositTransferTx,
+} from './testUtils';
+import {
   clearAllSessionDepositTransfers,
   clearSessionDepositTransfer,
   clearSessionDepositTransfersForOperation,
@@ -32,13 +37,13 @@ import { encodeUsdcTransfer } from './usdcTransfer';
 const VENUE_ID = 'kalshi' as PredictVenueId;
 const OPERATION_ID = 'op-1';
 const OTHER_OPERATION_ID = 'op-other';
-const FROM: PredictHex = '0x1111111111111111111111111111111111111111';
+const FROM: PredictHex = DEFAULT_DEPOSIT_SENDER;
 const OTHER_FROM: PredictHex = '0x9999999999999999999999999999999999999999';
 const USDC = BASE_DEPOSIT_NETWORK.usdc.address;
 const DEPOSIT_ADDRESS: PredictHex =
   '0x3b0b371ae3cb08f272b87319684f6518b3b313a0';
 const OTHER_ADDRESS: PredictHex = '0x2222222222222222222222222222222222222222';
-const HASH_1: PredictHex = `0x${'ab'.repeat(32)}`;
+const HASH_1: PredictHex = DEFAULT_DEPOSIT_TX_HASH;
 const HASH_2: PredictHex = `0x${'cd'.repeat(32)}`;
 const CREATED_AT = '2026-11-13T12:00:00.000Z' as PredictTimestamp;
 const CREATED_AT_MS = Date.parse(CREATED_AT);
@@ -51,25 +56,22 @@ const PLAN: PredictFundingPlan = {
   planExpiresAt: '2026-11-13T12:15:00.000Z' as PredictTimestamp,
 };
 
+const DEPOSIT_SOURCE = {
+  operationId: OPERATION_ID,
+  chainId: PLAN.chainId,
+  tokenContract: PLAN.tokenContract,
+  depositAddress: PLAN.depositAddress,
+  amount: PLAN.amount,
+  createdAt: CREATED_AT,
+};
+
 const DATA = encodeUsdcTransfer(DEPOSIT_ADDRESS, PLAN.amount);
 
 const makeTx = (overrides: Partial<TransactionMeta> = {}): TransactionMeta =>
-  ({
-    id: 'tx-1',
-    chainId: '0x2105',
-    networkClientId: 'base-mainnet',
-    status: TransactionStatus.submitted,
-    time: CREATED_AT_MS + 1000,
-    type: TransactionType.tokenMethodTransfer,
-    hash: HASH_1,
-    txParams: {
-      from: FROM,
-      to: USDC,
-      data: DATA,
-      value: '0x0',
-    },
+  makeDepositTransferTx(DEPOSIT_SOURCE, {
+    requestId: undefined,
     ...overrides,
-  }) as TransactionMeta;
+  });
 
 describe('findMatchingDepositTransaction', () => {
   it('matches a submitted transaction scoped to sender, chain, token, recipient, amount, and time', () => {
