@@ -348,6 +348,25 @@ class AccountListBottomSheet {
     );
   }
 
+  /**
+   * Scrollable account list body (AccountSelector or Account Hub).
+   * Prefer this over WDIO's default `XCUIElementTypeApplication` scroll
+   * container — Application lookup flakes on iOS while the sheet is open.
+   */
+  private async getAccountListScrollable(): Promise<AppiumElement> {
+    const accountSelectorList =
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID;
+    const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${accountSelectorList}' or @name='${accountHubList}' or @label='${accountSelectorList}' or @label='${accountHubList}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountSelectorList}' or @resource-id='${accountHubList}']`,
+    );
+  }
+
   async tapAddAccountButtonV2(options?: {
     srpIndex?: number;
     shouldWait?: boolean;
@@ -364,14 +383,27 @@ class AccountListBottomSheet {
     // Re-query after sync settle — never reuse a pre-sync element handle.
     const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
 
-    // FlashList does not mount an off-screen footer. Same bounded scroll this
-    // sheet uses for an account row, then tap the freshly queried control.
-    await Gestures.scrollIntoView(Promise.resolve(tapTarget), {
-      direction: 'down',
-      maxScrolls: 10,
-    });
+    // Skip scroll when Add account is already on screen. Otherwise scroll the
+    // sheet list (not Application) so FlashList can mount an off-screen footer
+    // without the iOS "Default scrollable element … Application was not found"
+    // failure. Fully-visible also clears the floating tab bar (#39839 residual).
+    const addAccountVisible = await isOptionalElementVisible(
+      async () => tapTarget,
+      800,
+    );
+    if (!addAccountVisible) {
+      const scrollableElement = await this.getAccountListScrollable();
+      await Gestures.scrollIntoViewFullyVisible(Promise.resolve(tapTarget), {
+        direction: 'down',
+        maxScrolls: 10,
+        scrollableElement,
+      });
+    }
 
-    await Gestures.waitAndTap(Promise.resolve(tapTarget), {
+    // Scroll / FlashList remount can stale the pre-scroll handle — re-query.
+    const freshTapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
+
+    await Gestures.waitAndTap(Promise.resolve(freshTapTarget), {
       delay: options?.shouldWait ? 5000 : 0,
       timeout: 20_000,
       checkForDisplayed: true,
