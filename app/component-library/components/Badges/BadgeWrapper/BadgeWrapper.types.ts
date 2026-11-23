@@ -23,7 +23,7 @@ export enum BadgePosition {
 /**
  * Badge Position Obj.
  */
-interface BadgePositionCustom {
+export interface BadgePositionCustom {
   top?: number | string | undefined;
   right?: number | string | undefined;
   bottom?: number | string | undefined;

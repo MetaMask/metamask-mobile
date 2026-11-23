@@ -26,7 +26,7 @@ import { getAvatarAccountVariant } from '../../avatarAccountVariant';
  * A lightweight cell for displaying external accounts that aren't in the wallet.
  * Reuses AccountCell styling but doesn't depend on account tree selectors.
  */
-interface ExternalAccountCellProps {
+export interface ExternalAccountCellProps {
   address: string;
   onPress: () => void;
   chainId?: string;

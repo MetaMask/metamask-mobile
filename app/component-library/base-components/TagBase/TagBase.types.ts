@@ -64,3 +64,12 @@ export interface TagBaseProps extends ListItemProps {
    */
   gap?: number | string;
 }
+/**
+ * Style sheet input parameters.
+ */
+export type TagBaseStyleSheetVars = Pick<TagBaseProps, 'style'> & {
+  shape: TagShape;
+  containerSize: { width: number; height: number } | null;
+  severity: TagSeverity;
+  includesBorder: boolean;
+};

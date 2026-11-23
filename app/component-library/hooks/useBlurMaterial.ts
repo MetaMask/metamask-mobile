@@ -16,7 +16,7 @@ const isBlurModuleLinked = (): boolean =>
 // A live blur is too heavy for low-memory devices, so they get the opaque fill.
 const isLowEndDevice = (): boolean => getHardwareTier() === 'LOW';
 
-type BlurColorScheme = 'light' | 'dark';
+export type BlurColorScheme = 'light' | 'dark';
 
 /**
  * The chrome family is what UIKit puts behind its own bars, so it reads as bar

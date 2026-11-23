@@ -15,7 +15,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { useAccountsOperationsLoadingStates } from '../../../../util/accounts/useAccountsOperationsLoadingStates';
 
-interface AddWalletButtonProps {
+export interface AddWalletButtonProps {
   onPress: () => void;
   testID?: string;
 }

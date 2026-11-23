@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 });
 
 /** Configuration for the cosmetic cursor rendered beside an amount. */
-interface AnimatedAmountCursorProps {
+export interface AnimatedAmountCursorProps {
   animated?: boolean;
   style?: StyleProp<ViewStyle>;
   testID?: string;
@@ -44,7 +44,7 @@ interface AnimatedAmountCursorProps {
  * Props for a formatted amount row with optional affixes, cursor, loading
  * content, press handling, and numeric glyph animation.
  */
-interface AnimatedAmountDisplayProps {
+export interface AnimatedAmountDisplayProps {
   /** Whether the amount row itself should be an accessibility element. */
   amountAccessible?: boolean;
   /** Whether the non-pressable display container should be accessible. */

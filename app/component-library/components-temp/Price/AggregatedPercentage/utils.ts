@@ -56,3 +56,24 @@ export const getFormattedPercentageChange = (
 
   return `(${signPrefix}${formattedPercentage})`;
 };
+
+export const getFormattedValuePrice = (
+  amountChange: number,
+  currentCurrency: string,
+) => {
+  const isPositiveChange = amountChange >= 0;
+
+  const formattedAmount = formatWithThreshold(
+    Math.abs(amountChange),
+    0.01,
+    i18n.locale,
+    {
+      style: 'currency',
+      currency: currentCurrency,
+    },
+  );
+
+  const signPrefix = isPositiveChange ? '+' : '-';
+
+  return `${signPrefix}${formattedAmount}`;
+};

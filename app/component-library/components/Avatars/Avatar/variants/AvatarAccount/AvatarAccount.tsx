@@ -87,3 +87,5 @@ const AvatarAccount = ({
 };
 
 export default AvatarAccount;
+
+export { AvatarAccount };

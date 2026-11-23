@@ -15,13 +15,13 @@ export const SensitiveTextLength = {
 /**
  * Type for SensitiveTextLength values.
  */
-type SensitiveTextLengthType =
+export type SensitiveTextLengthType =
   (typeof SensitiveTextLength)[keyof typeof SensitiveTextLength];
 
 /**
  * Type for custom length values.
  */
-type CustomLength = string;
+export type CustomLength = string;
 
 /**
  * SensitiveText component props.

@@ -8,7 +8,7 @@ import {
 
 import AnimatedSlotText from './AnimatedSlotText';
 
-interface AnimatedBalanceTextProps {
+export interface AnimatedBalanceTextProps {
   accessible?: boolean;
   color?: TextColor;
   isLoading: boolean;

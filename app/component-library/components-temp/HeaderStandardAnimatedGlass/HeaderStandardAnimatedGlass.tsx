@@ -12,7 +12,7 @@ import {
   resolveStartAccessoryGlass,
 } from '../HeaderGlass/headerGlassAccessories';
 
-type HeaderStandardAnimatedGlassProps = HeaderStandardAnimatedProps &
+export type HeaderStandardAnimatedGlassProps = HeaderStandardAnimatedProps &
   HeaderGlassOptions & {
     /** Extra backdrop height below the header, for content pinned under it. */
     backdropExtension?: number | SharedValue<number>;

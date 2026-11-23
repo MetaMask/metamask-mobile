@@ -1,2 +1,7 @@
 export { default } from './HeaderSearch';
-export { HeaderSearchVariant } from './HeaderSearch.types';
+export {
+  HeaderSearchVariant,
+  type HeaderSearchProps,
+  type HeaderSearchScreenProps,
+  type HeaderSearchInlineProps,
+} from './HeaderSearch.types';

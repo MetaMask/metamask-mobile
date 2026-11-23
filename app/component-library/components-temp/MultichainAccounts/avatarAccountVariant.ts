@@ -1,6 +1,6 @@
 import { AvatarAccountVariant } from '@metamask/design-system-react-native';
 
-type LegacyAvatarAccountType = 'JazzIcon' | 'Blockies' | 'Maskicon';
+export type LegacyAvatarAccountType = 'JazzIcon' | 'Blockies' | 'Maskicon';
 
 export type AccountAvatarVariant =
   | AvatarAccountVariant

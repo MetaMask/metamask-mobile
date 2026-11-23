@@ -30,7 +30,7 @@ export interface CopyToastOptions {
   };
 }
 
-interface CopyToastRef {
+export interface CopyToastRef {
   // Keep legacy ToastRef structurally assignable without importing deprecated Toast types.
   showToast(toastOptions: never): void;
   closeToast(): void;
@@ -39,7 +39,7 @@ interface CopyToastRef {
 /**
  * Parameters for the copy operation.
  */
-interface CopyParams {
+export interface CopyParams {
   /**
    * Callback function to execute when the copy action is successful
    */

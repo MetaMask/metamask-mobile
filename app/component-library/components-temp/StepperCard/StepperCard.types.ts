@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { ImageSourcePropType } from 'react-native';
 
-interface StepperCardCta {
+export interface StepperCardCta {
   text: string;
   onPress: () => void;
   disabled?: boolean;

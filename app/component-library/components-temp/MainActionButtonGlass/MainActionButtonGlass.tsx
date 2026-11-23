@@ -11,7 +11,7 @@ import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 // Clears the button's own `bg-muted` so only the glass shows.
 const transparentStyle = { backgroundColor: 'transparent' };
 
-type MainActionButtonGlassProps = MainActionButtonProps & {
+export type MainActionButtonGlassProps = MainActionButtonProps & {
   /** The screen's flag. False, or an OS without glass, renders the plain `MainActionButton`. */
   isGlass?: boolean;
   /** Layout for the button or its glass wrapper, e.g. `flex: 1` in a row. */

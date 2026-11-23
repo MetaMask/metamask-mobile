@@ -1,5 +1,6 @@
 import {
   IconProps,
+  IconSize,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { ButtonIconSizes } from '../../components/Buttons/ButtonIcon';
@@ -68,6 +69,8 @@ interface KeyValueRowField {
    */
   tooltip?: KeyValueRowTooltip;
 }
+
+export const IconSizes = IconSize;
 
 export const TooltipSizes = ButtonIconSizes;
 

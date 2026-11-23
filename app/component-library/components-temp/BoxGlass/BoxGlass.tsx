@@ -36,7 +36,7 @@ export const GLASS_SURFACE_SHEEN_TEST_ID = 'glass-surface-sheen';
 export const GLASS_SURFACE_SHEEN_GRADIENT_TEST_ID =
   'glass-surface-sheen-gradient';
 
-interface BoxGlassProps extends ViewProps {
+export interface BoxGlassProps extends ViewProps {
   radiusClassName: `rounded-${string}`;
   /** Layout for the bordered outer wrapper, e.g. margins or flex. */
   containerStyle?: StyleProp<ViewStyle>;

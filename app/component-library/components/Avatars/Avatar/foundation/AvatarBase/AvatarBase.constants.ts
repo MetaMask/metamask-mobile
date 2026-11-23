@@ -10,6 +10,7 @@ import { AvatarSize } from '../../Avatar.types';
 export const DEFAULT_AVATARBASE_SIZE = AvatarSize.Md;
 
 // Sample consts
+export const SAMPLE_AVATARBASE_SIZE = DEFAULT_AVATARBASE_SIZE;
 export const SAMPLE_AVATARBASE_IMAGESOURCE: ImageSourcePropType = {
   uri: toDataUrl('0x310ff9e227946749ca32aC146215F352183F556b'),
 };

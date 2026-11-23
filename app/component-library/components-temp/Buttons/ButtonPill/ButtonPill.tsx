@@ -15,7 +15,7 @@ import stylesheet from './ButtonPill.styles';
 /**
  * ButtonPill component props.
  */
-interface ButtonPillProps extends TouchableOpacityProps {
+export interface ButtonPillProps extends TouchableOpacityProps {
   /**
    * Optional param to disable the button.
    */
