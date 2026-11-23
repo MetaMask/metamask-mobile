@@ -100,6 +100,11 @@ test('parseArgs supports weekly, collection and scheduled exception modes', () =
   );
   assert.equal(parseArgs(['--jira-issues']).jiraIssues, true);
   assert.equal(parseArgs([]).jiraIssues, false);
+  assert.equal(parseArgs([]).jiraIssueType, null);
+  assert.equal(
+    parseArgs(['--jira-issues', '--jira-issue-type', 'Task']).jiraIssueType,
+    'Task',
+  );
 });
 
 test('weekly --jira-issues lists tickets and does not open or comment', () => {

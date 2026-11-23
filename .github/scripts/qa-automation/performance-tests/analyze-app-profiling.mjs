@@ -21,6 +21,7 @@
  *   … --collect-only --run 123456789
  *   … --scheduled-exception --run 123456789
  *   … --scheduled-exception --run 123456789 --jira-issues
+ *   … --scheduled-exception --run 123456789 --jira-issues --jira-issue-type Task
  *   … --weekly --jira-issues
  *   … --scenario "Cold Start"
  *   … --current-dir ./downloaded-test-results --skip-ai
@@ -141,6 +142,7 @@ function parseArgs(argv) {
     scheduledException: false,
     skipScenarioArtifacts: false,
     jiraIssues: false,
+    jiraIssueType: null,
     now: null,
     maxRunsPerWeek: null,
     maxAnalysisMinutes: DEFAULT_ANALYSIS_BUDGET_MINUTES,
@@ -217,6 +219,10 @@ function parseArgs(argv) {
       case '--jira-issues':
         args.jiraIssues = true;
         break;
+      case '--jira-issue-type':
+        args.jiraIssueType = next;
+        index += 1;
+        break;
       case '--now':
         args.now = next;
         index += 1;
@@ -278,6 +284,7 @@ Options:
   --skip-scenario-artifacts  Skip per-scenario profile bundles
   --jira-issues          With --scheduled-exception: open or reference one Jira ticket per finding.
                          With --weekly: list the tickets opened during the reported week
+  --jira-issue-type <n>  Jira issue type for new tickets (default: Bug, or JIRA_ISSUE_TYPE). Use Task for MMQA tests.
   --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
   --repo <owner/name>    GitHub repo (default: ${DEFAULT_REPO})
@@ -2688,6 +2695,7 @@ async function runScheduledExceptionAnalysis({
       repo: args.repo,
       runGh,
       outputDirectory,
+      issueType: args.jiraIssueType,
     });
     writeScheduledExceptionNotification(outputDirectory, exception);
     for (const issue of synced.issues) {

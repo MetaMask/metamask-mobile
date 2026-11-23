@@ -42,7 +42,62 @@ export const MAX_TRACKED_ISSUES = 200;
  */
 export const JIRA_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 export const DEFAULT_JIRA_BASE_URL = 'https://consensyssoftware.atlassian.net';
+export const DEFAULT_JIRA_ISSUE_TYPE = 'Bug';
 export const ISSUE_TITLE_PREFIX = '[Bug]: Hermes JS work regression';
+
+/**
+ * Custom fields a project requires to create a Bug. Shapes come from
+ * `GET /rest/api/3/issue/createmeta/{project}/issuetypes/{id}`: Severity and
+ * Detection stage are single options, Found in is an option limited to a list
+ * of versions plus `Not available`, and Platform / Client is an array of
+ * options.
+ */
+export const JIRA_FIELD_IDS = {
+  severity: 'customfield_10340',
+  detectionStage: 'customfield_13497',
+  foundIn: 'customfield_16946',
+  platformClient: 'customfield_16947',
+};
+export const JIRA_FOUND_IN_UNAVAILABLE = 'Not available';
+
+/**
+ * Per-project Jira settings, keyed by project key. `requiredFields` sends the
+ * custom fields above. `issueType` replaces the default `Bug`. A project that
+ * is not listed (TE, MMQA) is sent only project, summary, issue type, labels,
+ * and description. `JIRA_ISSUE_TYPE` or `--jira-issue-type` overrides every
+ * project's type.
+ */
+export const JIRA_PROJECT_CONFIG = {
+  TAT: { requiredFields: true },
+  PRED: { requiredFields: true },
+  SWAPS: { requiredFields: true },
+  ASSETS: { requiredFields: true },
+  MCWP: { requiredFields: true },
+  RWDS: { requiredFields: true },
+  MUL: { requiredFields: true },
+};
+
+export function jiraRequiredFields(projectKey, appVersion = null) {
+  if (!JIRA_PROJECT_CONFIG[projectKey]?.requiredFields) {
+    return {};
+  }
+  return {
+    [JIRA_FIELD_IDS.severity]: { value: 'needs-triage' },
+    [JIRA_FIELD_IDS.detectionStage]: { value: 'Internal release testing' },
+    [JIRA_FIELD_IDS.foundIn]: {
+      value: appVersion || JIRA_FOUND_IN_UNAVAILABLE,
+    },
+    [JIRA_FIELD_IDS.platformClient]: [{ value: 'Mobile' }],
+  };
+}
+
+export function jiraIssueTypeFor(projectKey, override = null) {
+  return (
+    override ||
+    JIRA_PROJECT_CONFIG[projectKey]?.issueType ||
+    DEFAULT_JIRA_ISSUE_TYPE
+  );
+}
 
 const ATTACHMENT_CONTENT_TYPES = {
   '.cpuprofile': 'application/json',
@@ -536,16 +591,17 @@ export function buildRegressionIssue({
 export function buildRecurrenceComment({
   exception,
   finding,
-  profileAttachment = null,
+  currentReport = null,
 }) {
-  const attached = [attachmentMarkdown(profileAttachment)].filter(Boolean);
   const [current, baseline] = formatDurationsAlike([
     finding.jsWorkMs,
     finding.baselineMedianJsWorkMs,
   ]);
+  const analysisUrl = currentReport?.meta?.analysisArtifactsUrl;
   return [
     `Flagged again in performance run [${exception.meta.runId}](${exception.meta.runUrl}): JS work ${current} vs ${baseline} recent average (${finding.ratio}× across ${finding.baselineRuns} baseline runs).`,
-    ...(attached.length ? ['', ...attached] : []),
+    '',
+    `The Hermes CPU profile is not attached again. Download it from the [workflow artifacts](${exception.meta.runUrl}#artifacts)${analysisUrl ? ` or the [analysis artifacts](${analysisUrl})` : ''}.`,
     '',
     encodeMarker(RECURRENCE_MARKER, {
       runId: String(exception.meta.runId),
@@ -580,6 +636,7 @@ export function jiraConfigFromEnv(env = process.env) {
     baseUrl,
     email,
     apiToken,
+    issueType: String(env.JIRA_ISSUE_TYPE || '').trim() || null,
     configured: Boolean(email && apiToken),
   };
 }
@@ -899,8 +956,13 @@ function normalizeJiraIssue(issue, baseUrl) {
   };
 }
 
-function trackedIssueJql({ state, sinceIso }) {
+function trackedIssueJql({ state, sinceIso, projectKeys }) {
   const clauses = [];
+  if (projectKeys?.length) {
+    clauses.push(
+      `project in (${projectKeys.map((key) => `"${key}"`).join(', ')})`,
+    );
+  }
   if (state === 'open') {
     // The label identifies tickets this job opened. The summary phrase also
     // matches a ticket that was copied into Jira before that label existed,
@@ -955,6 +1017,7 @@ export async function listTrackedIssues({
   fetchFn = fetch,
   state = 'open',
   sinceIso = null,
+  projectKeys = null,
   limit = MAX_TRACKED_ISSUES,
 }) {
   if (!jira.configured) {
@@ -963,7 +1026,7 @@ export async function listTrackedIssues({
   const issues = await searchJiraIssues({
     jira,
     fetchFn,
-    jql: trackedIssueJql({ state, sinceIso }),
+    jql: trackedIssueJql({ state, sinceIso, projectKeys }),
     limit,
   });
   return issues
@@ -982,40 +1045,31 @@ function createdTimestamp(issue) {
 }
 
 /**
- * The open ticket for one scenario. The marker key or the scenario label
- * identifies it. A matching title counts only inside `projectKey`, so a
- * copy in another project cannot take the comment. When the owning project
- * has a match, that ticket wins. Otherwise the latest `createdAt` wins.
- * Jira key numbers are per project and are not an order.
+ * The open ticket for one scenario, looked up only in the owning team's
+ * `projectKey`. The marker key, the scenario label, or an identical title
+ * identifies it. The latest `createdAt` wins; Jira key numbers are per
+ * project and are not an order. A ticket in any other project is never
+ * returned, so a recurrence cannot comment on another team's ticket.
  */
-export function findOpenIssue(
-  issues,
-  key,
-  { title = null, projectKey = null } = {},
-) {
+export function findOpenIssue(issues, key, { title = null, projectKey } = {}) {
+  if (!projectKey) {
+    return null;
+  }
   const label = scenarioIssueLabel(key);
-  const matches = (issues || []).filter((issue) => {
-    if (issue.state !== 'open') {
-      return false;
-    }
-    if (issue.marker?.key === key || (issue.labels || []).includes(label)) {
-      return true;
-    }
-    return (
-      title != null &&
-      issue.title === title &&
-      projectKey != null &&
-      jiraProjectOf(issue) === projectKey
-    );
-  });
-  const inProject = projectKey
-    ? matches.filter((issue) => jiraProjectOf(issue) === projectKey)
-    : [];
-  const candidates = inProject.length > 0 ? inProject : matches;
-  candidates.sort(
-    (left, right) => createdTimestamp(right) - createdTimestamp(left),
+  return (
+    (issues || [])
+      .filter(
+        (issue) =>
+          issue.state === 'open' &&
+          jiraProjectOf(issue) === projectKey &&
+          (issue.marker?.key === key ||
+            (issue.labels || []).includes(label) ||
+            (title != null && issue.title === title)),
+      )
+      .sort(
+        (left, right) => createdTimestamp(right) - createdTimestamp(left),
+      )[0] || null
   );
-  return candidates[0] || null;
 }
 
 export async function createIssue({
@@ -1025,22 +1079,45 @@ export async function createIssue({
   body,
   labels,
   projectKey,
+  appVersion = null,
+  issueType = null,
 }) {
-  const created = await jiraRequest({
-    jira,
-    fetchFn,
-    method: 'POST',
-    path: '/rest/api/3/issue',
-    body: {
-      fields: {
-        project: { key: projectKey },
-        summary: title,
-        issuetype: { name: 'Bug' },
-        labels,
-        description: markdownToAdf(body),
+  const create = (foundInVersion) =>
+    jiraRequest({
+      jira,
+      fetchFn,
+      method: 'POST',
+      path: '/rest/api/3/issue',
+      body: {
+        fields: {
+          project: { key: projectKey },
+          summary: title,
+          issuetype: {
+            name: jiraIssueTypeFor(projectKey, issueType || jira.issueType),
+          },
+          labels,
+          description: markdownToAdf(body),
+          ...jiraRequiredFields(projectKey, foundInVersion),
+        },
       },
-    },
-  });
+    });
+  let created;
+  try {
+    created = await create(appVersion);
+  } catch (error) {
+    // "Found in" only lists released versions, so an unlisted app version is
+    // rejected. Retry once with the option every project offers.
+    const message = error instanceof Error ? error.message : String(error);
+    const sentVersion =
+      appVersion && jiraRequiredFields(projectKey, appVersion)[JIRA_FIELD_IDS.foundIn];
+    if (!sentVersion || !message.includes(JIRA_FIELD_IDS.foundIn)) {
+      throw error;
+    }
+    console.log(
+      `ℹ️ Jira rejected Found in "${appVersion}" for ${projectKey}; retrying with "${JIRA_FOUND_IN_UNAVAILABLE}".`,
+    );
+    created = await create(null);
+  }
   if (!created?.key) {
     throw new Error('Jira issue create returned no key');
   }
@@ -1117,7 +1194,16 @@ export function fetchAppVersion({ repo, sha, runGh }) {
   }
 }
 
-async function syncOne({ jira, fetchFn, tracked, issue, recurrence, attachment }) {
+async function syncOne({
+  jira,
+  fetchFn,
+  tracked,
+  issue,
+  recurrence,
+  attachment,
+  appVersion,
+  issueType,
+}) {
   const existing = findOpenIssue(tracked, issue.key, {
     title: issue.title,
     projectKey: issue.jiraProject,
@@ -1128,12 +1214,6 @@ async function syncOne({ jira, fetchFn, tracked, issue, recurrence, attachment }
       fetchFn,
       jiraKey: existing.jiraKey,
       body: recurrence,
-    });
-    await attachProfile({
-      jira,
-      fetchFn,
-      jiraKey: existing.jiraKey,
-      attachment,
     });
     return {
       jiraKey: existing.jiraKey,
@@ -1149,6 +1229,8 @@ async function syncOne({ jira, fetchFn, tracked, issue, recurrence, attachment }
     body: issue.body,
     labels: issue.labels,
     projectKey: issue.jiraProject,
+    appVersion,
+    issueType,
   });
   await attachProfile({
     jira,
@@ -1271,6 +1353,7 @@ export async function syncProfilingRegressionIssues({
   fetchFn = fetch,
   jira = jiraConfigFromEnv(),
   attachmentByteLimit = JIRA_ATTACHMENT_BYTES,
+  issueType = null,
 }) {
   if (!exception?.meta?.hasFindings) {
     return { issues: [] };
@@ -1286,9 +1369,21 @@ export async function syncProfilingRegressionIssues({
     sha: currentReport?.meta?.headSha || null,
     runGh,
   });
+  const projectKeys = [
+    ...new Set(
+      exception.findings.map(
+        (finding) => scenarioTeam(displayName(finding.scenario)).jiraProject,
+      ),
+    ),
+  ];
   let tracked = [];
   try {
-    tracked = await listTrackedIssues({ jira, fetchFn, state: 'open' });
+    tracked = await listTrackedIssues({
+      jira,
+      fetchFn,
+      state: 'open',
+      projectKeys,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.log(`⚠️ Could not list open profiling tickets: ${message}`);
@@ -1329,9 +1424,11 @@ export async function syncProfilingRegressionIssues({
         recurrence: buildRecurrenceComment({
           exception,
           finding,
-          profileAttachment: profileAttachmentForBody(prepared, artifactUrl),
+          currentReport,
         }),
         attachment: prepared,
+        appVersion,
+        issueType,
       });
       finding.issue = outcome;
       results.push({

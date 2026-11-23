@@ -9,6 +9,7 @@ import {
   BASE_LABELS,
   ISSUE_MARKER,
   ISSUE_TITLE_PREFIX,
+  JIRA_FIELD_IDS,
   RECURRENCE_MARKER,
   SLOW_RUN_KEY,
   adfToText,
@@ -19,6 +20,9 @@ import {
   findOpenIssue,
   findingKey,
   issueNumberFromKey,
+  jiraConfigFromEnv,
+  jiraIssueTypeFor,
+  jiraRequiredFields,
   listIssuesOpenedInWindow,
   listTrackedIssues,
   markdownToAdf,
@@ -358,6 +362,19 @@ test('recurrence comments carry the run and a machine-readable marker', () => {
   });
 
   assert.match(scenarioComment, /Flagged again in performance run \[36676470722\]/);
+  assert.match(
+    scenarioComment,
+    /not attached again\. Download it from the \[workflow artifacts\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/actions\/runs\/36676470722#artifacts\)/,
+  );
+  assert.doesNotMatch(scenarioComment, /analysis artifacts/);
+  assert.match(
+    buildRecurrenceComment({
+      exception: exception([finding()]),
+      finding: finding(),
+      currentReport: currentReport(),
+    }),
+    /\[analysis artifacts\]\(https:\/\/github\.com\/MetaMask\/metamask-mobile\/actions\/runs\/1#artifacts\)/,
+  );
   assert.match(scenarioComment, /20\.4 s vs 12\.2 s recent average \(1\.68× across 2 baseline runs\)/);
   assert.deepEqual(parseRecurrenceMarkers(scenarioComment), [
     {
@@ -411,87 +428,76 @@ test('listTrackedIssues reads the dedupe label and the marker', async () => {
   assert.equal(calls[0].headers['Content-Type'], 'application/json');
 });
 
-test('findOpenIssue prefers the owning project, then the newest ticket', () => {
+test('findOpenIssue only returns tickets of the owning project, newest first', () => {
+  const issue = (jiraKey, extra = {}) => ({
+    jiraKey,
+    state: 'open',
+    marker: { key: 'k' },
+    labels: [],
+    createdAt: '2026-09-01T00:00:00.000Z',
+    ...extra,
+  });
   const issues = [
-    {
-      jiraKey: 'MCWP-50000',
-      state: 'open',
-      marker: { key: 'k' },
-      labels: [],
-      createdAt: '2026-09-01T00:00:00.000Z',
-    },
-    {
-      jiraKey: 'TAT-80',
-      state: 'open',
-      marker: { key: 'k' },
-      labels: [],
-      createdAt: '2026-09-20T00:00:00.000Z',
-    },
-    {
-      jiraKey: 'MCWP-50001',
-      state: 'open',
-      marker: { key: 'k' },
-      labels: [],
-      createdAt: '2026-09-25T00:00:00.000Z',
-    },
-    {
-      jiraKey: 'TAT-9',
-      state: 'closed',
-      marker: { key: 'k' },
-      labels: [],
-      createdAt: '2026-09-21T00:00:00.000Z',
-    },
-    {
-      jiraKey: 'MCWP-11',
-      state: 'open',
-      marker: { key: 'other' },
-      labels: [],
-      createdAt: '2026-09-22T00:00:00.000Z',
-    },
-    {
-      jiraKey: 'RWDS-4',
-      state: 'open',
+    issue('MCWP-50000'),
+    issue('TAT-80', { createdAt: '2026-09-20T00:00:00.000Z' }),
+    issue('TAT-79', { createdAt: '2026-09-10T00:00:00.000Z' }),
+    issue('TAT-9', { state: 'closed', createdAt: '2026-09-21T00:00:00.000Z' }),
+    issue('TE-188', { marker: { key: 'other' } }),
+    issue('RWDS-4', {
       marker: null,
       labels: [scenarioIssueLabel('label-only')],
-      createdAt: '2026-09-03T00:00:00.000Z',
-    },
+    }),
   ];
 
   assert.equal(findOpenIssue(issues, 'k', { projectKey: 'TAT' }).jiraKey, 'TAT-80');
+  assert.equal(findOpenIssue(issues, 'k', { projectKey: 'MCWP' }).jiraKey, 'MCWP-50000');
+  // No fallback to another project, even when it holds the only match.
+  assert.equal(findOpenIssue(issues, 'k', { projectKey: 'MMQA' }), null);
+  assert.equal(findOpenIssue(issues, 'k', { projectKey: 'SWAPS' }), null);
+  assert.equal(findOpenIssue(issues, 'k'), null);
+  assert.equal(findOpenIssue(issues, 'missing', { projectKey: 'TAT' }), null);
   assert.equal(
-    findOpenIssue(issues, 'k', { projectKey: 'MCWP' }).jiraKey,
-    'MCWP-50001',
+    findOpenIssue(issues, 'label-only', { projectKey: 'RWDS' }).jiraKey,
+    'RWDS-4',
   );
-  assert.equal(findOpenIssue(issues, 'k').jiraKey, 'MCWP-50001');
-  assert.equal(findOpenIssue(issues, 'missing'), null);
-  assert.equal(findOpenIssue(issues, 'label-only').jiraKey, 'RWDS-4');
+  assert.equal(findOpenIssue(issues, 'label-only', { projectKey: 'TAT' }), null);
   const titled = [
-    {
-      jiraKey: 'MCWP-8',
-      state: 'open',
-      marker: null,
-      labels: [],
-      title: 'Same',
-      createdAt: '2026-09-22T00:00:00.000Z',
-    },
-    {
-      jiraKey: 'TAT-2',
-      state: 'open',
-      marker: null,
-      labels: [],
-      title: 'Same',
-      createdAt: '2026-09-01T00:00:00.000Z',
-    },
+    issue('MCWP-8', { marker: null, title: 'Same', createdAt: '2026-09-22T00:00:00.000Z' }),
+    issue('TAT-2', { marker: null, title: 'Same' }),
   ];
   assert.equal(
-    findOpenIssue(titled, 'other-key', { title: 'Same', projectKey: 'TAT' })
-      .jiraKey,
+    findOpenIssue(titled, 'other-key', { title: 'Same', projectKey: 'TAT' }).jiraKey,
     'TAT-2',
   );
   assert.equal(
     findOpenIssue(titled, 'other-key', { title: 'Same', projectKey: 'SWAPS' }),
     null,
   );
+});
+
+test('jiraRequiredFields sends the four custom fields only to projects that require them', () => {
+  assert.deepEqual(jiraRequiredFields('TAT', '13.65.0'), {
+    [JIRA_FIELD_IDS.severity]: { value: 'needs-triage' },
+    [JIRA_FIELD_IDS.detectionStage]: { value: 'Internal release testing' },
+    [JIRA_FIELD_IDS.foundIn]: { value: '13.65.0' },
+    [JIRA_FIELD_IDS.platformClient]: [{ value: 'Mobile' }],
+  });
+  assert.deepEqual(
+    jiraRequiredFields('MCWP')[JIRA_FIELD_IDS.foundIn],
+    { value: 'Not available' },
+  );
+  for (const project of ['TAT', 'PRED', 'SWAPS', 'ASSETS', 'MCWP', 'RWDS', 'MUL']) {
+    assert.equal(Object.keys(jiraRequiredFields(project)).length, 4, project);
+  }
+  assert.deepEqual(jiraRequiredFields('TE', '13.65.0'), {});
+  assert.deepEqual(jiraRequiredFields('MMQA', '13.65.0'), {});
+});
+
+test('the issue type defaults to Bug and is overridden by env or the CLI value', () => {
+  assert.equal(jiraIssueTypeFor('TAT'), 'Bug');
+  assert.equal(jiraIssueTypeFor('MMQA', 'Task'), 'Task');
+  assert.equal(jiraConfigFromEnv({}).issueType, null);
+  assert.equal(jiraConfigFromEnv({ JIRA_ISSUE_TYPE: ' Task ' }).issueType, 'Task');
 });
 
 test('fetchAppVersion decodes package.json at the profiled commit', () => {
@@ -628,6 +634,248 @@ test('sync comments on an open ticket for the same finding instead of opening an
     ),
     false,
   );
+});
+
+const MONEY_HOME = 'Money_Home_after_importing_SRP_with_funded_balance';
+
+function createCalls(calls) {
+  return calls.filter(
+    (call) => call.method === 'POST' && call.url.endsWith('/rest/api/3/issue'),
+  );
+}
+
+function noTicketsYet(extra = () => null) {
+  return fakeJira((call) => {
+    if (call.url.endsWith('/search/jql')) {
+      return jsonResponse(200, { issues: [], isLast: true });
+    }
+    return (
+      extra(call) || jsonResponse(201, { id: '1', key: 'TAT-501' })
+    );
+  });
+}
+
+test('a project with required fields gets the four custom fields; TE gets none', async () => {
+  const perps = finding({
+    scenario: 'Perps_add_funds',
+    owner: 'mm-perps-engineering-team',
+  });
+  const earn = finding({ scenario: MONEY_HOME, owner: 'mm-earn-team' });
+  const { calls, fetchFn } = noTicketsYet();
+  const encoded = Buffer.from(JSON.stringify({ version: '13.65.0' })).toString('base64');
+
+  await syncProfilingRegressionIssues({
+    exception: exception([perps, earn]),
+    currentReport: { meta: { runId: '1', headSha: 'abc' }, scenarios: [] },
+    repo: 'MetaMask/metamask-mobile',
+    runGh: () => encoded,
+    fetchFn,
+    jira: JIRA,
+  });
+
+  const [tat, te] = createCalls(calls);
+  assert.equal(tat.body.fields.project.key, 'TAT');
+  assert.equal(tat.body.fields.issuetype.name, 'Bug');
+  assert.deepEqual(tat.body.fields[JIRA_FIELD_IDS.severity], { value: 'needs-triage' });
+  assert.deepEqual(tat.body.fields[JIRA_FIELD_IDS.detectionStage], {
+    value: 'Internal release testing',
+  });
+  assert.deepEqual(tat.body.fields[JIRA_FIELD_IDS.foundIn], { value: '13.65.0' });
+  assert.deepEqual(tat.body.fields[JIRA_FIELD_IDS.platformClient], [{ value: 'Mobile' }]);
+  assert.equal(te.body.fields.project.key, 'TE');
+  assert.deepEqual(Object.keys(te.body.fields).sort(), [
+    'description',
+    'issuetype',
+    'labels',
+    'project',
+    'summary',
+  ]);
+});
+
+test('Found in uses Not available when the app version is unknown', async () => {
+  const { calls, fetchFn } = noTicketsYet();
+
+  await syncProfilingRegressionIssues({
+    exception: exception([finding()]),
+    currentReport: currentReport(),
+    fetchFn,
+    jira: JIRA,
+  });
+
+  const [create] = createCalls(calls);
+  assert.deepEqual(create.body.fields[JIRA_FIELD_IDS.foundIn], {
+    value: 'Not available',
+  });
+});
+
+test('an unlisted app version is retried once as Not available', async () => {
+  let attempts = 0;
+  const { calls, fetchFn } = noTicketsYet((call) => {
+    if (call.method === 'POST' && call.url.endsWith('/rest/api/3/issue')) {
+      attempts += 1;
+      return attempts === 1
+        ? jsonResponse(400, {
+            errors: { [JIRA_FIELD_IDS.foundIn]: 'Option id "7.60.0" is not valid' },
+          })
+        : jsonResponse(201, { id: '1', key: 'MCWP-501' });
+    }
+    return null;
+  });
+  const encoded = Buffer.from(JSON.stringify({ version: '7.60.0' })).toString('base64');
+  const current = exception([finding()]);
+
+  await syncProfilingRegressionIssues({
+    exception: current,
+    currentReport: { meta: { runId: '1', headSha: 'abc' }, scenarios: [] },
+    runGh: () => encoded,
+    fetchFn,
+    jira: JIRA,
+  });
+
+  const creates = createCalls(calls);
+  assert.equal(creates.length, 2);
+  assert.deepEqual(creates[0].body.fields[JIRA_FIELD_IDS.foundIn], { value: '7.60.0' });
+  assert.deepEqual(creates[1].body.fields[JIRA_FIELD_IDS.foundIn], {
+    value: 'Not available',
+  });
+  assert.equal(current.findings[0].issue.jiraKey, 'MCWP-501');
+});
+
+test('another Jira rejection is not retried', async () => {
+  const { calls, fetchFn } = noTicketsYet((call) =>
+    call.method === 'POST' && call.url.endsWith('/rest/api/3/issue')
+      ? jsonResponse(400, { errors: { [JIRA_FIELD_IDS.severity]: 'Severity is required' } })
+      : null,
+  );
+  const encoded = Buffer.from(JSON.stringify({ version: '7.60.0' })).toString('base64');
+  const current = exception([finding()]);
+
+  await syncProfilingRegressionIssues({
+    exception: current,
+    currentReport: { meta: { runId: '1', headSha: 'abc' }, scenarios: [] },
+    runGh: () => encoded,
+    fetchFn,
+    jira: JIRA,
+  });
+
+  assert.equal(createCalls(calls).length, 1);
+  assert.match(current.findings[0].issue.error, /Severity is required/);
+});
+
+test('the issue type override applies from the CLI value and from the env', async () => {
+  for (const [options, expected] of [
+    [{ issueType: 'Task' }, 'Task'],
+    [{ jira: { ...JIRA, issueType: 'Story' } }, 'Story'],
+    [{ issueType: 'Task', jira: { ...JIRA, issueType: 'Story' } }, 'Task'],
+  ]) {
+    const { calls, fetchFn } = noTicketsYet();
+    await syncProfilingRegressionIssues({
+      exception: exception([finding()]),
+      currentReport: currentReport(),
+      fetchFn,
+      jira: JIRA,
+      ...options,
+    });
+    assert.equal(createCalls(calls)[0].body.fields.issuetype.name, expected);
+  }
+});
+
+test('open tickets are searched only in the owning projects', async () => {
+  const perps = finding({
+    scenario: 'Perps_add_funds',
+    owner: 'mm-perps-engineering-team',
+  });
+  const { calls, fetchFn } = noTicketsYet();
+
+  await syncProfilingRegressionIssues({
+    exception: exception([finding(), perps, finding({ scenario: 'Perps_swap' })]),
+    currentReport: currentReport(),
+    fetchFn,
+    jira: JIRA,
+  });
+
+  const search = calls.find((call) => call.url.endsWith('/search/jql'));
+  assert.match(search.body.jql, /project in \("MCWP", "TAT"\)/);
+});
+
+test('a ticket in another project is never commented on, even for the same scenario', async () => {
+  const key = findingKey(finding());
+  const { calls, fetchFn } = fakeJira((call) => {
+    if (call.url.endsWith('/search/jql')) {
+      return jsonResponse(200, {
+        isLast: true,
+        issues: [
+          jiraApiIssue({
+            key: 'TE-188',
+            marker: { key },
+            labels: [ISSUE_MARKER, scenarioIssueLabel(key)],
+          }),
+        ],
+      });
+    }
+    return jsonResponse(201, { id: '1', key: 'MCWP-502' });
+  });
+  const current = exception([finding()]);
+
+  await syncProfilingRegressionIssues({
+    exception: current,
+    currentReport: currentReport(),
+    fetchFn,
+    jira: JIRA,
+  });
+
+  assert.equal(calls.some((call) => call.url.endsWith('/comment')), false);
+  assert.equal(current.findings[0].issue.created, true);
+  assert.equal(current.findings[0].issue.jiraKey, 'MCWP-502');
+});
+
+test('a recurrence comments with an artifact link and uploads no attachment', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-recur-'));
+  const profilePath = path.join(directory, 'warm-start.cpuprofile');
+  fs.writeFileSync(profilePath, '{"samples":[1]}');
+  const warmStart = finding();
+  const key = findingKey(warmStart);
+  const { calls, fetchFn } = fakeJira((call) => {
+    if (call.url.endsWith('/search/jql')) {
+      return jsonResponse(200, {
+        isLast: true,
+        issues: [
+          jiraApiIssue({
+            key: 'MCWP-400',
+            marker: { key },
+            labels: [ISSUE_MARKER, scenarioIssueLabel(key)],
+          }),
+        ],
+      });
+    }
+    if (call.url.endsWith('/comment')) {
+      return jsonResponse(201, { id: '1' });
+    }
+    throw new Error(`unexpected ${call.method} ${call.url}`);
+  });
+
+  await syncProfilingRegressionIssues({
+    exception: exception([warmStart]),
+    currentReport: {
+      meta: { runId: '36676470722', headSha: null },
+      scenarios: [
+        {
+          projectName: warmStart.projectName,
+          scenario: warmStart.scenario,
+          profiles: [{ sourcePath: profilePath }],
+        },
+      ],
+    },
+    fetchFn,
+    jira: JIRA,
+    outputDirectory: directory,
+  });
+
+  assert.equal(calls.some((call) => call.url.endsWith('/attachments')), false);
+  const comment = calls.find((call) => call.url.endsWith('/comment'));
+  assert.match(adfToText(comment.body.body), /not attached again/);
+  assert.match(JSON.stringify(comment.body.body), /actions\/runs\/36676470722#artifacts/);
+  fs.rmSync(directory, { recursive: true, force: true });
 });
 
 test('a closed ticket for the same finding does not stop a new one', async () => {
