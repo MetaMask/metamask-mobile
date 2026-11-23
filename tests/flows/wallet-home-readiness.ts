@@ -1,7 +1,7 @@
 import Matchers from '../framework/Matchers';
 import { withImplicitWait } from '../framework/AppiumUtilities';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import { sleep } from '../framework/Utilities';
+import Utilities from '../framework/Utilities';
 import { isDeviceHealthError } from '../framework/services/appium/sessionRecovery';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
@@ -107,11 +107,32 @@ export const isWalletHomeReadyOnAndroid = async (): Promise<boolean> => {
 };
 
 export const isWalletHomeReadyOnAndroidStable = async (): Promise<boolean> => {
-  if (!(await isWalletHomeReadyOnAndroid())) {
+  let readySince: number | undefined;
+  try {
+    await Utilities.executeWithRetry(
+      async () => {
+        if (!(await isWalletHomeReadyOnAndroid())) {
+          readySince = undefined;
+          throw new Error('Android wallet home is not ready');
+        }
+        readySince ??= Date.now();
+        if (Date.now() - readySince < READINESS_STABILITY_MS) {
+          throw new Error('Android wallet home is still settling');
+        }
+      },
+      {
+        timeout: READINESS_STABILITY_MS + 5_000,
+        interval: 100,
+        description: 'Android wallet home stability',
+      },
+    );
+    return true;
+  } catch (error) {
+    if (isDeviceHealthError(error)) {
+      throw error;
+    }
     return false;
   }
-  await sleep(READINESS_STABILITY_MS);
-  return isWalletHomeReadyOnAndroid();
 };
 
 /**
@@ -125,12 +146,48 @@ export const isWalletHomeReadyOnIOS = async (): Promise<boolean> => {
   return isWalletScreenExistsWithLoginHiddenOnIOS();
 };
 
+export const isWalletHomeReadyOnIOSStable = async (): Promise<boolean> => {
+  let readySince: number | undefined;
+  try {
+    await Utilities.executeWithRetry(
+      async () => {
+        if (await isLoginScreenDisplayed()) {
+          readySince = undefined;
+          throw new Error('iOS login screen is still displayed');
+        }
+        if (!(await isAnyWalletHomeChildIndicatorDisplayed())) {
+          readySince = undefined;
+          throw new Error('iOS wallet home is not ready');
+        }
+        readySince ??= Date.now();
+        if (Date.now() - readySince < READINESS_STABILITY_MS) {
+          throw new Error('iOS wallet home is still settling');
+        }
+      },
+      {
+        timeout: READINESS_STABILITY_MS + 5_000,
+        interval: 100,
+        description: 'iOS wallet home stability',
+      },
+    );
+    return true;
+  } catch (error) {
+    if (isDeviceHealthError(error)) {
+      throw error;
+    }
+    return false;
+  }
+};
+
 export const isWalletHomeReadyOnAppium = async (): Promise<boolean> => {
   if (PlatformDetector.isIOS()) {
-    return isWalletHomeReadyOnIOS();
+    if (await isLoginScreenDisplayed()) {
+      return false;
+    }
+    return isWalletHomeReadyOnIOSStable();
   }
   if (PlatformDetector.isAndroid()) {
-    return isWalletHomeReadyOnAndroid();
+    return isWalletHomeReadyOnAndroidStable();
   }
   return false;
 };

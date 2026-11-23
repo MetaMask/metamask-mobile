@@ -11,7 +11,7 @@ export function useBackupAndSync(): {
   setIsBackupAndSyncFeatureEnabled: (
     feature: keyof typeof BACKUPANDSYNC_FEATURES,
     enabled: boolean,
-  ) => Promise<void>;
+  ) => Promise<string | null>;
   error: string | null;
 } {
   const [error, setError] = useState<string | null>(null);
@@ -21,11 +21,20 @@ export function useBackupAndSync(): {
       setError(null);
 
       try {
-        await setIsBackupAndSyncFeatureEnabledAction(feature, enabled);
+        const actionError = await setIsBackupAndSyncFeatureEnabledAction(
+          feature,
+          enabled,
+        );
+        if (actionError) {
+          setError(actionError);
+          return actionError;
+        }
+        return null;
       } catch (e) {
         const errorMessage =
           e instanceof Error ? e.message : JSON.stringify(e ?? '');
         setError(errorMessage);
+        return errorMessage;
       }
     },
     [],

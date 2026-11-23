@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { View, Switch, InteractionManager } from 'react-native';
+import { View, Switch } from 'react-native';
 
 import {
   FontWeight,
@@ -77,13 +77,14 @@ const FeatureToggle = ({
   );
 
   const handleToggleFeature = async () => {
+    const error = await setIsBackupAndSyncFeatureEnabled(
+      section.backupAndSyncfeatureKey,
+      !isFeatureEnabled,
+    );
+    if (error) {
+      return;
+    }
     trackBackupAndSyncToggleEvent(!isFeatureEnabled);
-    InteractionManager.runAfterInteractions(async () => {
-      await setIsBackupAndSyncFeatureEnabled(
-        section.backupAndSyncfeatureKey,
-        !isFeatureEnabled,
-      );
-    });
   };
 
   const isDisabled = useMemo(

@@ -15,7 +15,6 @@ import {
   createLogger,
   getDriver,
   LogLevel,
-  sleep,
   Utilities,
 } from '../../framework';
 import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
@@ -294,22 +293,33 @@ class AccountListBottomSheet {
   async tapBackButton(options: {
     onDismissed: () => Promise<void>;
   }): Promise<void> {
+    let tapAttempted = false;
+    let absentSince: number | undefined;
     await Utilities.executeWithRetry(
       async () => {
-        await Assertions.expectElementToExist(this.backButton, {
-          description: 'Account list / Account Hub back button',
-          timeout: 3_000,
-        });
-        await Gestures.waitAndTap(this.backButton, {
-          elemDescription: 'Account list header back button',
-          timeout: 5_000,
-          checkForDisplayed: false,
-          waitForInteractive: true,
-        });
-        await Assertions.expectElementToNotExist(this.accountList, {
-          description: 'Account list should be dismissed',
-          timeout: 2_000,
-        });
+        if (!tapAttempted) {
+          await Assertions.expectElementToExist(this.backButton, {
+            description: 'Account list / Account Hub back button',
+            timeout: 3_000,
+          });
+          await Gestures.waitAndTap(this.backButton, {
+            elemDescription: 'Account list header back button',
+            timeout: 5_000,
+            checkForDisplayed: false,
+            waitForInteractive: true,
+          });
+          tapAttempted = true;
+        }
+        const accountList = (await this.accountList) as AppiumElement;
+        if (await accountList.unwrap().isExisting()) {
+          tapAttempted = false;
+          absentSince = undefined;
+          throw new Error('Account list is still mounted');
+        }
+        absentSince ??= Date.now();
+        if (Date.now() - absentSince < 500) {
+          throw new Error('Account list dismissal is still settling');
+        }
       },
       {
         timeout: 90_000,
@@ -317,7 +327,11 @@ class AccountListBottomSheet {
         description: 'Dismiss account list via back button',
       },
     );
-    await options.onDismissed();
+    await Utilities.executeWithRetry(options.onDismissed, {
+      timeout: 20_000,
+      interval: 500,
+      description: 'Wait for wallet home after dismissing account list',
+    });
   }
 
   /**
@@ -359,7 +373,9 @@ class AccountListBottomSheet {
 
     // Account sync/discovery can keep the row visible but not yet tappable.
     // Wait for the sync phase to settle before tapping "Add account".
-    await this.waitForAccountSyncToComplete(syncTimeoutMs);
+    await this.waitForAccountSyncToComplete(syncTimeoutMs, {
+      addAccountButtonIndex: buttonIndex,
+    });
 
     // Re-query after sync settle — never reuse a pre-sync element handle.
     const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
@@ -383,7 +399,9 @@ class AccountListBottomSheet {
     // Account creation restarts sync/discovery. The new row is not in the
     // tree until that settles, and the default text assertion only gets a
     // couple of probes before its timeout.
-    await this.waitForAccountSyncToComplete(syncTimeoutMs);
+    await this.waitForAccountSyncToComplete(syncTimeoutMs, {
+      addAccountButtonIndex: buttonIndex,
+    });
   }
 
   /**
@@ -911,36 +929,9 @@ class AccountListBottomSheet {
   }
 
   /**
-   * Appium: poll with fresh DOM queries until the footer label reads "Add account".
-   * Interactive settle is handled by Gestures.waitAndTap({ waitForInteractive: true })
-   * at the tap call site.
-   */
-  private async waitForAddAccountButtonReady(
-    srpIndex: number,
-    timeoutMs: number,
-  ): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const label = await this.getAddAccountButtonLabel(srpIndex);
-        const text = (await label.textContent()).trim();
-        if (text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL) {
-          throw new Error(
-            `Add account footer label is "${text}", expected "${AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL}"`,
-          );
-        }
-      },
-      {
-        timeout: timeoutMs,
-        interval: 500,
-        description: `Add account button (index ${srpIndex}) ready`,
-      },
-    );
-  }
-
-  /**
    * Waits for the account sync to complete.
    * @param timeout - The timeout in milliseconds.
-   * @param options.addAccountButtonIndex - When set (Appium V2 add-account flows), also wait until that footer row is interactive after sync/discovery text clears.
+   * @param options.addAccountButtonIndex - When set (Appium V2 add-account flows), also wait until that footer row is idle after sync/discovery text clears.
    * @returns {Promise<void>} Resolves when the account sync is complete.
    */
   async waitForAccountSyncToComplete(
@@ -950,11 +941,6 @@ class AccountListBottomSheet {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;
-    // Brief window for sync/discovery chrome to appear after create/open.
-    // Must be long enough to catch a late "Syncing" flash; too short and we
-    // skip settle while creation is still in flight (Account 3 add flake).
-    const initialWaitTimeout = 5_000;
-
     const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
 
     // Factory form required: a pre-started promise runs its XPath lookup under
@@ -971,7 +957,7 @@ class AccountListBottomSheet {
 
     // Account Hub does not expose the AccountSelector `create-account` footer.
     // Use the full timeout for a unified readiness loop when no footer index
-    // was provided, while still rejecting a busy footer when it exists.
+    // was provided.
     if (options?.addAccountButtonIndex === undefined) {
       let stableReadySince: number | undefined;
       await Utilities.executeWithRetry(
@@ -983,11 +969,6 @@ class AccountListBottomSheet {
             throw new Error('Account sync indicators or footer are still busy');
           }
 
-          if (Date.now() - startTime < initialWaitTimeout) {
-            stableReadySince = undefined;
-            throw new Error('Account sync is still settling');
-          }
-
           stableReadySince ??= Date.now();
           if (
             Date.now() - stableReadySince <
@@ -997,7 +978,7 @@ class AccountListBottomSheet {
           }
         },
         {
-          timeout: timeout + ACCOUNT_SYNC_STABILITY_WINDOW_MS,
+          timeout: Math.max(timeout - (Date.now() - startTime), 1_000),
           interval: pollInterval,
           description: 'Wait for account list readiness after account sync',
         },
@@ -1005,57 +986,34 @@ class AccountListBottomSheet {
       return;
     }
 
-    // Step 1: Wait briefly for "Syncing", "Discovering", or a busy footer to appear.
-    logger.debug(
-      `⏳ Step 1: Waiting up to ${initialWaitTimeout / 1000}s for "Syncing" or "Discovering" to appear...`,
-    );
     const footerIndex = options?.addAccountButtonIndex;
-    while (Date.now() - startTime < initialWaitTimeout) {
-      const isSyncing = await isTextVisible('Syncing');
-      const isDiscovering = await isTextVisible('Discovering');
-      const footerBusy =
-        footerIndex !== undefined &&
-        (await this.isAddAccountFooterBusy(footerIndex));
-
-      if (isSyncing || isDiscovering || footerBusy) {
-        logger.debug(
-          `✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering}, footerBusy: ${footerBusy})`,
-        );
-        break;
-      }
-      await sleep(pollInterval);
-    }
 
     if (footerIndex !== undefined) {
-      // Step 2–4 (footer path): re-query label until idle copy shows, even when
-      // global "Syncing"/"Discovering" text was never visible or flashed quickly.
-      logger.debug(
-        `⏳ Step 2: Waiting for Add account footer label (index ${footerIndex})...`,
-      );
-      while (Date.now() - startTime < timeout) {
-        if (!(await this.isAddAccountFooterBusy(footerIndex))) {
-          logger.debug(
-            `✅ Step 2: Add account footer label ready after ${getElapsed()}s`,
-          );
-          break;
-        }
-        await sleep(pollInterval);
-      }
-    }
-
-    if (options?.addAccountButtonIndex !== undefined) {
-      const remainingMs = Math.max(timeout - (Date.now() - startTime), 1000);
-      logger.debug(
-        `⏳ Step 5: Waiting up to ${remainingMs}ms for Add account control (index ${options.addAccountButtonIndex}) — re-querying each attempt...`,
-      );
-
-      await this.waitForAddAccountButtonReady(
-        options.addAccountButtonIndex,
-        remainingMs,
-      );
-
-      logger.debug(
-        `✅ Step 5: Add account control is ready after ${getElapsed()}s`,
+      // Re-query all readiness indicators until they are idle continuously.
+      let stableReadySince: number | undefined;
+      await Utilities.executeWithRetry(
+        async () => {
+          const isBusy =
+            (await isTextVisible('Syncing')) ||
+            (await isTextVisible('Discovering')) ||
+            (await this.isAddAccountFooterBusy(footerIndex));
+          if (isBusy) {
+            stableReadySince = undefined;
+            throw new Error('Account list readiness is still settling');
+          }
+          stableReadySince ??= Date.now();
+          if (
+            Date.now() - stableReadySince <
+            ACCOUNT_SYNC_STABILITY_WINDOW_MS
+          ) {
+            throw new Error('Account list readiness is still settling');
+          }
+        },
+        {
+          timeout: Math.max(timeout - (Date.now() - startTime), 1_000),
+          interval: pollInterval,
+          description: `Wait for stable account list readiness (index ${footerIndex})`,
+        },
       );
     }
 

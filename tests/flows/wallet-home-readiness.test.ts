@@ -16,7 +16,27 @@ jest.mock('../framework/AppiumUtilities', () => ({
 }));
 
 jest.mock('../framework/Utilities', () => ({
-  sleep: jest.fn(() => Promise.resolve()),
+  __esModule: true,
+  default: {
+    executeWithRetry: jest.fn(async (operation: () => Promise<void>) => {
+      let lastError: unknown;
+      const originalDateNow = Date.now;
+      let now = 0;
+      Date.now = () => (now += 100);
+      try {
+        for (let attempt = 0; attempt < 10; attempt++) {
+          try {
+            return await operation();
+          } catch (error) {
+            lastError = error;
+          }
+        }
+      } finally {
+        Date.now = originalDateNow;
+      }
+      throw lastError;
+    }),
+  },
 }));
 
 jest.mock('../framework/services/appium/sessionRecovery', () => ({
@@ -32,7 +52,10 @@ jest.mock('../framework/PlatformLocator', () => ({
 
 import Matchers from '../framework/Matchers';
 import { isDeviceHealthError } from '../framework/services/appium/sessionRecovery';
-import { isWalletHomeReadyOnAndroid } from './wallet-home-readiness';
+import {
+  isWalletHomeReadyOnAndroid,
+  isWalletHomeReadyOnIOSStable,
+} from './wallet-home-readiness';
 
 const visibleByTestId = new Map<string, boolean>();
 
@@ -89,5 +112,68 @@ describe('isWalletHomeReadyOnAndroid', () => {
     const ready = await isWalletHomeReadyOnAndroid();
 
     expect(ready).toBe(false);
+  });
+});
+
+describe('isWalletHomeReadyOnIOSStable', () => {
+  beforeEach(() => {
+    visibleByTestId.clear();
+    jest
+      .mocked(Matchers.getElementByID)
+      .mockImplementation(async (elementId) => {
+        const testId = String(elementId);
+        return {
+          isVisible: async () => visibleByTestId.get(testId) ?? false,
+          unwrap: () => ({
+            isExisting: async () => false,
+          }),
+        } as unknown as AppiumElement;
+      });
+  });
+
+  it('returns true only when wallet chrome remains visible after the stability window', async () => {
+    visibleByTestId.set(WalletViewSelectorsIDs.ACCOUNT_ICON, true);
+
+    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(true);
+  });
+
+  it('returns false when wallet chrome disappears during the stability window', async () => {
+    let accountIconProbeCount = 0;
+    jest
+      .mocked(Matchers.getElementByID)
+      .mockImplementation(async (elementId) => {
+        const testId = String(elementId);
+        return {
+          isVisible: async () =>
+            testId === WalletViewSelectorsIDs.ACCOUNT_ICON &&
+            accountIconProbeCount++ === 0,
+          unwrap: () => ({
+            isExisting: async () => false,
+          }),
+        } as unknown as AppiumElement;
+      });
+
+    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(false);
+  });
+
+  it('does not treat an existing but undisplayed wallet hierarchy as stable', async () => {
+    jest
+      .mocked(Matchers.getElementByID)
+      .mockImplementation(async (elementId) => {
+        const testId = String(elementId);
+        return {
+          isVisible: async () => false,
+          unwrap: () => ({
+            isExisting: async () =>
+              testId === WalletViewSelectorsIDs.WALLET_CONTAINER,
+          }),
+        } as unknown as AppiumElement;
+      });
+
+    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(false);
+  });
+
+  it('returns false when wallet chrome is not visible', async () => {
+    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(false);
   });
 });
