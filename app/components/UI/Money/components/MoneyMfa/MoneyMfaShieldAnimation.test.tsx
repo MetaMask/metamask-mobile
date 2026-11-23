@@ -128,6 +128,18 @@ describe('MoneyMfaShieldAnimation', () => {
     expect(mockRiveView.play).toHaveBeenCalledTimes(1);
   });
 
+  it('waits for a custom play delay', async () => {
+    render(<MoneyMfaShieldAnimation size={96} playDelayMs={1000} />);
+
+    await waitForPlayDelay();
+    expect(mockRiveView.play).not.toHaveBeenCalled();
+    await act(async () => {
+      jest.advanceTimersByTime(1000 - SHIELD_PLAY_DELAY_MS);
+    });
+
+    expect(mockRiveView.play).toHaveBeenCalledTimes(1);
+  });
+
   it('does not play when the screen loses focus before the delay', async () => {
     const { rerender } = render(<MoneyMfaShieldAnimation size={96} />);
 

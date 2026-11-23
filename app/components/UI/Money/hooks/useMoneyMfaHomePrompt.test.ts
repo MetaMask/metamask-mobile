@@ -17,10 +17,10 @@ let mockBlur: (() => void) | void;
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn(() => Promise.resolve(null)),
+    getItem: jest.fn( async () => Promise.resolve(null)),
     getItemSync: jest.fn(() => null),
-    setItem: jest.fn(() => Promise.resolve()),
-    removeItem: jest.fn(() => Promise.resolve()),
+    setItem: jest.fn( async () => Promise.resolve()),
+    removeItem: jest.fn( async () => Promise.resolve()),
   },
 }));
 
@@ -59,7 +59,7 @@ const activePasskey: EnrolledCredential = {
   status: 'active',
 };
 
-const flushPromises = () => act(async () => undefined);
+const flushPromises =  async () => act(async () => undefined);
 
 const arrange = ({
   status = 'not_set_up',

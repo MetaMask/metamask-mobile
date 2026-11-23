@@ -335,7 +335,9 @@ const MoneyOnboardingCard = ({
           ),
           primaryCta: {
             text: strings(
-              'money.onboarding.step_2.unlinked_card_account.cta_primary',
+              isCardholder && !isCardAuthenticated
+                ? 'money.onboarding.step_2.unlinked_card_account.cta_log_in'
+                : 'money.onboarding.step_2.unlinked_card_account.cta_primary',
             ),
             onPress: () =>
               handleCardCtaPress(
@@ -399,6 +401,8 @@ const MoneyOnboardingCard = ({
     apyPercent,
     handleStep1CtaPressed,
     shouldShowLinkCardAction,
+    isCardholder,
+    isCardAuthenticated,
     isLinking,
     handleCardCtaPress,
     handleSkipPress,

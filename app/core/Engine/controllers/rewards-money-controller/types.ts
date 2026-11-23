@@ -33,6 +33,7 @@ export type ReferralUserStatus = 'ACTIVE' | 'PAUSED';
 export type EarningOriginType =
   | 'SWAPS_FEE_CASHBACK'
   | 'PERPS_FEE_CASHBACK'
+  | 'PREDICT_FEE_CASHBACK'
   | 'REFERRAL_REV_SHARE'
   | 'SOCIAL_FOLLOW_TRADE';
 
@@ -72,16 +73,70 @@ export type ReferredByView = {
   referral_code: string | null;
 };
 
+/** One product's rate in `earn_rates.revshare_by_product` / `cashback_by_product`. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ProductRate = {
+  rate_bps: number;
+  /** Null at 0 bps and for a cashback program rate (no row of the caller's). */
+  source: 'OVERRIDE' | 'DEFAULT' | null;
+};
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarnRatesView = {
+  /**
+   * The lowest over enabled products in `cashback_by_product`, 0 % included;
+   * null when no product has a rate.
+   *
+   * @deprecated Summary only; use `cashback_by_product`.
+   */
   cashback_rate_bps: number | null;
-  /** Window of the cashback row that pays the caller now. Null when none does. */
+  /**
+   * Window of the cashback row that pays the caller now. Follows the
+   * product behind the lowest rate; null for a program rate or 0 %.
+   */
   cashback_earning_start: string | null;
   cashback_earning_end: string | null;
+  /**
+   * The lowest over enabled products in `revshare_by_product`, 0 % included;
+   * null when no row covers now.
+   *
+   * @deprecated Summary only; use `revshare_by_product`.
+   */
   revshare_rate_bps: number | null;
-  /** Window of the revenue-share row that pays the caller now. */
+  /**
+   * Window of the revenue-share row that pays the caller now. Follows the
+   * product behind the lowest rate; null when no row covers now or at 0 %.
+   */
   revshare_earning_start: string | null;
   revshare_earning_end: string | null;
+  /**
+   * The caller's own revenue share rate per product; null where no row covers now.
+   *
+   * Optional: absent in a payload persisted before the backend change, or from an older backend.
+   */
+  revshare_by_product?: Record<
+    'perps' | 'swaps' | 'predict',
+    ProductRate | null
+  >;
+  /**
+   * Cashback per product. A caller with any row sees only their rows, null on
+   * the other products. A prospective referee (no referee row, not a KOL, never
+   * in the cashback experiment) sees each product's program rate as the offer
+   * (`source` null). Any other caller with no row gets null on every product
+   * and a null `cashback_rate_bps`. `predict` is null while no policy pays it.
+   *
+   * Optional: absent in a payload persisted before the backend change, or from an older backend.
+   */
+  cashback_by_product?: Record<
+    'perps' | 'swaps' | 'predict',
+    ProductRate | null
+  >;
+  /**
+   * Copy-trading commission per product, in bps; null where no period covers now.
+   *
+   * Optional: absent in a payload persisted before the backend change, or from an older backend.
+   */
+  copy_trading_by_product?: Record<'perps' | 'swaps', number | null>;
 };
 
 /**

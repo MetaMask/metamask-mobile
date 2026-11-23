@@ -7,6 +7,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import { AnimationDuration } from '@metamask/design-tokens';
+import { playSuccessNotification } from '../../../../util/haptics';
 import { useReduceMotionState } from '../../Money/hooks/useReduceMotion';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
@@ -93,6 +94,17 @@ const useVerifiedSuccessCascade = () => {
       : setTimeout(startEntrance, VERIFIED_SUCCESS_ENTRANCE_TIMEOUT_MS);
     return () => clearTimeout(timeout);
   }, [playCascade, hasEntranceStarted, startEntrance]);
+
+  // Lands with the verified content: immediately for the static checkmark,
+  // and with the tick (or its timeout) when the cascade plays.
+  const hasPlayedVerifiedHaptic = useRef(false);
+  useEffect(() => {
+    if (!isShown || hasPlayedVerifiedHaptic.current) {
+      return;
+    }
+    hasPlayedVerifiedHaptic.current = true;
+    playSuccessNotification().catch(() => undefined);
+  }, [isShown]);
 
   return {
     mode,
