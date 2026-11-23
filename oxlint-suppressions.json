@@ -25864,7 +25864,7 @@
   },
   "tests/flows/wallet-home-readiness.test.ts": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 1
     }
   },
   "tests/flows/wallet-home-readiness.ts": {
@@ -26786,9 +26786,6 @@
     }
   },
   "tests/page-objects/wallet/AccountListBottomSheet.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
     "typescript/promise-function-async": {
       "count": 8
     }
