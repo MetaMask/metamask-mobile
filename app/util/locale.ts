@@ -15,7 +15,11 @@ const dollarRegions = new Set(['CA', 'AU', 'NZ', 'SG', 'HK', 'MX', 'AR']);
 
 function computeCurrencyDisplay(firstWithRegion: Locale | undefined) {
   const region = firstWithRegion?.regionCode;
-  return region && dollarRegions.has(region) ? 'symbol' : 'narrowSymbol';
+  // A 3-digit region is an area (e.g. 419 Latin America), not a country, so
+  // its local currency is unknown; keep USD marked.
+  return region && (dollarRegions.has(region) || /^\d{3}$/u.test(region))
+    ? 'symbol'
+    : 'narrowSymbol';
 }
 
 function refreshDeviceLocales() {
@@ -28,11 +32,21 @@ function refreshDeviceLocales() {
   return cachedLocaleData;
 }
 
+const localeListeners = new Set<() => void>();
+
 AppState.addEventListener('change', (state) => {
   if (state === 'active') {
     cachedLocaleData = undefined;
+    localeListeners.forEach((listener) => listener());
   }
 });
+
+export function subscribeToLocaleChanges(listener: () => void) {
+  localeListeners.add(listener);
+  return () => {
+    localeListeners.delete(listener);
+  };
+}
 
 function getResolvedAppLanguage() {
   const bare = I18n.locale.split('-')[0];

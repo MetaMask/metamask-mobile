@@ -1,6 +1,11 @@
+import { useSyncExternalStore } from 'react';
 import { createFormatters, type Formatters } from '@metamask/client-utils';
 import I18n from '../../../locales/i18n';
-import { getFormattingLocale, getCurrencyDisplay } from '../../util/locale';
+import {
+  getFormattingLocale,
+  getCurrencyDisplay,
+  subscribeToLocaleChanges,
+} from '../../util/locale';
 
 export const getLocaleLanguageCode = () => I18n.locale.split('-')[0];
 
@@ -30,5 +35,5 @@ export function getFormatters(): Formatters {
 }
 
 export function useFormatters(): Formatters {
-  return getFormatters();
+  return useSyncExternalStore(subscribeToLocaleChanges, getFormatters);
 }

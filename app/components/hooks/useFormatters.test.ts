@@ -6,7 +6,7 @@ jest.mock('../../../locales/i18n', () => ({
   },
 }));
 
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useFormatters } from './useFormatters';
 import I18n from '../../../locales/i18n';
 import { getLocales } from 'expo-localization';
@@ -51,6 +51,26 @@ describe('useFormatters', () => {
     const formatted = result.current.formatCurrency(100, 'USD');
 
     expect(formatted).toBe('100,00\u00A0$');
+  });
+
+  it('marks USD when the device region is an area code (es-419)', () => {
+    mockI18n.locale = 'es';
+    mockGetLocales.mockReturnValue([makeLocale('es-419')]);
+
+    const { result } = renderHook(() => useFormatters());
+
+    expect(result.current.formatCurrency(35.92, 'USD')).toBe('USD\u00A035.92');
+  });
+
+  it('updates a mounted hook when the device region changes', () => {
+    mockI18n.locale = 'en';
+    mockGetLocales.mockReturnValue([makeLocale('en-US')]);
+    const { result } = renderHook(() => useFormatters());
+
+    mockGetLocales.mockReturnValue([makeLocale('en-DE')]);
+    act(() => onAppStateChange?.('active'));
+
+    expect(result.current.formatNumber(1234.5)).toBe('1.234,5');
   });
 
   it('marks USD in a $ region even when the device symbol is CA$', () => {
