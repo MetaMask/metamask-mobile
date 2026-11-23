@@ -1014,8 +1014,11 @@ export class PredictApiReadClient implements PredictApiReadTransport {
       segments.map(encodeURIComponent).join('/'),
       this.#baseUrlWithTrailingSlash(),
     );
-    const send = (signed: SignedOperation): Promise<Response> =>
-      this.#fetch(url.toString(), {
+    const send = (signed: SignedOperation): Promise<Response> => {
+      if (options?.signal?.aborted) {
+        return Promise.reject(abortedError());
+      }
+      return this.#fetch(url.toString(), {
         method: 'POST',
         headers: {
           Accept: 'application/json',
@@ -1030,6 +1033,7 @@ export class PredictApiReadClient implements PredictApiReadTransport {
         body: buildBody(signed),
         signal: options?.signal,
       });
+    };
     try {
       const response = await sendSigned(
         {
