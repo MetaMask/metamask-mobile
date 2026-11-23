@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, Platform } from 'react-native';
 import { FullWindowOverlay } from 'react-native-screens';
 import { act, fireEvent } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import useApprovalRequest, {
   ApprovalRequestType,
 } from '../../Views/confirmations/hooks/useApprovalRequest';
@@ -51,6 +52,18 @@ const renderComponent = () =>
   renderWithProvider(<ConfirmMembershipApproval />, {
     state: { engine: { backgroundState } },
   });
+
+const getOnPress = (button: ReactTestInstance): (() => void) => {
+  let current: ReactTestInstance | null = button;
+  while (current) {
+    const { onPress } = current.props as { onPress?: () => void };
+    if (typeof onPress === 'function') {
+      return onPress;
+    }
+    current = current.parent;
+  }
+  throw new Error('onPress handler not found');
+};
 
 describe('ConfirmMembershipApproval', () => {
   const originalPlatformOS = Platform.OS;
@@ -136,6 +149,90 @@ describe('ConfirmMembershipApproval', () => {
     );
 
     expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+  });
+
+  // The latch is local state on a component that stays mounted. A component-view
+  // test would need ApprovalController just to swap the pending id.
+  it('confirms a later membership approval after the previous request is cleared', () => {
+    mockApprovalRequest(createApprovalRequest({ id: 'approval-1' }));
+
+    const { getByTestId, queryByTestId, rerender } = renderComponent();
+    fireEvent.press(
+      getByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
+    );
+
+    mockApprovalRequest(undefined);
+    rerender(<ConfirmMembershipApproval />);
+
+    expect(
+      queryByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
+    ).toBeNull();
+
+    mockApprovalRequest(createApprovalRequest({ id: 'approval-2' }));
+    rerender(<ConfirmMembershipApproval />);
+    const confirmButton = getByTestId(
+      ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ disabled: false }),
+    );
+    expect(confirmButton.props.accessibilityState.busy).toBeFalsy();
+
+    fireEvent.press(confirmButton);
+
+    expect(mockOnConfirm).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps confirm latched for the same approval after a rerender', () => {
+    const approvalRequest = createApprovalRequest({ id: 'approval-1' });
+    mockApprovalRequest(approvalRequest);
+
+    const { getByTestId, rerender } = renderComponent();
+    const pressConfirm = getOnPress(
+      getByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
+    );
+    act(() => {
+      pressConfirm();
+    });
+
+    mockApprovalRequest(approvalRequest);
+    rerender(<ConfirmMembershipApproval />);
+    act(() => {
+      pressConfirm();
+    });
+
+    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
+  });
+
+  it('resolves the approval once when confirm is pressed twice', () => {
+    mockApprovalRequest(createApprovalRequest());
+
+    const { getByTestId } = renderComponent();
+    const confirmButton = getByTestId(
+      ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON,
+    );
+    const pressConfirm = getOnPress(confirmButton);
+
+    act(() => {
+      pressConfirm();
+      pressConfirm();
+    });
+
+    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(ConfirmMembershipApprovalTestIds.CONFIRM_BUTTON),
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ busy: true, disabled: true }),
+    );
   });
 
   it('does not call onReject when the confirm button is pressed', () => {

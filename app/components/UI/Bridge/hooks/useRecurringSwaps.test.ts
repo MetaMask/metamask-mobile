@@ -10,7 +10,7 @@ jest.mock('@metamask/react-data-query', () => ({
 
 const mockUseInfiniteQuery = jest.mocked(useInfiniteQuery);
 const ORDER_ID = MOCK_RECURRING_OPEN_ORDER.id;
-const ACCOUNT_ADDRESS = MOCK_RECURRING_OPEN_ORDER.accountAddress;
+const ACCOUNT_ADDRESS = MOCK_RECURRING_OPEN_ORDER.account;
 
 function createPage(
   swapIndex: number,
@@ -20,6 +20,7 @@ function createPage(
     swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[swapIndex]],
     endCursor,
     hasNextPage: Boolean(endCursor),
+    total: 1,
   };
 }
 

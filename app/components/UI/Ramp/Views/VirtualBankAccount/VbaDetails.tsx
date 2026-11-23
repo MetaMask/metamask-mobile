@@ -27,19 +27,17 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../../util/haptics';
 import type { RootState } from '../../../../../reducers';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import {
-  selectMoneyMovementNeobank,
-  selectNeobankMarkets,
-} from '../../../../../selectors/featureFlagController/moneyAccount';
-import { getVbaMarketForCountry } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   pickLatestTransaction,
@@ -61,7 +59,11 @@ import {
   getAccountCreateFailureLogFields,
   logAccountCreateFailure,
 } from './accountCreateError';
-import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
+import {
+  exitVbaOnboardingToMoneyHome,
+  navigateToVbaOnboardingDestination,
+} from './hooks/useVbaOnboardingRouting';
+import { useVbaEligibility } from './hooks/useVbaEligibility';
 import VbaCreatingAccount from './VbaCreatingAccount';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -78,8 +80,9 @@ import {
 import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
-import { AVENIA_URL } from './constants';
+import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
+import { formatIbanForDisplay } from './formatIban';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -96,8 +99,13 @@ export const VbaDetailsSelectorsIDs = {
   ROUTING_NUMBER: 'vba-details-routing-number',
   ACCOUNT_NUMBER: 'vba-details-account-number',
   BANK_NAME: 'vba-details-bank-name',
+  IBAN: 'vba-details-iban',
+  BIC: 'vba-details-bic',
+  PAYMENT_REFERENCE: 'vba-details-payment-reference',
   PROVIDER_DISCLOSURE: 'vba-details-provider-disclosure',
   PROVIDER_DISCLOSURE_LINK: 'vba-details-provider-disclosure-link',
+  RISK_DISCLOSURE: 'vba-details-risk-disclosure',
+  RISK_DISCLOSURE_LINK: 'vba-details-risk-disclosure-link',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
@@ -123,6 +131,8 @@ interface DetailRow {
   testID: string;
   label: string;
   value: string;
+  /** Copied instead of `value` when the display form is not paste-safe. */
+  copyValue?: string;
 }
 
 interface DepositRamps {
@@ -196,6 +206,54 @@ const buildDetailRows = (
       },
     ];
   }
+  if (instructions?.type === 'Sepa') {
+    const rows: DetailRow[] = [];
+    if (instructions.accountHolder) {
+      rows.push({
+        id: 'account-holder',
+        testID: VbaDetailsSelectorsIDs.ACCOUNT_HOLDER,
+        label: strings('virtual_bank_account.vba_details.account_holder_label'),
+        value: instructions.accountHolder,
+      });
+    }
+    // Only the IBAN is guaranteed. Display it grouped, copy it without spaces.
+    rows.push({
+      id: 'iban',
+      testID: VbaDetailsSelectorsIDs.IBAN,
+      label: strings('virtual_bank_account.vba_details.iban_label'),
+      value: formatIbanForDisplay(instructions.iban),
+      copyValue: instructions.iban.replace(/\s+/gu, ''),
+    });
+    // Pay-by-reference accounts need this in the SEPA reference so MoonPay can
+    // match the incoming transfer. Dedicated-IBAN accounts omit it.
+    if (instructions.paymentReference) {
+      rows.push({
+        id: 'payment-reference',
+        testID: VbaDetailsSelectorsIDs.PAYMENT_REFERENCE,
+        label: strings(
+          'virtual_bank_account.vba_details.payment_reference_label',
+        ),
+        value: instructions.paymentReference,
+      });
+    }
+    if (instructions.bic) {
+      rows.push({
+        id: 'bic',
+        testID: VbaDetailsSelectorsIDs.BIC,
+        label: strings('virtual_bank_account.vba_details.bic_label'),
+        value: instructions.bic,
+      });
+    }
+    if (instructions.bankName) {
+      rows.push({
+        id: 'bank-name',
+        testID: VbaDetailsSelectorsIDs.BANK_NAME,
+        label: strings('virtual_bank_account.vba_details.bank_name_label'),
+        value: instructions.bankName,
+      });
+    }
+    return rows;
+  }
   if (instructions?.type !== 'Pix') {
     return [];
   }
@@ -220,11 +278,11 @@ const buildDetailRows = (
 
 /** Notes-friendly block: each label on its own line, a blank line between fields. */
 export const formatBankDetailsForCopy = (
-  rows: readonly { label: string; value: string }[],
+  rows: readonly { label: string; value: string; copyValue?: string }[],
 ): string =>
   rows
     .filter((row) => row.value.length > 0)
-    .map((row) => `${row.label}\n${row.value}`)
+    .map((row) => `${row.label}\n${row.copyValue ?? row.value}`)
     .join('\n\n');
 
 /**
@@ -236,7 +294,7 @@ export const formatBankDetailsForCopy = (
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
- * onboarding. PIX or US bank details come from
+ * onboarding. PIX, US bank, or SEPA details come from
  * `NeoBankService.getDepositInstructions`.
  */
 const VbaDetails = () => {
@@ -244,13 +302,8 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const location = useSelector(selectGeolocationLocation);
-  const { regionOverride } = useSelector(selectMoneyMovementNeobank);
-  const markets = useSelector(selectNeobankMarkets);
-  const sourceCurrency = getVbaMarketForCountry(
-    markets,
-    regionOverride ?? location,
-  )?.currency;
+  const { market } = useVbaEligibility();
+  const sourceCurrency = market?.currency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
@@ -706,10 +759,7 @@ const VbaDetails = () => {
   const handleDone = useCallback(() => {
     finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
     endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    exitVbaOnboardingToMoneyHome(navigation);
   }, [finishPixFetchTrace, navigation]);
 
   const handleBack = useCallback(() => {
@@ -723,9 +773,15 @@ const VbaDetails = () => {
     handleDone();
   }, [finishPixFetchTrace, handleDone, navigation]);
 
+  const handleDonePress = useCallback(() => {
+    fireImpact(ImpactMoment.PrimaryCTA);
+    handleBack();
+  }, [handleBack]);
+
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
       Clipboard.setString(value);
+      playSelection().catch(() => undefined);
       AccessibilityInfo.announceForAccessibility(
         strings('virtual_bank_account.vba_details.copied_label', {
           field: label,
@@ -743,6 +799,14 @@ const VbaDetails = () => {
     });
   }, []);
 
+  const handleOpenRiskInfo = useCallback(() => {
+    Linking.openURL(MOONPAY_RISK_URL).catch((error) => {
+      Logger.error(error as Error, {
+        message: 'VbaDetails: failed to open the risk link',
+      });
+    });
+  }, []);
+
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
   }, []);
@@ -755,6 +819,7 @@ const VbaDetails = () => {
   const handleCopyAll = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
     Clipboard.setString(message);
+    playSelection().catch(() => undefined);
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.copied_all_label'),
     );
@@ -809,12 +874,15 @@ const VbaDetails = () => {
   }, [hasShownDetails, walletAddress]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
-    (!instructions && sourceCurrency === 'USD');
+    instructions?.type === 'Sepa' ||
+    (!instructions && (sourceCurrency === 'USD' || sourceCurrency === 'EUR'));
   // MoonPay's legal line names Brazil, so it follows the Pix (BRL) rail, not
-  // the user's country. The US bank transfer layout never shows it.
+  // the user's country. The US and SEPA bank transfer layouts never show it.
   const showProviderDisclosure = instructions
     ? instructions.type === 'Pix'
     : sourceCurrency === 'BRL';
+  const showRiskDisclosure =
+    instructions?.type === 'UsBank' && rows.length > 0 && !loadError;
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = loadError
@@ -886,7 +954,7 @@ const VbaDetails = () => {
                   <ButtonIcon
                     iconName={IconName.Copy}
                     size={ButtonIconSize.Md}
-                    onPress={handleCopy(row.value, row.label)}
+                    onPress={handleCopy(row.copyValue ?? row.value, row.label)}
                     accessibilityLabel={strings(
                       'virtual_bank_account.vba_details.copy_label',
                       { field: row.label },
@@ -926,7 +994,10 @@ const VbaDetails = () => {
                 jump when the details land. Both bars sit in the title slot
                 because it is the only full-width slot, so the 85% bar has a
                 width to resolve against. */}
-            {['pix-key', 'copia-cola'].map((id) => (
+            {(sourceCurrency === 'EUR'
+              ? ['account-holder', 'iban', 'bic', 'bank-name']
+              : ['pix-key', 'copia-cola']
+            ).map((id) => (
               <ListItem
                 key={id}
                 title={
@@ -980,7 +1051,27 @@ const VbaDetails = () => {
             </TextButton>
           </Text>
         ) : null}
-        {instructions?.type === 'UsBank' && rows.length > 0 ? (
+        {showRiskDisclosure ? (
+          <Text
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE}
+          >
+            {strings('virtual_bank_account.vba_details.risk_disclosure')}{' '}
+            <TextButton
+              variant={TextVariant.BodyXs}
+              onPress={handleOpenRiskInfo}
+              testID={VbaDetailsSelectorsIDs.RISK_DISCLOSURE_LINK}
+            >
+              {/* Non-breaking spaces keep the link label on one line. */}
+              {strings(
+                'virtual_bank_account.vba_details.provider_disclosure_link',
+              ).replace(/ /g, '\u00A0')}
+            </TextButton>
+          </Text>
+        ) : null}
+        {isBankTransfer && rows.length > 0 ? (
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}
@@ -1006,7 +1097,7 @@ const VbaDetails = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={handleBack}
+          onPress={handleDonePress}
           testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
         >
           {strings('virtual_bank_account.vba_details.button')}

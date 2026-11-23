@@ -7,7 +7,7 @@ import {
   selectCardAvailableTokens,
   selectCardFundingTokens,
   selectIsCardAuthenticated,
-  selectIsCardholder,
+  selectHasCard,
   selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { useCardHomeData } from './useCardHomeData';
@@ -91,7 +91,7 @@ interface CardOwnership {
 
 const CARDHOLDER: CardOwnership = {
   isCardholder: true,
-  isCardAuthenticated: false,
+  isCardAuthenticated: true,
 };
 
 // Dispatch on selector identity, not call order: a positional mapping fails
@@ -112,7 +112,7 @@ function setupSelectors(
     [selectCardPrimaryToken, primaryToken],
     [selectCardAvailableTokens, availableTokens],
     [selectCardFundingTokens, fundingTokens],
-    [selectIsCardholder, ownership.isCardholder],
+    [selectHasCard, ownership.isCardholder],
     [selectIsCardAuthenticated, ownership.isCardAuthenticated],
     [selectCardHomeDataFetchedThisSession, fetchedThisSession],
   ]);
@@ -173,6 +173,15 @@ describe('useCardHomeData', () => {
       expect(mockFetchCardHomeData).toHaveBeenCalledTimes(1);
     });
 
+    it('does NOT trigger fetchCardHomeData for a logged-out cardholder', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: true,
+        isCardAuthenticated: false,
+      });
+      renderHook(() => useCardHomeData());
+      expect(mockFetchCardHomeData).not.toHaveBeenCalled();
+    });
+
     it('does NOT trigger fetchCardHomeData when the user has no card', () => {
       setupSelectors(null, 'idle', null, [], [], {
         isCardholder: false,
@@ -223,7 +232,7 @@ describe('useCardHomeData', () => {
       expect(mockFetchCardHomeData).not.toHaveBeenCalled();
     });
 
-    it('triggers fetchCardHomeData once the user becomes a cardholder', () => {
+    it('triggers fetchCardHomeData once the user is authenticated', () => {
       setupSelectors(null, 'idle', null, [], [], {
         isCardholder: false,
         isCardAuthenticated: false,
@@ -243,6 +252,15 @@ describe('useCardHomeData', () => {
       setupSelectors(null, 'idle');
       const { result } = renderHook(() => useCardHomeData());
       expect(result.current.isLoading).toBe(true);
+    });
+
+    it('is false when logged out and status is idle', () => {
+      setupSelectors(null, 'idle', null, [], [], {
+        isCardholder: true,
+        isCardAuthenticated: false,
+      });
+      const { result } = renderHook(() => useCardHomeData());
+      expect(result.current.isLoading).toBe(false);
     });
 
     it("is true when status is 'loading'", () => {

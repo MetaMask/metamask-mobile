@@ -46,7 +46,12 @@ import { navigateToRewardsRoute } from '../../../utils';
 import { useTaxDocumentation } from '../../../hooks/useTaxDocumentation';
 import {
   canClaimEarnings,
+  canSignEarningAddress,
+  claimBlockedOnThisDevice,
+  claimHasUnsignableAddress,
   claimRouteOptions,
+  routesSignableOnDevice,
+  displayClaimTotals,
   incomeHeldOnOpenRoute,
   isPendingClaimRow,
   mergeInFlightClaims,
@@ -60,6 +65,7 @@ import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
 import { useClaimEarnings } from '../../../hooks/useClaimEarnings';
 import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
+import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
 import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 import {
@@ -85,15 +91,19 @@ const EARNINGS_HISTORY_PREVIEW_COUNT = 5;
 const musdAmount = (baseUnits: string | null | undefined): string =>
   formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 2 }) ?? '—';
 
-/** Root summary amounts for the Claims paused sheet. */
+/**
+ * Sheet rows. Available and Pending use the display split. Held and blocked
+ * stay the summary values so the rows still add up to the lifetime total.
+ */
 function claimsPausedTotals(summary: EarningsSummaryDto): ClaimsPausedTotals {
+  const display = displayClaimTotals(summary);
   return {
     lifetime_total: summary.lifetime_total,
-    claimable: summary.claimable,
+    claimable: display.claimable,
     held: summary.held,
     blocked: summary.blocked,
     voided: summary.voided,
-    pending: summary.pending,
+    pending: display.pending,
     claimed: summary.claimed,
   };
 }
@@ -270,7 +280,7 @@ function breakdownRows(
 
   const trading: BreakdownRow = {
     key: 'trading',
-    iconName: IconName.Coin,
+    iconName: IconName.SwapVertical,
     label: localizedText.breakdownTrading,
     description: localizedText.breakdownTradingDescription,
     amount: musdAmount(
@@ -286,7 +296,7 @@ function breakdownRows(
   };
   const social: BreakdownRow = {
     key: 'social',
-    iconName: IconName.Copy,
+    iconName: IconName.People,
     label: localizedText.tradingCommissionsSection,
     description: localizedText.breakdownSocialDescription,
     amount: musdAmount(earnedByOthersLifetime(summary, 'SOCIAL_FOLLOW_TRADE')),
@@ -341,7 +351,7 @@ const BreakdownSection: React.FC<{
       title={localizedText.breakdown}
       isInteractive={Boolean(onViewPerformance)}
       onPress={onViewPerformance}
-      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+      twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
       testID={EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER}
     />
     <Box twClassName="px-4">
@@ -475,7 +485,7 @@ const HistorySection: React.FC<{
         title={localizedText.history}
         isInteractive={!listEmpty}
         onPress={listEmpty ? undefined : onOpenList}
-        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-6 pb-4'}
+        twClassName={followsSection ? 'pt-0 pb-4' : 'pt-4 pb-4'}
         testID={EARNINGS_TAB_TEST_IDS.HISTORY_HEADER}
       />
       <Box twClassName="px-4 pb-8">
@@ -582,41 +592,72 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       prefetchTaxMe();
     }, [prefetchTaxMe]),
   );
-  const { claim, isClaiming, isClaimWaiting } = useClaimEarnings(profileId, {
-    summary: earningsSummaryEntry?.data ?? null,
-    onOpened: () => {
-      inFlight.refresh({ forceFresh: true }).catch(() => undefined);
-    },
-    onSubmitted: async () => {
-      const refreshed = await fetchEarningsSummary({ forceFresh: true });
-      // No summary means this refresh did not finish. Claim stays disabled
-      // until a later summary replaces the one it was pressed against.
-      if (!refreshed) {
-        throw new Error('Earnings summary refresh did not finish');
-      }
-    },
-    onTaxRequired: () => {
-      void openAfterClaimRefusal().catch(() => {
-        openClaimsPaused();
-      });
-    },
-    onClaimsPaused: () => {
-      // The sheet copies these totals into route params, so it has to open
-      // with the summary this refresh returns. The selector still holds the
-      // pre-refusal figures until the next render. A refresh that returns
-      // nothing has not finished, so the sheet stays closed.
-      void fetchEarningsSummary({ forceFresh: true })
-        .then((summary) => {
-          if (!summary) {
-            return;
-          }
-          openClaimsPaused(summary);
-        })
-        .catch(() => {
+  const { claim, isClaiming, isClaimWaiting, claimWaitCaption } =
+    useClaimEarnings(profileId, {
+      summary: earningsSummaryEntry?.data ?? null,
+      onOpened: () => {
+        inFlight.refresh({ forceFresh: true }).catch(() => undefined);
+      },
+      onSubmitted: async () => {
+        const refreshed = await fetchEarningsSummary({ forceFresh: true });
+        // No summary means this refresh did not finish. Claim stays disabled
+        // until a later summary replaces the one it was pressed against.
+        if (!refreshed) {
+          throw new Error('Earnings summary refresh did not finish');
+        }
+      },
+      onTaxRequired: () => {
+        void openAfterClaimRefusal().catch(() => {
           openClaimsPaused();
         });
-    },
-  });
+      },
+      onClaimsPaused: () => {
+        // The sheet copies these totals into route params, so it has to open
+        // with the summary this refresh returns. The selector still holds the
+        // pre-refusal figures until the next render. A refresh that returns
+        // nothing has not finished, so the sheet stays closed.
+        void fetchEarningsSummary({ forceFresh: true })
+          .then((summary) => {
+            if (!summary) {
+              return;
+            }
+            openClaimsPaused(summary);
+          })
+          .catch(() => {
+            openClaimsPaused();
+          });
+      },
+    });
+  // Subscribing re-renders this screen when the account list changes (an
+  // import), which re-runs the sign check below. Signing itself stays the
+  // claim runner's keyring check, hardware and snap included.
+  useSelector(selectInternalAccounts);
+  const signRouteOptions = claimRouteOptions(
+    localizedText?.taxFormUrl,
+    followTradeClaimOpen,
+    revShareClaimOpen,
+  );
+  const earnedElsewhere =
+    Boolean(localizedText?.earnedOnOtherAccounts) &&
+    claimHasUnsignableAddress(
+      earningsSummaryEntry?.data,
+      signRouteOptions,
+      canSignEarningAddress,
+    );
+  const claimBlockedOnDevice =
+    Boolean(localizedText?.earnedOnOtherAccounts) &&
+    claimBlockedOnThisDevice(
+      earningsSummaryEntry?.data,
+      signRouteOptions,
+      canSignEarningAddress,
+    );
+  // Same sign check as the button. A later cashback-only press must not
+  // treat an unsignable cashback balance as something this phone can pay.
+  const cashbackSignableOnDevice = routesSignableOnDevice(
+    earningsSummaryEntry?.data,
+    ['referral-trade-fee-cashback'],
+    canSignEarningAddress,
+  ).includes('referral-trade-fee-cashback');
 
   if (!localizedText) {
     return null;
@@ -641,6 +682,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
   // One earning type does not need a split. The section appears only when
   // two rows remain after the role and Social V1 filters.
   const showBreakdown = summary.show && rows.length >= 2;
+  const display = displayClaimTotals(summary.data);
   const routeOptions = claimRouteOptions(
     localizedText?.taxFormUrl,
     followTradeClaimOpen,
@@ -654,7 +696,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
       {/* Same block as the hero cards on Ways to Earn: the banner and the
           card share one padded box so the gap between them matches. */}
       {errorSource || summary.show ? (
-        <Box twClassName="mt-3 gap-3 px-4 pt-4">
+        <Box twClassName="gap-3 px-4 pt-4">
           {errorSource ? (
             <EarningsErrorBanner
               source={errorSource}
@@ -668,11 +710,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
           {summary.show ? (
             <ClaimableRewardsCard
               localizedText={localizedText}
-              claimable={summary.data?.claimable}
+              claimable={display.claimable}
+              pending={display.pending}
               claimed={summary.data?.claimed}
               held={summary.data?.held}
               blocked={summary.data?.blocked}
-              claimableAmount={musdAmount(summary.data?.claimable)}
+              claimableAmount={musdAmount(display.claimable)}
+              pendingAmount={musdAmount(display.pending)}
               heldAmount={musdAmount(summary.data?.held)}
               isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
@@ -683,6 +727,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               taxHeld={taxHeld}
               isClaiming={isClaiming}
               isClaimWaiting={isClaimWaiting}
+              claimWaitCaption={claimWaitCaption ?? undefined}
+              earnedElsewhereCaption={
+                earnedElsewhere
+                  ? localizedText.earnedOnOtherAccounts
+                  : undefined
+              }
+              claimBlockedOnDevice={claimBlockedOnDevice}
               onClaim={
                 summary.data
                   ? () => {
@@ -690,10 +741,13 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                       if (!summaryData) {
                         return;
                       }
-                      void onClaimPress(summaryData, (options) =>
-                        claim(options?.summary ?? summaryData, options).catch(
-                          () => undefined,
-                        ),
+                      void onClaimPress(
+                        summaryData,
+                        (options) =>
+                          claim(options?.summary ?? summaryData, options).catch(
+                            () => undefined,
+                          ),
+                        { cashbackSignableOnDevice },
                       );
                     }
                   : undefined

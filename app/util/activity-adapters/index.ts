@@ -33,7 +33,7 @@ export {
 export {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,
-} from './adapters/perps-transaction';
+} from './adapters/perps/perps-transaction';
 export { mapRampOrder } from './adapters/ramp-order';
 export { mapRampsOrder } from './adapters/ramps-order';
 export {

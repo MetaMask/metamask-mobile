@@ -11,6 +11,8 @@ import { swapQuoteFetchTrace } from './swapQuoteFetchTrace';
 import type { BridgeToken } from '../types';
 import ReduxService from '../../../../core/redux';
 
+let mockRemoteFeatureFlags: Record<string, unknown> = {};
+
 jest.mock('../../../../util/trace', () => ({
   ...jest.requireActual('../../../../util/trace'),
   trace: jest.fn(),
@@ -27,7 +29,14 @@ jest.mock('../../../../core/redux', () => ({
     get store() {
       return {
         getState: () => ({
-          engine: { backgroundState: { BridgeController: mockBridgeState } },
+          engine: {
+            backgroundState: {
+              BridgeController: mockBridgeState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: mockRemoteFeatureFlags,
+              },
+            },
+          },
         }),
         subscribe: (listener: () => void) => {
           mockStoreListener = listener;
@@ -58,16 +67,28 @@ describe('swapQuoteFetchTrace', () => {
     jest.clearAllMocks();
     mockUuid.mockReturnValue('quote-trace-id');
     mockBridgeState = { quotes: [], quotesLastFetched: null };
+    mockRemoteFeatureFlags = {};
   });
 
   it('starts a quote trace with request correlation and route data', () => {
     const traceId = swapQuoteFetchTrace.start({
       srcChainId: sourceToken.chainId,
       destChainId: crossChainDestinationToken.chainId,
+      srcTokenAddress: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      destTokenAddress: '0x0000000000000000000000000000000000001010',
       isRefresh: true,
     });
 
     expect(traceId).toBe('quote-trace-id');
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(
+      { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+      expect.objectContaining({
+        src_token: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        dest_token: 'eip155:137/slip44:966',
+        token_pair:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48>eip155:137/slip44:966',
+      }),
+    );
     expect(mockTrace).toHaveBeenCalledWith({
       name: TraceName.SwapQuoteFetch,
       op: TraceOperation.BridgeDataFetch,
@@ -84,6 +105,53 @@ describe('swapQuoteFetchTrace', () => {
       },
       startTime: expect.any(Number),
     });
+  });
+
+  it.each([
+    [
+      {
+        swapsSWAPS5043AbtestFirstQuoteFlush: { name: 'treatment' },
+        swapsSWAPS5347AbtestImmediateFirstQuoteFetch: { name: 'treatment' },
+        swapsSWAPS5348AbtestYieldAfterFirstQuote: { name: 'treatment' },
+      },
+      'treatment',
+    ],
+    [{}, 'control'],
+  ])(
+    'annotates the trace with first_quote_flush_variant for flags %j',
+    (flags, variant) => {
+      mockRemoteFeatureFlags = flags;
+
+      swapQuoteFetchTrace.start({ isRefresh: false });
+
+      expect(annotateTraceByRequest).toHaveBeenCalledWith(
+        { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+        {
+          first_quote_flush_variant: variant,
+          immediate_first_quote_fetch_variant: variant,
+          yield_after_first_quote_variant: variant,
+        },
+      );
+    },
+  );
+
+  it('keeps variant tags when token asset IDs cannot be built', () => {
+    swapQuoteFetchTrace.start({
+      srcChainId: '0x99999',
+      destChainId: '0x99999',
+      srcTokenAddress: '0x0000000000000000000000000000000000000000',
+      destTokenAddress: '0x0000000000000000000000000000000000000000',
+      isRefresh: false,
+    });
+
+    expect(annotateTraceByRequest).toHaveBeenCalledWith(
+      { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' },
+      {
+        first_quote_flush_variant: 'control',
+        immediate_first_quote_fetch_variant: 'control',
+        yield_after_first_quote_variant: 'control',
+      },
+    );
   });
 
   it('ends the active quote trace with an explicit result', () => {
@@ -148,6 +216,7 @@ describe('swapQuoteFetchTrace', () => {
     const now = jest.spyOn(Date, 'now').mockReturnValue(1000);
     mockBridgeState = { quotes: [{}], quotesLastFetched: 500 };
     swapQuoteFetchTrace.start({ isRefresh: false });
+    jest.mocked(annotateTraceByRequest).mockClear();
     const span = { name: TraceName.SwapQuoteFetch, id: 'quote-trace-id' };
 
     mockStoreListener();
@@ -179,6 +248,7 @@ describe('swapQuoteFetchTrace', () => {
     swapQuoteFetchTrace.finish('success');
 
     expect(mockTrace).toHaveBeenCalled();
+    expect(annotateTraceByRequest).not.toHaveBeenCalled();
     expect(mockEndTrace).toHaveBeenCalledWith(
       expect.objectContaining({ data: { result: 'success' } }),
     );

@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -19,6 +20,7 @@ import Share from 'react-native-share';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
+import { strings } from '../../../../../locales/i18n';
 import { isSocialV1Treatment } from '../Onboarding/socialLeaderboardOnboardingNavigation';
 
 jest.mock('react-native-share', () => ({
@@ -139,6 +141,14 @@ jest.mock('@metamask/controller-utils', () => ({
 jest.mock('../../../../core/ClipboardManager', () => ({
   setString: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 // Pressing buy mounts TraderPositionQuickBuy (`QuickBuy.Root`). Jest's global mock
 // for design-system `BottomSheet` (see app/util/test/testSetup.js) can mount
@@ -452,6 +462,141 @@ describe('TraderPositionView', () => {
       expect(mockCreateSocialOgImage).toHaveBeenCalledWith(
         { kind: 'generic' },
         expect.any(AbortSignal),
+      );
+    });
+  });
+
+  describe('position ownership', () => {
+    const buildProfileResult = (
+      profile: { profileId: string; name: string; address: string } | null,
+    ) => ({
+      profile: profile
+        ? {
+            profile,
+            stats: {},
+            followerCount: 0,
+          }
+        : null,
+      isLoading: false,
+      error: null,
+      isFollowing: false,
+      toggleFollow: jest.fn(),
+      refresh: mockRefreshProfile,
+    });
+
+    const renderWithOwner = (
+      ownerProfileId?: string,
+      { isTraderProfileLoading = false } = {},
+    ) => {
+      const { useTraderPosition } = jest.requireMock(
+        './hooks/useTraderPosition',
+      );
+      const { useTraderProfile } = jest.requireMock(
+        '../TraderProfileView/hooks/useTraderProfile',
+      );
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: { ...makeDefaultPosition(), profileId: ownerProfileId },
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+      (useTraderProfile as jest.Mock).mockImplementation((id: string) => {
+        if (id === 'trader-1' && isTraderProfileLoading) {
+          return { ...buildProfileResult(null), isLoading: true };
+        }
+        if (id === 'trader-1') {
+          return buildProfileResult({
+            profileId: 'trader-1',
+            name: 'alice',
+            address: '0xabc',
+          });
+        }
+        if (id === 'owner-1') {
+          return buildProfileResult({
+            profileId: 'owner-1',
+            name: 'bob',
+            address: '0xowner',
+          });
+        }
+        return buildProfileResult(null);
+      });
+      mockRouteParams.position = undefined;
+      mockRouteParams.positionId = 'position-uuid-1';
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+      return useTraderProfile as jest.Mock;
+    };
+
+    afterEach(() => {
+      const { useTraderPosition } = jest.requireMock(
+        './hooks/useTraderPosition',
+      );
+      const { useTraderProfile } = jest.requireMock(
+        '../TraderProfileView/hooks/useTraderProfile',
+      );
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: undefined,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+      (useTraderProfile as jest.Mock).mockImplementation(() =>
+        buildProfileResult(null),
+      );
+    });
+
+    const traderNameLink = () =>
+      screen.getByTestId(TraderPositionViewSelectorsIDs.TRADER_NAME_LINK);
+
+    it('holds the position back while the link trader profile confirms a different owner id', () => {
+      renderWithOwner('owner-1', { isTraderProfileLoading: true });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      ).toBeNull();
+    });
+
+    it('shows the position without waiting when the link trader id is the owner', () => {
+      renderWithOwner('trader-1', { isTraderProfileLoading: true });
+
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.SKELETON),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the link trader when the position has no owner', () => {
+      renderWithOwner();
+
+      expect(within(traderNameLink()).getByText('trader1')).toBeOnTheScreen();
+    });
+
+    it('keeps the link trader when they own the position', () => {
+      renderWithOwner('trader-1');
+
+      expect(within(traderNameLink()).getByText('trader1')).toBeOnTheScreen();
+    });
+
+    it('shows the real owner instead of the link trader on a mismatch', async () => {
+      const useTraderProfile = renderWithOwner('owner-1');
+
+      expect(useTraderProfile).toHaveBeenCalledWith('owner-1');
+      expect(within(traderNameLink()).getByText('bob')).toBeOnTheScreen();
+      expect(within(traderNameLink()).queryByText('trader1')).toBeNull();
+
+      fireEvent.press(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+      );
+      await waitFor(() =>
+        expect(Share.open).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: expect.stringContaining('traderId=owner-1'),
+          }),
+        ),
       );
     });
   });
@@ -1324,6 +1469,12 @@ describe('TraderPositionView', () => {
       expect(ClipboardManager.setString).toHaveBeenCalledWith(
         '0x1234567890123456789012345678901234567890',
       );
+    });
+    expect(toast).toHaveBeenCalledWith({
+      title: strings('detected_tokens.address_copied_to_clipboard'),
+      severity: ToastSeverity.Success,
+      hasNoTimeout: false,
+      showCloseButton: false,
     });
   });
 

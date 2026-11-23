@@ -5,18 +5,21 @@ import { strings } from '../../../../../locales/i18n';
 import {
   selectProviders,
   selectUserRegion,
-  selectRampsOrdersForSelectedAccountGroup,
 } from '../../../../selectors/rampsController';
 import { type Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
-import {
-  determinePreferredProvider,
-  completedOrdersFromFiatOrders,
-  completedOrdersFromRampsOrders,
-} from '../utils/determinePreferredProvider';
 import { parseUserFacingError } from '../utils/parseUserFacingError';
-import { getOrders } from '../../../../reducers/fiatOrders';
 import { rampsQueries } from '../queries';
+import {
+  useProviderPickerOptions,
+  usePreviouslyUsedProviderIds,
+} from './useProviderPickerOptions';
+import {
+  isBuyScreenOwningProviderPick,
+  recordUserProviderPick,
+} from './providerPickCoordination';
+
+const EMPTY_PROVIDERS: Provider[] = [];
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -27,6 +30,16 @@ export interface UseRampsProvidersResult {
    */
   providers: Provider[];
   /**
+   * The controller's copy of the provider list, which the pick reads. It can
+   * arrive after the React Query copy in `providers`.
+   */
+  controllerProviders: Provider[];
+  /**
+   * Ids of the region's providers the user has completed a buy with, most
+   * recent first. Stable while the list is unchanged.
+   */
+  previouslyUsedProviderIds: string[];
+  /**
    * The currently selected provider, or null if none selected.
    */
   selectedProvider: Provider | null;
@@ -35,11 +48,21 @@ export interface UseRampsProvidersResult {
    * @param provider - The provider to select, or null to clear selection.
    * @param options - Optional settings forwarded to the controller.
    * @param options.autoSelected - When true the selection is treated as a system guess rather than an explicit user choice.
+   * @param options.userSelected - When true the provider is recorded as the user's own pick, which later picks return to.
    */
   setSelectedProvider: (
     provider: Provider | null,
-    options?: { autoSelected?: boolean },
+    options?: { autoSelected?: boolean; userSelected?: boolean },
   ) => void;
+  /**
+   * Selects the provider for the asset (user pick, ahead-of-history flag
+   * list, most recent completed buy, then API ranking) and returns its id, or
+   * null when none offers it.
+   */
+  selectProviderForAsset: (
+    assetId: string,
+    options?: { excludeProviderIds?: string[] },
+  ) => string | null;
   /**
    * Switches providers.selected to the first provider that serves the given
    * CAIP-19 asset, when the currently selected provider does not.
@@ -124,28 +147,28 @@ export function useRampsProviders(options?: {
     () => providersQuery?.data?.providers ?? providersStateData ?? [],
     [providersQuery?.data?.providers, providersStateData],
   );
-  const backendDefaultProviderId =
-    providersQuery?.data?.sorted?.[0]?.ids[0] ?? providers[0]?.id;
-
-  const legacyOrders = useSelector(getOrders);
-  const controllerOrders = useSelector(
-    selectRampsOrdersForSelectedAccountGroup,
-  );
-
-  const completedOrders = useMemo(
-    () => [
-      ...completedOrdersFromFiatOrders(legacyOrders),
-      ...completedOrdersFromRampsOrders(controllerOrders),
-    ],
-    [legacyOrders, controllerOrders],
+  const pickerOptions = useProviderPickerOptions(providers);
+  // A string, so the pick below re-runs when the list of previously used
+  // providers changes and not on every order status poll.
+  const previouslyUsedKey = usePreviouslyUsedProviderIds(providers).join(',');
+  const previouslyUsedProviderIds = useMemo(
+    () => (previouslyUsedKey ? previouslyUsedKey.split(',') : []),
+    [previouslyUsedKey],
   );
 
   const setSelectedProvider = useCallback(
-    (provider: Provider | null, setOptions?: { autoSelected?: boolean }) =>
+    (
+      provider: Provider | null,
+      setOptions?: { autoSelected?: boolean; userSelected?: boolean },
+    ) => {
+      if (provider && setOptions?.userSelected) {
+        recordUserProviderPick(provider.id);
+      }
       Engine.context.RampsController.setSelectedProvider(
         provider?.id ?? null,
         setOptions,
-      ),
+      );
+    },
     [],
   );
 
@@ -158,37 +181,51 @@ export function useRampsProviders(options?: {
     [],
   );
 
+  const selectProviderForAsset = useCallback(
+    (
+      assetId: string,
+      selectOptions?: { excludeProviderIds?: string[] },
+    ): string | null =>
+      Engine.context.RampsController.selectProviderForAsset(assetId, {
+        ...pickerOptions,
+        ...selectOptions,
+      }),
+    [pickerOptions],
+  );
+
+  const hasSelectedProvider = Boolean(selectedProvider);
+
+  // Picks when the controller's provider list loads, when the selection is
+  // cleared and when order history changes (order sync can finish after
+  // start-up). Reads the controller directly because Redux lags behind it.
+  // Leaves a selection alone unless the app made it, and leaves the pick to
+  // the Buy screen while it is mounted.
   useEffect(() => {
-    if (
-      enableSideEffects &&
-      providers &&
-      providers.length > 0 &&
-      !selectedProvider
-    ) {
-      const result = determinePreferredProvider(
-        completedOrders,
-        providers,
-        backendDefaultProviderId,
-      );
-      if (result) {
-        (
-          Engine.context.RampsController as {
-            setSelectedProvider: (
-              providerOrId: Provider | string | null,
-              options?: { autoSelected?: boolean },
-            ) => void;
-          }
-        ).setSelectedProvider(result.provider, {
-          autoSelected: result.autoSelected,
-        });
-      }
+    if (!enableSideEffects || isBuyScreenOwningProviderPick()) {
+      return;
     }
+    const controller = Engine.context.RampsController;
+    const {
+      providers: { selected },
+      providerAutoSelected,
+      tokens,
+    } = controller.state;
+    if (selected && !providerAutoSelected) {
+      return;
+    }
+    controller.selectProviderForAsset(
+      tokens.selected?.assetId ?? null,
+      pickerOptions,
+    );
   }, [
     enableSideEffects,
+    // The picker reads the controller's list, which can arrive after the
+    // React Query copy in `providers`.
+    providersStateData,
     providers,
-    selectedProvider,
-    completedOrders,
-    backendDefaultProviderId,
+    previouslyUsedKey,
+    hasSelectedProvider,
+    pickerOptions,
   ]);
 
   let error: string | null = null;
@@ -207,9 +244,12 @@ export function useRampsProviders(options?: {
 
   return {
     providers,
+    controllerProviders: providersStateData ?? EMPTY_PROVIDERS,
+    previouslyUsedProviderIds,
     selectedProvider,
     setSelectedProvider,
     setSelectedProviderForAsset,
+    selectProviderForAsset,
     isLoading: providersQuery?.isLoading ?? providersStateIsLoading,
     error,
   };

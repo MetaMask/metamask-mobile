@@ -8,12 +8,7 @@ import rewardsReducer, {
   setReferralDetailsLoading,
   setReferralDetailsError,
   resetRewardsState,
-  setOnboardingActiveStep,
-  resetOnboarding,
   setCandidateSubscriptionId,
-  setGeoRewardsMetadata,
-  setGeoRewardsMetadataLoading,
-  setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
   setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,
@@ -85,7 +80,6 @@ import rewardsReducer, {
   subscribeCampaignReminder,
   RewardsState,
 } from '.';
-import { OnboardingStep } from './types';
 import {
   SeasonStatusState,
   RewardClaimStatus,
@@ -498,254 +492,6 @@ describe('rewardsReducer', () => {
     });
   });
 
-  describe('setOnboardingActiveStep', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
-    it.each([
-      OnboardingStep.INTRO,
-      OnboardingStep.STEP_1,
-      OnboardingStep.STEP_2,
-      OnboardingStep.STEP_3,
-      OnboardingStep.STEP_4,
-    ])('should set onboarding active step to %s', (step) => {
-      // Arrange
-      const action = setOnboardingActiveStep(step);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(step);
-    });
-
-    it('should update from different onboarding step', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_2,
-      };
-      const action = setOnboardingActiveStep(OnboardingStep.STEP_4);
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_4);
-    });
-
-    it('should call logger even when step is the same', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_1,
-      };
-      const action = setOnboardingActiveStep(OnboardingStep.STEP_1);
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_1);
-    });
-  });
-
-  describe('resetOnboarding', () => {
-    it('should reset onboarding to INTRO step', () => {
-      // Arrange
-      const stateWithStep = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_3,
-      };
-      const action = resetOnboarding();
-
-      // Act
-      const state = rewardsReducer(stateWithStep, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-    });
-
-    it('should not affect other state properties', () => {
-      // Arrange
-      const stateWithData = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_4,
-        referralDetails: preservedReferralDetails('KEEP123'),
-        seasonUserStatuses: preservedSeasonUserStatuses(1500),
-      };
-      const action = resetOnboarding();
-
-      // Act
-      const state = rewardsReducer(stateWithData, action);
-
-      // Assert
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
-        'KEEP123',
-      );
-      expect(
-        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
-      ).toBe(1500);
-    });
-  });
-  describe('setGeoRewardsMetadata', () => {
-    it('should update geo metadata when payload is provided', () => {
-      // Arrange
-      const geoMetadata = {
-        geoLocation: 'US',
-        optinAllowedForGeo: true,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('US');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should update geo metadata with different location', () => {
-      // Arrange
-      const geoMetadata = {
-        geoLocation: 'CA',
-        optinAllowedForGeo: false,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('CA');
-      expect(state.optinAllowedForGeo).toBe(false);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should clear geo metadata when payload is null', () => {
-      // Arrange
-      const stateWithGeoData = {
-        ...initialState,
-        geoLocation: 'EU',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadata(null);
-
-      // Act
-      const state = rewardsReducer(stateWithGeoData, action);
-
-      // Assert
-      expect(state.geoLocation).toBe(null);
-      expect(state.optinAllowedForGeo).toBe(null);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-
-    it('should reset loading state when metadata is set', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        optinAllowedForGeoLoading: true,
-      };
-      const geoMetadata = {
-        geoLocation: 'UK',
-        optinAllowedForGeo: true,
-      };
-      const action = setGeoRewardsMetadata(geoMetadata);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.geoLocation).toBe('UK');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-  });
-
-  describe('setGeoRewardsMetadataLoading', () => {
-    it('should set geo rewards metadata loading to true', () => {
-      // Arrange
-      const action = setGeoRewardsMetadataLoading(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoLoading).toBe(true);
-    });
-
-    it('should set geo rewards metadata loading to false', () => {
-      // Arrange
-      const stateWithLoading = {
-        ...initialState,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadataLoading(false);
-
-      // Act
-      const state = rewardsReducer(stateWithLoading, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoLoading).toBe(false);
-    });
-  });
-
-  describe('setGeoRewardsMetadataError', () => {
-    it('should set geo rewards metadata error to true', () => {
-      // Arrange
-      const action = setGeoRewardsMetadataError(true);
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoError).toBe(true);
-    });
-
-    it('should set geo rewards metadata error to false', () => {
-      // Arrange
-      const stateWithError = {
-        ...initialState,
-        optinAllowedForGeoError: true,
-      };
-      const action = setGeoRewardsMetadataError(false);
-
-      // Act
-      const state = rewardsReducer(stateWithError, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoError).toBe(false);
-    });
-
-    it('should not affect other geo metadata properties', () => {
-      // Arrange
-      const stateWithGeoData = {
-        ...initialState,
-        geoLocation: 'US',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: true,
-      };
-      const action = setGeoRewardsMetadataError(true);
-
-      // Act
-      const state = rewardsReducer(stateWithGeoData, action);
-
-      // Assert
-      expect(state.optinAllowedForGeoError).toBe(true);
-      expect(state.geoLocation).toBe('US');
-      expect(state.optinAllowedForGeo).toBe(true);
-      expect(state.optinAllowedForGeoLoading).toBe(true);
-    });
-  });
-
   describe('setCandidateSubscriptionId', () => {
     it('should set candidate subscription ID to a string value', () => {
       // Arrange
@@ -905,7 +651,6 @@ describe('rewardsReducer', () => {
           },
           campaigns,
           campaignsHasLoaded: true,
-          onboardingActiveStep: OnboardingStep.STEP_2,
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -924,7 +669,6 @@ describe('rewardsReducer', () => {
         expect(state.referralDetails['old-subscription-id']?.referralCode).toBe(
           'REF123',
         );
-        expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
       });
 
       it('preserves keyed maps when changing from valid ID to pending', () => {

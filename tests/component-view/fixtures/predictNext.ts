@@ -8,18 +8,32 @@ import {
 import Engine from '../../../app/core/Engine';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
+import type {
+  SignOperation,
+  SignRead,
+} from '../../../app/components/UI/PredictNext/adapters/remote/signedVenueCall';
+import {
+  loadVenueProfile,
+  VENUE_AUTHORIZATION_HEADER,
+} from '../../../app/components/UI/PredictNext/auth/venueSigningProfiles';
+import { renderRequest } from '../../../app/components/UI/PredictNext/auth/signing/profileTemplates';
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
 import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
+import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/messengers/predict-funding-service-messenger';
+import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictGameLive,
   PredictQuote,
 } from '../../../app/components/UI/PredictNext/contracts/v1/liveData';
 import { PredictHomeTestIds } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome.testIds';
 import { PredictFeedScreenTestIds } from '../../../app/components/UI/PredictNext/views/PredictFeedScreen/PredictFeedScreen.testIds';
+import type { PredictConfig } from '../../../app/components/UI/PredictNext/config/predictConfig';
+import type { PredictVenueControllerState } from '../../../app/components/UI/PredictNext/implementation/PredictVenueController';
+import type { PredictConfiguredVenue } from '../../../app/components/UI/PredictNext/implementation/types';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -673,11 +687,24 @@ export const answerPredictNextCatalog = (
 export const mockPredictNextMessenger = (
   implementation: (action: string, ...params: never[]) => unknown,
 ) =>
-  messengerCall.mockImplementation(
-    (action: string, ...params: unknown[]) =>
+  messengerCall.mockImplementation((action: string, ...params: unknown[]) => {
+    if (action === 'PredictOrderService:getRecovery') {
+      return [];
+    }
+    if (action === 'PredictOrderService:refreshRecovery') {
+      return Promise.resolve();
+    }
+    const answer =
       answerPredictNextCatalog(action) ??
-      implementation(action, ...(params as never[])),
-  );
+      implementation(action, ...(params as never[]));
+    if (
+      action === 'PredictFundingService:getDepositStatus' &&
+      answer === undefined
+    ) {
+      return null;
+    }
+    return answer;
+  });
 
 /** One cursor-addressable Positions page: `cursor` is the incoming page
  * cursor (absent for the first page) and `nextCursor` links to the next
@@ -687,6 +714,68 @@ export interface PredictNextPositionsPageFixture {
   positions: readonly unknown[];
   nextCursor?: string;
 }
+
+// Deterministic test envelopes; the real client still performs the exchange
+// and sends exactly the profile-rendered bytes, including the commit overlay.
+const signRead: SignRead = async ({ method, path, query }) => ({
+  name: VENUE_AUTHORIZATION_HEADER,
+  value: JSON.stringify({ method, path, query }),
+});
+
+/** Renders one intent from the bundled profile exactly as the Engine
+ * signer does, invariant included. */
+const renderIntent = async (
+  operation: string,
+  input?: Parameters<SignOperation>[1],
+) => {
+  const profile = await loadVenueProfile();
+  const intent = profile?.intents.find(({ id }) => id === operation);
+  const payloadName = intent?.payloads[0];
+  const payload = payloadName && profile?.payloads[payloadName];
+  if (!payloadName || !payload || payload.kind !== 'http-rfc9421') {
+    throw new Error(`Missing fixture signing template for ${operation}`);
+  }
+  return renderRequest(
+    payloadName,
+    {
+      class: 'mutation',
+      method: payload.method,
+      path: payload.path,
+      body: payload.body
+        ? { json: payload.body.json, maxBytes: payload.body.maxBytes }
+        : undefined,
+      idempotencyKey: payload.idempotencyKey,
+      invariants: payload.invariants,
+    },
+    {
+      inputs: input?.inputs ?? {},
+      values: input?.values ?? {},
+      nowMs: Date.now(),
+    },
+  );
+};
+
+/** Installs the Engine rendering seam used by the adapter's review dependency. */
+export const installPredictNextPreviewOperation = (): void => {
+  (
+    Engine.context as unknown as Record<string, unknown>
+  ).PredictDeviceAuthService = {
+    getApprovalGeneration: () => 0,
+    previewOperation: async (
+      operation: string,
+      input?: Parameters<SignOperation>[1],
+    ) => (await renderIntent(operation, input)).display,
+  };
+};
+
+const signOperation: SignOperation = async (operation, input) => {
+  const rendered = await renderIntent(operation, input);
+  return {
+    header: { name: VENUE_AUTHORIZATION_HEADER, value: operation },
+    body: rendered.body,
+    idempotencyKey: rendered.idempotencyKey,
+  };
+};
 
 /**
  * Composes the real Order workflow service the way the Engine init does,
@@ -699,6 +788,8 @@ export const composePredictNextOrderService = (
     namespace: MOCK_ANY_NAMESPACE,
   }),
 ): PredictOrderService => {
+  // The adapter asks the Engine for checked review figures before approval.
+  installPredictNextPreviewOperation();
   const messenger = getPredictOrderServiceMessenger(
     rootMessenger as unknown as Parameters<
       typeof getPredictOrderServiceMessenger
@@ -710,7 +801,15 @@ export const composePredictNextOrderService = (
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   return new PredictOrderService({
     messenger,
@@ -727,6 +826,7 @@ export const composePredictNextOrderService = (
  * by delegating its messenger adapter to the returned root.
  */
 export const composePredictNextPortfolioTrading = () => {
+  installPredictNextPreviewOperation();
   const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -736,7 +836,15 @@ export const composePredictNextPortfolioTrading = () => {
       clientVersion: '1.0.0',
       getBearerToken: () =>
         Engine.context.AuthenticationController.getBearerToken(),
+      signRead,
+      signOperation,
+      invalidateSigningSession: () => undefined,
     }),
+    {
+      getApprovalGeneration: () => 0,
+      previewOperation: (operation, input) =>
+        renderIntent(operation, input).then((request) => request.display),
+    },
   );
   const portfolioService = new PredictPortfolioService({
     messenger: getPredictPortfolioServiceMessenger(
@@ -765,6 +873,35 @@ export const composePredictNextPortfolioTrading = () => {
       portfolioService.destroy();
     },
   };
+};
+
+/**
+ * Composes the real Withdraw workflow service the way the Engine init does,
+ * against whatever `globalThis.fetch` is installed when called. Withdrawals
+ * never sign, so the adapter is bearer-only here.
+ */
+export const composePredictNextFundingService = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never> = new Messenger({
+    namespace: MOCK_ANY_NAMESPACE,
+  }),
+): PredictFundingService => {
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  return new PredictFundingService({
+    messenger: getPredictFundingServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictFundingServiceMessenger
+      >[0],
+    ),
+    funding: adapter.funding,
+    venueId: adapter.venueId,
+  });
 };
 
 /**
@@ -830,6 +967,61 @@ export const routePredictPortfolioServicesTo = (
   };
   return () => {
     controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
+
+export const BOTH_VENUES_PREDICT_CONFIG: PredictConfig = {
+  enabled: true,
+  venues: { polymarket: { enabled: true }, kalshi: { enabled: true } },
+  venueSelection: { enabled: true },
+};
+
+export const predictVenueState = (
+  venue: PredictConfiguredVenue,
+): PredictVenueControllerState => ({
+  venueSelectionPreference: venue,
+  lastActiveVenue: venue,
+  sessionDefault: null,
+});
+
+/**
+ * Routes `Engine.controllerMessenger` event subscriptions to `rootMessenger`
+ * so view-level toast bridges observe events published by test services.
+ *
+ * @param rootMessenger - The messenger tests publish controller events on.
+ * @returns A restore function for `afterEach` cleanup.
+ */
+export const routeControllerMessengerEventsTo = (
+  rootMessenger: Messenger<MockAnyNamespace, never, never>,
+): (() => void) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and restoring puts the original mock back.
+  controllerMessenger.subscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        subscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).subscribe(event, callback);
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    (
+      rootMessenger as unknown as {
+        unsubscribe: (e: string, h: (...args: unknown[]) => void) => void;
+      }
+    ).unsubscribe(event, callback);
+  };
+  return () => {
     controllerMessenger.subscribe = originalSubscribe;
     controllerMessenger.unsubscribe = originalUnsubscribe;
   };
@@ -984,6 +1176,13 @@ export const publishPredictNextGameLiveUpdate = (update: PredictGameLive) =>
 export const publishPredictNextQuoteUpdate = (update: PredictQuote) =>
   publishPredictNextLiveUpdate('PredictLiveDataService:quoteUpdated', update);
 
+/** Delivers a deposit status change to every surface that subscribed. */
+export const publishPredictNextDepositStatus = (deposit: unknown) =>
+  publishPredictNextLiveUpdate('PredictFundingService:depositStatusChanged', {
+    venueId: 'kalshi',
+    deposit,
+  });
+
 export const configurePredictNextFeeds = ({
   nfl = nflEvents,
   ncaa = ncaaEvents,
@@ -994,6 +1193,7 @@ export const configurePredictNextFeeds = ({
   activity,
   settlementsCompleteFrom,
   summary = makePredictNextSummary(),
+  depositStatus = null,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
@@ -1008,6 +1208,7 @@ export const configurePredictNextFeeds = ({
   /** The Activity pages' settlement archive horizon. */
   settlementsCompleteFrom?: string;
   summary?: unknown;
+  depositStatus?: unknown;
 } = {}) => {
   const defaultDetails = [
     ...(nfl instanceof Error ? [] : nfl),
@@ -1016,8 +1217,30 @@ export const configurePredictNextFeeds = ({
   ];
 
   resetPredictNextCatalog();
+  let currentDepositStatus = depositStatus;
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      if (action === 'PredictOrderService:getRecovery') {
+        return [];
+      }
+      if (action === 'PredictOrderService:refreshRecovery') {
+        return Promise.resolve();
+      }
+      if (action === 'PredictFundingService:getDepositStatus') {
+        return currentDepositStatus;
+      }
+      if (action === 'PredictFundingService:acknowledgeDepositNotice') {
+        if (
+          currentDepositStatus &&
+          typeof currentDepositStatus === 'object' &&
+          'operationId' in currentDepositStatus &&
+          (currentDepositStatus as { operationId: string }).operationId ===
+            resourceId
+        ) {
+          currentDepositStatus = null;
+        }
+        return undefined;
+      }
       const catalogResponse = answerPredictNextCatalog(action);
       if (catalogResponse) {
         return catalogResponse;
@@ -1059,6 +1282,7 @@ export const configurePredictNextFeeds = ({
           : Promise.resolve({
               venueId: 'kalshi',
               activity: activity ?? [],
+              nextCursor: undefined,
               ...(settlementsCompleteFrom ? { settlementsCompleteFrom } : {}),
             });
       }

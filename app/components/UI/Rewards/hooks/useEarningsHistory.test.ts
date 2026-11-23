@@ -85,6 +85,13 @@ describe('useEarningsHistory', () => {
     expect(mockEngineCall).toHaveBeenCalledWith(
       'RewardsMoneyController:getEarningsLedger',
       {
+        originTypes: [
+          'SWAPS_FEE_CASHBACK',
+          'PERPS_FEE_CASHBACK',
+          'PREDICT_FEE_CASHBACK',
+          'REFERRAL_REV_SHARE',
+          'SOCIAL_FOLLOW_TRADE',
+        ],
         cursor: undefined,
         includeClaims: true,
         forceFresh: false,

@@ -6,6 +6,7 @@ import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
   getOpenPositionForAsset,
   TraderPositionHttpError,
+  type OpenPositionMatch,
 } from './traderPositionService';
 import { useOpenPositionForAsset } from './useOpenPositionForAsset';
 import { TRADER_POSITION_POLL_INTERVAL_MS } from './useTraderPosition';
@@ -146,5 +147,102 @@ describe('useOpenPositionForAsset', () => {
     renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
 
     expect(queryOptions().refetchInterval).toBe(false);
+  });
+
+  it('requests an empty trader id when the trader id is missing', async () => {
+    renderHook(() => useOpenPositionForAsset(undefined, 'eip155:1/slip44:60'));
+
+    await queryOptions().queryFn({});
+
+    expect(mockGetOpenPosition).toHaveBeenCalledWith(
+      '',
+      'eip155:1/slip44:60',
+      undefined,
+    );
+  });
+
+  it('requests an empty asset id when the asset id is missing', async () => {
+    renderHook(() => useOpenPositionForAsset('0xAbc', undefined));
+
+    await queryOptions().queryFn({});
+
+    expect(mockGetOpenPosition).toHaveBeenCalledWith('0xAbc', '', undefined);
+  });
+
+  it('returns the first position without trying the wallet', async () => {
+    const match: OpenPositionMatch = {
+      pnl: {
+        positionAmount: 1,
+        isOpen: true,
+        boughtUsd: 10,
+        soldUsd: 0,
+        realizedPnl: 0,
+        costBasis: 10,
+        currentValueUSD: 12,
+        pnlValueUsd: 2,
+        pnlPercent: 20,
+        pnlStatus: 'ready',
+      },
+      position: null,
+    };
+    mockGetOpenPosition.mockResolvedValue(match);
+    renderHook(() =>
+      useOpenPositionForAsset(
+        '0xAbc',
+        'eip155:1/slip44:60',
+        '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      ),
+    );
+
+    await expect(queryOptions().queryFn({})).resolves.toStrictEqual(match);
+    expect(mockGetOpenPosition).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry when the wallet matches the trader id', async () => {
+    mockGetOpenPosition.mockRejectedValue(new TraderPositionHttpError(404));
+    renderHook(() =>
+      useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60', '0xAbc'),
+    );
+
+    await expect(queryOptions().queryFn({})).resolves.toBeNull();
+    expect(mockGetOpenPosition).toHaveBeenCalledTimes(1);
+  });
+
+  it('rethrows an error that is not a missing trader', async () => {
+    const failure = new Error('network down');
+    mockGetOpenPosition.mockRejectedValue(failure);
+    renderHook(() => useOpenPositionForAsset('0xAbc', 'eip155:1/slip44:60'));
+
+    await expect(queryOptions().queryFn({})).rejects.toBe(failure);
+  });
+
+  it('returns null when the wallet retry is also missing', async () => {
+    mockGetOpenPosition.mockRejectedValue(new TraderPositionHttpError(404));
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'dfab10bf-9412-40fe-b018-96d28376d4d7',
+        'eip155:1/slip44:60',
+        '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      ),
+    );
+
+    await expect(queryOptions().queryFn({})).resolves.toBeNull();
+    expect(mockGetOpenPosition).toHaveBeenCalledTimes(2);
+  });
+
+  it('rethrows a non-missing error from the wallet retry', async () => {
+    const failure = new Error('network down');
+    mockGetOpenPosition
+      .mockRejectedValueOnce(new TraderPositionHttpError(403))
+      .mockRejectedValueOnce(failure);
+    renderHook(() =>
+      useOpenPositionForAsset(
+        'dfab10bf-9412-40fe-b018-96d28376d4d7',
+        'eip155:1/slip44:60',
+        '0x60eA7D698Af407975Eb4F0B7400D315175faC4e9',
+      ),
+    );
+
+    await expect(queryOptions().queryFn({})).rejects.toBe(failure);
   });
 });

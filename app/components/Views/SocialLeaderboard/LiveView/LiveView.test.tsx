@@ -26,6 +26,7 @@ interface MockSocialFeedProps {
   scrollMode: string;
   realtime?: boolean;
   paused?: boolean;
+  enabled?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
   renderHeader?: () => React.ReactNode;
   pageRef?: React.Ref<SocialFeedPageHandle>;
@@ -186,6 +187,7 @@ describe('LiveView', () => {
         location: 'social_live',
         scrollMode: 'virtualized',
         realtime: true,
+        enabled: true,
         paused: false,
         requireSocialProfile: true,
         testID: LiveViewSelectorsIDs.CONTAINER,
@@ -198,6 +200,7 @@ describe('LiveView', () => {
     renderWithProvider(<LiveView isActive={false} />, { state });
 
     expect(lastFeedProps().realtime).toBe(false);
+    expect(lastFeedProps().enabled).toBe(false);
   });
 
   it('keeps every post with the default filters', () => {
@@ -209,7 +212,7 @@ describe('LiveView', () => {
     expect(filterPost?.(otherPerp)).toBe(true);
   });
 
-  it('keeps only followed authors for the following cohort', () => {
+  it('keeps every post when a leftover trader cohort is set', () => {
     renderWithProvider(
       <LiveView appliedFilters={filters({ traderCohort: 'following' })} />,
       { state },
@@ -218,7 +221,7 @@ describe('LiveView', () => {
     const { filterPost } = lastFeedProps();
 
     expect(filterPost?.(followedSpot)).toBe(true);
-    expect(filterPost?.(otherPerp)).toBe(false);
+    expect(filterPost?.(otherPerp)).toBe(true);
   });
 
   it('keeps only matching asset types for the type chip', () => {
@@ -350,6 +353,21 @@ describe('LiveView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL.POSITION_SHEET,
       expect.objectContaining({ isSnapshotLive: true }),
+    );
+  });
+
+  it('forwards header insets to the virtualized feed', () => {
+    renderWithProvider(
+      <LiveView contentTopInset={144} pendingPostsTopOffset={96} />,
+      { state },
+    );
+
+    expect(lastFeedProps()).toEqual(
+      expect.objectContaining({
+        contentTopInset: 144,
+        refreshProgressViewOffset: 144,
+        pendingPostsTopOffset: 96,
+      }),
     );
   });
 });

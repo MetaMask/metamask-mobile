@@ -5,6 +5,7 @@ import { useSendContext } from '../../context/send-context';
 import {
   getFiatDisplayValueFn,
   getFiatValueFn,
+  getNarrowCurrencyAffix,
   getNativeValueFn,
   useCurrencyConversions,
 } from './useCurrencyConversions';
@@ -81,6 +82,64 @@ describe('getFiatValueFn', () => {
   });
 });
 
+describe('getNarrowCurrencyAffix', () => {
+  it('puts the US dollar narrow symbol before the amount', () => {
+    expect(getNarrowCurrencyAffix('usd', 'en')).toEqual({
+      prefix: '$',
+      suffix: '',
+    });
+  });
+
+  it('does not rely on Intl.NumberFormat.formatToParts', () => {
+    const originalFormatToParts = Intl.NumberFormat.prototype.formatToParts;
+    // Hermes does not provide formatToParts, so simulate that runtime.
+    Object.defineProperty(Intl.NumberFormat.prototype, 'formatToParts', {
+      configurable: true,
+      value: undefined,
+    });
+
+    try {
+      expect(getNarrowCurrencyAffix('usd', 'en')).toEqual({
+        prefix: '$',
+        suffix: '',
+      });
+    } finally {
+      Object.defineProperty(Intl.NumberFormat.prototype, 'formatToParts', {
+        configurable: true,
+        value: originalFormatToParts,
+      });
+    }
+  });
+
+  it('puts the euro narrow symbol after the amount for French', () => {
+    const affix = getNarrowCurrencyAffix('eur', 'fr');
+
+    expect(affix.prefix).toBe('');
+    expect(affix.suffix).toMatch(/^\s€$/u);
+  });
+
+  it('puts the dollar symbol before the amount for Persian native digits', () => {
+    expect(getNarrowCurrencyAffix('usd', 'fa')).toEqual({
+      prefix: '$',
+      suffix: '',
+    });
+  });
+
+  it('puts the dollar symbol after the amount for Bengali native digits', () => {
+    expect(getNarrowCurrencyAffix('usd', 'bn')).toEqual({
+      prefix: '',
+      suffix: '$',
+    });
+  });
+
+  it('puts the narrow dollar symbol after Arabic-Indic digits', () => {
+    const affix = getNarrowCurrencyAffix('usd', 'ar-EG');
+
+    expect(affix.prefix).toBe('');
+    expect(affix.suffix).toMatch(/^\sUS\$$/u);
+  });
+});
+
 describe('getFiatDisplayValueFn', () => {
   it('return fiat value with currency prefix for passed native value', () => {
     expect(
@@ -89,7 +148,7 @@ describe('getFiatDisplayValueFn', () => {
         currentCurrency: 'usd',
         amount: '10',
       }),
-    ).toStrictEqual('$ 38,905.56');
+    ).toStrictEqual('$38,905.56');
   });
 
   it('return 0 if amount is not passed', () => {
@@ -99,7 +158,7 @@ describe('getFiatDisplayValueFn', () => {
         currentCurrency: 'usd',
         amount: '',
       }),
-    ).toStrictEqual('$ 0.00');
+    ).toStrictEqual('$0.00');
   });
 });
 

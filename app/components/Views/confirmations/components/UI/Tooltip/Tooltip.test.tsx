@@ -4,6 +4,10 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import Tooltip from './Tooltip';
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 describe('Tooltip', () => {
   it('renders the open button', () => {
     const { getByTestId } = render(

@@ -6,6 +6,7 @@ import {
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import {
   cardTransactionDisplayInfo,
+  cardTransactionListDisplayInfo,
   formatCardTransactionDate,
   formatCardTransactionStatus,
   getCardTransactionHeroCopy,
@@ -139,6 +140,38 @@ describe('cardTransactionDisplayInfo', () => {
       expect(display.primaryAmount).toBe('-R$61.35');
       expect(display.fiatAmount).toBe('-$11.95');
       expect(display.showPrimaryAmount).toBe(true);
+    });
+
+    it('shows only the USD billing amount for a Money activity list row', () => {
+      const transaction = createTransaction({
+        billingAmount: { value: '11.95', currency: 'USD' },
+        originalAmount: { value: '61.35', currency: 'BRL' },
+      });
+
+      const list = cardTransactionListDisplayInfo(transaction);
+      const details = cardTransactionDisplayInfo(transaction);
+
+      expect(list.fiatAmount).toBe('-$11.95');
+      expect(list.showPrimaryAmount).toBe(false);
+      expect(list.isFiatAmountMuted).toBe(false);
+      expect(details.primaryAmount).toBe('-R$61.35');
+      expect(details.fiatAmount).toBe('-$11.95');
+    });
+
+    it('keeps the attempted USD billing amount when an authorisation fails', () => {
+      const list = cardTransactionListDisplayInfo(
+        createTransaction({
+          status: CardTransactionStatus.Failed,
+          isDebit: true,
+          billingAmount: { value: '6.57', currency: 'USD' },
+          originalAmount: { value: '30.00', currency: 'BRL' },
+        }),
+      );
+
+      expect(list.status).toBe('failed');
+      expect(list.fiatAmount).toBe('-$6.57');
+      expect(list.showPrimaryAmount).toBe(false);
+      expect(list.isIncoming).toBe(false);
     });
 
     it('omits secondary amount when original currency matches billing', () => {

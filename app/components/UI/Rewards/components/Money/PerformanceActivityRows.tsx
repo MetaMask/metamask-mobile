@@ -52,29 +52,45 @@ export const PerformanceCommissionRow: React.FC<{
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="gap-3"
+      twClassName="gap-4"
       testID={`${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${item.id}`}
     >
       <PositionTokenAvatar
         position={commissionTokenAvatar(item.token)}
-        size={AvatarTokenSize.Md}
+        size={AvatarTokenSize.Lg}
       />
-      <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      <Box twClassName="min-w-0 flex-1">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
           {name}
         </Text>
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {formatRewardsRelativeDay(item.day)}
         </Text>
       </Box>
       <Box alignItems={BoxAlignItems.End}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
+        >
           {formatMusdBaseUnits(item.musd_amount, {
             signed: true,
             maximumFractionDigits: 2,
           }) ?? '—'}
         </Text>
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           {copiedTimesLabel(localizedText, item.copied_times)}
         </Text>
       </Box>
@@ -82,24 +98,35 @@ export const PerformanceCommissionRow: React.FC<{
   );
 };
 
+/**
+ * A Predict rebate is the origin type, or a row that still carries a Predict
+ * fill. The fill source can be null, and that row would otherwise read as swaps.
+ */
+function isPredictRebate(item: LedgerEarningEntryDto): boolean {
+  return (
+    item.earning_origin_type === 'PREDICT_FEE_CASHBACK' ||
+    item.predict_source !== null
+  );
+}
+
 function rebateTitle(
   item: LedgerEarningEntryDto,
   localizedText: ReferralLocalizedText,
 ): string {
-  if (item.predict_source) {
+  if (isPredictRebate(item)) {
     return localizedText.rebatePredictions;
   }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {
-    return localizedText.rebatePerpsVolume;
+    return localizedText.rebatePerps;
   }
   if (item.earning_origin_type === 'SWAPS_FEE_CASHBACK') {
-    return localizedText.rebateSwapsVolume;
+    return localizedText.rebateSwaps;
   }
   return localizedText.rebateSwaps;
 }
 
 function rebateIconName(item: LedgerEarningEntryDto): IconName {
-  if (item.predict_source) {
+  if (isPredictRebate(item)) {
     return IconName.Chart;
   }
   if (item.earning_origin_type === 'PERPS_FEE_CASHBACK') {

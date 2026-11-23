@@ -1,12 +1,15 @@
 import React, { useCallback } from 'react';
+import { providerErrors } from '@metamask/rpc-errors';
 
 import {
   TransactionType,
   hasTransactionType,
 } from '@metamask/transaction-controller';
 
+import Engine from '../../../../../../core/Engine';
+import Logger from '../../../../../../util/Logger';
 import { useParams } from '../../../../../../util/navigation/navUtils';
-import { updateTransaction } from '../../../../../../util/transaction-controller';
+import { addTransaction } from '../../../../../../util/transaction-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { formatPerpsBalance } from '../../../../../UI/Perps/utils/formatUtils';
 import { PerpsAccountPickerSelectorsIDs } from '../../../ConfirmationView.testIds';
@@ -31,15 +34,43 @@ const PerpsAccountPickerRowContent: React.FC = () => {
   const handleSelect = useCallback(
     (id: string) => {
       const transactionId = transactionMeta?.id;
-      if (!transactionId) return;
+      const networkClientId = transactionMeta?.networkClientId;
 
-      updateTransaction(
+      if (
+        !transactionId ||
+        !networkClientId ||
+        transactionMeta.txParams?.from?.toLowerCase() === id.toLowerCase()
+      ) {
+        return;
+      }
+
+      // A new approval replaces the open one, so the confirmation stays on
+      // this screen and follows the new transaction id.
+      void addTransaction(
         {
-          ...transactionMeta,
-          txParams: { ...transactionMeta?.txParams, from: id },
+          ...transactionMeta.txParams,
+          from: id,
         },
-        transactionId,
-      );
+        {
+          nestedTransactions: transactionMeta.nestedTransactions,
+          networkClientId,
+          origin: transactionMeta.origin,
+          requireApproval: true,
+          type: transactionMeta.type,
+        },
+      )
+        .then(() => {
+          Engine.context.ApprovalController.rejectRequest(
+            transactionId,
+            providerErrors.userRejectedRequest(),
+          );
+        })
+        .catch((error: unknown) => {
+          Logger.error(
+            error as Error,
+            'Failed to recreate the Perps deposit for the selected account',
+          );
+        });
     },
     [transactionMeta],
   );
@@ -63,7 +94,10 @@ export const PerpsAccountPickerRow: React.FC = () => {
 
   const isPerpsDeposit =
     payWithOption === PayWithOption.MoneyAccount &&
-    hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]);
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ]);
 
   if (!isPerpsDeposit) {
     return null;

@@ -1,7 +1,8 @@
 import { createSelector } from 'reselect';
 import type { RootState } from '../../reducers';
-import { getDetectedGeolocation } from '../../reducers/fiatOrders';
 import { isAsiaGeolocationLocation } from '../../util/region/isAsiaGeolocationLocation';
+import { selectSocialCopyTradeGeoBlockedRegions } from '../featureFlagController/socialCopyTrade';
+import { isCopyTradeAllowedForGeolocation } from '../../util/region/isCopyTradeAllowedForGeolocation';
 
 export const selectGeolocationControllerState = (state: RootState) =>
   state.engine?.backgroundState?.GeolocationController;
@@ -19,6 +20,20 @@ export const selectGeolocationStatus = (state: RootState) =>
  * Defaults to `false` when geolocation is unknown or still loading.
  */
 export const selectIsUserInAsia = createSelector(
-  getDetectedGeolocation,
-  (geolocation): boolean => isAsiaGeolocationLocation(geolocation),
+  selectGeolocationLocation,
+  (location): boolean => isAsiaGeolocationLocation(location),
+);
+
+/**
+ * Whether Social Copy trade may be shown.
+ *
+ * False until GeolocationController has a completed location, and false when
+ * that location matches `socialCopyTradeGeoBlockedCountries` (UK by default).
+ */
+export const selectIsCopyTradeAllowed = createSelector(
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+  selectSocialCopyTradeGeoBlockedRegions,
+  (location, status, blockedRegions): boolean =>
+    isCopyTradeAllowedForGeolocation(location, status, blockedRegions),
 );
