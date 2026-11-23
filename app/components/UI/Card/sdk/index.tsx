@@ -228,5 +228,3 @@ export const withCardSDK =
       <Component {...props} />
     </CardSDKProvider>
   );
-
-export default CardSDKContext;

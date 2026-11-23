@@ -2773,14 +2773,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Card/Views/SpendingLimit/components/AssetCard.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
   "app/components/UI/Card/Views/SpendingLimit/components/SpendAndEarnPromoCard.tsx": {
     "typescript/unbound-method": {
       "count": 2
