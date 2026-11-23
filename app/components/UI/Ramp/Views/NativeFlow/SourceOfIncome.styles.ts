@@ -14,7 +14,13 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 32,
     },
     section: {
-      marginBottom: 20,
+      marginBottom: 24,
+    },
+    fields: {
+      gap: 24,
+    },
+    fieldLabel: {
+      marginBottom: 8,
     },
     description: {
       color: colors.text.alternative,
@@ -40,10 +46,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     helperText: {
       marginBottom: 8,
-    },
-    caption: {
-      marginTop: 4,
-      color: colors.text.alternative,
     },
   });
 };

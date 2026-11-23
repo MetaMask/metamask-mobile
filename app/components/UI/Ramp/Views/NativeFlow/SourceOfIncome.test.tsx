@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import { render, waitFor, fireEvent } from '@testing-library/react-native';
 import SourceOfIncome from './SourceOfIncome';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
 
@@ -32,7 +32,7 @@ jest.mock('../../../../hooks/useFormatters', () => ({
 }));
 
 const mockMetadata = {
-  options: [],
+  options: [] as { name: string; value: string }[],
   documentProofOptions: [],
   expiresAt: '',
   kycUrl: '',
@@ -144,6 +144,49 @@ describe('SourceOfIncome', () => {
     await waitFor(() => {
       expect(getByText('€')).toBeTruthy();
     });
+  });
+
+  it('uses the estimate hint as the monthly volume placeholder', async () => {
+    const { getByPlaceholderText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <SourceOfIncome />
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByPlaceholderText(
+          'deposit.source_of_income.monthly_volume_placeholder',
+        ),
+      ).toBeTruthy();
+    });
+  });
+
+  it('opens the option selector sheet from the source of funds picker', async () => {
+    mockUseParamsReturn.metadata = {
+      ...mockMetadata,
+      options: mockMetadata.sourceOfFundsTypeOptions,
+    };
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <SourceOfIncome />
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId('source-of-income-source-of-funds-select'),
+      ).toBeTruthy();
+    });
+    fireEvent.press(getByTestId('source-of-income-source-of-funds-select'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'MockRoute',
+      expect.objectContaining({
+        title: 'deposit.source_of_income.source_of_funds_label',
+        options: mockMetadata.sourceOfFundsTypeOptions,
+      }),
+    );
   });
 
   it('renders the continue button', async () => {

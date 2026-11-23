@@ -14,6 +14,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Checkbox,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -30,7 +31,6 @@ import type {
   TransakUserDetails,
   TransakUserDetailsAddress,
 } from '@metamask/ramps-controller';
-import Checkbox from '../../../../../component-library/components/Checkbox';
 import { useSelector } from 'react-redux';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
@@ -403,60 +403,72 @@ const MicaConsent = (): React.JSX.Element => {
             </View>
 
             <View style={styles.section}>
-              <View style={styles.checkboxRow}>
-                <Checkbox
-                  isChecked={dataProcessingConsent}
-                  onPress={() =>
-                    setDataProcessingConsent(!dataProcessingConsent)
-                  }
-                />
-                <Text variant={TextVariant.BodyMd} style={styles.checkboxLabel}>
-                  {strings('deposit.mica_consent.data_processing_consent')}
-                </Text>
-              </View>
-              <View style={styles.checkboxSpacing} />
-              <View style={styles.checkboxRow}>
-                <Checkbox
-                  isChecked={termsAndPrivacyConsent}
-                  onPress={() =>
-                    setTermsAndPrivacyConsent(!termsAndPrivacyConsent)
-                  }
-                />
-                <Text variant={TextVariant.BodyMd} style={styles.checkboxLabel}>
-                  {strings('deposit.mica_consent.terms_consent_prefix')}{' '}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={styles.linkText}
-                    onPress={() => {
-                      Linking.openURL(
-                        'https://transak.com/terms-of-service',
-                      ).catch((err) =>
-                        Logger.error(err as Error, 'Failed to open Terms URL'),
-                      );
-                    }}
-                  >
-                    {strings('deposit.mica_consent.terms_link_text')}
-                  </Text>{' '}
-                  {strings('deposit.mica_consent.terms_consent_middle')}{' '}
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    style={styles.linkText}
-                    onPress={() => {
-                      Linking.openURL(
-                        'https://transak.com/privacy-policy',
-                      ).catch((err) =>
-                        Logger.error(
-                          err as Error,
-                          'Failed to open Privacy URL',
-                        ),
-                      );
-                    }}
-                  >
-                    {strings('deposit.mica_consent.privacy_link_text')}
+              <Checkbox
+                isSelected={dataProcessingConsent}
+                onChange={setDataProcessingConsent}
+                twClassName="items-start"
+                testID="mica-consent-data-processing-checkbox"
+                accessibilityLabel={strings(
+                  'deposit.mica_consent.data_processing_consent',
+                )}
+                label={
+                  <Text variant={TextVariant.BodyMd} twClassName="ml-3 flex-1">
+                    {strings('deposit.mica_consent.data_processing_consent')}
                   </Text>
-                  .
-                </Text>
-              </View>
+                }
+              />
+              <View style={styles.checkboxSpacing} />
+              <Checkbox
+                isSelected={termsAndPrivacyConsent}
+                onChange={setTermsAndPrivacyConsent}
+                twClassName="items-start"
+                testID="mica-consent-terms-checkbox"
+                accessibilityLabel={[
+                  strings('deposit.mica_consent.terms_consent_prefix'),
+                  strings('deposit.mica_consent.terms_link_text'),
+                  strings('deposit.mica_consent.terms_consent_middle'),
+                  strings('deposit.mica_consent.privacy_link_text'),
+                ].join(' ')}
+                label={
+                  <Text variant={TextVariant.BodyMd} twClassName="ml-3 flex-1">
+                    {strings('deposit.mica_consent.terms_consent_prefix')}{' '}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.linkText}
+                      onPress={() => {
+                        Linking.openURL(
+                          'https://transak.com/terms-of-service',
+                        ).catch((err) =>
+                          Logger.error(
+                            err as Error,
+                            'Failed to open Terms URL',
+                          ),
+                        );
+                      }}
+                    >
+                      {strings('deposit.mica_consent.terms_link_text')}
+                    </Text>{' '}
+                    {strings('deposit.mica_consent.terms_consent_middle')}{' '}
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      style={styles.linkText}
+                      onPress={() => {
+                        Linking.openURL(
+                          'https://transak.com/privacy-policy',
+                        ).catch((err) =>
+                          Logger.error(
+                            err as Error,
+                            'Failed to open Privacy URL',
+                          ),
+                        );
+                      }}
+                    >
+                      {strings('deposit.mica_consent.privacy_link_text')}
+                    </Text>
+                    .
+                  </Text>
+                }
+              />
             </View>
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>

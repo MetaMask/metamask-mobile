@@ -13,6 +13,8 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Label,
+  TextField,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -33,7 +35,6 @@ import { useTransakController } from '../../hooks/useTransakController';
 import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import DepositTextField from '../../components/DepositTextField';
 import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
 import styleSheet from './SourceOfIncome.styles';
 import DepositProgressBar from '../../components/DepositProgressBar';
@@ -60,7 +61,7 @@ export interface SourceOfIncomeParams {
 const SourceOfIncome = (): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const navigation = useNavigation<AppNavigationProp>();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const {
     quote,
     quoteId,
@@ -208,28 +209,34 @@ const SourceOfIncome = (): React.JSX.Element => {
               />
             )}
 
-            <View style={styles.section}>
-              <DepositTextField
-                label={strings('deposit.source_of_income.monthly_volume_label')}
-                placeholder={strings(
-                  'deposit.source_of_income.monthly_volume_placeholder',
-                )}
-                value={monthlyVolume}
-                onChangeText={setMonthlyVolume}
-                keyboardType="numeric"
-                autoCapitalize="none"
-                startAccessory={
-                  currencySymbol ? (
-                    <Text variant={TextVariant.BodyMd}>{currencySymbol}</Text>
-                  ) : undefined
-                }
-              />
-              <Text variant={TextVariant.BodySm} style={styles.caption}>
-                {strings('deposit.source_of_income.monthly_volume_helper')}
-              </Text>
-            </View>
+            <View style={styles.fields}>
+              <View>
+                <Label style={styles.fieldLabel}>
+                  {strings('deposit.source_of_income.monthly_volume_label')}
+                </Label>
+                <TextField
+                  testID="source-of-income-monthly-volume-input"
+                  value={monthlyVolume}
+                  onChangeText={setMonthlyVolume}
+                  placeholder={strings(
+                    'deposit.source_of_income.monthly_volume_placeholder',
+                  )}
+                  startAccessory={
+                    currencySymbol ? (
+                      <Text variant={TextVariant.BodyMd}>{currencySymbol}</Text>
+                    ) : undefined
+                  }
+                  inputProps={{
+                    keyboardType: 'numeric',
+                    autoCapitalize: 'none',
+                    keyboardAppearance: theme.themeAppearance,
+                    accessibilityLabel: strings(
+                      'deposit.source_of_income.monthly_volume_label',
+                    ),
+                  }}
+                />
+              </View>
 
-            <View style={styles.section}>
               <DepositSelectField
                 label={strings(
                   'deposit.source_of_income.source_of_funds_label',
@@ -240,6 +247,7 @@ const SourceOfIncome = (): React.JSX.Element => {
                 options={sourceOfFundsOptions}
                 selectedValue={sourceOfFundsType}
                 onValueChange={setSourceOfFundsType}
+                testID="source-of-income-source-of-funds-select"
               />
             </View>
           </ScreenLayout.Content>

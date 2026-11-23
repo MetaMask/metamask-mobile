@@ -30,6 +30,7 @@ import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingIn
 import SsnInfoModal from './Views/Modals/SsnInfoModal';
 import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
+import OptionSelectorModal from './Views/Modals/OptionSelectorModal';
 import PhoneCountrySelectorModal from './Views/Modals/PhoneCountrySelectorModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import {
@@ -103,6 +104,10 @@ const InstrumentedPhoneCountrySelectorModal = withRampScreenPerformance(
 const InstrumentedStateSelectorModal = withRampScreenPerformance(
   StateSelectorModal,
   RAMP_V2_SCREEN_ID.STATE_SELECTOR_MODAL,
+);
+const InstrumentedOptionSelectorModal = withRampScreenPerformance(
+  OptionSelectorModal,
+  RAMP_V2_SCREEN_ID.OPTION_SELECTOR_MODAL,
 );
 const InstrumentedUnsupportedStateModal = withRampScreenPerformance(
   UnsupportedStateModal,
@@ -251,6 +256,10 @@ const TokenListModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.RAMP.MODALS.UNSUPPORTED_STATE}
       component={InstrumentedUnsupportedStateModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.RAMP.MODALS.OPTION_SELECTOR}
+      component={InstrumentedOptionSelectorModal}
     />
   </ModalsStack.Navigator>
 );

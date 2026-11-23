@@ -581,6 +581,7 @@ export type RootStackParamList = {
   RampSsnInfoModal: RampNavigationParamList['RampSsnInfoModal'];
   RampStateSelectorModal: RampNavigationParamList['RampStateSelectorModal'];
   RampUnsupportedStateModal: RampNavigationParamList['RampUnsupportedStateModal'];
+  RampOptionSelectorModal: RampNavigationParamList['RampOptionSelectorModal'];
   RampsServiceDisruptionModal: undefined;
 
   // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.

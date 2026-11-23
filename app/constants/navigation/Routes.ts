@@ -66,6 +66,7 @@ const Routes = {
       STATE_SELECTOR: 'RampStateSelectorModal',
       UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
       PHONE_COUNTRY_SELECTOR: 'RampPhoneCountrySelectorModal',
+      OPTION_SELECTOR: 'RampOptionSelectorModal',
     },
   },
   DEPOSIT: {

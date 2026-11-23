@@ -260,7 +260,7 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
               />
             )}
 
-            <View style={styles.section}>
+            <View style={styles.fields}>
               <DepositSelectField
                 label={strings(
                   'deposit.source_of_income.employment_status_label',
@@ -271,10 +271,9 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
                 options={employmentStatusOptions}
                 selectedValue={employmentStatus}
                 onValueChange={setEmploymentStatus}
+                testID="nationality-employment-status-select"
               />
-            </View>
 
-            <View style={styles.section}>
               <DepositSelectField
                 label={strings('deposit.source_of_income.nationality_label')}
                 placeholder={strings(
@@ -283,6 +282,7 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
                 options={countryOfCitizenshipOptions}
                 selectedValue={countryOfCitizenship}
                 onValueChange={setCountryOfCitizenship}
+                testID="nationality-country-of-citizenship-select"
               />
             </View>
           </ScreenLayout.Content>

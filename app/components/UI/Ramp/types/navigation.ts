@@ -25,6 +25,7 @@ import type { ErrorDetailsModalParams } from '../Views/Modals/ErrorDetailsModal/
 import type { ProcessingInfoModalParams } from '../Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import type { StateSelectorModalParams } from '../Views/Modals/StateSelectorModal/StateSelectorModal';
 import type { UnsupportedStateModalParams } from '../Views/Modals/UnsupportedStateModal/UnsupportedStateModal';
+import type { OptionSelectorModalParams } from '../Views/Modals/OptionSelectorModal/OptionSelectorModal';
 
 /**
  * Param list for screens inside the Ramp unified (V2) main stack
@@ -76,6 +77,7 @@ export type RampModalsNavigationParamList = {
   RampPhoneCountrySelectorModal: undefined;
   RampStateSelectorModal: StateSelectorModalParams;
   RampUnsupportedStateModal: UnsupportedStateModalParams;
+  RampOptionSelectorModal: OptionSelectorModalParams;
 
   // Aggregator modals
   RampTokenSelectorModal: undefined;

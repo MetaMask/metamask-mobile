@@ -157,6 +157,54 @@ describe('MicaConsent', () => {
     expect(button.props.accessibilityState?.disabled).toBe(true);
   });
 
+  it('enables submit once both design system checkboxes are checked', async () => {
+    const { getByTestId, getByLabelText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <MicaConsent />
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('mica-consent-data-processing-checkbox')).toBeTruthy();
+    });
+
+    const button = () => getByLabelText('deposit.mica.agreeAndContinue');
+    expect(button().props.accessibilityState?.disabled).toBe(true);
+
+    fireEvent.press(getByTestId('mica-consent-data-processing-checkbox'));
+    expect(button().props.accessibilityState?.disabled).toBe(true);
+
+    fireEvent.press(getByTestId('mica-consent-terms-checkbox'));
+    expect(button().props.accessibilityState?.disabled).toBe(false);
+  });
+
+  it('exposes accessible labels and checked state on the checkboxes', async () => {
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <MicaConsent />
+      </ThemeContext.Provider>,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('mica-consent-data-processing-checkbox')).toBeTruthy();
+    });
+
+    const dataProcessing = getByTestId('mica-consent-data-processing-checkbox');
+    expect(dataProcessing.props.accessibilityLabel).toBe(
+      'deposit.mica_consent.data_processing_consent',
+    );
+    expect(dataProcessing.props.accessibilityState?.checked).toBe(false);
+
+    fireEvent.press(dataProcessing);
+    expect(
+      getByTestId('mica-consent-data-processing-checkbox').props
+        .accessibilityState?.checked,
+    ).toBe(true);
+    expect(
+      getByTestId('mica-consent-terms-checkbox').props.accessibilityLabel,
+    ).toContain('deposit.mica_consent.terms_link_text');
+  });
+
   it('renders consent checkboxes with linked text', async () => {
     const { getByText } = render(
       <ThemeContext.Provider value={mockTheme}>
