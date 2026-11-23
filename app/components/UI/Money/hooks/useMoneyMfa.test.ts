@@ -26,9 +26,9 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn( async () => Promise.resolve(null)),
+    getItem: jest.fn(async () => Promise.resolve(null)),
     getItemSync: jest.fn(() => null),
-    setItem: jest.fn( async () => Promise.resolve()),
+    setItem: jest.fn(async () => Promise.resolve()),
   },
 }));
 
@@ -78,7 +78,7 @@ const setMigration = (status: MoneyAccountMigrationStatus) =>
 const deferMigration = () => {
   let finish: (ok: boolean) => void = () => undefined;
   mockStart.mockImplementation(
-     async () =>
+    async () =>
       new Promise<void>((resolve, reject) => {
         setMigration('migrating');
         finish = (ok) => {
