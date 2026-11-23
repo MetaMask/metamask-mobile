@@ -43,6 +43,13 @@ import {
   type SocialFeedRow,
 } from './socialFeedRealtime';
 
+/**
+ * TEMP A/B for TSA-1807 Live memory: skip feed WS listen + channel lease so
+ * normalize/`applyEvent` do not run. Price store / static headers stay on
+ * (`FORCE_STATIC_LIVE_CARD_HEADERS`). Flip to `false` after the main-dev measure.
+ */
+export const DISABLE_SOCIAL_FEED_REALTIME_LISTENER = true;
+
 export interface SocialFeedRealtimeState {
   /** New posts waiting behind the pill; 0 while they flow straight in. */
   pendingNewCount: number;
@@ -450,6 +457,9 @@ export const useSocialFeedRealtime = (
   }, [markCatchUp, publishNow, stream]);
 
   useEffect(() => {
+    if (DISABLE_SOCIAL_FEED_REALTIME_LISTENER) {
+      return undefined;
+    }
     if (!realtimeScope || !active) {
       return undefined;
     }
