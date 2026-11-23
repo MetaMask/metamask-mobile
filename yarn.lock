@@ -9986,7 +9986,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:0.56.1":
+"@metamask/design-system-react-native@npm:^0.56.1":
   version: 0.56.1
   resolution: "@metamask/design-system-react-native@npm:0.56.1"
   dependencies:
