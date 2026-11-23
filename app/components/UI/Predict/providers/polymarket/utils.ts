@@ -986,14 +986,23 @@ const getPredictMarketStatus = (
   return PredictMarketStatus.OPEN;
 };
 
+const toPositivePrice = (raw: unknown): number | undefined => {
+  const price = Number(raw);
+  return Number.isFinite(price) && price > 0 ? price : undefined;
+};
+
+/**
+ * Gamma exposes the target price under two names and which one is populated
+ * depends on the endpoint. `GET /events/:id` (the details screen) returns only
+ * `pendingPriceToBeat` for a window that is live, while the list endpoints
+ * (`/events`, `/events/keyset`) also return `priceToBeat`. Both carry the same
+ * value, so either is a valid source.
+ */
 const parseEventPriceToBeat = (
   event: PolymarketApiEvent,
-): number | undefined => {
-  const priceToBeat = Number(event.eventMetadata?.priceToBeat);
-  return Number.isFinite(priceToBeat) && priceToBeat > 0
-    ? priceToBeat
-    : undefined;
-};
+): number | undefined =>
+  toPositivePrice(event.eventMetadata?.priceToBeat) ??
+  toPositivePrice(event.eventMetadata?.pendingPriceToBeat);
 
 const RESOLUTION_SOURCE_HOST = /^https?:\/\/([^/?#:]+)/iu;
 

@@ -4314,6 +4314,99 @@ describe('polymarket utils', () => {
     ]);
   });
 
+  it('falls back to pendingPriceToBeat when the endpoint omits priceToBeat', () => {
+    // `GET /events/:id`, used by the details screen, only returns
+    // `pendingPriceToBeat` while a window is live.
+    const event: PolymarketApiEvent = {
+      id: 'gold-event',
+      slug: 'xau-updown-15m-1795464000',
+      title: 'Gold Up or Down 15m',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [
+        {
+          id: '12967',
+          slug: 'xau-up-or-down-15m',
+          title: 'Gold Up or Down 15m',
+          recurrence: '15m',
+        },
+      ],
+      markets: [],
+      tags: [
+        { id: 'crypto', label: 'Crypto', slug: 'crypto' },
+        { id: 'up-or-down', label: 'Up or Down', slug: 'up-or-down' },
+      ],
+      liquidity: 0,
+      volume: 0,
+      eventMetadata: {
+        pendingPriceToBeat: 3643.22,
+      },
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+      expect.objectContaining({
+        id: 'gold-event',
+        priceToBeat: 3643.22,
+      }),
+    ]);
+  });
+
+  it('prefers priceToBeat over pendingPriceToBeat', () => {
+    const event: PolymarketApiEvent = {
+      id: 'gold-event-both',
+      slug: 'xau-updown-15m-1795464000',
+      title: 'Gold Up or Down 15m',
+      description: 'Description',
+      icon: '',
+      closed: false,
+      active: true,
+      series: [],
+      markets: [],
+      tags: [],
+      liquidity: 0,
+      volume: 0,
+      eventMetadata: {
+        priceToBeat: 3643.22,
+        pendingPriceToBeat: 3600,
+      },
+    };
+
+    expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+      expect.objectContaining({ priceToBeat: 3643.22 }),
+    ]);
+  });
+
+  it.each([
+    ['zero', 0],
+    ['negative', -1],
+    ['not a number', 'n/a'],
+  ])(
+    'ignores a %s pendingPriceToBeat',
+    (_label, pendingPriceToBeat: number | string) => {
+      const event: PolymarketApiEvent = {
+        id: 'gold-event-invalid',
+        slug: 'xau-updown-15m-1795464000',
+        title: 'Gold Up or Down 15m',
+        description: 'Description',
+        icon: '',
+        closed: false,
+        active: true,
+        series: [],
+        markets: [],
+        tags: [],
+        liquidity: 0,
+        volume: 0,
+        eventMetadata: { pendingPriceToBeat },
+      };
+
+      expect(parsePolymarketEvents([event], 'crypto')).toEqual([
+        expect.not.objectContaining({ priceToBeat: expect.anything() }),
+      ]);
+    },
+  );
+
   it('parses the TWAP window from Polymarket crypto market config', () => {
     const event: PolymarketApiEvent = {
       id: 'crypto-twap-event',
