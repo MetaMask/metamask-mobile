@@ -258,11 +258,53 @@ describe('isSuspiciousRewrite', () => {
     expect(isSuspiciousRewrite(mock, result, new Set())).toBe(false);
   });
 
-  it('does not apply to data maps', () => {
-    const mock = { a: { x: 1 }, b: { x: 1 } };
-    const result = mergeShape(mock, {}, new Set(['/']));
+  it('refuses an error body for a data map', () => {
+    const mapPaths = new Set(['/']);
+    const mock = {
+      'eip155:1/slip44:60': { price: 1 },
+      'eip155:137/slip44:966': { price: 2 },
+    };
+    const result = mergeShape(mock, { error: 'Too many requests' }, mapPaths);
 
-    expect(isSuspiciousRewrite(mock, result, new Set(['/']))).toBe(false);
+    expect(result.changes).toHaveLength(2);
+    expect(isSuspiciousRewrite(mock, result, mapPaths)).toBe(true);
+  });
+
+  it('refuses an error body for a data map with one entry', () => {
+    const mapPaths = new Set(['/']);
+    const mock = { usd: { name: 'Dollar', value: 1 } };
+    const result = mergeShape(mock, { message: 'Bad request' }, mapPaths);
+
+    expect(isSuspiciousRewrite(mock, result, mapPaths)).toBe(true);
+  });
+
+  it('refuses a live response that is not an object', () => {
+    const mock = { low: 1, medium: 2, high: 3 };
+    const result = mergeShape(mock, 'Service unavailable');
+
+    expect(isSuspiciousRewrite(mock, result, new Set())).toBe(true);
+  });
+
+  it('allows a data map whose entries only gain or lose a field', () => {
+    const mapPaths = new Set(['/']);
+    const mock = { a: { price: 1, old: 1 }, b: { price: 2 } };
+    const result = mergeShape(
+      mock,
+      { a: { price: 9, fresh: 1 }, b: { price: 8 } },
+      mapPaths,
+    );
+
+    expect(result.changes.length).toBeGreaterThan(0);
+    expect(isSuspiciousRewrite(mock, result, mapPaths)).toBe(false);
+  });
+
+  it('allows an empty live data map, which changes nothing', () => {
+    const mapPaths = new Set(['/']);
+    const mock = { a: { x: 1 }, b: { x: 1 } };
+    const result = mergeShape(mock, {}, mapPaths);
+
+    expect(result.changes).toStrictEqual([]);
+    expect(isSuspiciousRewrite(mock, result, mapPaths)).toBe(false);
   });
 });
 
@@ -499,6 +541,20 @@ describe('syncRow', () => {
     );
 
     const result = await syncRow(row(), deps, { dryRun: false });
+
+    expect(result.status).toBe('refused');
+    expect(writeMock).not.toHaveBeenCalled();
+  });
+
+  it('refuses to write an error body over a map mock', async () => {
+    const { deps, writeMock } = makeDeps(
+      { a: { price: 1 }, b: { price: 2 } },
+      { error: 'Too many requests' },
+    );
+
+    const result = await syncRow(row({ mapPaths: new Set(['/']) }), deps, {
+      dryRun: false,
+    });
 
     expect(result.status).toBe('refused');
     expect(writeMock).not.toHaveBeenCalled();

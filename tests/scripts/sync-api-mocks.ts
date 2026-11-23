@@ -255,8 +255,10 @@ export function mergeShape(
 
 /**
  * Detects a live response that is not a real answer, such as an error body
- * returned with status 200: more than half of the mock's top-level fields
- * would disappear.
+ * returned with status 200. It is suspicious when the live value is not the
+ * kind of value the mock holds at the root, or when more than half of the
+ * mock's top-level fields (or, for a data map, entries) would be removed or
+ * change type.
  *
  * @param mock - The current mock response.
  * @param result - The merge of the mock with the live response.
@@ -268,20 +270,28 @@ export function isSuspiciousRewrite(
   result: MergeResult,
   mapPaths: ReadonlySet<string>,
 ): boolean {
-  if (!isObject(mock) || mapPaths.has('/')) {
+  if (
+    result.changes.some(
+      (change) => change.path === '/' && change.kind === 'retyped',
+    )
+  ) {
+    return true;
+  }
+  if (!isObject(mock)) {
     return false;
   }
   const keys = Object.keys(mock).length;
-  if (keys < 2) {
+  if (keys < (mapPaths.has('/') ? 1 : 2)) {
     return false;
   }
-  const removed = result.changes.filter(
+  // Keys can contain "/" (CAIP asset ids), so match whole top-level paths.
+  const topLevel = new Set(Object.keys(mock).map((key) => `/${key}`));
+  const lost = result.changes.filter(
     (change) =>
-      change.kind === 'removed' &&
-      change.path.split('/').length === 2 &&
-      !change.path.includes('['),
+      (change.kind === 'removed' || change.kind === 'retyped') &&
+      topLevel.has(change.path),
   ).length;
-  return removed * 2 > keys;
+  return lost * 2 > keys;
 }
 
 function splitRow(line: string): string[] {
@@ -472,7 +482,7 @@ export async function syncRow(
         changes: result.changes,
         status: 'refused',
         error:
-          'The live response would drop most top-level fields; it looks like an error body.',
+          'The live response would drop or retype most top-level fields; it looks like an error body.',
       };
     }
     let written = false;
