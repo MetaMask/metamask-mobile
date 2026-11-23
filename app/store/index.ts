@@ -19,6 +19,7 @@ import {
   clearAttribution,
   expireAttributionIfStale,
 } from '../core/redux/slices/attribution';
+import { tempDevDashWrapReducer } from '../core/TempDevDash'; // DevDash hook
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -48,7 +49,7 @@ const createStoreAndPersistor = async () => {
   const middlewares = [sagaMiddleware, thunk];
 
   store = configureStore({
-    reducer: pReducer,
+    reducer: tempDevDashWrapReducer(pReducer), // DevDash hook
     middleware: middlewares,
     preloadedState: initialState,
     devTools: false,

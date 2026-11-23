@@ -1,0 +1,2440 @@
+<!doctype html>
+<!-- DevDash browser dashboard, served by server.mjs. See scripts/temp-devdash/README.md. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevDash</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0d0f13;
+  --panel: #13161c;
+  --panel-2: #191d25;
+  --line: #262b35;
+  --line-soft: #1c2028;
+  --text: #d7dbe3;
+  --dim: #a0a7b6;
+  --faint: #828a9c;
+  --accent: #5b9dff;
+  --accent-bg: #1a2a44;
+  --green: #4cc38a;
+  --green-bg: #12261d;
+  --amber: #e5a84b;
+  --red: #f0616d;
+  --red-bg: #2a1518;
+  --violet: #b392f0;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --side-w: 46%;
+  --w-host: 230px;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font: 13px/1.4 var(--sans); }
+body { display: flex; flex-direction: column; overflow: hidden; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 3px 9px; cursor: pointer; white-space: nowrap; }
+button:hover { border-color: var(--faint); }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent); outline-offset: -1px; }
+button.primary { background: var(--accent-bg); border-color: var(--accent); color: #cfe2ff; }
+button.ghost { background: none; border-color: transparent; color: var(--dim); padding: 1px 5px; }
+button.ghost:hover { color: var(--text); background: var(--panel-2); }
+input[type=text], input:not([type]), textarea, select { background: var(--panel-2); border: 1px solid var(--line); border-radius: 5px; padding: 4px 8px; }
+input.invalid { border-color: var(--red); }
+textarea { font-family: var(--mono); font-size: 12px; resize: vertical; width: 100%; }
+label.check { display: inline-flex; align-items: center; gap: 5px; color: var(--dim); white-space: nowrap; cursor: pointer; }
+code { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+header { display: flex; align-items: center; gap: 12px; padding: 7px 12px; background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.brand { font-weight: 650; color: var(--accent); }
+nav { display: flex; gap: 2px; flex-wrap: wrap; }
+.tab { background: none; border: 0; border-radius: 5px; padding: 3px 9px; color: var(--dim); display: flex; gap: 6px; align-items: center; }
+.tab:hover { color: var(--text); }
+.tab.on { color: var(--accent); background: var(--accent-bg); }
+.badge { font: 11px var(--mono); background: var(--panel-2); color: var(--dim); border-radius: 8px; padding: 0 6px; }
+.tab.on .badge { background: #223a60; color: #a8c8f8; }
+.grow { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font: 12px var(--mono); color: var(--dim); min-width: 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); flex: none; }
+.dot.on { background: var(--green); }
+.dot.warn { background: var(--amber); }
+.dot.off { background: var(--red); }
+main { flex: 1; min-height: 0; position: relative; }
+.view { position: absolute; inset: 0; display: none; flex-direction: column; min-height: 0; }
+.view.on { display: flex; }
+.bar { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-bottom: 1px solid var(--line-soft); flex-wrap: wrap; }
+.bar input[type=text], .bar input:not([type]) { min-width: 140px; }
+.fbox { position: relative; flex: 2; min-width: 240px; max-width: 700px; display: flex; }
+.fbox input { width: 100%; padding-right: 24px; font-family: var(--mono); font-size: 12px; }
+.fbox .x { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); }
+.hlbox { flex: 1; min-width: 150px; max-width: 280px; font-family: var(--mono); font-size: 12px; }
+.chips { gap: 5px; padding: 4px 12px; min-height: 30px; }
+.chip-btn { font: 11px/18px var(--mono); padding: 0 7px; border-radius: 9px; background: var(--panel-2); border: 1px solid var(--line); color: var(--dim); display: inline-flex; gap: 5px; }
+.chip-btn b { font-weight: 400; color: var(--faint); }
+.chip-btn.on { background: var(--accent-bg); border-color: var(--accent); color: #cfe2ff; }
+.chip-btn.neg { background: var(--red-bg); border-color: var(--red); text-decoration: line-through; }
+.chip-btn.off { opacity: .5; }
+.chip-label { color: var(--faint); font-size: 11px; margin-left: 4px; }
+.count { color: var(--faint); font: 12px var(--mono); white-space: nowrap; }
+.seg { display: inline-flex; }
+.seg button { border-radius: 0; margin-left: -1px; }
+.seg button:first-child { border-radius: 5px 0 0 5px; margin-left: 0; }
+.seg button:last-child { border-radius: 0 5px 5px 0; }
+.seg button.on { background: var(--accent-bg); border-color: var(--accent); color: #cfe2ff; position: relative; }
+.split { flex: 1; min-height: 0; display: flex; }
+.pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; position: relative; }
+.pane.main { flex: 1; }
+.pane.side { width: var(--side-w); min-width: 260px; max-width: 80%; border-left: 1px solid var(--line); background: var(--panel); }
+.pane.side[hidden] { display: none; }
+.resizer { position: absolute; left: -3px; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 4; }
+.resizer:hover { background: var(--accent); opacity: .4; }
+.side-content { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.list { flex: 1; min-height: 0; overflow: auto; position: relative; font: 12px/24px var(--mono); }
+.spacer { position: relative; }
+.rows { position: absolute; left: 0; right: 0; top: 0; }
+.row { display: grid; height: 24px; padding: 0 12px; gap: 10px; white-space: nowrap; cursor: pointer; border-bottom: 1px solid var(--line-soft); align-items: center; }
+.row > span { overflow: hidden; text-overflow: ellipsis; }
+.row:hover { background: var(--panel-2); }
+.row.sel { background: var(--accent-bg); }
+.row.brk { border-top: 1px solid var(--accent); }
+.row.hl0 { box-shadow: inset 3px 0 0 #f7c948; background: #2a2510; } .row.hl1 { box-shadow: inset 3px 0 0 #5fd3bc; background: #10262a; } .row.hl2 { box-shadow: inset 3px 0 0 #f78fb3; background: #2a1420; } .row.hl3 { box-shadow: inset 3px 0 0 #9b8cff; background: #1c1730; } .row.hl4 { box-shadow: inset 3px 0 0 #ff9f5a; background: #2a1c10; }
+.head { display: grid; padding: 0 12px; gap: 10px; font: 11px/24px var(--sans); color: var(--faint); border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 2; user-select: none; }
+.head span { position: relative; }
+.head .sortable { cursor: pointer; }
+.head .sortable:hover { color: var(--text); }
+.head .sorted { color: var(--accent); }
+.col-grip { position: absolute; right: -6px; top: 0; bottom: 0; width: 8px; cursor: col-resize; }
+.cols-net { grid-template-columns: 16px 34px 50px var(--w-host) minmax(160px, 1fr) 90px 62px 62px; }
+.cols-log { grid-template-columns: 92px 46px minmax(400px, 1fr); }
+.cols-act { grid-template-columns: 92px minmax(260px, 1fr) minmax(120px, 240px) 46px; }
+.right { text-align: right; }
+.c-dim { color: var(--dim); }
+.c-faint { color: var(--faint); }
+.s1 { color: var(--accent); } .s2 { color: var(--green); } .s3 { color: var(--accent); } .s4 { color: var(--amber); } .s5, .serr { color: var(--red); } .spend { color: var(--faint); }
+.t-slow { color: var(--amber); } .t-vslow { color: var(--red); }
+.row.bad { background: var(--red-bg); }
+.row.bad:hover { background: #331a1e; }
+.row.bad.sel { background: #3d2024; }
+.star { background: none; border: 0; padding: 0; color: var(--faint); opacity: 0; font-size: 12px; line-height: 1; }
+.row:hover .star, .star.on { opacity: 1; }
+.star.on { color: var(--amber); }
+.chip { display: inline-block; font-size: 11px; line-height: 16px; padding: 0 5px; border-radius: 3px; background: #2a2340; color: var(--violet); margin-right: 6px; }
+.chip.bad-chip { background: var(--red-bg); color: var(--red); }
+.times { color: var(--amber); margin-right: 6px; }
+.lv-warn { color: var(--amber); } .lv-error { color: var(--red); } .lv-info { color: var(--accent); } .lv-debug { color: var(--faint); } .lv-log { color: var(--dim); } .lv-nav { color: var(--violet); }
+.mk { background: #5c4a12; color: #ffe9a8; border-radius: 2px; }
+.mk.cur { background: #e5a84b; color: #1a1303; }
+.hlm0 { background: #4d4210; color: #ffe58a; border-radius: 2px; } .hlm1 { background: #123f3a; color: #a4f0e1; border-radius: 2px; } .hlm2 { background: #4a1c31; color: #ffc0d8; border-radius: 2px; } .hlm3 { background: #2d2358; color: #cdc4ff; border-radius: 2px; } .hlm4 { background: #4a2e12; color: #ffc99b; border-radius: 2px; }
+.empty { color: var(--faint); padding: 28px; text-align: center; font-size: 13px; line-height: 1.6; }
+.jump { position: absolute; right: 18px; bottom: 14px; z-index: 3; box-shadow: 0 2px 10px #0008; }
+.side-head { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.side-head .title { flex: 1; min-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12px var(--mono); }
+.side-tabs { display: flex; gap: 2px; padding: 4px 8px; border-bottom: 1px solid var(--line-soft); align-items: center; flex-wrap: wrap; }
+.side-tabs .tab { font-size: 12px; padding: 2px 8px; }
+.side-tabs input { flex: 1; min-width: 110px; max-width: 240px; margin-left: auto; font: 12px var(--mono); padding: 2px 7px; }
+.side-body { flex: 1; min-height: 0; overflow: auto; padding: 4px 10px 24px; }
+h4 { margin: 14px 0 5px; font-size: 11px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: .04em; display: flex; gap: 8px; align-items: center; }
+h4 button { font-size: 11px; padding: 0 6px; text-transform: none; letter-spacing: 0; font-weight: 400; }
+.kv { display: grid; grid-template-columns: minmax(90px, max-content) 1fr; gap: 1px 12px; font: 12px/18px var(--mono); }
+.kv .k { color: #9cc4ff; }
+.kv .v { word-break: break-all; cursor: pointer; }
+.kv .v:hover { background: var(--panel-2); }
+pre { margin: 0; font: 12px/18px var(--mono); white-space: pre-wrap; word-break: break-all; }
+.t { font: 12px/19px var(--mono); }
+.t-row { display: flex; align-items: baseline; gap: 5px; border-radius: 3px; padding-right: 4px; }
+.t-row:hover { background: var(--panel-2); }
+.t-row:hover .t-act { opacity: 1; }
+.t-caret { width: 12px; flex: none; color: var(--faint); cursor: pointer; text-align: center; user-select: none; }
+.t-key { color: #9cc4ff; flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.t-val { word-break: break-all; min-width: 0; }
+.t-kids { margin-left: 13px; border-left: 1px solid var(--line-soft); padding-left: 3px; }
+.t-act { opacity: 0; flex: none; font-size: 11px; color: var(--faint); background: none; border: 0; padding: 0 3px; }
+.t-act:first-of-type { margin-left: auto; }
+.t-act:hover { color: var(--text); }
+.t-str { color: #a5d6a7; } .t-num { color: #f5c97b; } .t-bool { color: var(--violet); } .t-null, .t-marker { color: var(--faint); } .t-sum { color: var(--faint); cursor: pointer; }
+.t-more { color: var(--accent); cursor: pointer; margin-left: 6px; }
+.t-edit { font: 12px var(--mono); padding: 0 4px; min-width: 200px; flex: 1; }
+.t-val.editable { cursor: text; border-bottom: 1px dotted transparent; }
+.t-val.editable:hover { border-bottom-color: var(--faint); }
+.names { width: 260px; flex: none; border-right: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.names .seg { display: flex; padding: 7px 8px 0; }
+.names .seg button { flex: 1; }
+.names > input { margin: 7px 8px 3px; font: 12px var(--mono); }
+.names .check { padding: 0 10px 5px; font-size: 12px; }
+.name-list { flex: 1; overflow: auto; font: 12px/22px var(--mono); }
+.name { display: flex; gap: 6px; padding: 0 10px; cursor: pointer; white-space: nowrap; }
+.name span:first-child { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+.name:hover { background: var(--panel-2); }
+.name.on { background: var(--accent-bg); color: #cfe2ff; }
+.name.flash { box-shadow: inset 2px 0 0 var(--amber); }
+.crumbs { font: 12px var(--mono); display: flex; flex-wrap: wrap; gap: 2px; align-items: center; min-width: 0; }
+.crumbs a { color: var(--accent); cursor: pointer; }
+.stack { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.tree-box { flex: 1; min-height: 0; overflow: auto; padding: 8px 12px; }
+.watches { border-bottom: 1px solid var(--line); max-height: 28%; overflow: auto; padding: 4px 12px; font: 12px/20px var(--mono); }
+.watch { display: flex; gap: 8px; align-items: baseline; }
+.watch .w-key { color: #9cc4ff; flex: none; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.watch .w-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.watch.flash .w-val { color: var(--amber); }
+.changes { height: 30%; min-height: 90px; border-top: 1px solid var(--line); display: flex; flex-direction: column; }
+.changes .head-mini { padding: 4px 12px; font-size: 11px; color: var(--dim); border-bottom: 1px solid var(--line-soft); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.changes .head-mini input:not([type=checkbox]) { flex: 1; min-width: 120px; max-width: 320px; font: 11px var(--mono); padding: 1px 6px; }
+.result { padding: 3px 12px; border-bottom: 1px solid var(--line-soft); font: 12px/20px var(--mono); cursor: pointer; }
+.result:hover { background: var(--panel-2); }
+.diff-row { display: grid; grid-template-columns: minmax(120px, 34%) 1fr 1fr; gap: 10px; font: 12px/18px var(--mono); border-bottom: 1px solid var(--line-soft); padding: 3px 0; }
+.diff-row > div { min-width: 0; word-break: break-all; }
+.diff-before { color: #ffb3b9; background: var(--red-bg); padding: 0 4px; border-radius: 3px; }
+.diff-after { color: #a7e8c6; background: var(--green-bg); padding: 0 4px; border-radius: 3px; }
+.run-grid { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.run-input { padding: 10px 12px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; position: relative; }
+.run-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.run-out { flex: 1; min-height: 0; overflow: auto; padding: 8px 12px 24px; }
+.complete { position: absolute; left: 12px; right: 12px; top: 100%; margin-top: -6px; max-height: 240px; overflow: auto; background: var(--panel-2); border: 1px solid var(--faint); border-radius: 6px; z-index: 6; font: 12px/20px var(--mono); box-shadow: 0 6px 24px #000a; }
+.complete div { padding: 0 8px; cursor: pointer; }
+.complete div.cur { background: var(--accent-bg); color: #cfe2ff; }
+.entry { border-bottom: 1px solid var(--line-soft); padding: 8px 0; }
+.entry .code { color: var(--dim); }
+.entry-head { display: flex; gap: 6px; align-items: flex-start; }
+.entry-head pre { flex: 1; }
+.err-text { color: var(--red); }
+.hint { color: var(--faint); font-size: 12px; }
+.frame { display: grid; grid-template-columns: 16px 88px 1fr; gap: 8px; font: 12px/18px var(--mono); border-bottom: 1px solid var(--line-soft); padding: 2px 0; }
+.frame.in .dir { color: var(--green); } .frame.out .dir { color: var(--accent); }
+.sframe { font: 12px/19px var(--mono); padding: 1px 4px; cursor: pointer; border-radius: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+.sframe:hover { background: var(--panel-2); }
+.sframe.lib { color: var(--faint); }
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th { text-align: left; color: var(--faint); font-weight: 500; padding: 4px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); white-space: nowrap; }
+th.sortable { cursor: pointer; }
+th.sortable:hover { color: var(--text); }
+th.sorted { color: var(--accent); }
+td { padding: 3px 12px; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
+td.mono { font-family: var(--mono); }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--panel-2); }
+.scroll { flex: 1; min-height: 0; overflow: auto; }
+.block { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 9px 11px; margin: 12px; font: 12px/18px var(--mono); word-break: break-all; }
+.menu { position: fixed; background: var(--panel-2); border: 1px solid var(--faint); border-radius: 6px; padding: 4px; min-width: 190px; z-index: 30; box-shadow: 0 8px 28px #000b; max-height: 80vh; overflow: auto; }
+.menu button { display: block; width: 100%; text-align: left; background: none; border: 0; border-radius: 4px; padding: 3px 8px; }
+.menu button:hover, .menu button:focus-visible { background: var(--accent-bg); }
+.menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+.overlay { position: fixed; inset: 0; background: #0009; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.modal { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; width: min(820px, 100%); max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 12px 40px #000c; }
+.modal-head { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--line); font-weight: 600; }
+.modal-body { padding: 12px; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+.modal-body label { color: var(--dim); font-size: 12px; display: flex; flex-direction: column; gap: 3px; }
+.modal-body input { width: 100%; font: 12px var(--mono); }
+.keys { display: grid; grid-template-columns: max-content 1fr; gap: 3px 14px; }
+.keys kbd { font: 12px var(--mono); background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; justify-self: start; }
+#screen { position: fixed; top: 0; right: 0; bottom: 0; width: min(420px, 100%); background: var(--panel); border-left: 1px solid var(--line); z-index: 15; display: flex; flex-direction: column; box-shadow: -8px 0 28px #0008; }
+#screen[hidden] { display: none; }
+#screen .shot { flex: 1; min-height: 0; overflow: auto; padding: 10px; text-align: center; }
+#screen img, #screen canvas { max-width: 100%; max-height: 100%; height: auto; border-radius: 10px; border: 1px solid var(--line); }
+#toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font-size: 12px; opacity: 0; transition: opacity .15s; pointer-events: none; max-width: 80vw; z-index: 40; }
+#toast.show { opacity: 1; }
+#toast.bad { border-color: var(--red); color: var(--red); }
+@media (max-width: 800px) {
+  .pane.side { position: absolute; inset: 0; width: 100%; max-width: none; z-index: 5; }
+  .names { width: 150px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <span class="brand">DevDash</span>
+  <nav id="tabs" role="tablist"></nav>
+  <span class="grow"></span>
+  <span class="pill" id="pill"><span class="dot"></span><span>connecting</span></span>
+  <select id="scope" aria-label="Which app sessions to show" title="An app reload starts a new session">
+    <option value="all">All sessions</option>
+    <option value="current">This session</option>
+  </select>
+  <button id="btn-screen" title="Show the device screen (Android, through adb)">Screen</button>
+  <button id="btn-pause" title="Stop or resume capture inside the app">Pause</button>
+  <button id="btn-clear" title="Clear everything captured so far">Clear</button>
+  <button id="btn-reload" title="Reload the JS bundle in the app">Reload app</button>
+  <button id="btn-help" title="Filter syntax and shortcuts (?)" aria-label="Help">?</button>
+</header>
+<main>
+  <section class="view" id="view-network">
+    <div class="bar">
+      <div class="fbox"><input id="net-filter" placeholder='Filter: status:4xx host:infura rpc:eth_call time:>1s /regex/i -exclude' aria-label="Filter requests"></div>
+      <input class="hlbox" id="net-hl" placeholder="Highlight: nonce /ramps?/" aria-label="Highlight requests">
+      <label class="check"><input type="checkbox" id="net-errors"> errors only</label>
+      <label class="check"><input type="checkbox" id="net-pinned"> pinned</label>
+      <label class="check"><input type="checkbox" id="net-follow" checked> follow</label>
+      <span class="seg"><button id="net-v-list" class="on">Requests</button><button id="net-v-end">Endpoints</button></span>
+      <button id="net-export">Export</button>
+      <span class="count" id="net-count"></span>
+    </div>
+    <div class="bar chips" id="net-facets"></div>
+    <div class="split">
+      <div class="pane main">
+        <div class="list" id="net-list"></div>
+        <div class="scroll" id="net-end" hidden></div>
+      </div>
+      <div class="pane side" id="net-side" hidden><div class="resizer"></div><div class="side-content" id="net-side-c"></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-logs">
+    <div class="bar">
+      <div class="fbox"><input id="log-filter" placeholder="Filter: tag:Ramps level:error /regex/ -exclude" aria-label="Filter logs"></div>
+      <input class="hlbox" id="log-hl" placeholder="Highlight: order /fail(ed)?/" aria-label="Highlight logs">
+      <label class="check" title="Collapse consecutive identical messages"><input type="checkbox" id="log-group"> group repeats</label>
+      <label class="check"><input type="checkbox" id="log-follow" checked> follow</label>
+      <button id="log-copy">Copy visible</button>
+      <button id="log-export">Export</button>
+      <span class="count" id="log-count"></span>
+    </div>
+    <div class="bar chips" id="log-facets"></div>
+    <div class="split">
+      <div class="pane main"><div class="list" id="log-list"></div></div>
+      <div class="pane side" id="log-side" hidden><div class="resizer"></div><div class="side-content" id="log-side-c"></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-state">
+    <div class="split">
+      <div class="names">
+        <div class="seg">
+          <button id="st-ctl" class="on">Controllers</button>
+          <button id="st-redux">Redux</button>
+        </div>
+        <input id="st-names-filter" placeholder="Filter names, /regex/" aria-label="Filter names">
+        <label class="check"><input type="checkbox" id="st-busy"> busiest first</label>
+        <div class="name-list" id="st-names"></div>
+      </div>
+      <div class="pane main">
+        <div class="bar">
+          <div class="crumbs" id="st-crumbs"></div>
+          <span class="grow"></span>
+          <input id="st-search" placeholder="Search keys and values, /regex/" aria-label="Search state" style="font:12px var(--mono)">
+          <label class="check" id="st-all-label"><input type="checkbox" id="st-search-all"> all</label>
+          <label class="check"><input type="checkbox" id="st-live" checked> live</label>
+          <button id="st-refresh">Refresh</button>
+          <button id="st-copy" title="Copy this view as JSON">Copy</button>
+          <button id="st-snap" title="Remember this state, to diff against later">Snapshot</button>
+          <button id="st-diff" title="Show what changed since the snapshot" disabled>Diff</button>
+        </div>
+        <div class="bar" id="st-call-bar">
+          <input id="st-method" list="st-methods" placeholder="Method name" aria-label="Controller method" style="min-width:210px;font:12px var(--mono)">
+          <datalist id="st-methods"></datalist>
+          <input id="st-args" placeholder='Arguments as a JSON array: ["0x1"]' aria-label="Method arguments" style="flex:1;font:12px var(--mono)">
+          <button id="st-call">Call</button>
+        </div>
+        <div class="watches" id="st-watches" hidden></div>
+        <div class="stack">
+          <div class="tree-box" id="st-tree"></div>
+          <div class="changes" id="st-changes-box">
+            <div class="head-mini">
+              <span id="st-changes-title">Recent changes</span>
+              <input id="st-changes-filter" placeholder="Filter changes, /regex/" aria-label="Filter changes">
+              <label class="check"><input type="checkbox" id="st-changes-all"> all controllers</label>
+            </div>
+            <div class="scroll" id="st-changes"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="view-redux">
+    <div class="bar">
+      <div class="fbox"><input id="act-filter" placeholder="Filter: type:SET_ changed:settings /regex/ -UPDATE_BG_STATE" aria-label="Filter actions"></div>
+      <input class="hlbox" id="act-hl" placeholder="Highlight: ramps" aria-label="Highlight actions">
+      <label class="check"><input type="checkbox" id="act-follow" checked> follow</label>
+      <button id="act-export">Export</button>
+      <span class="count" id="act-count"></span>
+    </div>
+    <div class="bar chips" id="act-facets"></div>
+    <div class="bar">
+      <input id="act-dispatch" list="act-recent" placeholder='Dispatch an action: {"type":"SOME_ACTION","payload":1}' aria-label="Action to dispatch" style="flex:1;font:12px var(--mono)">
+      <datalist id="act-recent"></datalist>
+      <button class="primary" id="act-send">Dispatch</button>
+    </div>
+    <div class="split">
+      <div class="pane main"><div class="list" id="act-list"></div></div>
+      <div class="pane side" id="act-side" hidden><div class="resizer"></div><div class="side-content" id="act-side-c"></div></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-run">
+    <div class="run-grid">
+      <div class="run-input">
+        <textarea id="run-code" rows="5" spellcheck="false" aria-label="Code to run in the app" placeholder="ctl.RampsController.state.orders.length"></textarea>
+        <div class="run-tools">
+          <button class="primary" id="run-go">Run in app</button>
+          <select id="run-snippets" aria-label="Snippets"></select>
+          <button id="run-save" title="Save the code above as a snippet">Save snippet</button>
+          <button id="run-clear">Clear output</button>
+          <span class="hint">Ctrl+Enter runs. Ctrl+Space completes. Ctrl+Up and Ctrl+Down walk history. In scope: <code>Engine ctl messenger store dispatch getState nav RN</code>. One expression returns its value; statements need <code>return</code>. Promises are awaited.</span>
+        </div>
+        <div class="complete" id="run-complete" hidden></div>
+      </div>
+      <div class="run-out" id="run-out"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-mcp">
+    <div class="scroll">
+      <div class="block" id="mcp-cmd"></div>
+      <h4 style="margin:12px">Live calls</h4>
+      <div id="mcp-calls"></div>
+      <h4 style="margin:12px">Tools</h4>
+      <table><thead><tr><th>Tool</th><th>What it does</th></tr></thead><tbody id="mcp-tools"></tbody></table>
+    </div>
+  </section>
+</main>
+<aside id="screen" hidden>
+  <div class="side-head">
+    <span class="title">Device screen</span>
+    <span class="c-faint mono" id="screen-fps"></span>
+    <label class="check" title="Stream live video (screenshots if this browser cannot decode it). Pauses while this browser tab is hidden."><input type="checkbox" id="screen-auto"> live</label>
+    <button id="screen-refresh">Refresh</button>
+    <button id="screen-close">Close</button>
+  </div>
+  <div class="shot" id="screen-shot"></div>
+</aside>
+<div id="toast" role="status"></div>
+
+<script type="module">
+import { ACTIONS, CHANGES, LOGS, NAMES, NETWORK, groupEndpoints, isNetworkError, logTag, markersFor, matches, parseFilter, splitUrl } from '/filter.mjs';
+
+const LIMITS = { net: 6000, log: 15000, action: 6000, ctl: 6000 };
+const TABS = [['network', 'Network'], ['logs', 'Logs'], ['state', 'State'], ['redux', 'Redux'], ['run', 'Run'], ['mcp', 'MCP']];
+const LEVELS = ['log', 'info', 'warn', 'error', 'debug', 'nav'];
+const SNIPPETS = [
+  ['Current route', 'nav.getCurrentRoute()'],
+  ['Go to a route', "nav.navigate('SettingsView')"],
+  ['Selected account', 'ctl.AccountsController.getSelectedAccount()'],
+  ['Selected network', 'ctl.NetworkController.state.selectedNetworkClientId'],
+  ['Remote feature flags', 'ctl.RemoteFeatureFlagController.state.remoteFeatureFlags'],
+  ['Ramps orders', 'ctl.RampsController.state.orders'],
+  ['Redux slices', 'Object.keys(getState())'],
+  ['Controller names', 'Object.keys(ctl)'],
+  ['Platform', 'RN.Platform.constants'],
+];
+const $ = (id) => document.getElementById(id);
+const store = {
+  get(key, fallback) { try { const v = localStorage.getItem(`devdash:${key}`); return v === null ? fallback : JSON.parse(v); } catch { return fallback; } },
+  set(key, value) { try { localStorage.setItem(`devdash:${key}`, JSON.stringify(value)); } catch { /* preferences only */ } },
+};
+
+// Captured data can contain anything, so this only ever sets text, never HTML.
+function h(tag, props, children) {
+  const el = document.createElement(tag);
+  for (const [key, value] of Object.entries(props || {})) {
+    if (value === undefined || value === null || value === false) continue;
+    if (key === 'class') el.className = value;
+    else if (key.startsWith('on')) el.addEventListener(key.slice(2), value);
+    else if (key === 'text') el.textContent = value;
+    else el.setAttribute(key, value === true ? '' : value);
+  }
+  for (const child of [].concat(children ?? [])) {
+    if (child === null || child === undefined || child === false) continue;
+    el.append(child instanceof Node ? child : String(child));
+  }
+  return el;
+}
+
+const S = {
+  tab: store.get('tab', 'network'),
+  scope: store.get('scope', 'all'),
+  socket: null, socketOpen: false, connected: false, info: null, tools: [], mcpCommand: '',
+  net: new Map(), logs: [], actions: [], changes: [], mcp: [],
+  selNet: null, selLog: null, selAct: null, pins: new Set(), compare: null,
+  netView: store.get('net-view', 'list'), netSort: null, endSort: { key: 'count', dir: -1 },
+  netTab: store.get('net-tab', 'headers'), bodyMode: store.get('body-mode', 'tree'), openDepth: 2, find: '',
+  levels: new Set(store.get('levels', LEVELS)),
+  dirty: new Set(),
+};
+
+let toastTimer;
+function toast(text, bad) {
+  const el = $('toast');
+  el.textContent = text;
+  el.className = `show${bad ? ' bad' : ''}`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, bad ? 5000 : 1800);
+}
+function copy(text, label) {
+  navigator.clipboard.writeText(String(text ?? '')).then(() => toast(`${label || 'Copied'} to the clipboard`), () => toast('Could not copy', true));
+}
+function download(name, text, type = 'application/json') {
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const link = h('a', { href: url, download: name });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+function debounce(fn, delay) { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), delay); }; }
+
+const pad = (n, w = 2) => String(n).padStart(w, '0');
+function clock(ts) { const d = new Date(ts); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`; }
+function bytes(n) { if (n === undefined || n === null) return ''; if (n < 1024) return `${n} B`; if (n < 1048576) return `${(n / 1024).toFixed(1)} K`; return `${(n / 1048576).toFixed(1)} M`; }
+function ms(n) { if (n === undefined || n === null) return ''; return n < 1000 ? `${n} ms` : `${(n / 1000).toFixed(2)} s`; }
+function pretty(value) { return JSON.stringify(value, null, 2); }
+function parseJson(text) { try { return { ok: true, value: JSON.parse(text) }; } catch { return { ok: false }; } }
+
+/* Marks every match in a string, returning text and <mark> nodes. Later rules never overlap earlier ones. */
+function marks(text, rules, limit = 300) {
+  const value = String(text ?? '');
+  if (!rules?.length || !value) return value;
+  const ranges = [];
+  for (const { rx, cls } of rules) {
+    rx.lastIndex = 0;
+    let match;
+    let guard = 0;
+    while ((match = rx.exec(value)) && guard < limit) {
+      guard += 1;
+      if (!match[0]) { rx.lastIndex += 1; continue; }
+      ranges.push([match.index, match.index + match[0].length, cls]);
+    }
+  }
+  if (!ranges.length) return value;
+  ranges.sort((a, b) => a[0] - b[0]);
+  const out = [];
+  let at = 0;
+  for (const [start, end, cls] of ranges) {
+    if (start < at) continue;
+    if (start > at) out.push(value.slice(at, start));
+    out.push(h('mark', { class: cls, text: value.slice(start, end) }));
+    at = end;
+  }
+  if (at < value.length) out.push(value.slice(at));
+  return out;
+}
+const anyHit = (rules, text) => rules.some(({ rx }) => { rx.lastIndex = 0; return rx.test(String(text)); });
+
+/* One filter box and its highlight box. The query text is the only source of truth, so chips just edit it. */
+class FilterBox {
+  constructor(id, schema, onChange) {
+    this.id = id; this.schema = schema; this.input = $(`${id}-filter`); this.hl = $(`${id}-hl`); this.onChange = onChange;
+    this.input.value = store.get(`f-${id}`, '');
+    if (this.hl) this.hl.value = store.get(`h-${id}`, '');
+    this.recent = h('datalist', { id: `${id}-recent-q` });
+    this.input.after(this.recent);
+    this.input.setAttribute('list', this.recent.id);
+    this.input.after(h('button', { class: 'ghost x', title: 'Clear the filter', 'aria-label': 'Clear the filter', text: '×', onclick: () => this.set('') }));
+    this.renderRecent();
+    this.parse();
+    const fire = debounce(() => this.apply(), 120);
+    this.input.addEventListener('input', fire);
+    this.hl?.addEventListener('input', fire);
+    this.input.addEventListener('change', () => this.remember());
+  }
+  parse() {
+    this.parsed = parseFilter(this.input.value, this.schema);
+    this.input.classList.toggle('invalid', Boolean(this.parsed.error));
+    this.input.title = this.parsed.error ? `Invalid regex: ${this.parsed.error}` : '';
+    this.marks = markersFor(this.parsed).map((rx) => ({ rx, cls: 'mk' }));
+    this.hlRules = this.hl ? markersFor(parseFilter(this.hl.value)).slice(0, 5).map((rx, index) => ({ rx, cls: `hlm${index}`, index })) : [];
+    this.rules = [...this.hlRules, ...this.marks];
+  }
+  apply() {
+    this.parse();
+    store.set(`f-${this.id}`, this.input.value);
+    if (this.hl) store.set(`h-${this.id}`, this.hl.value);
+    this.onChange();
+  }
+  set(query) { this.input.value = query; this.apply(); }
+  has(term) { return this.terms().includes(term); }
+  terms() { return this.input.value.match(/"[^"]*"|\S+/g) ?? []; }
+  /** Adds a term, or removes it (or its opposite) when it is already there. */
+  toggle(term, negate) {
+    const wanted = negate ? `-${term}` : term;
+    const opposite = negate ? term : `-${term}`;
+    const had = this.terms().includes(wanted);
+    const kept = this.terms().filter((t) => t !== wanted && t !== opposite);
+    this.set((had ? kept : [...kept, wanted]).join(' '));
+  }
+  remember() {
+    const q = this.input.value.trim();
+    if (!q) return;
+    store.set(`r-${this.id}`, [q, ...store.get(`r-${this.id}`, []).filter((x) => x !== q)].slice(0, 15));
+    this.renderRecent();
+  }
+  renderRecent() { this.recent.replaceChildren(...store.get(`r-${this.id}`, []).map((q) => h('option', { value: q }))); }
+  rowClass(hay) {
+    for (const rule of this.hlRules) { rule.rx.lastIndex = 0; if (rule.rx.test(hay)) return ` hl${rule.index}`; }
+    return '';
+  }
+}
+
+/* Virtual list: only paints the rows in view, because captures reach thousands of rows. */
+class VList {
+  constructor(el, { rowH = 24, head, render, name }) {
+    this.el = el; this.rowH = rowH; this.render = render; this.items = []; this.follow = true; this.name = name; this.seen = 0;
+    if (head) el.append(head);
+    this.head = head;
+    this.spacer = el.appendChild(h('div', { class: 'spacer' }));
+    this.rows = this.spacer.appendChild(h('div', { class: 'rows' }));
+    this.jump = h('button', { class: 'jump primary', hidden: true, onclick: () => this.setFollow(true) });
+    el.parentElement.append(this.jump);
+    el.addEventListener('scroll', () => this.schedule());
+    el.addEventListener('wheel', (e) => { if (e.deltaY < 0) this.setFollow(false); }, { passive: true });
+    new ResizeObserver(() => this.schedule()).observe(el);
+  }
+  setFollow(value) {
+    this.follow = value;
+    const box = $(`${this.name}-follow`);
+    if (box) box.checked = value;
+    if (value) this.seen = this.items.length;
+    this.schedule();
+  }
+  setItems(items) {
+    this.items = items;
+    this.spacer.style.height = `${items.length * this.rowH}px`;
+    if (this.follow) this.seen = items.length;
+    else if (this.seen > items.length) this.seen = items.length;
+    this.schedule();
+  }
+  schedule() {
+    if (this.raf) return;
+    this.raf = requestAnimationFrame(() => { this.raf = 0; this.paint(); });
+  }
+  paint() {
+    const fresh = this.items.length - this.seen;
+    this.jump.hidden = this.follow || fresh <= 0;
+    this.jump.textContent = `↓ ${fresh} new`;
+    if (!this.el.clientHeight) return;
+    if (this.follow) this.el.scrollTop = this.el.scrollHeight;
+    const headH = this.head ? this.head.offsetHeight : 0;
+    const top = Math.max(0, this.el.scrollTop - headH);
+    const first = Math.max(0, Math.floor(top / this.rowH) - 8);
+    const count = Math.ceil(this.el.clientHeight / this.rowH) + 16;
+    this.rows.style.transform = `translateY(${first * this.rowH}px)`;
+    this.rows.replaceChildren(...this.items.slice(first, first + count).map((item, index) => this.render(item, first + index)));
+  }
+  reveal(index) {
+    const headH = this.head ? this.head.offsetHeight : 0;
+    const top = index * this.rowH;
+    const view = this.el.scrollTop;
+    if (top < view) this.el.scrollTop = top;
+    else if (top + this.rowH + headH > view + this.el.clientHeight) this.el.scrollTop = top + this.rowH + headH - this.el.clientHeight;
+    this.schedule();
+  }
+}
+
+/* Small shared widgets */
+function closeMenu() { document.querySelector('.menu')?.remove(); }
+function openMenu(x, y, items) {
+  closeMenu();
+  const menu = h('div', { class: 'menu', role: 'menu' }, items.filter(Boolean).map((item) => (item === '-'
+    ? h('hr')
+    : h('button', { role: 'menuitem', text: item.label, onclick: () => { closeMenu(); item.fn(); } }))));
+  document.body.append(menu);
+  const rect = menu.getBoundingClientRect();
+  menu.style.left = `${Math.max(4, Math.min(x, innerWidth - rect.width - 6))}px`;
+  menu.style.top = `${Math.max(4, Math.min(y, innerHeight - rect.height - 6))}px`;
+  menu.querySelector('button')?.focus();
+}
+function menuButton(label, items) {
+  return h('button', { text: `${label} ▾`, onclick: (e) => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); openMenu(r.left, r.bottom + 2, typeof items === 'function' ? items() : items); } });
+}
+function closeModal() { document.querySelector('.overlay')?.remove(); }
+function openModal(title, content, actions = []) {
+  closeModal();
+  const overlay = h('div', { class: 'overlay', onmousedown: (e) => { if (e.target === overlay) closeModal(); } }, h('div', { class: 'modal', role: 'dialog', 'aria-label': title }, [
+    h('div', { class: 'modal-head' }, [h('span', { class: 'grow', text: title }), ...actions, h('button', { text: 'Close', onclick: closeModal })]),
+    h('div', { class: 'modal-body' }, content),
+  ]));
+  document.body.append(overlay);
+  overlay.querySelector('input, textarea, select')?.focus();
+}
+function sideHead(title, actions, onClose) {
+  return h('div', { class: 'side-head' }, [
+    h('span', { class: 'title', title, text: title }), ...actions.filter(Boolean),
+    h('button', { text: 'Close', title: 'Esc', onclick: onClose }),
+  ]);
+}
+function chip(label, count, { on, neg, off, title, onclick } = {}) {
+  return h('button', { class: `chip-btn${on ? ' on' : ''}${neg ? ' neg' : ''}${off ? ' off' : ''}`, title, onclick }, [label, count !== undefined && h('b', { text: count })]);
+}
+
+/* Value tree. Marker objects with $dd stand for values JSON cannot carry, or that were not expanded. */
+const isMarker = (v) => v && typeof v === 'object' && typeof v.$dd === 'string';
+function markerText(v) {
+  switch (v.$dd) {
+    case 'undefined': return 'undefined';
+    case 'fn': return `function ${v.name}()`;
+    case 'bigint': return `${v.value}n`;
+    case 'bignum': return `BN ${v.value}`;
+    case 'symbol': case 'number': return v.value;
+    case 'bytes': return `<${v.size} bytes>`;
+    case 'circular': return '<circular>';
+    case 'cut': return v.remaining ? `... ${v.remaining} more` : '... cut';
+    case 'error': return `${v.name || 'Error'}: ${v.message}`;
+    default: return v.$dd;
+  }
+}
+function valueHint(value) {
+  if (typeof value === 'number') {
+    if (value > 1e12 && value < 4e12) return new Date(value).toISOString();
+    if (value > 1e9 && value < 4e9 && Number.isInteger(value)) return new Date(value * 1000).toISOString();
+  }
+  if (typeof value === 'string' && /^0x[0-9a-f]{1,40}$/i.test(value) && value.length !== 42) {
+    try { return `${BigInt(value)} in decimal`; } catch { return undefined; }
+  }
+  return undefined;
+}
+function leaf(value, rules) {
+  if (isMarker(value)) return h('span', { class: 't-marker', text: markerText(value) });
+  const title = valueHint(value);
+  if (typeof value === 'string') {
+    const long = value.length > 700;
+    const el = h('span', { class: 't-str', title }, marks(JSON.stringify(long ? value.slice(0, 700) : value), rules));
+    if (!long) return el;
+    const more = h('span', { class: 't-more', text: `show all ${value.length} chars`, onclick: () => { el.replaceChildren(...[].concat(marks(JSON.stringify(value), rules))); more.remove(); } });
+    return h('span', {}, [el, more]);
+  }
+  if (typeof value === 'number') return h('span', { class: 't-num', title }, marks(String(value), rules));
+  if (typeof value === 'boolean') return h('span', { class: 't-bool' }, marks(String(value), rules));
+  return h('span', { class: 't-null', text: String(value) });
+}
+function subtreeHas(value, opts) {
+  if (value === null || typeof value !== 'object') return anyHit(opts.findRules, value);
+  if (isMarker(value)) return false;
+  const known = opts.findMemo.get(value);
+  if (known !== undefined) return known;
+  const result = Array.isArray(value)
+    ? value.some((item) => subtreeHas(item, opts))
+    : Object.entries(value).some(([key, item]) => anyHit(opts.findRules, key) || subtreeHas(item, opts));
+  opts.findMemo.set(value, result);
+  return result;
+}
+function nestedJson(value) {
+  if (typeof value !== 'string' || value.length < 2 || !/^\s*[{[]/.test(value)) return undefined;
+  const parsed = parseJson(value);
+  return parsed.ok && parsed.value && typeof parsed.value === 'object' ? parsed.value : undefined;
+}
+function treeRowActions(value, path, opts) {
+  return [
+    opts.onWatch && h('button', { class: 't-act', title: 'Keep this value in view at the top', text: 'watch', onclick: () => opts.onWatch(path) }),
+    opts.pathable && h('button', { class: 't-act', title: 'Copy the path', text: 'path', onclick: () => copy(path.join('.'), 'Path') }),
+    h('button', { class: 't-act', title: 'Copy the value', text: 'copy', onclick: () => copy(typeof value === 'string' ? value : pretty(value)) }),
+  ];
+}
+function treeNode(key, value, path, opts, depth) {
+  const nested = opts.parseStrings ? nestedJson(value) : undefined;
+  const shown = nested ?? value;
+  const isMore = isMarker(shown) && shown.$dd === 'more';
+  const isErrorMarker = isMarker(shown) && shown.$dd === 'error';
+  const isContainer = isMore || isErrorMarker || (shown && typeof shown === 'object' && !isMarker(shown));
+  const rules = opts.findRules;
+  const keyEl = key === null ? null : h('span', { class: 't-key', title: path.join('.') }, [...[].concat(marks(String(key), rules)), ':']);
+  if (!isContainer) {
+    const val = h('span', { class: `t-val${opts.onEdit ? ' editable' : ''}` }, leaf(value, rules));
+    if (opts.onEdit) {
+      val.title = 'Double-click to edit';
+      val.addEventListener('dblclick', () => startEdit(val, value, path, opts));
+    }
+    return h('div', { class: 't-row' }, [h('span', { class: 't-caret' }), keyEl, val, ...treeRowActions(value, path, opts)]);
+  }
+  const size = isMore ? shown.size : isErrorMarker ? null : Array.isArray(shown) ? shown.length : Object.keys(shown).length;
+  const kind = isMore ? shown.kind : Array.isArray(shown) ? 'array' : 'object';
+  const summary = isErrorMarker ? markerText(shown) : `${nested ? 'JSON string ' : ''}${kind === 'array' ? `[${size}]` : `{${size}}`}`;
+  const kids = h('div', { class: 't-kids', hidden: true });
+  const id = JSON.stringify(path);
+  const caret = h('span', { class: 't-caret', text: '▸', role: 'button', tabindex: 0, 'aria-label': 'Expand' });
+  const openByDepth = depth < (opts.openDepth ?? 1) && !isMore;
+  const openByFind = rules?.length && !isMore && subtreeHas(shown, opts);
+  let open = false;
+  let built = false;
+  const build = async () => {
+    if (built) return;
+    built = true;
+    if (isErrorMarker) { kids.append(h('pre', { class: 'err-text', text: shown.stack || '' })); return; }
+    let data = shown;
+    if (isMore) {
+      if (!opts.fetchMore) { kids.append(h('div', { class: 't-marker', text: 'not expanded' })); return; }
+      kids.append(h('div', { class: 't-marker', text: 'loading...' }));
+      try { data = await opts.fetchMore(path); } catch (error) { kids.replaceChildren(h('div', { class: 'err-text', text: error.message })); return; }
+      kids.replaceChildren();
+    }
+    if (data === null || typeof data !== 'object' || isMarker(data)) { kids.append(treeNode(null, data, path, opts, depth + 1)); return; }
+    const entries = Array.isArray(data) ? data.map((item, index) => [index, item]) : Object.entries(data);
+    for (const [childKey, child] of entries) {
+      if (childKey === '$ddCut') { kids.append(h('div', { class: 't-marker', text: `... ${child} more keys` })); continue; }
+      kids.append(treeNode(childKey, child, [...path, childKey], opts, depth + 1));
+    }
+  };
+  const setOpen = (next, remember = true) => {
+    open = next;
+    caret.textContent = open ? '▾' : '▸';
+    kids.hidden = !open;
+    if (opts.expanded && remember) {
+      opts.expanded.set(id, open);
+    }
+    if (open) build();
+  };
+  const toggle = () => setOpen(!open);
+  caret.addEventListener('click', toggle);
+  caret.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+  if (keyEl) { keyEl.addEventListener('click', toggle); keyEl.style.cursor = 'pointer'; }
+  const row = h('div', { class: 't-row' }, [caret, keyEl, h('span', { class: 't-sum', text: summary, onclick: toggle }), ...(isMore ? [opts.onWatch && h('button', { class: 't-act', text: 'watch', onclick: () => opts.onWatch(path) })] : treeRowActions(nested ? value : shown, path, opts))]);
+  const wrap = h('div', {}, [row, kids]);
+  const remembered = opts.expanded?.get(id);
+  if (remembered !== undefined ? remembered : (openByDepth || openByFind)) setOpen(true, false);
+  return wrap;
+}
+function startEdit(valEl, value, path, opts) {
+  const input = h('input', { class: 't-edit', value: typeof value === 'string' ? value : JSON.stringify(value) });
+  // Replacing the input fires blur, which must not try to replace it a second time.
+  let restored = false;
+  const restore = () => { if (!restored) { restored = true; input.replaceWith(valEl); } };
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.stopPropagation(); restore(); }
+    if (e.key === 'Enter') {
+      const parsed = parseJson(input.value);
+      restore();
+      opts.onEdit(path, parsed.ok ? parsed.value : input.value);
+    }
+  });
+  input.addEventListener('blur', restore);
+  valEl.replaceWith(input);
+  input.focus();
+  input.select();
+}
+function tree(value, opts = {}) {
+  const options = { ...opts, findMemo: new WeakMap() };
+  const root = h('div', { class: 't' });
+  if (value === null || typeof value !== 'object' || isMarker(value)) {
+    root.append(treeNode(null, value, opts.path || [], options, 0));
+    return root;
+  }
+  const basePath = opts.path || [];
+  const entries = Array.isArray(value) ? value.map((item, index) => [index, item]) : Object.entries(value);
+  if (entries.length === 0) root.append(h('div', { class: 't-marker', text: Array.isArray(value) ? '[ ]' : '{ }' }));
+  for (const [key, child] of entries) {
+    if (key === '$ddCut') { root.append(h('div', { class: 't-marker', text: `... ${child} more keys` })); continue; }
+    root.append(treeNode(key, child, [...basePath, key], options, 0));
+  }
+  return root;
+}
+
+/* Structural diff, used for snapshots and for comparing two requests. */
+function jsonDiff(before, after, path = [], out = []) {
+  if (out.length >= 500 || before === after) return out;
+  const bothObjects = before && after && typeof before === 'object' && typeof after === 'object' && Array.isArray(before) === Array.isArray(after);
+  if (!bothObjects) { out.push({ path: path.join('.'), before, after }); return out; }
+  for (const key of new Set([...Object.keys(before), ...Object.keys(after)])) jsonDiff(before[key], after[key], [...path, key], out);
+  return out;
+}
+function withoutMarkers(value) {
+  if (isMarker(value)) {
+    if (value.$dd === 'more') return value.kind === 'array' ? `[${value.size} items]` : `{${value.size} keys}`;
+    return markerText(value);
+  }
+  if (Array.isArray(value)) return value.map(withoutMarkers);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, withoutMarkers(v)]));
+  return value;
+}
+function short(value) {
+  if (value === undefined) return '(absent)';
+  const clean = withoutMarkers(value);
+  const text = typeof clean === 'string' ? clean : JSON.stringify(clean);
+  return text.length > 600 ? `${text.slice(0, 600)}...` : text;
+}
+function diffTable(entries) {
+  if (!entries.length) return h('div', { class: 'hint', text: 'No differences.' });
+  return h('div', {}, [
+    h('div', { class: 'diff-row c-faint' }, [h('div', { text: 'Path' }), h('div', { text: 'Before' }), h('div', { text: 'After' })]),
+    ...entries.map((d) => h('div', { class: 'diff-row' }, [
+      h('div', { style: 'color:#9cc4ff', text: d.path || '(root)' }),
+      h('div', {}, h('span', { class: 'diff-before', text: short(d.before) })),
+      h('div', {}, h('span', { class: 'diff-after', text: short(d.after) })),
+    ])),
+  ]);
+}
+
+/* Socket */
+let cmdId = 0;
+const pendingCmds = new Map();
+function cmd(name, args, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    if (!S.socketOpen) { reject(new Error('Not connected to the DevDash server')); return; }
+    cmdId += 1;
+    pendingCmds.set(cmdId, { resolve, reject });
+    S.socket.send(JSON.stringify({ t: 'cmd', id: cmdId, cmd: name, args, timeoutMs }));
+  });
+}
+function connect() {
+  const socket = new WebSocket(`ws://${location.host}/ui`);
+  S.socket = socket;
+  socket.onopen = () => { S.socketOpen = true; renderPill(); };
+  socket.onclose = () => {
+    S.socketOpen = false; S.connected = false; renderPill();
+    for (const { reject } of pendingCmds.values()) reject(new Error('Lost the connection to the DevDash server'));
+    pendingCmds.clear();
+    setTimeout(connect, 1500);
+  };
+  socket.onmessage = (event) => {
+    const m = JSON.parse(event.data);
+    if (m.t === 'batch') ingest(m.events);
+    else if (m.t === 'reset') resetData();
+    else if (m.t === 'hello') {
+      S.connected = m.connected; S.info = m.info; S.tools = m.tools; S.mcp = m.mcp || []; S.mcpCommand = m.mcpCommand;
+      renderPill(); renderMcp(); if (S.connected) stateOnConnect();
+    } else if (m.t === 'info') {
+      const wasConnected = S.connected;
+      S.connected = m.connected; S.info = m.info; renderPill();
+      if (S.connected && !wasConnected) stateOnConnect();
+    } else if (m.t === 'res') {
+      const waiting = pendingCmds.get(m.id);
+      if (waiting) {
+        pendingCmds.delete(m.id);
+        if (m.ok) waiting.resolve(m.value);
+        else { const error = new Error(m.error?.message || 'Failed'); error.stack = m.error?.stack; waiting.reject(error); }
+      }
+    }
+  };
+}
+function resetData() {
+  S.net.clear(); S.logs = []; S.actions = []; S.changes = []; S.pins.clear(); S.compare = null;
+  S.selNet = S.selLog = S.selAct = null;
+  ST.changeCounts = new Map();
+  $('net-side').hidden = $('log-side').hidden = $('act-side').hidden = true;
+  ['net', 'log', 'act', 'ctl'].forEach((k) => S.dirty.add(k));
+  scheduleRender();
+}
+function ingest(events) {
+  for (const e of events) {
+    switch (e.k) {
+      case 'net': {
+        const existing = S.net.get(e.key);
+        if (existing) Object.assign(existing, e, { _m: null });
+        else S.net.set(e.key, e);
+        if (S.net.size > LIMITS.net) S.net.delete(S.net.keys().next().value);
+        S.dirty.add('net');
+        if (S.selNet === e.key) S.dirty.add('net-detail');
+        break;
+      }
+      case 'frame': {
+        const socket = S.net.get(e.key);
+        if (socket) {
+          (socket.frames = socket.frames || []).push(e);
+          if (socket.frames.length > 220) socket.frames.splice(0, 20);
+          socket.framesIn = e.framesIn; socket.framesOut = e.framesOut;
+          S.dirty.add('net');
+          if (S.selNet === e.key) S.dirty.add('net-detail');
+        }
+        break;
+      }
+      case 'log':
+        S.logs.push(e);
+        if (S.logs.length > LIMITS.log * 1.1) S.logs.splice(0, S.logs.length - LIMITS.log);
+        S.dirty.add('log');
+        break;
+      case 'action':
+        S.actions.push(e);
+        if (S.actions.length > LIMITS.action * 1.1) S.actions.splice(0, S.actions.length - LIMITS.action);
+        S.dirty.add('act');
+        stateOnAction(e);
+        break;
+      case 'ctl':
+        S.changes.push(e);
+        if (S.changes.length > LIMITS.ctl * 1.1) S.changes.splice(0, S.changes.length - LIMITS.ctl);
+        S.dirty.add('ctl');
+        stateOnChange(e);
+        break;
+      case 'mcp':
+        S.mcp.push(e);
+        if (S.mcp.length > 330) S.mcp.splice(0, 30);
+        S.dirty.add('mcp');
+        break;
+      default:
+    }
+  }
+  scheduleRender();
+}
+const inScope = (e) => S.scope === 'all' || !S.info?.session || e.session === S.info.session;
+
+let renderTimer = null;
+function scheduleRender() {
+  if (renderTimer) return;
+  renderTimer = setTimeout(() => { renderTimer = null; render(); }, 150);
+}
+function render() {
+  renderCounts();
+  const d = S.dirty;
+  if (S.tab === 'network' && d.has('net')) { renderNet(); d.delete('net'); }
+  if (S.tab === 'network' && d.has('net-detail')) { renderNetDetail(); d.delete('net-detail'); }
+  if (S.tab === 'logs' && d.has('log')) { renderLogs(); d.delete('log'); }
+  if (S.tab === 'redux' && d.has('act')) { renderActions(); d.delete('act'); }
+  if (S.tab === 'state' && d.has('ctl')) { renderChanges(); d.delete('ctl'); }
+  if (S.tab === 'mcp' && d.has('mcp')) { renderMcp(); d.delete('mcp'); }
+}
+
+/* Header */
+function renderTabs() {
+  $('tabs').replaceChildren(...TABS.map(([id, label], index) => h('button', {
+    class: `tab${S.tab === id ? ' on' : ''}`, role: 'tab', 'aria-selected': String(S.tab === id), id: `tab-${id}`, title: `Shortcut: ${index + 1}`,
+    onclick: () => setTab(id),
+  }, [label, h('span', { class: 'badge', id: `badge-${id}` })])));
+  renderCounts();
+}
+function renderCounts() {
+  const counts = { network: S.net.size, logs: S.logs.length, state: S.changes.length, redux: S.actions.length, mcp: S.mcp.length };
+  for (const [id] of TABS) {
+    const el = $(`badge-${id}`);
+    if (!el) continue;
+    el.textContent = counts[id] ?? '';
+    el.hidden = counts[id] === undefined;
+  }
+}
+function setTab(id) {
+  S.tab = id;
+  store.set('tab', id);
+  document.querySelectorAll('.view').forEach((v) => v.classList.toggle('on', v.id === `view-${id}`));
+  renderTabs();
+  ['net', 'log', 'act', 'ctl', 'mcp'].forEach((k) => S.dirty.add(k));
+  render();
+  if (id === 'state') stateEnsureLoaded();
+  if (id === 'run') $('run-code').focus();
+  lists.forEach((list) => list.schedule());
+}
+function renderPill() {
+  const dot = h('span', { class: `dot ${!S.socketOpen ? 'off' : S.connected ? (S.info?.paused ? 'warn' : 'on') : 'warn'}` });
+  let text;
+  let title = '';
+  if (!S.socketOpen) text = 'server down, retrying';
+  else if (!S.connected) text = 'waiting for the app';
+  else {
+    const i = S.info || {};
+    text = [i.platform, i.appVersion && `v${i.appVersion}`, i.route, i.unlocked === undefined ? null : i.unlocked ? 'unlocked' : 'locked', i.paused && 'PAUSED'].filter(Boolean).join(' · ');
+    title = `Connected through ${i.host ?? '?'}. Queued ${i.queued ?? 0}, dropped ${i.dropped ?? 0}.${i.routeParams ? ` Route params: ${JSON.stringify(i.routeParams).slice(0, 400)}` : ''}`;
+  }
+  $('pill').replaceChildren(dot, h('span', { text }));
+  $('pill').title = title;
+  $('btn-pause').textContent = S.info?.paused ? 'Resume' : 'Pause';
+}
+
+/* Network */
+function statusClass(e) {
+  if (e.state === 'error' || e.error) return 'serr';
+  if (e.status === undefined) return 'spend';
+  return `s${String(e.status)[0]}`;
+}
+function statusLabel(e) {
+  if (e.state === 'error' || e.error) return 'ERR';
+  if (e.status !== undefined) return String(e.status);
+  return '...';
+}
+const timeClass = (n) => (n > 3000 ? ' t-vslow' : n > 1000 ? ' t-slow' : '');
+const rpcLabel = (e) => (e.rpc ? (e.rpc.length > 1 ? `${e.rpc[0]} +${e.rpc.length - 1}` : e.rpc[0]) : null);
+const NET_COLUMNS = [
+  { key: 'pin', label: '' },
+  { key: 'status', label: 'St', get: (e) => e.status ?? 0 },
+  { key: 'method', label: 'Method', get: (e) => e.method },
+  { key: 'host', label: 'Host', get: (e) => splitUrl(e.url).host, grip: true },
+  { key: 'path', label: 'Path', get: (e) => splitUrl(e.url).path },
+  { key: 'ts', label: 'When', get: (e) => e.ts },
+  { key: 'ms', label: 'Time', get: (e) => e.ms ?? -1, right: true },
+  { key: 'size', label: 'Size', get: (e) => e.resBodySize ?? -1, right: true },
+];
+const netHead = h('div', { class: 'head cols-net' });
+function renderNetHead() {
+  netHead.replaceChildren(...NET_COLUMNS.map((c) => {
+    const sorted = S.netSort?.key === c.key;
+    const el = h('span', {
+      class: `${c.get ? 'sortable ' : ''}${c.right ? 'right ' : ''}${sorted ? 'sorted' : ''}`,
+      title: c.get ? 'Sort' : undefined,
+      onclick: c.get ? () => sortNet(c.key) : undefined,
+    }, [c.label, sorted ? (S.netSort.dir > 0 ? ' ▴' : ' ▾') : '']);
+    if (c.grip) {
+      el.append(h('i', { class: 'col-grip', onclick: (e) => e.stopPropagation(), onmousedown: startColumnDrag }));
+    }
+    return el;
+  }));
+}
+function startColumnDrag(event) {
+  event.preventDefault();
+  const startX = event.clientX;
+  const start = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--w-host'), 10) || 230;
+  const move = (e) => {
+    const width = Math.max(90, Math.min(600, start + e.clientX - startX));
+    document.documentElement.style.setProperty('--w-host', `${width}px`);
+    store.set('w-host', width);
+  };
+  const up = () => { removeEventListener('mousemove', move); removeEventListener('mouseup', up); };
+  addEventListener('mousemove', move);
+  addEventListener('mouseup', up);
+}
+function sortNet(key) {
+  const current = S.netSort;
+  S.netSort = current?.key !== key ? { key, dir: -1 } : current.dir === -1 ? { key, dir: 1 } : null;
+  if (S.netSort) netList.setFollow(false);
+  renderNetHead();
+  renderNet();
+  // The list was usually at the newest rows, and a sort is read from the top.
+  if (S.netSort) netList.el.scrollTop = 0;
+}
+const netList = new VList($('net-list'), {
+  name: 'net',
+  head: netHead,
+  render: (e, index) => {
+    const { host, path } = splitUrl(e.url);
+    const rpc = rpcLabel(e);
+    const frames = e.transport === 'ws' && (e.framesIn || e.framesOut) ? `↓${e.framesIn || 0} ↑${e.framesOut || 0}` : null;
+    const previous = netList.items[index - 1];
+    const brk = !S.netSort && previous && previous.session !== e.session;
+    const pinned = S.pins.has(e.key);
+    const rules = netBox.rules;
+    return h('div', {
+      class: `row cols-net${isNetworkError(e) ? ' bad' : ''}${netBox.rowClass(`${e.url} ${(e.rpc || []).join(' ')}`)}${S.selNet === e.key ? ' sel' : ''}${brk ? ' brk' : ''}`,
+      title: `${brk ? 'App reloaded here. ' : ''}${e.url}`,
+      onclick: () => selectNet(e.key),
+      oncontextmenu: (ev) => { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, netMenu(e)); },
+    }, [
+      h('button', { class: `star${pinned ? ' on' : ''}`, text: pinned ? '★' : '☆', title: 'Pin', 'aria-label': 'Pin this request', onclick: (ev) => { ev.stopPropagation(); togglePin(e.key); } }),
+      h('span', { class: statusClass(e), text: statusLabel(e) }),
+      h('span', { class: 'c-dim', text: e.method }),
+      h('span', { class: 'c-dim' }, marks(host, rules)),
+      h('span', null, [
+        rpc && h('span', { class: 'chip' }, marks(rpc, rules)),
+        e.rpcError && h('span', { class: 'chip bad-chip', text: 'rpc error' }),
+        ...[].concat(marks(path, rules)),
+      ]),
+      h('span', { class: 'c-faint', text: clock(e.ts) }),
+      h('span', { class: `right c-dim${timeClass(e.ms)}`, text: ms(e.ms) }),
+      h('span', { class: 'right c-faint', text: frames || bytes(e.resBodySize) }),
+    ]);
+  },
+});
+const netBox = new FilterBox('net', NETWORK, () => renderNet());
+function togglePin(key) {
+  if (S.pins.has(key)) S.pins.delete(key); else S.pins.add(key);
+  if ($('net-pinned').checked) renderNet(); else netList.schedule();
+  if (S.selNet === key) renderNetDetail();
+}
+function netVisible() {
+  const query = netBox.input.value;
+  const errorsOnly = $('net-errors').checked;
+  const pinnedOnly = $('net-pinned').checked;
+  const hasTokens = netBox.parsed.tokens.length > 0;
+  const items = [];
+  for (const e of S.net.values()) {
+    if (!inScope(e)) continue;
+    if (errorsOnly && !isNetworkError(e)) continue;
+    if (pinnedOnly && !S.pins.has(e.key)) continue;
+    if (hasTokens) {
+      // Bodies are large, so each entry is only searched again when it or the query changes.
+      if (!e._m || e._m.q !== query) e._m = { q: query, r: matches(e, netBox.parsed, NETWORK) };
+      if (!e._m.r) continue;
+    }
+    items.push(e);
+  }
+  if (S.netSort) {
+    const column = NET_COLUMNS.find((c) => c.key === S.netSort.key);
+    const { dir } = S.netSort;
+    items.sort((a, b) => {
+      const x = column.get(a); const y = column.get(b);
+      return (x < y ? -1 : x > y ? 1 : 0) * dir;
+    });
+  }
+  return items;
+}
+function renderNet() {
+  const items = netVisible();
+  netList.setItems(items);
+  $('net-count').textContent = `${items.length} / ${S.net.size}`;
+  renderNetEmpty();
+  renderNetFacets();
+  if (S.netView === 'endpoints') renderEndpoints(items);
+}
+function renderNetEmpty() {
+  const list = $('net-list');
+  const existing = list.querySelector('.empty');
+  if (S.net.size) { existing?.remove(); return; }
+  const text = S.connected ? 'The app is connected: use it and requests will show up here.' : 'Start Metro and open the dev build. It connects by itself.';
+  if (existing) existing.textContent = `Nothing captured yet. ${text}`;
+  else list.append(h('div', { class: 'empty', text: `Nothing captured yet. ${text}` }));
+}
+function renderNetFacets() {
+  const statusCounts = { '2xx': 0, '3xx': 0, '4xx': 0, '5xx': 0 };
+  const hosts = new Map();
+  const via = { fetch: 0, xhr: 0, ws: 0 };
+  let failed = 0;
+  let pending = 0;
+  for (const e of S.net.values()) {
+    if (!inScope(e)) continue;
+    if (e.state === 'error' || e.error) failed += 1;
+    else if (e.state === 'pending') pending += 1;
+    else if (e.status >= 200 && e.status < 600) statusCounts[`${String(e.status)[0]}xx`] += 1;
+    via[e.transport] = (via[e.transport] ?? 0) + 1;
+    const { host } = splitUrl(e.url);
+    if (host) hosts.set(host, (hosts.get(host) ?? 0) + 1);
+  }
+  const termChip = (label, term, count, title) => chip(label, count, {
+    on: netBox.has(term), neg: netBox.has(`-${term}`), title: title || `Click to filter on ${label}, Shift+click to exclude it`,
+    onclick: (ev) => netBox.toggle(term, ev.shiftKey),
+  });
+  const top = [...hosts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+  $('net-facets').replaceChildren(
+    ...Object.entries(statusCounts).map(([label, count]) => termChip(label, `status:${label}`, count)),
+    chip('ERR', failed, { on: netBox.has('state:error'), onclick: () => netBox.toggle('state:error') }),
+    chip('pending', pending, { on: netBox.has('state:pending'), onclick: () => netBox.toggle('state:pending') }),
+    h('span', { class: 'chip-label', text: 'via' }),
+    ...Object.entries(via).map(([label, count]) => termChip(label, `via:${label}`, count)),
+    h('span', { class: 'chip-label', text: 'hosts' }),
+    ...top.map(([host, count]) => termChip(host, `host:${host}`, count)),
+  );
+}
+function selectNet(key) {
+  S.selNet = key;
+  $('net-side').hidden = false;
+  S.find = '';
+  buildNetSkeleton = true;
+  netList.schedule();
+  renderNetDetail();
+}
+const quote = (s) => `'${String(s).replace(/'/g, `'\\''`)}'`;
+function curl(e) {
+  const parts = ['curl', '-X', e.method, quote(e.url)];
+  for (const [k, v] of Object.entries(e.reqHeaders || {})) parts.push('-H', quote(`${k}: ${v}`));
+  if (e.reqBody) parts.push('--data-raw', quote(e.reqBody));
+  return parts.join(' ');
+}
+function asFetch(e) {
+  const init = { method: e.method };
+  if (e.reqHeaders && Object.keys(e.reqHeaders).length) init.headers = e.reqHeaders;
+  if (e.reqBody) init.body = e.reqBody;
+  return `fetch(${JSON.stringify(e.url)}, ${pretty(init)})`;
+}
+function headerText(headers) { return Object.entries(headers || {}).map(([k, v]) => `${k}: ${v}`).join('\n'); }
+function cleanEntry(e) { const { _m, k, seq, key, ...rest } = e; return rest; }
+function markdownSummary(e) {
+  const fence = (text) => `\`\`\`\n${text}\n\`\`\``;
+  const sections = [
+    `**${e.method} ${e.url}**`,
+    `Status: ${statusLabel(e)} ${e.statusText || ''}, time: ${ms(e.ms)}${e.rpc ? `, RPC: ${e.rpc.join(', ')}` : ''}${e.error ? `, error: ${e.error}` : ''}${e.rpcError ? `, RPC error: ${e.rpcError}` : ''}`,
+  ];
+  if (e.reqBody) sections.push(`Request body:\n${fence(prettyBody(e.reqBody))}`);
+  if (e.resBody) sections.push(`Response body:\n${fence(prettyBody(e.resBody))}`);
+  return sections.join('\n\n');
+}
+function prettyBody(text) {
+  const parsed = parseJson(text);
+  return parsed.ok ? pretty(parsed.value) : text;
+}
+function netCopyItems(e) {
+  return [
+    { label: 'URL', fn: () => copy(e.url, 'URL') },
+    e.transport !== 'ws' && { label: 'As cURL', fn: () => copy(curl(e), 'cURL') },
+    e.transport !== 'ws' && { label: 'As fetch()', fn: () => copy(asFetch(e), 'fetch') },
+    '-',
+    { label: 'Request headers', fn: () => copy(headerText(e.reqHeaders), 'Headers') },
+    e.reqBody && { label: 'Request body', fn: () => copy(prettyBody(e.reqBody), 'Body') },
+    { label: 'Response headers', fn: () => copy(headerText(e.resHeaders), 'Headers') },
+    e.resBody && { label: 'Response body', fn: () => copy(prettyBody(e.resBody), 'Body') },
+    '-',
+    { label: 'Everything as JSON', fn: () => copy(pretty(cleanEntry(e)), 'JSON') },
+    { label: 'Summary for a ticket (Markdown)', fn: () => copy(markdownSummary(e), 'Summary') },
+  ];
+}
+function netMenu(e) {
+  const { host, path } = splitUrl(e.url);
+  const bare = path.split('?')[0];
+  return [
+    ...netCopyItems(e),
+    '-',
+    host && { label: `Only ${host}`, fn: () => netBox.toggle(`host:${host}`) },
+    host && { label: `Hide ${host}`, fn: () => netBox.toggle(`host:${host}`, true) },
+    { label: 'Only this path', fn: () => netBox.toggle(`path:"${bare}"`) },
+    { label: 'Hide this path', fn: () => netBox.toggle(`path:"${bare}"`, true) },
+    e.rpc && { label: `Only ${e.rpc[0]}`, fn: () => netBox.toggle(`rpc:${e.rpc[0]}`) },
+    '-',
+    e.transport !== 'ws' && { label: 'Replay in the app', fn: () => replay(e) },
+    e.transport !== 'ws' && { label: 'Edit and replay...', fn: () => editReplay(e) },
+    { label: S.pins.has(e.key) ? 'Unpin' : 'Pin', fn: () => togglePin(e.key) },
+    '-',
+    { label: S.compare ? 'Compare with the marked request' : 'Mark to compare', fn: () => compareNet(e) },
+  ];
+}
+function compareNet(e) {
+  if (!S.compare || S.compare === e.key) { S.compare = e.key; toast('Marked. Open the menu on another request to compare.'); return; }
+  const other = S.net.get(S.compare);
+  S.compare = null;
+  if (!other) { toast('The marked request is gone', true); return; }
+  const shape = (x) => ({
+    url: x.url, method: x.method, status: x.status, requestHeaders: x.reqHeaders, requestBody: parseJson(x.reqBody ?? '').ok ? JSON.parse(x.reqBody) : x.reqBody,
+    responseHeaders: x.resHeaders, responseBody: parseJson(x.resBody ?? '').ok ? JSON.parse(x.resBody) : x.resBody,
+  });
+  openModal(`Compare: ${clock(other.ts)} and ${clock(e.ts)}`, diffTable(jsonDiff(shape(other), shape(e))));
+}
+async function replay(e, overrides = {}) {
+  try {
+    const result = await cmd('net.replay', { url: e.url, method: e.method, headers: e.reqHeaders, body: e.reqBody, ...overrides }, 60000);
+    toast(`Replayed: ${result.status} in ${ms(result.ms)}`);
+    setTimeout(() => { // The new request arrives through the capture stream.
+      const newest = [...S.net.values()].filter((x) => x.url === result.url).at(-1);
+      if (newest) selectNet(newest.key);
+    }, 500);
+  } catch (error) { toast(error.message, true); }
+}
+function editReplay(e) {
+  const url = h('input', { value: e.url, 'aria-label': 'URL' });
+  const method = h('select', { 'aria-label': 'Method' }, ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'].map((m) => h('option', { value: m, text: m, selected: m === e.method })));
+  const headers = h('textarea', { rows: 7, spellcheck: 'false', 'aria-label': 'Headers as JSON' });
+  headers.value = pretty(e.reqHeaders || {});
+  const bodyInput = h('textarea', { rows: 9, spellcheck: 'false', 'aria-label': 'Body' });
+  bodyInput.value = e.reqBody ? prettyBody(e.reqBody) : '';
+  const send = () => {
+    const parsed = parseJson(headers.value);
+    if (!parsed.ok) { toast('The headers are not valid JSON', true); return; }
+    closeModal();
+    replay(e, { url: url.value, method: method.value, headers: parsed.value, body: bodyInput.value || undefined });
+  };
+  openModal('Edit and replay in the app', [
+    h('label', {}, ['Method', method]), h('label', {}, ['URL', url]), h('label', {}, ['Headers (JSON)', headers]), h('label', {}, ['Body', bodyInput]),
+  ], [h('button', { class: 'primary', text: 'Send', onclick: send })]);
+}
+function jwtOf(value) { return /\beyJ[\w-]+\.[\w-]+\.[\w-]*/.exec(String(value))?.[0]; }
+function decodeJwt(token) {
+  const decode = (part) => JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '=')));
+  const [header, payload] = token.split('.');
+  return { header: decode(header), payload: decode(payload) };
+}
+function kvBlock(entries, rules) {
+  if (!entries.length) return h('div', { class: 'c-faint', text: '(none)' });
+  return h('div', { class: 'kv' }, entries.flatMap(([k, v]) => {
+    const value = String(v);
+    const jwt = jwtOf(value);
+    const valueEl = h('span', { class: 'v', title: 'Click to copy', onclick: () => copy(value) }, marks(value, rules));
+    const row = [h('span', { class: 'k' }, marks(k, rules)), valueEl];
+    if (jwt) {
+      try {
+        const decoded = decodeJwt(jwt);
+        row.push(h('span', { class: 'c-faint', text: 'JWT' }), h('div', {}, tree(decoded, { openDepth: 2 })));
+      } catch { /* not a real JWT: show the raw value only */ }
+    }
+    return row;
+  }));
+}
+function bodyView(text, label, rules, size) {
+  const wrap = h('div');
+  const toolbar = h('h4', {}, [
+    `${label} ${bytes(size)}`,
+    text && h('button', { text: 'copy', onclick: () => copy(prettyBody(text), label) }),
+  ]);
+  wrap.append(toolbar);
+  if (text === undefined || text === null || text === '') { wrap.append(h('div', { class: 'c-faint', text: '(empty)' })); return wrap; }
+  if (size > text.length) wrap.append(h('div', { class: 'hint', style: 'margin-bottom:4px', text: `Only the first ${bytes(text.length)} is captured.` }));
+  const parsed = /^\s*[{[]/.test(text) ? parseJson(text) : { ok: false };
+  if (!parsed.ok) { wrap.append(h('pre', {}, marks(text, rules, 3000))); return wrap; }
+  toolbar.append(
+    h('span', { class: 'seg' }, [
+      h('button', { class: S.bodyMode === 'tree' ? 'on' : '', text: 'Tree', onclick: () => setBodyMode('tree') }),
+      h('button', { class: S.bodyMode === 'raw' ? 'on' : '', text: 'Raw', onclick: () => setBodyMode('raw') }),
+    ]),
+    S.bodyMode === 'tree' && h('button', { text: S.openDepth > 2 ? 'collapse' : 'expand all', onclick: () => { S.openDepth = S.openDepth > 2 ? 2 : 50; renderNetDetail(); } }),
+  );
+  wrap.append(S.bodyMode === 'raw'
+    ? h('pre', {}, marks(pretty(parsed.value), rules, 3000))
+    : tree(parsed.value, { openDepth: S.openDepth, findRules: rules, parseStrings: true, pathable: true }));
+  return wrap;
+}
+function setBodyMode(mode) { S.bodyMode = mode; store.set('body-mode', mode); renderNetDetail(); }
+let buildNetSkeleton = true;
+const findRulesOf = (text) => markersFor(parseFilter(text)).map((rx) => ({ rx, cls: 'mk' }));
+function renderNetDetail() {
+  const side = $('net-side-c');
+  const e = S.net.get(S.selNet);
+  if (!e) { $('net-side').hidden = true; return; }
+  const { path } = splitUrl(e.url);
+  const tabs = e.transport === 'ws' ? ['headers', 'frames', 'initiator'] : ['headers', 'request', 'response', 'initiator'];
+  if (!tabs.includes(S.netTab)) S.netTab = e.transport === 'ws' ? 'frames' : 'headers';
+  const close = () => { S.selNet = null; $('net-side').hidden = true; netList.schedule(); };
+  const pinned = S.pins.has(e.key);
+  const head = sideHead(`${e.method} ${path}`, [
+    e.transport !== 'ws' && h('button', { text: 'Replay', title: 'Send it again from the app', onclick: () => replay(e) }),
+    e.transport !== 'ws' && h('button', { text: 'Edit', title: 'Edit and replay', onclick: () => editReplay(e) }),
+    h('button', { text: pinned ? '★' : '☆', title: 'Pin', 'aria-label': 'Pin this request', onclick: () => togglePin(e.key) }),
+    menuButton('Copy', () => netCopyItems(e)),
+  ], close);
+  let findInput = side.querySelector('#net-find');
+  if (buildNetSkeleton || !findInput) {
+    findInput = h('input', { id: 'net-find', placeholder: 'Find, /regex/', 'aria-label': 'Find in this tab', value: S.find });
+    findInput.addEventListener('input', debounce(() => { S.find = findInput.value; S.findAt = 0; renderNetBody(); }, 120));
+    findInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); stepFind(ev.shiftKey ? -1 : 1); } });
+    side.replaceChildren(head, h('div', { class: 'side-tabs', id: 'net-side-tabs' }), h('div', { class: 'side-body', id: 'net-body' }));
+    buildNetSkeleton = false;
+  } else {
+    side.firstElementChild.replaceWith(head);
+  }
+  $('net-side-tabs').replaceChildren(
+    ...tabs.map((id) => h('button', { class: `tab${S.netTab === id ? ' on' : ''}`, text: id[0].toUpperCase() + id.slice(1), onclick: () => { S.netTab = id; store.set('net-tab', id); renderNetDetail(); } })),
+    findInput,
+    h('span', { class: 'count', id: 'net-find-count' }),
+  );
+  renderNetBody();
+}
+function renderNetBody() {
+  const e = S.net.get(S.selNet);
+  const box = $('net-body');
+  if (!e || !box) return;
+  const scrollTop = box.scrollTop;
+  const rules = S.find ? findRulesOf(S.find) : [];
+  const general = [
+    ['URL', e.url], ['Via', e.transport], ['Status', `${statusLabel(e)} ${e.statusText || ''}`], ['Time', ms(e.ms)],
+    ['Started', clock(e.ts)], e.redirected && ['Redirected', 'yes'], e.rpc && ['RPC', e.rpc.join(', ')], e.rpcError && ['RPC error', e.rpcError], e.error && ['Error', e.error],
+    e.closeCode !== undefined && ['Closed', `${e.closeCode} ${e.closeReason || ''}`],
+  ].filter(Boolean);
+  let query = [];
+  try { query = [...new URL(e.url).searchParams.entries()]; } catch { /* not a full URL */ }
+  let content;
+  switch (S.netTab) {
+    case 'request':
+      content = [query.length > 0 && [h('h4', { text: 'Query parameters' }), kvBlock(query, rules)], bodyView(e.reqBody, 'Request body', rules, e.reqBodySize)];
+      break;
+    case 'response':
+      content = [bodyView(e.resBody, 'Response body', rules, e.resBodySize)];
+      break;
+    case 'frames':
+      content = [
+        h('h4', { text: `Frames ↓${e.framesIn || 0} ↑${e.framesOut || 0}${e.framesIn + e.framesOut > (e.frames || []).length ? ' (busy sockets are sampled)' : ''}` }),
+        ...(e.frames || []).slice(-150).filter((f) => !rules.length || anyHit(rules, f.data)).map((f) => h('div', { class: `frame ${f.dir}` }, [
+          h('span', { class: 'dir', text: f.dir === 'in' ? '↓' : '↑' }), h('span', { class: 'c-faint', text: clock(f.ts) }),
+          h('span', { style: 'word-break:break-all;cursor:pointer', title: 'Click to copy', onclick: () => copy(prettyBody(f.data)) }, marks(f.data, rules)),
+        ])),
+      ];
+      break;
+    case 'initiator':
+      content = [initiatorView(e.stack)];
+      break;
+    default:
+      content = [
+        h('h4', { text: 'General' }), kvBlock(general, rules),
+        query.length > 0 && [h('h4', { text: 'Query parameters' }), kvBlock(query, rules)],
+        h('h4', {}, ['Response headers', h('button', { text: 'copy', onclick: () => copy(headerText(e.resHeaders), 'Headers') })]), kvBlock(Object.entries(e.resHeaders || {}), rules),
+        h('h4', {}, ['Request headers', h('button', { text: 'copy', onclick: () => copy(headerText(e.reqHeaders), 'Headers') })]), kvBlock(Object.entries(e.reqHeaders || {}), rules),
+      ];
+  }
+  box.replaceChildren(...content.flat(2).filter(Boolean));
+  box.scrollTop = scrollTop;
+  updateFindCount();
+}
+function updateFindCount() {
+  const el = $('net-find-count');
+  if (!el) return;
+  const hits = $('net-body').querySelectorAll('mark.mk');
+  el.textContent = S.find ? `${hits.length ? Math.min((S.findAt ?? 0) + 1, hits.length) : 0}/${hits.length}` : '';
+  hits[S.findAt ?? 0]?.classList.add('cur');
+}
+function stepFind(direction) {
+  const hits = [...$('net-body').querySelectorAll('mark.mk')];
+  if (!hits.length) return;
+  hits[S.findAt ?? 0]?.classList.remove('cur');
+  S.findAt = ((S.findAt ?? 0) + direction + hits.length) % hits.length;
+  hits[S.findAt].classList.add('cur');
+  hits[S.findAt].scrollIntoView({ block: 'center' });
+  updateFindCount();
+}
+/* Shows which code started a request or wrote a log, resolved to source files by Metro on demand. */
+function initiatorView(stack) {
+  const box = h('div');
+  if (!stack) { box.append(h('div', { class: 'hint', style: 'margin-top:10px', text: 'No stack was captured for this.' })); return box; }
+  box.append(h('div', { class: 'hint', style: 'margin-top:10px', text: 'Asking Metro. The first lookup after a bundle can take a while...' }));
+  fetch('/api/symbolicate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stack }) })
+    .then((response) => response.json())
+    .then((result) => {
+      if (result.ok === false) throw new Error(result.text);
+      const appFrames = result.frames.filter((f) => f.app);
+      const useful = result.frames.filter((f) => !f.plumbing);
+      let showAll = false;
+      const list = h('div');
+      const draw = () => list.replaceChildren(...(showAll ? result.frames : useful).map((f) => {
+        const where = `${f.file}:${f.line}:${f.column}`;
+        return h('div', { class: `sframe${f.app ? '' : ' lib'}`, title: 'Click to copy the location', onclick: () => copy(where, 'Location') }, [h('span', { style: 'color:#9cc4ff', text: f.method }), h('span', { text: where })]);
+      }));
+      draw();
+      box.replaceChildren(
+        h('h4', {}, ['Started by', h('button', { text: 'copy', onclick: () => copy(useful.map((f) => `${f.method} ${f.file}:${f.line}`).join('\n'), 'Stack') }), h('button', { text: 'all frames', title: 'Include wrappers and async helpers', onclick: () => { showAll = !showAll; draw(); } })]),
+        list,
+        appFrames.length === 0 ? h('div', { class: 'hint', style: 'margin-top:6px', text: 'No app code in this stack: the call probably came after an await, which hides the caller, or from Run.' }) : '',
+        // Metro's snippet is always for the first frame, so it only helps when that frame is useful.
+        result.codeFrame && !result.frames[0]?.plumbing ? h('pre', { style: 'margin-top:10px;color:var(--dim)', text: result.codeFrame.replace(/\u001b\[[0-9;]*m/g, '') }) : '',
+      );
+    })
+    .catch((error) => {
+      box.replaceChildren(h('div', { class: 'hint', style: 'margin-top:10px', text: `Could not resolve the source files: ${error.message}. Raw stack:` }), h('pre', { style: 'margin-top:6px', text: stack }));
+    });
+  return box;
+}
+
+/* Endpoints */
+const END_COLUMNS = [
+  ['method', 'Method'], ['endpoint', 'Endpoint'], ['count', 'Count'], ['errors', 'Errors'], ['avg', 'Avg'], ['p95', 'p95'], ['max', 'Max'], ['bytes', 'Total size'], ['last', 'Last'],
+];
+function renderEndpoints(items) {
+  const rows = groupEndpoints(items);
+  const { key, dir } = S.endSort;
+  rows.sort((a, b) => { const x = a[key] ?? -1; const y = b[key] ?? -1; return (x < y ? -1 : x > y ? 1 : 0) * dir; });
+  const openGroup = (g) => {
+    const pattern = g.endpoint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/:id/g, '[^/]+').replace(/\//g, '\\/');
+    netBox.set([`method:${g.method}`, `host:${g.host}`, `path:/^${pattern}(\\?|$)/`, g.rpc && `rpc:${g.rpc}`].filter(Boolean).join(' '));
+    setNetView('list');
+  };
+  $('net-end').replaceChildren(h('table', {}, [
+    h('thead', {}, h('tr', {}, END_COLUMNS.map(([id, label]) => h('th', {
+      class: `sortable${key === id ? ' sorted' : ''}`,
+      onclick: () => { S.endSort = { key: id, dir: key === id ? -dir : -1 }; renderEndpoints(items); },
+    }, [label, key === id ? (dir > 0 ? ' ▴' : ' ▾') : ''])))),
+    h('tbody', {}, rows.slice(0, 500).map((g) => h('tr', { class: 'click', title: 'Show these requests', tabindex: 0, onclick: () => openGroup(g), onkeydown: (ev) => { if (ev.key === 'Enter') openGroup(g); } }, [
+      h('td', { class: 'mono c-dim', text: g.method }),
+      h('td', { class: 'mono' }, [h('span', { class: 'c-dim', text: g.host }), g.endpoint, g.rpc && [' ', h('span', { class: 'chip', text: g.rpc })]].flat()),
+      h('td', { class: 'mono', text: g.count }),
+      h('td', { class: `mono${g.errors ? ' err-text' : ' c-faint'}`, text: g.errors }),
+      h('td', { class: `mono${timeClass(g.avg)}`, text: ms(g.avg) }),
+      h('td', { class: `mono${timeClass(g.p95)}`, text: ms(g.p95) }),
+      h('td', { class: `mono${timeClass(g.max)}`, text: ms(g.max) }),
+      h('td', { class: 'mono c-faint', text: bytes(g.bytes) }),
+      h('td', { class: 'mono c-faint', text: clock(g.last) }),
+    ]))),
+  ]));
+}
+function setNetView(view) {
+  S.netView = view;
+  store.set('net-view', view);
+  $('net-v-list').classList.toggle('on', view === 'list');
+  $('net-v-end').classList.toggle('on', view === 'endpoints');
+  $('net-list').hidden = view !== 'list';
+  $('net-list').style.display = view === 'list' ? '' : 'none';
+  $('net-end').hidden = view === 'list';
+  netList.jump.style.display = view === 'list' ? '' : 'none';
+  renderNet();
+  netList.schedule();
+}
+function toHar(items) {
+  const pairs = (headers) => Object.entries(headers || {}).map(([name, value]) => ({ name, value: String(value) }));
+  return {
+    log: {
+      version: '1.2', creator: { name: 'DevDash', version: '0' },
+      entries: items.filter((e) => e.transport !== 'ws').map((e) => {
+        let queryString = [];
+        try { queryString = [...new URL(e.url).searchParams.entries()].map(([name, value]) => ({ name, value })); } catch { /* not a full URL */ }
+        return {
+          startedDateTime: new Date(e.ts).toISOString(), time: e.ms ?? 0,
+          request: {
+            method: e.method, url: e.url, httpVersion: 'HTTP/1.1', cookies: [], headers: pairs(e.reqHeaders), queryString,
+            headersSize: -1, bodySize: e.reqBodySize ?? 0,
+            ...(e.reqBody ? { postData: { mimeType: e.reqHeaders?.['content-type'] ?? '', text: e.reqBody } } : {}),
+          },
+          response: {
+            status: e.status ?? 0, statusText: e.statusText ?? '', httpVersion: 'HTTP/1.1', cookies: [], headers: pairs(e.resHeaders), redirectURL: '',
+            headersSize: -1, bodySize: e.resBodySize ?? -1,
+            content: { size: e.resBodySize ?? 0, mimeType: e.resHeaders?.['content-type'] ?? '', text: e.resBody ?? '' },
+            ...(e.error ? { _error: e.error } : {}),
+          },
+          cache: {}, timings: { send: 0, wait: e.ms ?? 0, receive: 0 },
+        };
+      }),
+    },
+  };
+}
+const stamp = () => new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+function netExportMenu() {
+  const items = netVisible();
+  return [
+    { label: `Download HAR (${items.length} requests)`, fn: () => download(`devdash-${stamp()}.har`, JSON.stringify(toHar(items), null, 1)) },
+    { label: 'Download JSON', fn: () => download(`devdash-${stamp()}.json`, JSON.stringify(items.map(cleanEntry), null, 1)) },
+    '-',
+    { label: 'Copy visible as JSON', fn: () => copy(JSON.stringify(items.map(cleanEntry), null, 1), 'JSON') },
+    { label: 'Copy visible URLs', fn: () => copy(items.map((e) => `${e.method} ${e.status ?? ''} ${e.url}`).join('\n'), 'URLs') },
+    { label: 'Copy visible as cURL', fn: () => copy(items.filter((e) => e.transport !== 'ws').map(curl).join('\n\n'), 'cURL') },
+  ];
+}
+
+/* Logs */
+const logHead = h('div', { class: 'head cols-log' }, ['Time', 'Level', 'Message'].map((t) => h('span', { text: t })));
+const logList = new VList($('log-list'), {
+  name: 'log',
+  head: logHead,
+  render: (item, index) => {
+    const l = item.l ?? item;
+    const previous = logList.items[index - 1];
+    const brk = previous && (previous.l ?? previous).session !== l.session;
+    return h('div', {
+      class: `row cols-log${l.level === 'error' ? ' bad' : ''}${logBox.rowClass(l.text)}${S.selLog === l ? ' sel' : ''}${brk ? ' brk' : ''}`,
+      title: `${brk ? 'App reloaded here. ' : ''}${l.text.slice(0, 400)}`,
+      onclick: () => selectLog(l),
+      oncontextmenu: (ev) => { ev.preventDefault(); openMenu(ev.clientX, ev.clientY, logMenu(l)); },
+    }, [
+      h('span', { class: 'c-faint', text: clock(l.ts) }),
+      h('span', { class: `lv-${l.level}`, text: l.level }),
+      h('span', null, [item.n > 1 && h('span', { class: 'times', text: `×${item.n}` }), ...[].concat(marks(l.text.replace(/\s+/g, ' '), logBox.rules))]),
+    ]);
+  },
+});
+const logBox = new FilterBox('log', LOGS, () => renderLogs());
+function logMenu(l) {
+  const tag = logTag(l.text);
+  const first = l.text.split('\n')[0].slice(0, 60);
+  return [
+    { label: 'Copy message', fn: () => copy(l.text, 'Message') },
+    l.args && { label: 'Copy with objects (JSON)', fn: () => copy(pretty(l.args), 'JSON') },
+    '-',
+    tag && { label: `Only [${tag}]`, fn: () => logBox.toggle(`tag:"${tag}"`) },
+    tag && { label: `Hide [${tag}]`, fn: () => logBox.toggle(`tag:"${tag}"`, true) },
+    { label: 'Hide messages like this', fn: () => logBox.toggle(`"${first.replace(/"/g, '')}"`, true) },
+  ];
+}
+function logVisible() {
+  const hasTokens = logBox.parsed.tokens.length > 0;
+  return S.logs.filter((l) => S.levels.has(l.level) && inScope(l) && (!hasTokens || matches(l, logBox.parsed, LOGS)));
+}
+function renderLogs() {
+  const items = logVisible();
+  let rows = items;
+  if ($('log-group').checked) {
+    rows = [];
+    for (const l of items) {
+      const last = rows.at(-1);
+      if (last && last.l.text === l.text && last.l.level === l.level) { last.n += 1; last.l = l; } else rows.push({ l, n: 1 });
+    }
+  }
+  logList.setItems(rows);
+  $('log-count').textContent = `${items.length} / ${S.logs.length}`;
+  renderLogFacets();
+}
+function renderLogFacets() {
+  const levels = Object.fromEntries(LEVELS.map((level) => [level, 0]));
+  const tags = new Map();
+  for (const l of S.logs) {
+    if (!inScope(l)) continue;
+    levels[l.level] = (levels[l.level] ?? 0) + 1;
+    const tag = logTag(l.text);
+    if (tag) tags.set(tag, (tags.get(tag) ?? 0) + 1);
+  }
+  $('log-facets').replaceChildren(
+    ...LEVELS.map((level) => chip(level, levels[level], {
+      off: !S.levels.has(level), title: 'Click to hide or show this level, Shift+click to show only this level',
+      onclick: (ev) => {
+        if (ev.shiftKey) S.levels = new Set([level]);
+        else if (S.levels.has(level)) S.levels.delete(level);
+        else S.levels.add(level);
+        store.set('levels', [...S.levels]);
+        renderLogs();
+      },
+    })),
+    h('span', { class: 'chip-label', text: 'tags' }),
+    ...[...tags.entries()].sort((a, b) => b[1] - a[1]).slice(0, 14).map(([tag, count]) => {
+      const term = `tag:"${tag}"`;
+      return chip(tag, count, { on: logBox.has(term), neg: logBox.has(`-${term}`), title: 'Click to filter on this tag, Shift+click to exclude it', onclick: (ev) => logBox.toggle(term, ev.shiftKey) });
+    }),
+  );
+}
+function selectLog(l) {
+  S.selLog = l;
+  $('log-side').hidden = false;
+  logList.schedule();
+  $('log-side-c').replaceChildren(
+    sideHead(`${clock(l.ts)} ${l.level}`, [menuButton('Copy', () => logMenu(l).slice(0, 2).filter(Boolean))], () => { S.selLog = null; $('log-side').hidden = true; logList.schedule(); }),
+    h('div', { class: 'side-body' }, [
+      h('h4', { text: 'Message' }),
+      h('pre', {}, marks(l.text, logBox.rules, 2000)),
+      l.args && [h('h4', { text: 'Values' }), tree(l.args, { openDepth: 2, findRules: logBox.marks, parseStrings: true, pathable: true })],
+      l.stack && initiatorView(l.stack),
+    ].flat()),
+  );
+}
+function logsAsText(items) { return items.map((l) => `${new Date(l.ts).toISOString()} ${l.level.padEnd(5)} ${l.text}`).join('\n'); }
+
+/* Redux actions */
+const actHead = h('div', { class: 'head cols-act' }, ['Time', 'Type', 'Changed', 'ms'].map((t, i) => h('span', { class: i === 3 ? 'right' : '', text: t })));
+const actList = new VList($('act-list'), {
+  name: 'act',
+  head: actHead,
+  render: (a, index) => {
+    const previous = actList.items[index - 1];
+    const brk = previous && previous.session !== a.session;
+    return h('div', {
+      class: `row cols-act${actBox.rowClass(`${a.type} ${(a.changed || []).join(' ')}`)}${S.selAct === a ? ' sel' : ''}${brk ? ' brk' : ''}`,
+      onclick: () => selectAction(a),
+      oncontextmenu: (ev) => {
+        ev.preventDefault();
+        openMenu(ev.clientX, ev.clientY, [
+          { label: 'Copy action', fn: () => copy(pretty(a.action), 'Action') },
+          { label: 'Use in the dispatch box', fn: () => useAction(a) },
+          '-',
+          { label: `Only ${a.type}`, fn: () => actBox.toggle(`type:"${a.type}"`) },
+          { label: `Hide ${a.type}`, fn: () => actBox.toggle(`type:"${a.type}"`, true) },
+        ]);
+      },
+    }, [
+      h('span', { class: 'c-faint', text: clock(a.ts) }),
+      h('span', null, marks(a.type, actBox.rules)),
+      h('span', { class: 'c-dim' }, marks((a.changed || []).join(', '), actBox.rules)),
+      h('span', { class: 'right c-faint', text: a.ms }),
+    ]);
+  },
+});
+const actBox = new FilterBox('act', ACTIONS, () => renderActions());
+function actVisible() {
+  const hasTokens = actBox.parsed.tokens.length > 0;
+  return S.actions.filter((a) => inScope(a) && (!hasTokens || matches(a, actBox.parsed, ACTIONS)));
+}
+function renderActions() {
+  const items = actVisible();
+  actList.setItems(items);
+  $('act-count').textContent = `${items.length} / ${S.actions.length}`;
+  const types = new Map();
+  for (const a of S.actions) if (inScope(a)) types.set(a.type, (types.get(a.type) ?? 0) + 1);
+  $('act-facets').replaceChildren(...[...types.entries()].sort((a, b) => b[1] - a[1]).slice(0, 14).map(([type, count]) => {
+    const term = `type:"${type}"`;
+    return chip(type, count, { on: actBox.has(term), neg: actBox.has(`-${term}`), title: 'Click to filter on this type, Shift+click to exclude it', onclick: (ev) => actBox.toggle(term, ev.shiftKey) });
+  }));
+}
+function useAction(a) { $('act-dispatch').value = JSON.stringify(a.action); $('act-dispatch').focus(); }
+function selectAction(a) {
+  S.selAct = a;
+  $('act-side').hidden = false;
+  actList.schedule();
+  $('act-side-c').replaceChildren(
+    sideHead(a.type, [
+      h('button', { text: 'Use', title: 'Copy into the dispatch box', onclick: () => useAction(a) }),
+      h('button', { text: 'Copy', onclick: () => copy(pretty(a.action), 'Action') }),
+    ], () => { S.selAct = null; $('act-side').hidden = true; actList.schedule(); }),
+    h('div', { class: 'side-body' }, [
+      h('h4', { text: `What changed (${(a.diff || []).length}${(a.diff || []).length >= 40 ? ', cut at 40' : ''})` }),
+      a.diff ? diffTable(a.diff) : h('div', { class: 'hint', text: 'Not captured.' }),
+      h('h4', { text: 'Changed slices' }),
+      h('div', { class: 'c-dim', style: 'font:12px var(--mono)', text: (a.changed || []).join(', ') || '(none)' }),
+      h('h4', { text: 'Action' }),
+      tree(a.action, { openDepth: 2, findRules: actBox.marks, parseStrings: true, pathable: true }),
+    ]),
+  );
+}
+function renderRecentDispatches() { $('act-recent').replaceChildren(...store.get('r-dispatch', []).map((q) => h('option', { value: q }))); }
+async function dispatchAction() {
+  const raw = $('act-dispatch').value.trim();
+  if (!raw) return;
+  const parsed = parseJson(raw);
+  if (!parsed.ok) { toast('That is not valid JSON', true); return; }
+  try {
+    await cmd('redux.dispatch', { action: parsed.value });
+    toast(`Dispatched ${parsed.value.type}`);
+    store.set('r-dispatch', [raw, ...store.get('r-dispatch', []).filter((x) => x !== raw)].slice(0, 15));
+    renderRecentDispatches();
+  } catch (error) { toast(error.message, true); }
+}
+
+/* State */
+const ST = {
+  mode: store.get('st-mode', 'controllers'),
+  controllers: [], slices: [],
+  selected: store.get('st-selected', null),
+  path: [],
+  expanded: new Map(),
+  searching: false,
+  flash: new Map(),
+  changeCounts: new Map(),
+  refreshTimer: null,
+  loaded: false,
+  snapshot: null,
+  watches: store.get('st-watches', []),
+  watchValues: new Map(),
+};
+const stIsRedux = () => ST.mode === 'redux';
+const stFullPath = (path) => (stIsRedux() && ST.selected ? [ST.selected, ...path] : path);
+function stGet(path, depth) {
+  if (stIsRedux()) return cmd('redux.get', { path: stFullPath(path), depth });
+  return cmd('ctl.get', { name: ST.selected, path, depth });
+}
+async function stateLoadNames() {
+  try {
+    ST.controllers = await cmd('ctl.list');
+    const root = await cmd('redux.get', { path: [], depth: 1 });
+    ST.slices = Object.keys(root || {}).filter((k) => !k.startsWith('$')).sort();
+    ST.loaded = true;
+    renderNames();
+    if (!ST.selected || !stNames().includes(ST.selected)) stSelect(stNames()[0] ?? null);
+    else { renderCrumbs(); renderChanges(); loadMethods(); stRefresh(); }
+    refreshWatches();
+  } catch (error) {
+    $('st-tree').replaceChildren(h('div', { class: 'empty', text: error.message }));
+  }
+}
+function stateOnConnect() { ST.loaded = false; if (S.tab === 'state') stateEnsureLoaded(); }
+function stateEnsureLoaded() {
+  if (ST.loaded) { renderNames(); return; }
+  if (!S.connected) { $('st-tree').replaceChildren(h('div', { class: 'empty', text: 'Waiting for the app to connect.' })); return; }
+  stateLoadNames();
+}
+const stNames = () => (stIsRedux() ? ST.slices : ST.controllers.map((c) => c.name));
+function renderNames() {
+  $('st-ctl').classList.toggle('on', !stIsRedux());
+  $('st-redux').classList.toggle('on', stIsRedux());
+  $('st-call-bar').style.display = stIsRedux() ? 'none' : '';
+  $('st-changes-box').style.display = stIsRedux() ? 'none' : '';
+  $('st-all-label').title = stIsRedux() ? 'Search the whole Redux state, not only this slice' : 'Search every controller, not only the selected one';
+  const parsed = parseFilter($('st-names-filter').value, NAMES);
+  $('st-names-filter').classList.toggle('invalid', Boolean(parsed.error));
+  const now = Date.now();
+  let names = stNames().filter((n) => matches(n, parsed, NAMES));
+  if (!stIsRedux() && $('st-busy').checked) names = [...names].sort((a, b) => (ST.changeCounts.get(b) ?? 0) - (ST.changeCounts.get(a) ?? 0));
+  const rules = markersFor(parsed).map((rx) => ({ rx, cls: 'mk' }));
+  $('st-names').replaceChildren(...names.map((n) => h('div', {
+    class: `name${n === ST.selected ? ' on' : ''}${(ST.flash.get(n) || 0) > now - 1500 ? ' flash' : ''}`,
+    tabindex: 0, title: n,
+    onclick: () => stSelect(n),
+    onkeydown: (e) => { if (e.key === 'Enter') stSelect(n); },
+  }, [h('span', null, marks(n, rules)), !stIsRedux() && ST.changeCounts.get(n) ? h('span', { class: 'c-faint', text: ST.changeCounts.get(n) }) : null])));
+}
+function loadMethods() {
+  if (stIsRedux() || !ST.selected) return;
+  cmd('ctl.methods', { name: ST.selected }).then((methods) => {
+    $('st-methods').replaceChildren(...methods.map((m) => h('option', { value: m })));
+  }).catch(() => undefined);
+}
+function stSelect(name) {
+  ST.selected = name; ST.path = []; ST.expanded = new Map(); ST.searching = false;
+  store.set('st-selected', name);
+  $('st-search').value = '';
+  renderNames(); renderCrumbs(); renderChanges(); loadMethods(); stRefresh();
+}
+function renderCrumbs() {
+  const items = [h('a', { text: ST.selected || '(none)', onclick: () => stOpenPath([]) })];
+  ST.path.forEach((segment, index) => {
+    items.push(h('span', { class: 'c-faint', text: ' / ' }), h('a', { text: String(segment), onclick: () => stOpenPath(ST.path.slice(0, index + 1)) }));
+  });
+  $('st-crumbs').replaceChildren(...items);
+}
+function stOpenPath(path) {
+  ST.path = path; ST.searching = false;
+  renderCrumbs();
+  stRefresh();
+}
+async function stEdit(path, value) {
+  try {
+    if (stIsRedux()) {
+      await cmd('redux.set', { path: stFullPath(path), value });
+      toast(ST.selected === 'engine' ? 'Saved, but the next controller update overwrites engine.backgroundState. Edit it under Controllers.' : 'Saved');
+    } else {
+      await cmd('ctl.set', { name: ST.selected, path, value });
+      toast('Saved');
+    }
+  } catch (error) { toast(error.message, true); }
+  stRefresh();
+}
+async function stRefresh() {
+  if (!ST.selected || ST.searching) return;
+  const box = $('st-tree');
+  const { selected, path } = ST;
+  try {
+    const value = await stGet(path, 3);
+    if (selected !== ST.selected || path !== ST.path || ST.searching) return;
+    const top = box.scrollTop;
+    const readOnly = !stIsRedux() && ST.controllers.find((c) => c.name === selected)?.readOnly;
+    box.replaceChildren(
+      h('div', { class: 'hint', style: 'margin-bottom:6px', text: readOnly ? 'Read-only here: a bad edit can lock the wallet. Secrets are masked.' : 'Double-click a value to edit it. Plain text is saved as a string, valid JSON as JSON.' }),
+      tree(value, {
+        path, openDepth: 1, expanded: ST.expanded, pathable: true,
+        fetchMore: (subPath) => stGet(subPath, 3),
+        onEdit: readOnly ? undefined : stEdit,
+        onWatch: addWatch,
+      }),
+    );
+    box.scrollTop = top;
+  } catch (error) {
+    box.replaceChildren(h('div', { class: 'empty', text: error.message }));
+  }
+}
+function stScheduleRefresh() {
+  if (!$('st-live').checked || S.tab !== 'state' || ST.searching || document.activeElement?.classList.contains('t-edit')) return;
+  clearTimeout(ST.refreshTimer);
+  ST.refreshTimer = setTimeout(stRefresh, 500);
+}
+const scheduleWatches = debounce(() => refreshWatches(), 500);
+function stateOnChange(change) {
+  ST.flash.set(change.name, Date.now());
+  ST.changeCounts.set(change.name, (ST.changeCounts.get(change.name) ?? 0) + 1);
+  if (!stIsRedux() && change.name === ST.selected) stScheduleRefresh();
+  if (S.tab === 'state' && !stIsRedux()) scheduleNames();
+  if (ST.watches.some((w) => w.source === 'controllers' && w.name === change.name)) scheduleWatches();
+}
+function stateOnAction(action) {
+  if (stIsRedux() && action.changed?.includes(ST.selected)) stScheduleRefresh();
+  if (ST.watches.some((w) => w.source === 'redux' && action.changed?.includes(w.name))) scheduleWatches();
+}
+let namesTimer = null;
+function scheduleNames() {
+  if (namesTimer) return;
+  namesTimer = setTimeout(() => { namesTimer = null; renderNames(); }, 800);
+}
+const changesBox = { parsed: parseFilter('', CHANGES) };
+function renderChanges() {
+  if (stIsRedux()) return;
+  const all = $('st-changes-all').checked;
+  const matched = S.changes.filter((c) => (all || c.name === ST.selected) && matches(c, changesBox.parsed, CHANGES));
+  const list = matched.slice(-80).reverse();
+  const rules = markersFor(changesBox.parsed).map((rx) => ({ rx, cls: 'mk' }));
+  $('st-changes-title').textContent = `Recent changes${!all && ST.selected ? ` in ${ST.selected}` : ''} (${matched.length})`;
+  $('st-changes').replaceChildren(...list.map((c) => h('div', { class: 'entry', style: 'padding:3px 12px' }, h('details', {}, [
+    h('summary', { style: 'cursor:pointer;font:12px var(--mono)' }, [
+      h('span', { class: 'c-faint', text: `${clock(c.ts)}  ` }),
+      all && h('span', { style: 'color:#9cc4ff', text: `${c.name}  ` }),
+      ...[].concat(marks((c.paths || []).join(', ') || `${c.count} patches`, rules)),
+    ]),
+    tree(c.patches, { openDepth: 3, findRules: rules, parseStrings: true }),
+  ]))));
+}
+async function stSearch(query) {
+  if (!query) { ST.searching = false; stRefresh(); return; }
+  ST.searching = true;
+  const box = $('st-tree');
+  const all = $('st-search-all').checked;
+  box.replaceChildren(h('div', { class: 'hint', text: 'Searching...' }));
+  try {
+    const results = stIsRedux()
+      ? await cmd('state.search', { source: 'redux', query, limit: 300 })
+      : await cmd('state.search', { source: 'controllers', name: all ? undefined : ST.selected, query, limit: 300 });
+    if ($('st-search').value.trim() !== query) return;
+    const scoped = stIsRedux() && !all ? results.filter((r) => r.path[0] === ST.selected) : results;
+    const rules = findRulesOf(query);
+    box.replaceChildren(
+      h('div', { class: 'hint', style: 'margin-bottom:6px', text: `${scoped.length} matches${scoped.length >= 300 ? ' (stopped at 300)' : ''}. Click one to open it.` }),
+      ...scoped.map((r) => h('div', {
+        class: 'result', tabindex: 0,
+        onclick: () => {
+          $('st-search').value = '';
+          const name = stIsRedux() ? r.path[0] : (r.name ?? ST.selected);
+          const rest = stIsRedux() ? r.path.slice(1) : r.path;
+          if (name !== ST.selected) stSelect(name);
+          stOpenPath(rest.slice(0, -1));
+        },
+      }, [
+        h('span', { style: 'color:#9cc4ff' }, marks(`${r.name ? `${r.name}.` : ''}${r.path.join('.')}`, rules)),
+        h('span', { class: 'c-faint' }, ['  ', ...[].concat(marks(r.preview, rules))]),
+      ])),
+    );
+  } catch (error) { box.replaceChildren(h('div', { class: 'empty', text: error.message })); }
+}
+async function stCall() {
+  const method = $('st-method').value.trim();
+  if (!method || !ST.selected) return;
+  let args = [];
+  const raw = $('st-args').value.trim();
+  if (raw) {
+    const parsed = parseJson(raw);
+    if (!parsed.ok || !Array.isArray(parsed.value)) { toast('Arguments must be a JSON array', true); return; }
+    args = parsed.value;
+  }
+  const name = ST.selected;
+  setTab('run');
+  await runEntry(`${name}.${method}(${args.map((a) => JSON.stringify(a)).join(', ')})`, () => cmd('ctl.call', { name, method, args }, 60000));
+}
+async function stCopy() {
+  try { copy(pretty(await stGet(ST.path, 14)), 'JSON'); } catch (error) { toast(error.message, true); }
+}
+async function stSnapshot() {
+  try {
+    ST.snapshot = { mode: ST.mode, name: ST.selected, path: ST.path, data: await stGet(ST.path, 14), ts: Date.now() };
+    $('st-diff').disabled = false;
+    toast(`Snapshot of ${ST.selected} taken`);
+  } catch (error) { toast(error.message, true); }
+}
+async function stDiff() {
+  const snap = ST.snapshot;
+  if (!snap) return;
+  try {
+    const now = snap.mode === 'redux' ? await cmd('redux.get', { path: [snap.name, ...snap.path], depth: 14 }) : await cmd('ctl.get', { name: snap.name, path: snap.path, depth: 14 });
+    openModal(`${snap.name}: changes since ${clock(snap.ts)}`, diffTable(jsonDiff(snap.data, now)));
+  } catch (error) { toast(error.message, true); }
+}
+function addWatch(path) {
+  const entry = { source: ST.mode, name: ST.selected, path };
+  if (ST.watches.some((w) => JSON.stringify(w) === JSON.stringify(entry))) return;
+  ST.watches.push(entry);
+  store.set('st-watches', ST.watches);
+  refreshWatches();
+}
+const watchKey = (w) => JSON.stringify(w);
+async function refreshWatches() {
+  const box = $('st-watches');
+  box.hidden = ST.watches.length === 0;
+  if (!ST.watches.length || !S.connected) { renderWatches(new Set()); return; }
+  const changed = new Set();
+  await Promise.all(ST.watches.map(async (w) => {
+    try {
+      const value = w.source === 'redux' ? await cmd('redux.get', { path: [w.name, ...w.path], depth: 2 }) : await cmd('ctl.get', { name: w.name, path: w.path, depth: 2 });
+      const text = JSON.stringify(value);
+      const key = watchKey(w);
+      if (ST.watchValues.has(key) && ST.watchValues.get(key) !== text) changed.add(key);
+      ST.watchValues.set(key, text);
+    } catch (error) { ST.watchValues.set(watchKey(w), `Error: ${error.message}`); }
+  }));
+  renderWatches(changed);
+}
+function renderWatches(changed) {
+  $('st-watches').replaceChildren(...ST.watches.map((w, index) => {
+    const key = watchKey(w);
+    const text = ST.watchValues.get(key) ?? '...';
+    return h('div', { class: `watch${changed.has(key) ? ' flash' : ''}` }, [
+      h('span', { class: 'w-key', title: `${w.name}.${w.path.join('.')}`, text: `${w.name}.${w.path.join('.')}` }),
+      h('span', { class: 'w-val', title: text, text }),
+      h('button', { class: 'ghost', text: 'copy', onclick: () => copy(text) }),
+      h('button', { class: 'ghost', text: '×', 'aria-label': 'Stop watching', onclick: () => { ST.watches.splice(index, 1); store.set('st-watches', ST.watches); refreshWatches(); } }),
+    ]);
+  }));
+}
+
+/* Run */
+const RUN = { history: store.get('run-history', []), index: -1, saved: store.get('run-saved', []), hits: [], at: 0, range: null };
+function renderSnippets() {
+  $('run-snippets').replaceChildren(
+    h('option', { value: '', text: 'Snippets...' }),
+    h('optgroup', { label: 'Examples' }, SNIPPETS.map(([label, code]) => h('option', { value: code, text: label }))),
+    RUN.saved.length ? h('optgroup', { label: 'Saved' }, RUN.saved.map(([label, code]) => h('option', { value: code, text: label }))) : null,
+  );
+  [...$('run-snippets').children].forEach((node) => { if (!node) node.remove(); });
+}
+async function runEntry(code, execute) {
+  const startedAt = performance.now();
+  const entry = h('div', { class: 'entry' });
+  const result = h('div', { class: 'hint', text: 'running...' });
+  entry.append(
+    h('div', { class: 'entry-head' }, [
+      h('pre', { class: 'code', text: `> ${code}` }),
+      h('button', { class: 'ghost', text: 'edit', title: 'Put this back in the editor', onclick: () => { $('run-code').value = code; $('run-code').focus(); } }),
+      h('button', { class: 'ghost', text: 'run again', onclick: () => runEntry(code, execute) }),
+    ]),
+    result,
+  );
+  $('run-out').prepend(entry);
+  try {
+    const value = await execute();
+    result.replaceWith(h('div', {}, [
+      tree(value, { openDepth: 2, parseStrings: true, pathable: true }),
+      h('div', { class: 'hint' }, [`${Math.round(performance.now() - startedAt)} ms  `, h('button', { class: 'ghost', text: 'copy result', onclick: () => copy(typeof value === 'string' ? value : pretty(value), 'Result') })]),
+    ]));
+  } catch (error) {
+    result.replaceWith(h('pre', { class: 'err-text', text: error.stack || error.message }));
+  }
+}
+function runCode() {
+  const code = $('run-code').value.trim();
+  if (!code) return;
+  RUN.history = [code, ...RUN.history.filter((c) => c !== code)].slice(0, 50);
+  RUN.index = -1;
+  store.set('run-history', RUN.history);
+  closeCompletion();
+  runEntry(code, () => cmd('eval', { code }, 60000));
+}
+function walkHistory(direction) {
+  const next = RUN.index + direction;
+  if (next < -1 || next >= RUN.history.length) return;
+  RUN.index = next;
+  $('run-code').value = next === -1 ? '' : RUN.history[next];
+}
+function closeCompletion() { $('run-complete').hidden = true; RUN.hits = []; }
+async function openCompletion() {
+  const area = $('run-code');
+  const before = area.value.slice(0, area.selectionStart);
+  const chain = /[\w$.]*$/.exec(before)[0];
+  const dot = chain.lastIndexOf('.');
+  const prefix = dot === -1 ? chain : chain.slice(dot + 1);
+  let names;
+  if (dot === -1) names = ['Engine', 'ctl', 'messenger', 'store', 'dispatch', 'getState', 'nav', 'RN', 'console', 'JSON', 'Object'];
+  else {
+    try { names = await cmd('complete', { expr: chain.slice(0, dot) }); } catch (error) { toast(error.message, true); return; }
+  }
+  const lower = prefix.toLowerCase();
+  RUN.hits = names.filter((n) => n.toLowerCase().startsWith(lower)).concat(names.filter((n) => !n.toLowerCase().startsWith(lower) && n.toLowerCase().includes(lower))).slice(0, 80);
+  RUN.at = 0;
+  RUN.range = [area.selectionStart - prefix.length, area.selectionStart];
+  if (!RUN.hits.length) { toast('No completions'); closeCompletion(); return; }
+  renderCompletion();
+}
+function renderCompletion() {
+  const box = $('run-complete');
+  box.hidden = false;
+  box.replaceChildren(...RUN.hits.map((name, index) => h('div', { class: index === RUN.at ? 'cur' : '', text: name, onmousedown: (e) => { e.preventDefault(); RUN.at = index; acceptCompletion(); } })));
+  box.children[RUN.at]?.scrollIntoView({ block: 'nearest' });
+}
+function acceptCompletion() {
+  const area = $('run-code');
+  const name = RUN.hits[RUN.at];
+  const [start, end] = RUN.range;
+  area.setRangeText(name, start, end, 'end');
+  closeCompletion();
+  area.focus();
+}
+
+/* MCP */
+function renderMcp() {
+  $('mcp-cmd').replaceChildren(
+    h('div', { class: 'c-dim', style: 'margin-bottom:6px;font-family:var(--sans)', text: 'Agents reach this dashboard through an MCP server, which starts the relay if it is down. Credentials are redacted from what they get, and every call shows up below.' }),
+    h('div', { text: S.mcpCommand }),
+    h('button', { style: 'margin-top:8px', text: 'Copy command', onclick: () => copy(S.mcpCommand, 'Command') }),
+  );
+  $('mcp-tools').replaceChildren(...S.tools.map((t) => h('tr', {}, [h('td', { class: 'mono', style: 'white-space:nowrap', text: t.name }), h('td', { class: 'c-dim', text: t.description })])));
+  const calls = S.mcp.slice(-100).reverse();
+  $('mcp-calls').replaceChildren(calls.length
+    ? h('table', {}, [
+      h('thead', {}, h('tr', {}, ['Time', 'Tool', 'Arguments', 'Result', 'ms'].map((t) => h('th', { text: t })))),
+      h('tbody', {}, calls.map((c) => h('tr', { class: 'click', title: 'Show in full', onclick: () => openModal(`${c.tool} at ${clock(c.ts)}`, [h('h4', { text: 'Arguments' }), tree(c.args, { openDepth: 3 }), h('h4', { text: 'Result (start)' }), h('pre', { class: c.ok ? '' : 'err-text', text: prettyBody(c.preview) })]) }, [
+        h('td', { class: 'mono c-faint', text: clock(c.ts) }),
+        h('td', { class: 'mono', text: c.tool }),
+        h('td', { class: 'mono c-dim', style: 'word-break:break-all;max-width:360px', text: JSON.stringify(c.args).slice(0, 240) }),
+        h('td', { class: `mono ${c.ok ? 'c-dim' : 'err-text'}`, style: 'word-break:break-all;max-width:460px', text: c.preview.slice(0, 240) }),
+        h('td', { class: 'mono c-faint', text: c.ms }),
+      ]))),
+    ])
+    : h('div', { class: 'hint', style: 'margin:0 12px', text: 'No calls yet.' }));
+}
+
+/* Device screen */
+const SCREEN_FRAME_MS = 200;
+const SCREEN_RETRY_MS = 2000;
+let screenTimer = null;
+let screenUrl = null;
+let screenImg = null;
+let screenFrames = [];
+let screenCanvas = null;
+let screenWs = null;
+let screenDecoder = null;
+let screenStatusTimer = null;
+let videoWorked = false;
+let videoBroken = typeof VideoDecoder !== 'function';
+function screenMessage(text) {
+  screenImg = null;
+  screenCanvas = null;
+  $('screen-shot').replaceChildren(h('div', { class: 'empty', text }));
+}
+function countScreenFrame() {
+  const now = performance.now();
+  screenFrames = [...screenFrames.filter((t) => now - t < 2000), now];
+}
+function updateScreenStatus() {
+  const now = performance.now();
+  const fps = screenFrames.filter((t) => now - t < 2000).length / 2;
+  $('screen-fps').textContent = screenLive() ? `${screenWs ? 'video' : 'png'} ${fps.toFixed(fps < 10 ? 1 : 0)} fps` : '';
+}
+async function refreshScreen() {
+  const box = $('screen-shot');
+  try {
+    const response = await fetch('/api/screenshot');
+    if (!response.ok) throw new Error((await response.json()).text);
+    const url = URL.createObjectURL(await response.blob());
+    // Swap the source in place so the image does not flicker between frames.
+    if (!screenImg || !box.contains(screenImg)) {
+      screenImg = h('img', { alt: 'Device screen' });
+      screenCanvas = null;
+      box.replaceChildren(screenImg);
+    }
+    screenImg.src = url;
+    if (screenUrl) URL.revokeObjectURL(screenUrl);
+    screenUrl = url;
+    return true;
+  } catch (error) {
+    screenMessage(error.message);
+    return false;
+  }
+}
+function screenLive() {
+  return !$('screen').hidden && $('screen-auto').checked && !document.hidden;
+}
+async function screenTick() {
+  screenTimer = null;
+  if (!screenLive() || screenWs) return;
+  const started = performance.now();
+  const ok = await refreshScreen();
+  if (ok) countScreenFrame();
+  else screenFrames = [];
+  if (screenLive() && !screenWs && screenTimer === null) {
+    screenTimer = setTimeout(screenTick, ok ? Math.max(0, SCREEN_FRAME_MS - (performance.now() - started)) : SCREEN_RETRY_MS);
+  }
+}
+function drawScreenFrame(frame) {
+  const box = $('screen-shot');
+  if (!screenCanvas || !box.contains(screenCanvas)) {
+    screenCanvas = h('canvas', { 'aria-label': 'Device screen' });
+    screenImg = null;
+    box.replaceChildren(screenCanvas);
+  }
+  if (screenCanvas.width !== frame.displayWidth || screenCanvas.height !== frame.displayHeight) {
+    screenCanvas.width = frame.displayWidth;
+    screenCanvas.height = frame.displayHeight;
+  }
+  screenCanvas.getContext('2d').drawImage(frame, 0, 0);
+  frame.close();
+  videoWorked = true;
+  countScreenFrame();
+}
+function stopVideo() {
+  if (screenWs) {
+    screenWs.onclose = null;
+    screenWs.close();
+    screenWs = null;
+  }
+  if (screenDecoder && screenDecoder.state !== 'closed') screenDecoder.close();
+  screenDecoder = null;
+}
+function onVideoError(error) {
+  if (videoWorked) {
+    // A corrupt frame: ask for a fresh stream, which starts with a keyframe.
+    if (screenWs?.readyState === WebSocket.OPEN) screenWs.send('restart');
+    return;
+  }
+  videoBroken = true;
+  toast(`Live video is unavailable in this browser (${error.message}), using screenshots`, true);
+  stopVideo();
+  syncScreenTimer();
+}
+function startVideo() {
+  stopVideo();
+  const ws = new WebSocket(`ws://${location.host}/screen`);
+  ws.binaryType = 'arraybuffer';
+  screenWs = ws;
+  let waitingForKey = true;
+  let timestamp = 0;
+  ws.onmessage = (event) => {
+    if (typeof event.data === 'string') {
+      const message = JSON.parse(event.data);
+      if (message.t === 'error') {
+        screenMessage(message.text);
+      } else if (message.t === 'config') {
+        if (screenDecoder && screenDecoder.state !== 'closed') screenDecoder.close();
+        screenDecoder = new VideoDecoder({ output: drawScreenFrame, error: onVideoError });
+        screenDecoder.configure({ codec: message.codec, optimizeForLatency: true });
+        waitingForKey = true;
+      }
+      return;
+    }
+    if (screenDecoder?.state !== 'configured') return;
+    const bytes = new Uint8Array(event.data);
+    const key = bytes[0] === 1;
+    if (waitingForKey && !key) return;
+    waitingForKey = false;
+    timestamp += 1;
+    try {
+      screenDecoder.decode(new EncodedVideoChunk({ type: key ? 'key' : 'delta', timestamp: timestamp * 1000, data: bytes.subarray(1) }));
+    } catch (error) {
+      onVideoError(error);
+    }
+  };
+  ws.onclose = () => {
+    if (screenWs !== ws) return;
+    stopVideo();
+    if (screenLive()) screenTimer = setTimeout(syncScreenTimer, SCREEN_RETRY_MS);
+  };
+}
+function syncScreenTimer() {
+  clearTimeout(screenTimer);
+  screenTimer = null;
+  store.set('screen-live', $('screen-auto').checked);
+  if (!screenLive()) {
+    stopVideo();
+    clearInterval(screenStatusTimer);
+    screenStatusTimer = null;
+    screenFrames = [];
+    updateScreenStatus();
+    return;
+  }
+  screenStatusTimer ??= setInterval(updateScreenStatus, 500);
+  if (videoBroken) screenTick();
+  else if (!screenWs) startVideo();
+}
+
+/* Help */
+function showHelp() {
+  const pairs = (rows) => h('div', { class: 'keys' }, rows.flatMap(([k, v]) => [h('kbd', { text: k }), h('span', { text: v })]));
+  openModal('Filters and shortcuts', [
+    h('h4', { text: 'Filter syntax' }),
+    pairs([
+      ['word', 'Case-insensitive text. Every term must match.'],
+      ['"two words"', 'An exact phrase.'],
+      ['/^api\\d+/i', 'A regular expression, case-insensitive unless you give flags.'],
+      ['-word', 'Exclude. Works with fields and regex too.'],
+      ['status:4xx', 'Status class.'],
+      ['status:>=400', 'Number comparison, also time:>500, time:>1s, size:>10k.'],
+      ['host:infura', 'Network fields: status method host path url rpc via state req res body header error time size.'],
+      ['tag:Ramps', 'Log fields: text level tag. A tag is the leading [Tag] of a message.'],
+      ['type:SET_', 'Redux fields: type changed payload diff.'],
+    ]),
+    h('h4', { text: 'Highlight' }),
+    h('div', { class: 'hint', text: 'The box next to a filter colors matching rows without hiding the others. Up to 5 terms, one color each.' }),
+    h('h4', { text: 'Shortcuts' }),
+    pairs([
+      ['1 to 6', 'Switch tab'], ['/', 'Focus the filter'], ['↑ ↓', 'Move through the list'], ['Esc', 'Close the panel or menu'],
+      ['c', 'Copy the selected request as cURL'], ['e', 'Toggle errors only'], ['f', 'Toggle follow'], ['p', 'Pin the selected request'], ['r', 'Replay the selected request'], ['?', 'This help'],
+    ]),
+    h('h4', { text: 'Worth knowing' }),
+    h('div', { class: 'hint', text: 'Right-click any row for more. Shift+click a chip to exclude it. Filters you used come back in the box suggestions.' }),
+  ]);
+}
+
+/* Wiring */
+const lists = [netList, logList, actList];
+const moveSelection = {
+  network: (delta) => {
+    const index = netList.items.findIndex((e) => e.key === S.selNet);
+    const next = netList.items[Math.max(0, Math.min(netList.items.length - 1, index === -1 ? (delta > 0 ? 0 : netList.items.length - 1) : index + delta))];
+    if (next) { netList.setFollow(false); selectNet(next.key); netList.reveal(netList.items.indexOf(next)); }
+  },
+  logs: (delta) => {
+    const index = logList.items.findIndex((item) => (item.l ?? item) === S.selLog);
+    const next = logList.items[Math.max(0, Math.min(logList.items.length - 1, index === -1 ? (delta > 0 ? 0 : logList.items.length - 1) : index + delta))];
+    if (next) { logList.setFollow(false); selectLog(next.l ?? next); logList.reveal(logList.items.indexOf(next)); }
+  },
+  redux: (delta) => {
+    const index = actList.items.indexOf(S.selAct);
+    const next = actList.items[Math.max(0, Math.min(actList.items.length - 1, index === -1 ? (delta > 0 ? 0 : actList.items.length - 1) : index + delta))];
+    if (next) { actList.setFollow(false); selectAction(next); actList.reveal(actList.items.indexOf(next)); }
+  },
+};
+const FILTER_BY_TAB = { network: 'net-filter', logs: 'log-filter', redux: 'act-filter', state: 'st-search' };
+const FOLLOW_BY_TAB = { network: netList, logs: logList, redux: actList };
+function closeTopPanel() {
+  if (document.querySelector('.menu')) { closeMenu(); return; }
+  if (document.querySelector('.overlay')) { closeModal(); return; }
+  if (!$('screen').hidden) { $('screen').hidden = true; syncScreenTimer(); return; }
+  if (S.tab === 'network' && S.selNet) { S.selNet = null; $('net-side').hidden = true; netList.schedule(); }
+  if (S.tab === 'logs' && S.selLog) { S.selLog = null; $('log-side').hidden = true; logList.schedule(); }
+  if (S.tab === 'redux' && S.selAct) { S.selAct = null; $('act-side').hidden = true; actList.schedule(); }
+}
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeTopPanel(); return; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.querySelector('.overlay')) return;
+  const selected = S.tab === 'network' ? S.net.get(S.selNet) : null;
+  if (e.key === '/') { const input = FILTER_BY_TAB[S.tab]; if (input) { e.preventDefault(); $(input).focus(); } }
+  else if (e.key === '?') showHelp();
+  else if (/^[1-6]$/.test(e.key)) setTab(TABS[Number(e.key) - 1][0]);
+  else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { const move = moveSelection[S.tab]; if (move) { e.preventDefault(); move(e.key === 'ArrowDown' ? 1 : -1); } }
+  else if (e.key === 'f') FOLLOW_BY_TAB[S.tab]?.setFollow(!FOLLOW_BY_TAB[S.tab].follow);
+  else if (e.key === 'e' && S.tab === 'network') { $('net-errors').checked = !$('net-errors').checked; renderNet(); }
+  else if (e.key === 'c' && selected && selected.transport !== 'ws') copy(curl(selected), 'cURL');
+  else if (e.key === 'p' && selected) togglePin(selected.key);
+  else if (e.key === 'r' && selected && selected.transport !== 'ws') replay(selected);
+});
+document.addEventListener('mousedown', (e) => { if (!e.target.closest('.menu')) closeMenu(); });
+
+document.querySelectorAll('.resizer').forEach((grip) => {
+  grip.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+    const pane = grip.parentElement;
+    const parent = pane.parentElement.getBoundingClientRect();
+    const move = (e) => {
+      const width = Math.max(260, Math.min(parent.width * 0.8, parent.right - e.clientX));
+      document.documentElement.style.setProperty('--side-w', `${width}px`);
+      store.set('side-w', width);
+    };
+    const up = () => { removeEventListener('mousemove', move); removeEventListener('mouseup', up); };
+    addEventListener('mousemove', move);
+    addEventListener('mouseup', up);
+  });
+});
+if (store.get('side-w')) document.documentElement.style.setProperty('--side-w', `${store.get('side-w')}px`);
+if (store.get('w-host')) document.documentElement.style.setProperty('--w-host', `${store.get('w-host')}px`);
+
+$('scope').value = S.scope;
+$('scope').addEventListener('change', (e) => {
+  S.scope = e.target.value;
+  store.set('scope', S.scope);
+  ['net', 'log', 'act'].forEach((k) => S.dirty.add(k));
+  render();
+});
+['net-errors', 'net-pinned'].forEach((id) => $(id).addEventListener('change', () => renderNet()));
+$('net-follow').addEventListener('change', (e) => netList.setFollow(e.target.checked));
+$('log-follow').addEventListener('change', (e) => logList.setFollow(e.target.checked));
+$('act-follow').addEventListener('change', (e) => actList.setFollow(e.target.checked));
+$('log-group').addEventListener('change', () => renderLogs());
+$('net-v-list').addEventListener('click', () => setNetView('list'));
+$('net-v-end').addEventListener('click', () => setNetView('endpoints'));
+$('net-export').addEventListener('click', (e) => { const r = e.currentTarget.getBoundingClientRect(); e.stopPropagation(); openMenu(r.left, r.bottom + 2, netExportMenu()); });
+$('log-copy').addEventListener('click', () => copy(logsAsText(logVisible()), 'Logs'));
+$('log-export').addEventListener('click', () => download(`devdash-${stamp()}.log`, logsAsText(logVisible()), 'text/plain'));
+$('act-export').addEventListener('click', () => download(`devdash-actions-${stamp()}.json`, JSON.stringify(actVisible().map(({ _m, k, seq, ...rest }) => rest), null, 1)));
+
+$('btn-pause').addEventListener('click', async () => {
+  try { S.info = await cmd('config', { paused: !S.info?.paused }); renderPill(); } catch (error) { toast(error.message, true); }
+});
+$('btn-clear').addEventListener('click', () => { if (S.socketOpen) S.socket.send(JSON.stringify({ t: 'clear' })); });
+$('btn-reload').addEventListener('click', () => cmd('reload').then(() => toast('Reloading the app')).catch((error) => toast(error.message, true)));
+$('btn-help').addEventListener('click', showHelp);
+$('btn-screen').addEventListener('click', () => {
+  const panel = $('screen');
+  panel.hidden = !panel.hidden;
+  if (!panel.hidden && !screenLive()) refreshScreen();
+  syncScreenTimer();
+});
+$('screen-close').addEventListener('click', () => { $('screen').hidden = true; syncScreenTimer(); });
+$('screen-refresh').addEventListener('click', () => {
+  if (screenWs?.readyState === WebSocket.OPEN) screenWs.send('restart');
+  else refreshScreen();
+});
+$('screen-auto').checked = store.get('screen-live', true);
+$('screen-auto').addEventListener('change', syncScreenTimer);
+document.addEventListener('visibilitychange', syncScreenTimer);
+
+$('st-ctl').addEventListener('click', () => { ST.mode = 'controllers'; store.set('st-mode', ST.mode); renderNames(); stSelect(stNames()[0] ?? null); });
+$('st-redux').addEventListener('click', () => { ST.mode = 'redux'; store.set('st-mode', ST.mode); renderNames(); stSelect(stNames()[0] ?? null); });
+$('st-names-filter').addEventListener('input', () => renderNames());
+$('st-busy').addEventListener('change', () => renderNames());
+$('st-search').addEventListener('input', debounce((e) => stSearch(e.target.value.trim()), 300));
+$('st-search-all').addEventListener('change', () => stSearch($('st-search').value.trim()));
+$('st-refresh').addEventListener('click', () => { if (ST.loaded) stRefresh(); else stateEnsureLoaded(); });
+$('st-copy').addEventListener('click', stCopy);
+$('st-snap').addEventListener('click', stSnapshot);
+$('st-diff').addEventListener('click', stDiff);
+$('st-call').addEventListener('click', stCall);
+$('st-args').addEventListener('keydown', (e) => { if (e.key === 'Enter') stCall(); });
+$('st-changes-all').addEventListener('change', () => renderChanges());
+$('st-changes-filter').addEventListener('input', debounce((e) => {
+  changesBox.parsed = parseFilter(e.target.value, CHANGES);
+  e.target.classList.toggle('invalid', Boolean(changesBox.parsed.error));
+  renderChanges();
+}, 120));
+
+$('act-send').addEventListener('click', dispatchAction);
+$('act-dispatch').addEventListener('keydown', (e) => { if (e.key === 'Enter') dispatchAction(); });
+
+$('run-go').addEventListener('click', runCode);
+$('run-clear').addEventListener('click', () => $('run-out').replaceChildren());
+$('run-snippets').addEventListener('change', (e) => {
+  if (e.target.value) { $('run-code').value = e.target.value; $('run-code').focus(); }
+  e.target.value = '';
+});
+$('run-save').addEventListener('click', () => {
+  const code = $('run-code').value.trim();
+  if (!code) return;
+  const label = prompt('Name for this snippet');
+  if (!label) return;
+  RUN.saved = [[label, code], ...RUN.saved.filter(([name]) => name !== label)];
+  store.set('run-saved', RUN.saved);
+  renderSnippets();
+  toast('Snippet saved');
+});
+$('run-code').addEventListener('keydown', (e) => {
+  const completing = RUN.hits.length > 0;
+  if (completing && e.key === 'ArrowDown') { e.preventDefault(); e.stopPropagation(); RUN.at = (RUN.at + 1) % RUN.hits.length; renderCompletion(); return; }
+  if (completing && e.key === 'ArrowUp') { e.preventDefault(); e.stopPropagation(); RUN.at = (RUN.at - 1 + RUN.hits.length) % RUN.hits.length; renderCompletion(); return; }
+  if (completing && (e.key === 'Tab' || (e.key === 'Enter' && !e.ctrlKey && !e.metaKey))) { e.preventDefault(); acceptCompletion(); return; }
+  if (completing && e.key === 'Escape') { e.stopPropagation(); closeCompletion(); return; }
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); runCode(); }
+  else if (e.key === ' ' && e.ctrlKey) { e.preventDefault(); openCompletion(); }
+  else if (e.key === 'ArrowUp' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); walkHistory(1); }
+  else if (e.key === 'ArrowDown' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); walkHistory(-1); }
+  else if (e.key === 'Tab') { e.preventDefault(); e.target.setRangeText('  ', e.target.selectionStart, e.target.selectionEnd, 'end'); }
+});
+$('run-code').addEventListener('input', () => { if (RUN.hits.length) openCompletion(); });
+$('run-code').addEventListener('blur', () => setTimeout(closeCompletion, 150));
+
+if (!TABS.some(([id]) => id === S.tab)) S.tab = 'network';
+renderNetHead();
+renderRecentDispatches();
+renderSnippets();
+setNetView(S.netView);
+setTab(S.tab);
+renderPill();
+renderNames();
+refreshWatches();
+connect();
+</script>
+</body>
+</html>

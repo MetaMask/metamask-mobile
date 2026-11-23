@@ -3,7 +3,8 @@ import {
   BridgeController,
   BridgeControllerMessenger,
 } from '@metamask/bridge-controller';
-import { fetch as expoFetch } from 'expo/fetch';
+import { fetch as rawExpoFetch } from 'expo/fetch';
+import { tempDevDashWrapFetch } from '../../../TempDevDash'; // DevDash hook
 
 import {
   MessengerClientInitFunction,
@@ -27,6 +28,7 @@ import {
 import packageJSON from '../../../../../package.json';
 
 const { version: clientVersion } = packageJSON;
+const expoFetch = tempDevDashWrapFetch(rawExpoFetch); // DevDash hook
 
 export const handleBridgeFetch = async (
   url: RequestInfo | URL,
