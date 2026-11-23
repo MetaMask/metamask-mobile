@@ -371,7 +371,7 @@ jobs:
           # wall clock is one shard. The aggregate job name stays exactly
           # Run `lint`, backticks included: the name the scripts job template
           # renders for the lint script (MCWP-813).
-          - scripts: lint:tsc # 8.9 GB peak
+          - scripts: lint:tsc # 8.9 GB peak (tsc), 10.9 GB (tsgo on PRs)
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
           - scripts: lint:changelog
@@ -420,37 +420,10 @@ jobs:
           command: yarn install --immutable
       - name: Clean state and following up dependencies installation
         run: yarn setup:github-ci --node
-      # `incremental` in tsconfig.json makes tsc write tsconfig.tsbuildinfo
-      # (gitignored). tsc compares file content hashes, not mtimes, so the file
-      # stays valid on a fresh checkout and only changed files and their
-      # dependents are rechecked. Only PRs restore it. Push and merge_group runs
-      # check from scratch, so the cache a PR falls back to always comes from a
-      # cold run on its base branch.
-      - name: Restore tsc incremental build info
-        if: ${{ matrix.scripts == 'lint:tsc' && github.event_name == 'pull_request' }}
-        # zizmor: ignore[cache-poisoning] At stake if this cache is poisoned: the result of the
-        # type check. PR runs can only write PR-scoped entries, and base branch entries are only
-        # written by cold push runs.
-        uses: actions/cache/restore@v6
-        with:
-          path: tsconfig.tsbuildinfo
-          key: tsbuildinfo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: tsbuildinfo-${{ runner.os }}-
-      - run: yarn ${{ matrix['scripts'] }}
-      # Saved after type errors too: tsc records them in the file, so the next
-      # push on the PR still reports them without a full recheck.
-      - name: Save tsc incremental build info
-        if: >-
-          ${{
-            !cancelled() &&
-            matrix.scripts == 'lint:tsc' &&
-            (github.event_name == 'push' || github.event_name == 'pull_request') &&
-            hashFiles('tsconfig.tsbuildinfo') != ''
-          }}
-        uses: actions/cache/save@v6
-        with:
-          path: tsconfig.tsbuildinfo
-          key: tsbuildinfo-${{ runner.os }}-${{ github.sha }}
+      # PRs type-check with TypeScript 7 (`lint:tsgo`). Push and merge_group
+      # runs keep tsc 5.8, the compiler the rest of the toolchain uses, so a
+      # difference between the two can't reach `main`.
+      - run: yarn ${{ matrix.scripts == 'lint:tsc' && github.event_name == 'pull_request' && 'lint:tsgo' || matrix.scripts }}
       - name: Require clean working directory
         shell: bash
         run: |
