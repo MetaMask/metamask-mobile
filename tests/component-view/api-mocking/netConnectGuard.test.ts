@@ -19,17 +19,18 @@ installWebSocketTripwire();
 
 const currentTestName = () => expect.getState().currentTestName ?? '';
 
+/** App-shaped code: fetch a URL and swallow any error, like a service catch. */
+const fetchSwallowingErrors = async (url: string) => {
+  try {
+    await fetch(url);
+  } catch {
+    return null;
+  }
+};
+
 describe('netConnectGuard', () => {
   it('fails a test whose app code swallows an unmocked request', async () => {
-    const appCodeThatSwallowsErrors = async () => {
-      try {
-        await fetch('https://unmocked-guard.example.com/v1/things');
-      } catch {
-        return null;
-      }
-    };
-
-    await appCodeThatSwallowsErrors();
+    await fetchSwallowingErrors('https://unmocked-guard.example.com/v1/things');
 
     const error = await checkBlockedRequests(currentTestName()).catch(
       (caught) => caught,
@@ -73,14 +74,9 @@ describe('netConnectGuard', () => {
       .reply(200, { ok: true })
       .persist();
 
-    const appCodeThatSwallowsErrors = async () => {
-      try {
-        await fetch('https://mocked-host-guard.example.com/v1/unknown');
-      } catch {
-        return null;
-      }
-    };
-    await appCodeThatSwallowsErrors();
+    await fetchSwallowingErrors(
+      'https://mocked-host-guard.example.com/v1/unknown',
+    );
 
     await expect(checkBlockedRequests(currentTestName())).rejects.toThrow(
       'GET https://mocked-host-guard.example.com/v1/unknown',
@@ -113,19 +109,24 @@ describe('netConnectGuard', () => {
   });
   it('serves sockets through the fake without reporting them', async () => {
     const fake = setupFakeWebSocket();
-    const Constructed = globalThis.WebSocket as unknown as typeof FakeWebSocket;
-    const socket = new Constructed('wss://fake.example.com/ws');
-    socket.openAndDeliver(JSON.stringify({ type: 'welcome' }));
+    try {
+      const Constructed =
+        globalThis.WebSocket as unknown as typeof FakeWebSocket;
+      const socket = new Constructed('wss://fake.example.com/ws');
+      socket.openAndDeliver(JSON.stringify({ type: 'welcome' }));
 
-    expect(socket.readyState).toBe(1);
-    expect(socket.sent).toEqual([]);
-    expect(fake.instances).toHaveLength(1);
+      expect(socket.readyState).toBe(1);
+      expect(socket.sent).toEqual([]);
+      expect(fake.instances).toHaveLength(1);
 
-    await expect(
-      checkBlockedRequests(currentTestName()),
-    ).resolves.toBeUndefined();
-
-    clearFakeWebSocket();
+      await expect(
+        checkBlockedRequests(currentTestName()),
+      ).resolves.toBeUndefined();
+    } finally {
+      // Restores the tripwire even when an assertion above fails, so later
+      // tests keep reporting unmocked sockets.
+      clearFakeWebSocket();
+    }
   });
 
   it('probe: aborted fetch with a nock mock does not crash', async () => {

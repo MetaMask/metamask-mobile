@@ -63,5 +63,21 @@ describe('installDefaultApiMocks', () => {
       await fetch('https://token.api.cx.metamask.io/assets?assetIds=x')
     ).json();
     expect(assets).toEqual([{ symbol: 'FEATURE' }]);
+
+    // The price-alerts helper's case: a feature mock for a default-covered
+    // path registered after an install, then the defaults re-installed — the
+    // reinstall moves the defaults behind it, so the feature payload wins.
+    nock('https://price-alerts.api.cx.metamask.io')
+      .get('/v1/alerts/supported-chains')
+      .reply(200, ['eip155:2'])
+      .persist();
+    installDefaultApiMocks();
+
+    const chains = await (
+      await fetch(
+        'https://price-alerts.api.cx.metamask.io/v1/alerts/supported-chains',
+      )
+    ).json();
+    expect(chains).toEqual(['eip155:2']);
   });
 });

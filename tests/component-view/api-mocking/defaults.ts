@@ -15,19 +15,29 @@
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
+import AppConstants from '../../../app/core/AppConstants';
+import { BRIDGE_API_BASE_URL } from '../../../app/constants/bridge';
+import { PRICE_API_BASE_URL } from '../../../app/constants/urls';
+import { TOKEN_API_BASE_URL } from '../../../app/components/UI/Assets/watchlist/utils/getTokens';
 
-const TOKEN_API_ORIGIN = 'https://token.api.cx.metamask.io';
+// Origins the app itself derives from shared constants follow the same source
+// here, so a different METAMASK_ENVIRONMENT (or security-alerts URL) cannot
+// quietly detach the defaults from what the views request.
+const TOKEN_API_ORIGIN = TOKEN_API_BASE_URL;
 const TOKENS_API_ORIGIN = 'https://tokens.api.cx.metamask.io';
-const PRICE_API_ORIGIN = 'https://price.api.cx.metamask.io';
+const PRICE_API_ORIGIN = PRICE_API_BASE_URL;
 const ACCOUNTS_API_ORIGIN = 'https://accounts.api.cx.metamask.io';
 const STATIC_ICON_ORIGINS = [
   'https://static.cx.metamask.io',
   'https://uat-static.cx.metamask.io',
 ];
-const BRIDGE_API_ORIGIN = 'https://bridge.dev-api.cx.metamask.io';
+const BRIDGE_API_ORIGIN = BRIDGE_API_BASE_URL;
 const STAKING_API_ORIGIN = 'https://staking.api.cx.metamask.io';
-const SECURITY_ALERTS_API_ORIGIN = 'https://example.com';
-const PRICE_ALERTS_API_ORIGIN = 'https://price-alerts.api.cx.metamask.io';
+const SECURITY_ALERTS_API_ORIGIN =
+  process.env.SECURITY_ALERTS_API_URL ?? 'https://example.com';
+const PRICE_ALERTS_API_ORIGIN = AppConstants.PRICE_ALERTS_API.URL;
+// No app-side constants exist for the origins below; they are pinned to the
+// hosts the views request in tests (the same values the feature helpers pin).
 // The Ramp SDK re-fetches its country cache when a deeplink intent settles and
 // aborts in-flight requests around unmount, so the re-fired request can land
 // after a test's ramp mocks are torn down. Answer it neutrally so the

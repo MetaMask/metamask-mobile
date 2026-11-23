@@ -14,11 +14,13 @@ const { configure } = require('@testing-library/react-native');
 const nodeCrypto = require('crypto');
 const { installTimerLeakGuard } = require('./timerLeakGuard');
 const { installSocketLeakGuard } = require('./socketLeakGuard');
-const { installNetConnectGuard } = require('./netConnectGuard');
+const {
+  installNetConnectGuard,
+  installWebSocketTripwire,
+} = require('./netConnectGuard');
 const {
   installDefaultApiMocks,
 } = require('../../../tests/component-view/api-mocking/defaults');
-const { installWebSocketTripwire } = require('./netConnectGuard');
 
 // CV tests render real views behind nock/HTTP mocks on loaded CI shards, so
 // the 1s default is too short; per-test `{ timeout }` bumps are no longer needed.

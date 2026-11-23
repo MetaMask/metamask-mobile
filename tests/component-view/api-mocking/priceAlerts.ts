@@ -168,6 +168,11 @@ export function setupPercentPriceAlertsPatchMock(
  * Sets up a nock interceptor for GET /v1/alerts/supported-chains.
  * Used by TokenDetails to determine if the bell icon should be shown.
  *
+ * Call this AFTER {@link setupPriceAlertsApiMock}: the shared defaults also
+ * intercept this path, and re-installing the defaults here moves them behind
+ * this feature interceptor so the `chains` argument wins (feature mocks
+ * always win — nock answers with the interceptor registered first).
+ *
  * @param chains - The list of CAIP-2 chain identifiers to return. Defaults to ['eip155:1'].
  */
 export function setupPriceAlertsSupportedChainsMock(
@@ -177,6 +182,8 @@ export function setupPriceAlertsSupportedChainsMock(
     .get('/v1/alerts/supported-chains')
     .reply(200, chains)
     .persist();
+
+  installDefaultApiMocks();
 }
 
 /**
