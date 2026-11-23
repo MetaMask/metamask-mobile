@@ -257,6 +257,7 @@ const BridgeMarketViewContent = ({
     }, [navigation, route.params?.scrollToTopOnNav]),
   );
 
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const { latestSourceBalance } = useBridgeSession();
@@ -266,7 +267,6 @@ const BridgeMarketViewContent = ({
 
   const {
     activeQuote,
-    formattedQuoteData,
     isLoading,
     destTokenAmount,
     isNoQuotesAvailable,
@@ -381,7 +381,7 @@ const BridgeMarketViewContent = ({
     // Both tokens must be on the same chain
     if (sourceToken.chainId !== destToken.chainId) return false;
     // Check if the chain is sponsored
-    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
+    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId);
   }, [
     sourceToken?.chainId,
     destToken?.chainId,
@@ -636,7 +636,29 @@ const BridgeMarketViewContent = ({
                   isLoading={!destTokenAmount && isLoading}
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
-                  showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  showFiatAmountAsPrimary={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    sourceAmountInput.isFiatMode ||
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    sourceToken?.isMoneyToken ||
+                    destToken?.isMoneyToken
+                  }
+                  secondaryValue={
+                    destToken?.isMoneyToken
+                      ? strings('bridge.money_name')
+                      : undefined
+                  }
+                  subtitle={
+                    destToken?.apy !== undefined
+                      ? strings('money.asset_overview.balance_cta.earn_apy', {
+                          apy: destToken.apy,
+                        })
+                      : undefined
+                  }
+                  hideFiatValueWhenUnpriced={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    destToken?.isMoneyToken || sourceToken?.isMoneyToken
+                  }
                 />
               </Box>
             </Box>
