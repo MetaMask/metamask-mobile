@@ -12,14 +12,20 @@ import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { renderPredictDepositScreen } from '../../../../../../tests/component-view/renderers/predictNext';
-import { mockPredictNextMessenger } from '../../../../../../tests/component-view/fixtures/predictNext';
+import {
+  configurePredictNextCatalog,
+  mockPredictNextMessenger,
+  resetPredictNextCatalog,
+} from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import {
   BASE_DEPOSIT_NETWORK,
+  BASE_SEPOLIA_DEPOSIT_NETWORK,
   type PredictDepositEnvironment,
 } from '../../config/depositEnvironment';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   clearAllSessionDepositTransfers,
@@ -66,6 +72,7 @@ const makeDeposit = ({
   createdAt = new Date().toISOString() as PredictTimestamp,
   status = 'awaiting_transfer',
   withPlan = true,
+  network = BASE_DEPOSIT_NETWORK,
 }: {
   operationId?: string;
   amount?: string;
@@ -74,12 +81,13 @@ const makeDeposit = ({
   createdAt?: PredictTimestamp;
   status?: PredictDepositOperation['status'];
   withPlan?: boolean;
+  network?: typeof BASE_DEPOSIT_NETWORK;
 } = {}): PredictDepositOperation => ({
   operationId: operationId as PredictEntityId,
   status,
   amount: amount as PredictAmount,
-  chainId: BASE_DEPOSIT_NETWORK.chainId,
-  tokenContract: USDC,
+  chainId: network.chainId,
+  tokenContract: network.usdc.address,
   depositAddress: DEPOSIT_ADDRESS,
   planExpiresAt,
   txHash: null,
@@ -87,8 +95,8 @@ const makeDeposit = ({
   next: withPlan
     ? {
         kind: 'wallet_transfer',
-        chainId: BASE_DEPOSIT_NETWORK.chainId,
-        tokenContract: USDC,
+        chainId: network.chainId,
+        tokenContract: network.usdc.address,
         amount: planAmount as PredictAmount,
         depositAddress: DEPOSIT_ADDRESS,
         planExpiresAt,
@@ -136,7 +144,12 @@ const typeAmount = async (
   view: ReturnType<typeof renderPredictDepositScreen>,
   keys: string,
 ): Promise<void> => {
-  await view.findByTestId(TestIds.BALANCE);
+  await waitFor(() =>
+    expect(
+      view.queryByTestId(TestIds.BALANCE) ??
+        view.queryByTestId(TestIds.SIMULATED_CAPTION),
+    ).toBeTruthy(),
+  );
   for (const key of keys) {
     fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY(key)));
   }
@@ -162,6 +175,7 @@ describe('PredictDepositScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNextCatalog();
     clearAllSessionDepositTransfers();
     Engine.context.TransactionController.state.transactions = [];
     Engine.context.ApprovalController = {
@@ -176,6 +190,7 @@ describe('PredictDepositScreen', () => {
   });
 
   afterEach(() => {
+    resetPredictNextCatalog();
     clearAllSessionDepositTransfers();
     Engine.context.TransactionController.state.transactions = [];
     if (originalApprovalController) {
@@ -257,7 +272,7 @@ describe('PredictDepositScreen', () => {
     ).toBeOnTheScreen();
   });
 
-  it('simulates the transfer on a dev build and never touches the wallet', async () => {
+  it('simulates the transfer via DepositEnvironmentOverride and never touches the wallet', async () => {
     const reportDepositTransfer = jest.fn(async () =>
       makeDeposit({ status: 'processing' }),
     );
@@ -269,6 +284,13 @@ describe('PredictDepositScreen', () => {
       { venueId: KALSHI_VENUE_ID },
       { environment: SIMULATED_ENVIRONMENT },
     );
+
+    expect(
+      await view.findByTestId(TestIds.SIMULATED_CAPTION),
+    ).toHaveTextContent(strings('predict_next.deposit.simulated_sandbox'));
+    expect(
+      Engine.context.AssetsContractController.getERC20BalanceOf,
+    ).not.toHaveBeenCalled();
 
     await typeAmount(view, '25');
     await addFunds(view);
@@ -285,6 +307,130 @@ describe('PredictDepositScreen', () => {
         chainId: BASE_DEPOSIT_NETWORK.chainId,
       },
     );
+  });
+
+  describe('catalog environment resolution', () => {
+    it('uses Base Sepolia and simulated transfer when catalog environment is sandbox, skipping balance checks even with 0 USDC', async () => {
+      mockUsdcBalance('0');
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'sandbox',
+      });
+      const reportDepositTransfer = jest.fn(async () =>
+        makeDeposit({
+          status: 'processing',
+          network: BASE_SEPOLIA_DEPOSIT_NETWORK,
+        }),
+      );
+      mockFunding({
+        'PredictFundingService:prepareDeposit': async () =>
+          makeDeposit({ network: BASE_SEPOLIA_DEPOSIT_NETWORK }),
+        'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+      });
+
+      const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(
+        await view.findByTestId(TestIds.SIMULATED_CAPTION),
+      ).toHaveTextContent(strings('predict_next.deposit.simulated_sandbox'));
+      expect(view.getByTestId(TestIds.PAY_WITH)).toHaveTextContent(
+        /USDC on Base Sepolia/u,
+      );
+      expect(
+        Engine.context.AssetsContractController.getERC20BalanceOf,
+      ).not.toHaveBeenCalled();
+
+      await typeAmount(view, '25');
+      expect(view.queryByTestId(TestIds.ALERT)).not.toBeOnTheScreen();
+      expect(view.getByTestId(TestIds.CONTINUE)).toBeEnabled();
+
+      await addFunds(view);
+
+      expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).not.toHaveBeenCalled();
+      expect(reportDepositTransfer).toHaveBeenCalledWith(
+        KALSHI_VENUE_ID,
+        'op-1',
+        {
+          txHash: expect.stringMatching(/^0x[0-9a-f]{64}$/u),
+          chainId: BASE_SEPOLIA_DEPOSIT_NETWORK.chainId,
+        },
+      );
+    });
+
+    it('uses Base mainnet and wallet transfer when catalog environment is production', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'production',
+      });
+      const reportDepositTransfer = jest.fn(async () =>
+        makeDeposit({ status: 'processing' }),
+      );
+      mockFunding({
+        'PredictFundingService:prepareDeposit': async () => makeDeposit(),
+        'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+      });
+      mockWallet(async () => TX_HASH);
+
+      const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(await view.findByTestId(TestIds.BALANCE)).toHaveTextContent(
+        strings('predict_next.deposit.available', { amount: '100.00' }),
+      );
+      expect(view.getByTestId(TestIds.PAY_WITH)).toHaveTextContent(
+        /USDC on Base$/u,
+      );
+
+      await typeAmount(view, '25');
+      await addFunds(view);
+
+      expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledTimes(1);
+      expect(reportDepositTransfer).toHaveBeenCalledWith(
+        KALSHI_VENUE_ID,
+        'op-1',
+        { txHash: TX_HASH, chainId: BASE_DEPOSIT_NETWORK.chainId },
+      );
+    });
+
+    it('disables Continue and hides Pay with while the catalog is loading without guessing a network', async () => {
+      configurePredictNextCatalog('pending');
+      mockFunding({});
+
+      const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(
+        await view.findByTestId(TestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen();
+      expect(view.queryByTestId(TestIds.PAY_WITH)).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('2')));
+      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('5')));
+      expect(view.getByTestId(TestIds.CONTINUE)).toBeDisabled();
+      expect(
+        Engine.context.AssetsContractController.getERC20BalanceOf,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('disables Continue, shows unavailable alert, and hides Pay with when the catalog fails', async () => {
+      configurePredictNextCatalog(new Error('catalog failed'));
+      mockFunding({});
+
+      const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(await view.findByTestId(TestIds.ALERT)).toHaveTextContent(
+        strings('predict_next.deposit.unavailable'),
+      );
+      expect(view.queryByTestId(TestIds.PAY_WITH)).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('2')));
+      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('5')));
+      expect(view.getByTestId(TestIds.CONTINUE)).toBeDisabled();
+    });
   });
 
   it('says there is not enough USDC on Base and blocks the deposit', async () => {

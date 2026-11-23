@@ -55,14 +55,14 @@ export const useUsdcBalance = ({
   address,
   enabled,
 }: {
-  network: PredictDepositNetwork;
+  network: PredictDepositNetwork | undefined;
   address: string | undefined;
   enabled: boolean;
 }): UsdcBalance => {
   const [balance, setBalance] = useState<UsdcBalance>({ status: 'loading' });
 
   useEffect(() => {
-    if (!address || !enabled) {
+    if (!network || !address || !enabled) {
       setBalance({ status: 'unavailable' });
       return undefined;
     }

@@ -49,7 +49,7 @@ const ADDRESS_POLL_ATTEMPTS = 5;
 
 interface UseDepositFlowOptions {
   venueId: PredictVenueId;
-  environment: PredictDepositEnvironment;
+  environment: PredictDepositEnvironment | undefined;
   /** The Funding Wallet's address; nothing runs without one. */
   fundingWallet: PredictHex | undefined;
   /** How often to read a new deposit while its address is prepared. */
@@ -129,35 +129,40 @@ export const useDepositFlow = ({
     [],
   );
 
-  const executor = useMemo<DepositTransferExecutor>(
-    () =>
-      environment.transferMode === 'wallet'
-        ? createWalletTransferExecutor({
-            findNetworkClientId: (chainId) =>
-              findNetworkClientId(Number.parseInt(chainId, 16)),
-            addTransaction: (params, options) =>
-              Engine.context.TransactionController.addTransaction(
-                params,
-                options,
-              ),
-            getTransaction: (id) =>
-              Engine.context.TransactionController.state.transactions.find(
-                (transaction) => transaction.id === id,
-              ),
-            // The bottom-sheet confirmation goes back to this screen when
-            // the user confirms or rejects; the full-screen one would leave
-            // Predict for Activity.
-            presentConfirmation: () =>
-              navigateToConfirmation({ forceBottomSheet: true }),
-          })
-        : createSimulatedTransferExecutor({
-            log: (message, details) => DevLogger.log(message, details),
-          }),
-    [environment.transferMode, navigateToConfirmation],
-  );
+  const executor = useMemo<DepositTransferExecutor | undefined>(() => {
+    if (!environment) {
+      return undefined;
+    }
+    return environment.transferMode === 'wallet'
+      ? createWalletTransferExecutor({
+          findNetworkClientId: (chainId) =>
+            findNetworkClientId(Number.parseInt(chainId, 16)),
+          addTransaction: (params, options) =>
+            Engine.context.TransactionController.addTransaction(
+              params,
+              options,
+            ),
+          getTransaction: (id) =>
+            Engine.context.TransactionController.state.transactions.find(
+              (transaction) => transaction.id === id,
+            ),
+          // The bottom-sheet confirmation goes back to this screen when
+          // the user confirms or rejects; the full-screen one would leave
+          // Predict for Activity.
+          presentConfirmation: () =>
+            navigateToConfirmation({ forceBottomSheet: true }),
+        })
+      : createSimulatedTransferExecutor({
+          log: (message, details) => DevLogger.log(message, details),
+        });
+  }, [environment, navigateToConfirmation]);
 
   const buildDeps = useCallback(
-    (from: PredictHex): DepositWorkflowDeps => ({
+    (
+      from: PredictHex,
+      resolvedEnvironment: PredictDepositEnvironment,
+      resolvedExecutor: DepositTransferExecutor,
+    ): DepositWorkflowDeps => ({
       funding: {
         prepareDeposit: (params) =>
           Engine.controllerMessenger.call(
@@ -193,8 +198,8 @@ export const useDepositFlow = ({
             operationId,
           ),
       },
-      executor,
-      network: environment.network,
+      executor: resolvedExecutor,
+      network: resolvedEnvironment.network,
       from,
       walletAddresses: selectInternalAccounts(store.getState()).map(
         (account) => account.address,
@@ -213,7 +218,7 @@ export const useDepositFlow = ({
         plan,
         createdAt,
       }): ExistingDepositTransfer | undefined => {
-        if (environment.transferMode === 'wallet') {
+        if (resolvedEnvironment.transferMode === 'wallet') {
           const transactions =
             Engine.context.TransactionController.state.transactions ?? [];
           const matched = findMatchingDepositTransaction({
@@ -292,29 +297,21 @@ export const useDepositFlow = ({
         });
       },
     }),
-    [
-      addressPollIntervalMs,
-      environment.network,
-      environment.transferMode,
-      executor,
-      navigateToConfirmation,
-      store,
-      venueId,
-    ],
+    [addressPollIntervalMs, navigateToConfirmation, store, venueId],
   );
 
   const run = useCallback(
     async (
       work: (deps: DepositWorkflowDeps) => Promise<DepositOutcome>,
     ): Promise<DepositOutcome | undefined> => {
-      if (!fundingWallet || isWorkingRef.current) {
+      if (!fundingWallet || !environment || !executor || isWorkingRef.current) {
         return undefined;
       }
       isWorkingRef.current = true;
       setIsWorking(true);
       let outcome: DepositOutcome;
       try {
-        outcome = await work(buildDeps(fundingWallet));
+        outcome = await work(buildDeps(fundingWallet, environment, executor));
       } catch (error) {
         // The workflow answers every expected failure; this is a bug guard.
         logError(error, 'PredictNext: the deposit workflow threw');
@@ -334,7 +331,7 @@ export const useDepositFlow = ({
       }
       return outcome;
     },
-    [buildDeps, fundingWallet],
+    [buildDeps, environment, executor, fundingWallet],
   );
 
   /** Starts and pays a deposit of `amount`. The press that calls it is the
@@ -375,7 +372,7 @@ export const useDepositFlow = ({
             from: fundingWallet,
             operationId: deposit.operationId,
           });
-          if (environment.transferMode === 'wallet') {
+          if (environment?.transferMode !== 'simulated') {
             const transactions =
               Engine.context.TransactionController.state.transactions ?? [];
             for (const tx of findMatchingUnapprovedDepositTransactions({
@@ -395,7 +392,7 @@ export const useDepositFlow = ({
         return false;
       }
     },
-    [environment.transferMode, fundingWallet, venueId],
+    [environment?.transferMode, fundingWallet, venueId],
   );
 
   /** Whether an open deposit already has a submitted transfer waiting only for its report. */
@@ -404,6 +401,7 @@ export const useDepositFlow = ({
       if (
         !deposit ||
         !fundingWallet ||
+        !environment ||
         deposit.status !== 'awaiting_transfer' ||
         deposit.next?.kind !== 'wallet_transfer'
       ) {
@@ -464,13 +462,7 @@ export const useDepositFlow = ({
         }),
       );
     },
-    [
-      environment.network,
-      environment.transferMode,
-      fundingWallet,
-      store,
-      venueId,
-    ],
+    [environment, fundingWallet, store, venueId],
   );
 
   return {

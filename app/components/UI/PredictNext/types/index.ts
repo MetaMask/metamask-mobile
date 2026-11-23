@@ -253,6 +253,12 @@ export const PREDICT_VENUE_ACTIONS = [
 ] as const;
 export type PredictVenueAction = (typeof PREDICT_VENUE_ACTIONS)[number];
 
+/** Which venue deployment the catalog describes. Drives deposit chain and
+ * transfer mode in every build. */
+export const PREDICT_VENUE_ENVIRONMENTS = ['sandbox', 'production'] as const;
+export type PredictVenueEnvironment =
+  (typeof PREDICT_VENUE_ENVIRONMENTS)[number];
+
 /**
  * Stable, kebab-case product key for a discovery Feed, for example
  * `nfl-games`. The Predict API owns the vocabulary (PRED-1522), so any
@@ -287,6 +293,7 @@ export interface PredictVenueFeedScreen {
  * catalog (`GET /v1/venues/{venueId}/catalog`). */
 export interface PredictVenueCatalog {
   venueId: PredictVenueId;
+  environment: PredictVenueEnvironment;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
   /** The Venue's Categories in display order, each named by its Feed key.

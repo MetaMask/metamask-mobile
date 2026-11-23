@@ -2264,6 +2264,55 @@ describe('PredictHome', () => {
       ).toBeOnTheScreen();
     });
 
+    it.each([
+      ['loading', 'pending' as const],
+      ['unavailable', new Error('catalog failed')],
+    ])(
+      'disables Continue while keeping Cancel enabled on the open sheet when catalog is %s',
+      async (_label, catalogState) => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:cancelDeposit') {
+              return Promise.resolve({
+                ...awaitingTransferDeposit,
+                status: 'cancelled',
+                next: null,
+              });
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        const cancelButton = view.getByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CANCEL,
+        );
+        expect(continueButton).toBeDisabled();
+        expect(cancelButton).toBeEnabled();
+
+        await act(async () => {
+          fireEvent.press(cancelButton);
+        });
+
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictFundingService:cancelDeposit',
+          'kalshi',
+          awaitingTransferDeposit.operationId,
+        );
+      },
+    );
+
     it('keeps two failed notices separate across visits without acknowledging the second on the first visit', async () => {
       const failedA = makeFailedDeposit({
         operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f' as PredictEntityId,

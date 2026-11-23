@@ -10,6 +10,7 @@
  */
 export const KALSHI_STATIC_VENUE_CATALOG = {
   venueId: 'kalshi',
+  environment: 'production',
   actions: ['buy', 'sell', 'deposit', 'withdraw'],
   feeds: {
     sports: 'sports-football-nfl-games',

@@ -37,11 +37,12 @@ describe('parsePredictVenueCatalog', () => {
     jest.mocked(Logger.log).mockClear();
   });
 
-  it('parses a valid catalog', () => {
+  it('parses a valid catalog and defaults environment to production when omitted', () => {
     const result = parsePredictVenueCatalog(createCatalog(), venueId);
 
     expect(result).toEqual({
       venueId: 'kalshi',
+      environment: 'production',
       actions: ['buy', 'sell'],
       feeds: {
         'nfl-games': 'sports-football-nfl-games',
@@ -52,6 +53,18 @@ describe('parsePredictVenueCatalog', () => {
       screens: [],
     });
   });
+
+  it.each(['sandbox', 'production'] as const)(
+    'accepts environment %s',
+    (environment) => {
+      const result = parsePredictVenueCatalog(
+        createCatalog({ environment }),
+        venueId,
+      );
+
+      expect(result.environment).toBe(environment);
+    },
+  );
 
   it('keeps the Categories in catalog order', () => {
     const result = parsePredictVenueCatalog(
@@ -103,6 +116,7 @@ describe('parsePredictVenueCatalog', () => {
 
     expect(result).toEqual({
       venueId: 'kalshi',
+      environment: 'production',
       actions: ['buy', 'sell'],
       feeds: {
         'nfl-games': 'sports-football-nfl-games',
@@ -207,6 +221,7 @@ describe('parsePredictVenueCatalog', () => {
 
     expect(result).toEqual({
       venueId: 'kalshi',
+      environment: 'production',
       actions: [],
       feeds: {},
       categories: [],
@@ -222,6 +237,9 @@ describe('parsePredictVenueCatalog', () => {
     ['an array', [createCatalog()]],
     ['a missing venueId', createCatalog({ venueId: undefined })],
     ['an empty venueId', createCatalog({ venueId: '' })],
+    ['an unknown environment', createCatalog({ environment: 'staging' })],
+    ['a non-string environment', createCatalog({ environment: 123 })],
+    ['a null environment', createCatalog({ environment: null })],
     ['missing actions', createCatalog({ actions: undefined })],
     ['actions that are not an array', createCatalog({ actions: 'buy' })],
     ['a non-string action', createCatalog({ actions: ['buy', 1] })],

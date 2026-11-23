@@ -4,6 +4,7 @@ export const PredictDepositScreenTestIds = {
   AMOUNT: 'predict-deposit-amount',
   BALANCE: 'predict-deposit-balance',
   BALANCE_LOADING: 'predict-deposit-balance-loading',
+  SIMULATED_CAPTION: 'predict-deposit-simulated-caption',
   ALERT: 'predict-deposit-alert',
   PAY_WITH: 'predict-deposit-pay-with',
   KEYPAD: 'predict-deposit-keypad',

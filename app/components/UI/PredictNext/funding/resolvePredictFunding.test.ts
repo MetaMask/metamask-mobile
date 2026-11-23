@@ -16,6 +16,7 @@ const descriptor = (
   status: 'ready',
   descriptor: {
     venueId: venueId as PredictVenueId,
+    environment: 'production',
     actions,
     feeds: {},
     categories: [],

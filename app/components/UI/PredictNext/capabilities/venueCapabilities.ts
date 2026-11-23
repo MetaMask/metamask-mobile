@@ -5,6 +5,7 @@ import type {
   PredictFeedId,
   PredictFeedKey,
   PredictVenueAction,
+  PredictVenueEnvironment,
   PredictVenueId,
 } from '../types';
 import type { PredictSurfaceFeed, PredictVenueCapabilities } from './types';
@@ -106,6 +107,13 @@ export const getVenueFeedId = (
 ): PredictFeedId | undefined =>
   capabilities.status === 'ready'
     ? capabilities.descriptor.feeds[feedKey]
+    : undefined;
+
+export const getVenueEnvironment = (
+  capabilities: PredictVenueCapabilities,
+): PredictVenueEnvironment | undefined =>
+  capabilities.status === 'ready'
+    ? capabilities.descriptor.environment
     : undefined;
 
 export const isVenueSearchSupported = (

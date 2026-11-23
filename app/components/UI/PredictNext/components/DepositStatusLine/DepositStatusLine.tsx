@@ -158,7 +158,11 @@ const DepositStatusSheetHost = ({
   onClose,
 }: DepositStatusSheetHostProps): React.JSX.Element => {
   const fundingWallet = useSelector(selectEvmAddress) as PredictHex | undefined;
-  const environment = useDepositEnvironment();
+  const environmentResolution = useDepositEnvironment(venueId);
+  const isEnvironmentReady = environmentResolution.status === 'ready';
+  const environment = isEnvironmentReady
+    ? environmentResolution.environment
+    : undefined;
   const flow = useDepositFlow({
     venueId,
     environment,
@@ -170,6 +174,9 @@ const DepositStatusSheetHost = ({
 
   const continueDeposit = useCallback(
     (target: PredictDepositOperation) => {
+      if (!isEnvironmentReady) {
+        return;
+      }
       onHide();
       void (async () => {
         try {
@@ -179,7 +186,7 @@ const DepositStatusSheetHost = ({
         }
       })();
     },
-    [flow, onClose, onHide],
+    [flow, isEnvironmentReady, onClose, onHide],
   );
 
   const cancelDeposit = useCallback(
@@ -203,6 +210,7 @@ const DepositStatusSheetHost = ({
     <DepositInProgressSheet
       deposit={deposit}
       hasSubmittedTransfer={flow.hasSubmittedTransfer(deposit)}
+      canContinue={isEnvironmentReady}
       isVisible={isVisible}
       isCancelling={isCancelling}
       cancelFailed={cancelFailed}
