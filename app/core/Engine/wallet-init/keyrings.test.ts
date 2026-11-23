@@ -25,6 +25,7 @@ import {
 import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
 import { MpcMoneyKeyring as MpcMoneyKeyringV2 } from '@metamask/eth-money-mpc-keyring/v2';
 import { MpcMoneyKeyring } from '../../MpcMoneyKeyring/MpcMoneyKeyring';
+import { buildRealMpcMoneyKeyringBuilder } from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
 
 jest.mock('../../../store', () => ({
   store: {
@@ -35,6 +36,11 @@ jest.mock('../../../store', () => ({
 
 jest.mock('@ledgerhq/device-transport-kit-react-native-ble', () => ({
   RNBleTransportFactory: 'RNBleTransportFactory',
+}));
+
+jest.mock('../../MpcMoneyKeyring/mpc-money-keyring-builder', () => ({
+  ...jest.requireActual('../../MpcMoneyKeyring/mpc-money-keyring-builder'),
+  buildRealMpcMoneyKeyringBuilder: jest.fn(),
 }));
 
 jest.mock('../../SnapKeyring', () => ({
@@ -53,9 +59,27 @@ function getRootMessenger() {
   >({ namespace: MOCK_ANY_NAMESPACE });
 }
 
+const MPC_BUILD_FLAGS = [
+  'MM_MONEY_MPC_KEYRING_ENABLED',
+  'MM_MONEY_MPC_REAL_KEYRING',
+] as const;
+const originalMpcBuildFlags = MPC_BUILD_FLAGS.map((flag) => process.env[flag]);
+
 describe('wallet-init/keyrings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    MPC_BUILD_FLAGS.forEach((flag) => delete process.env[flag]);
+  });
+
+  afterAll(() => {
+    MPC_BUILD_FLAGS.forEach((flag, index) => {
+      const original = originalMpcBuildFlags[index];
+      if (original === undefined) {
+        delete process.env[flag];
+      } else {
+        process.env[flag] = original;
+      }
+    });
   });
 
   describe('qrKeyringBridge', () => {
@@ -252,19 +276,7 @@ describe('wallet-init/keyrings', () => {
   });
 
   describe('MPC money keyring registration', () => {
-    const originalFlag = process.env.MM_MONEY_MPC_KEYRING_ENABLED;
-
-    afterEach(() => {
-      if (originalFlag === undefined) {
-        delete process.env.MM_MONEY_MPC_KEYRING_ENABLED;
-      } else {
-        process.env.MM_MONEY_MPC_KEYRING_ENABLED = originalFlag;
-      }
-    });
-
     it('does not register the MPC money keyring builders when the build flag is off', () => {
-      delete process.env.MM_MONEY_MPC_KEYRING_ENABLED;
-
       const v1Types = (getKeyringBuilders(getRootMessenger(), false) ?? []).map(
         (builder) => builder.type,
       );
@@ -294,6 +306,24 @@ describe('wallet-init/keyrings', () => {
         { id: 'metadata-id', name: 'name' },
       );
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
+    });
+
+    it('registers the real MPC money keyring builder when both build flags are on', () => {
+      process.env.MM_MONEY_MPC_KEYRING_ENABLED = 'true';
+      process.env.MM_MONEY_MPC_REAL_KEYRING = 'true';
+      const realBuilder = Object.assign(jest.fn(), {
+        type: MpcMoneyKeyring.type,
+      });
+      jest.mocked(buildRealMpcMoneyKeyringBuilder).mockReturnValue(realBuilder);
+
+      const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
+
+      expect(buildRealMpcMoneyKeyringBuilder).toHaveBeenCalledWith({
+        getBearerToken: expect.any(Function),
+      });
+      expect(
+        v1Builders.find((builder) => builder.type === MpcMoneyKeyring.type),
+      ).toBe(realBuilder);
     });
   });
 });

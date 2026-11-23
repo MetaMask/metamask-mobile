@@ -38474,6 +38474,7 @@ __metadata:
     "@metamask/money-account-balance-service": "npm:^3.2.1"
     "@metamask/money-account-controller": "npm:^3.0.1"
     "@metamask/money-account-lifecycle-controller": "npm:^1.1.0"
+    "@metamask/money-account-mfa-whitelist": "npm:^0.1.0"
     "@metamask/money-account-upgrade-controller": "npm:^7.0.0"
     "@metamask/money-account-utils": "npm:^2.2.1"
     "@metamask/mpc-react-native": "npm:^0.2.1"
