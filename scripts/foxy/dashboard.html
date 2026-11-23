@@ -235,7 +235,7 @@
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-muted); display: inline-block; }
   .dot.ours { background: var(--cat-ours); } .dot.third { background: var(--cat-third); } .dot.unowned { background: var(--cat-unowned); }
   .dot.err { background: var(--cat-err); } .dot.dup { background: var(--brand-colors-orange-orange300); }
-  .ownerpill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border-radius: var(--r-box); background: var(--color-background-section); border: 1px solid var(--color-border-muted); font-size: 12px; color: var(--color-text-alternative); }
+  .ownerpill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border-radius: var(--r-ctl); background: var(--color-background-section); border: 1px solid var(--color-border-muted); font-size: 12px; color: var(--color-text-alternative); }
   .ownerpill button { border: 0; padding: 0 6px; border-radius: var(--r-box); background: transparent; color: var(--color-text-muted); font-size: 14px; line-height: 1.2; }
   .ownerpill button:hover { color: var(--color-text-default); }
   .tip { color: var(--color-text-muted); font-size: 11.5px; }
@@ -765,47 +765,69 @@
   .flt-btn .ic { width: 15px; height: 15px; }
   .flt-btn.on { color: var(--color-primary-default); }
   .advpills { display: contents; }
-  .subbar .ownerpill { height: 35px; box-sizing: border-box; padding-left: 12px; } /* every pill in the bar (owner, phase, sort, filters) is as tall as the chips beside it */
+  /* the active filters sit on their own row, which is always there: a chip appearing never pushes the toolbar around */
+  .fltrow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; min-height: 44px; box-sizing: border-box; padding: 6px 16px; background: var(--color-background-alternative); border-bottom: 1px solid var(--color-border-muted); }
+  .fltrow > span#ownerPill, .fltrow > span#phasePill { display: contents; }
+  .fltrow .ownerpill { height: 30px; box-sizing: border-box; padding-left: 12px; }
+  .flt-hint { font-size: 12.5px; color: var(--color-text-muted); }
+  .flt-hint[hidden] { display: none; }
+  @media (max-width: 720px) { .fltrow { padding: 6px 12px; } }
   .advpills .ownerpill { max-width: 360px; }
   .advpills .ownerpill .pv { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-default); font-weight: 600; }
   .advpills .ownerpill .pk { white-space: nowrap; }
-  .fpop { width: min(540px, calc(100vw - 24px)); }
-  .fpop h2 button#fltClear { padding: 6px 12px; border-radius: var(--r-ctl); font-size: 13px; }
-  .fpop .presets button { display: inline-flex; align-items: center; gap: 6px; }
+  /* filters: the same shape as the request panel. A title line per facet, its controls on one quiet line, then a plain list */
+  .fpop { width: min(520px, calc(100vw - 24px)); }
+  /* header: a title the size of the section titles' parent, not a dialog headline; every control in the panel is 28px tall */
+  .fpop { padding: 4px 20px 16px; }
+  .fpop h2 { padding: 10px 0 12px; font-size: 14px; font-weight: 600; letter-spacing: -.01em; gap: 8px; }
+  .fpop h2 > .ic { width: 16px; height: 16px; }
+  .fpop h2 button#fltClear { height: 26px; padding: 0 10px; border-radius: var(--r-ctl); font-size: 12.5px; }
+  .fpop .mk-h { margin: 16px 0 8px; padding-top: 0; border-top: 0; font-size: 13px; line-height: 24px; font-weight: 600; letter-spacing: -.005em; color: var(--color-text-default); }
+  .fpop .mk-foot { margin-top: 14px; padding-top: 12px; font-size: 12px; line-height: 1.7; }
+  .fpop .presets { gap: 6px; margin: 0; }
+  .fpop .presets button { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; font-size: 12.5px; line-height: 28px; }
   .fpop .presets button .ic { width: 13px; height: 13px; }
   .fpop .presets button[aria-pressed="true"] { color: var(--color-primary-default); background: var(--color-primary-muted); }
-  .fsec { margin-top: 14px; padding-top: 4px; }
-  .fsec-h { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; min-height: 26px; font-size: 13px; font-weight: 650; color: var(--color-text-default); }
+  .fsec { margin-top: 26px; }
+  .fsec-h { display: flex; align-items: center; gap: 8px; min-height: 28px; font-size: 13px; line-height: 20px; font-weight: 600; letter-spacing: -.005em; color: var(--color-text-default); }
   .fsec-h .sp { flex: 1; }
   .fsec-h .fsub { font-weight: 500; font-size: 12px; color: var(--color-text-muted); }
-  .fpop .mini { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--r-ctl); background: var(--fill-1); }
-  .fpop .mini button { padding: 3px 10px; font-size: 12px; border-radius: var(--r-ctl); background: transparent; color: var(--color-text-alternative); }
+  .fbar { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  .fbar .fsearch { flex: 1; min-width: 0; }
+  .fpop .mini { display: inline-flex; flex: none; gap: 2px; padding: 2px; height: 28px; box-sizing: border-box; border-radius: var(--r-ctl); background: var(--well); }
+  .fpop .mini button { height: 24px; padding: 0 10px; font-size: 12.5px; line-height: 24px; border-radius: var(--r-ctl); background: transparent; color: var(--color-text-muted); }
   .fpop .mini button:hover { color: var(--color-text-default); }
   .fpop .mini button[aria-pressed="true"] { background: var(--fill-active, var(--fill-3)); color: var(--color-text-default); font-weight: 600; }
   .fpop .mini button[aria-pressed="true"].neg { background: var(--color-error-muted); color: var(--color-error-default); }
-  .fpop .fsearch { position: relative; display: flex; margin-bottom: 4px; }
-  .fpop .fsearch input { width: 100%; box-sizing: border-box; padding: 6px 10px 6px 34px; font-size: 13px; }
-  .fpop .fsearch .ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none; }
-  .flist { display: flex; flex-direction: column; gap: 1px; max-height: 188px; overflow: auto; margin: 0 -6px; padding: 0 6px; }
-  .fopt { display: flex; align-items: center; gap: 2px; }
-  .fpop .fopt .fchk { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 5px 8px; border-radius: var(--r-ctl); background: transparent; color: var(--color-text-default); text-align: left; font-weight: 500; font-size: 13px; }
-  .fpop .fopt .fchk:hover { background: var(--fill-1); }
-  .fchk .box { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px var(--color-text-muted); color: transparent; }
-  .fchk .box .ic { width: 12px; height: 12px; }
+  .fpop .fsearch { position: relative; display: flex; }
+  .fpop .fsearch input { width: 100%; box-sizing: border-box; height: 28px; padding: 0 12px 0 32px; font-size: 12.5px; background: var(--well); }
+  .fpop .fsearch .ic { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--color-text-muted); pointer-events: none; }
+  .fsec-h + .flist { margin-top: 10px; }
+  .fbar + .flist { margin-top: 8px; }
+  .flist { display: flex; flex-direction: column; margin: 4px -8px 0; max-height: 196px; overflow: auto; }
+  .fopt { display: flex; align-items: center; gap: 4px; min-height: 32px; padding: 0 4px 0 0; border-radius: var(--r-ctl); }
+  .fopt:hover { background: var(--fill-1); }
+  .fpop .fopt .fchk { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 32px; padding: 0 8px; border-radius: var(--r-ctl); background: transparent; color: var(--color-text-default); text-align: left; font-weight: 500; font-size: 13px; }
+  .fpop .fopt:hover .fchk { background: transparent; }
+  .fchk .box { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--color-text-muted); color: transparent; }
+  .fchk .box .ic { width: 11px; height: 11px; }
   .fchk[aria-checked="true"] .box { background: var(--color-primary-default); box-shadow: none; color: var(--on-primary, #fff); }
   .fsec.neg .fchk[aria-checked="true"] .box { background: var(--color-error-default); }
-  .fchk .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--color-text-muted)); }
+  .fchk .dot { flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--color-text-muted)); }
   .fchk .fl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fchk .fl.mono { font-family: var(--font-family-mono); font-size: 12px; }
-  .fchk .fn { flex: none; font-size: 11.5px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
-  .fpop .fopt .fstar { flex: none; background: transparent; color: var(--color-text-muted); }
+  .fchk .fn { flex: none; min-width: 28px; text-align: right; font-size: 12px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+  .fopt .fspace { flex: none; width: 26px; }
+  .fpop .fopt .fstar { flex: none; width: 26px; height: 26px; min-width: 26px; background: transparent; color: var(--color-text-muted); opacity: 0; transition: opacity .12s; }
+  .fpop .fopt:hover .fstar, .fpop .fopt .fstar:focus-visible, .fpop .fopt .fstar[aria-pressed="true"] { opacity: 1; }
   .fpop .fopt .fstar:hover { color: var(--color-text-default); background: var(--fill-2); }
   .fpop .fopt .fstar[aria-pressed="true"] { color: var(--color-warning-default); }
   html[data-theme="light"] .fpop .fopt .fstar[aria-pressed="true"] { color: color-mix(in srgb, var(--color-warning-default) 70%, #000); }
-  .fempty { padding: 8px 8px; font-size: 12.5px; color: var(--color-text-muted); }
-  .fmsrow { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-alternative); }
-  .fmsrow input { width: 110px; box-sizing: border-box; padding: 6px 10px; font-size: 13px; }
-  .fmsrow .mini button { padding: 3px 9px; }
+  .fempty { padding: 8px; font-size: 12.5px; color: var(--color-text-muted); }
+  .fmsrow { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 13px; color: var(--color-text-alternative); }
+  .fmsrow input { width: 96px; box-sizing: border-box; height: 28px; padding: 0 12px; font-size: 12.5px; background: var(--well); }
+  .fmsrow .mini { margin-left: auto; }
+  .fmsrow .mini button { height: 24px; line-height: 24px; }
 
   /* request detail: which screen the request was made from */
   .vstrip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-bottom: 14px; padding: 10px 14px; border-radius: var(--r-box); background: var(--surface-1, var(--color-background-alternative)); }
@@ -888,9 +910,6 @@
   </div>
   <button class="tog" data-flag="errors" title="Errors, aborts and 4xx/5xx responses"><i class="dot err"></i>Failed <span class="n"></span></button>
   <button class="tog" data-flag="dupes" title="Identical request made more than once: same method, URL and (for POST/PUT/PATCH) body"><i class="dot dup"></i>Duplicates <span class="n"></span></button>
-  <span id="ownerPill"></span>
-  <span id="phasePill"></span>
-  <span id="advPills" class="advpills"></span>
   <span class="spacer"></span>
   <button id="markBtn" class="btn flt-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="mkpop" title="Markers: label moments in the app to split the capture into phases (M)"><svg class="ic"><use href="#i-flag"/></svg><span class="lbl">Markers</span><b class="badge-n" id="markCount" hidden>0</b></button>
   <div class="mkpop" id="mkpop" role="dialog" aria-label="Markers">
@@ -917,6 +936,7 @@
     <div class="mk-foot">Pick several values to match any of them. Different sections must all match. <kbd class="k">F</kbd> opens this panel · <kbd class="k">Esc</kbd> closes</div>
   </div>
 </div>
+<div class="fltrow" id="fltRow" aria-label="Active filters"><span id="ownerPill"></span><span id="phasePill"></span><span id="advPills" class="advpills"></span><span class="flt-hint" id="fltHint">No filters applied</span></div>
 <div class="strip" aria-label="Requests over time"><div class="stripin" id="stripin"></div><div class="axis" id="axis"></div></div>
 <main>
   <table id="timeline"><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table>
@@ -2422,10 +2442,14 @@ const sameSet = (a, b) => a.size === b.size && [...a].every((x) => b.has(x));
 const miniSeg = (label, attr, items, cur) => `<div class="mini" role="group" aria-label="${esc(label)}">${items.map(([id, text, tip, cls]) => `<button type="button" ${attr}="${esc(id)}" aria-pressed="${cur === id}" class="${cls || ''}" title="${esc(tip || '')}">${esc(text)}</button>`).join('')}</div>`;
 
 function buildFilters() {
-  $('#fltBody').innerHTML = FACETS.map((f) => `<section class="fsec" data-f="${f.id}">
-    <div class="fsec-h"><span>${f.label}</span><span class="sp"></span>${f.id === 'team' ? miniSeg('Which owner to match', 'data-fscope', TEAM_SCOPES, adv.team.scope) : ''}${miniSeg(`${f.label}: match or exclude`, 'data-fnot', [['is', 'Is', 'Show only the picked values'], ['not', 'Is not', 'Hide the picked values', 'neg']], 'is')}</div>
-    ${f.search ? `<label class="fsearch">${icon('search')}<input type="search" data-fq="${f.id}" placeholder="${f.search}" aria-label="${f.search}" autocomplete="off" spellcheck="false" /></label>` : ''}
-    <div class="flist" data-flist="${f.id}"></div></section>`).join('')
+  $('#fltBody').innerHTML = FACETS.map((f) => {
+    const search = f.search ? `<label class="fsearch">${icon('search')}<input type="search" data-fq="${f.id}" placeholder="${f.search}" aria-label="${f.search}" autocomplete="off" spellcheck="false" /></label>` : '';
+    const scope = f.id === 'team' ? miniSeg('Which owner to match', 'data-fscope', TEAM_SCOPES, adv.team.scope) : '';
+    return `<section class="fsec" data-f="${f.id}">
+    <div class="fsec-h"><span>${f.label}</span><span class="sp"></span>${miniSeg(`${f.label}: match or exclude`, 'data-fnot', [['is', 'Is', 'Show only the picked values'], ['not', 'Is not', 'Hide the picked values', 'neg']], 'is')}</div>
+    ${search || scope ? `<div class="fbar">${search}${scope}</div>` : ''}
+    <div class="flist" data-flist="${f.id}"></div></section>`;
+  }).join('')
     + `<section class="fsec"><div class="fsec-h"><span>Slower than</span></div><div class="fmsrow"><input id="fltMs" type="number" min="0" step="50" inputmode="numeric" placeholder="0" aria-label="Minimum duration in milliseconds" /><span>ms</span>${miniSeg('Common durations', 'data-ms', MS_QUICK.map((n) => [String(n), n >= 1000 ? `${n / 1000}s` : `${n}ms`]), '')}</div></section>`;
 }
 
@@ -2443,7 +2467,7 @@ function facetList(f) {
     const on = s.on.has(v), label = facetLabel(f, v);
     const dot = f.id === 'team' ? `<i class="dot" style="${v === NO_TEAM ? '' : `--c:${teamColor(v)}`}"></i>` : '';
     const star = f.id === 'team' && v !== NO_TEAM ? `<button type="button" class="fstar icon-btn sm" data-star="${esc(v)}" aria-pressed="${myTeams.has(v)}" aria-label="${myTeams.has(v) ? 'Remove' : 'Add'} ${esc(v)} ${myTeams.has(v) ? 'from' : 'to'} My teams" title="${myTeams.has(v) ? 'In My teams (click to remove)' : 'Add to My teams'}">${icon(myTeams.has(v) ? 'star' : 'star-o')}</button>` : '';
-    return `<div class="fopt"><button type="button" class="fchk" role="checkbox" aria-checked="${on}" data-v="${esc(v)}" title="${esc(f.id === 'team' && v !== NO_TEAM ? `@MetaMask/${v}` : label)}"><span class="box">${icon('check')}</span>${dot}<span class="fl${f.mono ? ' mono' : ''}">${esc(label)}</span><span class="fn">${n}</span></button>${star}</div>`;
+    return `<div class="fopt"><button type="button" class="fchk" role="checkbox" aria-checked="${on}" data-v="${esc(v)}" title="${esc(f.id === 'team' && v !== NO_TEAM ? `@MetaMask/${v}` : label)}"><span class="box">${icon('check')}</span>${dot}<span class="fl${f.mono ? ' mono' : ''}">${esc(label)}</span><span class="fn">${n}</span></button>${star || '<span class="fspace"></span>'}</div>`;
   }).join('');
 }
 
@@ -2456,6 +2480,7 @@ function renderAdvPills() {
   });
   if (adv.minMs) out.push(pill('ms', 'Slower than', `${adv.minMs} ms`, `${adv.minMs} ms`));
   $('#advPills').innerHTML = out.join('');
+  $('#fltHint').hidden = Boolean(document.querySelector('#fltRow .ownerpill'));
 }
 
 /** Rebuilding the lists would drop keyboard focus, so remember which control had it and put it back. */
