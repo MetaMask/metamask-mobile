@@ -5,6 +5,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 const TOKEN_API_ORIGIN = 'https://tokens.api.cx.metamask.io';
 const TOKEN_API_ASSETS_PATH = '/v3/assets';
@@ -34,6 +35,8 @@ export function setupActivityTokenApiMock(
     .query(true)
     .reply(200, tokenMetadata)
     .persist();
+
+  installDefaultApiMocks();
 }
 
 export function isActivityTokenApiMockDone(): boolean {

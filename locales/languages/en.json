@@ -3960,6 +3960,37 @@
       "politics": "Politics",
       "sports": "Sports"
     },
+    "feed_screens": {
+      "titles": {
+        "sports-football-nfl": "Sports",
+        "sports-football-ncaa": "Sports",
+        "sports": "Sports",
+        "politics": "Politics"
+      },
+      "subtitles": {
+        "sports-football-nfl": "NFL",
+        "sports-football-ncaa": "NCAAF"
+      },
+      "tabs": {
+        "sports-football-nfl": {
+          "games": "Games",
+          "props": "Props"
+        },
+        "sports-football-ncaa": {
+          "games": "Games",
+          "props": "Props"
+        },
+        "sports": {
+          "nfl": "NFL",
+          "ncaaf": "NCAAF"
+        },
+        "politics": {
+          "trump": "Trump",
+          "congress": "Congress",
+          "iran": "Iran"
+        }
+      }
+    },
     "home_feed": {
       "trending": "Trending",
       "sports": "Sports",
@@ -4175,11 +4206,26 @@
         "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
         "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
         "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "under_review_label": "Your deposit of {{amount}} is under review. Support reference:",
         "unknown": "A deposit is already in progress. Try again in a moment.",
         "continue": "Continue",
         "cancel": "Cancel deposit",
         "close": "Got it",
         "cancel_failed": "This deposit couldn't be cancelled. Try again."
+      },
+      "status": {
+        "awaiting_transfer": "Deposit waiting for your transfer",
+        "processing": "Deposit processing",
+        "under_review": "Deposit under review · Ref {{reference}}",
+        "under_review_label": "Deposit under review · Ref",
+        "copy_reference": "Copy support reference",
+        "reference_copied": "Support reference copied",
+        "failed": "Deposit failed",
+        "cancelled": "Deposit cancelled"
+      },
+      "notification": {
+        "completed_title": "Deposit complete",
+        "completed_description": "{{amount}} is ready to trade."
       }
     },
     "withdraw": {
@@ -11148,6 +11194,7 @@
       "failed": "Failed",
       "filled": "Filled",
       "skipped": "Skipped",
+      "swap_issue_warning": "Some swaps were skipped or failed",
       "reason": "Reason",
       "swap_details_title": "Swapped {{source}} to {{dest}}",
       "order_not_found": "Order not found",
@@ -11212,6 +11259,7 @@
     "slippage": "Slippage",
     "slippage_info": "If the price changes between the time your order is placed and confirmed it’s called “slippage.” Your swap will automatically cancel if slippage exceeds the tolerance you set here.",
     "network_fee": "Network fee",
+    "stablecoin_account": "Stablecoin account",
     "relayer_fee": "Relayer fee",
     "gas_fees_sponsored": "Paid by MetaMask",
     "included": "Included",
