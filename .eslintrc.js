@@ -330,7 +330,8 @@ module.exports = {
         // Slow type checks. The shared config turns these on and they need type
         // information. Oxlint owns them, as errors, for TypeScript files, with
         // the shared config's options. Existing hits are in
-        // oxlint-suppressions.json.
+        // oxlint-suppressions.json. unbound-method is off in *.test and *.spec
+        // files, where asserting on a method reference is the usual pattern.
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/consistent-type-exports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
@@ -338,6 +339,7 @@ module.exports = {
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
+        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         '@typescript-eslint/only-throw-error': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -350,9 +352,6 @@ module.exports = {
         '@typescript-eslint/restrict-plus-operands': 'off',
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/switch-exhaustiveness-check': 'off',
-        // Slow type checks the shared config also turns on. They are not on in
-        // Oxlint yet, because each has thousands of existing hits.
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         '@typescript-eslint/unbound-method': 'off',
         // The shared config leaves these off, so they are off in Oxlint too.
         '@typescript-eslint/consistent-type-imports': 'off',

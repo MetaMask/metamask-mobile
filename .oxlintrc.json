@@ -215,6 +215,7 @@
         "typescript/no-implied-eval": "error",
         "typescript/no-misused-promises": "error",
         "typescript/no-unnecessary-boolean-literal-compare": "error",
+        "typescript/no-unnecessary-type-assertion": "error",
         "typescript/only-throw-error": "error",
         "typescript/prefer-includes": "error",
         "typescript/prefer-nullish-coalescing": "error",
@@ -235,7 +236,14 @@
         "typescript/switch-exhaustiveness-check": [
           "error",
           { "considerDefaultExhaustiveForUnions": true }
-        ]
+        ],
+        "typescript/unbound-method": "error"
+      }
+    },
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+      "rules": {
+        "typescript/unbound-method": "off"
       }
     },
     {

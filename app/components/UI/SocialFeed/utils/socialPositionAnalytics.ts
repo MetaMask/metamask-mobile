@@ -53,3 +53,11 @@ export const socialFeedPostAnalytics = (
     },
   });
 };
+
+/** Source post of a copy trade: its comment id and its author's trader id. */
+export const socialFeedPostSubject = (
+  post: SocialV1FeedPost,
+): { post_id?: string; author_trader_id?: string } => ({
+  ...(post.commentId ? { post_id: post.commentId } : {}),
+  ...(post.item.author.id ? { author_trader_id: post.item.author.id } : {}),
+});

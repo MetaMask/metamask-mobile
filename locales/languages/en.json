@@ -1556,7 +1556,7 @@
       "private_description": "Private profiles can't publish posts. Make your profile public to start posting."
     },
     "post_trade_share": {
-      "swap_in_progress": "Swap in progress",
+      "trade_in_progress": "Trade in progress",
       "complete": "Swap complete",
       "failed": "Swap failed",
       "order_in_progress": "Order in progress",
@@ -3959,6 +3959,37 @@
       "title": "Categories",
       "politics": "Politics",
       "sports": "Sports"
+    },
+    "feed_screens": {
+      "titles": {
+        "sports-football-nfl": "Sports",
+        "sports-football-ncaa": "Sports",
+        "sports": "Sports",
+        "politics": "Politics"
+      },
+      "subtitles": {
+        "sports-football-nfl": "NFL",
+        "sports-football-ncaa": "NCAAF"
+      },
+      "tabs": {
+        "sports-football-nfl": {
+          "games": "Games",
+          "props": "Props"
+        },
+        "sports-football-ncaa": {
+          "games": "Games",
+          "props": "Props"
+        },
+        "sports": {
+          "nfl": "NFL",
+          "ncaaf": "NCAAF"
+        },
+        "politics": {
+          "trump": "Trump",
+          "congress": "Congress",
+          "iran": "Iran"
+        }
+      }
     },
     "home_feed": {
       "trending": "Trending",
@@ -11260,6 +11291,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
     "discount_badge_promo": "Promo",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "No MM fee",
     "token_suspicious": "Suspicious",
