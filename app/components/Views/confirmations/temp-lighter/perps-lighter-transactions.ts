@@ -28,6 +28,7 @@ import {
 
 /** Options passed to `TransactionController.addTransaction`. */
 export interface PerpsTransactionOptions {
+  isInternal?: boolean;
   nestedTransactions?: TransactionMeta['nestedTransactions'];
   networkClientId: string;
   origin?: string;
@@ -101,6 +102,9 @@ export function buildLighterDepositRequest({
   return {
     params: { from, to: batch.to, data: batch.data, value: '0x0' },
     options: {
+      // The batch calls the user's own account with data, which the
+      // controller rejects for a transaction it treats as external.
+      isInternal: true,
       nestedTransactions: [built.approve, built.deposit],
       networkClientId: mainnetNetworkClientId,
       origin,

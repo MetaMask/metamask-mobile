@@ -134,6 +134,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
     expect(params.to).toBe(USER);
     expect(options).toStrictEqual(
       expect.objectContaining({
+        isInternal: true,
         networkClientId: 'mainnet',
         origin: 'metamask',
         requireApproval: true,
