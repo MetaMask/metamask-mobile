@@ -174,13 +174,13 @@ function depositMainnetUsdcWhenUnregistered({
     return;
   }
 
-  const onLookup = (exists: boolean) => {
+  const onLookup = async (exists: boolean) => {
     Logger.log('Lighter account lookup', { address: from, exists });
     if (lookupGenerationRef.current !== generation || exists) {
       return undefined;
     }
 
-    return replaceWithLighterDeposit({
+    return await replaceWithLighterDeposit({
       from,
       nextType,
       snapshotRef,

@@ -437,7 +437,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
   it('ignores a lookup failure after the user switches provider', async () => {
     let rejectLookup: (error: Error) => void = () => undefined;
     global.fetch = jest.fn().mockImplementation(
-      () =>
+      async () =>
         new Promise((_resolve, reject) => {
           rejectLookup = reject;
         }),
@@ -467,7 +467,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
   it('does not create the deposit after the user switches back before the lookup finishes', async () => {
     let resolveLookup: (response: unknown) => void = () => undefined;
     global.fetch = jest.fn().mockImplementation(
-      () =>
+      async () =>
         new Promise((resolve) => {
           resolveLookup = resolve;
         }),
