@@ -121,17 +121,17 @@ describe('RewardsMoneyDashboard', () => {
         persona: 'referee',
         summary: null,
         handlers: {
-          'RewardsMoneyController:getEarningsSummary': () =>
-            rejectSummary
-              ? Promise.reject(
-                  new RewardsMoneyHttpError(
-                    'Get earnings summary failed: 503',
-                    503,
-                    JSON.stringify({ reason: 'SERVER_BUSY' }),
-                    2,
-                  ),
-                )
-              : Promise.resolve(CLAIMABLE_EARNINGS_SUMMARY),
+          'RewardsMoneyController:getEarningsSummary': async () => {
+            if (rejectSummary) {
+              throw new RewardsMoneyHttpError(
+                'Get earnings summary failed: 503',
+                503,
+                JSON.stringify({ reason: 'SERVER_BUSY' }),
+                2,
+              );
+            }
+            return CLAIMABLE_EARNINGS_SUMMARY;
+          },
         },
       });
 
@@ -475,9 +475,12 @@ const BENEFIT: SubscriptionBenefitDto = {
 };
 
 const subscriptionReads = {
-  'RewardsController:getCampaigns': () => Promise.resolve([ACTIVE_CAMPAIGN]),
-  'RewardsController:getBenefits': () =>
-    Promise.resolve({ benefits: [BENEFIT], limit: 200, lastFetched: 0 }),
+  'RewardsController:getCampaigns': async () => [ACTIVE_CAMPAIGN],
+  'RewardsController:getBenefits': async () => ({
+    benefits: [BENEFIT],
+    limit: 200,
+    lastFetched: 0,
+  }),
 };
 
 describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => {
@@ -539,7 +542,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
   });
 
   it('holds skeletons, not empty states, while the first reads are pending', async () => {
-    const pending = () => new Promise(() => undefined);
+    const pending = async () => new Promise(() => undefined);
     const { findByTestId, getByTestId, queryByText } =
       renderRewardsMoneyDashboard({
         persona: 'referee',
@@ -581,8 +584,11 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
         subscriptionId: 'sub-1',
         handlers: {
           ...subscriptionReads,
-          'RewardsController:getBenefits': () =>
-            Promise.resolve({ benefits: [], limit: 200, lastFetched: 0 }),
+          'RewardsController:getBenefits': async () => ({
+            benefits: [],
+            limit: 200,
+            lastFetched: 0,
+          }),
         },
       });
 
@@ -637,14 +643,12 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
         subscriptionId: 'sub-1',
         handlers: {
           ...subscriptionReads,
-          'RewardsController:getBenefits': () =>
-            failBenefits
-              ? Promise.reject(new Error('benefits unavailable'))
-              : Promise.resolve({
-                  benefits: [BENEFIT],
-                  limit: 200,
-                  lastFetched: 0,
-                }),
+          'RewardsController:getBenefits': async () => {
+            if (failBenefits) {
+              throw new Error('benefits unavailable');
+            }
+            return { benefits: [BENEFIT], limit: 200, lastFetched: 0 };
+          },
         },
       });
 
@@ -676,11 +680,12 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
           ...subscriptionReads,
           // The first read fails. Later reads never settle, so the tab is
           // observed mid-request.
-          'RewardsController:getBenefits': () => {
+          'RewardsController:getBenefits': async () => {
             benefitsReads += 1;
-            return benefitsReads === 1
-              ? Promise.reject(new Error('benefits unavailable'))
-              : new Promise(() => undefined);
+            if (benefitsReads === 1) {
+              throw new Error('benefits unavailable');
+            }
+            return new Promise(() => undefined);
           },
         },
       });
