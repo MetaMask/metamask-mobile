@@ -59,7 +59,6 @@ import { useBridgeSession } from '../../hooks/useBridgeSession';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
-import { PriceToleranceTooltip } from '../PriceToleranceTooltip';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -125,7 +124,7 @@ function ConfirmOrderRow({
   isLoading,
   skeletonTestID,
 }: {
-  label: ReactNode;
+  label: string;
   value: string;
   testID: string;
   trailing?: ReactNode;
@@ -149,13 +148,9 @@ function ConfirmOrderRow({
         gap={2}
         twClassName="shrink"
       >
-        {typeof label === 'string' ? (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {label}
-          </Text>
-        ) : (
-          label
-        )}
+        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          {label}
+        </Text>
         {labelAccessory}
       </Box>
       <Box
@@ -450,13 +445,7 @@ const RecurringConfirmOrderSheet = ({
         />
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
-          label={
-            <PriceToleranceTooltip
-              testID={
-                RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE_TOOLTIP
-              }
-            />
-          }
+          label={strings('bridge.cost_tolerance')}
           value={`${recurringPriceTolerance ?? defaultPriceTolerance}%`}
           testID={RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE}
         />
