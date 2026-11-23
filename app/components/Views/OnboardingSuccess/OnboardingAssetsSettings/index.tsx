@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -21,6 +21,7 @@ import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selector
 
 const AssetSettings = () => {
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
   const navigation = useNavigation<AppNavigationProp>();
   const isBasicFunctionalityConsolidationEnabled = useSelector(
     selectMobileUxBftcConsolidationFlagEnabled,
@@ -31,12 +32,16 @@ const AssetSettings = () => {
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         title={strings('default_settings.drawer_assets_title')}
         onBack={() => navigation.goBack()}
       />
       <ScrollView
-        contentContainerStyle={tw.style('pb-[75px]')}
+        contentContainerStyle={[
+          tw.style('pb-[75px]'),
+          { paddingTop: headerInset },
+        ]}
         style={tw.style('flex-1 px-4 py-2 pb-4')}
       >
         {!isBasicFunctionalityConsolidationEnabled && (

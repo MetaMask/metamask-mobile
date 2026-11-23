@@ -232,6 +232,7 @@ const ImportFromSecretRecoveryPhrase = () => {
   );
   const { themeAppearance } = useTheme();
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
@@ -720,6 +721,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         backButtonProps={{
           accessibilityLabel: strings('navigation.back'),
@@ -739,7 +741,10 @@ const ImportFromSecretRecoveryPhrase = () => {
         }
       />
       <KeyboardAwareScrollView
-        contentContainerStyle={tw.style('flex-grow px-4')}
+        contentContainerStyle={[
+          tw.style('flex-grow px-4'),
+          { paddingTop: headerInset },
+        ]}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"

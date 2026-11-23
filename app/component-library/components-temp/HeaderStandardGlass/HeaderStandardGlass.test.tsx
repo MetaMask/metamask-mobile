@@ -232,6 +232,24 @@ describe('HeaderStandardGlass', () => {
       );
     });
 
+    it('passes the inset callback on, so content can scroll under the bar', () => {
+      const onNativeHeaderInset = jest.fn();
+
+      renderInStack(
+        <HeaderStandardGlass
+          title="Settings"
+          isFloating={false}
+          includesTopInset
+          isNativeHeaderEnabled
+          onNativeHeaderInset={onNativeHeaderInset}
+        />,
+      );
+
+      expect(mockNativeHeader).toHaveBeenCalledWith(
+        expect.objectContaining({ onInset: onNativeHeaderInset }),
+      );
+    });
+
     it('keeps the JS header where the OS has no native glass bar', () => {
       jest.mocked(useIsNativeHeader).mockReturnValue(false);
 

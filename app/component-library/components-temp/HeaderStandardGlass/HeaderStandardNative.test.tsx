@@ -92,6 +92,88 @@ describe('HeaderStandardNative', () => {
     });
   });
 
+  it('keeps UIKit scroll edge effect off behind the spacer', () => {
+    render(inNavigator(nativeHeader(buildConfig(jest.fn())), 'stack'));
+
+    expect(lastHeaderConfig()).toEqual(
+      expect.objectContaining({ hidesScrollEdgeEffect: true }),
+    );
+  });
+
+  describe('with content scrolling under the bar', () => {
+    it('renders no spacer and reports the bar height', () => {
+      const onInset = jest.fn();
+
+      const { queryByTestId } = render(
+        inNavigator(
+          <HeaderStandardNative
+            config={buildConfig(jest.fn())}
+            fallback={fallback}
+            testID="header"
+            onInset={onInset}
+          />,
+          'stack',
+        ),
+      );
+
+      expect(queryByTestId('header')).toBeNull();
+      expect(onInset).toHaveBeenLastCalledWith(62 + NATIVE_HEADER_BAR_HEIGHT);
+    });
+
+    it('turns on the UIKit scroll edge effect', () => {
+      render(
+        inNavigator(
+          <HeaderStandardNative
+            config={buildConfig(jest.fn())}
+            fallback={fallback}
+            onInset={jest.fn()}
+          />,
+          'stack',
+        ),
+      );
+
+      expect(lastHeaderConfig()).toEqual(
+        expect.objectContaining({ hidesScrollEdgeEffect: false }),
+      );
+    });
+
+    it('reports 0 when the bar goes away', () => {
+      const onInset = jest.fn();
+      const { unmount } = render(
+        inNavigator(
+          <HeaderStandardNative
+            config={buildConfig(jest.fn())}
+            fallback={fallback}
+            onInset={onInset}
+          />,
+          'stack',
+        ),
+      );
+
+      unmount();
+
+      expect(onInset).toHaveBeenLastCalledWith(0);
+    });
+
+    it('never reports an inset while glassHeaders is off', () => {
+      jest.mocked(useSelector).mockReturnValue(false);
+      const onInset = jest.fn();
+
+      render(
+        inNavigator(
+          <HeaderStandardNative
+            config={buildConfig(jest.fn())}
+            fallback={fallback}
+            onInset={onInset}
+          />,
+          'stack',
+        ),
+      );
+
+      expect(onInset).not.toHaveBeenCalled();
+    });
+  });
+
   it('shows the JS header and leaves the native bar alone while glassHeaders is off', () => {
     jest.mocked(useSelector).mockReturnValue(false);
 

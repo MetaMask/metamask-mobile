@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useOnboardingHeader } from '../../../hooks/useOnboardingHeader';
 import { strings } from '../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import NetworkDetailsCheckSettings from '../../Settings/NetworkDetailsCheckSettings';
@@ -21,6 +20,7 @@ import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selector
 
 const SecuritySettings = () => {
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
   const { isEnabled } = useAnalytics();
   const analyticsEnabled = isEnabled();
   const navigation = useNavigation<AppNavigationProp>();
@@ -32,8 +32,6 @@ const SecuritySettings = () => {
   const shouldShowSocialLoginFeatures =
     SEEDLESS_ONBOARDING_ENABLED && isSocialLogin;
 
-  useOnboardingHeader(strings('default_settings.drawer_security_title'));
-
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
@@ -42,11 +40,15 @@ const SecuritySettings = () => {
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         title={strings('default_settings.drawer_security_title')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
+      <ScrollView
+        style={tw.style('flex-1 pt-4 px-4')}
+        contentContainerStyle={{ paddingTop: headerInset }}
+      >
         {!isBasicFunctionalityConsolidationEnabled && (
           <NetworkDetailsCheckSettings />
         )}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +20,7 @@ import { selectIsSocialLoginBasicFunctionalityLocked } from '../../../../selecto
 
 const GeneralSettings = () => {
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBasicFunctionalityEnabled = useSelector(
@@ -68,11 +69,15 @@ const GeneralSettings = () => {
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         title={strings('default_settings.drawer_general_title')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
+      <ScrollView
+        style={tw.style('flex-1 pt-4 px-4')}
+        contentContainerStyle={{ paddingTop: headerInset }}
+      >
         <BasicFunctionalityComponent
           disabled={isSocialLoginBasicFunctionalityLocked}
           handleSwitchToggle={handleSwitchToggle}

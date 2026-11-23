@@ -1,4 +1,10 @@
-import React, { useEffect, useCallback, useMemo, type FC } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  type FC,
+} from 'react';
 import { Image, ScrollView, Platform, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { SvgProps } from 'react-native-svg';
@@ -185,6 +191,7 @@ interface AccountStatusProps {
 
 const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
   const navigation = useNavigation<AppNavigationProp>();
@@ -363,11 +370,15 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
       />
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('grow px-4')}
+        contentContainerStyle={[
+          tw.style('grow px-4'),
+          { paddingTop: headerInset },
+        ]}
       >
         <TitleStandard
           title={

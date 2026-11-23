@@ -83,6 +83,7 @@ const OptinMetrics = () => {
       >
     >();
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
   const metrics = useAnalytics();
 
   useScreenPerformance({
@@ -382,11 +383,13 @@ const OptinMetrics = () => {
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         title=""
       />
       <ScrollView
         style={tw.style('flex-1')}
+        contentContainerStyle={{ paddingTop: headerInset }}
         scrollEventThrottle={150}
         onContentSizeChange={onContentSizeChange}
         onLayout={onLayout}

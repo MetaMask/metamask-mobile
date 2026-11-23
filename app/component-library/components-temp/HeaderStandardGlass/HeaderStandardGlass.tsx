@@ -26,6 +26,15 @@ export type HeaderStandardGlassProps = HeaderStandardProps &
      * @default false
      */
     isNativeHeaderEnabled?: boolean;
+    /**
+     * With the native bar, lets the screen's scroll view run under it: the
+     * header renders no view and reports the bar's height (0 otherwise), so
+     * the screen pads its scroll content by it. The scroll view must then be
+     * the header's next sibling and the first view on screen, or UIKit can't
+     * find it for the scroll edge effect. Without it, a spacer holds the
+     * bar's place.
+     */
+    onNativeHeaderInset?: (inset: number) => void;
   };
 
 /**
@@ -48,6 +57,7 @@ const HeaderStandardGlass = ({
   onLayout,
   twClassName,
   isNativeHeaderEnabled = false,
+  onNativeHeaderInset,
   ...props
 }: HeaderStandardGlassProps) => {
   const headerClassName = glassHeaderTwClassName(twClassName);
@@ -97,6 +107,7 @@ const HeaderStandardGlass = ({
         style={props.style}
         testID={props.testID}
         onLayout={onLayout}
+        onInset={onNativeHeaderInset}
       />
     );
   }

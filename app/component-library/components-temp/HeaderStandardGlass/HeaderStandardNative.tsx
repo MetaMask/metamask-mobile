@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import type { LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NavigationContext } from '@react-navigation/native';
@@ -23,6 +29,8 @@ interface NativeBarProps {
   style?: StyleProp<ViewStyle>;
   testID?: string;
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Content scrolls under the bar: no spacer, and gets the bar's height. */
+  onInset?: (inset: number) => void;
 }
 
 export interface HeaderStandardNativeProps extends NativeBarProps {
@@ -32,7 +40,9 @@ export interface HeaderStandardNativeProps extends NativeBarProps {
 
 /**
  * Leaves a spacer as tall as the native bar in the JS header's place, so the
- * screen's layout (and keyboard avoidance) is unchanged under the bar.
+ * screen's layout (and keyboard avoidance) is unchanged under the bar. With
+ * `onInset`, renders nothing and reports that height instead, so content can
+ * scroll under the bar's glass.
  */
 const NativeBar = ({
   config,
@@ -40,10 +50,25 @@ const NativeBar = ({
   style,
   testID,
   onLayout,
+  onInset,
 }: NativeBarProps) => {
   const tw = useTailwind();
   const { top } = useSafeAreaInsets();
   const { handlers, ...look } = config;
+  const inset = top + NATIVE_HEADER_BAR_HEIGHT;
+  const isContentUnderBar = onInset !== undefined;
+
+  const onInsetRef = useRef(onInset);
+  onInsetRef.current = onInset;
+
+  // Before paint, so the content never draws a frame under the bar unpadded.
+  useLayoutEffect(() => {
+    if (!isContentUnderBar) {
+      return;
+    }
+    onInsetRef.current?.(inset);
+    return () => onInsetRef.current?.(0);
+  }, [isContentUnderBar, inset]);
 
   const handlersRef = useRef(handlers);
   handlersRef.current = handlers;
@@ -84,14 +109,19 @@ const NativeBar = ({
     title,
     titleStyle,
     hidesBackButton: true,
-    // Content never scrolls under the bar, so there's no edge to soften.
-    hidesScrollEdgeEffect: true,
+    // Behind a spacer nothing scrolls under the bar, so there's no edge to soften.
+    hidesScrollEdgeEffect: !isContentUnderBar,
   });
+
+  // No view at all: UIKit only finds a scroll view that is the first view on screen.
+  if (isContentUnderBar) {
+    return null;
+  }
 
   return (
     <Box
       twClassName={twClassName}
-      style={[style, { height: top + NATIVE_HEADER_BAR_HEIGHT }]}
+      style={[style, { height: inset }]}
       testID={testID}
       onLayout={onLayout}
     />

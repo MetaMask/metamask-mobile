@@ -231,6 +231,7 @@ async function reimportPrivateKeyAccounts(
 const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -929,6 +930,7 @@ const ChoosePassword = () => {
         <HeaderStandardGlass
           isFloating={false}
           isNativeHeaderEnabled
+          onNativeHeaderInset={setHeaderInset}
           includesTopInset
           onBack={() => navigation.goBack()}
           backButtonProps={{
@@ -936,7 +938,10 @@ const ChoosePassword = () => {
           }}
         />
         <KeyboardAwareScrollView
-          contentContainerStyle={tw.style('flex-1 px-4')}
+          contentContainerStyle={[
+            tw.style('flex-1 px-4'),
+            { paddingTop: headerInset },
+          ]}
           keyboardShouldPersistTaps="handled"
           // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard
           mode="layout"

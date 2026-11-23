@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ScrollView, Linking } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -26,6 +26,7 @@ import { selectMobileUxBftcConsolidationFlagEnabled } from '../../../../selector
 
 const DefaultSettings = () => {
   const tw = useTailwind();
+  const [headerInset, setHeaderInset] = useState(0);
   const navigation = useNavigation<AppNavigationProp>();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const isBasicFunctionalityConsolidationEnabled = useSelector(
@@ -55,11 +56,15 @@ const DefaultSettings = () => {
       <HeaderStandardGlass
         isFloating={false}
         isNativeHeaderEnabled
+        onNativeHeaderInset={setHeaderInset}
         includesTopInset
         title={strings('default_settings.default_settings')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView style={tw.style('flex-1')}>
+      <ScrollView
+        style={tw.style('flex-1')}
+        contentContainerStyle={{ paddingTop: headerInset }}
+      >
         <Box twClassName="px-4 pt-2">
           <Text variant={TextVariant.BodyMd}>
             {strings('default_settings.description')}{' '}
