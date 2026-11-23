@@ -159,7 +159,7 @@ const refreshGroupEntry = (
     if (next !== market) {
       changed = true;
     }
-    return next as typeof market;
+    return next;
   });
   return changed ? { ...entry, markets } : entry;
 };
