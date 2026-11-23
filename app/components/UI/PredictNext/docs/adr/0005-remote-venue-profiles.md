@@ -28,10 +28,10 @@ phone's code checks before it signs.
    even if review misses it. The clean
    slate starts at version 1, with the old version 3 content and only the
    version number changed. There is no signature, signing script or private
-   key. The dev, uat and prd deploy jobs all write the same files to one
-   public bucket, so a
-   merged version is visible to every environment; which one is used is
-   decided by predict-api, not by the registry.
+   key. The prd deploy writes the files to one public bucket; dev, uat and
+   mobile all read that copy. A merged version is not public until the prd
+   deploy runs; which one is used is decided by predict-api, not by the
+   registry.
 2. **predict-api names the version.** Each environment's workload sets the
    positive integer `VENUE_PROFILE_VERSION`, capped at 100; when unset,
    predict-api uses the highest bundled version. `GET
