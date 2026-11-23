@@ -1463,6 +1463,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  collectiblesEnabled: {
+    name: 'collectiblesEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.23.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   configRegistryApiEnabled: {
     name: 'configRegistryApiEnabled',
     type: FeatureFlagType.Remote,
@@ -6038,6 +6049,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  swapsFromMoney: {
+    name: 'swapsFromMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsToMoney: {
+    name: 'swapsToMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   swapsRebateBannerEnabled: {
     name: 'swapsRebateBannerEnabled',
     type: FeatureFlagType.Remote,
@@ -8480,7 +8513,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   tmcuTransactionsRedesignEnabled: {
@@ -8491,7 +8524,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
   assetsASSETS3380AbtestExploreQuickBuy: {
     name: 'assetsASSETS3380AbtestExploreQuickBuy',

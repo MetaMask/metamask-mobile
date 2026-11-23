@@ -59,6 +59,17 @@ and the flag through the generated YAML `env`. Each scenario logs whether
 recovery is enabled. Without the key, for example on fork PRs, recovery stays
 off and the primary error is rethrown.
 
+### Interrupting screens
+
+The same opt-in also enables `ClaudeInterruptionRecoveryProvider`, the AI
+fallback of the interrupting-screen guard
+(`tests/framework/interrupting-screens/`). When a tap or wait fails and no
+known sheet matched, the guard asks the model whether an unrelated overlay is
+blocking the flow and which control dismisses it without consenting. It then
+retries the action once. `isSafeDismissControl` rejects any accept / confirm /
+sign / buy-type control. See the "Interrupting Screens" section of
+`tests/performance/README.md`.
+
 ### Secret screens
 
 Recovery must never upload SRP words, private keys, or reveal-seed UI to the

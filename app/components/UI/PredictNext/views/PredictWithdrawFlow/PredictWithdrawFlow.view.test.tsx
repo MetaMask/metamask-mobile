@@ -28,21 +28,8 @@ import { PredictWithdrawFlowTestIds } from './internal/PredictWithdrawFlow.testI
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
-/** The screen only offers Withdraw while its own rollout flag is on. */
 const renderWithdrawFlow = (privacyMode = false) =>
-  renderPredictNext(privacyMode, {
-    remoteFeatureFlags: {
-      predictConfig: {
-        enabled: true,
-        venues: {
-          polymarket: { enabled: false },
-          kalshi: { enabled: true },
-        },
-        venueSelection: { enabled: false },
-        kalshiWithdrawalsEnabled: true,
-      },
-    },
-  });
+  renderPredictNext(privacyMode);
 
 const DESTINATION_ADDRESS = '0xcDe7CE585799F1FCA8a37C7599935ea275819B9c';
 const PREVIEW_ID = 'b3c2a1d0-1111-4222-8333-444455556666';

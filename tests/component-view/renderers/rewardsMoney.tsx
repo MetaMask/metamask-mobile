@@ -572,13 +572,7 @@ function WaysToEarnAfterReferralLoad() {
     );
   }
 
-  return (
-    <WaysToEarnTab
-      profileId={profileId}
-      referralMe={referralMe}
-      isSubscribed={false}
-    />
-  );
+  return <WaysToEarnTab profileId={profileId} referralMe={referralMe} />;
 }
 
 export function renderWaysToEarnTab(referralMe: ReferralMeDto) {
