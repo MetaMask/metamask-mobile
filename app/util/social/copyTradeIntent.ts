@@ -20,6 +20,11 @@ export interface CopyTradeOrigin {
   commentId: string;
   /** Perps market symbol of the post; only an order on this market counts. */
   asset?: string;
+  /**
+   * Social trader id of the post's author. Analytics only; the copy-trade
+   * intent is keyed by `commentId`.
+   */
+  authorId?: string;
 }
 
 interface CreateCopyTradeIntentMessenger {

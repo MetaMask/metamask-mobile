@@ -1,4 +1,10 @@
-import React from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  type RefObject,
+} from 'react';
+import type { TextInput } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -41,6 +47,10 @@ interface RecurringScheduleFieldsProps {
   onRepeatInfoPress: () => void;
 }
 
+export interface RecurringScheduleFieldsRef {
+  blur: () => void;
+}
+
 function RecurringNumberCard({
   label,
   labelAccessory,
@@ -50,6 +60,7 @@ function RecurringNumberCard({
   testID,
   inputTestID,
   onInputPress,
+  inputRef,
   accessory,
   hasError,
 }: {
@@ -61,6 +72,7 @@ function RecurringNumberCard({
   testID: string;
   inputTestID: string;
   onInputPress: () => void;
+  inputRef: RefObject<TextInput | null>;
   accessory: React.ReactNode;
   hasError: boolean;
 }) {
@@ -99,6 +111,7 @@ function RecurringNumberCard({
         gap={2}
       >
         <Input
+          ref={inputRef}
           value={value}
           showSoftInputOnFocus={false}
           caretHidden={false}
@@ -120,108 +133,129 @@ function RecurringNumberCard({
   );
 }
 
-const RecurringScheduleFields = ({
-  onEveryPress,
-  onRepeatPress,
-  onDismissKeypad,
-  onUnitPress,
-  onRepeatInfoPress,
-}: RecurringScheduleFieldsProps) => {
-  const everyValue = useSelector(selectRecurringEveryValue);
-  const everyUnit = useSelector(selectRecurringEveryUnit);
-  const repeatCount = useSelector(selectRecurringRepeatCount);
-  const { errors: scheduleErrors } = useSelector(
-    selectRecurringScheduleValidation,
-  );
-  const hasEveryUnitMax = scheduleErrors.includes(
-    RecurringScheduleErrorCode.EveryExceedsUnitMax,
-  );
-  const hasDurationMax = scheduleErrors.includes(
-    RecurringScheduleErrorCode.DurationExceedsMax,
-  );
-  const hasEveryError =
-    scheduleErrors.includes(RecurringScheduleErrorCode.EveryInvalid) ||
-    hasEveryUnitMax;
-  const hasRepeatError =
-    scheduleErrors.includes(RecurringScheduleErrorCode.RepeatInvalid) ||
-    hasDurationMax;
-  const every = parsePositiveInteger(everyValue);
-  const everyErrorMessage = hasEveryUnitMax
-    ? strings('bridge.recurring.max_is', {
-        max: RECURRING_EVERY_MAX_BY_UNIT[everyUnit],
-      })
-    : undefined;
-  const repeatErrorMessage =
-    hasDurationMax && every !== undefined
+const RecurringScheduleFields = forwardRef<
+  RecurringScheduleFieldsRef,
+  RecurringScheduleFieldsProps
+>(
+  (
+    {
+      onEveryPress,
+      onRepeatPress,
+      onDismissKeypad,
+      onUnitPress,
+      onRepeatInfoPress,
+    },
+    ref,
+  ) => {
+    const everyInputRef = useRef<TextInput>(null);
+    const repeatInputRef = useRef<TextInput>(null);
+    const everyValue = useSelector(selectRecurringEveryValue);
+    const everyUnit = useSelector(selectRecurringEveryUnit);
+    const repeatCount = useSelector(selectRecurringRepeatCount);
+    const { errors: scheduleErrors } = useSelector(
+      selectRecurringScheduleValidation,
+    );
+    const hasEveryUnitMax = scheduleErrors.includes(
+      RecurringScheduleErrorCode.EveryExceedsUnitMax,
+    );
+    const hasDurationMax = scheduleErrors.includes(
+      RecurringScheduleErrorCode.DurationExceedsMax,
+    );
+    const hasEveryError =
+      scheduleErrors.includes(RecurringScheduleErrorCode.EveryInvalid) ||
+      hasEveryUnitMax;
+    const hasRepeatError =
+      scheduleErrors.includes(RecurringScheduleErrorCode.RepeatInvalid) ||
+      hasDurationMax;
+    const every = parsePositiveInteger(everyValue);
+    const everyErrorMessage = hasEveryUnitMax
       ? strings('bridge.recurring.max_is', {
-          max: getMaxRepeatCount(every, everyUnit),
+          max: RECURRING_EVERY_MAX_BY_UNIT[everyUnit],
         })
       : undefined;
+    const repeatErrorMessage =
+      hasDurationMax && every !== undefined
+        ? strings('bridge.recurring.max_is', {
+            max: getMaxRepeatCount(every, everyUnit),
+          })
+        : undefined;
 
-  return (
-    <Box
-      testID={RecurringScheduleFieldsSelectorsIDs.CONTAINER}
-      onStartShouldSetResponder={() => true}
-      onResponderRelease={onDismissKeypad}
-    >
-      <Box paddingHorizontal={4} flexDirection={BoxFlexDirection.Row} gap={2}>
-        <RecurringNumberCard
-          label={strings('bridge.recurring.every')}
-          errorMessage={everyErrorMessage}
-          errorTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR}
-          value={everyValue}
-          testID={RecurringScheduleFieldsSelectorsIDs.EVERY_CARD}
-          inputTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT}
-          onInputPress={onEveryPress}
-          hasError={hasEveryError}
-          accessory={
-            <ButtonBase
-              size={ButtonBaseSize.Sm}
-              endIconName={IconName.ArrowDown}
-              endIconProps={{ size: IconSize.Sm }}
-              onPress={onUnitPress}
-              testID={RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON}
-              accessibilityLabel={strings(
-                `bridge.recurring.unit_option.${everyUnit}`,
-              )}
-            >
-              {strings(`bridge.recurring.unit.${everyUnit}`)}
-            </ButtonBase>
-          }
-        />
-        <RecurringNumberCard
-          label={strings('bridge.recurring.repeat')}
-          labelAccessory={
-            <ButtonIcon
-              iconName={IconName.Info}
-              iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Xs}
-              twClassName="-ml-1"
-              onPress={onRepeatInfoPress}
-              testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON}
-              accessibilityLabel={strings('bridge.recurring.repeat_info_title')}
-            />
-          }
-          errorMessage={repeatErrorMessage}
-          errorTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR}
-          value={repeatCount}
-          testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_CARD}
-          inputTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT}
-          onInputPress={onRepeatPress}
-          hasError={hasRepeatError}
-          accessory={
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_TIMES_LABEL}
-            >
-              {strings('bridge.recurring.times')}
-            </Text>
-          }
-        />
+    useImperativeHandle(ref, () => ({
+      blur: () => {
+        everyInputRef.current?.blur();
+        repeatInputRef.current?.blur();
+      },
+    }));
+
+    return (
+      <Box
+        testID={RecurringScheduleFieldsSelectorsIDs.CONTAINER}
+        onStartShouldSetResponder={() => true}
+        onResponderRelease={onDismissKeypad}
+      >
+        <Box paddingHorizontal={4} flexDirection={BoxFlexDirection.Row} gap={2}>
+          <RecurringNumberCard
+            label={strings('bridge.recurring.every')}
+            errorMessage={everyErrorMessage}
+            errorTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_ERROR}
+            value={everyValue}
+            testID={RecurringScheduleFieldsSelectorsIDs.EVERY_CARD}
+            inputTestID={RecurringScheduleFieldsSelectorsIDs.EVERY_INPUT}
+            onInputPress={onEveryPress}
+            inputRef={everyInputRef}
+            hasError={hasEveryError}
+            accessory={
+              <ButtonBase
+                size={ButtonBaseSize.Sm}
+                endIconName={IconName.ArrowDown}
+                endIconProps={{ size: IconSize.Sm }}
+                onPress={onUnitPress}
+                testID={RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON}
+                accessibilityLabel={strings(
+                  `bridge.recurring.unit_option.${everyUnit}`,
+                )}
+              >
+                {strings(`bridge.recurring.unit.${everyUnit}`)}
+              </ButtonBase>
+            }
+          />
+          <RecurringNumberCard
+            label={strings('bridge.recurring.repeat')}
+            labelAccessory={
+              <ButtonIcon
+                iconName={IconName.Info}
+                iconProps={{ color: IconColor.IconAlternative }}
+                size={ButtonIconSize.Xs}
+                twClassName="-ml-1"
+                onPress={onRepeatInfoPress}
+                testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INFO_BUTTON}
+                accessibilityLabel={strings(
+                  'bridge.recurring.repeat_info_title',
+                )}
+              />
+            }
+            errorMessage={repeatErrorMessage}
+            errorTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_ERROR}
+            value={repeatCount}
+            testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_CARD}
+            inputTestID={RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT}
+            onInputPress={onRepeatPress}
+            inputRef={repeatInputRef}
+            hasError={hasRepeatError}
+            accessory={
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+                testID={RecurringScheduleFieldsSelectorsIDs.REPEAT_TIMES_LABEL}
+              >
+                {strings('bridge.recurring.times')}
+              </Text>
+            }
+          />
+        </Box>
       </Box>
-    </Box>
-  );
-};
+    );
+  },
+);
 
 export default RecurringScheduleFields;

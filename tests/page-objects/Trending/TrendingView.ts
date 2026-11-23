@@ -114,8 +114,12 @@ class TrendingView {
     this.activeScrollViewID = TrendingViewSelectorsIDs.NOW_SCROLL_VIEW;
   }
 
+  /**
+   * Taps the tab itself: on iOS the tab is a single accessibility element, so
+   * XCUITest does not expose the `-label` text inside it.
+   */
   async tapTab(tabTestID: string): Promise<void> {
-    await Gestures.tap(Matchers.getElementByID(`${tabTestID}-label`), {
+    await Gestures.tap(Matchers.getElementByID(tabTestID), {
       elemDescription: `Tap tab ${tabTestID}`,
       checkVisibility: false,
     });

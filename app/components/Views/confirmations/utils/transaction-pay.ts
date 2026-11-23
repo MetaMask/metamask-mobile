@@ -94,7 +94,12 @@ export function replaceAccountInNestedTransactions({
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
 ): number | undefined {
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ])
+  ) {
     return PERPS_MINIMUM_DEPOSIT;
   }
 
@@ -340,6 +345,7 @@ export function applyMoneyAccountOverride(
 ): void {
   const isPerpsOrPredictWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
+    TransactionType.perpsLighterWithdraw,
     TransactionType.predictWithdraw,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);

@@ -91,6 +91,7 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
   source,
   source_section,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
+  showMarginModeTag = true,
   market,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -235,11 +236,13 @@ const PerpsCardContent: React.FC<PerpsCardContentProps> = ({
             >
               {positionDisplay.directionLabel}
             </Tag>
-            {isCrossMarginEnabled && position?.leverage.type === 'cross' && (
-              <Tag testID={testID ? `${testID}-margin-tag` : undefined}>
-                {strings('perps.cross_position.badge')}
-              </Tag>
-            )}
+            {showMarginModeTag &&
+              isCrossMarginEnabled &&
+              position?.leverage.type === 'cross' && (
+                <Tag testID={testID ? `${testID}-margin-tag` : undefined}>
+                  {strings('perps.cross_position.badge')}
+                </Tag>
+              )}
           </Box>
         ) : undefined
       }

@@ -90,7 +90,8 @@ import {
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
+import useMoneyVaultState from '../../hooks/useMoneyVaultState';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
@@ -101,7 +102,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
-  selectIsCardholder,
+  selectHasCard,
   selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
@@ -206,7 +207,12 @@ const MoneyHomeView = () => {
     lastKnownTotalFiatFormatted,
     refetchBalance,
   } = useMoneyAccountBalance();
-  const { vaultApyQuery, apyPercent, apyDecimal } = useMoneyVaultApy();
+  const {
+    status: vaultStatus,
+    apyPercent,
+    apyDecimal,
+    isLoading: isVaultApyLoading,
+  } = useMoneyVaultState();
   const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
     useMoneyAccountInterest();
 
@@ -229,8 +235,11 @@ const MoneyHomeView = () => {
   // session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
-  const { isEligible: isVbaEligible, isLoading: isVbaEligibilityLoading } =
-    useVbaEligibility();
+  const {
+    isEligible: isVbaEligible,
+    isLoading: isVbaEligibilityLoading,
+    market: vbaMarket,
+  } = useVbaEligibility();
   const { hasCrypto, isLoading: isCryptoBalanceLoading } =
     useActiveGroupCryptoPresence();
   const devOverride = useMoneyHomeCardDevOverride();
@@ -295,7 +304,13 @@ const MoneyHomeView = () => {
         refetchInterest(),
         refreshMusdFiatRate(),
         Promise.resolve(refetchActivity()),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
+        ...(Engine.context.CardController.state.isAuthenticated
+          ? [
+              Engine.context.CardController.fetchCardHomeData({
+                force: true,
+              }),
+            ]
+          : []),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -304,7 +319,7 @@ const MoneyHomeView = () => {
     }
   }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasCard);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const isCardHomeDataResolved = useSelector(selectIsCardHomeDataResolved);
@@ -402,6 +417,8 @@ const MoneyHomeView = () => {
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else if (isBalanceLoading && !lastKnownTotalFiatFormatted) {
+    displayState = { kind: 'loading' };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -413,7 +430,8 @@ const MoneyHomeView = () => {
     };
   }
 
-  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
+  const showBalanceUnavailableBanner =
+    displayState.kind === 'unavailable' && !isBalanceLoading;
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
@@ -496,14 +514,14 @@ const MoneyHomeView = () => {
     last30DaysQuery.isLoading ||
     sinceInceptionQuery.isLoading ||
     (formattedLast30DaysInterest === undefined &&
-      (vaultApyQuery.isLoading || isBalanceLoading));
+      (isVaultApyLoading || isBalanceLoading));
 
   const hasEarningsContent = Boolean(last30DaysInterest);
   const earningsFailed =
     (last30DaysQuery.isError || sinceInceptionQuery.isError) &&
     !hasEarningsContent;
-  const apyReady = apyPercent !== undefined || !vaultApyQuery.isLoading;
-  const apyFailed = vaultApyQuery.isError && apyPercent === undefined;
+  const apyReady = apyPercent !== undefined || !isVaultApyLoading;
+  const apyFailed = !isVaultApyLoading && apyPercent === undefined;
 
   // Report each independently so the existing balance, activity, and combined
   // Money Home metrics retain their definitions. Optional sections are
@@ -648,7 +666,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-      label_key: 'money.action.transfer',
+      label_key: 'money.action.move',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -674,6 +692,20 @@ const MoneyHomeView = () => {
       },
     ]);
   }, [markCardFlowOpened, navigation, metamaskCardMode]);
+
+  const navigateToCardLogin = useCallback(() => {
+    markCardFlowOpened();
+    navigateWithDetails(navigation, [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      },
+    ]);
+  }, [markCardFlowOpened, navigation]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -742,7 +774,12 @@ const MoneyHomeView = () => {
         return getLinkFlowRedirectTarget();
       }
 
-      if (mode === 'upsell' || mode === 'manage' || mode === 'setup') {
+      if (
+        mode === 'upsell' ||
+        mode === 'manage' ||
+        mode === 'setup' ||
+        mode === 'sign_in'
+      ) {
         return SCREEN_NAMES.CARD_HOME;
       }
 
@@ -797,9 +834,9 @@ const MoneyHomeView = () => {
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: apyPercent },
+      params: { apy: apyPercent, vaultStatus },
     });
-  }, [trackTooltipClicked, navigation, apyPercent]);
+  }, [trackTooltipClicked, navigation, apyPercent, vaultStatus]);
 
   const handleBalancePress = useCallback(() => {
     PreferencesController.setPrivacyMode(!privacyMode);
@@ -1045,6 +1082,7 @@ const MoneyHomeView = () => {
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
+            onSignInPress={navigateToCardLogin}
             setupView={cardSetupView ?? undefined}
             onSetupContinuePress={enableCard ?? navigateToCardHome}
             isSetupContinueLoading={isEnableCardPending}
@@ -1097,7 +1135,7 @@ const MoneyHomeView = () => {
               componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
             })
           }
-          isLoading={vaultApyQuery.isLoading}
+          isLoading={isVaultApyLoading}
         />
       ),
     });
@@ -1249,6 +1287,13 @@ const MoneyHomeView = () => {
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
             showTitle={isPushed && !isNativeHeader}
+            isPremium={vaultStatus === MoneyVaultStatus.Premium}
+            pendingVaultTransition={
+              vaultStatus === MoneyVaultStatus.Upgrading ||
+              vaultStatus === MoneyVaultStatus.Downgrading
+                ? vaultStatus
+                : undefined
+            }
           />
         </Box>
         <MoneyActionButtonRow
@@ -1281,6 +1326,7 @@ const MoneyHomeView = () => {
           <MoneyVbaHomeCard
             key={devOverride?.id ?? moneyHomeCard.variant}
             variant={moneyHomeCard.variant}
+            sourceCurrency={vbaMarket?.currency}
             onDismiss={() => {
               if (devOverride?.card.type === 'vba') {
                 if (devOverride.card.variant === 'kyc_decision') {

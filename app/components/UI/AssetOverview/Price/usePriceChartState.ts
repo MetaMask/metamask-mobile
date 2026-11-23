@@ -39,7 +39,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { navigateWithDetails } from '../../../../util/navigation/navUtils';
 import { TextColor } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
-import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -129,7 +128,6 @@ export interface UsePriceChartStateParams {
   timePeriod?: TimePeriod;
   setTimePeriod?: (period: TimePeriod) => void;
   onPriceDirectionChange?: (isPositive: boolean) => void;
-  useAmbientColor?: boolean;
   hasInsufficientCoverage?: boolean;
 }
 
@@ -148,7 +146,6 @@ export const usePriceChartState = ({
   prices = [],
   setTimePeriod,
   onPriceDirectionChange,
-  useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: UsePriceChartStateParams) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -900,11 +897,12 @@ export const usePriceChartState = ({
     realtimeClose,
   ]);
 
+  const ambientErrorRed = theme.colors.error.default;
+
   const initialAmbientColor = useMemo(() => {
-    if (!useAmbientColor) return undefined;
     if (initialPriceDiff === null) return undefined;
-    return initialPriceDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, initialPriceDiff, ambientSuccessGreen]);
+    return initialPriceDiff >= 0 ? ambientSuccessGreen : ambientErrorRed;
+  }, [initialPriceDiff, ambientSuccessGreen, ambientErrorRed]);
 
   const tokenDetailsLegendOverlay = useMemo(
     () =>
@@ -916,10 +914,9 @@ export const usePriceChartState = ({
 
   // Dynamic ambient color for price diff text only - changes during crosshair hover
   const ambientColor = useMemo(() => {
-    if (!useAmbientColor) return undefined;
     if (displayDiff === null) return ambientSuccessGreen;
-    return displayDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, displayDiff, ambientSuccessGreen]);
+    return displayDiff >= 0 ? ambientSuccessGreen : ambientErrorRed;
+  }, [displayDiff, ambientSuccessGreen, ambientErrorRed]);
 
   /**
    * True when in candlestick mode and the advanced chart cannot display data.
@@ -963,19 +960,14 @@ export const usePriceChartState = ({
       : strings(TIME_RANGE_LABELS[timeRange]);
 
   const lineAmbientColor = useMemo(() => {
-    if (!useAmbientColor || !isLineMode) return undefined;
-    return lineTitleDiff >= 0 ? ambientSuccessGreen : AMBIENT_NEGATIVE_COLOR;
-  }, [useAmbientColor, isLineMode, lineTitleDiff, ambientSuccessGreen]);
+    if (!isLineMode) return undefined;
+    return lineTitleDiff >= 0 ? ambientSuccessGreen : ambientErrorRed;
+  }, [isLineMode, lineTitleDiff, ambientSuccessGreen, ambientErrorRed]);
 
-  const getLinePriceDiffStyle = useCallback(() => {
-    if (lineAmbientColor) {
-      return { color: lineAmbientColor };
-    }
-    if (isLightMode && lineTitleDiff > 0) {
-      return { color: LIGHT_MODE_SUCCESS_GREEN };
-    }
-    return undefined;
-  }, [lineAmbientColor, isLightMode, lineTitleDiff]);
+  const getLinePriceDiffStyle = useCallback(
+    () => (lineAmbientColor ? { color: lineAmbientColor } : undefined),
+    [lineAmbientColor],
+  );
 
   useLayoutEffect(() => {
     if (initialPriceDiff !== null && !showCandleEmptyState) {
@@ -987,15 +979,7 @@ export const usePriceChartState = ({
     ? toDateFormat(crosshairData.time)
     : dateLabel;
 
-  const getPriceDiffStyle = () => {
-    if (ambientColor) {
-      return { color: ambientColor };
-    }
-    if (isLightMode && displayDiff !== null && displayDiff > 0) {
-      return { color: LIGHT_MODE_SUCCESS_GREEN };
-    }
-    return undefined;
-  };
+  const getPriceDiffStyle = () => ({ color: ambientColor });
 
   const showCandleEmptyStateRef = useRef(showCandleEmptyState);
   useEffect(() => {
@@ -1143,6 +1127,7 @@ export const usePriceChartState = ({
 
     // Ambient colours
     ambientColor,
+    ambientErrorRed,
     initialAmbientColor,
     lineAmbientColor,
     tokenDetailsLegendOverlay,

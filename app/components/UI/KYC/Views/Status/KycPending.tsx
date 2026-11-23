@@ -17,6 +17,7 @@ import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import KycIllustration, {
   KycIllustrationSource,
 } from '../../components/Illustration';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 export const KycPendingSelectorsIDs = {
   CONTAINER: 'kyc-pending-container',
@@ -29,6 +30,7 @@ const KycPending = ({ onLeave }: { onLeave: () => void }) => {
   const tw = useTailwind();
 
   const handleComeBackLater = useCallback(() => {
+    fireImpact(ImpactMoment.PrimaryCTA);
     onLeave();
   }, [onLeave]);
 

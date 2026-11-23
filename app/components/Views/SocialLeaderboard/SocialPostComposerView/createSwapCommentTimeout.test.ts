@@ -1,18 +1,18 @@
-import { captureException } from '@sentry/react-native';
+import { reportSocialServiceFailure } from '../../../../util/social/socialServiceTelemetry';
 import {
   CREATE_SWAP_COMMENT_TIMEOUT_MS,
   CreateSwapCommentTimeoutError,
   withCreateSwapCommentTimeout,
 } from './createSwapCommentTimeout';
 
-jest.mock('@sentry/react-native', () => ({
-  captureException: jest.fn(),
+jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
+  reportSocialServiceFailure: jest.fn(),
 }));
 
 describe('withCreateSwapCommentTimeout', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.mocked(captureException).mockClear();
+    jest.mocked(reportSocialServiceFailure).mockClear();
   });
 
   afterEach(() => {
@@ -24,7 +24,7 @@ describe('withCreateSwapCommentTimeout', () => {
 
     await expect(result).resolves.toBe('created');
     jest.advanceTimersByTime(CREATE_SWAP_COMMENT_TIMEOUT_MS);
-    expect(captureException).not.toHaveBeenCalled();
+    expect(reportSocialServiceFailure).not.toHaveBeenCalled();
   });
 
   it('rejects and reports to Sentry when the request is still pending at 7 seconds', async () => {
@@ -36,21 +36,20 @@ describe('withCreateSwapCommentTimeout', () => {
 
     jest.advanceTimersByTime(CREATE_SWAP_COMMENT_TIMEOUT_MS - 1);
     await Promise.resolve();
-    expect(captureException).not.toHaveBeenCalled();
+    expect(reportSocialServiceFailure).not.toHaveBeenCalled();
 
     jest.advanceTimersByTime(1);
     await expect(settled).resolves.toBeInstanceOf(
       CreateSwapCommentTimeoutError,
     );
-    expect(captureException).toHaveBeenCalledTimes(1);
-    expect(captureException).toHaveBeenCalledWith(
+    expect(reportSocialServiceFailure).toHaveBeenCalledTimes(1);
+    expect(reportSocialServiceFailure).toHaveBeenCalledWith(
       expect.any(CreateSwapCommentTimeoutError),
-      {
-        tags: {
-          feature: 'social',
-          context: 'createSwapComment.timeout',
-        },
-      },
+      expect.objectContaining({
+        surface: 'post_composer',
+        operation: 'create_comment_timeout',
+        endpoint: 'create_comment',
+      }),
     );
   });
 

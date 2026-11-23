@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectProfileControllerProfile } from '../../../../selectors/profileController';
 import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -23,6 +24,8 @@ export interface UseOptInToCampaignResult {
  */
 export const useOptInToCampaign = (): UseOptInToCampaignResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const profileUsername =
+    useSelector(selectProfileControllerProfile)?.username?.trim() || undefined;
   const dispatch = useDispatch();
   const [isOptingIn, setIsOptingIn] = useState(false);
   const [optInError, setOptInError] = useState<string | undefined>(undefined);
@@ -38,11 +41,18 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
       try {
         setIsOptingIn(true);
         setOptInError(undefined);
-        const result = await Engine.controllerMessenger.call(
-          'RewardsController:optInToCampaign',
-          campaignId,
-          subscriptionId,
-        );
+        const result = profileUsername
+          ? await Engine.controllerMessenger.call(
+              'RewardsController:optInToCampaign',
+              campaignId,
+              subscriptionId,
+              profileUsername,
+            )
+          : await Engine.controllerMessenger.call(
+              'RewardsController:optInToCampaign',
+              campaignId,
+              subscriptionId,
+            );
         dispatch(
           setCampaignParticipantStatus({
             subscriptionId,
@@ -60,7 +70,7 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
         setIsOptingIn(false);
       }
     },
-    [dispatch, subscriptionId],
+    [dispatch, profileUsername, subscriptionId],
   );
 
   const clearOptInError = useCallback(() => setOptInError(undefined), []);

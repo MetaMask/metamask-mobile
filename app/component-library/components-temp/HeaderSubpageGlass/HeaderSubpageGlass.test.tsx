@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { fireEvent, render, within } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import HeaderSubpageGlass from './HeaderSubpageGlass';
@@ -18,6 +18,27 @@ jest.mock('../CapsuleGlass', () => {
 });
 
 describe('HeaderSubpageGlass', () => {
+  it('keeps caller layout classes when forcing px-4', () => {
+    const { getByTestId } = render(
+      <HeaderSubpageGlass
+        testID="header"
+        title="Event"
+        twClassName="min-h-14 h-auto bg-default justify-center"
+      />,
+    );
+
+    const style = StyleSheet.flatten(getByTestId('header').props.style);
+
+    expect(style).toEqual(
+      expect.objectContaining({
+        paddingLeft: 16,
+        paddingRight: 16,
+        minHeight: 56,
+      }),
+    );
+    expect(style.height).not.toBe(56);
+  });
+
   it('renders the plain MMDS header when glass is off', () => {
     const { getByText, getByTestId, queryByTestId } = render(
       <HeaderSubpageGlass

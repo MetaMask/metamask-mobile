@@ -274,8 +274,10 @@ describe('useTokensFeed', () => {
       });
     });
 
-    it('returns all tokens when hideRiskyTokens is false (default)', () => {
-      const { result } = renderHook(() => useTokensFeed());
+    it('returns all tokens when hideRiskyTokens is false', () => {
+      const { result } = renderHook(() =>
+        useTokensFeed({ hideRiskyTokens: false }),
+      );
 
       expect(result.current.data.map((t) => t.symbol)).toEqual([
         'VER',
@@ -283,6 +285,39 @@ describe('useTokensFeed', () => {
         'WRN',
         'SPM',
         'MAL',
+        'UNS',
+      ]);
+    });
+
+    it('drops Warning, Spam, and Malicious tokens by default', () => {
+      const { result } = renderHook(() => useTokensFeed());
+
+      expect(result.current.data.map((t) => t.symbol)).toEqual([
+        'VER',
+        'BEN',
+        'UNS',
+      ]);
+    });
+
+    it('keeps Warning, Spam, and Malicious tokens when a search query is present', () => {
+      const { result } = renderHook(() => useTokensFeed({ query: 'scam' }));
+
+      expect(result.current.data.map((t) => t.symbol)).toStrictEqual([
+        'VER',
+        'BEN',
+        'WRN',
+        'SPM',
+        'MAL',
+        'UNS',
+      ]);
+    });
+
+    it('drops risky tokens when the query is whitespace only', () => {
+      const { result } = renderHook(() => useTokensFeed({ query: '   ' }));
+
+      expect(result.current.data.map((t) => t.symbol)).toStrictEqual([
+        'VER',
+        'BEN',
         'UNS',
       ]);
     });

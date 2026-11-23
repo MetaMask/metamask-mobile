@@ -32,7 +32,7 @@ import type {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog; the Polymarket section uses the same id
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictConfig } from '../config/predictConfig';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import { NextVenueProvider } from '../implementation';

@@ -224,6 +224,8 @@ export const initialStateNetworkManager = (
           },
           AssetsController: {
             selectedCurrency: 'usd',
+            // Settled so Tokens list/CV fixtures clear asset-load skeletons.
+            assetsLoadingStatus: { 'acc-1': 'loaded' },
           },
           AccountTrackerController: {
             accountsByChainId: {
@@ -378,6 +380,7 @@ export const initialStateTokenList = (
           NftController: { allNfts: {}, allNftContracts: {} },
           AssetsController: {
             selectedCurrency: 'usd',
+            assetsLoadingStatus: { 'acc-1': 'loaded' },
             assets: {},
             assetsBalance: {
               'acc-1': {

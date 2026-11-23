@@ -7,7 +7,6 @@ import {
   createMockUseAnalyticsHook,
 } from '../../../../../util/test/analyticsMock';
 import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
 import type { ReferralMeEntry } from '../../../../../reducers/rewardsMoney';
@@ -39,10 +38,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../hooks/useReferralMe', () => ({
   useReferralMe: jest.fn(),
-}));
-
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
 }));
 
 jest.mock('../../hooks/useValidateMoneyReferralCode', () => ({
@@ -101,9 +96,6 @@ describe('ReferredByCodeSection', () => {
     jest.mocked(useReferralMe).mockReturnValue({
       profileId: 'profile-1',
       fetchReferralMe: mockFetchReferralMe,
-    });
-    jest.mocked(useGeoRewardsMetadata).mockReturnValue({
-      fetchGeoRewardsMetadata: jest.fn(),
     });
     jest.mocked(useValidateMoneyReferralCode).mockReturnValue({
       referralCode: '',
