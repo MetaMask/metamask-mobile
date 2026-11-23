@@ -3,19 +3,19 @@ import {
   type MessengerActions,
   type MessengerEvents,
 } from '@metamask/messenger';
-import type { MarketingConsentControllerMessenger } from '@metamask/marketing-consent-controller';
+import type { MarketingConsentSyncServiceMessenger } from '@metamask/marketing-consent-sync-service';
 import type { RootMessenger } from '../types';
 
-export function getMarketingConsentControllerMessenger(
+export function getMarketingConsentSyncServiceMessenger(
   rootMessenger: RootMessenger,
-): MarketingConsentControllerMessenger {
+): MarketingConsentSyncServiceMessenger {
   const controllerMessenger = new Messenger<
-    'MarketingConsentController',
-    MessengerActions<MarketingConsentControllerMessenger>,
-    MessengerEvents<MarketingConsentControllerMessenger>,
+    'MarketingConsentSyncService',
+    MessengerActions<MarketingConsentSyncServiceMessenger>,
+    MessengerEvents<MarketingConsentSyncServiceMessenger>,
     RootMessenger
   >({
-    namespace: 'MarketingConsentController',
+    namespace: 'MarketingConsentSyncService',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
@@ -29,6 +29,8 @@ export function getMarketingConsentControllerMessenger(
       'AnalyticsController:getState',
       'AnalyticsController:optInToMarketing',
       'AnalyticsController:optOutOfMarketing',
+      'AnalyticsController:applyRemoteMarketingConsent',
+      'AnalyticsController:clearMarketingConsentSyncPending',
       'AuthenticationController:getState',
       'KeyringController:getState',
     ],

@@ -167,6 +167,17 @@ export class EngineService {
     const reduxState = ReduxService.store.getState();
     const persistedState = await ControllerStorage.getAllPersistedState();
 
+    // `MarketingConsentController` was replaced by `MarketingConsentSyncService`
+    // before reaching a release. Remove state persisted by preview builds; the
+    // consent itself lives in `AnalyticsController`. Best effort only.
+    try {
+      void ControllerStorage.removeItem(
+        'persist:MarketingConsentController',
+      ).catch(() => undefined);
+    } catch {
+      // Orphaned state is unread once the controller is gone.
+    }
+
     if (reduxState?.user?.existingUser) {
       Logger.log(
         'EngineService: Is vault defined at KeyringController before Enging init: ',

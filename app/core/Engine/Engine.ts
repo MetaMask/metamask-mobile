@@ -167,7 +167,7 @@ import { authenticatedUserStorageServiceInit } from './controllers/authenticated
 import { socialControllerInit } from './controllers/social-controller-init';
 import { profileServiceInit } from './controllers/profile-service-init';
 import { profileControllerInit } from './controllers/profile-controller-init';
-import { marketingConsentControllerInit } from './controllers/marketing-consent-controller-init';
+import { marketingConsentSyncServiceInit } from './controllers/marketing-consent-sync-service-init';
 import { cardControllerInit } from './controllers/card-controller';
 import { uiSlotsControllerInit } from './controllers/ui-slots-controller';
 import { predictVenueControllerInit } from './controllers/predict-venue-controller-init';
@@ -386,7 +386,7 @@ export class Engine {
         ProfileService: profileServiceInit,
         ProfileController: profileControllerInit,
         AuthenticatedUserStorageService: authenticatedUserStorageServiceInit,
-        MarketingConsentController: marketingConsentControllerInit,
+        MarketingConsentSyncService: marketingConsentSyncServiceInit,
         CardController: cardControllerInit,
         UiSlotsController: uiSlotsControllerInit,
         QrSyncController: qrSyncControllerInit,
@@ -583,7 +583,7 @@ export class Engine {
 
     // Reads AnalyticsController, AuthenticationController and
     // KeyringController state, so it runs once every controller is registered.
-    messengerClientsByName.MarketingConsentController.initialize();
+    messengerClientsByName.MarketingConsentSyncService.initialize();
 
     this.context = {
       AnalyticsController: analyticsController,
@@ -691,8 +691,8 @@ export class Engine {
       ProfileService: messengerClientsByName.ProfileService,
       ProfileController: messengerClientsByName.ProfileController,
       AuthenticatedUserStorageService: authenticatedUserStorageService,
-      MarketingConsentController:
-        messengerClientsByName.MarketingConsentController,
+      MarketingConsentSyncService:
+        messengerClientsByName.MarketingConsentSyncService,
       CardController: cardController,
       UiSlotsController: uiSlotsController,
       QrSyncController: messengerClientsByName.QrSyncController,
@@ -846,8 +846,8 @@ export class Engine {
 
         if (state === 'active') {
           // Marketing consent may have changed on another device. The
-          // controller only reads AUS once unlocked and signed in.
-          this.controllerMessenger.call('MarketingConsentController:refresh');
+          // service only reads AUS once unlocked and signed in.
+          this.controllerMessenger.call('MarketingConsentSyncService:refresh');
         }
 
         const { isUnlocked } = this.controllerMessenger.call(
@@ -1632,7 +1632,6 @@ export default {
       ClientController,
       SocialController,
       ProfileController,
-      MarketingConsentController,
       ComplianceController,
       KycController,
       AuthenticationController,
@@ -1709,7 +1708,6 @@ export default {
       AiDigestController: AiDigestController.state,
       SocialController: SocialController.state,
       ProfileController: ProfileController.state,
-      MarketingConsentController: MarketingConsentController.state,
       CardController: CardController.state,
       UiSlotsController: UiSlotsController.state,
       PredictVenueController: PredictVenueController.state,

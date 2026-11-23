@@ -1217,12 +1217,12 @@ describe('Engine', () => {
 
     mockAppStateListener('background');
     expect(messengerSpy).not.toHaveBeenCalledWith(
-      'MarketingConsentController:refresh',
+      'MarketingConsentSyncService:refresh',
     );
 
     mockAppStateListener('active');
     expect(messengerSpy).toHaveBeenCalledWith(
-      'MarketingConsentController:refresh',
+      'MarketingConsentSyncService:refresh',
     );
   });
 
