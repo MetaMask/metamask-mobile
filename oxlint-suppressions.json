@@ -2057,7 +2057,7 @@
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/index.ts": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/useLatestBalance.evmNonEvmDependency.test.tsx": {
@@ -2067,7 +2067,7 @@
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/useLatestBalance.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 38
+      "count": 39
     }
   },
   "app/components/UI/Bridge/hooks/useLegacySwapsBlockExplorer/index.ts": {
@@ -9628,11 +9628,6 @@
       "count": 1
     }
   },
-  "app/components/UI/PredictNext/funding/deposit/reconcileDepositTransfer.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/funding/deposit/reconcileDepositTransfer.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -9788,7 +9783,7 @@
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 6
     }
   },
   "app/components/UI/PredictNext/services/PredictFundingService.withdraw-cancellation.integration.test.ts": {
@@ -12209,11 +12204,6 @@
   "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tsx": {
     "typescript/promise-function-async": {
       "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.view.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 3
     }
   },
   "app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.test.tsx": {
@@ -22047,11 +22037,6 @@
       "count": 1
     }
   },
-  "app/core/Engine/messengers/predict-funding-service-messenger.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
   "app/core/Engine/messengers/predict-venue-controller-messenger.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -25500,7 +25485,7 @@
       "count": 5
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 6
     },
     "typescript/unbound-method": {
       "count": 1

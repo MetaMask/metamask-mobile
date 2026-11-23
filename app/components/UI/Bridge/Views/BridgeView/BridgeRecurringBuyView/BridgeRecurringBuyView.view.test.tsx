@@ -559,6 +559,34 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     });
   });
 
+  it('shows the plural every unit only when every is greater than 1', async () => {
+    const renderResult = renderBridgeView();
+
+    await openRecurringTab(renderResult);
+    await openEveryKeypad(renderResult);
+    fireEvent.press(renderResult.getByTestId('keypad-key-2'));
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit_plural.hour'));
+    });
+
+    fireEvent.press(
+      renderResult.getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        renderResult.getByTestId(
+          RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON,
+        ),
+      ).toHaveTextContent(strings('bridge.recurring.unit.hour'));
+    });
+  });
+
   it('updates only the repeat value when the repeat input is focused', async () => {
     const renderResult = renderBridgeView();
 
@@ -1385,6 +1413,112 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       MOCK_RECURRING_CANCELLED_ORDER,
       MOCK_RECURRING_EXPIRED_ORDER,
     ].forEach((order) => assertRecurringOrderRow(renderResult, order));
+  });
+
+  describe('order row warning icon', () => {
+    const fillDataIssuesByOrderId: Record<
+      string,
+      Partial<RecurringOrder['fillData']>
+    > = {
+      [MOCK_RECURRING_OPEN_ORDER.id]: { skippedCount: 1, failedCount: 0 },
+      [MOCK_RECURRING_OPEN_ORDER_2.id]: { skippedCount: 0, failedCount: 1 },
+      [MOCK_RECURRING_OPEN_ORDER_3.id]: { skippedCount: 0, failedCount: 0 },
+      [MOCK_RECURRING_COMPLETED_ORDER.id]: { skippedCount: 1, failedCount: 0 },
+      [MOCK_RECURRING_CANCELLED_ORDER.id]: { skippedCount: 0, failedCount: 0 },
+    };
+
+    function getRowWarningIcon(
+      renderResult: ReturnType<typeof renderBridgeView>,
+      rowTestId: string,
+    ) {
+      return within(renderResult.getByTestId(rowTestId)).queryByLabelText(
+        strings('bridge.recurring.swap_issue_warning'),
+      );
+    }
+
+    beforeEach(() => {
+      recurringOrdersRequest.mockImplementation(async (params) => {
+        const response = await getMockRecurringOrders(params);
+
+        return {
+          ...response,
+          orders: response.orders.map((order) => ({
+            ...order,
+            fillData: {
+              ...order.fillData,
+              ...fillDataIssuesByOrderId[order.id],
+            },
+          })),
+        };
+      });
+    });
+
+    it('shows a labelled warning icon on Open orders rows with a skipped or failed sub-swap', async () => {
+      const renderResult = renderBridgeView();
+      await openRecurringTab(renderResult);
+
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+          MOCK_RECURRING_OPEN_ORDER.id,
+        ),
+      );
+
+      expect(
+        getRowWarningIcon(
+          renderResult,
+          RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+            MOCK_RECURRING_OPEN_ORDER.id,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getRowWarningIcon(
+          renderResult,
+          RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+            MOCK_RECURRING_OPEN_ORDER_2.id,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getRowWarningIcon(
+          renderResult,
+          RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+            MOCK_RECURRING_OPEN_ORDER_3.id,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the labelled warning icon on History rows once a sub-swap was skipped', async () => {
+      const renderResult = renderBridgeView();
+      await openRecurringTab(renderResult);
+      await userEvent.press(
+        renderResult.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB),
+      );
+
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
+          MOCK_RECURRING_COMPLETED_ORDER.id,
+        ),
+      );
+
+      expect(
+        getRowWarningIcon(
+          renderResult,
+          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
+            MOCK_RECURRING_COMPLETED_ORDER.id,
+          ),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getRowWarningIcon(
+          renderResult,
+          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
+            MOCK_RECURRING_CANCELLED_ORDER.id,
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+    });
   });
 
   it('refreshes the active Open orders query', async () => {
