@@ -88,16 +88,22 @@ describe('MoneyEstimatedBalanceSheet', () => {
     );
   });
 
-  it('renders the subtitle with the route APY', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEstimatedBalanceSheet />);
+  it('renders the subtitle with the route APY in the APY label', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyEstimatedBalanceSheet />,
+    );
 
     expect(
       getByTestId(MoneyEstimatedBalanceSheetTestIds.SUBTITLE),
     ).toHaveTextContent(
-      strings('money.estimated_balance_sheet.subtitle', {
-        percentage: DEFAULT_APY,
-      }),
+      `${strings('money.estimated_balance_sheet.subtitle_prefix')}${strings(
+        'money.apy_label',
+        { percentage: DEFAULT_APY },
+      )}.`,
     );
+    expect(
+      getByText(strings('money.apy_label', { percentage: DEFAULT_APY })),
+    ).toBeOnTheScreen();
     expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
   });
 
@@ -159,7 +165,10 @@ describe('MoneyEstimatedBalanceSheet', () => {
     expect(
       getByTestId(MoneyEstimatedBalanceSheetTestIds.SUBTITLE),
     ).toHaveTextContent(
-      strings('money.estimated_balance_sheet.subtitle', { percentage: 4.5 }),
+      `${strings('money.estimated_balance_sheet.subtitle_prefix')}${strings(
+        'money.apy_label',
+        { percentage: 4.5 },
+      )}.`,
     );
   });
 

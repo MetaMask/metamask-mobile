@@ -108,11 +108,20 @@ const MoneyEstimatedBalanceSheet = () => {
               color={TextColor.TextAlternative}
               testID={MoneyEstimatedBalanceSheetTestIds.SUBTITLE}
             >
-              {hasApy
-                ? strings('money.estimated_balance_sheet.subtitle', {
-                    percentage: resolvedApy,
-                  })
-                : strings('money.estimated_balance_sheet.subtitle_no_apy')}
+              {hasApy ? (
+                <>
+                  {strings('money.estimated_balance_sheet.subtitle_prefix')}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.SuccessDefault}
+                  >
+                    {strings('money.apy_label', { percentage: resolvedApy })}
+                  </Text>
+                  {'.'}
+                </>
+              ) : (
+                strings('money.estimated_balance_sheet.subtitle_no_apy')
+              )}
             </Text>
           </Box>
           <Box twClassName="gap-5">
