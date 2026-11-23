@@ -9,27 +9,15 @@ import type {
   EarningOriginType,
   LedgerClaimEntryDto,
   LedgerEarningEntryDto,
-  ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import {
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
 import { EarningsHistoryRow } from './EarningsHistoryRows';
 import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
-
-const LOCALIZED_TEXT = {
-  historyReferrals: 'Referrals',
-  historyCommission: 'Commission',
-  historyRebate: 'Rebate',
-  rebatePredictions: 'Predictions',
-  rebateSwaps: 'Swaps',
-  rebatePerps: 'Perps',
-  historyClaimed: 'Claimed',
-  historyClaimPending: 'Pending',
-  voided: 'Voided',
-} as unknown as ReferralLocalizedText;
 
 const amountColor = (
   getAllByType: (
@@ -203,7 +191,7 @@ describe('EarningsHistoryRow', () => {
     );
 
     expect(getByText('Claimed')).toBeOnTheScreen();
-    expect(getByText('Pending')).toBeOnTheScreen();
+    expect(getByText('Claim pending')).toBeOnTheScreen();
     expect(getByText('-$2.50')).toBeOnTheScreen();
   });
 

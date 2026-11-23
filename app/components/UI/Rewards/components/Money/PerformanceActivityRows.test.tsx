@@ -8,9 +8,9 @@ import {
 import type {
   CommissionEntryView,
   LedgerEarningEntryDto,
-  ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import {
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
@@ -19,15 +19,6 @@ import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from './PerformanceActivityRows';
-
-const LOCALIZED_TEXT = {
-  copiedOnce: 'Copied 1 time',
-  copiedTimes: 'Copied {count} times',
-  rebatePerps: 'Perps',
-  rebatePredictions: 'Predictions',
-  rebateSwaps: 'Swaps',
-  voided: 'Voided',
-} as unknown as ReferralLocalizedText;
 
 const amountColor = (
   getAllByType: (

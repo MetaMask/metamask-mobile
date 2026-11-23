@@ -1,6 +1,6 @@
 import React from 'react';
-import { fireEvent, within } from '@testing-library/react-native';
-import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
+import { fireEvent } from '@testing-library/react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import type {
   EarningsSummaryDto,
   ReferralLocalizedText,
@@ -12,6 +12,7 @@ import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import RefererHeroCard, { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard';
+import { avatarIconNameIn } from './testUtils';
 
 jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => true),
@@ -158,9 +159,9 @@ describe('RefererHeroCard', () => {
     expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
-      within(
+      avatarIconNameIn(
         getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
-      ).UNSAFE_getByType(AvatarIcon).props.iconName,
+      ),
     ).toBe(IconName.People);
   });
 
