@@ -825,7 +825,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
       const GET_NOTIFICATION_PREFERENCES_ACTION =
         'AuthenticatedUserStorageService:getNotificationPreferences';
       const SET_MARKETING_CONSENT_ACTION =
-        'MarketingConsentController:setMarketingConsent';
+        'MarketingConsentSyncService:setMarketingConsent';
 
       const buildState = (isSignedIn: boolean) => ({
         ...initialStateMarketingTrue,

@@ -48,6 +48,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'RecurringOrdersDataService',
   'LimitOrdersDataService',
   'SentinelFeeTokensDataService',
+  'MarketingConsentSyncService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -120,7 +121,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'KycController:stateChange',
   'SocialController:stateChange',
   'ProfileController:stateChanged',
-  'MarketingConsentController:stateChanged',
   'QrSyncController:stateChange',
 ] as const;
 

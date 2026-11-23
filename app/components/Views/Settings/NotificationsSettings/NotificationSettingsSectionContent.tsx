@@ -371,7 +371,7 @@ export const NotificationSettingsSectionContent = ({
   // Saves consent to AUS first, then turns on only the channel the user tapped.
   const confirmMarketingConsent = useCallback(async () => {
     await Engine.controllerMessenger.call(
-      'MarketingConsentController:setMarketingConsent',
+      'MarketingConsentSyncService:setMarketingConsent',
       true,
     );
     identify({ [UserProfileProperty.HAS_MARKETING_CONSENT]: true });

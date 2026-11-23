@@ -9426,18 +9426,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/analytics-controller@npm:^4.3.0":
-  version: 4.3.1
-  resolution: "@metamask/analytics-controller@npm:4.3.1"
+"@metamask/analytics-controller@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "@metamask/analytics-controller@npm:4.4.0"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/config-registry-controller": "npm:^6.0.0"
     "@metamask/geolocation-controller": "npm:^2.0.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/utils": "npm:^12.0.1"
+    "@metamask/utils": "npm:^12.0.2"
     lodash-es: "npm:^4.18.1"
-    uuid: "npm:^14.0.2"
-  checksum: 10/6b41e8601dddc918072e5bdfe578a19847b0e944a6d5757d99373555ad635d9898f1673bfac6fb7b540a0e7e4500d560f893dc589cce64ed1b5078ffc6393456
+    uuid: "npm:^14.0.3"
+  checksum: 10/ac5901e15fe1c8105dc50b67f12e7d392b2edd7a00bc3211877889a219924e1f235c4e4dffbd562be59bb95812c1f4d60020b93b2d4b37e44916a00b1bab7597
   languageName: node
   linkType: hard
 
@@ -10893,17 +10893,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/marketing-consent-controller@npm:^1.0.2":
-  version: 1.0.2
-  resolution: "@metamask/marketing-consent-controller@npm:1.0.2"
+"@metamask/marketing-consent-sync-service@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/marketing-consent-sync-service@npm:1.0.0"
   dependencies:
-    "@metamask/analytics-controller": "npm:^4.0.0"
-    "@metamask/authenticated-user-storage": "npm:^4.1.0"
+    "@metamask/analytics-controller": "npm:^4.4.0"
+    "@metamask/authenticated-user-storage": "npm:^4.2.0"
     "@metamask/base-controller": "npm:^10.1.0"
-    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/keyring-controller": "npm:^28.2.2"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^35.0.0"
-  checksum: 10/7892d88e6d08547fdebebb1ec046410438e96aeb8e275d9b5dc6e1b7b5e88cc2954c7ed1409827035f0318ea71f95c1f5f53b7777f06282a2605af70f463c525
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
+  checksum: 10/b5e01376a7ef36d2b04d03d33827c2fd4ed0296c86ffba64882d36c46e9030433e4cc699e8acff38c6947359cc7c9bb2706a6cfc76fefc4e20e7367eeb581da6
   languageName: node
   linkType: hard
 
@@ -11355,26 +11355,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/notification-services-controller@npm:^30.0.1":
-  version: 30.0.1
-  resolution: "@metamask/notification-services-controller@npm:30.0.1"
+"@metamask/notification-services-controller@npm:^30.1.1":
+  version: 30.1.1
+  resolution: "@metamask/notification-services-controller@npm:30.1.1"
   dependencies:
     "@contentful/rich-text-html-renderer": "npm:^16.6.10"
-    "@metamask/analytics-controller": "npm:^4.0.0"
-    "@metamask/authenticated-user-storage": "npm:^4.1.0"
+    "@metamask/analytics-controller": "npm:^4.4.0"
+    "@metamask/authenticated-user-storage": "npm:^4.2.0"
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.2.0"
+    "@metamask/keyring-controller": "npm:^28.2.2"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^35.0.0"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.1.2"
+    "@metamask/utils": "npm:^12.0.2"
     bignumber.js: "npm:^9.1.2"
     firebase: "npm:^12.19.0"
     lodash-es: "npm:^4.18.1"
     loglevel: "npm:^1.9.2"
-    semver: "npm:^7.8.5"
-    uuid: "npm:^11.1.1"
-  checksum: 10/6585121d991cee36087a95e8069f7bd2ed5191c07903480e0497219c1a6dd6342153681150e1aec56e6dd8d8fa635b1f27d9d382f4280aec038cfefa94ad8ff4
+    semver: "npm:^7.8.6"
+    uuid: "npm:^14.0.3"
+  checksum: 10/fe6ad4144f99ec60f507c4fb23b5212825e13904a98c1c6a5d711f13a9478bd1a68504fe44c755e55eea2194648c2711ce84755b3bf6bc4b19d9e828df3b005c
   languageName: node
   linkType: hard
 
@@ -38415,7 +38415,7 @@ __metadata:
     "@metamask/accounts-controller": "npm:^40.2.0"
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/ai-controllers": "npm:^2.0.0"
-    "@metamask/analytics-controller": "npm:^4.3.0"
+    "@metamask/analytics-controller": "npm:^4.4.0"
     "@metamask/app-metadata-controller": "npm:^3.0.0"
     "@metamask/approval-controller": "npm:^10.0.0"
     "@metamask/assets-controller": "npm:^21.0.0"
@@ -38486,7 +38486,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^5.0.0"
     "@metamask/kyc-controller": "patch:@metamask/kyc-controller@npm%3A0.16.0#~/.yarn/patches/@metamask-kyc-controller-npm-0.16.0-d8d8a64ff9.patch"
     "@metamask/logging-controller": "npm:^10.0.0"
-    "@metamask/marketing-consent-controller": "npm:^1.0.2"
+    "@metamask/marketing-consent-sync-service": "npm:^1.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/messenger-cli": "npm:^1.0.0"
@@ -38509,7 +38509,7 @@ __metadata:
     "@metamask/network-connection-banner-controller": "npm:^1.1.0"
     "@metamask/network-controller": "npm:^38.0.0"
     "@metamask/network-enablement-controller": "npm:^7.1.3"
-    "@metamask/notification-services-controller": "npm:^30.0.1"
+    "@metamask/notification-services-controller": "npm:^30.1.1"
     "@metamask/object-multiplex": "npm:^2.1.0"
     "@metamask/permission-controller": "npm:^14.1.0"
     "@metamask/perps-controller": "npm:^24.1.0"
@@ -47507,7 +47507,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.1.3, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.7.1, semver@npm:^7.7.2, semver@npm:^7.7.3, semver@npm:^7.7.4, semver@npm:^7.8.5":
+"semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.1.3, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.7.1, semver@npm:^7.7.2, semver@npm:^7.7.3, semver@npm:^7.7.4, semver@npm:^7.8.5, semver@npm:^7.8.6":
   version: 7.8.6
   resolution: "semver@npm:7.8.6"
   bin:

@@ -574,11 +574,9 @@ import {
   type AuthenticatedUserStorageEvents,
 } from '@metamask/authenticated-user-storage';
 import {
-  MarketingConsentController,
-  type MarketingConsentControllerActions,
-  type MarketingConsentControllerEvents,
-  type MarketingConsentControllerState,
-} from '@metamask/marketing-consent-controller';
+  MarketingConsentSyncService,
+  type MarketingConsentSyncServiceActions,
+} from '@metamask/marketing-consent-sync-service';
 import {
   ComplianceController,
   ComplianceControllerActions,
@@ -671,7 +669,7 @@ interface SubscriptionControllerRegisterAddressAction {
 /**
  * BaseController publishes `stateChanged` next to the deprecated
  * `stateChange`, but these controllers only declare the latter.
- * MarketingConsentController subscribes to `stateChanged`.
+ * MarketingConsentSyncService subscribes to `stateChanged`.
  */
 type AnalyticsControllerStateChangedEvent = ControllerStateChangedEvent<
   'AnalyticsController',
@@ -797,7 +795,7 @@ export type GlobalActions =
   | ProfileControllerActions
   | ProfileServiceActions
   | AuthenticatedUserStorageActions
-  | MarketingConsentControllerActions
+  | MarketingConsentSyncServiceActions
   | ComplianceControllerActions
   | ComplianceServiceActions
   | KycControllerActions
@@ -905,7 +903,6 @@ export type GlobalEvents =
   | ProfileControllerEvents
   | ProfileServiceEvents
   | AuthenticatedUserStorageEvents
-  | MarketingConsentControllerEvents
   | ComplianceControllerEvents
   | KycControllerEvents
   | KycServiceEvents
@@ -1061,7 +1058,7 @@ export type MessengerClients = {
   ProfileController: ProfileController;
   ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
-  MarketingConsentController: MarketingConsentController;
+  MarketingConsentSyncService: MarketingConsentSyncService;
   ComplianceService: ComplianceService;
   ComplianceController: ComplianceController;
   KycService: KycService;
@@ -1152,7 +1149,6 @@ export type EngineState = {
   AiDigestController: AiDigestControllerState;
   SocialController: SocialControllerState;
   ProfileController: ProfileControllerState;
-  MarketingConsentController: MarketingConsentControllerState;
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
@@ -1263,7 +1259,7 @@ export type MessengerClientsToInitialize =
   | 'ProfileService'
   | 'ProfileController'
   | 'AuthenticatedUserStorageService'
-  | 'MarketingConsentController'
+  | 'MarketingConsentSyncService'
   | 'ComplianceService'
   | 'ComplianceController'
   | 'KycService'
