@@ -50,35 +50,35 @@ describe('commentValidation', () => {
       expect(isComposerCommentValid('')).toBe(false);
     });
 
-    it('returns true when the text is 3000 characters', () => {
-      const text = `alpha beta ${'g'.repeat(3000 - 'alpha beta '.length)}`;
+    it('returns true when the text is 2500 characters', () => {
+      const text = `alpha beta ${'g'.repeat(2500 - 'alpha beta '.length)}`;
 
-      expect(text).toHaveLength(3000);
+      expect(text).toHaveLength(2500);
       expect(isComposerCommentValid(text)).toBe(true);
     });
 
-    it('returns true for 3000 characters of emoji, counting each emoji as one', () => {
-      const text = `${'😀'.repeat(2_994)} a b c`;
+    it('returns true for 2500 characters of emoji, counting each emoji as one', () => {
+      const text = `${'😀'.repeat(2_494)} a b c`;
 
-      expect(text).toHaveLength(5_994);
+      expect(text).toHaveLength(4_994);
       expect(isComposerCommentValid(text)).toBe(true);
     });
 
-    it('returns true for 3000 Korean characters', () => {
-      const text = `${'가'.repeat(2_995)} 끝 ok`;
+    it('returns true for 2500 Korean characters', () => {
+      const text = `${'가'.repeat(2_495)} 끝 ok`;
 
-      expect(text).toHaveLength(3_000);
+      expect(text).toHaveLength(2_500);
       expect(isComposerCommentValid(text)).toBe(true);
     });
 
-    it('returns false for 3001 characters of emoji', () => {
-      const text = `${'😀'.repeat(2_995)} a b c`;
+    it('returns false for 2501 characters of emoji', () => {
+      const text = `${'😀'.repeat(2_495)} a b c`;
 
       expect(isComposerCommentValid(text)).toBe(false);
     });
 
-    it('returns false when the text is longer than 3000 characters', () => {
-      const text = `alpha beta ${'g'.repeat(3001 - 'alpha beta '.length)}`;
+    it('returns false when the text is longer than 2500 characters', () => {
+      const text = `alpha beta ${'g'.repeat(2501 - 'alpha beta '.length)}`;
 
       expect(isComposerCommentValid(text)).toBe(false);
     });

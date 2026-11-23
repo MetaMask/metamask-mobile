@@ -334,12 +334,12 @@ describe('SocialPostComposerView', () => {
     ).toBeDisabled();
   });
 
-  it('keeps text past 3000 characters and disables Post', () => {
+  it('keeps text past 2500 characters and disables Post', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'a'.repeat(3001),
+      'a'.repeat(2501),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
@@ -348,23 +348,23 @@ describe('SocialPostComposerView', () => {
 
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT).props.value,
-    ).toHaveLength(3001);
+    ).toHaveLength(2501);
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
     ).toHaveTextContent(
-      'social_leaderboard.composer.character_count:{"count":3001,"limit":3000}',
+      'social_leaderboard.composer.character_count:{"count":2501,"limit":2500}',
     );
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
     ).toBeDisabled();
   });
 
-  it('keeps Post enabled at 3000 characters', () => {
+  it('keeps Post enabled at 2500 characters', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'a'.repeat(3000),
+      'a'.repeat(2500),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
@@ -376,12 +376,12 @@ describe('SocialPostComposerView', () => {
     ).toBeEnabled();
   });
 
-  it('counts each emoji as one character and keeps Post enabled at 3000 emoji', () => {
+  it('counts each emoji as one character and keeps Post enabled at 2500 emoji', () => {
     renderWithProvider(<SocialPostComposerView />);
 
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      '😀'.repeat(3000),
+      '😀'.repeat(2500),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),
@@ -391,7 +391,7 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT),
     ).toHaveTextContent(
-      'social_leaderboard.composer.character_count:{"count":3000,"limit":3000}',
+      'social_leaderboard.composer.character_count:{"count":2500,"limit":2500}',
     );
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
@@ -479,11 +479,11 @@ describe('SocialPostComposerView', () => {
     );
   });
 
-  it('records a blocked submit when the caption is longer than 3000 characters', () => {
+  it('records a blocked submit when the caption is longer than 2500 characters', () => {
     renderWithProvider(<SocialPostComposerView />);
     fireEvent.changeText(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT),
-      'a'.repeat(3001),
+      'a'.repeat(2501),
     );
     fireEvent.press(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.POSITION_CHIP),

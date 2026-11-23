@@ -1,4 +1,8 @@
-export const COMPOSER_COMMENT_MAX_LENGTH = 3000;
+/**
+ * A code point is at most 4 UTF-8 bytes, so 2500 keeps any caption within the
+ * server's 10,000-byte translation request. The server enforces the same limit.
+ */
+export const COMPOSER_COMMENT_MAX_LENGTH = 2500;
 export const COMPOSER_COMMENT_MIN_WORDS = 3;
 
 /**
