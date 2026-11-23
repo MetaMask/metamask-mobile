@@ -43,6 +43,13 @@ const INLINE_MOCK_PATTERNS: Record<keyof typeof API_MOCKS, RegExp> = {
     /accounts\.api\.cx\.metamask\.io\/v2\/supportedNetworks/,
   accountsActiveNetworksV2:
     /accounts\.api\.cx\.metamask\.io\/v2\/activeNetworks/,
+  accountsBalancesV2: /accounts\.api\.cx\.metamask\.io\/v2\/accounts\//,
+  accountsMultiaccountBalancesV4:
+    /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
+  accountsMultiaccountBalancesV5:
+    /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
+  accountsMultiaccountBalancesV6:
+    /accounts\.api\.cx\.metamask\.io\/v6\/multiaccount\/balances/,
   tokenSupportedNetworksV2:
     /tokens?\.api\.cx\.metamask\.io\/v2\/supportedNetworks/,
   tokensAssetsV3: /tokens\.api\.cx\.metamask\.io\/v3\/assets/,
@@ -59,18 +66,6 @@ const INLINE_MOCK_PATTERNS: Record<keyof typeof API_MOCKS, RegExp> = {
  * mock. Migrate them to the helper and remove the entry.
  */
 const NOT_MIGRATED: Record<string, (keyof typeof API_MOCKS)[]> = {
-  // Migrated together with the accounts balances endpoints.
-  'smoke-appium/confirmations/send/send-erc20-token.spec.ts': [
-    'priceSpotPricesV3',
-    'tokenSupportedNetworksV2',
-    'tokensAssetsV3',
-  ],
-  'api-mocking/mock-responses/earn/lending-mocks.ts': [
-    'priceSpotPricesV3',
-    'tokenSupportedNetworksV2',
-    'tokensAssetsV3',
-  ],
-  'api-mocking/helpers/contentfulHelper.ts': ['contentfulBanners'],
   // Callbacks that branch on `vsCurrency` and add chain-specific entries.
   'api-mocking/mock-responses/pay/money-account-deposit-mocks.ts': [
     'priceSpotPricesV3',

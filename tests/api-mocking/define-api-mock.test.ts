@@ -182,6 +182,14 @@ describe('API_MOCKS', () => {
         'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
       accountsActiveNetworksV2:
         'https://accounts.api.cx.metamask.io/v2/activeNetworks?accountIds=a',
+      accountsBalancesV2:
+        'https://accounts.api.cx.metamask.io/v2/accounts/0x1/balances?networks=1',
+      accountsMultiaccountBalancesV4:
+        'https://accounts.api.cx.metamask.io/v4/multiaccount/balances?accountAddresses=0x1',
+      accountsMultiaccountBalancesV5:
+        'https://accounts.api.cx.metamask.io/v5/multiaccount/balances?accountIds=a',
+      accountsMultiaccountBalancesV6:
+        'https://accounts.api.cx.metamask.io/v6/multiaccount/balances?accountIds=a',
       tokenSupportedNetworksV2:
         'https://tokens.api.cx.metamask.io/v2/supportedNetworks',
       tokensAssetsV3:

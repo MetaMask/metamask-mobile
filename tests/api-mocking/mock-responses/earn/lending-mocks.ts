@@ -7,6 +7,16 @@
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../helpers/remoteFeatureFlagsHelper';
 import { setupMockRequest } from '../../helpers/mockHelpers';
+import {
+  accountsBalancesV2,
+  accountsMultiaccountBalancesV4,
+  accountsMultiaccountBalancesV5,
+  accountsMultiaccountBalancesV6,
+  priceSpotPricesV3,
+  spotPrice,
+  tokenSupportedNetworksV2,
+  tokensAssetsV3,
+} from '../../api-mocks';
 import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers';
 import { safeGetBodyText } from '../../MockServerE2E';
 import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
@@ -14,7 +24,6 @@ import type {
   AccountsBalancesV2Response,
   AccountsMultiaccountBalancesV4Response,
   AccountsMultiaccountBalancesV5Response,
-  TokenSupportedNetworksV2Response,
 } from '../../api-response-types';
 
 /** Lowercase test-account address used in Accounts API CAIP-10 identifiers. */
@@ -194,118 +203,78 @@ export async function setupLendingMocks(
     homepageRedesignV1: { enabled: true, minimumVersion: '0.0.0' },
   });
 
-  // Accounts API v4 (multiaccount balances)
-  await setupMockRequest(mockServer, {
-    url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
-    response: buildAccountsApiV4Response(usdcBalance),
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
+  await accountsMultiaccountBalancesV4.register(mockServer, () =>
+    buildAccountsApiV4Response(usdcBalance),
+  );
 
-  // Accounts API v2 (single-account balances)
-  await setupMockRequest(mockServer, {
-    url: /accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^/]+\/balances/,
-    response: buildAccountsApiV2Response(usdcBalance),
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
+  await accountsBalancesV2.register(mockServer, () =>
+    buildAccountsApiV2Response(usdcBalance),
+  );
 
   const accountsApiV5OrV6BalancesResponse = buildAccountsApiV5Response(
     usdcBalance,
     hasExistingPosition,
   );
-  await setupMockRequest(
+  await accountsMultiaccountBalancesV5.register(
     mockServer,
-    {
-      url: /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
-      response: accountsApiV5OrV6BalancesResponse,
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
+    () => accountsApiV5OrV6BalancesResponse,
+    undefined,
+    { priority: 1000 },
   );
-  await setupMockRequest(
+  await accountsMultiaccountBalancesV6.register(
     mockServer,
-    {
-      url: /accounts\.api\.cx\.metamask\.io\/v6\/multiaccount\/balances/,
-      response: accountsApiV5OrV6BalancesResponse,
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
+    () => ({
+      balances: accountsApiV5OrV6BalancesResponse.balances,
+      unprocessedNetworks:
+        accountsApiV5OrV6BalancesResponse.unprocessedNetworks,
+      unprocessedIncludeAssetIds: [],
+    }),
+    undefined,
+    { priority: 1000 },
   );
 
-  await setupMockRequest(
+  await tokenSupportedNetworksV2.register(
     mockServer,
-    {
-      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
-      response: {
-        fullSupport: ['eip155:1'],
-        partialSupport: [],
-      } satisfies TokenSupportedNetworksV2Response,
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
+    { fullSupport: ['eip155:1'], partialSupport: [] },
+    undefined,
+    { priority: 1000 },
   );
 
-  await setupMockRequest(
+  await tokensAssetsV3.register(
     mockServer,
-    {
-      url: /^https:\/\/tokens\.api\.cx\.metamask\.io\/v3\/assets\?.*$/,
-      response: [
-        {
-          assetId: USDC_ASSET_ID,
-          symbol: 'USDC',
-          name: 'USD Coin',
-          decimals: 6,
-        },
-        ...(hasExistingPosition
-          ? [
-              {
-                assetId: AAVE_USDC_ASSET_ID,
-                symbol: 'aEthUSDC',
-                name: 'Aave Ethereum USDC',
-                decimals: 6,
-              },
-            ]
-          : []),
-      ],
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
-  );
-
-  await setupMockRequest(
-    mockServer,
-    {
-      url: /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
-      response: {
-        [MAINNET_NATIVE_ASSET_ID]: {
-          price: 3000,
-          usd: 3000,
-          eth: 1,
-        },
-        [USDC_ASSET_ID]: {
-          price: 1,
-          usd: 1,
-          eth: 0.000333,
-        },
-        ...(hasExistingPosition
-          ? {
-              [AAVE_USDC_ASSET_ID]: {
-                price: 1,
-                usd: 1,
-                eth: 0.000333,
-              },
-            }
-          : {}),
+    () => [
+      {
+        assetId: USDC_ASSET_ID,
+        symbol: 'USDC',
+        name: 'USD Coin',
+        decimals: 6,
       },
-      requestMethod: 'GET',
-      responseCode: 200,
-    },
-    1000,
+      ...(hasExistingPosition
+        ? [
+            {
+              assetId: AAVE_USDC_ASSET_ID,
+              symbol: 'aEthUSDC',
+              name: 'Aave Ethereum USDC',
+              decimals: 6,
+            },
+          ]
+        : []),
+    ],
+    undefined,
+    { priority: 1000 },
+  );
+
+  await priceSpotPricesV3.register(
+    mockServer,
+    () => ({
+      [MAINNET_NATIVE_ASSET_ID]: spotPrice(MAINNET_NATIVE_ASSET_ID, 3000),
+      [USDC_ASSET_ID]: spotPrice(USDC_ASSET_ID, 1),
+      ...(hasExistingPosition
+        ? { [AAVE_USDC_ASSET_ID]: spotPrice(AAVE_USDC_ASSET_ID, 1) }
+        : {}),
+    }),
+    undefined,
+    { priority: 1000 },
   );
 
   // Priority 1000 overrides the default STAKING_MOCKS (priority 999)

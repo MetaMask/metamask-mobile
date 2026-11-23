@@ -12,6 +12,10 @@
 import { defineApiMock } from './define-api-mock.ts';
 import type {
   AccountsActiveNetworksV2Response,
+  AccountsBalancesV2Response,
+  AccountsMultiaccountBalancesV4Response,
+  AccountsMultiaccountBalancesV5Response,
+  AccountsMultiaccountBalancesV6Response,
   AccountsSupportedNetworksV2Response,
   BridgeGetTokensResponse,
   BridgeGetTxStatusResponse,
@@ -28,7 +32,13 @@ import { GAS_FEES_RESPONSE } from './mock-responses/synced/gas-suggested-gas-fee
 import { PRICE_EXCHANGE_RATES_V1 } from './mock-responses/synced/price-exchange-rates-v1.ts';
 import { PRICE_SPOT_PRICES_V3 } from './mock-responses/synced/price-spot-prices-v3.ts';
 import { TOKEN_SUPPORTED_NETWORKS_V2 } from './mock-responses/synced/token-supported-networks-v2.ts';
-import { ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE } from './mock-responses/defaults/accounts.ts';
+import {
+  ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE,
+  ACCOUNTS_API_BALANCES_V2_RESPONSE,
+  ACCOUNTS_API_BALANCES_V4_RESPONSE,
+  ACCOUNTS_API_BALANCES_V5_RESPONSE,
+  ACCOUNTS_API_BALANCES_V6_RESPONSE,
+} from './mock-responses/defaults/accounts.ts';
 import {
   BRIDGE_TOKEN_DETAILS_CHAIN_1,
   BRIDGE_TX_STATUS_PENDING,
@@ -70,6 +80,33 @@ export const accountsActiveNetworksV2 =
     id: 'accounts-v2-active-networks',
     url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/activeNetworks(\?.*)?$/,
     body: ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE,
+  });
+
+export const accountsBalancesV2 = defineApiMock<AccountsBalancesV2Response>({
+  id: 'accounts-v2-balances',
+  url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^/]+\/balances(\?.*)?$/,
+  body: ACCOUNTS_API_BALANCES_V2_RESPONSE,
+});
+
+export const accountsMultiaccountBalancesV4 =
+  defineApiMock<AccountsMultiaccountBalancesV4Response>({
+    id: 'accounts-v4-multiaccount-balances',
+    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances(\?.*)?$/,
+    body: ACCOUNTS_API_BALANCES_V4_RESPONSE,
+  });
+
+export const accountsMultiaccountBalancesV5 =
+  defineApiMock<AccountsMultiaccountBalancesV5Response>({
+    id: 'accounts-v5-multiaccount-balances',
+    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances(\?.*)?$/,
+    body: ACCOUNTS_API_BALANCES_V5_RESPONSE,
+  });
+
+export const accountsMultiaccountBalancesV6 =
+  defineApiMock<AccountsMultiaccountBalancesV6Response>({
+    id: 'accounts-v6-multiaccount-balances',
+    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v6\/multiaccount\/balances(\?.*)?$/,
+    body: ACCOUNTS_API_BALANCES_V6_RESPONSE,
   });
 
 export const tokenSupportedNetworksV2 =
@@ -153,6 +190,10 @@ export const API_MOCKS = {
   priceExchangeRatesV1,
   accountsSupportedNetworksV2,
   accountsActiveNetworksV2,
+  accountsBalancesV2,
+  accountsMultiaccountBalancesV4,
+  accountsMultiaccountBalancesV5,
+  accountsMultiaccountBalancesV6,
   tokenSupportedNetworksV2,
   tokensAssetsV3,
   bridgeGetTokens,

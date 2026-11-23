@@ -65,21 +65,22 @@ Inside a custom `testSpecificMock` use `endpoint.register(server, overrides, par
 - **Guard**: `api-mocks-guard.test.ts` fails when a file under `smoke-appium/`, `helpers/` or `api-mocking/` mocks a defined endpoint inline. Files that still do are listed there with the reason; migrate one and remove its entry (the test fails if a listed file no longer mocks inline).
 - **New endpoint**: add an entry to `api-mocks.ts` and `API_MOCKS`, and a pattern in the guard. The default body should be the one `DEFAULT_MOCKS` serves, exported from its file, so the two cannot diverge.
 
-| Endpoint (`api-mocks.ts`)     | Id                               | Params (`urlFor`) | Default body                              |
-| ----------------------------- | -------------------------------- | ----------------- | ----------------------------------------- |
-| `priceSpotPricesV3`           | `price-v3-spot-prices`           |                   | `PRICE_SPOT_PRICES_V3` (synced)           |
-| `priceExchangeRatesV1`        | `price-v1-exchange-rates`        |                   | `PRICE_EXCHANGE_RATES_V1` (synced)        |
-| `accountsSupportedNetworksV2` | `accounts-v2-supported-networks` |                   | `ACCOUNTS_SUPPORTED_NETWORKS_V2` (synced) |
-| `accountsActiveNetworksV2`    | `accounts-v2-active-networks`    |                   | `ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE`   |
-| `tokenSupportedNetworksV2`    | `token-v2-supported-networks`    |                   | `TOKEN_SUPPORTED_NETWORKS_V2` (synced)    |
-| `tokensAssetsV3`              | `tokens-v3-assets`               | `{ assetIds }`    | `[]`                                      |
-| `bridgeGetTokens`             | `bridge-get-tokens`              | `{ chainId }`     | `BRIDGE_TOKEN_DETAILS_CHAIN_1`            |
-| `bridgeGetTxStatus`           | `bridge-get-tx-status`           |                   | `BRIDGE_TX_STATUS_PENDING`                |
-| `gasSuggestedGasFees`         | `gas-suggested-gas-fees`         | `{ chainId }`     | `GAS_FEES_RESPONSE` (synced)              |
-| `rampsCountriesV2`            | `ramps-v2-countries`             |                   | `RAMPS_COUNTRIES_RESPONSE`                |
-| `contentfulBanners`           | `contentful-promotional-banners` |                   | empty collection                          |
+| Endpoint (`api-mocks.ts`)                                                                                                  | Id                                                                | Params (`urlFor`) | Default body                                |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------- | ------------------------------------------- |
+| `priceSpotPricesV3`                                                                                                        | `price-v3-spot-prices`                                            |                   | `PRICE_SPOT_PRICES_V3` (synced)             |
+| `priceExchangeRatesV1`                                                                                                     | `price-v1-exchange-rates`                                         |                   | `PRICE_EXCHANGE_RATES_V1` (synced)          |
+| `accountsSupportedNetworksV2`                                                                                              | `accounts-v2-supported-networks`                                  |                   | `ACCOUNTS_SUPPORTED_NETWORKS_V2` (synced)   |
+| `accountsActiveNetworksV2`                                                                                                 | `accounts-v2-active-networks`                                     |                   | `ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE`     |
+| `accountsBalancesV2`, `accountsMultiaccountBalancesV4`, `accountsMultiaccountBalancesV5`, `accountsMultiaccountBalancesV6` | `accounts-v2-balances`, `accounts-v{4,5,6}-multiaccount-balances` |                   | `ACCOUNTS_API_BALANCES_V{2,4,5,6}_RESPONSE` |
+| `tokenSupportedNetworksV2`                                                                                                 | `token-v2-supported-networks`                                     |                   | `TOKEN_SUPPORTED_NETWORKS_V2` (synced)      |
+| `tokensAssetsV3`                                                                                                           | `tokens-v3-assets`                                                | `{ assetIds }`    | `[]`                                        |
+| `bridgeGetTokens`                                                                                                          | `bridge-get-tokens`                                               | `{ chainId }`     | `BRIDGE_TOKEN_DETAILS_CHAIN_1`              |
+| `bridgeGetTxStatus`                                                                                                        | `bridge-get-tx-status`                                            |                   | `BRIDGE_TX_STATUS_PENDING`                  |
+| `gasSuggestedGasFees`                                                                                                      | `gas-suggested-gas-fees`                                          | `{ chainId }`     | `GAS_FEES_RESPONSE` (synced)                |
+| `rampsCountriesV2`                                                                                                         | `ramps-v2-countries`                                              |                   | `RAMPS_COUNTRIES_RESPONSE`                  |
+| `contentfulBanners`                                                                                                        | `contentful-promotional-banners`                                  |                   | empty collection                            |
 
-Not migrated yet (listed in the guard, except where noted): the accounts balances endpoints (v2/v4/v5/v6) and the specs that mock them (`send-erc20-token`, `send-native-token`, `gas-fee-tokens-eip-7702*`, `stake-action-smoke`, `lending-mocks.ts`), `helpers/contentfulHelper.ts`, the six `pay/*-mocks.ts` files (callbacks that branch on `vsCurrency`), `spam-token-cleanup-mocks.ts` (filters `assetIds`), and `ramps/ramps-mocks.ts` (one callback for three URL shapes, so the guard does not flag it; it already reads the v2 body from `rampsCountriesV2`). The smart-transactions `getTxStatus` fallback and the other feature mocks for untyped endpoints stay as they are.
+Not migrated yet (listed in the guard): the six `pay/*-mocks.ts` files (callbacks that branch on `vsCurrency`), `spam-token-cleanup-mocks.ts` (filters `assetIds`), and `ramps/ramps-mocks.ts` (one callback for three URL shapes, so the guard does not flag it; it already reads the v2 body from `rampsCountriesV2`). The smart-transactions `getTxStatus` fallback and the other feature mocks for untyped endpoints stay as they are.
 
 ## Typed mocks
 
