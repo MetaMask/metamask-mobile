@@ -129,7 +129,7 @@ export const MoneySplashView = () => {
   const dispatch = useDispatch();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { postOnboardingRedirect, analyticsContext } =
+  const { postOnboardingRedirect, analyticsContext, infoMode } =
     useParams<MoneySplashParams>();
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
@@ -148,7 +148,9 @@ export const MoneySplashView = () => {
   });
 
   useMountEffect(() => {
-    dispatch(setMoneySplashSeen(true));
+    if (!infoMode) {
+      dispatch(setMoneySplashSeen(true));
+    }
   });
   useMountEffect(trackScreenViewed);
 
@@ -261,43 +263,49 @@ export const MoneySplashView = () => {
             ))}
           </Box>
         </Box>
-        <Box twClassName="bg-border-muted" style={styles.divider} />
-        <Box twClassName="px-4" style={styles.faqTitle}>
-          <Text
-            variant={TextVariant.HeadingMd}
-            fontWeight={FontWeight.Bold}
-            testID={MoneySplashViewTestIds.FAQ_TITLE}
-          >
-            {strings('money.how_it_works_page.faq_title')}
-          </Text>
-        </Box>
-        <MoneyFaqList
-          apyPercent={apyPercent}
-          tokenBullets={tokenBullets}
-          onCardFeesPress={handleCardFeesPress}
-          itemTestId={MoneySplashViewTestIds.FAQ_ITEM}
-          linkTestId={MoneySplashViewTestIds.FAQ_LINK}
-        />
+        {!infoMode && (
+          <>
+            <Box twClassName="bg-border-muted" style={styles.divider} />
+            <Box twClassName="px-4" style={styles.faqTitle}>
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Bold}
+                testID={MoneySplashViewTestIds.FAQ_TITLE}
+              >
+                {strings('money.how_it_works_page.faq_title')}
+              </Text>
+            </Box>
+            <MoneyFaqList
+              apyPercent={apyPercent}
+              tokenBullets={tokenBullets}
+              onCardFeesPress={handleCardFeesPress}
+              itemTestId={MoneySplashViewTestIds.FAQ_ITEM}
+              linkTestId={MoneySplashViewTestIds.FAQ_LINK}
+            />
+          </>
+        )}
       </ScrollView>
-      <View
-        style={[
-          styles.footer,
-          {
-            paddingBottom: insets.bottom + 16,
-            backgroundColor: colors.background.default,
-          },
-        ]}
-      >
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          isFullWidth
-          onPress={handleStartEarning}
-          testID={MoneySplashViewTestIds.CTA}
+      {!infoMode && (
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom: insets.bottom + 16,
+              backgroundColor: colors.background.default,
+            },
+          ]}
         >
-          {strings('money.splash.cta')}
-        </Button>
-      </View>
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            isFullWidth
+            onPress={handleStartEarning}
+            testID={MoneySplashViewTestIds.CTA}
+          >
+            {strings('money.splash.cta')}
+          </Button>
+        </View>
+      )}
       <ButtonIcon
         iconName={IconName.Close}
         size={ButtonIconSize.Md}

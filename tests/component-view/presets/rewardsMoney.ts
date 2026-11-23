@@ -38,6 +38,7 @@ export { MONAD_MAINNET_CHAIN_ID };
  */
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
+  overviewTab: 'Overview',
   earningsTab: 'Earnings',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
@@ -570,6 +571,8 @@ export interface RewardsMoneyViewStateOptions {
   seedReferralMe?: boolean;
   /** Points subscription. Null leaves Rewards Settings on the referral field. */
   subscriptionId?: string | null;
+  /** The subscription lookup has not settled, so `subscriptionId` reads as null. */
+  subscriptionLookupPending?: boolean;
   /** Device country. Null fails open for a Money referral. */
   geoLocation?: string | null;
   /**
@@ -626,6 +629,7 @@ export function rewardsMoneyViewState({
   referralMe: referralMeOverride,
   seedReferralMe = true,
   subscriptionId = null,
+  subscriptionLookupPending = false,
   geoLocation = null,
   geoStatus,
   moneyControllerEnabled = false,
@@ -683,7 +687,9 @@ export function rewardsMoneyViewState({
     .withOverrides({
       rewards: {
         ...pointsRewardsInitialState,
-        candidateSubscriptionId: subscriptionId,
+        candidateSubscriptionId: subscriptionLookupPending
+          ? 'pending'
+          : subscriptionId,
       },
       ...(supportPreferenceSaved
         ? {

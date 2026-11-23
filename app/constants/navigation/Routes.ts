@@ -552,6 +552,7 @@ const Routes = {
       MORE_SHEET: 'MoneyMoreSheet',
       TRANSFER_MONEY_SHEET: 'MoneyTransferSheet',
       APY_INFO_SHEET: 'MoneyApyInfoSheet',
+      ESTIMATED_BALANCE_SHEET: 'MoneyEstimatedBalanceSheet',
       EARNINGS_INFO_SHEET: 'MoneyEarningsInfoSheet',
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',

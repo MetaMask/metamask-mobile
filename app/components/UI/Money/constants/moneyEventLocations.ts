@@ -27,6 +27,7 @@ export enum BOTTOM_SHEET_NAMES {
   CARD_AUTH_SHEET = 'card_auth_sheet',
   CARD_LINK_SHEET = 'card_link_sheet',
   MONEY_APY_INFO_SHEET = 'money_apy_info_sheet',
+  MONEY_ESTIMATED_BALANCE_SHEET = 'money_estimated_balance_sheet',
   MONEY_MONTHLY_EARNINGS_INFO_SHEET = 'money_monthly_earnings_info_sheet',
   MONEY_LIFETIME_EARNINGS_INFO_SHEET = 'money_lifetime_earnings_info_sheet',
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
