@@ -13077,6 +13077,8 @@
       "entered": "Entered",
       "participant_count": "#{{count}}",
       "opt_in_cta": "Opt in",
+      "opt_in_section_title": "Discover campaigns and benefits",
+      "opt_in_section_legal": "Turning this on will opt-in all accounts on your devices to Rewards campaigns and Benefits powered by theMiracle.",
       "create_username": "Create a username",
       "opt_in_sheet_title": "Join the campaign",
       "geo_restriction_banner_title": "Not available in your region",
@@ -13313,12 +13315,6 @@
       "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
       "card_subtitle_cardholder": "Access your MetaMask Card benefits"
-    },
-    "money_dashboard": {
-      "overview_tab": "Overview"
-    },
-    "opt_in_section": {
-      "title": "Discover campaigns and benefits"
     },
     "campaigns_view": {
       "title": "Campaigns",

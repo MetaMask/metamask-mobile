@@ -37,6 +37,7 @@ export { MONAD_MAINNET_CHAIN_ID };
  */
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
+  overviewTab: 'Overview',
   earningsTab: 'Earnings',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',

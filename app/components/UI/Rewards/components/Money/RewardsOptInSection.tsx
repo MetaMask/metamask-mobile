@@ -106,7 +106,10 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
     clearOptinError();
   }, [optinError, showToast, RewardsToastOptions, clearOptinError]);
 
-  const footnote = disabledReason ?? localizedText.invitedOptInLegal;
+  const footnote =
+    disabledReason ??
+    localizedText.invitedOptInLegal ??
+    strings('rewards.campaign.opt_in_section_legal');
 
   return (
     <Card
@@ -129,7 +132,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
             twClassName="text-center"
             accessibilityRole="header"
           >
-            {strings('rewards.opt_in_section.title')}
+            {strings('rewards.campaign.opt_in_section_title')}
           </Text>
           <Text
             variant={TextVariant.BodySm}

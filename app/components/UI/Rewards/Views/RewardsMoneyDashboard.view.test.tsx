@@ -496,7 +496,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     expect(
       within(
         await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
-      ).getAllByText(strings('rewards.money_dashboard.overview_tab')),
+      ).getAllByText(REFERRAL_LOCALIZED_TEXT.overviewTab),
     ).not.toHaveLength(0);
     expect(
       await findByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
@@ -858,7 +858,9 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY),
     );
     expect(
-      campaignsOptIn.getByText(strings('rewards.opt_in_section.title')),
+      campaignsOptIn.getByText(
+        strings('rewards.campaign.opt_in_section_title'),
+      ),
     ).toBeOnTheScreen();
     expect(
       campaignsOptIn.getByText(REFERRAL_LOCALIZED_TEXT.invitedOptInDescription),

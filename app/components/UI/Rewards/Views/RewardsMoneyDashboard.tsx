@@ -297,7 +297,7 @@ const RewardsMoneyDashboard: React.FC = () => {
     () => [
       {
         key: 'waysToEarn',
-        label: strings('rewards.money_dashboard.overview_tab'),
+        label: localizedText?.overviewTab ?? '',
         content: null,
         testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB,
       },
