@@ -50,6 +50,7 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
+  BackHandler,
   PixelRatio,
   Pressable,
   StyleSheet,
@@ -560,6 +561,20 @@ const MoneyOnboardingView = () => {
     });
   }, [handleClose]);
 
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (!navigation.isFocused()) {
+          return false;
+        }
+        handleClosePress();
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [handleClosePress, navigation]);
+
   const handleStepViewed = useCallback(
     (stepIndex: number) => {
       trackOnboardingEvent({
@@ -682,14 +697,7 @@ const MoneyOnboardingView = () => {
   ]);
 
   useRiveTrigger(CLOSE_TRIGGER, instance, {
-    onTrigger: () => {
-      handleClose(currentStepRef.current).catch((error) => {
-        Logger.error(
-          error as Error,
-          '[Money Account] Failed to navigate after onboarding exit',
-        );
-      });
-    },
+    onTrigger: handleClosePress,
   });
 
   useRiveTrigger(ONBOARDING_COMPLETED_TRIGGER, instance, {

@@ -1,6 +1,7 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import {
+  BackHandler,
   Dimensions,
   Modal,
   StyleSheet,
@@ -39,6 +40,7 @@ import {
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockIsNavigationFocused = jest.fn(() => true);
 let mockTimingCompletion: (() => void) | undefined;
 let mockIsUsUnauthenticatedNonCardholder = false;
 let mockIsE2EOrPerformanceTest = false;
@@ -77,7 +79,10 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({
+    navigate: mockNavigate,
+    isFocused: mockIsNavigationFocused,
+  }),
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -247,6 +252,7 @@ const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsNavigationFocused.mockReturnValue(true);
     jest
       .spyOn(mockWorklets, 'scheduleOnRN')
       .mockImplementation(
@@ -547,13 +553,11 @@ describe('MoneyOnboardingView', () => {
       });
 
       renderMoneyOnboardingView();
-      await act(async () => {
-        await Promise.resolve();
-      });
-
-      expect(Logger.error).toHaveBeenCalledWith(
-        error,
-        '[Money Account] Failed to navigate after onboarding fallback',
+      await waitFor(() =>
+        expect(Logger.error).toHaveBeenCalledWith(
+          error,
+          '[Money Account] Failed to navigate after onboarding fallback',
+        ),
       );
     });
   });
@@ -930,6 +934,48 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Close trigger', () => {
+    it('uses onboarding exit for hardware back only when the route is focused', async () => {
+      const addEventListenerSpy = jest.spyOn(BackHandler, 'addEventListener');
+      renderMoneyOnboardingView();
+
+      const hardwareBackPressCall = addEventListenerSpy.mock.calls.find(
+        ([eventName]) => eventName === 'hardwareBackPress',
+      )?.[1];
+      if (!hardwareBackPressCall) {
+        throw new Error(
+          'Expected onboarding to register a hardware back handler',
+        );
+      }
+
+      mockIsNavigationFocused.mockReturnValue(false);
+      expect(
+        hardwareBackPressCall({ type: 'hardwareBackPress', timeStamp: 0 }),
+      ).toBe(false);
+      expect(mockNavigate).not.toHaveBeenCalled();
+
+      mockIsNavigationFocused.mockReturnValue(true);
+      await act(async () => {
+        expect(
+          hardwareBackPressCall({ type: 'hardwareBackPress', timeStamp: 0 }),
+        ).toBe(true);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    });
+
     it('tracks EXITED event with the adapter redirect target at the current step', () => {
       mockRouteParams = {
         postOnboardingRedirect: {
