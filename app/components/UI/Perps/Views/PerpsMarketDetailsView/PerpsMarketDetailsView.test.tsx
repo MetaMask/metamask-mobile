@@ -4463,53 +4463,6 @@ describe('PerpsMarketDetailsView', () => {
         }),
       );
     });
-
-    it('re-frames the inline advanced chart when the fullscreen chart closes', async () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      const mockSelectPerpsEligibility = jest.requireMock(
-        '../../selectors/perpsController',
-      ).selectPerpsEligibility;
-      useSelector.mockImplementation((selector: unknown) => {
-        if (selector === mockSelectPerpsEligibility) {
-          return true;
-        }
-        if (selector === selectPerpsAdvancedChartEnabledFlag) {
-          return true;
-        }
-        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
-          return false;
-        }
-        return undefined;
-      });
-
-      const { getByTestId } = renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        {
-          state: initialState,
-        },
-      );
-      expect(
-        getByTestId('mock-perps-advanced-chart').props.viewportRevision,
-      ).toBe(0);
-
-      fireEvent.press(
-        getByTestId(PerpsMarketDetailsViewSelectorsIDs.FULLSCREEN_CHART_BUTTON),
-      );
-      await waitFor(() => {
-        expect(
-          getByTestId('perps-chart-fullscreen-close-button'),
-        ).toBeOnTheScreen();
-      });
-      fireEvent.press(getByTestId('perps-chart-fullscreen-close-button'));
-
-      await waitFor(() => {
-        expect(
-          getByTestId('mock-perps-advanced-chart').props.viewportRevision,
-        ).toBe(1);
-      });
-    });
   });
 
   describe('Market list shortcut', () => {

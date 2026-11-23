@@ -114,7 +114,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       priceDecimals,
       visibleFromMs,
       visibleToMs,
-      viewportRevision,
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
@@ -417,11 +416,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     visibleToMsRef.current = visibleToMs;
     const prevVisibleFromMsSentRef = useRef<number | undefined>(undefined);
     const prevVisibleToMsSentRef = useRef<number | undefined>(undefined);
-    const viewportRevisionRef = useRef<number | undefined>(viewportRevision);
-    viewportRevisionRef.current = viewportRevision;
-    const prevViewportRevisionSentRef = useRef<number | undefined>(
-      viewportRevision,
-    );
 
     // Mirror `slbMode` into a ref so `sendOHLCVData` keeps a stable identity (it
     // rarely changes — set once per consumer). Sent on every SET_OHLCV_DATA so the
@@ -447,7 +441,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         });
         prevVisibleFromMsSentRef.current = visibleFromMsRef.current;
         prevVisibleToMsSentRef.current = visibleToMsRef.current;
-        prevViewportRevisionSentRef.current = viewportRevisionRef.current;
       },
       [postMessage],
     );
@@ -852,23 +845,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         return;
       }
 
-      // Resend the full series (WebView re-frames in place) when either:
-      // - SocialLeaderboard only: the requested viewport (visibleFromMs/To)
-      //   changed without a series-key change, so the WebView re-frames on the
-      //   trades. Gated behind slbMode so other consumers (e.g. Perps) keep
-      //   their stable latest-N-candle viewport + REALTIME_UPDATE path and never
-      //   take a full-data resend on a visible-range-only change.
-      // - Any consumer bumped `viewportRevision` (an explicit re-frame request
-      //   that avoids a WebView remount) and the viewport actually differs from
-      //   the last one sent. The request is consumed either way so a stale
-      //   revision cannot trigger a resend on a later range change.
-      const viewportRevisionChanged =
-        viewportRevisionRef.current !== prevViewportRevisionSentRef.current;
-      prevViewportRevisionSentRef.current = viewportRevisionRef.current;
-      if (
-        (slbModeRef.current && visibleRangeChanged) ||
-        (viewportRevisionChanged && visibleRangeChanged)
-      ) {
+      // SocialLeaderboard only: when the requested viewport (visibleFromMs/To)
+      // changes without a series-key change, resend the full series so the WebView
+      // re-frames on the trades. Gated behind slbMode so other consumers (e.g.
+      // Perps) keep their stable latest-N-candle viewport + REALTIME_UPDATE path
+      // and never take a full-data resend on a visible-range-only change.
+      if (slbModeRef.current && visibleRangeChanged) {
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
@@ -906,7 +888,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       webViewLoaded,
       visibleFromMs,
       visibleToMs,
-      viewportRevision,
       sendOHLCVData,
       postMessage,
       beginFullOhlcvLayoutSettle,

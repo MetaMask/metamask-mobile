@@ -317,10 +317,9 @@ const PerpsProChartPanel = ({
 
   const handleFullscreenChartClose = useCallback(() => {
     setIsFullscreenChartVisible(false);
-    // Both inline charts adopt the fullscreen chart's persisted count. The
-    // Lightweight chart remounts (its library is inlined, so this is cheap).
-    // The Advanced Chart WebView is never remounted (a remount is a full cold
-    // start); it re-frames in place via `viewportRevision`.
+    // The inline WebView remains mounted behind the modal and does not
+    // reframe from a count-only prop update. Remount it after closing so both
+    // chart libraries initialize from the fullscreen chart's persisted count.
     setInlineViewportRevision((revision) => revision + 1);
   }, []);
 
@@ -361,8 +360,7 @@ const PerpsProChartPanel = ({
   if (isMarketContextReady && isAdvancedChartEnabled) {
     chartContent = (
       <PerpsAdvancedChart
-        key={`${symbol}|${marketContextKey}`}
-        viewportRevision={inlineViewportRevision}
+        key={`${symbol}|${marketContextKey}|${inlineViewportRevision}`}
         symbol={symbol}
         interval={selectedCandlePeriod}
         visibleCandleCount={visibleCandleCount}

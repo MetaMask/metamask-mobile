@@ -597,10 +597,9 @@ describe('PerpsProChartPanel', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('re-frames the inline Advanced Chart in place with the fullscreen viewport on close', () => {
+  it('remounts the inline Advanced Chart with the fullscreen viewport on close', () => {
     renderChartPanel();
     expect(mockAdvancedChartMounted).toHaveBeenCalledTimes(1);
-    const initialRevision = getLastAdvancedChartProps().viewportRevision;
 
     fireEvent.press(
       screen.getByTestId(
@@ -612,11 +611,8 @@ describe('PerpsProChartPanel', () => {
       getLastFullscreenModalProps().onClose();
     });
 
-    expect(mockAdvancedChartUnmounted).not.toHaveBeenCalled();
-    expect(mockAdvancedChartMounted).toHaveBeenCalledTimes(1);
-    expect(getLastAdvancedChartProps().viewportRevision).toBe(
-      (initialRevision ?? 0) + 1,
-    );
+    expect(mockAdvancedChartUnmounted).toHaveBeenCalledTimes(1);
+    expect(mockAdvancedChartMounted).toHaveBeenCalledTimes(2);
     expect(getLastAdvancedChartProps().visibleCandleCount).toBe(80);
   });
 

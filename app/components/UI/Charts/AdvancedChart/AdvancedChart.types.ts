@@ -784,12 +784,6 @@ export interface AdvancedChartProps {
    */
   visibleToMs?: number;
 
-  /**
-   * Bump to re-frame the live chart to the current `visibleFromMs`/`visibleToMs`
-   * without remounting the WebView. A change re-posts the current series.
-   */
-  viewportRevision?: number;
-
   /** Override the chart line color baked into the HTML template (A/B test). */
   lineColorOverride?: string;
   /** Override the candlestick up/success color baked into the HTML template (A/B test). */
