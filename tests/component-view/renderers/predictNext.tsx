@@ -135,9 +135,11 @@ export const renderPredictNext = (
   {
     venueId = DEFAULT_VENUE_ID,
     remoteFeatureFlags = {},
+    queryClient,
   }: {
     venueId?: PredictVenueId;
     remoteFeatureFlags?: Record<string, unknown>;
+    queryClient?: QueryClient;
   } = {},
 ) =>
   renderScreenWithRoutes(
@@ -158,6 +160,8 @@ export const renderPredictNext = (
         .withRemoteFeatureFlags(remoteFeatureFlags)
         .build(),
     },
+    undefined,
+    queryClient,
   );
 
 export const renderPredictSearchScreen = (
@@ -277,7 +281,13 @@ const ConfirmationSheetProbe = () => {
  */
 export const renderPredictDepositScreen = (
   params: PredictNextDepositParams,
-  { environment }: { environment?: PredictDepositEnvironment } = {},
+  {
+    environment,
+    queryClient,
+  }: {
+    environment?: PredictDepositEnvironment;
+    queryClient?: QueryClient;
+  } = {},
 ) => {
   const HomeProbe = () => {
     const navigation =
@@ -303,6 +313,8 @@ export const renderPredictDepositScreen = (
       },
     ],
     { state: initialStatePredictNext().build() },
+    undefined,
+    queryClient,
   );
 };
 

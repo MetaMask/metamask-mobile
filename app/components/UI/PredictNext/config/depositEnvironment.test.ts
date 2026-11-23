@@ -26,6 +26,15 @@ describe('resolvePredictDepositEnvironment', () => {
     );
   });
 
+  it('returns stable environment references across calls', () => {
+    expect(resolvePredictDepositEnvironment('sandbox')).toBe(
+      resolvePredictDepositEnvironment('sandbox'),
+    );
+    expect(resolvePredictDepositEnvironment('production')).toBe(
+      resolvePredictDepositEnvironment('production'),
+    );
+  });
+
   it('names the known USDC contract for each chain', () => {
     expect(BASE_DEPOSIT_NETWORK).toStrictEqual({
       chainId: 8453,

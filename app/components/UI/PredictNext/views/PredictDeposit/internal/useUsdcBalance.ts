@@ -59,30 +59,52 @@ export const useUsdcBalance = ({
   address: string | undefined;
   enabled: boolean;
 }): UsdcBalance => {
-  const [balance, setBalance] = useState<UsdcBalance>({ status: 'loading' });
+  const requestKey =
+    network && address && enabled
+      ? `${network.chainId}:${network.usdc.address}:${address}`
+      : undefined;
+  const [state, setState] = useState<{
+    key: string;
+    balance: UsdcBalance;
+  }>();
 
   useEffect(() => {
-    if (!network || !address || !enabled) {
-      setBalance({ status: 'unavailable' });
+    if (!requestKey || !network || !address) {
+      setState(undefined);
       return undefined;
     }
     let isCurrent = true;
-    setBalance({ status: 'loading' });
+    setState({ key: requestKey, balance: { status: 'loading' } });
     readUsdcBalance(network, address)
       .then((baseUnits) => {
         if (isCurrent) {
-          setBalance({ status: 'ready', baseUnits });
+          setState({
+            key: requestKey,
+            balance: { status: 'ready', baseUnits },
+          });
         }
       })
       .catch(() => {
         if (isCurrent) {
-          setBalance({ status: 'unavailable' });
+          setState({
+            key: requestKey,
+            balance: { status: 'unavailable' },
+          });
         }
       });
     return () => {
       isCurrent = false;
     };
-  }, [address, enabled, network]);
+  }, [address, network, requestKey]);
 
-  return balance;
+  if (!address || !enabled) {
+    return { status: 'unavailable' };
+  }
+  if (!network || !requestKey) {
+    return { status: 'loading' };
+  }
+  if (state?.key === requestKey) {
+    return state.balance;
+  }
+  return { status: 'loading' };
 };

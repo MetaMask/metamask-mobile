@@ -1,5 +1,9 @@
 import { createContext, useContext, useMemo } from 'react';
-import { useVenueCapabilities } from '../../../capabilities';
+import {
+  getVenueEnvironment,
+  useVenueCapabilities,
+} from '../../../capabilities';
+import type { PredictVenueCapabilitiesUnavailableReason } from '../../../capabilities/types';
 import {
   resolvePredictDepositEnvironment,
   type PredictDepositEnvironment,
@@ -9,7 +13,11 @@ import type { PredictVenueId } from '../../../types';
 export type DepositEnvironmentResolution =
   | { status: 'loading' }
   | { status: 'ready'; environment: PredictDepositEnvironment }
-  | { status: 'unavailable' };
+  | {
+      status: 'unavailable';
+      reason: Exclude<PredictVenueCapabilitiesUnavailableReason, 'error'>;
+    }
+  | { status: 'unavailable'; reason: 'error'; retry: () => void };
 
 const DepositEnvironmentContext = createContext<
   PredictDepositEnvironment | undefined
@@ -28,22 +36,43 @@ export const useDepositEnvironment = (
 ): DepositEnvironmentResolution => {
   const override = useContext(DepositEnvironmentContext);
   const capabilities = useVenueCapabilities(venueId);
+  const venueEnvironment = getVenueEnvironment(capabilities);
+  const capabilitiesStatus = capabilities.status;
+  const unavailableReason =
+    capabilities.status === 'unavailable' ? capabilities.reason : undefined;
+  const retry =
+    capabilities.status === 'unavailable' && capabilities.reason === 'error'
+      ? capabilities.retry
+      : undefined;
 
   return useMemo(() => {
     if (override) {
       return { status: 'ready', environment: override };
     }
-    if (capabilities.status === 'ready') {
+    if (venueEnvironment) {
       return {
         status: 'ready',
-        environment: resolvePredictDepositEnvironment(
-          capabilities.descriptor.environment,
-        ),
+        environment: resolvePredictDepositEnvironment(venueEnvironment),
       };
     }
-    if (capabilities.status === 'loading') {
+    if (capabilitiesStatus === 'loading') {
       return { status: 'loading' };
     }
-    return { status: 'unavailable' };
-  }, [override, capabilities]);
+    if (unavailableReason === 'error' && retry) {
+      return { status: 'unavailable', reason: 'error', retry };
+    }
+    return {
+      status: 'unavailable',
+      reason:
+        unavailableReason && unavailableReason !== 'error'
+          ? unavailableReason
+          : 'invalid_catalog',
+    };
+  }, [
+    override,
+    venueEnvironment,
+    capabilitiesStatus,
+    unavailableReason,
+    retry,
+  ]);
 };

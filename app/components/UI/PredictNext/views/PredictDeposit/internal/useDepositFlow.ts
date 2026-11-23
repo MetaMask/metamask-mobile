@@ -15,7 +15,6 @@ import type { PredictDepositEnvironment } from '../../../config/depositEnvironme
 import { PredictError, PredictErrorCode } from '../../../errors';
 import {
   canReuseClientOperationId,
-  checkDepositPlan,
   clearSessionDepositTransfer,
   clearSessionDepositTransfersForOperation,
   continueDeposit,
@@ -372,6 +371,10 @@ export const useDepositFlow = ({
             from: fundingWallet,
             operationId: deposit.operationId,
           });
+          // Fail closed when `environment` is unknown: reject any matching
+          // unapproved wallet transaction so it cannot confirm after cancel
+          // (unlike transfer-status checks, which never assume unsent while
+          // environment is unknown).
           if (environment?.transferMode !== 'simulated') {
             const transactions =
               Engine.context.TransactionController.state.transactions ?? [];
@@ -401,68 +404,48 @@ export const useDepositFlow = ({
       if (
         !deposit ||
         !fundingWallet ||
-        !environment ||
-        deposit.status !== 'awaiting_transfer' ||
-        deposit.next?.kind !== 'wallet_transfer'
+        deposit.status !== 'awaiting_transfer'
       ) {
         return false;
       }
-      const check = checkDepositPlan(deposit, {
-        amount: deposit.amount,
-        network: environment.network,
-        walletAddresses: selectInternalAccounts(store.getState()).map(
-          (account) => account.address,
-        ),
-        now: Number.NEGATIVE_INFINITY,
-      });
-      const plan = check.ok
-        ? check.plan
-        : check.reason === 'expiry'
-          ? {
-              chainId: deposit.next.chainId,
-              tokenContract: deposit.next.tokenContract,
-              amount: deposit.next.amount,
-              depositAddress: deposit.next.depositAddress,
-              planExpiresAt: deposit.next.planExpiresAt,
-            }
-          : null;
+      const plan = extractPlanFromDeposit(deposit);
       if (!plan) {
         return false;
       }
-      if (environment.transferMode === 'wallet') {
-        const transactions =
-          Engine.context.TransactionController.state.transactions ?? [];
-        const matched = findMatchingDepositTransaction({
-          transactions,
-          from: fundingWallet,
-          plan,
-          createdAt: deposit.createdAt,
-          operationId: deposit.operationId,
-        });
-        if (matched?.kind === 'submitted') {
-          return true;
-        }
-        const sessionTransfer = getSessionDepositTransfer({
-          venueId,
-          operationId: deposit.operationId,
-          from: fundingWallet,
-          plan,
-        });
+      if (environment?.transferMode === 'simulated') {
         return Boolean(
-          sessionTransfer &&
-            !isKnownFailedDepositHash(transactions, sessionTransfer.txHash),
+          getSessionDepositTransfer({
+            venueId,
+            operationId: deposit.operationId,
+            from: fundingWallet,
+            plan,
+          }),
         );
       }
+      const transactions =
+        Engine.context.TransactionController.state.transactions ?? [];
+      const matched = findMatchingDepositTransaction({
+        transactions,
+        from: fundingWallet,
+        plan,
+        createdAt: deposit.createdAt,
+        operationId: deposit.operationId,
+      });
+      if (matched?.kind === 'submitted') {
+        return true;
+      }
+      const sessionTransfer = getSessionDepositTransfer({
+        venueId,
+        operationId: deposit.operationId,
+        from: fundingWallet,
+        plan,
+      });
       return Boolean(
-        getSessionDepositTransfer({
-          venueId,
-          operationId: deposit.operationId,
-          from: fundingWallet,
-          plan,
-        }),
+        sessionTransfer &&
+          !isKnownFailedDepositHash(transactions, sessionTransfer.txHash),
       );
     },
-    [environment, fundingWallet, store, venueId],
+    [environment?.transferMode, fundingWallet, venueId],
   );
 
   return {

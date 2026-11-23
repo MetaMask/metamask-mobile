@@ -52,6 +52,16 @@ export interface PredictDepositEnvironment {
   transferMode: PredictDepositTransferMode;
 }
 
+const SANDBOX_DEPOSIT_ENVIRONMENT: PredictDepositEnvironment = {
+  network: BASE_SEPOLIA_DEPOSIT_NETWORK,
+  transferMode: 'simulated',
+};
+
+const PRODUCTION_DEPOSIT_ENVIRONMENT: PredictDepositEnvironment = {
+  network: BASE_DEPOSIT_NETWORK,
+  transferMode: 'wallet',
+};
+
 /**
  * Resolves a Venue's deposit network and transfer mode directly from
  * `catalog.environment` in every build (`production`, `beta`, `rc`, `dev`,
@@ -62,5 +72,5 @@ export const resolvePredictDepositEnvironment = (
   venueEnvironment: PredictVenueEnvironment,
 ): PredictDepositEnvironment =>
   venueEnvironment === 'sandbox'
-    ? { network: BASE_SEPOLIA_DEPOSIT_NETWORK, transferMode: 'simulated' }
-    : { network: BASE_DEPOSIT_NETWORK, transferMode: 'wallet' };
+    ? SANDBOX_DEPOSIT_ENVIRONMENT
+    : PRODUCTION_DEPOSIT_ENVIRONMENT;

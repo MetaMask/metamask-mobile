@@ -10,10 +10,14 @@ import {
 import Clipboard from '@react-native-clipboard/clipboard';
 import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  createComponentViewQueryClient,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import { renderPredictDepositScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import {
   configurePredictNextCatalog,
+  messengerCall,
   mockPredictNextMessenger,
   resetPredictNextCatalog,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
@@ -32,6 +36,7 @@ import {
   depositTransferRequestId,
 } from '../../funding';
 import { PredictNextRoutes } from '../../navigation/routes';
+import { marketDataQueries } from '../../queries/marketDataQueries';
 import type {
   PredictAmount,
   PredictDepositOperation,
@@ -143,13 +148,9 @@ const mockWallet = (result: () => Promise<string>): void => {
 const typeAmount = async (
   view: ReturnType<typeof renderPredictDepositScreen>,
   keys: string,
+  readyTestId: string = TestIds.BALANCE,
 ): Promise<void> => {
-  await waitFor(() =>
-    expect(
-      view.queryByTestId(TestIds.BALANCE) ??
-        view.queryByTestId(TestIds.SIMULATED_CAPTION),
-    ).toBeTruthy(),
-  );
+  await view.findByTestId(readyTestId);
   for (const key of keys) {
     fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY(key)));
   }
@@ -292,7 +293,7 @@ describe('PredictDepositScreen', () => {
       Engine.context.AssetsContractController.getERC20BalanceOf,
     ).not.toHaveBeenCalled();
 
-    await typeAmount(view, '25');
+    await typeAmount(view, '25', TestIds.SIMULATED_CAPTION);
     await addFunds(view);
 
     expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
@@ -310,7 +311,7 @@ describe('PredictDepositScreen', () => {
   });
 
   describe('catalog environment resolution', () => {
-    it('uses Base Sepolia and simulated transfer when catalog environment is sandbox, skipping balance checks even with 0 USDC', async () => {
+    it('uses Base Sepolia and simulated transfer in sandbox without checking USDC balance', async () => {
       mockUsdcBalance('0');
       configurePredictNextCatalog({
         ...KALSHI_STATIC_VENUE_CATALOG,
@@ -340,7 +341,7 @@ describe('PredictDepositScreen', () => {
         Engine.context.AssetsContractController.getERC20BalanceOf,
       ).not.toHaveBeenCalled();
 
-      await typeAmount(view, '25');
+      await typeAmount(view, '25', TestIds.SIMULATED_CAPTION);
       expect(view.queryByTestId(TestIds.ALERT)).not.toBeOnTheScreen();
       expect(view.getByTestId(TestIds.CONTINUE)).toBeEnabled();
 
@@ -360,7 +361,7 @@ describe('PredictDepositScreen', () => {
       );
     });
 
-    it('uses Base mainnet and wallet transfer when catalog environment is production', async () => {
+    it('uses Base mainnet and wallet transfer in production', async () => {
       configurePredictNextCatalog({
         ...KALSHI_STATIC_VENUE_CATALOG,
         environment: 'production',
@@ -397,7 +398,7 @@ describe('PredictDepositScreen', () => {
       );
     });
 
-    it('disables Continue and hides Pay with while the catalog is loading without guessing a network', async () => {
+    it('disables Continue and hides Pay with while catalog is loading', async () => {
       configurePredictNextCatalog('pending');
       mockFunding({});
 
@@ -416,8 +417,95 @@ describe('PredictDepositScreen', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('disables Continue, shows unavailable alert, and hides Pay with when the catalog fails', async () => {
+    it('never flashes balance unavailable when catalog resolves from loading to production', async () => {
+      let resolveCatalog: (value: unknown) => void = () => undefined;
+      messengerCall.mockImplementation((action: string) => {
+        if (action === 'PredictMarketDataService:getVenueCatalog') {
+          return new Promise((resolve) => {
+            resolveCatalog = resolve;
+          });
+        }
+        if (action === 'PredictOrderService:getRecovery') {
+          return [];
+        }
+        return Promise.resolve(undefined);
+      });
+      let resolveBalance: (value: unknown) => void = () => undefined;
+      jest
+        .mocked(Engine.context.AssetsContractController.getERC20BalanceOf)
+        .mockImplementation(
+          () =>
+            new Promise((resolve) => {
+              resolveBalance = resolve;
+            }) as never,
+        );
+
+      const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(
+        await view.findByTestId(TestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolveCatalog({
+          ...KALSHI_STATIC_VENUE_CATALOG,
+          environment: 'production',
+        });
+      });
+
+      await waitFor(() => {
+        expect(
+          view.queryByText(strings('predict_next.deposit.balance_unavailable')),
+        ).not.toBeOnTheScreen();
+        expect(
+          Engine.context.AssetsContractController.getERC20BalanceOf,
+        ).toHaveBeenCalledTimes(1);
+      });
+      expect(view.getByTestId(TestIds.BALANCE_LOADING)).toBeOnTheScreen();
+
+      await act(async () => {
+        resolveBalance({ toString: () => '100000000' });
+      });
+
+      expect(await view.findByTestId(TestIds.BALANCE)).toHaveTextContent(
+        strings('predict_next.deposit.available', { amount: '100.00' }),
+      );
+    });
+
+    it('shows retryable alert on catalog error and recovers when retried', async () => {
       configurePredictNextCatalog(new Error('catalog failed'));
+      mockFunding({});
+
+      const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
+
+      expect(await view.findByTestId(TestIds.ALERT)).toHaveTextContent(
+        strings('predict_next.deposit.unavailable_error'),
+      );
+      expect(view.queryByTestId(TestIds.PAY_WITH)).not.toBeOnTheScreen();
+
+      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('2')));
+      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('5')));
+      expect(view.getByTestId(TestIds.CONTINUE)).toBeDisabled();
+
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'production',
+      });
+      await act(async () => {
+        fireEvent.press(view.getByTestId(TestIds.RETRY));
+      });
+
+      expect(await view.findByTestId(TestIds.BALANCE)).toHaveTextContent(
+        strings('predict_next.deposit.available', { amount: '100.00' }),
+      );
+      expect(view.getByTestId(TestIds.CONTINUE)).toBeEnabled();
+    });
+
+    it('shows unavailable alert without retry when catalog is invalid', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'staging',
+      });
       mockFunding({});
 
       const view = renderPredictDepositScreen({ venueId: KALSHI_VENUE_ID });
@@ -425,11 +513,70 @@ describe('PredictDepositScreen', () => {
       expect(await view.findByTestId(TestIds.ALERT)).toHaveTextContent(
         strings('predict_next.deposit.unavailable'),
       );
+      expect(view.queryByTestId(TestIds.RETRY)).not.toBeOnTheScreen();
       expect(view.queryByTestId(TestIds.PAY_WITH)).not.toBeOnTheScreen();
+    });
 
-      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('2')));
-      fireEvent.press(view.getByTestId(TestIds.KEYPAD_KEY('5')));
-      expect(view.getByTestId(TestIds.CONTINUE)).toBeDisabled();
+    it('switches an open sheet from sandbox to production when the catalog updates', async () => {
+      const queryClient = createComponentViewQueryClient();
+      const openDeposit = makeDeposit({ amount: '40.00' });
+      const reportDepositTransfer = jest.fn(async () => ({
+        ...openDeposit,
+        status: 'processing',
+      }));
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'sandbox',
+      });
+      mockFunding({
+        'PredictFundingService:prepareDeposit': async () => {
+          throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
+        },
+        'PredictFundingService:getDeposit': async () => openDeposit,
+        'PredictFundingService:listOpenDeposits': async () => [openDeposit],
+        'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+      });
+      mockWallet(async () => TX_HASH);
+
+      const view = renderPredictDepositScreen(
+        { venueId: KALSHI_VENUE_ID },
+        { queryClient },
+      );
+
+      await typeAmount(view, '25', TestIds.SIMULATED_CAPTION);
+      await addFunds(view);
+      await view.findByTestId(TestIds.IN_PROGRESS);
+
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'production',
+      });
+      await act(async () => {
+        await queryClient.invalidateQueries({
+          queryKey: marketDataQueries.getVenueCatalog(KALSHI_VENUE_ID).queryKey,
+        });
+      });
+
+      await waitFor(() =>
+        expect(view.getByTestId(TestIds.PAY_WITH)).toHaveTextContent(
+          /USDC on Base$/u,
+        ),
+      );
+
+      await act(async () => {
+        fireEvent.press(view.getByTestId(TestIds.IN_PROGRESS_CONTINUE));
+      });
+
+      expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).toHaveBeenCalledTimes(1);
+      expect(reportDepositTransfer).toHaveBeenCalledWith(
+        KALSHI_VENUE_ID,
+        'op-1',
+        { txHash: TX_HASH, chainId: BASE_DEPOSIT_NETWORK.chainId },
+      );
+      queryClient.clear();
     });
   });
 

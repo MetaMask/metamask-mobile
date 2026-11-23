@@ -94,6 +94,8 @@ interface DepositInProgressSheetProps {
   hasSubmittedTransfer?: boolean;
   /** Whether Continue is allowed (disabled while deposit environment is loading/unavailable). */
   canContinue?: boolean;
+  /** Whether Cancel is allowed (disabled when the sent-or-not state cannot be checked). */
+  canCancel?: boolean;
   /** Controls modal visibility without unmounting the sheet host mid-action. */
   isVisible?: boolean;
   isCancelling: boolean;
@@ -114,6 +116,7 @@ export const DepositInProgressSheet = ({
   deposit,
   hasSubmittedTransfer = false,
   canContinue = true,
+  canCancel = true,
   isVisible = true,
   isCancelling,
   cancelFailed,
@@ -231,7 +234,7 @@ export const DepositInProgressSheet = ({
                     >
                       {strings('predict_next.deposit.in_progress.continue')}
                     </Button>
-                    {hasSubmittedTransfer ? null : (
+                    {hasSubmittedTransfer || !canCancel ? null : (
                       <Button
                         variant={ButtonVariant.Secondary}
                         size={ButtonSize.Lg}

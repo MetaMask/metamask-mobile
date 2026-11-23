@@ -89,7 +89,7 @@ PredictNext/
       internal/                # Screen-owned detail helpers
     PredictDeposit/
       PredictDepositScreen.tsx # Kalshi deposit: amount, review, processing (PRED-1495)
-      internal/                # Deposit flow hook, USDC balance, open-deposit sheet, build environment
+      internal/                # Deposit flow hook, USDC balance, open-deposit sheet, deposit environment from the Venue catalog
     PredictPortfolio/
       PredictPortfolioScreen.tsx
       internal/                # Summary, tabs, and empty-state composition

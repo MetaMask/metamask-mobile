@@ -211,6 +211,7 @@ const DepositStatusSheetHost = ({
       deposit={deposit}
       hasSubmittedTransfer={flow.hasSubmittedTransfer(deposit)}
       canContinue={isEnvironmentReady}
+      canCancel={Boolean(fundingWallet)}
       isVisible={isVisible}
       isCancelling={isCancelling}
       cancelFailed={cancelFailed}

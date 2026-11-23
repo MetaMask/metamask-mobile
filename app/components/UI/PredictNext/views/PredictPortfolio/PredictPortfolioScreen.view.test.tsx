@@ -40,6 +40,17 @@ import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cance
 import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
 import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { makeFailedDeposit } from '../../funding/deposit/testUtils';
+import {
+  clearAllSessionDepositTransfers,
+  recordSessionDepositTransfer,
+} from '../../funding';
+import type {
+  PredictAmount,
+  PredictHex,
+  PredictTimestamp,
+  PredictVenueId,
+} from '../../types';
+import { strings } from '../../../../../../locales/i18n';
 
 describe('PredictPortfolioScreen', () => {
   const activityTransportRestores: (() => void)[] = [];
@@ -105,6 +116,7 @@ describe('PredictPortfolioScreen', () => {
   });
 
   afterEach(() => {
+    clearAllSessionDepositTransfers();
     activityTransportRestores.splice(0).forEach((restore) => restore());
     jest.restoreAllMocks();
     resetPredictNextCatalog();
@@ -2043,5 +2055,54 @@ describe('PredictPortfolioScreen', () => {
         );
       },
     );
+
+    it('hides Cancel and shows processing copy for a recorded session transfer when catalog is unavailable', async () => {
+      recordSessionDepositTransfer(
+        {
+          venueId: KALSHI_VENUE_ID as PredictVenueId,
+          operationId: awaitingTransferDeposit.operationId,
+          from: '0x0000000000000000000000000000000000000001' as PredictHex,
+          plan: {
+            chainId: awaitingTransferDeposit.next.chainId,
+            tokenContract: awaitingTransferDeposit.next
+              .tokenContract as PredictHex,
+            amount: awaitingTransferDeposit.next.amount as PredictAmount,
+            depositAddress: awaitingTransferDeposit.next
+              .depositAddress as PredictHex,
+            planExpiresAt: awaitingTransferDeposit.next
+              .planExpiresAt as PredictTimestamp,
+          },
+        },
+        {
+          txHash: `0x${'ab'.repeat(32)}` as PredictHex,
+          chainId: awaitingTransferDeposit.chainId,
+          to: undefined,
+          data: undefined,
+        },
+      );
+      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+      configurePredictNextCatalog(new Error('catalog failed'));
+      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+      const statusLine = await view.findByTestId(
+        PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
+      );
+      fireEvent.press(statusLine);
+
+      const continueButton = await view.findByTestId(
+        PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+      );
+      expect(continueButton).toBeDisabled();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByText(
+          strings('predict_next.deposit.in_progress.processing', {
+            amount: '$25.50',
+          }),
+        ),
+      ).toBeOnTheScreen();
+    });
   });
 });
