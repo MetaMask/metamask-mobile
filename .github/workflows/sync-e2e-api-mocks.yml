@@ -209,8 +209,7 @@ jobs:
               --title 'test: sync E2E API mock shapes with the live APIs' \
               --body-file "$BODY_FILE" \
               --label team-qa \
-              --label no-changelog \
-              --label skip-smart-e2e-selection)
+              --label no-changelog)
             echo "Opened pull request ${PR_URL}." >> "$GITHUB_STEP_SUMMARY"
           fi
 
