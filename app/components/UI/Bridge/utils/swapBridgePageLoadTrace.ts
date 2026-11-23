@@ -17,8 +17,9 @@ export interface SwapBridgePageLoadTraceRoute {
 
 /**
  * @param route - Bridge route params; the trace id is added to the result.
- * @param options.appStartType - `cold` when Bridge opens through the startup
- * deeplink path (reset to home), `warm` for every other navigation.
+ * @param options.appStartType - Process-scoped start type; deeplink entry
+ * points pass the open Deeplink Processed span's value. Defaults to `warm`
+ * for in-app navigation.
  */
 export const startSwapBridgePageLoadTrace = <
   T extends SwapBridgePageLoadTraceRoute,

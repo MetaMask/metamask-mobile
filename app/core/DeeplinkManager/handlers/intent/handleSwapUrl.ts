@@ -38,7 +38,7 @@ import {
 } from '../../../../util/networks/networkToastSuppression';
 
 import { HandleSwapUrlParams } from '../../types/deepLink.types';
-import type { DeeplinkPerfAppStartType } from '../../../Performance/DeeplinkPerformance';
+import { getDeeplinkProcessedAppStartType } from '../../../Performance/DeeplinkPerformance';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 import {
@@ -409,10 +409,7 @@ const resolveSwapRouteParams = async (
 
 export const createSwapDeeplinkIntent = async ({
   swapPath,
-  appStartType = 'warm',
-}: HandleSwapUrlParams & {
-  appStartType?: DeeplinkPerfAppStartType;
-}): Promise<DeeplinkIntent> => {
+}: HandleSwapUrlParams): Promise<DeeplinkIntent> => {
   const routeParams = await resolveSwapRouteParams(swapPath);
   const intent: DeeplinkIntent = {
     target: bridgeTarget(routeParams),
@@ -421,7 +418,9 @@ export const createSwapDeeplinkIntent = async ({
     prepare: () => {
       resetSwapSessionBeforeDeeplink();
       intent.target = bridgeTarget(
-        startSwapBridgePageLoadTrace(routeParams, { appStartType }),
+        startSwapBridgePageLoadTrace(routeParams, {
+          appStartType: getDeeplinkProcessedAppStartType(),
+        }),
       );
     },
   };
@@ -446,12 +445,15 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
     // Deep link processing failed - fallback to bridge view without parameters
     // This ensures the deep link never breaks the user experience
     resetSwapSessionBeforeDeeplink();
-    const params = startSwapBridgePageLoadTrace({
-      sourcePage: 'deeplink',
-      bridgeViewMode: BridgeViewMode.Unified,
-      location: MetaMetricsSwapsEventSource.MainView,
-      ...initialRouteParams,
-    });
+    const params = startSwapBridgePageLoadTrace(
+      {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        ...initialRouteParams,
+      },
+      { appStartType: getDeeplinkProcessedAppStartType() },
+    );
     NavigationService.navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params,

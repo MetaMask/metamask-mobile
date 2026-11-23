@@ -1,5 +1,6 @@
 import { createSwapDeeplinkIntent, handleSwapUrl } from '../handleSwapUrl';
 import { startSwapBridgePageLoadTrace } from '../../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
+import { getDeeplinkProcessedAppStartType } from '../../../../Performance/DeeplinkPerformance';
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux/ReduxService';
 import { resetBridgeState } from '../../../../redux/slices/bridge';
@@ -26,6 +27,11 @@ jest.mock(
     startSwapBridgePageLoadTrace: jest.fn((params: object) => params),
   }),
 );
+
+jest.mock('../../../../Performance/DeeplinkPerformance', () => ({
+  ...jest.requireActual('../../../../Performance/DeeplinkPerformance'),
+  getDeeplinkProcessedAppStartType: jest.fn(),
+}));
 
 // Mock fetchAssetMetadata from the utils module
 jest.mock(
@@ -970,15 +976,16 @@ describe('handleSwapUrl', () => {
     });
   });
 
-  it('tags the trace with the app start type of the deeplink path', async () => {
+  it('tags the trace with the Deeplink Processed app start type', async () => {
+    (getDeeplinkProcessedAppStartType as jest.Mock)
+      .mockReturnValueOnce('cold')
+      .mockReturnValueOnce('cold');
     const swapPath =
       'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
-    const coldIntent = await createSwapDeeplinkIntent({
-      swapPath,
-      appStartType: 'cold',
-    });
-    await coldIntent.prepare?.();
+    const intent = await createSwapDeeplinkIntent({ swapPath });
+    await intent.prepare?.();
+    mockFetchAssetMetadata.mockRejectedValueOnce(new Error('API Error'));
     await handleSwapUrl({ swapPath });
 
     expect(startSwapBridgePageLoadTrace).toHaveBeenNthCalledWith(
@@ -989,7 +996,7 @@ describe('handleSwapUrl', () => {
     expect(startSwapBridgePageLoadTrace).toHaveBeenNthCalledWith(
       2,
       expect.objectContaining({ sourcePage: 'deeplink' }),
-      { appStartType: 'warm' },
+      { appStartType: 'cold' },
     );
   });
 

@@ -4,6 +4,7 @@ import {
   cancelDeeplinkProcessedTrace,
   deeplinkUrlTags,
   endDeeplinkProcessedTrace,
+  getDeeplinkProcessedAppStartType,
   getDeeplinkProcessedTraceContext,
   handleDeeplinkNavigationStateChange,
   markDeeplinkInterstitialContinued,
@@ -279,6 +280,22 @@ describe('DeeplinkPerformance', () => {
       });
 
       expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
+    it('exposes the open span app_start_type until it ends', () => {
+      expect(getDeeplinkProcessedAppStartType()).toBeUndefined();
+
+      startDeeplinkProcessedTrace({
+        url: TRENDING_URL,
+        source: 'resolve',
+        appStartType: 'cold',
+      });
+
+      expect(getDeeplinkProcessedAppStartType()).toBe('cold');
+
+      endDeeplinkProcessedTrace({ seam: 'pre_navigate' });
+
+      expect(getDeeplinkProcessedAppStartType()).toBeUndefined();
     });
   });
 
