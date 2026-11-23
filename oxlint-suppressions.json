@@ -10520,7 +10520,7 @@
       "count": 2
     },
     "typescript/no-unnecessary-type-assertion": {
-      "count": 5
+      "count": 2
     }
   },
   "app/components/UI/Ramp/Aggregator/components/PaymentMethodSelectorModal/PaymentMethodSelectorModal.tsx": {
