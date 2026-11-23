@@ -1835,7 +1835,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       );
     });
 
-    it('accepts manual sub-cent price input', async () => {
+    it('stores up to twelve decimal places for manual sub-cent input', async () => {
       const renderResult = renderRecurringPriceRangeView({
         destUsdRate: PEPE_USD_RATE,
       });
@@ -1844,17 +1844,30 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       await openPriceRangeSheet(renderResult);
       await selectPriceRangeDestToken(renderResult);
       await openPriceRangeKeypad(renderResult, 'min');
-      typePriceRangeDigits(renderResult, '0.000004211');
+      typePriceRangeDigits(renderResult, '0.0000042112345');
 
       await waitFor(() => {
         expect(
           renderResult.getByTestId(PriceRangeSheetSelectorsIDs.MIN_INPUT),
-        ).toHaveDisplayValue('0.000004211');
+        ).toHaveDisplayValue('0.000004211234');
       });
-      expect(
-        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON)
-          .props.accessibilityState.disabled,
-      ).toBe(false);
+      fireEvent.press(
+        renderResult.getByTestId(PriceRangeSheetSelectorsIDs.CONFIRM_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.SHEET),
+        ).not.toBeOnTheScreen();
+      });
+      expect(renderResult.store.getState().bridge.recurring.priceRange).toEqual(
+        {
+          tokenSide: 'dest',
+          currency: 'usd',
+          min: '0.000004211234',
+          max: '',
+        },
+      );
     });
 
     it('preserves selected percentages for a two-cent token', async () => {

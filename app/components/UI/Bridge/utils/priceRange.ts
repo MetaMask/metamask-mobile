@@ -55,7 +55,16 @@ export const PRICE_RANGE_MIN_PERCENTS = [-1, -5, -10, -25, -50] as const;
 export const PRICE_RANGE_MAX_PERCENTS = [1, 5, 10, 25, 50] as const;
 
 export const PRICE_RANGE_MISSING_VALUE = '--';
-const MAX_CURRENCY_FRACTION_DIGITS = 20;
+export const PRICE_RANGE_MAX_DECIMALS = 12;
+
+/**
+ * Returns adaptive display and preset precision within the API limit.
+ */
+export function getPriceRangeDecimals(
+  price: BigNumber.Value | undefined,
+): number {
+  return Math.min(getFiatPriceDecimals(price), PRICE_RANGE_MAX_DECIMALS);
+}
 
 /**
  * Converts a locally stored display-currency range to the USD-only API shape.
@@ -95,7 +104,10 @@ export function convertPriceRangeToUsd(
       return undefined;
     }
 
-    return value.multipliedBy(conversionRate).toFixed();
+    return value
+      .multipliedBy(conversionRate)
+      .decimalPlaces(PRICE_RANGE_MAX_DECIMALS)
+      .toFixed();
   };
   const min = convertBound(priceRange.min);
   const max = convertBound(priceRange.max);
@@ -115,7 +127,7 @@ export function convertPriceRangeToUsd(
 export function applyPercentToPrice(
   price: number,
   percent: number,
-  decimals = getFiatPriceDecimals(price),
+  decimals = getPriceRangeDecimals(price),
 ): string {
   const next = new BigNumber(price).multipliedBy(
     new BigNumber(1).plus(new BigNumber(percent).dividedBy(100)),
@@ -153,7 +165,7 @@ export function sanitizePriceInput(value: string): string {
   const fraction = digitsAndDots
     .slice(firstDot + 1)
     .replace(/\./gu, '')
-    .slice(0, FIAT_INPUT_DECIMALS);
+    .slice(0, PRICE_RANGE_MAX_DECIMALS);
 
   return digitsAndDots.slice(0, firstDot + 1) + fraction;
 }
@@ -231,10 +243,7 @@ function formatPriceCurrency(
   amount: number | string,
   currency: string,
 ): string {
-  const maximumFractionDigits = Math.min(
-    getFiatPriceDecimals(amount),
-    MAX_CURRENCY_FRACTION_DIGITS,
-  );
+  const maximumFractionDigits = getPriceRangeDecimals(amount);
   if (maximumFractionDigits === FIAT_INPUT_DECIMALS) {
     return formatCurrency(amount, currency);
   }

@@ -30,17 +30,16 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { KeypadChangeData } from '../../../../Base/Keypad';
-import {
-  getCurrencySymbol,
-  getFiatPriceDecimals,
-} from '../../utils/currencyUtils';
+import { getCurrencySymbol } from '../../utils/currencyUtils';
 import {
   applyPercentToPrice,
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  getPriceRangeDecimals,
   isInvertedPriceRange,
   isValidPriceRange,
+  PRICE_RANGE_MAX_DECIMALS,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
   tokenPairRateFromFiatRates,
@@ -175,7 +174,7 @@ const PriceRangeSheet = ({
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
   const selectedFiatRate =
     pendingTokenSide === 'source' ? sourceFiatRate : destFiatRate;
-  const priceDecimals = getFiatPriceDecimals(selectedFiatRate);
+  const priceDecimals = getPriceRangeDecimals(selectedFiatRate);
   const hasLivePrice =
     selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
   const isClearedRange = pendingMin === '' && pendingMax === '';
@@ -528,7 +527,7 @@ const PriceRangeSheet = ({
         ref={keypadRef}
         value={focusedField === 'max' ? pendingMax : pendingMin}
         currency={FIAT_KEYPAD_CURRENCY}
-        decimals={priceDecimals}
+        decimals={PRICE_RANGE_MAX_DECIMALS}
         isInteractable
         onChange={handleKeypadChange}
         onClose={() => setFocusedField(null)}

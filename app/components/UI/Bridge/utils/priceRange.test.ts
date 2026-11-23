@@ -5,6 +5,7 @@ import {
   formatPriceRangeLabel,
   formatTokenPrice,
   getDefaultRecurringPriceRangeTokenSide,
+  getPriceRangeDecimals,
   isInvertedPriceRange,
   isValidPriceRange,
   matchingPricePercent,
@@ -152,6 +153,14 @@ describe('applyPercentToPrice', () => {
   );
 });
 
+describe('getPriceRangeDecimals', () => {
+  it('caps precision at twelve decimal places', () => {
+    const result = getPriceRangeDecimals(0.0000000001);
+
+    expect(result).toBe(12);
+  });
+});
+
 describe('convertPriceRangeToUsd', () => {
   it('converts both populated EUR bounds to USD without losing precision', () => {
     const result = convertPriceRangeToUsd(
@@ -223,6 +232,25 @@ describe('convertPriceRangeToUsd', () => {
 
     expect(result).toBeUndefined();
   });
+
+  it('caps converted bounds at twelve decimal places', () => {
+    const result = convertPriceRangeToUsd(
+      {
+        tokenSide: 'dest',
+        currency: 'EUR',
+        min: '0.000004211234',
+        max: '0.000004311234',
+      },
+      1.087654321,
+    );
+
+    expect(result).toEqual({
+      side: 'dest',
+      currency: 'USD',
+      min: '0.000004580367',
+      max: '0.000004689132',
+    });
+  });
 });
 
 describe('parsePriceInput', () => {
@@ -255,10 +283,10 @@ describe('sanitizePriceInput', () => {
     expect(result).toBe('1200');
   });
 
-  it('keeps at most two decimal digits', () => {
-    const result = sanitizePriceInput('12.3456');
+  it('keeps at most twelve decimal digits', () => {
+    const result = sanitizePriceInput('12.34567890123456');
 
-    expect(result).toBe('12.34');
+    expect(result).toBe('12.345678901234');
   });
 
   it('keeps a trailing decimal while typing', () => {
