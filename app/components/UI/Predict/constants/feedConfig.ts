@@ -496,7 +496,7 @@ export const findPredictHomeCategory = (
 const FINANCE_CATEGORY_EXTRA_STATIC_FILTERS: PredictFeedFilterConfig[] = [
   {
     id: '15m',
-    label: '15m',
+    label: '15 Min',
     params: {
       series: [GOLD_UP_DOWN_15M_SERIES_ID, SILVER_UP_DOWN_15M_SERIES_ID],
       status: 'open',

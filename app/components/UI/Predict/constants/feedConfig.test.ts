@@ -836,14 +836,15 @@ describe('feedConfig home category feeds (PRED-1226)', () => {
     });
   });
 
-  it('adds the 15m metals chip after all on the finance feed only', () => {
+  it('adds the 15 Min metals chip after all on the finance feed only', () => {
     const finance = resolvePredictFeedConfig('finance');
     const staticFilters = finance?.tabs[0].filters.static;
 
     expect(staticFilters?.map((filter) => filter.id)).toEqual(['all', '15m']);
+    expect(staticFilters?.[1]?.label).toBe('15 Min');
     expect(staticFilters?.[1]).toEqual({
       id: '15m',
-      label: '15m',
+      label: '15 Min',
       params: {
         series: [GOLD_UP_DOWN_15M_SERIES_ID, SILVER_UP_DOWN_15M_SERIES_ID],
         status: 'open',

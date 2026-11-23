@@ -5,6 +5,8 @@ import {
   type UsePredictMarketListResult,
 } from './usePredictMarketList';
 import { createMarket } from '../testUtils/marketList';
+import { deduplicateSeriesMarkets } from '../utils/feed';
+import type { PredictMarket } from '../types';
 
 jest.mock('./usePredictMarketList');
 
@@ -421,5 +423,156 @@ describe('usePredictFeedMarketList', () => {
     await waitFor(() => {
       expect(liveFetchNextPage).toHaveBeenCalledTimes(6);
     });
+  });
+
+  it('applies refine across paginated pages so Gold and Silver 15m collapse to one nearest-ending card each', async () => {
+    const createMetalWindow = (
+      id: string,
+      assetTag: 'gold' | 'silver',
+      seriesId: string,
+      seriesSlug: string,
+      endDate: string,
+    ): PredictMarket => ({
+      ...createMarket(id),
+      endDate,
+      series: {
+        id: seriesId,
+        slug: seriesSlug,
+        title:
+          assetTag === 'gold'
+            ? 'Gold Up or Down 15m'
+            : 'Silver Up or Down 15m',
+        recurrence: '15m',
+      },
+      tags: [assetTag, 'up-or-down'],
+    });
+
+    const gold1 = createMetalWindow(
+      'xau-1515',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      '2026-11-23T15:15:00Z',
+    );
+    const gold2 = createMetalWindow(
+      'xau-1530',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      '2026-11-23T15:30:00Z',
+    );
+    const gold3 = createMetalWindow(
+      'xau-1545',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      '2026-11-23T15:45:00Z',
+    );
+    const silver1 = createMetalWindow(
+      'xag-1515',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      '2026-11-23T15:15:00Z',
+    );
+    const silver2 = createMetalWindow(
+      'xag-1530',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      '2026-11-23T15:30:00Z',
+    );
+    const silver3 = createMetalWindow(
+      'xag-1545',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      '2026-11-23T15:45:00Z',
+    );
+    const unrelated1 = { ...createMarket('fed-rates'), tags: ['finance'] };
+    const unrelated2 = { ...createMarket('sp500-close'), tags: ['finance'] };
+
+    const page1 = [gold1, unrelated1, silver1, gold2, silver2];
+    const page2 = [gold3, unrelated2, silver3];
+
+    const regularFetchNextPage = jest.fn().mockImplementation(async () => {
+      regularResult = createMarketListResult({
+        markets: [...page1, ...page2],
+        hasNextPage: false,
+        fetchNextPage: regularFetchNextPage,
+      });
+    });
+
+    regularResult = createMarketListResult({
+      markets: page1,
+      hasNextPage: true,
+      fetchNextPage: regularFetchNextPage,
+    });
+
+    const { result, rerender } = renderHook(() =>
+      usePredictFeedMarketList(
+        { series: ['12967', '12968'], status: 'open', order: 'ending_soon' },
+        { showLiveFirst: false, refine: deduplicateSeriesMarkets },
+      ),
+    );
+
+    expect(result.current.markets.map((market) => market.id)).toEqual([
+      'xau-1515',
+      'fed-rates',
+      'xag-1515',
+    ]);
+
+    await act(async () => {
+      await result.current.fetchNextPage();
+    });
+    rerender({});
+
+    expect(result.current.markets.map((market) => market.id)).toEqual([
+      'xau-1515',
+      'fed-rates',
+      'xag-1515',
+      'sp500-close',
+    ]);
+  });
+
+  it('applies refine across live and regular phases when live-first is enabled', () => {
+    const goldLive: PredictMarket = {
+      ...createMarket('xau-live'),
+      series: {
+        id: '12967',
+        slug: 'gold-up-or-down-15m',
+        title: 'Gold Up or Down 15m',
+        recurrence: '15m',
+      },
+      tags: ['gold', 'up-or-down'],
+    };
+    const goldNext: PredictMarket = {
+      ...createMarket('xau-next'),
+      series: {
+        id: '12967',
+        slug: 'gold-up-or-down-15m',
+        title: 'Gold Up or Down 15m',
+        recurrence: '15m',
+      },
+      tags: ['gold', 'up-or-down'],
+    };
+    const regularMarket = { ...createMarket('regular-1'), tags: ['finance'] };
+
+    liveResult = createMarketListResult({ markets: [goldLive] });
+    regularResult = createMarketListResult({
+      markets: [goldNext, regularMarket],
+    });
+
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { tagSlugs: ['finance'] },
+        { showLiveFirst: true, refine: deduplicateSeriesMarkets },
+      ),
+    );
+
+    expect(result.current.markets.map((market) => market.id)).toEqual([
+      'xau-live',
+      'regular-1',
+    ]);
   });
 });

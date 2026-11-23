@@ -12,18 +12,28 @@ import {
 import type { PredictFeedConfigResult } from '../../hooks/usePredictFeedConfig';
 import type { UsePredictMarketListResult } from '../../hooks/usePredictMarketList';
 import type { UsePredictSearchResult } from '../../hooks/usePredictSearch';
+import { deduplicateSeriesMarkets } from '../../utils/feed';
 
 let mockPredictBrandRefreshEnabled = false;
+let mockPredictUpDownEnabled = false;
 jest.mock('react-redux', () => {
   const { selectPredictBrandRefreshEnabled } = jest.requireActual(
     '../../../../../selectors/featureFlagController/predictBrandRefresh',
   );
+  const { selectPredictUpDownEnabledFlag } = jest.requireActual(
+    '../../selectors/featureFlags',
+  );
   return {
     ...jest.requireActual('react-redux'),
-    useSelector: (selector: unknown) =>
-      selector === selectPredictBrandRefreshEnabled
-        ? mockPredictBrandRefreshEnabled
-        : undefined,
+    useSelector: (selector: unknown) => {
+      if (selector === selectPredictBrandRefreshEnabled) {
+        return mockPredictBrandRefreshEnabled;
+      }
+      if (selector === selectPredictUpDownEnabledFlag) {
+        return mockPredictUpDownEnabled;
+      }
+      return undefined;
+    },
   };
 });
 
@@ -261,6 +271,7 @@ describe('PredictFeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPredictBrandRefreshEnabled = false;
+    mockPredictUpDownEnabled = false;
     mockCanGoBack.mockReturnValue(true);
     mockRouteParams = { feedId: 'sports' };
     mockUsePredictFeedConfig.mockReturnValue(feedConfigResult());
@@ -370,6 +381,82 @@ describe('PredictFeedView', () => {
           showLiveFirst: false,
           autoAdvanceEmptyPages: false,
           filterStaleGameMarkets: false,
+        },
+      );
+    });
+
+    it('wires deduplicateSeriesMarkets as refine when up/down markets are enabled', () => {
+      mockPredictUpDownEnabled = true;
+      mockRouteParams = { feedId: 'finance' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'finance',
+          label: 'Finance',
+          activeFilter: {
+            id: '15m',
+            label: '15 Min',
+            params: {
+              series: ['12967', '12968'],
+              status: 'open',
+              order: 'ending_soon',
+            },
+            isDynamic: false,
+          },
+        }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {
+          series: ['12967', '12968'],
+          status: 'open',
+          order: 'ending_soon',
+        },
+        {
+          enabled: true,
+          showLiveFirst: false,
+          autoAdvanceEmptyPages: false,
+          filterStaleGameMarkets: false,
+          refine: deduplicateSeriesMarkets,
+        },
+      );
+    });
+
+    it('omits refine when up/down markets are disabled', () => {
+      mockPredictUpDownEnabled = false;
+      mockRouteParams = { feedId: 'finance' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'finance',
+          label: 'Finance',
+          activeFilter: {
+            id: '15m',
+            label: '15 Min',
+            params: {
+              series: ['12967', '12968'],
+              status: 'open',
+              order: 'ending_soon',
+            },
+            isDynamic: false,
+          },
+        }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {
+          series: ['12967', '12968'],
+          status: 'open',
+          order: 'ending_soon',
+        },
+        {
+          enabled: true,
+          showLiveFirst: false,
+          autoAdvanceEmptyPages: false,
+          filterStaleGameMarkets: false,
+          refine: undefined,
         },
       );
     });

@@ -125,6 +125,81 @@ describe('deduplicateSeriesMarkets', () => {
 
     expect(result).toEqual([single]);
   });
+
+  it('collapses repeated Gold and Silver 15m windows across pages while keeping unrelated markets', () => {
+    const createMetalWindow = (
+      id: string,
+      assetTag: 'gold' | 'silver',
+      seriesId: string,
+      seriesSlug: string,
+      endDate: string,
+    ): PredictMarket =>
+      createMockMarket(id, {
+        endDate,
+        series: {
+          id: seriesId,
+          slug: seriesSlug,
+          title:
+            assetTag === 'gold'
+              ? 'Gold Up or Down 15m'
+              : 'Silver Up or Down 15m',
+          recurrence: '15m',
+        },
+        tags: [assetTag, 'up-or-down'],
+      });
+
+    const gold1 = createMetalWindow(
+      'xau-1',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      '2026-11-23T15:15:00Z',
+    );
+    const gold2 = createMetalWindow(
+      'xau-2',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      '2026-11-23T15:30:00Z',
+    );
+    const gold3 = createMetalWindow(
+      'xau-3',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      '2026-11-23T15:45:00Z',
+    );
+    const silver1 = createMetalWindow(
+      'xag-1',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      '2026-11-23T15:15:00Z',
+    );
+    const silver2 = createMetalWindow(
+      'xag-2',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      '2026-11-23T15:30:00Z',
+    );
+    const silver3 = createMetalWindow(
+      'xag-3',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      '2026-11-23T15:45:00Z',
+    );
+    const unrelated1 = createMockMarket('fed-rates', { tags: ['finance'] });
+    const unrelated2 = createMockMarket('sp500-close', { tags: ['finance'] });
+
+    const page1 = [gold1, unrelated1, silver1, gold2, silver2];
+    const page2 = [gold3, unrelated2, silver3];
+
+    const result = deduplicateSeriesMarkets([...page1, ...page2]);
+
+    expect(result).toEqual([gold1, unrelated1, silver1, unrelated2]);
+  });
 });
 
 describe('filterStandaloneMarkets', () => {
