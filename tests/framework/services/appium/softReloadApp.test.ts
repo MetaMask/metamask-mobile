@@ -366,14 +366,17 @@ describe('softReloadAppForFixtures', () => {
       isBrowserstack: false,
     };
 
-    const runIosSoftReload = (drv: WebdriverIO.Browser) =>
-      softReloadAppForFixtures({
+    const runIosSoftReload = async (
+      drv: WebdriverIO.Browser,
+    ): Promise<void> => {
+      await softReloadAppForFixtures({
         currentDeviceDetails: iosDeviceDetails,
         deviceCommands,
         launchArgs: {},
         fixtureServer,
         drv,
       });
+    };
 
     beforeEach(() => {
       isAndroidMock.mockReturnValue(false);
