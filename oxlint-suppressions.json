@@ -6247,7 +6247,7 @@
   },
   "app/components/UI/Perps/Views/PerpsMarketDetailsView/PerpsMarketDetailsView.tsx": {
     "typescript/no-misused-promises": {
-      "count": 12
+      "count": 11
     },
     "typescript/prefer-nullish-coalescing": {
       "count": 3
@@ -6448,7 +6448,7 @@
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProChartPanel.tsx": {
     "typescript/no-misused-promises": {
-      "count": 3
+      "count": 2
     }
   },
   "app/components/UI/Perps/Views/PerpsProMarketView/components/PerpsProOrderBookConfigSheet.tsx": {
@@ -6758,7 +6758,7 @@
   },
   "app/components/UI/Perps/components/PerpsAdvancedChart/__tests__/PerpsAdvancedChart.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/UI/Perps/components/PerpsBadge/PerpsBadge.styles.ts": {

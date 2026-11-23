@@ -74,6 +74,8 @@ export interface UsePerpsAdvancedChartAdapterOptions {
   interval: CandlePeriod;
   visibleCandleCount: number;
   paginationDuration?: TimeDuration;
+  /** Bump to re-frame the chart: rebuilds `ohlcvData` from the latest delivery. */
+  viewportRevision?: number;
 }
 
 export interface UsePerpsAdvancedChartAdapterResult {
@@ -87,6 +89,12 @@ export interface UsePerpsAdvancedChartAdapterResult {
   hasCurrentSeriesData?: boolean;
   deliveryRevision: number;
   hasFreshCurrentSeriesDelivery: boolean;
+  /**
+   * `viewportRevision` once `ohlcvData` reflects the latest delivery. Forward
+   * this (not the input) to AdvancedChart so the re-frame never re-posts the
+   * first-load snapshot.
+   */
+  viewportRevision?: number;
   handleFetchOlderBarsRequest: (
     req: FetchOlderBarsRequest,
   ) => Promise<FetchOlderBarsResponse>;
@@ -105,6 +113,7 @@ export function usePerpsAdvancedChartAdapter({
   interval,
   visibleCandleCount,
   paginationDuration = TimeDuration.OneWeek,
+  viewportRevision,
 }: UsePerpsAdvancedChartAdapterOptions): UsePerpsAdvancedChartAdapterResult {
   const stream = usePerpsStream();
 
@@ -254,6 +263,30 @@ export function usePerpsAdvancedChartAdapter({
     return unsubscribe;
   }, [symbol, interval, stream]);
 
+  // `ohlcvData` holds the first full load; later candles reach the WebView only
+  // as `realtimeBar`. A re-frame re-posts `ohlcvData`, so rebuild it from the
+  // latest delivery first. Both state updates land in one render, so the chart
+  // never sees the new revision paired with the stale snapshot.
+  const appliedViewportRevisionRef = useRef(viewportRevision);
+  const [appliedViewportRevision, setAppliedViewportRevision] =
+    useState(viewportRevision);
+  useEffect(() => {
+    if (viewportRevision === appliedViewportRevisionRef.current) return;
+    appliedViewportRevisionRef.current = viewportRevision;
+    const current = latestCandleDataRef.current;
+    if (
+      current?.symbol === symbol &&
+      current.interval === (interval as string)
+    ) {
+      const bars = convertCandlesToOHLCVBars(current.candles);
+      if (bars.length > 0) {
+        setOhlcvData(bars);
+        prevLastBarRef.current = bars[bars.length - 1];
+      }
+    }
+    setAppliedViewportRevision(viewportRevision);
+  }, [viewportRevision, symbol, interval]);
+
   const ohlcvSeriesKey = useMemo(
     () =>
       cacheGeneration === 0
@@ -325,6 +358,7 @@ export function usePerpsAdvancedChartAdapter({
     deliveryRevision,
     hasFreshCurrentSeriesDelivery:
       freshDeliverySeriesKey === `${symbol}|${interval}`,
+    viewportRevision: appliedViewportRevision,
     handleFetchOlderBarsRequest,
   };
 }

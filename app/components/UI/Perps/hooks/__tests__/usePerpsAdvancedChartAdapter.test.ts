@@ -407,6 +407,75 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     );
   });
 
+  describe('viewportRevision', () => {
+    const renderWithRevision = () =>
+      renderHook(
+        ({ interval, viewportRevision }) =>
+          usePerpsAdvancedChartAdapter({
+            symbol: SYMBOL,
+            interval,
+            visibleCandleCount: 45,
+            viewportRevision,
+          }),
+        { initialProps: { interval: INTERVAL, viewportRevision: 0 } },
+      );
+
+    it('rebuilds the series with candles formed after the first load, in the same render as the revision', () => {
+      const { result, rerender } = renderWithRevision();
+      act(() => {
+        subscribeParams().callback({
+          symbol: SYMBOL,
+          interval: INTERVAL,
+          candles: [candle(1000), candle(2000)],
+        });
+      });
+      act(() => {
+        subscribeParams().callback({
+          symbol: SYMBOL,
+          interval: INTERVAL,
+          candles: [candle(1000), candle(2000), candle(3000)],
+        });
+      });
+      expect(result.current.ohlcvData.map((bar) => bar.time)).toEqual([
+        1000, 2000,
+      ]);
+      expect(result.current.realtimeBar?.time).toBe(3000);
+
+      rerender({ interval: INTERVAL, viewportRevision: 1 });
+
+      expect(result.current.viewportRevision).toBe(1);
+      expect(result.current.ohlcvData.map((bar) => bar.time)).toEqual([
+        1000, 2000, 3000,
+      ]);
+      expect(result.current.visibleToMs).toBe(3000);
+      const staleRevisionRenders = result.all.filter(
+        (value) =>
+          !(value instanceof Error) &&
+          value.viewportRevision === 1 &&
+          value.ohlcvData.length !== 3,
+      );
+      expect(staleRevisionRenders).toHaveLength(0);
+    });
+
+    it('applies the revision without inventing bars while a new interval is loading', () => {
+      const { result, rerender } = renderWithRevision();
+      act(() => {
+        subscribeParams().callback({
+          symbol: SYMBOL,
+          interval: INTERVAL,
+          candles: [candle(1000), candle(2000)],
+        });
+      });
+
+      rerender({ interval: CandlePeriod.FourHours, viewportRevision: 0 });
+      rerender({ interval: CandlePeriod.FourHours, viewportRevision: 1 });
+
+      expect(result.current.viewportRevision).toBe(1);
+      expect(result.current.ohlcvData).toEqual([]);
+      expect(result.current.isLoading).toBe(true);
+    });
+  });
+
   it('clears retained bars before resolving an empty new interval', () => {
     const { result, rerender } = renderHook(
       ({ interval }) =>

@@ -20,6 +20,7 @@ import { playImpact } from '../../../../../../util/haptics';
 const mockAdvancedChart = jest.fn<React.ReactNode, [unknown]>(() => null);
 const mockUsePerpsAdvancedChartAdapter = jest.fn();
 const mockTradingViewChart = jest.fn<React.ReactNode, [unknown]>(() => null);
+const mockTradingViewChartMount = jest.fn();
 
 jest.mock('../../../../Charts/AdvancedChart/AdvancedChart', () => ({
   __esModule: true,
@@ -33,7 +34,14 @@ jest.mock('../../../hooks/usePerpsAdvancedChartAdapter', () => ({
 
 jest.mock('../../TradingViewChart/TradingViewChart', () => ({
   __esModule: true,
-  default: (props: unknown) => mockTradingViewChart(props),
+  default: function MockTradingViewChart(props: unknown): React.ReactNode {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useEffect } = require('react');
+    useEffect(() => {
+      mockTradingViewChartMount();
+    }, []);
+    return mockTradingViewChart(props);
+  },
 }));
 
 jest.mock('../../../../../../util/theme', () => {
@@ -296,6 +304,44 @@ describe('PerpsAdvancedChart', () => {
 
       expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|1');
     });
+  });
+
+  it('remounts the Lightweight fallback with the persisted count when viewportRevision changes', () => {
+    const { rerender } = renderChart({ viewportRevision: 0 });
+    act(() => {
+      latestAdvancedChartProps().onError?.('chart failed');
+    });
+    expect(mockTradingViewChartMount).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={80}
+        height={240}
+        fallbackCandleData={null}
+        viewportRevision={1}
+      />,
+    );
+
+    expect(mockTradingViewChartMount).toHaveBeenCalledTimes(2);
+    expect(mockTradingViewChart).toHaveBeenLastCalledWith(
+      expect.objectContaining({ visibleCandleCount: 80 }),
+    );
+  });
+
+  it('passes viewportRevision to the adapter and the adapter-applied revision to the AdvancedChart', () => {
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      viewportRevision: 2,
+    });
+
+    renderChart({ viewportRevision: 3 });
+
+    expect(mockUsePerpsAdvancedChartAdapter).toHaveBeenLastCalledWith(
+      expect.objectContaining({ viewportRevision: 3 }),
+    );
+    expect(latestAdvancedChartProps().viewportRevision).toBe(2);
   });
 
   it('notifies the parent when the latest adapter close changes', () => {
