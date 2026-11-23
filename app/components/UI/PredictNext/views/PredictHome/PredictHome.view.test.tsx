@@ -2326,7 +2326,7 @@ describe('PredictHome', () => {
         {
           venueId: 'kalshi' as PredictVenueId,
           operationId: awaitingTransferDeposit.operationId,
-          from: '0x0000000000000000000000000000000000000001' as PredictHex,
+          from: '0x0000000000000000000000000000000000000001',
           plan: {
             chainId: awaitingTransferDeposit.next.chainId,
             tokenContract: awaitingTransferDeposit.next
@@ -2339,7 +2339,7 @@ describe('PredictHome', () => {
           },
         },
         {
-          txHash: `0x${'ab'.repeat(32)}` as PredictHex,
+          txHash: `0x${'ab'.repeat(32)}`,
           chainId: awaitingTransferDeposit.chainId,
           to: undefined,
           data: undefined,

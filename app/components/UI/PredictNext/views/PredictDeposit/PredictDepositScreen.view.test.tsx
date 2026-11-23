@@ -419,7 +419,7 @@ describe('PredictDepositScreen', () => {
 
     it('never flashes balance unavailable when catalog resolves from loading to production', async () => {
       let resolveCatalog: (value: unknown) => void = () => undefined;
-      messengerCall.mockImplementation((action: string) => {
+      messengerCall.mockImplementation((action: string): unknown => {
         if (action === 'PredictMarketDataService:getVenueCatalog') {
           return new Promise((resolve) => {
             resolveCatalog = resolve;
@@ -764,7 +764,9 @@ describe('PredictDepositScreen', () => {
       'PredictFundingService:prepareDeposit': prepareDeposit,
       'PredictFundingService:cancelDeposit': cancelDeposit,
     });
-    mockWallet(() => Promise.reject(providerErrors.userRejectedRequest()));
+    mockWallet(async () => {
+      throw providerErrors.userRejectedRequest();
+    });
     const view = renderPredictDepositScreen(
       { venueId: KALSHI_VENUE_ID },
       { environment: WALLET_ENVIRONMENT },
@@ -839,7 +841,9 @@ describe('PredictDepositScreen', () => {
       'PredictFundingService:prepareDeposit': async () => makeDeposit(),
       'PredictFundingService:cancelDeposit': async () => undefined,
     });
-    mockWallet(() => Promise.reject(providerErrors.userRejectedRequest()));
+    mockWallet(async () => {
+      throw providerErrors.userRejectedRequest();
+    });
     const view = renderPredictDepositScreen(
       { venueId: KALSHI_VENUE_ID },
       { environment: WALLET_ENVIRONMENT },

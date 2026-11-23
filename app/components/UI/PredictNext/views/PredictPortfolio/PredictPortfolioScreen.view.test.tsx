@@ -44,12 +44,7 @@ import {
   clearAllSessionDepositTransfers,
   recordSessionDepositTransfer,
 } from '../../funding';
-import type {
-  PredictAmount,
-  PredictHex,
-  PredictTimestamp,
-  PredictVenueId,
-} from '../../types';
+import type { PredictAmount, PredictHex, PredictTimestamp } from '../../types';
 import { strings } from '../../../../../../locales/i18n';
 
 describe('PredictPortfolioScreen', () => {
@@ -1559,7 +1554,7 @@ describe('PredictPortfolioScreen', () => {
       configurePredictNextFeeds({ positions: [makePredictNextPosition()] });
       (Engine.context as Record<string, unknown>).PredictOrderService =
         composePredictNextOrderService();
-      globalThis.fetch = jest.fn() as unknown as typeof fetch;
+      globalThis.fetch = jest.fn();
 
       const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
       fireEvent.press(
@@ -1593,7 +1588,7 @@ describe('PredictPortfolioScreen', () => {
       });
       (Engine.context as Record<string, unknown>).PredictOrderService =
         composePredictNextOrderService();
-      globalThis.fetch = jest.fn() as unknown as typeof fetch;
+      globalThis.fetch = jest.fn();
 
       const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
       await view.findByText('No · Kenneth Walker · 50+ · 75 shares');
@@ -2059,9 +2054,9 @@ describe('PredictPortfolioScreen', () => {
     it('hides Cancel and shows processing copy for a recorded session transfer when catalog is unavailable', async () => {
       recordSessionDepositTransfer(
         {
-          venueId: KALSHI_VENUE_ID as PredictVenueId,
+          venueId: KALSHI_VENUE_ID,
           operationId: awaitingTransferDeposit.operationId,
-          from: '0x0000000000000000000000000000000000000001' as PredictHex,
+          from: '0x0000000000000000000000000000000000000001',
           plan: {
             chainId: awaitingTransferDeposit.next.chainId,
             tokenContract: awaitingTransferDeposit.next
@@ -2074,7 +2069,7 @@ describe('PredictPortfolioScreen', () => {
           },
         },
         {
-          txHash: `0x${'ab'.repeat(32)}` as PredictHex,
+          txHash: `0x${'ab'.repeat(32)}`,
           chainId: awaitingTransferDeposit.chainId,
           to: undefined,
           data: undefined,

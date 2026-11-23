@@ -31,7 +31,7 @@ describe('useUsdcBalance', () => {
     let resolveBalance: (value: unknown) => void = () => undefined;
     jest
       .mocked(Engine.context.NetworkController.findNetworkClientIdByChainId)
-      .mockReturnValue('base-mainnet' as never);
+      .mockReturnValue('base-mainnet');
     jest
       .mocked(Engine.context.AssetsContractController.getERC20BalanceOf)
       .mockImplementation(
@@ -59,7 +59,7 @@ describe('useUsdcBalance', () => {
       {
         initialProps: {
           network: undefined as PredictDepositNetwork | undefined,
-          address: ADDRESS as string | undefined,
+          address: ADDRESS,
           enabled: true,
         },
       },

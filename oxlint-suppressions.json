@@ -9930,9 +9930,6 @@
   "app/components/UI/PredictNext/views/PredictDeposit/PredictDepositScreen.view.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 10
-    },
-    "typescript/promise-function-async": {
-      "count": 2
     }
   },
   "app/components/UI/PredictNext/views/PredictDeposit/internal/useDepositFlow.ts": {
@@ -10080,9 +10077,6 @@
   "app/components/UI/PredictNext/views/PredictPortfolio/PredictPortfolioScreen.view.test.tsx": {
     "typescript/no-base-to-string": {
       "count": 3
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
     },
     "typescript/promise-function-async": {
       "count": 11
