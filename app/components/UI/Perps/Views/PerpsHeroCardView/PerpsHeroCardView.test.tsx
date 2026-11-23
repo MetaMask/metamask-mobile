@@ -6,6 +6,7 @@ import PerpsHeroCardView from './PerpsHeroCardView';
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
+import { formatPerpsFiat } from '../../utils/formatUtils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_CONSTANTS,
@@ -152,6 +153,23 @@ describe('PerpsHeroCardView', () => {
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
       expect(pnlText).toHaveTextContent('+10.0%');
+    });
+  });
+
+  describe('missing market price', () => {
+    it('formats an unknown mark price, not 0', () => {
+      const routeParams = createMockRouteParams();
+      mockUseRoute.mockReturnValue({
+        params: { ...routeParams.params, marketPrice: undefined },
+      } as never);
+
+      render(<PerpsHeroCardView />);
+
+      expect(formatPerpsFiat).toHaveBeenCalledWith(
+        undefined,
+        expect.any(Object),
+      );
+      expect(formatPerpsFiat).not.toHaveBeenCalledWith(0, expect.anything());
     });
   });
 

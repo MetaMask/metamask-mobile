@@ -2556,6 +2556,9 @@ class AvailableToTradeStreamChannel extends StreamChannel<
       unsubscribe();
       if (!this.symbolSubscribers.has(key)) {
         this.routes.delete(key);
+        // The stream stops with its last subscriber, so the cached value can
+        // no longer track trades; reopening the market waits for a fresh one.
+        this.cache.delete(key);
       }
       this.refocusToRemainingRoute();
     };

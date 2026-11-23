@@ -457,6 +457,8 @@ export function buildPerpsIntegrationHarness(
     // `null` is the uninitialized-cache signal, not an empty result.
     getFillsCacheIfInitialized: jest.fn().mockReturnValue(null),
     getCachedAbstractionMode: jest.fn().mockReturnValue(null),
+    // `null` sends the cross liquidation preview to its venue read.
+    getFreshCrossMarginContext: jest.fn().mockReturnValue(null),
     getCachedPrice: jest.fn((symbol: string) => cachedPrices[symbol]),
     getLastAllMidsSnapshot: jest.fn().mockReturnValue(null),
     setDexMetaCache: jest.fn(),

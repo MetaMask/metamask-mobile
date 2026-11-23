@@ -2398,13 +2398,7 @@
         "duration_range": "Running time must be between {{minDurationMinutes}} minutes and {{maxDurationHours}} hours.",
         "summary_runtime": "Runtime",
         "summary_size_per_suborder": "Size per suborder",
-        "runtime_info": "About TWAP runtime",
-        "duration_day": "1 day",
-        "duration_days": "{{count}} days",
-        "duration_hour": "1 hr",
-        "duration_hours": "{{count}} hrs",
-        "duration_minute": "1 min",
-        "duration_minutes": "{{count}} mins"
+        "runtime_info": "About TWAP runtime"
       }
     },
     "pro_positions_panel": {

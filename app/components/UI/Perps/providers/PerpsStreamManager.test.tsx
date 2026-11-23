@@ -6862,6 +6862,30 @@ describe('PerpsStreamManager', () => {
       expect(late).toHaveBeenCalledWith(btcValue);
     });
 
+    it('does not give a reopened market the cached value from before its last subscriber left', () => {
+      const subscribe = jest.fn((_params: unknown) => jest.fn());
+      mockEngine.context.PerpsController.subscribeToAvailableToTrade =
+        subscribe;
+      const unsubscribeBtc =
+        testStreamManager.availableToTrade.subscribeToMarket({
+          symbol: 'BTC',
+          callback: jest.fn(),
+          throttleMs: 0,
+        });
+      lastControllerSubscription(subscribe).callback(btcValue);
+      unsubscribeBtc();
+      const reopened = jest.fn();
+
+      testStreamManager.availableToTrade.subscribeToMarket({
+        symbol: 'BTC',
+        callback: reopened,
+        throttleMs: 0,
+      });
+
+      expect(reopened).not.toHaveBeenCalledWith(btcValue);
+      expect(testStreamManager.availableToTrade.getSnapshot()).toBeNull();
+    });
+
     it('does not give a returning market the cached value from before a switch away', () => {
       const subscribe = jest.fn((_params: unknown) => jest.fn());
       mockEngine.context.PerpsController.subscribeToAvailableToTrade =

@@ -90,6 +90,7 @@ import {
   calculateGroupingOptions,
   FAST_ORDER_BOOK_LEVELS,
   formatGroupingLabel,
+  formatSpreadPercent,
   selectDefaultGrouping,
 } from '../../utils/orderBookGrouping';
 import PerpsSelectModifyActionView from '../PerpsSelectModifyActionView';
@@ -281,7 +282,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Round to eliminate floating point artifacts (e.g., 0.09999999999990905 → 0.1)
     const spread = Number((ask - bid).toPrecision(10));
     const mid = (ask + bid) / 2;
-    const spreadPercentage = mid > 0 ? ((spread / mid) * 100).toFixed(3) : '0';
+    const spreadPercentage = formatSpreadPercent(
+      mid > 0 ? (spread / mid) * 100 : 0,
+    );
 
     return {
       spread,
@@ -748,7 +751,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               variant={TextVariant.BodySm}
               color={TextColor.TextAlternative}
             >
-              ({spreadMetrics.spreadPercentage}%)
+              ({spreadMetrics.spreadPercentage})
             </Text>
             <ButtonIcon
               iconName={IconName.Info}

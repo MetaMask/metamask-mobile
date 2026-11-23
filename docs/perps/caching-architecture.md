@@ -40,7 +40,7 @@ Routed candle subscriptions cache separately from the default route. The control
 
 - Every channel supports `pause()` and `resume()`. Except in `candles`, pauses are counted and the last `resume()` replays the latest cached value. `candles` uses a boolean flag and replays nothing. The controller pauses channels by name through the `streamManager` platform dependency.
 - `clearCache()` drops the cache, unsubscribes, and sends each subscriber its empty value so it shows loading.
-- `clearAllChannels()` reconnects every channel, then requests a user snapshot. Caches are kept, except `topOfBook` and `focusedPrice`, which clear and send their empty value.
+- `clearAllChannels()` reconnects every channel, then requests a user snapshot. Caches are kept, except `topOfBook`, `focusedPrice` and `availableToTrade`, which clear and send their empty value.
 - `retryOrderStreams()` clears and reconnects `orders` and `fills` after a trading-key failure.
 
 Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx` `StreamChannel.pause`, `resume`, `clearCache`, `TopOfBookStreamChannel.reconnect`, `FocusedPriceStreamChannel.reconnect`, `PerpsStreamManager.clearAllChannels`, `retryOrderStreams`; `app/components/UI/Perps/providers/channels/CandleStreamChannel.ts` `pause`, `resume`; `app/components/UI/Perps/adapters/mobileInfrastructure.ts` `createStreamManagerAdapter`.
@@ -93,8 +93,8 @@ Code: `app/components/UI/Perps/providers/PerpsStreamManager.tsx` `persistMarketD
 | Account change while connected                          | `positions`, `orders`, `account`, `fills`, `availableToTrade` cleared at once and again in `performReconnection()`. Global channels kept.                                                 | User key deleted  |
 | Perps network, provider or HIP-3 change while connected | All 11 cleared at once and again in `performReconnection()`                                                                                                                               | Both keys deleted |
 | App to background                                       | Nothing during the 20 s grace period. Android then clears all 11, unless a tutorial reference kept the count above 0. iOS does not disconnect. Chase suspension can delay the disconnect. | Kept              |
-| App to foreground, healthy ping                         | Kept except `topOfBook` and `focusedPrice`; every channel resubscribes                                                                                                                    | Kept              |
-| App to foreground, failed ping                          | Kept (`preserveCaches: true`) except `topOfBook` and `focusedPrice`; channels resubscribe after the reconnect                                                                             | Kept              |
+| App to foreground, healthy ping                         | Kept except `topOfBook`, `focusedPrice` and `availableToTrade`; every channel resubscribes                                                                                                | Kept              |
+| App to foreground, failed ping                          | Kept (`preserveCaches: true`) except `topOfBook`, `focusedPrice` and `availableToTrade`; channels resubscribe after the reconnect                                                         | Kept              |
 | Forced retry or network restore                         | All 11 cleared in `performReconnection()`                                                                                                                                                 | Kept              |
 | Grace period expires after unmount or Perps disabled    | All 11 cleared                                                                                                                                                                            | Kept              |
 

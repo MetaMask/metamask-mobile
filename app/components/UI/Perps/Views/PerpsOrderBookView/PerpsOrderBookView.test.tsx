@@ -1614,6 +1614,22 @@ describe('PerpsOrderBookView', () => {
     });
   });
 
+  describe('spread percentage', () => {
+    it('renders the spread percentage through the shared formatter', () => {
+      mockUsePerpsTopOfBook.mockReturnValue({
+        bestBid: '99.9',
+        bestAsk: '100.1',
+        spread: '0.2',
+      });
+
+      const { getByText } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByText('(0.2%)')).toBeOnTheScreen();
+    });
+  });
+
   describe('spread tooltip', () => {
     it('opens spread tooltip when info button is pressed', async () => {
       const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {

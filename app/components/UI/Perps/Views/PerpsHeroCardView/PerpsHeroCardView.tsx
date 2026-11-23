@@ -101,7 +101,9 @@ const PerpsHeroCardView: React.FC = () => {
     const roeValue = Number.isFinite(parsedRoe) ? parsedRoe * 100 : undefined;
     const entryPrice = position.entryPrice;
 
-    const marketPriceParsed = parseCurrencyString(marketPrice ?? '');
+    const marketPriceParsed = marketPrice
+      ? parseCurrencyString(marketPrice)
+      : undefined;
 
     return {
       asset: position.symbol,
@@ -110,7 +112,7 @@ const PerpsHeroCardView: React.FC = () => {
       pnl: pnlValue,
       roe: roeValue,
       entryPrice,
-      markPrice: formatPerpsFiat(marketPriceParsed ?? '', {
+      markPrice: formatPerpsFiat(marketPriceParsed, {
         ranges: PRICE_RANGES_UNIVERSAL,
       }),
       isLong,
