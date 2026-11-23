@@ -3,7 +3,7 @@ import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import type { RecurringOrderPriceRange } from '../api/recurringOrders.types';
 import type { BridgeToken } from '../types';
-import { formatCurrency } from './currencyUtils';
+import { formatCurrency, getFiatPriceDecimals } from './currencyUtils';
 import { getIsSwapsLimitOrderStablecoin } from './limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import { FIAT_INPUT_DECIMALS } from './sourceAmountInputMode';
 
@@ -55,6 +55,7 @@ export const PRICE_RANGE_MIN_PERCENTS = [-1, -5, -10, -25, -50] as const;
 export const PRICE_RANGE_MAX_PERCENTS = [1, 5, 10, 25, 50] as const;
 
 export const PRICE_RANGE_MISSING_VALUE = '--';
+const MAX_CURRENCY_FRACTION_DIGITS = 20;
 
 /**
  * Converts a locally stored display-currency range to the USD-only API shape.
@@ -111,14 +112,20 @@ export function convertPriceRangeToUsd(
   };
 }
 
-export function applyPercentToPrice(price: number, percent: number): string {
-  const next = price * (1 + percent / 100);
+export function applyPercentToPrice(
+  price: number,
+  percent: number,
+  decimals = getFiatPriceDecimals(price),
+): string {
+  const next = new BigNumber(price).multipliedBy(
+    new BigNumber(1).plus(new BigNumber(percent).dividedBy(100)),
+  );
 
-  if (!Number.isFinite(next) || next <= 0) {
+  if (!next.isFinite() || next.lte(0)) {
     return '';
   }
 
-  return next.toFixed(FIAT_INPUT_DECIMALS);
+  return next.toFixed(decimals);
 }
 
 export function parsePriceInput(value: string): number | undefined {
@@ -207,17 +214,32 @@ export function formatPriceRangeBounds(
   currency: string,
 ): { minLabel?: string; maxLabel?: string } {
   if (min && !max) {
-    return { minLabel: `≥ ${formatCurrency(min, currency)}` };
+    return { minLabel: `≥ ${formatPriceCurrency(min, currency)}` };
   }
 
   if (max && !min) {
-    return { maxLabel: `≤ ${formatCurrency(max, currency)}` };
+    return { maxLabel: `≤ ${formatPriceCurrency(max, currency)}` };
   }
 
   return {
-    minLabel: min ? formatCurrency(min, currency) : undefined,
-    maxLabel: max ? formatCurrency(max, currency) : undefined,
+    minLabel: min ? formatPriceCurrency(min, currency) : undefined,
+    maxLabel: max ? formatPriceCurrency(max, currency) : undefined,
   };
+}
+
+function formatPriceCurrency(
+  amount: number | string,
+  currency: string,
+): string {
+  const maximumFractionDigits = Math.min(
+    getFiatPriceDecimals(amount),
+    MAX_CURRENCY_FRACTION_DIGITS,
+  );
+  if (maximumFractionDigits === FIAT_INPUT_DECIMALS) {
+    return formatCurrency(amount, currency);
+  }
+
+  return formatCurrency(amount, currency, { maximumFractionDigits });
 }
 
 export function formatTokenPrice(
@@ -231,7 +253,7 @@ export function formatTokenPrice(
 
   return strings('bridge.recurring.price_range.token_price', {
     symbol,
-    price: formatCurrency(price, currency),
+    price: formatPriceCurrency(price, currency),
   });
 }
 

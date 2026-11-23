@@ -16,12 +16,17 @@ import {
 import { formatCurrency } from './currencyUtils';
 import { createMockToken } from '../testUtils/fixtures';
 
-jest.mock('./currencyUtils', () => ({
-  formatCurrency: jest.fn(
-    (amount: number | string, currency: string) =>
-      `${currency === 'USD' ? '$' : currency}${amount}`,
-  ),
-}));
+jest.mock('./currencyUtils', () => {
+  const actual = jest.requireActual('./currencyUtils');
+
+  return {
+    ...actual,
+    formatCurrency: jest.fn(
+      (amount: number | string, currency: string) =>
+        `${currency === 'USD' ? '$' : currency}${amount}`,
+    ),
+  };
+});
 
 const mockedFormatCurrency = formatCurrency as jest.MockedFunction<
   typeof formatCurrency
@@ -131,6 +136,20 @@ describe('applyPercentToPrice', () => {
 
     expect(result).toBe('1.22');
   });
+
+  it.each([
+    { price: 0.0196, percent: -25, expected: '0.01470' },
+    { price: 0.0196, percent: 25, expected: '0.02450' },
+    { price: 0.00000422, percent: -1, expected: '0.000004178' },
+    { price: 0.00000422, percent: 1, expected: '0.000004262' },
+  ])(
+    'preserves significant digits for $percent percent of $price',
+    ({ price, percent, expected }) => {
+      const result = applyPercentToPrice(price, percent);
+
+      expect(result).toBe(expected);
+    },
+  );
 });
 
 describe('convertPriceRangeToUsd', () => {
@@ -343,6 +362,21 @@ describe('formatPriceRangeLabel', () => {
     expect(formatPriceRangeLabel('1800', '', 'USD')).toBe('≥ $1800.00');
     expect(formatPriceRangeLabel('', '2200', 'USD')).toBe('≤ $2200.00');
   });
+
+  it('preserves sub-unit range precision', () => {
+    mockedFormatCurrency.mockImplementation((amount) => `$${String(amount)}`);
+    mockedFormatCurrency.mockClear();
+
+    const result = formatPriceRangeLabel('0.01470', '0.02450', 'USD');
+
+    expect(result).toBe('$0.01470 - $0.02450');
+    expect(mockedFormatCurrency).toHaveBeenNthCalledWith(1, '0.01470', 'USD', {
+      maximumFractionDigits: 5,
+    });
+    expect(mockedFormatCurrency).toHaveBeenNthCalledWith(2, '0.02450', 'USD', {
+      maximumFractionDigits: 5,
+    });
+  });
 });
 
 describe('formatTokenPrice', () => {
@@ -358,6 +392,18 @@ describe('formatTokenPrice', () => {
     const result = formatTokenPrice('ETH', undefined, 'USD');
 
     expect(result).toBe(PRICE_RANGE_MISSING_VALUE);
+  });
+
+  it('formats sub-cent prices with significant digits', () => {
+    mockedFormatCurrency.mockReturnValue('$0.00000422');
+    mockedFormatCurrency.mockClear();
+
+    const result = formatTokenPrice('PEPE', 0.00000422, 'USD');
+
+    expect(result).toBe('1 PEPE = $0.00000422');
+    expect(mockedFormatCurrency).toHaveBeenCalledWith(0.00000422, 'USD', {
+      maximumFractionDigits: 9,
+    });
   });
 });
 
