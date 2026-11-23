@@ -20,6 +20,7 @@ import { playImpact } from '../../../../../../util/haptics';
 const mockAdvancedChart = jest.fn<React.ReactNode, [unknown]>(() => null);
 const mockUsePerpsAdvancedChartAdapter = jest.fn();
 const mockTradingViewChart = jest.fn<React.ReactNode, [unknown]>(() => null);
+const mockTradingViewChartMount = jest.fn();
 
 jest.mock('../../../../Charts/AdvancedChart/AdvancedChart', () => ({
   __esModule: true,
@@ -33,7 +34,14 @@ jest.mock('../../../hooks/usePerpsAdvancedChartAdapter', () => ({
 
 jest.mock('../../TradingViewChart/TradingViewChart', () => ({
   __esModule: true,
-  default: (props: unknown) => mockTradingViewChart(props),
+  default: function MockTradingViewChart(props: unknown): React.ReactNode {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useEffect } = require('react');
+    useEffect(() => {
+      mockTradingViewChartMount();
+    }, []);
+    return mockTradingViewChart(props);
+  },
 }));
 
 jest.mock('../../../../../../util/theme', () => {
@@ -182,7 +190,7 @@ describe('PerpsAdvancedChart', () => {
   it('keeps the AdvancedChart WebView across interval changes', () => {
     const { rerender } = renderChart();
 
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|0');
     expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|1h');
 
     mockUsePerpsAdvancedChartAdapter.mockReturnValue({
@@ -200,8 +208,126 @@ describe('PerpsAdvancedChart', () => {
       />,
     );
 
-    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|0');
     expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|4h');
+  });
+
+  describe('stale bars after an interval that resolves without bars', () => {
+    const BARS = [
+      { time: 1000, open: 1, high: 2, low: 0.5, close: 1.5, volume: 10 },
+    ];
+    const rerenderAt = (
+      rerender: ReturnType<typeof renderChart>['rerender'],
+      interval: CandlePeriod,
+    ) =>
+      rerender(
+        <PerpsAdvancedChart
+          symbol="BTC"
+          interval={interval}
+          visibleCandleCount={100}
+          height={240}
+          fallbackCandleData={null}
+        />,
+      );
+
+    it('remounts the WebView once when the new interval resolves empty after bars were shown', () => {
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvData: BARS,
+      });
+      const { rerender } = renderChart();
+      expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|0');
+
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvSeriesKey: 'BTC|4h',
+        ohlcvData: [],
+        isLoading: false,
+      });
+      rerenderAt(rerender, CandlePeriod.FourHours);
+
+      expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|1');
+
+      rerenderAt(rerender, CandlePeriod.FourHours);
+      expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|1');
+    });
+
+    it('does not remount while the new interval is still loading', () => {
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvData: BARS,
+      });
+      const { rerender } = renderChart();
+
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvSeriesKey: 'BTC|4h',
+        ohlcvData: [],
+        isLoading: true,
+      });
+      rerenderAt(rerender, CandlePeriod.FourHours);
+
+      expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|0');
+    });
+
+    it('does not remount when the first load is empty and no bars were ever shown', () => {
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvData: [],
+        isLoading: false,
+      });
+      renderChart();
+
+      expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|0');
+    });
+
+    it('does not remount again when a later interval delivers bars after an empty one', () => {
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvData: BARS,
+      });
+      const { rerender } = renderChart();
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvSeriesKey: 'BTC|4h',
+        ohlcvData: [],
+        isLoading: false,
+      });
+      rerenderAt(rerender, CandlePeriod.FourHours);
+      mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+        ...mockAdapterResult,
+        ohlcvSeriesKey: 'BTC|1h',
+        ohlcvData: BARS,
+        isLoading: false,
+      });
+      rerenderAt(rerender, CandlePeriod.OneHour);
+
+      expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps|1');
+    });
+  });
+
+  it('remounts the Lightweight fallback with the persisted count when viewportRevision changes', () => {
+    const { rerender } = renderChart({ viewportRevision: 0 });
+    act(() => {
+      latestAdvancedChartProps().onError?.('chart failed');
+    });
+    expect(mockTradingViewChartMount).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={80}
+        height={240}
+        fallbackCandleData={null}
+        viewportRevision={1}
+      />,
+    );
+
+    expect(mockTradingViewChartMount).toHaveBeenCalledTimes(2);
+    expect(mockTradingViewChart).toHaveBeenLastCalledWith(
+      expect.objectContaining({ visibleCandleCount: 80 }),
+    );
   });
 
   it('forwards viewportRevision to the AdvancedChart', () => {

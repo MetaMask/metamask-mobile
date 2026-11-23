@@ -148,8 +148,9 @@ export function usePerpsAdvancedChartAdapter({
 
   useEffect(() => {
     // A new symbol remounts the WebView; a new interval swaps the series in the
-    // live WebView. Clear the prior series so an empty response cannot leave
-    // old bars in state.
+    // live WebView. Clear the prior series and set `isLoading` together so an
+    // empty response cannot leave old bars in state. `PerpsAdvancedChart`
+    // relies on that pairing to tell a resolved-empty series from a switch.
     setIsLoading(true);
     setOhlcvData([]);
     setRealtimeBar(undefined);

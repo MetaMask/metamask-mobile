@@ -6758,7 +6758,7 @@
   },
   "app/components/UI/Perps/components/PerpsAdvancedChart/__tests__/PerpsAdvancedChart.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 1
     }
   },
   "app/components/UI/Perps/components/PerpsBadge/PerpsBadge.styles.ts": {

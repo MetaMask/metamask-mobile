@@ -322,8 +322,27 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
   // Stable per symbol: interval changes swap the series inside the live
-  // WebView (setResolution) instead of paying a cold start.
-  const webViewInstanceKey = useMemo(() => `${symbol}|perps`, [symbol]);
+  // WebView (setResolution) instead of paying a cold start. The WebView ignores
+  // empty series, so when a series resolves with no bars (or errors) after the
+  // WebView held bars, remount once so the previous interval's candles do not
+  // stay on screen. Normal switches never hit this: the adapter sets
+  // `isLoading` and clears `ohlcvData` together.
+  const [staleClearEpoch, setStaleClearEpoch] = useState(0);
+  const hasPostedBarsRef = useRef(false);
+  useEffect(() => {
+    if (ohlcvData.length > 0) {
+      hasPostedBarsRef.current = true;
+      return;
+    }
+    if (!isLoading && hasPostedBarsRef.current) {
+      hasPostedBarsRef.current = false;
+      setStaleClearEpoch((epoch) => epoch + 1);
+    }
+  }, [ohlcvData.length, isLoading]);
+  const webViewInstanceKey = useMemo(
+    () => `${symbol}|perps|${staleClearEpoch}`,
+    [symbol, staleClearEpoch],
+  );
 
   useEffect(() => {
     onLatestPriceChange?.(
@@ -603,6 +622,9 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   if (hasFailed) {
     return (
       <TradingViewChart
+        // Lightweight applies its candle count only on a full data send, so
+        // remount on a viewport revision bump to adopt the persisted count.
+        key={`fallback|${viewportRevision ?? 0}`}
         candleData={fallbackCandleData}
         height={height}
         visibleCandleCount={visibleCandleCount}
