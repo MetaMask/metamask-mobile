@@ -45,6 +45,43 @@ What `write` does: adds fields the API now returns (with the live value), remove
 | `bridge-get-tokens`                    | `report-only` | `https://bridge.api.cx.metamask.io/getTokens?chainId=1`                                                                                                                                                                                                                                                                                                                             | `tests/api-mocking/mock-responses/defaults/bridge-api.ts#BRIDGE_TOKEN_DETAILS_CHAIN_1`                                                                                                                           |         |
 | `ramps-v2-countries`                   | `report-only` | `https://on-ramp-cache.api.cx.metamask.io/v2/regions/countries?action=buy`                                                                                                                                                                                                                                                                                                          | `tests/api-mocking/mock-responses/ramps/responses/ramps-countries-response.ts#RAMPS_COUNTRIES_RESPONSE`                                                                                                          |         |
 
+## Spec-level mocks (`defineApiMock`)
+
+Mocks a spec or feature helper registers through `testSpecificMock` are built from the same definitions as the defaults. `api-mocks.ts` defines each catalogued endpoint once with `defineApiMock` (`define-api-mock.ts`): an id, the URL matcher, `urlFor(params)` for one chain or asset, and a default body whose generic type is the consumer type. A spec then writes only what differs:
+
+```ts
+testSpecificMock: combineMocks(
+  priceSpotPricesV3.mock(() => ({ [assetId]: spotPrice(assetId, 1926.42) })),
+  accountsSupportedNetworksV2.mock({ partialSupport: [] }),
+  bridgeGetTokens.mock(() => GET_TOKENS_BASE_RESPONSE, { chainId: 8453 }),
+),
+```
+
+Inside a custom `testSpecificMock` use `endpoint.register(server, overrides, params, { priority })`.
+
+- **Overrides** are a partial that is deep-merged over a copy of the default (arrays replace), or a function `(body) => body` that returns the whole body. Both are checked against the consumer type, so a spec mock fails `yarn lint:tsc` when the type changes. Use the function form to replace a keyed map such as spot prices.
+- **Priority** defaults to 999, the same as `setupMockRequest`, so a spec mock beats the `/proxy` passthrough that serves `DEFAULT_MOCKS`. Pass `{ priority }` where a spec needs to beat another spec mock.
+- **`.always()`** is set on every rule. Without it mockttp answers the first request from the spec rule and the next ones from any other unused rule that matches (for example the global accounts supported-networks mock). `define-api-mock.test.ts` checks this against a real mockttp server.
+- **Guard**: `api-mocks-guard.test.ts` fails when a file under `smoke-appium/`, `helpers/` or `api-mocking/` mocks a defined endpoint inline. Files that still do are listed there with the reason; migrate one and remove its entry (the test fails if a listed file no longer mocks inline).
+- **New endpoint**: add an entry to `api-mocks.ts` and `API_MOCKS`, and a pattern in the guard. The default body should be the one `DEFAULT_MOCKS` serves, exported from its file, so the two cannot diverge.
+
+| Endpoint (`api-mocks.ts`)                                                                                                  | Id                                                                | Params (`urlFor`) | Default body                                |
+| -------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------- | ------------------------------------------- |
+| `priceSpotPricesV3`                                                                                                        | `price-v3-spot-prices`                                            |                   | `PRICE_SPOT_PRICES_V3` (synced)             |
+| `priceExchangeRatesV1`                                                                                                     | `price-v1-exchange-rates`                                         |                   | `PRICE_EXCHANGE_RATES_V1` (synced)          |
+| `accountsSupportedNetworksV2`                                                                                              | `accounts-v2-supported-networks`                                  |                   | `ACCOUNTS_SUPPORTED_NETWORKS_V2` (synced)   |
+| `accountsActiveNetworksV2`                                                                                                 | `accounts-v2-active-networks`                                     |                   | `ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE`     |
+| `accountsBalancesV2`, `accountsMultiaccountBalancesV4`, `accountsMultiaccountBalancesV5`, `accountsMultiaccountBalancesV6` | `accounts-v2-balances`, `accounts-v{4,5,6}-multiaccount-balances` |                   | `ACCOUNTS_API_BALANCES_V{2,4,5,6}_RESPONSE` |
+| `tokenSupportedNetworksV2`                                                                                                 | `token-v2-supported-networks`                                     |                   | `TOKEN_SUPPORTED_NETWORKS_V2` (synced)      |
+| `tokensAssetsV3`                                                                                                           | `tokens-v3-assets`                                                | `{ assetIds }`    | `[]`                                        |
+| `bridgeGetTokens`                                                                                                          | `bridge-get-tokens`                                               | `{ chainId }`     | `BRIDGE_TOKEN_DETAILS_CHAIN_1`              |
+| `bridgeGetTxStatus`                                                                                                        | `bridge-get-tx-status`                                            |                   | `BRIDGE_TX_STATUS_PENDING`                  |
+| `gasSuggestedGasFees`                                                                                                      | `gas-suggested-gas-fees`                                          | `{ chainId }`     | `GAS_FEES_RESPONSE` (synced)                |
+| `rampsCountriesV2`                                                                                                         | `ramps-v2-countries`                                              |                   | `RAMPS_COUNTRIES_RESPONSE`                  |
+| `contentfulBanners`                                                                                                        | `contentful-promotional-banners`                                  |                   | empty collection                            |
+
+Not migrated yet (listed in the guard): the six `pay/*-mocks.ts` files (callbacks that branch on `vsCurrency`), `spam-token-cleanup-mocks.ts` (filters `assetIds`), and `ramps/ramps-mocks.ts` (one callback for three URL shapes, so the guard does not flag it; it already reads the v2 body from `rampsCountriesV2`). The smart-transactions `getTxStatus` fallback and the other feature mocks for untyped endpoints stay as they are.
+
 ## Typed mocks
 
 | Mock file                                                                | Method | Endpoint                                                                | Consumer type                                                                          | Sync mode     | Reason                                                                                                           |

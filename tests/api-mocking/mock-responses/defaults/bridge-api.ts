@@ -582,6 +582,11 @@ const BRIDGE_QUOTE_STATUS_GET_RESPONSE = {
   },
 };
 
+export const BRIDGE_TX_STATUS_PENDING = {
+  status: 'PENDING' as StatusTypes.PENDING,
+  srcChain: { chainId: 1 },
+} satisfies BridgeGetTxStatusResponse;
+
 export const DEFAULT_BRIDGE_API_MOCKS = {
   GET: [
     {
@@ -598,10 +603,7 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
     {
       urlEndpoint:
         /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTxStatus(\?.*)?$/,
-      response: {
-        status: 'PENDING' as StatusTypes.PENDING,
-        srcChain: { chainId: 1 },
-      } satisfies BridgeGetTxStatusResponse,
+      response: BRIDGE_TX_STATUS_PENDING,
       responseCode: 200,
     },
     {
