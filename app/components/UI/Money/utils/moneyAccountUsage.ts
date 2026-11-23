@@ -1,25 +1,13 @@
 import { isObject } from '@metamask/utils';
 import {
+  TransactionMeta,
   TransactionStatus,
   TransactionType,
+  hasTransactionType,
 } from '@metamask/transaction-controller';
 
-const isMoneyTransaction = (tx: unknown, type: TransactionType): boolean => {
-  if (!isObject(tx)) {
-    return false;
-  }
-
-  if (tx.type === type) {
-    return true;
-  }
-
-  return (
-    Array.isArray(tx.nestedTransactions) &&
-    tx.nestedTransactions.some(
-      (nested) => isObject(nested) && nested.type === type,
-    )
-  );
-};
+const isMoneyTransaction = (tx: unknown, type: TransactionType): boolean =>
+  isObject(tx) && hasTransactionType(tx as TransactionMeta, [type]);
 
 /**
  * True when a persisted transaction is a Money deposit, top-level or nested in
