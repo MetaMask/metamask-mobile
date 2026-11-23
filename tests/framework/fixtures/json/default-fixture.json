@@ -243,6 +243,7 @@
           "upgradedAccounts": {}
         },
         "MfaRecoveryController": {
+          "lockId": null,
           "pendingOperation": null
         },
         "MultichainNetworkController": {

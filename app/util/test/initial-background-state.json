@@ -1044,6 +1044,7 @@
     "addressRegistrations": {}
   },
   "MfaRecoveryController": {
+    "lockId": null,
     "pendingOperation": null
   }
 }

@@ -11942,26 +11942,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:^12.0.0, @metamask/seedless-onboarding-controller@npm:^12.1.0":
-  version: 12.1.0
-  resolution: "@metamask/seedless-onboarding-controller@npm:12.1.0"
-  dependencies:
-    "@metamask/analytics-controller": "npm:^4.3.1"
-    "@metamask/auth-network-utils": "npm:^0.4.0"
-    "@metamask/base-controller": "npm:^10.1.0"
-    "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/cryptography": "npm:^1.1.2"
-    "@metamask/keyring-controller": "npm:^28.2.2"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/toprf-secure-backup": "npm:^1.1.0"
-    "@metamask/utils": "npm:^12.0.2"
-    "@noble/curves": "npm:^1.9.7"
-    "@noble/hashes": "npm:^1.8.0"
-    async-mutex: "npm:^0.5.0"
-  checksum: 10/ff01fd8fda8814d96da82a3c53916710f13d9254ee656fc207329d854f188653814411a1f7bb530d56a628d2782abb14d23084e0c63ad360caf1d3409a94934d
-  languageName: node
-  linkType: hard
-
 "@metamask/selected-network-controller@npm:^27.1.0":
   version: 27.1.0
   resolution: "@metamask/selected-network-controller@npm:27.1.0"
@@ -12465,24 +12445,6 @@ __metadata:
   bin:
     metamask-daily-anonymizer: ./dist/daily-anonymizer.mjs
   checksum: 10/32792434263a931a81d095fac8171dc6fe5cfced7483f32a6e586634422b428536682089fecc0f69efab561f4eb183e22e65ca78ccab90102cac9f389b87949d
-  languageName: node
-  linkType: hard
-
-"@metamask/toprf-secure-backup@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@metamask/toprf-secure-backup@npm:1.1.0"
-  dependencies:
-    "@metamask/auth-network-utils": "npm:^0.4.0"
-    "@noble/ciphers": "npm:^1.2.1"
-    "@noble/curves": "npm:^1.8.1"
-    "@noble/hashes": "npm:^1.7.1"
-    "@sentry/core": "npm:^9.10.0"
-    "@toruslabs/constants": "npm:^15.0.0"
-    "@toruslabs/eccrypto": "npm:^6.2.0"
-    "@toruslabs/fetch-node-details": "npm:^15.0.0"
-    "@toruslabs/http-helpers": "npm:^8.1.1"
-    bn.js: "npm:^5.2.2"
-  checksum: 10/2714a70eae53a1f46d293980c71a1ed2f59708247019444154e71fc15328e78ec95287ffc2d954a29f903224a1a9fe4d69fb17724e9039bcefd240752f1df26c
   languageName: node
   linkType: hard
 
