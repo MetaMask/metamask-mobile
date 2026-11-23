@@ -8,18 +8,12 @@ import {
   ButtonVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 const MoneyEarningsFooter = (): React.ReactElement => {
   const insets = useSafeAreaInsets();
-  const { initiateWithdrawal } = useMoneyAccountWithdrawal();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
-
-  const handleWithdraw = useCallback(() => {
-    void initiateWithdrawal();
-  }, [initiateWithdrawal]);
 
   const handleAdd = useCallback(() => {
     void navigateToMoneyDeposit();
@@ -32,22 +26,13 @@ const MoneyEarningsFooter = (): React.ReactElement => {
     >
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
         <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          twClassName="flex-1"
-          onPress={handleWithdraw}
-          testID={MoneyEarningsViewTestIds.WITHDRAW_BUTTON}
-        >
-          {strings('money.earnings.withdraw')}
-        </Button>
-        <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           twClassName="flex-1"
           onPress={handleAdd}
           testID={MoneyEarningsViewTestIds.ADD_BUTTON}
         >
-          {strings('money.earnings.add')}
+          {strings('money.earnings.earn_more')}
         </Button>
       </Box>
     </Box>

@@ -24,7 +24,6 @@ export const MoneyEarningsViewTestIds = {
   CHART_PILL: 'money-earnings-view-chart-pill',
   RANGE_SELECTOR: 'money-earnings-view-range-selector',
   SUMMARY: 'money-earnings-view-summary',
-  WITHDRAW_BUTTON: 'money-earnings-view-withdraw-button',
   ADD_BUTTON: 'money-earnings-view-add-button',
   LOADING: 'money-earnings-view-loading',
   ERROR: 'money-earnings-view-error',

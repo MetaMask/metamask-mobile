@@ -26,7 +26,7 @@ describe('EarningsChartRangeSelector', () => {
     ).toEqual(expect.objectContaining({ selected: true }));
     expect(getByLabelText('3M', { exact: false })).toBeOnTheScreen();
     expect(getByLabelText('6M', { exact: false })).toBeOnTheScreen();
-    expect(getByLabelText('1Y', { exact: false })).toBeOnTheScreen();
+    expect(getByLabelText('All', { exact: false })).toBeOnTheScreen();
   });
 
   it('uses the range selector test ID', () => {
@@ -51,7 +51,7 @@ describe('EarningsChartRangeSelector', () => {
       />,
     );
 
-    fireEvent.press(getByLabelText('1Y', { exact: false }));
+    fireEvent.press(getByLabelText('All', { exact: false }));
 
     expect(onRangeChange).toHaveBeenCalledTimes(1);
     expect(onRangeChange).toHaveBeenCalledWith('1Y');

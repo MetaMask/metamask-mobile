@@ -1,12 +1,11 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import MoneyEarningsFooter from './MoneyEarningsFooter';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
-const mockInitiateWithdrawal = jest.fn();
 const mockNavigateToMoneyDeposit = jest.fn();
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -18,37 +17,29 @@ jest.mock('react-native-safe-area-context', () => ({
   } => ({ top: 48, bottom: 34, left: 0, right: 0 }),
 }));
 
-jest.mock('../../hooks/useMoneyAccount', () => ({
-  useMoneyAccountWithdrawal: jest.fn(),
-}));
-
 jest.mock('../../hooks/useMoneyDepositNavigation', () => ({
   useMoneyDepositNavigation: jest.fn(),
 }));
 
-const mockUseMoneyAccountWithdrawal = jest.mocked(useMoneyAccountWithdrawal);
 const mockUseMoneyDepositNavigation = jest.mocked(useMoneyDepositNavigation);
 
 describe('MoneyEarningsFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMoneyAccountWithdrawal.mockReturnValue({
-      initiateWithdrawal: mockInitiateWithdrawal,
-    });
     mockUseMoneyDepositNavigation.mockReturnValue({
       navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
     });
   });
 
-  it('starts withdrawal from the Withdraw action', () => {
+  it('renders the Earn more action', () => {
     const { getByTestId } = renderWithProvider(<MoneyEarningsFooter />);
 
-    fireEvent.press(getByTestId(MoneyEarningsViewTestIds.WITHDRAW_BUTTON));
-
-    expect(mockInitiateWithdrawal).toHaveBeenCalledTimes(1);
+    expect(getByTestId(MoneyEarningsViewTestIds.ADD_BUTTON)).toHaveTextContent(
+      strings('money.earnings.earn_more'),
+    );
   });
 
-  it('opens deposit navigation from the Add action', () => {
+  it('opens deposit navigation from the Earn more action', () => {
     const { getByTestId } = renderWithProvider(<MoneyEarningsFooter />);
 
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.ADD_BUTTON));
