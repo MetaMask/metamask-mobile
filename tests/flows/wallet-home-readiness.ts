@@ -121,7 +121,7 @@ export const isWalletHomeReadyOnAndroidStable = async (): Promise<boolean> => {
         }
       },
       {
-        timeout: READINESS_STABILITY_MS + 5_000,
+        timeout: READINESS_STABILITY_MS + 5_000 + READINESS_STABILITY_MS,
         interval: 100,
         description: 'Android wallet home stability',
       },

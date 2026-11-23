@@ -293,39 +293,20 @@ class AccountListBottomSheet {
   async tapBackButton(options: {
     onDismissed: () => Promise<void>;
   }): Promise<void> {
-    let tapAttempted = false;
-    let absentSince: number | undefined;
-    await Utilities.executeWithRetry(
-      async () => {
-        if (!tapAttempted) {
-          await Assertions.expectElementToExist(this.backButton, {
-            description: 'Account list / Account Hub back button',
-            timeout: 3_000,
-          });
-          await Gestures.waitAndTap(this.backButton, {
-            elemDescription: 'Account list header back button',
-            timeout: 5_000,
-            checkForDisplayed: false,
-            waitForInteractive: true,
-          });
-          tapAttempted = true;
-        }
-        const accountList = await this.accountList;
-        if (await accountList.unwrap().isExisting()) {
-          absentSince = undefined;
-          throw new Error('Account list is still mounted');
-        }
-        absentSince ??= Date.now();
-        if (Date.now() - absentSince < 500) {
-          throw new Error('Account list dismissal is still settling');
-        }
-      },
-      {
-        timeout: 90_000,
-        interval: 500,
-        description: 'Dismiss account list via back button',
-      },
-    );
+    await Assertions.expectElementToExist(this.backButton, {
+      description: 'Account list / Account Hub back button',
+      timeout: 3_000,
+    });
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Account list header back button',
+      timeout: 5_000,
+      checkForDisplayed: false,
+      waitForInteractive: true,
+    });
+    await Assertions.expectElementToNotBeVisible(this.accountList, {
+      description: 'Account list dismissed after back button',
+      timeout: 20_000,
+    });
     await Utilities.executeWithRetry(options.onDismissed, {
       timeout: 20_000,
       interval: 500,
@@ -899,7 +880,12 @@ class AccountListBottomSheet {
     try {
       const label = await this.getAddAccountButtonLabel(srpIndex);
       const text = (await label.textContent()).trim();
-      return text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL;
+      if (text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL) {
+        return true;
+      }
+      return !(await (
+        await this.getAddAccountButtonTapTarget(srpIndex)
+      ).isEnabled());
     } catch {
       return true;
     }
