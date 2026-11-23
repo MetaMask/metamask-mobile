@@ -81,7 +81,9 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       if (!hasLoadedRef.current) {
         dispatch(setCampaignsLoading(true));
       }
-      dispatch(setCampaignsError(false));
+      // The stored error is left alone here. `setCampaigns` clears it when a
+      // read succeeds, so a failure stays visible through the next attempt
+      // instead of giving way to the empty state while it is in flight.
       const campaignsData = await Engine.controllerMessenger.call(
         'RewardsController:getCampaigns',
         subscriptionId,

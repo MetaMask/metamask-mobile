@@ -510,12 +510,17 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
   });
 
   it('lists every campaign and benefit in its own tab for an opted-in user', async () => {
-    const { findByTestId, findByText, getByTestId, queryByTestId } =
-      renderRewardsMoneyDashboard({
-        persona: 'referee',
-        subscriptionId: 'sub-1',
-        handlers: subscriptionReads,
-      });
+    const {
+      findByTestId,
+      findByText,
+      getByTestId,
+      queryByTestId,
+      queryByText,
+    } = renderRewardsMoneyDashboard({
+      persona: 'referee',
+      subscriptionId: 'sub-1',
+      handlers: subscriptionReads,
+    });
 
     fireEvent.press(
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
@@ -533,6 +538,9 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
 
     expect(await findByText(BENEFIT.longTitle)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.benefits.list_header')),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY),
     ).not.toBeOnTheScreen();
@@ -706,6 +714,124 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     expect(getByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
     expect(
       queryByText(strings('rewards.benefits.empty-list')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('reports a failed campaigns read and recovers on Retry', async () => {
+    let failCampaigns = true;
+    const { findByTestId, findByText, getByText, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          'RewardsController:getCampaigns': async () => {
+            if (failCampaigns) {
+              throw new Error('campaigns unavailable');
+            }
+            return [ACTIVE_CAMPAIGN];
+          },
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    expect(
+      await findByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.empty_state')),
+    ).not.toBeOnTheScreen();
+
+    failCampaigns = false;
+    fireEvent.press(getByText(strings('rewards.campaigns_view.retry_button')));
+
+    expect(await findByText(ACTIVE_CAMPAIGN.name)).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.error_title')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the campaigns error up while Retry is in flight', async () => {
+    let campaignsReads = 0;
+    const { findByText, findByTestId, getByText, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          // The first read fails. Later reads never settle, so the tab is
+          // observed mid-request.
+          'RewardsController:getCampaigns': async () => {
+            campaignsReads += 1;
+            if (campaignsReads === 1) {
+              throw new Error('campaigns unavailable');
+            }
+            return new Promise(() => undefined);
+          },
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+    fireEvent.press(
+      await findByText(strings('rewards.campaigns_view.retry_button')),
+    );
+
+    await waitFor(() => {
+      expect(campaignsReads).toBe(2);
+    });
+    expect(
+      getByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.empty_state')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps the campaigns error up while the tab re-reads on a later visit', async () => {
+    let campaignsReads = 0;
+    const { findByText, findByTestId, getByTestId, queryByText } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        subscriptionId: 'sub-1',
+        handlers: {
+          ...subscriptionReads,
+          // The first read fails. Later reads never settle, so the tab is
+          // observed mid-request.
+          'RewardsController:getCampaigns': async () => {
+            campaignsReads += 1;
+            if (campaignsReads === 1) {
+              throw new Error('campaigns unavailable');
+            }
+            return new Promise(() => undefined);
+          },
+        },
+      });
+
+    fireEvent.press(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+    expect(
+      await findByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB),
+    );
+
+    await waitFor(() => {
+      expect(campaignsReads).toBeGreaterThan(1);
+    });
+    expect(
+      await findByText(strings('rewards.campaigns_view.error_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.empty_state')),
     ).not.toBeOnTheScreen();
   });
 
