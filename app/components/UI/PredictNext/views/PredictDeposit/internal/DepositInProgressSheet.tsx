@@ -95,7 +95,7 @@ interface DepositInProgressSheetProps {
   hasSubmittedTransfer?: boolean;
   /** Resolved catalog deposit environment (drives availability copy and retry). */
   environmentResolution: DepositEnvironmentResolution;
-  /** Whether Continue is allowed (disabled while deposit environment is loading/unavailable). */
+  /** Whether Continue is allowed (disabled while deposit environment is loading/unavailable unless a transfer already went out). */
   canContinue?: boolean;
   /** Whether Cancel is allowed (disabled when the sent-or-not state cannot be checked). */
   canCancel?: boolean;
@@ -135,13 +135,17 @@ export const DepositInProgressSheet = ({
     deposit.next?.kind === 'wallet_transfer'
       ? deposit
       : null;
+  const needsEnvironmentToContinue = payable !== null && !hasSubmittedTransfer;
   const reviewReference =
     deposit?.status === 'under_review' ? getSupportReference(deposit) : null;
   const cancelFailedText = cancelFailed
     ? strings('predict_next.deposit.in_progress.cancel_failed')
     : undefined;
   let unavailableText: string | undefined;
-  if (payable && environmentResolution.status === 'unavailable') {
+  if (
+    needsEnvironmentToContinue &&
+    environmentResolution.status === 'unavailable'
+  ) {
     unavailableText =
       environmentResolution.reason === 'error'
         ? strings('predict_next.deposit.unavailable_error')
@@ -239,7 +243,8 @@ export const DepositInProgressSheet = ({
                     {cancelFailedText}
                   </Text>
                 ) : null}
-                {payable && environmentResolution.status === 'loading' ? (
+                {needsEnvironmentToContinue &&
+                environmentResolution.status === 'loading' ? (
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
@@ -272,7 +277,8 @@ export const DepositInProgressSheet = ({
                     >
                       {strings('predict_next.deposit.in_progress.continue')}
                     </Button>
-                    {environmentResolution.status === 'unavailable' &&
+                    {needsEnvironmentToContinue &&
+                    environmentResolution.status === 'unavailable' &&
                     environmentResolution.reason === 'error' ? (
                       <Button
                         variant={ButtonVariant.Secondary}

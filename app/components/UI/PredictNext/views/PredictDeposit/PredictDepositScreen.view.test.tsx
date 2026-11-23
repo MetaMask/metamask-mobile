@@ -34,6 +34,7 @@ import {
   clearAllSessionDepositTransfers,
   depositTransferRequestId,
 } from '../../funding';
+import { makeDepositTransferTx } from '../../funding/deposit/testUtils';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { marketDataQueries } from '../../queries/marketDataQueries';
 import type {
@@ -659,6 +660,92 @@ describe('PredictDepositScreen', () => {
       expect(
         Engine.context.TransactionController.addTransaction,
       ).toHaveBeenCalledTimes(1);
+      expect(reportDepositTransfer).toHaveBeenCalledWith(
+        KALSHI_VENUE_ID,
+        'op-1',
+        { txHash: TX_HASH, chainId: BASE_DEPOSIT_NETWORK.chainId },
+      );
+      queryClient.clear();
+    });
+
+    it('keeps Continue enabled and reconciles a submitted transfer when the catalog updates to omit environment', async () => {
+      const queryClient = createComponentViewQueryClient();
+      const openDeposit = makeDeposit({ amount: '25.00' });
+      const cancelDeposit = jest.fn(async () => ({
+        ...openDeposit,
+        status: 'cancelled',
+        next: null,
+      }));
+      const reportDepositTransfer = jest.fn(async () => ({
+        ...openDeposit,
+        status: 'processing',
+      }));
+      Engine.context.TransactionController.state.transactions = [
+        makeDepositTransferTx(openDeposit, {
+          id: 'tx-submitted-legacy',
+          txParams: {
+            from: '0x0000000000000000000000000000000000000001',
+            to: USDC,
+            data: TRANSFER_25_USDC,
+            value: '0x0',
+          },
+        }),
+      ];
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'production',
+      });
+      mockFunding({
+        'PredictFundingService:prepareDeposit': async () => {
+          throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
+        },
+        'PredictFundingService:getDeposit': async () => openDeposit,
+        'PredictFundingService:listOpenDeposits': async () => [openDeposit],
+        'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
+        'PredictFundingService:cancelDeposit': cancelDeposit,
+      });
+
+      const view = renderPredictDepositScreen(
+        { venueId: KALSHI_VENUE_ID },
+        { queryClient },
+      );
+
+      await typeAmount(view, '10');
+      await addFunds(view);
+      await view.findByTestId(TestIds.IN_PROGRESS);
+
+      const { environment: _omitted, ...legacyCatalog } =
+        KALSHI_STATIC_VENUE_CATALOG;
+      configurePredictNextCatalog(legacyCatalog);
+      await act(async () => {
+        await queryClient.invalidateQueries({
+          queryKey: marketDataQueries.getVenueCatalog(KALSHI_VENUE_ID).queryKey,
+        });
+      });
+
+      await waitFor(() =>
+        expect(view.getByTestId(TestIds.ALERT)).toHaveTextContent(
+          strings('predict_next.deposit.unavailable'),
+        ),
+      );
+
+      expect(view.getByTestId(TestIds.IN_PROGRESS_CONTINUE)).toBeEnabled();
+      expect(
+        view.queryByTestId(TestIds.IN_PROGRESS_ALERT),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(TestIds.IN_PROGRESS_CANCEL),
+      ).not.toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.press(view.getByTestId(TestIds.IN_PROGRESS_CONTINUE));
+      });
+
+      expect(await view.findByTestId(TestIds.PROCESSING)).toBeOnTheScreen();
+      expect(cancelDeposit).not.toHaveBeenCalled();
+      expect(
+        Engine.context.TransactionController.addTransaction,
+      ).not.toHaveBeenCalled();
       expect(reportDepositTransfer).toHaveBeenCalledWith(
         KALSHI_VENUE_ID,
         'op-1',

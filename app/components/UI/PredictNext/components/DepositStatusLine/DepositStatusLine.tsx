@@ -171,10 +171,13 @@ const DepositStatusSheetHost = ({
   });
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelFailed, setCancelFailed] = useState(false);
+  const hasSubmittedTransfer = flow.hasSubmittedTransfer(deposit);
+  const canContinue =
+    isEnvironmentReady || (Boolean(fundingWallet) && hasSubmittedTransfer);
 
   const continueDeposit = useCallback(
     (target: PredictDepositOperation) => {
-      if (!isEnvironmentReady) {
+      if (!isEnvironmentReady && !flow.hasSubmittedTransfer(target)) {
         return;
       }
       onHide();
@@ -209,9 +212,9 @@ const DepositStatusSheetHost = ({
   return (
     <DepositInProgressSheet
       deposit={deposit}
-      hasSubmittedTransfer={flow.hasSubmittedTransfer(deposit)}
+      hasSubmittedTransfer={hasSubmittedTransfer}
       environmentResolution={environmentResolution}
-      canContinue={isEnvironmentReady}
+      canContinue={canContinue}
       canCancel={Boolean(fundingWallet)}
       isVisible={isVisible}
       isCancelling={isCancelling}

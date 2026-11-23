@@ -40,6 +40,7 @@ import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cance
 import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
 import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { makeFailedDeposit } from '../../funding/deposit/testUtils';
+import { encodeUsdcTransfer } from '../../funding/deposit/usdcTransfer';
 import {
   clearAllSessionDepositTransfers,
   recordSessionDepositTransfer,
@@ -2015,6 +2016,14 @@ describe('PredictPortfolioScreen', () => {
     it.each([
       ['loading', 'pending' as const],
       ['unavailable', new Error('catalog failed')],
+      [
+        'missing_environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+      ],
     ])(
       'disables Continue while explaining the %s state and keeping Cancel enabled on the open sheet',
       async (label, catalogState) => {
@@ -2057,7 +2066,7 @@ describe('PredictPortfolioScreen', () => {
           expect(
             view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
           ).not.toBeOnTheScreen();
-        } else {
+        } else if (label === 'unavailable') {
           expect(
             view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
           ).toHaveTextContent(
@@ -2066,6 +2075,13 @@ describe('PredictPortfolioScreen', () => {
           expect(
             view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
           ).toBeOnTheScreen();
+        } else {
+          expect(
+            view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+          ).toHaveTextContent(strings('predict_next.deposit.unavailable'));
+          expect(
+            view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+          ).not.toBeOnTheScreen();
         }
 
         await act(async () => {
@@ -2080,78 +2096,114 @@ describe('PredictPortfolioScreen', () => {
       },
     );
 
-    it('hides Cancel, shows unavailable error with Retry for a recorded session transfer when catalog fails, and recovers on Retry', async () => {
-      recordSessionDepositTransfer(
-        {
-          venueId: KALSHI_VENUE_ID,
-          operationId: awaitingTransferDeposit.operationId,
-          from: '0x0000000000000000000000000000000000000001',
-          plan: {
-            chainId: awaitingTransferDeposit.next.chainId,
-            tokenContract: awaitingTransferDeposit.next
-              .tokenContract as PredictHex,
-            amount: awaitingTransferDeposit.next.amount as PredictAmount,
-            depositAddress: awaitingTransferDeposit.next
-              .depositAddress as PredictHex,
-            planExpiresAt: awaitingTransferDeposit.next
-              .planExpiresAt as PredictTimestamp,
+    it.each([
+      ['catalog read error', new Error('catalog failed')],
+      [
+        'catalog omitting environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+      ],
+    ])(
+      'keeps Continue enabled, hides Cancel and unavailable copy, and reports a submitted transfer on %s',
+      async (_label, catalogState) => {
+        const txHash: PredictHex = `0x${'ab'.repeat(32)}`;
+        recordSessionDepositTransfer(
+          {
+            venueId: KALSHI_VENUE_ID,
+            operationId: awaitingTransferDeposit.operationId,
+            from: '0x0000000000000000000000000000000000000001',
+            plan: {
+              chainId: awaitingTransferDeposit.next.chainId,
+              tokenContract: awaitingTransferDeposit.next
+                .tokenContract as PredictHex,
+              amount: awaitingTransferDeposit.next.amount as PredictAmount,
+              depositAddress: awaitingTransferDeposit.next
+                .depositAddress as PredictHex,
+              planExpiresAt: awaitingTransferDeposit.next
+                .planExpiresAt as PredictTimestamp,
+            },
           },
-        },
-        {
-          txHash: `0x${'ab'.repeat(32)}`,
-          chainId: awaitingTransferDeposit.chainId,
-          to: undefined,
-          data: undefined,
-        },
-      );
-      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
-      configurePredictNextCatalog(new Error('catalog failed'));
-      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
-
-      const statusLine = await view.findByTestId(
-        PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
-      );
-      fireEvent.press(statusLine);
-
-      const continueButton = await view.findByTestId(
-        PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
-      );
-      expect(continueButton).toBeDisabled();
-      expect(
-        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
-      ).not.toBeOnTheScreen();
-      expect(
-        view.getByText(
-          strings('predict_next.deposit.in_progress.processing', {
-            amount: '$25.50',
-          }),
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
-      ).toHaveTextContent(strings('predict_next.deposit.unavailable_error'));
-
-      configurePredictNextCatalog({
-        ...KALSHI_STATIC_VENUE_CATALOG,
-        environment: 'production',
-      });
-      await act(async () => {
-        fireEvent.press(
-          view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+          {
+            txHash,
+            chainId: awaitingTransferDeposit.chainId,
+            to: awaitingTransferDeposit.next.tokenContract,
+            data: encodeUsdcTransfer(
+              awaitingTransferDeposit.next.depositAddress,
+              awaitingTransferDeposit.next.amount as PredictAmount,
+            ),
+          },
         );
-      });
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const addTxSpy = jest.spyOn(
+          Engine.context.TransactionController,
+          'addTransaction',
+        );
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:getDeposit') {
+              return Promise.resolve(awaitingTransferDeposit);
+            }
+            if (action === 'PredictFundingService:reportDepositTransfer') {
+              return Promise.resolve(transferReportedDeposit);
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
-      await waitFor(() =>
+        const statusLine = await view.findByTestId(
+          PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        expect(continueButton).toBeEnabled();
         expect(
-          view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
-        ).toBeEnabled(),
-      );
-      expect(
-        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
-      ).not.toBeOnTheScreen();
-      expect(
-        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
-      ).not.toBeOnTheScreen();
-    });
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.getByText(
+            strings('predict_next.deposit.in_progress.processing', {
+              amount: '$25.50',
+            }),
+          ),
+        ).toBeOnTheScreen();
+
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:reportDepositTransfer',
+            'kalshi',
+            awaitingTransferDeposit.operationId,
+            {
+              txHash,
+              chainId: awaitingTransferDeposit.chainId,
+            },
+          ),
+        );
+        expect(addTxSpy).not.toHaveBeenCalled();
+        expect(messengerCall).not.toHaveBeenCalledWith(
+          'PredictFundingService:cancelDeposit',
+          expect.anything(),
+          expect.anything(),
+        );
+      },
+    );
   });
 });

@@ -159,8 +159,8 @@ export const useDepositFlow = ({
   const buildDeps = useCallback(
     (
       from: PredictHex,
-      resolvedEnvironment: PredictDepositEnvironment,
-      resolvedExecutor: DepositTransferExecutor,
+      resolvedEnvironment: PredictDepositEnvironment | undefined,
+      resolvedExecutor: DepositTransferExecutor | undefined,
     ): DepositWorkflowDeps => ({
       funding: {
         prepareDeposit: (params) =>
@@ -198,7 +198,7 @@ export const useDepositFlow = ({
           ),
       },
       executor: resolvedExecutor,
-      network: resolvedEnvironment.network,
+      network: resolvedEnvironment?.network,
       from,
       walletAddresses: selectInternalAccounts(store.getState()).map(
         (account) => account.address,
@@ -287,11 +287,60 @@ export const useDepositFlow = ({
     [addressPollIntervalMs, navigateToConfirmation, store, venueId],
   );
 
+  /** Whether an open deposit already has a submitted or committed transfer waiting to finish and report. */
+  const hasSubmittedTransfer = useCallback(
+    (deposit: PredictDepositOperation | null): boolean => {
+      if (
+        !deposit ||
+        !fundingWallet ||
+        deposit.status !== 'awaiting_transfer'
+      ) {
+        return false;
+      }
+      const plan = extractPlanFromDeposit(deposit);
+      if (!plan) {
+        return false;
+      }
+      const transactions =
+        Engine.context.TransactionController.state.transactions ?? [];
+      const matched = findMatchingDepositTransaction({
+        transactions,
+        from: fundingWallet,
+        plan,
+        createdAt: deposit.createdAt,
+        operationId: deposit.operationId,
+      });
+      if (
+        matched?.kind === 'submitted' ||
+        (matched?.kind === 'pending' &&
+          matched.transactionMeta.status !== TransactionStatus.unapproved)
+      ) {
+        return true;
+      }
+      const sessionTransfer = getSessionDepositTransfer({
+        venueId,
+        operationId: deposit.operationId,
+        from: fundingWallet,
+        plan,
+      });
+      return Boolean(
+        sessionTransfer &&
+          !isKnownFailedDepositHash(transactions, sessionTransfer.txHash),
+      );
+    },
+    [fundingWallet, venueId],
+  );
+
   const run = useCallback(
     async (
       work: (deps: DepositWorkflowDeps) => Promise<DepositOutcome>,
+      { requireEnvironment = true }: { requireEnvironment?: boolean } = {},
     ): Promise<DepositOutcome | undefined> => {
-      if (!fundingWallet || !environment || !executor || isWorkingRef.current) {
+      if (
+        !fundingWallet ||
+        isWorkingRef.current ||
+        (requireEnvironment && (!environment || !executor))
+      ) {
         return undefined;
       }
       isWorkingRef.current = true;
@@ -325,23 +374,28 @@ export const useDepositFlow = ({
    * user's approval to sign the deposit request. */
   const start = useCallback(
     (amount: PredictAmount) =>
-      run((deps) => {
-        if (clientOperationRef.current?.amount !== amount) {
-          clientOperationRef.current = { amount, id: uuidv4() };
-        }
-        return startDeposit(deps, {
-          amount,
-          clientOperationId: clientOperationRef.current.id,
-        });
-      }),
+      run(
+        (deps) => {
+          if (clientOperationRef.current?.amount !== amount) {
+            clientOperationRef.current = { amount, id: uuidv4() };
+          }
+          return startDeposit(deps, {
+            amount,
+            clientOperationId: clientOperationRef.current.id,
+          });
+        },
+        { requireEnvironment: true },
+      ),
     [run],
   );
 
   /** Pays an open deposit the user chose to continue, after re-reading its live state. */
   const payOpenDeposit = useCallback(
     (deposit: PredictDepositOperation) =>
-      run((deps) => continueDeposit(deps, deposit)),
-    [run],
+      run((deps) => continueDeposit(deps, deposit), {
+        requireEnvironment: !hasSubmittedTransfer(deposit),
+      }),
+    [hasSubmittedTransfer, run],
   );
 
   /** Cancels an open deposit. Answers whether the backend cancelled it. */
@@ -376,46 +430,6 @@ export const useDepositFlow = ({
         logError(error, 'PredictNext: failed to cancel an open deposit');
         return false;
       }
-    },
-    [fundingWallet, venueId],
-  );
-
-  /** Whether an open deposit already has a submitted transfer waiting only for its report. */
-  const hasSubmittedTransfer = useCallback(
-    (deposit: PredictDepositOperation | null): boolean => {
-      if (
-        !deposit ||
-        !fundingWallet ||
-        deposit.status !== 'awaiting_transfer'
-      ) {
-        return false;
-      }
-      const plan = extractPlanFromDeposit(deposit);
-      if (!plan) {
-        return false;
-      }
-      const transactions =
-        Engine.context.TransactionController.state.transactions ?? [];
-      const matched = findMatchingDepositTransaction({
-        transactions,
-        from: fundingWallet,
-        plan,
-        createdAt: deposit.createdAt,
-        operationId: deposit.operationId,
-      });
-      if (matched?.kind === 'submitted') {
-        return true;
-      }
-      const sessionTransfer = getSessionDepositTransfer({
-        venueId,
-        operationId: deposit.operationId,
-        from: fundingWallet,
-        plan,
-      });
-      return Boolean(
-        sessionTransfer &&
-          !isKnownFailedDepositHash(transactions, sessionTransfer.txHash),
-      );
     },
     [fundingWallet, venueId],
   );

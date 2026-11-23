@@ -712,10 +712,11 @@ describe('continueDeposit', () => {
       kind: 'submitted',
       transfer: paying(),
     }));
+    const sandboxSend = jest.fn();
     const sandboxDeps: DepositWorkflowDeps = {
       ...deps,
       network: BASE_SEPOLIA_DEPOSIT_NETWORK,
-      executor: { mode: 'simulated', send: jest.fn() },
+      executor: { mode: 'simulated', send: sandboxSend },
     };
 
     const outcome = await continueDeposit(sandboxDeps, baseDeposit);
@@ -727,11 +728,113 @@ describe('continueDeposit', () => {
     });
     expect(funding.cancelDeposit).not.toHaveBeenCalled();
     expect(executor.send).not.toHaveBeenCalled();
-    expect(sandboxDeps.executor.send).not.toHaveBeenCalled();
+    expect(sandboxSend).not.toHaveBeenCalled();
     expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
       txHash: HASH,
       chainId: 8453,
     });
+  });
+
+  it('reconciles an already-submitted transfer without a resolved catalog environment or executor', async () => {
+    const baseDeposit = awaitingTransfer();
+    const { deps, funding } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'submitted',
+      transfer: paying(),
+    }));
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await continueDeposit(noEnvDeps, baseDeposit);
+
+    expect(outcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('waits for and reports a committed pending transfer without a resolved catalog environment or executor', async () => {
+    const baseDeposit = awaitingTransfer();
+    const { deps, funding } = setup();
+    const wait = jest.fn(async () => paying());
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.signed,
+      wait,
+    }));
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await continueDeposit(noEnvDeps, baseDeposit);
+
+    expect(outcome).toStrictEqual({
+      kind: 'submitted',
+      deposit: transferReported(),
+      reported: true,
+    });
+    expect(wait).toHaveBeenCalledTimes(1);
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).toHaveBeenCalledWith(OPERATION_ID, {
+      txHash: HASH,
+      chainId: 8453,
+    });
+  });
+
+  it('refuses to continue an unpaid deposit without cancelling when catalog environment is missing', async () => {
+    const baseDeposit = awaitingTransfer();
+    const cancel = jest.fn(async () => undefined);
+    const { deps, funding } = setup();
+    deps.findExistingTransfer = jest.fn(() => ({
+      kind: 'pending',
+      status: TransactionStatus.unapproved,
+      wait: jest.fn(async () => paying()),
+      cancel,
+    }));
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await continueDeposit(noEnvDeps, baseDeposit);
+
+    expect(outcome).toMatchObject({ kind: 'failed', stage: 'prepare' });
+    expect((outcome as { error: PredictError }).error.code).toBe(
+      PredictErrorCode.VENUE_UNAVAILABLE,
+    );
+    expect(cancel).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
+    expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
+  });
+
+  it('refuses startDeposit before prepareDeposit when catalog environment is missing', async () => {
+    const { deps, funding } = setup();
+    const noEnvDeps: DepositWorkflowDeps = {
+      ...deps,
+      network: undefined,
+      executor: undefined,
+    };
+
+    const outcome = await start(noEnvDeps);
+
+    expect(outcome).toMatchObject({ kind: 'failed', stage: 'prepare' });
+    expect((outcome as { error: PredictError }).error.code).toBe(
+      PredictErrorCode.VENUE_UNAVAILABLE,
+    );
+    expect(funding.prepareDeposit).not.toHaveBeenCalled();
+    expect(funding.cancelDeposit).not.toHaveBeenCalled();
   });
 
   it('still rejects and cancels a mismatched deposit when no transfer was submitted yet', async () => {
@@ -744,10 +847,11 @@ describe('continueDeposit', () => {
       wait: jest.fn(async () => paying()),
       cancel,
     }));
+    const sandboxSend = jest.fn();
     const sandboxDeps: DepositWorkflowDeps = {
       ...deps,
       network: BASE_SEPOLIA_DEPOSIT_NETWORK,
-      executor: { mode: 'simulated', send: jest.fn() },
+      executor: { mode: 'simulated', send: sandboxSend },
     };
 
     await expect(
@@ -757,6 +861,7 @@ describe('continueDeposit', () => {
       reason: 'chain',
     });
     expect(cancel).toHaveBeenCalledTimes(1);
+    expect(sandboxSend).not.toHaveBeenCalled();
     expect(funding.cancelDeposit).toHaveBeenCalledWith(OPERATION_ID);
     expect(funding.reportDepositTransfer).not.toHaveBeenCalled();
   });

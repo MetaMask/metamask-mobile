@@ -331,6 +331,12 @@ export const PredictDepositScreen = (): React.JSX.Element => {
     caption = <BalanceCaption balance={balance} />;
   }
 
+  const sheetHasSubmittedTransfer = sheet
+    ? flow.hasSubmittedTransfer(sheet.deposit)
+    : false;
+  const canContinueSheet =
+    isEnvironmentReady || (Boolean(fundingWallet) && sheetHasSubmittedTransfer);
+
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
@@ -414,9 +420,9 @@ export const PredictDepositScreen = (): React.JSX.Element => {
       {sheet ? (
         <DepositInProgressSheet
           deposit={sheet.deposit}
-          hasSubmittedTransfer={flow.hasSubmittedTransfer(sheet.deposit)}
+          hasSubmittedTransfer={sheetHasSubmittedTransfer}
           environmentResolution={environmentResolution}
-          canContinue={isEnvironmentReady}
+          canContinue={canContinueSheet}
           canCancel={Boolean(fundingWallet)}
           isCancelling={sheet.isCancelling}
           cancelFailed={sheet.cancelFailed}

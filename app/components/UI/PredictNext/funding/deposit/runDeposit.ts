@@ -41,9 +41,9 @@ export interface DepositFunding {
 
 export interface DepositWorkflowDeps {
   funding: DepositFunding;
-  executor: DepositTransferExecutor;
-  /** The build's deposit chain and USDC. */
-  network: PredictDepositNetwork;
+  executor?: DepositTransferExecutor;
+  /** The resolved deposit chain and USDC, when the catalog environment is ready. */
+  network?: PredictDepositNetwork;
   /** The Funding Wallet's address. */
   from: PredictHex;
   /** Every account address in the user's wallet. */
@@ -260,29 +260,30 @@ const extractPlan = (deposit: PredictDepositOperation): PredictFundingPlan => {
   };
 };
 
+const isCommittedExistingTransfer = (
+  existing: ExistingDepositTransfer | undefined,
+): boolean =>
+  existing !== undefined &&
+  (existing.kind === 'submitted' ||
+    existing.status !== TransactionStatus.unapproved);
+
 /**
  * Pays an open deposit's Funding Plan: checks the plan against the amount
- * the user approved and the build's constants, reconciles any already-created
- * transfer for the deposit and identity before sending a new one, checks the
- * submitted call data still pays the plan, and reports the hash. A refused
- * plan, a rejection or a failed transfer cancels the deposit.
+ * the user approved and the resolved catalog environment, reconciles any
+ * already-created transfer for the deposit and identity before sending a new
+ * one, checks the submitted call data still pays the plan, and reports the
+ * hash. A refused plan, a rejection or a failed transfer cancels the deposit.
  */
 export const payDeposit = async (
   deps: DepositWorkflowDeps,
   deposit: PredictDepositOperation,
   approvedAmount: PredictAmount,
 ): Promise<DepositOutcome> => {
-  const check = checkDepositPlan(deposit, {
-    amount: approvedAmount,
-    network: deps.network,
-    walletAddresses: deps.walletAddresses,
-    now: deps.now(),
-  });
-  if (!check.ok && check.reason === 'no_plan') {
+  if (!hasPlan(deposit)) {
     await cancelQuietly(deps, deposit);
-    return { kind: 'plan_mismatch', reason: check.reason };
+    return { kind: 'plan_mismatch', reason: 'no_plan' };
   }
-  const plan = check.ok ? check.plan : extractPlan(deposit);
+  const plan = extractPlan(deposit);
 
   const recorded = getRecordedTransfer(
     deps.funding,
@@ -300,27 +301,37 @@ export const payDeposit = async (
     existingFromDeps ??
     (recorded ? { kind: 'submitted', transfer: recorded } : undefined);
 
-  if (
-    !check.ok &&
-    (!existing ||
-      (existing.kind === 'pending' &&
-        existing.status === TransactionStatus.unapproved))
-  ) {
-    if (
-      existing?.kind === 'pending' &&
-      existing.status === TransactionStatus.unapproved
-    ) {
-      try {
-        await existing.cancel?.();
-      } catch (error) {
-        deps.logError(
-          error,
-          'PredictNext: failed to cancel an unapproved deposit transfer',
-        );
-      }
+  if (!isCommittedExistingTransfer(existing)) {
+    if (!deps.network || !deps.executor) {
+      return {
+        kind: 'failed',
+        stage: 'prepare',
+        error: PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE),
+      };
     }
-    await cancelQuietly(deps, deposit);
-    return { kind: 'plan_mismatch', reason: check.reason };
+    const check = checkDepositPlan(deposit, {
+      amount: approvedAmount,
+      network: deps.network,
+      walletAddresses: deps.walletAddresses,
+      now: deps.now(),
+    });
+    if (!check.ok) {
+      if (
+        existing?.kind === 'pending' &&
+        existing.status === TransactionStatus.unapproved
+      ) {
+        try {
+          await existing.cancel?.();
+        } catch (error) {
+          deps.logError(
+            error,
+            'PredictNext: failed to cancel an unapproved deposit transfer',
+          );
+        }
+      }
+      await cancelQuietly(deps, deposit);
+      return { kind: 'plan_mismatch', reason: check.reason };
+    }
   }
 
   let submitted: SubmittedDepositTransfer;
@@ -328,17 +339,25 @@ export const payDeposit = async (
     submitted = existing.transfer;
   } else {
     try {
-      submitted =
-        existing?.kind === 'pending'
-          ? await existing.wait()
-          : await deps.executor.send({
-              operationId: deposit.operationId,
-              from: deps.from,
-              chainId: plan.chainId,
-              tokenContract: plan.tokenContract,
-              recipient: plan.depositAddress,
-              amount: plan.amount,
-            });
+      if (existing?.kind === 'pending') {
+        submitted = await existing.wait();
+      } else {
+        if (!deps.executor) {
+          return {
+            kind: 'failed',
+            stage: 'prepare',
+            error: PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE),
+          };
+        }
+        submitted = await deps.executor.send({
+          operationId: deposit.operationId,
+          from: deps.from,
+          chainId: plan.chainId,
+          tokenContract: plan.tokenContract,
+          recipient: plan.depositAddress,
+          amount: plan.amount,
+        });
+      }
     } catch (error) {
       await cancelQuietly(deps, deposit);
       if (deps.isUserRejection(error)) {
@@ -431,6 +450,13 @@ export const startDeposit = async (
   deps: DepositWorkflowDeps,
   params: PredictDepositParams,
 ): Promise<DepositOutcome> => {
+  if (!deps.network || !deps.executor) {
+    return {
+      kind: 'failed',
+      stage: 'prepare',
+      error: PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE),
+    };
+  }
   let deposit: PredictDepositOperation;
   try {
     deposit = await deps.funding.prepareDeposit(params);
