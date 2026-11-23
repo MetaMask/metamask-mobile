@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint @typescript-eslint/no-require-imports: "off" */
+/* eslint-disable @typescript-eslint/no-require-imports */
 
 'use strict';
 import React, {

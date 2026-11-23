@@ -33,7 +33,7 @@
     "messenger-action-types:check": "messenger-action-types app --check",
     "lint": "oxlint && NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" eslint '**/*.{js,ts,tsx}' --cache && yarn messenger-action-types:check",
     "lint:shard": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" node scripts/lint-shard.mjs",
-    "lint:fix": "NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" eslint '**/*.{js,ts,tsx}' --fix --cache && yarn messenger-action-types:generate",
+    "lint:fix": "node scripts/oxlint-fix.mjs && NODE_OPTIONS=\"--max-old-space-size=${LINT_HEAP_MB:-12288}\" eslint '**/*.{js,ts,tsx}' --fix --cache && yarn messenger-action-types:generate",
     "lint:clean": "rm -f .eslintcache",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=12288' tsc --project ./tsconfig.json",
     "lint:changelog": "./scripts/lint-changelog.sh",
@@ -182,6 +182,7 @@
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
+      "node scripts/oxlint-fix.mjs",
       "prettier --write",
       "oxlint --no-error-on-unmatched-pattern",
       "eslint --fix"

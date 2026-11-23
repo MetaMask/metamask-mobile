@@ -237,18 +237,30 @@ const overridesAfterTypescriptBlocks = withoutDuplicatePlugins(
   compat.config({ overrides: overridesAfterTypescript }),
 );
 
-// Oxlint runs these rules, with the same options, from .oxlintrc.json. They
-// are turned off here so each file is checked once. Rules that ESLint can
-// auto-fix are not in this list: lint-staged and lint:fix rely on eslint --fix.
+// Oxlint runs these rules, with the same options and file scopes, from
+// .oxlintrc.json. They are turned off here so each file is checked once.
+// lint-staged and lint:fix apply their fixes with scripts/oxlint-fix.mjs.
+// Rules that ESLint can auto-fix and oxlint cannot (eqeqeq, no-lonely-if,
+// no-extra-boolean-cast, react/jsx-no-target-blank, ...) stay in ESLint so
+// eslint --fix keeps them.
+// import-x/no-named-as-default-member stays too: oxlint does not read .d.ts
+// files, so it misses CommonJS packages that ship separate typings. So do
+// rules where oxlint reports different code (no-alert, react/no-danger,
+// no-unsafe-optional-chaining, the globals rules such as no-undef).
 const rulesOwnedByOxlint = [
+  '@typescript-eslint/array-type',
   '@typescript-eslint/ban-ts-comment',
+  '@typescript-eslint/consistent-type-assertions',
   '@typescript-eslint/default-param-last',
+  '@typescript-eslint/no-array-constructor',
   '@typescript-eslint/no-dupe-class-members',
   '@typescript-eslint/no-explicit-any',
+  '@typescript-eslint/no-extra-non-null-assertion',
   '@typescript-eslint/no-misused-new',
   '@typescript-eslint/no-namespace',
   '@typescript-eslint/no-non-null-asserted-optional-chain',
   '@typescript-eslint/no-non-null-assertion',
+  '@typescript-eslint/no-require-imports',
   '@typescript-eslint/no-this-alias',
   '@typescript-eslint/no-unnecessary-type-constraint',
   '@typescript-eslint/no-unsafe-declaration-merging',
@@ -257,31 +269,44 @@ const rulesOwnedByOxlint = [
   '@typescript-eslint/no-use-before-define',
   '@typescript-eslint/no-useless-constructor',
   '@typescript-eslint/parameter-properties',
+  '@typescript-eslint/prefer-as-const',
   '@typescript-eslint/prefer-for-of',
+  '@typescript-eslint/prefer-function-type',
+  '@typescript-eslint/prefer-namespace-keyword',
   '@typescript-eslint/triple-slash-reference',
   '@typescript-eslint/unified-signatures',
   'array-callback-return',
+  'arrow-body-style',
   'constructor-super',
   'for-direction',
   'getter-return',
   'import-x/no-amd',
+  'import-x/no-commonjs',
+  'import-x/no-duplicates',
   'import-x/no-mutable-exports',
+  'import-x/no-nodejs-modules',
+  'jest/no-identical-title',
+  'jest/no-restricted-matchers',
+  'no-array-constructor',
   'no-async-promise-executor',
   'no-caller',
   'no-case-declarations',
   'no-class-assign',
   'no-compare-neg-zero',
   'no-cond-assign',
+  'no-console',
   'no-const-assign',
   'no-constant-condition',
   'no-control-regex',
   'no-debugger',
   'no-delete-var',
+  'no-div-regex',
   'no-dupe-class-members',
   'no-dupe-else-if',
   'no-dupe-keys',
   'no-duplicate-case',
   'no-duplicate-imports',
+  'no-else-return',
   'no-empty',
   'no-empty-character-class',
   'no-empty-function',
@@ -304,6 +329,8 @@ const rulesOwnedByOxlint = [
   'no-nonoctal-decimal-escape',
   'no-proto',
   'no-prototype-builtins',
+  'no-regex-spaces',
+  'no-restricted-imports',
   'no-return-assign',
   'no-script-url',
   'no-self-assign',
@@ -319,18 +346,27 @@ const rulesOwnedByOxlint = [
   'no-unreachable',
   'no-unsafe-finally',
   'no-unsafe-negation',
+  'no-unused-labels',
   'no-use-before-define',
   'no-useless-backreference',
   'no-useless-call',
   'no-useless-catch',
+  'no-useless-computed-key',
   'no-useless-concat',
   'no-useless-constructor',
   'no-useless-escape',
+  'no-useless-rename',
+  'no-var',
   'no-void',
   'no-warning-comments',
   'no-with',
+  'object-shorthand',
+  'prefer-arrow-callback',
+  'prefer-const',
   'prefer-rest-params',
   'prefer-spread',
+  'react-hooks/exhaustive-deps',
+  'react/jsx-boolean-value',
   'react/jsx-key',
   'react/jsx-no-comment-textnodes',
   'react/jsx-no-duplicate-props',
@@ -349,9 +385,17 @@ const rulesOwnedByOxlint = [
   'react/prefer-es6-class',
   'react/react-in-jsx-scope',
   'react/require-render-return',
+  'react/self-closing-comp',
   'require-yield',
   'use-isnan',
   'valid-typeof',
+  'yoda',
+];
+// Oxlint runs these jest rules only on test files (*.test.*, *.spec.*,
+// __tests__/), so ESLint keeps them for every other file.
+const jestRulesOwnedByOxlintInTests = [
+  'jest/no-disabled-tests',
+  'jest/no-focused-tests',
 ];
 
 export default [
@@ -369,6 +413,13 @@ export default [
   {
     ignores: ['app/declarations/**'],
     rules: Object.fromEntries(rulesOwnedByOxlint.map((rule) => [rule, 'off'])),
+  },
+  {
+    files: ['**/*.{test,spec}.{js,jsx,ts,tsx}', '**/__tests__/**'],
+    ignores: ['app/declarations/**'],
+    rules: Object.fromEntries(
+      jestRulesOwnedByOxlintInTests.map((rule) => [rule, 'off']),
+    ),
   },
   // ESLint 9 warns on unused eslint-disable comments. ESLint 8 did not.
   { linterOptions: { reportUnusedDisableDirectives: 'off' } },
