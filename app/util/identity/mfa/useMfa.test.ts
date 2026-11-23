@@ -1,6 +1,7 @@
 import {
   MfaError,
   type EnrolledCredential,
+  type LoginResponse,
 } from '@metamask/profile-sync-controller/sdk';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
 import {
@@ -34,10 +35,12 @@ jest.mock('../../Logger', () => ({ error: jest.fn(), log: jest.fn() }));
 jest.mock('../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
-      exchangeSocialAccessToken: jest.fn().mockResolvedValue(undefined),
+      exchangeSocialAccessToken: jest.fn(),
     },
   },
 }));
+
+const mockLoginResponse = {} as LoginResponse;
 
 jest.mock('../../analytics/analytics', () => ({
   analytics: { trackEvent: jest.fn() },
@@ -71,7 +74,7 @@ describe('useMfa', () => {
     jest
       .mocked(Engine.context.AuthenticationController.exchangeSocialAccessToken)
       .mockReset()
-      .mockResolvedValue(undefined);
+      .mockResolvedValue(mockLoginResponse);
     jest.mocked(Logger.log).mockClear();
   });
 
