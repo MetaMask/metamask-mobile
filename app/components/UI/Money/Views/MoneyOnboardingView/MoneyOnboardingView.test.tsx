@@ -532,6 +532,30 @@ describe('MoneyOnboardingView', () => {
       expect(mockNavigateToMoneyDeposit).toHaveBeenCalledTimes(1);
       expect(replacementNavigateToMoneyDeposit).not.toHaveBeenCalled();
     });
+
+    it('logs error when the E2E onboarding fallback navigation fails', async () => {
+      const error = new Error('fallback navigation failed');
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+      mockNavigate.mockImplementationOnce(() => {
+        throw error;
+      });
+
+      renderMoneyOnboardingView();
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        '[Money Account] Failed to navigate after onboarding fallback',
+      );
+    });
   });
 
   describe('Analytics initialization', () => {
@@ -996,6 +1020,52 @@ describe('MoneyOnboardingView', () => {
           },
         },
         { pop: true },
+      );
+    });
+
+    it('logs error when the close trigger navigation fails', async () => {
+      const error = new Error('close navigation failed');
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+      mockNavigate.mockImplementationOnce(() => {
+        throw error;
+      });
+      renderMoneyOnboardingView();
+
+      await act(async () => {
+        __fireRiveTrigger('close');
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        '[Money Account] Failed to navigate after onboarding exit',
+      );
+    });
+
+    it('logs error when the close button navigation fails', async () => {
+      const error = new Error('close button navigation failed');
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.CARD,
+          cardScreen: 'authentication',
+        },
+      };
+      mockNavigate.mockImplementationOnce(() => {
+        throw error;
+      });
+      const { getByTestId } = renderMoneyOnboardingView();
+
+      await act(async () => {
+        fireEvent.press(getByTestId(MoneyOnboardingViewTestIds.CLOSE_BUTTON));
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        '[Money Account] Failed to navigate after onboarding exit',
       );
     });
 

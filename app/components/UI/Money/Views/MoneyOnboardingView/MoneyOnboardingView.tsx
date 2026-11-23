@@ -552,7 +552,12 @@ const MoneyOnboardingView = () => {
   );
 
   const handleClosePress = useCallback(() => {
-    handleClose(currentStepRef.current);
+    handleClose(currentStepRef.current).catch((error) => {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to navigate after onboarding exit',
+      );
+    });
   }, [handleClose]);
 
   const handleStepViewed = useCallback(
@@ -678,7 +683,12 @@ const MoneyOnboardingView = () => {
 
   useRiveTrigger(CLOSE_TRIGGER, instance, {
     onTrigger: () => {
-      handleClose(currentStepRef.current);
+      handleClose(currentStepRef.current).catch((error) => {
+        Logger.error(
+          error as Error,
+          '[Money Account] Failed to navigate after onboarding exit',
+        );
+      });
     },
   });
 
@@ -769,7 +779,12 @@ const MoneyOnboardingViewE2E = () => {
     }
     hasCompletedOnboardingRef.current = true;
     dispatch(setMoneyOnboardingSeen(true));
-    navigateToPostOnboardingDestination();
+    navigateToPostOnboardingDestination().catch((error) => {
+      Logger.error(
+        error as Error,
+        '[Money Account] Failed to navigate after onboarding fallback',
+      );
+    });
   }, [dispatch, navigateToPostOnboardingDestination]);
 
   useEffect(() => {
