@@ -75,6 +75,11 @@ describe('WatchAssetRequest', () => {
     expect(getByTestId(AssetWatcherSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     // The header shows the dapp chain, not the globally active one.
     expect(mockCapturedHeaderProps?.chainId).toBe('0x1234');
+    // The header balance is queried on the dapp network client, not the
+    // globally active one.
+    expect(mockCapturedHeaderProps?.networkClientId).toBe(
+      'custom-network-client-id',
+    );
     // The balance is queried on the dapp network, not the global one.
     expect(mockGetERC20BalanceOf).toHaveBeenCalledWith(
       '0x0000000000000000000000000000000000000002',

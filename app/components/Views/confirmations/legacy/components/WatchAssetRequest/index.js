@@ -184,6 +184,7 @@ const WatchAssetRequest = ({
       <View style={styles.approveTransactionHeaderWrapper}>
         <ApproveTransactionHeader
           chainId={chainId}
+          networkClientId={networkClientId}
           origin={currentPageInformation?.url}
           url={currentPageInformation?.url ?? activeTabUrl}
           from={suggestedAssetMeta.interactingAddress}
