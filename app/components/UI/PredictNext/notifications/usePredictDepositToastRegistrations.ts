@@ -27,6 +27,7 @@ export const usePredictDepositToastRegistrations = (): ToastRegistration[] => {
       if (deposit.status !== 'completed') {
         return;
       }
+      // ToastOptions still types iconName with the legacy enum while Toast renders the design system icon.
       showToast({
         variant: ToastVariants.Icon,
         iconName: IconName.Confirmation,
@@ -46,7 +47,7 @@ export const usePredictDepositToastRegistrations = (): ToastRegistration[] => {
           },
         ],
         hasNoTimeout: false,
-      });
+      } as Parameters<ToastRef['showToast']>[0]);
     },
     [theme.colors.success.default],
   );

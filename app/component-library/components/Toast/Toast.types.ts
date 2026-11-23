@@ -2,10 +2,10 @@
 import { ImageSourcePropType } from 'react-native';
 
 // External Dependencies.
-import { IconName } from '@metamask/design-system-react-native';
 import { AvatarAccountType } from '../Avatars/Avatar/variants/AvatarAccount';
 import { ButtonProps } from '../Buttons/Button/Button.types';
 import { ButtonIconProps } from '../Buttons/ButtonIcon/ButtonIcon.types';
+import { IconName } from '../Icons/Icon';
 import { ReactElement } from 'react';
 
 /**
