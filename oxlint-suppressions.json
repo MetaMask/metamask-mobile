@@ -5330,11 +5330,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Money/components/MoneyApyInfoSheet/MoneyApyInfoSheet.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    }
-  },
   "app/components/UI/Money/components/MoneyBalanceCard/MoneyBalanceCard.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
