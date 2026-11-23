@@ -106,16 +106,6 @@ jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => 'SLOW_CELLULAR',
 }));
 
-jest.mock('../../../UI/RobinhoodBanner', () => ({
-  RobinhoodBanner: () => null,
-  RobinhoodBannerSurface: { ExploreCrypto: 'explore_crypto' },
-  useRobinhoodBanner: () => ({
-    dismiss: jest.fn(),
-    handlePress: jest.fn(),
-    shouldShow: false,
-  }),
-}));
-
 jest.mock('../../../UI/Trending/contexts', () => ({
   useTrendingQuickBuySheet: () => ({
     openQuickBuy: jest.fn(),
