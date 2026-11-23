@@ -4,6 +4,13 @@ import { formatLiveFigures } from './formatLiveFigures';
 import type { SocialLivePriceSource } from './types';
 import { useSocialLivePrice } from './useSocialLivePrice';
 
+/**
+ * TEMP A/B for TSA-1807 Live memory: keep price store + label updates, but omit
+ * `live` so `PositionCardHeader` renders static `Text` instead of Laminar /
+ * AnimatedNumericText digit remounts. Flip to `false` after the main-dev measure.
+ */
+export const FORCE_STATIC_LIVE_CARD_HEADERS = true;
+
 export interface LiveCardHeaderLabels {
   priceLabel?: string;
   marketCapLabel?: string;
@@ -42,8 +49,12 @@ export function useLiveCardHeader(
     pnlLabel: labels.pnlLabel ?? snapshot.pnlLabel,
     pnlValueLabel: labels.pnlValueLabel ?? snapshot.pnlValueLabel,
     isPnlPositive: labels.isPnlPositive ?? snapshot.isPnlPositive,
-    live: {
-      reduceMotion,
-    },
+    ...(FORCE_STATIC_LIVE_CARD_HEADERS
+      ? {}
+      : {
+          live: {
+            reduceMotion,
+          },
+        }),
   };
 }
