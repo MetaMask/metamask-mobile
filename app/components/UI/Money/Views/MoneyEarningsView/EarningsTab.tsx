@@ -29,6 +29,7 @@ const EarningsTab = (): React.ReactElement => {
     refetch: refetchHistoricalEarnings,
   } = useMoneyHistoricalEarnings();
   const [selectedRange, setSelectedRange] = useState<EarningsRange>('30D');
+  const [activePointIndex, setActivePointIndex] = useState<number | null>(null);
   const scrollViewRef = useRef<ScrollView>(null);
   const setScrollEnabled = useCallback((enabled: boolean): void => {
     scrollViewRef.current?.setNativeProps({ scrollEnabled: enabled });
@@ -48,6 +49,11 @@ const EarningsTab = (): React.ReactElement => {
   const chartPoints = useMemo(
     () => getBucketPoints(selectedRangeData),
     [selectedRangeData],
+  );
+  const activePoint = useMemo(
+    () =>
+      activePointIndex === null ? undefined : chartPoints[activePointIndex],
+    [activePointIndex, chartPoints],
   );
   const thirtyDayTotalUsd = useMemo(
     () =>
@@ -86,20 +92,28 @@ const EarningsTab = (): React.ReactElement => {
     void refetchHistoricalEarnings();
   }, [refetchHistoricalEarnings]);
 
+  const handleRangeChange = useCallback((range: EarningsRange): void => {
+    setActivePointIndex(null);
+    setSelectedRange(range);
+  }, []);
+
   return (
     <ScrollView
       ref={scrollViewRef}
       style={tw.style('flex-1')}
-      contentContainerStyle={tw.style('gap-6 px-4 py-6')}
+      contentContainerStyle={tw.style('gap-6 px-4 py-2')}
       showsVerticalScrollIndicator={false}
     >
       {hasHistoricalEarnings && selectedRangeData ? (
         <EarningsHero
-          totalEarnedUsd={oneYearTotalUsd}
-          periodEarningsUsd={selectedRangeTotalUsd}
-          periodStart={selectedRangeData.range_start}
-          periodEndExclusive={selectedRangeData.range_end}
-          periodGranularity={selectedRangeData.granularity}
+          totalEarnedUsd={activePoint?.amountUsd ?? selectedRangeTotalUsd}
+          periodStart={activePoint?.start ?? selectedRangeData.range_start}
+          periodEndExclusive={
+            activePoint?.periodEndExclusive ?? selectedRangeData.range_end
+          }
+          periodGranularity={
+            activePoint?.granularity ?? selectedRangeData.granularity
+          }
         />
       ) : null}
       <EarningsChart
@@ -108,7 +122,8 @@ const EarningsTab = (): React.ReactElement => {
         isError={isError || hasMalformedHistory || hasUnavailableRange}
         onRetry={handleRetry}
         selectedRange={selectedRange}
-        onRangeChange={setSelectedRange}
+        onRangeChange={handleRangeChange}
+        onActiveIndexChange={setActivePointIndex}
         setScrollEnabled={setScrollEnabled}
       />
       {hasHistoricalEarnings ? (

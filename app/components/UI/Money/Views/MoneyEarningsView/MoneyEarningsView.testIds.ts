@@ -7,7 +7,6 @@ export const MoneyEarningsViewTestIds = {
   TAB_ALLOCATION: 'money-earnings-view-tab-allocation',
   HERO: 'money-earnings-view-hero',
   HERO_TOTAL: 'money-earnings-view-hero-total',
-  HERO_PERIOD_AMOUNT: 'money-earnings-view-hero-period-amount',
   HERO_PERIOD_DATE: 'money-earnings-view-hero-period-date',
   CHART: 'money-earnings-view-chart',
   CHART_PLOT: 'money-earnings-view-chart-plot',

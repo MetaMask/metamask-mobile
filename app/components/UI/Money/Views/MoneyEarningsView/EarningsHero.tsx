@@ -2,11 +2,11 @@ import React from 'react';
 import BigNumber from 'bignumber.js';
 import {
   Box,
-  BoxFlexDirection,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
+  FontFamily,
 } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../util/intl';
@@ -16,7 +16,6 @@ import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 
 interface EarningsHeroProps {
   totalEarnedUsd: number;
-  periodEarningsUsd: number;
   periodStart: string;
   periodEndExclusive: string;
   periodGranularity: InterestHistoryGranularity;
@@ -55,42 +54,33 @@ const formatPeriodDateRange = (
 
 const EarningsHero = ({
   totalEarnedUsd,
-  periodEarningsUsd,
   periodStart,
   periodEndExclusive,
   periodGranularity,
-}: EarningsHeroProps): React.ReactElement => (
-  <Box testID={MoneyEarningsViewTestIds.HERO} twClassName="gap-1">
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-      {strings('money.earnings.total_earned')}
-    </Text>
-    <Text
-      testID={MoneyEarningsViewTestIds.HERO_TOTAL}
-      variant={TextVariant.DisplayLg}
-      fontWeight={FontWeight.Bold}
-    >
-      {formatEarningsAmountUsd(totalEarnedUsd)}
-    </Text>
-    <Box flexDirection={BoxFlexDirection.Row} twClassName="items-start gap-1">
+}: EarningsHeroProps): React.ReactElement => {
+  const prefix = totalEarnedUsd > 0 ? '+' : '';
+  const color =
+    totalEarnedUsd > 0 ? TextColor.SuccessDefault : TextColor.TextDefault;
+
+  return (
+    <Box testID={MoneyEarningsViewTestIds.HERO} twClassName="gap-1">
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {strings('money.earnings.total_earned')}
+      </Text>
       <Text
-        testID={MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT}
-        variant={TextVariant.BodyMd}
-        color={
-          periodEarningsUsd === 0
-            ? TextColor.TextDefault
-            : TextColor.SuccessDefault
-        }
+        testID={MoneyEarningsViewTestIds.HERO_TOTAL}
+        variant={TextVariant.AmountDisplayLg}
+        fontFamily={FontFamily.Hero}
+        fontWeight={FontWeight.Bold}
+        color={color}
       >
-        {periodEarningsUsd === 0
-          ? formatEarningsAmountUsd(periodEarningsUsd)
-          : `▲ ${formatEarningsAmountUsd(periodEarningsUsd)}`}
+        {`${prefix}${formatEarningsAmountUsd(totalEarnedUsd)}`}
       </Text>
       <Text
         testID={MoneyEarningsViewTestIds.HERO_PERIOD_DATE}
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
       >
-        ·{' '}
         {formatPeriodDateRange(
           periodStart,
           periodEndExclusive,
@@ -98,7 +88,7 @@ const EarningsHero = ({
         )}
       </Text>
     </Box>
-  </Box>
-);
+  );
+};
 
 export default EarningsHero;

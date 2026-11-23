@@ -37,6 +37,7 @@ interface EarningsChartProps {
   onRetry: () => void;
   selectedRange: EarningsRange;
   onRangeChange: (range: EarningsRange) => void;
+  onActiveIndexChange: (index: number | null) => void;
   // Allows the chart to pause the parent ScrollView while the user touches the
   // plot area, so a slightly vertical scrub doesn't get hijacked by native
   // scroll gesture recognizers.
@@ -50,6 +51,7 @@ const EarningsChart = ({
   onRetry,
   selectedRange,
   onRangeChange,
+  onActiveIndexChange,
   setScrollEnabled,
 }: EarningsChartProps): React.ReactElement => {
   const [plotWidth, setPlotWidth] = useState(0);
@@ -97,6 +99,7 @@ const EarningsChart = ({
   } = useEarningsChartScrub({
     points,
     plotWidth,
+    onActiveIndexChange,
     setScrollEnabled,
   });
 

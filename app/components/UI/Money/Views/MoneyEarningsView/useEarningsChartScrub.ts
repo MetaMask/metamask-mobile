@@ -6,6 +6,7 @@ interface UseEarningsChartScrubParams {
   points: EarningsPoint[];
   plotWidth: number;
   setScrollEnabled?: (enabled: boolean) => void;
+  onActiveIndexChange?: (index: number | null) => void;
 }
 
 interface UseEarningsChartScrubResult {
@@ -20,26 +21,41 @@ export const useEarningsChartScrub = ({
   points,
   plotWidth,
   setScrollEnabled,
+  onActiveIndexChange,
 }: UseEarningsChartScrubParams): UseEarningsChartScrubResult => {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const activeIndexRef = useRef<number | null>(null);
   const isScrubbing = useRef(false);
   const scrubOriginX = useRef(0);
+
+  const updateActiveIndex = useCallback(
+    (index: number | null): void => {
+      if (activeIndexRef.current === index) {
+        return;
+      }
+
+      activeIndexRef.current = index;
+      setActiveIndex(index);
+      onActiveIndexChange?.(index);
+    },
+    [onActiveIndexChange],
+  );
 
   const handlePointPressIn = useCallback(
     (index: number, point: EarningsPoint): void => {
       if (isAvailableBucket(point)) {
         scrubOriginX.current = ((index + 0.5) / points.length) * plotWidth;
-        setActiveIndex(index);
+        updateActiveIndex(index);
       }
     },
-    [plotWidth, points.length],
+    [plotWidth, points.length, updateActiveIndex],
   );
 
   const handlePointPressOut = useCallback((): void => {
     if (!isScrubbing.current) {
-      setActiveIndex(null);
+      updateActiveIndex(null);
     }
-  }, []);
+  }, [updateActiveIndex]);
 
   const selectPointAtX = useCallback(
     (locationX: number): void => {
@@ -53,20 +69,20 @@ export const useEarningsChartScrub = ({
         points.length - 1,
       );
 
-      setActiveIndex(isAvailableBucket(points[index]) ? index : null);
+      updateActiveIndex(isAvailableBucket(points[index]) ? index : null);
     },
-    [plotWidth, points],
+    [plotWidth, points, updateActiveIndex],
   );
 
   const clearActiveSelection = useCallback((): void => {
     isScrubbing.current = false;
-    setActiveIndex(null);
+    updateActiveIndex(null);
     setScrollEnabled?.(true);
-  }, [setScrollEnabled]);
+  }, [setScrollEnabled, updateActiveIndex]);
 
   const resetSelection = useCallback((): void => {
-    setActiveIndex(null);
-  }, []);
+    updateActiveIndex(null);
+  }, [updateActiveIndex]);
 
   const panResponder = useMemo(
     () =>

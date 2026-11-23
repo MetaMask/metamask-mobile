@@ -1,7 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
-import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyHistoricalEarnings } from '../../hooks/useMoneyHistoricalEarnings';
@@ -189,20 +188,52 @@ describe('EarningsTab', () => {
     setProjectedEarningsResult();
   });
 
-  it('renders the default chart and hero modes', () => {
+  it('renders the selected range total and date range in the hero', () => {
     const { getByTestId, queryByText } = renderWithProvider(<EarningsTab />);
 
     expect(getByTestId(MoneyEarningsViewTestIds.CHART)).toBeOnTheScreen();
     expect(getByTestId(MoneyEarningsViewTestIds.HERO)).toBeOnTheScreen();
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '+$200.00',
+    );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('Oct 18 – Nov 15');
     expect(
       queryByText(strings('money.earnings.earned_last_30_days')),
     ).not.toBeOnTheScreen();
   });
 
-  it('selects a different earnings range', () => {
-    const { getByLabelText, getByTestId, getByText } = renderWithProvider(
-      <EarningsTab />,
+  it('displays the selected bucket amount and date while holding a chart bar', () => {
+    const { getByTestId } = renderWithProvider(<EarningsTab />);
+
+    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
+
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '+$20.00',
     );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('Oct 18');
+  });
+
+  it('restores the selected range total and date after releasing a chart bar', () => {
+    const { getByTestId } = renderWithProvider(<EarningsTab />);
+    const selectedBar = getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0));
+
+    fireEvent(selectedBar, 'pressIn');
+    fireEvent(selectedBar, 'pressOut');
+
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '+$200.00',
+    );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('Oct 18 – Nov 15');
+  });
+
+  it('selects a different earnings range', () => {
+    const { getByLabelText, getByTestId } = renderWithProvider(<EarningsTab />);
 
     fireEvent.press(getByLabelText(strings('money.earnings.range_1y')));
 
@@ -211,18 +242,36 @@ describe('EarningsTab', () => {
         .accessibilityState,
     ).toEqual(expect.objectContaining({ selected: true }));
     expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
-      '$300.00',
+      '+$300.00',
     );
     expect(
-      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT),
-    ).toHaveTextContent('▲ $300.00');
-    expect(
       getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
-    ).toHaveTextContent('· Jan 2026 – Nov 2026');
-    expect(getByText('+$300.00')).toBeOnTheScreen();
+    ).toHaveTextContent('Jan 2026 – Nov 2026');
   });
 
-  it('formats non-zero sub-cent period earnings as less than one cent', () => {
+  it('formats day and month range dates in the hero', () => {
+    const { getByLabelText, getByTestId } = renderWithProvider(<EarningsTab />);
+
+    fireEvent.press(getByLabelText(strings('money.earnings.range_1w')));
+
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '+$10.00',
+    );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('Nov 15');
+
+    fireEvent.press(getByLabelText(strings('money.earnings.range_3m')));
+
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '+$30.00',
+    );
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('Nov 2026');
+  });
+
+  it('formats a non-zero sub-cent range total as less than one cent', () => {
     const subCentRange = createRange(
       '30d',
       [createBucket('2026-11-15T00:00:00.000Z', '0.001')],
@@ -240,12 +289,12 @@ describe('EarningsTab', () => {
 
     const { getByTestId } = renderWithProvider(<EarningsTab />);
 
-    expect(
-      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT),
-    ).toHaveTextContent('▲ <$0.01');
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '+<$0.01',
+    );
   });
 
-  it('uses default text color for zero period earnings', () => {
+  it('formats a zero range total as zero dollars', () => {
     const zeroRange = createRange(
       '30d',
       [createBucket('2026-11-15T00:00:00.000Z', '0')],
@@ -262,14 +311,8 @@ describe('EarningsTab', () => {
     });
 
     const { getByTestId } = renderWithProvider(<EarningsTab />);
-    const periodAmount = getByTestId(
-      MoneyEarningsViewTestIds.HERO_PERIOD_AMOUNT,
-    );
-
-    expect(periodAmount).toHaveTextContent('$0.00');
-    expect(periodAmount).not.toHaveTextContent('▲');
-    expect(periodAmount.props.color ?? TextColor.TextDefault).toBe(
-      TextColor.TextDefault,
+    expect(getByTestId(MoneyEarningsViewTestIds.HERO_TOTAL)).toHaveTextContent(
+      '$0.00',
     );
   });
 

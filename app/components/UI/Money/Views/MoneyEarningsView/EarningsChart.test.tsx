@@ -17,6 +17,7 @@ import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
 import type { EarningsRange } from './earningsHistory';
 
 const mockOnRangeChange = jest.fn();
+const mockOnActiveIndexChange = jest.fn();
 const mockOnRetry = jest.fn();
 
 const available = {
@@ -105,6 +106,7 @@ const renderChart = ({
   isLoading = false,
   isError = false,
   onRangeChange = mockOnRangeChange,
+  onActiveIndexChange = mockOnActiveIndexChange,
   onRetry = mockOnRetry,
 }: {
   entries?: InterestHistoryResponse;
@@ -112,6 +114,7 @@ const renderChart = ({
   isLoading?: boolean;
   isError?: boolean;
   onRangeChange?: (range: EarningsRange) => void;
+  onActiveIndexChange?: (index: number | null) => void;
   onRetry?: () => void;
 } = {}): RenderResult =>
   renderWithProvider(
@@ -122,6 +125,7 @@ const renderChart = ({
       onRetry={onRetry}
       selectedRange={selectedRange}
       onRangeChange={onRangeChange}
+      onActiveIndexChange={onActiveIndexChange}
     />,
     { state: { engine: { backgroundState: {} } } },
   );
@@ -188,6 +192,7 @@ const EarningsChartHarness = (): React.ReactElement => {
       onRetry={mockOnRetry}
       selectedRange={selectedRange}
       onRangeChange={setSelectedRange}
+      onActiveIndexChange={mockOnActiveIndexChange}
     />
   );
 };
@@ -449,6 +454,7 @@ describe('EarningsChart', () => {
 
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
 
+    expect(mockOnActiveIndexChange).toHaveBeenCalledWith(0);
     expect(
       getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)).props
         .accessibilityState,
@@ -479,6 +485,8 @@ describe('EarningsChart', () => {
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressOut');
 
+    expect(mockOnActiveIndexChange).toHaveBeenNthCalledWith(1, 0);
+    expect(mockOnActiveIndexChange).toHaveBeenNthCalledWith(2, null);
     expect(
       getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)).props
         .accessibilityState,
@@ -838,6 +846,8 @@ describe('EarningsChart', () => {
         .accessibilityState.disabled,
     ).toBe(true);
     expect(queryByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toBeNull();
+    expect(mockOnActiveIndexChange).toHaveBeenNthCalledWith(1, 1);
+    expect(mockOnActiveIndexChange).toHaveBeenNthCalledWith(2, null);
 
     act(() => {
       plot.props.onResponderRelease(buildResponderEvent(250));

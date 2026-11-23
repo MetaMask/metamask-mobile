@@ -130,7 +130,7 @@ const EarningsChartPlot = ({
                 {isAvailable ? (
                   <Box
                     testID={MoneyEarningsViewTestIds.CHART_FILL(index)}
-                    twClassName="w-1/2 max-w-7 rounded-t-md bg-text-default"
+                    twClassName="w-1/2 max-w-7 bg-text-default"
                     style={[
                       { height: barHeight },
                       activeIndex !== null && !isSelected
