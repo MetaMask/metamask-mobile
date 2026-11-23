@@ -441,6 +441,19 @@ describe('MicaConsent', () => {
       openURL.mockRestore();
     });
 
+    it('renders the support notice as a single sentence ending after the link', async () => {
+      const utils = renderScreen();
+      await waitFor(() => {
+        expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+      });
+
+      expect(
+        utils.getByText(
+          /^deposit\.mica_consent\.support_notice_prefix deposit\.mica_consent\.support_link_textdeposit\.mica_consent\.support_notice_suffix$/,
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('opens Transak support from the support notice', async () => {
       const utils = renderScreen();
       await waitFor(() => {

@@ -413,7 +413,7 @@ const MicaConsent = (): React.JSX.Element => {
                   onPress={handleOpenTransakSupport}
                 >
                   {strings('deposit.mica_consent.support_link_text')}
-                </Text>{' '}
+                </Text>
                 {strings('deposit.mica_consent.support_notice_suffix')}
               </Text>
             </View>
