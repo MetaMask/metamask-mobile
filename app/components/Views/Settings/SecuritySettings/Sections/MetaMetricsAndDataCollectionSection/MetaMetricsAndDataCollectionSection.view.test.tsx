@@ -198,7 +198,7 @@ describeForPlatforms(
               AnalyticsController: { optedIn: false },
             },
           },
-        } as DeepPartial<RootState>,
+        },
       });
 
       const marketingSwitch = screen.getByTestId(
