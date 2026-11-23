@@ -2,6 +2,7 @@ import React from 'react';
 import { CommonActions } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
+import { earnRatesFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import configureStore from '../../../../util/test/configureStore';
 import Routes from '../../../../constants/navigation/Routes';
@@ -147,16 +148,19 @@ const buildReferralMe = (
   referred_by: {
     referral_code: 'KOL1',
   },
-  earn_rates: {
+  earn_rates: earnRatesFixture({
     cashback_rate_bps: 1000,
     cashback_earning_start: '2026-09-01T00:00:00.000Z',
     cashback_earning_end: '2026-10-24T00:00:00.000Z',
     // Revenue share runs six months. The splash must not date the cashback
     // copy from this.
-    revshare_rate_bps: null,
-    revshare_earning_start: null,
     revshare_earning_end: '2027-04-01T00:00:00.000Z',
-  },
+    cashback_by_product: {
+      perps: { rate_bps: 1000, source: null },
+      swaps: { rate_bps: 1000, source: null },
+      predict: null,
+    },
+  }),
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
   excluded_regions: [],
@@ -280,14 +284,15 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
   it('uses inviteMessageBody when a cashback date is missing', () => {
     const { getByTestId } = renderSplash(
       buildReferralMe({
-        earn_rates: {
+        earn_rates: earnRatesFixture({
           cashback_rate_bps: 1000,
-          cashback_earning_start: null,
-          cashback_earning_end: null,
-          revshare_rate_bps: null,
-          revshare_earning_start: null,
           revshare_earning_end: '2027-04-01T00:00:00.000Z',
-        },
+          cashback_by_product: {
+            perps: { rate_bps: 1000, source: null },
+            swaps: { rate_bps: 1000, source: null },
+            predict: null,
+          },
+        }),
       }),
     );
 

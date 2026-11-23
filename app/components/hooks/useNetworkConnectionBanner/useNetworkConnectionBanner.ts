@@ -34,8 +34,10 @@ import { useSettledNetworkLatency } from '../../../hooks/useNetworkLatency';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { SLOW_NETWORK_BANNER_DISMISSED_AT } from '../../../constants/storage';
 import { selectSlowNetworkBannerEnabled } from '../../../selectors/featureFlagController/slowNetworkBanner';
-import { getHardwareTier } from '../../../util/deviceCapability';
-import { getNetworkTierSnapshot } from '../../../util/deviceCapability/latencyStore';
+import {
+  getHardwareTier,
+  getNetworkTierSnapshot,
+} from '../../../util/deviceCapability';
 
 const infuraProjectId = INFURA_PROJECT_ID ?? '';
 
@@ -162,8 +164,11 @@ const useNetworkConnectionBanner = (): {
     const visibleDurationMs = takeVisibleDurationMs(slowEpisodeRef);
     if (visibleDurationMs !== null) {
       trackSlowNetworkEvent(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_CLEARED,
-        { visible_duration_ms: visibleDurationMs },
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_HIDDEN,
+        {
+          trigger: 'auto',
+          duration_ms: visibleDurationMs,
+        },
       );
     }
   }, [settledLatency, trackSlowNetworkEvent]);
@@ -212,8 +217,11 @@ const useNetworkConnectionBanner = (): {
     const visibleDurationMs = takeVisibleDurationMs(slowEpisodeRef);
     if (visibleDurationMs !== null) {
       trackSlowNetworkEvent(
-        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_DISMISSED,
-        { visible_duration_ms: visibleDurationMs },
+        MetaMetricsEvents.NETWORK_CONNECTION_BANNER_HIDDEN,
+        {
+          trigger: 'user',
+          duration_ms: visibleDurationMs,
+        },
       );
     }
     const dismissedAt = Date.now();

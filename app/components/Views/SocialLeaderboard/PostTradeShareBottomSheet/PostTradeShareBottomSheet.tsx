@@ -98,7 +98,7 @@ const getTitle = (session: PostTradeShareSession): string => {
       return strings(
         isPerps
           ? 'social_leaderboard.post_trade_share.order_in_progress'
-          : 'social_leaderboard.post_trade_share.swap_in_progress',
+          : 'social_leaderboard.post_trade_share.trade_in_progress',
       );
     case 'failed':
       return strings(

@@ -8,7 +8,7 @@ import {
 } from '../../constants/limitOrders';
 import type { BridgeToken } from '../../types';
 import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
-import { getLimitOrderFiatPriceDecimals } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
+import { getFiatPriceDecimals } from '../../utils/currencyUtils';
 import { formatLimitOrderFiatUnitPrice } from '../../utils/limitOrders/formatLimitOrderFiatValue';
 import { formatLimitOrderQuickPrice } from '../../utils/limitOrders/formatLimitOrderQuickPrice';
 import { getSwapsLimitOrderDefaultPriceMode } from '../../utils/limitOrders/getSwapsLimitOrderDefaultPriceMode';
@@ -32,7 +32,7 @@ function getFiatTriggerPrice(
       return formatLimitOrderFiatUnitPrice(
         displayPrice.toNumber(),
         currentCurrency,
-        getLimitOrderFiatPriceDecimals(displayPrice),
+        getFiatPriceDecimals(displayPrice),
       );
     }
   }
@@ -40,7 +40,7 @@ function getFiatTriggerPrice(
   return formatLimitOrderFiatUnitPrice(
     usdPrice,
     'usd',
-    getLimitOrderFiatPriceDecimals(usdPrice),
+    getFiatPriceDecimals(usdPrice),
   );
 }
 

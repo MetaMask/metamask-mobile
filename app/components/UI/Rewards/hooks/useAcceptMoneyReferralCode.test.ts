@@ -3,6 +3,7 @@ import { act, renderHook } from '@testing-library/react-hooks';
 import { configureStore } from '@reduxjs/toolkit';
 import { Provider } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { earnRatesFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import Engine from '../../../../core/Engine';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -53,14 +54,14 @@ const buildReferralMe = (
   referred_by: {
     referral_code: CODE,
   },
-  earn_rates: {
+  earn_rates: earnRatesFixture({
     cashback_rate_bps: 500,
-    cashback_earning_start: null,
-    cashback_earning_end: null,
-    revshare_rate_bps: null,
-    revshare_earning_start: null,
-    revshare_earning_end: null,
-  },
+    cashback_by_product: {
+      perps: { rate_bps: 500, source: null },
+      swaps: { rate_bps: 500, source: null },
+      predict: null,
+    },
+  }),
   localized_text: localizedText as ReferralMeDto['localized_text'],
   invite_hero: null,
   excluded_regions: [],

@@ -1,4 +1,5 @@
 import type {
+  AddressTotalsDto,
   ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
@@ -64,6 +65,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   claimFailureNoEligibleBalanceToast: 'Nothing eligible to claim',
   claimFailureUnavailableToast: 'Claims are unavailable',
   claimFailureContactSupportToast: 'Contact support',
+  earnedOnOtherAccounts:
+    'Some earnings belong to accounts not on this device. Import the wallet to claim.',
   historyClaimPending: 'Claim pending',
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
@@ -106,6 +109,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebatePerps: 'Perps',
   rebateSwapsVolume: 'Swaps volume',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
@@ -220,6 +224,24 @@ function totals(
     pending: '0',
     claimed: '0',
     ...overrides,
+  };
+}
+
+/**
+ * One `by_address` row of a claim family. `address` is the full
+ * `namespace:address` form the backend returns, such as `eip155:0x…`.
+ */
+export function byAddressRowFixture(
+  address: string,
+  claimable = '1000000',
+): AddressTotalsDto {
+  return {
+    address,
+    lifetime: claimable,
+    claimable,
+    pending: '0',
+    claimed: '0',
+    voided: '0',
   };
 }
 
@@ -433,14 +455,52 @@ export const PENDING_CLAIM_FIXTURE: ClaimDto = {
   updated_at: '2026-09-01T00:00:00.000Z',
 };
 
-const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
+const EMPTY_REVSHARE_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['revshare_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_CASHBACK_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['cashback_by_product']
+> = { perps: null, swaps: null, predict: null };
+
+const EMPTY_COPY_TRADING_BY_PRODUCT: NonNullable<
+  ReferralMeDto['earn_rates']['copy_trading_by_product']
+> = { perps: null, swaps: null };
+
+/**
+ * Earn rates with every field null, including the per-product maps.
+ * The next DTO field belongs here so unit tests do not each rewrite the shape.
+ */
+export const EMPTY_EARN_RATES: ReferralMeDto['earn_rates'] = {
   cashback_rate_bps: null,
   cashback_earning_start: null,
   cashback_earning_end: null,
   revshare_rate_bps: null,
   revshare_earning_start: null,
   revshare_earning_end: null,
+  revshare_by_product: EMPTY_REVSHARE_BY_PRODUCT,
+  cashback_by_product: EMPTY_CASHBACK_BY_PRODUCT,
+  copy_trading_by_product: EMPTY_COPY_TRADING_BY_PRODUCT,
 };
+
+/**
+ * A fresh earn-rates object. Pass only the rates a test asserts; a product
+ * map replaces that map wholesale.
+ *
+ * @param overrides - Fields that replace the empty rates.
+ * @returns Earn rates, with the empty product maps copied.
+ */
+export function earnRatesFixture(
+  overrides: Partial<ReferralMeDto['earn_rates']> = {},
+): ReferralMeDto['earn_rates'] {
+  return {
+    ...EMPTY_EARN_RATES,
+    revshare_by_product: { ...EMPTY_REVSHARE_BY_PRODUCT },
+    cashback_by_product: { ...EMPTY_CASHBACK_BY_PRODUCT },
+    copy_trading_by_product: { ...EMPTY_COPY_TRADING_BY_PRODUCT },
+    ...overrides,
+  };
+}
 
 export function referralMeFixture(
   persona: MoneyDashboardPersona,
@@ -463,7 +523,7 @@ export function referralMeFixture(
       : null,
     referral_code_status: referrer ? 'ACTIVE' : null,
     referred_by: referee ? { referral_code: 'SOPHIE' } : null,
-    earn_rates: EMPTY_EARN_RATES,
+    earn_rates: earnRatesFixture(),
     localized_text: REFERRAL_LOCALIZED_TEXT,
     invite_hero: null,
     excluded_regions: [],
@@ -546,6 +606,11 @@ export interface RewardsMoneyViewStateOptions {
    * follow `claimReady`.
    */
   claimGates?: ClaimSubmissionGates;
+  /**
+   * Epoch ms until Claim is enabled again. Set when a refusal's Retry-After
+   * is still running.
+   */
+  claimWaitUntil?: number;
 }
 
 /**
@@ -557,6 +622,7 @@ export function rewardsMoneyViewState({
   summary = CLAIMABLE_EARNINGS_SUMMARY,
   claimReady = false,
   claimGates,
+  claimWaitUntil,
   referralMe: referralMeOverride,
   seedReferralMe = true,
   subscriptionId = null,
@@ -644,6 +710,13 @@ export function rewardsMoneyViewState({
         pendingReferralCode,
         answeredReferralCode,
         isReferralLinkPending,
+        ...(claimWaitUntil === undefined
+          ? {}
+          : {
+              claimWaitingUntil: {
+                [profileId]: claimWaitUntil,
+              },
+            }),
       },
       engine: {
         backgroundState: {

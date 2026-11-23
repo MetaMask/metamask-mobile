@@ -1,4 +1,8 @@
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  useNavigation,
+  useFocusEffect,
+  type NavigationProp,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -87,6 +91,12 @@ import {
   usePredictEntryActions,
 } from '../../UI/PredictNext';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
+import { selectCollectiblesEnabled } from '../../UI/Collectibles/selectors/featureFlags';
+import { collectiblesTestIds } from '../../UI/Collectibles/Collectibles.testIds';
+import {
+  collectiblesRoutes,
+  type CollectiblesParamList,
+} from '../../UI/Collectibles/routeNames';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
@@ -152,7 +162,7 @@ export interface TradeWalletActionsParams {
 }
 
 function TradeWalletActions() {
-  const { navigate } = useNavigation();
+  const { navigate } = useNavigation<NavigationProp<CollectiblesParamList>>();
   const {
     onDismiss,
     buttonLayout,
@@ -303,6 +313,7 @@ function TradeWalletActions() {
   const isPerpsProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictAvailability);
   const { openPredict } = usePredictEntryActions();
+  const isCollectiblesEnabled = useSelector(selectCollectiblesEnabled);
 
   const { getTarget } = usePerpsHeaderEntryNavigation();
 
@@ -416,6 +427,10 @@ function TradeWalletActions() {
     handleNavigateBack();
   }, [handleNavigateBack, openPredict]);
 
+  const onCollectibles = useCallback(() => {
+    onActionSelected(() => navigate(collectiblesRoutes.root));
+  }, [onActionSelected, navigate]);
+
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
@@ -483,6 +498,15 @@ function TradeWalletActions() {
           onPress={onPerps}
           testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
           isDisabled={!canSignTransactions}
+        />
+      )}
+      {isCollectiblesEnabled && (
+        <ActionListItem
+          label={strings('collectibles.title')}
+          description={strings('collectibles.trade_menu.description')}
+          iconName={IconName.Gift}
+          onPress={onCollectibles}
+          testID={collectiblesTestIds.tradeMenuItem}
         />
       )}
       {isPredictEnabled && (
