@@ -10230,6 +10230,8 @@
     "estimated_balance_sheet": {
       "title": "Your {{depositAmount}} could grow to {{projectedAmount}}",
       "subtitle_prefix": "Estimated balance after one year in MetaMask Money at ",
+      "subtitle_apy": "{{percentage}}% APY",
+      "subtitle_suffix": ".",
       "subtitle_no_apy": "Estimated balance after one year in MetaMask Money.",
       "bullet_compound_title": "Earnings compound automatically",
       "bullet_compound_body": "Earnings are added to your balance in real time, so they start earning too.",

@@ -115,9 +115,11 @@ const MoneyEstimatedBalanceSheet = () => {
                     variant={TextVariant.BodyMd}
                     color={TextColor.SuccessDefault}
                   >
-                    {strings('money.apy_label', { percentage: resolvedApy })}
+                    {strings('money.estimated_balance_sheet.subtitle_apy', {
+                      percentage: resolvedApy,
+                    })}
                   </Text>
-                  {'.'}
+                  {strings('money.estimated_balance_sheet.subtitle_suffix')}
                 </>
               ) : (
                 strings('money.estimated_balance_sheet.subtitle_no_apy')
