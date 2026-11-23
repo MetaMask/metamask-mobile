@@ -149,7 +149,7 @@ describe('buildLighterExistingAccountDepositRequest', () => {
       skipInitialGasEstimate: true,
       type: TransactionType.perpsLighterDeposit,
     });
-    expect(request.paymentProvider).toBe('lighter');
+    expect(request.paymentOverride).toBe('perpsLighter');
   });
 });
 

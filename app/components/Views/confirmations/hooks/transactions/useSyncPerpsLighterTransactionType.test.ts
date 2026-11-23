@@ -208,7 +208,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
     setTransactionConfig.mock.calls[0][1](config);
     expect(config).toStrictEqual({
       isQuoteRequired: true,
-      paymentProvider: 'lighter',
+      paymentOverride: 'perpsLighter',
     });
     expect(mockAddTransaction.mock.invocationCallOrder[0]).toBeLessThan(
       mockRejectRequest.mock.invocationCallOrder[0],

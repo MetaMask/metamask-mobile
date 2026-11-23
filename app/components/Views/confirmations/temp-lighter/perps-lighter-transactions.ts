@@ -7,7 +7,10 @@ import {
   generateEIP7702BatchTransaction,
   updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
-import type { TransactionConfig } from '@metamask/transaction-pay-controller';
+import type {
+  PaymentOverride,
+  TransactionConfig,
+} from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
@@ -43,16 +46,16 @@ export interface PerpsTransactionRequest {
   params: TransactionParams;
   options: PerpsTransactionOptions;
   /** Set on the new confirmation's pay config once it is added. */
-  paymentProvider?: typeof LIGHTER_PAYMENT_PROVIDER;
+  paymentOverride?: typeof LIGHTER_PAYMENT_OVERRIDE;
 }
 
 /**
- * Value of `paymentProvider` that makes Pay quote into the Lighter balance.
+ * Value of `paymentOverride` that makes Pay quote into the Lighter balance.
  *
- * TODO: use `PaymentProvider.Lighter` from `@metamask/transaction-pay-controller`
- * once this app depends on a release with MetaMask/core#11705.
+ * TODO: use `PaymentOverride.PerpsLighter` from `@metamask/transaction-pay-controller`
+ * once this app depends on a release with MetaMask/core#11640 and #11705.
  */
-export const LIGHTER_PAYMENT_PROVIDER = 'lighter';
+export const LIGHTER_PAYMENT_OVERRIDE = 'perpsLighter';
 
 /** The Hyperliquid confirmation to recreate when the user switches back. */
 export interface HyperliquidConfirmationSnapshot {
@@ -130,7 +133,7 @@ export function buildLighterDepositRequest({
 /**
  * Mainnet USDC deposit into an existing Lighter account, as a new
  * confirmation. It has no calldata. Pay quotes the required mainnet USDC into
- * Lighter because `paymentProvider` is set once the confirmation is added.
+ * Lighter because `paymentOverride` is set once the confirmation is added.
  *
  * @param request - Deposit to build.
  * @param request.amount - USDC amount in base units.
@@ -165,7 +168,7 @@ export function buildLighterExistingAccountDepositRequest({
       skipInitialGasEstimate: true,
       type,
     },
-    paymentProvider: LIGHTER_PAYMENT_PROVIDER,
+    paymentOverride: LIGHTER_PAYMENT_OVERRIDE,
   };
 }
 
@@ -282,8 +285,8 @@ export async function replacePerpsTransaction(
     request.options,
   );
 
-  if (request.paymentProvider) {
-    setPaymentProvider(transactionMeta.id, request.paymentProvider);
+  if (request.paymentOverride) {
+    setPaymentOverride(transactionMeta.id, request.paymentOverride);
   }
 
   Engine.context.ApprovalController.rejectRequest(
@@ -292,14 +295,14 @@ export async function replacePerpsTransaction(
   );
 }
 
-function setPaymentProvider(
+function setPaymentOverride(
   transactionId: string,
-  paymentProvider: typeof LIGHTER_PAYMENT_PROVIDER,
+  paymentOverride: typeof LIGHTER_PAYMENT_OVERRIDE,
 ): void {
   Engine.context.TransactionPayController.setTransactionConfig(
     transactionId,
-    (config: TransactionConfig & { paymentProvider?: string }) => {
-      config.paymentProvider = paymentProvider;
+    (config: TransactionConfig) => {
+      config.paymentOverride = paymentOverride as string as PaymentOverride;
       // The pay token can be the required mainnet USDC itself, which Pay would
       // otherwise skip as a same-token no-op.
       config.isQuoteRequired = true;
