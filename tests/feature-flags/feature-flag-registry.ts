@@ -7232,6 +7232,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  homeTMCU1939AbtestFundStepReceiveButton: {
+    name: 'homeTMCU1939AbtestFundStepReceiveButton',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   homeBrandRefreshSurfaces: {
     name: 'homeBrandRefreshSurfaces',
     type: FeatureFlagType.Remote,

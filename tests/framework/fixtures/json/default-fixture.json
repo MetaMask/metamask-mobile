@@ -680,6 +680,7 @@
             "confirmationsCONF1775AbtestMoneyAccountDepositPrefill": "control",
             "coreMCU747AbtestPredictPositionsEmptyState": "treatment",
             "homeTMCU1103AbtestActionButtonsGrid": "control",
+            "homeTMCU1939AbtestFundStepReceiveButton": "control",
             "homeTMCU610AbtestWalletHomePostOnboardingSteps": "postOnboardingSteps",
             "homeTMCU725AbtestHomepagePerpsPillsEmptyState": "treatment",
             "homeTMCU926AbtestDiscoveryPills": "control",

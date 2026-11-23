@@ -79,6 +79,12 @@ import {
 } from './walletHomeOnboardingStepsStrings';
 import { useWalletHomeOnboardingChecklistHomeViewed } from './useWalletHomeOnboardingChecklistHomeViewed';
 import { consumeWalletHomeOnboardingFundFlowCompletion } from './walletHomeOnboardingFundFlow';
+import { useABTest } from '../../../hooks/useABTest';
+import {
+  FUND_STEP_RECEIVE_AB_KEY,
+  FUND_STEP_RECEIVE_AB_TEST_EXPOSURE_OPTIONS,
+  FUND_STEP_RECEIVE_VARIANTS,
+} from './abTestConfig';
 
 const SLIDE_DISTANCE = Dimensions.get('window').width;
 
@@ -101,6 +107,11 @@ export interface WalletHomeOnboardingStepsProps {
   onNotificationsPrimaryPress?: () => void;
   /** Fund step: opens buy / on-ramp and advances after the completed flow returns. */
   onFundPrimaryPress?: (onLaunchFailure: () => void) => void;
+  /**
+   * Fund step A/B treatment (TMCU-1939): opens the receiving address list. Navigation only —
+   * never advances the step. The Receive button renders only when this is set.
+   */
+  onReceivePress?: () => void;
   /**
    * True when aggregated balance is settled and positive (on-ramp complete, incoming transfer, etc.).
    * Enables passive fund-step advance when funds arrive without leaving the wallet.
@@ -126,6 +137,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
   onTradePrimaryPress,
   onNotificationsPrimaryPress,
   onFundPrimaryPress,
+  onReceivePress,
   canAdvanceFundStepAfterBalance = false,
 }) => {
   const tw = useTailwind();
@@ -165,6 +177,20 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
     steps: visibleSteps,
   });
   const displayStepIndex = isBalanceShellVisible ? 0 : stepIndex;
+  /**
+   * Fund step Receive button A/B test (TMCU-1939). Exposure only counts once the user
+   * actually sees the fund step (index 0), with the balance shell resolved and the
+   * screen focused — not for users resuming on the trade/notifications steps.
+   */
+  const { variant: fundStepReceiveVariant } = useABTest(
+    FUND_STEP_RECEIVE_AB_KEY,
+    FUND_STEP_RECEIVE_VARIANTS,
+    {
+      ...FUND_STEP_RECEIVE_AB_TEST_EXPOSURE_OPTIONS,
+      trackExposure:
+        isFocused && !isBalanceShellVisible && displayStepIndex === 0,
+    },
+  );
   /** Capped index for progress + hero; matches visible steps bounds before Redux clamps persisted step. */
   const visualStepIndexForProgress = walletHomeOnboardingCappedVisualStepIndex(
     displayStepIndex,
@@ -756,6 +782,17 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
 
   const primaryTestID = `${testID}-${WalletHomeOnboardingStepsSelectors.PRIMARY_BUTTON}`;
   const stepHero = WALLET_HOME_ONBOARDING_STEP_HERO[currentStep.kind];
+  /**
+   * Treatment only: Receive takes the secondary slot next to Add funds on the fund step.
+   * Hidden while the balance shell is showing so the treatment layout is only painted once
+   * the user is exposed (`Experiment Viewed` fires on the same condition).
+   */
+  const fundStepReceivePress =
+    currentStep.kind === 'fund' &&
+    fundStepReceiveVariant.showReceiveButton &&
+    !isBalanceShellVisible
+      ? onReceivePress
+      : undefined;
 
   const heroContainerClassName =
     'relative h-52 w-full rounded-2xl overflow-hidden';
@@ -834,7 +871,8 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
       </Box>
 
       <Box flexDirection={BoxFlexDirection.Column} gap={3} twClassName="w-full">
-        {currentStep.buttonLayout === 'full_width_primary' ? (
+        {currentStep.buttonLayout === 'full_width_primary' &&
+        !fundStepReceivePress ? (
           <Button
             size={ButtonSize.Lg}
             onPress={handlePrimaryPress}
@@ -858,7 +896,7 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
             <ButtonGlass
               isGlass={isGlass}
               size={ButtonSize.Lg}
-              onPress={() => goNextOrComplete()}
+              onPress={fundStepReceivePress ?? (() => goNextOrComplete())}
               twClassName="min-w-0 flex-1"
               containerStyle={tw.style('min-w-0 flex-1')}
               isDisabled={
@@ -866,9 +904,15 @@ const WalletHomeOnboardingSteps: React.FC<WalletHomeOnboardingStepsProps> = ({
                 isBalanceShellVisible ||
                 isAwaitingDeferredNavResumeHold
               }
-              testID={WalletHomeOnboardingStepsSelectors.SKIP_BUTTON}
+              testID={
+                fundStepReceivePress
+                  ? WalletHomeOnboardingStepsSelectors.RECEIVE_BUTTON
+                  : WalletHomeOnboardingStepsSelectors.SKIP_BUTTON
+              }
             >
-              {strings('wallet.home_onboarding_steps.skip')}
+              {fundStepReceivePress
+                ? strings('asset_overview.receive_button')
+                : strings('wallet.home_onboarding_steps.skip')}
             </ButtonGlass>
             <Button
               size={ButtonSize.Lg}
