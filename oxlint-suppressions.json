@@ -11680,9 +11680,6 @@
     }
   },
   "app/components/UI/Rewards/Views/CampaignsView.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -11833,11 +11830,6 @@
       "count": 1
     },
     "typescript/unbound-method": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/Views/RewardsMoneyDashboard.view.test.tsx": {
-    "typescript/promise-function-async": {
       "count": 1
     }
   },
@@ -12464,9 +12456,6 @@
     }
   },
   "app/components/UI/Rewards/hooks/useBenefits.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     }
@@ -12995,9 +12984,6 @@
     }
   },
   "app/components/UI/Rewards/hooks/useRewardCampaigns.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     }
