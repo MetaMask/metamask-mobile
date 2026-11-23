@@ -420,7 +420,7 @@ describe('NotificationSettingsSectionContent', () => {
 
   describe('marketing consent', () => {
     const SET_MARKETING_CONSENT_ACTION =
-      'MarketingConsentController:setMarketingConsent';
+      'MarketingConsentSyncService:setMarketingConsent';
 
     const turnMarketingChannelOn = async (
       toggleTestId: string,

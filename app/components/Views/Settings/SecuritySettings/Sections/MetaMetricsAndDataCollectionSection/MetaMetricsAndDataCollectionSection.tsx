@@ -208,7 +208,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   // rewards" channels off. A failed save keeps the sheet open.
   const confirmMarketingOptOut = async () => {
     await Engine.controllerMessenger.call(
-      'MarketingConsentController:setMarketingConsent',
+      'MarketingConsentSyncService:setMarketingConsent',
       false,
     );
     if (analyticsEnabled) {
