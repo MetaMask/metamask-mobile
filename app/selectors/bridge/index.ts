@@ -4,6 +4,7 @@ import {
   isCrossChain,
   isNonEvmChainId,
   formatChainIdToHex,
+  isNativeAddress,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { selectSelectedInternalAccountByScope } from '../multichainAccounts/accounts';
@@ -16,6 +17,7 @@ import {
   selectIsSwap,
   selectIsGasIncludedSTXSendBundleSupported,
   selectIsGasIncluded7702Supported,
+  selectIsNativeGasIncludedSupported,
 } from '../../core/redux/slices/bridge';
 import {
   getMemoizedInternalAccountByAddress,
@@ -104,6 +106,7 @@ export const selectGasIncludedQuoteParams = createSelector(
     selectIsSwap,
     selectIsGasIncludedSTXSendBundleSupported,
     selectIsGasIncluded7702Supported,
+    selectIsNativeGasIncludedSupported,
     selectIsGasIncluded7702BridgeEnabled,
   ],
   (
@@ -111,6 +114,7 @@ export const selectGasIncludedQuoteParams = createSelector(
     isSwap,
     gasIncludedSTXSendBundleSupport,
     gasIncluded7702Support,
+    nativeGasIncludedSupport,
     gasIncluded7702BridgeEnabled,
   ) => {
     // Enable gas-included swaps for solana
@@ -118,13 +122,26 @@ export const selectGasIncludedQuoteParams = createSelector(
       return { gasIncluded: true, gasIncluded7702: false };
     }
 
-    if (gasIncludedSTXSendBundleSupport) {
-      return { gasIncluded: true, gasIncluded7702: false };
-    }
-
     const gasIncludedWith7702Enabled =
       (Boolean(isSwap) || gasIncluded7702BridgeEnabled) &&
       gasIncluded7702Support;
+
+    // Keep 7702 when available unless STX covers gas.
+    if (
+      nativeGasIncludedSupport &&
+      sourceToken?.address &&
+      isNativeAddress(sourceToken.address)
+    ) {
+      return {
+        gasIncluded: true,
+        gasIncluded7702:
+          !gasIncludedSTXSendBundleSupport && gasIncludedWith7702Enabled,
+      };
+    }
+
+    if (gasIncludedSTXSendBundleSupport) {
+      return { gasIncluded: true, gasIncluded7702: false };
+    }
 
     return {
       gasIncluded: gasIncludedWith7702Enabled,

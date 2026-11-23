@@ -17,8 +17,8 @@ jest.mock('../../shared/StockBadge', () => {
 
   return {
     __esModule: true,
-    default: ({ token }: { token: { symbol: string } }) =>
-      createElement(Text, { testID: `stock-badge-${token.symbol}` }, 'Stock'),
+    default: ({ token, label }: { token: { symbol: string }; label: string }) =>
+      createElement(Text, { testID: `stock-badge-${token.symbol}` }, label),
   };
 });
 
@@ -177,15 +177,6 @@ jest.mock('../../../../component-library/base-components/TagBase', () => {
   };
 });
 
-jest.mock('../../../../component-library/components/Tags/Tag', () => {
-  const { createElement } = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ label }: { label: string }) => createElement(Text, null, label),
-  };
-});
-
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
 
@@ -297,6 +288,32 @@ describe('TokenSelectorItem', () => {
       );
 
       expect(getByText('No MM Fee')).toBeTruthy();
+    });
+
+    it('renders the badge with badgeLabel when provided', () => {
+      const token = createMockTokenWithBalance();
+
+      const { getByTestId } = render(
+        <TokenSelectorItem
+          token={token}
+          onPress={mockOnPress}
+          badgeLabel="Stock"
+        />,
+      );
+
+      expect(getByTestId(`stock-badge-${token.symbol}`)).toHaveTextContent(
+        'Stock',
+      );
+    });
+
+    it('does not render the badge when badgeLabel is not provided', () => {
+      const token = createMockTokenWithBalance();
+
+      const { queryByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByTestId(`stock-badge-${token.symbol}`)).toBeNull();
     });
 
     it('renders verified icon when token is verified', () => {

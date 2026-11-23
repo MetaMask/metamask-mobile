@@ -1,0 +1,18 @@
+# Please see the documentation for all configuration options:
+# https://docs.zizmor.sh/configuration/
+
+rules:
+  dependabot-cooldown:
+    config:
+      # Change the minimum allowed cooldown period for Dependabot to 3 days.
+      days: 3
+
+  unpinned-uses:
+    config:
+      policies:
+        # Allow `actions/*` and `MetaMask/*` to be pinned to a version instead
+        # of only to a commit hash.
+        actions/*: ref-pin
+        MetaMask/*: ref-pin
+        aws-actions/*: ref-pin
+        metamask/*: ref-pin

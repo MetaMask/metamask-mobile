@@ -11,7 +11,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -39,8 +38,11 @@ import {
 import { styleSheet } from './PerpsPositionTransactionView.styles';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 const PerpsPositionTransactionView: React.FC = () => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -67,7 +69,12 @@ const PerpsPositionTransactionView: React.FC = () => {
     // Handle missing transaction data
     return (
       <ScreenView>
-        <HeaderStandard includesTopInset onBack={() => navigation.goBack()} />
+        <HeaderStandardGlass
+          isGlass={isBrandRefresh}
+          isFloating={false}
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -144,7 +151,9 @@ const PerpsPositionTransactionView: React.FC = () => {
     textColor: TextColor;
   }[] = [];
 
-  if (transaction.fill?.fee !== undefined && transaction.fill?.fee !== null) {
+  // An empty fee is unknown (a grouped order with a fill missing its fee):
+  // leave the row out rather than show $0.00.
+  if (transaction.fill?.fee) {
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.fees'),
       value: formatPositiveFiat(transaction.fill.fee),
@@ -153,17 +162,26 @@ const PerpsPositionTransactionView: React.FC = () => {
   }
 
   if (
-    transaction.fill?.pnl &&
-    (transaction.fill?.action === 'Closed' ||
-      transaction.fill?.action === 'Flipped')
+    transaction.fill?.action === 'Closed' ||
+    transaction.fill?.action === 'Flipped'
   ) {
-    const pnlValue = BigNumber(transaction.fill?.amountNumber || 0);
-    const isPositive = pnlValue.isGreaterThanOrEqualTo(0);
+    const pnlValue =
+      transaction.fill.amountNumber === undefined
+        ? undefined
+        : BigNumber(transaction.fill.amountNumber);
 
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
-      value: transaction.fill?.amount || '0',
-      textColor: isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault,
+      value:
+        pnlValue === undefined
+          ? strings('perps.transactions.unknown_pnl')
+          : transaction.fill.amount,
+      textColor:
+        pnlValue === undefined
+          ? TextColor.TextDefault
+          : pnlValue.isGreaterThanOrEqualTo(0)
+            ? TextColor.SuccessDefault
+            : TextColor.ErrorDefault,
     });
   }
 
@@ -179,7 +197,9 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         title={transaction?.fill?.shortTitle || ''}
         onBack={() => navigation.goBack()}
         includesTopInset

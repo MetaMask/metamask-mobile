@@ -3,7 +3,6 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import {
-  getTransactionDetailsParams,
   mapTransactionToActivityItem,
   type TransactionWithImportTime,
 } from './AssetDetailsActivityListItem.utils';
@@ -27,72 +26,6 @@ const createTransaction = (
 });
 
 describe('AssetDetailsActivityListItem utils', () => {
-  it('maps transaction metadata to activity item with asset details chain context', () => {
-    const transaction = createTransaction({
-      chainId: undefined,
-      txParams: {
-        from: '0x123',
-        to: '0x456',
-        value: '0x1',
-      },
-    });
-
-    const item = mapTransactionToActivityItem({
-      transaction,
-      assetSymbol: 'ETH',
-      currentChainId: '0x1',
-      tokenChainId: '0x89',
-    });
-
-    expect(item.chainId).toBe('eip155:137');
-    // nativeAssetSymbol flows through to the mapped token symbol
-    expect('token' in item.data ? item.data.token?.symbol : undefined).toBe(
-      'ETH',
-    );
-  });
-
-  it('creates transaction details params for redesigned asset detail rows', () => {
-    const selectedTx = createTransaction();
-    const item = mapTransactionToActivityItem({
-      transaction: selectedTx,
-      assetSymbol: 'ETH',
-      currentChainId: '0x1',
-    });
-    const showSpeedUpModal = jest.fn();
-    const showCancelModal = jest.fn();
-
-    const params = getTransactionDetailsParams({
-      item,
-      selectedTx,
-      actionKey: 'Send ETH',
-      value: '1 ETH',
-      from: '0x123',
-      to: '0x456',
-      currentChainId: '0x1',
-      tokenChainId: '0x89',
-      showSpeedUpModal,
-      showCancelModal,
-    });
-
-    expect(params).toStrictEqual({
-      tx: selectedTx,
-      transactionElement: {
-        actionKey: 'Send ETH',
-        value: '1 ETH',
-      },
-      transactionDetails: {
-        hash: item.hash,
-        renderFrom: '0x123',
-        renderTo: '0x456',
-        renderValue: '1 ETH',
-        transactionType: item.type,
-        txChainId: '0x1',
-      },
-      showSpeedUpModal,
-      showCancelModal,
-    });
-  });
-
   describe('contractTokenMetadata enrichment', () => {
     const USDG_ADDRESS = '0x5fc5360d0400a0fd4f2af552add042d716f1d168';
     const USDG_ADDRESS_CHECKSUMMED =

@@ -5,7 +5,7 @@ import {
   screen,
   within,
 } from '@testing-library/react-native';
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName, TagSeverity } from '@metamask/design-system-react-native';
 import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { Keyboard, StyleSheet, type View } from 'react-native';
 import {
@@ -22,6 +22,7 @@ import {
   playImpact,
   playSelection,
 } from '../../../../../../../util/haptics';
+import { usePerpsLocale } from '../../../../hooks/usePerpsLocale';
 
 const mockInputFocus = jest.fn();
 let mockInputHandlesActive = true;
@@ -54,12 +55,22 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 jest.mock('../../../../components/PerpsSlider', () => 'PerpsSlider');
 jest.mock('../../../../components/PerpsFeesDisplay', () => 'PerpsFeesDisplay');
+jest.mock('../../../../hooks/usePerpsLocale', () => ({
+  usePerpsLocale: jest.fn(() => 'en-US'),
+}));
 
 jest.mock('../../../../../../../util/haptics');
 
 const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 const createSizeInput = (
   overrides: Partial<PerpsProOrderFormProps['sizeInput']> = {},
@@ -194,6 +205,7 @@ describe('PerpsProOrderForm', () => {
     mockInputHandlesActive = true;
     jest.mocked(playImpact).mockClear();
     jest.mocked(playSelection).mockClear();
+    (usePerpsLocale as jest.Mock).mockReturnValue('en-US');
   });
 
   afterEach(() => {
@@ -298,13 +310,11 @@ describe('PerpsProOrderForm', () => {
       );
       expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '',
+        '0.00',
       );
       expect(
-        screen.getByRole('button', {
-          name: `${strings('perps.order.chase.max_distance')} (USD)`,
-        }),
-      ).toHaveProp('testID', `${ids.CHASE_MAX_DISTANCE_INPUT}-field`);
+        screen.getByTestId(`${ids.CHASE_MAX_DISTANCE_INPUT}-field`),
+      ).toHaveProp('accessible', false);
       expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT)).toHaveProp(
         'hitSlop',
         12,
@@ -325,6 +335,15 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
     });
 
+    it('forwards Chase max distance focus to onChaseMaxDistanceFocus', () => {
+      const onChaseMaxDistanceFocus = jest.fn();
+      renderForm({ orderType: 'chase', onChaseMaxDistanceFocus });
+
+      fireEvent(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+      expect(onChaseMaxDistanceFocus).toHaveBeenCalledTimes(1);
+    });
+
     it('formats an empty Chase percentage distance with its unit', () => {
       renderForm({
         orderType: 'chase',
@@ -336,7 +355,7 @@ describe('PerpsProOrderForm', () => {
       ).not.toBeOnTheScreen();
       expect(getMountedInput(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
         'placeholder',
-        '',
+        '0%',
       );
 
       fireEvent.press(
@@ -375,13 +394,36 @@ describe('PerpsProOrderForm', () => {
       );
     });
 
-    it('passes raw size text to sizeInput.onChange', () => {
+    it('normalizes repeated decimal separators before sizeInput.onChange', () => {
       const onChange = jest.fn();
       renderForm({ sizeInput: createSizeInput({ onChange }) });
 
       fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '1..2');
 
-      expect(onChange).toHaveBeenCalledWith('1..2');
+      expect(onChange).toHaveBeenCalledWith('1.2');
+    });
+
+    it('groups displayed size values while preserving canonical callbacks', () => {
+      const onChange = jest.fn();
+      renderForm({
+        sizeInput: createSizeInput({ value: '1200', onChange }),
+      });
+
+      expect(getMountedInput(ids.SIZE_INPUT)).toHaveProp('value', '1,200');
+
+      fireEvent.changeText(getMountedInput(ids.SIZE_INPUT), '1,200.50');
+
+      expect(onChange).toHaveBeenCalledWith('1200.50');
+    });
+
+    it('uses locale-specific grouping in advanced order inputs', () => {
+      (usePerpsLocale as jest.Mock).mockReturnValue('de-DE');
+
+      renderForm({
+        sizeInput: createSizeInput({ value: '1200.50' }),
+      });
+
+      expect(getMountedInput(ids.SIZE_INPUT)).toHaveProp('value', '1.200,50');
     });
 
     it('passes raw limit price text to onLimitPriceChange', () => {
@@ -391,6 +433,51 @@ describe('PerpsProOrderForm', () => {
       fireEvent.changeText(getMountedInput(ids.LIMIT_PRICE_INPUT), '.123');
 
       expect(onLimitPriceChange).toHaveBeenCalledWith('.123');
+    });
+
+    it('keeps the limit price cursor at the end after live grouping inserts a separator', () => {
+      const onLimitPriceChange = jest.fn();
+      const ControlledForm = () => {
+        const [limitPrice, setLimitPrice] = React.useState('100');
+        const handleLimitPriceChange = (nextValue: string) => {
+          onLimitPriceChange(nextValue);
+          setLimitPrice(nextValue);
+        };
+
+        return (
+          <PerpsProOrderForm
+            {...createProps({
+              orderType: 'limit',
+              limitPrice,
+              onLimitPriceChange: handleLimitPriceChange,
+            })}
+          />
+        );
+      };
+      render(<ControlledForm />);
+      const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
+
+      fireEvent(input, 'focus');
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 3, end: 3 } },
+      });
+      fireEvent.changeText(input, '1000');
+
+      expect(input).toHaveProp('value', '1,000');
+      expect(input).toHaveProp('selection', { start: 5, end: 5 });
+      expect(onLimitPriceChange).toHaveBeenLastCalledWith('1000');
+
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 4, end: 4 } },
+      });
+
+      expect(input).toHaveProp('selection', { start: 5, end: 5 });
+
+      fireEvent(input, 'selectionChange', {
+        nativeEvent: { selection: { start: 2, end: 2 } },
+      });
+
+      expect(input).toHaveProp('selection', { start: 2, end: 2 });
     });
 
     it('omits the Mid chip when onUseMidPricePress is not provided', () => {
@@ -428,9 +515,13 @@ describe('PerpsProOrderForm', () => {
       const onLimitPriceFieldPress = jest.fn();
       renderForm({ orderType: 'limit', onLimitPriceFieldPress });
 
-      // `pressIn` rather than `focus`: re-tapping a focused input fires no
-      // focus event, which is the case this callback exists to cover.
-      fireEvent(getMountedInput(ids.LIMIT_PRICE_INPUT), 'pressIn');
+      const input = getMountedInput(ids.LIMIT_PRICE_INPUT);
+      fireEvent(input, 'focus');
+      fireEvent(input, 'pressIn');
+
+      expect(onLimitPriceFieldPress).not.toHaveBeenCalled();
+
+      fireEvent(input, 'pressOut');
 
       expect(onLimitPriceFieldPress).toHaveBeenCalledTimes(1);
     });
@@ -506,6 +597,31 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onSizeSkewBlur).toHaveBeenCalledTimes(1);
     });
 
+    it('realigns a Scale field on wrapper focus and a later wrapper re-tap', () => {
+      const scaleKeyboardScroll = createScaleKeyboardScroll();
+      renderForm({
+        orderType: 'scale',
+        scaleOrder: createScaleOrder(),
+        scaleKeyboardScroll,
+      });
+      const input = screen.getByTestId(ids.SCALE_START_PRICE);
+      const field = screen.getByTestId(`${ids.SCALE_START_PRICE}-field`);
+
+      fireEvent.press(field);
+
+      expect(scaleKeyboardScroll.startPrice.onFocus).not.toHaveBeenCalled();
+      expect(scaleKeyboardScroll.startPrice.realign).not.toHaveBeenCalled();
+
+      fireEvent(input, 'focus');
+      expect(scaleKeyboardScroll.startPrice.onFocus).toHaveBeenCalledTimes(1);
+      expect(scaleKeyboardScroll.startPrice.realign).not.toHaveBeenCalled();
+
+      fireEvent.press(field);
+
+      expect(scaleKeyboardScroll.startPrice.onFocus).toHaveBeenCalledTimes(1);
+      expect(scaleKeyboardScroll.startPrice.realign).toHaveBeenCalledTimes(1);
+    });
+
     it('renders blank default Scale prices and order count without zero placeholders', () => {
       const scaleOrder = createScaleOrder();
       scaleOrder.startPrice = '';
@@ -521,8 +637,8 @@ describe('PerpsProOrderForm', () => {
         expect(getMountedInput(inputTestID)).toHaveProp('value', '');
         expect(getMountedInput(inputTestID)).toHaveProp('placeholder', '');
         expect(screen.getByTestId(`${inputTestID}-field`)).toHaveProp(
-          'accessibilityRole',
-          'button',
+          'accessible',
+          false,
         );
       }
       expect(
@@ -1029,10 +1145,20 @@ describe('PerpsProOrderForm', () => {
         }),
       ).toHaveProp('inputAccessoryViewID', triggerAccessoryID);
       expect(
+        screen.getByTestId(ids.TRIGGER_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('isDisabled', true);
+      expect(
         screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
           includeHiddenElements: true,
         }),
       ).toHaveProp('inputAccessoryViewID', limitPriceAccessoryID);
+      expect(
+        screen.getByTestId(ids.LIMIT_PRICE_INPUT, {
+          includeHiddenElements: true,
+        }),
+      ).toHaveProp('isDisabled', true);
       expect(
         screen.queryByTestId(ids.TRIGGER_PRICE_INPUT),
       ).not.toBeOnTheScreen();
@@ -1246,6 +1372,18 @@ describe('PerpsProOrderForm', () => {
       expect(scaleOrder.onSizeSkewInfoPress).toHaveBeenCalledTimes(1);
     });
 
+    it('renders the margin mode and leverage chevrons from Figma', () => {
+      renderForm();
+
+      expect(
+        screen.getByTestId(`${ids.MARGIN_MODE_BUTTON}-chevron`),
+      ).toHaveProp('name', IconName.ArrowDown);
+      expect(screen.getByTestId(`${ids.LEVERAGE_BUTTON}-chevron`)).toHaveProp(
+        'name',
+        IconName.ArrowDown,
+      );
+    });
+
     it('renders the order type chevron from Figma', () => {
       renderForm();
 
@@ -1274,11 +1412,11 @@ describe('PerpsProOrderForm', () => {
       expect(screen.getByTestId(ids.CHASE_REFERENCE_PRICE)).toBeOnTheScreen();
     });
 
-    it('renders the order type row at the Figma 54px height', () => {
+    it('renders the order type row at 48px', () => {
       renderForm();
 
       expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveStyle({
-        height: 54,
+        height: 48,
       });
     });
 
@@ -1627,6 +1765,27 @@ describe('PerpsProOrderForm', () => {
 
       expect(onDirectionChange).toHaveBeenCalledWith('short');
     });
+
+    it('tints the selected direction and leaves the other one muted', () => {
+      const { rerender } = renderForm({ direction: 'long' });
+      const colourOf = (key: string) =>
+        StyleSheet.flatten(screen.getByText(strings(key)).props.style).color;
+
+      const longSelected = colourOf('perps.market.long');
+      const shortMuted = colourOf('perps.market.short');
+
+      rerender(<PerpsProOrderForm {...createProps({ direction: 'short' })} />);
+      const longMuted = colourOf('perps.market.long');
+      const shortSelected = colourOf('perps.market.short');
+
+      // The Secondary variant appends `text-default` to the label, so a colour
+      // passed the obvious way is silently overridden and both labels render
+      // as plain body text.
+      expect(longSelected).not.toBe(longMuted);
+      expect(shortSelected).not.toBe(shortMuted);
+      expect(longSelected).not.toBe(shortSelected);
+      expect(longMuted).toBe(shortMuted);
+    });
   });
 
   describe('order book expand icon', () => {
@@ -1683,6 +1842,31 @@ describe('PerpsProOrderForm', () => {
         'Risk warning',
       );
     });
+
+    it('renders the rebate banner for standard and Scale orders', () => {
+      mockPerpsRebateBanner.mockClear();
+      const rebateQuote = {
+        coin: 'ETH',
+        direction: 'long' as const,
+        notionalUsd: '100',
+      };
+      const view = renderForm({ rebateQuote });
+      expect(mockPerpsRebateBanner).toHaveBeenCalledWith({
+        ...rebateQuote,
+        textTwClassName: 'text-body-xs leading-[16px]',
+      });
+
+      view.rerender(
+        <PerpsProOrderForm
+          {...createProps({
+            orderType: 'scale',
+            scaleOrder: createScaleOrder(),
+          })}
+        />,
+      );
+
+      expect(mockPerpsRebateBanner).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('TWAP summary', () => {
@@ -1726,6 +1910,36 @@ describe('PerpsProOrderForm', () => {
       });
 
       expect(screen.getByTestId(ids.SUMMARY_LIQUIDATION)).toBeOnTheScreen();
+    });
+  });
+
+  describe('Fee Display Format A/B test', () => {
+    it('passes feeDisplayMode and both rates through to PerpsFeesDisplay for treatment', () => {
+      renderForm({
+        summary: {
+          margin: '--',
+          liquidationPrice: '--',
+          feeDisplayMode: 'percentage',
+          takerFeeRate: 0.00143,
+          makerFeeRate: 0.00114,
+        },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', 'percentage');
+      expect(feesValue).toHaveProp('takerFeeRate', 0.00143);
+      expect(feesValue).toHaveProp('makerFeeRate', 0.00114);
+    });
+
+    it('leaves PerpsFeesDisplay in dollar mode with no rates when feeDisplayMode is omitted', () => {
+      renderForm({
+        summary: { margin: '--', liquidationPrice: '--' },
+      });
+
+      const feesValue = screen.getByTestId(ids.SUMMARY_FEES_VALUE);
+      expect(feesValue).toHaveProp('feeDisplayMode', undefined);
+      expect(feesValue).toHaveProp('takerFeeRate', undefined);
+      expect(feesValue).toHaveProp('makerFeeRate', undefined);
     });
   });
 
@@ -1795,6 +2009,24 @@ describe('PerpsProOrderForm', () => {
       expect(marginModeStyle.flexBasis).toBe('0%');
       expect(leverageStyle.flexGrow).toBe(1);
       expect(leverageStyle.flexBasis).toBe('0%');
+    });
+
+    it('gives margin mode a larger share of the row when the ratio tag is shown', () => {
+      renderForm({
+        marginModeLabel: 'Cross',
+        marginModeTag: { label: '63,9 %', severity: TagSeverity.Warning },
+      });
+
+      const marginModeStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.MARGIN_MODE_BUTTON).props.style,
+      );
+      const leverageStyle = StyleSheet.flatten(
+        screen.getByTestId(ids.LEVERAGE_BUTTON).props.style,
+      );
+
+      expect(screen.getByTestId(ids.MARGIN_MODE_TAG)).toBeOnTheScreen();
+      expect(marginModeStyle.flexGrow).toBe(2);
+      expect(leverageStyle.flexGrow).toBe(1);
     });
 
     it('uses 4-point spacing between summary rows', () => {

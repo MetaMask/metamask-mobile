@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, type LayoutChangeEvent } from 'react-native';
 import {
   Box,
   Button,
@@ -25,7 +25,9 @@ interface FeedPreviewSectionProps {
   events: readonly PredictEvent[];
   isLoading: boolean;
   isError: boolean;
-  onOpen: () => void;
+  /** Opens the section's Feed Screen. Without it the header is plain text
+   * with no chevron. */
+  onOpen?: () => void;
   onOpenEvent: (event: PredictEvent) => void;
   onOrder?: (
     event: PredictEvent,
@@ -33,6 +35,8 @@ interface FeedPreviewSectionProps {
     outcome: PredictOutcome,
   ) => void;
   onRetry: () => void;
+  /** Reports the section's frame within the scroll content. */
+  onLayout?: (event: LayoutChangeEvent) => void;
 }
 
 export const FeedPreviewSection = ({
@@ -45,6 +49,7 @@ export const FeedPreviewSection = ({
   onOpenEvent,
   onOrder,
   onRetry,
+  onLayout,
 }: FeedPreviewSectionProps) => {
   const renderEvent = (event: PredictEvent) => {
     const handlePress = () => onOpenEvent(event);
@@ -60,18 +65,32 @@ export const FeedPreviewSection = ({
   };
 
   return (
-    <Box testID={PredictHomeTestIds.section(feedScreenId)} twClassName="gap-3">
-      <Pressable
-        testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
-        accessibilityRole="button"
-        accessibilityLabel={`View ${title}`}
-        onPress={onOpen}
-      >
-        <Box twClassName="flex-row items-center gap-1">
-          <Text variant={TextVariant.HeadingMd}>{title}</Text>
-          <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
-        </Box>
-      </Pressable>
+    <Box
+      testID={PredictHomeTestIds.section(feedScreenId)}
+      twClassName="gap-3"
+      onLayout={onLayout}
+    >
+      {onOpen ? (
+        <Pressable
+          testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
+          accessibilityRole="button"
+          accessibilityLabel={`View ${title}`}
+          onPress={onOpen}
+        >
+          <Box twClassName="flex-row items-center gap-1">
+            <Text variant={TextVariant.HeadingMd}>{title}</Text>
+            <Icon name={IconName.ArrowRight} size={IconSize.Sm} />
+          </Box>
+        </Pressable>
+      ) : (
+        <Text
+          testID={PredictHomeTestIds.sectionHeader(feedScreenId)}
+          accessibilityRole="header"
+          variant={TextVariant.HeadingMd}
+        >
+          {title}
+        </Text>
+      )}
 
       {isLoading ? (
         <Box

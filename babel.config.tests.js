@@ -34,14 +34,29 @@ const newOverrides = [
   // Don't transform environment variables for files that depend on them.
   {
     exclude: [
+      // The CV platform helper reads TEST_OS at module scope to scope tests to
+      // iOS/Android. If the inliner bakes it, jest's transform cache freezes
+      // whichever value was set during the first transform after a cache
+      // wipe, and later runs silently execute the wrong platform's tests no
+      // matter what TEST_OS they export.
+      'tests/component-view/platform.ts',
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Money/selectors/featureFlags.ts',
       'app/components/UI/Money/selectors/featureFlags.test.ts',
       'app/lib/Money/feature-flags.ts',
       'app/lib/Money/feature-flags.test.ts',
+      // Money MPC keyring stub: the build gate and static address are read at
+      // runtime so tests can flip them per-case.
+      'app/constants/featureFlags.ts',
+      'app/core/MpcMoneyKeyring/MpcMoneyKeyring.ts',
+      'app/core/MpcMoneyKeyring/MpcMoneyKeyring.test.ts',
+      'app/core/MpcMoneyKeyring/mpc-money-keyring-builder.test.ts',
+      'app/core/Engine/wallet-init/keyrings.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
       'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',
+      'tests/component-view/helpers/perpsViewTestHelpers.ts',
+      'tests/component-view/presets/perpsTwoExchangePresets.test.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/util/test/utils.js',
@@ -94,7 +109,9 @@ const newOverrides = [
       'app/constants/bridge.ts',
       // LLM workflow session manager reads process.env at runtime (e.g. MM_METRO_PORT)
       'tests/llm-workflow/metamask-provider.ts',
-      'app/core/devApiEnv.ts',
+      // iOS Hermes liveness probe reads HERMES_CDP_ORIGIN at runtime
+      'tests/llm-workflow/ios/hermes-health.ts',
+      'app/core/apiEnv.ts',
       'app/core/coreBackendApiUrls.ts',
       'app/core/coreBackendApiUrls.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
@@ -120,6 +137,8 @@ const newOverrides = [
       'tests/framework/fixtures/FixtureHelper.ts',
       'tests/framework/fixtures/playwright/sessionReuse.ts',
       'tests/framework/fixtures/playwright/sessionReuse.test.ts',
+      'tests/performance/helpers/appProfiling.ts',
+      'tests/performance/helpers/appProfiling.test.ts',
       'tests/framework/services/providers/emulator/reinstallLocalBuildFromPath.ts',
       'tests/framework/services/appium/ScreenRecording.ts',
       'tests/framework/services/appium/AppiumServer.ts',

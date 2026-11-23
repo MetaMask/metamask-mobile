@@ -10,18 +10,26 @@ import { AccountCellIds } from '../../../app/component-library/components-temp/M
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import {
+  Assertions,
   type AppiumElement,
   createLogger,
   getDriver,
   LogLevel,
-  sleep,
   Utilities,
 } from '../../framework';
+import { findWithSelfHealingLocator } from '../../framework/ai-locator/SelfHealingLocator.ts';
+import {
+  getPerformanceLocatorRecovery,
+  isPerformanceSuiteActive,
+} from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
 import WalletView from './WalletView';
+import { AccountHubSelectorsIDs } from '../../../app/components/Views/AccountHub/AccountHub.testIds';
 
 const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
+const ACCOUNT_SYNC_STABILITY_WINDOW_MS = 3_000;
 
 const logger = createLogger({
   name: 'AccountListBottomSheet',
@@ -37,15 +45,22 @@ class AccountListBottomSheet {
    */
   get accountList(): Promise<AppiumElement> {
     if (PlatformDetector.isIOS()) {
-      // Exact match: contains("Accounts") also hits "Connect accounts" /
-      // "Edit accounts" nodes that can exist while displayed=false.
+      // AccountSelector exposes the "Accounts" title; Account Hub exposes
+      // its dedicated list marker instead of that title.
       const title = AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE;
+      const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
       return Matchers.getElementByNativeXPath(
-        `//*[@name='${title}' or @label='${title}' or @text='${title}']`,
+        `//*[@name='${title}' or @label='${title}' or @text='${title}' or @name='${accountHubList}' or @label='${accountHubList}']`,
       );
     }
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+    // AccountSelector sheet uses `account-list`; Account Hub uses
+    // `account-hub-account-list`. Match either so smoke stays green when the
+    // wallet header routes to Hub (compact / search header) vs Selector.
+    const accountSelectorList =
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID;
+    const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountSelectorList}' or @resource-id='${accountHubList}']`,
     );
   }
 
@@ -65,9 +80,21 @@ class AccountListBottomSheet {
     );
   }
 
-  /** Header back control (same testID as CommonView.backButton / AccountSelector HeaderCompactStandard). */
+  /**
+   * Header back control for AccountSelector (`back-arrow-button`) or Account
+   * Hub (`account-hub-back-button`). Wallet chrome may open either surface.
+   */
   get backButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(CommonSelectorsIDs.BACK_ARROW_BUTTON);
+    const accountSelectorBack = CommonSelectorsIDs.BACK_ARROW_BUTTON;
+    const accountHubBack = AccountHubSelectorsIDs.BACK_BUTTON;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${accountHubBack}' or @name='${accountSelectorBack}' or @label='${accountHubBack}' or @label='${accountSelectorBack}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountHubBack}' or @resource-id='${accountSelectorBack}']`,
+    );
   }
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
@@ -78,8 +105,20 @@ class AccountListBottomSheet {
   }
 
   get addWalletButton(): Promise<AppiumElement> {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    // Account Hub and the classic AccountSelector list expose different
+    // add-wallet controls. Match whichever one is on screen.
+    const accountHubId = AccountHubSelectorsIDs.ADD_WALLET_BUTTON;
+    const accountListId =
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID;
+
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[contains(@name,'${accountHubId}') or contains(@name,'${accountListId}') or contains(@label,'${accountHubId}') or contains(@label,'${accountListId}')]`,
+      );
+    }
+
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountHubId}' or @resource-id='${accountListId}']`,
     );
   }
 
@@ -246,9 +285,32 @@ class AccountListBottomSheet {
     });
   }
 
-  async tapBackButton(): Promise<void> {
+  /**
+   * Dismiss AccountSelector / Account Hub via the header back control.
+   * Glass headers can leave the control mounted with isDisplayed=false; prove
+   * existence then tap with relaxed display (same shape as clipped Bridge rows).
+   */
+  async tapBackButton(options: {
+    onDismissed: () => Promise<void>;
+  }): Promise<void> {
+    await Assertions.expectElementToExist(this.backButton, {
+      description: 'Account list / Account Hub back button',
+      timeout: 3_000,
+    });
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Account list header back button',
+      timeout: 5_000,
+      checkForDisplayed: false,
+      waitForInteractive: true,
+    });
+    await Assertions.expectElementToNotBeVisible(this.accountList, {
+      description: 'Account list dismissed after back button',
+      timeout: 20_000,
+    });
+    await Utilities.executeWithRetry(options.onDismissed, {
+      timeout: 20_000,
+      interval: 500,
+      description: 'Wait for wallet home after dismissing account list',
     });
   }
 
@@ -262,7 +324,7 @@ class AccountListBottomSheet {
       async () => {
         let el: AppiumElement;
         try {
-          el = (await this.accountList) as AppiumElement;
+          el = await this.accountList;
         } catch {
           throw new Error('Account list sheet element not found');
         }
@@ -280,22 +342,64 @@ class AccountListBottomSheet {
     );
   }
 
+  /**
+   * Scrollable account list body (AccountSelector or Account Hub).
+   * Prefer this over WDIO's default `XCUIElementTypeApplication` scroll
+   * container — Application lookup flakes on iOS while the sheet is open.
+   */
+  private async getAccountListScrollable(): Promise<AppiumElement> {
+    const accountSelectorList =
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID;
+    const accountHubList = AccountHubSelectorsIDs.ACCOUNT_LIST;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${accountSelectorList}' or @name='${accountHubList}' or @label='${accountSelectorList}' or @label='${accountHubList}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountSelectorList}' or @resource-id='${accountHubList}']`,
+    );
+  }
+
   async tapAddAccountButtonV2(options?: {
     srpIndex?: number;
     shouldWait?: boolean;
+    /** Cap pre/post-tap sync waits (default 90s). Keep short inside re-tap loops. */
+    syncTimeoutMs?: number;
   }): Promise<void> {
     const buttonIndex = options?.srpIndex ?? 0;
+    const syncTimeoutMs = options?.syncTimeoutMs ?? 90_000;
 
     // Account sync/discovery can keep the row visible but not yet tappable.
     // Wait for the sync phase to settle before tapping "Add account".
-    await this.waitForAccountSyncToComplete(90_000, {
+    await this.waitForAccountSyncToComplete(syncTimeoutMs, {
       addAccountButtonIndex: buttonIndex,
     });
 
     // Re-query after sync settle — never reuse a pre-sync element handle.
     const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
 
-    await Gestures.waitAndTap(Promise.resolve(tapTarget), {
+    // Skip scroll when Add account is already on screen. Otherwise scroll the
+    // sheet list (not Application) so FlashList can mount an off-screen footer
+    // without the iOS "Default scrollable element … Application was not found"
+    // failure. Fully-visible also clears the floating tab bar (#39839 residual).
+    const addAccountVisible = await isOptionalElementVisible(
+      async () => tapTarget,
+      800,
+    );
+    if (!addAccountVisible) {
+      const scrollableElement = await this.getAccountListScrollable();
+      await Gestures.scrollIntoViewFullyVisible(Promise.resolve(tapTarget), {
+        direction: 'down',
+        maxScrolls: 10,
+        scrollableElement,
+      });
+    }
+
+    // Scroll / FlashList remount can stale the pre-scroll handle — re-query.
+    const freshTapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
+
+    await Gestures.waitAndTap(Promise.resolve(freshTapTarget), {
       delay: options?.shouldWait ? 5000 : 0,
       timeout: 20_000,
       checkForDisplayed: true,
@@ -303,6 +407,61 @@ class AccountListBottomSheet {
       waitForInteractive: true,
       elemDescription: 'Add Account button in V2 multichain accounts',
     });
+
+    // Account creation restarts sync/discovery. The new row is not in the
+    // tree until that settles, and the default text assertion only gets a
+    // couple of probes before its timeout.
+    await this.waitForAccountSyncToComplete(syncTimeoutMs, {
+      addAccountButtonIndex: buttonIndex,
+    });
+  }
+
+  /**
+   * Tap "Add account" and prove the new account row exists.
+   * Appium can report a successful click while FlashList / InteractionManager
+   * abandons create — re-tap until the named row is visible (scroll-aware).
+   *
+   * Outer budget must allow multiple tap+prove cycles: nested sync waits used
+   * to consume the whole 50s window so abandoned creates never re-tapped
+   * (permission multi-account smoke: Account 3).
+   */
+  async addAccountAndExpectVisibleV2(
+    accountName: string,
+    options?: {
+      srpIndex?: number;
+      shouldWait?: boolean;
+      timeout?: number;
+    },
+  ): Promise<void> {
+    const timeout = options?.timeout ?? 120_000;
+    // Keep each attempt short enough that the outer loop can re-tap after an
+    // abandoned create (video: Edit accounts still shows only Account 1/2).
+    const perAttemptSyncTimeoutMs = 25_000;
+    const visibilityTimeoutMs = 20_000;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const existing =
+          await this.getAccountElementsByAccountNameV2(accountName);
+        if (existing.length === 0) {
+          await this.tapAddAccountButtonV2({
+            srpIndex: options?.srpIndex,
+            shouldWait: options?.shouldWait,
+            syncTimeoutMs: perAttemptSyncTimeoutMs,
+          });
+        }
+
+        await this.expectAccountVisibleByNameV2(accountName, {
+          timeout: visibilityTimeoutMs,
+          description: `${accountName} visible after Add account`,
+        });
+      },
+      {
+        timeout,
+        interval: 1_000,
+        description: `Add account and expect "${accountName}" visible`,
+      },
+    );
   }
 
   async tapAddEthereumAccountButton(): Promise<void> {
@@ -352,14 +511,61 @@ class AccountListBottomSheet {
     // Modal don't fire while the sheet is still animating out.
     await Utilities.waitForElementToDisappear(
       this.connectAccountsButton,
-      5_000,
+      15_000,
     );
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
-    const name = Matchers.getElementByText(accountName);
-    await Gestures.scrollIntoView(name);
-    await Gestures.waitAndTap(name, {
+    if (!isPerformanceSuiteActive()) {
+      const name = Matchers.getElementByText(accountName);
+      await Gestures.scrollIntoView(name);
+      await Gestures.waitAndTap(name, {
+        elemDescription: `Account "${accountName}"`,
+      });
+      await WalletView.checkActiveAccount(accountName);
+      return;
+    }
+
+    const recovery = getPerformanceLocatorRecovery();
+
+    const { element: accountElement } = await findWithSelfHealingLocator({
+      intent: `scroll account list to and tap account named "${accountName}"`,
+      primary: async () => {
+        if (PlatformDetector.isAndroid()) {
+          // getElementByText finds the Text child, which React Native view-flattening
+          // may detach from its TouchableOpacity — so we anchor on the name text
+          // and step up to the tappable account-cell-select container instead.
+          const cells =
+            await this.getAccountElementsByAccountNameV2(accountName);
+          if (cells.length === 0) {
+            throw new Error(`No account row found for "${accountName}"`);
+          }
+          const cell = cells[cells.length - 1];
+          await Gestures.scrollIntoView(Promise.resolve(cell), {
+            direction: 'down',
+            maxScrolls: 10,
+          });
+          return cell;
+        }
+        const name = Matchers.getElementByText(accountName);
+        await Gestures.scrollIntoView(name);
+        return name;
+      },
+      driver: getDriver(),
+      recovery: recovery?.provider,
+      recoverAction: async (recoveredElement) => {
+        await Gestures.scrollIntoView(Promise.resolve(recoveredElement));
+        return recoveredElement;
+      },
+      onRecovered: async (result) => {
+        logger.info(
+          `AI locator recovery for account "${accountName}": strategy=${result.locator.strategy} value=${result.locator.value} (${result.durationMs}ms)`,
+        );
+        await recovery?.onRecovered?.(result);
+      },
+    });
+
+    await Gestures.waitAndTap(Promise.resolve(accountElement), {
       elemDescription: `Account "${accountName}"`,
     });
     await WalletView.checkActiveAccount(accountName);
@@ -633,7 +839,7 @@ class AccountListBottomSheet {
       async () => {
         const cells = await this.getAccountElementsByAccountNameV2(accountName);
         if (cells.length === 0) {
-          return false;
+          throw new Error(`No account row found for "${accountName}"`);
         }
 
         const cell = cells[0];
@@ -644,14 +850,16 @@ class AccountListBottomSheet {
               maxScrolls: 10,
             });
             if (await cell.isVisible()) {
-              return true;
+              return;
             }
           } catch {
             // try the other scroll direction
           }
         }
 
-        return await cell.isVisible();
+        if (!(await cell.isVisible())) {
+          throw new Error(`Account row "${accountName}" is not visible`);
+        }
       },
       {
         description,
@@ -693,7 +901,7 @@ class AccountListBottomSheet {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       srpIndex,
-    ) as Promise<AppiumElement>;
+    );
   }
 
   /**
@@ -704,9 +912,14 @@ class AccountListBottomSheet {
     try {
       const label = await this.getAddAccountButtonLabel(srpIndex);
       const text = (await label.textContent()).trim();
-      return text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL;
+      if (text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL) {
+        return true;
+      }
+      return !(await (
+        await this.getAddAccountButtonTapTarget(srpIndex)
+      ).isEnabled());
     } catch {
-      return false;
+      return true;
     }
   }
 
@@ -726,43 +939,13 @@ class AccountListBottomSheet {
       );
     }
 
-    return Matchers.getElementByID(
-      createAccountId,
-      srpIndex,
-    ) as Promise<AppiumElement>;
-  }
-
-  /**
-   * Appium: poll with fresh DOM queries until the footer label reads "Add account".
-   * Interactive settle is handled by Gestures.waitAndTap({ waitForInteractive: true })
-   * at the tap call site.
-   */
-  private async waitForAddAccountButtonReady(
-    srpIndex: number,
-    timeoutMs: number,
-  ): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        const label = await this.getAddAccountButtonLabel(srpIndex);
-        const text = (await label.textContent()).trim();
-        if (text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL) {
-          throw new Error(
-            `Add account footer label is "${text}", expected "${AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL}"`,
-          );
-        }
-      },
-      {
-        timeout: timeoutMs,
-        interval: 500,
-        description: `Add account button (index ${srpIndex}) ready`,
-      },
-    );
+    return Matchers.getElementByID(createAccountId, srpIndex);
   }
 
   /**
    * Waits for the account sync to complete.
    * @param timeout - The timeout in milliseconds.
-   * @param options.addAccountButtonIndex - When set (Appium V2 add-account flows), also wait until that footer row is interactive after sync/discovery text clears.
+   * @param options.addAccountButtonIndex - When set (Appium V2 add-account flows), also wait until that footer row is idle after sync/discovery text clears.
    * @returns {Promise<void>} Resolves when the account sync is complete.
    */
   async waitForAccountSyncToComplete(
@@ -772,110 +955,77 @@ class AccountListBottomSheet {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;
-    const initialWaitTimeout = 2000; // 2 seconds to wait for syncing/discovering to appear
+    const getElapsed = (): string =>
+      ((Date.now() - startTime) / 1000).toFixed(1);
 
-    const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
+    // Factory form required: a pre-started promise runs its XPath lookup under
+    // the session 3.5s implicit wait; isOptionalElementVisible overrides that
+    // to a short wait so an absent node costs ~maxAbsentMs, not ~7s.
+    const isTextVisible = (text: string): Promise<boolean> =>
+      isOptionalElementVisible(
+        () => Matchers.getElementByNativeXPath(this.getCatchAllXPath(text)),
+        500,
+      );
 
-    /** Safely check if a text element is visible — returns false if not found. */
-    const isTextVisible = async (text: string): Promise<boolean> => {
-      try {
-        const el = (await Matchers.getElementByNativeXPath(
-          this.getCatchAllXPath(text),
-        )) as AppiumElement;
-        return await el.isVisible();
-      } catch {
-        return false;
-      }
-    };
+    // Account Hub does not expose the AccountSelector `create-account` footer.
+    // Use the full timeout for a unified readiness loop when no footer index
+    // was provided.
+    if (options?.addAccountButtonIndex === undefined) {
+      let stableReadySince: number | undefined;
+      await Utilities.executeWithRetry(
+        async () => {
+          const isSyncing = await isTextVisible('Syncing');
+          const isDiscovering = await isTextVisible('Discovering');
+          if (isSyncing || isDiscovering) {
+            stableReadySince = undefined;
+            throw new Error('Account sync indicators or footer are still busy');
+          }
 
-    // Step 1: Wait up to 5 seconds for "Syncing" or "Discovering" to appear
-    logger.debug(
-      '⏳ Step 1: Waiting up to 5s for "Syncing" or "Discovering" to appear...',
-    );
-    let syncingDetected = false;
+          stableReadySince ??= Date.now();
+          if (
+            Date.now() - stableReadySince <
+            ACCOUNT_SYNC_STABILITY_WINDOW_MS
+          ) {
+            throw new Error('Account list readiness is still settling');
+          }
+        },
+        {
+          timeout: Math.max(timeout - (Date.now() - startTime), 1_000),
+          interval: pollInterval,
+          description: 'Wait for account list readiness after account sync',
+        },
+      );
+      return;
+    }
+
     const footerIndex = options?.addAccountButtonIndex;
-    while (Date.now() - startTime < initialWaitTimeout) {
-      const isSyncing = await isTextVisible('Syncing');
-      const isDiscovering = await isTextVisible('Discovering');
-      const footerBusy =
-        footerIndex !== undefined &&
-        (await this.isAddAccountFooterBusy(footerIndex));
 
-      if (isSyncing || isDiscovering || footerBusy) {
-        syncingDetected = true;
-        logger.debug(
-          `✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering}, footerBusy: ${footerBusy})`,
-        );
-        break;
-      }
-      await sleep(pollInterval);
-    }
-
-    if (!syncingDetected) {
-      logger.debug(
-        `⏳ Step 1: No syncing/discovering/footer-busy within 5s — skipping text-settle steps`,
-      );
-    } else if (footerIndex !== undefined) {
-      // Step 2–4 (footer path): re-query label until idle copy shows, even when
-      // global "Syncing"/"Discovering" text was never visible or flashed quickly.
-      logger.debug(
-        `⏳ Step 2: Waiting for Add account footer label (index ${footerIndex})...`,
-      );
-      while (Date.now() - startTime < timeout) {
-        if (!(await this.isAddAccountFooterBusy(footerIndex))) {
-          logger.debug(
-            `✅ Step 2: Add account footer label ready after ${getElapsed()}s`,
-          );
-          break;
-        }
-        await sleep(pollInterval);
-      }
-
-      logger.debug('⏳ Step 3: Waiting 1 second...');
-      await sleep(1000);
-    } else {
-      // Step 2: Wait for "Syncing" to disappear
-      logger.debug('⏳ Step 2: Waiting for "Syncing" to disappear...');
-      while (Date.now() - startTime < timeout) {
-        if (!(await isTextVisible('Syncing'))) {
-          logger.debug(
-            `✅ Step 2: "Syncing" disappeared after ${getElapsed()}s`,
-          );
-          break;
-        }
-        await sleep(pollInterval);
-      }
-
-      // Step 3: Wait 1 second delay
-      logger.debug('⏳ Step 3: Waiting 1 second...');
-      await sleep(1000);
-
-      // Step 4: Wait for "Discovering" to disappear
-      logger.debug('⏳ Step 4: Waiting for "Discovering" to disappear...');
-      while (Date.now() - startTime < timeout) {
-        if (!(await isTextVisible('Discovering'))) {
-          logger.debug(
-            `✅ Step 4: "Discovering" disappeared after ${getElapsed()}s`,
-          );
-          break;
-        }
-        await sleep(pollInterval);
-      }
-    }
-
-    if (options?.addAccountButtonIndex !== undefined) {
-      const remainingMs = Math.max(timeout - (Date.now() - startTime), 1000);
-      logger.debug(
-        `⏳ Step 5: Waiting up to ${remainingMs}ms for Add account control (index ${options.addAccountButtonIndex}) — re-querying each attempt...`,
-      );
-
-      await this.waitForAddAccountButtonReady(
-        options.addAccountButtonIndex,
-        remainingMs,
-      );
-
-      logger.debug(
-        `✅ Step 5: Add account control is ready after ${getElapsed()}s`,
+    if (footerIndex !== undefined) {
+      // Re-query all readiness indicators until they are idle continuously.
+      let stableReadySince: number | undefined;
+      await Utilities.executeWithRetry(
+        async () => {
+          const isBusy =
+            (await isTextVisible('Syncing')) ||
+            (await isTextVisible('Discovering')) ||
+            (await this.isAddAccountFooterBusy(footerIndex));
+          if (isBusy) {
+            stableReadySince = undefined;
+            throw new Error('Account list readiness is still settling');
+          }
+          stableReadySince ??= Date.now();
+          if (
+            Date.now() - stableReadySince <
+            ACCOUNT_SYNC_STABILITY_WINDOW_MS
+          ) {
+            throw new Error('Account list readiness is still settling');
+          }
+        },
+        {
+          timeout: Math.max(timeout - (Date.now() - startTime), 1_000),
+          interval: pollInterval,
+          description: `Wait for stable account list readiness (index ${footerIndex})`,
+        },
       );
     }
 

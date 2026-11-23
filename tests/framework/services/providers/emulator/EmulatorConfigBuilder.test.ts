@@ -33,6 +33,18 @@ function createIosProject(): ProjectConfig {
   } as ProjectConfig;
 }
 
+function readEnv(name: string): string | undefined {
+  return process.env[name];
+}
+
+function restoreEnv(name: string, value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+    return;
+  }
+  process.env[name] = value;
+}
+
 describe('EmulatorConfigBuilder', () => {
   const portKeys = [
     'ANDROID_UIAUTOMATOR2_SYSTEM_PORT',
@@ -90,6 +102,41 @@ describe('EmulatorConfigBuilder', () => {
 
     expect(config.capabilities).not.toHaveProperty('appium:wdaLocalPort');
     expect(config.capabilities).not.toHaveProperty('appium:mjpegServerPort');
+  });
+
+  it('pins iOS WDA derived data to the workspace cache path', () => {
+    const originalDerivedDataPath = readEnv('WDA_DERIVED_DATA_PATH');
+    process.env.WDA_DERIVED_DATA_PATH = '/opt/wda-derived-data';
+
+    try {
+      const config = new EmulatorConfigBuilder(createIosProject()).build();
+
+      expect(config.capabilities).toMatchObject({
+        'appium:derivedDataPath': '/opt/wda-derived-data',
+      });
+    } finally {
+      restoreEnv('WDA_DERIVED_DATA_PATH', originalDerivedDataPath);
+    }
+  });
+
+  it('falls back to workspace derived data when CI does not set WDA_DERIVED_DATA_PATH', () => {
+    const originalDerivedDataPath = readEnv('WDA_DERIVED_DATA_PATH');
+    const originalWorkspace = readEnv('GITHUB_WORKSPACE');
+    restoreEnv('WDA_DERIVED_DATA_PATH', undefined);
+    process.env.GITHUB_WORKSPACE =
+      '/Users/runner/work/metamask-mobile/metamask-mobile';
+
+    try {
+      const config = new EmulatorConfigBuilder(createIosProject()).build();
+
+      expect(config.capabilities).toMatchObject({
+        'appium:derivedDataPath':
+          '/Users/runner/work/metamask-mobile/metamask-mobile/.cache/appium-wda',
+      });
+    } finally {
+      restoreEnv('WDA_DERIVED_DATA_PATH', originalDerivedDataPath);
+      restoreEnv('GITHUB_WORKSPACE', originalWorkspace);
+    }
   });
 
   it('omits iOS WDA ports outside pool mode', () => {

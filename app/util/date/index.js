@@ -2,13 +2,6 @@ import I18n, { strings } from '../../../locales/i18n';
 import { MINUTE, HOUR, DAY } from '../../constants/time';
 import { getIntlDateTimeFormatter } from '../intl';
 
-export function toLocaleDateTime(timestamp) {
-  const dateObj = new Date(timestamp);
-  const date = dateObj.toLocaleDateString();
-  const time = dateObj.toLocaleTimeString();
-  return `${date} ${time}`;
-}
-
 /**
  * Formats a given timestamp (number | Date)
  * @param {number | Date} timestamp
@@ -49,10 +42,6 @@ export function formatTimestampToDateTime(timestamp, locale = I18n.locale) {
 
 export function toLocaleDate(timestamp) {
   return new Date(timestamp).toLocaleDateString();
-}
-
-export function toLocaleTime(timestamp) {
-  return new Date(timestamp).toLocaleTimeString();
 }
 
 /**

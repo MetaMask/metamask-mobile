@@ -125,7 +125,7 @@ const setupCommonMocks = async (mockServer: Mockttp) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: `${getLocalhostSentinelUrl()}/network`,
-    response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response,
+    response: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.response[1337],
     responseCode: 200,
   });
 

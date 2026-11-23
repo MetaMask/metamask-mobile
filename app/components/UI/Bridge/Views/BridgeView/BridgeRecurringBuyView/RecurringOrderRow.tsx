@@ -1,11 +1,17 @@
 import React from 'react';
 import {
-  Tag,
-  TagSeverity,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { parseCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
-import type { RecurringOrder } from '../../../api/recurringOrders.types';
+import {
+  type RecurringOrder,
+  RecurringOrderState,
+} from '../../../api/recurringOrders.types';
 import {
   formatRecurringInterval,
   formatRecurringTokenAmount,
@@ -16,26 +22,6 @@ import OpenOrderRow from '../../../components/OpenOrderRow';
 import type { OrdersTabConfig } from '../../../components/OrdersTabs';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
 
-function getStatusTag(order: RecurringOrder) {
-  if (order.status === 'completed') {
-    return (
-      <Tag severity={TagSeverity.Neutral}>
-        {strings('bridge.recurring.completed')}
-      </Tag>
-    );
-  }
-
-  if (order.status === 'cancelled') {
-    return (
-      <Tag severity={TagSeverity.Neutral}>
-        {strings('bridge.recurring.cancelled')}
-      </Tag>
-    );
-  }
-
-  return undefined;
-}
-
 interface RecurringOrderRowProps {
   order: RecurringOrder;
   onPress: (order: RecurringOrder) => void;
@@ -45,11 +31,14 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
   const { sourceToken, destinationToken } = getRecurringOrderTokens(order);
   const interval = formatRecurringInterval(order.schedule);
   const totalReceived = formatRecurringTokenAmount(
-    order.destFilled.amount,
+    order.fillData.dest.amount,
     order.dest.asset.decimals,
   );
   const filledPercent = getRecurringOrderFilledPercent(order);
-  const isOpen = order.status === 'open';
+  const isOpen = order.state === RecurringOrderState.Open;
+  const isClosedUnfilled = order.state === RecurringOrderState.Cancelled;
+  const hasSwapIssue =
+    order.fillData.skippedCount > 0 || order.fillData.failedCount > 0;
 
   return (
     <OpenOrderRow
@@ -66,15 +55,27 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
       secondaryValue={strings('bridge.recurring.percent_filled', {
         percent: filledPercent,
       })}
-      primaryColor={TextColor.SuccessDefault}
-      titleEndAccessory={getStatusTag(order)}
+      titleColor={
+        isClosedUnfilled ? TextColor.TextAlternative : TextColor.TextDefault
+      }
+      titleEndAccessory={
+        hasSwapIssue ? (
+          <Icon
+            name={IconName.Warning}
+            color={IconColor.WarningDefault}
+            size={IconSize.Sm}
+            accessibilityLabel={strings('bridge.recurring.swap_issue_warning')}
+          />
+        ) : undefined
+      }
+      primaryColor={
+        isClosedUnfilled ? TextColor.TextAlternative : TextColor.SuccessDefault
+      }
       onPress={() => onPress(order)}
       testID={
         isOpen
-          ? RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(order.orderId)
-          : RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
-              order.orderId,
-            )
+          ? RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(order.id)
+          : RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(order.id)
       }
     />
   );
@@ -89,6 +90,9 @@ interface CreateRecurringOrdersTabOptions {
   onRetry: () => void;
 }
 
+const getRecurringOrderChainId = (order: RecurringOrder) =>
+  parseCaipAssetType(order.src.asset.assetId).chainId;
+
 export function createRecurringOrdersTab({
   orders,
   onOrderPress,
@@ -102,7 +106,8 @@ export function createRecurringOrdersTab({
     renderItem: (order) => (
       <RecurringOrderRow order={order} onPress={onOrderPress} />
     ),
-    keyExtractor: (order) => order.orderId,
+    keyExtractor: (order) => order.id,
+    getItemChainId: getRecurringOrderChainId,
     isLoading,
     isError,
     isFetchingNextPage,

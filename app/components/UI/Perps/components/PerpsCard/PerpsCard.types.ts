@@ -9,4 +9,6 @@ export interface PerpsCardProps {
   /** Sub-section of the parent screen that triggered navigation (e.g., 'positions'). */
   source_section?: string;
   iconSize?: number;
+  /** Shows the Cross tag on a cross position row. Defaults to true. */
+  showMarginModeTag?: boolean;
 }

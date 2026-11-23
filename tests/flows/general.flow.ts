@@ -204,6 +204,16 @@ export const dismissAndroidSystemOverlaysPlaywright =
       return;
     }
 
+    // adb is not reachable on BrowserStack (cloud or local tunnel).
+    // Perf CI sets BROWSERSTACK_USERNAME but not BROWSERSTACK_LOCAL; local
+    // tunnel runs set BROWSERSTACK_LOCAL=true.
+    const isBrowserStack =
+      process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true' ||
+      Boolean(process.env.BROWSERSTACK_USERNAME?.trim());
+    if (isBrowserStack) {
+      return;
+    }
+
     const serial = process.env.ANDROID_DEVICE_UDID?.trim();
     const adbFlag = serial ? `-s ${serial}` : '';
 
@@ -289,8 +299,13 @@ export const waitForAppReady = async (
           });
           logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
           return 'login';
-        } catch {
-          // Still booting — keep polling.
+        } catch (error) {
+          // A dead iOS accessibility server is not "still booting". Surfacing
+          // it here lets the outer catch drop the shared session instead of
+          // burning the login timeout and reporting a rehydration hang.
+          if (isDeviceHealthError(error)) {
+            throw error;
+          }
         }
       }
 

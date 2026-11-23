@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import MemberPricingOnTrades from './MemberPricingOnTrades';
 import TradeAllowanceRow from './TradeAllowanceRow';
 import { MemberPricingOnTradesTestIds } from './MemberPricingOnTrades.testIds';
@@ -8,12 +8,25 @@ import {
   type TradeAllowanceItem,
 } from '../../ProHub.constants';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  MoneyAccountPlusBenefitsStatus,
+  useMoneyAccountPlusBenefits,
+} from '../../hooks/useMoneyAccountPlusBenefits';
+
+jest.mock('../../hooks/useMoneyAccountPlusBenefits', () => ({
+  ...jest.requireActual('../../hooks/useMoneyAccountPlusBenefits'),
+  useMoneyAccountPlusBenefits: jest.fn(),
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (..._args: unknown[]) => ({}),
   }),
 }));
+
+const mockUseMoneyAccountPlusBenefits = jest.mocked(
+  useMoneyAccountPlusBenefits,
+);
 
 const renderMemberPricingOnTrades = () => render(<MemberPricingOnTrades />);
 
@@ -32,6 +45,16 @@ const getFlattenedStyle = (style: unknown) => {
 };
 
 describe('MemberPricingOnTrades', () => {
+  beforeEach(() => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+      benefitsPaused: false,
+    });
+  });
+
   it('renders the section title from i18n', () => {
     const { getByTestId } = renderMemberPricingOnTrades();
 
@@ -40,7 +63,7 @@ describe('MemberPricingOnTrades', () => {
     expect(title).toHaveTextContent(strings('pro_hub.member_pricing.title'));
   });
 
-  it('renders a row and progress bar for each mock trade allowance', () => {
+  it('renders a row and progress bar for each trade allowance', () => {
     const { getByTestId } = renderMemberPricingOnTrades();
 
     MOCK_TRADE_ALLOWANCES.forEach((item) => {
@@ -56,6 +79,160 @@ describe('MemberPricingOnTrades', () => {
       );
     });
   });
+
+  it('renders the shared reset date under the rows', () => {
+    const { getByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.RESETS_ON),
+    ).toHaveTextContent(
+      strings('pro_hub.member_pricing.resets_on', { date: 'Sep 15' }),
+    );
+  });
+
+  it('renders skeletons instead of rows while benefits load', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Loading,
+      items: [],
+      resetsOn: undefined,
+      retry: jest.fn(),
+      benefitsPaused: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.LOADING_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).not.toBeOnTheScreen();
+    expect(getByTestId(MemberPricingOnTradesTestIds.TITLE)).toBeOnTheScreen();
+  });
+
+  it('renders an error with retry when benefits cannot be loaded', () => {
+    const retry = jest.fn();
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Failed,
+      items: [],
+      resetsOn: undefined,
+      retry,
+      benefitsPaused: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(getByTestId(MemberPricingOnTradesTestIds.ERROR)).toHaveTextContent(
+      toRegex(strings('pro_hub.member_pricing.load_error')),
+    );
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MemberPricingOnTradesTestIds.RETRY_BUTTON));
+
+    expect(retry).toHaveBeenCalledTimes(1);
+  });
+
+  it('explains that pricing starts once a provisional membership is confirmed', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Pending,
+      items: [],
+      resetsOn: undefined,
+      retry: jest.fn(),
+      benefitsPaused: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(getByTestId(MemberPricingOnTradesTestIds.PENDING)).toHaveTextContent(
+      toRegex(strings('pro_hub.member_pricing.pending_confirmation')),
+    );
+    expect(getByTestId(MemberPricingOnTradesTestIds.TITLE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.RETRY_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows paused usage without offering a waiver', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Ready,
+      items: MOCK_TRADE_ALLOWANCES,
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+      benefitsPaused: true,
+    });
+
+    const { getByTestId } = renderMemberPricingOnTrades();
+
+    expect(getByTestId(MemberPricingOnTradesTestIds.PAUSED)).toHaveTextContent(
+      toRegex(strings('pro_hub.member_pricing.paused')),
+    );
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).toBeOnTheScreen();
+  });
+
+  it('explains that member pricing is unavailable without offering retry', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Unavailable,
+      items: [],
+      resetsOn: undefined,
+      retry: jest.fn(),
+      benefitsPaused: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.UNAVAILABLE),
+    ).toHaveTextContent(toRegex(strings('pro_hub.member_pricing.unavailable')));
+    expect(getByTestId(MemberPricingOnTradesTestIds.TITLE)).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.RETRY_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('omits a product that was not mapped from benefits', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Incomplete,
+      items: MOCK_TRADE_ALLOWANCES.filter((item) => item.id !== 'predict'),
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+      benefitsPaused: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.ROW('predict')),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the section when no trade allowances can be mapped', () => {
+    mockUseMoneyAccountPlusBenefits.mockReturnValue({
+      status: MoneyAccountPlusBenefitsStatus.Empty,
+      items: [],
+      resetsOn: 'Sep 15',
+      retry: jest.fn(),
+      benefitsPaused: false,
+    });
+
+    const { queryByTestId } = renderMemberPricingOnTrades();
+
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.SECTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(MemberPricingOnTradesTestIds.TITLE),
+    ).not.toBeOnTheScreen();
+  });
 });
 
 describe('TradeAllowanceRow', () => {
@@ -70,8 +247,8 @@ describe('TradeAllowanceRow', () => {
 
     const row = getByTestId(MemberPricingOnTradesTestIds.ROW('swaps'));
 
-    expect(row).toHaveTextContent(toRegex('$310'));
-    expect(row).toHaveTextContent(toRegex('$500'));
+    expect(row).toHaveTextContent(toRegex('$310.00'));
+    expect(row).toHaveTextContent(toRegex('$500.00'));
   });
 
   it('renders predict usage as a count value', () => {
@@ -112,7 +289,7 @@ describe('TradeAllowanceRow', () => {
   it('rounds fractional progress fill width to a whole percent', () => {
     const fractionalItem: TradeAllowanceItem = {
       id: 'swaps',
-      used: 1,
+      used: 2,
       allowance: 3,
       kind: 'currency',
     };
@@ -124,7 +301,7 @@ describe('TradeAllowanceRow', () => {
     );
 
     expect(getFlattenedStyle(fill.props.style)).toEqual(
-      expect.objectContaining({ width: '33%' }),
+      expect.objectContaining({ width: '67%' }),
     );
   });
 
@@ -152,7 +329,57 @@ describe('TradeAllowanceRow', () => {
     });
   });
 
-  it('clamps progress fill width to 100% when used exceeds allowance', () => {
+  it.each([
+    [999.67, '$999.67'],
+    [999.6, '$999.60'],
+    [999.4, '$999.40'],
+  ])('formats %s as %s', (used, expected) => {
+    const { getByTestId } = renderTradeAllowanceRow({
+      id: 'swaps',
+      used,
+      allowance: 1000,
+      kind: 'currency',
+    });
+
+    expect(
+      getByTestId(MemberPricingOnTradesTestIds.ROW('swaps')),
+    ).toHaveTextContent(toRegex(expected));
+  });
+
+  it('shows a 1% bar when usage is below 1%', () => {
+    const { getByTestId } = renderTradeAllowanceRow({
+      id: 'swaps',
+      used: 4.99,
+      allowance: 500,
+      kind: 'currency',
+    });
+
+    expect(
+      getFlattenedStyle(
+        getByTestId(MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps')).props
+          .style,
+      ),
+    ).toEqual(expect.objectContaining({ width: '1%' }));
+  });
+
+  it('keeps a near-cap meter short of a full bar until it is exhausted', () => {
+    const { getByTestId } = renderTradeAllowanceRow({
+      id: 'swaps',
+      used: 999.6,
+      allowance: 1000,
+      kind: 'currency',
+      exhausted: false,
+    });
+
+    expect(
+      getFlattenedStyle(
+        getByTestId(MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps')).props
+          .style,
+      ),
+    ).toEqual(expect.objectContaining({ width: '99%' }));
+  });
+
+  it('fills the bar when used has reached the allowance before exhaustion', () => {
     const overAllowanceItem: TradeAllowanceItem = {
       id: 'swaps',
       used: 600,
@@ -177,5 +404,25 @@ describe('TradeAllowanceRow', () => {
       max: 500,
       now: 500,
     });
+  });
+
+  it('fills the bar completely when the meter is exhausted with zero used', () => {
+    const exhaustedItem: TradeAllowanceItem = {
+      id: 'swaps',
+      used: 0,
+      allowance: 500,
+      kind: 'currency',
+      exhausted: true,
+    };
+
+    const { getByTestId } = renderTradeAllowanceRow(exhaustedItem);
+
+    const fill = getByTestId(
+      MemberPricingOnTradesTestIds.PROGRESS_FILL('swaps'),
+    );
+
+    expect(getFlattenedStyle(fill.props.style)).toEqual(
+      expect.objectContaining({ width: '100%' }),
+    );
   });
 });

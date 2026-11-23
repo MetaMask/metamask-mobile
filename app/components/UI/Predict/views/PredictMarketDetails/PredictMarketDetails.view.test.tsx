@@ -8,8 +8,11 @@
  *
  * Run with: yarn jest -c jest.config.view.js PredictMarketDetails.view.test --runInBand --silent --coverage=false
  */
+import React from 'react';
 import '../../../../../../tests/component-view/mocks';
 import Engine from '../../../../../../app/core/Engine';
+import { useRoute } from '@react-navigation/native';
+import { Text } from 'react-native';
 import {
   renderPredictMarketDetailsView,
   renderPredictMarketDetailsViewWithRoutes,
@@ -59,6 +62,30 @@ const givenPositions = (positions: PredictPosition[]) =>
 
 const givenPriceHistory = (points: PredictPriceHistoryPoint[]) =>
   controllerMock('getPriceHistory').mockResolvedValue(points);
+
+type PredictMarketDetailsQueries = ReturnType<
+  typeof renderPredictMarketDetailsView
+>;
+
+/** Market header and About tab content mount on independent async phases. */
+const awaitMarketDetailsAboutReady = async (
+  findByTestId: PredictMarketDetailsQueries['findByTestId'],
+  _findByText: PredictMarketDetailsQueries['findByText'],
+) => {
+  const screen = await findByTestId(PredictMarketDetailsSelectorsIDs.SCREEN);
+  await waitFor(() => {
+    expect(
+      within(screen).getByText(MOCK_PREDICT_MARKET.title),
+    ).toBeOnTheScreen();
+  });
+  await waitFor(() => {
+    expect(
+      within(screen).getByTestId(
+        PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
+      ),
+    ).toBeOnTheScreen();
+  });
+};
 
 /** Redux delta that makes the user eligible to trade. */
 const ELIGIBLE_USER = {
@@ -357,11 +384,11 @@ describe('PredictMarketDetails', () => {
     it('calls trackMarketDetailsOpened when the market and positions finish loading', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -373,11 +400,11 @@ describe('PredictMarketDetails', () => {
     it('reports the entry point the user arrived from', async () => {
       const trackSpy = controllerMock('trackMarketDetailsOpened');
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID, entryPoint: 'explore' },
       });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       await waitFor(() => {
         expect(trackSpy).toHaveBeenCalledWith(
@@ -410,9 +437,11 @@ describe('PredictMarketDetails', () => {
     it('shows volume, end date and the resolution provider for the loaded market', async () => {
       givenMarket({ ...MOCK_PREDICT_MARKET, endDate: '2026-12-31' });
 
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -430,9 +459,11 @@ describe('PredictMarketDetails', () => {
     });
 
     it('shows N/A as the end date when the market has none', async () => {
-      const { findByTestId } = renderPredictMarketDetailsView({
+      const { findByTestId, findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
 
       const aboutTab = await findByTestId(
         PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
@@ -447,7 +478,7 @@ describe('PredictMarketDetails', () => {
           extraRoutes: [{ name: Routes.WEBVIEW.MAIN }],
         });
 
-      await findByTestId(PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT);
+      await awaitMarketDetailsAboutReady(findByTestId, findByText);
       fireEvent.press(await findByText('Polymarket'));
 
       expect(
@@ -629,6 +660,141 @@ describe('PredictMarketDetails', () => {
     });
   });
 
+  describe('Protocol V2 markets kill switch', () => {
+    const withOutcomeVersion = (
+      version: string | undefined,
+    ): PredictMarket => ({
+      ...MOCK_PREDICT_MARKET,
+      outcomes: [{ ...MOCK_PREDICT_MARKET.outcomes[0], version }],
+    });
+
+    const eligibleUserWithBuySheet = (v2MarketsDisabled: boolean) => ({
+      engine: {
+        backgroundState: {
+          PredictController: {
+            eligibility: { status: 'eligible' as const, country: 'US' },
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              predictBottomSheet: {
+                enabled: true,
+                featureVersion: '1.0.0',
+                minimumVersion: '0.0.1',
+              },
+              predictDisablePolymarketV2Markets: {
+                enabled: v2MarketsDisabled,
+                minimumVersion: '0.0.1',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    /** Renders the Predict modals screen the user was sent to. */
+    const PredictModalsRouteProbe = () => {
+      const route = useRoute<{
+        key: string;
+        name: string;
+        params?: { screen?: string };
+      }>();
+
+      return (
+        <Text testID={`route-${Routes.PREDICT.MODALS.ROOT}`}>
+          {route.params?.screen ?? 'unknown'}
+        </Text>
+      );
+    };
+
+    const renderWithModalsProbe = (v2MarketsDisabled: boolean) =>
+      renderPredictMarketDetailsViewWithRoutes({
+        initialParams: { marketId: MARKET_ID },
+        extraRoutes: [
+          {
+            name: Routes.PREDICT.MODALS.ROOT,
+            Component: PredictModalsRouteProbe,
+          },
+        ],
+        overrides: eligibleUserWithBuySheet(v2MarketsDisabled),
+      });
+
+    const expectMarketUnavailableSheet = async (
+      findByTestId: PredictMarketDetailsQueries['findByTestId'],
+    ) => {
+      expect(
+        await findByTestId(`route-${Routes.PREDICT.MODALS.ROOT}`),
+      ).toHaveTextContent(Routes.PREDICT.MODALS.MARKET_UNAVAILABLE);
+    };
+
+    it('opens the Market unavailable sheet when the user buys a v2 outcome with the kill switch on', async () => {
+      givenMarket(withOutcomeVersion('v2'));
+
+      const { findByText, findByTestId, queryByTestId } =
+        renderWithModalsProbe(true);
+
+      fireEvent.press(await findByText('Yes • 65¢'));
+
+      await expectMarketUnavailableSheet(findByTestId);
+      expect(
+        queryByTestId(PredictMarketDetailsSelectorsIDs.BUY_PREVIEW_SHEET),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the Market unavailable sheet when the user cashes out a v2 position with the kill switch on', async () => {
+      givenMarket(withOutcomeVersion('v2'));
+      givenPositions([buildMockPredictPosition()]);
+
+      const { findByTestId, queryByTestId } = renderWithModalsProbe(true);
+
+      fireEvent.press(
+        await findByTestId(
+          PredictMarketDetailsSelectorsIDs.MARKET_DETAILS_CASH_OUT_BUTTON,
+        ),
+      );
+
+      await expectMarketUnavailableSheet(findByTestId);
+      expect(
+        queryByTestId(PredictMarketDetailsSelectorsIDs.SELL_PREVIEW_SHEET),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ['v1', 'v1'],
+      ['missing', undefined],
+    ])(
+      'opens the buy preview for a %s-version outcome with the kill switch on',
+      async (_label, version) => {
+        givenMarket(withOutcomeVersion(version));
+
+        const { findByText, findByTestId, queryByTestId } =
+          renderWithModalsProbe(true);
+
+        fireEvent.press(await findByText('Yes • 65¢'));
+
+        expect(
+          await findByTestId(
+            PredictMarketDetailsSelectorsIDs.BUY_PREVIEW_SHEET,
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          queryByTestId(`route-${Routes.PREDICT.MODALS.ROOT}`),
+        ).not.toBeOnTheScreen();
+      },
+    );
+
+    it('opens the buy preview for a v2 outcome with the kill switch off', async () => {
+      givenMarket(withOutcomeVersion('v2'));
+
+      const { findByText, findByTestId } = renderWithModalsProbe(false);
+
+      fireEvent.press(await findByText('Yes • 65¢'));
+
+      expect(
+        await findByTestId(PredictMarketDetailsSelectorsIDs.BUY_PREVIEW_SHEET),
+      ).toBeOnTheScreen();
+    });
+  });
+
   describe('fee waiver', () => {
     it('tells the user fees are waived when the market carries a waived tag', async () => {
       givenMarket({ ...MOCK_PREDICT_MARKET, tags: ['middle-east'] });
@@ -662,16 +828,14 @@ describe('PredictMarketDetails', () => {
     it('shows the resolved outcome and opens on the Outcomes tab', async () => {
       givenMarket(MOCK_PREDICT_CLOSED_MARKET);
 
-      const { findByTestId, findByText } = renderPredictMarketDetailsView({
+      const { findByTestId, getByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MOCK_PREDICT_CLOSED_MARKET.id },
       });
 
-      expect(await findByText('Market resulted to Yes')).toBeOnTheScreen();
-      expect(
-        await findByTestId(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
-        ),
-      ).toBeOnTheScreen();
+      await findByTestId(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT);
+      await waitFor(() => {
+        expect(getByText('Market resulted to Yes')).toBeOnTheScreen();
+      });
     });
 
     it('lets the user switch to the About tab on a closed market', async () => {
@@ -772,6 +936,9 @@ describe('PredictMarketDetails', () => {
       const { findByText } = renderPredictMarketDetailsView({
         initialParams: { marketId: MARKET_ID },
       });
+
+      await findByText('1D');
+      await findByText('MAX');
 
       fireEvent.press(await findByText('1W'));
 

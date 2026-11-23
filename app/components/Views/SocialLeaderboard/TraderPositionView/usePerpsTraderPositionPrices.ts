@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type { Position } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
-import { isPerpPosition } from '../utils/perp';
+import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import {
   fetchHyperliquidHistoricalPrices,
   resolveHyperliquidCandleLimit,

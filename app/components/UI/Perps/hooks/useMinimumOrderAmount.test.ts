@@ -29,6 +29,7 @@ describe('useMinimumOrderAmount', () => {
         minimumOrderSize: 25, // Market-specific minimum
       },
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -53,6 +54,7 @@ describe('useMinimumOrderAmount', () => {
         // No minimumOrderSize specified
       },
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -77,6 +79,7 @@ describe('useMinimumOrderAmount', () => {
         // No minimumOrderSize specified
       },
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -95,6 +98,7 @@ describe('useMinimumOrderAmount', () => {
     mockUsePerpsMarketData.mockReturnValue({
       marketData: null,
       isLoading: true,
+      isProviderMetadataAvailable: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -114,6 +118,7 @@ describe('useMinimumOrderAmount', () => {
     mockUsePerpsMarketData.mockReturnValue({
       marketData: null,
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: errorMessage,
       refetch: jest.fn(),
     });
@@ -132,6 +137,7 @@ describe('useMinimumOrderAmount', () => {
     mockUsePerpsMarketData.mockReturnValue({
       marketData: null,
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
       refetch: jest.fn(),
     });
@@ -156,6 +162,7 @@ describe('useMinimumOrderAmount', () => {
         minimumOrderSize: 0, // Explicitly set to 0
       },
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
       refetch: jest.fn(),
     });

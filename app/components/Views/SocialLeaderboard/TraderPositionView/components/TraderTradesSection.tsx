@@ -26,8 +26,11 @@ import {
 } from 'react-native';
 import Animated, { type ScrollHandlerProcessed } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import { formatTradeDayLabel, getTradeDayKey } from '../../utils/formatters';
-import type { TradeAction } from '../../utils/tradeAction';
+import {
+  formatTradeDayLabel,
+  getTradeDayKey,
+} from '../../../../UI/SocialFeed/utils/formatters';
+import type { TradeAction } from '../../../../UI/SocialFeed/utils/tradeAction';
 import { computeSectionStartOffsets } from '../utils/traderPositionScrollLayout';
 import TradeRow from './TradeRow';
 
@@ -82,6 +85,7 @@ export interface TraderTradesSectionProps {
   tradeActions: (TradeAction | undefined)[];
   traderImageUrl?: string;
   traderAddress?: string;
+  traderProfileId?: string;
   /** When provided, each row is tappable (e.g. to slide the chart to the trade). */
   onTradePress?: (trade: Trade) => void;
   /**
@@ -134,6 +138,7 @@ const TraderTradesSection = forwardRef<
       tradeActions,
       traderImageUrl,
       traderAddress,
+      traderProfileId,
       onTradePress,
       emphasizedTradeId,
       refreshControl,
@@ -320,6 +325,7 @@ const TraderTradesSection = forwardRef<
             action={item.action}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
+            traderProfileId={traderProfileId}
             onPress={onTradePress}
             isEmphasized={item.trade.transactionHash === emphasizedTradeId}
           />
@@ -328,6 +334,7 @@ const TraderTradesSection = forwardRef<
       [
         traderImageUrl,
         traderAddress,
+        traderProfileId,
         onTradePress,
         emphasizedTradeId,
         handleRowLayout,

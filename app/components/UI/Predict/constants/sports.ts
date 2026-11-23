@@ -1,6 +1,20 @@
 import type { PredictMarketGame, PredictSportsLeague } from '../types';
 
 /**
+ * How long a received WebSocket game update stays trusted over newer REST
+ * data. Both layers that hold live state enforce this same window so they
+ * expire together:
+ * - `GameCache.overlayOnMarket` stops overlaying the last WebSocket update
+ * onto REST-fetched markets once it ages past this window.
+ * - `usePredictGame`'s `mergeCachedGame` stops preferring the cached live
+ * state over incoming REST snapshots at the same point.
+ * When the sports socket dies, both layers stop masking REST at the same
+ * time, so the scoreboard recovers on the next market refetch instead of
+ * staying frozen until the app restarts (PRED-1334).
+ */
+export const LIVE_GAME_CACHE_TTL_MS = 60_000;
+
+/**
  * Leagues with live game data support.
  *
  * To add a new league:

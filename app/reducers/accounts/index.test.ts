@@ -1,4 +1,4 @@
-import { iAccountActions } from 'app/actions/accounts';
+import { iAccountActions } from '../../actions/accounts';
 
 import reducer, { iAccountEvent } from '.';
 

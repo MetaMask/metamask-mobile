@@ -8,10 +8,14 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import React, { memo } from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
-import { EM_DASH, formatPercent, formatUsd } from '../../utils/formatters';
+import {
+  EM_DASH,
+  formatPercent,
+  formatUsd,
+} from '../../../../UI/SocialFeed/utils/formatters';
 
 export interface TraderPositionPnLCardProps {
   isClosed: boolean;
@@ -89,4 +93,4 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
   </Box>
 );
 
-export default TraderPositionPnLCard;
+export default memo(TraderPositionPnLCard);

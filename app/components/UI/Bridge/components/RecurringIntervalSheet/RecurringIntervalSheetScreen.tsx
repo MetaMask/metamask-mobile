@@ -14,7 +14,7 @@ export const RecurringIntervalSheetScreen = () => {
   const dispatch = useDispatch();
   const currentUnit = useSelector(selectRecurringEveryUnit);
 
-  const handleConfirm = useCallback(
+  const handleSelect = useCallback(
     (unit: RecurringIntervalUnit) => {
       dispatch(setRecurringEveryUnit(unit));
     },
@@ -24,7 +24,7 @@ export const RecurringIntervalSheetScreen = () => {
   return (
     <RecurringIntervalSheet
       currentUnit={currentUnit}
-      onConfirm={handleConfirm}
+      onSelect={handleSelect}
       goBack={goBack}
     />
   );

@@ -3,9 +3,8 @@
  * Loads build configuration from builds.yml and exports non-secret env vars.
  * Runs at workflow runtime (during the "Apply build config" step).
  *
- * Exports: env, code_fencing. Does NOT handle secrets
- * (those are injected by the "Set secrets" step via set-secrets-from-config.js,
- * which reads all secrets via toJSON(secrets) — no explicit per-secret list needed).
+ * Exports: env. Does NOT handle secrets
+ * (each workflow step that bundles the app maps the GitHub Secrets it needs in its own env).
  *
  * Usage:
  *   node scripts/apply-build-config.js main-prod
@@ -45,11 +44,6 @@ function applyConfig(buildName) {
     });
   }
 
-  // Set code fencing features
-  if (config.code_fencing) {
-    process.env.CODE_FENCING_FEATURES = JSON.stringify(config.code_fencing);
-  }
-
   return config;
 }
 
@@ -62,12 +56,6 @@ function exportForShell(buildName) {
     Object.entries(config.env).forEach(([key, value]) => {
       lines.push(`export ${key}="${String(value)}"`);
     });
-  }
-
-  if (config.code_fencing) {
-    lines.push(
-      `export CODE_FENCING_FEATURES='${JSON.stringify(config.code_fencing)}'`,
-    );
   }
 
   return lines.join('\n');
@@ -100,10 +88,6 @@ function exportForGitHubEnv(buildName) {
     });
   }
 
-  if (config.code_fencing) {
-    appendVar('CODE_FENCING_FEATURES', JSON.stringify(config.code_fencing));
-  }
-
   return lines.join('\n');
 }
 
@@ -119,7 +103,7 @@ function writeBuildEnvJson(buildName) {
     'METAMASK_BUILD_TYPE',
     'REWARDS_API_URL',
     'MM_PORTFOLIO_URL',
-    'RAMPS_ENVIRONMENT',
+    'MM_API_ENV',
     'HAS_TEST_OVERRIDES',
     // Additional env vars for full environment info
     'PORTFOLIO_API_URL',
@@ -133,6 +117,8 @@ function writeBuildEnvJson(buildName) {
     'AUTH_SERVICE_URL',
     'DIGEST_API_URL',
     'SOCIAL_API_URL',
+    'PROFILE_API_URL',
+    'MM_PROFILE_API_ENABLED',
     'BAANX_API_URL',
     'RAMP_DEV_BUILD',
     'BRIDGE_USE_CUSTOM_BASE_URL',
@@ -151,10 +137,6 @@ function writeBuildEnvJson(buildName) {
         buildEnv.env[key] = String(config.env[key]);
       }
     });
-  }
-
-  if (config.code_fencing) {
-    buildEnv.codeFencing = config.code_fencing;
   }
 
   fs.writeFileSync(BUILD_ENV_PATH, JSON.stringify(buildEnv, null, 2));

@@ -11,7 +11,10 @@ import {
   ORDER_SLIPPAGE_CONFIG,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  calculateSignedRoEForPrice,
+  estimateCloseReceive,
   type InputMethod,
+  type MarginMode,
   type OrdinaryOrderType,
   type Position,
 } from '@metamask/perps-controller';
@@ -37,25 +40,113 @@ import {
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from './stream';
+import { useAssetAmountDraft } from './useAssetAmountDraft';
 import { usePerpsAbandonOrderTracking } from './usePerpsAbandonOrderTracking';
+import { usePerpsCloseInFlight } from './usePerpsClosePosition';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { MAX_PERPS_INPUT_DIGITS } from '../constants/perpsConfig';
-import { selectPerpsClosePositionLimitOrderEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectPerpsClosePositionLimitOrderEnabledFlag,
+  selectPerpsCrossMarginEnabledFlag,
+} from '../selectors/featureFlags';
+import { selectPerpsProvider } from '../selectors/perpsController';
+import {
+  convertAssetAmountToUsd,
+  limitAssetAmountDecimals,
+  resolveTypedCloseAssetAmount,
+} from '../utils/assetAmountInput';
 import { resolveOracleReferencePrice } from '../utils/orderUtils';
 import { toPerpsEntryAttribution } from '../utils/perpsAnalyticsAttribution';
 import {
   calculateCloseAmountFromPercentage,
+  calculatePercentageFromTokenAmount,
   formatCloseAmountUSD,
   validateCloseAmountLimits,
 } from '../utils/positionCalculations';
+import {
+  buildPerpsClosePostTradePreview,
+  isPerpsPostTradeShareEligible,
+  resolveProviderId,
+} from '../utils/perpsPostTradeShare';
+import { useIsPerpsProModeActive } from '../utils/perpsModeSwitch';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import { parsePositionRoePercentage } from '../utils/positionDisplay';
+
+/**
+ * The keypad reports an unchanged value when deleting the digit after a
+ * trailing decimal, and leaves the decimal behind when deleting the last
+ * fractional digit. Both cases should drop the decimal.
+ */
+function removeStuckDecimal(previousValue: string, value: string): string {
+  if (previousValue.endsWith('.') && value === previousValue) {
+    return value.slice(0, -1);
+  }
+  if (
+    previousValue.includes('.') &&
+    value.endsWith('.') &&
+    value.length === previousValue.length - 1
+  ) {
+    return value.replace('.', '');
+  }
+  return value;
+}
+
+interface AssetKeypadCommit {
+  draft: string;
+  usd: string;
+  percentage: number;
+  exactTokenAmount?: string;
+}
+
+function readAssetKeypadCommit(params: {
+  previousDraft: string;
+  value: string;
+  sizeDecimals: number;
+  price: number;
+  positionSize: number;
+}): AssetKeypadCommit | null {
+  const adjustedValue = limitAssetAmountDecimals(
+    removeStuckDecimal(params.previousDraft, params.value),
+    params.sizeDecimals,
+  );
+  const digitCount = (adjustedValue.match(/\d/g) || []).length;
+  if (digitCount > MAX_PERPS_INPUT_DIGITS) {
+    return null;
+  }
+
+  const typedClose = resolveTypedCloseAssetAmount(
+    adjustedValue,
+    params.sizeDecimals,
+    params.positionSize,
+  );
+
+  return {
+    draft: adjustedValue || '0',
+    usd: convertAssetAmountToUsd(adjustedValue, params.price),
+    percentage: typedClose.isEntirePosition
+      ? 100
+      : calculatePercentageFromTokenAmount(
+          Number(typedClose.amount),
+          params.positionSize,
+        ),
+    exactTokenAmount: typedClose.isEntirePosition
+      ? undefined
+      : typedClose.amount,
+  };
+}
 
 export interface UsePerpsClosePositionFormOptions {
   /** Overrides `navigation.goBack()` so a sheet can animate closed first. */
   dismiss?: () => void;
   /** Applied to the confirm CTA this hook builds for the caller's footer. */
   confirmButtonTestID?: string;
+  /**
+   * Unit the size keypad is editing. Defaults to USD so the full-screen close
+   * flow is unchanged. The bottom sheet passes `'asset'` after the coin toggle.
+   */
+  amountInputUnit?: 'usd' | 'asset';
 }
 
 /** Shape `BottomSheetFooter` expects for the close CTA. */
@@ -101,6 +192,10 @@ export interface UsePerpsClosePositionFormResult {
   liveCloseAmount: string;
   closeAmountUSDString: string;
   displayUSDString: string;
+  /** Value the size keypad should edit for the active amount unit. */
+  amountKeypadValue: string;
+  /** Fractional digits the coin keypad accepts. */
+  amountKeypadDecimals: number;
   isInputFocused: boolean;
 
   handleSliderValueChange: (value: number) => void;
@@ -116,10 +211,26 @@ export interface UsePerpsClosePositionFormResult {
 
   feeResults: ReturnType<typeof usePerpsOrderFees>;
   rewardsState: ReturnType<typeof usePerpsRewards>;
-  summaryMargin: number;
-  summaryPnl: number;
-  summaryFees: number;
-  receiveAmount: number;
+  /**
+   * Margin returned; isolated margin includes its PnL, cross margin does not.
+   * Undefined while an input is missing.
+   */
+  summaryMargin: number | undefined;
+  /** Margin mode of the position being closed, when the venue reports it. */
+  summaryMarginMode: MarginMode | undefined;
+  /** PnL realized at the close price; undefined while an input is missing. */
+  summaryPnl: number | undefined;
+  /**
+   * %RoE shown beside the summary $PnL. Market closes show the position's
+   * actual %RoE (the same value the position card renders); limit closes
+   * show the RoE at the effective (limit) price so it agrees with the $PnL.
+   * Undefined when nothing is being closed or the value is unavailable.
+   */
+  summaryRoePercentage: number | undefined;
+  /** Close fee; undefined until the fee rate is quoted. */
+  summaryFees: number | undefined;
+  /** Cash the close returns; undefined while an input is missing. */
+  receiveAmount: number | undefined;
   filteredErrors: string[];
   isClosing: boolean;
   isConfirmDisabled: boolean;
@@ -145,19 +256,14 @@ export function usePerpsClosePositionForm(
     buttonClicked: entryButtonClicked,
     buttonLocation: entryButtonLocation,
     enableHaptics = false,
-  } = route.params as {
-    position: Position;
-    source?: string;
-    buttonClicked?: string;
-    buttonLocation?: string;
-    enableHaptics?: boolean;
-  };
+  } = route.params;
   const { playImpact: playHapticImpact } = useHaptics();
 
   // Ref so an inline closure from the caller cannot re-run the latched
   // dismissal effect or invalidate handleConfirm every render.
   const dismissRef = useRef<() => void>(navigation.goBack);
   dismissRef.current = options?.dismiss ?? navigation.goBack;
+  const amountInputUnit = options?.amountInputUnit ?? 'usd';
 
   const inputMethodRef = useRef<InputMethod>('default');
   const isAmountInitializedRef = useRef(false);
@@ -178,11 +284,13 @@ export function usePerpsClosePositionForm(
     traceName: TraceName.PerpsClosePositionView,
   });
 
+  const activeProvider = useSelector(selectPerpsProvider);
   // Feature flag gating the Market/Limit order-type selector on the close screen.
   // Defaults to off so it can be rolled out/rolled back independently of the release.
   const isClosePositionLimitOrderEnabled = useSelector(
     selectPerpsClosePositionLimitOrderEnabledFlag,
   );
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
 
   const [orderType, setOrderType] = useState<OrdinaryOrderType>(() =>
     isClosePositionLimitOrderEnabled ? lastCloseOrderType : 'market',
@@ -193,6 +301,11 @@ export function usePerpsClosePositionForm(
   // State for close amount
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
   const [closeAmountUSDString, setCloseAmountUSDString] = useState('0'); // Raw string for USD input (user input only)
+  // Coin keypad commits this size directly. Rebuilding it from the percentage
+  // can add one size increment when float rounding makes the notional look short.
+  const [exactCloseTokenAmount, setExactCloseTokenAmount] = useState<
+    string | null
+  >(null);
 
   // Live slider display value for immediate UI feedback while dragging. The
   // committed `closePercentage` only updates on drag end, since it drives the
@@ -218,6 +331,10 @@ export function usePerpsClosePositionForm(
   const effectiveOrderType: OrdinaryOrderType = isClosePositionLimitOrderEnabled
     ? orderType
     : 'market';
+  const effectiveMaxSlippageBps =
+    effectiveOrderType === 'limit'
+      ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+      : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps;
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
@@ -251,6 +368,9 @@ export function usePerpsClosePositionForm(
   // Keep the route snapshot only for layout until we dismiss a gone position.
   const livePosition = matchingLivePosition ?? position;
   const isPositionGone = !isPositionsLoading && !matchingLivePosition;
+  // Another close for this market is still settling (e.g. this form was
+  // reopened before the positions stream caught up).
+  const isCloseInFlight = usePerpsCloseInFlight(livePosition.symbol);
   const isScreenFocused = useIsFocused();
 
   useEffect(() => {
@@ -304,10 +424,14 @@ export function usePerpsClosePositionForm(
   // paused-but-still-active hold, where onValueChange legitimately stops
   // ticking without the gesture ending).
   const commitClosePercentage = useCallback(
-    (value: number, commitOptions?: { syncUsdString?: boolean }) => {
+    (
+      value: number,
+      commitOptions?: { syncUsdString?: boolean; exactTokenAmount?: string },
+    ) => {
       setIsDraggingSlider(false);
       setLiveDragClosePercentage(value);
       setClosePercentage(value);
+      setExactCloseTokenAmount(commitOptions?.exactTokenAmount ?? null);
 
       if (commitOptions?.syncUsdString === false) {
         return;
@@ -348,39 +472,61 @@ export function usePerpsClosePositionForm(
     }
   }, [commitClosePercentage, isDraggingSlider, liveDragClosePercentage]);
 
-  // Calculate display values directly from closePercentage for immediate updates
-  const { closeAmount, calculatedUSDString } = useMemo(() => {
-    // During loading, return '0' as temporary state (not a default - intentional for loading UX)
-    if (isLoadingMarketData) {
+  // Percentage-derived sizes, unless the coin keypad committed an exact size.
+  // That exact size applies only while the displayed percentage is the
+  // committed one, so a slider drag still previews the gesture.
+  const resolveDisplayedCloseAmount = useCallback(
+    (percentage: number) => {
+      if (isLoadingMarketData) {
+        return {
+          closeAmount: '0',
+          calculatedUSDString: '0.00',
+        };
+      }
+
+      if (exactCloseTokenAmount !== null && percentage === closePercentage) {
+        return {
+          closeAmount: exactCloseTokenAmount,
+          calculatedUSDString: formatCloseAmountUSD(
+            Number(
+              convertAssetAmountToUsd(exactCloseTokenAmount, effectivePrice),
+            ),
+          ),
+        };
+      }
+
+      // Defensive fallback if market data fails to load - prevents crashes
+      // Real szDecimals should come from market data (varies by asset)
+      const szDecimals =
+        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+
+      const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
+        percentage,
+        positionSize: absSize,
+        currentPrice: effectivePrice,
+        szDecimals,
+      });
+
       return {
-        closeAmount: '0',
-        calculatedUSDString: '0.00',
+        closeAmount: tokenAmount.toString(),
+        calculatedUSDString: formatCloseAmountUSD(usdValue),
       };
-    }
+    },
+    [
+      absSize,
+      closePercentage,
+      effectivePrice,
+      exactCloseTokenAmount,
+      isLoadingMarketData,
+      marketData?.szDecimals,
+    ],
+  );
 
-    // Defensive fallback if market data fails to load - prevents crashes
-    // Real szDecimals should come from market data (varies by asset)
-    const szDecimals =
-      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
-
-    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
-      percentage: closePercentage,
-      positionSize: absSize,
-      currentPrice: effectivePrice,
-      szDecimals,
-    });
-
-    return {
-      closeAmount: tokenAmount.toString(),
-      calculatedUSDString: formatCloseAmountUSD(usdValue),
-    };
-  }, [
-    closePercentage,
-    absSize,
-    effectivePrice,
-    marketData?.szDecimals,
-    isLoadingMarketData,
-  ]);
+  // Calculate display values directly from closePercentage for immediate updates
+  const { closeAmount, calculatedUSDString } = useMemo(
+    () => resolveDisplayedCloseAmount(closePercentage),
+    [closePercentage, resolveDisplayedCloseAmount],
+  );
 
   // Live counterpart of closeAmount/calculatedUSDString for display only -
   // cheap synchronous calc, safe to recompute every drag frame off the live
@@ -390,32 +536,18 @@ export function usePerpsClosePositionForm(
   const {
     closeAmount: liveCloseAmount,
     calculatedUSDString: liveCalculatedUSDString,
-  } = useMemo(() => {
-    if (isLoadingMarketData) {
-      return { closeAmount: '0', calculatedUSDString: '0.00' };
-    }
+  } = useMemo(
+    () => resolveDisplayedCloseAmount(displayClosePercentage),
+    [displayClosePercentage, resolveDisplayedCloseAmount],
+  );
 
-    const szDecimals =
-      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
-
-    const { tokenAmount, usdValue } = calculateCloseAmountFromPercentage({
-      percentage: displayClosePercentage,
-      positionSize: absSize,
-      currentPrice: effectivePrice,
-      szDecimals,
-    });
-
-    return {
-      closeAmount: tokenAmount.toString(),
-      calculatedUSDString: formatCloseAmountUSD(usdValue),
-    };
-  }, [
-    displayClosePercentage,
-    absSize,
-    effectivePrice,
-    marketData?.szDecimals,
-    isLoadingMarketData,
-  ]);
+  const sizeDecimals =
+    marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+  const { draft: assetDraft, setDraftFromKeypad } = useAssetAmountDraft({
+    isActive: amountInputUnit === 'asset',
+    usdAmount: closeAmountUSDString,
+    assetAmount: liveCloseAmount,
+  });
 
   // Use calculated USD string when not in input mode, user input when typing
   const displayUSDString =
@@ -423,15 +555,10 @@ export function usePerpsClosePositionForm(
       ? closeAmountUSDString
       : liveCalculatedUSDString;
 
-  // Use live position data which includes real-time funding fees
-  // HyperLiquid's marginUsed already includes accumulated PnL
+  // Live position figures for the screen-view event; the close amounts come
+  // from Core's `estimateCloseReceive` below.
   const marginUsed = Number.parseFloat(livePosition.marginUsed);
-
-  // Use unrealizedPnl from live position (includes funding fees)
-  const unrealizedPnl = Number.parseFloat(livePosition.unrealizedPnl);
-
-  // Keep pnl reference for backwards compatibility with event tracking
-  const pnl = unrealizedPnl;
+  const pnl = Number.parseFloat(livePosition.unrealizedPnl);
 
   // Position value at the effective price (limit price for limit orders)
   const positionValue = useMemo(
@@ -439,36 +566,7 @@ export function usePerpsClosePositionForm(
     [absSize, effectivePrice],
   );
 
-  // P&L at the effective price. For limit orders this recomputes when the
-  // effective (limit or mark) price changes; for market orders it uses the
-  // live unrealized PnL.
   const entryPrice = Number.parseFloat(position.entryPrice);
-  const effectivePnL = useMemo(() => {
-    // For long positions: (effectivePrice - entryPrice) * absSize
-    // For short positions: (entryPrice - effectivePrice) * absSize
-    if (effectiveOrderType === 'market') {
-      return pnl;
-    }
-    const priceDiff = isLong
-      ? effectivePrice - entryPrice
-      : entryPrice - effectivePrice;
-    return priceDiff * absSize;
-  }, [entryPrice, absSize, isLong, effectiveOrderType, effectivePrice, pnl]);
-
-  // Margin returned on close, adjusted for the price the order will settle at.
-  // marginUsed embeds unrealized PnL at the current mark price, so for limit
-  // orders we swap that current-price PnL for the limit-price PnL (effectivePnL).
-  // For market orders effectivePnL equals unrealizedPnl, so this is a no-op.
-  //
-  // "You'll receive" is intentionally an estimate: this swaps out the full
-  // current unrealizedPnl (price + accrued funding) and adds back only the
-  // limit-price price spread. Funding that accrues between now and when the
-  // limit order fills is unknowable, so we deliberately do not project it here.
-  const effectiveMargin = useMemo(
-    () => marginUsed - unrealizedPnl + effectivePnL,
-    [marginUsed, unrealizedPnl, effectivePnL],
-  );
-
   // Calculate fees using the unified fee hook
   const closingValue = useMemo(
     () => positionValue * (closePercentage / 100),
@@ -510,17 +608,38 @@ export function usePerpsClosePositionForm(
 
   const vipTier = useVipTier();
 
-  // Calculate what user will receive (margin - fees)
-  // Round each component separately to match what user sees in UI
-  // This ensures: displayed margin - displayed fees = displayed receive amount
-  const receiveAmount = useMemo(() => {
-    const marginPortion = (closePercentage / 100) * effectiveMargin;
-    // Round margin and fees to 2 decimals (what user sees)
-    const roundedMargin = Math.round(marginPortion * 100) / 100;
-    const roundedFees = Math.round(feeResults.totalFee * 100) / 100;
-    // Subtract rounded values for transparent calculation
-    return roundedMargin - roundedFees;
-  }, [closePercentage, effectiveMargin, feeResults.totalFee]);
+  // Price the close executes at: the limit price of a limit close, else the
+  // live price. Undefined until known, so the estimate shows as unavailable
+  // instead of being priced at the entry price.
+  const livePrice = priceData[position.symbol]?.price;
+  let closePrice: number | string | undefined = livePrice;
+  if (effectiveOrderType === 'limit') {
+    closePrice = limitPrice || undefined;
+  }
+
+  // Margin returned, PnL realized at the close price, fee and the cash the
+  // close returns, from Core so every client shows the same amounts. Each is
+  // undefined while an input it needs is missing.
+  const closeEstimate = useMemo(
+    () =>
+      estimateCloseReceive({
+        position: livePosition,
+        providerId:
+          livePosition.providerId ?? resolveProviderId(activeProvider),
+        // The size the order sends, rounded to the market's size decimals.
+        closeSize: closeAmount,
+        price: closePrice,
+        feeRate: feeResults.totalFeeRate,
+      }),
+    [
+      livePosition,
+      activeProvider,
+      closeAmount,
+      closePrice,
+      feeResults.totalFeeRate,
+    ],
+  );
+  const receiveAmount = closeEstimate.receive;
 
   // Get minimum order amount for this asset
   const { minimumOrderAmount } = useMinimumOrderAmount({
@@ -555,6 +674,8 @@ export function usePerpsClosePositionForm(
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition();
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isPerpsProModeActive = useIsPerpsProModeActive();
   const unrealizedPnlPercent = useMemo(() => {
     const initialMargin = marginUsed - pnl; // Back-calculate initial margin
     return initialMargin > 0 ? (pnl / initialMargin) * 100 : 0;
@@ -633,7 +754,17 @@ export function usePerpsClosePositionForm(
   }, [calculatedUSDString, isUserInputActive]);
 
   const handleConfirm = useCallback(async () => {
-    if (isClosing || isPositionGone) {
+    // The ref is synchronous: a second tap in the same tick still sees the
+    // stale `isClosing` and would dismiss (goBack) a second time.
+    if (
+      hasConfirmedCloseRef.current ||
+      isClosing ||
+      isCloseInFlight ||
+      isPositionGone ||
+      // Core tracking takes a numeric fee, so wait for the quote instead of
+      // reporting an unknown fee as 0. A quoted 0 rate still submits.
+      feeResults.totalFeeRate === undefined
+    ) {
       return;
     }
 
@@ -663,10 +794,39 @@ export function usePerpsClosePositionForm(
     // Mark confirmed so the focus-effect cleanup does not emit an abandon event
     hasConfirmedCloseRef.current = true;
 
+    // A full Hyperliquid market close fills with one order id, so it can be
+    // shared like an open. Partial closes leave the position open.
+    const closeProviderId =
+      livePosition.providerId ?? resolveProviderId(activeProvider);
+    const canPromptPostTrade =
+      isFullClose &&
+      effectiveOrderType === 'market' &&
+      !isPerpsProModeActive &&
+      closeProviderId === 'hyperliquid' &&
+      isPerpsPostTradeShareEligible({ amountUsd: closingValueString });
+    const postTradePrompt = canPromptPostTrade
+      ? resolvePostTradePrompt('perps')
+      : undefined;
+    const postTradeShare =
+      postTradePrompt && postTradePrompt.kind !== 'none'
+        ? {
+            prompt: postTradePrompt,
+            providerId: closeProviderId,
+            preview: buildPerpsClosePostTradePreview({
+              asset: livePosition.symbol,
+              direction: isLong ? 'long' : 'short',
+              leverage: livePosition.leverage?.value,
+              amountUsd: closingValueString,
+              entryPrice: livePosition.entryPrice,
+            }),
+          }
+        : undefined;
+
     // Go back immediately to close the position screen
     dismissRef.current();
 
     await handleClosePosition({
+      postTradeShare,
       position: livePosition,
       size: sizeToClose || '',
       orderType: effectiveOrderType,
@@ -675,7 +835,7 @@ export function usePerpsClosePositionForm(
         totalFee: feeResults.totalFee,
         marketPrice: currentPrice,
         receivedAmount: receiveAmount,
-        realizedPnl: effectivePnL * (closePercentage / 100),
+        realizedPnl: closeEstimate.realizedPnl,
         metamaskFeeRate: feeResults.metamaskFeeRate,
         feeDiscountPercentage: feeResults.feeDiscountPercentage,
         metamaskFee: feeResults.metamaskFee,
@@ -688,6 +848,12 @@ export function usePerpsClosePositionForm(
           : {}),
         vipTier: vipTier ?? undefined,
         vipDiscount: feeResults.feeDiscountPercentage,
+        ...(effectiveOrderType === 'market'
+          ? {
+              maxSlippageBps: effectiveMaxSlippageBps,
+              maxSlippageSource: PERPS_EVENT_VALUE.MAX_SLIPPAGE_SOURCE.DEFAULT,
+            }
+          : {}),
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context
@@ -695,10 +861,7 @@ export function usePerpsClosePositionForm(
       slippage: {
         usdAmount: isFullClose ? undefined : closingValueString,
         priceAtCalculation: effectivePrice,
-        maxSlippageBps:
-          effectiveOrderType === 'limit'
-            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-            : ORDER_SLIPPAGE_CONFIG.DefaultMarketSlippageBps,
+        maxSlippageBps: effectiveMaxSlippageBps,
       },
     });
   }, [
@@ -706,22 +869,25 @@ export function usePerpsClosePositionForm(
     closeAmount,
     effectiveOrderType,
     enableHaptics,
+    isCloseInFlight,
     isClosing,
     isPositionGone,
     limitPrice,
     handleClosePosition,
     livePosition,
     feeResults.totalFee,
+    feeResults.totalFeeRate,
     feeResults.metamaskFeeRate,
     feeResults.feeDiscountPercentage,
     feeResults.metamaskFee,
     feeResults.protocolFeeRate,
     currentPrice,
     receiveAmount,
-    effectivePnL,
+    closeEstimate.realizedPnl,
     rewardsState.estimatedPoints,
     routeSource,
     vipTier,
+    effectiveMaxSlippageBps,
     priceData,
     position.symbol,
     closingValueString,
@@ -730,6 +896,10 @@ export function usePerpsClosePositionForm(
     isDraggingSlider,
     commitClosePercentage,
     liveDragClosePercentage,
+    isPerpsProModeActive,
+    activeProvider,
+    resolvePostTradePrompt,
+    isLong,
   ]);
 
   const handleAmountPress = useCallback(() => {
@@ -739,24 +909,39 @@ export function usePerpsClosePositionForm(
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
       inputMethodRef.current = 'keypad';
+
+      if (amountInputUnit === 'asset') {
+        const commit = readAssetKeypadCommit({
+          previousDraft: assetDraft,
+          value,
+          sizeDecimals,
+          price: effectivePrice,
+          positionSize: absSize,
+        });
+        if (!commit) {
+          return;
+        }
+
+        if (!isInputFocused) {
+          setIsInputFocused(true);
+        }
+        if (!isUserInputActive) {
+          setIsUserInputActive(true);
+        }
+
+        setDraftFromKeypad(commit.draft, commit.usd);
+        setCloseAmountUSDString(commit.usd);
+        commitClosePercentage(commit.percentage, {
+          syncUsdString: false,
+          exactTokenAmount: commit.exactTokenAmount,
+        });
+        return;
+      }
+
       const previousValue = closeAmountUSDString;
       // Special handling for decimal point deletion
       // If previous value had a decimal and new value is the same, force remove the decimal
-      let adjustedValue = value;
-
-      // Check if we're stuck on a decimal (e.g., "2." -> "2." means delete didn't work)
-      if (previousValue.endsWith('.') && value === previousValue) {
-        adjustedValue = value.slice(0, -1);
-      }
-      // Also handle case where decimal is in middle (e.g., "2.5" -> "2." should become "25")
-      else if (
-        previousValue.includes('.') &&
-        value.endsWith('.') &&
-        value.length === previousValue.length - 1
-      ) {
-        // User deleted a digit after decimal, remove the decimal too
-        adjustedValue = value.replace('.', '');
-      }
+      const adjustedValue = removeStuckDecimal(previousValue, value);
 
       // Set both focus flags immediately to prevent useEffect interference
       if (!isInputFocused) {
@@ -812,7 +997,19 @@ export function usePerpsClosePositionForm(
       commitClosePercentage(newPercentage, { syncUsdString: false });
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [positionValue, isInputFocused, isUserInputActive, closeAmountUSDString],
+    [
+      positionValue,
+      isInputFocused,
+      isUserInputActive,
+      closeAmountUSDString,
+      amountInputUnit,
+      assetDraft,
+      sizeDecimals,
+      effectivePrice,
+      setDraftFromKeypad,
+      absSize,
+      commitClosePercentage,
+    ],
   );
 
   const handlePercentagePress = useCallback(
@@ -855,17 +1052,62 @@ export function usePerpsClosePositionForm(
     return validationResult.errors.filter(
       (err) =>
         err.startsWith(minimumAmountErrorPrefix) ||
-        err === limitPriceTooFarError,
+        err.startsWith(limitPriceTooFarError),
     );
   }, [validationResult.errors]);
 
-  const summaryMargin = (closePercentage / 100) * effectiveMargin;
-  const summaryPnl = effectivePnL * (closePercentage / 100);
-  const summaryFees = feeResults.totalFee;
+  const summaryPnl = closeEstimate.realizedPnl;
+  // While the flag is off, a cross position keeps the isolated presentation,
+  // including P&L inside the reported margin.
+  const summaryMarginMode = isCrossMarginEnabled
+    ? livePosition.leverage?.type
+    : undefined;
+  // Cross margin is shared collateral and never holds the position's PnL, so
+  // only isolated margin is shown with the realized PnL folded in.
+  let summaryMargin: number | undefined;
+  if (summaryMarginMode === 'cross') {
+    summaryMargin = closeEstimate.marginReturned;
+  } else if (
+    closeEstimate.marginReturned !== undefined &&
+    summaryPnl !== undefined
+  ) {
+    summaryMargin = closeEstimate.marginReturned + summaryPnl;
+  }
+  // %RoE beside the summary $PnL. Market closes show the position's actual
+  // %RoE (`returnOnEquity × 100`) — the same value the position card renders.
+  // Limit closes recompute the RoE at the effective (limit) price via
+  // `calculateSignedRoEForPrice`: the live position RoE is measured at the mark
+  // price and can disagree with the limit-price $PnL in both sign and size
+  // (#37377 rejected it for limit closes for exactly this reason). Omitted
+  // when nothing is being closed or the value is unavailable; a computed
+  // 0.00% (for example a limit at the entry price) is still shown.
+  let summaryRoePercentage: number | undefined;
+  if (closePercentage === 0) {
+    summaryRoePercentage = undefined;
+  } else if (effectiveOrderType === 'limit') {
+    const roeAtLimitPrice = Number.parseFloat(
+      calculateSignedRoEForPrice(String(effectivePrice), {
+        currentPrice,
+        direction: isLong ? 'long' : 'short',
+        leverage: livePosition.leverage?.value,
+        entryPrice,
+      }),
+    );
+    summaryRoePercentage = Number.isNaN(roeAtLimitPrice)
+      ? undefined
+      : roeAtLimitPrice;
+  } else {
+    summaryRoePercentage = parsePositionRoePercentage(
+      livePosition.returnOnEquity,
+    );
+  }
+  const summaryFees = closeEstimate.fee;
 
   const isConfirmDisabled =
     isClosing ||
+    isCloseInFlight ||
     isPositionGone ||
+    feeResults.totalFeeRate === undefined ||
     (effectiveOrderType === 'limit' &&
       (!limitPrice || Number.parseFloat(limitPrice) <= 0)) ||
     (effectiveOrderType === 'market' && closePercentage === 0) ||
@@ -874,16 +1116,23 @@ export function usePerpsClosePositionForm(
   const confirmButtonTestID = options?.confirmButtonTestID;
   const confirmButtonProps = useMemo(
     () => ({
-      children: isClosing
-        ? strings('perps.close_position.closing')
-        : strings('perps.close_position.button'),
+      children:
+        isClosing || isCloseInFlight
+          ? strings('perps.close_position.closing')
+          : strings('perps.close_position.button'),
       onPress: handleConfirm,
       size: ButtonSize.Lg,
       isDisabled: isConfirmDisabled,
-      isLoading: isClosing,
+      isLoading: isClosing || isCloseInFlight,
       testID: confirmButtonTestID,
     }),
-    [confirmButtonTestID, handleConfirm, isClosing, isConfirmDisabled],
+    [
+      confirmButtonTestID,
+      handleConfirm,
+      isCloseInFlight,
+      isClosing,
+      isConfirmDisabled,
+    ],
   );
 
   return {
@@ -909,6 +1158,9 @@ export function usePerpsClosePositionForm(
     liveCloseAmount,
     closeAmountUSDString,
     displayUSDString,
+    amountKeypadValue:
+      amountInputUnit === 'asset' ? assetDraft : closeAmountUSDString,
+    amountKeypadDecimals: sizeDecimals,
     isInputFocused,
 
     handleSliderValueChange,
@@ -925,7 +1177,9 @@ export function usePerpsClosePositionForm(
     feeResults,
     rewardsState,
     summaryMargin,
+    summaryMarginMode,
     summaryPnl,
+    summaryRoePercentage,
     summaryFees,
     receiveAmount,
     filteredErrors,

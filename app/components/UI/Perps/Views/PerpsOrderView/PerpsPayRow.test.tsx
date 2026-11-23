@@ -134,6 +134,11 @@ describe('PerpsPayRow', () => {
     expect(
       getByTestId(TransactionPayComponentIDs.PAY_WITH_SYMBOL),
     ).toHaveTextContent('perps.adjust_margin.perps_balance');
+    const icon = getByTestId('perps-pay-row-token-icon-frame', {
+      includeHiddenElements: true,
+    });
+    expect(icon).toHaveProp('accessibilityElementsHidden', true);
+    expect(icon).toHaveProp('importantForAccessibility', 'no-hide-descendants');
   });
 
   it('renders pay token symbol when perps balance is not selected', () => {

@@ -34,6 +34,7 @@ import {
   type VipFeesResponseDto,
   type VipPerpsFeesState,
   type SubscriptionDto,
+  type TradingFeeGrantResponseDto,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -366,7 +367,6 @@ describe('RewardsController', () => {
       getSeasonStatus: jest.fn(),
       getReferralDetails: jest.fn(),
       optIn: jest.fn(),
-      validateReferralCode: jest.fn(),
       validateBonusCode: jest.fn(),
       claimReward: jest.fn(),
       login: jest.fn(),
@@ -416,6 +416,7 @@ describe('RewardsController', () => {
           'getPointsEvents',
           'estimatePoints',
           'getPerpsDiscountForAccount',
+          'getPerpsTradingFeeGrant',
           'isRewardsFeatureEnabled',
           'getSeasonStatus',
           'getReferralDetails',
@@ -441,6 +442,13 @@ describe('RewardsController', () => {
     it('subscribes to keyring unlock events', () => {
       expect(mockMessenger.subscribe).toHaveBeenCalledWith(
         'KeyringController:unlock',
+        expect.any(Function),
+      );
+    });
+
+    it('subscribes to authentication state changes', () => {
+      expect(mockMessenger.subscribe).toHaveBeenCalledWith(
+        'AuthenticationController:stateChange',
         expect.any(Function),
       );
     });
@@ -3877,6 +3885,307 @@ describe('RewardsController', () => {
           ),
         ).toHaveLength(1);
       });
+    });
+  });
+
+  describe('getPerpsTradingFeeGrant', () => {
+    const scope = {
+      providerId: 'hyperliquid',
+      isTestnet: false,
+    } as const;
+    const expiresAt = '2026-10-01T00:00:00.000Z';
+    const grant = {
+      programId: 'perps-builder-fee-experiment',
+      hyperliquid: {
+        builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: '2.5',
+      },
+      expiresAt,
+    };
+    const getGrantRequestCount = () =>
+      mockMessenger.call.mock.calls.filter(
+        ([method]) => method === 'RewardsDataService:getTradingFeeGrants',
+      ).length;
+
+    it('returns a Core-shaped mainnet Hyperliquid grant', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual({
+        providerId: 'hyperliquid',
+        isTestnet: false,
+        feeBips: 2.5,
+        expiresAt: Date.parse(expiresAt),
+      });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getTradingFeeGrants',
+      );
+    });
+
+    it('caches a successful response for 30 seconds', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await controller.getPerpsTradingFeeGrant(scope);
+      await controller.getPerpsTradingFeeGrant(scope);
+      jest.spyOn(Date, 'now').mockReturnValue(30_124);
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('caches a successful response with no grant', async () => {
+      mockMessenger.call.mockResolvedValue({ grant: null });
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(1);
+    });
+
+    it('does not serve a cached grant at its expiry boundary', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(500);
+      const expiringGrant = {
+        ...grant,
+        expiresAt: new Date(1_000).toISOString(),
+      };
+      mockMessenger.call.mockResolvedValue({ grant: expiringGrant });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual(
+        expect.objectContaining({ expiresAt: 1_000 }),
+      );
+      jest.spyOn(Date, 'now').mockReturnValue(1_000);
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('deduplicates concurrent grant requests', async () => {
+      let resolveRequest: (value: TradingFeeGrantResponseDto) => void = () => {
+        throw new Error('Grant request resolver was not initialized');
+      };
+      const pendingResponse = new Promise<TradingFeeGrantResponseDto>(
+        (resolve) => {
+          resolveRequest = resolve;
+        },
+      );
+      mockMessenger.call.mockReturnValue(pendingResponse);
+
+      const firstResult = controller.getPerpsTradingFeeGrant(scope);
+      const secondResult = controller.getPerpsTradingFeeGrant(scope);
+      resolveRequest({ grant });
+
+      await expect(Promise.all([firstResult, secondResult])).resolves.toEqual([
+        expect.objectContaining({ feeBips: 2.5 }),
+        expect.objectContaining({ feeBips: 2.5 }),
+      ]);
+      expect(getGrantRequestCount()).toBe(1);
+    });
+
+    it('suppresses retries for five seconds after logging a failed request', async () => {
+      const requestError = new Error('Grant endpoint unavailable');
+      mockMessenger.call.mockRejectedValue(requestError);
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(1);
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: trading fee grant fetch failed; returning no grant:',
+        requestError.message,
+      );
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: trading fee grant request suppressed during failure cooldown:',
+        requestError.message,
+      );
+
+      jest.spyOn(Date, 'now').mockReturnValue(5_124);
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('invalidates the cache when authentication state changes', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+      await controller.getPerpsTradingFeeGrant(scope);
+      const authenticationStateChangeSubscription = (
+        mockMessenger.subscribe.mock.calls as unknown as [string, () => void][]
+      ).find(
+        ([eventType]) => eventType === 'AuthenticationController:stateChange',
+      )?.[1];
+
+      expect(authenticationStateChangeSubscription).toBeDefined();
+      authenticationStateChangeSubscription?.();
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('invalidates the cache when controller state resets', async () => {
+      mockMessenger.call.mockResolvedValue({ grant });
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      controller.resetState();
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('invalidates the cache when the rewards environment changes', async () => {
+      let rewardsDisabled = false;
+      controller = new RewardsController({
+        messenger: mockMessenger,
+        isDisabled: () => rewardsDisabled,
+      });
+      (mockMessenger.call as jest.Mock).mockImplementation((method: string) => {
+        if (method === 'RewardsDataService:getTradingFeeGrants') {
+          return Promise.resolve({ grant });
+        }
+        if (method === 'RewardsDataService:canChangeRewardsEnvUrl') {
+          return true;
+        }
+        return undefined;
+      });
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      rewardsDisabled = true;
+      await controller.setRewardsEnvUrl('https://rewards.example.test');
+      rewardsDisabled = false;
+      await controller.getPerpsTradingFeeGrant(scope);
+
+      expect(getGrantRequestCount()).toBe(2);
+    });
+
+    it('preserves a zero fee', async () => {
+      mockMessenger.call.mockResolvedValue({
+        grant: {
+          ...grant,
+          hyperliquid: { ...grant.hyperliquid, builderFeeBips: '0' },
+        },
+      });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual(
+        expect.objectContaining({ feeBips: 0 }),
+      );
+    });
+
+    it('is independent of rewards opt-in and VIP state when Basic Functionality is enabled', async () => {
+      const enabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await expect(
+        enabledController.getPerpsTradingFeeGrant(scope),
+      ).resolves.toEqual(expect.objectContaining({ feeBips: 2.5 }));
+    });
+
+    it('returns null without a request when Basic Functionality is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+        isVipDisabled: () => true,
+      });
+
+      await expect(
+        disabledController.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      { providerId: 'lighter', isTestnet: false },
+      { providerId: 'hyperliquid', isTestnet: true },
+    ])(
+      'returns null without a request for unsupported scope %j',
+      async (input) => {
+        await expect(
+          controller.getPerpsTradingFeeGrant(input),
+        ).resolves.toBeNull();
+        expect(mockMessenger.call).not.toHaveBeenCalled();
+      },
+    );
+
+    it('returns null for a grant with the wrong builder code', async () => {
+      mockMessenger.call.mockResolvedValue({
+        grant: {
+          ...grant,
+          hyperliquid: {
+            ...grant.hyperliquid,
+            builderCode: '0x0000000000000000000000000000000000000000',
+          },
+        },
+      });
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+    });
+
+    it('compares builder codes case-insensitively', async () => {
+      mockMessenger.call.mockResolvedValue({
+        grant: {
+          ...grant,
+          hyperliquid: {
+            ...grant.hyperliquid,
+            builderCode: grant.hyperliquid.builderCode.toUpperCase(),
+          },
+        },
+      });
+
+      await expect(controller.getPerpsTradingFeeGrant(scope)).resolves.toEqual(
+        expect.objectContaining({ feeBips: 2.5 }),
+      );
+    });
+
+    it('returns null at the exclusive expiry boundary', async () => {
+      jest.spyOn(Date, 'now').mockReturnValue(Date.parse(expiresAt));
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
+    });
+
+    it.each([
+      ['a null grant', { grant: null }],
+      ['a profile switch', new Error('Profile changed during request')],
+      [
+        'a malformed conversion',
+        {
+          grant: {
+            ...grant,
+            hyperliquid: {
+              ...grant.hyperliquid,
+              builderFeeBips: 'not-a-number',
+            },
+          },
+        },
+      ],
+    ])('returns null for %s', async (_label, responseOrError) => {
+      if (responseOrError instanceof Error) {
+        mockMessenger.call.mockRejectedValue(responseOrError);
+      } else {
+        mockMessenger.call.mockResolvedValue(responseOrError);
+      }
+
+      await expect(
+        controller.getPerpsTradingFeeGrant(scope),
+      ).resolves.toBeNull();
     });
   });
 
@@ -9642,200 +9951,6 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('validateReferralCode', () => {
-    it('returns false when feature flag is disabled', async () => {
-      // Arrange
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      // Act
-      const result = await disabledController.validateReferralCode('ABC123');
-
-      // Assert
-      expect(result).toEqual({ valid: false, isVipCode: false });
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        expect.anything(),
-      );
-    });
-
-    it('returns false for empty or whitespace-only codes and does not call data service', async () => {
-      // Act & Assert
-      expect((await controller.validateReferralCode('')).valid).toBe(false);
-      expect((await controller.validateReferralCode('   ')).valid).toBe(false);
-      expect((await controller.validateReferralCode('\t\n')).valid).toBe(false);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        expect.anything(),
-      );
-    });
-
-    it('forwards non-empty vanity codes to the data service', async () => {
-      // Arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateReferralCode') {
-          return Promise.resolve({ valid: true });
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await controller.validateReferralCode('BANKLESS');
-
-      // Assert: vanity code is forwarded regardless of length or charset
-      expect(result.valid).toBe(true);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        'BANKLESS',
-      );
-    });
-
-    it('forwards codes with characters outside Base32 alphabet to the data service', async () => {
-      // Arrange — backend decides validity, not the client
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateReferralCode') {
-          return Promise.resolve({ valid: false });
-        }
-        return Promise.resolve();
-      });
-
-      // Act & Assert
-      expect((await controller.validateReferralCode('ABCIOU')).valid).toBe(
-        false,
-      );
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        'ABCIOU',
-      );
-    });
-
-    it('returns true for valid referral codes from service', async () => {
-      // Arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateReferralCode') {
-          return Promise.resolve({ valid: true });
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await controller.validateReferralCode('ABC234'); // Using valid Base32 code
-
-      // Assert
-      expect(result.valid).toBe(true);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        'ABC234',
-      );
-    });
-
-    it('returns false for invalid referral codes from service', async () => {
-      // Arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateReferralCode') {
-          return Promise.resolve({ valid: false });
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await controller.validateReferralCode('XYZ567'); // Using valid Base32 code
-
-      // Assert
-      expect(result.valid).toBe(false);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        'XYZ567',
-      );
-    });
-
-    it('accepts valid base32 characters', async () => {
-      // Act & Assert
-      const validCodes = ['ABCDEF', 'ABC234', 'XYZ567', 'DEF237'];
-
-      for (const code of validCodes) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockMessenger.call.mockImplementation((action, ..._args): any => {
-          if (action === 'RewardsDataService:validateReferralCode') {
-            return Promise.resolve({ valid: true });
-          }
-          return Promise.resolve();
-        });
-
-        const result = await controller.validateReferralCode(code);
-        expect(result.valid).toBe(true);
-        expect(mockMessenger.call).toHaveBeenCalledWith(
-          'RewardsDataService:validateReferralCode',
-          code,
-        );
-      }
-    });
-
-    it('returns isVipCode true when service marks code as VIP', async () => {
-      // Arrange
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateReferralCode') {
-          return Promise.resolve({ valid: true, isVipCode: true });
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await controller.validateReferralCode('VIPREF');
-
-      // Assert
-      expect(result).toEqual({ valid: true, isVipCode: true });
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        'VIPREF',
-      );
-    });
-
-    it('returns isVipCode false when service marks code as VIP but VIP feature is disabled', async () => {
-      // Arrange — backend says VIP, but the VIP feature flag is disabled locally
-      const vipDisabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isVipDisabled: () => true,
-      });
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      mockMessenger.call.mockImplementation((action, ..._args): any => {
-        if (action === 'RewardsDataService:validateReferralCode') {
-          return Promise.resolve({ valid: true, isVipCode: true });
-        }
-        return Promise.resolve();
-      });
-
-      // Act
-      const result = await vipDisabledController.validateReferralCode('VIPREF');
-
-      // Assert — valid code is still honored, but VIP status is gated off
-      expect(result).toEqual({ valid: true, isVipCode: false });
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:validateReferralCode',
-        'VIPREF',
-      );
-    });
-
-    it('handles service errors and throw error', async () => {
-      // Arrange
-      mockMessenger.call.mockRejectedValue(new Error('Service error'));
-
-      // Act & Assert
-      await expect(controller.validateReferralCode('ABC123')).rejects.toThrow(
-        'Service error',
-      );
-    });
-  });
-
   describe('validateBonusCode', () => {
     const mockSubscriptionId = 'test-subscription-123';
 
@@ -11421,157 +11536,6 @@ describe('RewardsController', () => {
     });
   });
 
-  describe('getGeoRewardsMetadata', () => {
-    it('returns default metadata when rewards feature is disabled', async () => {
-      // Arrange
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isDisabled: () => true,
-      });
-
-      // Act
-      const result = await disabledController.getGeoRewardsMetadata();
-
-      // Assert
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: false,
-      });
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).not.toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-    });
-
-    it('returns cached geo location when available', async () => {
-      // Arrange
-      const mockCachedGeoData = {
-        geoLocation: 'US-NY',
-        optinAllowedForGeo: true,
-      };
-
-      // First call to populate cache
-      mockMessenger.call.mockResolvedValueOnce('US-NY');
-      const firstResult = await controller.getGeoRewardsMetadata();
-
-      // Clear messenger call mock to verify no additional calls are made
-      jest.clearAllMocks();
-
-      // Act - Second call should use cache
-      const secondResult = await controller.getGeoRewardsMetadata();
-
-      // Assert - Verify cached data is returned
-      expect(secondResult).toEqual(mockCachedGeoData);
-      expect(secondResult).toEqual(firstResult); // Should be the same as first call
-
-      // Assert - Verify no additional API calls were made
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-
-      // Assert - Verify fetching log message was not called on cached access
-      expect(mockLogger.log).not.toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-    });
-
-    it('successfully fetch geo location for allowed region', async () => {
-      // Arrange
-      const mockGeoLocation = 'US-CA';
-      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Geo rewards metadata retrieved',
-        {
-          geoLocation: mockGeoLocation,
-          optinAllowedForGeo: true,
-        },
-      );
-      expect(result).toEqual({
-        geoLocation: mockGeoLocation,
-        optinAllowedForGeo: true,
-      });
-    });
-
-    it('handles blocked regions correctly', async () => {
-      // Arrange
-      const mockGeoLocation = 'UK-ENG'; // UK is in DEFAULT_BLOCKED_REGIONS
-      mockMessenger.call.mockResolvedValueOnce(mockGeoLocation);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(result).toEqual({
-        geoLocation: mockGeoLocation,
-        optinAllowedForGeo: false,
-      });
-    });
-
-    it('handles geo location service errors with fallback', async () => {
-      // Arrange
-      const geoServiceError = new Error('Geo service unavailable');
-      mockMessenger.call.mockRejectedValueOnce(geoServiceError);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get geo rewards metadata:',
-        geoServiceError.message,
-      );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
-    });
-
-    it('handles non-Error objects in catch block', async () => {
-      // Arrange
-      const nonErrorObject = 'String error';
-      mockMessenger.call.mockRejectedValueOnce(nonErrorObject);
-
-      // Act
-      const result = await controller.getGeoRewardsMetadata();
-
-      // Assert
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'RewardsController: Failed to get geo rewards metadata:',
-        String(nonErrorObject),
-      );
-      expect(result).toEqual({
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      });
-    });
-  });
-
   describe('optIn (based on active account group)', () => {
     const mockEvmInternalAccount = {
       address: '0x123456789',
@@ -11652,41 +11616,6 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
     });
-
-    it('successfully opt in with referral code', async () => {
-      // Arrange
-      const referralCode = 'REF123';
-      const mockAccounts = [mockEvmInternalAccount];
-      mockMessenger.call.mockImplementation((method, ..._args): any => {
-        if (method === 'KeyringController:signPersonalMessage') {
-          return Promise.resolve('0xsignature123');
-        } else if (method === 'RewardsDataService:mobileOptin') {
-          const params = _args[0] as any;
-          expect(params.referralCode).toBe(referralCode);
-          return Promise.resolve(mockOptinResponse);
-        }
-        return Promise.resolve();
-      });
-
-      // Mock sortAccounts
-      jest.doMock('./utils/sortAccounts', () => ({
-        sortAccounts: jest.fn().mockReturnValue(mockAccounts),
-      }));
-
-      // Act
-      const result = await controller.optIn(mockAccounts, referralCode);
-
-      // Assert
-      expect(result).toBe(mockSubscriptionId);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:mobileOptin',
-        expect.objectContaining({
-          account: mockEvmInternalAccount.address,
-          referralCode,
-        }),
-      );
-    });
-
     it('returns null when rewards feature is disabled', async () => {
       // Arrange
       const disabledController = new RewardsController({
@@ -12944,95 +12873,6 @@ describe('RewardsController', () => {
         await expect(controller.optIn(mockAccounts)).rejects.toThrow(
           'Failed to opt in any account from the account group',
         );
-      });
-
-      it('handles very long referral codes', async () => {
-        // Arrange
-        const longReferralCode = 'A'.repeat(1000); // Very long referral code
-        const mockEvmInternalAccount = {
-          address: '0x123456789',
-          type: 'eip155:eoa' as const,
-          id: 'test-id',
-          scopes: ['eip155:1' as const],
-          options: {},
-          methods: ['personal_sign'],
-          metadata: {
-            name: 'Test EVM Account',
-            keyring: { type: 'HD Key Tree' },
-            importTime: Date.now(),
-          },
-        } as InternalAccount;
-        const mockAccounts = [mockEvmInternalAccount];
-        mockMessenger.call.mockImplementation((method, ..._args): any => {
-          if (method === 'KeyringController:signPersonalMessage') {
-            return Promise.resolve('0xsignature123');
-          } else if (method === 'RewardsDataService:mobileOptin') {
-            const params = _args[0] as any;
-            expect(params.referralCode).toBe(longReferralCode);
-            return Promise.resolve({
-              subscription: { id: 'test-subscription-id' },
-              sessionId: 'test-session-id',
-            });
-          }
-          return Promise.resolve();
-        });
-
-        // Mock sortAccounts
-        jest.doMock('./utils/sortAccounts', () => ({
-          sortAccounts: jest.fn().mockReturnValue(mockAccounts),
-        }));
-
-        // Act
-        const result = await controller.optIn(mockAccounts, longReferralCode);
-
-        // Assert
-        expect(result).toBe('test-subscription-id');
-      });
-
-      it('handles special characters in referral codes', async () => {
-        // Arrange
-        const specialReferralCode = 'REF@#$%^&*()_+-=[]{}|;:,.<>?';
-        const mockEvmInternalAccount = {
-          address: '0x123456789',
-          type: 'eip155:eoa' as const,
-          id: 'test-id',
-          scopes: ['eip155:1' as const],
-          options: {},
-          methods: ['personal_sign'],
-          metadata: {
-            name: 'Test EVM Account',
-            keyring: { type: 'HD Key Tree' },
-            importTime: Date.now(),
-          },
-        } as InternalAccount;
-        const mockAccounts = [mockEvmInternalAccount];
-        mockMessenger.call.mockImplementation((method, ..._args): any => {
-          if (method === 'KeyringController:signPersonalMessage') {
-            return Promise.resolve('0xsignature123');
-          } else if (method === 'RewardsDataService:mobileOptin') {
-            const params = _args[0] as any;
-            expect(params.referralCode).toBe(specialReferralCode);
-            return Promise.resolve({
-              subscription: { id: 'test-subscription-id' },
-              sessionId: 'test-session-id',
-            });
-          }
-          return Promise.resolve();
-        });
-
-        // Mock sortAccounts
-        jest.doMock('./utils/sortAccounts', () => ({
-          sortAccounts: jest.fn().mockReturnValue(mockAccounts),
-        }));
-
-        // Act
-        const result = await controller.optIn(
-          mockAccounts,
-          specialReferralCode,
-        );
-
-        // Assert
-        expect(result).toBe('test-subscription-id');
       });
     });
 
@@ -17697,6 +17537,7 @@ describe('RewardsController', () => {
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17739,6 +17580,7 @@ describe('RewardsController', () => {
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -17786,6 +17628,7 @@ describe('RewardsController', () => {
       moneyAccountSweepstakesDrawProof: {},
       moneyAccountSweepstakesPrizePool: {},
       moneyAccountSweepstakesStats: {},
+      moneyAccountSweepstakesVolumeStats: {},
       offDeviceSubscriptionAccounts: {},
       ondoCampaignActivity: {},
       ondoCampaignDeposits: {},
@@ -21238,6 +21081,24 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockStatus);
     });
 
+    it('forwards a profile username to the data service', async () => {
+      const ctrl = new RewardsController({
+        messenger: optInToCampaignMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      optInToCampaignMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaign(mockCampaignId, mockSubscriptionId, 'ada');
+
+      expect(optInToCampaignMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        mockCampaignId,
+        'ada',
+      );
+    });
+
     it('logs when opting in', async () => {
       const ctrl = new RewardsController({
         messenger: optInToCampaignMessenger,
@@ -21412,6 +21273,35 @@ describe('RewardsController', () => {
         campaignId: campaignA,
         subscriptionId: mockSubscriptionId,
       });
+    });
+
+    it('forwards one profile username to every campaign opt-in', async () => {
+      const ctrl = new RewardsController({
+        messenger: batchMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      batchMessenger.call.mockResolvedValue(mockStatus);
+
+      await ctrl.optInToCampaigns(
+        [campaignA, campaignB],
+        mockSubscriptionId,
+        'ada',
+      );
+
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignA,
+        'ada',
+      );
+      expect(batchMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:optInToCampaign',
+        mockSubscriptionId,
+        campaignB,
+        'ada',
+      );
     });
 
     it('re-seeds participant status cache so post-batch refetches hit cache', async () => {
@@ -21618,12 +21508,19 @@ describe('RewardsController', () => {
       expect(bindingMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('delegates to the data service and caches the bound result', async () => {
+    it('signs the binding message with the money account and caches the bound result', async () => {
+      const mockTimestamp = 1758700000000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockReturnValue(mockTimestamp);
       const ctrl = new RewardsController({
         messenger: bindingMessenger,
         state: getRewardsControllerDefaultState(),
       });
-      bindingMessenger.call.mockResolvedValue('bound');
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'bound',
+        )) as unknown as RewardsControllerMessenger['call']);
 
       const first = await ctrl.registerMoneyAccountBinding(
         mockAddress,
@@ -21634,14 +21531,118 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
 
+      const expectedMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${mockTimestamp}`;
       expect(first).toBe('bound');
       expect(second).toBe('bound');
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        1,
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(expectedMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
+      expect(bindingMessenger.call).toHaveBeenNthCalledWith(
+        2,
+        'RewardsDataService:registerMoneyAccountBinding',
+        mockSubscriptionId,
+        mockAddress,
+        mockTimestamp,
+        '0xsignature',
+      );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not call the data service when signing fails', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockRejectedValue(new Error('sign failed'));
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow('sign failed');
+
       expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({ from: mockAddress }),
+      );
+    });
+
+    it('retries once with the server timestamp when the first bind is out of window', async () => {
+      const clientTimestamp = 1758700000000;
+      const serverTimestamp = 1758700800000;
+      const dateNowSpy = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(clientTimestamp);
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      let bindCalls = 0;
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        bindCalls += 1;
+        if (bindCalls === 1) {
+          return Promise.reject(
+            new InvalidTimestampError('Invalid timestamp', serverTimestamp),
+          );
+        }
+        return Promise.resolve('bound');
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      const result = await ctrl.registerMoneyAccountBinding(
+        mockAddress,
+        mockSubscriptionId,
+      );
+
+      const retryMessage = `metamask-rewards:money-account-binding:${mockSubscriptionId}:${mockAddress.toLowerCase()}:${serverTimestamp}`;
+      expect(result).toBe('bound');
+      expect(bindCalls).toBe(2);
+      expect(bindingMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        {
+          data: '0x' + Buffer.from(retryMessage, 'utf8').toString('hex'),
+          from: mockAddress,
+        },
+      );
       expect(bindingMessenger.call).toHaveBeenCalledWith(
         'RewardsDataService:registerMoneyAccountBinding',
         mockSubscriptionId,
         mockAddress,
+        serverTimestamp,
+        '0xsignature',
       );
+      dateNowSpy.mockRestore();
+    });
+
+    it('does not retry InvalidTimestampError beyond one attempt', async () => {
+      const ctrl = new RewardsController({
+        messenger: bindingMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+      bindingMessenger.call.mockImplementation(((action: string) => {
+        if (action === 'KeyringController:signPersonalMessage') {
+          return Promise.resolve('0xsignature');
+        }
+        return Promise.reject(
+          new InvalidTimestampError('Invalid timestamp', 1758700800000),
+        );
+      }) as unknown as RewardsControllerMessenger['call']);
+
+      await expect(
+        ctrl.registerMoneyAccountBinding(mockAddress, mockSubscriptionId),
+      ).rejects.toThrow(InvalidTimestampError);
+
+      const bindCalls = bindingMessenger.call.mock.calls.filter(
+        (call) => call[0] === 'RewardsDataService:registerMoneyAccountBinding',
+      );
+      expect(bindCalls).toHaveLength(2);
     });
 
     it('caches conflict results so subsequent calls do not re-POST', async () => {
@@ -21649,7 +21650,12 @@ describe('RewardsController', () => {
         messenger: bindingMessenger,
         state: getRewardsControllerDefaultState(),
       });
-      bindingMessenger.call.mockResolvedValue('conflict');
+      bindingMessenger.call.mockImplementation(((action: string) =>
+        Promise.resolve(
+          action === 'KeyringController:signPersonalMessage'
+            ? '0xsignature'
+            : 'conflict',
+        )) as unknown as RewardsControllerMessenger['call']);
 
       const first = await ctrl.registerMoneyAccountBinding(
         mockAddress,
@@ -21662,7 +21668,7 @@ describe('RewardsController', () => {
 
       expect(first).toBe('conflict');
       expect(second).toBe('conflict');
-      expect(bindingMessenger.call).toHaveBeenCalledTimes(1);
+      expect(bindingMessenger.call).toHaveBeenCalledTimes(2);
     });
   });
 

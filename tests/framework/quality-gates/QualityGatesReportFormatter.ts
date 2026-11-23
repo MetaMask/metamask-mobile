@@ -7,6 +7,7 @@
  */
 
 import type { QualityGatesResult } from './types';
+import { THRESHOLD_MARGIN_PERCENT } from './thresholdMargin';
 
 class QualityGatesReportFormatter {
   /**
@@ -43,7 +44,7 @@ class QualityGatesReportFormatter {
     for (const step of result.steps) {
       const status = step.passed ? '✅' : '❌';
       const thresholdStr = step.threshold
-        ? `${step.threshold}ms (base: ${step.baseThreshold}ms +10%)`
+        ? `${step.threshold}ms (base: ${step.baseThreshold}ms +${THRESHOLD_MARGIN_PERCENT}%)`
         : 'N/A';
       lines.push(
         `${status} Step ${step.index + 1}: ${step.duration}ms [threshold: ${thresholdStr}]`,
@@ -146,14 +147,14 @@ class QualityGatesReportFormatter {
             Steps: ${result.summary.passedSteps}/${result.summary.totalSteps} passed
           </p>
           <p style="margin: 5px 0 0 0; font-size: 0.85em; color: #666;">
-            Thresholds include +10% margin
+            Thresholds include +${THRESHOLD_MARGIN_PERCENT}% margin
           </p>
         </div>
         <table style="border-collapse: collapse; width: 100%;">
           <tr>
             <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Step</th>
             <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Duration</th>
-            <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Threshold (+10%)</th>
+            <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Threshold (+${THRESHOLD_MARGIN_PERCENT}%)</th>
             <th style="border: 1px solid #e0e0e0; padding: 12px; background-color: #607d8b; color: white;">Result</th>
           </tr>
           ${stepsHtml}
@@ -191,7 +192,7 @@ class QualityGatesReportFormatter {
       `Status,${result.passed ? 'PASSED' : 'FAILED'},Steps Passed,${result.summary.passedSteps}/${result.summary.totalSteps},`,
     );
     rows.push(
-      'Step,Duration (ms),Base Threshold (ms),Effective Threshold (+10%),Result',
+      `Step,Duration (ms),Base Threshold (ms),Effective Threshold (+${THRESHOLD_MARGIN_PERCENT}%),Result`,
     );
 
     for (const step of result.steps) {

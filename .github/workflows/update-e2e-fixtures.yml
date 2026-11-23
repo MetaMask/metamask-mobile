@@ -1,240 +1,123 @@
-# Updates committed E2E fixture files by running the app and exporting live state.
-# Only merges structural changes (new/missing keys, type mismatches).
-# Value mismatches are reported but not auto-merged since the fixture represents
-# an existing user, not fresh post-onboarding state.
+# Weekly E2E fixture refresh.
 #
-# Trigger via bot command on a PR: @metamaskbot update-mobile-fixture
-# Or manually via Actions tab with workflow_dispatch.
+# Builds the main-e2e Android app from the default branch, runs the
+# FixtureValidation spec (completes onboarding, exports live app state and
+# compares it with the committed tests/framework/fixtures/json/default-fixture.json),
+# and, when the committed fixture is out of date, opens (or refreshes) a PR with
+# the updated fixture.
 #
-# NOTE: issue_comment always runs from the default branch (main).
-# To use the workflow version from the PR branch, the issue_comment handler
-# dispatches a workflow_dispatch event on the PR branch, then exits.
+# Only structural changes (new/missing keys, type mismatches) and auto-updatable
+# keys are merged. Other value mismatches are intentionally NOT merged since the
+# fixture represents an existing user, not fresh post-onboarding state.
+#
+# This replaces the per-PR "Validate E2E Fixtures" check in ci.yml and the
+# `@metamaskbot update-mobile-fixture` PR comment command.
+#
+# Trigger: weekly schedule (runs from the default branch) or manually via the
+# Actions tab with workflow_dispatch.
+#
+# Dry run: set `dry_run` on a manual run to build, validate and export the
+# fixture without pushing a branch or opening a PR. The result is written to the
+# run summary and the updated fixture is uploaded as an artifact. A PR is only
+# ever opened from a run on the default branch, so a manual run from any other
+# branch is always a dry run.
 
 name: Update E2E Fixtures
 
 on:
-  issue_comment:
-    types:
-      - created
+  schedule:
+    - cron: '0 6 * * 1' # 06:00 UTC every Monday
   workflow_dispatch:
     inputs:
-      pr_number:
-        description: 'PR number to update fixtures for'
-        required: true
+      dry_run:
+        description: 'Dry run: validate and export the fixture, but do not push a branch or open a PR'
+        required: false
+        type: boolean
+        default: false
+      apk_run_id:
+        description: 'Optional: reuse the main-e2e Android APK from this CI run ID instead of building one. Skips the build; cannot open a PR.'
+        required: false
         type: string
+        default: ''
       runner_provider:
-        description: Runner provider for this manual trial run
+        description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
         type: choice
         options:
+          - inherit
           - current
           - namespace
-        default: namespace
+        default: inherit
+
+permissions: {}
+
+concurrency:
+  group: update-e2e-fixtures
+  cancel-in-progress: false
+
+env:
+  FIXTURE_PATH: tests/framework/fixtures/json/default-fixture.json
+  FIXTURE_BRANCH: chore/update-e2e-default-fixture
+  # Effective provider for artifact stores. Mirrors build-android-e2e.yml's resolution chain.
+  RESOLVED_RUNNER_PROVIDER: >-
+    ${{
+      inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+      vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current'
+    }}
 
 jobs:
-  # ── issue_comment dispatcher ──────────────────────────────────────────
-  # Validates the comment, then re-dispatches this workflow on the PR branch.
-  dispatch:
-    name: Dispatch to PR branch
-    if: >-
-      ${{
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request &&
-        startsWith(github.event.comment.body, '@metamaskbot update-mobile-fixture')
-      }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
-    timeout-minutes: 5
+  build-android:
+    name: Build Android E2E APK
+    if: ${{ github.repository == 'MetaMask/metamask-mobile' && !inputs.apk_run_id }}
     permissions:
-      actions: write
       contents: read
-      pull-requests: write
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Get PR details
-        id: pr
-        run: |
-          PR_NUMBER="${{ github.event.issue.number }}"
-          IS_FORK=$(gh pr view "${PR_NUMBER}" --json isCrossRepository --jq '.isCrossRepository')
-          BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')
-          {
-            echo "PR_NUMBER=${PR_NUMBER}"
-            echo "IS_FORK=${IS_FORK}"
-            echo "BRANCH=${BRANCH}"
-          } >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Dispatch workflow on PR branch
-        if: steps.pr.outputs.IS_FORK == 'false'
-        run: |
-          gh workflow run "Update E2E Fixtures" \
-            --ref "${{ steps.pr.outputs.BRANCH }}" \
-            -f pr_number="${{ steps.pr.outputs.PR_NUMBER }}"
-
-          gh pr comment "${PR_NUMBER}" --body "🔄 **Fixture update started.** Running workflow from branch \`${{ steps.pr.outputs.BRANCH }}\`. [View workflow runs](${ACTIONS_URL})"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ steps.pr.outputs.PR_NUMBER }}
-          ACTIONS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/workflows/update-e2e-fixtures.yml'
-
-  # ── workflow_dispatch: actual fixture update ──────────────────────────
-  # Everything below only runs on workflow_dispatch (from PR branch).
-
-  is-fork-pull-request:
-    name: Validate PR
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
-    timeout-minutes: 5
-    outputs:
-      IS_FORK: ${{ steps.is-fork.outputs.IS_FORK }}
-      PR_NUMBER: ${{ inputs.pr_number }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Determine whether this PR is from a fork
-        id: is-fork
-        run: echo "IS_FORK=$(gh pr view --json isCrossRepository --jq '.isCrossRepository' "${PR_NUMBER}" )" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ inputs.pr_number }}
-
-  prepare:
-    name: Prepare build artifacts
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
-    timeout-minutes: 10
-    needs: is-fork-pull-request
-    if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    outputs:
-      COMMIT_SHA: ${{ steps.commit-sha.outputs.COMMIT_SHA }}
-      BRANCH: ${{ steps.branch.outputs.BRANCH }}
-      PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
-      RUN_ID: ${{ steps.validate-ci.outputs.RUN_ID }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Checkout pull request
-        run: gh pr checkout "${PR_NUMBER}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
-
-      - name: Get commit SHA
-        id: commit-sha
-        run: echo "COMMIT_SHA=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-      - name: Get branch name
-        id: branch
-        run: echo "BRANCH=$(gh pr view "${PR_NUMBER}" --json headRefName --jq '.headRefName')" >> "$GITHUB_OUTPUT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
-
-      - name: Validate CI run and resolve RUN_ID
-        id: validate-ci
-        run: |
-          COMMIT_SHA_FULL=$(git rev-parse HEAD)
-          BRANCH="${{ steps.branch.outputs.BRANCH }}"
-          echo "::group::Checking CI workflow status"
-
-          # Get the most recent ci workflow run for this branch
-          RUN_INFO=$(gh run list --workflow "ci" --branch "${BRANCH}" --json databaseId,status,conclusion,headSha --limit 1 --jq 'first')
-
-          if [ -z "$RUN_INFO" ] || [ "$RUN_INFO" = "null" ]; then
-            echo "::error title=No CI workflow found::No 'ci' workflow run found for branch ${BRANCH}. Push a commit to trigger CI first."
-            exit 1
-          fi
-
-          RUN_ID=$(echo "$RUN_INFO" | jq -r '.databaseId')
-          RUN_STATUS=$(echo "$RUN_INFO" | jq -r '.status')
-          RUN_CONCLUSION=$(echo "$RUN_INFO" | jq -r '.conclusion')
-          RUN_HEAD_SHA=$(echo "$RUN_INFO" | jq -r '.headSha')
-          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${RUN_ID}"
-          echo "RUN_ID=${RUN_ID}" >> "$GITHUB_OUTPUT"
-
-          echo "CI workflow run: ${RUN_URL}"
-          echo "Status: ${RUN_STATUS}, Conclusion: ${RUN_CONCLUSION}"
-          echo "CI commit: ${RUN_HEAD_SHA}"
-          echo "PR HEAD commit: ${COMMIT_SHA_FULL}"
-          echo "::endgroup::"
-
-          if [ "${RUN_HEAD_SHA}" != "${COMMIT_SHA_FULL}" ]; then
-            echo "::error title=CI not up to date::The latest CI workflow (commit ${RUN_HEAD_SHA:0:7}) does not match the PR HEAD (commit ${COMMIT_SHA_FULL:0:7}). Wait for CI to run on the latest commit, then try again."
-            exit 1
-          fi
-
-          if [ "${RUN_STATUS}" != "completed" ]; then
-            echo "::error title=CI still running::The CI workflow is still in progress (status: ${RUN_STATUS}). Wait for the 'Build Android APKs' job to complete, then run @metamaskbot update-mobile-fixture again. View CI: ${RUN_URL}"
-            exit 1
-          fi
-
-          if [ "${RUN_CONCLUSION}" != "success" ]; then
-            echo "::warning title=CI did not succeed::The CI workflow concluded with '${RUN_CONCLUSION}'. The Android build artifact may not be available. View CI: ${RUN_URL}"
-          fi
-
-          echo "✅ CI run validated. RUN_ID=${RUN_ID}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      id-token: write # required for AWS OIDC role assumption when fetching signing keystores
+      actions: read
+    uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      build_type: main
+      metamask_environment: e2e
+      runner_provider: ${{ inputs.runner_provider || 'inherit' }}
+    secrets: inherit
 
   update-fixtures:
-    name: Export & update fixtures
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-android-e2e' || (startsWith(github.base_ref, 'release/') && fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') || fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]')) }}
+    name: Export & validate fixtures
+    needs: build-android
+    # The build is skipped when an existing APK run is supplied.
+    if: >-
+      ${{
+        !cancelled() &&
+        github.repository == 'MetaMask/metamask-mobile' &&
+        (needs.build-android.result == 'success' || needs.build-android.result == 'skipped')
+      }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-android-e2e' ||
+        fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]')
+      }}
     timeout-minutes: 45
     permissions:
-      actions: write
-      contents: write
-      pull-requests: write
-    needs:
-      - prepare
-      - is-fork-pull-request
-    if: ${{ !cancelled() && needs.prepare.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-
+      contents: read
+      # Namespace checkout/OIDC (mirrors the Validate E2E Fixtures job it replaces).
+      id-token: write
+      actions: read
+    outputs:
+      SHOULD_COMMIT: ${{ steps.evaluate.outputs.SHOULD_COMMIT }}
     steps:
       - name: Checkout (Namespace)
-        if: ${{ inputs.runner_provider == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
         uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
-        with:
-          ref: ${{ needs.prepare.outputs.BRANCH }}
 
       - name: Checkout
-        if: ${{ inputs.runner_provider != 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
         uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.prepare.outputs.BRANCH }}
 
-      - name: Setup Node for shard selection
+      - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
-
-      - name: Download frozen qa-stats timings
-        id: download-timings
-        uses: ./.github/actions/download-e2e-artifact
-        continue-on-error: true
-        with:
-          name: e2e-timings-${{ github.run_id }}
-          path: ./
-          runner-provider: ${{ inputs.runner_provider }}
-
-      - name: Fetch qa-stats timings fallback
-        if: steps.download-timings.outcome != 'success'
-        run: node .github/scripts/e2e-freeze-timings.mjs
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
-          OUTPUT_PATH: ./e2e-timings.json
-
-      - name: Select specs for fixture validation
-        id: select-specs
-        run: |
-          # Single fixture validation spec — no sharding/selection needed.
-          SPEC_FILES="tests/smoke-appium/fixtures/fixture-validation.spec.ts"
-          {
-            echo "spec_count=1"
-            echo "spec_files=${SPEC_FILES}"
-            echo "changed_spec_files=${SPEC_FILES}"
-          } >> "$GITHUB_OUTPUT"
 
       - name: Setup Android AVD & Appium
         uses: ./.github/actions/setup-e2e-env
@@ -248,7 +131,7 @@ jobs:
           android-device: pixel_5
           configure-keystores: 'false'
           install-foundry: 'true'
-          runner_provider: ${{ inputs.runner_provider }}
+          runner_provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
       - name: Determine Android artifact paths
         id: android-artifacts
@@ -259,21 +142,24 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       - name: Download Android build artifacts
-        if: ${{ steps.select-specs.outputs.spec_count != '0' }}
         uses: ./.github/actions/download-e2e-artifact
         with:
           name: main-e2e-release.apk
           path: ${{ steps.android-artifacts.outputs.apk-target-path }}
-          runner-provider: ${{ inputs.runner_provider }}
-          run-id: ${{ needs.prepare.outputs.RUN_ID }}
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
+          # Empty run-id downloads from this run's build job.
+          run-id: ${{ inputs.apk_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # The spec throws when it had to update the fixture, so a failing step is
+      # expected here. The "Evaluate" step below tells that apart from a real
+      # infrastructure/test failure by checking for the result JSON.
       - name: Run fixture validation tests
         id: run-tests-android
         timeout-minutes: 25
         continue-on-error: true
         env:
-          SPEC_FILES: ${{ steps.select-specs.outputs.spec_files }}
+          SPEC_FILES: tests/smoke-appium/fixtures/fixture-validation.spec.ts
           APPIUM_SMOKE_SUITE_NAME: update-e2e-fixtures
           APPIUM_SMOKE_JOB_TITLE: Appium update-e2e-fixtures (android)
           APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-update-e2e-fixtures
@@ -298,135 +184,244 @@ jobs:
             --config tests/playwright.smoke-appium.config.ts \
             --project android-smoke \
             --grep FixtureValidation
+
+      - name: Evaluate fixture validation result
+        id: evaluate
+        env:
+          APK_RUN_ID: ${{ inputs.apk_run_id }}
+        run: |
+          RESULT_FILE="tests/reports/fixture-validation-result.json"
+
+          # The spec writes the result JSON before it throws on an out-of-date
+          # fixture. If it is missing, the test never got that far (emulator,
+          # build or onboarding failure) and the run must not be reported as
+          # "no changes".
+          if [ ! -f "$RESULT_FILE" ]; then
+            echo "::error title=Fixture validation did not run::${RESULT_FILE} was not produced. Check the test logs."
+            exit 1
+          fi
+
+          cat "$RESULT_FILE"
+
+          if git diff --quiet -- "$FIXTURE_PATH"; then
+            SHOULD_COMMIT=false
+            echo "Committed fixture is up to date."
+          else
+            SHOULD_COMMIT=true
+            echo "Committed fixture is out of date; updated fixture exported."
+          fi
+          echo "SHOULD_COMMIT=${SHOULD_COMMIT}" >> "$GITHUB_OUTPUT"
+
+          if [ -n "$APK_RUN_ID" ]; then
+            APK_SOURCE="reused from CI run \`${APK_RUN_ID}\`"
+          else
+            APK_SOURCE="built in this run"
+          fi
+
+          # Surface the outcome on the run page so a dry run (or a quiet week)
+          # is readable without opening the logs or downloading artifacts.
+          {
+            echo "### E2E fixture validation"
+            echo ""
+            echo "- Fixture update needed: \`${SHOULD_COMMIT}\`"
+            echo "- Run ref: \`${GITHUB_REF_NAME}\` (\`${GITHUB_SHA::12}\`)"
+            echo "- APK source: ${APK_SOURCE}"
+            echo ""
+            echo "<details><summary>Validation result</summary>"
+            echo ""
+            echo '```json'
+            cat "$RESULT_FILE"
+            echo '```'
+            echo "</details>"
+            if [ -f tests/reports/fixture-validation-diff.txt ]; then
+              echo ""
+              echo "<details><summary>Diff report (first 300 lines)</summary>"
+              echo ""
+              echo '```text'
+              head -n 300 tests/reports/fixture-validation-diff.txt
+              echo '```'
+              echo "</details>"
+            fi
+            if [ "$SHOULD_COMMIT" = "true" ]; then
+              echo ""
+              echo "<details><summary>Fixture diff stat</summary>"
+              echo ""
+              echo '```text'
+              git diff --stat -- "$FIXTURE_PATH"
+              echo '```'
+              echo "</details>"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload updated fixture
+        if: ${{ steps.evaluate.outputs.SHOULD_COMMIT == 'true' }}
         uses: ./.github/actions/dual-upload-e2e-artifact
         with:
-          name: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
-          path: tests/framework/fixtures/json/default-fixture.json
+          name: updated-e2e-default-fixture
+          path: ${{ env.FIXTURE_PATH }}
           if-no-files-found: error
-          retention-days: 1
-          runner-provider: ${{ inputs.runner_provider }}
+          retention-days: 7
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
-  commit-updated-fixtures:
-    name: Commit the updated fixtures
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
-    timeout-minutes: 10
+      - name: Upload fixture validation reports
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: fixture-validation-results
+          path: |
+            tests/reports/fixture-validation-result.json
+            tests/reports/fixture-validation-diff.txt
+          if-no-files-found: ignore
+          retention-days: 14
+
+  open-fixture-pr:
+    name: Open fixture update PR
+    needs: update-fixtures
+    # The PR branch is cut from the default branch, so only a run on the default
+    # branch (and not a dry run) may open one. Otherwise a run from another ref
+    # would commit that ref's exported app state onto the default branch.
+    if: >-
+      ${{
+        needs.update-fixtures.outputs.SHOULD_COMMIT == 'true' &&
+        inputs.dry_run != true &&
+        !inputs.apk_run_id &&
+        github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      }}
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
+         vars.NAMESPACE_RUNNER_ANDROID || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    timeout-minutes: 15
     permissions:
-      contents: write
-      pull-requests: write
-    needs:
-      - prepare
-      - is-fork-pull-request
-      - update-fixtures
-    if: ${{ !cancelled() && needs.update-fixtures.result == 'success' && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+      id-token: write # OIDC for the token exchange below
+      contents: read
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
+      # Mint a short-lived token via the token-exchange service. Using it (rather
+      # than GITHUB_TOKEN) lets the pushed branch trigger the PR's CI workflows.
+      #   workflows: write — workaround for a GitHub push-protection timeout bug
+      #   on new branch pushes (actions/checkout#2287); no workflow files are touched.
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            metadata: read
+            contents: write
+            pull_requests: write
+            workflows: write
 
-      - name: Checkout pull request
-        run: gh pr checkout "${PR_NUMBER}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          token: ${{ steps.get-token.outputs.token }}
 
       - name: Download updated fixture
         uses: ./.github/actions/download-e2e-artifact
         with:
-          name: fixture-${{ needs.prepare.outputs.COMMIT_SHA }}
+          name: updated-e2e-default-fixture
           path: tests/framework/fixtures/json
-          runner-provider: ${{ inputs.runner_provider }}
-
-      - name: Check for fixture changes
-        id: fixture-changes
-        run: |
-          if git diff --exit-code tests/framework/fixtures/json/default-fixture.json; then
-            echo "HAS_CHANGES=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
-          fi
+          runner-provider: ${{ env.RESOLVED_RUNNER_PROVIDER }}
 
       - name: Set up Node.js
-        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
         uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: yarn
 
       - name: Install dependencies
-        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
         run: yarn install --immutable
 
       - name: Format updated fixture with prettier
-        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
-        run: yarn prettier --write tests/framework/fixtures/json/default-fixture.json
+        run: yarn prettier --write "$FIXTURE_PATH"
 
-      # Note: Commits pushed with the default GITHUB_TOKEN do not trigger
-      # downstream CI workflows (GitHub anti-loop protection). This is
-      # intentional — a follow-up push or manual CI re-run will validate
-      # the updated fixture. Use a PAT or GitHub App token if auto-triggered
-      # CI is needed in the future.
-      - name: Commit the updated fixture
-        if: steps.fixture-changes.outputs.HAS_CHANGES == 'true'
+      # The exporter output can differ from the committed file only by
+      # formatting; check again after prettier so we never open an empty PR.
+      - name: Check for fixture changes
+        id: fixture-changes
         run: |
-          git config --global user.name 'MetaMask Bot'
-          git config --global user.email 'metamaskbot@users.noreply.github.com'
-          git commit -am "chore: update E2E default fixture"
-          git push
-
-      - name: Post comment
-        run: |
-          if [[ $HAS_CHANGES == 'true' ]]; then
-            gh pr comment "${PR_NUMBER}" --body 'E2E fixtures updated.'
+          if git diff --quiet -- "$FIXTURE_PATH"; then
+            echo "HAS_CHANGES=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to the fixture after formatting."
           else
-            gh pr comment "${PR_NUMBER}" --body 'No E2E fixture changes detected.'
+            echo "HAS_CHANGES=true" >> "$GITHUB_OUTPUT"
           fi
-        env:
-          HAS_CHANGES: ${{ steps.fixture-changes.outputs.HAS_CHANGES }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.prepare.outputs.PR_NUMBER }}
 
-  check-status:
-    name: Check whether the fixture update succeeded
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
-    timeout-minutes: 5
-    if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    needs:
-      - is-fork-pull-request
-      - commit-updated-fixtures
-    outputs:
-      PASSED: ${{ steps.set-output.outputs.PASSED }}
-    steps:
-      - name: Set PASSED output
-        id: set-output
+      - name: Commit and push fixture update branch
+        if: ${{ steps.fixture-changes.outputs.HAS_CHANGES == 'true' }}
         run: |
-          if [[ "${{ needs.commit-updated-fixtures.result }}" == "success" ]]; then
-            echo "PASSED=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "PASSED=false" >> "$GITHUB_OUTPUT"
-          fi
+          git config user.name 'MetaMask Bot'
+          git config user.email 'metamaskbot@users.noreply.github.com'
+          git checkout -B "$FIXTURE_BRANCH"
+          git add "$FIXTURE_PATH"
+          git commit -m "chore: update E2E default fixture"
+          # The branch is rebuilt from the default branch on every run, so a
+          # stale branch from a previous week is safely replaced.
+          git push --force origin "$FIXTURE_BRANCH"
 
-  failure-comment:
-    name: Comment about the fixture update failure
-    if: ${{ !cancelled() && needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
-    runs-on: ${{ inputs.runner_provider == 'namespace' && 'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest' }}
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      pull-requests: write
-    needs:
-      - is-fork-pull-request
-      - check-status
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Post comment if the update failed
-        run: |
-          passed="${{ needs.check-status.outputs.PASSED }}"
-          if [[ $passed != "true" ]]; then
-            body="❌ **E2E fixture update failed.**\n\n**Common causes:**\n- CI workflow is still running — wait for 'Build Android APKs' to complete and re-run CI; ignorable-only PRs need Android-impacting app changes\n- Android build failed — check the CI workflow for errors\n\n[View logs and retry](${ACTION_RUN_URL})"
-            gh pr comment "${PR_NUMBER}" --body "$body"
-          fi
+      - name: Open or refresh pull request
+        if: ${{ steps.fixture-changes.outputs.HAS_CHANGES == 'true' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PR_NUMBER: ${{ needs.is-fork-pull-request.outputs.PR_NUMBER }}
-          ACTION_RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
+          BASE_BRANCH: ${{ github.event.repository.default_branch }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          EXISTING_PR=$(gh pr list --head "$FIXTURE_BRANCH" --base "$BASE_BRANCH" --state open --json number --jq '.[0].number // empty')
+
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr comment "$EXISTING_PR" --body "🔄 Fixture branch refreshed by the weekly run: ${RUN_URL}"
+            echo "Updated existing PR #${EXISTING_PR}"
+            exit 0
+          fi
+
+          cat > pr-body.md <<EOF
+          ## **Description**
+
+          Weekly automated refresh of the committed E2E default fixture
+          (\`${FIXTURE_PATH}\`).
+
+          The FixtureValidation spec exported the live post-onboarding app state from
+          \`${BASE_BRANCH}\` and found structural differences (new/missing keys or type
+          mismatches) or auto-updatable keys that changed. Other value mismatches are
+          intentionally not merged because the fixture represents an existing user.
+
+          Workflow run: ${RUN_URL}
+
+          ## **Changelog**
+
+          CHANGELOG entry: null
+
+          ## **Related issues**
+
+          Fixes:
+
+          ## **Manual testing steps**
+
+          N/A — review the fixture diff and confirm the E2E CI checks pass.
+
+          ## **Screenshots/Recordings**
+
+          N/A
+
+          ## **Pre-merge author checklist**
+
+          - [x] I've followed [MetaMask Contributor Docs](https://github.com/MetaMask/contributor-docs) and [MetaMask Mobile Coding Standards](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/CODING_GUIDELINES.md).
+          - [x] I've completed the PR template to the best of my ability
+          - [x] I've included tests if applicable
+          - [x] I've documented my code using [JSDoc](https://jsdoc.app/) format if applicable
+          - [x] I've applied the right labels on the PR (see [labeling guidelines](https://github.com/MetaMask/metamask-mobile/blob/main/.github/guidelines/LABELING_GUIDELINES.md)). Not required for external contributors.
+
+          ## **Pre-merge reviewer checklist**
+
+          - [ ] I've manually tested the PR (e.g. pull and build branch, run the app, test code being changed).
+          - [ ] I confirm that this PR addresses all acceptance criteria described in the ticket it closes and includes the necessary testing evidence such as recordings and or screenshots.
+          EOF
+
+          gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$FIXTURE_BRANCH" \
+            --title "chore: update E2E default fixture" \
+            --body-file pr-body.md

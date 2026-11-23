@@ -1,5 +1,6 @@
 import {
   canonicalizeOrderPrice,
+  getLimitPriceTooFarMessage,
   getLimitPriceValidationIssue,
   getLimitPriceValidationMessage,
   getLimitPriceCrossingWarning,
@@ -11,6 +12,7 @@ import {
   getTriggerPriceValidationIssue,
   getTriggerPriceValidationMessage,
 } from './triggerOrderValidation';
+import enTranslations from '../../../../../locales/languages/en.json';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -512,6 +514,28 @@ describe('getScalePriceCrossingWarning', () => {
   });
 });
 
+describe('scale crossing copy', () => {
+  it('matches the long partial warning, with below in place of above', () => {
+    const copy = enTranslations.perps.order.validation;
+
+    expect(copy.scale_price_above_partial_warning).not.toContain(
+      'incur taker fees',
+    );
+    expect(copy.scale_price_below_partial_warning).toBe(
+      copy.scale_price_above_partial_warning.replace('above', 'below'),
+    );
+  });
+
+  it('omits taker fees from the full-range warnings in both directions', () => {
+    const copy = enTranslations.perps.order.validation;
+
+    expect(copy.scale_price_above_warning).not.toContain('incur taker fees');
+    expect(copy.scale_price_below_warning).toBe(
+      copy.scale_price_above_warning.replace('above', 'below'),
+    );
+  });
+});
+
 describe('typed order price validation', () => {
   it('canonicalizes a price using venue precision', () => {
     const result = canonicalizeOrderPrice('123.456', 0);
@@ -553,6 +577,68 @@ describe('typed order price validation', () => {
     });
 
     expect(result).toEqual({ code: 'positive' });
+  });
+
+  it('returns a too_far issue when an opening limit is outside the live band', () => {
+    const result = getLimitPriceValidationIssue({
+      orderType: 'limit',
+      limitPrice: '100',
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(result).toEqual(
+      expect.objectContaining({
+        code: 'too_far',
+        min: expect.any(String),
+        max: expect.any(String),
+      }),
+    );
+  });
+
+  it('leaves a limit inside the live band without a price issue', () => {
+    const result = getLimitPriceValidationIssue({
+      orderType: 'limit',
+      limitPrice: '2400',
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('explains the 95% constraint and the live acceptable range', () => {
+    const message = getLimitPriceTooFarMessage(2500);
+
+    expect(message).toContain(
+      'perps.order.limit_price_modal.limit_price_too_far',
+    );
+    expect(message).toContain(
+      'perps.order.limit_price_modal.limit_price_too_far_range',
+    );
+  });
+
+  it('returns only the constraint when the reference cannot form a band', () => {
+    expect(getLimitPriceTooFarMessage(0)).toBe(
+      'perps.order.limit_price_modal.limit_price_too_far',
+    );
+  });
+
+  it('assigns a too_far opening limit to the limitPrice field', () => {
+    const result = getOrderFormFieldIssues({
+      orderType: 'limit',
+      direction: 'long',
+      limitPrice: '100',
+      midPrice: 2500,
+      szDecimals: 3,
+    });
+
+    expect(result).toEqual([
+      {
+        field: 'limitPrice',
+        issue: expect.objectContaining({ code: 'too_far' }),
+      },
+    ]);
   });
 
   it('assigns a trigger issue to its owning field', () => {

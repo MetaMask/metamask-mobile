@@ -22,7 +22,11 @@ class AddContactView {
   }
 
   get editContact(): Promise<AppiumElement> {
-    return Matchers.getElementByText(AddContactViewSelectorsText.EDIT_CONTACT);
+    return Matchers.getElementByText(AddContactViewSelectorsText.SAVE);
+  }
+
+  get cancelButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(AddContactViewSelectorsIDs.CANCEL_BUTTON);
   }
 
   get deleteButton(): Promise<AppiumElement> {
@@ -59,7 +63,13 @@ class AddContactView {
 
   async tapEditContactCTA(): Promise<void> {
     await Gestures.waitAndTap(this.editContact, {
-      elemDescription: 'Edit Contact CTA',
+      elemDescription: 'Save Contact CTA',
+    });
+  }
+
+  async tapCancelButton(): Promise<void> {
+    await Gestures.waitAndTap(this.cancelButton, {
+      elemDescription: 'Cancel Button',
     });
   }
 

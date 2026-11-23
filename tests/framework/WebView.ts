@@ -10,6 +10,7 @@ import {
   type AndroidWebViewTapOptions,
 } from './AndroidWebViewNative.ts';
 import Gestures from './Gestures.ts';
+import { tapWebIdFallingBackToDomClick } from './IosWebViewTap.ts';
 import Matchers from './Matchers.ts';
 import { type AppiumElement } from './AppiumElement.ts';
 import AppiumGestures from './AppiumGestures.ts';
@@ -31,8 +32,8 @@ export type { AndroidWebViewScrollOptions, AndroidWebViewTapOptions };
  * Multi-platform WebView interaction by HTML id.
  *
  * Android Appium uses native UiAutomator (`AndroidWebViewNative`) to avoid
- * Chromedriver context flakes. iOS Appium and Detox use the existing web-context
- * element path + Gestures.
+ * Chromedriver context flakes. iOS Appium uses the web-context element path.
+ * If that click hits LavaMoat scuttling, it falls back to a page-script click.
  */
 export default class WebView {
   /**
@@ -71,9 +72,11 @@ export default class WebView {
     await this.withContext(options.pageUrl, async () => {
       const webElement = await this.getElementById(webId, options);
       await Gestures.scrollToWebViewPort(webElement);
-      await Gestures.tap(webElement, {
-        elemDescription: options.description ?? `WebView tapById: ${webId}`,
-      });
+      await tapWebIdFallingBackToDomClick(webId, () =>
+        Gestures.tap(webElement, {
+          elemDescription: options.description ?? `WebView tapById: ${webId}`,
+        }),
+      );
     });
   }
 

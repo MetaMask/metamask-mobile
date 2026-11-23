@@ -46,6 +46,14 @@ Do not add context merely to avoid passing one or two ordinary props. Do not cre
 
 Build the parts and variants required by the active vertical slice. Do not create widget registries, universal section schemas, speculative variants, or extension APIs for hypothetical callers.
 
+### Withdrawal privacy and recovery
+
+Withdrawal entry, confirmation, and status mask account balances and payout details with MMDS `SensitiveText` while privacy mode is on. User-entered amounts remain visible during entry. An expired quote returns to amount entry with the amount retained; Continue requests a new quote before another commit. Other commit errors first read the submitted preview's receipt. A missing preview returns to entry only when that read also confirms no operation. If recovery fails otherwise, the screen retains that preview and blocks Back and Done. Check withdrawal retries the same preview, never a new withdrawal. A lock or identity change does not start recovery with the replacement session.
+
+The withdrawal reducer groups transitions by phase. Unsupported actions leave the current state unchanged. Receipt updates share one transition, and manual-review guidance replaces the ordinary status description.
+
+This slice ships fixed-amount entry only: the screen never submits `sweep_all`, and it has no Max action. The API, the service, and the receipt projection all support a sweep preview, and a component-view test pins sweep-result rendering, but no reachable journey starts one. Exposing Max is a separate product decision, not a missing wiring detail.
+
 ## Visual reference when no designs exist
 
 When a ticket or slice ships without Figma designs, use the legacy Polymarket implementation under `../Predict/` as the visual and behavioral guideline for the equivalent surface (for example, `PredictPosition` and `PredictActivity` rows for portfolio lists). Treat it strictly as a reference:
@@ -53,6 +61,8 @@ When a ticket or slice ships without Figma designs, use the legacy Polymarket im
 - rebuild the UI as composable PredictNext components per this document, never copying legacy components or their styling wholesale;
 - bind rows to canonical PredictNext contracts and omit values the contract does not carry rather than importing legacy data assumptions;
 - keep legacy-only affordances (detail modals, venue-specific flows) out unless the active Jira slice requires them.
+
+This rule applies to new Kalshi UI. The Polymarket branch of a public PredictNext API is different: it renders the existing legacy components, moved as-is, so production Polymarket behavior is unchanged. Do not rebuild, copy, or restyle legacy UI for that branch. See [ADR-0002](./adr/0002-permanent-public-api-private-legacy.md).
 
 ## Story and review expectations
 

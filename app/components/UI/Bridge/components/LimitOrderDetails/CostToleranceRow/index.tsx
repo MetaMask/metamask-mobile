@@ -4,7 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -27,13 +26,7 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
 }) => (
   <KeyValueRow
     variant={KeyValueRowVariant.Summary}
-    keyLabel={strings('bridge.cost_tolerance')}
-    keyTextProps={{
-      variant: TextVariant.BodyMd,
-      color: TextColor.TextAlternative,
-      fontWeight: FontWeight.Regular,
-    }}
-    keyEndAccessory={
+    keyLabel={
       <LimitOrderCostToleranceTooltip
         testID={CostToleranceRowSelectorsIDs.TOOLTIP}
       />
@@ -53,21 +46,20 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
         >
           <Text
             variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
+            color={TextColor.TextDefault}
             testID={CostToleranceRowSelectorsIDs.VALUE}
           >
             {value}
           </Text>
           <Icon
-            name={IconName.Edit}
+            name={IconName.ArrowRight}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
-            twClassName="-mt-0.5"
           />
         </Box>
       </TouchableOpacity>
     }
-    twClassName="h-8"
+    twClassName="h-auto"
   />
 );
 

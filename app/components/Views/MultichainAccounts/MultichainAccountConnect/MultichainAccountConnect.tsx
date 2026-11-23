@@ -71,6 +71,7 @@ import {
   mergeCaip25Values,
 } from '../../MultichainAccounts/shared/utils.ts';
 import { getPhishingTestResultAsync } from '../../../../util/phishingDetection.ts';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import {
   CaipChainId,
   KnownCaipNamespace,
@@ -547,7 +548,10 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
       if (!isSnapId(url)) {
         url = prefixUrlWithProtocol(url);
       }
-      const scanResult = await getPhishingTestResultAsync(url);
+      const scanResult = await getPhishingTestResultAsync(
+        url,
+        RequestSourceFlow.DappConnection,
+      );
       if (scanResult.result && isMountedRef.current) {
         setBlockedUrl(dappUrl);
         setShowPhishingModal(true);
@@ -732,6 +736,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
           <AvatarFavicon src={faviconSource} size={AvatarFaviconSize.Sm} />
         ),
         hasNoTimeout: false,
+        showCloseButton: false,
       });
     } catch (e) {
       if (e instanceof Error) {

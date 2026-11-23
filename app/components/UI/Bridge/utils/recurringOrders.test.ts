@@ -9,11 +9,27 @@ import {
   formatRecurringOrderDate,
   formatRecurringPriceRange,
   formatRecurringTokenAmount,
+  getRecurringOrderMinAmountUsd,
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
+  getOrderTypeFromDraftPriceRange,
   getUsdToCurrentCurrencyRate,
   isRecurringSwapEligibleForAddFunds,
 } from './recurringOrders';
+import { OrderType } from '../types/advancedOrders';
+
+describe('getRecurringOrderMinAmountUsd', () => {
+  it.each([
+    { chainId: 'eip155:1' as const, expected: 100 },
+    { chainId: '0x1' as const, expected: 100 },
+    { chainId: 'eip155:8453' as const, expected: 10 },
+    { chainId: undefined, expected: 10 },
+  ])('returns $$expected for chain $chainId', ({ chainId, expected }) => {
+    const result = getRecurringOrderMinAmountUsd(chainId);
+
+    expect(result).toBe(expected);
+  });
+});
 
 describe('recurring order formatting', () => {
   it('converts V2 native and ERC-20 assets to Bridge tokens', () => {
@@ -23,6 +39,8 @@ describe('recurring order formatting', () => {
       address: '0x0000000000000000000000000000000000000000',
       chainId: '0x1',
       symbol: 'ETH',
+      image:
+        'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
     });
     expect(result.destinationToken).toMatchObject({
       address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -63,7 +81,8 @@ describe('recurring order formatting', () => {
   });
 
   it('omits average execution price from an unfilled fixture', () => {
-    const result = MOCK_RECURRING_OPEN_ORDER_2.averageExecutionPriceUsd;
+    const result =
+      MOCK_RECURRING_OPEN_ORDER_2.fillData.averageExecutionPriceUsd;
 
     expect(result).toBeUndefined();
   });
@@ -96,13 +115,38 @@ describe('recurring order formatting', () => {
     expect(result).toBe(0.9);
   });
 
-  it('formats a structured price range in USD', () => {
+  it('formats a historical USD price range in the current currency', () => {
     const result = formatRecurringPriceRange({
       priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+      currentCurrency: 'EUR',
+      usdToCurrentCurrencyRate: 0.9,
     });
 
-    expect(result).toContain('$1,800.00');
-    expect(result).toContain('$2,200.00');
+    expect(result).toContain('€1,620.00');
+    expect(result).toContain('€1,980.00');
+  });
+
+  it('preserves a one-sided historical price range during conversion', () => {
+    const result = formatRecurringPriceRange({
+      priceRange: {
+        side: 'dest',
+        currency: 'USD',
+        min: '1800',
+      },
+      currentCurrency: 'EUR',
+      usdToCurrentCurrencyRate: 0.9,
+    });
+
+    expect(result).toBe('≥ €1,620.00');
+  });
+
+  it('returns the missing placeholder when the currency rate is unavailable', () => {
+    const result = formatRecurringPriceRange({
+      priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+      currentCurrency: 'EUR',
+    });
+
+    expect(result).toBe('--');
   });
 
   it('formats average execution price in the current currency', () => {
@@ -114,6 +158,66 @@ describe('recurring order formatting', () => {
 
     expect(result).toBe('€1,800.00');
   });
+});
+
+describe('getOrderTypeFromDraftPriceRange', () => {
+  it.each([
+    {
+      label: 'dest min',
+      priceRange: {
+        tokenSide: 'dest' as const,
+        currency: 'USD' as const,
+        min: '1000',
+        max: '',
+      },
+      expected: OrderType.BUY_ABOVE,
+    },
+    {
+      label: 'dest max',
+      priceRange: {
+        tokenSide: 'dest' as const,
+        currency: 'USD' as const,
+        min: '',
+        max: '2000',
+      },
+      expected: OrderType.BUY_BELOW,
+    },
+    {
+      label: 'source max',
+      priceRange: {
+        tokenSide: 'source' as const,
+        currency: 'USD' as const,
+        min: '',
+        max: '2000',
+      },
+      expected: OrderType.SELL_BELOW,
+    },
+    {
+      label: 'source min',
+      priceRange: {
+        tokenSide: 'source' as const,
+        currency: 'USD' as const,
+        min: '1000',
+        max: '',
+      },
+      expected: OrderType.SELL_ABOVE,
+    },
+    {
+      label: 'missing range',
+      priceRange: undefined,
+      expected: OrderType.SELL_ABOVE,
+    },
+  ])(
+    'returns $expected for a $label price range',
+    ({ priceRange, expected }) => {
+      const result = getOrderTypeFromDraftPriceRange(priceRange);
+
+      expect(result).toBe(expected);
+      expect(result).toEqual(
+        expect.stringMatching(/^(buy|sell)_(above|below)$/),
+      );
+    },
+  );
 });
 
 describe('isRecurringSwapEligibleForAddFunds', () => {

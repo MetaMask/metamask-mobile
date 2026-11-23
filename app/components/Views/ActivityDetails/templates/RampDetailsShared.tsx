@@ -118,7 +118,7 @@ export function RampStatusWithProviderLink({
               {providerLinkLabel}
             </Text>
             <Icon
-              name={IconName.Export}
+              name={IconName.ArrowSquareOut}
               size={IconSize.Sm}
               color={IconColor.PrimaryDefault}
             />

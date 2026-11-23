@@ -113,8 +113,12 @@ jest.mock('../../../core/Engine', () => ({
       getAccountByAddress: jest.fn(),
       setAccountName: jest.fn(),
     },
-    AccountTrackerController: {
-      syncBalanceWithAddresses: jest.fn().mockResolvedValue({}),
+    NetworkController: {
+      state: { selectedNetworkClientId: 'mainnet' },
+      getNetworkClientById: jest.fn(() => ({ provider: {} })),
+      getSelectedNetworkClient: jest.fn(() => ({
+        provider: { request: jest.fn().mockResolvedValue('0x0') },
+      })),
     },
   },
 }));

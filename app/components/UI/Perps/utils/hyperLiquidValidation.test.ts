@@ -13,6 +13,7 @@ import {
   validateOrderParams,
   validateCoinExists,
   getMaxOrderValue,
+  HYPERLIQUID_ASSET_CONFIGS,
   PERPS_ERROR_CODES,
   type GetSupportedPathsParams,
 } from '@metamask/perps-controller';
@@ -47,7 +48,7 @@ describe('hyperLiquidValidation', () => {
       });
     });
 
-    it('should create error result with unknown error', () => {
+    it('should keep a string error message', () => {
       const error = 'string error';
       const defaultResponse = { success: true, data: null };
 
@@ -55,7 +56,7 @@ describe('hyperLiquidValidation', () => {
 
       expect(result).toEqual({
         success: false,
-        error: PERPS_ERROR_CODES.UNKNOWN_ERROR,
+        error: 'string error',
         data: null,
       });
     });
@@ -192,8 +193,7 @@ describe('hyperLiquidValidation', () => {
 
     it('should validate correct parameters on testnet', () => {
       const params = {
-        assetId:
-          'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default' as CaipAssetId,
+        assetId: HYPERLIQUID_ASSET_CONFIGS.usdc.testnet,
         amount: '15',
         isTestnet: true,
       };
@@ -282,8 +282,7 @@ describe('hyperLiquidValidation', () => {
 
     it('should reject amount below minimum on testnet', () => {
       const params = {
-        assetId:
-          'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default' as CaipAssetId,
+        assetId: HYPERLIQUID_ASSET_CONFIGS.usdc.testnet,
         amount: '9.99',
         isTestnet: true,
       };
@@ -311,8 +310,7 @@ describe('hyperLiquidValidation', () => {
 
     it('should accept amount exactly at minimum on testnet', () => {
       const params = {
-        assetId:
-          'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default' as CaipAssetId,
+        assetId: HYPERLIQUID_ASSET_CONFIGS.usdc.testnet,
         amount: '10',
         isTestnet: true,
       };
@@ -519,9 +517,7 @@ describe('hyperLiquidValidation', () => {
 
       const result = applyPathFilters(mockAssets, params);
 
-      expect(result).toEqual([
-        'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default',
-      ]);
+      expect(result).toEqual([HYPERLIQUID_ASSET_CONFIGS.usdc.testnet]);
     });
 
     it('should filter by assetId (case insensitive)', () => {
@@ -578,9 +574,7 @@ describe('hyperLiquidValidation', () => {
 
       const result = getSupportedPaths(params);
 
-      expect(result).toEqual([
-        'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default',
-      ]);
+      expect(result).toEqual([HYPERLIQUID_ASSET_CONFIGS.usdc.testnet]);
     });
 
     it('should apply filters to assets', () => {

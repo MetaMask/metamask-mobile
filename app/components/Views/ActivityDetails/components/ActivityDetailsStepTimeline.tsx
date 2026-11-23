@@ -146,7 +146,7 @@ export function ActivityDetailsStepTimeline({
                 </Box>
                 {explorerLink ? (
                   <Icon
-                    name={IconName.Export}
+                    name={IconName.ArrowSquareOut}
                     size={IconSize.Sm}
                     color={IconColor.IconAlternative}
                     testID={getActivityDetailsStepIconTestId(index)}

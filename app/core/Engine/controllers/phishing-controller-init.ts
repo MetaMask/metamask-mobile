@@ -1,6 +1,7 @@
 import { MessengerClientInitFunction } from '../types';
 import {
   PhishingController,
+  RequestSourcePlatform,
   type PhishingControllerMessenger,
 } from '@metamask/phishing-controller';
 
@@ -17,6 +18,7 @@ export const phishingControllerInit: MessengerClientInitFunction<
 > = ({ controllerMessenger }) => {
   const controller = new PhishingController({
     messenger: controllerMessenger,
+    platform: RequestSourcePlatform.Mobile,
   });
 
   return {

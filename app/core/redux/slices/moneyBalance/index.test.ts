@@ -73,10 +73,16 @@ describe('moneyBalance slice', () => {
     expect(cleared.redeemable).toBeNull();
   });
 
-  it('setLastLocalMoneyFlow stores the account and confirmation time', () => {
-    const state = reducer(initialState, setLastLocalMoneyFlow(localFlow));
+  it('setLastLocalMoneyFlow stores the account, confirmation time, and optional minBlock', () => {
+    const state = reducer(
+      initialState,
+      setLastLocalMoneyFlow({ ...localFlow, minBlock: 42 }),
+    );
 
-    expect(state.lastLocalFlowConfirmedAt).toEqual(localFlow);
+    expect(state.lastLocalFlowConfirmedAt).toEqual({
+      ...localFlow,
+      minBlock: 42,
+    });
   });
 
   it('selectLastLocalMoneyFlow returns the stored marker', () => {

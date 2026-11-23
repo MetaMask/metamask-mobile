@@ -4,12 +4,12 @@ import {
   CANCEL_TYPES,
 } from '@metamask/subscription-controller';
 import Routes from '../../../../../constants/navigation/Routes';
-import { CANCEL_REASONS, OTHER_REASON_ID } from './CancelMembership.constants';
+import { CANCEL_REASONS } from './CancelMembership.constants';
 import {
   CANCELLATION_TIMINGS,
   POST_CANCELLATION_PRO_HUB_SOURCE,
+  buildPostCancellationHomeResetState,
   buildPostCancellationResetState,
-  formatCancellationEndDate,
   getCancellationTiming,
   shuffleCancelReasons,
   toCancellationReason,
@@ -35,7 +35,7 @@ describe('shuffleCancelReasons', () => {
   it('pins other as the last item', () => {
     const result = shuffleCancelReasons(CANCEL_REASONS);
 
-    expect(result[result.length - 1]?.id).toBe(OTHER_REASON_ID);
+    expect(result[result.length - 1]?.id).toBe(CANCELLATION_REASONS.OTHER);
   });
 
   it('keeps the same reason ids as the input', () => {
@@ -108,24 +108,6 @@ describe('getCancellationTiming', () => {
   });
 });
 
-describe('formatCancellationEndDate', () => {
-  it('formats an ISO period end for confirmation copy', () => {
-    const periodEnd = '2027-07-20T12:00:00.000Z';
-
-    expect(formatCancellationEndDate(periodEnd)).toBe(
-      new Date(periodEnd).toLocaleDateString(undefined, {
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    );
-  });
-
-  it('returns the original value when the date is invalid', () => {
-    expect(formatCancellationEndDate('invalid-date')).toBe('invalid-date');
-  });
-});
-
 describe('buildPostCancellationResetState', () => {
   it('puts Pro Hub on top of the origin screen and drops cancel and membership', () => {
     const state = createStackState([
@@ -164,19 +146,6 @@ describe('buildPostCancellationResetState', () => {
         params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
       },
     ]);
-  });
-
-  it('returns directly to the origin after immediate cancellation', () => {
-    const state = createStackState([
-      'Money',
-      Routes.PRO_HUB.ROOT,
-      Routes.PRO_HUB.CANCEL_MEMBERSHIP,
-    ]);
-
-    const nextState = buildPostCancellationResetState(state, false);
-
-    expect(nextState.index).toBe(0);
-    expect(nextState.routes).toEqual([{ key: 'Money-0', name: 'Money' }]);
   });
 
   it('drops the Join Pro benefits modal so back from Pro Hub does not open it', () => {
@@ -268,5 +237,16 @@ describe('buildPostCancellationResetState', () => {
         params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
       },
     ]);
+  });
+});
+
+describe('buildPostCancellationHomeResetState', () => {
+  it('resets Home, Money, Accounts, and a Pro-only stack to HomeNav', () => {
+    const nextState = buildPostCancellationHomeResetState();
+
+    expect(nextState).toEqual({
+      index: 0,
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
   });
 });

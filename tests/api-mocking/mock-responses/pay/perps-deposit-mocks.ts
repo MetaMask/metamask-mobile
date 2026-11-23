@@ -9,10 +9,18 @@ import {
   mockRelayQuoteWith,
   mockRelayStatusSuccess,
 } from './relay-mocks';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  mockTxSentinelNetworks,
+} from '../tx-sentinel-networks-map';
 import { USDC_MAINNET } from '../../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
+import {
+  dataApiJsonResponse,
+  getProxiedDataApiUrl,
+} from '../polymarket/polymarket-mocks';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const MAINNET_SPOT_PRICES = {
   'eip155:1/slip44:60': {
@@ -499,13 +507,12 @@ async function mockPredictActivity(mockServer: Mockttp) {
     .forGet('/proxy')
     .asPriority(1001)
     .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
+      const url = getProxiedDataApiUrl(request.url) ?? '';
       return Boolean(url.includes('data-api.polymarket.com/activity'));
     })
-    .thenCallback(() => ({
-      statusCode: 200,
-      json: [],
-    }));
+    .thenCallback((request) =>
+      dataApiJsonResponse(request.url, 'activity', []),
+    );
 }
 
 async function mockAccountsApiTransactions(mockServer: Mockttp) {
@@ -555,26 +562,7 @@ async function mockAccountsApiTransactions(mockServer: Mockttp) {
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001) // Higher priority than the generic accounts.api mock in perps-arbitrum-mocks
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 /**
@@ -619,26 +607,7 @@ async function mockSentinelNetworks(mockServer: Mockttp) {
     },
   };
 
-  const handler = () => ({
-    statusCode: 200,
-    json: withArbitrumRelay,
-  });
-
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(1001)
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
-      );
-    })
-    .thenCallback(handler);
+  await mockTxSentinelNetworks(mockServer, withArbitrumRelay, 1001);
 }
 
 async function mockRelaySubmissionStatus(mockServer: Mockttp) {

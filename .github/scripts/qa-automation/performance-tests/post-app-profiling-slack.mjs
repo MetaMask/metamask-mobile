@@ -15,6 +15,8 @@
  * Environment:
  *   SLACK_BOT_TOKEN   required
  *   SLACK_TARGET      user id (U.../W...) or channel id (C.../G...)
+ *   SLACK_PLAIN       set to 1 to post the file unchanged (no artifact
+ *                     links, no thread cards)
  *   GITHUB_RUN_URL    optional footer link
  *   GITHUB_RUN_LABEL  optional footer link text, so a failure notice can say
  *                     what it links to instead of a generic "GitHub run"
@@ -274,10 +276,11 @@ async function main() {
   }
 
   let markdown = fs.readFileSync(markdownPath, 'utf8');
+  const plain = process.env.SLACK_PLAIN === '1';
   const githubToken = process.env.GITHUB_TOKEN;
   const githubRepository = process.env.GITHUB_REPOSITORY;
   const githubRunId = process.env.GITHUB_RUN_ID;
-  if (githubToken && githubRepository && githubRunId) {
+  if (!plain && githubToken && githubRepository && githubRunId) {
     const artifacts = await listRunArtifacts(
       githubRepository,
       githubRunId,
@@ -303,7 +306,7 @@ async function main() {
     token,
     runUrl: process.env.GITHUB_RUN_URL,
     runLabel: process.env.GITHUB_RUN_LABEL,
-    cards: readSlackCards(markdownPath),
+    cards: plain ? [] : readSlackCards(markdownPath),
   });
   console.log(`✅ Slack message sent to ${result.channel} (ts=${result.ts})`);
 }

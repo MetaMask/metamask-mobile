@@ -61,7 +61,12 @@ export function parsePositiveIntEnv(name, fallback) {
  * Brief pause after `bootstatus -b` so SpringBoard/RN bridge can settle (mirrors
  * Android `ANDROID_EMULATOR_POST_BOOT_SETTLE_MS`).
  */
-export async function waitForIosSimulatorPostBootSettle() {
+export async function waitForIosSimulatorPostBootSettle({
+  udid,
+  execFileImpl,
+  isReady,
+  pause = sleep,
+} = {}) {
   const settleMs = parsePositiveIntEnv(
     'IOS_SIMULATOR_POST_BOOT_SETTLE_MS',
     DEFAULT_IOS_POST_BOOT_SETTLE_MS,
@@ -69,10 +74,42 @@ export async function waitForIosSimulatorPostBootSettle() {
   if (settleMs <= 0) {
     return;
   }
-  console.log(
-    `Waiting ${settleMs}ms for iOS simulator post-boot settle (SpringBoard / system UI)…`,
+
+  const ready = isReady ?? ((simulatorUdid) => springBoardIsRunning(simulatorUdid, execFileImpl));
+  let waited = 0;
+  while (waited < settleMs) {
+    try {
+      if (await ready(udid)) {
+        console.log(
+          `iOS simulator ${udid ?? 'pool'} ready after ${waited}ms (SpringBoard)`,
+        );
+        return;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`iOS simulator readiness check failed: ${message}`);
+    }
+    const step = Math.min(1000, settleMs - waited);
+    await pause(step);
+    waited += step;
+  }
+
+  console.warn(
+    `iOS simulator ${udid ?? 'pool'} was not ready within ${settleMs}ms; continuing`,
   );
-  await sleep(settleMs);
+}
+
+async function springBoardIsRunning(udid, execFileImpl) {
+  if (!udid) return false;
+  const exec = resolveExecFileImpl(execFileImpl);
+  const { stdout } = await exec('xcrun', [
+    'simctl',
+    'spawn',
+    udid,
+    'launchctl',
+    'list',
+  ]);
+  return String(stdout).includes('com.apple.SpringBoard');
 }
 
 /**
@@ -103,12 +140,28 @@ export async function grantIosAppPermissions({ udid, bundleId }) {
   }
 }
 
+const WARM_LAUNCH_AFTER_READY_MS = 2_000;
+
 /**
  * Cold-launches the app once so the first Playwright fixture pays less startup cost.
+ * Returns once the app process is running, then keeps it up for a short first-frame
+ * dwell. The settle env value is the maximum wait, not a fixed sleep.
  *
- * @param {{ udid: string; bundleId: string }} options
+ * @param {{
+ *   udid: string;
+ *   bundleId: string;
+ *   execFileImpl?: ExecFileImpl;
+ *   isAppRunning?: (udid: string, bundleId: string) => Promise<boolean>;
+ *   pause?: (ms: number) => Promise<void>;
+ * }} options
  */
-export async function warmLaunchIosApp({ udid, bundleId }) {
+export async function warmLaunchIosApp({
+  udid,
+  bundleId,
+  execFileImpl,
+  isAppRunning,
+  pause = sleep,
+}) {
   const settleMs = parsePositiveIntEnv(
     'IOS_APP_WARM_LAUNCH_SETTLE_MS',
     DEFAULT_IOS_APP_WARM_LAUNCH_SETTLE_MS,
@@ -117,18 +170,59 @@ export async function warmLaunchIosApp({ udid, bundleId }) {
     return;
   }
 
+  const exec = resolveExecFileImpl(execFileImpl);
+  const running = isAppRunning ?? ((simulatorUdid, appBundleId) =>
+    iosAppIsRunning(simulatorUdid, appBundleId, exec));
+
   console.log(`Warm-launching ${bundleId} on simulator ${udid}…`);
-  await execFileAsync('xcrun', ['simctl', 'launch', udid, bundleId]);
-  console.log(
-    `Warm launch started — waiting ${settleMs}ms before terminate (JS bridge / first frame)…`,
-  );
-  await sleep(settleMs);
+  await exec('xcrun', ['simctl', 'launch', udid, bundleId]);
+
+  let waited = 0;
+  let appReady = false;
+  while (waited < settleMs) {
+    try {
+      if (await running(udid, bundleId)) {
+        appReady = true;
+        break;
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`iOS warm-launch readiness check failed: ${message}`);
+    }
+    const step = Math.min(500, settleMs - waited);
+    await pause(step);
+    waited += step;
+  }
+
+  if (appReady) {
+    const dwell = Math.min(WARM_LAUNCH_AFTER_READY_MS, settleMs - waited);
+    if (dwell > 0) {
+      console.log(`App process is up — waiting ${dwell}ms for the first frame…`);
+      await pause(dwell);
+    }
+  } else {
+    console.warn(
+      `Warm launch of ${bundleId} was not visible within ${settleMs}ms; continuing`,
+    );
+  }
+
   try {
-    await execFileAsync('xcrun', ['simctl', 'terminate', udid, bundleId]);
+    await exec('xcrun', ['simctl', 'terminate', udid, bundleId]);
   } catch {
     // App may already have exited.
   }
   console.log('iOS app warm launch complete.');
+}
+
+async function iosAppIsRunning(udid, bundleId, exec) {
+  const { stdout } = await exec('xcrun', [
+    'simctl',
+    'spawn',
+    udid,
+    'launchctl',
+    'list',
+  ]);
+  return String(stdout).includes(bundleId);
 }
 
 /**
@@ -272,7 +366,7 @@ export async function bootIosSimulatorByUdid(udid, execFileImpl) {
   });
 
   await exec('xcrun', ['simctl', 'bootstatus', udid, '-b']);
-  await waitForIosSimulatorPostBootSettle();
+  await waitForIosSimulatorPostBootSettle({ udid, execFileImpl });
   return udid;
 }
 

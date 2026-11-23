@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { OrderPreview, Side } from '../../../types';
+import { ActiveOrderState, OrderPreview, Side } from '../../../types';
 import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyError } from './usePredictBuyError';
 
@@ -7,6 +7,7 @@ const mockClearOrderError = jest.fn();
 const mockDevLoggerLog = jest.fn();
 
 let mockActiveOrder: {
+  state?: ActiveOrderState;
   error?: string;
   errorStage?: 'payment' | 'order';
   paymentTokenSymbol?: string;
@@ -464,6 +465,80 @@ describe('usePredictBuyError', () => {
       const { result } = renderHook(() => usePredictBuyError(defaultParams));
 
       expect(result.current.isOrderNotFilled).toBe(false);
+    });
+  });
+
+  describe('retryOrderState', () => {
+    it("returns 'pending' while an order is being placed", () => {
+      const { result } = renderHook(() =>
+        usePredictBuyError({ ...defaultParams, isPlacingOrder: true }),
+      );
+
+      expect(result.current.retryOrderState).toBe('pending');
+    });
+
+    it("returns 'pending' while the active order is depositing", () => {
+      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
+
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('pending');
+    });
+
+    it("returns 'pending' while paying with any token", () => {
+      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('pending');
+    });
+
+    it("returns 'pending' while the controller is placing the order", () => {
+      mockActiveOrder = { state: ActiveOrderState.PLACING_ORDER };
+
+      // isPlacingOrder is false — the active-order state alone must block
+      // the retry flow, or a not-filled error arriving while the controller
+      // is still placing is classified as retryable and can start a second
+      // order while the first is in flight.
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('pending');
+    });
+
+    it("returns 'filled' when the active order succeeded", () => {
+      mockActiveOrder = { state: ActiveOrderState.SUCCESS };
+
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('filled');
+    });
+
+    it("returns 'canceled' when the order error is a user rejection", () => {
+      mockActiveOrder = {
+        state: ActiveOrderState.PREVIEW,
+        error: 'User rejected the request',
+      };
+
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('canceled');
+    });
+
+    it("returns 'unknown' when the order failed without a user rejection", () => {
+      mockActiveOrder = {
+        state: ActiveOrderState.PREVIEW,
+        error: 'Order not fully filled',
+      };
+
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('unknown');
+    });
+
+    it("returns 'unknown' when there is no active order", () => {
+      const { result } = renderHook(() => usePredictBuyError(defaultParams));
+
+      expect(result.current.retryOrderState).toBe('unknown');
     });
   });
 

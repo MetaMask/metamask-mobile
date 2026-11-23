@@ -6,11 +6,40 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import PredictFeedView from './PredictFeedView';
 import {
   PredictFeedViewSelectorsIDs,
+  PredictMarketListSelectorsIDs,
   getPredictFeedViewSelector,
 } from '../../Predict.testIds';
 import type { PredictFeedConfigResult } from '../../hooks/usePredictFeedConfig';
 import type { UsePredictMarketListResult } from '../../hooks/usePredictMarketList';
 import type { UsePredictSearchResult } from '../../hooks/usePredictSearch';
+import { TraceName } from '../../../../../util/trace';
+
+let mockPredictBrandRefreshEnabled = false;
+jest.mock('react-redux', () => {
+  const { selectPredictBrandRefreshEnabled } = jest.requireActual(
+    '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  );
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: unknown) =>
+      selector === selectPredictBrandRefreshEnabled
+        ? mockPredictBrandRefreshEnabled
+        : undefined,
+  };
+});
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -27,6 +56,7 @@ const mockClearSearchAndClose = jest.fn();
 const mockUsePredictFeedConfig = jest.fn();
 const mockUsePredictFeedMarketList = jest.fn();
 const mockUsePredictSearch = jest.fn();
+const mockUsePredictMeasurement = jest.fn();
 const mockPredictMarketProps = jest.fn();
 const mockSearchOverlayProps = jest.fn();
 
@@ -78,6 +108,11 @@ jest.mock('../../hooks/usePredictFeedMarketList', () => ({
 
 jest.mock('../../hooks/usePredictSearch', () => ({
   usePredictSearch: () => mockUsePredictSearch(),
+}));
+
+jest.mock('../../hooks/usePredictMeasurement', () => ({
+  usePredictMeasurement: (...args: unknown[]) =>
+    mockUsePredictMeasurement(...args),
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -232,11 +267,35 @@ const searchResult = (
 describe('PredictFeedView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPredictBrandRefreshEnabled = false;
     mockCanGoBack.mockReturnValue(true);
     mockRouteParams = { feedId: 'sports' };
     mockUsePredictFeedConfig.mockReturnValue(feedConfigResult());
     mockUsePredictFeedMarketList.mockReturnValue(marketListResult());
     mockUsePredictSearch.mockReturnValue(searchResult());
+  });
+
+  describe('brand refresh header', () => {
+    it('renders header buttons without glass capsules when the brand refresh is off', () => {
+      render(<PredictFeedView />);
+
+      expect(
+        screen.getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId('capsule')).toBeNull();
+    });
+
+    it('renders back and search in glass capsules when the brand refresh is on', () => {
+      mockPredictBrandRefreshEnabled = true;
+
+      render(<PredictFeedView />);
+      fireEvent.press(
+        screen.getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(screen.getAllByTestId('capsule')).toHaveLength(2);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('hook wiring', () => {
@@ -640,6 +699,80 @@ describe('PredictFeedView', () => {
   });
 
   describe('fallbacks', () => {
+    it('uses the feed id when a titleKey has no locale string', () => {
+      mockRouteParams = { feedId: 'weather' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'weather',
+          titleKey: 'predict.category.not-a-real-key',
+          label: undefined,
+          showTabBar: false,
+          tabs: [{ id: 'all' }],
+          activeTabId: 'all',
+          filters: [
+            {
+              id: 'all',
+              params: { tagSlugs: ['weather'] },
+              isDynamic: false,
+            },
+          ],
+          activeFilterId: 'all',
+          activeFilter: {
+            id: 'all',
+            params: { tagSlugs: ['weather'] },
+            isDynamic: false,
+          },
+        }),
+      );
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ markets: [] }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(screen.getByText('weather')).toBeOnTheScreen();
+      expect(
+        screen.getByText('No weather markets available'),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses the feed id as the header and empty-state title when copy is missing', () => {
+      mockRouteParams = { feedId: 'weather' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'weather',
+          titleKey: undefined,
+          label: undefined,
+          showTabBar: false,
+          tabs: [{ id: 'all' }],
+          activeTabId: 'all',
+          filters: [
+            {
+              id: 'all',
+              params: { tagSlugs: ['weather'] },
+              isDynamic: false,
+            },
+          ],
+          activeFilterId: 'all',
+          activeFilter: {
+            id: 'all',
+            params: { tagSlugs: ['weather'] },
+            isDynamic: false,
+          },
+        }),
+      );
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ markets: [] }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(screen.getByText('weather')).toBeOnTheScreen();
+      expect(
+        screen.getByText('No weather markets available'),
+      ).toBeOnTheScreen();
+    });
+
     it('navigates back when the feed is not found', () => {
       mockUsePredictFeedConfig.mockReturnValue(
         feedConfigResult({
@@ -662,6 +795,59 @@ describe('PredictFeedView', () => {
       expect(
         screen.queryByTestId(PredictFeedViewSelectorsIDs.CONTAINER),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('feed TTI measurement', () => {
+    const latestConditions = (): boolean[] | undefined => {
+      const calls = mockUsePredictMeasurement.mock.calls as [
+        { conditions?: boolean[] },
+      ][];
+      return calls[calls.length - 1]?.[0]?.conditions;
+    };
+
+    it('keeps PredictFeedView open while the list is still in its initial fetch', () => {
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ isLoading: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          conditions: [true, false],
+        }),
+      );
+    });
+
+    it('keeps PredictFeedView open when the feed config is not ready', () => {
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({ status: 'not-found' }),
+      );
+      mockUsePredictFeedMarketList.mockReturnValue(
+        marketListResult({ isLoading: false }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([true, false]);
+    });
+
+    it('ends PredictFeedView once the list, empty state, or error can render', () => {
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([true, true]);
+    });
+
+    it('does not treat the search overlay as feed content', () => {
+      mockUsePredictSearch.mockReturnValue(
+        searchResult({ isSearchVisible: true }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(latestConditions()).toEqual([false, true]);
     });
   });
 });

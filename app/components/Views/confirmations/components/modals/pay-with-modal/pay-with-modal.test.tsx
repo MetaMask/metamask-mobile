@@ -36,23 +36,15 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 
-const mockAddTokens = jest.fn().mockResolvedValue(undefined);
 const mockRenderNoFeeTag = jest.fn(() => null);
 const mockEnsurePayToken = jest.fn().mockResolvedValue(undefined);
+const mockClearPaymentOverride = jest.fn();
 const mockFindNetworkClientIdByChainId = jest
   .fn()
   .mockReturnValue('network-client-1');
 
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    TokensController: {
-      addTokens: (...args: unknown[]) => mockAddTokens(...args),
-    },
-    NetworkController: {
-      findNetworkClientIdByChainId: (...args: unknown[]) =>
-        mockFindNetworkClientIdByChainId(...args),
-    },
-  },
+jest.mock('../../../hooks/tokens/useEnsurePayToken', () => ({
+  useEnsurePayToken: () => mockEnsurePayToken,
 }));
 
 jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
@@ -62,6 +54,9 @@ jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
     renderNoFeeTag: mockRenderNoFeeTag,
     renderNoFeeTagForToken: () => null,
   }),
+}));
+jest.mock('../../../hooks/pay/sections/useClearPaymentOverride', () => ({
+  useClearPaymentOverride: () => mockClearPaymentOverride,
 }));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
@@ -325,6 +320,34 @@ describe('PayWithModal', () => {
       expect(setPayTokenMock).not.toHaveBeenCalled();
     });
 
+    it('clears paymentOverride when a new token is selected', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Test Token 1'));
+
+      await waitFor(() => {
+        expect(mockClearPaymentOverride).toHaveBeenCalled();
+      });
+    });
+
+    it('clears paymentOverride when the selected token matches the current payToken', async () => {
+      const { findByText } = render();
+
+      fireEvent.press(await findByText('Native Token 1'));
+
+      await waitFor(() => {
+        expect(mockClearPaymentOverride).toHaveBeenCalled();
+      });
+    });
+
+    it('does not clear paymentOverride until a token is selected', async () => {
+      const { findByText } = render();
+
+      await findByText('Test Token 1');
+
+      expect(mockClearPaymentOverride).not.toHaveBeenCalled();
+    });
+
     it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -510,14 +533,14 @@ describe('PayWithModal', () => {
       expect(mockRenderNoFeeTag).toHaveBeenCalled();
     });
 
-    it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
+    it('awaits ensurePayToken before calling setPayToken for zero-balance withdraw token', async () => {
       const callOrder: string[] = [];
 
-      mockAddTokens.mockImplementation(
+      mockEnsurePayToken.mockImplementation(
         () =>
           new Promise<void>((resolve) => {
             setTimeout(() => {
-              callOrder.push('addTokens');
+              callOrder.push('ensurePayToken');
               resolve();
             }, 0);
           }),
@@ -551,13 +574,11 @@ describe('PayWithModal', () => {
         expect(setPayTokenMock).toHaveBeenCalled();
       });
 
-      expect(mockAddTokens).toHaveBeenCalled();
-      expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
+      expect(mockEnsurePayToken).toHaveBeenCalled();
+      expect(callOrder).toStrictEqual(['ensurePayToken', 'setPayToken']);
     });
 
-    it('passes image to addTokens when available on zero-balance token', async () => {
-      mockFindNetworkClientIdByChainId.mockReturnValue('network-client-1');
-
+    it('passes token metadata to ensurePayToken for zero-balance token', async () => {
       const zeroBalanceToken = {
         accountType: EthAccountType.Eoa,
         address: '0xZeroBalanceToken',
@@ -579,16 +600,13 @@ describe('PayWithModal', () => {
 
       fireEvent.press(await findByText('Zero Token'));
 
-      expect(mockAddTokens).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            address: '0xZeroBalanceToken',
-            symbol: 'ZERO',
-            decimals: 6,
-            image: 'https://example.com/token.png',
-          }),
-        ],
-        'network-client-1',
+      expect(mockEnsurePayToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0xZeroBalanceToken',
+          symbol: 'ZERO',
+          decimals: 6,
+          name: 'Zero Token',
+        }),
       );
     });
   });

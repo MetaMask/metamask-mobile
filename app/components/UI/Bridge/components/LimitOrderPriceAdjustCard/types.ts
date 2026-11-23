@@ -4,7 +4,7 @@ import type {
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
 } from '../../constants/limitOrders';
-import type { InputSectionRef } from './InputSection/types';
+import type { InputSectionRef, QuoteUnitToken } from './InputSection/types';
 import type { ButtonPricePresetsSectionRef } from './ButtonPricePresetsSection/types';
 
 export type { InputSectionRef, ButtonPricePresetsSectionRef };
@@ -30,6 +30,11 @@ export interface LimitOrderPriceAdjustCardProps {
    */
   quoteTokenSymbol?: string;
   /**
+   * Quoted token for the unit-chip avatar. The parent replaces this when the
+   * quote unit is toggled.
+   */
+  quoteToken?: QuoteUnitToken;
+  /**
    * When true the primary amount is fiat and a currency prefix is shown.
    */
   isLimitFiatMode: boolean;
@@ -49,10 +54,27 @@ export interface LimitOrderPriceAdjustCardProps {
    */
   limitPrice: string;
   /**
+   * When true a skeleton replaces the limit-price input while the market
+   * price it is seeded from is fetched.
+   */
+  isLimitPriceLoading?: boolean;
+  /**
+   * When false the limit-price loading skeleton is static instead of
+   * shimmering.
+   *
+   * @default true
+   */
+  isLimitPriceLoadingAnimated?: boolean;
+  /**
    * Fired when the limit-price input is pressed or focused. Parent owns the
    * keypad.
    */
   onLimitPriceInputPress?: () => void;
+  /**
+   * When true a press on the limit-price input only dismisses the keypad
+   * (through `onDismissKeypad`) instead of focusing the input.
+   */
+  isLimitPriceInputPressDisabled?: boolean;
   /**
    * Controlled caret selection for the limit-price input.
    */

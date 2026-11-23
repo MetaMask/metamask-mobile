@@ -54,7 +54,6 @@ const migration = (state: unknown): unknown => {
         nativeCurrency: NetworksTicker[networkClientId],
         rpcEndpoints: [
           {
-            failoverUrls: [],
             networkClientId,
             type: RpcEndpointType.Custom,
             url: BUILT_IN_CUSTOM_NETWORKS_RPC['monad-testnet'],

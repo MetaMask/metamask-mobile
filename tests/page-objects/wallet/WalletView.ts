@@ -1,3 +1,4 @@
+import { HomepageBalanceBreakdownTestIds } from '../../../app/components/Views/Homepage/components/HomepageBalanceBreakdown/HomepageBalanceBreakdown.testIds';
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
@@ -9,8 +10,65 @@ import Utilities from '../../framework/Utilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
+import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
+
+/**
+ * Treatment renders the breakdown hero and control renders the account balance,
+ * never both. One pattern finds whichever is on screen without a probe that
+ * would add time to the measured wait.
+ */
+const BALANCE_SURFACE_ID_PATTERN = new RegExp(
+  `(?:^|/)(?:${HomepageBalanceBreakdownTestIds.HERO}|${WalletViewSelectorsIDs.EYE_SLASH_ICON})$`,
+);
+
+function throwBalanceDidNotStabilize(
+  maxWaitTime: number,
+  lastObservedBalance: string,
+): never {
+  const observed =
+    lastObservedBalance.length > 0 ? `"${lastObservedBalance}"` : 'none';
+  throw new Error(
+    `Balance did not stabilize within ${maxWaitTime}ms (last observed balance: ${observed})`,
+  );
+}
+
+/** Prints when the observed text changes so the Playwright run shows it live. */
+function logObservedBalance(source: string, balance: string): void {
+  const shown = balance.length > 0 ? balance : '<empty>';
+  console.log(`[balance-stabilize] ${source}: ${shown}`);
+}
+
+/**
+ * The balance container's content description is the formatted total, then the
+ * 24h delta joined with `, `. A thousands separator has no trailing space
+ * (`$1,234.56`), so the first `, ` is the delta boundary.
+ */
+function balanceFromContainerLabel(label: string): string {
+  const trimmed = label.trim();
+  const deltaSeparator = trimmed.indexOf(', ');
+  if (deltaSeparator === -1) {
+    return trimmed;
+  }
+  return trimmed.slice(0, deltaSeparator);
+}
+
+/**
+ * The visible amount is a TextView without a test id. The parent that owns
+ * the id exposes that amount on its accessibility label.
+ */
+async function readBalanceFromContainer(
+  container: Promise<AppiumElement>,
+): Promise<string> {
+  const el = await container;
+  const described = PlatformDetector.isIOS()
+    ? ((await el.getAttribute('label')) ??
+      (await el.getAttribute('name')) ??
+      '')
+    : ((await el.getAttribute('content-desc')) ?? '');
+  return balanceFromContainerLabel(described);
+}
 
 class WalletView extends WalletHomeSectionsBase {
   get container(): Promise<AppiumElement> {
@@ -52,15 +110,32 @@ class WalletView extends WalletHomeSectionsBase {
     return Matchers.getElementByID(WalletViewSelectorsIDs.STAKE_BUTTON);
   }
 
+  /**
+   * Wallet account icon / name button.
+   * Performance: match both A/B header variants (compact + control).
+   * Smoke / shared: keep the classic account-picker control only.
+   */
   get accountIcon(): Promise<AppiumElement> {
-    const id = WalletViewSelectorsIDs.ACCOUNT_ICON;
+    const controlId = WalletViewSelectorsIDs.ACCOUNT_ICON;
+    if (!isPerformanceSuiteActive()) {
+      if (PlatformDetector.isIOS()) {
+        // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
+        return Matchers.getElementByNativeXPath(
+          `//*[contains(@name,'${controlId}') or contains(@label,'${controlId}') or contains(@text,'${controlId}')]`,
+        );
+      }
+      return Matchers.getElementByID(controlId);
+    }
+
+    const compactId = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON;
     if (PlatformDetector.isIOS()) {
-      // iOS: catch-all across name/label/text (historical AccessibilityId flakiness)
       return Matchers.getElementByNativeXPath(
-        `//*[contains(@name,'${id}') or contains(@label,'${id}') or contains(@text,'${id}')]`,
+        `//*[contains(@name,'${compactId}') or contains(@name,'${controlId}') or contains(@label,'${compactId}') or contains(@label,'${controlId}')]`,
       );
     }
-    return Matchers.getElementByID(id);
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${compactId}' or @resource-id='${controlId}']`,
+    );
   }
 
   get eyeSlashIcon(): Promise<AppiumElement> {
@@ -99,6 +174,15 @@ class WalletView extends WalletHomeSectionsBase {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
   }
 
+  /**
+   * Homepage hero (treatment) or account balance (control). Both labels carry
+   * the aggregate total. `total-balance-text` sits on the treatment's animated
+   * digit slots, which do not expose that total to Appium.
+   */
+  get balanceSurface(): Promise<AppiumElement> {
+    return Matchers.getElementByID(BALANCE_SURFACE_ID_PATTERN);
+  }
+
   get accountNameLabelText(): Promise<AppiumElement> {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
@@ -111,12 +195,65 @@ class WalletView extends WalletHomeSectionsBase {
     );
   }
 
+  /**
+   * Finds the active account name element regardless of which header variant is
+   * active. Two variants exist:
+   * - Non-compact (control A/B): PickerAccount renders `account-label`
+   * - Compact (searchFocused / tradeFocused A/B): WalletHeaderCompact renders
+   * `wallet-account-name-heading` (no `account-label` in the tree)
+   *
+   * Performance-only: smoke keeps `account-label` as the single source of truth.
+   */
+  private get activeAccountNameElement(): Promise<AppiumElement> {
+    if (!isPerformanceSuiteActive()) {
+      return this.accountNameLabelText;
+    }
+
+    const accountLabel = WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT;
+    const headingLabel = WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_HEADING;
+    if (PlatformDetector.isIOS()) {
+      return Matchers.getElementByNativeXPath(
+        `//*[@name='${accountLabel}' or @name='${headingLabel}']`,
+      );
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[@resource-id='${accountLabel}' or @resource-id='${headingLabel}']`,
+    );
+  }
+
+  /**
+   * Compact header avatar button. During the post-onboarding "Get started"
+   * home the account name text is not rendered, so the button's accessibility
+   * label (the full display name) is the only place the name is exposed.
+   */
+  get accountHubButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON,
+    );
+  }
+
   async checkActiveAccount(
     expectedName: string,
     timeout = 10_000,
   ): Promise<void> {
+    // The compact header's avatar button exposes the name only as its label.
+    // Pick the check from what is on screen instead of catching a failed
+    // label assertion, which would also hide a wrong account name.
+    const hasHubButton =
+      isPerformanceSuiteActive() &&
+      (await Utilities.isElementVisible(this.accountHubButton, 3_000));
+
+    if (hasHubButton) {
+      await Assertions.expectElementToHaveLabel(
+        this.accountHubButton,
+        expectedName,
+        { timeout },
+      );
+      return;
+    }
+
     await Assertions.expectElementToHaveText(
-      this.accountNameLabelText,
+      this.activeAccountNameElement,
       expectedName,
       { timeout },
     );
@@ -327,49 +464,67 @@ class WalletView extends WalletHomeSectionsBase {
       sameResultTimeout = 8000,
     } = options;
 
+    // The amount TextView has no test id. Read the labeled parent instead.
+    const readBalance = async () =>
+      readBalanceFromContainer(this.balanceSurface);
+
     const startTime = Date.now();
     const isIOS = PlatformDetector.isIOS();
+    let lastLoggedBalance: string | undefined;
+
+    const recordBalance = (balance: string): void => {
+      if (balance === lastLoggedBalance) {
+        return;
+      }
+      lastLoggedBalance = balance;
+      logObservedBalance('balance', balance);
+    };
 
     if (isIOS) {
       // iOS: Element lookups are extremely slow (15-30s each).
       // Skip stability loop and just wait for a valid balance once.
-      let previousBalance = '';
+      let lastObservedBalance = '';
       while (Date.now() - startTime < maxWaitTime) {
         try {
-          const balance = (
-            await Utilities.getElementText(this.totalBalance)
-          ).trim();
-          previousBalance = balance;
+          const balance = await readBalance();
+          lastObservedBalance = balance;
+          recordBalance(balance);
 
           if (balance && balance !== '' && balance !== '$0.00') {
             return balance;
           }
-        } catch {
-          // Element not found yet, retry
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          recordBalance(`<read failed: ${message}>`);
         }
         await new Promise((r) => setTimeout(r, 1000));
       }
-      return previousBalance;
+      throwBalanceDidNotStabilize(maxWaitTime, lastObservedBalance);
     }
 
     // Android: Fast element lookups, use stability polling
+    let lastObservedBalance = '';
     let previousBalance = '';
     let sameResultStartTime: number | null = null;
 
     while (true) {
       if (Date.now() - startTime > maxWaitTime) {
-        return previousBalance;
+        throwBalanceDidNotStabilize(maxWaitTime, lastObservedBalance);
       }
 
       let currentBalance: string;
       try {
-        currentBalance = (
-          await Utilities.getElementText(this.totalBalance)
-        ).trim();
-      } catch {
+        currentBalance = await readBalance();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        recordBalance(`<read failed: ${message}>`);
         await new Promise((r) => setTimeout(r, pollInterval));
         continue;
       }
+
+      lastObservedBalance = currentBalance;
+      recordBalance(currentBalance);
 
       if (
         !currentBalance ||

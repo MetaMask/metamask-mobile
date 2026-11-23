@@ -1,10 +1,10 @@
-import { BtcAccountType } from '@metamask/keyring-api';
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { ACCOUNT_TYPE_LABEL_TEST_ID, TokenListItem } from './TokenListItem';
+import { TokenListItem } from './TokenListItem';
 import { FlashListAssetKey } from '../TokenList';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { isTestNet } from '../../../../../util/networks';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { TokenI } from '../../types';
 import {
@@ -28,6 +28,11 @@ import { selectTokenListSecurityBadgesEnabled } from '../../../../../selectors/f
 import { selectStablecoinLendingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { MUSD_TOKEN_ADDRESS } from '../../../Earn/constants/musd';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
+
+jest.mock('../../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../../util/haptics'),
+  fireImpact: jest.fn(),
+}));
 
 jest.mock('../../../Stake/components/StakeButton', () => ({
   __esModule: true,
@@ -580,34 +585,6 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
     });
   });
 
-  describe('Account Type Label', () => {
-    it('renders the correct account type label', () => {
-      prepareMocks({
-        asset: { ...defaultAsset, accountType: BtcAccountType.P2wpkh },
-      });
-
-      const assetKey: FlashListAssetKey = {
-        address: '0x456',
-        chainId: '0x1',
-        isStaked: false,
-      };
-
-      const { queryByTestId } = renderWithProvider(
-        <TokenListItem
-          assetKey={assetKey}
-          showRemoveMenu={jest.fn()}
-          setShowScamWarningModal={jest.fn()}
-          privacyMode={false}
-        />,
-      );
-
-      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toBeOnTheScreen();
-      expect(queryByTestId(ACCOUNT_TYPE_LABEL_TEST_ID)).toHaveTextContent(
-        'Native SegWit',
-      );
-    });
-  });
-
   describe('Money account deposit CTA', () => {
     const usdcAsset = {
       ...defaultAsset,
@@ -839,6 +816,10 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
   });
 
   describe('mUSD Token Long Press', () => {
+    beforeEach(() => {
+      jest.mocked(fireImpact).mockClear();
+    });
+
     const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
     const musdAsset = {
       ...defaultAsset,
@@ -873,6 +854,35 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       fireEvent(tokenElement, 'longPress');
 
       expect(mockShowRemoveMenu).not.toHaveBeenCalled();
+      expect(jest.mocked(fireImpact)).not.toHaveBeenCalled();
+    });
+
+    it('does not fire a haptic on long press for native token', () => {
+      prepareMocks({
+        asset: { ...defaultAsset, isNative: true, isETH: true },
+      });
+
+      const mockShowRemoveMenu = jest.fn();
+      const assetKey: FlashListAssetKey = {
+        address: '0x456',
+        chainId: '0x1',
+        isStaked: false,
+      };
+
+      const { getByText } = renderWithProvider(
+        <TokenListItem
+          assetKey={assetKey}
+          showRemoveMenu={mockShowRemoveMenu}
+          setShowScamWarningModal={jest.fn()}
+          privacyMode={false}
+        />,
+      );
+
+      const tokenElement = getByText('Test Token');
+      fireEvent(tokenElement, 'longPress');
+
+      expect(mockShowRemoveMenu).not.toHaveBeenCalled();
+      expect(jest.mocked(fireImpact)).not.toHaveBeenCalled();
     });
 
     it('calls showRemoveMenu on long press for non-mUSD token', () => {
@@ -899,6 +909,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
       const tokenElement = getByText('Test Token');
       fireEvent(tokenElement, 'longPress');
 
+      expect(jest.mocked(fireImpact)).toHaveBeenCalledWith(
+        ImpactMoment.SecondaryCTA,
+      );
       expect(mockShowRemoveMenu).toHaveBeenCalledWith(
         expect.objectContaining({
           address: '0x456',

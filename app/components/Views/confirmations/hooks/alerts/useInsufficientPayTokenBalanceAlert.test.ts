@@ -613,12 +613,86 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       expect(result.current).toEqual([]);
     });
 
-    it('keeps sponsored software payments exempt from native gas checks', () => {
+    it('alerts when a sponsored deposit has a source network fee the native balance cannot cover', () => {
       jest.mocked(isHardwareAccount).mockReturnValue(false);
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
+        chainId: PAY_TOKEN_MOCK.chainId,
         isGasFeeSponsored: true,
       } as unknown as TransactionMeta);
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.InsufficientPayTokenNative,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('alerts when a sponsored deposit paid from another chain has a source network fee', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(false);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        chainId: CHAIN_IDS.MONAD,
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          chainId: '0x144' as Hex,
+        },
+        setPayToken: jest.fn(),
+      });
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '0',
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual([
+        expect.objectContaining({
+          key: AlertKeys.InsufficientPayTokenNative,
+          isBlocking: true,
+        }),
+      ]);
+    });
+
+    it('returns no alert when the quoted source network fee is zero', () => {
+      jest.mocked(isHardwareAccount).mockReturnValue(false);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        chainId: CHAIN_IDS.MONAD,
+        isGasFeeSponsored: true,
+      } as unknown as TransactionMeta);
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          chainId: '0x2105' as Hex,
+        },
+        setPayToken: jest.fn(),
+      });
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        fees: {
+          ...TOTALS_MOCK.fees,
+          sourceNetwork: {
+            ...TOTALS_MOCK.fees.sourceNetwork,
+            max: {
+              raw: '0',
+              usd: '0',
+              fiat: '0',
+              human: '0',
+            },
+          },
+        },
+      });
       useTokenWithBalanceMock.mockReturnValue({
         ...NATIVE_TOKEN_MOCK,
         balanceRaw: '0',
@@ -1087,6 +1161,93 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
       );
 
       expect(result.current).toStrictEqual([]);
+    });
+  });
+
+  describe('money account withdraw with an empty balance', () => {
+    beforeEach(() => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountWithdraw,
+      } as unknown as TransactionMeta);
+    });
+
+    it('shows the Money-specific message when the money balance is zero', () => {
+      moneyAccountBalanceRawMock = '0';
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings('alert_system.money_account_no_funds.message'),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('shows the Money-specific message for a sub-cent money balance', () => {
+      moneyAccountBalanceRawMock = '1000'; // $0.001
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings('alert_system.money_account_no_funds.message'),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('returns no alert when the money balance covers the input', () => {
+      moneyAccountBalanceRawMock = '5000000'; // $5
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('shows the generic message when the money balance is funded but insufficient', () => {
+      moneyAccountBalanceRawMock = '5000000'; // $5
+
+      const { result } = runHook({ pendingAmountUsd: '10' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings(
+            'alert_system.insufficient_pay_token_balance.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('shows the generic message for other flows with a zero balance', () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsDeposit,
+      } as unknown as TransactionMeta);
+      moneyAccountBalanceRawMock = '0';
+
+      const { result } = runHook({ pendingAmountUsd: '1' });
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          message: strings(
+            'alert_system.insufficient_pay_token_balance.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
     });
   });
 

@@ -27,7 +27,7 @@ const renderCampaign = (dismissedBanners: string[] = []) => {
   const store = configureStore({
     reducer: { banners: bannersReducer },
     preloadedState: {
-      banners: { dismissedBanners, lastDismissedBrazeBanner: null },
+      banners: { dismissedBanners },
     },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) => (

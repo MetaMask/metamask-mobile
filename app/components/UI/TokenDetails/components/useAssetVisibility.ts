@@ -98,21 +98,24 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   // Resolve the account ID scoped to the asset's chain.
   // Non-EVM assets (Solana, BTC, …) are stored under their own account ID —
   // using the global EVM account would miss all non-EVM balance/custom entries.
+  const assetChainId = asset?.chainId;
+  const assetAddress = asset?.address;
+
   const accountId = useMemo(() => {
-    if (!asset?.chainId) return globalAccountId;
-    const caipChainId: CaipChainId | undefined = isCaipChainId(asset.chainId)
-      ? (asset.chainId as CaipChainId)
-      : toEvmCaipChainId(asset.chainId as Hex);
+    if (!assetChainId) return globalAccountId;
+    const caipChainId: CaipChainId | undefined = isCaipChainId(assetChainId)
+      ? (assetChainId as CaipChainId)
+      : toEvmCaipChainId(assetChainId as Hex);
     if (!caipChainId) return globalAccountId;
     return internalAccountByScope(caipChainId)?.id ?? globalAccountId;
-  }, [asset?.chainId, internalAccountByScope, globalAccountId]);
+  }, [assetChainId, internalAccountByScope, globalAccountId]);
 
   const assetId = useMemo(
     () =>
-      asset?.address && asset?.chainId
-        ? resolveAssetId(asset.address, asset.chainId)
+      assetAddress && assetChainId
+        ? resolveAssetId(assetAddress, assetChainId)
         : undefined,
-    [asset?.address, asset?.chainId],
+    [assetAddress, assetChainId],
   );
 
   const isCustomAsset = useMemo(() => {
@@ -155,7 +158,7 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
   const handleHideToken = useCallback(() => {
     if (!assetId || !accountId) return;
 
-    const { AssetsController, MultichainAssetsController } = Engine.context;
+    const { AssetsController } = Engine.context;
 
     try {
       if (isHidden) {
@@ -163,12 +166,9 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
         // sets assetPreferences.hidden without removing the assetsBalance entry.
         // Without this order a hidden token with a balance would be re-hidden
         // instead of unhidden.
+        // assetPreferences is unified across EVM and non-EVM assets, so a
+        // single unhideAsset call covers both cases.
         AssetsController.unhideAsset(assetId);
-        // For non-EVM tokens the hidden state also lives in
-        // MultichainAssetsController.allIgnoredAssets; addAssets restores it.
-        if (allIgnoredNonEvmAssets[accountId]?.includes(assetId)) {
-          MultichainAssetsController.addAssets([assetId], accountId);
-        }
       } else {
         // Custom-added tokens typically also have an assetsBalance entry once
         // unified assets state hydrated the balance; removing only from
@@ -183,14 +183,7 @@ const useAssetVisibility = (asset?: TokenI): UseAssetVisibilityReturn => {
     } catch (err) {
       Logger.log(err, 'useAssetVisibility: Failed to update token visibility');
     }
-  }, [
-    assetId,
-    accountId,
-    isCustomAsset,
-    isInAssetsBalance,
-    isHidden,
-    allIgnoredNonEvmAssets,
-  ]);
+  }, [assetId, accountId, isCustomAsset, isInAssetsBalance, isHidden]);
 
   return {
     assetId,

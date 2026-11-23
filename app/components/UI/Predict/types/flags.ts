@@ -131,6 +131,48 @@ export interface PredictSportsFeedConfig extends VersionGatedFeatureFlag {
   tabs: PredictSportsFeedTabConfig[];
 }
 
+/**
+ * A single Predict home "Categories" tile, remotely configurable (PRED-1226).
+ *
+ * `id` is the stable analytics identifier and the feed id used to navigate to
+ * `PredictFeedView`. Every non-`sports` id resolves to a generic tag-filtered
+ * category feed (Politics/Crypto pattern) built from `tagSlug`; `sports` keeps
+ * the dedicated sports feed.
+ */
+export interface PredictHomeCategoryConfig {
+  id: string;
+  /** Polymarket Gamma `tag_slug` used to filter the category feed. */
+  tagSlug: string;
+  /** i18n key for the tile / feed title. Optional; omitted copy falls back to `predict.category.<id>`. */
+  titleKey?: string;
+  /** Literal label; preferred over `titleKey` so new tiles need no i18n release. */
+  label?: string;
+  /**
+   * Component-library `IconName`. Unknown names fall back to a default icon
+   * on the client rather than crashing.
+   */
+  iconName?: string;
+  /** Defaults to `true`. Disabled tiles are removed from the rail. */
+  enabled?: boolean;
+}
+
+export interface PredictHomeCategoriesConfig extends VersionGatedFeatureFlag {
+  /** Array order is display order. */
+  categories: PredictHomeCategoryConfig[];
+}
+
+/**
+ * Remote flag `predictCryptoPriceFeed`: settings for the PolyBolt crypto price
+ * socket.
+ */
+export interface PredictCryptoPriceFeedFlag extends VersionGatedFeatureFlag {
+  /**
+   * Chainlink API key PolyBolt needs for Chainlink-served prices, TWAP
+   * included. Never log it.
+   */
+  chainlinkApiKey?: string;
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -143,10 +185,25 @@ export interface PredictFeatureFlags {
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictSportsFeed: PredictSportsFeedConfig;
+  predictHomeCategories: PredictHomeCategoriesConfig;
   predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
+  isMembershipFeeWaiverEnabled: boolean;
+  /**
+   * Kill switch for Polymarket Protocol V2 markets (LaunchDarkly
+   * `predict-disable-polymarket-v2-markets`). When true, v2 markets are hidden
+   * from listings, and buy, cash out, and claim on v2 are blocked. Never
+   * affects non-v2 markets.
+   */
+  disablePolymarketV2Markets: boolean;
+  /**
+   * Chainlink API key for the PolyBolt crypto price socket, from
+   * `predictCryptoPriceFeed`. Undefined when the flag is missing, disabled,
+   * below its minimum version or has no key. Never log it.
+   */
+  chainlinkApiKey?: string;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

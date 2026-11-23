@@ -6,6 +6,11 @@ import PredictPreviewSheet, {
   PredictPreviewSheetRef,
 } from './PredictPreviewSheet';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -144,6 +149,34 @@ describe('PredictPreviewSheet', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('sheet-child')).toBeOnTheScreen();
+    });
+  });
+
+  it('insets the header 16px from the screen edge when there is no image', async () => {
+    render(<TestComponent shouldOpen title="Yes · 25 bps decrease" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-sheet-header')).toBeOnTheScreen();
+    });
+    expect(screen.getByTestId('preview-sheet-header')).toHaveStyle({
+      paddingLeft: 16,
+    });
+  });
+
+  it('insets the header 16px from the screen edge when an image is rendered', async () => {
+    render(
+      <TestComponent
+        shouldOpen
+        title="Yes · 25 bps decrease"
+        image="https://img.example.com/a.png"
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-sheet-header')).toBeOnTheScreen();
+    });
+    expect(screen.getByTestId('preview-sheet-header')).toHaveStyle({
+      paddingLeft: 16,
     });
   });
 

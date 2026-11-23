@@ -13,7 +13,7 @@ import {
 } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import { selectAllTokens } from '../../../../selectors/tokensController';
+import { selectErc20MetadataLookup } from '../../../../selectors/assets/assets-controller';
 import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { MUSD_TOKEN_ADDRESS_BY_CHAIN } from '../../../UI/Earn/constants/musd';
 import { selectTransactionPayTransactionData } from '../../../../selectors/transactionPayController';
@@ -23,11 +23,10 @@ const recipient = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
 const usdc = '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
 
 const mockSelectorState = {
-  allTokens: {
-    '0x2105': {
-      [from.toLowerCase()]: [{ address: usdc, decimals: 6, symbol: 'USDC' }],
-    },
-  },
+  erc20Metadata: (chainId: string, address: string) =>
+    chainId === '0x2105' && address === usdc
+      ? { decimals: 6, symbol: 'USDC' }
+      : undefined,
   bridgeHistory: {},
   groupAccount: { address: from },
   localTransactions: [] as unknown[],
@@ -64,8 +63,9 @@ jest.mock('../../../../selectors/networkController', () => ({
   ),
 }));
 
-jest.mock('../../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(() => mockSelectorState.allTokens),
+jest.mock('../../../../selectors/assets/assets-controller', () => ({
+  ...jest.requireActual('../../../../selectors/assets/assets-controller'),
+  selectErc20MetadataLookup: jest.fn(() => mockSelectorState.erc20Metadata),
 }));
 
 jest.mock('../../../../selectors/transactionPayController', () => ({
@@ -77,6 +77,9 @@ jest.mock('../../../../selectors/transactionPayController', () => ({
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => ({
+    ...jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    ),
     selectSelectedAccountGroupEvmInternalAccount: jest.fn(
       () => mockSelectorState.groupAccount,
     ),
@@ -122,8 +125,8 @@ describe('useLocalActivityItems', () => {
           return selectorState.bridgeHistory;
         case selectEvmNetworkConfigurationsByChainId:
           return selectorState.networks;
-        case selectAllTokens:
-          return selectorState.allTokens;
+        case selectErc20MetadataLookup:
+          return selectorState.erc20Metadata;
         case selectSelectedAccountGroupEvmInternalAccount:
           return selectorState.groupAccount;
         default:

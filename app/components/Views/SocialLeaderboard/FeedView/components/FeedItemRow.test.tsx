@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import FeedItemRow from './FeedItemRow';
-import type { FeedPerpItem, FeedSpotItem } from '../types';
+import type {
+  FeedPerpItem,
+  FeedSpotItem,
+} from '../../../../UI/SocialFeed/types';
 import {
   getFeedItemTestId,
   getFeedNewPositionTestId,
@@ -32,6 +35,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
     };
     return literals[key] ?? key;
   },
+}));
+
+jest.mock('../../../../../util/social/useSocialProfileId', () => ({
+  useSocialProfileId: () => ({
+    profileId: undefined,
+    isLoading: false,
+  }),
 }));
 
 const spotItem: FeedSpotItem = {

@@ -25,7 +25,7 @@ import { WatchlistStarButtonTestIds } from '../../../../UI/Assets/watchlist/comp
 // eslint-disable-next-line import-x/no-restricted-paths -- mirrors WatchlistSection.tsx (ADR-0020 backlog)
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { EMPTY_BLOB } from '../../../../UI/Assets/watchlist/storage';
-import { formatPriceWithSubscriptNotation } from '../../../../UI/Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 
@@ -51,14 +51,9 @@ describeForPlatforms('WatchlistSection', () => {
       deterministicFiat: true,
     });
 
-    await waitFor(
-      () => {
-        for (const assetId of NEWEST_FIRST_ASSET_IDS) {
-          expect(getByTestId(getRowTestId(assetId))).toBeOnTheScreen();
-        }
-      },
-      { timeout: 5000 },
-    );
+    for (const assetId of NEWEST_FIRST_ASSET_IDS) {
+      await findByTestId(getRowTestId(assetId), {}, { timeout: 5000 });
+    }
 
     for (const assetId of NEWEST_FIRST_ASSET_IDS) {
       const tokenMeta = mockWatchlistTokensResponse.find(

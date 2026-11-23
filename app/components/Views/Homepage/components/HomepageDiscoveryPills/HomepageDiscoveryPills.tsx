@@ -15,7 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonToggle from '../../../../../component-library/components-temp/Buttons/ButtonToggle';
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
-import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
+import { selectPredictAvailability } from '../../../../UI/PredictNext';
 import HomepageDiscoveryPillIcon from './HomepageDiscoveryPillIcon';
 import {
   HOMEPAGE_DISCOVERY_PILL_IDS,
@@ -47,7 +47,7 @@ const HomepageDiscoveryPills: React.FC<HomepageDiscoveryPillsProps> = ({
   const { navigateToPill } = useHomepageDiscoveryPillsNavigation();
   const { trackPillTapped } = usePillViewedEvent();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const isPredictEnabled = useSelector(selectPredictAvailability);
 
   const visiblePillIds = useMemo(
     () =>

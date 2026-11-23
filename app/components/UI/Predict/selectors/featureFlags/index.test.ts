@@ -14,6 +14,8 @@ import {
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
+  selectPredictDisablePolymarketV2MarketsFlag,
+  selectPredictHomeCategoriesConfig,
   selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
@@ -33,6 +35,7 @@ import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag'
 import {
   DEFAULT_PREDICT_FEED_BANNER_FLAG,
   DEFAULT_PREDICT_FEED_CAROUSEL_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
@@ -1506,6 +1509,40 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
+  describe('selectPredictHomeCategoriesConfig', () => {
+    it('returns bundled categories when flag is missing', () => {
+      expect(selectPredictHomeCategoriesConfig(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('returns remote categories when flag is valid', () => {
+      const remoteCategories = {
+        enabled: true,
+        minimumVersion: '1.0.0',
+        categories: [
+          { id: 'tech', tagSlug: 'tech', label: 'Tech', enabled: true },
+        ],
+      };
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeCategories: remoteCategories,
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictHomeCategoriesConfig(state)).toEqual(
+        remoteCategories,
+      );
+    });
+  });
+
   describe('selectPredictSportsFeedConfig', () => {
     it('returns bundled sports config when flag is missing', () => {
       expect(selectPredictSportsFeedConfig(mockedEmptyFlagsState)).toEqual(
@@ -1848,6 +1885,67 @@ describe('Predict Feature Flag Selectors', () => {
       };
 
       expect(selectPredictSportCardLivePricesEnabledFlag(state)).toBe(false);
+    });
+  });
+
+  describe('selectPredictDisablePolymarketV2MarketsFlag', () => {
+    const createState = (
+      flag: { enabled: boolean; minimumVersion: string } | string,
+    ) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              predictDisablePolymarketV2Markets: flag,
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('defaults to false when the remote flag is missing', () => {
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(mockedEmptyFlagsState),
+      ).toBe(false);
+    });
+
+    it('returns true when the remote flag is enabled and the version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(
+          createState({ enabled: true, minimumVersion: '1.0.0' }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(
+          createState({ enabled: false, minimumVersion: '1.0.0' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when the version requirement is not met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(
+          createState({ enabled: true, minimumVersion: '99.0.0' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when the remote flag is malformed', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(createState('enabled')),
+      ).toBe(false);
     });
   });
 

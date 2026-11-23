@@ -397,7 +397,7 @@ describe('persistConfig', () => {
 
   describe('transforms', () => {
     it('have correct number of transforms', () => {
-      expect(persistConfig.transforms).toHaveLength(3);
+      expect(persistConfig.transforms).toHaveLength(4);
     });
 
     it('have user transform configured', () => {
@@ -442,7 +442,61 @@ describe('persistConfig', () => {
         initialScreen: '',
         isAuthChecked: false,
         appServicesReady: false,
+        moneySplashSeen: false,
       });
+    });
+
+    it('backfills moneySplashSeen from moneyOnboardingSeen when absent', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        userTransform.out({
+          userLoggedIn: false,
+          moneyOnboardingSeen: true,
+          passwordSet: true,
+        }),
+      ).toEqual(
+        expect.objectContaining({
+          moneyOnboardingSeen: true,
+          moneySplashSeen: true,
+        }),
+      );
+    });
+
+    it('keeps an explicit moneySplashSeen false', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        userTransform.out({
+          userLoggedIn: false,
+          moneyOnboardingSeen: true,
+          moneySplashSeen: false,
+          passwordSet: true,
+        }),
+      ).toEqual(expect.objectContaining({ moneySplashSeen: false }));
+    });
+
+    it('defaults moneySplashSeen to false for a new state', () => {
+      const userTransform = persistConfig.transforms[0] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        userTransform.out({ userLoggedIn: false, passwordSet: true }),
+      ).toEqual(expect.objectContaining({ moneySplashSeen: false }));
     });
 
     it('has onboarding transform configured', () => {
@@ -459,6 +513,56 @@ describe('persistConfig', () => {
         unknown
       > & { whitelist?: string[] };
       expect(cardTransform.whitelist).toEqual(['card']);
+    });
+
+    it('has bridge transform configured', () => {
+      const bridgeTransform = persistConfig.transforms[3] as Transform<
+        unknown,
+        unknown
+      > & { whitelist?: string[] };
+      expect(bridgeTransform.whitelist).toEqual(['bridge']);
+    });
+
+    it('does not persist the limit order session settings', () => {
+      const bridgeTransform = persistConfig.transforms[3] as Transform<
+        unknown,
+        unknown
+      > & {
+        in: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        bridgeTransform.in({
+          sourceAmount: '1',
+          limitOrderCostTolerance: '3',
+          limitOrderExpirationMinutes: 10080,
+          limitOrderMarketComparison: undefined,
+        }),
+      ).toEqual({
+        sourceAmount: '1',
+        limitOrderMarketComparison: undefined,
+      });
+    });
+
+    it('clears limit order settings persisted by older app versions on rehydrate', () => {
+      const bridgeTransform = persistConfig.transforms[3] as Transform<
+        unknown,
+        unknown
+      > & {
+        out: (state: Record<string, unknown>) => Record<string, unknown>;
+      };
+
+      expect(
+        bridgeTransform.out({
+          sourceAmount: '1',
+          limitOrderCostTolerance: '3',
+          limitOrderExpirationMinutes: 10080,
+        }),
+      ).toEqual({
+        sourceAmount: '1',
+        limitOrderCostTolerance: undefined,
+        limitOrderExpirationMinutes: undefined,
+      });
     });
   });
 

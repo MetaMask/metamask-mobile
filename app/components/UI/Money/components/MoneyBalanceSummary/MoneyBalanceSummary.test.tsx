@@ -1,10 +1,9 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyBalanceSummary from './MoneyBalanceSummary';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { strings } from '../../../../../../locales/i18n';
-import { MoneyBalanceDisplayState } from '../../types';
+import type { MoneyBalanceDisplayState } from '../../types';
 
 const balanceState = (value = '$0.00'): MoneyBalanceDisplayState => ({
   kind: 'balance',
@@ -18,14 +17,6 @@ const unavailableState = (
 });
 
 describe('MoneyBalanceSummary', () => {
-  it('does not render the "Your balance" heading', () => {
-    const { queryByText } = render(
-      <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
-    );
-
-    expect(queryByText(strings('money.your_balance'))).toBeNull();
-  });
-
   it('renders the APY label with "• mUSD" suffix', () => {
     const { getByTestId } = render(
       <MoneyBalanceSummary apy={5.5} displayState={balanceState()} />,
@@ -46,17 +37,20 @@ describe('MoneyBalanceSummary', () => {
     );
   });
 
-  it('does not render the info button when no handler is provided', () => {
-    const { queryByTestId } = render(
+  it('renders the dotted APY label as a pressable target without a callback', () => {
+    const { getByTestId } = render(
       <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
     );
 
     expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
-    ).not.toBeOnTheScreen();
+      getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE).props.onPress,
+    ).toBeUndefined();
   });
 
-  it('calls onApyInfoPress when the info button is pressed', () => {
+  it('calls onApyInfoPress when the dotted APY label is pressed', () => {
     const mockInfoPress = jest.fn();
     const { getByTestId } = render(
       <MoneyBalanceSummary
@@ -66,12 +60,12 @@ describe('MoneyBalanceSummary', () => {
       />,
     );
 
-    fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON));
+    fireEvent.press(getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE));
 
     expect(mockInfoPress).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the APY text and tooltip button when apy is undefined', () => {
+  it('hides the APY row when apy is undefined', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary
@@ -83,11 +77,11 @@ describe('MoneyBalanceSummary', () => {
 
     expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
     expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
     ).not.toBeOnTheScreen();
   });
 
-  it('shows the APY text and tooltip button when apy is zero', () => {
+  it('shows the APY row when apy is zero', () => {
     const mockInfoPress = jest.fn();
     const { getByTestId } = render(
       <MoneyBalanceSummary
@@ -99,11 +93,113 @@ describe('MoneyBalanceSummary', () => {
 
     expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
     expect(
-      getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
     ).toBeOnTheScreen();
   });
 
-  it('hides the APY text and info button when apy is negative', () => {
+  it('renders the Premium tag when isPremium is true', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary apy={7.1} displayState={balanceState()} isPremium />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).toHaveTextContent('Premium');
+  });
+
+  it('hides the Premium tag when isPremium is false', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the upgrading pill when pendingVaultTransition is upgrading', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={5}
+        displayState={balanceState()}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Upgrading to Premium APY');
+  });
+
+  it('renders the downgrading pill when pendingVaultTransition is downgrading', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={7.1}
+        displayState={balanceState()}
+        pendingVaultTransition="downgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Moving to standard APY');
+  });
+
+  it('hides the pending pill when pendingVaultTransition is omitted', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the upgrading pill when the vault rate has not resolved', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={balanceState()}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Upgrading to Premium APY');
+    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('renders the downgrading pill when the vault rate has not resolved', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={unavailableState('$2,384.34')}
+        pendingVaultTransition="downgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Moving to standard APY');
+    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('hides the pending pill in the no-account state', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={{ kind: 'noAccount' }}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides the APY row when apy is negative', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
       <MoneyBalanceSummary
@@ -115,7 +211,7 @@ describe('MoneyBalanceSummary', () => {
 
     expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
     expect(
-      queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+      queryByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
     ).not.toBeOnTheScreen();
   });
 
@@ -155,7 +251,7 @@ describe('MoneyBalanceSummary', () => {
         queryByTestId(MoneyBalanceSummaryTestIds.APY),
       ).not.toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+        queryByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
       ).not.toBeOnTheScreen();
     });
   });
@@ -184,6 +280,23 @@ describe('MoneyBalanceSummary', () => {
       ).toHaveTextContent('$2,384.34');
     });
 
+    it('calls onBalancePress when the unavailable balance is pressed', () => {
+      const onBalancePress = jest.fn();
+      const { getByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={unavailableState('$2,384.34')}
+          onBalancePress={onBalancePress}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      );
+
+      expect(onBalancePress).toHaveBeenCalledTimes(1);
+    });
+
     it('does not render the regular balance text', () => {
       const { queryByTestId } = render(
         <MoneyBalanceSummary apy={4} displayState={unavailableState()} />,
@@ -205,8 +318,48 @@ describe('MoneyBalanceSummary', () => {
 
       expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
       expect(
-        getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+        getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('loading state', () => {
+    it('renders a skeleton instead of the balance', () => {
+      const { getByTestId, queryByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={{ kind: 'loading' }} />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.BALANCE_LOADING),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_UNAVAILABLE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the APY row visible while loading', () => {
+      const { getByTestId } = render(
+        <MoneyBalanceSummary apy={4} displayState={{ kind: 'loading' }} />,
+      );
+
+      expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toBeOnTheScreen();
+    });
+
+    it('does not render a pressable balance even when onBalancePress is provided', () => {
+      const { queryByTestId } = render(
+        <MoneyBalanceSummary
+          apy={4}
+          displayState={{ kind: 'loading' }}
+          onBalancePress={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.BALANCE_PRESSABLE),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -327,7 +480,7 @@ describe('MoneyBalanceSummary', () => {
         '5.5% APY • mUSD',
       );
       expect(
-        getByTestId(MoneyBalanceSummaryTestIds.APY_INFO_BUTTON),
+        getByTestId(MoneyBalanceSummaryTestIds.APY_PRESSABLE),
       ).toBeOnTheScreen();
     });
   });
@@ -340,18 +493,5 @@ describe('MoneyBalanceSummary', () => {
     expect(
       queryByTestId(MoneyBalanceSummaryTestIds.TITLE),
     ).not.toBeOnTheScreen();
-  });
-
-  it('sits flush under the header, matching the Home page balance', () => {
-    const { getByTestId } = render(
-      <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
-    );
-
-    const container = getByTestId(MoneyBalanceSummaryTestIds.CONTAINER);
-
-    expect(container).toHaveStyle({ paddingLeft: 16, paddingRight: 16 });
-    expect(
-      StyleSheet.flatten(container.props.style).paddingTop,
-    ).toBeUndefined();
   });
 });

@@ -1,8 +1,6 @@
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import {
-  /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   isBitcoinChainId,
-  /// END:ONLY_INCLUDE_IF
   isSolanaChainId,
   isStellarChainId,
 } from '@metamask/bridge-controller';
@@ -11,9 +9,7 @@ import { useCallback, useMemo } from 'react';
 import { useSendContext } from '../../context/send-context';
 import {
   isNonEvmChainId,
-  /// BEGIN:ONLY_INCLUDE_IF(tron)
   isTronChainId,
-  /// END:ONLY_INCLUDE_IF
 } from '../../../../../core/Multichain/utils';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PredefinedRecipient } from '../../utils/send';
@@ -63,19 +59,15 @@ export const useSendType = () => {
     [createChainTypeCheck, isPredefinedSolana],
   );
 
-  /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
   const isBitcoinSendType = useMemo(
     () => createChainTypeCheck(isPredefinedBitcoin, isBitcoinChainId),
     [createChainTypeCheck, isPredefinedBitcoin],
   );
-  /// END:ONLY_INCLUDE_IF
 
-  /// BEGIN:ONLY_INCLUDE_IF(tron)
   const isTronSendType = useMemo(
     () => createChainTypeCheck(isPredefinedTron, isTronChainId),
     [createChainTypeCheck, isPredefinedTron],
   );
-  /// END:ONLY_INCLUDE_IF
 
   const isStellarSendType = useMemo(
     () => createChainTypeCheck(isPredefinedStellar, isStellarChainId),
@@ -94,14 +86,10 @@ export const useSendType = () => {
       isNonEvmSendType,
       isSolanaSendType,
       isPredefinedSolana,
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
       isPredefinedBitcoin,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
       isTronSendType,
       isPredefinedTron,
-      /// END:ONLY_INCLUDE_IF
       isStellarSendType,
       isPredefinedStellar,
     }),
@@ -112,14 +100,10 @@ export const useSendType = () => {
       assetIsNative,
       isSolanaSendType,
       isPredefinedSolana,
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
       isBitcoinSendType,
       isPredefinedBitcoin,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
       isTronSendType,
       isPredefinedTron,
-      /// END:ONLY_INCLUDE_IF
       isStellarSendType,
       isPredefinedStellar,
     ],

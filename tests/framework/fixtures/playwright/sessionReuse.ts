@@ -4,7 +4,7 @@ import { ProviderName, type WebDriverConfig } from '../../types.ts';
  * Whether Appium WebDriver sessions should be reused across Playwright tests
  * in the same worker.
  *
- * - BrowserStack: always false (out of scope)
+ * - BrowserStack and TestMu: always false (cloud sessions are not reused)
  * - APPIUM_SESSION_REUSE=false|0: force off (rollback)
  * - APPIUM_SESSION_REUSE=true|1: force on
  * - default: true for emulator/simulator
@@ -14,7 +14,10 @@ export function isAppiumSessionReuseEnabled(projectUse: {
   // declares them required.
   device?: WebDriverConfig['device'];
 }): boolean {
-  if (projectUse.device?.provider === ProviderName.BROWSERSTACK) {
+  if (
+    projectUse.device?.provider === ProviderName.BROWSERSTACK ||
+    projectUse.device?.provider === ProviderName.TESTMU
+  ) {
     return false;
   }
 

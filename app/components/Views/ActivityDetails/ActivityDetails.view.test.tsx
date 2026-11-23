@@ -205,7 +205,6 @@ describeForPlatforms('ActivityDetails — send / receive mUSD', () => {
             amount: '1000000',
             symbol: 'mUSD',
             decimal: 6,
-            // Omit contractAddress so shouldSkipTransaction keeps this inbound row.
             name: 'MetaMask USD',
             transferType: 'ERC20',
           },
@@ -1482,7 +1481,7 @@ describeForPlatforms('ActivityDetails — Solana swap', () => {
       exact: false,
     });
 
-    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('activit', {
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('activ', {
       exact: false,
     });
     expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('-swap', {

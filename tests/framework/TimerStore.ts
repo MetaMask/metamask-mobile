@@ -108,6 +108,44 @@ class TimerStore {
     }));
   }
 
+  /**
+   * True when any timer has been started and not yet stopped.
+   *
+   * Used to disable AI locator recovery during measured intervals so model /
+   * screenshot latency cannot inflate recorded performance durations.
+   */
+  hasActiveTimer(): boolean {
+    for (const timer of this.timers.values()) {
+      if (timer.start !== null && timer.end === null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Removes `durationMs` from every running timer by moving its start forward.
+   *
+   * Used for harness work that happens inside a measured interval but is not
+   * app time (e.g. dismissing an interrupting bottom sheet). Works for both
+   * `TimerHelper.measure()` and manual `start()` / `stop()` timers.
+   *
+   * @returns Number of running timers that were adjusted
+   */
+  excludeFromActiveTimers(durationMs: number): number {
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      return 0;
+    }
+    let adjusted = 0;
+    for (const timer of this.timers.values()) {
+      if (timer.start !== null && timer.end === null) {
+        timer.start += durationMs;
+        adjusted++;
+      }
+    }
+    return adjusted;
+  }
+
   /** Removes all timers from the store. */
   resetTimers(): void {
     this.timers.clear();

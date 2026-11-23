@@ -12,7 +12,6 @@ import {
   navigateToTestDappAndTap,
   openSmartAccountSwitchForSelectedAccount,
   SMART_ACCOUNT_UPGRADED_ACTIVITY,
-  SMART_ACCOUNT_UPGRADING_ACTIVITY,
   switchToLocalNetworkFromNetworkManager,
 } from '../../../../flows/confirmations.flow.js';
 import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder.js';
@@ -30,10 +29,9 @@ import FooterActions from '../../../../page-objects/Browser/Confirmations/Footer
 import RowComponents from '../../../../page-objects/Browser/Confirmations/RowComponents.js';
 import ActivitiesView from '../../../../page-objects/Transactions/ActivitiesView.js';
 import TabBarComponent from '../../../../page-objects/wallet/TabBarComponent.js';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations.js';
+import { setupSimulationEnabledNetworksMocks } from '../../../../api-mocking/mock-responses/simulations.js';
 import { TestDappSelectorsWebIDs } from '../../../../selectors/Browser/TestDapp.selectors.js';
 import { DappVariants } from '../../../../framework/Constants.js';
-import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers.js';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
@@ -85,16 +83,11 @@ function buildLocalRpcFixture({
 }
 
 const testSpecificMock = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
-    response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
-    responseCode: 200,
-  });
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...Object.assign({}, ...confirmationFeatureFlags),
-    tmcuActivityRedesignEnabled: true,
-  });
+  await setupSimulationEnabledNetworksMocks(mockServer);
+  await setupRemoteFeatureFlagsMock(
+    mockServer,
+    Object.assign({}, ...confirmationFeatureFlags),
+  );
 };
 
 appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
@@ -224,9 +217,11 @@ appiumTest.describe(SmokeConfirmations('7702 - smart account'), () => {
           await assertUpgradeConfirmationRows();
 
           await dismissSmartAccountScreensAndOpenFilteredActivity();
-          // Upgrade tx never reached Anvil (empty txpool / no 0xef01) — pending only.
+          // transaction-controller 72.3.0 estimates the type-4 upgrade as one
+          // outer transaction, so Anvil confirms it and the activity row is
+          // the success title rather than the pending one.
           await assertSmartAccountUpgradeActivity(
-            SMART_ACCOUNT_UPGRADING_ACTIVITY,
+            SMART_ACCOUNT_UPGRADED_ACTIVITY,
           );
         },
       );

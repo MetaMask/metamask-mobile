@@ -10,7 +10,10 @@ import { View } from 'react-native';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
-import { getPendingTxActionVisibility } from '../Transactions/pendingTxActions';
+import {
+  showSpeedUp,
+  getPendingTxActionVisibility,
+} from '../Transactions/pendingTxActions';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 
 export interface ActivityListItemRowPendingActionsProps {
@@ -57,17 +60,19 @@ export function ActivityListItemRowPendingActions({
     <View style={styles.pendingActions}>
       {renderNormalActions && (
         <>
-          <StyledButton
-            type="normal"
-            containerStyle={[
-              styles.actionContainerStyle,
-              styles.speedupActionContainerStyle,
-            ]}
-            style={styles.actionStyle}
-            onPress={() => onSpeedUpAction(true, tx)}
-          >
-            {strings('transaction.speedup')}
-          </StyledButton>
+          {showSpeedUp(tx.type) && (
+            <StyledButton
+              type="normal"
+              containerStyle={[
+                styles.actionContainerStyle,
+                styles.speedupActionContainerStyle,
+              ]}
+              style={styles.actionStyle}
+              onPress={() => onSpeedUpAction(true, tx)}
+            >
+              {strings('transaction.speedup')}
+            </StyledButton>
+          )}
           <StyledButton
             type="cancel"
             containerStyle={styles.actionContainerStyle}

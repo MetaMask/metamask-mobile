@@ -764,6 +764,64 @@ describe('PredictCryptoUpDownMarketCard', () => {
     expect(secondResolved?.id).toBe('market-next');
   });
 
+  describe('REST price polling', () => {
+    const disconnectedPrices = {
+      getPrice: () => undefined,
+      isConnected: false,
+    };
+    const connectedPrices = {
+      getPrice: () => undefined,
+      isConnected: true,
+    };
+
+    it('polls REST prices every 2 seconds when live market prices are disconnected', () => {
+      mockUseLiveMarketPrices.mockReturnValue(disconnectedPrices);
+
+      renderCard();
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+    });
+
+    it('keeps REST prices enabled without polling when live market prices are connected', () => {
+      mockUseLiveMarketPrices.mockReturnValue(connectedPrices);
+
+      renderCard();
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: undefined,
+        }),
+      );
+    });
+
+    it('restores two-second REST polling when live market prices disconnect', () => {
+      mockUseLiveMarketPrices.mockReturnValue(connectedPrices);
+      const { rerender } = renderCard();
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          pollingInterval: undefined,
+        }),
+      );
+
+      mockUseLiveMarketPrices.mockReturnValue(disconnectedPrices);
+      rerender(<PredictCryptoUpDownMarketCard market={createMarket()} />);
+
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+    });
+  });
+
   describe('compact (isCarousel) variant', () => {
     it('hides the sparkline and target labels but keeps title, buttons, live badge, and reset copy', () => {
       renderCard(createMarket(), { isCarousel: true });

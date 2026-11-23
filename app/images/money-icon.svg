@@ -1,0 +1,10 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="money-gradient" x1="16" y1="32" x2="16" y2="0" gradientUnits="userSpaceOnUse">
+<stop stop-color="#89B0FF"/>
+<stop offset="1" stop-color="#EBF5FF"/>
+</linearGradient>
+</defs>
+<rect width="32" height="32" rx="16" fill="url(#money-gradient)"/>
+<path d="M17.7366 8.68314H22.5326V12.0653H12.9902L12.4419 12.5921V13.9249L12.9307 14.3443H20.4517L20.9455 14.8365L22.483 16.3657L22.9818 16.8628V20.7668L20.4649 23.3398H17.7366V26.0432H14.3543V23.3398H9.50713V19.9576H19.0413L19.5995 19.3862V18.2665L19.0561 17.7265H11.6805L9.05957 15.4805V11.157L11.6227 8.68314H14.3543V5.99457H17.7366V8.68314Z" fill="#002139"/>
+</svg>

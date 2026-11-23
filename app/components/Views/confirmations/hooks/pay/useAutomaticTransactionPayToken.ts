@@ -44,6 +44,7 @@ import { useWithdrawTokenFilter } from './useWithdrawTokenFilter';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
+import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -115,6 +116,7 @@ export function useAutomaticTransactionPayToken({
   );
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
+  const isMoneyAccountFlagDefault = useIsMoneyAccountFlagDefault();
   const accountOverride = useTransactionAccountOverride();
   const lastWithdrawToken = useSelector((state: RootState) =>
     selectLastWithdrawTokenByType(state, postQuoteTransactionType),
@@ -134,9 +136,9 @@ export function useAutomaticTransactionPayToken({
     shouldSelect: shouldSelectMoneyAccount,
   } = useAutomaticMoneyAccountPayToken({
     autoSelectFiatPayment,
+    availableTokens: tokens,
     disable,
     hasFiatPaymentSelected,
-    hasTokenBalance: tokens.length > 0,
     payTokenSelected: Boolean(payToken),
   });
 
@@ -197,6 +199,13 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
+    // The flag default applies the money-account override from
+    // useDefaultPaySelectedSection. Picking a token first would show that
+    // token briefly before the override lands and re-selects MUSD.
+    if (isMoneyAccountFlagDefault && !isMoneyPaymentOverride) {
+      return;
+    }
+
     if (autoSelectFiatPayment || tokens.length === 0) {
       // Do NOT set isUpdated.current here. This return is intentionally
       // unlatch-able: if isFiatEnabled is false because an incompatible provider
@@ -246,7 +255,9 @@ export function useAutomaticTransactionPayToken({
     disable,
     hasFiatPaymentSelected,
     isFiatEnabled,
+    isMoneyAccountFlagDefault,
     isMoneyAccountPayPending,
+    isMoneyPaymentOverride,
     maxDelayMinutesForPaymentMethods,
     payToken,
     paymentMethods,
@@ -271,31 +282,47 @@ export function useAutomaticTransactionPayToken({
   // Skipped while a fiat flow never had an explicit pay token:
   // `updatePaymentToken` resets the fiat payment, so re-selecting here would
   // clear (or block) the auto-selected fiat payment method.
+  //
+  // The last seen account key is tracked separately from whether a re-select
+  // is still owed: an override account that was never selected globally has
+  // no assets until its on-demand load completes, so the re-select must stay
+  // pending until a token is available, while any later switch (including
+  // back to a previously handled account) must still count as a change.
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
+  const isReselectPendingRef = useRef(false);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
+    if (prevAccountKeyRef.current !== accountKey) {
+      prevAccountKeyRef.current = accountKey;
+      isReselectPendingRef.current = true;
+    }
+
     if (
       disable ||
       hasFiatPaymentSelected ||
       !from ||
-      prevAccountKeyRef.current === accountKey ||
+      !isReselectPendingRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
-    prevAccountKeyRef.current = accountKey;
 
     if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
+      isReselectPendingRef.current = false;
       return;
     }
 
-    if (automaticToken) {
-      setPayToken({
-        address: automaticToken.address,
-        chainId: automaticToken.chainId,
-      });
-      log('Re-selected pay token after account change', automaticToken);
+    if (!automaticToken) {
+      return;
     }
+
+    isReselectPendingRef.current = false;
+
+    setPayToken({
+      address: automaticToken.address,
+      chainId: automaticToken.chainId,
+    });
+    log('Re-selected pay token after account change', automaticToken);
   }, [
     accountOverride,
     autoSelectFiatPayment,

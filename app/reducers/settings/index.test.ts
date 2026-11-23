@@ -5,7 +5,9 @@ import {
   setBasicFunctionality,
   setBasicFunctionalityConsolidatedEnabled,
   setBasicFunctionalityMigrationNotification,
+  setHasLinkedSocialLoginProfile,
   setLockTime,
+  setPerpsCrossMarginConfirmed,
 } from '../../actions/settings';
 
 const getInitialState = () =>
@@ -16,14 +18,50 @@ const getInitialState = () =>
 const getMigratedState = () =>
   settingsReducer(
     settingsReducer(
-      getInitialState(),
-      setBasicFunctionalityConsolidatedEnabled(true),
+      settingsReducer(
+        getInitialState(),
+        setBasicFunctionalityConsolidatedEnabled(true),
+      ),
+      setHasLinkedSocialLoginProfile(true),
     ),
     setBasicFunctionalityMigrationNotification('toast'),
   );
 
 describe('settingsReducer', () => {
+  describe('Perps cross margin confirmation', () => {
+    it('stores the confirmation per lowercase account address', () => {
+      const state = settingsReducer(
+        getInitialState(),
+        setPerpsCrossMarginConfirmed('0xAbC'),
+      );
+
+      expect(state.perpsCrossMarginConfirmedAccounts).toStrictEqual({
+        '0xabc': true,
+      });
+    });
+
+    it('ignores a missing address', () => {
+      const initialState = getInitialState();
+
+      expect(
+        settingsReducer(initialState, setPerpsCrossMarginConfirmed(undefined)),
+      ).toBe(initialState);
+    });
+  });
+
   describe('wallet deletion', () => {
+    it('forgets the Perps cross margin confirmations', () => {
+      const confirmed = settingsReducer(
+        getInitialState(),
+        setPerpsCrossMarginConfirmed('0xabc'),
+      );
+
+      expect(
+        settingsReducer(confirmed, clearOnboarding())
+          .perpsCrossMarginConfirmedAccounts,
+      ).toStrictEqual({});
+    });
+
     it('clears a pending migration notice and cohort membership', () => {
       const state = settingsReducer(getMigratedState(), clearOnboarding());
 
@@ -31,6 +69,7 @@ describe('settingsReducer', () => {
       // has to be judged on its own preferences rather than inherit this one's
       // cohort membership and notice.
       expect(state.isBasicFunctionalityConsolidatedEnabled).toBe(false);
+      expect(state.hasLinkedSocialLoginProfile).toBe(false);
       expect(state.basicFunctionalityMigrationNotification).toBeNull();
     });
 

@@ -2,18 +2,25 @@ import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
-import { setSourceAmount } from '../../../../../core/redux/slices/bridge';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
-import { showRecurringAutoUpgradeError } from '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils';
-import { BridgeViewMode, type BridgeToken } from '../../types';
+import { type BridgeToken } from '../../types';
+import { showGenericErrorToast } from '../../utils/showGenericErrorToast';
 import { BridgeTabKey } from '../BridgeView/BridgeView.constants';
 import {
   RecurringSwapAgainButton,
   RecurringSwapDelegationButton,
 } from './RecurringSwapDetailsView';
 import { RecurringSwapDetailsViewSelectorsIDs } from './RecurringSwapDetailsView.testIds';
+
+const mockGoToSwaps = jest.fn();
+const mockUseSwapBridgeNavigation = jest.fn((args: unknown) => ({
+  goToSwaps: mockGoToSwaps,
+}));
+jest.mock('../../hooks/useSwapBridgeNavigation', () => ({
+  ...jest.requireActual('../../hooks/useSwapBridgeNavigation'),
+  useSwapBridgeNavigation: (args: unknown) => mockUseSwapBridgeNavigation(args),
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -47,12 +54,9 @@ jest.mock('../../hooks/useAutoUpgradeEIP7702Account', () => ({
   useAutoUpgradeEIP7702Account: jest.fn(),
 }));
 
-jest.mock(
-  '../../components/RecurringConfirmOrderSheet/RecurringConfirmOrderSheet.utils',
-  () => ({
-    showRecurringAutoUpgradeError: jest.fn(),
-  }),
-);
+jest.mock('../../utils/showGenericErrorToast', () => ({
+  showGenericErrorToast: jest.fn(),
+}));
 
 const mockAutoUpgradeEIP7702Account = jest.fn();
 const mockGetUpgradeStatus = jest.fn();
@@ -100,23 +104,21 @@ describe('RecurringSwapAgainButton', () => {
       renderResult.getByText(strings('activity_details.swap_again')),
     );
 
-    expect(mockDispatch).toHaveBeenCalledWith(setSourceAmount(undefined));
     expect(mockSetSelectedTab).toHaveBeenCalledWith(BridgeTabKey.Market);
     expect(mockSetRenderedTab).toHaveBeenCalledWith(BridgeTabKey.Market);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: expect.objectContaining({
-        sourcePage: 'RecurringSwapDetails',
-        bridgeViewMode: BridgeViewMode.Unified,
-        sourceToken: SOURCE_TOKEN,
-        destToken: DESTINATION_TOKEN,
-        location: MetaMetricsSwapsEventSource.TransactionDetails,
-        scrollToTopOnNav: true,
-      }),
+    expect(mockUseSwapBridgeNavigation).toHaveBeenCalledWith({
+      sourcePage: 'RecurringSwapDetails',
+      sourceToken: SOURCE_TOKEN,
+      destToken: DESTINATION_TOKEN,
+      location: MetaMetricsSwapsEventSource.TransactionDetails,
     });
-    expect(mockNavigate.mock.calls[0][1].params).not.toHaveProperty(
-      'sourceAmount',
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      undefined,
+      undefined,
+      undefined,
+      true,
     );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
 
@@ -232,7 +234,7 @@ describe('RecurringSwapDelegationButton', () => {
     );
 
     await waitFor(() => {
-      expect(showRecurringAutoUpgradeError).toHaveBeenCalledWith(error);
+      expect(showGenericErrorToast).toHaveBeenCalledTimes(1);
     });
     expect(renderResult.getByText(DELEGATE_ACCOUNT_LABEL)).toBeOnTheScreen();
     expect(

@@ -1,6 +1,9 @@
 import type { CaipAssetType } from '@metamask/utils';
 import { useSelector } from 'react-redux';
-import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../../selectors/assets/assets-list';
+import {
+  selectTronSpecialAssetsBySelectedAccountGroup,
+  TronSpecialAssetsStatus,
+} from '../../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { selectMultichainAssetsRates } from '../../../../../../selectors/multichain';
 
@@ -14,7 +17,16 @@ export interface TronStakingRewardsSummaryData {
   claimableRewardsFiatAmount: number | undefined;
   /** Fiat currency code when fiat rewards are available; `undefined` when only TRX amounts should be shown. */
   claimableRewardsCurrency: string | undefined;
+  /** True when the claimable rewards value could not be fetched (`null` upstream); UI must show an "unavailable" state, never zero. */
+  claimableRewardsUnknown: boolean;
   totalStakedTrx: number;
+  /** True when any staked TRX value could not be fetched (`null` upstream); UI must show an "unavailable" state, never zero. */
+  totalStakedTrxUnknown: boolean;
+  /**
+   * True while the shared balance request has not been fetched yet. UI must
+   * skip computations and render no values (no zeros) until it completes.
+   */
+  isLoading: boolean;
   /** TRX→fiat rate for the asset when available; `undefined` if rates are missing (e.g. fiat/currency features off). */
   fiatRate: number | undefined;
   currentCurrency: string;
@@ -41,9 +53,13 @@ export interface TronStakingRewardsSummaryData {
 const useTronStakingRewardsSummary = ({
   tokenAddress,
 }: UseTronStakingRewardsSummaryArgs): TronStakingRewardsSummaryData => {
-  const { trxStakingRewards, totalStakedTrx } = useSelector(
-    selectTronSpecialAssetsBySelectedAccountGroup,
-  );
+  const {
+    status,
+    trxStakingRewards,
+    stakedTrxForEnergy,
+    stakedTrxForBandwidth,
+    totalStakedTrx,
+  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
@@ -66,14 +82,21 @@ const useTronStakingRewardsSummary = ({
       typeof fiatBalanceRaw === 'number'
         ? fiatBalanceRaw
         : parseFloat(String(fiatBalanceRaw));
-    claimableRewardsFiatAmount = Number.isNaN(fiatNum) ? 0 : fiatNum;
+    // An unparsable fiat value is unknown, never a rendered zero: the fiat
+    // segment is dropped instead.
+    claimableRewardsFiatAmount = Number.isNaN(fiatNum) ? undefined : fiatNum;
   }
 
   return {
     claimableRewardsTrxAmount,
     claimableRewardsFiatAmount,
     claimableRewardsCurrency: fiatCurrency,
+    claimableRewardsUnknown: Boolean(trxStakingRewards?.unknown),
     totalStakedTrx,
+    totalStakedTrxUnknown: Boolean(
+      stakedTrxForEnergy?.unknown || stakedTrxForBandwidth?.unknown,
+    ),
+    isLoading: status === TronSpecialAssetsStatus.Loading,
     fiatRate,
     currentCurrency: (currentCurrency ?? 'USD').toUpperCase(),
   };

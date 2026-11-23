@@ -35,6 +35,17 @@ export class DeviceInfoExtractor {
       };
     }
 
+    const runtimeEnv = process.env;
+    const testMuDevice = runtimeEnv.TESTMU_DEVICE;
+    const testMuOsVersion = runtimeEnv.TESTMU_OS_VERSION;
+    if (testMuDevice && testMuOsVersion) {
+      return {
+        name: testMuDevice,
+        osVersion: testMuOsVersion,
+        provider: 'testmu',
+      };
+    }
+
     return {
       name: 'Unknown',
       osVersion: 'Unknown',

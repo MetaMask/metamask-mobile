@@ -3,12 +3,12 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useTraderFeed } from './useTraderFeed';
 import type { FeedTypeFilter } from '../types';
-import { FEED_CAIP2_CHAINS } from '../feed-constants';
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
 import {
   mockFeedResponse,
   mockPerpFeedItem,
   mockSpotFeedItem,
-} from '../mocks/coreFeed.mock';
+} from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
 import { prefetchTraderFeeds } from './traderFeedQueries';
 
 const expectedFeedFetchOptions = {

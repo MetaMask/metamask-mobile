@@ -21,7 +21,6 @@ import { selectSelectedInternalAccountAddress } from '../../../selectors/account
 
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import Routes from '../../../constants/navigation/Routes';
 import { findRouteNameFromNavigatorState } from '../../../util/general';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
@@ -63,7 +62,6 @@ const ProtectWalletMandatoryModal = () => {
           'ManualBackupStep2',
           'ManualBackupStep3',
           'Webview',
-          Routes.LOCK_SCREEN,
         ].includes(route)
       ) {
         setShowProtectWalletModal(false);

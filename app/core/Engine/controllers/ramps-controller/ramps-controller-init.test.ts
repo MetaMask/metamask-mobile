@@ -9,6 +9,7 @@ import {
   type UserRegion,
 } from '@metamask/ramps-controller';
 import { rampsControllerInit } from './ramps-controller-init';
+import { handleAutorampTransactionStatusChangedForMetrics } from './event-handlers/vbaTransactionAnalytics';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 
@@ -38,6 +39,14 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
 };
 
 const mockInit = jest.fn().mockResolvedValue(undefined);
+const mockStartOrderPolling = jest.fn();
+const mockHandleNotifications = jest.fn();
+
+jest.mock('./event-handlers/notification', () => ({
+  handleOrderStatusChangedForNotifications: (event: unknown): void =>
+    mockHandleNotifications(event),
+}));
+const mockStopOrderPolling = jest.fn();
 
 jest.mock('@metamask/ramps-controller', () => {
   const actual = jest.requireActual('@metamask/ramps-controller');
@@ -46,6 +55,8 @@ jest.mock('@metamask/ramps-controller', () => {
     const instance = Object.create(MockRampsControllerSpy.prototype);
     instance.constructor = MockRampsControllerSpy;
     instance.init = mockInit;
+    instance.startOrderPolling = mockStartOrderPolling;
+    instance.stopOrderPolling = mockStopOrderPolling;
     return instance;
   });
 
@@ -77,10 +88,35 @@ const getInitRampsDebugBridgeMock = (): jest.Mock =>
     ) as { initRampsDebugBridge: jest.Mock }
   ).initRampsDebugBridge;
 
+let mockIsUnlocked = false;
+
+const getOrderStatusChangedHandler = (
+  messenger: RampsControllerInitMessenger,
+): ((event: { order: never; previousStatus: never }) => void) => {
+  const entry = jest
+    .mocked(messenger.subscribe)
+    .mock.calls.find(([name]) => name === 'RampsController:orderStatusChanged');
+  return entry?.[1] as unknown as (event: {
+    order: never;
+    previousStatus: never;
+  }) => void;
+};
+
 const createMockInitMessenger = (): RampsControllerInitMessenger =>
   ({
     subscribe: jest.fn(),
+    call: jest.fn(() => ({ isUnlocked: mockIsUnlocked })),
   }) as unknown as RampsControllerInitMessenger;
+
+const getSubscribedHandler = (
+  messenger: RampsControllerInitMessenger,
+  event: string,
+): (() => void) => {
+  const entry = jest
+    .mocked(messenger.subscribe)
+    .mock.calls.find(([name]) => name === event);
+  return entry?.[1] as unknown as () => void;
+};
 
 describe('ramps controller init', () => {
   const rampsControllerClassMock = jest.mocked(RampsController);
@@ -94,6 +130,7 @@ describe('ramps controller init', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockInit.mockResolvedValue(undefined);
+    mockIsUnlocked = false;
 
     const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
       namespace: MOCK_ANY_NAMESPACE,
@@ -220,6 +257,83 @@ describe('ramps controller init', () => {
     expect(rampsControllerClassMock).toHaveBeenCalledTimes(1);
   });
 
+  describe('order polling lock gating', () => {
+    it('does not poll when the wallet is locked at init', async () => {
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => expect(mockStopOrderPolling).toHaveBeenCalled());
+      expect(mockStartOrderPolling).not.toHaveBeenCalled();
+    });
+
+    it('polls after init when the wallet is already unlocked', async () => {
+      mockIsUnlocked = true;
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => expect(mockStartOrderPolling).toHaveBeenCalled());
+    });
+
+    it('starts polling on unlock and stops it on lock', async () => {
+      rampsControllerInit(initRequestMock);
+      await waitFor(() => expect(mockStopOrderPolling).toHaveBeenCalled());
+      mockStartOrderPolling.mockClear();
+      mockStopOrderPolling.mockClear();
+      const { initMessenger } = initRequestMock;
+
+      getSubscribedHandler(initMessenger, 'KeyringController:unlock')();
+      expect(mockStartOrderPolling).toHaveBeenCalledTimes(1);
+
+      getSubscribedHandler(initMessenger, 'KeyringController:lock')();
+      expect(mockStopOrderPolling).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not poll on unlock before the controller finished init', () => {
+      mockInit.mockReturnValue(new Promise(() => undefined));
+      rampsControllerInit(initRequestMock);
+
+      getSubscribedHandler(
+        initRequestMock.initMessenger,
+        'KeyringController:unlock',
+      )();
+
+      expect(mockStartOrderPolling).not.toHaveBeenCalled();
+    });
+
+    it('treats an unavailable keyring as locked', async () => {
+      jest.mocked(initRequestMock.initMessenger.call).mockImplementation(() => {
+        throw new Error('not registered');
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => expect(mockStopOrderPolling).toHaveBeenCalled());
+      expect(mockStartOrderPolling).not.toHaveBeenCalled();
+    });
+
+    it('does not toast a transition that arrives while the wallet is locked', () => {
+      rampsControllerInit(initRequestMock);
+      const handler = getOrderStatusChangedHandler(
+        initRequestMock.initMessenger,
+      );
+
+      handler({ order: {} as never, previousStatus: 'PENDING' as never });
+
+      expect(mockHandleNotifications).not.toHaveBeenCalled();
+    });
+
+    it('toasts a transition while the wallet is unlocked', () => {
+      mockIsUnlocked = true;
+      rampsControllerInit(initRequestMock);
+      const handler = getOrderStatusChangedHandler(
+        initRequestMock.initMessenger,
+      );
+
+      handler({ order: {} as never, previousStatus: 'PENDING' as never });
+
+      expect(mockHandleNotifications).toHaveBeenCalledTimes(1);
+    });
+  });
+
   // TRAM-3691: confirms the analytics/notification handlers have a SINGLE
   // trigger — RampsController:orderStatusChanged. There is no addOrder/create
   // subscription, so an already-terminal callback order (added via addOrder,
@@ -231,12 +345,21 @@ describe('ramps controller init', () => {
     const subscribeMock = jest.mocked(initRequestMock.initMessenger.subscribe);
 
     expect(subscribeMock).toHaveBeenCalled();
-    const subscribedEvents = subscribeMock.mock.calls.map(([event]) => event);
+    const subscribedEvents = subscribeMock.mock.calls
+      .map(([event]) => event)
+      .filter((event) => !String(event).startsWith('KeyringController:'));
     expect(
       subscribedEvents.every(
         (event) => event === 'RampsController:orderStatusChanged',
       ),
     ).toBe(true);
+    expect(subscribedEvents).toHaveLength(2);
+    expect(jest.mocked(RampsController).mock.calls[0][0]).toEqual(
+      expect.objectContaining({
+        trackAutorampTransactionStatusChanged:
+          handleAutorampTransactionStatusChangedForMetrics,
+      }),
+    );
   });
 
   describe('when __DEV__ is true', () => {

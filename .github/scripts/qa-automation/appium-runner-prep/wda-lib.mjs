@@ -2,18 +2,17 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { execFile, spawnSync } from 'node:child_process';
 import { existsSync, readdirSync, statSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+
+import { getDerivedDataPath } from './wda-derived-data-path.mjs';
 
 const execFileAsync = promisify(execFile);
 
 export const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
-export function getDerivedDataPath() {
-  return process.env.WDA_DERIVED_DATA_PATH ?? join(homedir(), 'appium-wda');
-}
+export { getDerivedDataPath };
 
 export function getSimulatorName() {
   return process.env.IOS_SIMULATOR_NAME ?? 'iPhone 16 Pro';

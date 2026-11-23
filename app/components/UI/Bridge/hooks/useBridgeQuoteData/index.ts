@@ -22,7 +22,7 @@ import {
 } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { fromTokenMinimalUnitString } from '../../../../../util/number/bigint';
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
@@ -35,7 +35,10 @@ import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBri
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { useFormattedNetworkFee } from '../useFormattedNetworkFee';
 import AppConstants from '../../../../../core/AppConstants';
-import { parsePriceImpact } from '../../utils/getPriceImpactViewData';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
 import { usePriceImpactFiat } from '../usePriceImpactFiat';
 import { parseCaipAssetType } from '@metamask/utils';
 
@@ -211,7 +214,10 @@ export const useBridgeQuoteData = ({
 
   const destTokenAmount =
     activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
-      ? fromTokenMinimalUnit(activeQuote.quote.dest.amount, destToken.decimals)
+      ? fromTokenMinimalUnitString(
+          activeQuote.quote.dest.amount,
+          destToken.decimals,
+        )
       : undefined;
 
   const quoteRate =
@@ -286,6 +292,12 @@ export const useBridgeQuoteData = ({
       parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount) >=
         (bridgeFeatureFlags.priceImpactThreshold.warning ??
           AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
+  );
+  const shouldShowPriceImpactError = Boolean(
+    exceedsPriceImpactErrorThreshold(
+      parsePriceImpact(activeQuote?.quote.priceData?.priceImpact?.amount),
+      bridgeFeatureFlags?.priceImpactThreshold?.error,
+    ),
   );
 
   const abortController = useRef<AbortController | null>(new AbortController());
@@ -401,6 +413,7 @@ export const useBridgeQuoteData = ({
       isExpired,
       blockaidError,
       shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
       validQuotes,
       needsNewQuote,
       isActiveQuoteForCurrentTokenPair,
@@ -418,6 +431,7 @@ export const useBridgeQuoteData = ({
       isExpired,
       blockaidError,
       shouldShowPriceImpactWarning,
+      shouldShowPriceImpactError,
       validQuotes,
       needsNewQuote,
       isActiveQuoteForCurrentTokenPair,

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { Platform, View, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -24,6 +24,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { usePerpsTrading } from '../../hooks/usePerpsTrading';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
+import { useBottomSafeAreaInset } from '../../../../hooks/useBottomSafeAreaInset';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
 import {
@@ -67,6 +68,7 @@ const PerpsOrderDetailsView: React.FC = () => {
     useRoute<RouteProp<{ params: OrderDetailsRouteParams }, 'params'>>();
   const { order } = route.params ?? {};
   const { styles } = useStyles(styleSheet, {});
+  const bottomSafeAreaInset = useBottomSafeAreaInset();
   const { cancelOrder } = usePerpsTrading();
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
@@ -365,8 +367,16 @@ const PerpsOrderDetailsView: React.FC = () => {
         </View>
       </View>
       <ScrollView
+        testID={PerpsOrderDetailsViewSelectorsIDs.SCROLL_VIEW}
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          // The footer overlays the list, so it has to clear the taller
+          // navigation-bar-aware footer too.
+          Platform.OS === 'android' && {
+            paddingBottom: 100 + bottomSafeAreaInset,
+          },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header Section */}
@@ -402,7 +412,15 @@ const PerpsOrderDetailsView: React.FC = () => {
 
       {/* Footer Actions */}
       {canCancel ? (
-        <View style={styles.footer}>
+        <View
+          testID={PerpsOrderDetailsViewSelectorsIDs.FOOTER}
+          style={[
+            styles.footer,
+            Platform.OS === 'android' && {
+              paddingBottom: 24 + bottomSafeAreaInset,
+            },
+          ]}
+        >
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Lg}

@@ -1,7 +1,7 @@
 import { RECURRING_INTERVALS } from '@metamask/subscription-controller';
 import I18n, { strings } from '../../../../../../../locales/i18n';
 import type { PlanId } from '../Benefits.constants';
-import { formatSubscriptionFiat } from './formatSubscriptionFiat';
+import { formatSubscriptionFiat } from '../../../../../../util/subscription/formatSubscriptionFiat';
 import {
   getBenefitsPriceLine,
   getPlanSelectorCardCopy,
@@ -201,7 +201,43 @@ describe('getMoneyAccountPlusPricingCopy', () => {
       expect(result?.savingsBadge).toBeUndefined();
     });
 
-    it('includes a trial label when trialPeriodDays is greater than zero', () => {
+    it('includes a trial label when the user is eligible and trialPeriodDays is greater than zero', () => {
+      const result = getPlanSelectorCardCopy(
+        'monthly',
+        {
+          status: 'ready',
+          monthly: createPlan({
+            interval: RECURRING_INTERVALS.month,
+            trialPeriodDays: 7,
+          }),
+        },
+        true,
+      );
+
+      expect(result?.trialLabel).toBe(
+        strings('pro_subscription.plans.trial', { days: '7' }),
+      );
+    });
+
+    it('includes a trial label on annual when the user is eligible and trialPeriodDays is greater than zero', () => {
+      const result = getPlanSelectorCardCopy(
+        'annual',
+        {
+          status: 'ready',
+          annual: createPlan({
+            interval: RECURRING_INTERVALS.year,
+            trialPeriodDays: 7,
+          }),
+        },
+        true,
+      );
+
+      expect(result?.trialLabel).toBe(
+        strings('pro_subscription.plans.trial', { days: '7' }),
+      );
+    });
+
+    it('omits the trial label when the user is not eligible for a trial', () => {
       const result = getPlanSelectorCardCopy('monthly', {
         status: 'ready',
         monthly: createPlan({
@@ -210,9 +246,7 @@ describe('getMoneyAccountPlusPricingCopy', () => {
         }),
       });
 
-      expect(result?.trialLabel).toBe(
-        strings('pro_subscription.plans.trial', { days: '7' }),
-      );
+      expect(result?.trialLabel).toBeUndefined();
     });
 
     it('omits the trial label when there is no trial period', () => {

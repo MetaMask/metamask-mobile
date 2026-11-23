@@ -2,7 +2,10 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
 
-import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
+import {
+  selectTronSpecialAssetsBySelectedAccountGroup,
+  TronSpecialAssetsStatus,
+} from '../../../../selectors/assets/assets-list';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
 
 export interface TronResource {
@@ -13,13 +16,29 @@ export interface TronResource {
    * Percentage of the resource that is currently available, in the range 0–100.
    */
   percentage: number;
+  /**
+   * True when the upstream value could not be fetched (`null` metadata).
+   * UI must show an "unavailable" state, never a zero value.
+   */
+  unknown: boolean;
 }
 
 function createResource(
   type: TronResource['type'],
   current: number,
   max: number,
+  unknown: boolean,
 ): TronResource {
+  if (unknown) {
+    return {
+      type,
+      current: 0,
+      max: 0,
+      percentage: 0,
+      unknown: true,
+    };
+  }
+
   const currentBN = new BigNumber(current);
 
   const divisor = Math.max(1, max);
@@ -33,6 +52,7 @@ function createResource(
     current,
     max,
     percentage,
+    unknown: false,
   };
 }
 
@@ -47,10 +67,17 @@ function createResource(
 export const useTronResources = (): {
   energy: TronResource;
   bandwidth: TronResource;
+  /**
+   * True while the shared balance request has not been fetched yet. UI must
+   * render no resource values (no zeros) until it completes.
+   */
+  isLoading: boolean;
 } => {
-  const { energy, bandwidth, maxEnergy, maxBandwidth } = useSelector(
+  const { status, energy, bandwidth, maxEnergy, maxBandwidth } = useSelector(
     selectTronSpecialAssetsBySelectedAccountGroup,
   );
+
+  const isLoading = status === TronSpecialAssetsStatus.Loading;
 
   return useMemo(() => {
     const energyCurrent = safeParseBigNumber(energy?.balance).toNumber();
@@ -61,12 +88,19 @@ export const useTronResources = (): {
     ).toNumber();
 
     return {
-      energy: createResource('energy', energyCurrent, maxEnergyValue),
+      energy: createResource(
+        'energy',
+        energyCurrent,
+        maxEnergyValue,
+        Boolean(energy?.unknown || maxEnergy?.unknown),
+      ),
       bandwidth: createResource(
         'bandwidth',
         bandwidthCurrent,
         maxBandwidthValue,
+        Boolean(bandwidth?.unknown || maxBandwidth?.unknown),
       ),
+      isLoading,
     };
-  }, [energy, bandwidth, maxEnergy, maxBandwidth]);
+  }, [energy, bandwidth, maxEnergy, maxBandwidth, isLoading]);
 };

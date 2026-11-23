@@ -13,6 +13,8 @@ import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useMoneyAccountSweepstakesSeries } from '../hooks/useMoneyAccountSweepstakesSeries';
 import { useMoneyAccountSweepstakesParticipation } from '../hooks/useMoneyAccountSweepstakesParticipation';
 import { useGetMoneyAccountSweepstakesStatsMe } from '../hooks/useGetMoneyAccountSweepstakesStatsMe';
+import { useGetMoneyAccountSweepstakesVolumeStats } from '../hooks/useGetMoneyAccountSweepstakesVolumeStats';
+import { useGetMoneyAccountSweepstakesPrizePool } from '../hooks/useGetMoneyAccountSweepstakesPrizePool';
 import { useMoneyAccountSweepstakesIngestLag } from '../hooks/useMoneyAccountSweepstakesIngestLag';
 import type { MoneyAccountSweepstakesSeries } from '../utils/moneyAccountSweepstakesSeries';
 import { createMoneyAccountSweepstakesLocalizedText } from '../components/Campaigns/MoneyAccountSweepstakes/testUtils';
@@ -27,6 +29,10 @@ jest.mock('@react-navigation/native', () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: () => false,
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -49,7 +55,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 }));
 
 jest.mock(
-  '../../../../component-library/components-temp/HeaderCompactStandard',
+  '../../../../component-library/components-temp/HeaderStandardGlass',
   () => {
     const ReactActual = jest.requireActual('react');
     const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -183,10 +189,27 @@ jest.mock('../../Money/hooks/useMoneyAccountBalance', () => ({
   })),
 }));
 
+jest.mock(
+  '../components/Campaigns/MoneyAccountSweepstakes/MoneyAccountSweepstakesCampaignEndedStats',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        ReactActual.createElement(View, {
+          testID: 'campaign-ended-stats',
+        }),
+    };
+  },
+);
+
 jest.mock('../hooks/useRewardCampaigns');
 jest.mock('../hooks/useMoneyAccountSweepstakesSeries');
 jest.mock('../hooks/useMoneyAccountSweepstakesParticipation');
 jest.mock('../hooks/useGetMoneyAccountSweepstakesStatsMe');
+jest.mock('../hooks/useGetMoneyAccountSweepstakesVolumeStats');
+jest.mock('../hooks/useGetMoneyAccountSweepstakesPrizePool');
 jest.mock('../hooks/useMoneyAccountSweepstakesOutcome', () => ({
   useMoneyAccountSweepstakesOutcome: () => ({
     outcome: null,
@@ -244,6 +267,14 @@ const mockUseMoneyAccountSweepstakesParticipation =
 const mockUseGetMoneyAccountSweepstakesStatsMe =
   useGetMoneyAccountSweepstakesStatsMe as jest.MockedFunction<
     typeof useGetMoneyAccountSweepstakesStatsMe
+  >;
+const mockUseGetMoneyAccountSweepstakesVolumeStats =
+  useGetMoneyAccountSweepstakesVolumeStats as jest.MockedFunction<
+    typeof useGetMoneyAccountSweepstakesVolumeStats
+  >;
+const mockUseGetMoneyAccountSweepstakesPrizePool =
+  useGetMoneyAccountSweepstakesPrizePool as jest.MockedFunction<
+    typeof useGetMoneyAccountSweepstakesPrizePool
   >;
 const mockUseMoneyAccountSweepstakesIngestLag = jest.mocked(
   useMoneyAccountSweepstakesIngestLag,
@@ -330,6 +361,18 @@ function setupHooks({
     isLoading: isStatsLoading,
     hasError: hasStatsError,
     refetch: mockRefetchStats,
+  });
+  mockUseGetMoneyAccountSweepstakesVolumeStats.mockReturnValue({
+    volumeStats: null,
+    isLoading: false,
+    hasError: false,
+    refetch: jest.fn(),
+  });
+  mockUseGetMoneyAccountSweepstakesPrizePool.mockReturnValue({
+    prizePool: null,
+    isLoading: false,
+    hasError: false,
+    refetch: jest.fn(),
   });
   mockUseMoneyAccountSweepstakesIngestLag.mockReturnValue({
     isIngestLagging: false,
@@ -572,6 +615,64 @@ describe('MoneyAccountSweepstakesCampaignDetailsView', () => {
       expect(
         queryByTestId('money-account-sweepstakes-pending-ingest-label'),
       ).toBeNull();
+    });
+  });
+
+  describe('ended series', () => {
+    it('hides how-it-works and personal overview, and shows ended stats when not opted in', () => {
+      setupHooks({
+        series: buildSeries({ seriesStatus: 'previous' }),
+        optedInAny: false,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <MoneyAccountSweepstakesCampaignDetailsView />,
+      );
+
+      expect(queryByTestId('campaign-how-it-works')).toBeNull();
+      expect(
+        queryByTestId('money-account-sweepstakes-balance-header'),
+      ).toBeNull();
+      expect(getByTestId('money-account-sweepstakes-hero')).toBeOnTheScreen();
+      expect(getByTestId('campaign-ended-stats')).toBeOnTheScreen();
+    });
+
+    it('hides how-it-works and personal overview, and shows ended stats when opted in', () => {
+      setupHooks({
+        series: buildSeries({ seriesStatus: 'previous' }),
+        optedInAny: true,
+        stats: statsWithBalance,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <MoneyAccountSweepstakesCampaignDetailsView />,
+      );
+
+      expect(queryByTestId('campaign-how-it-works')).toBeNull();
+      expect(
+        queryByTestId('money-account-sweepstakes-balance-header'),
+      ).toBeNull();
+      expect(getByTestId('money-account-sweepstakes-hero')).toBeOnTheScreen();
+      expect(getByTestId('campaign-ended-stats')).toBeOnTheScreen();
+    });
+
+    it('does not fetch personal stats for an ended series', () => {
+      setupHooks({
+        series: buildSeries({ seriesStatus: 'previous' }),
+        optedInAny: true,
+      });
+
+      render(<MoneyAccountSweepstakesCampaignDetailsView />);
+
+      expect(mockUseGetMoneyAccountSweepstakesStatsMe).toHaveBeenCalledWith(
+        undefined,
+      );
+      expect(mockUseGetMoneyAccountSweepstakesVolumeStats).toHaveBeenCalledWith(
+        activeCampaign.id,
+      );
+      expect(mockUseGetMoneyAccountSweepstakesPrizePool).toHaveBeenCalledWith(
+        activeCampaign.id,
+      );
     });
   });
 });

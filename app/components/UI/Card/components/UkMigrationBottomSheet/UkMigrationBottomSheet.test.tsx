@@ -26,6 +26,13 @@ const expectedDeadlineLabel = formatUkMigrationDeadline(remoteDeadline, {
 
 const mockStore = configureMockStore()({});
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('../../hooks/useCardUkMigrationState', () => ({
   useCardUkMigrationState: jest.fn(() => ({
     state: {

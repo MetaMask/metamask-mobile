@@ -3,14 +3,8 @@ import Login from './';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { fireEvent, act, waitFor, screen } from '@testing-library/react-native';
 import { LoginViewSelectors } from './LoginView.testIds';
-import {
-  InteractionManager,
-  BackHandler,
-  Image,
-  Platform,
-  Alert,
-} from 'react-native';
-import METAMASK_NAME from '../../../images/branding/metamask-name.png';
+import { InteractionManager, BackHandler, Platform, Alert } from 'react-native';
+import { OnboardingAnimationSelectorIDs } from '../../UI/OnboardingAnimation/OnboardingAnimation.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -53,6 +47,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import Logger from '../../../util/Logger';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import ReduxService from '../../../core/redux/ReduxService';
+import { checkForDeeplink } from '../../../actions/user';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
@@ -63,6 +58,7 @@ const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
+const mockSetOptions = jest.fn();
 const mockRoute = jest.fn().mockReturnValue({
   params: {
     locked: false,
@@ -130,6 +126,7 @@ jest.mock('@react-navigation/native', () => {
       replace: mockReplace,
       reset: mockReset,
       goBack: mockGoBack,
+      setOptions: mockSetOptions,
       dispatch: jest.fn((action) => {
         if (action.type === 'REPLACE') {
           mockReplace(action.payload.name, action.payload.params);
@@ -213,7 +210,6 @@ jest.mock('../../../util/validators', () => ({
   parseVaultValue: jest.fn(),
 }));
 
-jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
 // Mock FadeOutOverlay to prevent animation state updates after unmount (React 19)
@@ -334,6 +330,7 @@ jest.mock('../../../core/redux', () => ({
   default: {
     store: {
       getState: jest.fn(() => ({ mock: 'state' })),
+      dispatch: jest.fn(),
     },
   },
 }));
@@ -480,9 +477,7 @@ describe('Login', () => {
       mockRoute.mockReturnValue({
         params: { locked: false, oauthLoginSuccess: false },
       });
-      const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
-        <Login />,
-      );
+      const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
       expect(getByTestId('fox-animation-mock')).toBeOnTheScreen();
       expect(
         getByTestId(LoginViewSelectors.DOWNLOAD_LOGS_BUTTON),
@@ -492,11 +487,9 @@ describe('Login', () => {
       expect(
         queryByTestId(LoginViewSelectors.OTHER_METHODS_BUTTON),
       ).not.toBeOnTheScreen();
-      const images = UNSAFE_root.findAllByType(Image as never);
-      const hasMetaMaskLogo = images.some(
-        (img) => img.props.source === METAMASK_NAME,
-      );
-      expect(hasMetaMaskLogo).toBe(true);
+      expect(
+        getByTestId(OnboardingAnimationSelectorIDs.WORDMARK),
+      ).toBeOnTheScreen();
     });
 
     it('disables login button when password is empty', () => {
@@ -779,6 +772,82 @@ describe('Login', () => {
     });
   });
 
+  describe('resume overlay', () => {
+    const resumeRoute = {
+      params: { resumeOverlay: true },
+    };
+
+    const submitPassword = async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+        const promiseRef = (
+          trace as {
+            __traceCallbackPromiseRef?: { current: Promise<unknown> | null };
+          }
+        ).__traceCallbackPromiseRef;
+        if (promiseRef?.current) {
+          await promiseRef.current;
+          promiseRef.current = null;
+        }
+      });
+    };
+
+    it('disables the back gesture and consumes the Android back press', () => {
+      mockRoute.mockReturnValue(resumeRoute);
+      renderWithProvider(<Login />);
+
+      expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: false });
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+      expect(handleBackPress()).toBe(true);
+      expect(mockLockApp).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dismisses Login after a password unlock and checks for a deeplink', async () => {
+      mockRoute.mockReturnValue(resumeRoute);
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(true);
+
+      await submitPassword();
+
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        password: 'valid-password123',
+        navigationBehavior: 'preserve',
+      });
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockLoginReduxStore.store.dispatch).toHaveBeenCalledWith(
+        checkForDeeplink(),
+      );
+    });
+
+    it('dismisses Login after a biometric unlock and checks for a deeplink', async () => {
+      mockRoute.mockReturnValue(resumeRoute);
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(true);
+      const { getByTestId } = renderWithProvider(<Login />);
+      await waitForDeviceAuthIcon();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+        );
+      });
+
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        navigationBehavior: 'preserve',
+      });
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockLoginReduxStore.store.dispatch).toHaveBeenCalledWith(
+        checkForDeeplink(),
+      );
+    });
+  });
+
   describe('Conditional Rendering Based on OAuth Status', () => {
     describe('Regular Login', () => {
       beforeEach(() => {
@@ -792,9 +861,7 @@ describe('Login', () => {
 
       it('renders static MetaMask logo and fox animation', () => {
         // Arrange & Act
-        const { getByTestId, queryByTestId, UNSAFE_root } = renderWithProvider(
-          <Login />,
-        );
+        const { getByTestId, queryByTestId } = renderWithProvider(<Login />);
 
         // Assert - Fox animation is rendered
         expect(getByTestId('fox-animation-mock')).toBeDefined();
@@ -809,12 +876,9 @@ describe('Login', () => {
         ).toBeNull();
 
         // Assert - metaMask logo is rendered
-        const images = UNSAFE_root.findAllByType(Image as never);
-        const hasMetaMaskLogo = images.some(
-          (img) => img.props.source === METAMASK_NAME,
-        );
-
-        expect(hasMetaMaskLogo).toBe(true);
+        expect(
+          getByTestId(OnboardingAnimationSelectorIDs.WORDMARK),
+        ).toBeOnTheScreen();
       });
     });
 

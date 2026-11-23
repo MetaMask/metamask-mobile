@@ -1,9 +1,11 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { View } from 'react-native';
 import ExploreSearchBar from './ExploreSearchBar';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
+import { ExploreSearchScreenSelectorsIDs } from '../../Views/ExploreSearchScreen/ExploreSearchScreen.testIds';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -32,7 +34,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      expect(getByTestId('explore-view-search-button')).toBeDefined();
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      ).toBeDefined();
       expect(getByText('Search')).toBeDefined();
     });
 
@@ -43,7 +47,9 @@ describe('ExploreSearchBar', () => {
         <ExploreSearchBar type="button" onPress={mockOnPress} />,
       );
 
-      fireEvent.press(getByTestId('explore-view-search-button'));
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      );
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
@@ -76,6 +82,51 @@ describe('ExploreSearchBar', () => {
       expect(getByTestId('explore-view-search-input')).toBeDefined();
       expect(getByDisplayValue('bitcoin')).toBeDefined();
       expect(getByTestId('textfieldsearch')).toBeDefined();
+    });
+
+    it('renders the clipboard icon when enabled', () => {
+      const mockOnPastePress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          showPastePill
+          onPastePress={mockOnPastePress}
+          clipboardButtonTestID={
+            ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON
+          }
+        />,
+      );
+
+      expect(
+        getByTestId(ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onPastePress when the clipboard icon is pressed', () => {
+      const mockOnPastePress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          showPastePill
+          onPastePress={mockOnPastePress}
+          clipboardButtonTestID={
+            ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON
+          }
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON),
+      );
+      expect(mockOnPastePress).toHaveBeenCalledTimes(1);
     });
 
     it('calls onSearchChange when text is entered', () => {
@@ -272,6 +323,24 @@ describe('ExploreSearchBar', () => {
       ).toBeNull();
     });
 
+    it('renders a custom start accessory in place of the back button', () => {
+      const { getByTestId, queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          dismissVariant="back"
+          startAccessory={<View testID="custom-start-accessory" />}
+        />,
+      );
+
+      expect(getByTestId('custom-start-accessory')).toBeOnTheScreen();
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BACK_BUTTON),
+      ).toBeNull();
+    });
+
     it('clears query and calls onCancel when the inline back button is pressed', () => {
       const mockOnSearchChange = jest.fn();
       const mockOnCancel = jest.fn();
@@ -335,6 +404,104 @@ describe('ExploreSearchBar', () => {
       );
 
       expect(getByText('Search sites')).toBeDefined();
+    });
+  });
+
+  describe('glass', () => {
+    it('keeps the muted button pill by default', () => {
+      const { queryByTestId } = render(
+        <ExploreSearchBar type="button" onPress={jest.fn()} />,
+      );
+
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('draws the button pill as a glass capsule and keeps it pressable', () => {
+      const mockOnPress = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar type="button" onPress={mockOnPress} isGlass />,
+      );
+
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).toHaveStyle({ height: 48 });
+
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      );
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the search field fill and border by default', () => {
+      const { getByTestId, queryByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+        />,
+      );
+
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId('textfieldsearch')).toHaveStyle({
+        height: 48,
+        borderWidth: 1,
+      });
+    });
+
+    it('draws the search field on a glass capsule without its own fill or border', () => {
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery=""
+          onSearchChange={jest.fn()}
+          onCancel={jest.fn()}
+          isGlass
+        />,
+      );
+
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+      ).toHaveStyle({ height: 48 });
+      expect(getByTestId('textfieldsearch')).toHaveStyle({
+        height: 48,
+        borderWidth: 0,
+        backgroundColor: 'transparent',
+      });
+    });
+
+    it('keeps typing, clear and cancel working on glass', () => {
+      const mockOnSearchChange = jest.fn();
+      const mockOnCancel = jest.fn();
+
+      const { getByTestId } = render(
+        <ExploreSearchBar
+          type="interactive"
+          searchQuery="eth"
+          onSearchChange={mockOnSearchChange}
+          onCancel={mockOnCancel}
+          isGlass
+        />,
+      );
+
+      fireEvent.changeText(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+        'ethe',
+      );
+      fireEvent.press(getByTestId('explore-search-clear-button'));
+      fireEvent.press(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+      );
+
+      expect(mockOnSearchChange).toHaveBeenNthCalledWith(1, 'ethe');
+      expect(mockOnSearchChange).toHaveBeenNthCalledWith(2, '');
+      expect(mockOnCancel).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -6,10 +6,12 @@ import {
   computeProxyAddress,
   createPermit2FeeAuthorization,
   getDeployProxyWalletTypedData,
+  getPreValidatedSafeTransactionCallData,
   getSafeTransferAmount,
   getSafeTransferAmountRaw,
 } from './utils';
 import { OperationType, type SafeTransaction } from './types';
+import { safeAbi } from './abi';
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -130,5 +132,31 @@ describe('safe utils', () => {
     expect(() => getSafeTransferAmountRaw('0x12345678')).toThrow(
       'Not an ERC20 transfer call',
     );
+  });
+
+  it('encodes execTransaction with a pre-validated owner signature', () => {
+    const transaction: SafeTransaction = {
+      to: MATIC_CONTRACTS_V2.collateral,
+      data: '0x1234',
+      operation: OperationType.Call,
+      value: '0',
+    };
+
+    const callData = getPreValidatedSafeTransactionCallData({
+      ownerAddress: signer.address,
+      txn: transaction,
+    });
+
+    const decoded = new Interface(safeAbi).decodeFunctionData(
+      'execTransaction',
+      callData,
+    );
+    expect(decoded.to).toBe(MATIC_CONTRACTS_V2.collateral);
+    expect(decoded.data).toBe('0x1234');
+    expect(decoded.operation).toBe(OperationType.Call);
+    expect(decoded.signatures).toBe(
+      `0x${signer.address.slice(2).padStart(64, '0')}${'0'.repeat(64)}01`,
+    );
+    expect(signer.signPersonalMessage).not.toHaveBeenCalled();
   });
 });

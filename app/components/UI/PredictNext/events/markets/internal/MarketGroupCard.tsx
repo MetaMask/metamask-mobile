@@ -1,18 +1,5 @@
 import React from 'react';
-import {
-  Box,
-  Button,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  IconColor,
-  IconName,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictMarket, PredictOutcome } from '../../../types';
 import {
@@ -24,15 +11,36 @@ import { MarketGroupOptionSelector } from './MarketGroupOptionSelector';
 import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
 import { MarketCard } from './MarketCard';
 import { isOutcomeTradeable } from '../../shared/tradeable';
+import { OutcomeRow as SharedOutcomeRow } from '../../shared/ui';
+
+/** How one Outcome row of a line picker looks: its color and trailing value. */
+export interface MarketGroupOutcomeAppearance {
+  color: string;
+  value: string;
+}
 
 export interface MarketGroupCardProps {
   groupKey: string;
-  title: string;
+  /** Omitted when a section header already names the card. */
+  title?: string;
   markets: readonly PredictMarket[];
   selectedMarket: PredictMarket;
   onSelectMarket: (marketId: PredictMarket['id']) => void;
-  onRulesPress: (market: PredictMarket) => void;
+  /**
+   * Opens the selected line's rules from the title, when it has rules. The
+   * title is the only entry point, so without a `title` this never fires.
+   */
+  onRulesPress?: (market: PredictMarket) => void;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
+  /** Supplied by the spread or total composition. */
+  describeOutcome: (
+    market: PredictMarket,
+    outcome: PredictOutcome,
+  ) => MarketGroupOutcomeAppearance;
+  /** Which side's row comes first, supplied by the composition. */
+  orderSides: (
+    market: PredictMarket,
+  ) => readonly [PredictOutcome['side'], PredictOutcome['side']];
 }
 
 function findOutcome(
@@ -42,12 +50,6 @@ function findOutcome(
   return market.outcomes.find((outcome) => outcome.side === side);
 }
 
-function outcomePrefix(outcome: PredictOutcome): string {
-  return (
-    outcome.label.trim().slice(0, 1).toUpperCase() || outcome.side.toUpperCase()
-  );
-}
-
 function getOutcomeOptionValue(
   market: PredictMarket,
   outcome: PredictOutcome,
@@ -55,62 +57,50 @@ function getOutcomeOptionValue(
   return formatMarketGroupOption(market, outcome.side) ?? '—';
 }
 
+// Keeps a near-zero chance visible as a short line.
+const MIN_LINE_PERCENT = 9.5;
+
 function OutcomeRow({
   groupKey,
   market,
   outcome,
   onOrder,
+  appearance: { color, value },
 }: {
   groupKey: string;
   market: PredictMarket;
   outcome: PredictOutcome;
   onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
+  appearance: MarketGroupOutcomeAppearance;
 }): React.JSX.Element {
   const price = formatAskPrice(outcome.askPrice);
   const optionValue = getOutcomeOptionValue(market, outcome);
   const askPricePercent = getAskPricePercent(outcome.askPrice);
-  const isYes = outcome.side === 'yes';
-  const color = isYes ? TextColor.SuccessDefault : TextColor.ErrorDefault;
-  const barColor = isYes ? 'bg-success-default' : 'bg-error-default';
 
   return (
-    <Box
+    <SharedOutcomeRow.Root
       testID={MarketGroupCardTestIds.row(groupKey, market.id, outcome.side)}
-      twClassName="flex-row items-center gap-3"
     >
-      <Box twClassName="min-w-0 flex-1 gap-2">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
-          {outcome.label}
-        </Text>
-        {askPricePercent === undefined ? null : (
-          <Box
-            testID={MarketGroupCardTestIds.quoteBar(
-              groupKey,
-              market.id,
-              outcome.side,
-            )}
-            twClassName="h-0.5 w-full rounded-full"
-          >
-            <Box
-              twClassName={`h-0.5 rounded-full ${barColor}`}
-              style={{ width: `${Math.max(9.5, askPricePercent)}%` }}
-            />
-          </Box>
-        )}
-      </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-      >
-        {`${outcomePrefix(outcome)} ${optionValue}`}
-      </Text>
-      <Button
-        testID={MarketGroupCardTestIds.outcomeButton(
+      <SharedOutcomeRow.Label
+        label={outcome.label}
+        percent={
+          askPricePercent === undefined
+            ? undefined
+            : Math.max(MIN_LINE_PERCENT, askPricePercent)
+        }
+        color={color}
+        lineTestID={MarketGroupCardTestIds.quoteBar(
           groupKey,
           market.id,
           outcome.side,
         )}
+      />
+      <SharedOutcomeRow.Value>{value}</SharedOutcomeRow.Value>
+      <SharedOutcomeRow.Price
+        price={price}
+        color={color}
+        isDisabled={!isOutcomeTradeable(market, outcome)}
+        onPress={() => onOrder?.(market, outcome)}
         accessibilityLabel={strings(
           'predict.market_groups.outcome_accessibility_label',
           {
@@ -119,21 +109,13 @@ function OutcomeRow({
             price: price ?? strings('predict.market_groups.price_unavailable'),
           },
         )}
-        isDisabled={!isOutcomeTradeable(market, outcome)}
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        onPress={() => onOrder?.(market, outcome)}
-        twClassName="h-12 min-w-[64px] rounded-xl bg-muted px-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Bold}
-          color={color}
-        >
-          {price ?? '—'}
-        </Text>
-      </Button>
-    </Box>
+        testID={MarketGroupCardTestIds.outcomeButton(
+          groupKey,
+          market.id,
+          outcome.side,
+        )}
+      />
+    </SharedOutcomeRow.Root>
   );
 }
 
@@ -145,8 +127,12 @@ export function MarketGroupCard({
   onSelectMarket,
   onRulesPress,
   onOrder,
+  describeOutcome,
+  orderSides,
 }: MarketGroupCardProps): React.JSX.Element | null {
   const rules = selectedMarket.rules?.trim();
+  const handleRulesPress =
+    rules && onRulesPress ? () => onRulesPress(selectedMarket) : undefined;
   const yesOutcome = findOutcome(selectedMarket, 'yes');
   const noOutcome = findOutcome(selectedMarket, 'no');
 
@@ -156,39 +142,31 @@ export function MarketGroupCard({
 
   return (
     <MarketCard.Root testID={MarketGroupCardTestIds.card(groupKey)}>
-      <Box twClassName="flex-row items-center gap-2">
-        <Box twClassName="min-w-0 flex-1">
-          <MarketCard.Title testID={MarketGroupCardTestIds.title(groupKey)}>
-            {title}
-          </MarketCard.Title>
-        </Box>
-        {rules ? (
-          <ButtonIcon
-            iconName={IconName.Question}
-            size={ButtonIconSize.Sm}
-            iconProps={{ color: IconColor.IconAlternative }}
-            onPress={() => onRulesPress(selectedMarket)}
-            testID={MarketGroupCardTestIds.rulesButton(groupKey)}
-            accessibilityLabel={strings(
-              'predict.rules.market_accessibility_label',
-            )}
-            accessibilityRole="button"
-          />
-        ) : null}
-      </Box>
+      {title ? (
+        <MarketCard.Title
+          testID={MarketGroupCardTestIds.title(groupKey)}
+          onPress={handleRulesPress}
+          accessibilityHint={strings(
+            'predict.rules.market_accessibility_label',
+          )}
+        >
+          {title}
+        </MarketCard.Title>
+      ) : null}
       <Box twClassName="gap-3">
-        <OutcomeRow
-          groupKey={groupKey}
-          market={selectedMarket}
-          outcome={yesOutcome}
-          onOrder={onOrder}
-        />
-        <OutcomeRow
-          groupKey={groupKey}
-          market={selectedMarket}
-          outcome={noOutcome}
-          onOrder={onOrder}
-        />
+        {orderSides(selectedMarket).map((side) => {
+          const outcome = side === 'yes' ? yesOutcome : noOutcome;
+          return (
+            <OutcomeRow
+              key={side}
+              groupKey={groupKey}
+              market={selectedMarket}
+              outcome={outcome}
+              onOrder={onOrder}
+              appearance={describeOutcome(selectedMarket, outcome)}
+            />
+          );
+        })}
       </Box>
       {markets.length > 1 ? (
         <MarketCard.Footer>

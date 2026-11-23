@@ -1,6 +1,10 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
-import type { V1TransactionByHashResponse } from '@metamask/core-backend';
+import { TransactionStatus } from '@metamask/transaction-controller';
+import type {
+  V1TransactionByHashResponse,
+  V5TransactionRecord,
+} from '@metamask/core-backend';
 import {
   mapRampOrder,
   type ActivityListItem,
@@ -398,6 +402,27 @@ describe('useActivityDetailsItem', () => {
     expect(result.current.item).toBe(api);
   });
 
+  it('waits for API data before resolving a confirmed local item', () => {
+    const local = makeItem({ type: 'send', hash: '0xconfirmed-local' });
+    setSources({ local: [local] });
+    useLocalTransactionMetaMock.mockReturnValue({
+      id: 'confirmed-local',
+      hash: '0xconfirmed-local',
+      status: TransactionStatus.confirmed,
+    } as ReturnType<typeof useLocalTransactionMeta>);
+    useApiTransactionMock.mockReturnValue({
+      transaction: undefined,
+      isFetching: true,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xconfirmed-local', 'eip155:1'),
+    );
+
+    expect(result.current.item).toBeUndefined();
+    expect(result.current.isFetching).toBe(true);
+  });
+
   it('resolves a fetched API transaction when it is not in the list query pages', () => {
     setSources({});
     useApiTransactionMock.mockReturnValue({
@@ -433,8 +458,6 @@ describe('useActivityDetailsItem', () => {
       transaction: {
         chainId: 1,
         hash: '0xnotours',
-        // Relayer / unrelated sender — subject only appears (if at all) in
-        // valueTransfers. List path drops these via shouldSkipTransaction.
         from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         timestamp: '2026-05-13T14:34:23.000Z',
@@ -469,6 +492,36 @@ describe('useActivityDetailsItem', () => {
     );
 
     expect(result.current.item).toBeUndefined();
+  });
+
+  it('maps a fetched v5 transaction without the v1 participation gate', () => {
+    setSources({});
+    useApiTransactionMock.mockReturnValue({
+      transaction: {
+        accountId: 'eip155:1:0x1234567890abcdef1234567890abcdef12345678',
+        tx: {
+          id: '0xrelayed',
+          chainId: 'eip155:1',
+          status: 'confirmed',
+          timestamp: 1778593067000,
+          date: '2026-05-12T13:37:47.000Z',
+          from: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          to: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          blockNumber: '1',
+          blockHash: '0xblock',
+          value: '0',
+        },
+        valueTransfers: [],
+        fee: null,
+      } as V5TransactionRecord,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xrelayed', 'eip155:1'),
+    );
+
+    expect(result.current.item?.hash).toBe('0xrelayed');
   });
 
   it('classifies a fetched receive when the subject address is EIP-55 checksummed', () => {

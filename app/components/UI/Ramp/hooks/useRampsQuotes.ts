@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { BuyWidget, QuotesResponse } from '@metamask/ramps-controller';
+import type {
+  BuyWidget,
+  BuyWidgetFallback,
+  QuotesResponse,
+} from '@metamask/ramps-controller';
 import type { Quote } from '../types';
 import Engine from '../../../../core/Engine';
 import { rampsQueries } from '../queries';
@@ -32,6 +36,10 @@ export interface GetQuotesOptions {
 export interface UseRampsQuotesResult {
   getQuotes: (options: GetQuotesOptions) => Promise<QuotesResponse>;
   getBuyWidgetData: (quote: Quote) => Promise<BuyWidget | null>;
+  getFallbackBuyWidgetData: (
+    fallback: BuyWidgetFallback,
+    options?: { redirectUrl?: string },
+  ) => Promise<BuyWidget | null>;
   data: QuotesResponse | null;
   loading: boolean;
   status: RampsQueryStatus;
@@ -54,6 +62,12 @@ export function useRampsQuotes(
     };
     return ramps.getBuyWidgetData(quote);
   }, []);
+
+  const getFallbackBuyWidgetData = useCallback(
+    (fallback: BuyWidgetFallback, opts?: { redirectUrl?: string }) =>
+      Engine.context.RampsController.getFallbackBuyWidgetData(fallback, opts),
+    [],
+  );
 
   const queryEnabled = Boolean(
     options?.assetId && options.walletAddress && options.amount > 0,
@@ -225,6 +239,7 @@ export function useRampsQuotes(
   return {
     getQuotes,
     getBuyWidgetData,
+    getFallbackBuyWidgetData,
     data: quotesQuery.data ?? null,
     loading: status === 'loading',
     status,

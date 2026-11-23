@@ -5,13 +5,13 @@ import {
 } from '@metamask/transaction-controller';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../../../components/Views/confirmations/constants/confirmations';
 
 import Engine from '../../../../Engine';
 import ReduxService from '../../../../redux';
 import type { RootState } from '../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import TransactionTypes from '../../../../TransactionTypes';
-import { replaceAccountInNestedTransactions } from '../../../../../components/Views/confirmations/utils/transaction-pay';
 import { loadAssetsForAddresses } from '../../../../Assets/accountGroupAssetLoader';
 
 /**
@@ -35,7 +35,7 @@ function refreshOverrideAccountBalances(address: string): void {
 }
 
 const MONEY_ACCOUNT_TRANSACTION_TYPES: readonly TransactionType[] = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
 ];
 
@@ -97,15 +97,6 @@ export function handleUnapprovedTransactionAddedForMoneyAccount(
 
   if (!selectedAccount || !isEvmAccountType(selectedAccount.type)) {
     return;
-  }
-
-  if (isMoneyAccountWithdraw(transaction)) {
-    replaceAccountInNestedTransactions({
-      transactionId: transaction.id,
-      nestedTransactions: transaction.nestedTransactions,
-      oldAddress: transaction.txParams?.from,
-      newAddress: selectedAccount.address,
-    });
   }
 
   TransactionPayController.setTransactionConfig(transaction.id, (config) => {

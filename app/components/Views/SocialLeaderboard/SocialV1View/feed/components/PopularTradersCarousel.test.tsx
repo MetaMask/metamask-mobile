@@ -24,6 +24,7 @@ const mockFollowWithSetup = jest.fn(
 );
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
+jest.mock('../../../terms/socialTermsAcceptance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -74,7 +75,15 @@ describe('PopularTradersCarousel', () => {
     mockUsePopularTraders.mockReturnValue(loadedResult());
   });
 
-  it('renders a card for each trader plus View more', () => {
+  it('starts the title flush with the header so the section reads as 12px', () => {
+    renderWithProvider(<PopularTradersCarousel />);
+
+    expect(
+      screen.getByTestId(PopularTradersCarouselSelectorsIDs.HEADER),
+    ).toHaveStyle({ paddingTop: 0, paddingBottom: 0 });
+  });
+
+  it('renders a card for each trader without a View more card', () => {
     renderWithProvider(<PopularTradersCarousel />);
 
     expect(
@@ -86,9 +95,7 @@ describe('PopularTradersCarousel', () => {
     expect(
       screen.getByTestId(getPopularTraderCardTestId('trader-1')),
     ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(PopularTradersCarouselSelectorsIDs.VIEW_MORE),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText('View more')).toBeNull();
   });
 
   it('navigates to Profiles to follow when the header is pressed', () => {
@@ -101,28 +108,22 @@ describe('PopularTradersCarousel', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILES_TO_FOLLOW);
   });
 
-  it('navigates to Profiles to follow when View more is pressed', () => {
-    renderWithProvider(<PopularTradersCarousel />);
-
-    fireEvent.press(
-      screen.getByTestId(PopularTradersCarouselSelectorsIDs.VIEW_MORE),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILES_TO_FOLLOW);
-  });
-
   it('opens the trader profile from a card tap', () => {
     renderWithProvider(<PopularTradersCarousel />);
 
     fireEvent.press(screen.getByText('Pain'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
-      traderId: 'trader-1',
-      traderName: 'Pain',
-      traderAddress: mockTraders[0].address,
-      source: 'trending_carousel',
-      traderRank: 1,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'Pain',
+        traderAddress: mockTraders[0].address,
+        source: 'trending_carousel',
+        traderRank: 1,
+      },
+      {},
+    );
   });
 
   it('toggles follow from a card Follow button', () => {

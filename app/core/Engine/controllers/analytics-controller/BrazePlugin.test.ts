@@ -180,6 +180,44 @@ describe('BrazePlugin', () => {
       expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
       expect(result).toBe(event);
     });
+
+    it('does not forward an event whose name is on the blocklist', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      const event = makeTrackEvent('App Opened', { source: 'cold_start' });
+
+      const result = plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).not.toHaveBeenCalled();
+      expect(result).toBe(event);
+    });
+
+    it('forwards events that are not on the blocklist', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      const event = makeTrackEvent('Swap Completed');
+
+      plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(
+        'Swap Completed',
+        undefined,
+      );
+    });
+
+    it('forwards every event when the blocklist is cleared', () => {
+      plugin.setBrazeProfileId('profile-123');
+      plugin.setBlockedEvents(['App Opened']);
+      plugin.setBlockedEvents([]);
+      const event = makeTrackEvent('App Opened');
+
+      plugin.track(event);
+
+      expect(mockBraze.logCustomEvent).toHaveBeenCalledWith(
+        'App Opened',
+        undefined,
+      );
+    });
   });
 
   describe('identify', () => {
@@ -400,6 +438,40 @@ describe('BrazePlugin', () => {
       plugin.setBrazeProfileId('profile-123');
 
       expect(mockBraze.setLanguage).not.toHaveBeenCalled();
+    });
+
+    it('normalizes locale identifiers to the language subtag Braze expects', () => {
+      plugin.setBrazeProfileId('profile-123');
+
+      plugin.setLanguage('en_FR');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('en');
+
+      plugin.setLanguage('en-FR');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('en');
+
+      plugin.setLanguage('pt_BR');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('pt');
+
+      plugin.setLanguage('zh-Hans-CN');
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('zh');
+    });
+
+    it('does not send unrecognizable locales to Braze', () => {
+      plugin.setBrazeProfileId('profile-123');
+
+      plugin.setLanguage('_FR');
+      plugin.setLanguage('123');
+
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
+    });
+
+    it('sends the normalized language stored before the profileId is set', () => {
+      plugin.setLanguage('en_FR');
+      expect(mockBraze.setLanguage).not.toHaveBeenCalled();
+
+      plugin.setBrazeProfileId('profile-123');
+
+      expect(mockBraze.setLanguage).toHaveBeenCalledWith('en');
     });
 
     it('does not resend language when setLanguage is called with the same locale', () => {

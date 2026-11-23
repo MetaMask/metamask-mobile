@@ -7,11 +7,9 @@ import React, {
   useContext,
 } from 'react';
 import {
-  ActivityIndicator,
   AppState,
   BackHandler,
   ScrollView,
-  InteractionManager,
   Platform,
   StyleSheet,
   View,
@@ -24,6 +22,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import Device from '../../../util/device';
 import BaseNotification from '../../../component-library/components-temp/BaseNotification';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
@@ -65,12 +64,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { useOnboardingLoadingStallTracker } from '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker';
 import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboardingLoadingStallTracking';
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
-import {
-  useNavigation,
-  useRoute,
-  RouteProp,
-  StackActions,
-} from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
   TraceName,
   TraceOperation,
@@ -127,6 +121,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import OnboardingAnimation from '../../UI/OnboardingAnimation/OnboardingAnimation';
+import OnboardingFoxLoader from '../../UI/OnboardingFoxLoader/OnboardingFoxLoader';
+import OnboardingSheet from './OnboardingSheet';
 import {
   OnboardingCtaIds,
   OnboardingScreenIds,
@@ -141,17 +137,9 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  Button,
   ButtonSize,
-  ButtonVariant,
-  Text,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  Theme,
-  ThemeProvider,
-  useTailwind,
-} from '@metamask/design-system-twrnc-preset';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
 import { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -229,11 +217,31 @@ async function isDeviceOffline(): Promise<boolean> {
   return !netState.isConnected || netState.isInternetReachable === false;
 }
 
+interface IdleCallbackHost {
+  requestIdleCallback?: (callback: () => void) => number;
+}
+
+const scheduleIdleTask = (task: () => void): void => {
+  const idleHost = globalThis as unknown as IdleCallbackHost;
+
+  if (typeof idleHost.requestIdleCallback === 'function') {
+    idleHost.requestIdleCallback(task);
+    return;
+  }
+
+  setTimeout(task, 0);
+};
+
 const styles = StyleSheet.create({
   androidNotificationOverlay: {
     ...StyleSheet.absoluteFill,
     zIndex: 999,
     elevation: 999,
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFill,
+    zIndex: 1000,
+    elevation: 1000,
   },
 });
 
@@ -252,9 +260,6 @@ const Onboarding = () => {
   const passwordSet = useSelector((state: RootState) => state.user.passwordSet);
   const existingUserProp = useSelector(selectExistingUser);
   const loading = useSelector((state: RootState) => state.user.loadingSet);
-  const loadingMsg = useSelector(
-    (state: RootState) => state.user.loadingMsg || '',
-  );
   const isGoogleLoginIosUnsupportedBlockingEnabled = useSelector(
     selectGoogleLoginIosUnsupportedBlockingEnabled,
   );
@@ -268,6 +273,37 @@ const Onboarding = () => {
     [dispatch],
   );
   const unsetLoading = useCallback(() => dispatch(loadingUnset()), [dispatch]);
+  const socialLoginSurfaceRef = useRef<'sheet' | 'screen'>('screen');
+  const activeSocialLoginSurfaceRef = useRef<'sheet' | 'screen'>('screen');
+  const [sheetMode, setSheetMode] = useState<'create' | 'import' | null>(null);
+  const [sheetSocialProvider, setSheetSocialProvider] =
+    useState<AuthConnection | null>(null);
+  const beginSocialLoginLoading = useCallback(
+    (provider: AuthConnection) => {
+      if (activeSocialLoginSurfaceRef.current === 'sheet') {
+        setSheetSocialProvider(provider);
+        return;
+      }
+      setLoading();
+    },
+    [setLoading],
+  );
+  const endSocialLoginLoading = useCallback(
+    (options?: { delayMs?: number }) => {
+      if (activeSocialLoginSurfaceRef.current === 'sheet') {
+        setSheetSocialProvider(null);
+        return;
+      }
+      if (options?.delayMs) {
+        setTimeout(() => {
+          unsetLoading();
+        }, options.delayMs);
+        return;
+      }
+      unsetLoading();
+    },
+    [unsetLoading],
+  );
   const disableNewPrivacyPolicyToast = useCallback(
     () => dispatch(storePrivacyPolicyClickedOrClosedAction()),
     [dispatch],
@@ -303,7 +339,7 @@ const Onboarding = () => {
     useState(false);
 
   useOnboardingLoadingStallTracker({
-    isLoading: loading,
+    isLoading: loading || sheetSocialProvider !== null,
     screen: ONBOARDING_LOADING_STALL_SCREEN.ONBOARDING,
     properties: {
       ...(state.createWallet ? { wallet_setup_type: 'new' } : {}),
@@ -526,7 +562,7 @@ const Onboarding = () => {
       });
     };
 
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -575,7 +611,7 @@ const Onboarding = () => {
         account_type: AccountType.Imported,
       });
     };
-    handleExistingUser(action);
+    void handleExistingUser(action);
   }, [
     metrics,
     navigation,
@@ -591,7 +627,6 @@ const Onboarding = () => {
       createWallet: boolean,
       provider: string,
     ): void => {
-      const isIOS = Platform.OS === 'ios';
       endSocialLoginAttemptTrace(true);
 
       // Error case (result.type !== 'success') is not handled here because
@@ -642,24 +677,11 @@ const Onboarding = () => {
             parentContext: onboardingTraceCtx.current,
           });
 
-          if (isIOS) {
-            // Navigate to SocialLoginSuccess screen first, then  ChoosePassword
-            navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
-              {
-                accountName: result.accountName,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            );
-          } else {
-            // Direct navigation to ChoosePassword for Android
-            navigation.navigate('ChoosePassword', {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-              provider,
-            });
-          }
+          navigation.navigate(Routes.ONBOARDING.CHOOSE_PASSWORD, {
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+            provider,
+          });
         }
       } else if (result.existingUser) {
         trace({
@@ -668,19 +690,10 @@ const Onboarding = () => {
           tags: getTraceTags(store.getState()),
           parentContext: onboardingTraceCtx.current,
         });
-        isIOS
-          ? navigation.navigate(
-              Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_EXISTING_USER,
-              {
-                [PREVIOUS_SCREEN]: ONBOARDING,
-                oauthLoginSuccess: true,
-                provider,
-              },
-            )
-          : navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
-              [PREVIOUS_SCREEN]: ONBOARDING,
-              oauthLoginSuccess: true,
-            });
+        navigation.navigate(Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE, {
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        });
       } else {
         navigation.navigate('AccountNotFound', {
           accountName: result.accountName,
@@ -789,7 +802,7 @@ const Onboarding = () => {
             )
           ) {
             try {
-              setLoading();
+              beginSocialLoginLoading(AuthConnection.Google);
               const fallbackHandler = createLoginHandler(
                 Platform.OS,
                 AuthConnection.Google,
@@ -808,13 +821,10 @@ const Onboarding = () => {
                 socialConnectionType,
               );
 
-              // delay unset loading to avoid flash of loading state
-              setTimeout(() => {
-                unsetLoading();
-              }, 1000);
+              endSocialLoginLoading({ delayMs: 1000 });
               return;
             } catch (fallbackError) {
-              unsetLoading();
+              endSocialLoginLoading();
               finalizeOAuthLifecycle(
                 getOAuthResumeOutcomeForLoginError(fallbackError),
               ).catch((finalizeError) => {
@@ -927,8 +937,8 @@ const Onboarding = () => {
     [
       navigation,
       handleOAuthLoginError,
-      setLoading,
-      unsetLoading,
+      beginSocialLoginLoading,
+      endSocialLoginLoading,
       handlePostSocialLogin,
       endSocialLoginAttemptTrace,
     ],
@@ -936,6 +946,13 @@ const Onboarding = () => {
 
   const onPressContinueWithSocialLogin = useCallback(
     async (createWallet: boolean, provider: AuthConnection): Promise<void> => {
+      const socialLoginSurface = socialLoginSurfaceRef.current;
+      socialLoginSurfaceRef.current = 'screen';
+      activeSocialLoginSurfaceRef.current = socialLoginSurface;
+      if (socialLoginSurface === 'sheet') {
+        beginSocialLoginLoading(provider);
+      }
+
       // check for internet connection
       let isOffline = false;
       try {
@@ -945,23 +962,22 @@ const Onboarding = () => {
       }
 
       if (isOffline) {
-        navigation.dispatch(
-          StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings(`error_sheet.no_internet_connection_title`),
-              description: strings(
-                `error_sheet.no_internet_connection_description`,
-              ),
-              descriptionAlign: 'left',
-              primaryButtonLabel: strings(
-                `error_sheet.no_internet_connection_button`,
-              ),
-              closeOnPrimaryButtonPress: true,
-              type: 'error',
-            },
-          }),
-        );
+        endSocialLoginLoading();
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          },
+        });
         return;
       }
 
@@ -970,8 +986,12 @@ const Onboarding = () => {
       // would swamp the navigation latency this span measures. It is started in
       // handlePostSocialLogin, once the destination is known.
 
-      // Continue with the social login flow
-      navigation.navigate('Onboarding');
+      // The modal sheet used to be dismissed here so the fox loader, which
+      // lives on Onboarding, was the surface under the provider UI. The
+      // in-place sheet stays put and shows its own spinner instead.
+      if (activeSocialLoginSurfaceRef.current !== 'sheet') {
+        navigation.navigate('Onboarding');
+      }
 
       // Enable metrics for OAuth users. Social login opts in before any real Sentry
       // onboarding spans can be created. Order matters:
@@ -1074,6 +1094,7 @@ const Onboarding = () => {
                 OAuthErrorType.UnsupportedPlatform,
               ),
             });
+            endSocialLoginLoading();
             return;
           }
 
@@ -1095,6 +1116,7 @@ const Onboarding = () => {
             provider,
             createWallet,
           );
+          endSocialLoginLoading();
           return;
         }
 
@@ -1103,7 +1125,7 @@ const Onboarding = () => {
           createWallet,
           existingWallet: !createWallet,
         }));
-        setLoading();
+        beginSocialLoginLoading(provider);
         const loginHandlerOptions =
           provider === AuthConnection.Telegram
             ? { telegramLoginEnabled: true }
@@ -1150,16 +1172,20 @@ const Onboarding = () => {
               provider,
             );
 
+            const sheetLogin = activeSocialLoginSurfaceRef.current === 'sheet';
+            if (sheetLogin) {
+              endSocialLoginLoading();
+            }
+
             // Mark metrics opt-in UI as seen since OAuth users auto-consent to metrics.
             // Set AFTER OAuth succeeds to avoid marking as seen if the flow fails.
             await markMetricsOptInUISeen();
 
-            // delay unset loading to avoid flash of loading state
-            setTimeout(() => {
-              unsetLoading();
-            }, 1000);
+            if (!sheetLogin) {
+              endSocialLoginLoading({ delayMs: 1000 });
+            }
           } catch (error) {
-            unsetLoading();
+            endSocialLoginLoading();
             if (!shouldAttemptAndroidGoogleBrowserFallback(error, provider)) {
               finalizeOAuthLifecycle(
                 getOAuthResumeOutcomeForLoginError(error),
@@ -1173,7 +1199,7 @@ const Onboarding = () => {
             await handleLoginError(error as Error, provider, createWallet);
           }
         } catch (error) {
-          unsetLoading();
+          endSocialLoginLoading();
           if (!(error instanceof OAuthError)) {
             trackSocialLoginFailed({
               authConnection: provider,
@@ -1193,15 +1219,15 @@ const Onboarding = () => {
           await handleLoginError(error as Error, provider, createWallet);
         }
       };
-      handleExistingUser(action);
+      void handleExistingUser(action);
     },
     [
       navigation,
       metrics,
       track,
       dispatch,
-      setLoading,
-      unsetLoading,
+      beginSocialLoginLoading,
+      endSocialLoginLoading,
       handleLoginError,
       handlePostSocialLogin,
       handleExistingUser,
@@ -1228,6 +1254,63 @@ const Onboarding = () => {
     [onPressContinueWithSocialLogin],
   );
 
+  const onSheetContinueWithGoogle = useCallback(
+    (createWallet: boolean) => {
+      socialLoginSurfaceRef.current = 'sheet';
+      return onPressContinueWithGoogle(createWallet);
+    },
+    [onPressContinueWithGoogle],
+  );
+
+  const onSheetContinueWithApple = useCallback(
+    (createWallet: boolean) => {
+      socialLoginSurfaceRef.current = 'sheet';
+      return onPressContinueWithApple(createWallet);
+    },
+    [onPressContinueWithApple],
+  );
+
+  const onSheetContinueWithTelegram = useCallback(
+    (createWallet: boolean) => {
+      socialLoginSurfaceRef.current = 'sheet';
+      return onPressContinueWithTelegram(createWallet);
+    },
+    [onPressContinueWithTelegram],
+  );
+
+  const closeOnboardingSheet = useCallback(() => {
+    setSheetMode(null);
+    setSheetSocialProvider(null);
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android' || sheetMode === null) {
+      return undefined;
+    }
+
+    // The sheet's own back handler is registered first and always consumes
+    // Android back. This listener is registered after it, so it runs first
+    // and pops the screen in front instead of closing the hidden sheet.
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        if (navigation.isFocused()) {
+          return false;
+        }
+        if (navigation.canGoBack()) {
+          navigation.goBack();
+        }
+        return true;
+      },
+    );
+
+    return () => subscription.remove();
+  }, [navigation, sheetMode]);
+
+  const onPressImportFromExtension = useCallback(() => {
+    navigation.navigate(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+  }, [navigation]);
+
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -1240,59 +1323,19 @@ const Onboarding = () => {
             ? OnboardingCtaIds.CREATE_WALLET
             : OnboardingCtaIds.IMPORT_WALLET,
         );
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.ONBOARDING_SHEET,
-          params: {
-            onPressCreate,
-            onPressImport,
-            onPressContinueWithGoogle,
-            onPressContinueWithApple,
-            ...(isTelegramLoginEnabled ? { onPressContinueWithTelegram } : {}),
-            createWallet: actionType === 'create',
-          },
-        });
+        setSheetMode(actionType === 'create' ? 'create' : 'import');
       } else if (actionType === 'create') {
         await onPressCreate();
       } else {
         await onPressImport();
       }
     },
-    [
-      navigation,
-      onPressCreate,
-      onPressImport,
-      onPressContinueWithGoogle,
-      onPressContinueWithApple,
-      dispatch,
-      onPressContinueWithTelegram,
-      isTelegramLoginEnabled,
-    ],
+    [onPressCreate, onPressImport, dispatch],
   );
 
   const setStartFoxAnimation = useCallback((): void => {
     setState((prevState) => ({ ...prevState, startFoxAnimation: 'Start' }));
   }, []);
-
-  const renderLoader = useCallback(
-    (): React.ReactElement => (
-      <Box
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="flex-1 gap-y-8 mb-40"
-      >
-        <Box justifyContent={BoxJustifyContent.Center}>
-          <ActivityIndicator size="small" />
-          <Text
-            variant={TextVariant.BodyMd}
-            style={tw.style('mt-[30px] text-center text-default')}
-          >
-            {loadingMsg}
-          </Text>
-        </Box>
-      </Box>
-    ),
-    [loadingMsg, tw],
-  );
 
   const renderContent = useCallback(
     (): React.ReactElement => (
@@ -1306,41 +1349,23 @@ const Onboarding = () => {
           setStartFoxAnimation={setStartFoxAnimation}
           onInteractiveContentReady={handleOnboardingInteractiveContentReady}
         >
-          {/*
-           * These onboarding buttons are intentionally pinned to specific themes regardless of the user's
-           * system theme setting: the "Create" button is always dark (black bg, white text) and the
-           * "Import" button is always light (white bg, black text). This design choice ensures both
-           * buttons remain visually distinct and accessible against the purple onboarding background
-           * in all theme contexts.
-           */}
-          <ThemeProvider
-            theme={Theme.Dark} // Keep this button in dark mode regardless of theme
-          >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('create')}
-              testID={OnboardingSelectorIDs.NEW_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {strings('onboarding.start_exploring_now')}
-            </Button>
-          </ThemeProvider>
-          <ThemeProvider
-            theme={Theme.Light} // Keep this button in light mode regardless of theme
-          >
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={() => handleCtaActions('existing')}
-              testID={OnboardingSelectorIDs.EXISTING_WALLET_BUTTON}
-              isFullWidth
-              size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            >
-              {SEEDLESS_ONBOARDING_ENABLED
+          <FooterGlass
+            twClassName="px-0"
+            primaryButtonProps={{
+              children: strings('onboarding.start_exploring_now'),
+              onPress: () => handleCtaActions('create'),
+              size: Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg,
+              testID: OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+            }}
+            tertiaryButtonProps={{
+              children: SEEDLESS_ONBOARDING_ENABLED
                 ? strings('onboarding.import_using_srp_social_login')
-                : strings('onboarding.import_using_srp')}
-            </Button>
-          </ThemeProvider>
+                : strings('onboarding.import_using_srp'),
+              onPress: () => handleCtaActions('existing'),
+              size: Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg,
+              testID: OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+            }}
+          />
         </OnboardingAnimation>
       </Box>
     ),
@@ -1432,12 +1457,12 @@ const Onboarding = () => {
 
     unsetLoading();
     updateNavBar();
-    checkIfExistingUser();
+    void checkIfExistingUser();
     disableNewPrivacyPolicyToast();
 
-    InteractionManager.runAfterInteractions(() => {
-      checkForMigrationFailureAndVaultBackup();
-      PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
+    scheduleIdleTask(() => {
+      void checkForMigrationFailureAndVaultBackup();
+      void PreventScreenshot.forbid(CAPTURE_KEYS.onboarding);
       if (route?.params?.delete || route?.params?.showErrorReportSentToast) {
         showNotification();
       }
@@ -1480,9 +1505,9 @@ const Onboarding = () => {
       });
       onboardingTraceCtx.current = undefined;
       unsetLoading();
-      InteractionManager.runAfterInteractions(() =>
-        PreventScreenshot.allow(CAPTURE_KEYS.onboarding),
-      );
+      scheduleIdleTask(() => {
+        void PreventScreenshot.allow(CAPTURE_KEYS.onboarding);
+      });
     },
     [unsetLoading, finalizeInFlightOAuthTraces, endSocialLoginAttemptTrace],
   );
@@ -1604,10 +1629,11 @@ const Onboarding = () => {
   }, [storePna25Acknowledged]);
 
   const { errorToThrow, startFoxAnimation } = state;
+  const isOnboardingSheetOpen = sheetMode !== null;
 
   const onboardingCanvasColor =
     themeContext.themeAppearance === 'dark'
-      ? importedColors.gettingStartedTextColor
+      ? themeContext.colors.background.default
       : importedColors.gettingStartedPageBackgroundColorLightMode;
 
   const ThrowErrorIfNeeded = () => {
@@ -1633,54 +1659,79 @@ const Onboarding = () => {
         style={tw.style('flex-1', { backgroundColor: onboardingCanvasColor })}
         testID={OnboardingSelectorIDs.CONTAINER_ID}
       >
-        <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
-          <ScrollView
-            style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('flex-1')}
-          >
-            <Box
-              alignItems={BoxAlignItems.Center}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="flex-1 py-4"
-            >
-              {renderContent()}
-
-              {loading && (
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  twClassName="absolute top-0 left-0 right-0 bottom-0"
-                  style={tw.style(
-                    { zIndex: 1000 },
-                    { backgroundColor: onboardingCanvasColor },
-                  )}
-                >
-                  {renderLoader()}
-                </Box>
-              )}
-            </Box>
-          </ScrollView>
-
-          <FadeOutOverlay />
-
+        {/*
+          The sheet is inline on this screen, not a modal route. Hide the
+          landing content from assistive tech so VoiceOver and TalkBack stay
+          inside the sheet instead of the Create and Import buttons behind it.
+        */}
+        <Box
+          twClassName="flex-1"
+          testID={OnboardingSelectorIDs.LANDING_CONTENT_ID}
+          accessibilityElementsHidden={isOnboardingSheetOpen}
+          importantForAccessibility={
+            isOnboardingSheetOpen ? 'no-hide-descendants' : 'auto'
+          }
+        >
           <FastOnboarding
             onPressContinueWithGoogle={onPressContinueWithGoogle}
             onPressContinueWithApple={onPressContinueWithApple}
             onPressImport={onPressImport}
             onPressCreate={onPressCreate}
           />
+          <SafeAreaView edges={['top']} style={tw.style('flex-1')}>
+            <ScrollView
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style('flex-1')}
+            >
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.Center}
+                twClassName="flex-1 py-4"
+              >
+                {renderContent()}
+              </Box>
+            </ScrollView>
 
-          {handleSimpleNotification()}
-        </SafeAreaView>
+            <FadeOutOverlay />
 
-        {/* Fox on the full-bleed root canvas */}
-        {!hasTestOverrides && (
-          <FoxAnimation
-            hasFooter={false}
-            trigger={startFoxAnimation}
-            fullBleedBottom
+            {handleSimpleNotification()}
+          </SafeAreaView>
+
+          {!hasTestOverrides && (
+            <FoxAnimation
+              hasFooter={false}
+              trigger={startFoxAnimation}
+              fullBleedBottom
+            />
+          )}
+
+          {/*
+            The loader overlays the landing content instead of replacing it so
+            FadeOutOverlay, the onboarding animations and the toast keep their
+            mounted state (and do not replay) when loading is unset after a
+            failed or cancelled OAuth attempt.
+          */}
+          {loading && (
+            <View style={styles.loaderOverlay}>
+              <OnboardingFoxLoader />
+            </View>
+          )}
+        </Box>
+        {sheetMode !== null ? (
+          <OnboardingSheet
+            createWallet={sheetMode === 'create'}
+            onDismiss={closeOnboardingSheet}
+            onPressCreate={onPressCreate}
+            onPressImport={onPressImport}
+            onPressContinueWithGoogle={onSheetContinueWithGoogle}
+            onPressContinueWithApple={onSheetContinueWithApple}
+            onPressContinueWithTelegram={
+              isTelegramLoginEnabled ? onSheetContinueWithTelegram : undefined
+            }
+            onPressImportFromExtension={onPressImportFromExtension}
+            loadingProvider={sheetSocialProvider}
           />
-        )}
+        ) : null}
       </View>
     </ErrorBoundary>
   );

@@ -16,9 +16,9 @@ export function getMetamaskFeePercent(
     | undefined,
 ): number {
   const metabridge = activeQuote?.quote?.feeData?.metabridge as
-    | { quoteBpsFee?: number }
+    | { quoteBpsFee?: number }[]
     | undefined;
-  const quoteBpsFee = metabridge?.quoteBpsFee;
+  const quoteBpsFee = metabridge?.[0]?.quoteBpsFee;
   if (!isNullOrUndefined(quoteBpsFee)) {
     return quoteBpsFee / 100;
   }

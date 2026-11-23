@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
+  HeaderSearchVariant as GlassHeaderSearchVariant,
   Text,
   TextColor,
   TextVariant,
@@ -13,6 +14,7 @@ import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketDa
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { deduplicateSeriesMarkets } from '../../utils/feed';
 import { selectPredictUpDownEnabledFlag } from '../../selectors/featureFlags';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { PredictMarket as PredictMarketType } from '../../types';
 import { PredictEventValues } from '../../constants/eventNames';
 import PredictMarket from '../PredictMarket';
@@ -24,6 +26,7 @@ import { useTheme } from '../../../../../util/theme';
 import HeaderSearch, {
   HeaderSearchVariant,
 } from '../../../../../component-library/components-temp/HeaderSearch';
+import HeaderSearchGlass from '../../../../../component-library/components-temp/HeaderSearchGlass';
 import {
   PredictSearchSelectorsIDs,
   getPredictSearchSelector,
@@ -71,6 +74,7 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const isDebouncing = searchQuery !== debouncedSearchQuery;
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
 
   const { marketData, totalResults, isFetching, error, refetch } =
@@ -168,25 +172,44 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
       })}
     >
       <Box twClassName="w-full py-2">
-        <HeaderSearch
-          variant={HeaderSearchVariant.Inline}
-          onPressCancelButton={onClose}
-          cancelButtonProps={{
-            // ButtonBase applies self-start when not full width, which top-aligns the
-            // Cancel control vs. the centered TextFieldSearch row.
-            style: { alignSelf: 'center' },
-          }}
-          textFieldSearchProps={{
-            value: searchQuery,
-            onChangeText: onSearchChange,
-            onPressClearButton: () => onSearchChange(''),
-            placeholder: strings('predict.search_placeholder'),
-            autoFocus: true,
-            clearButtonProps: {
-              testID: PredictSearchSelectorsIDs.CLEAR_BUTTON,
-            },
-          }}
-        />
+        {isBrandRefresh ? (
+          <HeaderSearchGlass
+            isFloating={false}
+            variant={GlassHeaderSearchVariant.Inline}
+            onPressCancelButton={onClose}
+            textFieldSearchProps={{
+              value: searchQuery,
+              onChangeText: onSearchChange,
+              onPressClearButton: () => onSearchChange(''),
+              placeholder: strings('predict.search_placeholder'),
+              inputAccessibilityLabel: strings('predict.search_placeholder'),
+              autoFocus: true,
+              clearButtonProps: {
+                testID: PredictSearchSelectorsIDs.CLEAR_BUTTON,
+              },
+            }}
+          />
+        ) : (
+          <HeaderSearch
+            variant={HeaderSearchVariant.Inline}
+            onPressCancelButton={onClose}
+            cancelButtonProps={{
+              // ButtonBase applies self-start when not full width, which top-aligns the
+              // Cancel control vs. the centered TextFieldSearch row.
+              style: { alignSelf: 'center' },
+            }}
+            textFieldSearchProps={{
+              value: searchQuery,
+              onChangeText: onSearchChange,
+              onPressClearButton: () => onSearchChange(''),
+              placeholder: strings('predict.search_placeholder'),
+              autoFocus: true,
+              clearButtonProps: {
+                testID: PredictSearchSelectorsIDs.CLEAR_BUTTON,
+              },
+            }}
+          />
+        )}
       </Box>
 
       <Box twClassName="flex-1">

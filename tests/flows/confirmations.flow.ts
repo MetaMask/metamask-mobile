@@ -248,17 +248,20 @@ export const navigateToContractAndTap = async (
   description: string,
 ): Promise<void> => {
   await navigateToBrowserView();
+  const params = new URLSearchParams({ contract: contractAddress });
+  params.set('scrollTo', buttonId);
+  const pageUrl = `${getDappUrl(0)}/?${params.toString()}`;
   await TestDApp.navigateToTestDappWithContract({
     contractAddress,
     scrollTo: buttonId,
   });
-  await waitForTestDappToLoad();
-  const params = new URLSearchParams({ contract: contractAddress });
-  params.set('scrollTo', buttonId);
+  // Pass the contract URL so Android heading recovery re-navigates with
+  // `?contract=` / `scrollTo=` intact (bare reload cannot leave ERR_CONNECTION_REFUSED).
+  await waitForTestDappToLoad(pageUrl);
   await tapTestDappButtonAndWaitForConfirm(
     buttonId,
     description,
-    `${getDappUrl(0)}/?${params.toString()}`,
+    pageUrl,
     TRANSACTION_CONFIRM_POLL_MS,
   );
 };

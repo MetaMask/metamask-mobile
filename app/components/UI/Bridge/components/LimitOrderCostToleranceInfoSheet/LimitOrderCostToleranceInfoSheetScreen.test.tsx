@@ -33,40 +33,15 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-function renderScreen(
-  bridgeReducerOverrides: NonNullable<
-    Parameters<typeof createBridgeTestState>[0]
-  >['bridgeReducerOverrides'] = {},
-) {
-  return renderWithProvider(<LimitOrderCostToleranceInfoSheetScreen />, {
-    state: createBridgeTestState({ bridgeReducerOverrides }),
-  });
-}
-
 describe('LimitOrderCostToleranceInfoSheetScreen', () => {
-  it('computes the minimum received percentage from the stored cost tolerance', () => {
-    const { getByTestId } = renderScreen({ limitOrderCostTolerance: '0.5' });
+  it('renders the price tolerance tooltip content', () => {
+    const { getByTestId } = renderWithProvider(
+      <LimitOrderCostToleranceInfoSheetScreen />,
+      { state: createBridgeTestState() },
+    );
 
     expect(
       getByTestId(LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY),
-    ).toHaveTextContent(
-      strings('bridge.cost_tolerance_tooltip_content', {
-        minReceivedPercentage: 99.5,
-      }),
-    );
-  });
-
-  it('falls back to the default cost tolerance when none is stored', () => {
-    const { getByTestId } = renderScreen({
-      limitOrderCostTolerance: undefined,
-    });
-
-    expect(
-      getByTestId(LimitOrderCostToleranceInfoSheetSelectorsIDs.BODY),
-    ).toHaveTextContent(
-      strings('bridge.cost_tolerance_tooltip_content', {
-        minReceivedPercentage: 98,
-      }),
-    );
+    ).toHaveTextContent(strings('bridge.cost_tolerance_tooltip_content'));
   });
 });

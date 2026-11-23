@@ -26,6 +26,46 @@ const ACCOUNT_TYPE = 'eip155:eoa';
 const MAINNET_USDC_ASSET_ID =
   'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
+const MANTLE_CHAIN_ID = '0x1388';
+
+function buildNetworkConfiguration(chainId: string): Record<string, unknown> {
+  return {
+    blockExplorerUrls: [],
+    chainId,
+    defaultRpcEndpointIndex: 0,
+    name: chainId,
+    nativeCurrency: 'ETH',
+    rpcEndpoints: [],
+  };
+}
+
+// Assets on unconfigured chains are dropped, so the chains seeded by the
+// tests below must be configured on top of the default background state.
+const NETWORK_CONTROLLER_STATE: {
+  networkConfigurationsByChainId: Record<string, unknown>;
+} = {
+  ...backgroundState.NetworkController,
+  networkConfigurationsByChainId: {
+    ...backgroundState.NetworkController.networkConfigurationsByChainId,
+    [NETWORKS_CHAIN_ID.ARC]: buildNetworkConfiguration(NETWORKS_CHAIN_ID.ARC),
+    [MANTLE_CHAIN_ID]: buildNetworkConfiguration(MANTLE_CHAIN_ID),
+  },
+};
+
+// Solana Devnet is only treated as configured when its testnet flag is on.
+const REMOTE_FEATURE_FLAG_CONTROLLER_STATE = {
+  remoteFeatureFlags: {
+    ...(
+      fixture as unknown as {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: Record<string, unknown>;
+        };
+      }
+    ).RemoteFeatureFlagController.remoteFeatureFlags,
+    solanaTestnetsEnabled: true,
+  },
+};
+
 interface Fixture {
   AccountTreeController: {
     accountTree: {
@@ -74,10 +114,12 @@ function buildState(
         AccountsController: {
           internalAccounts: { accounts, selectedAccount: accountIds[0] },
         },
+        NetworkController: NETWORK_CONTROLLER_STATE,
+        RemoteFeatureFlagController: REMOTE_FEATURE_FLAG_CONTROLLER_STATE,
         ...overrides,
       },
     },
-    settings,
+    settings: { basicFunctionalityEnabled: true, ...settings },
   } as unknown as RootState;
 }
 
@@ -300,6 +342,57 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
     expect(arcAssets[0].isNative).toBe(true);
   });
 
+  it('treats an erc20-namespaced asset with native metadata as native', () => {
+    const mntAssetId =
+      'eip155:5000/erc20:0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000';
+    const tokenAddress = '0x09Bc4E0D864854c6aFB6eB9A9cdF58aC190D0dF9';
+    const tokenAssetId = `eip155:5000/erc20:${tokenAddress}`;
+
+    const state = buildStateWithAssets([
+      {
+        amount: '5',
+        assetId: mntAssetId,
+        info: {
+          type: 'native',
+          symbol: 'MNT',
+          name: 'Mantle',
+          decimals: 18,
+          image: '',
+        },
+      },
+      {
+        amount: '5',
+        assetId: tokenAssetId,
+        info: {
+          type: 'erc20',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          image: '',
+        },
+      },
+    ]);
+
+    const mantleAssets = selectConfirmationAssetsByAccountGroupId(
+      state,
+      undefined,
+    ).filter((asset) => asset.chainId === MANTLE_CHAIN_ID);
+
+    const mnt = mantleAssets.find((asset) => asset.symbol === 'MNT');
+    const token = mantleAssets.find((asset) => asset.symbol === 'USDC');
+
+    expect(mnt).toMatchObject({
+      address: '0xdeaddeaddeaddeaddeaddeaddeaddeaddead0000',
+      isETH: true,
+      isNative: true,
+    });
+    expect(token).toMatchObject({
+      address: tokenAddress,
+      isETH: false,
+      isNative: false,
+    });
+  });
+
   // `assetId` on an emitted asset is the address for EVM chains and the
   // CAIP-19 ID only for non-EVM, so each case matches on its own terms.
   it.each([
@@ -362,6 +455,60 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
     const assets = selectConfirmationAssetsByAccountGroupId(state, undefined);
 
     expect(assets.find(matches)).toBeUndefined();
+  });
+
+  describe('unconfigured networks', () => {
+    // Regression: the accounts API keeps reporting balances for networks the
+    // user removed. Surfacing them let pay flows auto-select a token whose
+    // chain has no network client, crashing `findNetworkClientIdByChainId`.
+    const BSC_CHAIN_ID = '0x38';
+
+    function hasBscAssets(state: RootState) {
+      return selectConfirmationAssetsByAccountGroupId(state, undefined).some(
+        (asset) => asset.chainId === BSC_CHAIN_ID,
+      );
+    }
+
+    it('includes EVM assets on configured networks', () => {
+      expect(hasBscAssets(buildState())).toBe(true);
+    });
+
+    it('excludes EVM assets on networks the user has not configured', () => {
+      const { [BSC_CHAIN_ID]: _bsc, ...remainingConfigurations } =
+        NETWORK_CONTROLLER_STATE.networkConfigurationsByChainId;
+
+      const state = buildState({
+        NetworkController: {
+          ...NETWORK_CONTROLLER_STATE,
+          networkConfigurationsByChainId: remainingConfigurations,
+        },
+      });
+
+      expect(hasBscAssets(state)).toBe(false);
+    });
+
+    it('excludes non-EVM assets on networks the user has not configured', () => {
+      const multichainNetworkController =
+        backgroundState.MultichainNetworkController;
+
+      const { [SolScope.Mainnet]: _solana, ...remainingConfigurations } =
+        multichainNetworkController.multichainNetworkConfigurationsByChainId;
+
+      const hasSolanaAssets = (state: RootState) =>
+        selectConfirmationAssetsByAccountGroupId(state, undefined).some(
+          (asset) => asset.chainId === SolScope.Mainnet,
+        );
+
+      const state = buildState({
+        MultichainNetworkController: {
+          ...multichainNetworkController,
+          multichainNetworkConfigurationsByChainId: remainingConfigurations,
+        },
+      });
+
+      expect(hasSolanaAssets(buildState())).toBe(true);
+      expect(hasSolanaAssets(state)).toBe(false);
+    });
   });
 
   describe('testnet fiat', () => {
@@ -433,11 +580,15 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
 
     it('displays zero fiat for a zero balance with no price', () => {
       expect(findPricelessToken('0')?.balanceInSelectedCurrency).toBe('chf:0');
+      expect(findPricelessToken('0')?.balanceInSelectedCurrencyAmount).toBe(0);
     });
 
     it('displays no fiat for a non-zero balance with no price', () => {
       expect(
         findPricelessToken('5')?.balanceInSelectedCurrency,
+      ).toBeUndefined();
+      expect(
+        findPricelessToken('5')?.balanceInSelectedCurrencyAmount,
       ).toBeUndefined();
     });
   });
@@ -463,6 +614,9 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       expect(findBaseUsdc()?.balanceInSelectedCurrency).toBe(
         `chf:${BALANCE * PREFERRED_RATE}`,
       );
+      expect(findBaseUsdc()?.balanceInSelectedCurrencyAmount).toBe(
+        BALANCE * PREFERRED_RATE,
+      );
     });
 
     it('formats the balance from usdPrice when overridden to USD', () => {
@@ -470,6 +624,9 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       // CHF amount with a dollar sign.
       expect(findBaseUsdc('USD')?.balanceInSelectedCurrency).toBe(
         `USD:${BALANCE * USD_RATE}`,
+      );
+      expect(findBaseUsdc('USD')?.balanceInSelectedCurrencyAmount).toBe(
+        BALANCE * USD_RATE,
       );
     });
 
@@ -519,6 +676,7 @@ describe('selectConfirmationAssetsByAccountGroupId', () => {
       );
 
       expect(mainnetUsdc?.balanceInSelectedCurrency).toBe('USD:100');
+      expect(mainnetUsdc?.balanceInSelectedCurrencyAmount).toBe(100);
     });
   });
 

@@ -1,17 +1,20 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type {
   FeedResponse,
+  FeedScope,
   FetchFeedOptions,
 } from '@metamask/social-controllers';
 import Engine from '../../../../../core/Engine';
-import { FEED_CAIP2_CHAINS } from '../feed-constants';
-import type { FeedAudience } from '../types';
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
+import {
+  FEED_PAGE_LIMIT,
+  SOCIAL_FEED_INFINITE_QUERY_KIND,
+} from '../../../../UI/SocialFeed/data/socialFeedQueries';
+import type { FeedAudience } from '../../../../UI/SocialFeed/types';
 
-/** Feed scope the social API expects, derived from the audience toggle. */
-export type FeedScope = NonNullable<FetchFeedOptions['scope']>;
-
-/** Page size requested per feed page. */
-export const FEED_PAGE_LIMIT = 30;
+/** The feed scope V0's All / Following toggle reads. */
+export const toFeedScope = (audience: FeedAudience): FeedScope =>
+  audience === 'following' ? 'following' : 'leaderboard';
 
 /** Audiences whose first page is warmed when Follow Trading opens. */
 export const PREFETCH_FEED_AUDIENCES: readonly FeedAudience[] = [
@@ -19,14 +22,20 @@ export const PREFETCH_FEED_AUDIENCES: readonly FeedAudience[] = [
   'all',
 ];
 
-export const toFeedScope = (audience: FeedAudience): FeedScope =>
-  audience === 'following' ? 'following' : 'leaderboard';
-
+/**
+ * Same shape as `buildSocialFeedQueryKey` for an `all` source at
+ * {@link FEED_PAGE_LIMIT}, so this feed and `useSocialFeed` share one cache.
+ */
 export const buildTraderFeedQueryKey = (
   scope: FeedScope,
-): [string, { scope: FeedScope; chains: typeof FEED_CAIP2_CHAINS }] => [
+): [
+  string,
+  { scope: FeedScope; chains: typeof FEED_CAIP2_CHAINS; limit: number },
+  typeof SOCIAL_FEED_INFINITE_QUERY_KIND,
+] => [
   'SocialService:fetchFeed',
-  { scope, chains: FEED_CAIP2_CHAINS },
+  { scope, chains: FEED_CAIP2_CHAINS, limit: FEED_PAGE_LIMIT },
+  SOCIAL_FEED_INFINITE_QUERY_KIND,
 ];
 
 /**
@@ -72,7 +81,7 @@ export const prefetchTraderFeeds = async (
   await Promise.allSettled(
     PREFETCH_FEED_AUDIENCES.map((audience) => {
       const scope = toFeedScope(audience);
-      return queryClient.prefetchInfiniteQuery({
+      return queryClient.infiniteQuery({
         queryKey: buildTraderFeedQueryKey(scope),
         queryFn: ({ pageParam }: { pageParam?: string }) =>
           fetchTraderFeedPage(scope, pageParam),

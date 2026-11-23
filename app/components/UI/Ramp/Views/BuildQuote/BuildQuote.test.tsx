@@ -1,16 +1,21 @@
 import React from 'react';
-import { fireEvent, act, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor, within } from '@testing-library/react-native';
 import BuildQuote, {
   createBuildQuoteNavDetails,
   isBailedOrderStatus,
 } from './BuildQuote';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import {
+  isBuyScreenOwningProviderPick,
+  recordUserProviderPick,
+} from '../../hooks/providerPickCoordination';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { RampsOrderStatus } from '@metamask/ramps-controller';
+import { TextColor } from '@metamask/design-system-react-native';
 
 jest.mock('../../../../Base/Keypad', () => {
   const ReactActual = jest.requireActual('react');
@@ -49,6 +54,17 @@ jest.mock('../../../../Base/Keypad', () => {
             onChange({
               value: '99.99',
               valueAsNumber: 42,
+              pressedKey: '0',
+            }),
+        }),
+        ReactActual.createElement(Button, {
+          key: 'grouped-value',
+          testID: 'keypad-trigger-grouped-value',
+          title: 'GroupedValue',
+          onPress: () =>
+            onChange({
+              value: '1234.56',
+              valueAsNumber: 1234.56,
               pressedKey: '0',
             }),
         }),
@@ -158,8 +174,12 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
   useDebouncedValue: jest.fn((value: unknown) => value),
 }));
 
-jest.mock('../../hooks/useBlinkingCursor', () => ({
-  useBlinkingCursor: () => 1,
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(() => 'WIFI'),
 }));
 
 const mockUseRampsController = jest.requireMock(
@@ -328,6 +348,7 @@ describe('createBuildQuoteNavDetails', () => {
 
 const mockSetSelectedProvider = jest.fn();
 const mockSetSelectedProviderForAsset = jest.fn();
+const mockSelectProviderForAsset = jest.fn();
 
 const buildRampsControllerResult = (overrides = {}) => ({
   userRegion: USER_REGION,
@@ -335,6 +356,7 @@ const buildRampsControllerResult = (overrides = {}) => ({
   selectedProvider: WIDGET_PROVIDER,
   setSelectedProvider: mockSetSelectedProvider,
   setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
+  selectProviderForAsset: mockSelectProviderForAsset,
   selectedToken: SELECTED_TOKEN,
   paymentMethods: [SELECTED_PAYMENT_METHOD],
   getBuyWidgetData: mockGetBuyWidgetData,
@@ -406,42 +428,18 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('amount param initialization', () => {
-    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
-      mockUseParams.mockReturnValue({});
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('100');
-    });
-
-    it('uses amount param as initial value when provided via route params', () => {
-      mockUseParams.mockReturnValue({ amount: 30 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('30');
-    });
-
-    it('does not override amount with region default when amount param is provided', () => {
-      mockUseParams.mockReturnValue({ amount: 50 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
-    });
-  });
-
   describe('updateAmount', () => {
+    it('renders the currency symbol in the hero font', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      const currencySymbol = within(amountInput).getByText('$');
+
+      expect(currencySymbol).toHaveStyle({ fontFamily: 'GrotzecCond-Bold' });
+    });
+
     it('updates amount from string input (empty string maps to "0")', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -452,7 +450,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount from string input with parsed valueAsNumber', async () => {
@@ -465,7 +463,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('250');
+      expect(amountInput).toHaveTextContent('$250');
     });
 
     it('uses valueAsNumber when provided with string input', async () => {
@@ -478,24 +476,21 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('99.99');
+      expect(amountInput).toHaveTextContent('$99.99');
     });
 
-    it('updates amount from number input via QuickAmounts', async () => {
+    it('groups integer digits while preserving the keypad decimal separator', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
       await act(async () => {
-        fireEvent.press(getByTestId('keypad-trigger-empty'));
+        fireEvent.press(getByTestId('keypad-trigger-grouped-value'));
       });
 
-      await act(async () => {
-        fireEvent.press(getByTestId('quick-amount-50'));
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '$1,234.56',
+      );
     });
 
     it('clears rampsError when amount is updated', async () => {
@@ -510,7 +505,11 @@ describe('BuildQuote', () => {
         fireEvent.press(getByTestId('keypad-trigger-string'));
       });
 
-      expect(amountInput.props.color).toBeUndefined();
+      expect(
+        amountInput.findAll(
+          ({ props }) => props.color === TextColor.ErrorDefault,
+        ),
+      ).toHaveLength(0);
     });
 
     it('clears amount to 0 when Back key pressed and keyboard not dirty', async () => {
@@ -523,7 +522,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('0');
+      expect(amountInput).toHaveTextContent('$0');
     });
 
     it('updates amount when Back key pressed and keyboard is dirty', async () => {
@@ -539,7 +538,7 @@ describe('BuildQuote', () => {
       });
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('10');
+      expect(amountInput).toHaveTextContent('$10');
     });
   });
 
@@ -595,6 +594,27 @@ describe('BuildQuote', () => {
   });
 
   describe('handleQuickAmountPress', () => {
+    it('keeps the attribution row mounted when the amount is cleared', async () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        {
+          state: initialRootState,
+        },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-empty'));
+      });
+
+      expect(
+        getByTestId(BUILD_QUOTE_TEST_IDS.ACTION_MESSAGE_PLACEHOLDER),
+      ).toBeOnTheScreen();
+      expect(getByTestId('mock-quick-amounts')).toBeOnTheScreen();
+      expect(
+        queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
+      ).not.toBeOnTheScreen();
+    });
+
     it('tracks RAMPS_QUICK_AMOUNT_CLICKED when quick amount pressed', async () => {
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
@@ -623,29 +643,6 @@ describe('BuildQuote', () => {
   });
 
   describe('client-side buy limits', () => {
-    it('shows a below-min inline error and skips quote fetching', () => {
-      const providerWithLimits = buildProviderWithLimits({
-        minAmount: 120,
-        maxAmount: 1000,
-      });
-      mockUseRampsController.mockReturnValue(
-        buildRampsControllerResult({
-          providers: [providerWithLimits, NATIVE_PROVIDER],
-          selectedProvider: providerWithLimits,
-        }),
-      );
-
-      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Minimum purchase is $120.00')).toBeOnTheScreen();
-      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
-
-      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
-      expect(continueButton).toBeDisabled();
-    });
-
     it('shows an above-max inline error and skips quote fetching', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 10,
@@ -788,7 +785,7 @@ describe('BuildQuote', () => {
         amount: 12,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -822,7 +819,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -854,7 +851,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -879,7 +876,7 @@ describe('BuildQuote', () => {
         amount: 250,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -892,7 +889,7 @@ describe('BuildQuote', () => {
         amount: 10,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -922,7 +919,7 @@ describe('BuildQuote', () => {
         amount: 50,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -952,7 +949,7 @@ describe('BuildQuote', () => {
         amount: 200,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -977,7 +974,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -1369,173 +1366,134 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('auto-select provider when none selected', () => {
-    it('selects the first provider that supports the token', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
+  describe('provider pre-selection', () => {
+    const PEPE_ASSET =
+      'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933';
+
+    it('asks the controller to pick for the selected token', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
+      );
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
-        autoSelected: true,
-      });
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(
+        SELECTED_TOKEN.assetId,
+        { excludeProviderIds: [] },
+      );
     });
 
-    it('does not auto-select when a provider is already selected', () => {
-      renderWithProvider(<BuildQuote />, { state: initialRootState });
-
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-    });
-
-    it('does not auto-select when providers list is empty', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: null,
-      });
+    it('picks for the route token while the selected token still holds the previous one', () => {
+      mockUseParams.mockReturnValue({ assetId: PEPE_ASSET });
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-    });
-
-    it('does not auto-select when no token is selected', () => {
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: null,
-        paymentMethods: [],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: null,
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(PEPE_ASSET, {
+        excludeProviderIds: [],
       });
-
-      renderWithProvider(<BuildQuote />, { state: initialRootState });
-
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalledWith(
+        SELECTED_TOKEN.assetId,
+        expect.anything(),
+      );
     });
 
-    it('skips providers that do not support the token', () => {
-      const unsupportedProvider = {
-        id: 'banxa',
-        name: 'Banxa',
-        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
-        links: [],
-      };
+    it('picks again when the provider list loads after the screen opened', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ providers: [], selectedProvider: null }),
+      );
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalled();
+
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
+      );
+      rerender(<BuildQuote />);
+
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(
+        SELECTED_TOKEN.assetId,
+        { excludeProviderIds: [] },
+      );
+    });
+
+    it('picks again when the controller list arrives after the React Query copy', () => {
+      const result = buildRampsControllerResult({ controllerProviders: [] });
+      mockUseRampsController.mockReturnValue(result);
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      mockSelectProviderForAsset.mockClear();
 
       mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [unsupportedProvider, NATIVE_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
+        ...result,
+        controllerProviders: [WIDGET_PROVIDER, NATIVE_PROVIDER],
       });
+      rerender(<BuildQuote />);
 
-      renderWithProvider(<BuildQuote />, { state: initialRootState });
-
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(NATIVE_PROVIDER, {
-        autoSelected: true,
-      });
+      expect(mockSelectProviderForAsset).toHaveBeenCalledTimes(1);
     });
 
-    it('does not auto-select when no provider supports the token', () => {
-      const unsupportedProvider = {
-        id: 'banxa',
-        name: 'Banxa',
-        supportedCryptoCurrencies: { 'eip155:1/erc20:0xother': true },
-        links: [],
-      };
+    it('picks again when the previously used providers change', () => {
+      const result = buildRampsControllerResult({
+        previouslyUsedProviderIds: [],
+      });
+      mockUseRampsController.mockReturnValue(result);
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      mockSelectProviderForAsset.mockClear();
 
       mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [unsupportedProvider],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: null,
+        ...result,
+        previouslyUsedProviderIds: [NATIVE_PROVIDER.id],
       });
+      rerender(<BuildQuote />);
+
+      expect(mockSelectProviderForAsset).toHaveBeenCalledTimes(1);
+    });
+
+    it('owns the provider pick while mounted', () => {
+      const { unmount } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      expect(isBuyScreenOwningProviderPick()).toBe(true);
+
+      unmount();
+      expect(isBuyScreenOwningProviderPick()).toBe(false);
+    });
+
+    it('does not pick when no token is known', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedToken: null }),
+      );
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalled();
     });
 
-    it('does not auto-select when screen is not focused', () => {
+    it('does not pick when the screen is not focused', () => {
       const mockUseIsFocused = jest.requireMock('@react-navigation/native')
         .useIsFocused as jest.Mock;
       mockUseIsFocused.mockReturnValue(false);
 
-      mockUseRampsController.mockReturnValue({
-        userRegion: USER_REGION,
-        providers: [WIDGET_PROVIDER],
-        selectedProvider: null,
-        setSelectedProvider: mockSetSelectedProvider,
-        selectedToken: SELECTED_TOKEN,
-        paymentMethods: [SELECTED_PAYMENT_METHOD],
-        getBuyWidgetData: mockGetBuyWidgetData,
-        addPrecreatedOrder: mockAddPrecreatedOrder,
-        addOrder: mockAddOrder,
-        getOrderFromCallback: mockGetOrderFromCallback,
-        paymentMethodsLoading: false,
-        paymentMethodsFetching: false,
-        paymentMethodsStatus: 'success',
-        selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
-      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockSelectProviderForAsset).not.toHaveBeenCalled();
+
+      mockUseIsFocused.mockReturnValue(true);
+    });
+
+    it('never sets a provider directly', () => {
+      mockUseRampsController.mockReturnValue(
+        buildRampsControllerResult({ selectedProvider: null }),
+      );
 
       renderWithProvider(<BuildQuote />, { state: initialRootState });
 
       expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-
-      mockUseIsFocused.mockReturnValue(true);
+      expect(mockSetSelectedProviderForAsset).not.toHaveBeenCalled();
     });
   });
 
@@ -1556,6 +1514,7 @@ describe('BuildQuote', () => {
         selectedProvider: transakProvider,
         setSelectedProvider: mockSetSelectedProvider,
         setSelectedProviderForAsset: mockSetSelectedProviderForAsset,
+        selectProviderForAsset: mockSelectProviderForAsset,
         selectedToken: SELECTED_TOKEN,
         paymentMethods: [],
         getBuyWidgetData: mockGetBuyWidgetData,
@@ -1574,6 +1533,8 @@ describe('BuildQuote', () => {
       jest.useFakeTimers();
       mockUseParams.mockReturnValue({ assetId: TOKEN_ASSET });
       mockSetSelectedProviderForAsset.mockReset();
+      mockSelectProviderForAsset.mockReset();
+      mockSelectProviderForAsset.mockReturnValue(null);
     });
 
     afterEach(() => {
@@ -1679,8 +1640,8 @@ describe('BuildQuote', () => {
       );
     });
 
-    it('switches to another supporting provider when current has empty payment methods', () => {
-      mockSetSelectedProviderForAsset.mockReturnValue(false);
+    it('picks again without the current provider when it has empty payment methods', () => {
+      mockSelectProviderForAsset.mockReturnValue(WIDGET_PROVIDER.id);
       mockUnavailableController({
         selectedProvider: transakProvider,
         providers: [transakProvider, WIDGET_PROVIDER],
@@ -1689,9 +1650,8 @@ describe('BuildQuote', () => {
       act(() => {
         jest.advanceTimersByTime(650);
       });
-      expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(TOKEN_ASSET);
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(WIDGET_PROVIDER, {
-        autoSelected: true,
+      expect(mockSelectProviderForAsset).toHaveBeenCalledWith(TOKEN_ASSET, {
+        excludeProviderIds: [transakProvider.id],
       });
       expect(mockNavigate).not.toHaveBeenCalledWith(
         'RampModals',
@@ -1699,6 +1659,34 @@ describe('BuildQuote', () => {
           screen: 'RampTokenNotAvailableModal',
         }),
       );
+    });
+
+    it('gives a provider the user picks by hand another try', () => {
+      mockSelectProviderForAsset.mockReturnValue(WIDGET_PROVIDER.id);
+      mockUnavailableController({
+        selectedProvider: transakProvider,
+        providers: [transakProvider, WIDGET_PROVIDER],
+      });
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      expect(mockSelectProviderForAsset).toHaveBeenLastCalledWith(TOKEN_ASSET, {
+        excludeProviderIds: [transakProvider.id],
+      });
+
+      recordUserProviderPick(transakProvider.id);
+      mockUnavailableController({
+        selectedProvider: transakProvider,
+        providers: [transakProvider, WIDGET_PROVIDER],
+        previouslyUsedProviderIds: [transakProvider.id],
+        // Its payment methods are loading again.
+        paymentMethodsFetching: true,
+      });
+      rerender(<BuildQuote />);
+
+      expect(mockSelectProviderForAsset).toHaveBeenLastCalledWith(TOKEN_ASSET, {
+        excludeProviderIds: [],
+      });
     });
 
     it('navigates when token is missing from supportedCryptoCurrencies', () => {
@@ -1810,14 +1798,16 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
-        mockSetSelectedProviderForAsset.mockReturnValue(true);
+        mockSelectProviderForAsset.mockReturnValue(coinbaseProvider.id);
 
         renderWithProvider(<BuildQuote />, { state: autoSelectedState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSelectProviderForAsset).toHaveBeenCalledWith(BTC_ASSET, {
+          excludeProviderIds: [],
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1843,7 +1833,9 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSelectProviderForAsset).toHaveBeenCalledWith(BTC_ASSET, {
+          excludeProviderIds: [],
+        });
         expect(mockNavigate).toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({
@@ -1863,14 +1855,16 @@ describe('BuildQuote', () => {
           },
         });
         mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
-        mockSetSelectedProviderForAsset.mockReturnValue(true);
+        mockSelectProviderForAsset.mockReturnValue(coinbaseProvider.id);
 
         renderWithProvider(<BuildQuote />, { state: initialRootState });
         act(() => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProviderForAsset).toHaveBeenCalledWith(BTC_ASSET);
+        expect(mockSelectProviderForAsset).toHaveBeenCalledWith(BTC_ASSET, {
+          excludeProviderIds: [],
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({

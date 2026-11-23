@@ -16,6 +16,7 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
+  getPriceDeviationBand,
   resolveOracleReferencePrice,
   calculateLimitPriceForPercentage,
   getOrderPriceRowVisibility,
@@ -1682,6 +1683,20 @@ describe('orderUtils', () => {
         );
       },
     );
+  });
+
+  describe('getPriceDeviationBand', () => {
+    it('returns the inclusive ratio band around a usable reference', () => {
+      const band = getPriceDeviationBand(2000, 0.95);
+
+      expect(band?.min).toBeCloseTo(100);
+      expect(band?.max).toBeCloseTo(40000);
+    });
+
+    it('returns undefined when the reference is not usable', () => {
+      expect(getPriceDeviationBand(0, 0.95)).toBeUndefined();
+      expect(getPriceDeviationBand(2000, 1)).toBeUndefined();
+    });
   });
 });
 

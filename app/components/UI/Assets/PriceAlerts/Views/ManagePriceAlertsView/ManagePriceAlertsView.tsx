@@ -24,7 +24,6 @@ import {
   ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -38,7 +37,8 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
+import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
 import {
   type AbsolutePriceAlert,
   type Alert,
@@ -54,10 +54,12 @@ import {
   updateAlertByType,
 } from '../../api';
 import {
-  deletePerpAlert,
+  deletePerpAlertByType,
   fetchPerpAlerts,
+  normalizePerpAlerts,
+  type PerpAlertApiResponse,
   perpAlertsQueryKey,
-  updatePerpAlert,
+  updatePerpAlertByType,
 } from '../../perpApi';
 import {
   formatPercentAlertSubtitle,
@@ -67,6 +69,11 @@ import useInFlightIds from '../../hooks/useInFlightIds';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { FeatureNotificationsGate } from '../../../../../../components/Views/Settings/NotificationsSettings/FeatureNotificationsGate';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -82,23 +89,44 @@ const analyticsPropsForAlert = (priceAlert: Alert) =>
       }
     : { alert_type: PriceAlertAnalytics.TYPE.THRESHOLD };
 
-/**
- * Ensures every alert returned by the perp-alerts API carries
- * `type: 'absolute_price'`. The API only supports absolute-price alerts and
- * may omit the discriminator field; without it the duplicate-threshold filter
- * in `AbsolutePriceAlertForm` silently skips all perp alerts.
- *
- * Applied consistently in the query `queryFn` AND in the delete-failure
- * refetch path so the cache always contains normalised data.
- */
-function normalisePerpAlerts(data: Alert[], isPerps: boolean): Alert[] {
-  if (!isPerps) return data;
-  return data.map((a) => ({ ...a, type: 'absolute_price' as const }));
+function failRequest(message: string): never {
+  throw new Error(message);
 }
 
+const requestAlertDeletion = (
+  priceAlert: Alert,
+  isPerpsMode: boolean,
+): Promise<Response> =>
+  isPerpsMode
+    ? deletePerpAlertByType(priceAlert)
+    : deleteAlertByType(priceAlert);
+
+const requestAlertUpdate = (
+  priceAlert: Alert,
+  isPerpsMode: boolean,
+  active: boolean,
+): Promise<Response> =>
+  isPerpsMode
+    ? updatePerpAlertByType(priceAlert, { active })
+    : updateAlertByType(priceAlert, { active });
+
+const trackedAssetId = (
+  isPerpsMode: boolean,
+  marketId: string | undefined,
+  assetId: string,
+): string => (isPerpsMode ? (marketId ?? '') : assetId);
+
+const trackedMarketType = (isPerpsMode: boolean): 'spot' | 'perps' =>
+  isPerpsMode
+    ? PriceAlertAnalytics.MARKET_TYPE.PERPS
+    : PriceAlertAnalytics.MARKET_TYPE.SPOT;
+
 const ManagePriceAlertsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
   const queryClient = useQueryClient();
   const navigation = useNavigation<AppStackNavigationProp>();
   const route =
@@ -116,6 +144,7 @@ const ManagePriceAlertsView: React.FC = () => {
     assetId,
     mode,
     marketId,
+    szDecimals,
   } = route.params;
   const isPerpsMode = mode === 'perps';
   const displayTicker = ticker || symbol;
@@ -143,23 +172,29 @@ const ManagePriceAlertsView: React.FC = () => {
     data: alerts = [],
     isLoading,
     isError,
+    isFetched,
   } = useQuery({
     queryKey: effectiveQueryKey,
+    enabled: networkTier !== 'NONE',
     queryFn: async (): Promise<Alert[]> => {
       const response = isPerpsMode
         ? await fetchPerpAlerts(marketId ?? '')
         : await fetchAlerts(assetId);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const data = (await response.json()) as Alert[];
-      return normalisePerpAlerts(data, isPerpsMode);
+      if (isPerpsMode) {
+        const data = (await response.json()) as PerpAlertApiResponse[];
+        return normalizePerpAlerts(data);
+      }
+      return (await response.json()) as Alert[];
     },
     retry: false,
     staleTime: 0,
     gcTime: 0,
   });
+  const isInitialFetchPending = isLoading || !isFetched;
 
   useEffect(() => {
-    if (isLoading || hasResolvedInitialFetch.current) {
+    if (!isFetched || isLoading || hasResolvedInitialFetch.current) {
       return;
     }
     hasResolvedInitialFetch.current = true;
@@ -183,9 +218,11 @@ const ManagePriceAlertsView: React.FC = () => {
         assetId,
         mode,
         marketId,
+        szDecimals,
       });
     }
   }, [
+    isFetched,
     isLoading,
     isError,
     alerts.length,
@@ -198,6 +235,7 @@ const ManagePriceAlertsView: React.FC = () => {
     isPerpsMode,
     mode,
     marketId,
+    szDecimals,
   ]);
 
   const handleBack = useCallback(() => {
@@ -214,6 +252,7 @@ const ManagePriceAlertsView: React.FC = () => {
         assetId,
         mode,
         marketId,
+        szDecimals,
         fromManage: true,
         existingAbsoluteAlerts: alerts.filter(
           (a): a is AbsolutePriceAlert => a.type === 'absolute_price',
@@ -239,6 +278,7 @@ const ManagePriceAlertsView: React.FC = () => {
       mode,
       marketId,
       isPerpsMode,
+      szDecimals,
       alerts,
     ],
   );
@@ -253,21 +293,17 @@ const ManagePriceAlertsView: React.FC = () => {
       const target = previous.find((a) => a.id === id);
 
       try {
-        if (!target) throw new Error('Alert not found');
-        const response = isPerpsMode
-          ? await deletePerpAlert(id)
-          : await deleteAlertByType(target);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!target) failRequest('Alert not found');
+        const response = await requestAlertDeletion(target, isPerpsMode);
+        if (!response.ok) failRequest(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
-              asset_id: isPerpsMode ? (marketId ?? '') : assetId,
+              asset_id: trackedAssetId(isPerpsMode, marketId, assetId),
               token_symbol: displayTicker,
-              alert_market_type: isPerpsMode
-                ? PriceAlertAnalytics.MARKET_TYPE.PERPS
-                : PriceAlertAnalytics.MARKET_TYPE.SPOT,
+              alert_market_type: trackedMarketType(isPerpsMode),
               ...analyticsPropsForAlert(target),
               alert_value: target.threshold,
               alert_recurring: target.recurring,
@@ -299,17 +335,18 @@ const ManagePriceAlertsView: React.FC = () => {
           : () => fetchAlerts(assetId);
         const response = await refetchFn().catch(() => null);
         if (response?.ok) {
-          const body = (await response.json().catch(() => [])) as Alert[];
+          const body = await response.json().catch(() => []);
           queryClient.setQueryData(
             queryKey,
-            normalisePerpAlerts(body, isPerpsMode),
+            isPerpsMode
+              ? normalizePerpAlerts(body as PerpAlertApiResponse[])
+              : (body as Alert[]),
           );
         } else {
           queryClient.setQueryData(queryKey, previous);
         }
-      } finally {
-        finishDelete(id);
       }
+      finishDelete(id);
     },
     [
       navigation,
@@ -341,21 +378,21 @@ const ManagePriceAlertsView: React.FC = () => {
       );
 
       try {
-        if (!toggled) throw new Error('Alert not found');
-        const response = isPerpsMode
-          ? await updatePerpAlert(id, { active: newValue })
-          : await updateAlertByType(toggled, { active: newValue });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!toggled) failRequest('Alert not found');
+        const response = await requestAlertUpdate(
+          toggled,
+          isPerpsMode,
+          newValue,
+        );
+        if (!response.ok) failRequest(`HTTP ${response.status}`);
 
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
-              asset_id: isPerpsMode ? (marketId ?? '') : assetId,
+              asset_id: trackedAssetId(isPerpsMode, marketId, assetId),
               token_symbol: displayTicker,
-              alert_market_type: isPerpsMode
-                ? PriceAlertAnalytics.MARKET_TYPE.PERPS
-                : PriceAlertAnalytics.MARKET_TYPE.SPOT,
+              alert_market_type: trackedMarketType(isPerpsMode),
               ...analyticsPropsForAlert(toggled),
               alert_value: toggled.threshold,
               alert_recurring: toggled.recurring,
@@ -377,9 +414,8 @@ const ManagePriceAlertsView: React.FC = () => {
           queryKey,
           previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
         );
-      } finally {
-        finishToggle(id);
       }
+      finishToggle(id);
     },
     [
       assetId,
@@ -404,11 +440,13 @@ const ManagePriceAlertsView: React.FC = () => {
       item.type === 'percent_change'
         ? formatPercentAlertTitle(item)
         : strings('price_alerts.reaches_threshold', {
-            threshold: formatPriceWithSubscriptNotation(
-              item.threshold,
-              currentCurrency,
-              { maximumFractionDigits: 15 },
-            ),
+            threshold: isPerpsMode
+              ? formatPerpsPrice(item.threshold)
+              : formatPriceWithSubscriptNotation(
+                  item.threshold,
+                  currentCurrency,
+                  { maximumFractionDigits: 15 },
+                ),
           });
 
     const subtitle =
@@ -484,12 +522,14 @@ const ManagePriceAlertsView: React.FC = () => {
       testID={ManagePriceAlertsTestIds.CONTAINER}
     >
       <Box twClassName="flex-1 bg-default">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('price_alerts.manage_title')}
           onBack={handleBack}
         />
 
-        {isLoading ? (
+        {isInitialFetchPending ? (
           <Box
             alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Center}
@@ -506,12 +546,13 @@ const ManagePriceAlertsView: React.FC = () => {
               data={alerts}
               keyExtractor={(item) => item.id}
               renderItem={renderItem}
+              windowSize={hardwareTier === 'LOW' ? 5 : 21}
               testID={ManagePriceAlertsTestIds.ALERT_LIST}
             />
           </Box>
         )}
 
-        {!isLoading && alerts.length > 0 && (
+        {!isInitialFetchPending && alerts.length > 0 && (
           <>
             <View style={tw.style('px-4 pb-4 pt-2')}>
               <Button

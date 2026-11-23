@@ -369,8 +369,10 @@ export async function proposeProfilingGroundedActions({
     previousSha: previousSha || previousRun?.headSha || null,
   });
   fs.mkdirSync(outputDirectory, { recursive: true });
+  // Not `ai-briefing.md`: the per-run collection already writes that for the
+  // digest's optional-context pass, and this is JSON, not markdown.
   fs.writeFileSync(
-    path.join(outputDirectory, 'ai-briefing.md'),
+    path.join(outputDirectory, 'ai-proposal-evidence.json'),
     `${briefing}\n`,
   );
 

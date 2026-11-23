@@ -148,7 +148,11 @@ describeForPlatforms('Send asset picker — testnet fiat preference', () => {
       {},
       { timeout: 5000 },
     );
-    const mainnetRow = await findByTestId(getAssetTestId('ETH'));
+    const mainnetRow = await findByTestId(
+      getAssetTestId('ETH'),
+      {},
+      { timeout: 5000 },
+    );
 
     expect(within(sepoliaRow).queryByText('$1,000')).toBeNull();
     expect(within(mainnetRow).getByText('$2,000')).toBeOnTheScreen();

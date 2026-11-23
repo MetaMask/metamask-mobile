@@ -40,6 +40,7 @@ export const CHAIN_VALUE_ORDER_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping
     flagKey: CHAIN_VALUE_ORDER_AB_KEY,
     validVariants: Object.values(ChainValueOrderVariant),
     eventNames: [
+      EVENT_NAME.ADVANCED_ORDER_PAGE_VIEWED,
       EVENT_NAME.SWAP_PAGE_VIEWED,
       EVENT_NAME.ASSET_VIEWED,
       UnifiedSwapBridgeEventName.AssetPickerOpened,

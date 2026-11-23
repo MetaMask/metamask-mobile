@@ -24,6 +24,7 @@ jest.mock('../../utils/perpsAnalyticsAttribution', () => ({
 
 jest.mock('react-native-gesture-handler', () => ({
   GestureHandlerRootView: 'View',
+  RectButton: 'RectButton',
   GestureDetector: 'View',
   Gesture: {
     Pan: jest.fn().mockReturnValue({
@@ -112,6 +113,10 @@ jest.mock('@react-navigation/native', () => ({
     name: 'PerpsTPSL',
   }),
   useIsFocused: () => true,
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -1059,20 +1064,28 @@ describe('PerpsTPSLView', () => {
       expect(screen.queryByTestId(takeProfitPresetId)).toBeNull();
     });
 
-    it('keeps Cancel and Save visible while the keypad is open', () => {
+    it('keeps only Save visible with the keypad controls', () => {
       renderSheet();
 
       fireEvent(getTakeProfitPriceInput(), 'focus');
 
       expect(
-        screen.getByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
-      ).toBeOnTheScreen();
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.CANCEL_BUTTON),
+      ).toBeNull();
       expect(
         screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(PerpsTPSLViewSelectorsIDs.DONE_BUTTON),
       ).toBeOnTheScreen();
+    });
+
+    it('does not show a back button', () => {
+      renderSheet();
+
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
+      ).toBeNull();
     });
 
     // `strings` is mocked to echo the key, so these assert the key the
@@ -1147,36 +1160,6 @@ describe('PerpsTPSLView', () => {
       });
 
       expect(mockOnConfirm).toHaveBeenCalled();
-    });
-
-    // Cancel starts the close; the sheet then drops Save's close callback, so
-    // without a guard Save would fall through to the timeout and submit the
-    // edit the user just discarded.
-    it('does not confirm when Save is pressed after Cancel started the close', async () => {
-      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
-      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
-
-      renderSheet({
-        formState: {
-          ...defaultMockReturn.formState,
-          takeProfitPrice: '$3,150.00',
-        },
-        validation: { ...defaultMockReturn.validation, hasChanges: true },
-      });
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(PerpsTPSLViewSelectorsIDs.BACK_BUTTON),
-        );
-      });
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
-        );
-      });
-
-      expect(mockOnConfirm).not.toHaveBeenCalled();
     });
 
     // The real sheet drops its close callback when a close is already in

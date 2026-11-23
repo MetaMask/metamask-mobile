@@ -8,6 +8,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import {
   selectTronSpecialAssetsBySelectedAccountGroup,
   TronSpecialAssetsMap,
+  TronSpecialAssetsStatus,
 } from '../../../../selectors/assets/assets-list';
 
 jest.mock('./ResourceRing', () => ({
@@ -26,6 +27,8 @@ jest.mock('../../../../../locales/i18n', () => ({
         return 'TRX 1';
       case 'asset_overview.tron.sufficient_to_cover_trx_transfers':
         return `TRX ${vars?.amount}`;
+      case 'asset_overview.tron.resource_unavailable':
+        return 'Unavailable';
       default:
         return key;
     }
@@ -33,6 +36,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../selectors/assets/assets-list'),
   selectTronSpecialAssetsBySelectedAccountGroup: jest.fn(),
 }));
 
@@ -48,6 +53,7 @@ const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  status: TronSpecialAssetsStatus.Ready,
   trxReadyForWithdrawal: undefined,
   trxStakingRewards: undefined,
   trxInLockPeriod: undefined,

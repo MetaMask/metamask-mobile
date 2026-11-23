@@ -11,6 +11,10 @@ import useDisplayName, {
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
+jest.mock('../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: jest.fn(() => false),
+}));
+
 jest.mock('../../hooks/DisplayName/useDisplayName', () => ({
   __esModule: true,
   ...jest.requireActual('../../hooks/DisplayName/useDisplayName'),

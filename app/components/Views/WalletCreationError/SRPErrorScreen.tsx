@@ -11,9 +11,7 @@ import { Dispatch } from 'redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Button,
   ButtonSize,
-  ButtonVariant,
   Text,
   TextVariant,
   TextColor,
@@ -37,6 +35,7 @@ import OldButton, {
   ButtonSize as OldButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { IconName as CLibIconName } from '../../../component-library/components/Icons/Icon';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -243,28 +242,20 @@ const SRPErrorScreen = ({
             </Text>
           </ScrollView>
         </Box>
-
-        <Box twClassName="w-full pt-4 pb-6">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleSendErrorReport}
-            style={tw.style('mb-4')}
-          >
-            {strings('wallet_creation_error.send_error_report')}
-          </Button>
-
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleTryAgain}
-          >
-            {strings('wallet_creation_error.try_again')}
-          </Button>
-        </Box>
       </ScrollView>
+      <FooterGlass
+        twClassName="py-2"
+        primaryButtonProps={{
+          children: strings('wallet_creation_error.send_error_report'),
+          size: ButtonSize.Lg,
+          onPress: handleSendErrorReport,
+        }}
+        secondaryButtonProps={{
+          children: strings('wallet_creation_error.try_again'),
+          size: ButtonSize.Lg,
+          onPress: handleTryAgain,
+        }}
+      />
     </SafeAreaView>
   );
 };

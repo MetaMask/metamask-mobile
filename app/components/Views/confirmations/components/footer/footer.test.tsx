@@ -112,6 +112,8 @@ const mockAlerts = [
 ];
 
 describe('Footer', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
@@ -138,10 +140,14 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     (useAlerts as jest.Mock).mockReturnValue({
@@ -263,10 +269,14 @@ describe('Footer', () => {
       isTransactionValueUpdating: true,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -419,7 +429,10 @@ describe('Footer', () => {
     ).not.toBeDisabled();
   });
 
-  it('hides footer by default for moneyAccountDeposit transaction type', () => {
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])('hides footer by default for %s transaction type', (transactionType) => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
@@ -431,10 +444,14 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const moneyAccountDepositConfirmation = {
@@ -447,7 +464,7 @@ describe('Footer', () => {
         to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         value: '0x0',
       },
-      type: TransactionType.moneyAccountDeposit,
+      type: transactionType,
     } as unknown as TransactionMeta;
 
     const { queryByTestId } = renderWithProvider(<Footer />, {
@@ -471,10 +488,14 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const moneyAccountWithdrawConfirmation = {
@@ -511,10 +532,14 @@ describe('Footer', () => {
       isTransactionValueUpdating: false,
       setHeadlessBuyError: jest.fn(),
       setIsFooterVisible: jest.fn(),
+      pendingFiatAmount: undefined,
+      setPendingFiatAmount: jest.fn(),
       setIsConfirmationSubmitting: jest.fn(),
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {
@@ -634,11 +659,15 @@ describe('Footer', () => {
       },
     );
 
-    it('calls trackAlertMetrics when alerts change', () => {
+    // Alert metrics are owned by `ConfirmationAlertMetrics`, mounted inside
+    // `ConfirmationAlerts`. The footer must not track them: it renders `null`
+    // for every type in HIDE_FOOTER_BY_DEFAULT_TYPES, which silently dropped
+    // alert metrics for those flows while this effect lived here.
+    it('does not track alert metrics', () => {
       renderWithProvider(<Footer />, {
         state: personalSignatureConfirmationState,
       });
-      expect(mockTrackAlertMetrics).toHaveBeenCalledTimes(1);
+      expect(mockTrackAlertMetrics).not.toHaveBeenCalled();
     });
 
     it('renders standard button label even if alerts if quotes loading', async () => {

@@ -6,6 +6,7 @@ export {
   playNotification,
   playImpact,
   playSelection,
+  fireImpact,
 } from './play';
 export { useHaptics } from './useHaptics';
 export { NotificationMoment, ImpactMoment } from './catalog';

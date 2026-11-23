@@ -7,25 +7,41 @@ on:
       - synchronize
       - reopened
       - ready_for_review
-
-concurrency:
-  group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
+      - labeled
+    branches:
+      - main
+      - 'release/**'
 
 jobs:
   analyze:
     name: Analyze
     timeout-minutes: 10
+    # PRs to main require the auto-merge label; PRs to release/* always run.
     if: >-
       github.event_name == 'pull_request'
       && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
       && github.event.pull_request.draft == false
-      && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'release/'))
+      && (
+        (
+          github.event.pull_request.base.ref == 'main'
+          && contains(github.event.pull_request.labels.*.name, 'auto-merge')
+          && (github.event.action != 'labeled' || github.event.label.name == 'auto-merge')
+        )
+        || (
+          startsWith(github.event.pull_request.base.ref, 'release/')
+          && github.event.action != 'labeled'
+        )
+      )
+    # Job-level so skipped runs (e.g. unrelated label events) don't cancel an in-progress analysis.
+    concurrency:
+      group: ai-pr-risk-analysis-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pull-requests: write
       checks: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -33,13 +49,21 @@ jobs:
           fetch-depth: 0
 
       # https://github.com/MetaMask/ai-analyzer/releases
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
           ref: f9a82c6ae0bfdadb352b9b736d26174705fe6348
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
 
       - name: Run AI PR Analysis
         uses: ./.ai-analyzer-action

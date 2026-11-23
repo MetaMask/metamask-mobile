@@ -22,7 +22,11 @@ import {
   EVENT_LOCATIONS,
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
-import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  selectStablecoinLendingEnabledFlag,
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { EarnTokenDetails, LendingProtocol } from '../../types/lending.types';
 import { getAaveV3MaxRiskAwareWithdrawalAmount } from '../../utils/tempLending';
 import EarnWithdrawInputView, {
@@ -54,6 +58,8 @@ const mockPop = jest.fn();
 const mockGoBack = jest.fn();
 
 let mockRouteToken: TokenI | undefined;
+const mockShowEarnToast = jest.fn();
+const mockMissingTokenToast = {};
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -79,6 +85,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/useEarnToasts', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    showToast: mockShowEarnToast,
+    EarnToastOptions: {
+      earnWithdrawal: {
+        detailsUnavailable: mockMissingTokenToast,
+      },
+    },
+  })),
+}));
+
 const baseProps: EarnWithdrawInputViewProps = {
   route: {
     params: {
@@ -91,9 +109,9 @@ const baseProps: EarnWithdrawInputViewProps = {
 
 function render(
   Component: React.ComponentType,
-  mockToken: TokenI | EarnTokenDetails = MOCK_ETH_MAINNET_ASSET,
+  mockToken?: TokenI | EarnTokenDetails,
 ) {
-  mockRouteToken = mockToken;
+  mockRouteToken = arguments.length > 1 ? mockToken : MOCK_ETH_MAINNET_ASSET;
 
   return renderScreen(
     Component,
@@ -175,6 +193,12 @@ jest.mock(
 jest.mock('../../selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn().mockReturnValue(false),
   selectPooledStakingEnabledFlag: jest.fn().mockReturnValue(true),
+  selectPooledStakingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
+  selectStablecoinLendingServiceInterruptionBannerEnabledFlag: jest
+    .fn()
+    .mockReturnValue(false),
 }));
 
 const mockUseAnalyticsFn = jest.fn();
@@ -419,6 +443,10 @@ jest.mock('react-native-fade-in-image', () => {
 });
 
 describe('EarnWithdrawInputView', () => {
+  const selectPooledStakingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectPooledStakingServiceInterruptionBannerEnabledFlag);
+  const selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock =
+    jest.mocked(selectStablecoinLendingServiceInterruptionBannerEnabledFlag);
   const mockTrackEvent = jest.fn();
   const mockTrace = jest.mocked(trace);
   const mockUseEarnTokens = useEarnTokens as jest.MockedFunction<
@@ -438,13 +466,127 @@ describe('EarnWithdrawInputView', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
     } as unknown as ReturnType<typeof useAnalytics>);
+    (
+      selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+        typeof selectStablecoinLendingEnabledFlag
+      >
+    ).mockReturnValue(false);
+    selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
+    selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+      false,
+    );
   });
 
-  it('renders withdraw input view with review button', async () => {
+  it('renders quick amounts and hides the review button when the amount is zero', async () => {
     render(EarnWithdrawInputView);
 
     await waitFor(async () => {
-      expect(screen.getByTestId('review-button')).toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.queryByTestId('review-button')).not.toBeOnTheScreen();
+    });
+  });
+
+  it('shows an error toast and returns when route token is missing', async () => {
+    render(EarnWithdrawInputView, undefined);
+
+    await waitFor(() => {
+      expect(mockShowEarnToast).toHaveBeenCalledWith(mockMissingTokenToast);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    expect(screen.queryByTestId('review-button')).toBeNull();
+  });
+
+  describe('service interruption banners', () => {
+    const getMaintenanceMessage = (experienceName: string) =>
+      strings('earn.service_interruption_banner.maintenance_message', {
+        experienceName,
+      });
+
+    const createLendingWithdrawalToken = (): EarnTokenDetails => {
+      const experience: EarnTokenDetails['experience'] = {
+        type: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        apr: '5%',
+        estimatedAnnualRewardsFormatted: '50',
+        estimatedAnnualRewardsFiatNumber: 50,
+        estimatedAnnualRewardsTokenMinimalUnit: '50000000',
+        estimatedAnnualRewardsTokenFormatted: '50',
+      };
+
+      return {
+        ...MOCK_USDC_MAINNET_ASSET,
+        balanceFormatted: '1000',
+        balanceMinimalUnit: '1000000000',
+        balanceFiatNumber: 1000,
+        tokenUsdExchangeRate: 1,
+        experiences: [experience],
+        experience,
+      };
+    };
+
+    it('renders pooled staking maintenance message when enabled', () => {
+      selectPooledStakingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      render(EarnWithdrawInputView);
+
+      expect(
+        screen.getByText(getMaintenanceMessage('Pooled Staking')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders stablecoin lending maintenance message when enabled', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      render(EarnWithdrawInputView, createLendingWithdrawalToken());
+
+      expect(
+        screen.getByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides pooled staking maintenance message when disabled', () => {
+      render(EarnWithdrawInputView);
+
+      expect(
+        screen.queryByText(getMaintenanceMessage('Pooled Staking')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides stablecoin lending maintenance message when disabled', () => {
+      (
+        selectStablecoinLendingEnabledFlag as jest.MockedFunction<
+          typeof selectStablecoinLendingEnabledFlag
+        >
+      ).mockReturnValue(true);
+
+      render(EarnWithdrawInputView, createLendingWithdrawalToken());
+
+      expect(
+        screen.queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render stablecoin lending message for pooled staking withdrawal', () => {
+      selectStablecoinLendingServiceInterruptionBannerEnabledFlagMock.mockReturnValue(
+        true,
+      );
+
+      render(EarnWithdrawInputView);
+
+      expect(
+        screen.queryByText(getMaintenanceMessage('Stablecoin Lending')),
+      ).not.toBeOnTheScreen();
     });
   });
 
@@ -474,14 +616,6 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('quick amount buttons', () => {
-    it('handles 25% quick amount button press correctly', () => {
-      render(EarnWithdrawInputView);
-
-      fireEvent.press(screen.getByText('25%'));
-
-      expect(screen.getByText('1.44783')).toBeOnTheScreen();
-    });
-
     it('handles Max button press and sets full balance', async () => {
       render(EarnWithdrawInputView);
 
@@ -489,7 +623,9 @@ describe('EarnWithdrawInputView', () => {
         fireEvent.press(screen.getByText('Max'));
       });
 
-      expect(screen.getByText('5.79133')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('button', { name: '5.79133 ETH' }),
+      ).toBeOnTheScreen();
     });
 
     it('tracks quick amount button press for staking flows', async () => {
@@ -517,25 +653,28 @@ describe('EarnWithdrawInputView', () => {
   });
 
   describe('withdraw button states', () => {
-    it('displays `Enter amount` if input is 0', () => {
+    it('hides the review button and keeps quick amounts when the amount is zero', () => {
       render(EarnWithdrawInputView);
 
-      expect(screen.getByText('Enter amount')).toBeOnTheScreen();
+      expect(screen.queryByText('Enter amount')).not.toBeOnTheScreen();
+      expect(screen.getByText('25%')).toBeOnTheScreen();
     });
 
-    it('displays `Review` on withdraw button if input is valid', () => {
+    it('replaces quick amounts with Review when the amount is greater than zero', () => {
       render(EarnWithdrawInputView);
 
       fireEvent.press(screen.getByText('1'));
 
       expect(screen.getByText('Review')).toBeOnTheScreen();
+      expect(screen.queryByText('25%')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Max')).not.toBeOnTheScreen();
     });
 
     it('displays `Not enough ETH` when input exceeds balance', () => {
       render(EarnWithdrawInputView);
 
       fireEvent.press(screen.getByText('8'));
-      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(1);
     });
   });
 
@@ -918,7 +1057,7 @@ describe('EarnWithdrawInputView', () => {
       await waitFor(() => {
         expect(
           screen.queryAllByText('Amount exceeds safe withdrawal limit'),
-        ).toHaveLength(2);
+        ).toHaveLength(1);
       });
     });
   });
@@ -967,7 +1106,7 @@ describe('EarnWithdrawInputView', () => {
 
       // Reveal the TRON unstake preview, which renders the "Unstake" button.
       await act(async () => {
-        fireEvent.press(screen.getByText('Done'));
+        fireEvent.press(screen.getByText('Review'));
       });
 
       await waitFor(() => {
@@ -975,7 +1114,7 @@ describe('EarnWithdrawInputView', () => {
       });
     });
 
-    it('replaces Max button with Done when non-zero amount is entered', async () => {
+    it('replaces quick amounts with Review when a non-zero amount is entered', async () => {
       const tronToken: TokenI = {
         name: 'Tron',
         symbol: 'TRX',
@@ -1001,8 +1140,35 @@ describe('EarnWithdrawInputView', () => {
 
       await waitFor(() => {
         expect(queryByText('Max')).not.toBeOnTheScreen();
-        expect(getByText('Done')).toBeOnTheScreen();
+        expect(queryByText('25%')).not.toBeOnTheScreen();
+        expect(getByText('Review')).toBeOnTheScreen();
       });
+    });
+
+    it('disables the button when the amount exceeds the staked TRX balance', async () => {
+      const tronToken: TokenI = {
+        name: 'Tron',
+        symbol: 'TRX',
+        ticker: 'TRX',
+        chainId: 'tron:728126428',
+        address: 'tron:728126428/slip44:195',
+        decimals: 6,
+        balance: '0.5',
+        balanceFiat: '$100',
+        isNative: true,
+      } as unknown as TokenI;
+
+      const { getByRole, getByText } = render(EarnWithdrawInputView, tronToken);
+
+      await act(async () => {
+        fireEvent.press(getByText('1'));
+      });
+
+      expect(
+        getByRole('button', {
+          name: strings('stake.not_enough_token', { ticker: 'TRX' }),
+        }),
+      ).toBeDisabled();
     });
 
     it('tracks TRX staking quick amount with TRX_STAKING experience', async () => {

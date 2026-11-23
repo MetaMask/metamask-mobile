@@ -12,8 +12,7 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
-  TextInputSelectionChangeEventData,
-  NativeSyntheticEvent,
+  TextInputSelectionChangeEvent,
   TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -21,6 +20,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
+  getFontFamily,
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -100,6 +100,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       backgroundColor: importedColors.transparent,
       flex: 1,
@@ -109,6 +110,7 @@ const createStyles = ({
       lineHeight: vars.fontSize * 1.25,
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
+      fontFamily: getFontFamily(TextVariant.BodyMD, '500'),
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
       transform: [{ translateY: -vars.fontSize * 0.08 }],
       ...(Platform.OS === 'android' && {
@@ -125,12 +127,6 @@ const createStyles = ({
       alignSelf: 'flex-start',
       paddingVertical: 4,
       paddingHorizontal: 4,
-    },
-    destinationGasFeeLabel: {
-      backgroundColor: theme.colors.info.muted,
-      borderRadius: 6,
-      paddingHorizontal: 6,
-      marginLeft: 4,
     },
     currencyContainer: {
       flex: 1,
@@ -179,9 +175,7 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   selection?: { start: number; end: number };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
+  onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -211,7 +205,6 @@ interface TokenInputAreaProps {
    * Test ID for the `amountReplacementLabel` text.
    */
   amountReplacementLabelTestID?: string;
-  destinationGasFeeLabel?: string;
 }
 
 export const TokenInputArea = forwardRef<
@@ -249,7 +242,6 @@ export const TokenInputArea = forwardRef<
       hideAmount = false,
       amountReplacementLabel,
       amountReplacementLabelTestID,
-      destinationGasFeeLabel,
     },
     ref,
   ) => {
@@ -389,10 +381,22 @@ export const TokenInputArea = forwardRef<
         return defaultCurrencyValue;
       }
 
-      return amount && amount !== '0'
-        ? formatAmountWithLocaleSeparators(amount)
-        : amount;
-    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+      if (!amount || amount === '0') {
+        return amount;
+      }
+
+      const displayAmount =
+        tokenType === TokenInputAreaType.Destination
+          ? (formatSecondaryTokenAmount(amount) ?? amount)
+          : amount;
+
+      return formatAmountWithLocaleSeparators(displayAmount);
+    }, [
+      amount,
+      defaultCurrencyValue,
+      shouldShowFiatAmountAsPrimary,
+      tokenType,
+    ]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,
@@ -477,6 +481,7 @@ export const TokenInputArea = forwardRef<
                 testID={testID}
                 onPress={handleTokenButtonPress}
                 securityBadgeAssetId={tokenSecurityBadgeAssetId}
+                isMoneyToken={token?.isMoneyToken}
               />
             ) : (
               <Button
@@ -506,25 +511,9 @@ export const TokenInputArea = forwardRef<
                       }
                     >
                       {shouldShowSecondaryAmount ? (
-                        <>
-                          <Text color={TextColor.Alternative}>
-                            {secondaryAmountDisplayValue}
-                          </Text>
-                          {tokenType === TokenInputAreaType.Destination &&
-                          destinationGasFeeLabel ? (
-                            <Box
-                              style={styles.destinationGasFeeLabel}
-                              testID="destination-gas-fee-label"
-                            >
-                              <Text
-                                variant={TextVariant.BodyXS}
-                                color={TextColor.Primary}
-                              >
-                                {destinationGasFeeLabel}
-                              </Text>
-                            </Box>
-                          ) : null}
-                        </>
+                        <Text color={TextColor.Alternative}>
+                          {secondaryAmountDisplayValue}
+                        </Text>
                       ) : null}
                       {onAmountTypeTogglePress ? (
                         <Icon

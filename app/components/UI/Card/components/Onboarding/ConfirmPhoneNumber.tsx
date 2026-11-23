@@ -1,14 +1,15 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { Platform, TextInput, TextInputProps } from 'react-native';
+import { Platform, TextInput } from 'react-native';
 import {
   Box,
+  HelpText,
+  HelpTextSeverity,
   Text,
+  TextButton,
+  TextColor,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
   TextField,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -32,7 +33,9 @@ import { CardProviderIds } from '../../../../../core/Engine/controllers/card-con
 import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
+// Annotated with the two values used rather than TextInputProps['autoComplete'],
+// which is wider than the autoComplete union TextField accepts.
+const autoComplete = Platform.select<'sms-otp' | 'one-time-code'>({
   android: 'sms-otp',
   default: 'one-time-code',
 });
@@ -249,97 +252,80 @@ const ConfirmPhoneNumber = () => {
     !phoneCountryCode;
 
   const renderFormFields = () => (
-    <>
-      <Box>
-        <TextField
-          inputRef={codeInputRef}
-          onChangeText={handleValueChange}
-          value={confirmCode}
-          isError={verifyIsError}
-          inputProps={{
-            autoCapitalize: 'none',
-            numberOfLines: 1,
-            keyboardType: 'number-pad',
-            textContentType: 'oneTimeCode',
-            autoComplete,
-            maxLength: CODE_LENGTH,
-            accessibilityLabel: strings(
-              'card.card_onboarding.confirm_phone_number.confirm_code_label',
-            ),
-            testID: 'confirm-phone-number-code-field',
-          }}
-        />
-        {verifyIsError && (
-          <Text
-            variant={TextVariant.BodySm}
-            testID="confirm-phone-number-code-field-error"
-            twClassName="text-error-default"
-          >
-            {verifyError}
-          </Text>
-        )}
-      </Box>
+    <Box gap={2}>
+      <TextField
+        inputRef={codeInputRef}
+        onChangeText={handleValueChange}
+        value={confirmCode}
+        isError={verifyIsError}
+        inputProps={{
+          autoCapitalize: 'none',
+          numberOfLines: 1,
+          keyboardType: 'number-pad',
+          textContentType: 'oneTimeCode',
+          autoComplete,
+          maxLength: CODE_LENGTH,
+          accessibilityLabel: strings(
+            'card.card_onboarding.confirm_phone_number.confirm_code_label',
+          ),
+          testID: 'confirm-phone-number-code-field',
+        }}
+      />
+      {verifyIsError && (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID="confirm-phone-number-code-field-error"
+        >
+          {verifyError}
+        </HelpText>
+      )}
 
       {/* Resend verification */}
-      <Box twClassName="mt-2">
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-text-alternative"
-          testID="confirm-phone-number-resend-verification"
-        >
-          {resendCooldown > 0 ? (
-            strings('card.card_onboarding.confirm_email.resend_cooldown', {
-              seconds: resendCooldown,
-            })
-          ) : (
-            <>
-              {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="text-text-alternative underline"
-                onPress={
-                  resendCooldown > 0 ? undefined : handleResendVerification
-                }
-                disabled={
-                  resendCooldown > 0 ||
-                  !phoneNumber ||
-                  !phoneCountryCode ||
-                  !contactVerificationId ||
-                  phoneVerificationIsLoading
-                }
-              >
-                {strings(
-                  'card.card_onboarding.confirm_email.resend_verification',
-                )}
-              </Text>
-            </>
-          )}
-        </Text>
-        {phoneVerificationIsError && (
-          <Text
-            variant={TextVariant.BodySm}
-            testID="confirm-phone-number-phone-number-error"
-            twClassName="text-error-default"
-          >
-            {phoneVerificationError}
-          </Text>
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        testID="confirm-phone-number-resend-verification"
+      >
+        {resendCooldown > 0 ? (
+          strings('card.card_onboarding.confirm_email.resend_cooldown', {
+            seconds: resendCooldown,
+          })
+        ) : (
+          <>
+            {strings('card.card_onboarding.confirm_email.didnt_receive_code')}
+            <TextButton
+              variant={TextVariant.BodySm}
+              onPress={
+                resendCooldown > 0 ? undefined : handleResendVerification
+              }
+              disabled={
+                resendCooldown > 0 ||
+                !phoneNumber ||
+                !phoneCountryCode ||
+                !contactVerificationId ||
+                phoneVerificationIsLoading
+              }
+            >
+              {strings(
+                'card.card_onboarding.confirm_email.resend_verification',
+              )}
+            </TextButton>
+          </>
         )}
-      </Box>
-    </>
-  );
-
-  const renderActions = () => (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      isFullWidth
-      isDisabled={isDisabled}
-      isLoading={verifyLoading}
-      testID="confirm-phone-number-continue-button"
-    >
-      {strings('card.card_onboarding.continue_button')}
-    </Button>
+      </Text>
+      {phoneVerificationIsError && (
+        <HelpText
+          severity={HelpTextSeverity.Danger}
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID="confirm-phone-number-phone-number-error"
+        >
+          {phoneVerificationError}
+        </HelpText>
+      )}
+    </Box>
   );
 
   return (
@@ -350,8 +336,13 @@ const ConfirmPhoneNumber = () => {
         { phoneNumber: `+${phoneCountryCode} ${phoneNumber}` },
       )}
       formFields={renderFormFields()}
-      actions={renderActions()}
-      stickyActions
+      primaryButtonProps={{
+        children: strings('card.card_onboarding.continue_button'),
+        onPress: handleContinue,
+        isDisabled,
+        isLoading: verifyLoading,
+        testID: 'confirm-phone-number-continue-button',
+      }}
       headerMode="close-with-confirmation"
     />
   );

@@ -26,18 +26,15 @@ import {
   BoxJustifyContent,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   type BottomSheetRef,
   ButtonsAlignment,
   Button,
-  ButtonBase,
-  ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HeaderStandard,
   HelpText,
   HelpTextSeverity,
   Icon,
@@ -86,6 +83,11 @@ import {
   LIQUIDATION_DISTANCE_DECIMALS,
   TP_SL_VIEW_CONFIG,
 } from '../../constants/perpsConfig';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 /**
  * Await a dismissal that may never call back.
@@ -113,7 +115,7 @@ export function waitForDismissal(dismiss: (afterDismiss: () => void) => void) {
   });
 }
 
-/** ButtonBase resolves `textClassName` per press state, so it takes a function. */
+/** Button tertiary text color must resolve per press state. */
 const getClearTextClassName = () => 'text-primary-default';
 
 const SHEET_PRICE_PLACEHOLDER = '0.00';
@@ -142,10 +144,20 @@ const sheetPriceValueTextProps = {
 } as const;
 
 /**
- * Compact +/− control for %RoE fields. ButtonBase defaults to `self-start`,
- * which pins the chip to the top of TextField's 48px row; force center so it
- * lines up with the $ prefix, input text, and % suffix.
+ * Compact +/− control for %RoE fields. Force center so it lines up with the
+ * $ prefix, input text, and % suffix.
  */
+const getRoeSignIconColor = (
+  sign: '+' | '-',
+  isNeutral: boolean,
+): IconColor => {
+  if (isNeutral) {
+    return IconColor.IconDefault;
+  }
+
+  return sign === '+' ? IconColor.SuccessDefault : IconColor.ErrorDefault;
+};
+
 const RoeSignBadge: React.FC<{
   sign: '+' | '-';
   onPress: () => void;
@@ -160,40 +172,23 @@ const RoeSignBadge: React.FC<{
   accessibilityLabel,
   isDisabled,
   isNeutral = false,
-}) => {
-  if (isNeutral) {
-    return (
-      <ButtonIcon
-        size={ButtonIconSize.Sm}
-        iconName={sign === '+' ? IconName.Add : IconName.Minus}
-        iconProps={{ size: IconSize.Sm, color: IconColor.IconDefault }}
-        isDisabled={isDisabled}
-        onPress={onPress}
-        testID={testID}
-        accessibilityLabel={accessibilityLabel}
-        twClassName="shrink-0 self-center rounded-full bg-muted"
-      />
-    );
-  }
-
-  return (
-    <ButtonBase
-      size={ButtonBaseSize.Sm}
-      isDisabled={isDisabled}
-      onPress={onPress}
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      twClassName="h-6 min-w-6 shrink-0 self-center rounded-md bg-muted px-1"
-      textProps={{
-        variant: TextVariant.BodyMd,
-        color: sign === '+' ? TextColor.SuccessDefault : TextColor.ErrorDefault,
-      }}
-    >
-      {sign}
-    </ButtonBase>
-  );
-};
+}) => (
+  <ButtonIcon
+    size={ButtonIconSize.Sm}
+    variant={ButtonIconVariant.Filled}
+    iconName={sign === '+' ? IconName.Add : IconName.Minus}
+    iconProps={{
+      size: IconSize.Sm,
+      color: getRoeSignIconColor(sign, isNeutral),
+    }}
+    isDisabled={isDisabled}
+    onPress={onPress}
+    testID={testID}
+    accessibilityLabel={accessibilityLabel}
+    accessibilityValue={{ text: sign }}
+    twClassName="shrink-0 self-center"
+  />
+);
 
 /**
  * Reserves HelpText vertical space so TP/SL sections do not jump when
@@ -260,10 +255,12 @@ export interface PerpsTPSLViewProps {
 const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
   variant = 'screen',
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTPSL'>>();
   const tw = useTailwind();
   const { playImpact, playSelection } = useHaptics();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
 
   const isSheet = variant === 'sheet';
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -301,11 +298,14 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     initialTakeProfitPrice,
     initialStopLossPrice,
     leverage: propLeverage,
+    marginMode = 'isolated',
     orderType,
     limitPrice,
     amount,
     szDecimals,
     enableHaptics = false,
+    onBeforeConfirm,
+    isPositionReviewCurrent,
     onConfirm,
   } = route.params;
 
@@ -392,7 +392,12 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
 
   // Calculate liquidation price for new orders (when there's no existing position)
   const shouldCalculateLiquidation =
-    !position && currentPrice > 0 && propLeverage && actualDirection && asset;
+    marginMode !== 'cross' &&
+    !position &&
+    currentPrice > 0 &&
+    propLeverage &&
+    actualDirection &&
+    asset;
   const { liquidationPrice: calculatedLiquidationPrice } =
     usePerpsLiquidationPrice({
       entryPrice: shouldCalculateLiquidation ? currentPrice : 0,
@@ -481,10 +486,16 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     usePerpsLivePositions({
       throttleMs: TP_SL_VIEW_CONFIG.PositionThrottleMs,
     });
+  const isPositionReviewUnavailable =
+    position !== undefined &&
+    isPositionReviewCurrent !== undefined &&
+    isPositionReviewCurrent(position) !== true;
   const isPositionGone =
     isEditingExistingPosition &&
-    !isPositionsLoading &&
-    !livePositions.some((p) => p.symbol === position.symbol);
+    (isPositionReviewCurrent !== undefined
+      ? isPositionReviewUnavailable
+      : !isPositionsLoading &&
+        !livePositions.some((p) => p.symbol === position.symbol));
   const tpslScreenType = isEditingExistingPosition
     ? PERPS_EVENT_VALUE.SCREEN_TYPE.EDIT_TPSL
     : PERPS_EVENT_VALUE.SCREEN_TYPE.CREATE_TPSL;
@@ -695,6 +706,18 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       return;
     }
 
+    if (
+      position !== undefined &&
+      isPositionReviewCurrent !== undefined &&
+      isPositionReviewCurrent(position) !== true
+    ) {
+      return;
+    }
+
+    if (onBeforeConfirm !== undefined && onBeforeConfirm() !== true) {
+      return;
+    }
+
     if (focusedInput) {
       dismissKeypad();
     }
@@ -759,6 +782,8 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
     focusedInput,
     takeProfitPrice,
     stopLossPrice,
+    onBeforeConfirm,
+    isPositionReviewCurrent,
     onConfirm,
     dismissKeypad,
     dismiss,
@@ -1073,7 +1098,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       ? strings('perps.tpsl.gain_roe_placeholder')
       : strings('perps.tpsl.loss_roe_placeholder');
 
-  const reviewFooter = (
+  const reviewFooter = isSheet ? (
+    <BottomSheetFooter primaryButtonProps={setButtonProps} />
+  ) : (
     <BottomSheetFooter
       buttonsAlignment={ButtonsAlignment.Horizontal}
       secondaryButtonProps={cancelButtonProps}
@@ -1165,6 +1192,15 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
           twClassName={isSheet ? undefined : 'flex-1'}
           testID="scroll-content"
         >
+          {isPositionReviewUnavailable && (
+            <HelpText
+              severity={HelpTextSeverity.Warning}
+              showIcon
+              testID={PerpsTPSLViewSelectorsIDs.RECOVERY_REVIEW_EXPIRED}
+            >
+              {strings('perps.recovery.review_expired')}
+            </HelpText>
+          )}
           {/* Current price and liquidation price info */}
           <Box twClassName={isSheet ? undefined : 'mb-6 gap-2'}>
             {position && (
@@ -1545,12 +1581,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
         twClassName="bg-default"
         testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
       >
-        <BottomSheetHeader
-          onBack={handleBack}
-          backButtonProps={{ testID: PerpsTPSLViewSelectorsIDs.BACK_BUTTON }}
-        >
+        <BottomSheetHeaderGlass isGlass={isGlassHeader}>
           {strings('perps.tpsl.title')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         {body}
       </BottomSheet>
     );
@@ -1562,7 +1595,9 @@ const PerpsTPSLView: React.FC<PerpsTPSLViewProps> = ({
       edges={['bottom']}
       testID={PerpsTPSLViewSelectorsIDs.BOTTOM_SHEET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
         title={strings('perps.tpsl.title')}
         onBack={handleBack}

@@ -35,10 +35,8 @@ enum EVENT_NAME {
   ERROR = 'Error occurred',
   ERROR_SCREEN_VIEWED = 'Error Screen Viewed',
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SETTINGS_SAMPLE_FEATURE = 'Settings Sample Feature',
-  ///: END:ONLY_INCLUDE_IF
 
   // Approval
   APPROVAL_STARTED = 'Approval Started',
@@ -67,9 +65,16 @@ enum EVENT_NAME {
   CONNECT_REQUEST_OTPFAILURE = 'Connect Request OTP Failure',
   CONNECT_REQUEST_CANCELLED = 'Connect Request Cancelled',
 
-  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect)
+  // Remote connection events (SDK v1 socket relay, MWP, and WalletConnect).
+  // RECEIVED is the funnel entry point; exactly one of ESTABLISHED / REJECTED /
+  // FAILED is the terminal outcome, which is what makes connection success rate
+  // computable per `transport_type`. REJECTED (user declined) is kept separate
+  // from FAILED (wallet/transport error) so user intent is not counted as a
+  // reliability failure.
   REMOTE_CONNECTION_REQUEST_RECEIVED = 'Remote Connection Request Received',
   REMOTE_CONNECTION_REQUEST_FAILED = 'Remote Connection Request Failed',
+  REMOTE_CONNECTION_REQUEST_REJECTED = 'Remote Connection Request Rejected',
+  REMOTE_CONNECTION_ESTABLISHED = 'Remote Connection Established',
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
   SDK_LEGACY_RPC_REQUEST_RECEIVED = 'SDK Legacy RPC Request Received',
@@ -96,6 +101,9 @@ enum EVENT_NAME {
   WATCHLIST_TOKEN_REMOVED = 'Token Watchlist Token Removed',
   WATCHLIST_PAGE_VIEWED = 'Token Watchlist Page Viewed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_TAB_VIEWED = 'Token Details Tab Viewed',
+  TOKEN_DETAILS_SECURITY_PILL_CLICKED = 'Token Details Security Pill Clicked',
+  TOKEN_DETAILS_CONTRACT_SECURITY_OPENED = 'Token Details Contract Security Opened',
   TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
@@ -220,6 +228,7 @@ enum EVENT_NAME {
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
   ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  MANAGE_ACCOUNTS_VIEWED = 'Manage Accounts Viewed',
   SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
@@ -296,6 +305,7 @@ enum EVENT_NAME {
   TOKEN_IMPORT_CLICKED = 'Token Import Clicked',
   TOKEN_IMPORT_CANCELED = 'Token Import Canceled',
   TOKENS_HIDDEN = 'Tokens Hidden',
+  TOKEN_LIST_FILTERING_INTERACTED = 'Token List Filtering Interacted',
   EXTERNAL_LINK_CLICKED = 'External Link Clicked',
 
   // On Ramp
@@ -395,6 +405,8 @@ enum EVENT_NAME {
   RAMPS_CHECKOUT_URL_CHANGED = 'Ramps Checkout URL Changed',
   RAMPS_CHECKOUT_LOAD_COMPLETED = 'Ramps Checkout Load Completed',
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED = 'Ramps Checkout HTTP Error Received',
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED = 'Ramps Checkout Provider Event Received',
+  RAMPS_CHECKOUT_FALLBACK_OPENED = 'Ramps Checkout Fallback Opened',
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
 
@@ -420,6 +432,7 @@ enum EVENT_NAME {
   SEND_AMOUNT_SELECTED = 'Send Amount Selected',
   SEND_RECIPIENT_SELECTED = 'Send Recipient Selected',
   SEND_EXIT = 'Send Flow Exited',
+  SEND_FAILED = 'Send Failed',
 
   // Swaps
   SWAPS_OPENED = 'Swaps Opened',
@@ -436,6 +449,13 @@ enum EVENT_NAME {
   GAS_FEES_CHANGED = 'Gas Fees Changed',
   EDIT_SPEND_LIMIT_OPENED = 'Edit Spend Limit Opened',
   TOKEN_IMPORTED = 'Custom Token Imported',
+
+  // Limit/Recurring Swaps
+  ADVANCED_ORDER_PAGE_VIEWED = 'Advanced Order Page Viewed',
+  ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS = 'Advanced Order Asset Search Empty Results Displayed',
+  ADVANCED_ORDER_SUBMITTED = 'Advanced Order Submitted',
+  ADVANCED_ORDER_COMPLETED = 'Advanced Order Completed',
+  ADVANCED_ORDER_FAILED = 'Advanced Order Failed',
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
@@ -629,6 +649,7 @@ enum EVENT_NAME {
 
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN = 'Network Connection Banner Shown',
+  NETWORK_CONNECTION_BANNER_HIDDEN = 'Network Connection Banner Hidden',
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED = 'Network Connection Banner Update RPC Clicked',
   NETWORK_CONNECTION_BANNER_SWITCH_TO_METAMASK_DEFAULT_RPC_CLICKED = 'Network Connection Banner Switch To MetaMask Default RPC Clicked',
   NetworkConnectionBannerRpcUpdated = 'Network Connection Banner RPC Updated',
@@ -699,6 +720,8 @@ enum EVENT_NAME {
   CARD_REDEEM_PROCESS_STARTED = 'Card Redeem Process Started',
   CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
   CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
+  CARD_LINK_SEEDED = 'Card Link Seeded',
+  CARD_LINK_MISSED_AT_LOGIN = 'Card Link Missed At Login',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -706,10 +729,7 @@ enum EVENT_NAME {
   REWARDS_ACTIVE_BOOST_CLICKED = 'Rewards Active Boost Clicked',
   REWARDS_BENEFIT_BUTTON_CLICKED = 'Rewards Benefit Button Clicked',
   REWARDS_BENEFIT_DETAIL_VIEWED = 'Rewards Benefit Detail Viewed',
-  REWARDS_DASHBOARD_TAB_VIEWED = 'Rewards Dashboard Tab Viewed',
   REWARDS_DASHBOARD_VIEWED = 'Rewards Dashboard Viewed',
-  REWARDS_ONBOARDING_STARTED = 'Rewards Onboarding Started',
-  REWARDS_ONBOARDING_COMPLETED = 'Rewards Onboarding Completed',
   REWARDS_OPT_IN_STARTED = 'Rewards Opt In Started',
   REWARDS_OPT_IN_COMPLETED = 'Rewards Opt In Completed',
   REWARDS_OPT_IN_FAILED = 'Rewards Opt In Failed',
@@ -717,7 +737,8 @@ enum EVENT_NAME {
   REWARDS_OPT_OUT_COMPLETED = 'Rewards Opt Out Completed',
   REWARDS_OPT_OUT_FAILED = 'Rewards Opt Out Failed',
   REWARDS_PAGE_BUTTON_CLICKED = 'Rewards Page Button Clicked',
-  REWARDS_REFERRALS_VIEWED = 'Rewards Referrals Viewed',
+  REWARDS_MONEY_REFERRAL_CODE_SHARED = 'Rewards Money Referral Code Shared',
+  REWARDS_MONEY_REFERRAL_OFFER_INTERACTED = 'Rewards Money Referral Offer Interacted',
   REWARDS_REWARD_CLAIMED = 'Rewards Reward Claimed',
   REWARDS_REWARD_VIEWED = 'Rewards Reward Viewed',
   REWARDS_SETTINGS_VIEWED = 'Rewards Settings Viewed',
@@ -727,6 +748,8 @@ enum EVENT_NAME {
   REWARDS_CAMPAIGN_OPT_IN_COMPLETED = 'Rewards Campaign Opt In Completed',
   REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED = 'Rewards Campaign Reminder Subscribed',
   REWARDS_PAGE_VIEWED = 'Rewards Page Viewed',
+  REWARDS_MONEY_CLAIM_COMPLETED = 'Rewards Money Claim Completed',
+  REWARDS_MONEY_CLAIM_FAILED = 'Rewards Money Claim Failed',
 
   // Predict
   PREDICT_TRADE_TRANSACTION = 'Predict Trade Transaction',
@@ -800,8 +823,30 @@ enum EVENT_NAME {
   MONEY_BUTTON_CLICKED = 'Money Button Clicked',
   MONEY_SURFACE_CLICKED = 'Money Surface Clicked',
   MONEY_SURFACE_VIEWED = 'Money Surface Viewed',
+  MONEY_ACCOUNT_CAMPAIGN_TRIGGERED = 'Money Account Campaign Triggered',
   MONEY_ONBOARDING_EVENT = 'Money Onboarding Event',
   MONEY_TOOLTIP_CLICKED = 'Money Tooltip Clicked',
+  MONEY_VBA_TRANSACTION_UPDATED = 'Money VBA Transaction Updated',
+
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED = 'KYC Verification Updated',
+  KYC_STATUS_UPDATED = 'KYC Status Updated',
+
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED = 'MFA Flow Status Updated',
+  MFA_STEP_VIEWED = 'MFA Step Viewed',
+  MFA_ERROR_VIEWED = 'MFA Error Viewed',
+  MFA_ERROR_CTA_CLICKED = 'MFA Error CTA Clicked',
+  MFA_METHOD_SELECTED = 'MFA Method Selected',
+  MFA_CODE_RESENT = 'MFA Code Resent',
+
+  // Money VBA and KYC onboarding
+  MONEY_VBA_VENDOR_TERMS_UPDATED = 'Money VBA Vendor Terms Updated',
+  MONEY_VBA_AUTORAMP_CREATE_UPDATED = 'Money VBA Autoramp Create Updated',
+  MONEY_VBA_ERROR_VIEWED = 'Money VBA Error Viewed',
+  MONEY_VBA_DETAILS_VIEWED = 'Money VBA Details Viewed',
+  KYC_IDENTITY_TERMS_UPDATED = 'KYC Identity Terms Updated',
+  KYC_RESULT_VIEWED = 'KYC Result Viewed',
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
@@ -836,6 +881,8 @@ enum EVENT_NAME {
   SOCIAL_TRADER_FEED_SCREEN_VIEWED = 'Trader Feed Screen Viewed',
   SOCIAL_TRADER_FEED_INTERACTION = 'Trader Feed Interaction',
   SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED = 'Trader Feed Item Trade Clicked',
+  SOCIAL_UI_INTERACTION = 'Social UI Interaction',
+  SOCIAL_SCREEN_VIEWED = 'Social Screen Viewed',
   // Activity
   ACTIVITY_CLICKED = 'Activity Clicked',
 }
@@ -915,10 +962,8 @@ const events = {
   APP_UNLOCKED_FAILED: generateOpt(EVENT_NAME.APP_UNLOCKED_FAILED),
   ERROR_SCREEN_VIEWED: generateOpt(EVENT_NAME.ERROR_SCREEN_VIEWED),
 
-  ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   // Sample feature
   SETTINGS_SAMPLE_FEATURE: generateOpt(EVENT_NAME.SETTINGS_SAMPLE_FEATURE),
-  ///: END:ONLY_INCLUDE_IF
 
   // Approval
   APPROVAL_STARTED: generateOpt(EVENT_NAME.APPROVAL_STARTED),
@@ -956,6 +1001,12 @@ const events = {
   ),
   REMOTE_CONNECTION_REQUEST_FAILED: generateOpt(
     EVENT_NAME.REMOTE_CONNECTION_REQUEST_FAILED,
+  ),
+  REMOTE_CONNECTION_REQUEST_REJECTED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_REQUEST_REJECTED,
+  ),
+  REMOTE_CONNECTION_ESTABLISHED: generateOpt(
+    EVENT_NAME.REMOTE_CONNECTION_ESTABLISHED,
   ),
 
   // SDK v1 legacy RPC events (socket relay + deeplink protocol only)
@@ -1148,6 +1199,7 @@ const events = {
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
   ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  MANAGE_ACCOUNTS_VIEWED: generateOpt(EVENT_NAME.MANAGE_ACCOUNTS_VIEWED),
   SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
   // Bare form, for callers that supply `action` and `name` themselves; the
   // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
@@ -1244,6 +1296,9 @@ const events = {
   TOKEN_IMPORT_CLICKED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CLICKED),
   TOKEN_IMPORT_CANCELED: generateOpt(EVENT_NAME.TOKEN_IMPORT_CANCELED),
   TOKENS_HIDDEN: generateOpt(EVENT_NAME.TOKENS_HIDDEN),
+  TOKEN_LIST_FILTERING_INTERACTED: generateOpt(
+    EVENT_NAME.TOKEN_LIST_FILTERING_INTERACTED,
+  ),
 
   // ONRAMP
   RAMP_REGION_SELECTED: generateOpt(EVENT_NAME.RAMP_REGION_SELECTED),
@@ -1433,6 +1488,12 @@ const events = {
   ),
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
+  ),
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED,
+  ),
+  RAMPS_CHECKOUT_FALLBACK_OPENED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_FALLBACK_OPENED,
   ),
   RAMPS_CHECKOUT_CALLBACK_DETECTED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_CALLBACK_DETECTED,
@@ -1789,6 +1850,13 @@ const events = {
   WATCHLIST_TOKEN_REMOVED: generateOpt(EVENT_NAME.WATCHLIST_TOKEN_REMOVED),
   WATCHLIST_PAGE_VIEWED: generateOpt(EVENT_NAME.WATCHLIST_PAGE_VIEWED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_TAB_VIEWED: generateOpt(EVENT_NAME.TOKEN_DETAILS_TAB_VIEWED),
+  TOKEN_DETAILS_SECURITY_PILL_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_SECURITY_PILL_CLICKED,
+  ),
+  TOKEN_DETAILS_CONTRACT_SECURITY_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_CONTRACT_SECURITY_OPENED,
+  ),
   TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
     EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
   ),
@@ -1810,8 +1878,19 @@ const events = {
   SECURITY_PAGE_CTA_CLICKED: generateOpt(EVENT_NAME.SECURITY_PAGE_CTA_CLICKED),
   SECURITY_PAGE_DISMISSED: generateOpt(EVENT_NAME.SECURITY_PAGE_DISMISSED),
 
+  // Limit/Recurring Swaps
+  ADVANCED_ORDER_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ADVANCED_ORDER_PAGE_VIEWED,
+  ),
+  ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS: generateOpt(
+    EVENT_NAME.ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS,
+  ),
+  ADVANCED_ORDER_SUBMITTED: generateOpt(EVENT_NAME.ADVANCED_ORDER_SUBMITTED),
+  ADVANCED_ORDER_COMPLETED: generateOpt(EVENT_NAME.ADVANCED_ORDER_COMPLETED),
+  ADVANCED_ORDER_FAILED: generateOpt(EVENT_NAME.ADVANCED_ORDER_FAILED),
+
   // Bridge
-  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED),
   SWAPBRIDGE_STATUS_MODAL_VIEWED: generateOpt(
     EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_VIEWED,
   ),
@@ -1830,6 +1909,9 @@ const events = {
   // NETWORK CONNECTION BANNER
   NETWORK_CONNECTION_BANNER_SHOWN: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_SHOWN,
+  ),
+  NETWORK_CONNECTION_BANNER_HIDDEN: generateOpt(
+    EVENT_NAME.NETWORK_CONNECTION_BANNER_HIDDEN,
   ),
   NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED: generateOpt(
     EVENT_NAME.NETWORK_CONNECTION_BANNER_UPDATE_RPC_CLICKED,
@@ -2016,6 +2098,8 @@ const events = {
   CARD_REDEEM_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
+  CARD_LINK_SEEDED: generateOpt(EVENT_NAME.CARD_LINK_SEEDED),
+  CARD_LINK_MISSED_AT_LOGIN: generateOpt(EVENT_NAME.CARD_LINK_MISSED_AT_LOGIN),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -2035,16 +2119,7 @@ const events = {
   REWARDS_BENEFIT_DETAIL_VIEWED: generateOpt(
     EVENT_NAME.REWARDS_BENEFIT_DETAIL_VIEWED,
   ),
-  REWARDS_DASHBOARD_TAB_VIEWED: generateOpt(
-    EVENT_NAME.REWARDS_DASHBOARD_TAB_VIEWED,
-  ),
   REWARDS_DASHBOARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_DASHBOARD_VIEWED),
-  REWARDS_ONBOARDING_STARTED: generateOpt(
-    EVENT_NAME.REWARDS_ONBOARDING_STARTED,
-  ),
-  REWARDS_ONBOARDING_COMPLETED: generateOpt(
-    EVENT_NAME.REWARDS_ONBOARDING_COMPLETED,
-  ),
   REWARDS_OPT_IN_STARTED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_STARTED),
   REWARDS_OPT_IN_COMPLETED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_COMPLETED),
   REWARDS_OPT_IN_FAILED: generateOpt(EVENT_NAME.REWARDS_OPT_IN_FAILED),
@@ -2054,7 +2129,12 @@ const events = {
   REWARDS_PAGE_BUTTON_CLICKED: generateOpt(
     EVENT_NAME.REWARDS_PAGE_BUTTON_CLICKED,
   ),
-  REWARDS_REFERRALS_VIEWED: generateOpt(EVENT_NAME.REWARDS_REFERRALS_VIEWED),
+  REWARDS_MONEY_REFERRAL_CODE_SHARED: generateOpt(
+    EVENT_NAME.REWARDS_MONEY_REFERRAL_CODE_SHARED,
+  ),
+  REWARDS_MONEY_REFERRAL_OFFER_INTERACTED: generateOpt(
+    EVENT_NAME.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+  ),
   REWARDS_REWARD_CLAIMED: generateOpt(EVENT_NAME.REWARDS_REWARD_CLAIMED),
   REWARDS_REWARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_REWARD_VIEWED),
   REWARDS_SETTINGS_VIEWED: generateOpt(EVENT_NAME.REWARDS_SETTINGS_VIEWED),
@@ -2074,6 +2154,12 @@ const events = {
     EVENT_NAME.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED,
   ),
   REWARDS_PAGE_VIEWED: generateOpt(EVENT_NAME.REWARDS_PAGE_VIEWED),
+  REWARDS_MONEY_CLAIM_COMPLETED: generateOpt(
+    EVENT_NAME.REWARDS_MONEY_CLAIM_COMPLETED,
+  ),
+  REWARDS_MONEY_CLAIM_FAILED: generateOpt(
+    EVENT_NAME.REWARDS_MONEY_CLAIM_FAILED,
+  ),
   // Predict
   PREDICT_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PREDICT_TRADE_TRANSACTION),
   TRADE_CONSIDERED: generateOpt(EVENT_NAME.TRADE_CONSIDERED),
@@ -2164,8 +2250,40 @@ const events = {
   MONEY_BUTTON_CLICKED: generateOpt(EVENT_NAME.MONEY_BUTTON_CLICKED),
   MONEY_SURFACE_CLICKED: generateOpt(EVENT_NAME.MONEY_SURFACE_CLICKED),
   MONEY_SURFACE_VIEWED: generateOpt(EVENT_NAME.MONEY_SURFACE_VIEWED),
+  MONEY_ACCOUNT_CAMPAIGN_TRIGGERED: generateOpt(
+    EVENT_NAME.MONEY_ACCOUNT_CAMPAIGN_TRIGGERED,
+  ),
   MONEY_ONBOARDING_EVENT: generateOpt(EVENT_NAME.MONEY_ONBOARDING_EVENT),
   MONEY_TOOLTIP_CLICKED: generateOpt(EVENT_NAME.MONEY_TOOLTIP_CLICKED),
+  MONEY_VBA_TRANSACTION_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_TRANSACTION_UPDATED,
+  ),
+
+  // KYC (virtual bank account onboarding)
+  KYC_VERIFICATION_UPDATED: generateOpt(EVENT_NAME.KYC_VERIFICATION_UPDATED),
+  KYC_STATUS_UPDATED: generateOpt(EVENT_NAME.KYC_STATUS_UPDATED),
+
+  // MFA kit
+  MFA_FLOW_STATUS_UPDATED: generateOpt(EVENT_NAME.MFA_FLOW_STATUS_UPDATED),
+  MFA_STEP_VIEWED: generateOpt(EVENT_NAME.MFA_STEP_VIEWED),
+  MFA_ERROR_VIEWED: generateOpt(EVENT_NAME.MFA_ERROR_VIEWED),
+  MFA_ERROR_CTA_CLICKED: generateOpt(EVENT_NAME.MFA_ERROR_CTA_CLICKED),
+  MFA_METHOD_SELECTED: generateOpt(EVENT_NAME.MFA_METHOD_SELECTED),
+  MFA_CODE_RESENT: generateOpt(EVENT_NAME.MFA_CODE_RESENT),
+
+  // Money VBA and KYC onboarding
+  MONEY_VBA_VENDOR_TERMS_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_VENDOR_TERMS_UPDATED,
+  ),
+  MONEY_VBA_AUTORAMP_CREATE_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_AUTORAMP_CREATE_UPDATED,
+  ),
+  MONEY_VBA_ERROR_VIEWED: generateOpt(EVENT_NAME.MONEY_VBA_ERROR_VIEWED),
+  MONEY_VBA_DETAILS_VIEWED: generateOpt(EVENT_NAME.MONEY_VBA_DETAILS_VIEWED),
+  KYC_IDENTITY_TERMS_UPDATED: generateOpt(
+    EVENT_NAME.KYC_IDENTITY_TERMS_UPDATED,
+  ),
+  KYC_RESULT_VIEWED: generateOpt(EVENT_NAME.KYC_RESULT_VIEWED),
 
   // Social Leaderboard (follow trading)
   SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED: generateOpt(
@@ -2256,6 +2374,8 @@ const events = {
   SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED: generateOpt(
     EVENT_NAME.SOCIAL_TRADER_FEED_ITEM_TRADE_CLICKED,
   ),
+  SOCIAL_UI_INTERACTION: generateOpt(EVENT_NAME.SOCIAL_UI_INTERACTION),
+  SOCIAL_SCREEN_VIEWED: generateOpt(EVENT_NAME.SOCIAL_SCREEN_VIEWED),
   ACTIVITY_CLICKED: generateOpt(EVENT_NAME.ACTIVITY_CLICKED),
 };
 
@@ -2320,7 +2440,7 @@ enum DESCRIPTION {
   SEND_ASSET_SELECTED = 'Send asset selected',
   SEND_AMOUNT_SELECTED = 'Send amount selected',
   SEND_RECIPIENT_SELECTED = 'Send recipient selected',
-  SEND_EXIT = 'Send flow exitted',
+  SEND_EXIT = 'Send flow exited',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
@@ -2586,6 +2706,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.SEND,
     DESCRIPTION.SEND_EXIT,
   ),
+  SEND_FAILED: generateOpt(EVENT_NAME.SEND_FAILED),
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,

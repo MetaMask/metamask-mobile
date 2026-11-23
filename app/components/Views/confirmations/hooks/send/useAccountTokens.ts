@@ -169,6 +169,7 @@ function useRemoteTokens(
             address: req.address.toLowerCase(),
             balance: '0',
             balanceInSelectedCurrency: zeroFiat,
+            balanceInSelectedCurrencyAmount: 0,
             chainId: req.chainId,
             decimals: data.decimals ?? 18,
             image: data.iconUrl ?? '',

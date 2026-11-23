@@ -1,7 +1,9 @@
 import type {
   SocialFilterNetwork,
+  SocialFilterPositionStatus,
   SocialFilterTimeframe,
   SocialFilterType,
+  SocialFilterVerification,
   SocialRangeFilter,
   SocialShellFilters,
   SocialTraderCohort,
@@ -12,7 +14,10 @@ import {
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
-import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../components/Filters/filterOptions';
+import type {
+  SocialTimeframe,
+  SocialTypeFilter,
+} from '../../components/Filters';
 
 /**
  * Market cap slider bounds (USD billions). Matches the screenshot labels
@@ -35,15 +40,23 @@ export const VOLUME_24H_RANGE: SocialRangeFilter = {
 export const DEFAULT_FILTERS: SocialShellFilters = {
   type: 'all',
   traderCohort: 'all',
+  verification: 'all',
+  positionStatus: 'all',
   timeframe: '7d',
   network: 'all',
   marketCap: { ...MARKET_CAP_RANGE },
   volume24h: { ...VOLUME_24H_RANGE },
 };
 
+/** Default filter state for the Social V1 Leaderboard tab. */
+export const DEFAULT_LEADERBOARD_FILTERS: SocialShellFilters = {
+  ...DEFAULT_FILTERS,
+  timeframe: '30d',
+};
+
 /**
- * Seed per-tab filter state. Every tab starts from the same defaults; the
- * sheet hides sections per tab but the underlying model is shared in shape.
+ * Seed per-tab filter state. The sheet hides sections per tab but the
+ * underlying model is shared in shape.
  */
 export const DEFAULT_TAB_FILTER_STATE: Record<
   SocialShellTab,
@@ -51,16 +64,14 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
 > = {
   trending: { ...DEFAULT_FILTERS },
   following: { ...DEFAULT_FILTERS },
-  liveTrades: { ...DEFAULT_FILTERS },
-  leaderboard: { ...DEFAULT_FILTERS },
+  live: { ...DEFAULT_FILTERS },
+  leaderboard: { ...DEFAULT_LEADERBOARD_FILTERS },
 };
 
-export const TYPE_OPTIONS: SocialFilterType[] = [
-  'all',
-  'tokens',
-  'perps',
-  'predictions',
-];
+export const TYPE_OPTIONS: SocialFilterType[] = ['all', 'tokens', 'perps'];
+
+/** Same asset chips on every V1 tab — Predictions is not in V1. */
+export const TYPE_OPTIONS_FOLLOWING: SocialFilterType[] = TYPE_OPTIONS;
 
 export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   all: 'social_leaderboard.shell.filters.type.all',
@@ -69,26 +80,23 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   predictions: 'social_leaderboard.shell.filters.type.predictions',
 };
 
-/**
- * Cohort options per tab. Live trades surfaces `following`;
- * Leaderboard does not (All/Shrimp/Dolphin/Whale/KOL).
- */
-export const COHORT_OPTIONS_WITH_FOLLOWING: SocialTraderCohort[] = [
+/** Following has no sized cohort left, so the sheet hides this section. */
+export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = ['all'];
+
+export const COHORT_OPTIONS_LIVE: SocialTraderCohort[] = ['all', 'following'];
+
+export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'all',
   'following',
-  'shrimp',
-  'dolphin',
-  'whale',
-  'kol',
+  // TODO: add `verified` once the leaderboard payload has a real verified field
+  // (the row badge is mocked today).
 ];
 
-export const COHORT_OPTIONS_WITHOUT_FOLLOWING: SocialTraderCohort[] = [
-  'all',
-  'shrimp',
-  'dolphin',
-  'whale',
-  'kol',
-];
+/** @deprecated Use COHORT_OPTIONS_LIVE. Kept for existing imports. */
+export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE;
+
+/** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
+export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
 
 export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   all: 'social_leaderboard.shell.filters.trader_cohort.all',
@@ -96,19 +104,41 @@ export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   shrimp: 'social_leaderboard.shell.filters.trader_cohort.shrimp',
   dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
   whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
-  kol: 'social_leaderboard.shell.filters.trader_cohort.kol',
+  verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
 };
 
-/** Emoji prefixes shown on the cohort chips (matches the Figma screenshots). */
-export const COHORT_LEADING_EMOJI: Partial<Record<SocialTraderCohort, string>> =
-  LEADERBOARD_COHORT_LEADING_EMOJI;
-
-export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = [
-  '1h',
-  '24h',
-  '7d',
-  '30d',
+export const POSITION_STATUS_OPTIONS: SocialFilterPositionStatus[] = [
+  'all',
+  'open',
+  'closed',
 ];
+
+/** All reuses the asset-type All string. */
+export const POSITION_STATUS_LABEL_KEY: Record<
+  SocialFilterPositionStatus,
+  string
+> = {
+  all: 'social_leaderboard.shell.filters.type.all',
+  open: 'social_leaderboard.shell.filters.position_status.open',
+  closed: 'social_leaderboard.shell.filters.position_status.closed',
+};
+
+export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [
+  'all',
+  'verified',
+  'unverified',
+];
+
+export const VERIFICATION_LABEL_KEY: Record<SocialFilterVerification, string> =
+  {
+    all: 'social_leaderboard.shell.filters.verification.all',
+    verified: 'social_leaderboard.shell.filters.verification.verified',
+    unverified: 'social_leaderboard.shell.filters.verification.unverified',
+  };
+
+/** Windows the leaderboard API already returns (`7d` / `30d`). */
+// TODO: add `1h` / `24h` when the leaderboard endpoint exposes those windows.
+export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = ['7d', '30d'];
 
 export const TIMEFRAME_LABEL_KEY: Record<SocialFilterTimeframe, string> = {
   '1h': 'social_leaderboard.shell.filters.timeframe.1h',
@@ -160,3 +190,26 @@ export const TYPE_CHAINS: Record<SocialFilterType, readonly string[]> = {
   // this once the predictions endpoint lands.
   predictions: SPOT_CHAINS,
 };
+
+/**
+ * Maps a sheet type onto the three leaderboard queries (`all` / `tokens` /
+ * `perps`). Predictions ride the tokens query until a dedicated ranking exists.
+ */
+export const toLeaderboardTypeFilter = (
+  type: SocialFilterType,
+): SocialTypeFilter => {
+  if (type === 'perps') {
+    return 'perps';
+  }
+  if (type === 'tokens' || type === 'predictions') {
+    return 'tokens';
+  }
+  return 'all';
+};
+
+/**
+ * `useTopTraders` only accepts `7d` | `30d`. Shorter sheet windows use 7d.
+ */
+export const toLeaderboardTimeframe = (
+  timeframe: SocialFilterTimeframe,
+): SocialTimeframe => (timeframe === '30d' ? '30d' : '7d');

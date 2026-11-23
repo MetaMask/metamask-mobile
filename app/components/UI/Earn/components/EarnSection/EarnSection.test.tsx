@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React from 'react';
 import type { Asset } from '@metamask/assets-controllers';
 import { EthAccountType } from '@metamask/keyring-api';
 import {
@@ -16,16 +16,13 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 import { selectIsMoneyAccountVisible } from '../../../Money/selectors/visibility';
-import { useMoneyNavigation } from '../../../Money/hooks/useMoneyNavigation';
+import { useMoneyCtaDepositNavigation } from '../../../Money/hooks/useMoneyDepositNavigation';
+import { selectMoneyCtaEntryContext } from '../../../Money/selectors/entry';
+import type { MoneyEntryContext } from '../../../Money/navigation/moneyEntryDecision';
 import useEarnSectionAssets from '../../hooks/useEarnSectionAssets';
 import useEarnOpportunityNavigation from '../../hooks/useEarnOpportunityNavigation';
 import { useEarnAnalytics } from '../../hooks/useEarnAnalytics';
-import useHomeViewedEvent, {
-  HomeSectionNames,
-} from '../../../../Views/Homepage/hooks/useHomeViewedEvent';
-import { useSectionPerformance } from '../../../../Views/Homepage/hooks/useSectionPerformance';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import type { SectionRefreshHandle } from '../../../../Views/Homepage/types';
 import type { EarnAssetId } from '../../types/earnAssets';
 import type { EarnSectionRankedAsset } from '../../utils/earnSection';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -36,17 +33,30 @@ import {
 } from '../../constants/earnModuleEvents';
 import EarnSection, { resetEarnSectionRefreshForTests } from './EarnSection';
 import { EarnSectionTestIds } from './EarnSection.testIds';
-import HomepageEarnSection from '../../../../Views/Homepage/Sections/EarnSection/HomepageEarnSection';
-import { homepageSectionTitleTestId } from '../../../../Views/Homepage/Homepage.testIds';
 import Logger from '../../../../../util/Logger';
 
 const mockEarnTrackButtonClicked = jest.fn();
 const mockEarnTrackComponentViewed = jest.fn();
 const mockEarnTrackSurfaceClicked = jest.fn();
 const mockMoneyTrackSurfaceClicked = jest.fn();
-const mockNavigateToMoneyHome = jest.fn();
+const mockNavigateToMoneyDeposit = jest.fn();
 
-jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: jest.fn(),
+  useIsFocused: jest.fn(),
+}));
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
+    Navigator: ({ children }: { children?: React.ReactNode }) =>
+      children ?? null,
+    Screen: ({
+      children,
+    }: {
+      children?: React.ReactNode | (() => React.ReactNode);
+    }) => (typeof children === 'function' ? children() : (children ?? null)),
+  }),
+}));
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
@@ -65,9 +75,7 @@ jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
     trackSurfaceClicked: mockMoneyTrackSurfaceClicked,
   })),
 }));
-jest.mock('../../../../UI/Money/hooks/useMoneyNavigation');
-jest.mock('../../../../Views/Homepage/hooks/useHomeViewedEvent');
-jest.mock('../../../../Views/Homepage/hooks/useSectionPerformance');
+jest.mock('../../../../UI/Money/hooks/useMoneyDepositNavigation');
 jest.mock('../../../../UI/Earn/hooks/useEarnAnalytics', () => ({
   useEarnAnalytics: jest.fn(() => ({
     trackButtonClicked: mockEarnTrackButtonClicked,
@@ -96,15 +104,10 @@ const mockUseEarnAnalytics = jest.mocked(useEarnAnalytics);
 const mockUseMoneyAccountBalance =
   useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 const mockUseSelector = jest.mocked(useSelector);
-const mockUseMoneyNavigation = useMoneyNavigation as jest.MockedFunction<
-  typeof useMoneyNavigation
->;
-const mockUseHomeViewedEvent = useHomeViewedEvent as jest.MockedFunction<
-  typeof useHomeViewedEvent
->;
-const mockUseSectionPerformance = useSectionPerformance as jest.MockedFunction<
-  typeof useSectionPerformance
->;
+const mockUseMoneyCtaDepositNavigation =
+  useMoneyCtaDepositNavigation as jest.MockedFunction<
+    typeof useMoneyCtaDepositNavigation
+  >;
 const mockLoggerError = jest.mocked(Logger.error);
 type Tailwind = ReturnType<typeof useTailwind>;
 
@@ -223,6 +226,10 @@ const mockNavigateFromEarnAsset = jest.fn();
 const mockRefetchBalance = jest.fn();
 let mockMoneyAccountVisible = false;
 let mockPrivacyMode = false;
+let mockMoneyEntryContext: MoneyEntryContext = {
+  accessBlockReason: undefined,
+  isOnboardingRedirectNeeded: false,
+};
 
 const createSectionResult = (
   overrides: Partial<ReturnType<typeof useEarnSectionAssets>> = {},
@@ -262,6 +269,7 @@ const getEarnSection = (
       screen_name: EARN_MODULE_SCREEN_NAMES.EXPLORE,
       entry_point: EARN_MODULE_ENTRY_POINTS.EXPLORE,
     }}
+    refresh={{ trigger: 0, silentRefresh: true }}
     {...props}
   />
 );
@@ -280,7 +288,9 @@ describe('EarnSection', () => {
     mockUseSelector.mockImplementation((selector) =>
       selector === selectIsMoneyAccountVisible
         ? mockMoneyAccountVisible
-        : mockPrivacyMode,
+        : selector === selectMoneyCtaEntryContext
+          ? mockMoneyEntryContext
+          : mockPrivacyMode,
     );
     mockUseNavigation.mockReturnValue({
       navigate,
@@ -292,15 +302,24 @@ describe('EarnSection', () => {
       isBalanceLoading: false,
       refetchBalance: mockRefetchBalance,
     } as unknown as ReturnType<typeof useMoneyAccountBalance>);
-    mockUseMoneyNavigation.mockReturnValue({
-      isOnboardingRedirectNeeded: false,
-      navigateToMoneyHome: mockNavigateToMoneyHome,
-    } as ReturnType<typeof useMoneyNavigation>);
+    mockNavigateToMoneyDeposit.mockImplementation(async ({ track } = {}) => {
+      track?.({
+        redirect_target: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'money_onboarding'
+            : 'money_deposit',
+        button_intent: mockMoneyEntryContext.isSplashRedirectNeeded
+          ? 'go_to_money_splash'
+          : mockMoneyEntryContext.isOnboardingRedirectNeeded
+            ? 'go_to_money_onboarding'
+            : 'add_money',
+      });
+    });
+    mockUseMoneyCtaDepositNavigation.mockReturnValue({
+      navigateToMoneyDeposit: mockNavigateToMoneyDeposit,
+    } as ReturnType<typeof useMoneyCtaDepositNavigation>);
     mockEarnOpportunityNavigation();
-    mockUseHomeViewedEvent.mockReturnValue({
-      onLayout: jest.fn(),
-    } as ReturnType<typeof useHomeViewedEvent>);
-    mockUseSectionPerformance.mockReturnValue(undefined);
     mockSectionResult();
   });
 
@@ -325,9 +344,7 @@ describe('EarnSection', () => {
 
     renderEarnSection();
 
-    fireEvent.press(
-      screen.getByTestId(homepageSectionTitleTestId(HomeSectionNames.EARN)),
-    );
+    fireEvent.press(screen.getByTestId(EarnSectionTestIds.HEADER));
     fireEvent.press(screen.getByTestId(EarnSectionTestIds.VIEW_MORE_CARD));
 
     expect(navigate).toHaveBeenCalledTimes(2);
@@ -357,54 +374,6 @@ describe('EarnSection', () => {
     );
   });
 
-  it('disables Homepage telemetry for shared Explore rendering', () => {
-    renderEarnSection();
-
-    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sectionRef: null,
-        sectionIndex: -1,
-        totalSectionsLoaded: 0,
-        fireImmediateWhenNoView: false,
-      }),
-    );
-    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
-    );
-  });
-
-  it('passes required section metadata to Homepage telemetry', () => {
-    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
-
-    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sectionIndex: 2,
-        totalSectionsLoaded: 5,
-        fireImmediateWhenNoView: true,
-        onSectionViewed: expect.any(Function),
-      }),
-    );
-    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: true }),
-    );
-    expect(mockUseEarnAnalytics).toHaveBeenCalledWith({
-      component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
-      entry_point: EARN_MODULE_ENTRY_POINTS.HOMEPAGE,
-      screen_name: 'wallet_home',
-    });
-  });
-
-  it('tracks Homepage Earn when Homepage telemetry records the section view', () => {
-    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
-
-    const { onSectionViewed } = mockUseHomeViewedEvent.mock.calls[0][0];
-    onSectionViewed?.();
-
-    expect(mockEarnTrackComponentViewed).toHaveBeenCalledWith({
-      component_name: EARN_MODULE_COMPONENT_NAMES.HOMEPAGE_EARN_SECTION,
-    });
-  });
-
   it('retracks Explore Earn after the section is disabled and re-enabled', () => {
     const { rerender } = renderEarnSection();
     mockEarnTrackComponentViewed.mockClear();
@@ -416,22 +385,6 @@ describe('EarnSection', () => {
     expect(mockEarnTrackComponentViewed).toHaveBeenCalledWith({
       component_name: EARN_MODULE_COMPONENT_NAMES.EXPLORE_EARN_SECTION,
     });
-  });
-
-  it('disables Homepage telemetry while Home is unfocused', () => {
-    mockUseIsFocused.mockReturnValue(false);
-
-    render(<HomepageEarnSection sectionIndex={2} totalSectionsLoaded={5} />);
-
-    expect(mockUseHomeViewedEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sectionRef: null,
-        fireImmediateWhenNoView: false,
-      }),
-    );
-    expect(mockUseSectionPerformance).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
-    );
   });
 
   it('renders funded lending assets with Get APY copy', () => {
@@ -685,21 +638,33 @@ describe('EarnSection', () => {
 
   it.each([
     {
+      isSplashRedirectNeeded: true,
+      isOnboardingRedirectNeeded: false,
+      redirectTarget: 'money_splash',
+    },
+    {
+      isSplashRedirectNeeded: false,
       isOnboardingRedirectNeeded: true,
       redirectTarget: 'money_onboarding',
     },
     {
+      isSplashRedirectNeeded: false,
       isOnboardingRedirectNeeded: false,
-      redirectTarget: 'money_home',
+      redirectTarget: 'money_deposit',
     },
   ] as const)(
     'tracks Money account card presses with the $redirectTarget destination',
-    ({ isOnboardingRedirectNeeded, redirectTarget }) => {
+    ({
+      isSplashRedirectNeeded,
+      isOnboardingRedirectNeeded,
+      redirectTarget,
+    }) => {
       mockMoneyAccountVisible = true;
-      mockUseMoneyNavigation.mockReturnValue({
+      mockMoneyEntryContext = {
+        accessBlockReason: undefined,
         isOnboardingRedirectNeeded,
-        navigateToMoneyHome: mockNavigateToMoneyHome,
-      } as ReturnType<typeof useMoneyNavigation>);
+        isSplashRedirectNeeded,
+      };
       mockSectionResult({ assetSlots: [] });
 
       renderEarnSection();
@@ -712,25 +677,11 @@ describe('EarnSection', () => {
         component_name: 'earn_section_money_card',
         redirect_target: redirectTarget,
       });
-      expect(mockNavigateToMoneyHome).toHaveBeenCalledWith();
+      expect(mockNavigateToMoneyDeposit).toHaveBeenCalledWith({
+        track: expect.any(Function),
+      });
     },
   );
-
-  it('passes zero-balance asset and Home source to Earn opportunity navigation', () => {
-    mockSectionResult({ assetSlots: [zeroBalanceAssetSlot] });
-
-    render(<HomepageEarnSection sectionIndex={0} totalSectionsLoaded={1} />);
-
-    fireEvent.press(screen.getByTestId(EarnSectionTestIds.ASSET_CARD(0)));
-
-    expect(mockNavigateFromEarnAsset).toHaveBeenCalledWith(
-      zeroBalanceAssetSlot.asset,
-      TokenDetailsSource.HomeSection,
-      expect.objectContaining({
-        entry_point: 'homepage',
-      }),
-    );
-  });
 
   it('displays a retryable error without hiding healthy asset cards', () => {
     mockSectionResult({
@@ -893,27 +844,6 @@ describe('EarnSection', () => {
     });
 
     expect(refresh).toHaveBeenCalledTimes(1);
-  });
-
-  it('refreshes catalogue sources and Money balance from the section refresh handle', async () => {
-    const refresh = jest.fn().mockResolvedValue(undefined);
-    mockSectionResult({ refresh });
-    const ref = createRef<SectionRefreshHandle>();
-
-    render(
-      <HomepageEarnSection
-        ref={ref}
-        sectionIndex={0}
-        totalSectionsLoaded={1}
-      />,
-    );
-
-    await act(async () => {
-      await ref.current?.refresh();
-    });
-
-    expect(refresh).toHaveBeenCalledTimes(1);
-    expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
   });
 
   it('prevents duplicate retries while a refresh is pending', async () => {

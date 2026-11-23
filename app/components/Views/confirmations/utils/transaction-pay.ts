@@ -94,7 +94,12 @@ export function replaceAccountInNestedTransactions({
 export function getRequiredBalance(
   transactionMeta: TransactionMeta,
 ): number | undefined {
-  if (hasTransactionType(transactionMeta, [TransactionType.perpsDeposit])) {
+  if (
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ])
+  ) {
     return PERPS_MINIMUM_DEPOSIT;
   }
 
@@ -177,6 +182,7 @@ export function getAvailableTokens({
   return tokens
     .filter((token) => {
       if (
+        !token.address ||
         token.standard !== TokenStandard.ERC20 ||
         !token.accountType?.includes('eip155') ||
         (token.chainId && isTestNet(token.chainId))
@@ -339,6 +345,7 @@ export function applyMoneyAccountOverride(
 ): void {
   const isPerpsOrPredictWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.perpsWithdraw,
+    TransactionType.perpsLighterWithdraw,
     TransactionType.predictWithdraw,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
@@ -371,6 +378,22 @@ export function getTotalPayFeesUsd(
     .plus(fees.sourceNetwork?.estimate?.usd ?? 0)
     .plus(fees.targetNetwork?.usd ?? 0)
     .plus(fees.metaMask?.usd ?? 0);
+}
+
+/**
+ * String form of a confirmation asset's display-currency balance.
+ *
+ * Pay-with rows format this amount with `$`. It is the number behind
+ * `balanceInSelectedCurrency`, which pay flows already price in USD.
+ * `fiat.balance` stays in the user's preferred currency. Returns `'0'` when
+ * the amount is missing.
+ */
+export function payBalanceUsd(amount: number | undefined): string {
+  if (amount === undefined || !Number.isFinite(amount)) {
+    return '0';
+  }
+
+  return String(amount);
 }
 
 /**

@@ -317,15 +317,20 @@ describe('Order Lifecycle & Funds Flow', () => {
     await act(async () => {
       cleanup();
     });
+    // Extra margin over the $500 requirement so there is something to remove
+    const positionWithRemovableMargin = {
+      ...defaultPositionForViews,
+      marginUsed: '700',
+    };
     renderPerpsView(
       PerpsAdjustMarginView as unknown as React.ComponentType,
       Routes.PERPS.ADJUST_MARGIN,
       {
         initialParams: {
-          position: defaultPositionForViews,
+          position: positionWithRemovableMargin,
           mode: 'remove',
         },
-        streamOverrides: { positions: [defaultPositionForViews] },
+        streamOverrides: { positions: [positionWithRemovableMargin] },
       },
     );
     const removeMarginElements = await screen.findAllByText(

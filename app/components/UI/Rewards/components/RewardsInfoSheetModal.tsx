@@ -3,21 +3,17 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import {
   BottomSheet,
+  BottomSheetFooter,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  Button,
-  ButtonIcon,
   ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  IconColor,
-  IconName,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 export const REWARDS_INFO_SHEET_MODAL_TEST_IDS = {
   CONTAINER: 'rewards-info-sheet-modal',
@@ -39,13 +35,14 @@ interface RewardsInfoSheetModalProps {
 }
 
 /**
- * Simple info bottom sheet for Rewards (title + description + "Got it").
- * Layout mirrors CampaignOptInSheet: centered header title, close affordance,
- * body copy, and a full-width dismiss CTA.
+ * Title, description, and a primary "Got it" action.
+ * Layout matches the Kol dashboard info sheets: a header with close,
+ * alternative body copy, and a large primary footer button.
  */
 const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
   route,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { title, description } = route.params;
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -58,53 +55,37 @@ const RewardsInfoSheetModal: React.FC<RewardsInfoSheetModalProps> = ({
       onClose={handleClose}
       testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.CONTAINER}
     >
-      <Box twClassName="px-4 pb-4">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mb-6"
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={handleClose}
+        closeButtonProps={{
+          testID: REWARDS_INFO_SHEET_MODAL_TEST_IDS.CLOSE,
+        }}
+        // Header default is px-2 around a 32px button and a 24px icon, which
+        // leaves the glyph 4px outside the px-4 body. px-3 lines it up.
+        twClassName="px-3"
+        testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.TITLE}
+      >
+        {title}
+      </BottomSheetHeaderGlass>
+      <Box twClassName="px-4">
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.DESCRIPTION}
         >
-          <Box twClassName="w-10" />
-          <Box
-            twClassName="flex-1 items-center"
-            justifyContent={BoxJustifyContent.Center}
-          >
-            <Text
-              variant={TextVariant.HeadingSm}
-              fontWeight={FontWeight.Bold}
-              testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.TITLE}
-            >
-              {title}
-            </Text>
-          </Box>
-          <ButtonIcon
-            iconName={IconName.Close}
-            iconProps={{ color: IconColor.IconDefault }}
-            onPress={handleClose}
-            testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.CLOSE}
-          />
-        </Box>
-
-        <Box twClassName="mb-6">
-          <Text
-            variant={TextVariant.BodyMd}
-            twClassName="text-alternative"
-            testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.DESCRIPTION}
-          >
-            {description}
-          </Text>
-        </Box>
-
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Lg}
-          onPress={handleClose}
-          twClassName="w-full"
-          testID={REWARDS_INFO_SHEET_MODAL_TEST_IDS.GOT_IT}
-        >
-          {strings('rewards.upcoming_rewards.cta_label')}
-        </Button>
+          {description}
+        </Text>
       </Box>
+      <BottomSheetFooter
+        primaryButtonProps={{
+          children: strings('rewards.upcoming_rewards.cta_label'),
+          onPress: handleClose,
+          size: ButtonSize.Lg,
+          testID: REWARDS_INFO_SHEET_MODAL_TEST_IDS.GOT_IT,
+        }}
+        twClassName="px-4 pt-6"
+      />
     </BottomSheet>
   );
 };

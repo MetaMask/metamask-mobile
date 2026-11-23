@@ -68,6 +68,46 @@ const privateMethodsLoose = [
   ['@babel/plugin-transform-private-methods', { loose: true }],
 ];
 
+// babel-preset-expo rewrites every `import.meta` to
+// `globalThis.__ExpoImportMetaRegistry`, which only exists inside the Expo
+// native runtime. ESM-only test dependencies that read `import.meta.url` at
+// import time (e.g. @mswjs/interceptors loading its llhttp WASM parser, pulled
+// in by nock 15) therefore crash under Jest with "Cannot read properties of
+// undefined (reading 'url')". These packages are never part of a Metro bundle
+// (they are dev-only), so rewrite `import.meta` to the CommonJS module's own
+// file URL, which resolves package-relative resources correctly under Jest.
+// Inlined to avoid pulling in another dependency.
+// eslint-disable-next-line import-x/no-commonjs
+const importMetaToFileUrl = ({ types: t }) => ({
+  name: 'transform-import-meta-to-file-url',
+  visitor: {
+    MetaProperty(path) {
+      const { node } = path;
+      if (node.meta.name === 'import' && node.property.name === 'meta') {
+        path.replaceWith(
+          t.objectExpression([
+            t.objectProperty(
+              t.identifier('url'),
+              t.memberExpression(
+                t.callExpression(
+                  t.memberExpression(
+                    t.callExpression(t.identifier('require'), [
+                      t.stringLiteral('url'),
+                    ]),
+                    t.identifier('pathToFileURL'),
+                  ),
+                  [t.identifier('__filename')],
+                ),
+                t.identifier('href'),
+              ),
+            ),
+          ]),
+        );
+      }
+    },
+  },
+});
+
 // eslint-disable-next-line import-x/no-commonjs
 module.exports = {
   ignore: [
@@ -99,7 +139,28 @@ module.exports = {
     // `"use strict"` directive into every such module, which breaks code that
     // relies on sloppy-mode semantics. Pinning this to `false` reproduces the
     // pre-Expo-transformer pipeline and prevents the forced strict mode.
-    ['babel-preset-expo', { disableImportExportTransform: false }],
+    //
+    // `unstable_transformProfile` must be pinned: babel-preset-expo picks its
+    // engine preset from the Babel caller's `engine` flag, which only
+    // `@expo/metro-config` sets (from `customTransformOptions.engine`). We
+    // bundle through the React Native CLI, which never sets it, so the preset
+    // silently falls back to the legacy `hermes-v0` profile. That profile runs
+    // `@babel/plugin-transform-named-capturing-groups-regex`, rewriting every
+    // named-group regex into the `@babel/runtime` `_wrapRegExp` helper. The
+    // helper installs its `exec` override via plain assignment onto a prototype
+    // inheriting from `RegExp.prototype`, which LavaMoat's lockdown has already
+    // frozen — so the assignment silently no-ops in sloppy mode and `.groups`
+    // is never populated. Matches then succeed with `match.groups === undefined`
+    // (e.g. `parseCaipChainId('eip155:8453')` throwing "Invalid CAIP chain ID").
+    // Current Hermes supports named capture groups natively, so `hermes-stable`
+    // leaves these regexes alone.
+    [
+      'babel-preset-expo',
+      {
+        disableImportExportTransform: false,
+        unstable_transformProfile: 'hermes-stable',
+      },
+    ],
   ],
   plugins: [
     ...reactCompilerBabelConfig,
@@ -116,16 +177,25 @@ module.exports = {
     // them to `undefined` first, producing the runtime error
     // "The global process.env.EXPO_OS is not defined". Excluding them lets
     // babel-preset-expo define them correctly.
+    // `NODE_ENV` is excluded for the same reason: babel-preset-expo inlines it
+    // from Metro's `dev` option, which is part of Metro's transform cache key.
+    // Inlining the bundler process's NODE_ENV instead is not cache-keyed, so
+    // `expo export:embed --dev false` (which skips --reset-cache in CI) could
+    // reuse transforms made under NODE_ENV=development and ship dev React
+    // (react.development.js, withDevTools) in a release bundle.
     [
       'transform-inline-environment-variables',
       {
         exclude: [
+          'NODE_ENV',
           'JEST_WORKER_ID',
           'EXPO_OS',
           'EXPO_SERVER',
           'EXPO_BASE_URL',
           // Must remain runtime-readable for emergency Appium session-reuse rollback.
           'APPIUM_SESSION_REUSE',
+          // Opt-in Hermes harvest for schedule/manual performance only.
+          'COLLECT_HERMES_CPUPROFILES',
         ],
       },
     ],
@@ -144,6 +214,10 @@ module.exports = {
     },
     {
       test: pathIncludes('/node_modules/@metamask/profile-sync-controller'),
+      plugins: privateMethodsLoose,
+    },
+    {
+      test: pathIncludes('/node_modules/@metamask/profile-controller'),
       plugins: privateMethodsLoose,
     },
     {
@@ -189,6 +263,21 @@ module.exports = {
           },
         ],
       ],
+    },
+    {
+      // nock 15 and its @mswjs/interceptors dependency tree are ESM-only and
+      // read `import.meta.url` at import time. See `importMetaToFileUrl` above
+      // for why babel-preset-expo's own rewrite crashes under Jest.
+      test: (filename) => {
+        const f = posixPath(filename);
+        return (
+          f.includes('/node_modules/nock/') ||
+          f.includes('/node_modules/@mswjs/interceptors/') ||
+          f.includes('/node_modules/@open-draft/until/') ||
+          f.includes('/node_modules/rettime/')
+        );
+      },
+      plugins: [importMetaToFileUrl],
     },
     {
       test: pathIncludes('/node_modules/@noble/secp256k1'),

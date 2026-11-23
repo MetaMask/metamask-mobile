@@ -14,12 +14,16 @@ const ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.w3a\.io$/,
   /^https:\/\/auth\.web3auth\.io$/,
   /^https:\/\/[a-z0-9-]+\.cx\.metamask\.io$/,
+  /^https:\/\/[a-z0-9-]+\.cx\.metamask\.com$/,
   /^https:\/\/developer\.metamask\.io$/,
   /^https:\/\/develop-developer\.metamask\.io$/,
   /^https:\/\/staging-developer\.metamask\.io$/,
+  /^https:\/\/developer\.metamask\.com$/,
+  /^https:\/\/develop-developer\.metamask\.com$/,
+  /^https:\/\/staging-developer\.metamask\.com$/,
 ];
 
-/** Non-prod dashboard hosts used when `MM_DEV_API_ENV=dev`. */
+/** Non-prod dashboard hosts used when `MM_API_ENV=dev`. */
 const DEV_API_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/test-dashboard\.web3auth\.io$/,
   /^https:\/\/dev-developer\.metamask\.io$/,
@@ -33,6 +37,7 @@ const UAT_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
 const PROD_ALLOWED_ORIGIN_PATTERNS: RegExp[] = [
   /^https:\/\/dashboard\.web3auth\.io$/,
   /^https:\/\/developer\.metamask\.io$/,
+  /^https:\/\/developer\.metamask\.com$/,
 ];
 
 const getAllowedOriginPatterns = (): RegExp[] => {

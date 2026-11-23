@@ -41,8 +41,17 @@ plain rationale).
 ### `hasRealManualTesting(section)`
 
 Passes when the `Manual testing steps` section contains either:
-- a filled-in Gherkin block (none of the template placeholder tokens remain), or
-- an explicit `N/A — <reason>` statement.
+
+- author-written steps with none of the template placeholder phrases left
+  (any real Gherkin counts, including a scenario that does not use Background
+  or a When/And action list), or
+- an explicit `N/A` (a short reason is encouraged: `N/A — <reason>`).
+
+It does not enforce the template's Gherkin shape. Placeholder phrases are the
+current skeleton (`[feature name]`, `[one behavior]`, and the other bracketed
+slots) plus the previous skeleton (`Feature: my feature name`,
+`[verb for user action]`, and the other retired slots), so an open PR that
+still has the old example fails until those placeholders are replaced.
 
 ### `hasScreenshotsOrNa(section)`
 
@@ -124,6 +133,11 @@ Key-value pairs are space-separated. Supported keys:
 Sections with **no** directive are checked for structural presence only (heading
 must exist in the PR body) but receive no semantic validator. The reviewer
 checklist uses this mode intentionally.
+
+Sections marked `required=false` are also left out of the structural heading
+check in `template.ts` (`PR_TEMPLATE_SECTIONS`). A PR body may omit them without
+being flagged as the wrong template. `runAllChecks` skips them, so their content
+is not validated either.
 
 ### Safety at startup
 

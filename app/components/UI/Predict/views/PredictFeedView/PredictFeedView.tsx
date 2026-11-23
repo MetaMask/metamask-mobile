@@ -7,10 +7,10 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { FlashList } from '@shopify/flash-list';
+import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  HeaderStandard,
   IconName,
   Text,
   TextColor,
@@ -20,6 +20,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
+import { TraceName } from '../../../../../util/trace';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import {
   TabItem,
   TabsBar,
@@ -32,6 +35,7 @@ import PredictChipList from '../../components/PredictChipList';
 import PredictSearchOverlay from '../../components/PredictSearchOverlay';
 import { usePredictFeedConfig } from '../../hooks/usePredictFeedConfig';
 import { usePredictFeedMarketList } from '../../hooks/usePredictFeedMarketList';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictSearch } from '../../hooks/usePredictSearch';
 import {
   PredictFeedViewSelectorsIDs,
@@ -57,6 +61,7 @@ const INITIAL_SKELETON_COUNT = 4;
 const PredictFeedView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictFeed'>>();
   const { feedId, initialTabId, initialFilterId, entryPoint } =
@@ -66,6 +71,7 @@ const PredictFeedView: React.FC = () => {
   const {
     status,
     titleKey,
+    label,
     header,
     tabs,
     showTabBar,
@@ -80,6 +86,8 @@ const PredictFeedView: React.FC = () => {
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+  const title =
+    label ?? (titleKey ? strings(titleKey, { defaultValue: feedId }) : feedId);
   const showSportsLiveFirst =
     feedId === 'sports' && activeFilter?.showLiveFirst === true;
 
@@ -266,6 +274,20 @@ const PredictFeedView: React.FC = () => {
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // End on list, empty, or error, not on first paint. Config can be unresolved
+  // while `isLoading` is already false (the query is disabled), and search
+  // starts hidden, so either flag alone would close the span at ~0ms.
+  const isFeedInteractive = isReady && !isLoading;
+  usePredictMeasurement({
+    traceName: TraceName.PredictFeedView,
+    conditions: [!isSearchVisible, isFeedInteractive],
+    debugContext: {
+      feedId: feedId ?? '',
+      isSearchVisible,
+      isFeedInteractive,
+    },
+  });
+
   const renderItem = useCallback(
     ({ item, index }: { item: PredictMarketType; index: number }) => (
       <PredictMarket
@@ -334,7 +356,7 @@ const PredictFeedView: React.FC = () => {
             color={TextColor.PrimaryAlternative}
           >
             {strings('predict.search_empty_state', {
-              category: titleKey ? strings(titleKey) : '',
+              category: title ?? '',
             })}
           </Text>
         </Box>
@@ -375,9 +397,11 @@ const PredictFeedView: React.FC = () => {
       style={tw.style('flex-1 bg-default')}
       testID={PredictFeedViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         includesTopInset
-        title={titleKey ? strings(titleKey) : undefined}
+        title={title}
         onBack={header?.showBackButton ? handleBack : undefined}
         backButtonProps={{ testID: PredictMarketListSelectorsIDs.BACK_BUTTON }}
         endButtonIconProps={

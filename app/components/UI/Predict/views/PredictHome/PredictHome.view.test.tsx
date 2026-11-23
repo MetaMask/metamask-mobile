@@ -24,6 +24,7 @@ import { PREDICT_HEADER_STACKED_TEST_IDS } from '../../components/PredictHeaderS
 import { MOCK_PREDICT_LIVE_SPORT_MARKET } from '../../../../../../tests/component-view/fixtures/predict';
 import { PredictEventValues } from '../../constants/eventNames';
 import { PredictFeedBannerSelectorsIDs } from '../../components/PredictFeedBanner';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
@@ -63,6 +64,18 @@ const feedBannerEnabledOverrides = {
             severity: PredictFeedBannerSeverity.Warning,
             dismissible: true,
           },
+        },
+      },
+    },
+  },
+};
+
+const brandRefreshOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          predictBrandRefresh: { enabled: true, minimumVersion: '0.0.1' },
         },
       },
     },
@@ -172,6 +185,50 @@ describe('PredictHome', () => {
       expect(
         queryByTestId(PredictFeedBannerSelectorsIDs.BANNER),
       ).not.toBeOnTheScreen();
+    });
+
+    it('omits the Live Now divider and impression wrapper when the section hides itself', async () => {
+      // Live Now returns null when no sports/crypto markets survive filtering.
+      (
+        Engine.context.PredictController.listMarkets as jest.Mock
+      ).mockResolvedValue({ markets: [], nextCursor: null });
+
+      const { findByTestId, queryByTestId } = renderPredictHomeView();
+
+      // Wait for the rest of the shell to settle so we know the Live Now query
+      // has completed (empty) and the section has had a chance to hide.
+      await findByTestId(PredictHomeSelectorsIDs.CATEGORIES_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.LIVE_NOW_IMPRESSION),
+        ).not.toBeOnTheScreen();
+      });
+    });
+
+    it('omits the Popular Today divider and impression wrapper when the section hides itself', async () => {
+      // Popular Today returns null when the related-tags request yields no chips.
+      (
+        Engine.context.PredictController.listFilterOptions as jest.Mock
+      ).mockResolvedValue([]);
+
+      const { findByTestId, queryByTestId } = renderPredictHomeView();
+
+      await findByTestId(PredictHomeSelectorsIDs.LIVE_NOW_SECTION);
+      await findByTestId(PredictHomeSelectorsIDs.TRENDING_SECTION);
+
+      await waitFor(() => {
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_SECTION),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByTestId(PredictHomeSelectorsIDs.POPULAR_TODAY_IMPRESSION),
+        ).not.toBeOnTheScreen();
+      });
     });
   });
 
@@ -317,6 +374,29 @@ describe('PredictHome', () => {
           getByTestId(PREDICT_HEADER_STACKED_TEST_IDS.COMPACT_TITLE),
         ).toBeOnTheScreen();
       });
+    });
+  });
+
+  describe('brand refresh', () => {
+    it('floats the header on the scroll edge fade and still opens search', async () => {
+      const { findByTestId, getByTestId, findByPlaceholderText } =
+        renderPredictHomeView({ overrides: brandRefreshOverrides });
+
+      expect(
+        await findByTestId(FLOATING_HEADER_FADE_TEST_ID),
+      ).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON));
+
+      expect(await findByPlaceholderText(SEARCH_PLACEHOLDER)).toBeOnTheScreen();
+    });
+
+    it('keeps the inline header when the flag is off', async () => {
+      const { queryByTestId, findByTestId } = renderPredictHomeView();
+
+      await findByTestId(PredictHomeSelectorsIDs.TITLE);
+
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).not.toBeOnTheScreen();
     });
   });
 });

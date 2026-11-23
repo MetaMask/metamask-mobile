@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import {
   selectBasicFunctionalityEnabled,
+  selectHasLinkedSocialLoginProfile,
   selectIsBasicFunctionalityConsolidatedEnabled,
 } from '../../settings';
 import { RootState } from '../../../reducers';
@@ -195,10 +196,11 @@ export const selectShouldShowBasicFunctionalityMigrationToast = createSelector(
 );
 
 /**
- * True when this wallet reached consolidation through a social login, from
- * either onboarding metadata or SeedlessOnboardingController state.
+ * True when this wallet is known locally to be social, from onboarding
+ * metadata or SeedlessOnboardingController state, without consulting the
+ * linked-profile signal that only arrives after sign-in.
  */
-export const selectIsBasicFunctionalitySocialLoginUser = createSelector(
+export const selectIsLocallyKnownSocialLoginUser = createSelector(
   selectOnboardingAccountType,
   selectSeedlessAuthConnection,
   selectHasSeedlessVault,
@@ -207,6 +209,30 @@ export const selectIsBasicFunctionalitySocialLoginUser = createSelector(
       accountType,
       authConnection,
       hasSeedlessVault,
+    }),
+);
+
+/**
+ * True when this wallet reached consolidation through a social login, from
+ * onboarding metadata, SeedlessOnboardingController state, or a social profile
+ * linked to its SRP.
+ */
+export const selectIsBasicFunctionalitySocialLoginUser = createSelector(
+  selectOnboardingAccountType,
+  selectSeedlessAuthConnection,
+  selectHasSeedlessVault,
+  selectHasLinkedSocialLoginProfile,
+  (
+    accountType,
+    authConnection,
+    hasSeedlessVault,
+    hasLinkedSocialLoginProfile,
+  ) =>
+    isBasicFunctionalitySocialLoginUser({
+      accountType,
+      authConnection,
+      hasSeedlessVault,
+      hasLinkedSocialLoginProfile,
     }),
 );
 
@@ -228,17 +254,39 @@ export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
 );
 
 /**
- * True when an already-consolidated social-login wallet still has Basic
- * Functionality off. Consolidation re-runs for these wallets to put them back
- * on, covering a failed migration or an off state written before the cohort
- * marker landed.
+ * True when an already-consolidated social-login wallet needs repair: Basic
+ * Functionality is off, or the wallet only turned out to be social once its
+ * SRP was linked to a profile, so it was given the wrong notice or none.
+ *
+ * A mixed wallet migrates to the toast before sign-in reveals the linked
+ * profile, so an undismissed toast is also repaired up to the social sheet.
+ *
+ * The notice repair excludes wallets already known locally to be social.
+ * Onboarding enrols those without a notice by design, so treating their later
+ * profile signal as a missed migration would show the existing-wallet sheet to
+ * a brand new social wallet.
  */
 export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
   selectIsBasicFunctionalityConsolidatedEnabled,
   selectBasicFunctionalityEnabled,
   selectIsBasicFunctionalitySocialLoginUser,
-  (isPersistedConsolidated, isBasicFunctionalityEnabled, isSocialLoginUser) =>
-    isPersistedConsolidated &&
-    !isBasicFunctionalityEnabled &&
+  selectIsLocallyKnownSocialLoginUser,
+  selectHasLinkedSocialLoginProfile,
+  selectBasicFunctionalityMigrationNotification,
+  selectIsBasicFunctionalityMigrationNotificationDismissed,
+  (
+    isPersistedConsolidated,
+    isBasicFunctionalityEnabled,
     isSocialLoginUser,
+    isLocallyKnownSocialLoginUser,
+    hasLinkedSocialLoginProfile,
+    migrationNotification,
+    isMigrationNotificationDismissed,
+  ) =>
+    isPersistedConsolidated &&
+    ((!isBasicFunctionalityEnabled && isSocialLoginUser) ||
+      (hasLinkedSocialLoginProfile === true &&
+        !isLocallyKnownSocialLoginUser &&
+        !isMigrationNotificationDismissed &&
+        migrationNotification !== 'bottom-sheet')),
 );

@@ -69,14 +69,17 @@ export function isBasicFunctionalitySocialLoginUser({
   accountType,
   authConnection,
   hasSeedlessVault,
+  hasLinkedSocialLoginProfile,
 }: {
   accountType?: string;
   authConnection?: string;
   hasSeedlessVault?: boolean;
+  hasLinkedSocialLoginProfile?: boolean;
 }): boolean {
   return (
     Boolean(authConnection) ||
     hasSeedlessVault === true ||
+    hasLinkedSocialLoginProfile === true ||
     accountType?.includes('google') === true ||
     accountType?.includes('apple') === true ||
     accountType?.includes('telegram') === true

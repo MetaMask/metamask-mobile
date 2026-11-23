@@ -5,27 +5,31 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
+  ButtonsAlignment,
   ButtonSize,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../../util/haptics';
+import {
   COHORT_LABEL_KEY,
-  COHORT_LEADING_EMOJI,
-  COHORT_OPTIONS_WITH_FOLLOWING,
-  COHORT_OPTIONS_WITHOUT_FOLLOWING,
+  COHORT_OPTIONS_FOLLOWING,
+  COHORT_OPTIONS_LEADERBOARD,
+  COHORT_OPTIONS_LIVE,
   MARKET_CAP_RANGE,
-  NETWORK_LABEL_KEY,
-  NETWORK_OPTIONS,
+  POSITION_STATUS_LABEL_KEY,
+  POSITION_STATUS_OPTIONS,
   TIMEFRAME_LABEL_KEY,
   TIMEFRAME_OPTIONS,
   TYPE_LABEL_KEY,
   TYPE_OPTIONS,
+  VERIFICATION_LABEL_KEY,
+  VERIFICATION_OPTIONS,
   VOLUME_24H_RANGE,
 } from './filterDefaults';
 import {
@@ -35,18 +39,32 @@ import {
 import FilterChipSection from './sections/FilterChipSection';
 import FilterRangeSection from './sections/FilterRangeSection';
 import type {
-  SocialFilterNetwork,
+  SocialFilterPositionStatus,
   SocialFilterTimeframe,
   SocialFilterType,
+  SocialFilterVerification,
   SocialRangeFilter,
   SocialShellFilters,
   SocialTraderCohort,
 } from './types';
 import type { SocialShellTab } from '../types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  // Overrides the footer's `flex-1` so Reset is sized by its label and Apply
+  // takes the rest. `flexShrink` keeps a longer translation from pushing Apply
+  // off the row.
+  resetButton: {
+    flexGrow: 0,
+    flexShrink: 1,
+    flexBasis: 'auto',
+    paddingLeft: 25,
+    paddingRight: 25,
   },
 });
 
@@ -57,8 +75,10 @@ export interface SocialFiltersBottomSheetProps {
   draft: SocialShellFilters;
   /** Called when the user edits any filter chip/slider. */
   onChange: (patch: Partial<SocialShellFilters>) => void;
-  /** Called when the user taps "Show results". Commits the draft. */
+  /** Called when the user taps Apply. Commits the draft. */
   onApply: () => void;
+  /** Called when the user taps Reset. Restores the draft to defaults. */
+  onReset: () => void;
   /** Called when the user dismisses the sheet (backdrop tap, close button). */
   onClose: () => void;
 }
@@ -69,48 +89,67 @@ const formatMarketCapLabel = (value: SocialRangeFilter) =>
 const formatVolume24hLabel = (value: SocialRangeFilter) =>
   `$${value.min}M - $${value.max}M`;
 
+const cohortOptionsForTab = (tab: SocialShellTab): SocialTraderCohort[] => {
+  if (tab === 'leaderboard') {
+    return COHORT_OPTIONS_LEADERBOARD;
+  }
+  if (tab === 'live') {
+    return COHORT_OPTIONS_LIVE;
+  }
+  return COHORT_OPTIONS_FOLLOWING;
+};
+
 /**
- * Unified Filters bottom sheet for the Social Bundle V1 shell. Replaces the
- * per-filter `FilterOptionSheet` pattern with a single sheet that shows
- * tab-specific sections. The sheet is mounted inside a full-screen `Modal`
- * (same pattern as the V0 `FilterOptionSheet`) so the backdrop covers the
- * header + tabs, but renders the MMDS `BottomSheet` inside.
- *
- * The sheet is a controlled component: the parent owns the draft state via
- * `useSocialShellFilters` and passes `onChange` patches. "Show results"
- * triggers `onApply`, which commits the draft and closes the sheet.
+ * Unified Filters bottom sheet for the Social Bundle V1 shell.
  */
 const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   tab,
   draft,
   onChange,
   onApply,
+  onReset,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
 
-  // Per-tab section visibility (from the Figma screenshots).
-  const showTimeframe = tab !== 'liveTrades';
-  const showRanges = tab !== 'leaderboard';
-  const cohortOptions =
-    tab === 'leaderboard'
-      ? COHORT_OPTIONS_WITHOUT_FOLLOWING
-      : COHORT_OPTIONS_WITH_FOLLOWING;
+  const showType = tab !== 'leaderboard';
+  const showPositions = tab !== 'leaderboard';
+  const showTimeframe = tab === 'leaderboard';
+  // Market cap is no longer offered on these sheets.
+  const showMarketCap = false;
+  // TODO: show 24h volume once the feed / live payload (or API) carries token
+  // 24h volume so the slider can filter rather than sit as chrome.
+  const showVolume24h = false;
+  // TODO: show Verification once posts/traders expose a real verified field.
+  // The blue check on cards is mocked today.
+  const showVerification = false;
+  const typeOptions = TYPE_OPTIONS;
+  const cohortOptions = cohortOptionsForTab(tab);
+  // Traders stays on Leaderboard. Following has only All, and Live no longer
+  // offers the section.
+  const showTraderCohort = tab === 'leaderboard';
 
   const handleTypeChange = useCallback(
     (next: string) => onChange({ type: next as SocialFilterType }),
+    [onChange],
+  );
+  const handlePositionStatusChange = useCallback(
+    (next: string) =>
+      onChange({ positionStatus: next as SocialFilterPositionStatus }),
     [onChange],
   );
   const handleCohortChange = useCallback(
     (next: string) => onChange({ traderCohort: next as SocialTraderCohort }),
     [onChange],
   );
-  const handleTimeframeChange = useCallback(
-    (next: string) => onChange({ timeframe: next as SocialFilterTimeframe }),
+  const handleVerificationChange = useCallback(
+    (next: string) =>
+      onChange({ verification: next as SocialFilterVerification }),
     [onChange],
   );
-  const handleNetworkChange = useCallback(
-    (next: string) => onChange({ network: next as SocialFilterNetwork }),
+  const handleTimeframeChange = useCallback(
+    (next: string) => onChange({ timeframe: next as SocialFilterTimeframe }),
     [onChange],
   );
   const handleMarketCapChange = useCallback(
@@ -122,22 +161,37 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
     [onChange],
   );
 
-  const typeOptions = useMemo(
+  const positionStatusOptions = useMemo(
     () =>
-      TYPE_OPTIONS.map((id) => ({
+      POSITION_STATUS_OPTIONS.map((id) => ({
+        id,
+        labelKey: POSITION_STATUS_LABEL_KEY[id],
+      })),
+    [],
+  );
+  const typeOptionObjects = useMemo(
+    () =>
+      typeOptions.map((id) => ({
         id,
         labelKey: TYPE_LABEL_KEY[id],
       })),
-    [],
+    [typeOptions],
   );
   const cohortOptionObjects = useMemo(
     () =>
       cohortOptions.map((id) => ({
         id,
         labelKey: COHORT_LABEL_KEY[id],
-        leadingEmoji: COHORT_LEADING_EMOJI[id],
       })),
     [cohortOptions],
+  );
+  const verificationOptionObjects = useMemo(
+    () =>
+      VERIFICATION_OPTIONS.map((id) => ({
+        id,
+        labelKey: VERIFICATION_LABEL_KEY[id],
+      })),
+    [],
   );
   const timeframeOptions = useMemo(
     () =>
@@ -147,23 +201,32 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
       })),
     [],
   );
-  const networkOptions = useMemo(
-    () =>
-      NETWORK_OPTIONS.map((id) => ({
-        id,
-        labelKey: NETWORK_LABEL_KEY[id],
-      })),
-    [],
-  );
 
-  const showResultsButtonProps = useMemo(
+  const applyButtonProps = useMemo(
     () => ({
-      children: strings('social_leaderboard.shell.filters.show_results'),
-      onPress: onApply,
+      children: strings('social_leaderboard.shell.filters.apply'),
+      onPress: () => {
+        fireImpact(ImpactMoment.PrimaryCTA);
+        onApply();
+      },
       size: ButtonSize.Lg,
-      testID: SocialFiltersBottomSheetSelectorsIDs.SHOW_RESULTS,
+      testID: SocialFiltersBottomSheetSelectorsIDs.APPLY,
     }),
     [onApply],
+  );
+
+  const resetButtonProps = useMemo(
+    () => ({
+      children: strings('social_leaderboard.shell.filters.reset'),
+      onPress: () => {
+        playSelection().catch(() => undefined);
+        onReset();
+      },
+      size: ButtonSize.Lg,
+      style: styles.resetButton,
+      testID: SocialFiltersBottomSheetSelectorsIDs.RESET,
+    }),
+    [onReset],
   );
 
   return (
@@ -191,32 +254,57 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
               onClose={onClose}
               testID={SocialFiltersBottomSheetSelectorsIDs.SHEET}
             >
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={onClose}
                 closeButtonProps={{
                   testID: SocialFiltersBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}
               >
                 {strings('social_leaderboard.shell.filters.title')}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
 
               <ScrollView>
-                <Box twClassName="px-4 pb-4">
-                  <FilterChipSection<SocialFilterType>
-                    titleKey="social_leaderboard.shell.filters.section.type"
-                    options={typeOptions}
-                    value={draft.type}
-                    onChange={handleTypeChange}
-                    testID="social-filters-type"
-                  />
+                <Box twClassName="px-4 pb-4 mb-4">
+                  {showType ? (
+                    <FilterChipSection<SocialFilterType>
+                      titleKey="social_leaderboard.shell.filters.section.type"
+                      options={typeOptionObjects}
+                      value={draft.type}
+                      onChange={handleTypeChange}
+                      testID="social-filters-type"
+                    />
+                  ) : null}
 
-                  <FilterChipSection<SocialTraderCohort>
-                    titleKey="social_leaderboard.shell.filters.section.trader_cohort"
-                    options={cohortOptionObjects}
-                    value={draft.traderCohort}
-                    onChange={handleCohortChange}
-                    testID="social-filters-cohort"
-                  />
+                  {showPositions ? (
+                    <FilterChipSection<SocialFilterPositionStatus>
+                      titleKey="social_leaderboard.shell.filters.section.positions"
+                      options={positionStatusOptions}
+                      value={draft.positionStatus}
+                      onChange={handlePositionStatusChange}
+                      testID="social-filters-positions"
+                    />
+                  ) : null}
+
+                  {showVerification ? (
+                    <FilterChipSection<SocialFilterVerification>
+                      titleKey="social_leaderboard.shell.filters.section.verification"
+                      options={verificationOptionObjects}
+                      value={draft.verification}
+                      onChange={handleVerificationChange}
+                      testID="social-filters-verification"
+                    />
+                  ) : null}
+
+                  {showTraderCohort ? (
+                    <FilterChipSection<SocialTraderCohort>
+                      titleKey="social_leaderboard.shell.filters.section.trader_cohort"
+                      options={cohortOptionObjects}
+                      value={draft.traderCohort}
+                      onChange={handleCohortChange}
+                      testID="social-filters-cohort"
+                    />
+                  ) : null}
 
                   {showTimeframe ? (
                     <FilterChipSection<SocialFilterTimeframe>
@@ -228,40 +316,37 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
                     />
                   ) : null}
 
-                  <FilterChipSection<SocialFilterNetwork>
-                    titleKey="social_leaderboard.shell.filters.section.network"
-                    options={networkOptions}
-                    value={draft.network}
-                    onChange={handleNetworkChange}
-                    testID="social-filters-network"
-                  />
+                  {showMarketCap ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.market_cap"
+                      minimumValue={MARKET_CAP_RANGE.min}
+                      maximumValue={MARKET_CAP_RANGE.max}
+                      value={draft.marketCap}
+                      onValueChange={handleMarketCapChange}
+                      formatLabel={formatMarketCapLabel}
+                      testID={getFilterRangeTestId('market_cap')}
+                    />
+                  ) : null}
 
-                  {showRanges ? (
-                    <>
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.market_cap"
-                        minimumValue={MARKET_CAP_RANGE.min}
-                        maximumValue={MARKET_CAP_RANGE.max}
-                        value={draft.marketCap}
-                        onValueChange={handleMarketCapChange}
-                        formatLabel={formatMarketCapLabel}
-                        testID={getFilterRangeTestId('market_cap')}
-                      />
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.volume_24h"
-                        minimumValue={VOLUME_24H_RANGE.min}
-                        maximumValue={VOLUME_24H_RANGE.max}
-                        value={draft.volume24h}
-                        onValueChange={handleVolume24hChange}
-                        formatLabel={formatVolume24hLabel}
-                        testID={getFilterRangeTestId('volume_24h')}
-                      />
-                    </>
+                  {showVolume24h ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.volume_24h"
+                      minimumValue={VOLUME_24H_RANGE.min}
+                      maximumValue={VOLUME_24H_RANGE.max}
+                      value={draft.volume24h}
+                      onValueChange={handleVolume24hChange}
+                      formatLabel={formatVolume24hLabel}
+                      testID={getFilterRangeTestId('volume_24h')}
+                    />
                   ) : null}
                 </Box>
               </ScrollView>
 
-              <BottomSheetFooter primaryButtonProps={showResultsButtonProps} />
+              <BottomSheetFooter
+                buttonsAlignment={ButtonsAlignment.Horizontal}
+                secondaryButtonProps={resetButtonProps}
+                primaryButtonProps={applyButtonProps}
+              />
             </BottomSheet>
           </Box>
         </GestureHandlerRootView>

@@ -164,6 +164,31 @@ describe('sortPositions', () => {
 
       expect(result.map((p) => p.positionId)).toEqual(['a', 'z']);
     });
+
+    it('treats null realizedPnl as 0 for value sort', () => {
+      const nullPnl = makeClosed({
+        positionId: 'z',
+        realizedPnl: null,
+        lastTradeAt: 5_000,
+      });
+
+      const result = sortPositions([nullPnl, a], 'value', 'closed');
+
+      expect(result.map((p) => p.positionId)).toEqual(['a', 'z']);
+    });
+
+    it('treats null boughtUsd as 0 P&L percent', () => {
+      const nullBought = makeClosed({
+        positionId: 'z',
+        realizedPnl: 100,
+        boughtUsd: null,
+        lastTradeAt: 5_000,
+      });
+
+      const result = sortPositions([nullBought, a], 'pnl', 'closed');
+
+      expect(result.map((p) => p.positionId)).toEqual(['a', 'z']);
+    });
   });
 
   describe('immutability', () => {

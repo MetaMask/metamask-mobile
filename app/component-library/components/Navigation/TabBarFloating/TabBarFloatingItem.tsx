@@ -1,5 +1,10 @@
 import React from 'react';
 import {
+  BadgeStatus,
+  BadgeStatusStatus,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   ButtonAnimated,
   FontWeight,
   Icon,
@@ -23,6 +28,8 @@ export interface TabBarFloatingItemProps {
   isActive: boolean;
   onPress: () => void;
   testID?: string;
+  showNewBadge?: boolean;
+  newBadgeTestID?: string;
 }
 
 const TabBarFloatingItem = ({
@@ -31,6 +38,8 @@ const TabBarFloatingItem = ({
   isActive,
   onPress,
   testID,
+  showNewBadge = false,
+  newBadgeTestID,
 }: TabBarFloatingItemProps) => {
   const tw = useTailwind();
 
@@ -47,11 +56,26 @@ const TabBarFloatingItem = ({
       accessibilityState={{ selected: isActive }}
       accessible
     >
-      <Icon
-        name={iconName}
-        size={TAB_BAR_FLOATING_ICON_SIZE}
-        color={isActive ? IconColor.IconDefault : IconColor.IconAlternative}
-      />
+      <BadgeWrapper
+        twClassName="self-center"
+        position={BadgeWrapperPosition.TopRight}
+        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        badge={
+          showNewBadge ? (
+            <BadgeStatus
+              status={BadgeStatusStatus.Active}
+              twClassName="translate-x-1"
+              testID={newBadgeTestID}
+            />
+          ) : null
+        }
+      >
+        <Icon
+          name={iconName}
+          size={TAB_BAR_FLOATING_ICON_SIZE}
+          color={isActive ? IconColor.IconDefault : IconColor.IconAlternative}
+        />
+      </BadgeWrapper>
       <Text
         variant={TextVariant.BodyXs}
         fontWeight={isActive ? FontWeight.Medium : FontWeight.Regular}

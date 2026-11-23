@@ -5,6 +5,7 @@ import {
   type PublishBatchHookTransaction,
 } from '@metamask/transaction-controller';
 import {
+  getErrorData,
   SignedTransactionWithMetadata,
   SmartTransactionsController,
   SmartTransactionsControllerSmartTransactionEvent,
@@ -89,7 +90,7 @@ class SmartTransactionHook {
     this.#transactions = transactions;
   }
 
-  async submit() {
+  async submit(): Promise<{ transactionHash?: string; getFeesError?: string }> {
     // Will cause TransactionController to publish to the RPC provider as normal.
     Logger.log(
       LOG_PREFIX,
@@ -113,13 +114,18 @@ class SmartTransactionHook {
       this.#transactionMeta.type,
     );
 
+    let getFeesResponse: Fees | undefined;
     try {
-      const getFeesResponse = await this.#getFees();
+      getFeesResponse = await this.#getFees();
+    } catch (error) {
       // In the event that STX health check passes, but for some reason /getFees fails, we fallback to a regular transaction
-      if (!getFeesResponse) {
-        return useRegularTransactionSubmit;
-      }
+      return {
+        ...useRegularTransactionSubmit,
+        getFeesError: getErrorData(error),
+      };
+    }
 
+    try {
       const batchStatusPollingInterval =
         this.#featureFlags?.batchStatusPollingInterval ??
         DEFAULT_BATCH_STATUS_POLLING_INTERVAL;
@@ -230,17 +236,12 @@ class SmartTransactionHook {
     }
   }
 
-  #getFees = async () => {
-    try {
-      return await this.#smartTransactionsController.getFees(
-        { ...this.#txParams, chainId: this.#chainId },
-        undefined,
-        { networkClientId: this.#transactionMeta.networkClientId },
-      );
-    } catch (error) {
-      return undefined;
-    }
-  };
+  #getFees = async () =>
+    await this.#smartTransactionsController.getFees(
+      { ...this.#txParams, chainId: this.#chainId },
+      undefined,
+      { networkClientId: this.#transactionMeta.networkClientId },
+    );
 
   #getTransactionHash = async (
     // TODO: Replace "any" with type

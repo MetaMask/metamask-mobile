@@ -1,0 +1,108 @@
+export interface ChartPoint {
+  x: number;
+  y: number;
+}
+
+export interface ChartFrame {
+  width: number;
+  height: number;
+  /** Vertical breathing room so the line and pills never touch the edges. */
+  insetTop: number;
+  insetBottom: number;
+}
+
+export interface ChartScale {
+  toX: (index: number) => number;
+  toY: (value: number) => number;
+  indexAtX: (x: number) => number;
+}
+
+/**
+ * Linear index → x and value → y mapping. The y domain covers the line and
+ * every reference level, so an entry far from the current price still lands
+ * on the chart instead of off its edge. Vertical breathing room comes from
+ * the frame insets, not from padding the domain.
+ */
+export function buildChartScale({
+  values,
+  extraValues = [],
+  frame,
+}: {
+  values: readonly number[];
+  extraValues?: readonly number[];
+  frame: ChartFrame;
+}): ChartScale | null {
+  const count = values.length;
+  if (count < 2 || frame.width <= 0 || frame.height <= 0) return null;
+
+  const domain = [...values, ...extraValues].filter(Number.isFinite);
+  let min = Math.min(...domain);
+  let max = Math.max(...domain);
+  if (min === max) {
+    const flatPad = Math.abs(min) * 0.01 || 1;
+    min -= flatPad;
+    max += flatPad;
+  }
+
+  const plotHeight = frame.height - frame.insetTop - frame.insetBottom;
+  const lastIndex = count - 1;
+
+  return {
+    toX: (index) => (index / lastIndex) * frame.width,
+    toY: (value) =>
+      frame.insetTop + (1 - (value - min) / (max - min)) * plotHeight,
+    indexAtX: (x) => {
+      const clamped = Math.min(Math.max(x, 0), frame.width);
+      return Math.round((clamped / frame.width) * lastIndex);
+    },
+  };
+}
+
+export function buildLinePoints(
+  values: readonly number[],
+  scale: ChartScale,
+): ChartPoint[] {
+  return values.map((value, index) => ({
+    x: scale.toX(index),
+    y: scale.toY(value),
+  }));
+}
+
+export function buildLinePath(points: readonly ChartPoint[]): string {
+  return points
+    .map(
+      (point, index) =>
+        `${index === 0 ? 'M' : 'L'}${point.x.toFixed(2)},${point.y.toFixed(2)}`,
+    )
+    .join(' ');
+}
+
+/** Exact length of the polyline, which the line-draw dash animation needs. */
+export function measurePolylineLength(points: readonly ChartPoint[]): number {
+  let length = 0;
+  for (let i = 1; i < points.length; i++) {
+    length += Math.hypot(
+      points[i].x - points[i - 1].x,
+      points[i].y - points[i - 1].y,
+    );
+  }
+  return length;
+}
+
+/** Index of the marker closest to `x` within `threshold`, else `-1`. */
+export function findNearestMarkerIndex(
+  markerXs: readonly number[],
+  x: number,
+  threshold: number,
+): number {
+  let bestIndex = -1;
+  let bestDistance = threshold;
+  markerXs.forEach((markerX, index) => {
+    const distance = Math.abs(markerX - x);
+    if (distance <= bestDistance) {
+      bestDistance = distance;
+      bestIndex = index;
+    }
+  });
+  return bestIndex;
+}

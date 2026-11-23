@@ -27,7 +27,7 @@ import Animated, {
 import { strings } from '../../../../../../locales/i18n';
 import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
-import type { FeedAudience } from '../types';
+import type { FeedAudience } from '../../../../UI/SocialFeed/types';
 import {
   FeedViewSelectorsIDs,
   getFeedAudienceOptionTestId,

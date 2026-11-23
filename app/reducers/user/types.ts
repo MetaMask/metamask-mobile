@@ -12,6 +12,12 @@ export interface PendingAppInstallAttribution {
   deeplinkPath?: string;
   /** Full referring link URL reported by Branch (`~referring_link`). */
   referringLink?: string;
+  /** Branch `~channel` analytics tag, emitted as `utm_source`. */
+  utmSource?: string;
+  /** Branch `~feature` analytics tag, emitted as `utm_medium`. */
+  utmMedium?: string;
+  /** Branch `~campaign` analytics tag, emitted as `utm_campaign`. */
+  utmCampaign?: string;
 }
 
 export interface PendingAppInstall {
@@ -50,6 +56,7 @@ export interface UserState {
   musdConversionEducationSeen: boolean;
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
   moneyOnboardingSeen: boolean;
+  moneySplashSeen: boolean;
   moneyEarnBannerDismissedTokens: Record<string, boolean>;
   tokenOverviewChartType: ChartType;
   /** Candle interval (e.g. '15m') when technical indicators chart is enabled. */
@@ -60,4 +67,8 @@ export interface UserState {
   appInstallEventFired: boolean;
   /** Install awaiting a consent decision, or `null` when nothing is pending. */
   pendingAppInstall: PendingAppInstall | null;
+  /** Whether the Swaps Limit tab has been opened, hiding its discovery dot. */
+  bridgeLimitTabSeen: boolean;
+  /** Whether the Swaps Recurring tab has been opened, hiding its discovery dot. */
+  bridgeRecurringTabSeen: boolean;
 }

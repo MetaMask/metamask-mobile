@@ -53,7 +53,8 @@ import {
   type TokenHolding,
 } from './mmpay-token-holdings-registry.ts';
 import type { AssetsControllerState } from '@metamask/assets-controller';
-import type { CaipAssetType } from '@metamask/utils';
+import { bytesToHex, type CaipAssetType } from '@metamask/utils';
+import { sha256 } from '@noble/hashes/sha2';
 import type {
   Fixture,
   ProviderConfig,
@@ -67,6 +68,12 @@ import type {
 import type { PreferencesState } from '@metamask/preferences-controller';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import { CardControllerState } from '../../../app/core/Engine/controllers/card-controller/types.ts';
+import { applyStateLogOmittedFields } from './state-log-omitted-fields.ts';
+import {
+  referralMeWithInvitedBenefit,
+  REWARDS_MONEY_E2E_PROFILE_ID,
+  REWARDS_MONEY_SUBSCRIPTION_ID,
+} from '../../api-mocking/mock-responses/rewards-money.ts';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -119,6 +126,51 @@ export interface MainnetUsdcFixtureOptions {
   hasUsdcBalance?: boolean;
   usdcBalance?: number;
 }
+
+/**
+ * State of the removed legacy asset controllers. Kept out of
+ * `default-fixture.json` so the fixture schema matches the app, but builder
+ * methods and specs still write to these keys, so `withDefaultFixture()` adds
+ * them back in memory. The app ignores them.
+ */
+const LEGACY_ASSET_CONTROLLERS_STATE = {
+  AccountTrackerController: {
+    accountsByChainId: {
+      '1': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+      '64': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+    },
+  },
+  CurrencyRateController: {
+    currencyRates: {
+      ETH: {
+        conversionDate: 1684232383.997,
+        conversionRate: 1815.41,
+        usdConversionRate: 1815.41,
+      },
+    },
+    currentCurrency: 'usd',
+  },
+  MultichainAssetsController: { accountsAssets: {}, assetsMetadata: {} },
+  MultichainAssetsRatesController: { conversionRates: {} },
+  TokenBalancesController: { tokenBalances: {} },
+  TokenRatesController: { marketData: {} },
+};
+
+/**
+ * Same account ref CardController stores on a link: sha256 of the bare,
+ * lowercased address. Callers pass either `0x…` or a CAIP account id.
+ */
+const cardLinkAccountRef = (walletAddress: string): string | null => {
+  const bare = walletAddress.includes(':')
+    ? walletAddress.slice(walletAddress.lastIndexOf(':') + 1)
+    : walletAddress;
+  if (!bare) return null;
+  return bytesToHex(sha256(new TextEncoder().encode(bare.toLowerCase())));
+};
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -208,6 +260,7 @@ class FixtureBuilder {
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
+      '@MetaMask:socialTermsAccepted': 'v1',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
@@ -230,6 +283,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     // Deep clone the JSON fixture to avoid mutations
     this.fixture = JSON.parse(JSON.stringify(defaultFixture));
+    merge(
+      this.fixture.state.engine.backgroundState,
+      LEGACY_ASSET_CONTROLLERS_STATE,
+    );
 
     // Inject dynamic values that can't be stored in static JSON
     // 1. Timestamp for legal notices
@@ -2263,11 +2320,11 @@ class FixtureBuilder {
   /**
    * Seeds CardController identity state and pre-populates the cardFeature
    * RemoteFeatureFlag so BaanxProvider has a valid chain config at init time.
-   * The actual cardHomeData is populated by BaanxProvider.getOnChainAssets()
-   * on unlock, whose balance-scanner eth_call is intercepted by the mock server.
+   * Card home data is loaded only after the cardholder signs in.
    *
    * @param isAuthenticated - Whether the cardholder is authenticated (default: false).
-   * @param walletAddress - EVM address of the cardholder (default: standard fixture account).
+   * @param walletAddress - EVM address of the cardholder. Stored as the link's
+   * sha256 account ref (default: standard fixture account).
    * @returns - The FixtureBuilder instance for method chaining.
    */
   withCardController(
@@ -2279,21 +2336,30 @@ class FixtureBuilder {
         selectedCountry: null,
         providerData: {},
         isAuthenticated,
-        cardholderAccounts: [`eip155:0:${walletAddress}`],
+        cardLinks: [
+          {
+            provider: 'baanx',
+            status: 'active',
+            linkedAccountRef: cardLinkAccountRef(walletAddress),
+            closedReason: null,
+            migratedToProvider: null,
+            linkedAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+        cardLinksFetchedAt: Date.now(),
         activeProviderId: 'baanx',
       },
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
+          cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
           cardFeature: {
             constants: {
-              accountsApiUrl: 'https://accounts.api.cx.metamask.io',
               onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
             },
             chains: {
               'eip155:59144': {
                 enabled: true,
-                balanceScannerAddress:
-                  '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
                 foxConnectAddresses: {
                   global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
                   us: '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
@@ -2377,6 +2443,8 @@ class FixtureBuilder {
         dataCollectionForMarketing: true,
         isNFTAutoDetectionModalViewed: false,
         osAuthEnabled: true,
+        shouldShowConsentSheet: true,
+        dataSharingPreference: null,
       },
       attribution: {
         attribution: {
@@ -2386,6 +2454,47 @@ class FixtureBuilder {
         _persist: { version: -1, rehydrated: true },
       },
     });
+    return this;
+  }
+
+  withRewardsMoneyReferee() {
+    const referralMe = referralMeWithInvitedBenefit();
+    const { backgroundState } = this.fixture.state.engine;
+    backgroundState.RewardsController = {
+      ...(backgroundState.RewardsController as object),
+      activeAccount: {
+        account: `eip155:1:${DEFAULT_FIXTURE_ACCOUNT}`,
+        hasOptedIn: true,
+        subscriptionId: REWARDS_MONEY_SUBSCRIPTION_ID,
+        perpsFeeDiscount: null,
+        lastPerpsDiscountRateFetched: null,
+      },
+    };
+    backgroundState.RewardsMoneyController = {
+      ...(backgroundState.RewardsMoneyController as object),
+      referralMe: {
+        [REWARDS_MONEY_E2E_PROFILE_ID]: { lastFetched: 1, payload: referralMe },
+      },
+    };
+    this.fixture.state.rewardsMoney = {
+      ...(this.fixture.state.rewardsMoney as object),
+      referralMe: {
+        [REWARDS_MONEY_E2E_PROFILE_ID]: {
+          loading: false,
+          error: false,
+          data: referralMe,
+        },
+      },
+    };
+    return this;
+  }
+
+  /**
+   * Seeds controller fields whose metadata excludes them from state logs.
+   * @returns - The FixtureBuilder instance for method chaining.
+   */
+  withStateLogOmittedFields() {
+    applyStateLogOmittedFields(this.fixture.state.engine.backgroundState);
     return this;
   }
 

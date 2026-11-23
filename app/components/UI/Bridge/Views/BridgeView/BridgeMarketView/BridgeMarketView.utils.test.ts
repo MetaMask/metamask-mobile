@@ -1,4 +1,4 @@
-import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../../enablement/assets/arc';
+import { ARC_HEX_CHAIN_ID } from '../../../../../../enablement/assets/arc';
 import type { BridgeToken } from '../../../types';
 import { getQuoteEventWarningState } from './BridgeMarketView.utils';
 
@@ -11,13 +11,21 @@ const ETH_TOKEN: BridgeToken = {
   symbol: 'ETH',
 };
 
+const ARC_NATIVE_USDC_TOKEN: BridgeToken = {
+  address: '0x0000000000000000000000000000000000000000',
+  chainId: ARC_HEX_CHAIN_ID,
+  decimals: 18,
+  name: 'USDC',
+  symbol: 'USDC',
+};
+
 describe('getQuoteEventWarningState', () => {
   it('maps Arc USDC native reserve errors to insufficient gas warnings', () => {
     expect(
       getQuoteEventWarningState({
         hasInsufficientGas: false,
         hasInsufficientNativeReserveError: true,
-        sourceToken: ARC_USDC_BRIDGE_TOKEN,
+        sourceToken: ARC_NATIVE_USDC_TOKEN,
       }),
     ).toStrictEqual({
       hasInsufficientGas: true,

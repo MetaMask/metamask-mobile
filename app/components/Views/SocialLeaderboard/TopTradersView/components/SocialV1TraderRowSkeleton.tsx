@@ -3,18 +3,26 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useTheme } from '../../../../../util/theme';
-import { SOCIAL_V1_TRADER_ROW_HEIGHT } from './SocialV1TraderRow';
+import {
+  SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
+  SOCIAL_V1_TRADER_ROW_HEIGHT,
+} from './SocialV1TraderRow';
+
+export interface SocialV1TraderRowSkeletonProps {
+  /** Matches the taller leaderboard row that shows followers and ROI. */
+  showLeaderboardDetails?: boolean;
+  /** Matches a row rendered without its rank column. */
+  showRankColumn?: boolean;
+}
 
 /**
- * SocialV1TraderRowSkeleton -- loading placeholder mirroring
- * `SocialV1TraderRow`.
- *
- * Bar widths trace the real row: avatar, then the username and follower lines,
- * then the right-aligned metric / ROI pair. Outer wrapper height is locked to
- * `SOCIAL_V1_TRADER_ROW_HEIGHT` so the skeleton occupies the exact same
- * vertical space as a rendered row.
+ * Loading placeholder matching the V1 trader row: rank, avatar, name, metric.
+ * The leaderboard variant adds a second bar under the name.
  */
-const SocialV1TraderRowSkeleton: React.FC = () => {
+const SocialV1TraderRowSkeleton: React.FC<SocialV1TraderRowSkeletonProps> = ({
+  showLeaderboardDetails = false,
+  showRankColumn = true,
+}) => {
   const tw = useTailwind();
   const { colors } = useTheme();
 
@@ -22,7 +30,11 @@ const SocialV1TraderRowSkeleton: React.FC = () => {
     <Box
       style={[
         tw.style('px-4 justify-center'),
-        { height: SOCIAL_V1_TRADER_ROW_HEIGHT },
+        {
+          height: showLeaderboardDetails
+            ? SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT
+            : SOCIAL_V1_TRADER_ROW_HEIGHT,
+        },
       ]}
     >
       <SkeletonPlaceholder
@@ -30,19 +42,27 @@ const SocialV1TraderRowSkeleton: React.FC = () => {
         highlightColor={colors.background.subsection}
       >
         <Box style={tw.style('flex-row items-center')}>
-          {/* Avatar placeholder */}
-          <Box style={tw.style('w-10 h-10 rounded-full mr-3')} />
-
-          {/* Username + follower-count lines */}
-          <Box style={tw.style('flex-1 gap-1')}>
-            <Box style={tw.style('w-24 h-5 rounded')} />
-            <Box style={tw.style('w-20 h-4 rounded')} />
+          {/* SkeletonPlaceholder reads `type` on every child, so a null child crashes it. */}
+          {[
+            ...(showRankColumn
+              ? [<Box key="rank" style={tw.style('w-6 h-4 rounded mr-3')} />]
+              : []),
+            <Box
+              key="avatar"
+              style={tw.style('w-10 h-10 rounded-full mr-3')}
+            />,
+          ]}
+          <Box style={tw.style('flex-1')}>
+            <Box style={tw.style('w-24 h-4 rounded')} />
+            {showLeaderboardDetails ? (
+              <Box style={tw.style('w-16 h-3 rounded mt-1')} />
+            ) : null}
           </Box>
-
-          {/* Right-aligned metric / ROI pair */}
-          <Box style={tw.style('items-end gap-1 ml-3')}>
-            <Box style={tw.style('w-28 h-5 rounded')} />
-            <Box style={tw.style('w-12 h-4 rounded')} />
+          <Box style={tw.style('ml-3')}>
+            <Box style={tw.style('w-20 h-4 rounded')} />
+            {showLeaderboardDetails ? (
+              <Box style={tw.style('w-10 h-3 rounded mt-1 self-end')} />
+            ) : null}
           </Box>
         </Box>
       </SkeletonPlaceholder>

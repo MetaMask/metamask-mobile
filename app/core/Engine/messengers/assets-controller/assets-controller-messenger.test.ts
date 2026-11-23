@@ -20,6 +20,10 @@ const ASSETS_CONTROLLER_DELEGATED_ACTIONS = [
   'AccountTreeController:isInitialized',
   'ClientController:getState',
   'KeyringController:isUnlocked',
+  'AuthenticatedUserStorageService:getUserAssets',
+  'AuthenticatedUserStorageService:setUserAssets',
+  'AuthenticatedUserStorageService:importTokens',
+  'AuthenticatedUserStorageService:hideTokens',
 ] as const;
 
 const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
@@ -40,6 +44,7 @@ const ASSETS_CONTROLLER_DELEGATED_EVENTS = [
   'PreferencesController:stateChange',
   'TransactionController:transactionConfirmed',
   'TransactionController:unapprovedTransactionAdded',
+  'MultichainTransactionsController:transactionConfirmed',
   'AccountActivityService:balanceUpdated',
   'AccountActivityService:statusChanged',
   'RemoteFeatureFlagController:stateChange',
@@ -210,6 +215,21 @@ describe('getAssetsControllerMessenger', () => {
     );
   });
 
+  it('delegates MultichainTransactionsController transactionConfirmed (assets-controller@18.0.0)', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getAssetsControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: expect.arrayContaining([
+          'MultichainTransactionsController:transactionConfirmed',
+        ]),
+      }),
+    );
+  });
+
   it('delegates AccountActivityService statusChanged event', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
@@ -289,7 +309,6 @@ describe('getAssetsControllerInitMessenger', () => {
         actions: expect.arrayContaining([
           'AuthenticationController:getBearerToken',
           'PreferencesController:getState',
-          'RemoteFeatureFlagController:getState',
           'AnalyticsController:trackEvent',
         ]),
       }),

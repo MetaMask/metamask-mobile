@@ -1,6 +1,7 @@
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
 } from 'react';
@@ -34,6 +35,9 @@ import {
 
 const PRESET_SLOT_TW_CLASS_NAME = 'min-w-0 flex-1 shrink basis-0';
 const PRESET_CONTROL_TW_CLASS_NAME = 'w-full px-0';
+// Grows the 32pt pills to a 48pt touch target; the gap above and the card
+// padding below leave room for it without overlapping the fiat toggle.
+const PRESET_HIT_SLOP = { top: 8, bottom: 8 };
 const VALUE_FONT_SIZE = 14;
 const VALUE_LINE_HEIGHT = VALUE_FONT_SIZE * 1.25;
 const PERCENT_POSTFIX = '%';
@@ -134,10 +138,21 @@ export const ButtonPricePresetsSection = forwardRef<
       ],
     );
 
+    // The custom input only mounts once custom mode is active, so the press
+    // that activates it can't focus it directly. Focus it as soon as it mounts
+    // so the caret shows on the first tap instead of requiring a second one.
+    useEffect(() => {
+      if (isCustomActive) {
+        inputRef.current?.focus();
+      }
+    }, [isCustomActive]);
+
     useImperativeHandle(ref, () => ({
       blur: () => inputRef.current?.blur(),
       focus: () => inputRef.current?.focus(),
       isFocused: () => Boolean(inputRef.current?.isFocused()),
+      measureInWindow: (callback) =>
+        inputRef.current?.measureInWindow(callback),
     }));
 
     return (
@@ -151,6 +166,7 @@ export const ButtonPricePresetsSection = forwardRef<
           variant={ButtonVariant.Secondary}
           size={ButtonBaseSize.Sm}
           onPress={onMarketPress}
+          hitSlop={PRESET_HIT_SLOP}
           testID={LimitOrderPriceAdjustPresetsSelectorsIDs.MARKET}
           twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
         >
@@ -162,6 +178,7 @@ export const ButtonPricePresetsSection = forwardRef<
             variant={ButtonVariant.Secondary}
             size={ButtonBaseSize.Sm}
             onPress={() => onPercentPress(percent)}
+            hitSlop={PRESET_HIT_SLOP}
             testID={getLimitOrderPercentPresetTestId(percent)}
             twClassName={`${PRESET_SLOT_TW_CLASS_NAME} ${PRESET_CONTROL_TW_CLASS_NAME}`}
           >
@@ -176,7 +193,7 @@ export const ButtonPricePresetsSection = forwardRef<
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              twClassName="h-8 w-full overflow-hidden rounded-lg bg-muted px-1"
+              twClassName="h-8 w-full overflow-hidden rounded-2xl bg-muted px-1"
             >
               <Input
                 ref={inputRef}
@@ -202,6 +219,7 @@ export const ButtonPricePresetsSection = forwardRef<
               variant={ButtonVariant.Secondary}
               size={ButtonBaseSize.Sm}
               onPress={onCustomPress}
+              hitSlop={PRESET_HIT_SLOP}
               testID={LimitOrderPriceAdjustPresetsSelectorsIDs.CUSTOM}
               twClassName={PRESET_CONTROL_TW_CLASS_NAME}
             >

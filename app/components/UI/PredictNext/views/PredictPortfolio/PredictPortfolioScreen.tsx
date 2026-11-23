@@ -7,31 +7,48 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { Box, HeaderStandard } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { TraceName } from '../../../../../util/trace';
 import { useActivity } from '../../hooks/useActivity';
-import { useBalance } from '../../hooks/useBalance';
+import { usePortfolioSummary } from '../../hooks/usePortfolioSummary';
 import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
+import {
+  usePredictNextDepositAvailable,
+  usePredictWithdrawAvailable,
+} from '../../funding';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
-import type { PredictEntityId } from '../../types';
+import { usePredictOrderFlow } from '../PredictOrderFlow';
+import type { PredictEntityId, PredictPosition } from '../../types';
 import type {
   PredictNextStackParamList,
   PredictPortfolioTab,
 } from '../../navigation/types';
 import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
+import { DepositStatusLine } from '../../components/DepositStatusLine';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
+import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
 import { PortfolioTabs } from './internal/PortfolioTabs';
+import { getEntryTitle, getOutcomeName } from '../../utils/entryCopy';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 
 const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
 
 export const PredictPortfolioScreen = () => {
+  const isGlassHeader = useSelector(selectPredictBrandRefreshEnabled) === true;
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const route =
@@ -39,7 +56,7 @@ export const PredictPortfolioScreen = () => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
   const venueId = route.params.venueId;
-  const balanceQuery = useBalance(venueId);
+  const summaryQuery = usePortfolioSummary(venueId);
   const [activeTab, setActiveTab] = useState<PredictPortfolioTab>(
     route.params.initialTab ?? 'positions',
   );
@@ -51,6 +68,8 @@ export const PredictPortfolioScreen = () => {
   const activityQuery = useActivity(venueId, PAGE_PARAMS, {
     enabled: activityActive,
   });
+  const { openOrderFlow } = usePredictOrderFlow();
+  const withdrawResolution = usePredictWithdrawAvailable();
   const activeListQuery = positionsActive ? positionsQuery : activityQuery;
 
   useEffect(() => {
@@ -59,13 +78,19 @@ export const PredictPortfolioScreen = () => {
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextPortfolioView,
-    conditions: [!balanceQuery.isPending, !activeListQuery.isPending],
+    conditions: [!summaryQuery.isPending, !activeListQuery.isPending],
     debugContext: {
-      hasBalance: Boolean(balanceQuery.data),
-      error: balanceQuery.isError || activeListQuery.isError,
+      hasSummary: Boolean(summaryQuery.data),
+      error: summaryQuery.isError || activeListQuery.isError,
       tab: activeTab,
     },
   });
+
+  const canDeposit = usePredictNextDepositAvailable(venueId);
+  const openDeposit = useCallback(
+    () => navigation.navigate(PredictNextRoutes.DEPOSIT, { venueId }),
+    [navigation, venueId],
+  );
 
   const browseMarkets = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -86,6 +111,30 @@ export const PredictPortfolioScreen = () => {
     [navigation, venueId],
   );
 
+  const openWithdraw = useCallback(
+    () => navigation.navigate(PredictNextRoutes.WITHDRAW, { venueId }),
+    [navigation, venueId],
+  );
+
+  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
+   * Position's whole-contract size, labeled from its catalog context. */
+  const cashOut = useCallback(
+    (position: PredictPosition) => {
+      openOrderFlow({
+        action: 'sell',
+        eventId: position.context?.eventId,
+        venueId,
+        marketId: position.marketId,
+        side: position.side,
+        outcomeLabel: getOutcomeName(position.side, position.context),
+        eventTitle: getEntryTitle(position.context),
+        eventImageUrl: position.context?.imageUrl,
+        maxContracts: Math.floor(Number(position.shares)),
+      });
+    },
+    [openOrderFlow, venueId],
+  );
+
   return (
     <SafeAreaView
       edges={['left', 'right', 'bottom']}
@@ -93,7 +142,9 @@ export const PredictPortfolioScreen = () => {
       testID={PredictPortfolioScreenTestIds.CONTAINER}
     >
       <Box testID={PredictPortfolioScreenTestIds.HEADER}>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           title={strings('predict_next.portfolio.title')}
           onBack={() => navigation.goBack()}
@@ -102,11 +153,34 @@ export const PredictPortfolioScreen = () => {
       </Box>
       <Box twClassName="flex-1 px-4">
         <PortfolioSummaryCard
-          balance={balanceQuery.data}
-          isLoading={balanceQuery.isPending}
+          summary={summaryQuery.data}
+          isLoading={summaryQuery.isPending}
           isPrivacyMode={Boolean(privacyMode)}
-          onRetry={() => balanceQuery.refetch()}
+          onRetry={() => summaryQuery.refetch()}
+          onWithdrawPress={
+            withdrawResolution.status === 'ready' ? openWithdraw : undefined
+          }
+          depositStatus={
+            <DepositStatusLine
+              venueId={venueId}
+              testID={PredictPortfolioScreenTestIds.DEPOSIT_STATUS}
+            />
+          }
         />
+        {canDeposit ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            isFullWidth
+            startIconName={IconName.Add}
+            onPress={openDeposit}
+            twClassName="mb-4"
+            testID={PredictPortfolioScreenTestIds.ADD_FUNDS}
+          >
+            {strings('predict_next.portfolio.add_funds')}
+          </Button>
+        ) : null}
+        <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">
           <Box
@@ -123,6 +197,7 @@ export const PredictPortfolioScreen = () => {
               isPrivacyMode={Boolean(privacyMode)}
               onOpenEvent={openEvent}
               onBrowseMarkets={browseMarkets}
+              onCashOut={cashOut}
             />
           </Box>
           <Box

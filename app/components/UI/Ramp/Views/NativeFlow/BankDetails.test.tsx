@@ -162,6 +162,11 @@ jest.mock('../../hooks/useRampsOrders', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({ selectGlassHeadersEnabled: () => false }),
+);
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: (selector: unknown) => {

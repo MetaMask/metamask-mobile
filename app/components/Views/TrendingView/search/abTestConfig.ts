@@ -1,6 +1,46 @@
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 
+export const HOMEPAGE_SEARCH_AB_KEY = 'homeTMCU1384AbtestHomepageSearch';
+
+export enum HomepageSearchVariant {
+  Control = 'control',
+  Treatment = 'treatment',
+}
+
+export const HOMEPAGE_SEARCH_VARIANTS: Record<
+  HomepageSearchVariant,
+  { showHomepageSearchBar: boolean }
+> = {
+  [HomepageSearchVariant.Control]: {
+    showHomepageSearchBar: false,
+  },
+  [HomepageSearchVariant.Treatment]: {
+    showHomepageSearchBar: true,
+  },
+};
+
+export const HOMEPAGE_SEARCH_AB_TEST_EXPOSURE_OPTIONS = {
+  experimentName: 'Homepage search bar',
+  variationNames: {
+    control: 'Hide homepage search bar',
+    treatment: 'Show homepage search bar',
+  },
+} as const;
+
+export const HOMEPAGE_SEARCH_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
+  {
+    flagKey: HOMEPAGE_SEARCH_AB_KEY,
+    validVariants: Object.values(HomepageSearchVariant),
+    eventNames: [EVENT_NAME.EXPLORE_SEARCH_INTERACTED],
+    eventPropertyRequirements: {
+      [EVENT_NAME.EXPLORE_SEARCH_INTERACTED]: {
+        interaction_type: 'paste',
+        entry_point: 'home',
+      },
+    },
+  };
+
 // --- Explore Search Quick Buy A/B Test (ASSETS-3380) ---
 
 export const EXPLORE_QUICK_BUY_AB_KEY = 'assetsASSETS3380AbtestExploreQuickBuy';

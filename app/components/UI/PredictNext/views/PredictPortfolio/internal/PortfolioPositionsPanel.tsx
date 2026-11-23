@@ -9,20 +9,25 @@ import { PortfolioEmptyState } from './PortfolioEmptyState';
 import { PortfolioPanelError } from './PortfolioPanelError';
 import { PortfolioPanelSkeleton } from './PortfolioPanelSkeleton';
 import { PortfolioPositionRow } from './PortfolioPositionRow';
+import { dedupeLatestPositions, positionKey } from '../../../utils/positions';
 
 interface PortfolioPositionsPanelProps {
   query: ReturnType<typeof usePositions>;
   isPrivacyMode: boolean;
   onOpenEvent: (eventId: PredictEntityId, titleSnapshot: string) => void;
   onBrowseMarkets: () => void;
+  /** Opens the Cash Out (sell) Order flow for one Position. */
+  onCashOut: (position: PredictPosition) => void;
 }
 
-/** Renders the independently cached open Positions list for one Venue. */
+/** Renders the independently cached Positions list for one Venue, open
+ * Positions first, in the backend's order. */
 export const PortfolioPositionsPanel = ({
   query,
   isPrivacyMode,
   onOpenEvent,
   onBrowseMarkets,
+  onCashOut,
 }: PortfolioPositionsPanelProps) => {
   const {
     data,
@@ -34,7 +39,7 @@ export const PortfolioPositionsPanel = ({
     refetch,
   } = query;
   const positions = useMemo(
-    () => data?.pages.flatMap((page) => page.positions) ?? [],
+    () => dedupeLatestPositions(data?.pages ?? []),
     [data],
   );
   const hasInitialError = isError && positions.length === 0;
@@ -66,9 +71,10 @@ export const PortfolioPositionsPanel = ({
         position={item}
         isPrivacyMode={isPrivacyMode}
         onPress={item.context?.eventId ? handlePress : undefined}
+        onCashOut={onCashOut}
       />
     ),
-    [handlePress, isPrivacyMode],
+    [handlePress, isPrivacyMode, onCashOut],
   );
 
   let content: React.ReactNode;
@@ -100,7 +106,7 @@ export const PortfolioPositionsPanel = ({
         testID={PredictPortfolioScreenTestIds.POSITIONS_LIST}
         data={positions}
         renderItem={renderItem}
-        keyExtractor={(position) => `${position.marketId}-${position.side}`}
+        keyExtractor={positionKey}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
         showsVerticalScrollIndicator={false}

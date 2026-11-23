@@ -181,6 +181,7 @@ const PotentialEarningsTokenRow = ({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Md}
           onPress={onButtonPress}
+          testID={testID ? `${testID}-button` : undefined}
         >
           {strings('money.potential_earnings.add')}
         </Button>

@@ -104,3 +104,16 @@ export const appendLiveQuoteTrail = (
 
   return fresh.length === 0 ? points : [...points, ...fresh];
 };
+
+/**
+ * Moves a history series' end to the Market's last traded price as a single
+ * point, for ranges too wide for a trail to read as a line.
+ */
+export const appendLiveEndpoint = (
+  points: readonly PredictMarketChartPoint[],
+  market: QuotedMarket | undefined,
+  side: PredictOutcome['side'] | undefined,
+): readonly PredictMarketChartPoint[] => {
+  const point = toTrailPoint(market, side);
+  return point ? appendLiveQuoteTrail(points, [point]) : points;
+};

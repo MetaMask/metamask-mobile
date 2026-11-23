@@ -5,13 +5,22 @@ export const FollowConnectionsViewSelectorsIDs = {
   TABS: 'follow-connections-view-tabs',
   FOLLOWERS_TAB: 'follow-connections-view-followers-tab',
   FOLLOWING_TAB: 'follow-connections-view-following-tab',
+  MUTUALS_TAB: 'follow-connections-view-mutuals-tab',
   FOLLOWERS_LIST: 'follow-connections-view-followers-list',
   FOLLOWING_LIST: 'follow-connections-view-following-list',
   FOLLOWING_LOADING: 'follow-connections-view-following-loading',
   FOLLOWING_ERROR: 'follow-connections-view-following-error',
   FOLLOWING_RETRY: 'follow-connections-view-following-retry',
   FOLLOWING_EMPTY: 'follow-connections-view-following-empty',
+  FOLLOWERS_LOADING: 'follow-connections-view-followers-loading',
+  FOLLOWERS_ERROR: 'follow-connections-view-followers-error',
+  FOLLOWERS_RETRY: 'follow-connections-view-followers-retry',
   FOLLOWERS_EMPTY: 'follow-connections-view-followers-empty',
+  MUTUALS_LIST: 'follow-connections-view-mutuals-list',
+  MUTUALS_LOADING: 'follow-connections-view-mutuals-loading',
+  MUTUALS_ERROR: 'follow-connections-view-mutuals-error',
+  MUTUALS_RETRY: 'follow-connections-view-mutuals-retry',
+  MUTUALS_EMPTY: 'follow-connections-view-mutuals-empty',
 } as const;
 
 export const getConnectionRowTestId = (id: string): string =>

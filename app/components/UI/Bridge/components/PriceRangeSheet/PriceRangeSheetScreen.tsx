@@ -8,8 +8,12 @@ import {
   selectSourceToken,
   setRecurringPriceRange,
 } from '../../../../../core/redux/slices/bridge';
-import { useTokenUsdRate } from '../../hooks/useTokenFiatRate';
-import type { RecurringPriceRange } from '../../utils/priceRange';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { useTokenFiatRate } from '../../hooks/useTokenFiatRate';
+import {
+  getDefaultRecurringPriceRangeTokenSide,
+  type RecurringPriceRange,
+} from '../../utils/priceRange';
 import PriceRangeSheet from './PriceRangeSheet';
 
 export const PriceRangeSheetScreen = () => {
@@ -18,8 +22,14 @@ export const PriceRangeSheetScreen = () => {
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
   const priceRange = useSelector(selectRecurringPriceRange);
-  const sourceUsdRate = useTokenUsdRate(sourceToken);
-  const destUsdRate = useTokenUsdRate(destToken);
+  const currentCurrency = useSelector(selectCurrentCurrency) ?? 'usd';
+  const sourceFiatRate = useTokenFiatRate(sourceToken);
+  const destFiatRate = useTokenFiatRate(destToken);
+  const isStoredCurrencyCurrent =
+    priceRange?.currency.toUpperCase() === currentCurrency.toUpperCase();
+  const initialTokenSide =
+    priceRange?.tokenSide ??
+    getDefaultRecurringPriceRangeTokenSide({ sourceToken, destToken });
 
   const handleConfirm = useCallback(
     (nextPriceRange?: RecurringPriceRange) => {
@@ -32,11 +42,12 @@ export const PriceRangeSheetScreen = () => {
     <PriceRangeSheet
       sourceToken={sourceToken}
       destToken={destToken}
-      sourceUsdRate={sourceUsdRate}
-      destUsdRate={destUsdRate}
-      initialTokenSide={priceRange?.tokenSide}
-      initialMin={priceRange?.min}
-      initialMax={priceRange?.max}
+      currency={currentCurrency}
+      sourceFiatRate={sourceFiatRate}
+      destFiatRate={destFiatRate}
+      initialTokenSide={initialTokenSide}
+      initialMin={isStoredCurrencyCurrent ? priceRange?.min : undefined}
+      initialMax={isStoredCurrencyCurrent ? priceRange?.max : undefined}
       onConfirm={handleConfirm}
       goBack={goBack}
     />

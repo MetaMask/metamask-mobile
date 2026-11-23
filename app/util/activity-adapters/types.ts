@@ -10,6 +10,7 @@ import type {
   TokenAmount as ClientUtilsTokenAmount,
 } from '@metamask/client-utils';
 import type { TriggerOrderType } from '@metamask/perps-controller';
+import type { CaipChainId } from '@metamask/utils';
 
 export type {
   ActivityKind,
@@ -25,6 +26,30 @@ export type TokenAmount = ClientUtilsTokenAmount & {
    */
   amountIsHumanReadable?: boolean;
 };
+
+/**
+ * Returns whether an asset type represents an NFT standard supported by the
+ * activity UI.
+ *
+ * @param assetType - The asset type to inspect.
+ * @returns `true` for ERC-721 and ERC-1155 assets.
+ */
+export function isNftAssetType(
+  assetType: string | undefined,
+): assetType is 'erc721' | 'erc1155' {
+  const normalizedAssetType = assetType?.toLowerCase();
+  return normalizedAssetType === 'erc721' || normalizedAssetType === 'erc1155';
+}
+
+/**
+ * Returns whether a token amount represents an NFT.
+ *
+ * @param token - The token amount to inspect.
+ * @returns `true` when the token uses an NFT standard.
+ */
+export function isNftToken(token: TokenAmount | undefined): boolean {
+  return isNftAssetType(token?.assetType);
+}
 
 /**
  * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
@@ -64,16 +89,44 @@ type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
 type PredictActivityKind =
   | 'predictionPlaced'
   | 'predictionCashedOut'
-  | 'predictionClaimWinnings';
+  | 'predictionClaimWinnings'
+  | 'predictionSettled';
 
 interface PredictDataExtras {
   eventTitle?: string;
   icon?: string;
 }
 
-type ActivityDataExtras<ActivityType> = ActivityType extends PredictActivityKind
-  ? PredictDataExtras & ActivityDataExtrasCommon
-  : ActivityDataExtrasCommon;
+/**
+ * Venue-scoped CAIP-2 `chainId` for Kalshi Predict rows. Kalshi has no chain,
+ * so this is never Polygon or any real chain: it only keys the details source.
+ * The row hides the network badge for `prediction*` kinds and the details
+ * screen fetches a transaction only for `eip155:` chains.
+ */
+export const KALSHI_VENUE_CHAIN_ID: CaipChainId = 'kalshi:mainnet';
+
+/**
+ * Settlement details, carried on the item so the details screen renders
+ * without a lookup. Amounts are plain decimal strings: shared activity code
+ * must not import PredictNext types (ADR-0020). Proceeds are `data.token`.
+ */
+export interface PredictSettlementExtras {
+  outcomeLabel?: string;
+  marketQuestion?: string;
+  /** Side the Predict User held. */
+  side: 'yes' | 'no';
+  /** The Market's result. `scalar` is a non-binary payout per share. */
+  result: 'yes' | 'no' | 'scalar';
+  shares: string;
+  /** Signed. Absent when the backend cannot establish the cost basis. */
+  realizedPnl?: string;
+}
+
+type ActivityDataExtras<ActivityType> = ActivityType extends 'predictionSettled'
+  ? PredictSettlementExtras & PredictDataExtras & ActivityDataExtrasCommon
+  : ActivityType extends PredictActivityKind
+    ? PredictDataExtras & ActivityDataExtrasCommon
+    : ActivityDataExtrasCommon;
 
 interface ActivityDataExtrasCommon {
   fees?: ActivityFee[];

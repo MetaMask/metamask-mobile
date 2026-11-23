@@ -19,6 +19,10 @@ import ManageProfileScreenChrome from './ManageProfileScreenChrome';
 interface ManageProfileTextEditorProps {
   title: string;
   initialValue: string;
+  onSave: (value: string) => Promise<void>;
+  isSaveDisabled?: boolean;
+  isSaving?: boolean;
+  errorMessage?: string | null;
   containerTestID: string;
   headerTestID: string;
   backTestID: string;
@@ -27,11 +31,17 @@ interface ManageProfileTextEditorProps {
   helperText?: string;
   prefix?: string;
   multiline?: boolean;
+  maxLength?: number;
+  autoFocus?: boolean;
 }
 
 const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
   title,
   initialValue,
+  onSave,
+  isSaveDisabled = false,
+  isSaving = false,
+  errorMessage,
   containerTestID,
   headerTestID,
   backTestID,
@@ -40,6 +50,8 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
   helperText,
   prefix,
   multiline = false,
+  maxLength,
+  autoFocus = false,
 }) => {
   const tw = useTailwind();
   const [value, setValue] = useState(initialValue);
@@ -60,6 +72,8 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
             <TextArea
               value={value}
               onChangeText={setValue}
+              maxLength={maxLength}
+              autoFocus={autoFocus}
               testID={inputTestID}
             />
           ) : (
@@ -80,6 +94,10 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
                 <TextField
                   value={value}
                   onChangeText={setValue}
+                  // TextField puts the rest of its props on the root Box, so
+                  // the cap has to reach the inner input through `inputProps`.
+                  inputProps={{ maxLength }}
+                  autoFocus={autoFocus}
                   testID={inputTestID}
                 />
               </Box>
@@ -93,14 +111,20 @@ const ManageProfileTextEditor: React.FC<ManageProfileTextEditorProps> = ({
               {helperText}
             </Text>
           ) : null}
+          {errorMessage ? (
+            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              {errorMessage}
+            </Text>
+          ) : null}
         </Box>
         <Box twClassName="px-4 pb-8 pt-2">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled
-            onPress={() => undefined}
+            isDisabled={isSaveDisabled || isSaving}
+            isLoading={isSaving}
+            onPress={() => onSave(value)}
             testID={saveTestID}
           >
             {strings('social_leaderboard.manage_profile.save')}

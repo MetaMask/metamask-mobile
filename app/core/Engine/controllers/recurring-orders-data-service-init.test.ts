@@ -8,13 +8,30 @@ import type {
   RecurringOrdersDataServiceEvents,
   RecurringOrdersDataServiceMessenger,
 } from '../../../components/UI/Bridge/services/RecurringOrdersDataService';
-import { RecurringOrderStatus } from '../../../components/UI/Bridge/api/recurringOrders.types';
+import { RecurringOrderState } from '../../../components/UI/Bridge/api/recurringOrders.types';
+import { recurringOrdersApiClient } from '../../../components/UI/Bridge/api/recurringOrders.client';
+import { MOCK_RECURRING_OPEN_ORDER } from '../../../components/UI/Bridge/api/recurringOrders.mock';
 import type { RootExtendedMessenger } from '../types';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import { recurringOrdersDataServiceInit } from './recurring-orders-data-service-init';
 
+jest.mock('../../../components/UI/Bridge/api/recurringOrders.client', () => ({
+  recurringOrdersApiClient: {
+    getRecurringOrders: jest.fn(),
+    getRecurringSwaps: jest.fn(),
+  },
+}));
+
 describe('recurringOrdersDataServiceInit', () => {
   it('registers recurring-orders actions on the Engine root messenger', async () => {
+    jest
+      .mocked(recurringOrdersApiClient.getRecurringOrders)
+      .mockResolvedValueOnce({ orders: [], hasNextPage: false, total: 0 })
+      .mockResolvedValueOnce({
+        orders: [MOCK_RECURRING_OPEN_ORDER],
+        hasNextPage: false,
+        total: 1,
+      });
     const rootMessenger = new Messenger<
       MockAnyNamespace,
       RecurringOrdersDataServiceActions,
@@ -37,11 +54,23 @@ describe('recurringOrdersDataServiceInit', () => {
       'RecurringOrdersDataService:getRecurringOrders',
       {
         walletAddress: '0x1234',
-        status: [RecurringOrderStatus.Expired],
+        orderStates: [RecurringOrderState.Cancelled],
+      },
+    );
+    const assetResult = await rootMessenger.call(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      {
+        walletAddress: '0x1234',
+        assetId: 'eip155:1/slip44:60',
       },
     );
 
-    expect(result).toStrictEqual({ orders: [] });
+    expect(result).toStrictEqual({
+      orders: [],
+      hasNextPage: false,
+      total: 0,
+    });
+    expect(assetResult).toHaveLength(1);
     controller.destroy();
   });
 });

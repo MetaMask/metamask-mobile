@@ -7,6 +7,8 @@ import {
   within,
 } from '@testing-library/react-native';
 import { ScrollView } from 'react-native';
+import { lightTheme } from '@metamask/design-tokens';
+import NetInfo from '@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
 import {
   renderBridgeViewWithRecurringOrderDetails,
@@ -25,11 +27,20 @@ import {
   MOCK_RECURRING_OPEN_ORDER_2,
 } from '../../api/recurringOrders.mock';
 import { MOCK_RECURRING_OPEN_ORDER_SWAPS } from '../../api/recurringSwaps.mock';
-import type { GetRecurringSwapsResponse } from '../../api/recurringOrders.types';
+import {
+  type ListRecurringSwapsResponse,
+  RecurringOrderState,
+  RecurringSwapStatus,
+} from '../../api/recurringOrders.types';
 import { formatRecurringPriceRange } from '../../utils/recurringOrders';
 import ToastService from '../../../../../core/ToastService';
 import { RecurringSwapDetailsViewSelectorsIDs } from '../RecurringSwapDetailsView';
 import { RecurringOrderDetailsViewSelectorsIDs } from './RecurringOrderDetailsView.testIds';
+import { OrdersTabsSelectorsIDs } from '../../components/OrdersTabs/OrdersTabs.testIds';
+import { OpenOrderRowSelectorsIDs } from '../../components/OpenOrderRow/OpenOrderRow.testIds';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 async function openInProgressOrderDetails(
   renderResult: ReturnType<typeof renderBridgeViewWithRecurringOrderDetails>,
@@ -46,7 +57,7 @@ async function openInProgressOrderDetails(
   await userEvent.press(
     await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-        MOCK_RECURRING_OPEN_ORDER.orderId,
+        MOCK_RECURRING_OPEN_ORDER.id,
       ),
     ),
   );
@@ -76,6 +87,10 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
   const showToast = jest.fn();
 
   beforeEach(() => {
+    netInfoMock.__setMockNetInfo({
+      type: 'wifi',
+      isInternetReachable: true,
+    });
     setupRecurringOrdersDataServiceMock();
     showToast.mockClear();
     ToastService.toastRef = {
@@ -88,10 +103,14 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
+    netInfoMock.__resetMockNetInfo();
     ToastService.resetForTesting();
   });
 
-  it('dismisses cancel confirmation without changing the in-progress order', async () => {
+  it('dismisses cancel confirmation without calling cancellation', async () => {
+    const cancelRecurringOrder = jest.fn();
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ cancelRecurringOrder });
     const renderResult = renderBridgeViewWithRecurringOrderDetails();
     await openInProgressOrderDetails(renderResult);
 
@@ -146,6 +165,17 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
     expect(showToast).not.toHaveBeenCalled();
+    expect(cancelRecurringOrder).not.toHaveBeenCalled();
+    expect(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('moves a successfully cancelled order to History', async () => {
+    const renderResult = renderBridgeViewWithRecurringOrderDetails();
+    await openInProgressOrderDetails(renderResult);
 
     await userEvent.press(
       renderResult.getByTestId(
@@ -158,34 +188,160 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     );
 
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.SCREEN,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    const historyRow = await renderResult.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.HISTORY_ORDER_ROW(
+        MOCK_RECURRING_OPEN_ORDER.id,
+      ),
+    );
+    expect(
+      within(historyRow).queryByText(strings('bridge.recurring.cancelled')),
+    ).not.toBeOnTheScreen();
+    expect(showToast).toHaveBeenCalledTimes(1);
+
+    await userEvent.press(
+      renderResult.getByTestId(OrdersTabsSelectorsIDs.OPEN_ORDERS_TAB),
+    );
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
+            MOCK_RECURRING_OPEN_ORDER.id,
+          ),
+        ),
+      ).toBeNull();
+    });
+  });
+
+  it('keeps cancellation pending and prevents duplicate confirmation or dismissal', async () => {
+    let resolveCancellation: () => void = () => undefined;
+    const cancelRecurringOrder = jest.fn(
+      () =>
+        new Promise<{ order: typeof MOCK_RECURRING_OPEN_ORDER }>((resolve) => {
+          resolveCancellation = () =>
+            resolve({
+              order: {
+                ...MOCK_RECURRING_OPEN_ORDER,
+                state: RecurringOrderState.Cancelled,
+                isCancellable: false,
+              },
+            });
+        }),
+    );
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ cancelRecurringOrder });
+    const renderResult = renderBridgeViewWithRecurringOrderDetails();
+    await openInProgressOrderDetails(renderResult);
+
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    );
+    const cancelSheet = await renderResult.findByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
+    );
+    const cancelSheetScope = within(cancelSheet);
+    const confirmButton = cancelSheetScope.getByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+    );
+    await userEvent.press(confirmButton);
+    await waitFor(() => expect(cancelRecurringOrder).toHaveBeenCalledTimes(1));
+
+    expect(confirmButton.props.accessibilityState).toEqual(
+      expect.objectContaining({ disabled: true }),
+    );
+    await userEvent.press(confirmButton);
+    await userEvent.press(
+      cancelSheetScope.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CLOSE_BUTTON,
+      ),
+    );
+    expect(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
+      ),
+    ).toBeOnTheScreen();
+    expect(cancelRecurringOrder).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCancellation();
+      await Promise.resolve();
+    });
+    await waitFor(() => {
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.SCREEN,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(showToast).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the cancel sheet open and allows retry after failure', async () => {
+    const cancelRecurringOrder = jest
+      .fn()
+      .mockRejectedValue(new Error('cancel failed'));
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ cancelRecurringOrder });
+    const renderResult = renderBridgeViewWithRecurringOrderDetails();
+    await openInProgressOrderDetails(renderResult);
+
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+      ),
+    );
+    await userEvent.press(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+      ),
+    );
+
+    expect(
+      renderResult.getByTestId(RecurringOrderDetailsViewSelectorsIDs.SCREEN),
+    ).toBeOnTheScreen();
+    const confirmButton = renderResult.getByTestId(
+      RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
+    );
+    await waitFor(() => {
+      expect(confirmButton.props.accessibilityState).toEqual(
+        expect.objectContaining({ disabled: false }),
+      );
+    });
+    expect(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
+      ),
+    ).toBeOnTheScreen();
     expect(showToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [
           {
-            label: strings('bridge.recurring.order_canceled_toast_title'),
+            label: strings('bridge.generic_error_toast_title'),
             isBold: true,
           },
+          { label: '\n' },
+          { label: strings('bridge.generic_error_toast_body') },
         ],
       }),
     );
+    expect(cancelRecurringOrder).toHaveBeenCalledTimes(1);
 
-    await waitFor(() => {
-      expect(
-        renderResult.queryByTestId(
-          RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET,
-        ),
-      ).not.toBeOnTheScreen();
-    });
-    expect(
+    await userEvent.press(
       renderResult.getByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        RecurringOrderDetailsViewSelectorsIDs.CANCEL_SHEET_CONFIRM_BUTTON,
       ),
-    ).toBeOnTheScreen();
-    expect(
-      renderResult.getByTestId(
-        RecurringOrderDetailsViewSelectorsIDs.FILLED_VALUE,
-      ),
-    ).toHaveTextContent('0.003 / 0.0075 ETH (40%)');
+    );
+
+    await waitFor(() => expect(cancelRecurringOrder).toHaveBeenCalledTimes(2));
+    expect(showToast).toHaveBeenCalledTimes(2);
   });
 
   it('shows every attempted swap from the API history', async () => {
@@ -194,51 +350,91 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     });
     await openOrderDetails(renderResult);
 
-    const expectedRows = [
-      {
-        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
-        status: strings('bridge.recurring.filled'),
-        received: '+3 USDC',
-        spent: '-0.0015 ETH',
-      },
-      {
-        swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[1],
-        status: strings('bridge.recurring.filled'),
-        received: '+3 USDC',
-        spent: '-0.0015 ETH',
-      },
+    const filledRow = {
+      received: '+3 USDC',
+      spent: '-0.0015 ETH',
+      titleColor: lightTheme.colors.text.default,
+      receivedColor: lightTheme.colors.success.default,
+      hasWarningIcon: false,
+    };
+    const skippedRow = {
+      received: '+0 USDC',
+      spent: '-0 ETH',
+      titleColor: lightTheme.colors.text.alternative,
+      receivedColor: lightTheme.colors.text.alternative,
+      hasWarningIcon: true,
+    };
+    const expectedRows: {
+      swap: (typeof MOCK_RECURRING_OPEN_ORDER_SWAPS)[number];
+      skipReason?: string;
+      received: string;
+      spent: string;
+      titleColor: string;
+      receivedColor: string;
+      hasWarningIcon: boolean;
+    }[] = [
+      { swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[0], ...filledRow },
+      { swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[1], ...filledRow },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[2],
-        status: strings('bridge.recurring.insufficient_balance'),
-        received: '+0 USDC',
-        spent: '-0 ETH',
+        skipReason: strings('bridge.recurring.insufficient_balance'),
+        ...skippedRow,
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[3],
-        status: strings('bridge.recurring.out_of_price_range'),
-        received: '+0 USDC',
-        spent: '-0 ETH',
+        skipReason: strings('bridge.recurring.out_of_price_range'),
+        ...skippedRow,
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[4],
-        status: strings('bridge.recurring.failed'),
         received: '+0 USDC',
         spent: '-0 ETH',
+        titleColor: lightTheme.colors.error.default,
+        receivedColor: lightTheme.colors.text.alternative,
+        hasWarningIcon: false,
       },
       {
         swap: MOCK_RECURRING_OPEN_ORDER_SWAPS[5],
-        status: strings('bridge.recurring.needs_smart_account'),
-        received: '+0 USDC',
-        spent: '-0 ETH',
+        skipReason: strings('bridge.recurring.needs_smart_account'),
+        ...skippedRow,
       },
     ];
 
-    for (const { swap, status, received, spent } of expectedRows) {
+    for (const {
+      swap,
+      skipReason,
+      received,
+      spent,
+      titleColor,
+      receivedColor,
+      hasWarningIcon,
+    } of expectedRows) {
       const row = within(
         await renderResult.findByTestId(
-          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.swapId),
+          RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(swap.id),
         ),
       );
+
+      expect(row.getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
+        color: titleColor,
+      });
+      expect(row.getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveStyle({
+        color: receivedColor,
+      });
+      if (hasWarningIcon) {
+        expect(
+          within(
+            row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+          ).getByLabelText(strings('bridge.recurring.skipped')),
+        ).toBeOnTheScreen();
+        expect(row.getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveStyle({
+          color: lightTheme.colors.warning.default,
+        });
+      } else {
+        expect(
+          row.queryByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+        ).not.toBeOnTheScreen();
+      }
 
       expect(
         row.getByText(
@@ -248,7 +444,15 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
           }),
         ),
       ).toBeOnTheScreen();
-      expect(row.getByText(status)).toBeOnTheScreen();
+      if (skipReason) {
+        expect(row.getByText(skipReason)).toBeOnTheScreen();
+      }
+      expect(
+        row.queryByText(strings('bridge.recurring.filled')),
+      ).not.toBeOnTheScreen();
+      expect(
+        row.queryByText(strings('bridge.recurring.failed')),
+      ).not.toBeOnTheScreen();
       expect(row.getByText(received)).toBeOnTheScreen();
       expect(row.getByText(spent)).toBeOnTheScreen();
     }
@@ -257,6 +461,38 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         strings('bridge.recurring.history_progress', {
           filledOrderCount: 2,
           totalOrderCount: 5,
+        }),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('replaces stale route progress with the fresh order response', async () => {
+    const staleOrder = {
+      ...MOCK_RECURRING_OPEN_ORDER,
+      fillData: {
+        ...MOCK_RECURRING_OPEN_ORDER.fillData,
+        src: {
+          ...MOCK_RECURRING_OPEN_ORDER.fillData.src,
+          amount: '0',
+        },
+        dest: {
+          ...MOCK_RECURRING_OPEN_ORDER.fillData.dest,
+          amount: '0',
+        },
+        count: 0,
+      },
+    };
+    const renderResult = renderRecurringOrderDetailsView({
+      order: staleOrder,
+    });
+
+    await openOrderDetails(renderResult);
+
+    expect(
+      await renderResult.findByText(
+        strings('bridge.recurring.history_progress', {
+          filledOrderCount: MOCK_RECURRING_OPEN_ORDER.fillData.count,
+          totalOrderCount: MOCK_RECURRING_OPEN_ORDER.schedule.repeatCount,
         }),
       ),
     ).toBeOnTheScreen();
@@ -271,7 +507,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     await userEvent.press(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].id,
         ),
       ),
     );
@@ -297,23 +533,30 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).toHaveTextContent(strings('bridge.recurring.history_empty'));
   });
 
-  it('keeps the price range in USD when EUR is selected', async () => {
+  it('converts the historical USD price range when EUR is selected', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER,
       overrides: {
         engine: {
           backgroundState: {
-            CurrencyRateController: {
-              currentCurrency: 'EUR',
-              currencyRates: {
-                ETH: {
-                  conversionRate: 1800,
-                  usdConversionRate: 2000,
-                },
-              },
-            },
             AssetsController: {
               selectedCurrency: 'eur',
+              assetsInfo: {
+                'eip155:1/slip44:60': {
+                  type: 'native',
+                  decimals: 18,
+                  symbol: 'ETH',
+                  name: 'Ether',
+                },
+              },
+              assetsPrice: {
+                'eip155:1/slip44:60': {
+                  assetPriceType: 'fungible',
+                  price: 1800,
+                  usdPrice: 2000,
+                  lastUpdated: Date.now(),
+                },
+              },
             },
           },
         },
@@ -329,6 +572,8 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       summary.getByText(
         formatRecurringPriceRange({
           priceRange: MOCK_RECURRING_OPEN_ORDER.priceRange,
+          currentCurrency: 'EUR',
+          usdToCurrentCurrencyRate: 0.9,
         }),
       ),
     ).toBeOnTheScreen();
@@ -341,9 +586,11 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     };
     clearRecurringOrdersDataServiceMock();
     setupRecurringOrdersDataServiceMock({
-      recurringSwaps: jest
-        .fn()
-        .mockResolvedValue({ swaps: [malformedSkippedSwap] }),
+      recurringSwaps: jest.fn().mockResolvedValue({
+        swaps: [malformedSkippedSwap],
+        hasNextPage: false,
+        total: 1,
+      }),
     });
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_OPEN_ORDER,
@@ -353,7 +600,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
 
     const row = await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-        malformedSkippedSwap.swapId,
+        malformedSkippedSwap.id,
       ),
     );
     expect(
@@ -361,9 +608,42 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows submitted status and zero amounts for a submitted swap', async () => {
+    const submittedSwap = {
+      ...MOCK_RECURRING_OPEN_ORDER_SWAPS[0],
+      id: `${MOCK_RECURRING_OPEN_ORDER.id}-submitted`,
+      status: RecurringSwapStatus.Submitted,
+    };
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({
+      recurringSwaps: jest.fn().mockResolvedValue({
+        swaps: [submittedSwap],
+        hasNextPage: false,
+        total: 1,
+      }),
+    });
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+
+    await openOrderDetails(renderResult);
+
+    const row = within(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(submittedSwap.id),
+      ),
+    );
+    expect(row.getByText(strings('bridge.limit.submitted'))).toBeOnTheScreen();
+    expect(
+      row.queryByText(strings('bridge.recurring.filled')),
+    ).not.toBeOnTheScreen();
+    expect(row.getByText('+0 USDC')).toBeOnTheScreen();
+    expect(row.getByText('-0 ETH')).toBeOnTheScreen();
+  });
+
   it('recovers swap history after the initial request fails', async () => {
     let rejectInitialRequest: (reason: Error) => void = () => undefined;
-    const initialRequest = new Promise<GetRecurringSwapsResponse>(
+    const initialRequest = new Promise<ListRecurringSwapsResponse>(
       (_resolve, reject) => {
         rejectInitialRequest = reject;
       },
@@ -371,7 +651,11 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     const recurringSwaps = jest
       .fn()
       .mockReturnValueOnce(initialRequest)
-      .mockResolvedValueOnce({ swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]] });
+      .mockResolvedValueOnce({
+        swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
+        hasNextPage: false,
+        total: 1,
+      });
     clearRecurringOrdersDataServiceMock();
     setupRecurringOrdersDataServiceMock({ recurringSwaps });
     const renderResult = renderRecurringOrderDetailsView({
@@ -406,7 +690,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     expect(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[0].id,
         ),
       ),
     ).toBeOnTheScreen();
@@ -414,16 +698,18 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
   });
 
   it('loads the next history page near the bottom of the details scroll', async () => {
-    let resolveNextPage: (value: GetRecurringSwapsResponse) => void = () =>
+    let resolveNextPage: (value: ListRecurringSwapsResponse) => void = () =>
       undefined;
-    const nextPage = new Promise<GetRecurringSwapsResponse>((resolve) => {
+    const nextPage = new Promise<ListRecurringSwapsResponse>((resolve) => {
       resolveNextPage = resolve;
     });
     const recurringSwaps = jest
       .fn()
       .mockResolvedValueOnce({
         swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[0]],
-        nextCursor: 'next-page',
+        endCursor: 'next-page',
+        hasNextPage: true,
+        total: 2,
       })
       .mockReturnValueOnce(nextPage);
     clearRecurringOrdersDataServiceMock();
@@ -434,7 +720,7 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     await openOrderDetails(renderResult);
     await renderResult.findByTestId(
       RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-        MOCK_RECURRING_OPEN_ORDER_SWAPS[0].swapId,
+        MOCK_RECURRING_OPEN_ORDER_SWAPS[0].id,
       ),
     );
 
@@ -453,21 +739,29 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).toBeOnTheScreen();
 
     await act(async () => {
-      resolveNextPage({ swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[1]] });
+      resolveNextPage({
+        swaps: [MOCK_RECURRING_OPEN_ORDER_SWAPS[1]],
+        hasNextPage: false,
+        total: 2,
+      });
       await Promise.resolve();
     });
 
     expect(
       await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.HISTORY_ROW(
-          MOCK_RECURRING_OPEN_ORDER_SWAPS[1].swapId,
+          MOCK_RECURRING_OPEN_ORDER_SWAPS[1].id,
         ),
       ),
     ).toBeOnTheScreen();
     expect(recurringSwaps).toHaveBeenNthCalledWith(
       2,
-      MOCK_RECURRING_OPEN_ORDER.orderId,
-      { limit: 20, cursor: 'next-page' },
+      MOCK_RECURRING_OPEN_ORDER.id,
+      {
+        accountAddress: MOCK_RECURRING_OPEN_ORDER.account,
+        limit: 20,
+        cursor: 'next-page',
+      },
     );
   });
 
@@ -494,7 +788,54 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows no footer action for a cancelled API order', async () => {
+  it('hides cancellation when the API marks an open order non-cancellable', async () => {
+    const nonCancellableOrder = {
+      ...MOCK_RECURRING_OPEN_ORDER,
+      isCancellable: false,
+    };
+    const recurringOrder = jest.fn().mockResolvedValue({
+      order: nonCancellableOrder,
+    });
+    clearRecurringOrdersDataServiceMock();
+    setupRecurringOrdersDataServiceMock({ recurringOrder });
+    const renderResult = renderRecurringOrderDetailsView({
+      order: MOCK_RECURRING_OPEN_ORDER,
+    });
+
+    await userEvent.press(
+      renderResult.getByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.TEST_ENTRY_BUTTON,
+      ),
+    );
+
+    expect(
+      await renderResult.findByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.SUMMARY,
+      ),
+    ).toBeOnTheScreen();
+    // The summary renders from the cancellable route order before the
+    // order response lands, so wait for that response to remove Cancel.
+    await waitFor(() => {
+      expect(recurringOrder).toHaveBeenCalledWith(
+        MOCK_RECURRING_OPEN_ORDER.id,
+        expect.objectContaining({
+          accountAddress: MOCK_RECURRING_OPEN_ORDER.account,
+        }),
+      );
+      expect(
+        renderResult.queryByTestId(
+          RecurringOrderDetailsViewSelectorsIDs.CANCEL_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+    expect(
+      renderResult.queryByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows duplicate action for a cancelled API order', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_CANCELLED_ORDER,
     });
@@ -516,9 +857,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(
-      renderResult.queryByTestId(
+      await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
   });
 });

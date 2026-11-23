@@ -3,7 +3,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, type Json } from '@metamask/utils';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
@@ -15,7 +15,11 @@ import {
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { isRouteToken } from '../../utils/relayFixedSpread';
+import {
+  selectStablecoins,
+  STABLE_TOKENS_FLAG,
+} from '../../../../../selectors/featureFlagController/stableTokens';
+import { mockedEmptyFlagsState } from '../../../../../selectors/featureFlagController/mocks';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
@@ -24,6 +28,7 @@ import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
 import { MoneyAccountDepositPrefillVariant } from './abTestConfig';
+import { useParams } from '../../../../../util/navigation/navUtils';
 
 jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
   getMoneyAccountDepositIntent: jest.fn(),
@@ -31,6 +36,11 @@ jest.mock('../../../../UI/Money/utils/moneyAccountDepositIntent', () => ({
 
 jest.mock('../../../../../util/abTest', () => ({
   resolveABTestAssignment: jest.fn(),
+}));
+
+jest.mock('../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+  useParams: jest.fn(),
 }));
 
 jest.mock(
@@ -44,11 +54,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../utils/relayFixedSpread', () => ({
-  ...jest.requireActual('../../utils/relayFixedSpread'),
-  isRouteToken: jest.fn(),
-}));
-
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayAvailableTokens');
 jest.mock('../pay/useTransactionPayBalance');
@@ -61,8 +66,17 @@ jest.mock('../../../../../selectors/transactionPayController', () => ({
 }));
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
-const TOKEN_ADDRESS_B_MOCK =
-  '0x9876543210987654321098765432109876543210' as Hex;
+/** Ethereum USDT, listed in both the stableTokens fallback and the production flag. */
+const ETHEREUM_USDT_ADDRESS =
+  '0xdac17f958d2ee523a2206206994597c13d831ec7' as Hex;
+/** Ethereum USDC, also a listed stablecoin, used when switching pay tokens. */
+const ETHEREUM_USDC_ADDRESS =
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex;
+/** Ethereum DAI. Present on the production stableTokens flag, absent from the fallback list. */
+const ETHEREUM_DAI_ADDRESS =
+  '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex;
+const NON_STABLECOIN_ADDRESS =
+  '0x1111111111111111111111111111111111111111' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 const BATCH_ID_MOCK = '0xtestbatchid';
 const TRANSACTION_ID_MOCK = 'test-tx-id';
@@ -81,13 +95,13 @@ const useTransactionPayFiatPaymentMock = jest.mocked(
 const selectMetaMaskPayFlagsMock =
   selectMetaMaskPayFlags as unknown as jest.Mock;
 const selectDepositLimitsMock = selectDepositLimits as unknown as jest.Mock;
-const isRouteTokenMock = isRouteToken as unknown as jest.Mock;
 const selectAccountOverrideMock =
   selectAccountOverrideByTransactionId as unknown as jest.Mock;
 const getMoneyAccountDepositIntentMock = jest.mocked(
   getMoneyAccountDepositIntent,
 );
 const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
+const useParamsMock = jest.mocked(useParams);
 
 function mockDepositPrefillAbVariant(
   variant: MoneyAccountDepositPrefillVariant = MoneyAccountDepositPrefillVariant.Treatment,
@@ -115,7 +129,7 @@ function makePayToken(
   overrides?: Partial<TransactionPaymentToken>,
 ): TransactionPaymentToken {
   return {
-    address: TOKEN_ADDRESS_MOCK,
+    address: ETHEREUM_USDT_ADDRESS,
     balanceUsd: '1000',
     chainId: CHAIN_ID_MOCK,
     ...overrides,
@@ -164,10 +178,16 @@ function setupMocks(
     depositIntent = 'convert',
   } = overrides;
 
-  const resolvedPayToken =
+  let resolvedPayToken =
     'payToken' in overrides
       ? (overrides.payToken ?? undefined)
       : makePayToken();
+  if (resolvedPayToken && !stablecoin) {
+    resolvedPayToken = {
+      ...resolvedPayToken,
+      address: NON_STABLECOIN_ADDRESS,
+    };
+  }
 
   useTransactionMetadataRequestMock.mockReturnValue(transactionMeta);
   setPayTokenWithBalance(resolvedPayToken);
@@ -200,23 +220,47 @@ function setupMocks(
     },
   });
   selectDepositLimitsMock.mockReturnValue(depositLimits);
-  isRouteTokenMock.mockReturnValue(stablecoin);
   selectAccountOverrideMock.mockReturnValue(overrides.accountOverride);
   getMoneyAccountDepositIntentMock.mockReturnValue(
     depositIntent as ReturnType<typeof getMoneyAccountDepositIntent>,
   );
 }
 
-function runHook(options?: { autoSelectFiatPayment?: boolean }) {
-  return renderHookWithProvider(() => useDepositPrefillAmount(options), {
-    state: {},
-  });
+function runHook(options?: {
+  autoSelectFiatPayment?: boolean;
+  stableTokens?: Record<string, Json>;
+}) {
+  return renderHookWithProvider(
+    () =>
+      useDepositPrefillAmount({
+        autoSelectFiatPayment: options?.autoSelectFiatPayment,
+      }),
+    {
+      state: options?.stableTokens
+        ? {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    [STABLE_TOKENS_FLAG]: options.stableTokens,
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          }
+        : {},
+    },
+  );
 }
 
 describe('useDepositPrefillAmount', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
   beforeEach(() => {
     jest.resetAllMocks();
     mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Treatment);
+    useParamsMock.mockReturnValue({});
     setupMocks();
   });
 
@@ -277,6 +321,131 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBeDefined();
     });
 
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    ])(
+      'enables explicit amount prefill for %s transactions',
+      (transactionType) => {
+        setupMocks({
+          transactionMeta: makeTransactionMeta({ type: transactionType }),
+        });
+        useParamsMock.mockReturnValue({ amount: '5' });
+
+        const { result } = runHook();
+
+        expect(result.current.prefillAmount).toBe('5');
+        expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      },
+    );
+
+    it('prefills the explicit Money amount instead of a balance percentage', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.moneyAccountDeposit,
+        }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current).toEqual({
+        prefillAmount: '5',
+        percentage: undefined,
+        isLimitCapped: false,
+        status: DepositPrefillStatus.Prefilled,
+      });
+    });
+
+    it('prefills an explicit amount even when balance prefill flags are disabled', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
+      setupMocks({
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+    });
+
+    it('waits for a selected payment token before preparing the explicit amount', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({ payToken: null });
+
+      const { result, rerender } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Loading);
+      act(() => {
+        setPayTokenWithBalance(makePayToken());
+        rerender({});
+      });
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+    });
+
+    it.each(['0', '-5', 'NaN', 'Infinity'])(
+      'does not automatically quote amount %s',
+      (amount) => {
+        useParamsMock.mockReturnValue({ amount });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      },
+    );
+
+    it('skips explicit amount autoquote without a funded token', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({ payToken: null, availableTokenBalances: [] });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+    });
+
+    it('preserves the explicit amount instead of capping it to balance or deposit limits', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        payToken: makePayToken({ balanceUsd: '2' }),
+        depositLimits: { moneyAccountDeposit: 3 },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('5');
+      expect(result.current.percentage).toBeUndefined();
+      expect(result.current.isLimitCapped).toBe(false);
+    });
+
+    it('leaves explicit fiat amounts on the input flow', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+
+      const { result } = runHook({ autoSelectFiatPayment: true });
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+    });
+
+    it('keeps perpsDeposit prefill enabled when navigation provides an explicit amount', () => {
+      useParamsMock.mockReturnValue({ amount: '5' });
+      setupMocks({
+        transactionMeta: makeTransactionMeta({
+          type: TransactionType.perpsDeposit,
+        }),
+        prefilledAmountDefault: { enabled: false },
+        prefilledAmountOverrides: {
+          perpsDeposit: { enabled: true },
+        },
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('500');
+    });
+
     it('does not apply the money-account A/B gate for non-deposit transaction types', () => {
       mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
       setupMocks({
@@ -296,6 +465,25 @@ describe('useDepositPrefillAmount', () => {
   });
 
   describe('prefillAmount computation', () => {
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])('computes 50% for stablecoin %s transactions', (transactionType) => {
+      setupMocks({
+        transactionMeta: makeTransactionMeta({ type: transactionType }),
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '1000' }),
+        prefilledAmountDefault: { enabled: true },
+        prefilledAmountOverrides: {},
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
+    });
+
     it('computes 100% for stablecoin', () => {
       setupMocks({
         stablecoin: true,
@@ -307,6 +495,80 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBe('500');
       expect(result.current.percentage).toBe(100);
       expect(result.current.isLimitCapped).toBe(false);
+    });
+
+    it('prefills the full balance for every fallback stablecoin', () => {
+      const stablecoins = selectStablecoins(mockedEmptyFlagsState);
+
+      for (const [chainId, addresses] of Object.entries(stablecoins)) {
+        for (const address of addresses) {
+          setupMocks({
+            payToken: makePayToken({
+              address: address as Hex,
+              balanceUsd: '1000',
+              chainId: chainId as Hex,
+            }),
+          });
+
+          const { result } = runHook();
+
+          expect(result.current.prefillAmount).toBe('1000');
+          expect(result.current.percentage).toBe(100);
+          expect(result.current.isLimitCapped).toBe(false);
+        }
+      }
+    });
+
+    it('prefills Ethereum USDT to max when the address is checksummed', () => {
+      setupMocks({
+        payToken: makePayToken({
+          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7' as Hex,
+          balanceUsd: '80',
+        }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('80');
+      expect(result.current.percentage).toBe(100);
+    });
+
+    it('prefills tokens on the stableTokens flag to max, including ones absent from the fallback list', () => {
+      setupMocks({
+        payToken: makePayToken({
+          address: ETHEREUM_DAI_ADDRESS,
+          balanceUsd: '1000',
+        }),
+      });
+
+      const { result } = runHook({
+        stableTokens: {
+          rc: true,
+          '0x1': [ETHEREUM_USDT_ADDRESS, ETHEREUM_DAI_ADDRESS],
+        },
+      });
+
+      expect(result.current.prefillAmount).toBe('1000');
+      expect(result.current.percentage).toBe(100);
+      expect(result.current.isLimitCapped).toBe(false);
+    });
+
+    it('prefills 50% for a fallback stablecoin the stableTokens flag omits', () => {
+      setupMocks({
+        payToken: makePayToken({
+          address: ETHEREUM_USDT_ADDRESS,
+          balanceUsd: '1000',
+        }),
+      });
+
+      const { result } = runHook({
+        stableTokens: {
+          '0x1': [ETHEREUM_USDC_ADDRESS],
+        },
+      });
+
+      expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
     });
 
     it('computes 50% for non-stablecoin', () => {
@@ -446,6 +708,45 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBe('59.64');
     });
 
+    it('skips a stablecoin whose whole balance is sub-cent dust', () => {
+      // Dust renders as $0.00 and the percentage path refuses to apply it,
+      // so a prefill here would leave the previous token's amount in place.
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.005' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+      expect(result.current.percentage).toBeUndefined();
+    });
+
+    it('skips a non-stablecoin whose 50% share is sub-cent dust', () => {
+      setupMocks({
+        stablecoin: false,
+        payToken: makePayToken({ balanceUsd: '0.015' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Skipped);
+      expect(result.current.prefillAmount).toBeUndefined();
+    });
+
+    it('still prefills a balance of exactly one cent', () => {
+      setupMocks({
+        stablecoin: true,
+        payToken: makePayToken({ balanceUsd: '0.01' }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+      expect(result.current.prefillAmount).toBe('0.01');
+    });
+
     it('settles instead of loading when the balance snapshot is not numeric', () => {
       // The snapshot on the pay token can be non-numeric while the reactive
       // balance in the pay-with row is fine. `NaN` produces no prefill amount
@@ -549,7 +850,7 @@ describe('useDepositPrefillAmount', () => {
 
       setPayTokenWithBalance(
         makePayToken({
-          address: TOKEN_ADDRESS_B_MOCK,
+          address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
         }),
       );

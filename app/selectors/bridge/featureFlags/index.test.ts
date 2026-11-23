@@ -1,14 +1,34 @@
 import type { CaipChainId, Json } from '@metamask/utils';
+import { getVersion } from 'react-native-device-info';
 import {
+  DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS,
+  selectBridgeLimitOrderBaseUrl,
+  selectBridgeLimitOrderDefaultCostTolerance,
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeLimitOrderTabEnabledFlag,
+  selectBridgeRecurringBuyBaseUrl,
+  selectSwapFromMoneyEnabled,
+  selectSwapToMoneyEnabled,
   selectBridgeRecurringBuyFeatureFlags,
   selectBridgeRecurringBuyTabEnabledFlag,
+  selectSentinelFeeTokensCacheTtlMs,
+  selectSentinelFeeTokensFeatureFlags,
 } from '.';
 import {
   mockedEmptyFlagsState,
   mockedUndefinedFlagsState,
 } from '../../featureFlagController/mocks';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('99.0.0'),
+}));
+
+jest.mock(
+  '../../../core/Engine/controllers/remote-feature-flag-controller',
+  () => ({
+    isRemoteFeatureFlagOverrideActivated: false,
+  }),
+);
 
 const LIMIT_ORDER_CHAIN_IDS: CaipChainId[] = ['eip155:1', 'eip155:8453'];
 const RECURRING_BUY_CHAIN_IDS: CaipChainId[] = ['eip155:1', 'eip155:56'];
@@ -110,6 +130,142 @@ describe('selectBridgeRecurringBuyFeatureFlags', () => {
   });
 });
 
+describe('selectBridgeLimitOrderBaseUrl', () => {
+  it('returns the baseUrl of the remote flag', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: {
+        enabled: true,
+        enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+        baseUrl: 'https://bridge.api.cx.metamask.io',
+      },
+    });
+
+    const result = selectBridgeLimitOrderBaseUrl(state);
+
+    expect(result).toBe('https://bridge.api.cx.metamask.io');
+  });
+
+  it('returns undefined when the remote flag has no baseUrl', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: { enabled: true, enabledChainIds: [] },
+    });
+
+    const result = selectBridgeLimitOrderBaseUrl(state);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the remote flag is missing', () => {
+    const result = selectBridgeLimitOrderBaseUrl(mockedEmptyFlagsState);
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('selectBridgeLimitOrderDefaultCostTolerance', () => {
+  it.each([
+    ['an integer', 5, '5'],
+    ['a decimal', 1.5, '1.5'],
+    ['a decimal with 2 places', 2.25, '2.25'],
+  ])(
+    'returns the remote defaultPriceTolerance when it is %s',
+    (_caseName, defaultPriceTolerance, expected) => {
+      const state = buildStateWithRemoteFlags({
+        swapsLimitOrder: {
+          enabled: true,
+          enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+          defaultPriceTolerance,
+        },
+      });
+
+      const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+
+      expect(result).toBe(expected);
+    },
+  );
+
+  it.each([
+    ['zero', 0],
+    ['100', 100],
+    ['above 100', 150],
+    ['negative', -1],
+    ['more than 2 decimals', 1.234],
+  ])(
+    'returns 3 when defaultPriceTolerance is %s',
+    (_caseName, defaultPriceTolerance) => {
+      const state = buildStateWithRemoteFlags({
+        swapsLimitOrder: {
+          enabled: true,
+          enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+          defaultPriceTolerance,
+        },
+      });
+
+      const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+
+      expect(result).toBe('3');
+    },
+  );
+
+  it('returns 3 when defaultPriceTolerance is missing', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: { enabled: true, enabledChainIds: [] },
+    });
+
+    const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+
+    expect(result).toBe('3');
+  });
+
+  it('returns 3 when the remote flag is missing', () => {
+    const result = selectBridgeLimitOrderDefaultCostTolerance(
+      mockedEmptyFlagsState,
+    );
+
+    expect(result).toBe('3');
+  });
+
+  it('returns 3 when RemoteFeatureFlagController state is undefined', () => {
+    const result = selectBridgeLimitOrderDefaultCostTolerance(
+      mockedUndefinedFlagsState,
+    );
+
+    expect(result).toBe('3');
+  });
+});
+
+describe('selectBridgeRecurringBuyBaseUrl', () => {
+  it('returns the baseUrl of the remote flag', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsRecurringBuy: {
+        enabled: true,
+        enabledChainIds: RECURRING_BUY_CHAIN_IDS,
+        baseUrl: 'https://bridge.api.cx.metamask.io',
+      },
+    });
+
+    const result = selectBridgeRecurringBuyBaseUrl(state);
+
+    expect(result).toBe('https://bridge.api.cx.metamask.io');
+  });
+
+  it('returns undefined when the remote flag has no baseUrl', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsRecurringBuy: { enabled: true, enabledChainIds: [] },
+    });
+
+    const result = selectBridgeRecurringBuyBaseUrl(state);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the remote flag is missing', () => {
+    const result = selectBridgeRecurringBuyBaseUrl(mockedEmptyFlagsState);
+
+    expect(result).toBeUndefined();
+  });
+});
+
 describe('selectBridgeLimitOrderTabEnabledFlag', () => {
   it('returns true when the remote flag is enabled', () => {
     const state = buildStateWithRemoteFlags({
@@ -185,6 +341,149 @@ describe('selectBridgeRecurringBuyTabEnabledFlag', () => {
     const result = selectBridgeRecurringBuyTabEnabledFlag(
       mockedUndefinedFlagsState,
     );
+
+    expect(result).toBe(false);
+  });
+});
+
+describe('selectSentinelFeeTokensFeatureFlags', () => {
+  it('returns the Sentinel fee-token configuration', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsSentinelFeeTokens: {
+        cacheTtlMs: 60_000,
+      },
+    });
+
+    const result = selectSentinelFeeTokensFeatureFlags(state);
+
+    expect(result).toStrictEqual({ cacheTtlMs: 60_000 });
+  });
+});
+
+describe('selectSentinelFeeTokensCacheTtlMs', () => {
+  it('returns a positive finite configured TTL', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsSentinelFeeTokens: {
+        cacheTtlMs: 60_000,
+      },
+    });
+
+    const result = selectSentinelFeeTokensCacheTtlMs(state);
+
+    expect(result).toBe(60_000);
+  });
+
+  it.each([
+    ['missing flag', mockedEmptyFlagsState],
+    [
+      'missing cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {},
+      }),
+    ],
+    [
+      'string cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: '900000',
+        },
+      }),
+    ],
+    [
+      'zero cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: 0,
+        },
+      }),
+    ],
+    [
+      'negative cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: -1,
+        },
+      }),
+    ],
+    [
+      'non-finite cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: Number.POSITIVE_INFINITY,
+        },
+      }),
+    ],
+  ])('returns the default for %s', (_caseName, state) => {
+    const result = selectSentinelFeeTokensCacheTtlMs(state);
+
+    expect(result).toBe(DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS);
+  });
+});
+
+describe.each([
+  ['selectSwapToMoneyEnabled', selectSwapToMoneyEnabled, 'swapsToMoney'],
+  ['selectSwapFromMoneyEnabled', selectSwapFromMoneyEnabled, 'swapsFromMoney'],
+] as const)('%s', (_name, selector, flagKey) => {
+  beforeEach(() => {
+    jest.mocked(getVersion).mockReturnValue('99.0.0');
+  });
+
+  it('returns true when enabled and the minimum version is met', () => {
+    const state = buildStateWithRemoteFlags({
+      [flagKey]: { enabled: true, minimumVersion: '1.0.0' },
+    });
+
+    const result = selector(state);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for a progressive-rollout wrapper when enabled and the minimum version is met', () => {
+    const state = buildStateWithRemoteFlags({
+      [flagKey]: {
+        name: flagKey,
+        value: { enabled: true, minimumVersion: '1.0.0' },
+      },
+    });
+
+    const result = selector(state);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when enabled is false', () => {
+    const state = buildStateWithRemoteFlags({
+      [flagKey]: { enabled: false, minimumVersion: '1.0.0' },
+    });
+
+    const result = selector(state);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the minimum version is not met', () => {
+    jest.mocked(getVersion).mockReturnValue('1.0.0');
+    const state = buildStateWithRemoteFlags({
+      [flagKey]: { enabled: true, minimumVersion: '99.0.0' },
+    });
+
+    const result = selector(state);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the remote flag is missing', () => {
+    const result = selector(mockedEmptyFlagsState);
+
+    expect(result).toBe(false);
+  });
+
+  it('returns false when the flag shape is not version-gated', () => {
+    const state = buildStateWithRemoteFlags({
+      [flagKey]: true,
+    });
+
+    const result = selector(state);
 
     expect(result).toBe(false);
   });

@@ -3,7 +3,6 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 
-import { DEFAULT_BADGENOTIFICATIONS_NOTIFICATIONSICON_SIZE } from './BadgeNotifications.constants';
 import { BadgeNotificationsStyleSheetVars } from './BadgeNotifications.types';
 
 /**
@@ -20,12 +19,8 @@ const styleSheet = (params: {
 }) => {
   const { vars } = params;
   const { style, containerSize } = vars;
-  let scaleRatio = 1;
   let opacity = 0;
   if (containerSize) {
-    scaleRatio =
-      containerSize.height /
-      Number(DEFAULT_BADGENOTIFICATIONS_NOTIFICATIONSICON_SIZE);
     opacity = 1;
   }
 
@@ -45,9 +40,6 @@ const styleSheet = (params: {
       } as ViewStyle,
       style,
     ) as ViewStyle,
-    notificationIcon: {
-      transform: [{ scale: scaleRatio }],
-    },
   });
 };
 

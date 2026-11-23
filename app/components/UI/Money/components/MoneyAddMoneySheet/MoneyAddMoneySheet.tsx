@@ -14,7 +14,6 @@ import { TransactionType } from '@metamask/transaction-controller';
 import { createProjectLogger, Hex } from '@metamask/utils';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   IconName,
   Text,
@@ -37,8 +36,12 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import Routes from '../../../../../constants/navigation/Routes';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
+import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
+import { getBankAccountEntryVisibility } from '../../utils/getBankAccountEntryVisibility';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { MoneyAddMoneySheetParams } from '../../types/navigation';
 import MoneySheetOptionsList, {
@@ -55,10 +58,14 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
+import { useMoneyAccountAccessRedirect } from '../../hooks/useMoneyAccountAvailability';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const log = createProjectLogger('money-add-money-sheet');
 
-const MoneyAddMoneySheet: React.FC = () => {
+const MoneyAddMoneySheetContent: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { launchedFrom } = useParams<MoneyAddMoneySheetParams>();
@@ -74,9 +81,13 @@ const MoneyAddMoneySheet: React.FC = () => {
   const { enabledTransactionTypes } = useMMPayFiatConfig();
   const hasAnyCryptoBalance = useSelector(selectHasAnyNonZeroTokenBalance);
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
-  const isVirtualBankAccountEnabled = useSelector(
-    selectMoneyMovementBrazilNeobankEnabled,
-  );
+  // Flag, min version, supported IP geolocation, and the dev bypass.
+  const vbaEligibility = useVbaEligibility();
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
+  const bankAccountVisibility = getBankAccountEntryVisibility({
+    ...vbaEligibility,
+    hasUsableAutoramp: Boolean(usableVbaAutoramp),
+  });
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();
@@ -160,14 +171,17 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleBankAccount = useCallback(() => {
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.ADD_MONEY_SHEET);
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
-      redirect_target: SCREEN_NAMES.VBA_KYC_EMAIL,
+      redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
 
     // Not part of the crypto deposit flow, so it bypasses startDeposit.
+    // An approved account opens its details directly. Otherwise the loading
+    // screen hydrates and replaces itself with the first incomplete module.
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.VBA_KYC_EMAIL);
+      openVbaEntry(navigation);
     });
   }, [navigation, trackSurfaceClicked]);
 
@@ -235,27 +249,34 @@ const MoneyAddMoneySheet: React.FC = () => {
     ? { maskedText: moveMusdAmount, suffix: MUSD_TOKEN.symbol }
     : strings('money.add_money_sheet.add_musd');
 
-  const bankAccountOption: MoneySheetOption = isVirtualBankAccountEnabled
-    ? {
-        label: strings('money.add_money_sheet.bank_account'),
-        icon: IconName.Bank,
-        onPress: handleBankAccount,
-        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-        newBadge: true,
-      }
-    : {
-        label: strings('money.add_money_sheet.bank_account'),
-        icon: IconName.Bank,
-        testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
-        disabled: true,
-        comingSoon: true,
-      };
+  // Live row (eligible): promoted to the top. Coming-soon row (flag off):
+  // keeps its pre-flag position further down. Hidden (flag on but not
+  // eligible, or region still loading): omitted.
+  const bankAccountBaseOption: Pick<
+    MoneySheetOption,
+    'label' | 'icon' | 'testID'
+  > = {
+    label: strings('money.add_money_sheet.bank_account'),
+    icon: IconName.Bank,
+    testID: MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW,
+  };
+  const enabledBankAccountOptions: MoneySheetOption[] =
+    bankAccountVisibility === 'enabled'
+      ? [
+          {
+            ...bankAccountBaseOption,
+            onPress: handleBankAccount,
+            newBadge: true,
+          },
+        ]
+      : [];
+  const comingSoonBankAccountOptions: MoneySheetOption[] =
+    bankAccountVisibility === 'coming-soon'
+      ? [{ ...bankAccountBaseOption, disabled: true, comingSoon: true }]
+      : [];
 
   const baseOptions: MoneySheetOption[] = [
-    // Flag on: the enabled Bank account row is promoted to the top of the
-    // sheet. Flag off: the coming-soon row keeps its pre-flag position
-    // further down so ordering is unchanged for existing users.
-    ...(isVirtualBankAccountEnabled ? [bankAccountOption] : []),
+    ...enabledBankAccountOptions,
     {
       label: strings('money.add_money_sheet.convert_crypto'),
       icon: IconName.Refresh,
@@ -290,14 +311,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       // only actionable when that flow is available.
       disabled: !hasMusdBalance && !canDepositFiat,
     },
-    ...(isVirtualBankAccountEnabled ? [] : [bankAccountOption]),
-    {
-      label: strings('money.add_money_sheet.receive_external'),
-      icon: IconName.QrCode,
-      testID: MoneyAddMoneySheetTestIds.RECEIVE_EXTERNAL_ROW,
-      disabled: true,
-      comingSoon: true,
-    },
+    ...comingSoonBankAccountOptions,
   ];
 
   return (
@@ -307,16 +321,29 @@ const MoneyAddMoneySheet: React.FC = () => {
       testID={MoneyAddMoneySheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
     >
-      <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      >
         <Text variant={TextVariant.HeadingSm}>
           {strings('money.add_money_sheet.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.list}>
         <MoneySheetOptionsList options={options} />
       </View>
     </BottomSheet>
   );
+};
+
+const MoneyAddMoneySheet: React.FC = () => {
+  const isMoneyAccountAccessible = useMoneyAccountAccessRedirect();
+
+  if (!isMoneyAccountAccessible) {
+    return null;
+  }
+
+  return <MoneyAddMoneySheetContent />;
 };
 
 export default MoneyAddMoneySheet;

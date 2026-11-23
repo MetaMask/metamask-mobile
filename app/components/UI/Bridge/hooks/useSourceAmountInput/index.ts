@@ -13,6 +13,7 @@ import Engine from '../../../../../core/Engine';
 import {
   selectBridgeControllerState,
   selectDestToken,
+  selectIsMaxSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
@@ -82,19 +83,23 @@ export const useSourceAmountInput = ({
   isFiatToggleEnabled,
   sourceAmount,
   sourceToken,
+  tokenFiatRate,
   onSourceAmountChange,
 }: {
   isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
+  tokenFiatRate?: number;
   onSourceAmountChange: (value: string | undefined) => void;
 }) => {
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
   const featureId = useSwapsFeatureId();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const destToken = useSelector(selectDestToken);
+  const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const fiatRate = useTokenFiatRate(sourceToken);
+  const polledFiatRate = useTokenFiatRate(sourceToken);
+  const fiatRate = tokenFiatRate ?? polledFiatRate;
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
@@ -105,7 +110,12 @@ export const useSourceAmountInput = ({
     useState<InputPrimaryDenomination>(inputPrimaryDenomination);
   const isFiatMode =
     activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle;
-  const amount = isFiatMode ? fiatAmount : sourceAmount;
+  // Redux keeps the full Max amount for the quote; the first edit commits the
+  // truncated string via setSourceAmount, which clears the Max flag.
+  const tokenInputAmount = isMaxSourceAmount
+    ? (formatSecondaryTokenAmount(sourceAmount) ?? sourceAmount)
+    : sourceAmount;
+  const amount = isFiatMode ? fiatAmount : tokenInputAmount;
   const isFiatInputChangeRef = useRef(false);
 
   useEffect(() => {

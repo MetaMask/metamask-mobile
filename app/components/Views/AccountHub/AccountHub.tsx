@@ -16,9 +16,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   IconName,
   MainActionButton,
   Text,
@@ -35,6 +33,7 @@ import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ManageAccountsViewedSource } from '../../../core/Analytics/events/accounts';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useQRScanner } from '../../hooks/useQRScanner';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
@@ -52,9 +51,14 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import AccountListBalanceProviders from '../../hooks/AccountListBalanceProviders';
 import { AccountHubSelectorsIDs } from './AccountHub.testIds';
+import ButtonIconGlass from '../../../component-library/components-temp/ButtonIconGlass';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const AccountHub = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -125,7 +129,9 @@ const AccountHub = () => {
   }, [navigation, trackEvent, createEventBuilder]);
 
   const handleManageAccountsPress = useCallback(() => {
-    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW);
+    navigation.navigate(Routes.MANAGE_ACCOUNTS_VIEW, {
+      source: ManageAccountsViewedSource.AccountList,
+    });
   }, [navigation]);
 
   const handleInfoPress = useCallback(() => {
@@ -236,7 +242,9 @@ const AccountHub = () => {
       style={tw.style('flex-1 bg-default')}
       testID={AccountHubSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: AccountHubSelectorsIDs.BACK_BUTTON }}
         endAccessory={
@@ -254,7 +262,8 @@ const AccountHub = () => {
                   ) : null
                 }
               >
-                <ButtonIcon
+                <ButtonIconGlass
+                  isCapsule={isGlassHeader}
                   iconName={IconName.Notification}
                   size={ButtonIconSize.Md}
                   onPress={handleNotificationsPress}
@@ -262,7 +271,8 @@ const AccountHub = () => {
                 />
               </BadgeWrapper>
             )}
-            <ButtonIcon
+            <ButtonIconGlass
+              isCapsule={isGlassHeader}
               iconName={IconName.Setting}
               size={ButtonIconSize.Md}
               onPress={handleManageAccountsPress}
@@ -281,7 +291,8 @@ const AccountHub = () => {
                 ) : null
               }
             >
-              <ButtonIcon
+              <ButtonIconGlass
+                isCapsule={isGlassHeader}
                 iconName={IconName.Menu}
                 size={ButtonIconSize.Md}
                 onPress={handleMenuPress}
@@ -294,13 +305,15 @@ const AccountHub = () => {
       />
 
       {selectedAccountGroup ? (
-        <MultichainAccountSelectorList
-          onSelectAccount={handleSelectAccount}
-          selectedAccountGroups={selectedAccountGroups}
-          hideSearch
-          ListHeaderComponent={listHeader}
-          testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
-        />
+        <AccountListBalanceProviders>
+          <MultichainAccountSelectorList
+            onSelectAccount={handleSelectAccount}
+            selectedAccountGroups={selectedAccountGroups}
+            hideSearch
+            ListHeaderComponent={listHeader}
+            testID={AccountHubSelectorsIDs.ACCOUNT_LIST}
+          />
+        </AccountListBalanceProviders>
       ) : (
         <ScrollView style={tw.style('flex-1')}>{listHeader}</ScrollView>
       )}

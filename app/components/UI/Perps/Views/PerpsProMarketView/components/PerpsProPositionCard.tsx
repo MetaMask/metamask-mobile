@@ -4,9 +4,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
   ButtonSize,
   ButtonVariant,
   FontWeight,
@@ -16,7 +13,6 @@ import {
   SensitiveText,
   SensitiveTextLength,
   Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -28,13 +24,15 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
-import { LIQUIDATION_DISTANCE_DECIMALS } from '../../../constants/perpsConfig';
+import PerpsLiquidationPriceValue from '../../../components/PerpsLiquidationPriceValue';
 import {
   getPerpsCrossLiquidationInfoSelector,
   getPerpsCrossMarginTagSelector,
+  getPerpsIsolatedMarginTagSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
 import PerpsCrossMarginInfoButton from '../../../components/PerpsCrossMarginInfoButton';
+import PerpsMarginModeTag from '../../../components/PerpsMarginModeTag';
 import { selectPerpsCrossMarginEnabledFlag } from '../../../selectors/featureFlags';
 import {
   formatPerpsFiat,
@@ -59,9 +57,8 @@ interface PerpsProPositionCardProps {
   isEditMarginDisabled?: boolean;
 }
 
-interface KeyValueItemProps {
+interface KeyValueItemBaseProps {
   label: string;
-  value: string;
   valueColor?: TextColor;
   labelAccessory?: React.ReactNode;
   isHidden?: boolean;
@@ -69,14 +66,28 @@ interface KeyValueItemProps {
   isValuePressDisabled?: boolean;
   valuePressTestID?: string;
   valuePressAccessibilityLabel?: string;
-  showEditIcon?: boolean;
   /** Test ID for the value row, so agentic recipes can read the rendered value. */
   valueTestID?: string;
 }
 
+type KeyValueItemProps = KeyValueItemBaseProps &
+  (
+    | {
+        value: string;
+        valueNode?: never;
+        showEditIcon?: boolean;
+      }
+    | {
+        value?: never;
+        valueNode: React.ReactNode;
+        showEditIcon?: never;
+      }
+  );
+
 const KeyValueItem = ({
   label,
   value,
+  valueNode,
   valueColor = TextColor.TextDefault,
   labelAccessory,
   isHidden = false,
@@ -87,21 +98,24 @@ const KeyValueItem = ({
   showEditIcon = false,
   valueTestID,
 }: KeyValueItemProps) => {
-  const valueContent = (
-    <>
-      <SensitiveText
-        variant={TextVariant.BodyXs}
-        fontWeight={FontWeight.Medium}
-        color={isHidden ? TextColor.TextDefault : valueColor}
-        isHidden={isHidden}
-        length={SensitiveTextLength.Short}
-        twClassName="shrink"
-      >
-        {value}
-      </SensitiveText>
-      {showEditIcon ? <Icon name={IconName.Edit} size={IconSize.Sm} /> : null}
-    </>
-  );
+  const valueContent =
+    valueNode !== undefined ? (
+      valueNode
+    ) : (
+      <>
+        <SensitiveText
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={isHidden ? TextColor.TextDefault : valueColor}
+          isHidden={isHidden}
+          length={SensitiveTextLength.Short}
+          twClassName="shrink"
+        >
+          {value}
+        </SensitiveText>
+        {showEditIcon ? <Icon name={IconName.Edit} size={IconSize.Sm} /> : null}
+      </>
+    );
 
   return (
     <Box>
@@ -181,10 +195,7 @@ const PerpsProPositionCard = ({
     pnlColor,
   } = getPerpsPositionHeaderDisplay(position);
 
-  const marginTypeLabel =
-    position.leverage.type === 'isolated'
-      ? strings('perps.pro_positions_panel.card.isolated')
-      : strings('perps.pro_positions_panel.card.cross');
+  // The venue only adjusts isolated margin, whatever the cross margin flag.
   const canEditMargin =
     position.leverage.type === 'isolated' && Boolean(onEditMargin);
 
@@ -200,30 +211,7 @@ const PerpsProPositionCard = ({
   const entryPriceDisplay = formatPerpsFiat(position.entryPrice, {
     ranges: PRICE_RANGES_UNIVERSAL,
   });
-  // How far the live mark price sits from liquidation. Same formula and
-  // precision as the Lite card, so both modes report the same percentage for
-  // the same position.
-  const liqPriceNum =
-    position.liquidationPrice != null
-      ? parseFloat(String(position.liquidationPrice))
-      : NaN;
-  const canShowDistance =
-    liqPriceNum > 0 && Number.isFinite(markPriceNum) && markPriceNum > 0;
-  const liquidationDistanceSuffix = canShowDistance
-    ? ` (${(
-        (Math.abs(markPriceNum - liqPriceNum) / markPriceNum) *
-        100
-      ).toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%)`
-    : '';
-
-  const liqPriceDisplay =
-    position.liquidationPrice != null
-      ? `${formatPerpsFiat(position.liquidationPrice, {
-          ranges: PRICE_RANGES_UNIVERSAL,
-        })}${liquidationDistanceSuffix}`
-      : isCross
-        ? strings('perps.cross_position.no_liquidation_price')
-        : PERPS_CONSTANTS.FallbackPriceDisplay;
+  const isLong = parseFloat(position.size) > 0;
   const marginDisplay = formatPerpsFiat(position.marginUsed, {
     ranges: PRICE_RANGES_MINIMAL_VIEW,
   });
@@ -377,31 +365,45 @@ const PerpsProPositionCard = ({
                     />
                   ) : undefined
                 }
-                value={liqPriceDisplay}
-                isHidden={privacyMode}
-                valueTestID={PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE}
+                valueNode={
+                  <PerpsLiquidationPriceValue
+                    liquidationPrice={position.liquidationPrice}
+                    currentPrice={markPriceNum}
+                    isLong={isLong}
+                    isCross={isCross}
+                    privacyMode={privacyMode}
+                    textVariant={TextVariant.BodyXs}
+                    iconSize={IconSize.Xs}
+                    priceTestID={
+                      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_PRICE
+                    }
+                    distanceTestID={
+                      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_DISTANCE
+                    }
+                    iconTestID={
+                      PerpsProMarketViewSelectorsIDs.POSITION_LIQ_TREND
+                    }
+                  />
+                }
               />
             </Box>
             <Box twClassName="flex-1 min-w-0 gap-3">
               <KeyValueItem
-                label={strings(
-                  isCross
-                    ? 'perps.cross_position.margin_used'
-                    : 'perps.pro_positions_panel.card.margin',
-                )}
+                label={strings('perps.pro_positions_panel.card.margin')}
                 value={marginDisplay}
                 isHidden={privacyMode}
                 labelAccessory={
-                  <Tag
-                    severity={TagSeverity.Neutral}
+                  <PerpsMarginModeTag
+                    marginMode={position.leverage.type}
                     testID={
-                      isCross
+                      position.leverage.type === 'cross'
                         ? getPerpsCrossMarginTagSelector('pro', position.symbol)
-                        : undefined
+                        : getPerpsIsolatedMarginTagSelector(
+                            'pro',
+                            position.symbol,
+                          )
                     }
-                  >
-                    {marginTypeLabel}
-                  </Tag>
+                  />
                 }
                 onValuePress={
                   canEditMargin ? () => onEditMargin?.(position) : undefined
@@ -468,15 +470,16 @@ const PerpsProPositionCard = ({
           >
             {strings('perps.pro_positions_panel.card.reverse')}
           </Button>
-          <ButtonIcon
-            iconName={IconName.Share}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-            iconProps={{ size: IconSize.Md }}
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            startIconName={IconName.Share}
+            twClassName="flex-1"
             onPress={() => onShare?.(position)}
             testID={PerpsProMarketViewSelectorsIDs.POSITION_SHARE}
-            accessibilityLabel={strings('perps.pro_positions_panel.card.share')}
-          />
+          >
+            {strings('perps.pro_positions_panel.card.share')}
+          </Button>
         </Box>
       </Box>
     </Pressable>

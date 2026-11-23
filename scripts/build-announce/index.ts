@@ -1,6 +1,7 @@
-// RC Build Announce - Posts RC build comments to GitHub PRs with build links and AI test plan
+// RC Build Announce - Posts RC build comments to GitHub PRs with build links.
+// The AI test plan is added to the same comment later by add-test-plan.ts.
 
-import { existsSync, readdirSync } from 'fs';
+import { appendFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { Octokit } from '@octokit/rest';
 import {
@@ -10,14 +11,9 @@ import {
   minimizeComment,
   getExistingRcComments,
   postComment,
-  generateTestPlan,
   parseBuildInfo,
   parseGitHubContext,
 } from './utils';
-import {
-  buildTestPlanSection,
-  buildTestPlanFailureSection,
-} from './test-plan-section';
 import {
   buildEnvValidationSection,
   buildEnvValidationFailureSection,
@@ -29,7 +25,7 @@ import {
   type WhatsInRcResult,
 } from './cherry-picks-section';
 import { validateEnv } from './validate-env';
-import type { BuildInfo, TestPlanResult, EnvValidationResult } from './types';
+import type { BuildInfo, EnvValidationResult } from './types';
 
 /**
  * Builds the build links section of the comment
@@ -151,7 +147,6 @@ function performEnvValidation(): {
  */
 function buildCommentBody(
   buildInfo: BuildInfo,
-  testPlan: TestPlanResult | null,
   envValidation: {
     androidResult?: EnvValidationResult;
     iosResult?: EnvValidationResult;
@@ -161,7 +156,6 @@ function buildCommentBody(
     result?: WhatsInRcResult;
     error?: string;
   },
-  testPlanError?: string,
 ): string {
   let body = `${RC_BUILD_COMMENT_MARKER}
 ### :rocket: RC Builds Ready for Testing
@@ -194,16 +188,6 @@ ${buildMoreInfoSection(buildInfo)}
     body += buildWhatsInRcFailureSection(whatsInRc.error);
   }
 
-  // Add test plan section
-  if (testPlan) {
-    body += `---\n\n`;
-    body += buildTestPlanSection(testPlan);
-  } else if (testPlanError) {
-    body += buildTestPlanFailureSection(buildInfo.pipelineUrl, testPlanError);
-  }
-  // If no test plan and no error, we skip the test plan section entirely
-  // (this happens when AI keys are not available)
-
   return body;
 }
 
@@ -224,51 +208,6 @@ async function main(): Promise<void> {
   console.log(`Android Build: ${buildInfo.androidBuildNumber}`);
 
   const octokit = new Octokit({ auth: token });
-
-  // Check if we have AI API keys for test plan generation
-  const hasAiKeys =
-    process.env.E2E_CLAUDE_API_KEY ||
-    process.env.E2E_OPENAI_API_KEY ||
-    process.env.E2E_GEMINI_API_KEY;
-
-  let testPlan: TestPlanResult | null = null;
-  let testPlanError: string | undefined;
-
-  if (hasAiKeys) {
-    console.log('\n=== Generating AI Test Plan ===\n');
-
-    try {
-      testPlan = await generateTestPlan(
-        prNumber,
-        buildInfo.semver,
-        300000, // 5 minute timeout
-      );
-
-      if (testPlan) {
-        // Ensure version is set for JSON link in footer
-        if (!testPlan.version) {
-          testPlan.version = buildInfo.semver;
-        }
-
-        console.log(`\nTest plan generated successfully:`);
-        console.log(`  - Risk Score: ${testPlan.summary.releaseRiskScore}`);
-        console.log(`  - High Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'high').length}`);
-        console.log(`  - Medium Risk Scenarios: ${testPlan.scenarios.filter((s) => s.riskLevel === 'medium').length}`);
-        console.log(`  - Teams Signed Off: ${testPlan.signOffs.signedOff.length}/${testPlan.signOffs.signedOff.length + testPlan.signOffs.needsAttention.length}`);
-      } else {
-        // generateTestPlan returns null on failure (doesn't throw)
-        testPlanError = 'Test plan generation failed - check logs for details';
-        console.log('Continuing with build links only...');
-      }
-    } catch (error) {
-      testPlan = null;
-      testPlanError = error instanceof Error ? error.message : String(error);
-      console.error(`\nTest plan generation failed: ${testPlanError}`);
-      console.log('Continuing with build links only...');
-    }
-  } else {
-    console.log('\nNo AI API keys found, skipping test plan generation');
-  }
 
   // Extract environment values from build artifacts
   console.log('\n=== Build Environment ===\n');
@@ -301,7 +240,7 @@ async function main(): Promise<void> {
   }
 
   // Build the comment body
-  const commentBody = buildCommentBody(buildInfo, testPlan, envValidation, whatsInRc, testPlanError);
+  const commentBody = buildCommentBody(buildInfo, envValidation, whatsInRc);
 
   // Post comment and minimize old ones
   console.log(`\n=== Posting Comment to PR #${prNumber} ===\n`);
@@ -318,8 +257,11 @@ async function main(): Promise<void> {
 
     // Post new comment
     console.log('Creating new comment with RC build URLs...');
-    await postComment(octokit, owner, repo, prNumber, commentBody);
-    console.log('Successfully created new comment');
+    const commentId = await postComment(octokit, owner, repo, prNumber, commentBody);
+    console.log(`Successfully created new comment ${commentId}`);
+    if (process.env.GITHUB_OUTPUT) {
+      appendFileSync(process.env.GITHUB_OUTPUT, `comment-id=${commentId}\n`);
+    }
 
     // Minimize old comments
     if (existingComments.length > 0) {

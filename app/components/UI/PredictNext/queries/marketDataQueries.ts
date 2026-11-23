@@ -1,5 +1,6 @@
 import type {
   FetchFeedParams,
+  FetchSearchParams,
   PredictEntityId,
   PredictEvent,
   PredictFeed,
@@ -7,6 +8,8 @@ import type {
   PredictMarketHistory,
   PredictMarketHistoryRange,
   PredictQueryDescriptor,
+  PredictSearchResults,
+  PredictVenueCatalog,
   PredictVenueId,
   PredictVenueStatus,
 } from '../types';
@@ -15,6 +18,10 @@ export const MARKET_DATA_VENUE_STATUS_STALE_TIME = 60_000;
 export const MARKET_DATA_FEED_STALE_TIME = 60_000;
 export const MARKET_DATA_EVENT_STALE_TIME = 60_000;
 export const MARKET_DATA_MARKET_HISTORY_STALE_TIME = 60_000;
+export const MARKET_DATA_SEARCH_STALE_TIME = 60_000;
+/** Matches the catalog route's `Cache-Control: max-age=300`. Support changes
+ * rarely, and the backend authorizes every write regardless. */
+export const MARKET_DATA_VENUE_CATALOG_STALE_TIME = 300_000;
 
 export type FeedParams = Omit<FetchFeedParams, 'cursor'>;
 
@@ -55,12 +62,26 @@ export interface MarketDataQueries {
       PredictMarketHistoryRange,
     ]
   >;
+  searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:searchEvents', PredictVenueId, FetchSearchParams]
+  >;
+  /** Builds the Venue catalog (support) query descriptor. */
+  getVenueCatalog(
+    venueId: PredictVenueId,
+  ): PredictQueryDescriptor<
+    ['PredictMarketDataService:getVenueCatalog', PredictVenueId]
+  >;
 }
 
 export type GetVenueStatusResult = PredictVenueStatus;
 export type GetFeedResult = PredictFeed;
 export type GetEventResult = PredictEvent;
 export type GetMarketHistoryResult = PredictMarketHistory;
+export type SearchEventsResult = PredictSearchResults;
+export type GetVenueCatalogResult = PredictVenueCatalog;
 
 export const marketDataQueries: MarketDataQueries = {
   getVenueStatus: (venueId) => ({
@@ -90,6 +111,18 @@ export const marketDataQueries: MarketDataQueries = {
     ],
     family: ['PredictMarketDataService:getMarketHistory', venueId, marketId],
     staleTime: MARKET_DATA_MARKET_HISTORY_STALE_TIME,
+    scope: 'venue',
+  }),
+  searchEvents: (venueId, params) => ({
+    queryKey: ['PredictMarketDataService:searchEvents', venueId, params],
+    family: ['PredictMarketDataService:searchEvents', venueId],
+    staleTime: MARKET_DATA_SEARCH_STALE_TIME,
+    scope: 'venue',
+  }),
+  getVenueCatalog: (venueId) => ({
+    queryKey: ['PredictMarketDataService:getVenueCatalog', venueId],
+    family: ['PredictMarketDataService:getVenueCatalog', venueId],
+    staleTime: MARKET_DATA_VENUE_CATALOG_STALE_TIME,
     scope: 'venue',
   }),
 };

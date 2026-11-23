@@ -11,9 +11,7 @@ import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Button,
   ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -23,6 +21,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -181,19 +180,18 @@ const OnboardingCryptoExperienceQuestionnaire = () => {
         </Box>
       </ScrollView>
 
-      <Box twClassName="px-4 py-2">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={onContinue}
-          style={tw.style('w-full')}
-          testID={
-            OnboardingCryptoExperienceQuestionnaireTestIds.CONTINUE_BUTTON
-          }
-        >
-          {strings('onboarding_crypto_experience_questionnaire.continue')}
-        </Button>
-      </Box>
+      <FooterGlass
+        twClassName="py-2"
+        primaryButtonProps={{
+          children: strings(
+            'onboarding_crypto_experience_questionnaire.continue',
+          ),
+          size: ButtonSize.Lg,
+          onPress: onContinue,
+          testID:
+            OnboardingCryptoExperienceQuestionnaireTestIds.CONTINUE_BUTTON,
+        }}
+      />
     </SafeAreaView>
   );
 };

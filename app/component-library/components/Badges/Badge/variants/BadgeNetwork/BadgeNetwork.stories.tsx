@@ -2,7 +2,7 @@
 // Third party dependencies
 import React from 'react';
 import { View } from 'react-native';
-import { Meta, Story } from '@storybook/react-native';
+import type { Meta, StoryFn } from '@storybook/react';
 
 // Internal dependencies.
 import BadgeNetwork from './BadgeNetwork';
@@ -32,7 +32,7 @@ const customRender = (args: BadgeNetworkProps) => (
   </View>
 );
 
-const Template: Story<BadgeNetworkProps> = (args) => customRender(args);
+const Template: StoryFn<BadgeNetworkProps> = (args) => customRender(args);
 
 export const Default = Template.bind({});
 Default.args = {

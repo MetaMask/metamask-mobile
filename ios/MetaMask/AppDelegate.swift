@@ -108,6 +108,9 @@ class AppDelegate: ExpoAppDelegate {
       configuration.forwardUniversalLinks = true
       // Explicit: native default is 10s. Backgrounding longer than this starts a new session.
       configuration.sessionTimeout = 120
+      // Braze defaults to 30s between triggered in-app messages. Allow a
+      // banner-triggered full-screen message to follow the previous IAM quickly.
+      configuration.triggerMinimumTimeInterval = 2
       // swiftlint:disable:next force_cast
       let braze = BrazeHelperInit(configuration) as! Braze
       braze.delegate = self
@@ -133,7 +136,13 @@ class AppDelegate: ExpoAppDelegate {
     return superResult
   }
 
+  override func applicationDidEnterBackground(_ application: UIApplication) {
+    PrivacyCover.shared.show(in: window)
+    super.applicationDidEnterBackground(application)
+  }
+
   override func applicationDidBecomeActive(_ application: UIApplication) {
+    PrivacyCover.shared.markActive()
     super.applicationDidBecomeActive(application)
     // Re-assert our delegate on every foreground entry so Braze/Notifee cannot reclaim
     // it asynchronously. Notifee tap forwarding is handled explicitly in didReceive
@@ -159,6 +168,11 @@ class AppDelegate: ExpoAppDelegate {
 #if DEBUG
     return super.application(application, open: url, options: options) ||
       RCTLinkingManager.application(application, open: url, options: options)
+#elseif E2E
+    // E2E builds have no Branch key, so Branch never starts a session and would
+    // drop custom-scheme URLs instead of forwarding them to JS. Route them
+    // straight to React Native.
+    return RCTLinkingManager.application(application, open: url, options: options)
 #else
     return RNBranch.application(application, open: url, options: options)
 #endif
@@ -321,7 +335,8 @@ extension AppDelegate: BrazeDelegate {
       host.contains("test-app.link") ||
       host.contains("link.metamask.io") ||
       host.contains("link.metamask.com") ||
-      host.contains("link-test.metamask.io")
+      host.contains("link-test.metamask.io") ||
+      host.contains("link-test.metamask.com")
   }
 
   private func isWebURL(_ url: URL) -> Bool {

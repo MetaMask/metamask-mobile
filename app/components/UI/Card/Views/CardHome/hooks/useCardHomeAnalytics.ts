@@ -78,8 +78,9 @@ export function useCardHomeAnalytics({
       hasTrackedView.current = true;
 
       let cardHomeState = 'VERIFIED';
+      // The only logged-out render left is identity review, which has no session.
       if (!isAuthenticated) {
-        cardHomeState = 'UNAUTHENTICATED';
+        cardHomeState = 'PENDING';
       } else if (data?.alerts?.some((a) => a.type === 'kyc_pending')) {
         cardHomeState = 'PENDING';
       } else if (data?.alerts?.some((a) => a.type === 'card_provisioning')) {

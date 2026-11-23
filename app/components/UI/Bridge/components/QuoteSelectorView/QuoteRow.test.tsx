@@ -1,21 +1,16 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { QuoteRow, QuoteRowProps, QuoteRowView } from './QuoteRow';
+import { lightTheme } from '@metamask/design-tokens';
+import {
+  QUOTE_ROW_SURFACE_TEST_ID,
+  QuoteRow,
+  QuoteRowProps,
+  QuoteRowView,
+} from './QuoteRow';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-
-jest.mock('../../../../../util/theme', () => {
-  const actualTheme = jest.requireActual('../../../../../util/theme');
-  return {
-    ...actualTheme,
-    useTheme: jest.fn(() => ({
-      colors: {
-        success: { default: actualTheme.mockTheme.colors.success.default },
-      },
-    })),
-  };
-});
 
 const mockDestToken: BridgeToken = {
   address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
@@ -295,22 +290,28 @@ describe('QuoteRow', () => {
   });
 
   describe('selected state', () => {
-    it('renders correctly when selected is true', () => {
+    it('uses the muted background when selected', () => {
       // Act
-      const { UNSAFE_root } = render(<QuoteRow {...defaultProps} selected />);
+      const { getByTestId } = render(<QuoteRow {...defaultProps} selected />);
 
       // Assert
-      expect(UNSAFE_root).toBeTruthy();
+      const surface = getByTestId(QUOTE_ROW_SURFACE_TEST_ID);
+      expect(StyleSheet.flatten(surface.props.style).backgroundColor).toBe(
+        lightTheme.colors.background.muted,
+      );
     });
 
-    it('renders correctly when selected is false', () => {
+    it('omits a background when not selected', () => {
       // Act
-      const { UNSAFE_root } = render(
+      const { getByTestId } = render(
         <QuoteRow {...defaultProps} selected={false} />,
       );
 
       // Assert
-      expect(UNSAFE_root).toBeTruthy();
+      const surface = getByTestId(QUOTE_ROW_SURFACE_TEST_ID);
+      expect(
+        StyleSheet.flatten(surface.props.style).backgroundColor,
+      ).toBeUndefined();
     });
   });
 

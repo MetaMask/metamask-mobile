@@ -64,6 +64,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   removeEventListener: jest.fn(),
 }));
 
+jest.mock('../utils/googlePayAvailability', () => {
+  const actual = jest.requireActual('../utils/googlePayAvailability');
+  return {
+    ...actual,
+    checkGooglePayAvailability: jest.fn(),
+  };
+});
+
 jest.mock('../utils/reportRampsError', () => ({
   reportRampsError: jest.fn(
     (_error: unknown, _ctx: unknown, fallback: string) => fallback,
@@ -117,6 +125,9 @@ const mockInAppBrowser = jest.requireMock('react-native-inappbrowser-reborn')
 };
 const mockReportRampsError = jest.requireMock('../utils/reportRampsError')
   .reportRampsError as jest.Mock;
+const mockCheckGooglePayAvailability = jest.requireMock(
+  '../utils/googlePayAvailability',
+).checkGooglePayAvailability as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockNavigationReset = jest.fn();
@@ -173,6 +184,39 @@ const IN_APP_CHECKOUT_QUOTE = {
   outputAmount: '0.05',
   outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
   quote: {
+    buyURL: 'https://widget.example.com/checkout',
+  },
+} as const;
+
+const COINBASE_QUOTE = {
+  provider: 'coinbase-m',
+  id: 'quote-coinbase-1',
+  inputAmount: 100,
+  inputCurrency: 'USD',
+  outputAmount: '0.05',
+  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+  quote: {
+    buyWidget: {
+      browser: 'APP_BROWSER' as const,
+      fallback: {
+        url: 'https://pay.coinbase.com/buy?sessionToken=fallback-token',
+        browser: 'IN_APP_OS_BROWSER' as const,
+      },
+    },
+    buyURL: 'https://widget.example.com/checkout',
+  },
+} as const;
+
+const COINBASE_GOOGLE_PAY_QUOTE = {
+  provider: 'coinbase-m',
+  id: 'quote-coinbase-gpay-1',
+  inputAmount: 100,
+  inputCurrency: 'USD',
+  outputAmount: '0.05',
+  outputCurrency: { symbol: 'ETH', assetId: 'eip155:1/slip44:60' },
+  quote: {
+    paymentMethod: '/payments/google-pay',
+    buyWidget: { browser: 'APP_BROWSER' as const },
     buyURL: 'https://widget.example.com/checkout',
   },
 } as const;
@@ -528,6 +572,105 @@ describe('useContinueWithQuote', () => {
         expect.any(Error),
         { provider: 'moonpay', message: 'Failed to fetch widget URL' },
         'deposit.buildQuote.unexpectedError',
+      );
+    });
+
+    it('carries fallbackBuyWidget for a Coinbase quote with a fallback', async () => {
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/embed',
+        orderId: 'ord-coinbase-1',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, COINBASE_QUOTE);
+
+      expect(caught).toBeUndefined();
+      const [, navigateParams] = mockNavigate.mock.calls[0];
+      expect(navigateParams).toEqual(
+        expect.objectContaining({
+          fallbackBuyWidget: {
+            url: 'https://pay.coinbase.com/buy?sessionToken=fallback-token',
+            browser: 'IN_APP_OS_BROWSER',
+          },
+        }),
+      );
+    });
+
+    it('stops before fetching the widget when Google Pay is unavailable for a Coinbase Google Pay quote on Android', async () => {
+      mockDeviceIsAndroid.mockReturnValue(true);
+      mockCheckGooglePayAvailability.mockResolvedValue('unavailable');
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, COINBASE_GOOGLE_PAY_QUOTE);
+
+      expect(caught?.message).toBe(
+        'fiat_on_ramp_aggregator.google_pay_unavailable',
+      );
+      expect(mockGetBuyWidgetData).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockReportRampsError).not.toHaveBeenCalled();
+    });
+
+    it.each([['available'], ['unknown']])(
+      'opens the Coinbase Google Pay checkout when the preflight answers %s',
+      async (availability) => {
+        mockDeviceIsAndroid.mockReturnValue(true);
+        mockCheckGooglePayAvailability.mockResolvedValue(availability);
+        mockGetBuyWidgetData.mockResolvedValue({
+          url: 'https://checkout.example.com/embed',
+          orderId: 'ord-coinbase-gpay-1',
+        });
+
+        const { result } = renderHook(() => useContinueWithQuote());
+
+        const caught = await invoke(result, COINBASE_GOOGLE_PAY_QUOTE);
+
+        expect(caught).toBeUndefined();
+        expect(mockCheckGooglePayAvailability).toHaveBeenCalledTimes(1);
+        expect(mockGetBuyWidgetData).toHaveBeenCalledTimes(1);
+        const [, navigateParams] = mockNavigate.mock.calls[0];
+        expect(navigateParams).toEqual(
+          expect.objectContaining({ providerCode: 'coinbase-m' }),
+        );
+      },
+    );
+
+    it('does not preflight Google Pay off Android or for other payment methods', async () => {
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/embed',
+        orderId: 'ord-1',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      // iOS, Coinbase Google Pay quote.
+      mockDeviceIsAndroid.mockReturnValue(false);
+      expect(await invoke(result, COINBASE_GOOGLE_PAY_QUOTE)).toBeUndefined();
+      // Android, Coinbase quote without Google Pay.
+      mockDeviceIsAndroid.mockReturnValue(true);
+      expect(await invoke(result, COINBASE_QUOTE)).toBeUndefined();
+
+      expect(mockCheckGooglePayAvailability).not.toHaveBeenCalled();
+    });
+
+    it('leaves fallbackBuyWidget undefined for a non-Coinbase quote', async () => {
+      mockGetBuyWidgetData.mockResolvedValue({
+        url: 'https://checkout.example.com/embed',
+        orderId: 'ord-456',
+      });
+
+      const { result } = renderHook(() => useContinueWithQuote());
+
+      const caught = await invoke(result, IN_APP_CHECKOUT_QUOTE);
+
+      expect(caught).toBeUndefined();
+      const [, navigateParams] = mockNavigate.mock.calls[0];
+      expect(navigateParams).toEqual(
+        expect.objectContaining({
+          fallbackBuyWidget: undefined,
+        }),
       );
     });
   });

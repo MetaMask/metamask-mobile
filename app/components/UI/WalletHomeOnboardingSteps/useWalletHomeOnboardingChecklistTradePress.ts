@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 import { useWalletHomeOnboardingTradeSwapPair } from './useWalletHomeOnboardingTradeSwapPair';
-
-type GoToSwapsFromSwapBridgeNavigation = ReturnType<
-  typeof import('../Bridge/hooks/useSwapBridgeNavigation').useSwapBridgeNavigation
->['goToSwaps'];
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../Bridge/hooks/useSwapBridgeNavigation';
 
 /**
  * Opens unified swaps from the wallet home onboarding trade step (TMCU-681) with
  * source/dest defaults based on mainnet mUSD or ETH balance.
  */
-export function useWalletHomeOnboardingChecklistTradePress(
-  goToSwaps: GoToSwapsFromSwapBridgeNavigation,
-): () => void {
+export function useWalletHomeOnboardingChecklistTradePress(): () => void {
   const swapPair = useWalletHomeOnboardingTradeSwapPair();
   const swapPairRef = useRef(swapPair);
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.MainView,
+    sourcePage: 'MainView',
+  });
 
   useEffect(() => {
     swapPairRef.current = swapPair;
