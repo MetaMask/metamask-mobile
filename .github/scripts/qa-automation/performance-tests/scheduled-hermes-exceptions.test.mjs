@@ -600,6 +600,23 @@ test('a scenario whose whole baseline is the same commit is not a regression', (
   assert.equal(exception.meta.comparedScenarioCount, 0);
 });
 
+test('an incomplete run from another commit does not make a same-commit baseline mixed', () => {
+  const baseline = [
+    ...STEADY.map((jsWorkMs, index) =>
+      report(String(index + 1), [scenario(PERPS, jsWorkMs)], 'abc123'),
+    ),
+    report('9', [scenario(PERPS, 0)], 'def456'),
+  ];
+  const exception = buildScheduledException(
+    report('8', [scenario(PERPS, 165)], 'abc123'),
+    baseline,
+    { previousReport: report('7', [scenario(PERPS, 165)], 'abc123') },
+  );
+
+  assert.equal(exception.meta.hasFindings, false);
+  assert.equal(exception.meta.comparedScenarioCount, 0);
+});
+
 test('a baseline that mixes commits is still compared', () => {
   const mixed = STEADY.map((jsWorkMs, index) =>
     report(String(index + 1), [scenario(PERPS, jsWorkMs)], index % 2 ? 'def456' : 'abc123'),

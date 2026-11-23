@@ -1005,6 +1005,24 @@ test('groupProfiles marks a first attempt with no usable profile as unmeasured',
   assert.equal(grouped[0].firstAttempt.jsWorkMs, 0);
 });
 
+test('groupProfiles never measures a retry as the first attempt', () => {
+  const grouped = groupProfiles([
+    profile('testmu-android-Warm_Start.retry-1.cpuprofile', {
+      skillAudit: {
+        captureLengthMs: 200,
+        jsWorkMs: 150,
+        runtimeAndIdleMs: 50,
+        topSwapsFrames: [],
+        topNonSwapsFrames: [],
+      },
+    }),
+  ]);
+
+  assert.equal(grouped[0].firstAttempt.attempt, 0);
+  assert.equal(grouped[0].firstAttempt.measured, false);
+  assert.equal(grouped[0].firstAttempt.jsWorkMs, 0);
+});
+
 test('scenario filter matches sanitized Hermes name', () => {
   const grouped = groupProfiles(
     [

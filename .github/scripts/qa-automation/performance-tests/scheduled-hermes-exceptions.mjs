@@ -184,7 +184,7 @@ export function buildScheduledException(
   // Every baseline run built the same commit as this run, so a change here is
   // run-to-run variance on identical code, not a regression.
   const isSameCommitOnly = (key) => {
-    const observations = baselineByScenario.get(key) || [];
+    const observations = cleaned.get(key)?.clean || [];
     return (
       Boolean(currentSha) &&
       observations.length > 0 &&

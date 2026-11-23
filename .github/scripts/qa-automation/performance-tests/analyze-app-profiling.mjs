@@ -1023,13 +1023,14 @@ function mergeFrameLists(profiles, property) {
 }
 
 /**
- * Measurement of the scenario's first attempt. A retry usually follows a
+ * Measurement of the scenario's first attempt. The first attempt has no
+ * retry suffix on disk, so it is always retry 0. A retry usually follows a
  * failed attempt, so measuring the worst attempt would compare a retry
  * against a baseline that was not retried. A missing or unusable first
  * attempt is `measured: false` and is never compared.
  */
-function firstAttemptMeasurement(allProfiles, usableProfiles) {
-  const attempt = Math.min(...allProfiles.map((profile) => profile.retry));
+function firstAttemptMeasurement(usableProfiles) {
+  const attempt = 0;
   const profiles = usableProfiles.filter((profile) => profile.retry === attempt);
   const sum = (key) =>
     profiles.reduce((total, profile) => total + (profile.skillAudit?.[key] || 0), 0);
@@ -1075,7 +1076,7 @@ function groupProfiles(profiles, scenarioFilter = null) {
           left.fileName.localeCompare(right.fileName),
       );
       const allUsable = group.profiles.filter((profile) => !profile.skipped);
-      const firstAttempt = firstAttemptMeasurement(group.profiles, allUsable);
+      const firstAttempt = firstAttemptMeasurement(allUsable);
       const attemptJsWork = new Map();
       for (const profile of allUsable) {
         attemptJsWork.set(
