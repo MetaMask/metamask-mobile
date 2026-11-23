@@ -43,6 +43,7 @@ import React, {
   useState,
 } from 'react';
 import { Modal, StyleSheet, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -59,6 +60,7 @@ import { TraceName } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
 import { LIQUIDATION_DISTANCE_DECIMALS } from '../../constants/perpsConfig';
 import { PerpsAdjustMarginBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { selectPerpsCrossMarginEnabledFlag } from '../../selectors/featureFlags';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
 import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -72,6 +74,7 @@ import {
 } from '../../utils/formatUtils';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsMarginModeTag from '../PerpsMarginModeTag';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   PerpsInlineInfoScreen,
@@ -137,6 +140,7 @@ const PerpsAdjustMarginBottomSheet: React.FC<
   PerpsAdjustMarginBottomSheetProps
 > = ({ position: routePosition, initialMode, enableHaptics = false }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const isCrossMarginEnabled = useSelector(selectPerpsCrossMarginEnabledFlag);
   const { styles } = useStyles(styleSheet);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [isDepositCoverVisible, setIsDepositCoverVisible] = useState(false);
@@ -260,6 +264,10 @@ const PerpsAdjustMarginBottomSheet: React.FC<
     mode,
     inputAmount: marginAmount,
   });
+  const marginMode =
+    (position?.leverage?.type ?? routePosition.leverage?.type) === 'cross'
+      ? 'cross'
+      : 'isolated';
 
   const { flooredMaxAmount, submitLimitAmount } = usePerpsFreshRemovalLimit({
     freshMaxAmount,
@@ -682,6 +690,16 @@ const PerpsAdjustMarginBottomSheet: React.FC<
             <KeyValueRow
               variant={KeyValueRowVariant.Summary}
               keyLabel={strings('perps.adjust_margin.margin_in_position')}
+              keyEndAccessory={
+                isCrossMarginEnabled ? (
+                  <PerpsMarginModeTag
+                    marginMode={marginMode}
+                    testID={
+                      PerpsAdjustMarginBottomSheetSelectorsIDs.MARGIN_MODE_TAG
+                    }
+                  />
+                ) : undefined
+              }
               value={renderTransitionValue(
                 formatPerpsFiat(displayCurrentMargin, {
                   ranges: PRICE_RANGES_MINIMAL_VIEW,

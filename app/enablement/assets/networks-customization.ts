@@ -127,3 +127,14 @@ export function filterExcludedImportAssets(
   }
   return tokens.filter((t) => !isExcludedAsset(chainId, t.address));
 }
+
+/**
+ * Whether an import asset is an excluded ERC-20 on its own chain (see
+ * `filterExcludedImportAssets`). Non-EVM assets are never excluded.
+ */
+export function isExcludedImportAsset(token: ImportAsset): boolean {
+  return (
+    isStrictHexString(token.chainId) &&
+    isExcludedAsset(token.chainId, token.address)
+  );
+}

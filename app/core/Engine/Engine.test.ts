@@ -496,8 +496,16 @@ describe('Engine', () => {
     const currentAppVersion = getVersion();
     const currentMigrationVersion = migrationVersion;
 
+    // SamplePetnamesController is only registered when
+    // INCLUDE_SAMPLE_FEATURE=true (unset in this test run), so `Engine.state`
+    // omits it entirely even though the fixture has a default value for it.
+    const {
+      SamplePetnamesController: _unusedSamplePetnamesController,
+      ...restBackgroundState
+    } = backgroundState;
+
     const expectedState = {
-      ...backgroundState,
+      ...restBackgroundState,
       // Update application version here, so that we don't have to update
       // `initial-background-state.json` every release
       AppMetadataController: {
@@ -1320,6 +1328,15 @@ describe('Engine', () => {
     );
   });
 
+  describe('when the sample feature is disabled', () => {
+    it('omits SamplePetnamesController from the context and state', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(Engine.context).not.toHaveProperty('SamplePetnamesController');
+      expect(Engine.state).not.toHaveProperty('SamplePetnamesController');
+    });
+  });
+
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
       expect(() => Engine.state).toThrow('Engine does not exist');
@@ -1348,10 +1365,57 @@ describe('Engine', () => {
   });
 
   describe('resetState', () => {
+    it('clears profile metrics state', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('waits for profile metrics state to clear before resetting circuit breakers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      let finishClear: () => void = () => undefined;
+      jest
+        .spyOn(engine.context.ProfileMetricsController, 'clearState')
+        .mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              finishClear = resolve;
+            }),
+        );
+      const resetCircuitBreakersSpy = jest
+        .spyOn(engine.context.ProfileMetricsService, 'resetCircuitBreakers')
+        .mockReturnValue(undefined);
+
+      const reset = engine.resetState();
+
+      expect(resetCircuitBreakersSpy).not.toHaveBeenCalled();
+
+      finishClear();
+      await reset;
+
+      expect(resetCircuitBreakersSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('calls MoneyAccountController.clearState', async () => {
       const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
       const clearStateSpy = jest
         .spyOn(engine.context.MoneyAccountController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls MoneyAccountLifecycleController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.MoneyAccountLifecycleController, 'clearState')
         .mockImplementation(() => undefined);
 
       await engine.resetState();
@@ -1434,6 +1498,191 @@ describe('Engine', () => {
 
       expect(tokensResetSpy).toHaveBeenCalled();
       expect(nftResetSpy).toHaveBeenCalled();
+    });
+
+    it('abandons PredictNext order commits before awaiting the account-data purge', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const abandonSpy = jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      const clearSpy = jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      // reset() abandons commits before the journal clear and again after it.
+      // The first one still precedes the account-data purge.
+      expect(abandonSpy).toHaveBeenCalledTimes(2);
+      expect(clearSpy).toHaveBeenCalledTimes(1);
+      // Abandoning first is what stops a receipt from refilling the cache the
+      // purge is about to drop.
+      expect(abandonSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        clearSpy.mock.invocationCallOrder[0],
+      );
+    });
+
+    it('clears the deposits the funding service remembers', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+      const clearStateSpy = jest.spyOn(
+        engine.context.PredictFundingService,
+        'clearState',
+      );
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('purges PredictNext account data when the order journal cannot be cleared', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const loggerSpy = jest.spyOn(Logger, 'error');
+      jest
+        .spyOn(engine.context.PredictOrderService, 'reset')
+        .mockRejectedValue(new Error('journal clear failed'));
+      const clearSpy = jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(clearSpy).toHaveBeenCalledTimes(1);
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'journal clear failed' }),
+        'Engine: failed to clear the PredictNext order dispatch journal',
+      );
+    });
+
+    it('waits for the PredictNext account-data purge before resolving', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      let finishPurge: () => void = () => undefined;
+      jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockImplementation(
+          () =>
+            new Promise<void>((resolve) => {
+              finishPurge = resolve;
+            }),
+        );
+
+      let resetFinished = false;
+      const reset = engine.resetState().then(() => {
+        resetFinished = true;
+      });
+      for (let tick = 0; tick < 20; tick += 1) {
+        await Promise.resolve();
+      }
+
+      expect(resetFinished).toBe(false);
+
+      finishPurge();
+      await reset;
+
+      expect(resetFinished).toBe(true);
+    });
+
+    it('completes the reset when the PredictNext purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const loggerSpy = jest.spyOn(Logger, 'error');
+      jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+      jest
+        .spyOn(engine.context.PredictDeviceAuthService, 'reset')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'purge failed' }),
+        'Engine: failed to clear cached PredictNext account data',
+      );
+    });
+
+    it('resets PredictNext device auth when the account-data purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      jest
+        .spyOn(engine.context.PredictOrderService, 'abandonCommits')
+        .mockImplementation(() => undefined);
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+      const resetSpy = jest
+        .spyOn(engine.context.PredictDeviceAuthService, 'reset')
+        .mockResolvedValue(undefined);
+
+      await expect(engine.resetState()).resolves.toBeUndefined();
+
+      expect(resetSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('forgets the Venue Selection Preference and the last Active Venue', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        ...backgroundState,
+        PredictVenueController: {
+          venueSelectionPreference: 'kalshi',
+          lastActiveVenue: 'kalshi',
+          sessionDefault: null,
+        },
+      });
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockResolvedValue(undefined);
+
+      await engine.resetState();
+
+      expect(engine.context.PredictVenueController.state).toMatchObject({
+        venueSelectionPreference: null,
+        lastActiveVenue: null,
+      });
+    });
+
+    it('resets TransactionController state without a swapsTransactions key', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+
+      await engine.resetState();
+
+      // swapsTransactions has no entry in the TransactionController state
+      // metadata, so leaving it in the reset state makes every later
+      // TransactionController update throw "No metadata found for
+      // 'swapsTransactions'" and report it to Sentry.
+      expect(engine.context.TransactionController.state).toEqual({
+        methodData: {},
+        transactions: [],
+        transactionBatches: [],
+        batchTransactionCounts: {},
+        lastFetchedBlockNumbers: {},
+        submitHistory: [],
+      });
+    });
+
+    it('forgets the Venue history when the PredictNext purge fails', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        ...backgroundState,
+        PredictVenueController: {
+          venueSelectionPreference: 'kalshi',
+          lastActiveVenue: null,
+          sessionDefault: null,
+        },
+      });
+      jest
+        .spyOn(engine.context.PredictPortfolioService, 'clearAccountData')
+        .mockRejectedValue(new Error('purge failed'));
+
+      await engine.resetState();
+
+      expect(
+        engine.context.PredictVenueController.state.venueSelectionPreference,
+      ).toBeNull();
     });
   });
 

@@ -7,7 +7,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { ReactTestInstance } from 'react-test-renderer';
 import { mockTheme } from '../../../util/theme';
 import AddBookmark from '../../Views/AddBookmark';
-import SampleFeature from '../../../features/SampleFeature/components/views/SampleFeature';
 import NftDetails from '../../Views/NftDetails';
 import NftDetailsFullImage from '../../Views/NftDetails/NFtDetailsFullImage';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
@@ -21,6 +20,7 @@ import type { MoneyDashboardPersona } from '../../../reducers/rewardsMoney/selec
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
 import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
+import { QuickBuySheetHostProvider } from '../../UI/QuickBuy/QuickBuySheetHost';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -84,6 +84,10 @@ jest.mock('./HomeTabs/useIsNativeTabBar', () => ({
   useIsNativeTabBar: () => mockIsNativeTabBar,
 }));
 
+jest.mock('./HomeTabs/useCanOpenSocialTabDirectly', () => ({
+  useCanOpenSocialTabDirectly: () => false,
+}));
+
 jest.mock(
   '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen',
   () => ({
@@ -92,9 +96,9 @@ jest.mock(
   }),
 );
 
-// RewardsHome resolves the candidate subscription id for both the dashboard and
-// onboarding branches. Mock it so the regression test can assert the call
-// without exercising the real async fetch.
+// RewardsHome resolves the candidate subscription id before it opens a home.
+// Mock it so the regression test can assert the call without exercising the
+// real async fetch.
 const mockUseCandidateSubscriptionId = jest.fn();
 jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
@@ -121,6 +125,10 @@ jest.mock('../../UI/Rewards/hooks/usePrefetchRewardsIdentity', () => ({
   usePrefetchRewardsIdentity: () => undefined,
 }));
 
+jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
+  useRewardsPendingDeeplink: jest.fn(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
@@ -136,7 +144,6 @@ jest.mock('../../UI/Perps', () => ({
 jest.mock('../../UI/Predict', () => {
   const { Fragment } = jest.requireActual('react');
   return {
-    PredictScreenStack: () => 'PredictScreenStack',
     PredictModalStack: () => 'PredictModalStack',
     PredictPreviewSheetProvider: ({
       children,
@@ -147,6 +154,24 @@ jest.mock('../../UI/Predict', () => {
       mockSelectPredictEnabledFlag(state),
   };
 });
+
+// Stub only PredictRoot so the entry point's other exports, which Wallet's
+// Homepage callers read, stay real.
+jest.mock('../../UI/PredictNext/navigation/root/PredictRoot', () => ({
+  __esModule: true,
+  default: () => 'PredictRoot',
+}));
+
+// On the legacy lane Predict availability is the legacy flag. Mock the
+// selector's own module: a factory spreading the PredictNext entry point
+// re-enters it mid-load through its import cycle with confirmations.
+jest.mock(
+  '../../UI/PredictNext/availability/selectPredictAvailability',
+  () => ({
+    selectPredictAvailability: (state: unknown) =>
+      mockSelectPredictEnabledFlag(state),
+  }),
+);
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -198,6 +223,7 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => ({
 
 const mockSelectIsMoneyAccountVisible = jest.fn().mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: (state: unknown) =>
     mockSelectIsMoneyAccountVisible(state),
 }));
@@ -288,6 +314,26 @@ describe('MainNavigator', () => {
       expect(result).not.toBeNull();
     });
 
+    it('hosts Quick Buy above the tab navigator', () => {
+      // Given HomeTabs is rendered
+      const HomeTabs = getHomeTabsComponent();
+
+      // When the tabs mount
+      const { UNSAFE_root } = renderWithProvider(
+        <HomeTabs route={{ params: {} }} />,
+        { state: initialRootState },
+      );
+
+      // Then the Quick Buy host wraps the tab navigator
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+      expect(
+        host.findAll(
+          (node: ReactTestInstance) =>
+            node.type?.toString?.() === 'TabNavigator',
+        ),
+      ).toHaveLength(1);
+    });
+
     it('sets the wallet tab stack background to the theme background', () => {
       // Given HomeTabs is rendered
       const HomeTabs = getHomeTabsComponent();
@@ -317,11 +363,10 @@ describe('MainNavigator', () => {
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' &&
           node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-      )[0];
+      );
 
-      // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle)
-      // and the hidden header, so pushed screens need no options of their own.
+      // Then the wallet tab stack inherits the themed content background
+      // (native-stack uses contentStyle) and the hidden header.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
           headerShown: false,
@@ -330,7 +375,7 @@ describe('MainNavigator', () => {
           },
         }),
       );
-      expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
+      expect(revealPrivateCredentialScreen).toHaveLength(0);
     });
 
     it.each([
@@ -358,7 +403,7 @@ describe('MainNavigator', () => {
     });
 
     describe('Rewards tab bar visibility', () => {
-      // Only the three Rewards home screens live under the tab; every sub-page
+      // Only the Rewards home screens live under the tab; every sub-page
       // is pushed as REWARDS_FLOW on the root stack, which covers the tab
       // shell entirely. So the tab bar stays up for the whole tab.
       const buildRewardsState = (activeRouteName: string | undefined) => ({
@@ -379,7 +424,6 @@ describe('MainNavigator', () => {
       it.each([
         Routes.REWARDS_DASHBOARD,
         Routes.REWARDS_MONEY_DASHBOARD,
-        Routes.REWARDS_ONBOARDING_FLOW,
         undefined,
       ])('shows tab bar on the Rewards home screen %s', (activeRouteName) => {
         // Given HomeTabs is rendered with the Rewards tab active
@@ -424,6 +468,14 @@ describe('MainNavigator', () => {
 
     beforeEach(() => {
       mockIsNativeTabBar = true;
+    });
+
+    it('hosts Quick Buy above the native tab screens', () => {
+      const { UNSAFE_root } = renderHomeTabs();
+
+      const host = UNSAFE_root.findByType(QuickBuySheetHostProvider);
+
+      expect(findNativeScreens(host).length).toBeGreaterThan(0);
     });
 
     it('renders native tab screens instead of the JS navigator', () => {
@@ -520,35 +572,28 @@ describe('MainNavigator', () => {
     });
   });
 
-  it('includes SampleFeature screen in the navigation stack', () => {
-    // Given the initial app state
+  // The SampleFeature screen is gated behind `INCLUDE_SAMPLE_FEATURE=true`,
+  // read once at module-load time (see MainNavigator.tsx) so that
+  // `app/features/SampleFeature` is dead-code-eliminated out of builds that
+  // don't set the flag. Re-requiring the module with the flag flipped would
+  // pull in a second React instance and break context, so only the default
+  // (flag unset) behavior is covered here; the enabled path is exercised by
+  // the SampleFeature feature's own component tests.
+  it('excludes the SampleFeature screen by default', () => {
+    // Given the initial app state, with INCLUDE_SAMPLE_FEATURE unset
     // When rendering the MainNavigator
     const container = renderWithProvider(<MainNavigator />, {
       state: initialRootState,
     });
 
-    // Then it should contain the SampleFeature screen with correct configuration
-    interface ScreenChild {
-      name: string;
-      component: React.ComponentType;
-    }
-    const screenProps: ScreenChild[] = container.root
-      .findAll(
-        (child: ReactTestInstance) =>
-          child.type?.toString?.() === 'Screen' &&
-          typeof child.props?.name === 'string',
-      )
-      .map((child) => ({
-        name: child.props.name,
-        component: child.props.component,
-      }));
-
-    const sampleFeatureScreen = screenProps?.find(
-      (screen) => screen?.name === Routes.SAMPLE_FEATURE,
+    // Then it should not contain the SampleFeature screen
+    const sampleFeatureScreens = container.root.findAll(
+      (child: ReactTestInstance) =>
+        child.type?.toString?.() === 'Screen' &&
+        child.props?.name === Routes.SAMPLE_FEATURE,
     );
 
-    expect(sampleFeatureScreen).toBeDefined();
-    expect(sampleFeatureScreen?.component).toBe(SampleFeature);
+    expect(sampleFeatureScreens).toHaveLength(0);
   });
 
   it('includes FeatureFlagOverride screen when METAMASK_ENVIRONMENT is not production', () => {
@@ -643,6 +688,20 @@ describe('MainNavigator', () => {
       const homeScreen = screenProps?.find((screen) => screen?.name === 'Home');
 
       expect(homeScreen).toBeDefined();
+    });
+
+    it('registers the Money modal gateway when the Money account feature is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const moneyModalScreen = getScreenProps(container).find(
+        (screen) => screen.name === Routes.MONEY.MODALS.ROOT,
+      );
+
+      expect(moneyModalScreen).toBeDefined();
+      expect(moneyModalScreen?.component.name).toBe('MoneyModalGateway');
     });
 
     it('includes TokensFullView screen', () => {
@@ -811,6 +870,7 @@ describe('MainNavigator', () => {
         Routes.SOCIAL.MANAGE_PROFILE_TEXT_EDITOR,
         Routes.SOCIAL.MANAGE_PROFILE_TRADING_ACTIVITY,
         Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
+        Routes.SOCIAL.EDIT_AVATAR,
         Routes.SOCIAL.PROFILE_ONBOARDING,
       ]);
       const v1Screen = (group?.children ?? []).find(
@@ -845,38 +905,6 @@ describe('MainNavigator', () => {
           },
         },
       },
-    });
-
-    it('registers the ProfileDrawer route under the Social V1 treatment arm', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
-        state: stateWithSocialArm('treatment'),
-      });
-
-      const screenProps = root
-        .findAll(
-          (child: ReactTestInstance) =>
-            child.type?.toString?.() === 'Screen' &&
-            typeof child.props?.name === 'string',
-        )
-        .map((child) => child.props.name as string);
-
-      expect(screenProps).toContain(Routes.SOCIAL_PROFILE.DRAWER);
-    });
-
-    it('does not register the ProfileDrawer route under the control arm', () => {
-      const { root } = renderWithProvider(<MainNavigator />, {
-        state: stateWithSocialArm('control'),
-      });
-
-      const screenProps = root
-        .findAll(
-          (child: ReactTestInstance) =>
-            child.type?.toString?.() === 'Screen' &&
-            typeof child.props?.name === 'string',
-        )
-        .map((child) => child.props.name as string);
-
-      expect(screenProps).not.toContain(Routes.SOCIAL_PROFILE.DRAWER);
     });
 
     it('shares slide-from-right options on one Group for Social leaderboard screens', () => {
@@ -939,6 +967,7 @@ describe('MainNavigator', () => {
         Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
+        Routes.MONEY.ACCOUNT_STATUS,
       ]);
       expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
       expect(groupedScreenNames(group)).not.toContain(
@@ -1013,6 +1042,10 @@ describe('MainNavigator', () => {
       );
 
       expect(bridgeScreen).toBeDefined();
+      expect(bridgeScreen?.options).toMatchObject({
+        fullScreenGestureEnabled: true,
+      });
+      expect(bridgeScreen?.options).not.toHaveProperty('gestureEnabled');
     });
 
     it('includes Earn routes', () => {
@@ -1080,17 +1113,23 @@ describe('MainNavigator', () => {
       expect(settingsScreen).toBeDefined();
     });
 
-    it('includes QRTabSwitcher route', () => {
+    it('leaves QR, add-device, and private-credential reveal to AppFlow', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
 
-      const screenProps = getScreenProps(container);
-      const qrScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.QR_TAB_SWITCHER,
+      const screenNames = getScreenProps(container).map(
+        (screen) => screen.name,
       );
 
-      expect(qrScreen).toBeDefined();
+      expect(screenNames).not.toContain(Routes.QR_TAB_SWITCHER);
+      expect(screenNames).not.toContain(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+      expect(screenNames).not.toContain(
+        Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+      );
+      expect(screenNames).not.toContain(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      );
     });
 
     it('includes Notifications view route', () => {
@@ -1754,7 +1793,7 @@ describe('MainNavigator', () => {
 
     interface ScreenChild {
       name: string;
-      component: { name: string };
+      component: { name: string; displayName?: string };
     }
     const screenProps: ScreenChild[] = container.root
       .findAll(
@@ -1772,36 +1811,44 @@ describe('MainNavigator', () => {
     );
 
     expect(topTradersScreen).toBeDefined();
-    expect(topTradersScreen?.component.name).toBe('SocialV0View');
+    expect(topTradersScreen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialV0View)',
+    );
 
     const bundleV1Screen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.V1,
     );
 
     expect(bundleV1Screen).toBeDefined();
-    expect(bundleV1Screen?.component.name).toBe('SocialV1View');
+    expect(bundleV1Screen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialV1View)',
+    );
 
     const myProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MY_PROFILE,
     );
 
     expect(myProfileScreen).toBeDefined();
-    expect(myProfileScreen?.component.name).toBe('MyProfileView');
+    expect(myProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(MyProfileView)',
+    );
 
     const v1ProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.V1_PROFILE,
     );
 
     expect(v1ProfileScreen).toBeDefined();
-    expect(v1ProfileScreen?.component.name).toBe('MyProfileView');
+    expect(v1ProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(MyProfileView)',
+    );
 
     const followConnectionsScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.FOLLOW_CONNECTIONS,
     );
 
     expect(followConnectionsScreen).toBeDefined();
-    expect(followConnectionsScreen?.component.name).toBe(
-      'FollowConnectionsView',
+    expect(followConnectionsScreen?.component.displayName).toBe(
+      'withSocialAccountGate(FollowConnectionsView)',
     );
 
     const profilesToFollowScreen = screenProps?.find(
@@ -1809,21 +1856,27 @@ describe('MainNavigator', () => {
     );
 
     expect(profilesToFollowScreen).toBeDefined();
-    expect(profilesToFollowScreen?.component.name).toBe('ProfilesToFollowView');
+    expect(profilesToFollowScreen?.component.displayName).toBe(
+      'withSocialAccountGate(ProfilesToFollowView)',
+    );
 
     const postComposerScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.POST_COMPOSER,
     );
 
     expect(postComposerScreen).toBeDefined();
-    expect(postComposerScreen?.component.name).toBe('SocialPostComposerView');
+    expect(postComposerScreen?.component.displayName).toBe(
+      'withSocialAccountGate(SocialPostComposerView)',
+    );
 
     const manageProfileScreen = screenProps?.find(
       (screen) => screen?.name === Routes.SOCIAL.MANAGE_PROFILE,
     );
 
     expect(manageProfileScreen).toBeDefined();
-    expect(manageProfileScreen?.component.name).toBe('ManageProfileView');
+    expect(manageProfileScreen?.component.displayName).toBe(
+      'withSocialAccountGate(withPortfolioBalanceProviders(ManageProfileView))',
+    );
   });
 
   it('omits Social V1 screens for the control variant', () => {
@@ -1876,6 +1929,7 @@ describe('MainNavigator', () => {
     expect(screenNames).not.toContain(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+    expect(screenNames).not.toContain(Routes.SOCIAL.EDIT_AVATAR);
     expect(screenNames).not.toContain(Routes.SOCIAL.PROFILE_ONBOARDING);
     expect(screenNames).toContain(Routes.SOCIAL.V0);
   });
@@ -2115,7 +2169,7 @@ describe('MainNavigator', () => {
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'TabScreen' &&
           node.props?.name === Routes.SOCIAL.TAB,
-      )[0]?.props?.component?.name;
+      )[0]?.props?.component?.displayName;
 
     it.each(['searchFocused', 'tradeFocused'])(
       'mounts Social V1 as the Social tab in %s when TSA-1122 is treatment',
@@ -2125,7 +2179,7 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('SocialV1View');
+        expect(componentName).toBe('withSocialAccountGate(SocialV1View)');
       },
     );
 
@@ -2137,7 +2191,7 @@ describe('MainNavigator', () => {
 
         const componentName = socialTabComponentName(container, state);
 
-        expect(componentName).toBe('SocialV0View');
+        expect(componentName).toBe('withSocialAccountGate(SocialV0View)');
       },
     );
   });
@@ -2399,11 +2453,10 @@ describe('MainNavigator', () => {
       });
 
       it('fetches the candidate subscription id at the Rewards tab entry point', () => {
-        // Regression: non-opted-in users only ever mount RewardsHome ->
-        // RewardsOnboardingNavigator (never RewardsDashboard / RewardsNavigator),
-        // so the candidate-subscription fetch must run here. Otherwise
-        // candidateSubscriptionId stays 'pending' and OnboardingMainStep shows a
-        // full-screen skeleton indefinitely.
+        // Regression: users who have not joined only mount RewardsHome, so the
+        // candidate-subscription fetch must run here. Otherwise
+        // candidateSubscriptionId stays 'pending' and the tab skeleton never
+        // clears.
         mockUseCandidateSubscriptionId.mockClear();
         const RewardsHome = getScreenComponent(
           homeTabsRoot,
@@ -2481,20 +2534,28 @@ describe('MainNavigator', () => {
           (node: ReactTestInstance) => node.type?.toString?.() === 'Navigator',
         )[0]?.props?.initialRouteName as string | undefined;
 
-      it('registers onboarding and dashboard in the Rewards tab stack', () => {
-        // Both routes stay registered so opt-in can push the dashboard with a
-        // native slide transition; initialRouteName picks the entry screen.
+      it('registers the two Rewards homes in the tab stack', () => {
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
 
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
-        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
       });
 
-      it('registers onboarding and dashboard when the user has no subscription', () => {
+      it('registers the same homes when the user has no subscription', () => {
         const screenNames = findRewardsHomeScreenNames(null);
 
-        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
+      });
+
+      it('opens the points dashboard when Money is off and the user has not joined', () => {
+        expect(findRewardsHomeInitialRouteName(null)).toBe(
+          Routes.REWARDS_DASHBOARD,
+        );
       });
 
       it('does not register rewards modal screens in the Rewards tab stack', () => {
@@ -2507,6 +2568,9 @@ describe('MainNavigator', () => {
         );
         expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+        );
+        expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
         );
         expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
@@ -2527,16 +2591,17 @@ describe('MainNavigator', () => {
       });
 
       describe('Rewards Money routing', () => {
-        it('registers the Money dashboard alongside onboarding and the points dashboard', () => {
+        it('registers the Money dashboard alongside the points dashboard', () => {
           const screenNames = findRewardsHomeScreenNames(null, {
             moneyEnabled: true,
             moneyReferralResolved: true,
             moneyPersona: 'plain',
           });
 
-          expect(screenNames).toContain(Routes.REWARDS_MONEY_DASHBOARD);
-          expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
-          expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+          expect(screenNames).toEqual([
+            Routes.REWARDS_DASHBOARD,
+            Routes.REWARDS_MONEY_DASHBOARD,
+          ]);
         });
 
         it.each<MoneyDashboardPersona>(['referrer', 'referee'])(
@@ -2562,24 +2627,24 @@ describe('MainNavigator', () => {
           ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding for a plain user without a subscription', () => {
+        it('opens the points dashboard for a plain user without a subscription', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: 'plain',
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
-        it('opens onboarding when the referral fetch resolved with no persona', () => {
+        it('opens the points dashboard when the referral fetch resolved with no persona', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
               moneyEnabled: true,
               moneyReferralResolved: true,
               moneyPersona: undefined,
             }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
+          ).toBe(Routes.REWARDS_DASHBOARD);
         });
 
         it('keeps the points path when Money is disabled', () => {
@@ -2593,9 +2658,8 @@ describe('MainNavigator', () => {
         });
 
         it('mounts no home screen while the Money persona is unresolved', () => {
-          // Neither onboarding nor the points dashboard may become active
-          // before the persona settles, or the tab flashes the wrong home and
-          // swaps under the user.
+          // Neither home may become active before the persona settles, or the
+          // tab flashes the wrong home and swaps under the user.
           const screenNames = findRewardsHomeScreenNames(null, {
             moneyEnabled: true,
             moneyReferralResolved: false,
@@ -2689,6 +2753,7 @@ describe('MainNavigator', () => {
           expect.arrayContaining([
             Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
@@ -2730,12 +2795,16 @@ describe('MainNavigator', () => {
         expect(screenNamesIn(group)).toEqual([
           Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
           Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
+          Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
+          Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
+          Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
         ]);
       });
 
@@ -2808,7 +2877,7 @@ describe('MainNavigator', () => {
         expect(WalletView).toBeTruthy();
       });
 
-      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
+      it('keeps RevealPrivateCredential off WalletTabStackFlow and SettingsFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -2820,14 +2889,24 @@ describe('MainNavigator', () => {
           'TabScreen',
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
 
-        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
-        // (previously it was nested inside WalletModalFlow).
-        const RevealPrivateCredential = getScreenComponent(
-          walletStackRoot,
+        const screenNames = (root: ReactTestInstance) =>
+          root
+            .findAll(
+              (node: ReactTestInstance) =>
+                node.type?.toString?.() === 'Screen' &&
+                typeof node.props?.name === 'string',
+            )
+            .map((node) => node.props.name as string);
+
+        expect(screenNames(walletStackRoot)).not.toContain(
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         );
-        expect(RevealPrivateCredential).toBeTruthy();
+        expect(screenNames(settingsRoot)).not.toContain(
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        );
       });
 
       it('registers the asset detail screens directly under the Asset route', () => {

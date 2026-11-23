@@ -1,4 +1,5 @@
 import React from 'react';
+import { backgroundState } from '../../../../util/test/initial-root-state';
 import { render, screen } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -6,7 +7,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { ExploreActiveTabProvider } from '../ExploreActiveTabContext';
 import CryptoTab from './CryptoTab';
@@ -24,10 +25,21 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseTokensFeed = jest.mocked(useTokensFeed);
-const mockUsePredictionsFeed = jest.mocked(usePredictionsFeed);
+const mockUsePredictionsFeed = jest.mocked(usePredictTrendingFeed);
 const mockUsePerpsFeed = jest.mocked(usePerpsFeed);
 
+interface TileCarouselMockProps {
+  testID?: string;
+  data: unknown[];
+  renderItem: (item: unknown, index: number) => React.ReactElement;
+}
+const mockTileCarousel = jest.fn((_props: TileCarouselMockProps) => null);
+const mockPerpsMarketTileCard = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
   useIsFocused: () => mockUseIsFocused(),
 }));
@@ -53,8 +65,8 @@ jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: jest.fn(),
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: jest.fn(),
 }));
 
 jest.mock('../feeds/perps/usePerpsFeed', () => ({
@@ -73,17 +85,25 @@ jest.mock('../components/SectionHeader', () => ({
 
 jest.mock('../components/TileCarousel', () => ({
   __esModule: true,
-  default: () => null,
+  default: (props: TileCarouselMockProps) => mockTileCarousel(props),
 }));
 
-jest.mock('../../../UI/RobinhoodBanner', () => ({
-  RobinhoodBanner: () => null,
-  RobinhoodBannerSurface: { ExploreCrypto: 'explore_crypto' },
-  useRobinhoodBanner: () => ({
-    dismiss: jest.fn(),
-    handlePress: jest.fn(),
-    shouldShow: false,
+jest.mock(
+  '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCard',
+  () => ({
+    __esModule: true,
+    default: (props: Record<string, unknown>) => mockPerpsMarketTileCard(props),
   }),
+);
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  ...jest.requireActual('../../../../util/deviceCapability'),
+  getHardwareTier: () => 'LOW',
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  ...jest.requireActual('../../../../hooks/useNetworkTier'),
+  useNetworkTier: () => 'SLOW_CELLULAR',
 }));
 
 jest.mock('../../../UI/Trending/contexts', () => ({
@@ -123,7 +143,10 @@ const arrangeMocks = ({
     if (selector === selectIsExploreEarnSectionVisible) {
       return earnSectionVisible;
     }
-    return undefined;
+    // Other selectors, such as Predict's Active Venue, read the default state.
+    return (selector as (state: unknown) => unknown)({
+      engine: { backgroundState },
+    });
   });
 
   mockUseTokensFeed.mockReturnValue({
@@ -253,5 +276,27 @@ describe('CryptoTab — section ordering', () => {
       'explore-section-crypto_perps',
       'explore-section-earn',
     ]);
+  });
+});
+
+describe('CryptoTab — Perps tiles', () => {
+  it('passes the device tiers to each Perps tile', () => {
+    arrangeMocks({ perpsEnabled: true });
+    render(<CryptoTab {...defaultTabProps} />);
+    const perpsCarousel = mockTileCarousel.mock.calls.find(
+      ([props]) => props.testID === 'explore-crypto_perps-carousel',
+    )?.[0];
+    if (!perpsCarousel) {
+      throw new Error('Perps carousel did not render');
+    }
+
+    render(perpsCarousel.renderItem(perpsCarousel.data[0], 0));
+
+    expect(mockPerpsMarketTileCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        market: { symbol: 'BTC' },
+        deviceCapability: { hardwareTier: 'LOW', networkTier: 'SLOW_CELLULAR' },
+      }),
+    );
   });
 });

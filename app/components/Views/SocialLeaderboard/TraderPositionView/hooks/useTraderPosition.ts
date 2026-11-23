@@ -25,6 +25,7 @@ const TRADER_POSITION_SOURCE = 'useTraderPosition';
  */
 export const useTraderPosition = (
   positionId: string | undefined,
+  { enabled = true }: { enabled?: boolean } = {},
 ): UseTraderPositionResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const fetchOptions = { positionId: positionId ?? '' };
@@ -41,7 +42,7 @@ export const useTraderPosition = (
 
   const { data, isLoading, error, refetch } = useQuery<Position>({
     queryKey,
-    enabled: Boolean(positionId) && isUnlocked,
+    enabled: Boolean(positionId) && isUnlocked && enabled,
   });
 
   useLogSocialQueryError(error, {

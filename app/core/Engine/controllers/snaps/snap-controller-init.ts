@@ -3,7 +3,6 @@ import {
   SnapControllerMessenger,
 } from '@metamask/snaps-controllers';
 import { Duration, inMilliseconds } from '@metamask/utils';
-import { hmacSha512 } from '@metamask/native-utils';
 import { MessengerClientInitFunction } from '../../types';
 import { SnapControllerInitMessenger } from '../../messengers/snaps';
 import {
@@ -12,11 +11,7 @@ import {
   ExcludedSnapPermissions,
   detectSnapLocation,
 } from '../../../Snaps';
-import {
-  Encryptor,
-  LEGACY_DERIVATION_OPTIONS,
-  pbkdf2,
-} from '../../../Encryptor';
+import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../../Encryptor';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
@@ -24,6 +19,7 @@ import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
 import { getClientConfig } from './utils';
 import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
+import { isFlaskBuild } from '../../../../util/environment';
 
 /**
  * Initialize the Snap controller.
@@ -41,15 +37,13 @@ export const snapControllerInit: MessengerClientInitFunction<
   SnapControllerMessenger,
   SnapControllerInitMessenger
 > = ({ initMessenger, controllerMessenger, persistedState }) => {
-  const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
+  const requireAllowlist = !isFlaskBuild;
   const disableSnapInstallation = !CAN_INSTALL_THIRD_PARTY_SNAPS;
-  const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+  const allowLocalSnaps = isFlaskBuild;
   const autoUpdatePreinstalledSnaps = true;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(flask)
   const forcePreinstalledSnaps =
-    process.env.FORCE_PREINSTALLED_SNAPS === 'true';
-  ///: END:ONLY_INCLUDE_IF
+    isFlaskBuild && process.env.FORCE_PREINSTALLED_SNAPS === 'true';
 
   const encryptor = new Encryptor({
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -88,9 +82,7 @@ export const snapControllerInit: MessengerClientInitFunction<
       disableSnapInstallation,
       requireAllowlist,
       autoUpdatePreinstalledSnaps,
-      ///: BEGIN:ONLY_INCLUDE_IF(flask)
       forcePreinstalledSnaps,
-      ///: END:ONLY_INCLUDE_IF
     },
 
     // @ts-expect-error: `encryptorFactory` is not compatible with the expected
@@ -109,10 +101,6 @@ export const snapControllerInit: MessengerClientInitFunction<
     ensureOnboardingComplete,
 
     detectSnapLocation,
-    clientCryptography: {
-      pbkdf2Sha512: pbkdf2,
-      hmacSha512: async (key, data) => hmacSha512(key, data),
-    },
 
     clientConfig: getClientConfig(),
   });

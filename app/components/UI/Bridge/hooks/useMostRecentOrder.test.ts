@@ -157,7 +157,10 @@ describe('useMostRecentOrder', () => {
   it('returns the newer recurring order', () => {
     const newerRecurringOrder = {
       ...MOCK_RECURRING_OPEN_ORDER,
-      createdAt: '2026-10-01T12:00:00.000Z',
+      timingData: {
+        ...MOCK_RECURRING_OPEN_ORDER.timingData,
+        createdAt: '2026-10-01T12:00:00.000Z',
+      },
     };
     setupRecurringOrderQuery({ order: newerRecurringOrder });
     setupLimitOrdersQuery({ orders: [MOCK_LIMIT_OPEN_ORDER] });
@@ -174,7 +177,10 @@ describe('useMostRecentOrder', () => {
     setupRecurringOrderQuery({
       order: {
         ...MOCK_RECURRING_OPEN_ORDER,
-        createdAt: MOCK_LIMIT_OPEN_ORDER.timingData.createdAt,
+        timingData: {
+          ...MOCK_RECURRING_OPEN_ORDER.timingData,
+          createdAt: MOCK_LIMIT_OPEN_ORDER.timingData.createdAt,
+        },
       },
     });
     setupLimitOrdersQuery({ orders: [MOCK_LIMIT_OPEN_ORDER] });

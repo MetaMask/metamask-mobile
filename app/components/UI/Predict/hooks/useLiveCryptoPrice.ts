@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLiveCryptoPrices } from './useLiveCryptoPrices';
-import type { CryptoPriceUpdate, CryptoTwapWindowSeconds } from '../types';
+import type {
+  CryptoPriceProvider,
+  CryptoPriceUpdate,
+  CryptoTwapWindowSeconds,
+} from '../types';
 
 const DEFAULT_UPDATE_INTERVAL_MS = 1000;
 
@@ -8,6 +12,8 @@ export interface UseLiveCryptoPriceParams {
   symbol: string | undefined;
   enabled?: boolean;
   twapWindowSeconds?: CryptoTwapWindowSeconds;
+  /** Vendor the market settles against. Omit for the feed default. */
+  provider?: CryptoPriceProvider;
   /**
    * Minimum time between committed price updates. Defaults to once per
    * second — plenty for a summary label that isn't rendering a chart.
@@ -33,6 +39,7 @@ export const useLiveCryptoPrice = ({
   symbol,
   enabled = true,
   twapWindowSeconds,
+  provider,
   updateIntervalMs = DEFAULT_UPDATE_INTERVAL_MS,
 }: UseLiveCryptoPriceParams): UseLiveCryptoPriceResult => {
   const [value, setValue] = useState<number | undefined>(undefined);
@@ -94,17 +101,27 @@ export const useLiveCryptoPrice = ({
     }
     pendingPriceRef.current = undefined;
     lastCommitAtRef.current = undefined;
-  }, [symbol, twapWindowSeconds]);
+  }, [symbol, twapWindowSeconds, provider]);
 
   const wsSymbol = enabled && symbol ? `${symbol.toLowerCase()}/usd` : '';
-  const liveSubscriptionArgs: [
+  let liveSubscriptionArgs: [
     string,
     typeof handleUpdate,
     twapWindowSeconds?: typeof twapWindowSeconds,
-  ] =
-    twapWindowSeconds !== undefined
-      ? [wsSymbol, handleUpdate, twapWindowSeconds]
-      : [wsSymbol, handleUpdate];
+    provider?: typeof provider,
+  ];
+  if (provider) {
+    liveSubscriptionArgs = [
+      wsSymbol,
+      handleUpdate,
+      twapWindowSeconds,
+      provider,
+    ];
+  } else if (twapWindowSeconds !== undefined) {
+    liveSubscriptionArgs = [wsSymbol, handleUpdate, twapWindowSeconds];
+  } else {
+    liveSubscriptionArgs = [wsSymbol, handleUpdate];
+  }
   useLiveCryptoPrices(...liveSubscriptionArgs);
 
   return { value };

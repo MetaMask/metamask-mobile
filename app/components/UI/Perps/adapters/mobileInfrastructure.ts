@@ -43,8 +43,7 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
-import { store } from '../../../../store';
-import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { getHyperliquidMainnetBuilderAddress } from '../../../../core/Engine/controllers/rewards-controller/utils/hyperliquid-builder-address';
 import {
   formatVolume,
   formatPerpsFiat,
@@ -249,8 +248,7 @@ export function createMobileClientConfig(): PerpsControllerConfig {
       hyperliquid: {
         builderAddressTestnet:
           process.env.MM_PERPS_HL_BUILDER_ADDRESS_TESTNET ?? '',
-        builderAddressMainnet:
-          process.env.MM_PERPS_HL_BUILDER_ADDRESS_MAINNET ?? '',
+        builderAddressMainnet: getHyperliquidMainnetBuilderAddress(),
       },
       lighter: {
         enabled: lighterProviderEnabled,
@@ -444,7 +442,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         StorageWrapper.removeItem(key).then(() => undefined),
     },
 
-    // v1 remains available for legacy metadata enrichment; v2 provides the
+    // v1 remains available for legacy metadata enrichment; v4 provides the
     // atomic bootstrap snapshot. Both routes use the same environment host.
     terminalApi: {
       marketDataUrl: terminalMarketDataUrl,
@@ -457,14 +455,13 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
         caipAccountId: `${string}:${string}:${string}`,
         baseFeeBips: number,
       ) {
-        const isVipEnabled = selectVipProgramEnabled(store.getState());
-        if (!isVipEnabled) {
-          return Promise.resolve(0);
-        }
         return Engine.context.RewardsController.getPerpsDiscountForAccount(
           caipAccountId,
           baseFeeBips,
         );
+      },
+      getPerpsTradingFeeGrant(scope) {
+        return Engine.context.RewardsController.getPerpsTradingFeeGrant(scope);
       },
     },
   };

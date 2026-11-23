@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useRef } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { useRoute } from '@react-navigation/native';
 import {
   createNativeStackNavigator,
@@ -29,19 +29,13 @@ import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuest
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import SimpleWebview from '../../Views/SimpleWebview';
 import AgenticCliDashboardWebview from '../../Views/AgenticCliDashboardWebview';
-import Logger from '../../../util/Logger';
-import { useSelector } from 'react-redux';
-import {
-  CURRENT_APP_VERSION,
-  LAST_APP_VERSION,
-} from '../../../constants/storage';
-import { getVersion } from 'react-native-device-info';
-import { Authentication } from '../../../core';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
 import {
   addDeviceVerificationCodeScreenOptions,
   clearNativeStackNavigatorOptions,
+  addDeviceToWalletPageOptions,
+  fullScreenModalSlideFromBottomNativeOptions,
   slideFromRightNativeOptions,
   transparentModalScreenOptions,
 } from '../../../constants/navigation/clearStackNavigatorOptions';
@@ -51,14 +45,16 @@ import Toast, {
 } from '../../../component-library/components/Toast';
 import AgentStepHud from '../../../dev-tools/AgenticService/AgentStepHud';
 import { ToasterOverlay } from './ToasterOverlay';
+import AppShellEffects from './AppShellEffects';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
+import { usePredictOrderToastRegistrations } from '../../UI/PredictNext/notifications';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
-import { PostSwapShareBottomSheet } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
+import { PostTradeShareBottomSheet } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import AccountSelector from '../../Views/AccountSelector';
 import AddressSelector from '../../Views/AddressSelector';
 import AddWallet from '../../Views/AddWallet';
@@ -104,7 +100,6 @@ import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
 import LegacyEditMultichainAccountName from '../../Views/MultichainAccounts/sheets/EditAccountName';
 import { EditMultichainAccountName } from '../../Views/MultichainAccounts/sheets/EditMultichainAccountName';
-import StorageWrapper from '../../../store/storage-wrapper';
 import ShowIpfsGatewaySheet from '../../Views/ShowIpfsGatewaySheet/ShowIpfsGatewaySheet';
 import ShowDisplayNftMediaSheet from '../../Views/ShowDisplayMediaNFTSheet/ShowDisplayNFTMediaSheet';
 import AmbiguousAddressSheet from '../../Views/Settings/Contacts/AmbiguousAddressSheet/AmbiguousAddressSheet';
@@ -133,11 +128,6 @@ import TooltipModal from '../../Views/TooltipModal';
 import OptionsSheet from '../../UI/SelectOptionSheet/OptionsSheet';
 import FoxLoader from '../../UI/FoxLoader';
 import MultiRpcModal from '../../Views/MultiRpcModal/MultiRpcModal';
-import { endTrace, TraceName } from '../../../util/trace';
-import { selectExistingUser } from '../../../reducers/user/selectors';
-import { Performance } from '../../../core/Performance';
-import { queueColdHomepageReadyTrace } from '../../../core/Performance/HomepageReady';
-import { selectIsUnlocked } from '../../../selectors/keyringController';
 import { useTheme } from '../../../util/theme';
 import { getOnboardingCanvasColor } from './onboardingCanvasColor';
 import { Confirm } from '../../Views/confirmations/components/confirm';
@@ -146,7 +136,6 @@ import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
-import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
 import SkipAccountSecurityModal from '../../UI/SkipAccountSecurityModal';
 import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
@@ -174,9 +163,6 @@ import SupportConsentSheet from '../../UI/SupportConsentSheet';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
-import useInterval from '../../hooks/useInterval';
-import { Duration } from '@metamask/utils';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect';
@@ -184,7 +170,6 @@ import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails
 import TradeWalletActions from '../../Views/TradeWalletActions';
 import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import AgenticCliApproval from '../../Views/AgenticCliApproval';
-import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
@@ -321,6 +306,11 @@ const OnboardingNav = () => {
           contentStyle: { backgroundColor: onboardingCanvasColor },
         }}
       />
+      {/*
+        This stack owns goBack for ChoosePassword, the backup steps, and
+        OptinMetrics. OnboardingNav, SetPasswordFlow, and SettingsFlow are
+        separate stacks, so each one registers the steps that flow pushes.
+      */}
       <NativeStack.Screen
         name="ChoosePassword"
         component={ChoosePasswordWithMessenger}
@@ -364,11 +354,6 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
         component={ImportFromSecretRecoveryPhraseWithMessenger}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
-        component={AddDeviceToWalletWithMessenger}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -430,6 +415,7 @@ const SimpleWebviewScreen = () => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
     />
   </NativeStack.Navigator>
 );
@@ -446,16 +432,6 @@ const OnboardingRootNav = () => {
       }}
     >
       <NativeStack.Screen name="OnboardingNav" component={OnboardingNav} />
-      <NativeStack.Screen
-        name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcherWithMessenger}
-        options={{ presentation: 'modal' }}
-      />
-      <NativeStack.Screen
-        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-        component={VerificationCodeBottomSheet}
-        options={addDeviceVerificationCodeScreenOptions}
-      />
       <NativeStack.Screen
         name={Routes.WEBVIEW.MAIN}
         component={SimpleWebviewScreen}
@@ -542,10 +518,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
       component={ModalMandatory as ScreenComponent}
-    />
-    <NativeStack.Screen
-      name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -693,11 +665,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       />
     }
     <NativeStack.Screen
-      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
-      component={VerificationCodeBottomSheet}
-      options={addDeviceVerificationCodeScreenOptions}
-    />
-    <NativeStack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
       component={SRPQuiz}
       initialParams={{ ...props.route.params }}
@@ -787,6 +754,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
       options={{
         presentation: 'modal',
         animation: 'slide_from_bottom',
@@ -813,10 +781,6 @@ const ImportPrivateKeyView = () => {
         name="ImportPrivateKeySuccess"
         component={ImportPrivateKeySuccess}
       />
-      <NativeStack.Screen
-        name={Routes.QR_TAB_SWITCHER}
-        component={QRTabSwitcherWithMessenger}
-      />
     </NativeStack.Navigator>
   );
 };
@@ -831,11 +795,6 @@ const ImportSRPView = () => (
     <NativeStack.Screen
       name={Routes.MULTI_SRP.IMPORT}
       component={ImportNewSecretRecoveryPhrase}
-    />
-    <NativeStack.Screen
-      name={Routes.QR_TAB_SWITCHER}
-      component={QRTabSwitcherWithMessenger}
-      options={{ presentation: 'modal' }}
     />
     <NativeStack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
@@ -1225,9 +1184,14 @@ const AppFlow = () => {
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
           component={MultichainAccountGroupDetails}
         />
+        {/* AppFlow owns the private-credential reveal. */}
         <NativeStack.Screen
           name={Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL}
           component={RevealPrivateCredential}
+          options={{
+            presentation: 'fullScreenModal',
+            animation: 'slide_from_right',
+          }}
         />
         <NativeStack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR}
@@ -1239,6 +1203,11 @@ const AppFlow = () => {
         />
       </NativeStack.Group>
       <NativeStack.Screen
+        name={Routes.WEBVIEW.MAIN}
+        component={SimpleWebviewScreen}
+        options={{ presentation: 'modal' }}
+      />
+      <NativeStack.Screen
         name="ConnectQRHardwareFlow"
         component={ConnectQRHardwareFlow}
       />
@@ -1246,10 +1215,20 @@ const AppFlow = () => {
         name={Routes.HW.CONNECT_LEDGER}
         component={LedgerConnectFlow}
       />
+      {/*
+        AppFlow owns the scanner. Onboarding, import, and the logged-in shell
+        navigate here, and goBack returns to the screen that opened it.
+      */}
+      <NativeStack.Screen
+        name={Routes.QR_TAB_SWITCHER}
+        component={QRTabSwitcherWithMessenger}
+        options={fullScreenModalSlideFromBottomNativeOptions}
+      />
+      {/* AppFlow owns add-device and its verification sheet. */}
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
         component={AddDeviceToWalletWithMessenger}
-        options={{ headerShown: false }}
+        options={addDeviceToWalletPageOptions}
       />
       <NativeStack.Screen
         name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
@@ -1276,6 +1255,17 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
+        options={{
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
+          gestureEnabled: true,
+          fullScreenGestureEnabled: true,
+          contentStyle: { backgroundColor: colors.background.default },
+        }}
+      />
+      <NativeStack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW}
+        component={SimpleWebview}
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',
@@ -1441,96 +1431,26 @@ const DEV_JUMP_TO_ASSETS_SETTINGS = false;
 
 const App: React.FC = () => {
   const { toastRef } = useContext(ToastContext);
-  const isSeedlessOnboardingLoginFlow = useSelector(
-    selectSeedlessOnboardingLoginFlow,
-  );
-
-  useOTAUpdates();
+  // Both Predict lanes register unconditionally, whatever the Active Venue:
+  // an operation started on one Venue still notifies after a switch.
   const predictRegistrations = usePredictToastRegistrations();
+  const predictOrderRegistrations = usePredictOrderToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
     () => [
       ...predictRegistrations,
+      ...predictOrderRegistrations,
       ...perpsWithdrawRegistrations,
       ...quickBuyRegistrations,
     ],
-    [predictRegistrations, perpsWithdrawRegistrations, quickBuyRegistrations],
+    [
+      predictRegistrations,
+      predictOrderRegistrations,
+      perpsWithdrawRegistrations,
+      quickBuyRegistrations,
+    ],
   );
-
-  useEffect(() => {
-    // End trace when first render is complete
-    endTrace({ name: TraceName.UIStartup });
-  }, []);
-
-  const firstLoad = useRef(true);
-  // periodically check seedless password outdated when app UI is open
-  useInterval(
-    async () => {
-      if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated({
-          skipCache: firstLoad.current,
-          captureSentryError: false,
-        }).catch((error) => {
-          Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
-        });
-        firstLoad.current = false;
-      }
-    },
-    {
-      delay: Duration.Minute * 10,
-      immediate: true,
-    },
-  );
-  const existingUser = useSelector(selectExistingUser);
-  const isUnlocked = useSelector(selectIsUnlocked);
-  const hasQueuedColdHomepageReadyTrace = useRef(false);
-
-  useEffect(() => {
-    if (
-      hasQueuedColdHomepageReadyTrace.current ||
-      !existingUser ||
-      !isUnlocked
-    ) {
-      return;
-    }
-
-    hasQueuedColdHomepageReadyTrace.current = true;
-    queueColdHomepageReadyTrace(Performance.appLaunchTime);
-  }, [existingUser, isUnlocked]);
-
-  useEffect(() => {
-    async function startApp() {
-      try {
-        const currentVersion = getVersion();
-        const savedVersion = await StorageWrapper.getItem(CURRENT_APP_VERSION);
-
-        if (currentVersion !== savedVersion) {
-          if (savedVersion)
-            await StorageWrapper.setItem(LAST_APP_VERSION, savedVersion);
-          await StorageWrapper.setItem(CURRENT_APP_VERSION, currentVersion);
-        }
-        const lastVersion = await StorageWrapper.getItem(LAST_APP_VERSION);
-        if (!lastVersion) {
-          if (existingUser) {
-            // Setting last version to first version if user exists and lastVersion does not, to simulate update
-            await StorageWrapper.setItem(LAST_APP_VERSION, '0.0.1');
-          } else {
-            // Setting last version to current version so that it's not treated as an update
-            await StorageWrapper.setItem(LAST_APP_VERSION, currentVersion);
-          }
-        }
-      } catch (error) {
-        Logger.error(error as Error);
-      }
-    }
-
-    startApp().catch((error) => {
-      Logger.error(error, 'Error starting app');
-    });
-    // existingUser is not present in the dependency array because it is not needed to re-run the effect when it changes and it will cause a bug.
-    // (exhaustive-deps disabled for this file via .eslintrc.js override.)
-  }, []);
 
   return (
     <AccessRestrictedProvider>
@@ -1549,10 +1469,11 @@ const App: React.FC = () => {
         <PerpsWebSocketHealthToast />
         {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
-        <PostSwapShareBottomSheet />
+        <PostTradeShareBottomSheet />
         <ProfilerManager />
         {/* Dev/QA-only visual inspector — no-op unless DESIGNER_MODE=true (see docs/designer-mode.md) */}
         <DesignerModeOverlay />
+        <AppShellEffects />
       </WebSocketHealthToastProvider>
     </AccessRestrictedProvider>
   );

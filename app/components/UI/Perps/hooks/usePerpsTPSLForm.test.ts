@@ -151,6 +151,24 @@ describe('usePerpsTPSLForm', () => {
       expect(result.current.validation.takeProfitError).toBe('');
     });
 
+    it('does not treat a trigger it cannot check yet as valid', () => {
+      // Arrange - no reference price has loaded, so the take profit's side
+      // cannot be checked: Core's validateTPSLPrices reports it unresolved
+      const { result } = renderHook(
+        () =>
+          usePerpsTPSLForm({
+            ...defaultParams,
+            currentPrice: undefined,
+            initialTakeProfitPrice: '55000',
+          }),
+        { wrapper: createWrapper() },
+      );
+
+      // Assert
+      expect(result.current.formState.takeProfitPrice).toBe('55000');
+      expect(result.current.validation.isValid).toBe(false);
+    });
+
     it('blocks submission when a typed stop loss trigger price is zero', () => {
       // Arrange
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {

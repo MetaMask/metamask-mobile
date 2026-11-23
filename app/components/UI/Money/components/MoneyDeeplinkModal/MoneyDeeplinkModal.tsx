@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonsAlignment,
@@ -19,20 +18,31 @@ import useMountEffect from '../../hooks/useMountEffect';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface MoneyDeeplinkModalParams {
   title?: string;
   description?: string;
 }
 
-const MoneyDeeplinkModal = () => {
+interface MoneyDeeplinkModalProps {
+  content?: MoneyDeeplinkModalParams;
+  onDismiss?: () => void;
+}
+
+const MoneyDeeplinkModal = ({
+  content,
+  onDismiss,
+}: MoneyDeeplinkModalProps = {}) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppStackNavigationProp>();
 
   const route =
     useRoute<RouteProp<{ params: MoneyDeeplinkModalParams }, 'params'>>();
 
-  const title = route.params?.title;
-  const description = route.params?.description;
+  const { title, description } = content ?? route.params ?? {};
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -44,9 +54,14 @@ const MoneyDeeplinkModal = () => {
 
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
+      if (onDismiss) {
+        onDismiss();
+        return;
+      }
+
       navigation.navigate(Routes.WALLET.HOME);
     });
-  }, [navigation]);
+  }, [navigation, onDismiss]);
 
   const primaryButtonProps = useMemo(
     () => ({
@@ -64,7 +79,8 @@ const MoneyDeeplinkModal = () => {
       testID={MoneyDeeplinkModalTestIds.SHEET}
       onClose={handleClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={MoneyDeeplinkModalTestIds.TITLE}
         closeButtonProps={{
@@ -72,7 +88,7 @@ const MoneyDeeplinkModal = () => {
         }}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingHorizontal={4}>
         <Text
           variant={TextVariant.BodyMd}

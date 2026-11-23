@@ -1,91 +1,125 @@
 import { renderHook } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
 import {
-  usePredictPortfolio,
-  type PredictPortfolioModel,
-} from '../../../../../UI/Predict/hooks/usePredictPortfolio';
+  usePredictAvailability,
+  usePredictPortfolioValue,
+  type PredictPortfolioValue,
+} from '../../../../../UI/PredictNext';
+import type { FiatConverter } from '../../types';
 import { usePredictSlice } from './usePredictSlice';
 
-jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
-jest.mock('../../../../../UI/Predict/hooks/usePredictPortfolio');
+jest.mock('../../../../../UI/PredictNext', () => ({
+  usePredictAvailability: jest.fn(),
+  usePredictPortfolioValue: jest.fn(),
+}));
 
-const mockUseSelector = jest.mocked(useSelector);
-const mockUsePredictPortfolio = jest.mocked(usePredictPortfolio);
+const mockUsePredictAvailability = jest.mocked(usePredictAvailability);
+const mockUsePredictPortfolioValue = jest.mocked(usePredictPortfolioValue);
 
-const createPortfolio = (
-  overrides: Partial<PredictPortfolioModel> = {},
-): PredictPortfolioModel =>
-  ({
-    portfolioValue: 60,
-    isLoading: false,
-    error: null,
-    ...overrides,
-  }) as PredictPortfolioModel;
+const double: FiatConverter = (amount) => amount * 2;
+
+const renderSlice = (
+  value: PredictPortfolioValue,
+  {
+    available = true,
+    toUserCurrency = double,
+  }: { available?: boolean; toUserCurrency?: FiatConverter } = {},
+) => {
+  mockUsePredictAvailability.mockReturnValue(available);
+  mockUsePredictPortfolioValue.mockReturnValue(value);
+  return renderHook(() => usePredictSlice(toUserCurrency)).result.current;
+};
 
 describe('usePredictSlice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(true);
-    mockUsePredictPortfolio.mockReturnValue(createPortfolio());
   });
 
-  it('maps the canonical portfolio value', () => {
-    const { result } = renderHook(() =>
-      usePredictSlice((amount) => amount * 2),
-    );
+  it('converts a ready value into the user currency', () => {
+    const slice = renderSlice({ status: 'ready', valueUsd: 60 });
 
-    expect(mockUsePredictPortfolio).toHaveBeenCalledWith({
-      enabled: true,
-      livePriceUpdates: false,
+    expect(slice).toEqual({
+      key: 'predict',
+      isVisible: true,
+      status: 'ready',
+      valueFiat: 120,
     });
-    expect(result.current.status).toBe('ready');
-    expect(result.current.valueFiat).toBe(120);
+  });
+
+  it('keeps a ready zero value ready', () => {
+    const slice = renderSlice({ status: 'ready', valueUsd: 0 });
+
+    expect(slice.status).toBe('ready');
+    expect(slice.valueFiat).toBe(0);
   });
 
   it.each([
-    {
-      name: 'portfolio loading',
-      portfolio: createPortfolio({ isLoading: true }),
-      enabled: true,
-      expected: 'loading',
-    },
-    {
-      name: 'portfolio error',
-      portfolio: createPortfolio({ error: new Error('failed') }),
-      enabled: true,
-      expected: 'error',
-    },
-  ])('returns zero for $name', ({ portfolio, enabled, expected }) => {
-    mockUseSelector.mockReturnValue(enabled);
-    mockUsePredictPortfolio.mockReturnValue(portfolio);
+    ['absent', undefined],
+    ['not a number', Number.NaN],
+    ['infinite', Number.POSITIVE_INFINITY],
+  ])(
+    'reports an error, not zero, for a ready value that is %s',
+    (_case, valueUsd) => {
+      const slice = renderSlice({
+        status: 'ready',
+        valueUsd,
+      } as unknown as PredictPortfolioValue);
 
-    const { result } = renderHook(() =>
-      usePredictSlice((amount) => amount * 2),
-    );
+      expect(slice.status).toBe('error');
+      expect(slice.isVisible).toBe(true);
+    },
+  );
 
-    expect(result.current.status).toBe(expected);
-    expect(result.current.valueFiat).toBe(0);
+  it.each([
+    ['unavailable', () => undefined],
+    ['not finite', () => Number.NaN],
+  ])(
+    'reports an error when the fiat conversion is %s',
+    (_case, toUserCurrency) => {
+      const slice = renderSlice(
+        { status: 'ready', valueUsd: 60 },
+        { toUserCurrency },
+      );
+
+      expect(slice.status).toBe('error');
+      expect(slice.valueFiat).toBe(0);
+    },
+  );
+
+  it.each(['loading', 'error'] as const)(
+    'passes %s through without a value',
+    (status) => {
+      const slice = renderSlice({ status });
+
+      expect(slice).toEqual({
+        key: 'predict',
+        isVisible: true,
+        status,
+        valueFiat: 0,
+      });
+    },
+  );
+
+  it('hides the slice as ineligible while Predict is unavailable', () => {
+    const slice = renderSlice({ status: 'unavailable' }, { available: false });
+
+    expect(slice.status).toBe('ineligible');
+    expect(slice.isVisible).toBe(false);
   });
 
-  it('disables portfolio work and hides the slice with the feature off', () => {
-    mockUseSelector.mockReturnValue(false);
+  it('hides the slice as ineligible when the Active Venue has no value yet', () => {
+    const slice = renderSlice({ status: 'unavailable' }, { available: true });
 
-    const { result } = renderHook(() =>
-      usePredictSlice((amount) => amount * 2),
-    );
-
-    expect(mockUsePredictPortfolio).toHaveBeenCalledWith({
-      enabled: false,
-      livePriceUpdates: false,
-    });
-    expect(result.current.status).toBe('ineligible');
-    expect(result.current.isVisible).toBe(false);
+    expect(slice.status).toBe('ineligible');
+    expect(slice.isVisible).toBe(false);
   });
 
-  it('reports an error when fiat conversion is unavailable', () => {
-    const { result } = renderHook(() => usePredictSlice(() => undefined));
+  it('stays ineligible while Predict is unavailable, whatever the value says', () => {
+    const slice = renderSlice(
+      { status: 'ready', valueUsd: 60 },
+      { available: false },
+    );
 
-    expect(result.current.status).toBe('error');
-    expect(result.current.valueFiat).toBe(0);
+    expect(slice.status).toBe('ineligible');
+    expect(slice.isVisible).toBe(false);
   });
 });

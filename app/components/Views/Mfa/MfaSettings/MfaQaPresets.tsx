@@ -22,7 +22,7 @@ interface Preset {
 }
 
 const reason = (operation: string) => ({
-  operation: `qa.${operation}`,
+  operation: `qa.${operation}` as const,
   enrollDescription: `QA preset: ${operation}`,
   verifyDescription: `QA preset: ${operation}`,
 });

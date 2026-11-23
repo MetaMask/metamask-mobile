@@ -10,6 +10,10 @@ import {
   type PerpsUiScope,
 } from '../utils/perpsUiObservations';
 import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
+import {
+  normalizeOrderEditRejection,
+  type OrderEditRejection,
+} from '../utils/translatePerpsError';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
   type AccountState,
@@ -70,6 +74,9 @@ import {
  * should only describe query intent (symbols, dex, standalone, filters, etc.).
  */
 export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
+
+/** A controller edit result, with a refused edit's outcome normalized for the UI. */
+export type EditOrderResult = OrderResult & { rejection?: OrderEditRejection };
 
 type MobileCancelOrderParams = CancelOrderParams & {
   skipCufConfirmationTrace?: boolean;
@@ -207,7 +214,7 @@ export function usePerpsTrading() {
          */
         watchPriceUpdate?: boolean;
       },
-    ): Promise<OrderResult> => {
+    ): Promise<EditOrderResult> => {
       const { watchPriceUpdate, ...controllerParams } = params;
       const controller = Engine.context.PerpsController;
       const editCufOpId = startPerpsCufTrace({
@@ -249,7 +256,13 @@ export function usePerpsTrading() {
             },
           });
         }
-        return result;
+        return result?.success
+          ? result
+          : {
+              ...result,
+              success: false,
+              rejection: normalizeOrderEditRejection(result?.error),
+            };
       } catch (error) {
         endPerpsCufTrace({
           id: editCufOpId,

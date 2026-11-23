@@ -49,7 +49,10 @@ Test sends skip the SDK dismiss call so they can be shown again without waiting 
 ## Impression and click logging
 
 - `Braze.logBannerImpression` is called automatically when the banner enters the `visible` state.
-- `Braze.logBannerClick` is called when the user taps the banner surface (not the close button).
+- `Braze.logBannerClick` is called on every tap of the banner surface (not the close button), with or without a `deeplink`.
+- When the banner has a `campaign_name`, a `Banner Select` custom event is logged with the same `campaign_name` and `variant_name` properties as `Banner Display` and `Banner Dismissed`. Growth Marketing binds full-screen in-app message triggers to this event.
+- The `Banner Select` event rides Braze's next scheduled data batch; it is not flushed immediately.
+- A tap whose configured `deeplink` fails the allowlist is logged as an error and does not emit `Banner Select`, since the campaign is misconfigured and no navigation happens.
 
 ## Deduplication
 
@@ -58,8 +61,8 @@ The Braze SDK may fire multiple `bannerCardsUpdated` events for a single server 
 ## Usage
 
 ```tsx
-import BrazeBanner from 'app/components/UI/BrazeBanner';
-import { BRAZE_BANNER_PLACEMENT_ID } from 'app/core/Braze/constants';
+import BrazeBanner from '#app/components/UI/BrazeBanner';
+import { BRAZE_BANNER_PLACEMENT_ID } from '#app/core/Braze/constants';
 
 <BrazeBanner placementId={BRAZE_BANNER_PLACEMENT_ID} />;
 ```

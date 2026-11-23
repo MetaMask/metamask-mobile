@@ -127,7 +127,7 @@ export default class Assertions {
   static async expectElementToHaveLabel(
     elem: AppiumElement | Promise<AppiumElement>,
     label: string,
-    options: AssertionOptions = {},
+    options: AssertionOptions & { exact?: boolean } = {},
   ): Promise<void> {
     return AppiumAssertions.expectElementToHaveLabel(elem, label, options);
   }

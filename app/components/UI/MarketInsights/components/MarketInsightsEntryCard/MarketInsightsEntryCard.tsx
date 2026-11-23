@@ -27,6 +27,7 @@ import { endTrace, TraceName } from '../../../../../util/trace';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useViewportTracking } from '../../hooks/useViewportTracking';
 import { getMarketInsightsTraceEndData } from '../../utils/marketInsightsPerformance';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
@@ -169,6 +170,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   traceId,
   source,
   testID,
+  isGlass = false,
 }) => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -251,72 +253,93 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
     [],
   );
 
+  const cardContent = (
+    <>
+      <AnimatedGradientBorder
+        dimensions={cardDimensions}
+        animationKey={borderAnimationKey}
+      />
+
+      {/* Title row */}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+      >
+        <GradientText
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+        >
+          {strings('market_insights.title')}
+        </GradientText>
+        <GradientArrowIcon />
+      </Box>
+
+      {/* Body text: rotating trend descriptions */}
+      <SlidingTextCarousel
+        texts={displayTexts}
+        onSlideStart={handleDescriptionSlideStart}
+      />
+
+      {/* Footer disclaimer */}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={1}
+        twClassName="mt-0.5"
+      >
+        <GradientSparkleIcon />
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          twClassName="shrink"
+        >
+          {strings('market_insights.card_footer_disclaimer')}
+          {' • '}
+          {timeAgo}
+        </Text>
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSize.Xs}
+          iconProps={{ color: IconColor.IconAlternative }}
+          onPress={onDisclaimerPress}
+          testID="market-insights-info-button"
+        />
+      </Box>
+    </>
+  );
+
   return (
     <>
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => tw.style('px-4 mt-2', pressed && 'opacity-70')}
+        // Glass reacts to touch itself and breaks under a see-through parent.
+        style={({ pressed }) =>
+          tw.style('px-4 mt-2', pressed && !isGlass && 'opacity-70')
+        }
         testID={testID}
       >
         <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
-          <Box
-            twClassName="bg-background-muted rounded-xl"
-            padding={4}
-            gap={1}
-            onLayout={handleLayout}
-          >
-            <AnimatedGradientBorder
-              dimensions={cardDimensions}
-              animationKey={borderAnimationKey}
-            />
-
-            {/* Title row */}
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
+          {isGlass ? (
+            <BoxGlass
+              radiusClassName="rounded-xl"
+              hasSheen
+              isInteractive
+              style={tw.style('p-4 gap-1')}
+              onLayout={handleLayout}
             >
-              <GradientText
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-              >
-                {strings('market_insights.title')}
-              </GradientText>
-              <GradientArrowIcon />
-            </Box>
-
-            {/* Body text: rotating trend descriptions */}
-            <SlidingTextCarousel
-              texts={displayTexts}
-              onSlideStart={handleDescriptionSlideStart}
-            />
-
-            {/* Footer disclaimer */}
+              {cardContent}
+            </BoxGlass>
+          ) : (
             <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
+              twClassName="bg-background-muted rounded-xl"
+              padding={4}
               gap={1}
-              twClassName="mt-0.5"
+              onLayout={handleLayout}
             >
-              <GradientSparkleIcon />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-                twClassName="shrink"
-              >
-                {strings('market_insights.card_footer_disclaimer')}
-                {' • '}
-                {timeAgo}
-              </Text>
-              <ButtonIcon
-                iconName={IconName.Info}
-                size={ButtonIconSize.Xs}
-                iconProps={{ color: IconColor.IconAlternative }}
-                onPress={onDisclaimerPress}
-                testID="market-insights-info-button"
-              />
+              {cardContent}
             </Box>
-          </Box>
+          )}
         </View>
       </Pressable>
     </>

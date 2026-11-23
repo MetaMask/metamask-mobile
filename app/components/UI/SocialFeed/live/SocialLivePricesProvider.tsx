@@ -24,6 +24,7 @@ import {
   selectVisibleKeys,
   type MeasuredCard,
 } from './planLiveSubscriptions';
+import { selectPerpDisplayPrice } from './selectPerpDisplayPrice';
 import {
   SocialLivePricesContext,
   type SocialLivePricesContextValue,
@@ -42,6 +43,8 @@ export const SLOW_NETWORK_THROTTLE_MS = 5000;
 const VISIBILITY_DEBOUNCE_MS = 250;
 /** Catches programmatic scrolls and list changes that fire no settle event. */
 const VISIBILITY_POLL_MS = 4000;
+/** UX matrix, LOW hardware on slow cellular: a rare poll. The README gives no interval; this is 2x the default. */
+const LOW_HARDWARE_SLOW_NETWORK_POLL_MS = 8000;
 const SUBSCRIBE_DEBOUNCE_MS = 500;
 /** Cards within one screen above or below the window stay subscribed. */
 const VISIBILITY_BUFFER_SCREENS = 1;
@@ -52,7 +55,7 @@ interface Registration {
 }
 
 const ohlcvChannel = (assetId: string) =>
-  `market-data.v1.${assetId}.${OHLCV_INTERVAL}.${OHLCV_CURRENCY}`;
+  `ohlcv.v1.${assetId}.${OHLCV_INTERVAL}.${OHLCV_CURRENCY}`;
 
 const subscribeSpot = (assetId: string) =>
   Engine.controllerMessenger.call('OHLCVService:subscribe', {
@@ -95,8 +98,14 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   );
   const [store] = useState(() => new SocialLivePriceStore());
 
-  // `null` tiers are unknown and treated as default, never as LOW or NONE.
-  const reduceMotion = getHardwareTier() === 'LOW';
+  // UX matrix (app/util/deviceCapability/README.md). The two tiers are read
+  // separately. A `null` network tier is the MID-safe cell, never LOW.
+  const hardwareTier = getHardwareTier();
+  const reduceMotion = hardwareTier === 'LOW' && networkTier !== null;
+  const visibilityPollMs =
+    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+      ? LOW_HARDWARE_SLOW_NETWORK_POLL_MS
+      : VISIBILITY_POLL_MS;
   const isLive = isFocused && isAppActive && networkTier !== 'NONE';
 
   const isLiveRef = useRef(isLive);
@@ -212,7 +221,10 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
           if (!tracked.has(symbol) || !update) {
             return;
           }
-          const price = Number.parseFloat(update.markPrice ?? update.price);
+          const price = selectPerpDisplayPrice(update);
+          if (price == null) {
+            return;
+          }
           store.publish(`perp:${symbol}`, price);
         });
       },
@@ -314,7 +326,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     syncSubscriptions();
     const interval = setInterval(
       () => requestVisibilityCheck(0),
-      VISIBILITY_POLL_MS,
+      visibilityPollMs,
     );
     return () => clearInterval(interval);
   }, [
@@ -323,6 +335,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     requestVisibilityCheck,
     store,
     syncSubscriptions,
+    visibilityPollMs,
   ]);
 
   useEffect(() => {
@@ -362,7 +375,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
 
 /**
  * Streams live prices to the open position cards on screen beneath it: spot
- * assets over the `market-data.v1` candle channel (the in-progress candle's
+ * assets over the `ohlcv.v1` candle channel (the in-progress candle's
  * close is the last trade), perps over the Hyperliquid price stream.
  *
  * Only cards inside the window plus a screen of buffer are subscribed, spot is

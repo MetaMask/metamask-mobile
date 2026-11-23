@@ -4,6 +4,7 @@ import migrate, { Identity } from './036';
 import { captureException } from '@sentry/react-native';
 import { getUUIDFromAddressOfNormalAccount } from '@metamask/accounts-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 jest.mock('@metamask/accounts-controller', () => {
   const actual = jest.requireActual<
@@ -123,7 +124,7 @@ describe('Migration #036', () => {
       const newState = migrate({});
       expect(newState).toStrictEqual({});
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         `Migration 36: Invalid root engine state: 'undefined'`,
       );
     });
@@ -136,7 +137,7 @@ describe('Migration #036', () => {
       const newState = migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         `Migration 36: Invalid root engine backgroundState: 'undefined'`,
       );
     });
@@ -152,7 +153,7 @@ describe('Migration #036', () => {
       const newState = migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         `Migration 36: Invalid PreferencesController state: 'undefined'`,
       );
     });
@@ -168,7 +169,7 @@ describe('Migration #036', () => {
       const newState = migrate(oldState);
       expect(newState).toStrictEqual(oldState);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         `Migration 36: Missing identities property from PreferencesController: 'object'`,
       );
     });
@@ -494,7 +495,7 @@ describe('Migration #036', () => {
         ),
       );
       migrate(oldState);
-      expect(mockedCaptureException.mock.calls[1][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[1][0])).toBe(
         `Migration 36: selectedAccount will be undefined because internalAccount.id is undefined.`,
       );
     });
@@ -512,7 +513,7 @@ describe('Migration #036', () => {
         ),
       );
       migrate(oldState);
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         `Migration 36: selectedAccount will be undefined because selectedAccount.id is undefined.`,
       );
     });

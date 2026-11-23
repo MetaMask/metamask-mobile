@@ -8,7 +8,7 @@ import {
 import type { SocialV1FeedAuthor } from '../types';
 
 /**
- * Leaderboard trader-cohort chip. `following` stays on the Live trades sheet.
+ * Leaderboard trader-cohort chip. `following` stays on the Live sheet.
  */
 export type LeaderboardTraderCohort =
   | 'all'

@@ -9,6 +9,7 @@ import {
   PerformanceLogin,
   PerformanceAssetLoading,
 } from '../../tags.performance.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 8: Asset View, SRP 1 + SRP 2 + SRP 3 */
 perfTest.describe(
@@ -27,6 +28,7 @@ perfTest.describe(
         );
 
         await WalletView.tapOnTokensSection();
+        await enableHermesAppProfiling();
         await WalletView.tapOnToken('ETH');
 
         await assetViewScreen.measure(async () => {

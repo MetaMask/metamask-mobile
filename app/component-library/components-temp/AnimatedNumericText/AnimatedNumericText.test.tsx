@@ -10,10 +10,6 @@ jest.mock('react-native-reanimated', () => ({
   useReducedMotion: jest.fn(() => false),
 }));
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: () => ({}) }),
-}));
-
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
 const styles = StyleSheet.create({
   containerPadding: { paddingHorizontal: 8 },
@@ -143,6 +139,37 @@ describe('AnimatedNumericText', () => {
       '$ 250.00 available',
     );
     expect(UNSAFE_getAllByType(Text)).toHaveLength(1);
+  });
+
+  it('animates the container layout after the first render by default', () => {
+    const { getByTestId, rerender } = render(
+      <AnimatedNumericText value="9" testID="animated-numeric-text" />,
+    );
+
+    rerender(<AnimatedNumericText value="10" testID="animated-numeric-text" />);
+
+    expect(getByTestId('animated-numeric-text').props.layout).toBeDefined();
+  });
+
+  it('skips the container layout transition when animateContainerLayout is false', () => {
+    const { getByTestId, rerender } = render(
+      <AnimatedNumericText
+        animateContainerLayout={false}
+        value="9"
+        testID="animated-numeric-text"
+      />,
+    );
+
+    rerender(
+      <AnimatedNumericText
+        animateContainerLayout={false}
+        value="10"
+        testID="animated-numeric-text"
+      />,
+    );
+
+    expect(getByTestId('animated-numeric-text').props.layout).toBeUndefined();
+    expect(getByTestId('animated-numeric-text')).toHaveTextContent('10');
   });
 
   it('exposes the raw string to screen readers', () => {

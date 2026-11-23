@@ -227,10 +227,7 @@ describe('DepositOrderContent Component', () => {
       },
     });
 
-    const copyButton = screen.getByText('..123456').parent;
-    if (copyButton) {
-      fireEvent.press(copyButton);
-    }
+    fireEvent.press(screen.getByLabelText('Order ID'));
 
     expect(Clipboard.setString).toHaveBeenCalledWith(
       'transak-provider-order-id-123456',

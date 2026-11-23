@@ -1,10 +1,16 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
 import TraderPositionBuyCta from './TraderPositionBuyCta';
 import { useABTest } from '../../../../../hooks/useABTest';
 import { useSwapBridgeNavigation } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
+import {
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  PostTradeShareOwner,
+  requestPostTradeShareReopen,
+} from '../../PostTradeShareBottomSheet/postTradeShareSession';
 import {
   TOP_TRADERS_BUY_ACTION_AB_KEY,
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
@@ -119,6 +125,7 @@ const renderCta = (
 describe('TraderPositionBuyCta', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearPostTradeShareSession();
     mockIsFocused = true;
     mockUseSwapBridgeNavigation.mockReturnValue({
       goToSwaps: mockGoToSwaps,
@@ -153,6 +160,37 @@ describe('TraderPositionBuyCta', () => {
 
   describe('control variant', () => {
     beforeEach(() => setVariant(false));
+
+    it('reopens a failed sell on the sell side', () => {
+      renderCta({ postTradeShare: true });
+
+      act(() => {
+        beginPostTradeShareSession({
+          target: {
+            tokenAddress: '0xtoken',
+            tokenSymbol: 'TKN',
+            tokenName: 'Token',
+            chain: 'eip155:1',
+          },
+          tradeMode: 'sell',
+          owner: PostTradeShareOwner.traderPosition,
+          preview: {
+            tokenSymbol: 'TKN',
+            tokenAddress: '0xtoken',
+            chain: 'ethereum',
+            side: 'sell',
+          },
+        });
+        requestPostTradeShareReopen();
+      });
+
+      expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isVisible: true,
+          initialTradeMode: 'sell',
+        }),
+      );
+    });
 
     it('opens QuickBuy and does not navigate to swaps on Buy press', () => {
       const onBuyCtaClicked = jest.fn();
@@ -282,7 +320,7 @@ describe('TraderPositionBuyCta', () => {
       source: 'profile_position',
       originalEntryPoint: 'leaderboard',
       isTraderPositionClosed: true,
-      postSwapShare: true,
+      postTradeShare: true,
     });
 
     expect(mockTraderPositionQuickBuy).toHaveBeenLastCalledWith(
@@ -293,7 +331,7 @@ describe('TraderPositionBuyCta', () => {
         source: 'profile_position',
         originalEntryPoint: 'leaderboard',
         isTraderPositionClosed: true,
-        postSwapShare: true,
+        postTradeShare: true,
       }),
     );
   });

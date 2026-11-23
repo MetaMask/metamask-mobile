@@ -72,6 +72,7 @@ const flags = resolveE2EPlatformRequirements({
     androidOrIgnorableCount: readInt(process.env.ANDROID_OR_IGNORABLE_COUNT),
     iosOrIgnorableCount: readInt(process.env.IOS_OR_IGNORABLE_COUNT),
     changedSpecFiles: process.env.CHANGED_SPEC_FILES || '',
+    addedSmokeSpecFiles: process.env.ADDED_SMOKE_SPEC_FILES || '',
   },
   labelOverrideInput,
   skipSmartSelection,

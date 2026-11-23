@@ -93,6 +93,17 @@ const flushAsyncSideEffects = async (delayMs = 50) => {
 };
 
 describeForPlatforms('Position Close Flow', () => {
+  beforeEach(() => {
+    // The close waits for a fee quote before it can be confirmed.
+    (
+      Engine.context.PerpsController.calculateFees as jest.Mock
+    ).mockResolvedValue({
+      feeRate: 0.00145,
+      protocolFeeRate: 0.00045,
+      metamaskFeeRate: 0.001,
+    });
+  });
+
   afterEach(async () => {
     clearPendingPerpsCufTraces();
     await flushAsyncSideEffects();

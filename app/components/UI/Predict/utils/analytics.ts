@@ -5,8 +5,13 @@ import {
   type PredictFailureStageValue,
 } from '../constants/eventNames';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
-import type { PredictMarket, PredictOutcomeToken } from '../types';
+import type {
+  PredictMarket,
+  PredictOutcome,
+  PredictOutcomeToken,
+} from '../types';
 import type { PredictEntryPoint } from '../types/navigation';
+import { getPredictOutcomeVersion } from './marketVersion';
 import { getDisplayBuyPrice } from './prices';
 
 const MAX_FAILURE_REASON_LENGTH = 255;
@@ -26,7 +31,10 @@ export function parseAnalyticsProperties(
   entryPoint: PredictEntryPoint | undefined,
   predictFeedTab?: string,
   predictScreen?: string,
+  outcome?: Pick<PredictOutcome, 'version'>,
 ) {
+  const outcomeVersion = getPredictOutcomeVersion(outcome);
+
   return {
     marketId: market?.id,
     marketTitle: market?.title,
@@ -44,6 +52,7 @@ export function parseAnalyticsProperties(
         ? PredictEventValues.MARKET_TYPE.BINARY
         : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
     outcome: outcomeToken?.title?.toLowerCase(),
+    ...(outcomeVersion ? { outcomeVersion } : {}),
     marketSlug: market?.slug,
     gameId: market?.game?.id,
     gameStartTime: market?.game?.startTime,
@@ -69,6 +78,12 @@ export function mapClaimFailureReason(error?: unknown): string {
         ? error
         : '';
   const normalized = message.toLowerCase();
+
+  if (
+    normalized.includes(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE.toLowerCase())
+  ) {
+    return CLAIM_FAILURE_REASON.MARKET_UNAVAILABLE;
+  }
 
   if (
     normalized.includes(

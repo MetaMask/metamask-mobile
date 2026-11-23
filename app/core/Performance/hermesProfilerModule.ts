@@ -14,6 +14,7 @@ import { NativeModules, Platform } from 'react-native';
 export interface HermesProfilerNativeModule {
   startProfiling(): Promise<boolean>;
   stopProfilingToAppStorage(): Promise<string>;
+  armProfiling(nonce: string): Promise<boolean>;
 }
 
 export function getHermesProfilerModule(): HermesProfilerNativeModule | null {

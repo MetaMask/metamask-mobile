@@ -177,17 +177,14 @@ describe('useCardHomeActions — transactionHistoryAction', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.TRANSACTION_HISTORY);
   });
 
-  it('navigates to card authentication when not authenticated', () => {
+  it('does nothing for card history when not authenticated', () => {
     const { result } = setup({ isAuthenticated: false });
 
     act(() => {
       result.current.transactionHistoryAction('card');
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-      showAuthPrompt: true,
-      postAuthRedirect: { screen: Routes.CARD.TRANSACTION_HISTORY },
-    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
 
@@ -210,7 +207,7 @@ describe('useCardHomeActions — contactDetailsAction', () => {
     });
   });
 
-  it('opens authentication with a contact-details redirect when unauthenticated', () => {
+  it('does not open contact details when unauthenticated', () => {
     const { result } = setup({
       isAuthenticated: false,
       providerId: 'immersve',
@@ -220,10 +217,7 @@ describe('useCardHomeActions — contactDetailsAction', () => {
       result.current.contactDetailsAction();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
-      showAuthPrompt: true,
-      postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
-    });
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 });
 

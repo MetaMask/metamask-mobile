@@ -1,8 +1,5 @@
 import React from 'react';
-import {
-  TransactionType,
-  hasTransactionType,
-} from '@metamask/transaction-controller';
+import { hasTransactionType } from '@metamask/transaction-controller';
 import {
   Box,
   BoxAlignItems,
@@ -17,14 +14,16 @@ import { shortenString } from '../../../../../../util/notifications/methods/comm
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { TransactionDetailsRow } from '../transaction-details-row/transaction-details-row';
 import CopyButton from '../../UI/copy-button/copy-button';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { TransactionDetailsFiatOrderIdRowTestIds } from './transaction-details-fiat-order-id-row.testIds';
 
 export function TransactionDetailsFiatOrderIdRow() {
   const { transactionMeta } = useTransactionDetails();
 
-  const isDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
+  const isDeposit = hasTransactionType(
+    transactionMeta,
+    MONEY_ACCOUNT_DEPOSIT_TYPES,
+  );
   const orderId = transactionMeta?.metamaskPay?.fiat?.orderId;
 
   // Order ids arrive in the normalized `/providers/{provider}/orders/{id}`

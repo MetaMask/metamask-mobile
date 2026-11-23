@@ -1,45 +1,50 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useCallback, useEffect, useState } from 'react';
-import { StatusBar, View, useWindowDimensions } from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withTiming,
-} from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import React, { useCallback, useEffect } from 'react';
+import { Image, StatusBar, StyleSheet, View } from 'react-native';
+import { Box } from '@metamask/design-system-react-native';
+import { Theme } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import createStyles, { GRADIENT_COLORS } from './CardWelcome.styles';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
-import CardWelcomeCardsAnimation, {
-  CARDS_ENTRANCE_START_TIMEOUT_MS,
-  CARDS_IN_DURATION_MS,
-} from './CardWelcomeCardsAnimation';
-import { useCardEducationAnimationState } from './useCardEducationAnimationState';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import {
-  selectHasCardholderAccounts,
+  selectHasCard,
   selectHasCardSignInLink,
 } from '../../../../../selectors/cardController';
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
-import {
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  ButtonBase,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import MarketingMoment from '../../../MarketingMoment';
+import CardRebrandImage from '../../../../../images/mm-card-rebrand.png';
+
+/**
+ * Crop of the rebrand card inside its square frame, matching Figma node
+ * 1351:685. The source sits at 108.89% of the frame, shifted up and to the left.
+ */
+const CARD_ARTWORK_SCALE = '108.89%';
+const CARD_ARTWORK_LEFT = '-7.22%';
+const CARD_ARTWORK_TOP = '-1.11%';
+
+const styles = StyleSheet.create({
+  artworkClip: {
+    aspectRatio: 1,
+    overflow: 'hidden',
+    width: '100%',
+  },
+  artworkImage: {
+    height: CARD_ARTWORK_SCALE,
+    left: CARD_ARTWORK_LEFT,
+    position: 'absolute',
+    top: CARD_ARTWORK_TOP,
+    width: CARD_ARTWORK_SCALE,
+  },
+});
 
 interface TransitionEndEvent {
   data?: { closing?: boolean };
@@ -53,133 +58,14 @@ interface StatusBarNavigation {
   getParent: () => StatusBarNavigation | undefined;
 }
 
-const TEXT_REVEAL_DURATION_MS = 300;
-const TEXT_REVEAL_TRANSLATE_Y = 10;
-/**
- * Big title starts a beat before CardsIn finishes; description follows.
- * Delays are from entrance-start, same as the previous single-copy reveal.
- */
-const TITLE_REVEAL_DELAY_MS = CARDS_IN_DURATION_MS - 350;
-const DESCRIPTION_REVEAL_STAGGER_MS = 200;
-const DESCRIPTION_REVEAL_DELAY_MS =
-  TITLE_REVEAL_DELAY_MS + DESCRIPTION_REVEAL_STAGGER_MS;
-/** Buttons fade in on mount after a short beat that mirrors CardsIn starting. */
-const BUTTONS_REVEAL_DELAY_MS = 500;
-const BUTTONS_REVEAL_DURATION_MS = 300;
-
 const CardWelcome = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation<AppNavigationProp>();
   const { goBack, navigate } = navigation;
-  const hasCardholderAccounts = useSelector(selectHasCardholderAccounts);
+  const hasCard = useSelector(selectHasCard);
   const hasSignInLink = useSelector(selectHasCardSignInLink);
   const postAuthRedirect = useCardPostAuthRedirect();
   const theme = useTheme();
-  const dimensions = useWindowDimensions();
-  const styles = createStyles(theme, dimensions);
-  const animationState = useCardEducationAnimationState();
-  const [hasCardsAnimationError, setHasCardsAnimationError] = useState(false);
-  const [hasCardsEntranceStarted, setHasCardsEntranceStarted] = useState(false);
-  // A Rive failure swaps in the static cards image, so there is no entrance
-  // left to sequence against: fall back to the static reveal rather than
-  // holding the copy hidden for the full CardsIn duration.
-  const resolvedAnimationState =
-    animationState === 'animate' && hasCardsAnimationError
-      ? 'static'
-      : animationState;
-  const isAnimating = resolvedAnimationState === 'animate';
-  const isContentHidden = resolvedAnimationState === 'pending';
-  // Reanimated attaches the animated style a frame after `isAnimating` flips,
-  // so chrome would paint at full opacity for that frame. Keeping the static
-  // hidden style underneath holds it down until the reveal takes over.
-  const isChromeHiddenUntilRevealed = isContentHidden || isAnimating;
-  // Title/description wait for the cards entrance; buttons fade on mount.
-  const isTextRevealing = isAnimating && hasCardsEntranceStarted;
-  const isButtonsRevealing = isAnimating;
-
-  const titleOpacity = useSharedValue(0);
-  const titleTranslateY = useSharedValue(TEXT_REVEAL_TRANSLATE_Y);
-  const titleRevealStyle = useAnimatedStyle(() => ({
-    opacity: titleOpacity.value,
-    transform: [{ translateY: titleTranslateY.value }],
-  }));
-
-  const descriptionOpacity = useSharedValue(0);
-  const descriptionTranslateY = useSharedValue(TEXT_REVEAL_TRANSLATE_Y);
-  const descriptionRevealStyle = useAnimatedStyle(() => ({
-    opacity: descriptionOpacity.value,
-    transform: [{ translateY: descriptionTranslateY.value }],
-  }));
-
-  const buttonsOpacity = useSharedValue(0);
-  const buttonsRevealStyle = useAnimatedStyle(() => ({
-    opacity: buttonsOpacity.value,
-  }));
-
-  const handleCardsAnimationError = useCallback(() => {
-    setHasCardsAnimationError(true);
-  }, []);
-
-  const handleCardsEntranceStart = useCallback(() => {
-    setHasCardsEntranceStarted(true);
-  }, []);
-
-  // The Rive file loads asynchronously and the native view reports ready some
-  // time after that, so timing the title reveal from `isAnimating` would fade
-  // the copy in while the cards are still settling — or still blank. Wait for
-  // the entrance to actually start, but never longer than the cap, so a view
-  // that never reports ready cannot leave the copy hidden.
-  useEffect(() => {
-    if (!isAnimating || hasCardsEntranceStarted) {
-      return undefined;
-    }
-    const timeout = setTimeout(
-      () => setHasCardsEntranceStarted(true),
-      CARDS_ENTRANCE_START_TIMEOUT_MS,
-    );
-    return () => clearTimeout(timeout);
-  }, [isAnimating, hasCardsEntranceStarted]);
-
-  // Buttons: fade in on mount after a short delay (not gated on Rive ready).
-  useEffect(() => {
-    if (!isAnimating) {
-      return;
-    }
-    buttonsOpacity.value = withDelay(
-      BUTTONS_REVEAL_DELAY_MS,
-      withTiming(1, { duration: BUTTONS_REVEAL_DURATION_MS }),
-    );
-  }, [isAnimating, buttonsOpacity]);
-
-  // Staggered copy: big title first (a bit before CardsIn ends), then body.
-  useEffect(() => {
-    if (!isAnimating || !hasCardsEntranceStarted) {
-      return;
-    }
-    titleOpacity.value = withDelay(
-      TITLE_REVEAL_DELAY_MS,
-      withTiming(1, { duration: TEXT_REVEAL_DURATION_MS }),
-    );
-    titleTranslateY.value = withDelay(
-      TITLE_REVEAL_DELAY_MS,
-      withTiming(0, { duration: TEXT_REVEAL_DURATION_MS }),
-    );
-    descriptionOpacity.value = withDelay(
-      DESCRIPTION_REVEAL_DELAY_MS,
-      withTiming(1, { duration: TEXT_REVEAL_DURATION_MS }),
-    );
-    descriptionTranslateY.value = withDelay(
-      DESCRIPTION_REVEAL_DELAY_MS,
-      withTiming(0, { duration: TEXT_REVEAL_DURATION_MS }),
-    );
-  }, [
-    isAnimating,
-    hasCardsEntranceStarted,
-    titleOpacity,
-    titleTranslateY,
-    descriptionOpacity,
-    descriptionTranslateY,
-  ]);
 
   useEffect(() => {
     trackEvent(
@@ -195,16 +81,15 @@ const CardWelcome = () => {
 
   useFocusEffect(
     useCallback(() => {
-      const applyLightStatusBar = () =>
-        StatusBar.setBarStyle('light-content', true);
+      const applyStatusBar = () => StatusBar.setBarStyle('dark-content', true);
 
-      applyLightStatusBar();
+      applyStatusBar();
 
       const handleTransitionEnd = (event: TransitionEndEvent) => {
         if (event?.data?.closing) {
           return;
         }
-        applyLightStatusBar();
+        applyStatusBar();
       };
 
       const unsubscribers: (() => void)[] = [];
@@ -233,7 +118,7 @@ const CardWelcome = () => {
     goBack();
   }, [goBack]);
 
-  const shouldGoToSignIn = hasCardholderAccounts || hasSignInLink;
+  const shouldGoToSignIn = hasCard || hasSignInLink;
 
   const handleButtonPress = useCallback(() => {
     trackEvent(
@@ -266,97 +151,47 @@ const CardWelcome = () => {
   ]);
 
   return (
-    <LinearGradient
-      colors={GRADIENT_COLORS}
-      start={{ x: 0.5, y: 0 }}
-      end={{ x: 0.5, y: 1 }}
-      style={styles.pageContainer}
+    <MarketingMoment
       testID="card-gtm-modal-container"
-    >
-      {/* Header Section */}
-      <SafeAreaView style={styles.headerContainer} edges={['top']}>
-        <Animated.View
-          style={[
-            isChromeHiddenUntilRevealed && styles.hiddenText,
-            isTextRevealing && titleRevealStyle,
-          ]}
-        >
-          <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLg}
-            testID={CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT}
-          >
-            {strings('card.card_onboarding.title')}
-          </Text>
-        </Animated.View>
-        <Animated.View
-          style={[
-            isChromeHiddenUntilRevealed && styles.hiddenText,
-            isTextRevealing && descriptionRevealStyle,
-          ]}
-        >
-          <Text
-            variant={TextVariant.BodyMd}
-            style={styles.titleDescription}
-            testID={CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT}
-          >
-            {strings('card.card_onboarding.description')}
-          </Text>
-        </Animated.View>
-      </SafeAreaView>
-
-      {/* Image Section - Positioned absolutely to extend behind footer */}
-      <View style={styles.imageContainer}>
-        {resolvedAnimationState !== 'pending' && (
-          <CardWelcomeCardsAnimation
-            animate={isAnimating}
-            style={styles.image}
-            animationStyle={styles.animation}
-            onEntranceStart={handleCardsEntranceStart}
-            onRiveError={handleCardsAnimationError}
+      theme={Theme.Light}
+      background={<Box twClassName="h-full w-full bg-accent04-light" />}
+      title={strings('card.card_onboarding.title')}
+      description={strings('card.card_onboarding.description')}
+      titleProps={{
+        testID: CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT,
+        twClassName: 'text-accent04-dark text-center',
+      }}
+      descriptionProps={{
+        testID: CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT,
+        // padding to prevent orphan
+        twClassName: 'text-accent04-dark text-center px-3',
+      }}
+      artworkWrapperProps={{ paddingHorizontal: 3 }}
+      artwork={
+        <View style={styles.artworkClip}>
+          <Image
+            source={CardRebrandImage}
+            resizeMode="cover"
+            style={styles.artworkImage}
+            testID={CardWelcomeSelectors.CARD_IMAGE}
           />
-        )}
-      </View>
-
-      {/* Footer Section - Positioned absolutely at bottom */}
-      <SafeAreaView style={styles.footerContainer} edges={['bottom']}>
-        <Animated.View
-          style={[
-            styles.footerContent,
-            isChromeHiddenUntilRevealed && styles.hiddenText,
-            isButtonsRevealing && buttonsRevealStyle,
-          ]}
-        >
-          <ButtonBase
-            onPress={handleButtonPress}
-            testID={CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON}
-            size={ButtonSize.Lg}
-            isFullWidth
-            twClassName="bg-white"
-          >
-            <Text variant={TextVariant.BodyMd} twClassName="text-black">
-              {strings(
-                shouldGoToSignIn
-                  ? 'card.card_onboarding.login_button'
-                  : 'card.card_onboarding.apply_now_button',
-              )}
-            </Text>
-          </ButtonBase>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            onPress={handleClose}
-            testID={CardWelcomeSelectors.NOT_NOW_BUTTON}
-            size={ButtonSize.Lg}
-            isFullWidth
-            textProps={{
-              twClassName: 'text-white',
-            }}
-          >
-            {strings('card.card_onboarding.not_now_button')}
-          </Button>
-        </Animated.View>
-      </SafeAreaView>
-    </LinearGradient>
+        </View>
+      }
+      primaryAction={{
+        label: strings(
+          shouldGoToSignIn
+            ? 'card.card_onboarding.login_button'
+            : 'card.card_onboarding.apply_now_button',
+        ),
+        onPress: handleButtonPress,
+        testID: CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('card.card_onboarding.not_now_button'),
+        onPress: handleClose,
+        testID: CardWelcomeSelectors.NOT_NOW_BUTTON,
+      }}
+    />
   );
 };
 

@@ -1,25 +1,31 @@
 import React from 'react';
+import { ScrollView, StyleSheet } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
+import { earnRatesFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
   EarningsSummaryDto,
+  MechanismsView,
   ReferralMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
-import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
+
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => true),
+}));
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import RewardsMoneyDashboard, {
-  REWARDS_MONEY_DASHBOARD_TEST_IDS,
-} from './RewardsMoneyDashboard';
+import RewardsMoneyDashboard from './RewardsMoneyDashboard';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
@@ -97,6 +103,33 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => {
   };
 });
 
+const mockPerformanceTab = jest.fn();
+
+jest.mock('../components/Money/Tabs/EarningsTab', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    EARNINGS_TAB_TEST_IDS: {
+      CONTAINER: 'rewards-money-earnings-tab',
+    },
+    default: () => <View testID="rewards-money-earnings-tab" />,
+  };
+});
+
+jest.mock('../components/Money/Tabs/PerformanceTab', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    PERFORMANCE_TAB_TEST_IDS: {
+      CONTAINER: 'rewards-money-performance-tab',
+    },
+    default: (props: { active: boolean }) => {
+      mockPerformanceTab(props);
+      return <View testID="rewards-money-performance-tab" />;
+    },
+  };
+});
+
 jest.mock('../components/Benefits/BenefitsPreview', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -116,11 +149,12 @@ const LOCALIZED_TEXT = {
   earnEligibleFees: 'Earn on eligible fees',
   yourReferralCode: 'Your referral code',
   share: 'Share',
+  shareCode: 'Share code',
   historyReferrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   invitedBenefitTitle: 'Your referral benefit',
   invitedReferredBy: 'Referred by',
   invitedOptInDescription: 'Opt in to Rewards to start earning.',
@@ -128,14 +162,20 @@ const LOCALIZED_TEXT = {
   invitedOptInLegal: 'Rewards terms apply.',
 } as unknown as ReferralMeDto['localized_text'];
 
-const EARN_RATES = {
+const EARN_RATES: ReferralMeDto['earn_rates'] = earnRatesFixture({
   cashback_rate_bps: 500,
-  cashback_earning_start: null,
-  cashback_earning_end: null,
   revshare_rate_bps: 2500,
-  revshare_earning_start: null,
-  revshare_earning_end: null,
-};
+  revshare_by_product: {
+    perps: { rate_bps: 2500, source: 'DEFAULT' },
+    swaps: { rate_bps: 2500, source: 'DEFAULT' },
+    predict: null,
+  },
+  cashback_by_product: {
+    perps: { rate_bps: 500, source: null },
+    swaps: { rate_bps: 500, source: null },
+    predict: null,
+  },
+});
 
 const createReferralMe = (
   overrides: Partial<ReferralMeDto> = {},
@@ -155,6 +195,7 @@ const createReferralMe = (
   earn_rates: EARN_RATES,
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
+  excluded_regions: [],
   ...overrides,
 });
 
@@ -197,6 +238,7 @@ const renderDashboard = ({
   candidateSubscriptionId = subscriptionId,
   referralMeEntry,
   earningsSummaryEntry,
+  commissionMechanisms,
 }: {
   profileId?: string;
   hasProfileId?: boolean;
@@ -214,6 +256,7 @@ const renderDashboard = ({
     error: boolean;
     data: EarningsSummaryDto | null;
   };
+  commissionMechanisms?: MechanismsView;
 } = {}) => {
   const sessionProfileId =
     identityReady && hasProfileId ? profileId : undefined;
@@ -255,6 +298,10 @@ const renderDashboard = ({
         },
       },
       rewardsMoney: {
+        commissionMechanisms:
+          hasProfileId && commissionMechanisms
+            ? { [profileId]: commissionMechanisms }
+            : {},
         referralMe: hasProfileId
           ? {
               [profileId]: referralMeEntry ?? {
@@ -498,10 +545,10 @@ describe('RewardsMoneyDashboard', () => {
     const { getByTestId } = renderDashboard();
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
     ).toBeOnTheScreen();
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
+      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
     ).toBeOnTheScreen();
     expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
     expect(getByTestId('benefits-preview')).toBeOnTheScreen();
@@ -556,13 +603,15 @@ describe('RewardsMoneyDashboard', () => {
     expect(mockUseEarningsSummary).toHaveBeenCalledWith(PROFILE_ID);
   });
 
-  it('feeds the referrer hero the referrals total and hides trading commissions', () => {
-    const { getByText, queryByTestId } = renderDashboard();
+  it('feeds the referrer hero the referrals total and trading commissions', () => {
+    const { getByText, getByTestId } = renderDashboard();
 
     expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
-    ).not.toBeOnTheScreen();
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
   });
 
   it('feeds the referee hero its own cashback as rebates', () => {
@@ -591,7 +640,7 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByText('-')).toHaveLength(1);
+    expect(getAllByText('-')).toHaveLength(2);
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
     expect(
@@ -610,32 +659,11 @@ describe('RewardsMoneyDashboard', () => {
     expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
     expect(queryByTestId('benefits-preview')).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
     ).not.toBeOnTheScreen();
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
     ).not.toBeOnTheScreen();
-  });
-
-  it('hides settings when there is no subscription', () => {
-    const { queryByTestId } = renderDashboard({ subscriptionId: null });
-
-    expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('opens Rewards settings from the header when subscribed', () => {
-    const { getByTestId } = renderDashboard();
-
-    fireEvent.press(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-      screen: Routes.REWARDS_SETTINGS_VIEW,
-      params: undefined,
-    });
   });
 
   it('keeps the hero and hides the banner when referral me refresh fails with cached data', () => {
@@ -667,12 +695,30 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeNull();
   });
 
-  it('renders the earnings indicator when there is a claimable balance', () => {
+  it('renders the earnings indicator when a referee can claim at least $1', () => {
     const { getByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({ roles: ['REFEREE'], ui_variant: 'REFEREE' }),
+      },
       earningsSummaryEntry: {
         loading: false,
         error: false,
-        data: { ...EARNINGS_SUMMARY, claimable: '50' },
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          self_earned: {
+            ...EARNINGS_SUMMARY.self_earned,
+            by_claim_family: {
+              REFERRAL_TRADE_FEE_CASHBACK: {
+                ...emptyBranch,
+                lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
       },
     });
 
@@ -687,7 +733,154 @@ describe('RewardsMoneyDashboard', () => {
     });
   });
 
-  it('switches to an empty Earnings tab body', () => {
+  it('renders the earnings indicator for a referrer with cashback of at least $1', () => {
+    const { getByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          self_earned: {
+            ...EARNINGS_SUMMARY.self_earned,
+            by_claim_family: {
+              REFERRAL_TRADE_FEE_CASHBACK: {
+                ...emptyBranch,
+                lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the earnings indicator when revenue share is held for tax and its claim route is open', () => {
+    const { getByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            taxFormUrl: 'https://tax.example/form',
+          },
+        }),
+      },
+      commissionMechanisms: {
+        REFERRAL_REV_SHARE: { claim_open: true, reason: null },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '0',
+          held: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                held: '1000000',
+                blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders no earnings indicator when tax-held revenue share has a closed claim route', () => {
+    const { queryByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({
+          localized_text: {
+            ...LOCALIZED_TEXT,
+            taxFormUrl: 'https://tax.example/form',
+          },
+        }),
+      },
+      commissionMechanisms: {
+        REFERRAL_REV_SHARE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+        SOCIAL_FOLLOW_TRADE: {
+          claim_open: false,
+          reason: 'MECHANISM_NOT_CLAIMABLE',
+        },
+      },
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '0',
+          held: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                held: '1000000',
+                blocking_reason: 'TAX_DETERMINATION_REQUIRED',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
+  });
+
+  it('renders no earnings indicator when only a closed revenue-share balance is claimable', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          earned_by_others: {
+            ...EARNINGS_SUMMARY.earned_by_others,
+            by_claim_family: {
+              REFERRAL_REV_SHARE: {
+                ...emptyBranch,
+                lifetime: '41750000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
+  });
+
+  it('switches to the Earnings tab body', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB));
@@ -695,8 +888,153 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
     ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-earnings-tab')).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).toBeNull();
+  });
+
+  it('hides the earnings indicator when only claimed balance is positive', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: { ...EARNINGS_SUMMARY, claimable: '0', claimed: '50' },
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
+  });
+
+  it('switches to the Performance tab body', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-performance-tab')).toBeOnTheScreen();
+    expect(mockPerformanceTab).toHaveBeenLastCalledWith(
+      expect.objectContaining({ active: true }),
+    );
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).toBeNull();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeNull();
+  });
+
+  it('returns the shared scroller to the top when the selected tab changes', () => {
+    const scrollTo = jest.fn();
+    const scrollToSpy = jest
+      .spyOn(ScrollView.prototype, 'scrollTo')
+      .mockImplementation(scrollTo);
+    const { getByTestId } = renderDashboard();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    );
+    expect(scrollTo).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+    expect(scrollTo).toHaveBeenCalledWith({ y: 0, animated: false });
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    expect(scrollTo).toHaveBeenCalledTimes(1);
+
+    scrollToSpy.mockRestore();
+  });
+
+  it('mounts a tab only while it is selected', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeNull();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).toBeNull();
+    expect(mockPerformanceTab).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
+    );
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
+    );
+
+    expect(queryByTestId('rewards-money-performance-tab')).toBeNull();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).toBeOnTheScreen();
+  });
+
+  it('pads a short panel so the title clip can scroll into view', () => {
+    const { getByTestId } = renderDashboard({ subscriptionId: null });
+
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 64 } },
+      },
+    );
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 652 } },
+      },
+    );
+    fireEvent(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 640 } },
+    });
+
+    expect(
+      StyleSheet.flatten(
+        getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER).props
+          .style,
+      ).height,
+    ).toBe(76);
+  });
+
+  it('leaves a tall panel without a clip spacer', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 64 } },
+      },
+    );
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 652 } },
+      },
+    );
+    fireEvent(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 800 } },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER),
+    ).toBeNull();
   });
 });

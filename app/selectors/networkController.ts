@@ -213,9 +213,9 @@ export const selectAllConfiguredEvmChainIds = createDeepEqualSelector(
  */
 export const selectAllConfiguredEvmCaipNetworks = createDeepEqualSelector(
   selectAllConfiguredEvmChainIds,
-  (chainIds): string[] =>
+  (chainIds): CaipChainId[] =>
     chainIds.map(
-      (chainId) =>
+      (chainId): CaipChainId =>
         `${KnownCaipNamespace.Eip155}:${Number.parseInt(chainId, 16)}`,
     ),
 );

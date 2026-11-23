@@ -18,6 +18,7 @@ import {
 import {
   MoneyLocationEventProperties,
   MoneyBaseEventProperties,
+  MoneyAccountCampaignTriggeredEventProperties,
   MoneyRedirectEventProperties,
   MoneyOnboardingEventProperties,
   MoneyTooltipClickedEventProperties,
@@ -135,13 +136,6 @@ export const useMoneyAnalytics = ({
       ...(component_name ? { component_name } : {}),
       ...(bottom_sheet_name ? { bottom_sheet_name } : {}),
       is_card_linked_to_money_account: isCardLinkedToMoneyAccount,
-      /**
-       * Note from Card team:
-       * selectIsCardholder can still be false even when the user is authenticated.
-       * In this case, "cardholder" is determined through on-chain verification against the currently selected SRP.
-       * The SRP is not linked to a card, so selectIsCardholder returns false.
-       * We should be checking selectIsCardAuthenticated instead.
-       */
       is_card_holder: isCardAuthenticated,
       is_money_balance_loading: isMoneyBalanceLoading,
       is_account_funded: isMoneyBalanceLoading
@@ -167,6 +161,20 @@ export const useMoneyAnalytics = ({
           .addProperties({
             ...getBaseProperties(),
             ...withRedirectType(withLabel(properties)),
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
+  const trackCampaignTriggered = useCallback(
+    (properties: MoneyAccountCampaignTriggeredEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_ACCOUNT_CAMPAIGN_TRIGGERED)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
           })
           .build(),
       );
@@ -319,6 +327,9 @@ export const useMoneyAnalytics = ({
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
     trackActivitySurfaceClicked,
+
+    // Campaign events
+    trackCampaignTriggered,
 
     // View events
     trackScreenViewed,

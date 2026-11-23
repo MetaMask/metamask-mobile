@@ -17,6 +17,15 @@ const createMockFormatter = () =>
         ? `${integerPart}.${parts[1]}`
         : integerPart;
     },
+    formatToParts: (value: number | bigint) => {
+      const formatted = value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return formatted
+        .split(',')
+        .flatMap((integer, index) => [
+          ...(index > 0 ? [{ type: 'group' as const, value: ',' }] : []),
+          { type: 'integer' as const, value: integer },
+        ]);
+    },
   }) as unknown as Intl.NumberFormat;
 
 describe('formatAmountWithLocaleSeparators', () => {
@@ -52,6 +61,12 @@ describe('formatAmountWithLocaleSeparators', () => {
     it('formats decimal numbers', () => {
       const result = formatAmountWithLocaleSeparators('1234.56');
       expect(result).toBe('1,234.56');
+    });
+
+    it('uses a non-conflicting group separator for a keypad decimal override', () => {
+      const result = formatAmountWithLocaleSeparators('1234.56', ',');
+
+      expect(result).toBe('1.234,56');
     });
 
     it('preserves single decimal place', () => {

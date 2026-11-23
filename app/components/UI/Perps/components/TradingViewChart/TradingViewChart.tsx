@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import ChartCandleSkeleton from '../../../Charts/ChartCandleSkeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import { type CandleData } from '@metamask/perps-controller';
@@ -657,21 +657,16 @@ const TradingViewChart = React.forwardRef<
           twClassName="overflow-hidden rounded-lg"
           style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
         >
-          {/* Show skeleton when chart WebView is still loading */}
+          {/* Candle skeleton covers the WebView until CHART_READY. No delay. */}
           {!isChartReady && (
-            <Skeleton
-              height={height}
-              width="100%"
-              // eslint-disable-next-line react-native/no-inline-styles
-              style={{
-                position: 'absolute',
-                zIndex: 10,
-                backgroundColor: theme.colors.background.default,
-              }} // eslint-disable-line react-native/no-inline-styles
-              testID={`${
-                testID || TradingViewChartSelectorsIDs.CONTAINER
-              }-skeleton`}
-            />
+            <Box style={styles.loadingContainer}>
+              <ChartCandleSkeleton
+                height={height}
+                testID={`${
+                  testID || TradingViewChartSelectorsIDs.CONTAINER
+                }-skeleton`}
+              />
+            </Box>
           )}
           {Platform.OS === 'android' ? (
             <GestureDetector gesture={Gesture.Pinch()}>

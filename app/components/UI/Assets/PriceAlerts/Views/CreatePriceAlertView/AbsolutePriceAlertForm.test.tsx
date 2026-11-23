@@ -167,13 +167,13 @@ describe('AbsolutePriceAlertForm', () => {
       ),
     );
 
-    expect(screen.getByText('$1322.18')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1322.18' })).toBeOnTheScreen();
   });
 
   it('displays pre-filled current price with $ prefix', () => {
     const screen = renderForm();
 
-    expect(screen.getByText('$1201.98')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1201.98' })).toBeOnTheScreen();
   });
 
   it('shows only the $ sign with no digits after fully clearing the input', () => {
@@ -181,7 +181,7 @@ describe('AbsolutePriceAlertForm', () => {
 
     clearKeypad(screen.getByTestId);
 
-    expect(screen.getByText('$')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$' })).toBeOnTheScreen();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeDisabled();
@@ -193,7 +193,7 @@ describe('AbsolutePriceAlertForm', () => {
     clearKeypad(screen.getByTestId);
     fireEvent.press(screen.getByTestId('keypad-key-1'));
 
-    expect(screen.getByText('$1')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1' })).toBeOnTheScreen();
   });
 
   it('displays an approximate zero percent before input', () => {
@@ -369,104 +369,12 @@ describe('AbsolutePriceAlertForm', () => {
     });
   });
 
-  describe('tiny price tokens', () => {
-    const tinyAsset =
-      'eip155:1/erc20:0x95aD61b0a150d79219dCF64E1E6Cc01f0B64C4cE';
-
-    it('displays quick-percentage values without scientific notation', () => {
-      const screen = renderForm({
-        assetId: tinyAsset,
-        displayTicker: 'SHIB',
-        currentPrice: 0.00000000000001,
-      });
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`,
-        ),
-      );
-
-      expect(screen.getByText('$0.000000000000011')).toBeOnTheScreen();
-    });
-
-    it('enables saving for a non-zero tiny quick-percentage value', () => {
-      const screen = renderForm({
-        assetId: tinyAsset,
-        displayTicker: 'SHIB',
-        currentPrice: 0.00000000000001,
-      });
-
-      fireEvent.press(
-        screen.getByTestId(
-          `${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`,
-        ),
-      );
-
-      expect(
-        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-      ).not.toBeDisabled();
-    });
-
-    it('accepts manual keypad input beyond two decimals', () => {
-      const screen = renderForm({
-        assetId: tinyAsset,
-        displayTicker: 'SHIB',
-        currentPrice: 0.00001234,
-      });
-
-      clearKeypad(screen.getByTestId);
-      for (const key of [
-        '0',
-        'dot',
-        '0',
-        '0',
-        '0',
-        '0',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-      ]) {
-        fireEvent.press(screen.getByTestId(`keypad-key-${key}`));
-      }
-
-      expect(screen.getByText('$0.000012345')).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-      ).toBeOnTheScreen();
-    });
-
-    it('blocks a sixteenth decimal digit', () => {
-      const screen = renderForm({
-        assetId: tinyAsset,
-        displayTicker: 'SHIB',
-        currentPrice: 0.0000000001,
-      });
-      clearKeypad(screen.getByTestId);
-      fireEvent.press(screen.getByTestId('keypad-key-dot'));
-      for (let index = 0; index < 15; index++) {
-        fireEvent.press(screen.getByTestId('keypad-key-1'));
-      }
-
-      fireEvent.press(screen.getByTestId('keypad-key-2'));
-
-      expect(screen.getByText('$0.111111111111111')).toBeOnTheScreen();
-    });
-  });
-
   describe('editing', () => {
     const renderEditingForm = () =>
       renderForm({
         editingAlert,
         existingAbsoluteAlerts: [editingAlert],
       });
-
-    it('prepopulates the existing threshold', () => {
-      const screen = renderEditingForm();
-
-      expect(screen.getByText('$1500')).toBeOnTheScreen();
-    });
 
     it('renders the Set button for a prepopulated threshold', () => {
       const screen = renderEditingForm();

@@ -53,7 +53,6 @@ import CLText from '../../../../../component-library/components/Texts/Text/Text'
 import Logger from '../../../../../util/Logger';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import {
-  selectNetworkConfigurationByChainId,
   selectDefaultEndpointByChainId,
   selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
@@ -68,7 +67,6 @@ import type { TokenI } from '../../../../UI/Tokens/types';
 interface AddCustomTokenProps {
   chainId: string;
   isTokenDetectionSupported?: boolean;
-  tabLabel?: string;
 }
 
 // --- Pure validation helpers ---
@@ -96,6 +94,10 @@ const getDecimalsError = (dec: string): string => {
   if (!dec.trim()) return strings('token.decimals_is_required');
   return '';
 };
+
+const getOptionalNetworkClientId = (
+  networkClientId: string | null,
+): string | undefined => networkClientId ?? undefined;
 
 // --- Hook: token metadata fetching ---
 
@@ -136,28 +138,27 @@ function useTokenMetadata(
         if (cancelled) return;
         setIsSmartContract(Boolean(isContract));
 
-        if (!isContract) return;
+        if (isContract) {
+          const { AssetsContractController } = Engine.context;
+          const clientId = getOptionalNetworkClientId(networkClientId);
+          const [d, s, n] = await Promise.all([
+            AssetsContractController.getERC20TokenDecimals(trimmed, clientId),
+            AssetsContractController.getERC721AssetSymbol(trimmed, clientId),
+            AssetsContractController.getERC20TokenName(trimmed, clientId),
+          ]);
+          if (cancelled) return;
 
-        const { AssetsContractController } = Engine.context;
-        const clientId = networkClientId ?? undefined;
-        const [d, s, n] = await Promise.all([
-          AssetsContractController.getERC20TokenDecimals(trimmed, clientId),
-          AssetsContractController.getERC721AssetSymbol(trimmed, clientId),
-          AssetsContractController.getERC20TokenName(trimmed, clientId),
-        ]);
-        if (cancelled) return;
-
-        setDecimals(String(d));
-        setSymbol(s);
-        setName(n);
+          setDecimals(String(d));
+          setSymbol(s);
+          setName(n);
+        }
       } catch (error) {
         Logger.error(
           error as Error,
           'useTokenMetadata: failed to fetch token metadata',
         );
-      } finally {
-        if (!cancelled) setIsLoading(false);
       }
+      if (!cancelled) setIsLoading(false);
     };
 
     run();
@@ -199,9 +200,6 @@ const AddCustomToken = ({
   const insets = useSafeAreaInsets();
 
   // Network selectors
-  const networkConfig = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, chainId),
-  );
   const defaultEndpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, chainId as Hex),
   );
@@ -209,17 +207,13 @@ const AddCustomToken = ({
     selectProviderTypeByChainId(state, chainId as Hex),
   );
 
-  const networkName = networkConfig?.name ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
-  // Provide address + chainId so the hook can determine whether the token is
-  // already hidden in AssetsController (isHidden) vs brand-new (not tracked).
   const tokenForVisibility = useMemo(
     () => (address && chainId ? ({ address, chainId } as TokenI) : undefined),
     [address, chainId],
   );
-  const { handleAddCustomAsset, handleHideToken, isHidden } =
-    useAssetVisibility(tokenForVisibility);
+  const { handleAddCustomAsset } = useAssetVisibility(tokenForVisibility);
 
   // Token metadata (async validation + RPC fetch)
   const {
@@ -303,24 +297,27 @@ const AddCustomToken = ({
       throw error;
     }
 
+    let didFailImport = false;
+    let importError: unknown;
     try {
-      if (isHidden) {
-        // Token exists but was hidden — unhide it instead of re-adding
-        handleHideToken();
-      } else {
-        await handleAddCustomAsset(caipAssetType, {
-          address: trimmedAddress,
-          symbol,
-          name,
-          decimals: Number(decimals),
-          chainId: caipChainId,
-        });
-      }
+      // addCustomAsset also clears the hidden flag. Hiding a custom token
+      // removes it from customAssets, so merely unhiding a hidden token
+      // (e.g. one with no balance) would leave it nowhere to be listed.
+      await handleAddCustomAsset(caipAssetType, {
+        address: trimmedAddress,
+        symbol,
+        name,
+        decimals: Number(decimals),
+        chainId: caipChainId,
+      });
     } catch (error) {
+      didFailImport = true;
+      importError = error;
       Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
-      throw error;
-    } finally {
-      endTrace({ name: TraceName.ImportTokens });
+    }
+    endTrace({ name: TraceName.ImportTokens });
+    if (didFailImport) {
+      throw importError;
     }
 
     try {
@@ -360,8 +357,6 @@ const AddCustomToken = ({
     trackEvent,
     createEventBuilder,
     handleAddCustomAsset,
-    handleHideToken,
-    isHidden,
   ]);
 
   const handleNext = useCallback(() => {
@@ -384,7 +379,6 @@ const AddCustomToken = ({
     ];
     navigation.push('ConfirmAddAsset', {
       selectedAsset,
-      networkName,
       addTokenList: addToken,
     });
   }, [
@@ -397,7 +391,6 @@ const AddCustomToken = ({
     name,
     decimals,
     chainId,
-    networkName,
     navigation,
     addToken,
   ]);

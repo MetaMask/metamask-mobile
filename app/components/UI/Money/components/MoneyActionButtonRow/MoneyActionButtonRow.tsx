@@ -40,7 +40,7 @@ const MoneyActionButtonRow = ({
 }: MoneyActionButtonRowProps) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    twClassName="px-4 pt-4 pb-2 gap-2"
+    twClassName="px-4 pt-8 pb-2 gap-2"
     testID={MoneyActionButtonRowTestIds.CONTAINER}
   >
     <MainActionButtonGlass
@@ -55,7 +55,7 @@ const MoneyActionButtonRow = ({
     />
     <MainActionButtonGlass
       iconName={IconName.Arrow2UpRight}
-      label={strings('money.action.transfer')}
+      label={strings('money.action.move')}
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}

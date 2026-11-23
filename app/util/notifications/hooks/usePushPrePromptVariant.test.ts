@@ -13,6 +13,11 @@ import {
 } from '../../../actions/onboarding';
 import Engine from '../../../core/Engine';
 import { updateBgState } from '../../../core/redux/slices/engine';
+import {
+  clearPendingReferralCode,
+  initialState as initialRewardsMoneyState,
+  setReferralLinkPending,
+} from '../../../reducers/rewardsMoney';
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
@@ -23,6 +28,7 @@ import {
 import { isNotificationsFeatureEnabled } from '../constants';
 import { resolveNativePushPermissionStatus } from '../utils/push-notification-status';
 import { usePushPrePromptVariant } from './usePushPrePromptVariant';
+import { useIsHomeUnobstructed } from './useIsHomeUnobstructed';
 
 jest.mock('../utils/push-notification-status', () => ({
   resolveNativePushPermissionStatus: jest.fn(),
@@ -32,12 +38,17 @@ jest.mock('../constants', () => ({
   isNotificationsFeatureEnabled: jest.fn(),
 }));
 
+jest.mock('./useIsHomeUnobstructed', () => ({
+  useIsHomeUnobstructed: jest.fn(),
+}));
+
 const mockResolveNativePushPermissionStatus = jest.mocked(
   resolveNativePushPermissionStatus,
 );
 const mockIsNotificationsFeatureEnabled = jest.mocked(
   isNotificationsFeatureEnabled,
 );
+const mockUseIsHomeUnobstructed = jest.mocked(useIsHomeUnobstructed);
 
 const mockNativePushPermissionStatus = ({
   nativeOsPermissionEnabled = true,
@@ -97,10 +108,14 @@ const renderUsePushPrePromptVariant = ({
   completedOnboarding = true,
   hasMarketingConsent = false,
   pendingSocialLoginMarketingConsentBackfill = null,
+  pendingReferralCode = null,
+  isReferralLinkPending = false,
 }: {
   completedOnboarding?: boolean;
   hasMarketingConsent?: boolean;
   pendingSocialLoginMarketingConsentBackfill?: string | null;
+  pendingReferralCode?: string | null;
+  isReferralLinkPending?: boolean;
 } = {}) =>
   renderHookWithProvider(() => usePushPrePromptVariant(), {
     state: {
@@ -109,6 +124,11 @@ const renderUsePushPrePromptVariant = ({
         pendingSocialLoginMarketingConsentBackfill,
       },
       engine: engineWithMarketingConsent(hasMarketingConsent),
+      rewardsMoney: {
+        ...initialRewardsMoneyState,
+        pendingReferralCode,
+        isReferralLinkPending,
+      },
     },
   });
 
@@ -133,6 +153,7 @@ describe('usePushPrePromptVariant', () => {
     arrangeSelectors();
     arrangeStorage();
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+    mockUseIsHomeUnobstructed.mockReturnValue(true);
     mockNativePushPermissionStatus();
   });
 
@@ -245,6 +266,82 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(result.current.variant).toBeNull();
     expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('does not return a prompt while a deeplink referral invite is pending', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant({
+      pendingReferralCode: 'KOL1',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns the prompt once the deeplink referral invite is answered', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result, store } = renderUsePushPrePromptVariant({
+      pendingReferralCode: 'KOL1',
+    });
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+
+    await act(async () => {
+      store.dispatch(clearPendingReferralCode());
+    });
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+  });
+
+  it('does not return a prompt while a referral link is still being handled', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant({
+      isReferralLinkPending: true,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns the prompt once the referral link is handled without a code', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result, store } = renderUsePushPrePromptVariant({
+      isReferralLinkPending: true,
+    });
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+
+    await act(async () => {
+      store.dispatch(setReferralLinkPending(false));
+    });
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
   });
 
   it('does not return a prompt when the default-on feature flag is disabled', async () => {
@@ -528,7 +625,7 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.nativeOsPermissionEnabled).toBe(false);
   });
 
-  it('marks the prompt as shown without hiding it until dismissed', async () => {
+  it('persists an answer and suppresses further resolution', async () => {
     mockNativePushPermissionStatus({
       nativeOsPermissionEnabled: false,
       nativeOsPermissionPromptable: true,
@@ -540,19 +637,103 @@ describe('usePushPrePromptVariant', () => {
     });
 
     await act(async () => {
-      await result.current.markShown();
+      await result.current.markAnswered();
     });
 
     expect(storageWrapper.setItem).toHaveBeenCalledWith(
       PUSH_PRE_PROMPT_SHOWN,
       TRUE,
     );
-    expect(result.current.variant).toBe('push_permission');
+    expect(result.current.variant).toBeNull();
 
     act(() => {
       result.current.dismiss();
     });
 
     expect(result.current.variant).toBeNull();
+  });
+
+  it('does not persist an impression across remounts', async () => {
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result, unmount } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    unmount();
+    const remounted = renderUsePushPrePromptVariant();
+
+    await waitFor(() =>
+      expect(remounted.result.current.variant).toBe('push_permission'),
+    );
+    expect(storageWrapper.setItem).not.toHaveBeenCalled();
+    expect(storageWrapper.removeItem).not.toHaveBeenCalled();
+  });
+
+  it('suppresses the next mount after an answer is persisted', async () => {
+    // CV's HAS_TEST_OVERRIDES disables getItemSync. Exercise the real storage
+    // helpers here with only the storage I/O replaced by an in-memory value.
+    let storedAnswer: string | null = null;
+    jest
+      .spyOn(storageWrapper, 'getItemSync')
+      .mockImplementation(() => storedAnswer);
+    jest
+      .spyOn(storageWrapper, 'setItem')
+      .mockImplementation(async (_key, value) => {
+        storedAnswer = value;
+      });
+    const first = renderUsePushPrePromptVariant();
+    await waitFor(() => expect(first.result.current.variant).not.toBeNull());
+
+    await act(async () => {
+      await first.result.current.markAnswered();
+    });
+    first.unmount();
+    const second = renderUsePushPrePromptVariant();
+
+    await waitFor(() => expect(second.result.current.isResolving).toBe(false));
+    expect(second.result.current.variant).toBeNull();
+    expect(storedAnswer).toBe(TRUE);
+  });
+
+  it('does not return a prompt while home is obstructed', async () => {
+    mockUseIsHomeUnobstructed.mockReturnValue(false);
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.isHomeUnobstructed).toBe(false);
+    expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
+  });
+
+  it('returns the prompt once home is unobstructed again', async () => {
+    mockUseIsHomeUnobstructed.mockReturnValue(false);
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result, rerender } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+
+    mockUseIsHomeUnobstructed.mockReturnValue(true);
+    rerender(undefined);
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
   });
 });

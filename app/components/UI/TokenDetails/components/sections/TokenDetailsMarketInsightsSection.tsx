@@ -53,10 +53,11 @@ export interface TokenDetailsMarketInsightsSectionProps {
     isDisplayed: boolean;
     severity: string | undefined;
   }) => void;
-  useAmbientColor?: boolean;
   pricePercentChange?: number;
   containerStyle?: StyleProp<ViewStyle>;
   showSectionRule?: boolean;
+  /** Draws the card on brand refresh glass. */
+  isGlass?: boolean;
 }
 
 const TokenDetailsMarketInsightsSection = ({
@@ -65,10 +66,10 @@ const TokenDetailsMarketInsightsSection = ({
   securityData,
   minTokenAgeDays,
   onDisplayResolved,
-  useAmbientColor,
   pricePercentChange = 0,
   containerStyle,
   showSectionRule = false,
+  isGlass = false,
 }: TokenDetailsMarketInsightsSectionProps) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -167,7 +168,6 @@ const TokenDetailsMarketInsightsSection = ({
       pricePercentChange,
       token,
       source: 'token_details',
-      useAmbientColor,
     });
   }, [
     createEventBuilder,
@@ -177,7 +177,6 @@ const TokenDetailsMarketInsightsSection = ({
     report,
     token,
     trackEvent,
-    useAmbientColor,
   ]);
 
   const shouldShowCard =
@@ -204,6 +203,7 @@ const TokenDetailsMarketInsightsSection = ({
           traceId={marketInsightsEntryTraceId}
           source="token_details"
           testID="market-insights-entry-card"
+          isGlass={isGlass}
         />
       ) : (
         <MarketInsightsEntryCardSkeleton />

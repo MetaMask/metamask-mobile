@@ -15,6 +15,7 @@ import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController
 import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
+  BANNER_EVENT_SELECT,
 } from '../../constants/engagement';
 
 const mockSetBrazeProfileId = jest.fn();
@@ -160,9 +161,33 @@ describe('Braze service', () => {
 
   describe('logBrazeBannerClick', () => {
     it('calls logBannerClick with the placementId and null', () => {
-      logBrazeBannerClick('placement-1');
+      logBrazeBannerClick('placement-1', null);
 
       expect(Braze.logBannerClick).toHaveBeenCalledWith('placement-1', null);
+    });
+
+    it('logs a select custom event with the supplied properties', () => {
+      logBrazeBannerClick('placement-1', {
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
+
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith(BANNER_EVENT_SELECT, {
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
+    });
+
+    it('skips the select custom event when properties is null', () => {
+      logBrazeBannerClick('placement-1', null);
+
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not flush the select event immediately', () => {
+      logBrazeBannerClick('placement-1', { campaign_name: 'campaign-abc' });
+
+      expect(Braze.requestImmediateDataFlush).not.toHaveBeenCalled();
     });
   });
 

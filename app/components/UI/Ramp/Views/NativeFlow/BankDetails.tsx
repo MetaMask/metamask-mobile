@@ -6,7 +6,6 @@ import React, {
   useState,
 } from 'react';
 import {
-  HeaderStandard,
   Text,
   TextVariant,
   TextColor,
@@ -55,6 +54,8 @@ import {
   RAMP_SCREEN_CONTENT_STATE,
   RAMP_V2_SCREEN_ID,
 } from '../../constants/rampScreenPerformance';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -72,6 +73,7 @@ const TERMINAL_STATUSES = new Set([
  * and fetches deposit-specific data (paymentDetails) from TransakService.
  */
 const V2BankDetails = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = useTheme();
@@ -351,7 +353,9 @@ const V2BankDetails = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={headerTitle}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

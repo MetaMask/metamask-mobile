@@ -22,6 +22,10 @@ export const TrendingViewSelectorsIDs = {
   SECTION_HEADER_VIEW_ALL_SITES: 'section-header-view-all-sites',
   RWA_TOKENS_HEADER: 'rwa-tokens-header',
   RWA_TOKENS_HEADER_BACK_BUTTON: 'rwa-tokens-header-back-button',
+  /** The Sports tab's list; `sportKey` is the All Sports pill, '' without one. */
+  exploreSportsList: (sportKey: string) => `all-sports-list-${sportKey}`,
+  SECTION_HEADER_VIEW_ALL_SPORTS_PREDICTIONS:
+    'section-header-view-all-sports_predictions',
 } as const;
 
 export type TrendingViewSelectorsIDsType = typeof TrendingViewSelectorsIDs;

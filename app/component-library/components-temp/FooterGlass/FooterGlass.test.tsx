@@ -4,7 +4,6 @@ import { GlassView } from 'expo-glass-effect';
 
 import FooterGlass from './FooterGlass';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
-import { mockTheme } from '../../../util/theme';
 
 let mockIsGlassEnabled = true;
 jest.mock('../../hooks/useLiquidGlass', () => {
@@ -96,7 +95,7 @@ describe('FooterGlass', () => {
     );
   });
 
-  it('draws glass on the primary and secondary buttons only', () => {
+  it('draws glass on the secondary button only', () => {
     const { getAllByTestId, getByText, UNSAFE_getAllByType } = render(
       <FooterGlass
         primaryButtonProps={{ children: 'Continue', onPress: jest.fn() }}
@@ -105,14 +104,9 @@ describe('FooterGlass', () => {
       />,
     );
 
-    const glassSurfaces = UNSAFE_getAllByType(GlassView);
-    const tintedSurfaces = glassSurfaces.filter(
-      (node) => node.props.tintColor === mockTheme.colors.icon.default,
-    );
-
-    expect(glassSurfaces).toHaveLength(2);
-    expect(tintedSurfaces).toHaveLength(1);
+    expect(UNSAFE_getAllByType(GlassView)).toHaveLength(1);
     expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(1);
+    expect(getByText('Continue')).toBeOnTheScreen();
     expect(getByText('Skip')).toBeOnTheScreen();
   });
 

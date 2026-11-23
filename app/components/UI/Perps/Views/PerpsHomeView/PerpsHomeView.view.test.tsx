@@ -5,6 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import React, { type ComponentType } from 'react';
+import NetInfo from '@react-native-community/netinfo';
 import { Text, View } from 'react-native';
 import {
   act,
@@ -18,31 +19,52 @@ import {
 import {
   MarketCategory,
   PERPS_EVENT_VALUE,
+  PerpsMode,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
+import type { Json } from '@metamask/utils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
+import { clearTrackedABTestExposureForTests } from '../../../../../hooks/useABTest';
+import { analytics } from '../../../../../util/analytics/analytics';
+import { PERPS_MODE_SELECTION_COMPLETED } from '../../../../../constants/storage';
+import StorageWrapper from '../../../../../store/storage-wrapper';
 import { strings } from '../../../../../../locales/i18n';
+import { formatPerpsBalance } from '../../utils/formatUtils';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import {
   createBtcMarketForViews,
+  createCrossMarginAccountForViews,
   createEthMarketForViews,
   createFundedAccountForViews,
   createHomeExploreAssignmentForViews,
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderPerpsHomeView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
+  getPerpsCrossMarginSummaryLabelSelector,
+  getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
+  PerpsBalanceBottomSheetSelectorsIDs,
+  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
+  PerpsModeToggleSelectorsIDs,
+  PerpsProviderLogosSelectorsIDs,
   PerpsWatchlistSelectorsIDs,
 } from '../../Perps.testIds';
 import { clearExploreSessionTab } from '../../components/PerpsExploreSection/exploreSessionTab';
 import { EXPLORE_WATCHLIST_TAB_ID } from '../../components/PerpsExploreSection/PerpsExploreSection.types';
 import {
+  PERPS_HEADER_AB_TEST_KEY,
   PERPS_HOME_EXPLORE_AB_TEST_KEY,
+  PERPS_LIVE_TRADES_AB_TEST_KEY,
+  PerpsHeaderNavVariant,
   PerpsHomeExploreVariant,
+  PerpsLiveTradesVariant,
 } from '../../abTestConfig';
 import { PerpsHomeSectionTestIds } from '../../components/PerpsHomeSection/PerpsHomeSection.testIds';
 import { PerpsOutreachBannerSelectorsIDs } from '../../components/PerpsOutreachBanner';
@@ -50,6 +72,7 @@ import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 import {
   clearPerpsOutreachApiMocks,
   setupPerpsOutreachApiMock,
+  waitForPerpsOutreachQuery,
 } from '../../../../../../tests/component-view/api-mocking/perpsOutreach';
 import {
   clearLeaderboardApiMock,
@@ -65,12 +88,18 @@ import {
 import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
+import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
 } from '../../../SocialFeed/components/SocialFeedStates.testIds';
 import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
 const TIMEOUT_MS = 5000;
 
@@ -96,6 +125,14 @@ const ineligibleOverrides = {
   },
 };
 
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
+
 describe('PerpsHomeView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -110,12 +147,20 @@ describe('PerpsHomeView', () => {
   });
 
   it('shows and dismisses an eligible Terminal outreach campaign', async () => {
-    renderPerpsHomeView({
+    // The fixture's selected account enables the outreach query on the first
+    // render. Leave the session profile unset: a profile that resolves after
+    // mount changes the query key, aborts the in-flight request, and makes the
+    // banner wait on a second round trip.
+    const { queryClient } = renderPerpsHomeView({
       overrides: eligibleOverrides,
     });
 
+    // On CI this case runs first in a fresh worker, where cold post-mount work
+    // can outlast any `findBy*` budget. Wait for the answer, not a deadline.
+    await act(() => waitForPerpsOutreachQuery(queryClient));
+
     expect(
-      await screen.findByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
+      screen.getByTestId(PerpsOutreachBannerSelectorsIDs.BANNER),
     ).toBeOnTheScreen();
 
     fireEvent.press(
@@ -278,6 +323,208 @@ describe('PerpsHomeView', () => {
       expect(
         screen.getByTestId(PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE),
       ).toHaveTextContent('$180');
+    });
+  });
+
+  describe('exchange logos beside the available balance', () => {
+    const previousLighterFlag = process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+
+    const lighterEnabledOverrides = (
+      activeProvider: 'hyperliquid' | 'lighter' | 'aggregated',
+    ): DeepPartial<RootState> => ({
+      engine: {
+        backgroundState: {
+          PerpsController: {
+            isEligible: true,
+            isFirstTimeUser: { mainnet: false, testnet: false },
+            activeProvider,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsLighterProviderEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const renderFundedHome = (
+      activeProvider: 'hyperliquid' | 'lighter' | 'aggregated',
+      balance = '100',
+    ): ReturnType<typeof renderPerpsHomeView> =>
+      renderPerpsHomeView({
+        overrides: lighterEnabledOverrides(activeProvider),
+        streamOverrides: {
+          account: {
+            ...createFundedAccountForViews(balance),
+            spendableBalance: '40',
+          },
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+    beforeEach(() => {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'true';
+    });
+
+    afterEach(() => {
+      if (previousLighterFlag === undefined) {
+        delete process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED;
+      } else {
+        process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = previousLighterFlag;
+      }
+    });
+
+    it('keeps the available line free of exchange logos when Lighter is disabled', async () => {
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      renderPerpsHomeView({
+        overrides: eligibleOverrides,
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('shows the HyperLiquid logo beside the available balance', async () => {
+      renderFundedHome('hyperliquid');
+
+      expect(
+        await screen.findByLabelText(
+          'HyperLiquid',
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_ROW,
+        ),
+      ).toHaveTextContent(
+        `${formatPerpsBalance('40')} ${strings('perps.available')}`,
+      );
+      expect(
+        screen.getByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toHaveTextContent(formatPerpsBalance('40'));
+    });
+
+    it('shows the Lighter logo when Lighter is the active provider', async () => {
+      renderFundedHome('lighter');
+
+      expect(
+        await screen.findByLabelText('Lighter', {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeNull();
+    });
+
+    it('shows overlapped Hyperliquid and Lighter logos in aggregated mode', async () => {
+      renderFundedHome('aggregated');
+
+      expect(
+        await screen.findByLabelText(
+          'HyperLiquid, Lighter',
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsProviderLogosSelectorsIDs.HYPERLIQUID),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsProviderLogosSelectorsIDs.LIGHTER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides exchange logos when the balance is empty', async () => {
+      renderPerpsHomeView({
+        overrides: lighterEnabledOverrides('aggregated'),
+        streamOverrides: {
+          account: createFundedAccountForViews('0'),
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.ADD_FUNDS_BUTTON,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsProviderLogosSelectorsIDs.CONTAINER),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(
+          PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT,
+        ),
+      ).toBeNull();
+    });
+
+    it('keeps exchange logos visible when privacy mode hides the amount', async () => {
+      const hyperliquidOverrides = lighterEnabledOverrides('hyperliquid');
+
+      renderPerpsHomeView({
+        overrides: {
+          ...hyperliquidOverrides,
+          engine: {
+            backgroundState: {
+              ...hyperliquidOverrides.engine?.backgroundState,
+              PreferencesController: {
+                privacyMode: true,
+              },
+            },
+          },
+        },
+        streamOverrides: {
+          account: {
+            ...createFundedAccountForViews('100'),
+            spendableBalance: '40',
+          },
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      expect(
+        await screen.findByLabelText(
+          'HyperLiquid',
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText(formatPerpsBalance('40'))).toBeNull();
+      expect(screen.queryByText(formatPerpsBalance('100'))).toBeNull();
+      expect(screen.getByText(strings('perps.available'))).toBeOnTheScreen();
     });
   });
 
@@ -701,8 +948,15 @@ describe('PerpsHomeView', () => {
       );
     };
 
+    const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+    beforeEach(() => {
+      netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    });
+
     afterEach(() => {
       clearLeaderboardApiMock();
+      netInfoMock.__resetMockNetInfo();
     });
 
     it('shows 3 perps Trending posts by default when Perps social is on', async () => {
@@ -730,12 +984,277 @@ describe('PerpsHomeView', () => {
       ).not.toBeOnTheScreen();
       expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
         'SocialService:fetchFeed',
-        expect.objectContaining({ chains: ['eip155:999'], limit: 3 }),
+        expect.objectContaining({
+          scope: 'trending',
+          chains: ['eip155:999'],
+          limit: 3,
+        }),
       );
       expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
         'SocialService:fetchLeaderboard',
         expect.anything(),
       );
+    });
+
+    it('does not offer Live trades outside the Live trades test', async () => {
+      setupLeaderboardApiMock({ perpsTraders, feedItems });
+
+      renderPerpsHomeView({
+        overrides: socialOverrides,
+        socialEnabled: true,
+      });
+
+      await findSection();
+      expect(
+        screen.queryByTestId(
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST),
+      ).not.toBeOnTheScreen();
+    });
+
+    describe('Live trades test', () => {
+      const liveTradesOverrides = {
+        engine: {
+          backgroundState: {
+            ...socialOverrides.engine.backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                ...socialOverrides.engine.backgroundState
+                  .RemoteFeatureFlagController.remoteFeatureFlags,
+                [PERPS_LIVE_TRADES_AB_TEST_KEY]:
+                  PerpsLiveTradesVariant.Treatment,
+              },
+            },
+          },
+        },
+      };
+      const buildLiveTrade = (id: string, name: string, winRate30d: number) =>
+        mockPerpFeedItem({
+          positionId: `live-${id}`,
+          timestamp: 1_700_000_600,
+          lastTradeAt: 1_700_000_600,
+          actor: {
+            profileId: `live-trader-${id}`,
+            address: '0x3333333333333333333333333333333333333333',
+            name,
+            imageUrl: null,
+            winRate30d,
+          },
+        });
+      const highWinRateTrade = buildLiveTrade('high', 'MoonMochi', 0.72);
+      const lowWinRateTrade = buildLiveTrade('low', 'LowRate', 0.4);
+      const rowIdOf = (item: typeof highWinRateTrade) =>
+        getPerpsLiveTradeRowSelector(`${item.positionId}-${item.timestamp}`);
+
+      it('shows Live trades first and selected, with perp trades from traders above 50% win rate', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade, lowWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        const highRow = await screen.findByTestId(
+          rowIdOf(highWinRateTrade),
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+        expect(within(highRow).getByText('MoonMochi')).toBeOnTheScreen();
+        expect(within(highRow).getByText('72%')).toBeOnTheScreen();
+        expect(
+          within(highRow).getByText(strings('perps.home.win_rate')),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(rowIdOf(lowWinRateTrade)),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.getByText(strings('perps.home.live_trades_subtitle')),
+        ).toBeOnTheScreen();
+
+        const pillIds = [
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL,
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_PILL,
+          PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL,
+        ];
+        const orderedPillIds = screen.UNSAFE_root.findAll((node) =>
+          pillIds.includes(node.props.testID),
+        ).map((node) => node.props.testID);
+        expect([...new Set(orderedPillIds)]).toEqual(pillIds);
+
+        expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+          'SocialService:fetchFeed',
+          expect.objectContaining({
+            scope: 'all',
+            chains: ['eip155:999'],
+          }),
+        );
+      });
+
+      it('opens the position sheet when a Live trades row is pressed', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+          extraRoutes: [
+            {
+              name: Routes.SOCIAL.POSITION_SHEET,
+              Component: createRouteParamsProbe(
+                Routes.SOCIAL.POSITION_SHEET,
+              ) as ComponentType<unknown>,
+            },
+          ],
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(
+            rowIdOf(highWinRateTrade),
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        );
+        const sheetProbe = await screen.findByTestId(
+          getRouteParamsProbeTestId(Routes.SOCIAL.POSITION_SHEET),
+        );
+        expect(JSON.parse(sheetProbe.props.children as string)).toEqual(
+          expect.objectContaining({
+            positionId: highWinRateTrade.positionId,
+            analyticsSource: 'perps_home',
+          }),
+        );
+      });
+
+      it('shows the error state and recovers on retry', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade],
+          feedFailuresBeforeSuccess: 1,
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(
+            SOCIAL_FEED_RETRY_TEST_ID,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        );
+
+        expect(
+          await screen.findByTestId(
+            rowIdOf(highWinRateTrade),
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+      });
+
+      it('shows the empty state when no trader is above the win rate threshold', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [lowWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        expect(
+          await screen.findByTestId(
+            SOCIAL_FEED_EMPTY_TEST_ID,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('does not request Live trades or show the empty state while Wi-Fi has no internet', async () => {
+        netInfoMock.__setMockNetInfo({
+          type: 'wifi',
+          isInternetReachable: false,
+        });
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        expect(
+          await screen.findByTestId(
+            PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+        await act(async () => {
+          await new Promise((resolve) => setTimeout(resolve, 0));
+        });
+        expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+          'SocialService:fetchFeed',
+          expect.objectContaining({ scope: 'all' }),
+        );
+        expect(
+          screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(SOCIAL_FEED_RETRY_TEST_ID),
+        ).not.toBeOnTheScreen();
+      });
+
+      it('switches from Live trades to Trending', async () => {
+        setupLeaderboardApiMock({
+          perpsTraders,
+          feedItems: [highWinRateTrade, ...feedItems],
+        });
+
+        renderPerpsHomeView({
+          overrides: liveTradesOverrides,
+          socialEnabled: true,
+        });
+
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_PILL,
+          ),
+        );
+
+        expect(
+          screen.queryByTestId(PerpsHomeViewSelectorsIDs.LIVE_TRADES_LIST),
+        ).not.toBeOnTheScreen();
+        expect(
+          await screen.findByTestId(
+            `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${trendingPostIds[0]}`,
+            {},
+            { timeout: TIMEOUT_MS },
+          ),
+        ).toBeOnTheScreen();
+      });
     });
 
     it('shows the top 5 perps traders after switching to Top traders', async () => {
@@ -766,17 +1285,29 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('opens Social V1 on the Leaderboard tab from Top traders See more with the perps_home source', async () => {
+    it('switches to the Social tab on Leaderboard from Top traders See more with the perps_home source', async () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
       const { store } = renderPerpsHomeView({
-        overrides: socialOverrides,
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...socialOverrides.engine.backgroundState,
+              ProfileController: {
+                profile: {
+                  profileId: 'profile-1',
+                  linkedAddresses: [],
+                },
+              },
+            },
+          },
+        },
         socialEnabled: true,
         extraRoutes: [
           {
-            name: Routes.SOCIAL.V1,
+            name: Routes.HOME_TABS,
             Component: createRouteParamsProbe(
-              Routes.SOCIAL.V1,
+              Routes.HOME_TABS,
             ) as ComponentType<unknown>,
           },
         ],
@@ -792,11 +1323,11 @@ describe('PerpsHomeView', () => {
         );
 
         const probe = await screen.findByTestId(
-          getRouteParamsProbeTestId(Routes.SOCIAL.V1),
+          getRouteParamsProbeTestId(Routes.HOME_TABS),
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
-          source: 'perps_home',
-          initialTab: 'leaderboard',
+          screen: Routes.SOCIAL.TAB,
+          params: { source: 'perps_home', initialTab: 'leaderboard' },
         });
       } finally {
         unwire();
@@ -840,12 +1371,23 @@ describe('PerpsHomeView', () => {
       });
       await openTopTraders();
 
-      fireEvent.press(
-        await screen.findByText('Retry', {}, { timeout: TIMEOUT_MS }),
-      );
-
       expect(
-        await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
+        await screen.findByTestId(
+          SocialLeaderboardSelectorsIDs.ERROR,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(SocialLeaderboardSelectorsIDs.RETRY));
+
+      // Retry refetches the leaderboard and the viewer profile together, and the
+      // error message stays up until the leaderboard rows arrive.
+      expect(
+        await screen.findByTestId(
+          getTraderRowTestId(topFiveIds[0]),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -1084,6 +1626,7 @@ describe('PerpsHomeView', () => {
         expect.objectContaining({
           positionId: feedItems[0].positionId,
           isClosed: true,
+          shareSource: 'perps_home',
         }),
       );
     });
@@ -1177,7 +1720,7 @@ describe('PerpsHomeView', () => {
         traderName: alpha.name,
         traderAddress: alpha.addresses[0],
         traderAvatarUri: alpha.imageUrl,
-        source: 'perps_home',
+        source: 'leaderboard',
         traderRank: 1,
       });
     });
@@ -2110,5 +2653,455 @@ describe('PerpsHomeView', () => {
         screen.queryByTestId(PerpsHomeViewSelectorsIDs.EXPLORE_STOCKS_SECTION),
       ).toBeNull();
     });
+  });
+
+  describe('Lite pill treatment reset', () => {
+    const marketListProbe = createRouteParamsProbe(Routes.PERPS.MARKET_LIST);
+    const marketDetailsProbe = createRouteParamsProbe(
+      Routes.PERPS.MARKET_DETAILS,
+    );
+    const modeSelectionProbe = createRouteParamsProbe(Routes.PERPS.MODALS.ROOT);
+    let trackEventSpy: jest.SpyInstance;
+
+    beforeEach(async () => {
+      clearTrackedABTestExposureForTests();
+      trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      await StorageWrapper.setItem(PERPS_MODE_SELECTION_COMPLETED, 'true');
+    });
+
+    afterEach(async () => {
+      trackEventSpy.mockRestore();
+      clearTrackedABTestExposureForTests();
+      await StorageWrapper.removeItem(PERPS_MODE_SELECTION_COMPLETED);
+    });
+
+    const renderLiteHome = (
+      watchlistSymbols: string[],
+      options: {
+        headerFlag?: 'treatment' | 'control' | 'absent';
+        lastViewedSymbol?: string;
+      } = {},
+    ) => {
+      const headerFlag = options.headerFlag ?? 'treatment';
+      const remoteFeatureFlags: Record<string, Json> = {
+        perpsProModeEnabled: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+        },
+      };
+      if (headerFlag === 'treatment') {
+        remoteFeatureFlags[PERPS_HEADER_AB_TEST_KEY] =
+          PerpsHeaderNavVariant.Treatment;
+      } else if (headerFlag === 'control') {
+        remoteFeatureFlags[PERPS_HEADER_AB_TEST_KEY] =
+          PerpsHeaderNavVariant.Control;
+      }
+
+      return renderPerpsHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              PerpsController: {
+                ...eligibleOverrides.engine.backgroundState.PerpsController,
+                mode: PerpsMode.Lite,
+                watchlistMarkets: { testnet: [], mainnet: watchlistSymbols },
+                ...(options.lastViewedSymbol
+                  ? {
+                      recentlyViewedMarkets: {
+                        testnet: [],
+                        mainnet: [
+                          {
+                            symbol: options.lastViewedSymbol,
+                            viewedAt: Date.now(),
+                          },
+                        ],
+                      },
+                    }
+                  : {}),
+              },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags,
+              },
+            },
+          },
+        },
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [],
+          orders: [],
+          marketData: [createBtcMarketForViews()],
+        },
+        extraRoutes: [
+          {
+            name: Routes.PERPS.MARKET_LIST,
+            Component: marketListProbe as ComponentType<unknown>,
+          },
+          {
+            name: Routes.PERPS.MARKET_DETAILS,
+            Component: marketDetailsProbe as ComponentType<unknown>,
+          },
+          {
+            name: Routes.PERPS.MODALS.ROOT,
+            Component: modeSelectionProbe as ComponentType<unknown>,
+          },
+        ],
+      });
+    };
+
+    const openProFromLitePill = async () => {
+      fireEvent.press(
+        await screen.findByTestId(
+          PerpsModeToggleSelectorsIDs.LITE_SEGMENT,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+    };
+
+    const readRouteParams = async (routeName: string) => {
+      const probe = await screen.findByTestId(
+        getRouteParamsProbeTestId(routeName),
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      return JSON.parse(String(probe.props.children)) as Record<
+        string,
+        unknown
+      >;
+    };
+
+    const headerExposureEvents = () =>
+      trackEventSpy.mock.calls
+        .map(
+          ([event]) =>
+            event as {
+              name?: string;
+              properties?: Record<string, unknown>;
+            },
+        )
+        .filter(
+          (event) =>
+            event.name === MetaMetricsEvents.EXPERIMENT_VIEWED.category &&
+            event.properties?.experiment_id === PERPS_HEADER_AB_TEST_KEY,
+        );
+
+    const expectPerpsHomeGone = () => {
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING, {
+          includeHiddenElements: true,
+        }),
+      ).toBeNull();
+    };
+
+    it('resets onto Watchlist when the watchlist has a symbol', async () => {
+      renderLiteHome(['ETH']);
+
+      await openProFromLitePill();
+
+      expect(await readRouteParams(Routes.PERPS.MARKET_LIST)).toEqual(
+        expect.objectContaining({
+          showWatchlistOnly: true,
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+          homeDroppedFromHistory: true,
+        }),
+      );
+      expectPerpsHomeGone();
+      expect(headerExposureEvents()).toEqual([
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            experiment_id: PERPS_HEADER_AB_TEST_KEY,
+            variation_id: PerpsHeaderNavVariant.Treatment,
+          }),
+        }),
+      ]);
+    });
+
+    it('resets onto All when the watchlist is empty', async () => {
+      renderLiteHome([]);
+
+      await openProFromLitePill();
+
+      expect(await readRouteParams(Routes.PERPS.MARKET_LIST)).toEqual(
+        expect.objectContaining({
+          showWatchlistOnly: false,
+          defaultMarketTypeFilter: 'all',
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+          homeDroppedFromHistory: true,
+        }),
+      );
+      expectPerpsHomeGone();
+    });
+
+    it('resets onto the last-viewed market in control and emits Experiment Viewed', async () => {
+      renderLiteHome([], {
+        headerFlag: 'control',
+        lastViewedSymbol: 'ETH',
+      });
+
+      await openProFromLitePill();
+
+      expect(await readRouteParams(Routes.PERPS.MARKET_DETAILS)).toEqual(
+        expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'ETH' }),
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+          homeDroppedFromHistory: true,
+        }),
+      );
+      expectPerpsHomeGone();
+      expect(headerExposureEvents()).toEqual([
+        expect.objectContaining({
+          properties: expect.objectContaining({
+            experiment_id: PERPS_HEADER_AB_TEST_KEY,
+            variation_id: PerpsHeaderNavVariant.Control,
+          }),
+        }),
+      ]);
+    });
+
+    it('falls back to the last-viewed market when the flag is absent and does not emit Experiment Viewed', async () => {
+      renderLiteHome([], {
+        headerFlag: 'absent',
+        lastViewedSymbol: 'ETH',
+      });
+
+      await openProFromLitePill();
+
+      expect(await readRouteParams(Routes.PERPS.MARKET_DETAILS)).toEqual(
+        expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'ETH' }),
+          source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+          homeDroppedFromHistory: true,
+        }),
+      );
+      expectPerpsHomeGone();
+      expect(headerExposureEvents()).toEqual([]);
+    });
+
+    it('does not emit Experiment Viewed when the chooser opens and the user stays on Lite', async () => {
+      await StorageWrapper.removeItem(PERPS_MODE_SELECTION_COMPLETED);
+      renderLiteHome(['ETH']);
+
+      await openProFromLitePill();
+
+      expect(await readRouteParams(Routes.PERPS.MODALS.ROOT)).toEqual(
+        expect.objectContaining({
+          screen: Routes.PERPS.MODALS.MODE_SELECTION,
+        }),
+      );
+      expect(
+        screen.getByTestId(PerpsHomeViewSelectorsIDs.HOME_HEADING, {
+          includeHiddenElements: true,
+        }),
+      ).toBeTruthy();
+      expect(
+        screen.queryByTestId(
+          getRouteParamsProbeTestId(Routes.PERPS.MARKET_LIST),
+        ),
+      ).toBeNull();
+      expect(headerExposureEvents()).toEqual([]);
+    });
+  });
+});
+
+describe('Perps home cross margin risk', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    clearExploreSessionTab();
+    setupPerpsOutreachApiMock();
+  });
+
+  afterEach(() => {
+    cleanup();
+    clearExploreSessionTab();
+    clearPerpsOutreachApiMocks();
+  });
+
+  const fundedCrossAccount = (
+    maintenanceMargin: string,
+    marginUsed: string,
+    notional: string,
+  ) =>
+    createCrossMarginAccountForViews({
+      maintenanceMargin,
+      marginUsed,
+      notional,
+    });
+
+  const renderCrossHome = (
+    account: ReturnType<typeof fundedCrossAccount>,
+    privacyMode = false,
+  ) =>
+    renderPerpsHomeView({
+      crossMarginEnabled: true,
+      overrides: {
+        ...eligibleOverrides,
+        engine: {
+          backgroundState: {
+            ...eligibleOverrides.engine.backgroundState,
+            PreferencesController: { privacyMode },
+          },
+        },
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+  it('shows a warning banner and opens the balance summary from the available balance', async () => {
+    renderCrossHome(fundedCrossAccount('610', '730', '3200'));
+
+    expect(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
+      ),
+    ).toHaveTextContent(
+      strings('perps.crossMarginRatio.description', { ratio: '61%' }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('61%');
+    expect(
+      screen.getByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).toBeOnTheScreen();
+    // Usage is 73% here, but only the ratio carries a risk tone.
+    expect(
+      screen.getByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE,
+      ),
+    ).toHaveTextContent('73%');
+    expect(
+      screen.queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        getPerpsCrossMarginSummaryLabelSelector('account_ratio'),
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
+    ).toHaveTextContent(strings('perps.tooltips.account_ratio.content'));
+  });
+
+  it('opens a safe balance summary without a home banner or risk icon', async () => {
+    renderCrossHome(fundedCrossAccount('174', '200', '100'));
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON,
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('17.4%');
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps a high cross margin usage neutral while the account ratio is safe', async () => {
+    // Maintenance $100 and margin used $800 on $1,000 of collateral: a healthy
+    // account at 10% ratio that has used 80% of its margin.
+    renderCrossHome(fundedCrossAccount('100', '800', '2000'));
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON,
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('10%');
+    expect(
+      screen.getByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE,
+      ),
+    ).toHaveTextContent('80%');
+    expect(
+      screen.queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_USAGE_VALUE}-tone`,
+        { includeHiddenElements: true },
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('masks the ratio while privacy mode is on', async () => {
+    renderCrossHome(fundedCrossAccount('800', '800', '2000'), true);
+
+    expect(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER,
+      ),
+    ).toHaveTextContent(
+      strings('perps.crossMarginRatio.description', { ratio: '••••••' }),
+    );
+
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON,
+      ),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('••••••');
+    expect(screen.queryByText('80%')).not.toBeOnTheScreen();
+  });
+
+  it('shows the available balance as plain text when the Cross margin flag is off', async () => {
+    renderPerpsHomeView({
+      overrides: eligibleOverrides,
+      streamOverrides: {
+        account: fundedCrossAccount('610', '730', '3200'),
+        positions: [],
+        orders: [],
+        marketData: [createEthMarketForViews()],
+      },
+    });
+
+    expect(
+      await screen.findByTestId(
+        PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_ROW,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.AVAILABLE_BALANCE_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PerpsHomeViewSelectorsIDs.CROSS_MARGIN_RATIO_BANNER),
+    ).not.toBeOnTheScreen();
   });
 });

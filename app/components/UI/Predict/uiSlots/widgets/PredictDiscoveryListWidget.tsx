@@ -1,12 +1,13 @@
 import React, { useContext, useEffect, useMemo } from 'react';
 import type { UiSlot } from '../../../../../core/Engine/controllers/ui-slots-controller/types';
-import HomepagePredictDiscovery from '../../../../Views/Homepage/Sections/Predictions/components/HomepagePredictDiscovery';
+import HomepagePredictDiscovery from '../../homeSection/components/HomepagePredictDiscovery';
 import {
   HOMEPAGE_PREDICT_MARKET_SLOTS,
   type HomepagePredictMarketSlot,
-} from '../../../../Views/Homepage/Sections/Predictions/constants/homepagePredictMarketSlots';
-import { useHomepagePredictMarketSlots } from '../../../../Views/Homepage/Sections/Predictions/hooks';
-import { useTreatmentDiscoveryFeedsLoading } from '../../../../Views/Homepage/Sections/Predictions/hooks/useTreatmentDiscoveryFeedsLoading';
+} from '../../homeSection/constants/homepagePredictMarketSlots';
+import { resolveHomepagePredictSlotIconName } from '../../homeSection/utils/resolveHomepagePredictSlotIconName';
+import { useHomepagePredictMarketSlots } from '../../homeSection/hooks';
+import { useTreatmentDiscoveryFeedsLoading } from '../../homeSection/hooks/useTreatmentDiscoveryFeedsLoading';
 import {
   isPredictHomepageMarketSlotReference,
   type PredictHomepageMarketSlotReference,
@@ -20,14 +21,17 @@ import {
 const resolveHomepagePredictMarketSlots = (
   reference: PredictHomepageMarketSlotReference,
 ): HomepagePredictMarketSlot[] =>
-  reference.params.items.map((item) =>
-    item.type === 'event'
-      ? { type: 'event', id: item.id, slug: item.slug }
+  reference.params.items.map((item) => {
+    const iconName = resolveHomepagePredictSlotIconName(item.iconName);
+    const icon = iconName ? { iconName } : {};
+    return item.type === 'event'
+      ? { type: 'event', id: item.id, slug: item.slug, ...icon }
       : {
           type: 'series',
           series: PREDICT_HOMEPAGE_SERIES_REGISTRY[item.seriesId],
-        },
-  );
+          ...icon,
+        };
+  });
 
 function HostedPredictDiscoveryList({
   slots,

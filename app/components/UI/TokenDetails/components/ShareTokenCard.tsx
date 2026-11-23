@@ -265,7 +265,7 @@ const ShareTokenCard = ({
         <Box
           key={`share-token-grid-row-${rowIndex}`}
           flexDirection={BoxFlexDirection.Row}
-          twClassName="gap-1.5 mb-1.5"
+          twClassName="gap-2 mb-2"
         >
           {row}
         </Box>

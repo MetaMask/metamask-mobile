@@ -56,6 +56,23 @@ const createStyles = (theme: Theme) =>
       width: '100%',
       top: -40,
     },
+    cameraNotAvailableContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 3,
+    },
+    cameraNotAvailableHeader: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: '100%',
+      zIndex: 2,
+    },
+    cameraNotAvailableText: {
+      ...(theme.typography.sBodyMDMedium as TextStyle),
+      color: theme.brandColors.white,
+      textAlign: 'center',
+    },
   });
 
 export default createStyles;

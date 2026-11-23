@@ -10,7 +10,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -53,6 +52,8 @@ import {
 import { RPC } from '../../../../../constants/network';
 import Routes from '../../../../../constants/navigation/Routes';
 import { cardQueries } from '../../queries';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type CardTransactionDetailsRouteProp = RouteProp<
   CardScreensStackParamList,
@@ -65,6 +66,7 @@ const CardTransactionDetails = () => {
   const tw = useTailwind();
   const theme = useTheme();
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedOpen = useRef(false);
   const primaryToken = useSelector(selectCardPrimaryToken);
@@ -254,7 +256,9 @@ const CardTransactionDetails = () => {
         style={tw.style('flex-1 bg-background-default')}
         edges={['bottom']}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('card.transactions.details_title')}
           includesTopInset
           twClassName="bg-background-default"

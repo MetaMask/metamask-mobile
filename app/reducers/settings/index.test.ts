@@ -7,6 +7,7 @@ import {
   setBasicFunctionalityMigrationNotification,
   setHasLinkedSocialLoginProfile,
   setLockTime,
+  setPerpsCrossMarginConfirmed,
 } from '../../actions/settings';
 
 const getInitialState = () =>
@@ -27,7 +28,40 @@ const getMigratedState = () =>
   );
 
 describe('settingsReducer', () => {
+  describe('Perps cross margin confirmation', () => {
+    it('stores the confirmation per lowercase account address', () => {
+      const state = settingsReducer(
+        getInitialState(),
+        setPerpsCrossMarginConfirmed('0xAbC'),
+      );
+
+      expect(state.perpsCrossMarginConfirmedAccounts).toStrictEqual({
+        '0xabc': true,
+      });
+    });
+
+    it('ignores a missing address', () => {
+      const initialState = getInitialState();
+
+      expect(
+        settingsReducer(initialState, setPerpsCrossMarginConfirmed(undefined)),
+      ).toBe(initialState);
+    });
+  });
+
   describe('wallet deletion', () => {
+    it('forgets the Perps cross margin confirmations', () => {
+      const confirmed = settingsReducer(
+        getInitialState(),
+        setPerpsCrossMarginConfirmed('0xabc'),
+      );
+
+      expect(
+        settingsReducer(confirmed, clearOnboarding())
+          .perpsCrossMarginConfirmedAccounts,
+      ).toStrictEqual({});
+    });
+
     it('clears a pending migration notice and cohort membership', () => {
       const state = settingsReducer(getMigratedState(), clearOnboarding());
 

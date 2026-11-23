@@ -6,7 +6,7 @@ import type {
   TokenAmount,
 } from '../../../../util/activity-adapters';
 import { useTokensData } from '../../../hooks/useTokensData/useTokensData';
-import { useActivityDetailsLendAgain } from '../hooks/useActivityDetailsLendAgain';
+import { useActivityDetailsLendAgain } from './Earn/useActivityDetailsLendAgain';
 import { SwapDetails } from './SwapDetails';
 
 // Capture the token the amount header receives so we can assert it was enriched
@@ -54,7 +54,7 @@ jest.mock('../hooks/useActivityDetailsDoItAgain', () => ({
 }));
 
 const mockOnLendAgain = jest.fn();
-jest.mock('../hooks/useActivityDetailsLendAgain', () => ({
+jest.mock('./Earn/useActivityDetailsLendAgain', () => ({
   useActivityDetailsLendAgain: jest.fn(() => ({
     canLendAgain: false,
     onLendAgain: jest.fn(),

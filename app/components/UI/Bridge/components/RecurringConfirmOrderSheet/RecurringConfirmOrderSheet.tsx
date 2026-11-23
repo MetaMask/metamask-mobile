@@ -10,7 +10,6 @@ import {
   BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -61,6 +60,8 @@ import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscoun
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
 import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderSheet.types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -203,6 +204,7 @@ const RecurringConfirmOrderSheet = ({
   onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -316,14 +318,15 @@ const RecurringConfirmOrderSheet = ({
       testID={RecurringConfirmOrderSheetSelectorsIDs.SHEET}
       goBack={goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: RecurringConfirmOrderSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.confirm_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       {showLocalCurrencyNotice ? (
         <Box paddingHorizontal={4} paddingBottom={2}>
           <BannerAlert
@@ -453,7 +456,7 @@ const RecurringConfirmOrderSheet = ({
           <>
             <Box twClassName="mx-4 my-2 h-px bg-muted" />
             <ConfirmOrderRow
-              label={strings('bridge.recurring.delegation_fee_one_time')}
+              label={strings('bridge.recurring.account_upgrade_fee')}
               value={
                 delegationFee.status === 'ready'
                   ? delegationFee.displayFee
@@ -474,7 +477,7 @@ const RecurringConfirmOrderSheet = ({
                     RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_INFO
                   }
                   accessibilityLabel={strings(
-                    'bridge.recurring.delegation_fee_info_title',
+                    'bridge.recurring.account_upgrade_fee_info_title',
                   )}
                 />
               }

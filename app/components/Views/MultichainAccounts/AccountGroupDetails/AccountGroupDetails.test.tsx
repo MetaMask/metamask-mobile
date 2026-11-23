@@ -174,6 +174,19 @@ describe('AccountGroupDetails', () => {
     expect(
       getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
     ).toBeTruthy();
+    const headerTitle = getByTestId('header-title');
+    expect(headerTitle).toHaveProp('numberOfLines', 1);
+    expect(headerTitle).toHaveProp('ellipsizeMode', 'tail');
+    expect(headerTitle).toHaveStyle({
+      width: '100%',
+      minWidth: 0,
+      flexShrink: 1,
+    });
+    expect(
+      getByTestId(AccountDetailsIds.ACCOUNT_GROUP_DETAILS_AVATAR_CONTAINER),
+    ).toHaveStyle({
+      width: '100%',
+    });
     expect(getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK)).toBeTruthy();
     expect(getByTestId(AccountDetailsIds.NETWORKS_LINK)).toBeTruthy();
     expect(getByTestId(AccountDetailsIds.PRIVATE_KEYS_LINK)).toBeTruthy();

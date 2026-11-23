@@ -1,12 +1,7 @@
 import { createSelector, createSelectorCreator, lruMemoize } from 'reselect';
 import { deepEqual } from 'fast-equals';
-import {
-  parseCaipAccountId,
-  isCaipAccountId,
-  type CaipChainId,
-} from '@metamask/utils';
+import { type CaipChainId } from '@metamask/utils';
 import { RootState } from '../reducers';
-import { latestByUpdatedAt } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
@@ -17,6 +12,7 @@ import {
   type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
+  CardProviderIds,
   FundingAssetStatus,
   type CardHomeData,
   type CardProviderId,
@@ -44,16 +40,20 @@ import {
   type VedaTokenConfig,
 } from '../components/UI/Card/util/vedaToken';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
-import { isEthAccount } from '../core/Multichain/utils';
 import {
   isMoneyAccountDelegatedForCard,
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
+import { selectRemoteFeatureFlags } from './featureFlagController';
 import {
+  isMoneyAccountFundingChannel,
+  resolveImmersveFundingChannel,
   selectCardFeatureFlag,
   selectCardLinkApiEnabled,
+  type CardRemoteFeatureFlags,
 } from './featureFlagController/card';
+import { pickRoutableCardLink } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -69,7 +69,6 @@ const createStableListSelector = createSelectorCreator(lruMemoize, {
   resultEqualityCheck: deepEqual,
 });
 
-const EMPTY_CARDHOLDER_ACCOUNTS: string[] = [];
 const EMPTY_EXTERNAL_WALLET_PRIORITY: CardWalletExternalPriorityResponse[] = [];
 const EMPTY_CARD_FUNDING_TOKENS: CardFundingToken[] = [];
 
@@ -114,6 +113,29 @@ export const selectCardActiveProviderId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.activeProviderId ?? null,
+);
+
+/**
+ * Funding channel for the selected country. Null when that country is not
+ * claimed by Immersve, or its channel does not resolve.
+ */
+export const selectImmersveFundingChannelForSelectedCountry = createSelector(
+  selectRemoteFeatureFlags,
+  selectCardSelectedCountry,
+  (flags, country) =>
+    resolveImmersveFundingChannel(flags as CardRemoteFeatureFlags, country),
+);
+
+/**
+ * True when the active card provider is Immersve and the selected country's
+ * funding channel spends from the Money account.
+ */
+export const selectImmersveMoneyAccountMode = createSelector(
+  selectCardActiveProviderId,
+  selectImmersveFundingChannelForSelectedCountry,
+  (providerId, channel): boolean =>
+    providerId === CardProviderIds.Immersve &&
+    isMoneyAccountFundingChannel(channel),
 );
 
 export const selectIsCardAuthenticated = createSelector(
@@ -164,38 +186,10 @@ export const selectCardRedeemWithdrawal = createSelector(
     (cardState?.redeemWithdrawal as CardRedeemWithdrawal | null) ?? null,
 );
 
-export const selectCardholderAccounts = createSelector(
-  selectCardControllerState,
-  (cardState: CardControllerState | undefined) =>
-    cardState?.cardholderAccounts ?? EMPTY_CARDHOLDER_ACCOUNTS,
-);
-
-export const selectHasCardholderAccounts = createSelector(
-  selectCardholderAccounts,
-  (accounts) => accounts.length > 0,
-);
-
 const selectSelectedEvmAccount = (state: RootState) =>
   selectSelectedInternalAccountByScope(state)('eip155:0');
 
-export const selectIsCardholder = createSelector(
-  selectCardholderAccounts,
-  selectSelectedEvmAccount,
-  (cardholderAccounts, selectedAccount) => {
-    if (!selectedAccount || !isEthAccount(selectedAccount)) return false;
-    const address = selectedAccount.address?.toLowerCase();
-    return cardholderAccounts.some((caipId) => {
-      if (!isCaipAccountId(caipId)) return false;
-      try {
-        return parseCaipAccountId(caipId).address?.toLowerCase() === address;
-      } catch {
-        return false;
-      }
-    });
-  },
-);
-
-/** `null` while card links are off (flag, or a 403 from Card API), so routing stays legacy. */
+/** `null` while card links are off (flag, or a 403 from Card API). */
 export const selectCardLinks = createSelector(
   selectCardControllerState,
   selectCardLinkApiEnabled,
@@ -211,19 +205,18 @@ export const selectCardLinks = createSelector(
 /** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
 const selectRoutableCardLink = createSelector(
   selectCardLinks,
-  (links): CardLink | null =>
-    latestByUpdatedAt(links?.filter((l) => l.status === 'active') ?? []) ??
-    latestByUpdatedAt(links?.filter((l) => l.status === 'onboarding') ?? []),
-);
-
-export const selectHasLinkedCard = createSelector(
-  selectRoutableCardLink,
-  (link) => link !== null,
+  (links): CardLink | null => pickRoutableCardLink(links),
 );
 
 export const selectLinkedCardProvider = createSelector(
   selectRoutableCardLink,
   (link): CardProviderId | null => link?.provider ?? null,
+);
+
+/** A routable stored link. Off, blocked, or not yet fetched means no card. */
+export const selectHasCard = createSelector(
+  selectRoutableCardLink,
+  (link) => link !== null,
 );
 
 export const selectCardUserLocation = createSelector(
@@ -271,22 +264,48 @@ export const selectCardHomeDataFetchedThisSession = createSelector(
     cardState?.cardHomeDataFetchedThisSession ?? false,
 );
 
-export const selectIsCardStateResolved = createSelector(
+/**
+ * Card home data has settled, or this user never fetches it. Logged-out users
+ * do not fetch: the dashboard requires a provider session. Verification
+ * status is a separate wait: some providers do not report one.
+ */
+export const selectIsCardHomeDataResolved = createSelector(
   selectCardHomeDataStatus,
   selectCardHomeData,
+  selectIsCardAuthenticated,
+  (status, cardHomeData, isAuthenticated) =>
+    status === 'success' || cardHomeData !== null || !isAuthenticated,
+);
+
+export const selectIsCardStateResolved = createSelector(
+  selectIsCardHomeDataResolved,
   selectCardVerificationStatus,
   selectIsCardAuthenticated,
-  selectIsCardholder,
-  (status, cardHomeData, verificationStatus, isAuthenticated, isCardholder) =>
-    ((status === 'success' || cardHomeData !== null) &&
-      (!isAuthenticated || verificationStatus !== null)) ||
-    (!isAuthenticated && !isCardholder),
+  selectHasCard,
+  (homeDataResolved, verificationStatus, isAuthenticated, hasCard) =>
+    (homeDataResolved && (!isAuthenticated || verificationStatus !== null)) ||
+    (!isAuthenticated && !hasCard),
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
   selectCardFeatureFlag,
-  (cardFeatureFlag): VedaTokenConfig | null =>
-    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
+  selectImmersveMoneyAccountMode,
+  selectImmersveFundingChannelForSelectedCountry,
+  (
+    cardFeatureFlag,
+    isImmersveMoneyAccountMode,
+    channel,
+  ): VedaTokenConfig | null => {
+    if (isImmersveMoneyAccountMode && isMoneyAccountFundingChannel(channel)) {
+      return {
+        caipChainId: channel.caipChainId,
+        address: channel.tokenAddress,
+        decimals: channel.decimals,
+        delegationContract: channel.spenderAddress,
+      };
+    }
+    return getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains);
+  },
 );
 
 export const selectCardCountryOfResidence = createSelector(
@@ -320,15 +339,17 @@ const toFundingTokenWithVedaContext = (
   asset: Parameters<typeof toCardFundingToken>[0],
   vedaConfig: VedaTokenConfig | null,
 ): CardFundingToken => {
-  const isVedaEntry = isMoneyAccountEntry(
-    {
-      address: asset.address,
-      stagingTokenAddress: asset.stagingTokenAddress,
-      caipChainId: asset.chainId,
-      symbol: asset.symbol,
-    },
-    vedaConfig,
-  );
+  const isVedaEntry =
+    asset.fundingSourceType === 'moneyAccount' ||
+    isMoneyAccountEntry(
+      {
+        address: asset.address,
+        stagingTokenAddress: asset.stagingTokenAddress,
+        caipChainId: asset.chainId,
+        symbol: asset.symbol,
+      },
+      vedaConfig,
+    );
   return toCardFundingToken(
     asset,
     isVedaEntry,

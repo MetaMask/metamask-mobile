@@ -24,6 +24,13 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
+jest.mock(
+  '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery',
+  () => ({
+    useQuoteTokensQuery: (): { data: undefined } => ({ data: undefined }),
+  }),
+);
+
 jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
@@ -264,11 +271,11 @@ const buildHookResult = (
   hasInsufficientBalance: false,
   isGasless: false,
   estimatedReceiveFiat: undefined,
-  gasFeeDeductionLabel: undefined,
   discountBadge: undefined,
   baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
+  isBelowPostTradeShareMinimum: false,
   isConfirmDisabled: true,
   confirmButtonState: 'idle',
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',

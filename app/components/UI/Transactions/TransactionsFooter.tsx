@@ -2,14 +2,12 @@ import React from 'react';
 import { View, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
-import Text, {
-  getFontFamily,
+import {
+  Button,
+  ButtonVariant,
+  Text,
   TextVariant,
-} from '../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import { NO_RPC_BLOCK_EXPLORER, RPC } from '../../../constants/network';
 import {
   getBlockExplorerName,
@@ -41,7 +39,6 @@ const createStyles = (
     disclaimerText: {
       color: colors.text.default,
       ...typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
     } as TextStyle,
   });
 
@@ -131,17 +128,21 @@ const TransactionsFooter = ({
         <View style={styles.viewMoreWrapper}>
           <Button
             testID="transactions-footer-view-explorer"
-            variant={ButtonVariants.Link}
-            size={ButtonSize.Lg}
-            label={blockExplorerText}
+            variant={ButtonVariant.Tertiary}
+            accessibilityRole="link"
+            textClassName={(pressed) =>
+              pressed ? 'text-primary-default-pressed' : 'text-primary-default'
+            }
             style={styles.viewMoreButton}
             onPress={onViewBlockExplorer}
-          />
+          >
+            {blockExplorerText}
+          </Button>
         </View>
       )}
       {showDisclaimer && (
         <View style={styles.disclaimerWrapper}>
-          <Text style={styles.disclaimerText}>
+          <Text variant={TextVariant.BodySm} style={styles.disclaimerText}>
             {strings('asset_overview.disclaimer')}
           </Text>
         </View>

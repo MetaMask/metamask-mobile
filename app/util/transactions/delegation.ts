@@ -21,7 +21,11 @@ import { Hex, createProjectLogger } from '@metamask/utils';
 import { Messenger } from '@metamask/messenger';
 import { DelegationControllerSignDelegationAction } from '@metamask/delegation-controller';
 import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
-import { KeyringControllerSignEip7702AuthorizationAction } from '@metamask/keyring-controller';
+import {
+  KeyringControllerGetStateAction,
+  KeyringControllerSignEip7702AuthorizationAction,
+  KeyringControllerUnlockEvent,
+} from '@metamask/keyring-controller';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../core/Engine';
 import { getDelegationCaveats } from './caveats';
@@ -32,8 +36,9 @@ export type SignMessenger = Messenger<
   string,
   | DelegationControllerSignDelegationAction
   | RemoteFeatureFlagControllerGetStateAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignEip7702AuthorizationAction,
-  never
+  KeyringControllerUnlockEvent
 >;
 
 export interface DelegationTransaction {
@@ -50,6 +55,8 @@ export async function getDelegationTransaction<
   transaction: TransactionMeta,
   isSubsidized?: boolean,
 ): Promise<DelegationTransaction> {
+  await waitForKeyringUnlock(messenger, transaction.id);
+
   const { chainId } = transaction;
   const delegationEnvironment = getDeleGatorEnvironment(parseInt(chainId, 16));
 
@@ -278,4 +285,33 @@ function normalizeCallData(data: unknown): Hex {
   }
 
   return prefixed as Hex;
+}
+
+/**
+ * Resolves once the keyring is unlocked. Quote refreshes run on a timer and
+ * can fire while the wallet is locked (e.g. after the app was backgrounded),
+ * where signing would fail with `ControllerLocked` and leave a sticky quote
+ * error. Waiting lets the pending refresh complete after the user unlocks.
+ */
+async function waitForKeyringUnlock<MessengerType extends SignMessenger>(
+  messenger: MessengerType,
+  transactionId: string,
+): Promise<void> {
+  const { isUnlocked } = messenger.call('KeyringController:getState');
+
+  if (isUnlocked) {
+    return;
+  }
+
+  log('Keyring locked, waiting for unlock before signing', { transactionId });
+
+  await new Promise<void>((resolve) => {
+    const handler = () => {
+      messenger.unsubscribe('KeyringController:unlock', handler);
+      resolve();
+    };
+    messenger.subscribe('KeyringController:unlock', handler);
+  });
+
+  log('Keyring unlocked, resuming signing', { transactionId });
 }

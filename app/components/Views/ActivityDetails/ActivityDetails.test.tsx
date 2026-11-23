@@ -2,8 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import { usePerpsDetailsItem } from '#app/components/Views/ActivityDetails/templates/Perps/usePerpsDetailsItem';
-import { usePredictDetailsItem } from '#app/components/Views/ActivityDetails/templates/PredictDetails/usePredictDetailsItem';
-import { strings } from '../../../../locales/i18n';
+import { usePredictActivityDetailsItem } from '#app/components/UI/PredictNext';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import ActivityDetails from './ActivityDetails';
@@ -76,16 +75,12 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '#app/components/Views/ActivityDetails/templates/PredictDetails/usePredictDetailsItem',
-  () => ({
-    usePredictDetailsItem: jest.fn(() => ({
-      item: undefined,
-      activity: undefined,
-      isLoading: false,
-    })),
-  }),
-);
+jest.mock('#app/components/UI/PredictNext', () => ({
+  usePredictActivityDetailsItem: jest.fn(() => ({
+    item: undefined,
+    isLoading: false,
+  })),
+}));
 
 // Expose the modal's onConfirm so a test can simulate the user confirming a
 // speed-up/cancel on this screen.
@@ -105,7 +100,9 @@ const useParamsMock = jest.mocked(useParams);
 const useActivityDetailsItemMock = jest.mocked(useActivityDetailsItem);
 const useUnifiedTxActionsMock = jest.mocked(useUnifiedTxActions);
 const usePerpsDetailsItemMock = jest.mocked(usePerpsDetailsItem);
-const usePredictDetailsItemMock = jest.mocked(usePredictDetailsItem);
+const usePredictActivityDetailsItemMock = jest.mocked(
+  usePredictActivityDetailsItem,
+);
 
 const buildTxActions = (
   overrides: Partial<ReturnType<typeof useUnifiedTxActions>> = {},
@@ -157,9 +154,8 @@ describe('ActivityDetails screen', () => {
       transaction: undefined,
       isLoading: false,
     });
-    usePredictDetailsItemMock.mockReturnValue({
+    usePredictActivityDetailsItemMock.mockReturnValue({
       item: undefined,
-      activity: undefined,
       isLoading: false,
     });
   });

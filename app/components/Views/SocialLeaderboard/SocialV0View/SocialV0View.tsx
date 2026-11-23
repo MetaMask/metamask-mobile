@@ -67,11 +67,7 @@ import {
   LEADERBOARD_LANDING_FEED_EXPOSURE_METADATA,
   LEADERBOARD_LANDING_FEED_VARIANTS,
 } from './abTestConfig';
-import {
-  SOCIAL_V1_AB_KEY,
-  SOCIAL_V1_EXPOSURE_METADATA,
-  SOCIAL_V1_VARIANTS,
-} from '../SocialV1View/abTestConfig';
+import { useSocialV1Exposure } from '../../../../hooks/useSocialV1Exposure';
 
 type SocialTradersTab = 'leaderboard' | 'feed';
 
@@ -131,7 +127,7 @@ const SocialV0View: React.FC = () => {
   // `landingTab` (nav tab, deeplink, notification, onboarding hand-off) never
   // count as exposed and keep the leaderboard landing.
   const landingTab = route.params?.landingTab;
-  useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
+  useSocialV1Exposure();
   useABTest(
     LEADERBOARD_LANDING_FEED_AB_KEY,
     LEADERBOARD_LANDING_FEED_VARIANTS,
@@ -270,8 +266,9 @@ const SocialV0View: React.FC = () => {
   });
 
   // The spot Buy orchestrator (QuickBuy sheet / swaps A/B) is hosted here,
-  // outside the PagerView, so its QuickBuy sheet isn't clipped by the pager page
-  // and the content behind it stays interactive (no backdrop, tap/swipe-through).
+  // outside the PagerView, so an inline QuickBuy sheet isn't clipped by the pager
+  // page and the content behind it stays interactive (no backdrop, tap/swipe-through).
+  // In the home tabs the sheet renders in MainNavigator's host instead.
   // FeedView reports spot availability and triggers the buy via this ref.
   const buyActionRef = useRef<FeedSpotBuyActionHandle | null>(null);
   const [feedHasSpotItem, setFeedHasSpotItem] = useState(false);

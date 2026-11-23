@@ -5,7 +5,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 
 import {
   Box,
-  HeaderStandard,
   IconName,
   Skeleton,
   Text,
@@ -24,6 +23,9 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { OndoGmActivityEntryDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 type ActivityListItem =
   | { kind: 'date-header'; dateKey: string; label: string }
@@ -39,6 +41,7 @@ export const CAMPAIGN_PORTFOLIO_TEST_IDS = {
 } as const;
 
 const OndoCampaignPortfolioView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<PortfolioRouteParams>>();
@@ -177,7 +180,9 @@ const OndoCampaignPortfolioView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={CAMPAIGN_PORTFOLIO_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('rewards.ondo_campaign_portfolio.activity_title')}
           titleProps={{ variant: TextVariant.HeadingSm }}
           onBack={() => navigation.goBack()}
