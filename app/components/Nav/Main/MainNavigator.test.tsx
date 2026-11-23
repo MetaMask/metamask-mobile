@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
@@ -174,8 +175,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../UI/Collectibles', () => ({
-  CollectiblesScreenStack: () => 'CollectiblesScreenStack',
+jest.mock('../../UI/Collectibles/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Collectibles/selectors/featureFlags'),
   selectCollectiblesEnabled: (state: unknown) =>
     mockSelectCollectiblesEnabled(state),
 }));
@@ -1356,7 +1357,7 @@ describe('MainNavigator', () => {
       });
 
       const collectiblesScreen = getScreenProps(container).find(
-        (screen) => screen?.name === Routes.COLLECTIBLES.ROOT,
+        (screen) => screen?.name === collectiblesRoutes.root,
       );
       expect(collectiblesScreen).toBeDefined();
     });
@@ -1369,7 +1370,7 @@ describe('MainNavigator', () => {
       });
 
       const collectiblesScreen = getScreenProps(container).find(
-        (screen) => screen?.name === Routes.COLLECTIBLES.ROOT,
+        (screen) => screen?.name === collectiblesRoutes.root,
       );
       expect(collectiblesScreen).toBeUndefined();
     });

@@ -1,3 +1,3 @@
-export { default as CollectiblesScreenStack } from './routes';
+export { CollectiblesLayout } from './routes/CollectiblesLayout';
+export { collectiblesRoutes } from './routeNames';
 export { selectCollectiblesEnabled } from './selectors/featureFlags';
-export { CollectiblesHomeTestIds } from './Collectibles.testIds';

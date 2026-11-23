@@ -3,7 +3,10 @@ import type { RootState } from '../../../app/reducers';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import Routes from '../../../app/constants/navigation/Routes';
 import type Engine from '../../../app/core/Engine';
-import CollectiblesScreenStack from '../../../app/components/UI/Collectibles/routes';
+import {
+  CollectiblesLayout,
+  collectiblesRoutes,
+} from '../../../app/components/UI/Collectibles';
 import Homepage from '../../../app/components/Views/Homepage/Homepage';
 import { createEngineStateHarness } from '../helpers/createEngineStateHarness';
 import { initialStateCollectibles } from '../presets/collectibles';
@@ -20,7 +23,7 @@ export const renderHomepageWithCollectibles = (
   return renderScreenWithRoutes(
     Homepage,
     { name: Routes.WALLET_VIEW },
-    [{ name: Routes.COLLECTIBLES.ROOT, Component: CollectiblesScreenStack }],
+    [{ name: collectiblesRoutes.root, Component: CollectiblesLayout }],
     { state: state.build() },
   );
 };

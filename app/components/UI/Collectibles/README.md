@@ -1,7 +1,7 @@
 # Collectibles module foundation
 
-This branch introduces the Collectibles module, registers `CollectiblesController`
-in Engine and exposes one empty `CollectiblesHome` screen from the wallet homepage.
+This branch registers `CollectiblesController` in Engine and uses the existing
+`CollectiblesLayout` and `CollectiblesHomeScreen` from the wallet homepage.
 Tapping the carousel section title opens that screen. Its back button returns to the wallet.
 
 ## Naming convention
@@ -67,7 +67,7 @@ add a named export to that file rather than reaching inside.
 Two rules follow from it:
 
 - **`index.ts` is a boundary, never a file name.** A module carries its own
-  name (`routes.tsx`, `selectors/featureFlags.ts`): a lone file does not
+  name (`routes/CollectiblesLayout.tsx`, `selectors/featureFlags.ts`): a lone file does not
   become `index.ts` just because it sits in its own directory, because that
   makes it unsearchable by name. `index.ts` is reserved for the module entry
   point above and for component directories, where the

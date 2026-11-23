@@ -8,7 +8,6 @@ import {
   createCollectiblesFlagHarness,
   renderHomepageWithCollectibles,
 } from '../../../../../../tests/component-view/renderers/collectibles';
-import { CollectiblesHomeTestIds } from '../../../../UI/Collectibles';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { HomeSectionNames } from '../../hooks/useHomeViewedEvent';
 import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
@@ -28,23 +27,18 @@ describeForPlatforms('Collectibles on the wallet homepage', () => {
     fireEvent.press(screen.getByTestId(title));
 
     await waitFor(() => {
-      expect(
-        screen.getByTestId(CollectiblesHomeTestIds.CONTAINER),
-      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(title)).not.toBeOnTheScreen();
+      expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     });
-    expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
     expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
 
-    fireEvent.press(screen.getByTestId(CollectiblesHomeTestIds.BACK_BUTTON));
+    fireEvent.press(screen.getByTestId('button-icon'));
 
     await waitFor(() => {
       expect(
         screen.getByTestId(collectiblesTestIds.homeSection),
       ).toBeOnTheScreen();
     });
-    expect(
-      screen.queryByTestId(CollectiblesHomeTestIds.CONTAINER),
-    ).not.toBeOnTheScreen();
   });
 
   // Unlike the unit flag gate, this checks a live kill switch after the section
