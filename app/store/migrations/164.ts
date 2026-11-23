@@ -110,12 +110,13 @@ const migration = async (state: unknown): Promise<unknown> => {
   try {
     raw = await FilesystemStorage.getItem(LEGACY_STORAGE_KEY);
   } catch (error) {
-    // Without the file there is no way to know whether a choice is waiting, so
-    // fail the migration and retry on the next launch instead of dropping it.
+    // The choice is not carried over in this case: the consent value itself
+    // already lives in `AnalyticsController`, and the legacy file is left in
+    // place, so nothing else is lost.
     report(
       `Failed to read legacy marketing consent: ${getErrorMessage(error)}`,
     );
-    throw error;
+    return state;
   }
 
   if (!raw) {
