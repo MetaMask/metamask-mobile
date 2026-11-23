@@ -310,7 +310,7 @@ class AccountListBottomSheet {
           });
           tapAttempted = true;
         }
-        const accountList = (await this.accountList) as AppiumElement;
+        const accountList = await this.accountList;
         if (await accountList.unwrap().isExisting()) {
           tapAttempted = false;
           absentSince = undefined;
@@ -344,7 +344,7 @@ class AccountListBottomSheet {
       async () => {
         let el: AppiumElement;
         try {
-          el = (await this.accountList) as AppiumElement;
+          el = await this.accountList;
         } catch {
           throw new Error('Account list sheet element not found');
         }
@@ -889,7 +889,7 @@ class AccountListBottomSheet {
     return Matchers.getElementByID(
       AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
       srpIndex,
-    ) as Promise<AppiumElement>;
+    );
   }
 
   /**
@@ -922,10 +922,7 @@ class AccountListBottomSheet {
       );
     }
 
-    return Matchers.getElementByID(
-      createAccountId,
-      srpIndex,
-    ) as Promise<AppiumElement>;
+    return Matchers.getElementByID(createAccountId, srpIndex);
   }
 
   /**
@@ -941,17 +938,15 @@ class AccountListBottomSheet {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;
-    const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
+    const getElapsed = (): string =>
+      ((Date.now() - startTime) / 1000).toFixed(1);
 
     // Factory form required: a pre-started promise runs its XPath lookup under
     // the session 3.5s implicit wait; isOptionalElementVisible overrides that
     // to a short wait so an absent node costs ~maxAbsentMs, not ~7s.
     const isTextVisible = (text: string): Promise<boolean> =>
       isOptionalElementVisible(
-        () =>
-          Matchers.getElementByNativeXPath(
-            this.getCatchAllXPath(text),
-          ) as Promise<AppiumElement>,
+        () => Matchers.getElementByNativeXPath(this.getCatchAllXPath(text)),
         500,
       );
 
