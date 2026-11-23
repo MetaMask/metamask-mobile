@@ -743,7 +743,6 @@
         },
         "TransactionController": {
           "methodData": {},
-          "swapsTransactions": {},
           "transactions": []
         },
         "UiSlotsController": {
