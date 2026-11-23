@@ -16,7 +16,7 @@ import {
 import {
   isLoginScreenDisplayed,
   isWalletHomeReadyOnAndroidStable,
-  isWalletHomeReadyOnIOSStable,
+  isWalletHomeReadyOnIOS,
 } from './wallet-home-readiness';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'node:child_process';
@@ -257,10 +257,7 @@ export const waitForAppReady = async (
   try {
     while (Date.now() < deadline) {
       if (PlatformDetector.isIOS()) {
-        if (
-          !(await isLoginScreenDisplayed()) &&
-          (await isWalletHomeReadyOnIOSStable())
-        ) {
+        if (await isWalletHomeReadyOnIOS()) {
           logger.debug(
             `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
           );

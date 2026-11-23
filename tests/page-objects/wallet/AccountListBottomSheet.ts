@@ -312,7 +312,6 @@ class AccountListBottomSheet {
         }
         const accountList = await this.accountList;
         if (await accountList.unwrap().isExisting()) {
-          tapAttempted = false;
           absentSince = undefined;
           throw new Error('Account list is still mounted');
         }

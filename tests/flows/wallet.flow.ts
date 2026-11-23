@@ -68,23 +68,13 @@ const logger = createLogger({
 
 const WALLET_HOME_INTENT = 'wait for wallet home';
 
-const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
-  if (PlatformDetector.isAndroid()) {
-    return isWalletHomeReadyOnAndroidStable();
-  }
-  if (!(await isWalletHomeReadyOnAppium())) {
-    return false;
-  }
-  return !(await isLoginScreenDisplayed());
-};
-
 const pollWalletHome = async (timeout: number): Promise<void> => {
   const isAndroid = PlatformDetector.isAndroid();
   const platform = isAndroid ? 'Android' : 'iOS';
 
   const ready = await waitForWalletHomeReady(
     {
-      isReady: isUnlockedWalletHomeReady,
+      isReady: isWalletHomeReadyOnAppium,
       onNotReady: async () => {
         if (isAndroid) {
           await dismissAndroidSystemOverlaysPlaywright();
@@ -132,6 +122,16 @@ export const waitForWalletHomePlaywright = async (
     () => pollWalletHome(timeout),
     { intent: WALLET_HOME_INTENT, trigger: 'wait-failure' },
   );
+
+const isUnlockedWalletHomeReady = async (): Promise<boolean> => {
+  if (PlatformDetector.isAndroid()) {
+    return isWalletHomeReadyOnAndroidStable();
+  }
+  if (!(await isWalletHomeReadyOnAppium())) {
+    return false;
+  }
+  return !(await isLoginScreenDisplayed());
+};
 
 const LOGIN_APP_READY_PHASE = 'login_app_ready';
 const LOGIN_WALLET_HOME_PHASE = 'login_wallet_home';
@@ -674,10 +674,7 @@ export const loginToApp = async (password?: string): Promise<void> => {
   const PASSWORD = password ?? '123123123';
 
   // Wait for app to complete rehydration ONCE before attempting login
-  const readyScreen = await waitForAppReady();
-  if (readyScreen === 'wallet') {
-    return;
-  }
+  await waitForAppReady();
 
   await Utilities.executeWithRetry(
     async () => {

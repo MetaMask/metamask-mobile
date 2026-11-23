@@ -54,7 +54,7 @@ import Matchers from '../framework/Matchers';
 import { isDeviceHealthError } from '../framework/services/appium/sessionRecovery';
 import {
   isWalletHomeReadyOnAndroid,
-  isWalletHomeReadyOnIOSStable,
+  isWalletHomeReadyOnAndroidStable,
 } from './wallet-home-readiness';
 
 const visibleByTestId = new Map<string, boolean>();
@@ -115,7 +115,7 @@ describe('isWalletHomeReadyOnAndroid', () => {
   });
 });
 
-describe('isWalletHomeReadyOnIOSStable', () => {
+describe('isWalletHomeReadyOnAndroidStable', () => {
   beforeEach(() => {
     visibleByTestId.clear();
     jest
@@ -131,49 +131,14 @@ describe('isWalletHomeReadyOnIOSStable', () => {
       });
   });
 
-  it('returns true only when wallet chrome remains visible after the stability window', async () => {
-    visibleByTestId.set(WalletViewSelectorsIDs.ACCOUNT_ICON, true);
+  it('returns true when wallet chrome remains ready through the stability window', async () => {
+    visibleByTestId.set(LoginViewSelectors.CONTAINER, false);
+    visibleByTestId.set(WalletViewSelectorsIDs.WALLET_CONTAINER, true);
 
-    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(true);
+    await expect(isWalletHomeReadyOnAndroidStable()).resolves.toBe(true);
   });
 
-  it('returns false when wallet chrome disappears during the stability window', async () => {
-    let accountIconProbeCount = 0;
-    jest
-      .mocked(Matchers.getElementByID)
-      .mockImplementation(async (elementId) => {
-        const testId = String(elementId);
-        return {
-          isVisible: async () =>
-            testId === WalletViewSelectorsIDs.ACCOUNT_ICON &&
-            accountIconProbeCount++ === 0,
-          unwrap: () => ({
-            isExisting: async () => false,
-          }),
-        } as unknown as AppiumElement;
-      });
-
-    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(false);
-  });
-
-  it('accepts an existing wallet hierarchy when login is hidden', async () => {
-    jest
-      .mocked(Matchers.getElementByID)
-      .mockImplementation(async (elementId) => {
-        const testId = String(elementId);
-        return {
-          isVisible: async () => false,
-          unwrap: () => ({
-            isExisting: async () =>
-              testId === WalletViewSelectorsIDs.WALLET_CONTAINER,
-          }),
-        } as unknown as AppiumElement;
-      });
-
-    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(true);
-  });
-
-  it('returns false when wallet chrome is not visible', async () => {
-    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(false);
+  it('returns false when wallet chrome is not ready', async () => {
+    await expect(isWalletHomeReadyOnAndroidStable()).resolves.toBe(false);
   });
 });

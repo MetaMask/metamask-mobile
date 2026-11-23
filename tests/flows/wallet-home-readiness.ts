@@ -146,48 +146,12 @@ export const isWalletHomeReadyOnIOS = async (): Promise<boolean> => {
   return isWalletScreenExistsWithLoginHiddenOnIOS();
 };
 
-export const isWalletHomeReadyOnIOSStable = async (): Promise<boolean> => {
-  let readySince: number | undefined;
-  try {
-    await Utilities.executeWithRetry(
-      async () => {
-        if (await isLoginScreenDisplayed()) {
-          readySince = undefined;
-          throw new Error('iOS login screen is still displayed');
-        }
-        if (!(await isWalletHomeReadyOnIOS())) {
-          readySince = undefined;
-          throw new Error('iOS wallet home is not ready');
-        }
-        readySince ??= Date.now();
-        if (Date.now() - readySince < READINESS_STABILITY_MS) {
-          throw new Error('iOS wallet home is still settling');
-        }
-      },
-      {
-        timeout: READINESS_STABILITY_MS + 5_000,
-        interval: 100,
-        description: 'iOS wallet home stability',
-      },
-    );
-    return true;
-  } catch (error) {
-    if (isDeviceHealthError(error)) {
-      throw error;
-    }
-    return false;
-  }
-};
-
 export const isWalletHomeReadyOnAppium = async (): Promise<boolean> => {
   if (PlatformDetector.isIOS()) {
-    if (await isLoginScreenDisplayed()) {
-      return false;
-    }
-    return isWalletHomeReadyOnIOSStable();
+    return isWalletHomeReadyOnIOS();
   }
   if (PlatformDetector.isAndroid()) {
-    return isWalletHomeReadyOnAndroidStable();
+    return isWalletHomeReadyOnAndroid();
   }
   return false;
 };
