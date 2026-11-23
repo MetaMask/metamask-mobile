@@ -277,42 +277,28 @@ describe('PredictHome layout from the Venue catalog', () => {
     ]);
   });
 
-  /** Has `useNetInfo` report `unknown` until `answerAfterMs`, like the real
-   * hook waiting on the native module; never answers when undefined. */
-  const answerNetInfoAfter = (answerAfterMs: number | undefined) =>
-    jest.spyOn(NetInfoModule, 'useNetInfo').mockImplementation(() => {
-      const [state, setState] = useState<object>({ type: 'unknown' });
-      useEffect(() => {
-        if (answerAfterMs === undefined) {
-          return undefined;
-        }
-        const timer = setTimeout(
-          () =>
-            setState({
-              type: 'cellular',
-              isInternetReachable: true,
-              details: { cellularGeneration: '3g' },
-            }),
-          answerAfterMs,
-        );
-        return () => clearTimeout(timer);
-      }, []);
-      return state as ReturnType<typeof NetInfoModule.useNetInfo>;
-    });
-  /** A query client whose cache holds the catalog, as after an earlier
-   * Predict screen. */
-  const withCachedCatalog = async () => {
+  it('waits for NetInfo to answer before sizing the reads, with the catalog already cached', async () => {
+    // The catalog is cached from an earlier Predict screen, and NetInfo
+    // answers 3G only after Home's first commit, like the real hook after a
+    // cold start. The grace period itself is unit-tested (useHomeReadSize).
     const queryClient = createComponentViewQueryClient();
     await queryClient.fetchQuery({
       queryKey: ['PredictMarketDataService:getVenueCatalog', 'kalshi'],
     });
     messengerCall.mockClear();
-    return queryClient;
-  };
-
-  it('waits for NetInfo to answer before sizing the reads, with the catalog already cached', async () => {
-    const queryClient = await withCachedCatalog();
-    answerNetInfoAfter(100);
+    jest.spyOn(NetInfoModule, 'useNetInfo').mockImplementation(() => {
+      const [state, setState] = useState<object>({ type: 'unknown' });
+      useEffect(
+        () =>
+          setState({
+            type: 'cellular',
+            isInternetReachable: true,
+            details: { cellularGeneration: '3g' },
+          }),
+        [],
+      );
+      return state as ReturnType<typeof NetInfoModule.useNetInfo>;
+    });
 
     const view = renderPredictNext(false, { queryClient });
 
@@ -323,22 +309,6 @@ describe('PredictHome layout from the Venue catalog', () => {
       [POLITICS_TRUMP_FEED_ID, { limit: 1 }],
       [NCAA_GAMES_FEED_ID, { limit: 2 }],
       [NFL_GAMES_FEED_ID, { limit: 4 }],
-    ]);
-  });
-
-  it('reads the default sizes when NetInfo never answers', async () => {
-    const queryClient = await withCachedCatalog();
-    answerNetInfoAfter(undefined);
-
-    const view = renderPredictNext(false, { queryClient });
-
-    expect(
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1')),
-    ).toBeOnTheScreen();
-    expect(feedCalls()).toEqual([
-      [POLITICS_TRUMP_FEED_ID, { limit: 2 }],
-      [NCAA_GAMES_FEED_ID, { limit: 4 }],
-      [NFL_GAMES_FEED_ID, { limit: 6 }],
     ]);
   });
 

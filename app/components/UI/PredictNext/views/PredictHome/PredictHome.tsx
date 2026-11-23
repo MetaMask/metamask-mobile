@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -21,8 +21,6 @@ import ButtonIconGlass from '../../../../../component-library/components-temp/Bu
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
-import { useNetworkTierState } from '../../../../../hooks/useNetworkTier';
-import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useBalance } from '../../hooks/useBalance';
 import {
   KalshiDebugPanel,
@@ -58,13 +56,13 @@ import { HomeCategoriesSection } from './internal/HomeCategoriesSection';
 import { resolveHomeCategories } from './internal/homeCategories';
 import {
   getHomeSectionTitle,
-  isHomeReadConstrained,
   planHomeFeedReads,
   selectHomeSections,
   type HomeFeedReadPlan,
   type HomeSectionView,
 } from './internal/homeSections';
 import { HomeFeedReads, type HomeFeedRead } from './internal/HomeFeedReads';
+import { useHomeReadSize } from './internal/useHomeReadSize';
 import { HomeGamesError } from './internal/HomeGamesError';
 import { HomeSectionsStatus } from './internal/HomeSectionsStatus';
 import { HomeSportsSection } from './internal/HomeSportsSection';
@@ -75,9 +73,6 @@ import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const NO_SECTIONS: readonly PredictHomeSection[] = [];
-/** How long Home waits for NetInfo's first answer before sizing its reads
- * with the product default. */
-const NETWORK_TIER_GRACE_MS = 500;
 
 interface PredictHomeViewProps {
   venueId: PredictVenueId;
@@ -474,36 +469,7 @@ const PredictHomeView = ({
 export const PredictHome = () => {
   const venueId = useNextVenueId();
   const capabilities = useVenueCapabilities(venueId);
-  // Synchronous and uncached, so read once per mount.
-  const [hardwareTier] = useState(getHardwareTier);
-  const networkTier = useNetworkTierState();
-  // A read's size is part of its query key, so a change would refetch every
-  // section and drop its cards. The size is decided once per mount, from the
-  // first resolved network tier. `useNetInfo` reports `unknown` until NetInfo
-  // answers, which is at once when the app already knows the state and after
-  // a native round trip on a cold start. If NetInfo has not answered
-  // {@link NETWORK_TIER_GRACE_MS} after the catalog is ready, the product
-  // default applies. Until the size is decided the reads are held and shown
-  // as loading.
-  const [isGraceOver, setIsGraceOver] = useState(false);
-  const [isConstrained, setIsConstrained] = useState<boolean>();
-  const isWaitingForTier =
-    isConstrained === undefined && capabilities.status === 'ready';
-  useEffect(() => {
-    if (!isWaitingForTier) {
-      return undefined;
-    }
-    const timer = setTimeout(() => setIsGraceOver(true), NETWORK_TIER_GRACE_MS);
-    return () => clearTimeout(timer);
-  }, [isWaitingForTier]);
-  if (isConstrained === undefined && (networkTier.isResolved || isGraceOver)) {
-    setIsConstrained(
-      isHomeReadConstrained(
-        hardwareTier,
-        networkTier.isResolved ? networkTier.tier : null,
-      ),
-    );
-  }
+  const isConstrained = useHomeReadSize(capabilities.status === 'ready');
   const sections =
     capabilities.status === 'ready'
       ? (capabilities.descriptor.home?.sections ?? NO_SECTIONS)
