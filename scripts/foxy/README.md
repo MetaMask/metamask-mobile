@@ -6,10 +6,29 @@ Unlike Charles/Proxyman it knows *who* made the call (symbolicated through Metro
 
 ## Run
 
-1. In `.js.env`: `export FOXY="true"` (restart Metro).
-2. `yarn foxy` (same as `bash scripts/foxy/run.sh`) and open <http://localhost:8098>.
-3. Android: `adb reverse tcp:8098 tcp:8098`. Physical iOS device: set `FOXY_URL=ws://<your-lan-ip>:8098/app`.
-4. Fresh install (delete the app or wipe data), launch, and watch the Timeline. Press `M` and drop a marker (e.g. `Onboarding visible`, `Wallet created`) as things happen to split the capture into phases. Press `?` for the in-app guide.
+Switch to this branch, then:
+
+```bash
+yarn install
+yarn foxy        # prepares everything below, then serves http://localhost:8098
+```
+
+`yarn foxy` runs `scripts/foxy/setup.mjs` first. It is safe to run any number of times, and it:
+
+- turns on `export FOXY="true"` in `.js.env` (creating the file from `.js.env.example` if it is missing; `FOXY_URL` and `FOXY_BODIES` are never touched);
+- tells you when Metro has to be restarted with `yarn watch:clean` because of that change, and warns if Metro is not running;
+- runs `adb reverse tcp:8098 tcp:8098` for every attached Android device or emulator;
+- prints the exact `FOXY_URL` line for a physical iPhone (your Mac's LAN address);
+- downloads the core monorepo's `CODEOWNERS` into `scripts/foxy/.cache/` when there is no `../core` checkout, so `@metamask/*` calls get team chips;
+- reports a busy port, or exits quietly when Foxy is already running;
+- installs the `foxy` agent skill (`scripts/foxy/skill/skill.md`) into `.claude/skills`, `.agents/skills` and `.cursor/skills`, which are gitignored. Skip it with `FOXY_SKIP_SKILL=1`.
+
+`node scripts/foxy/setup.mjs --check` prints the same checklist without changing anything.
+
+Then:
+
+1. Start the debug app (`yarn start:ios` / `yarn start:android`, no native rebuild is needed for JS changes). Android: re-run `yarn foxy` after plugging a device in. Physical iOS device: add the `FOXY_URL` line it printed to `.js.env` and restart Metro.
+2. Fresh install (delete the app or wipe data), launch, and watch the Timeline. Press `M` and drop a marker (e.g. `Onboarding visible`, `Wallet created`) as things happen to split the capture into phases. Press `?` for the in-app guide.
 
 Keep Metro running on `:8081` (override with `FOXY_METRO`) so stacks are symbolicated to `app/...` and `@metamask/...` frames.
 
@@ -67,4 +86,4 @@ Tools: `network_list`, `network_get`, `network_summary`, `network_export_markdow
 
 ## Tests
 
-`node --test scripts/foxy/lib.test.mjs scripts/foxy/codeowners.test.mjs` and `yarn jest app/dev-tools/Foxy`.
+`node --test scripts/foxy/*.test.mjs` and `yarn jest app/dev-tools/Foxy`.

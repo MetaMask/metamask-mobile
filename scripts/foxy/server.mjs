@@ -3,6 +3,7 @@
 // dashboard + REST API (also used by mcp.mjs).
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { readFile, mkdir, appendFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -26,7 +27,9 @@ const METRO = process.env.FOXY_METRO || 'http://localhost:8081';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // CODEOWNERS: the app repo (app/... frames) and the core monorepo (@metamask/<pkg> frames).
 const REPO = process.env.FOXY_REPO || join(__dirname, '..', '..');
-const CORE = process.env.FOXY_CORE || join(REPO, '..', 'core');
+// Core's CODEOWNERS: a sibling checkout wins, otherwise the copy setup.mjs keeps in .cache/core.
+const CORE = process.env.FOXY_CORE
+  || (existsSync(join(REPO, '..', 'core', '.github', 'CODEOWNERS')) ? join(REPO, '..', 'core') : join(__dirname, '.cache', 'core'));
 const repoRules = loadCodeowners(join(REPO, '.github', 'CODEOWNERS'));
 const coreRules = loadCodeowners(join(CORE, '.github', 'CODEOWNERS'));
 /**
