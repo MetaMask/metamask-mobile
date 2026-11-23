@@ -559,7 +559,7 @@ describe('useRecurringBuySwapInputs', () => {
     });
   });
 
-  it('requests quotes without a Recurring slippage override', () => {
+  it('requests quotes without a recurring price tolerance override', () => {
     const sourceToken = getNativeSourceToken('eip155:1');
     const destToken = createMockToken({
       chainId: '0x1',

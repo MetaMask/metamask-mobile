@@ -21,6 +21,7 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import {
   selectOrdersNetworkFilter,
   selectRecurringPriceRange,
+  selectRecurringPriceTolerance,
   selectRecurringScheduleValidation,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountByScope } from '../../../../../../selectors/multichainAccounts/accounts';
@@ -70,10 +71,12 @@ import {
 } from '../../../utils/advancedOrders';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../../selectors/bridge/featureFlags';
 import {
   RECURRING_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
   RECURRING_ORDERS_REFETCH_INTERVAL,
 } from '../../../constants/recurringOrders';
+import CostToleranceRow from '../../../components/LimitOrderDetails/CostToleranceRow';
 
 const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
@@ -156,6 +159,10 @@ const BridgeRecurringBuyViewContent = ({
   });
 
   const priceRange = useSelector(selectRecurringPriceRange);
+  const recurringPriceTolerance = useSelector(selectRecurringPriceTolerance);
+  const defaultPriceTolerance = useSelector(
+    selectBridgeRecurringBuyDefaultPriceTolerance,
+  );
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -347,6 +354,13 @@ const BridgeRecurringBuyViewContent = ({
     });
   }, [dismissInputAndKeypad, navigation]);
 
+  const handlePriceTolerancePress = useCallback(() => {
+    dismissInputAndKeypad();
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL,
+    });
+  }, [dismissInputAndKeypad, navigation]);
+
   const handleUnitPress = useCallback(() => {
     dismissInputAndKeypad();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -473,6 +487,12 @@ const BridgeRecurringBuyViewContent = ({
               maxLabel={priceRangeMaxLabel}
               onPress={handlePriceRangePress}
             />
+            <Box twClassName="pb-4">
+              <CostToleranceRow
+                value={`${recurringPriceTolerance ?? defaultPriceTolerance}%`}
+                onPress={handlePriceTolerancePress}
+              />
+            </Box>
 
             <Box onTouchEnd={dismissInputAndKeypad}>
               <OrdersTabs

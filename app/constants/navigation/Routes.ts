@@ -392,6 +392,10 @@ const Routes = {
         'SwapsLimitOrderDefaultCostToleranceModal',
       SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
         'SwapsLimitOrderCustomCostToleranceModal',
+      RECURRING_DEFAULT_PRICE_TOLERANCE_MODAL:
+        'RecurringDefaultPriceToleranceModal',
+      RECURRING_CUSTOM_PRICE_TOLERANCE_MODAL:
+        'RecurringCustomPriceToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:

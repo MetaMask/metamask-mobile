@@ -34,7 +34,7 @@ export function PriceToleranceCustomModal({
   onConfirm,
   goBack,
 }: PriceToleranceCustomModalProps) {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [inputAmount, setInputAmount] = useState(initialValue);
   const [hasAttemptedToExceedMax, setHasAttemptedToExceedMax] = useState(false);

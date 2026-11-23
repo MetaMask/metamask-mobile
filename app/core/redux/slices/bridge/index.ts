@@ -135,6 +135,7 @@ export interface BridgeState {
 
   // Recurring
   recurring: RecurringState;
+  recurringPriceTolerance: string | undefined;
 
   // Limit orders
   /**
@@ -193,6 +194,7 @@ export const initialState: BridgeState = {
 
   // Recurring
   recurring: initialRecurringState,
+  recurringPriceTolerance: undefined,
 
   // Limit orders
   limitOrderCostTolerance: undefined,
@@ -279,6 +281,12 @@ const slice = createSlice({
     ) => {
       state.recurring.priceRange = action.payload;
     },
+    setRecurringPriceTolerance: (
+      state,
+      action: PayloadAction<string | undefined>,
+    ) => {
+      state.recurringPriceTolerance = action.payload;
+    },
     setSelectedSourceChainIds: (
       state,
       action: PayloadAction<(Hex | CaipChainId)[]>,
@@ -291,13 +299,13 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    // Limit-order settings (Expires after, Price tolerance) persist for the
-    // whole app session — they reset only on a fresh launch, not when the
-    // user leaves and re-enters the Bridge flow.
+    // Advanced-order settings persist for the whole app session — they reset
+    // only on a fresh launch, not when the user leaves and re-enters Bridge.
     resetBridgeState: (state) => ({
       ...initialState,
       limitOrderCostTolerance: state.limitOrderCostTolerance,
       limitOrderExpirationMinutes: state.limitOrderExpirationMinutes,
+      recurringPriceTolerance: state.recurringPriceTolerance,
     }),
     resetBridgeTokenInputs: (state) => {
       state.sourceAmount = undefined;
@@ -564,6 +572,11 @@ export const selectRecurringRepeatCount = createSelector(
 export const selectRecurringPriceRange = createSelector(
   selectRecurring,
   (recurring) => recurring.priceRange,
+);
+
+export const selectRecurringPriceTolerance = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.recurringPriceTolerance,
 );
 
 export const selectRecurringScheduleValidation = createSelector(
@@ -1313,6 +1326,7 @@ export const {
   setRecurringRepeatCount,
   setRecurringEveryUnit,
   setRecurringPriceRange,
+  setRecurringPriceTolerance,
   resetBridgeState,
   resetBridgeTokenInputs,
   resetBridgeDestToken,

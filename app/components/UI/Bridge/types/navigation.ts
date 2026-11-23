@@ -84,6 +84,8 @@ export type BridgeModalsNavigationParamList = {
   SwapsLimitOrderExpirationModal: SwapsLimitOrderExpirationModalParams;
   SwapsLimitOrderDefaultCostToleranceModal: undefined;
   SwapsLimitOrderCustomCostToleranceModal: undefined;
+  RecurringDefaultPriceToleranceModal: undefined;
+  RecurringCustomPriceToleranceModal: undefined;
   LimitOrderConfirmationModal: LimitOrderConfirmationModalParams;
   LimitOrderCostToleranceInfoModal: undefined;
   LimitOrderAccountUpgradeFeeInfoModal: undefined;

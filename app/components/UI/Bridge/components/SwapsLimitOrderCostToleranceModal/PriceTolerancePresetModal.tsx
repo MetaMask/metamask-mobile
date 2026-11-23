@@ -30,7 +30,7 @@ export function PriceTolerancePresetModal({
   onSubmit,
   goBack,
 }: PriceTolerancePresetModalProps) {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const sheetRef = useRef<BottomSheetRef>(null);
   const [selectedPriceTolerance, setSelectedPriceTolerance] =
     useState(initialValue);
