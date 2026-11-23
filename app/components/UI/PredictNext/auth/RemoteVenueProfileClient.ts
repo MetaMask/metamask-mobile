@@ -43,15 +43,14 @@ const encode = (value: string): string =>
       : character,
   ).join('');
 
-const byteLength = (value: string): number =>
-  new TextEncoder().encode(value).length;
-
 /**
  * Reads one revocation list or profile file from the registry.
  *
- * Bodies are read as text, never JSON, because the profile's SHA-256 covers
- * the exact bytes the registry published. Timeout, size limit and status are
- * checked here; schema and ceiling checks belong to the resolver.
+ * Bodies are read as bytes and decoded once, never JSON, because the
+ * profile's SHA-256 covers the exact bytes the registry published. Decoding
+ * is fatal so invalid UTF-8 cannot silently become replacement characters
+ * that hash to something the registry never served. Timeout, size limit and
+ * status are checked here; schema and ceiling checks belong to the resolver.
  */
 export class RemoteVenueProfileClient {
   readonly #baseUrl: URL;
@@ -168,16 +167,25 @@ export class RemoteVenueProfileClient {
     if (Number.isFinite(declared) && declared > VENUE_PROFILE_MAX_BYTES) {
       throw new VenueProfileFetchError('oversize');
     }
-    let raw: string;
+    let bytes: Uint8Array;
     try {
-      raw = await response.text();
+      bytes = new Uint8Array(await response.arrayBuffer());
     } catch {
       throw new VenueProfileFetchError('invalid_body');
     }
-    if (byteLength(raw) > VENUE_PROFILE_MAX_BYTES) {
+    if (bytes.byteLength > VENUE_PROFILE_MAX_BYTES) {
       throw new VenueProfileFetchError('oversize');
     }
-    return raw;
+    try {
+      // `ignoreBOM: true` keeps a leading BOM in the decoded string, so
+      // re-encoding it hashes the bytes the registry actually served.
+      return new TextDecoder('utf-8', {
+        fatal: true,
+        ignoreBOM: true,
+      }).decode(bytes);
+    } catch {
+      throw new VenueProfileFetchError('invalid_body');
+    }
   }
 
   #classifyError(error: unknown, timedOut: boolean): Error {

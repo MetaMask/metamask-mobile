@@ -1,4 +1,20 @@
-import type { TemplateInputs, TemplateValues } from './profileTemplates';
+import type {
+  InvariantDisplay,
+  TemplateInputs,
+  TemplateValues,
+} from './profileTemplates';
+
+/** The registry document a previewed figure set was rendered from. */
+export interface VenueProfilePin {
+  version: number;
+  sha256: string;
+}
+
+/** What the confirmation sheet shows, plus the snapshot it must sign. */
+export interface VenueOperationPreview {
+  display: InvariantDisplay;
+  profile: VenueProfilePin;
+}
 
 /**
  * The `Venue-Authorization` header to attach to the predict-api call.
@@ -25,6 +41,10 @@ export interface SignedOperation {
 export interface SignOperationInput {
   /** Engine approval-revocation generation pinned by the venue adapter. */
   approvalGeneration?: number;
+  /** The profile snapshot the confirmation sheet was rendered from. A sign
+   * call whose resolved snapshot differs refuses: the user approved those
+   * figures, and a newer profile may compute or render them differently. */
+  profile?: VenueProfilePin;
   /** What the user typed or confirmed, or what the phone generated. */
   inputs?: TemplateInputs;
   /** Locally computed values (`price`, `count`). Never serialized into the

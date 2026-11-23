@@ -57,6 +57,33 @@ export type RenderedPayloadKind = 'http-rfc9421';
 /** How often the registry is consulted while PredictNext is used. */
 export const VENUE_PROFILE_REFRESH_MS = 15 * 60 * 1000;
 
+/** predict-api's target answer cannot hold a refresh (and an order) open. */
+export const VENUE_PROFILE_TARGET_TIMEOUT_MS = 10_000;
+
+/** Aborts `run` and gives up after `ms`; a callee that ignores its signal
+ * still cannot hold the caller open. */
+const withDeadline = async <Value>(
+  run: (signal: AbortSignal) => Promise<Value>,
+  ms: number,
+): Promise<Value> =>
+  new Promise<Value>((resolve, reject) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      controller.abort();
+      reject(new Error('venue_profile_deadline_exceeded'));
+    }, ms);
+    run(controller.signal).then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error: unknown) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+
 /** The `Venue-Authorization` header name. Onboarding uses the same header
  * name with its own (temporary, demo-only) envelope version. */
 export const VENUE_AUTHORIZATION_HEADER = 'Venue-Authorization';
@@ -544,7 +571,9 @@ export interface VenueProfileResolverOptions {
   profileId?: string;
   client?: RemoteVenueProfileClient;
   store?: VenueProfileStore;
-  getSigningProfile?: () => Promise<{ id: string; version: number }>;
+  getSigningProfile?: (options?: {
+    signal?: AbortSignal;
+  }) => Promise<{ id: string; version: number }>;
   bundledRevokedRaw?: string;
   bundledProfiles?: Readonly<Record<number, string>>;
   now?: () => number;
@@ -574,6 +603,7 @@ export class VenueProfileResolver {
   readonly #log: VenueProfileLog;
 
   #loading: Promise<void> | undefined;
+  #refreshing: Promise<void> | undefined;
   #loaded = false;
   #targetVersion: number | undefined;
   #revoked: ReadonlySet<number> | undefined;
@@ -618,13 +648,40 @@ export class VenueProfileResolver {
     );
   }
 
-  /** Refresh failures preserve the last answer and downloaded bytes. */
+  /**
+   * Refresh failures preserve the last answer and downloaded bytes. Callers
+   * that arrive while a refresh is running share it, so two answers can
+   * never land out of order.
+   */
   async refresh(): Promise<void> {
+    this.#refreshing ??= this.#refreshOnce().finally(() => {
+      this.#refreshing = undefined;
+    });
+    await this.#refreshing;
+  }
+
+  async #refreshOnce(): Promise<void> {
     await this.#load();
-    if (this.#getSigningProfile) {
+    const getSigningProfile = this.#getSigningProfile;
+    if (getSigningProfile) {
       try {
-        const target = await this.#getSigningProfile();
+        const target = await withDeadline(
+          async (signal) => getSigningProfile({ signal }),
+          VENUE_PROFILE_TARGET_TIMEOUT_MS,
+        );
         if (
+          target.id === this.#profileId &&
+          Number.isSafeInteger(target.version) &&
+          target.version > 0 &&
+          target.version < this.#floor
+        ) {
+          // An older answer, for example from a pod not yet redeployed. The
+          // phone never moves back, so it keeps the target it has.
+          this.#log(
+            'PredictNext: venue profile refused',
+            'profile_below_floor',
+          );
+        } else if (
           target.id === this.#profileId &&
           Number.isSafeInteger(target.version) &&
           target.version > 0
@@ -687,6 +744,7 @@ export class VenueProfileResolver {
   /** Test seam: forget in-memory state, keep the persisted cache. */
   reset(): void {
     this.#loading = undefined;
+    this.#refreshing = undefined;
     this.#loaded = false;
     this.#targetVersion = undefined;
     this.#revoked = undefined;
@@ -730,6 +788,7 @@ export class VenueProfileResolver {
         }
       }
       this.#targetVersion = persisted.targetVersion ?? this.#targetVersion;
+      let adoptedRevoked = false;
       if (persisted.revokedRaw) {
         const revoked = parseRevoked(persisted.revokedRaw);
         if (
@@ -739,7 +798,14 @@ export class VenueProfileResolver {
         ) {
           this.#revoked = revoked;
           this.#revokedRaw = persisted.revokedRaw;
+          adoptedRevoked = true;
         }
+      }
+      if (!adoptedRevoked) {
+        // The ETag names the rejected list. Keeping it would make the next
+        // refresh send If-None-Match for a list this phone never adopted, and
+        // the registry's 304 would preserve the stale list forever.
+        this.#etag = undefined;
       }
     }
     this.#loaded = true;
@@ -795,16 +861,13 @@ export class VenueProfileResolver {
 
   #pick(): VenueProfileSnapshot | undefined {
     const target = this.#targetVersion;
-    if (target !== undefined && target < this.#floor) {
-      this.#log('PredictNext: venue profile refused', 'profile_below_floor');
-      this.#snapshot = undefined;
-      return undefined;
-    }
     if (!this.#revoked) {
       this.#snapshot = undefined;
       return undefined;
     }
     // The floor is also the last successfully used version across restarts.
+    // A target below it (only possible from an older cache) is skipped by
+    // the floor check below, never used.
     const candidates = [
       target,
       this.#snapshot?.version ?? (this.#floor || undefined),
@@ -888,12 +951,14 @@ const environment = resolvePredictCluster({
 
 const defaultResolver = new VenueProfileResolver({
   getSigningProfile: registryUrl
-    ? async () =>
+    ? async (options) =>
         new PredictApiReadClient({
           baseUrl: getPredictApiUrl(),
           clientVersion: packageJSON.version,
           getBearerToken: async () => undefined,
-        }).getSigningProfile('kalshi' as PredictVenueId)
+        }).getSigningProfile('kalshi' as PredictVenueId, {
+          signal: options?.signal,
+        })
     : undefined,
   client: registryUrl
     ? new RemoteVenueProfileClient({

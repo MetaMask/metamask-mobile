@@ -3,8 +3,8 @@
  * `predict/venue-profiles/kalshi-demo-signing/`.
  *
  * The hash in `Venue-Authorization` covers these exact bytes, so this file
- * must never be reformatted: `scripts/sync-predict-venue-profiles.js` copies
- * the registry files, and `venueProfileBundled.test.ts` pins the SHA-256.
+ * must never be reformatted. Copy the registry files in unchanged by hand;
+ * `venueProfileBundled.test.ts` pins the SHA-256 of each copy.
  * `minDsl` is `dsl-1`; the build ceiling in `venueProfileCeiling.ts` decides
  * whether the profile may be used.
  */

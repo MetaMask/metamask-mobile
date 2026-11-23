@@ -49,7 +49,7 @@ describe('profile refetch retry', () => {
   });
 
   it('does not loop when the retry is refused again', async () => {
-    const reply = { status: 409, code: 'venue_profile_not_ready' };
+    const reply = { status: 503, code: 'venue_profile_not_ready' };
     const replies = [reply, reply];
 
     const result = await sendSigned(
@@ -65,6 +65,55 @@ describe('profile refetch retry', () => {
 
     expect(result).toEqual(reply);
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports signing unavailable when the profile refetch hangs', async () => {
+    jest.useFakeTimers();
+    try {
+      refresh.mockImplementation(async () => new Promise(() => undefined));
+      const sign = jest.fn().mockResolvedValue(SIGNED);
+      const send = jest.fn().mockResolvedValue({
+        status: 409,
+        code: 'venue_profile_update_required',
+      });
+
+      const pending = sendSigned(
+        { signOperation: sign, invalidateSigningSession: jest.fn() },
+        'order.place',
+        undefined,
+        send,
+        (reply) => reply,
+      );
+      const refusal = await expect(pending).rejects.toMatchObject({
+        name: 'VenueSigningUnavailableError',
+        requestSent: true,
+      });
+      await jest.advanceTimersByTimeAsync(10_000);
+      await refusal;
+
+      expect(send).toHaveBeenCalledTimes(1);
+      expect(sign).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('only treats the contract status of each profile code as stale', async () => {
+    // api-errors.v1.json: update_required is 409, not_ready is 503.
+    const reply = { status: 409, code: 'venue_profile_not_ready' };
+    const sign = jest.fn().mockResolvedValue(SIGNED);
+
+    const result = await sendSigned(
+      { signOperation: sign, invalidateSigningSession: jest.fn() },
+      'order.place',
+      undefined,
+      async () => reply,
+      (r) => r,
+    );
+
+    expect(result).toEqual(reply);
+    expect(refresh).not.toHaveBeenCalled();
+    expect(sign).toHaveBeenCalledTimes(1);
   });
 
   it('refreshes once when signing had no admitted profile', async () => {
@@ -106,7 +155,7 @@ describe('profile refetch retry', () => {
   it('refetches once and retries a read after venue_profile_not_ready', async () => {
     const replies = [
       { status: 200, code: 'sign_required' },
-      { status: 409, code: 'venue_profile_not_ready' },
+      { status: 503, code: 'venue_profile_not_ready' },
       { status: 200 },
     ];
     const signRead = jest.fn().mockResolvedValue(HEADER);

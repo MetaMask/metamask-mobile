@@ -86,15 +86,26 @@ mm-config-registry (see [ADR-0005](./adr/0005-remote-venue-profiles.md)). The
 phone asks predict-api for the version its cluster is configured to use, then
 downloads that version and `revoked.json` from the registry URL constant,
 falling back to the last answer, the MMKV cache, and finally a bundled byte
-copy of version 1. It applies the build ceiling, refuses a revoked version or
-one below the stored floor, and sends the exact-bytes SHA-256 in the envelope.
+copy of version 1. It reads documents as bytes and decodes UTF-8 fatally: a
+body with invalid encoding is rejected, and a BOM is preserved so the hash
+covers what was served. It applies the build ceiling, refuses a revoked version
+or one below the stored floor (a lower target is ignored and logged, never
+adopted), and sends the exact-bytes SHA-256 in the envelope. The confirmation
+sheet preview returns the profile version and hash it rendered; signing with a
+different resolved snapshot refuses rather than approving unseen figures.
 The profile is public: it contains no key material, and it cannot widen what
-this build signs beyond `venueProfileCeiling.ts`.
+this build signs beyond `venueProfileCeiling.ts`. Only builds that resolve a
+dev or uat Predict cluster read predict-api or the registry; other builds use
+the bundled version 1.
 
 A `venue_profile_update_required` or `venue_profile_not_ready` refusal forces
-one profile refresh and one retry. Failures are logged as reason codes, never
-with envelope or body contents. When no copy is admissible, signed actions and
-signed reads fail with the unavailable error while browsing stays bearer-only.
+one profile refresh and one retry; the target lookup and that refresh each give
+up after 10 seconds, so a hung registry call cannot hold the screen or trigger
+a second send. A cached revocation ETag is dropped when its list is not
+adopted, so a 304 cannot preserve a list the phone rejected. Failures are
+logged as reason codes, never with envelope or body contents. When no copy is
+admissible, signed actions and signed reads fail with the unavailable error
+while browsing stays bearer-only.
 
 ## What a production key requires
 

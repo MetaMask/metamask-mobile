@@ -26,7 +26,6 @@ import {
 import {
   renderRequest,
   TemplateError,
-  type InvariantDisplay,
   type RenderedRequest,
   type RequestTemplate,
 } from '../auth/signing/profileTemplates';
@@ -39,6 +38,7 @@ import {
   type DeviceAuthHeader,
   type SignOperationInput,
   type SignedOperation,
+  type VenueOperationPreview,
 } from '../auth/signing/signOperationTypes';
 import type { ProposedRead } from '../adapters/remote/signedVenueCall';
 
@@ -68,7 +68,7 @@ export interface PredictDeviceAuthServicePreviewOperationAction {
   handler: (
     intent: string,
     input?: SignOperationInput,
-  ) => Promise<InvariantDisplay | undefined>;
+  ) => Promise<VenueOperationPreview | undefined>;
 }
 
 export interface PredictDeviceAuthServiceSignReadAction {
@@ -164,7 +164,7 @@ interface PredictDeviceAuthSnapshot {
  * Engine-owned authentication capability for Predict venues.
  *
  * The public surface is deliberately narrow: callers can prepare credentials
- * or obtain an A2T, or sign a request that a bundled, signed venue profile
+ * or obtain an A2T, or sign a request that the resolved venue profile
  * declares. They cannot ask the service to sign arbitrary bytes.
  */
 export class PredictDeviceAuthService {
@@ -253,18 +253,21 @@ export class PredictDeviceAuthService {
    * `signOperation` would, and returns the worst-case figures its invariant
    * computed, for the confirmation sheet. Nothing is signed and nothing
    * leaves the phone. Returns undefined when no signing profile is active or
-   * the intent carries no invariant. Throws `TemplateError` when the profile
-   * does not allow the request, which keeps Confirm disabled.
+   * the intent carries no invariant. The returned `profile` identity must be
+   * passed back to `signOperation`, which refuses a different snapshot.
+   * Throws `TemplateError` when the profile does not allow the request, which
+   * keeps Confirm disabled.
    */
   async previewOperation(
     intent: string,
     input: SignOperationInput = {},
-  ): Promise<InvariantDisplay | undefined> {
+  ): Promise<VenueOperationPreview | undefined> {
     const snapshot = this.#captureSession();
     const resolved = snapshot ? await resolveVenueProfile() : undefined;
     const profile = resolved?.profile;
     if (
       !snapshot ||
+      !resolved ||
       !profile ||
       !this.#isCurrent(snapshot) ||
       (input.approvalGeneration !== undefined &&
@@ -273,7 +276,16 @@ export class PredictDeviceAuthService {
       return undefined;
     }
     const requests = this.#renderIntent(profile, intent, input);
-    return requests.find((request) => request.display !== undefined)?.display;
+    const display = requests.find(
+      (request) => request.display !== undefined,
+    )?.display;
+    if (!display) {
+      return undefined;
+    }
+    return {
+      display,
+      profile: { version: resolved.version, sha256: resolved.sha256 },
+    };
   }
 
   /**
@@ -300,8 +312,17 @@ export class PredictDeviceAuthService {
     }
     const resolved = snapshot ? await resolveVenueProfile() : undefined;
     const profile = resolved?.profile;
-    if (!snapshot || !profile || !this.#isCurrent(snapshot)) {
+    if (!snapshot || !resolved || !profile || !this.#isCurrent(snapshot)) {
       return undefined;
+    }
+    if (
+      input.profile &&
+      (input.profile.version !== resolved.version ||
+        input.profile.sha256 !== resolved.sha256)
+    ) {
+      // The confirmation sheet's figures were rendered from another
+      // snapshot; signing this body would approve figures the user never saw.
+      throw new TemplateError('confirmation', intent);
     }
     const nowMs = this.#deps.nowMs();
     const requests = this.#renderIntent(profile, intent, input);

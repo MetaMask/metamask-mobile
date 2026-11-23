@@ -165,10 +165,13 @@ const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
   const adapter = new KalshiRemoteAdapter(client, {
     getApprovalGeneration: () => 0,
     previewOperation: async () => ({
-      maxCost: '1.00',
-      contracts: '1.00',
-      payout: '1.00',
-      minProceeds: '0',
+      display: {
+        maxCost: '1.00',
+        contracts: '1.00',
+        payout: '1.00',
+        minProceeds: '0',
+      },
+      profile: { version: 1, sha256: 'sha-1' },
     }),
   });
   switch (phase) {

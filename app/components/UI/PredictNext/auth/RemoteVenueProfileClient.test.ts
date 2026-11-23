@@ -7,7 +7,7 @@ import {
 type FetchImpl = (url: string, init?: RequestInit) => Promise<Response>;
 
 const response = (
-  body: string,
+  body: string | Uint8Array,
   {
     status = 200,
     headers = {},
@@ -17,7 +17,11 @@ const response = (
     ok: status >= 200 && status < 300,
     status,
     headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
-    text: async () => body,
+    arrayBuffer: async () => {
+      const bytes =
+        typeof body === 'string' ? new TextEncoder().encode(body) : body;
+      return bytes.slice().buffer;
+    },
   }) as unknown as Response;
 
 const makeClient = (fetchImpl: FetchImpl): RemoteVenueProfileClient =>
@@ -141,6 +145,9 @@ describe('RemoteVenueProfileClient', () => {
       }),
     );
     const streamed = makeClient(async () => response(big));
+    // Multi-byte characters: the string is under the cap, the bytes are not.
+    const encoded = 'é'.repeat(VENUE_PROFILE_MAX_BYTES / 2 + 1);
+    const bytes = makeClient(async () => response(encoded));
 
     await expect(
       reason(declared.fetchProfile({ id: 'p', version: 1 })),
@@ -148,6 +155,29 @@ describe('RemoteVenueProfileClient', () => {
     await expect(
       reason(streamed.fetchProfile({ id: 'p', version: 1 })),
     ).resolves.toBe('oversize');
+    await expect(
+      reason(bytes.fetchProfile({ id: 'p', version: 1 })),
+    ).resolves.toBe('oversize');
+  });
+
+  it('keeps a leading BOM in the decoded bytes', async () => {
+    const raw = '\uFEFF{"version":1}';
+    const client = makeClient(async () => response(raw));
+
+    await expect(client.fetchProfile({ id: 'p', version: 1 })).resolves.toBe(
+      raw,
+    );
+  });
+
+  it('refuses a body that is not valid UTF-8', async () => {
+    // 0xFF is never a valid UTF-8 lead byte.
+    const client = makeClient(async () =>
+      response(Uint8Array.from([0x7b, 0xff, 0x7d])),
+    );
+
+    await expect(
+      reason(client.fetchProfile({ id: 'p', version: 1 })),
+    ).resolves.toBe('invalid_body');
   });
 
   it('aborts a request that outlives the deadline', async () => {

@@ -1,13 +1,17 @@
 import React from 'react';
+import { AppState } from 'react-native';
 import { render, waitFor } from '@testing-library/react-native';
 
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
   PredictDeviceAuthBootstrap,
+  canRefreshVenueProfiles,
   shouldPrefetchA2t,
 } from './PredictDeviceAuthBootstrap';
 import { A2tSessionClearedError } from './a2tSession';
+import { refreshVenueProfile } from './venueSigningProfiles';
 
 const mockUseSelector = jest.fn();
 
@@ -25,7 +29,11 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: () => 'WIFI',
+  useNetworkTier: jest.fn(() => 'WIFI'),
+}));
+
+jest.mock('./venueSigningProfiles', () => ({
+  refreshVenueProfile: jest.fn(),
 }));
 
 jest.mock('../../../../util/deviceCapability', () => ({
@@ -62,9 +70,28 @@ describe('shouldPrefetchA2t', () => {
   );
 });
 
+describe('canRefreshVenueProfiles', () => {
+  it.each([
+    ['NONE', false],
+    [null, true],
+    ['WIFI', true],
+    ['SLOW_CELLULAR', true],
+    ['FAST_CELLULAR', true],
+  ] as const)('network %s returns %s', (networkTier, expected) => {
+    expect(canRefreshVenueProfiles(networkTier)).toBe(expected);
+  });
+});
+
 describe('PredictDeviceAuthBootstrap', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useNetworkTier).mockReturnValue('WIFI');
+    jest.mocked(refreshVenueProfile).mockResolvedValue(undefined);
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   const mockSelectors = ({
@@ -201,6 +228,81 @@ describe('PredictDeviceAuthBootstrap', () => {
         true,
       );
     });
+  });
+
+  it('refreshes the venue profile once on entry when unlocked and enabled', async () => {
+    mockSelectors();
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(undefined);
+
+    const result = render(
+      <PredictDeviceAuthBootstrap>
+        <></>
+      </PredictDeviceAuthBootstrap>,
+    );
+
+    await waitFor(() => {
+      expect(refreshVenueProfile).toHaveBeenCalledTimes(1);
+    });
+    result.unmount();
+  });
+
+  it('does not refresh while offline, locked, or disabled', () => {
+    mockSelectors();
+    jest.mocked(useNetworkTier).mockReturnValue('NONE');
+    const offline = render(
+      <PredictDeviceAuthBootstrap>
+        <></>
+      </PredictDeviceAuthBootstrap>,
+    );
+    expect(refreshVenueProfile).not.toHaveBeenCalled();
+    offline.unmount();
+
+    jest.mocked(useNetworkTier).mockReturnValue('WIFI');
+    mockSelectors({ unlocked: false });
+    const locked = render(
+      <PredictDeviceAuthBootstrap>
+        <></>
+      </PredictDeviceAuthBootstrap>,
+    );
+    expect(refreshVenueProfile).not.toHaveBeenCalled();
+    locked.unmount();
+
+    mockSelectors({ predictEnabled: false });
+    const disabled = render(
+      <PredictDeviceAuthBootstrap>
+        <></>
+      </PredictDeviceAuthBootstrap>,
+    );
+    expect(refreshVenueProfile).not.toHaveBeenCalled();
+    disabled.unmount();
+  });
+
+  it('refreshes when the app returns to the foreground and removes the listener', async () => {
+    mockSelectors();
+    jest.mocked(Engine.controllerMessenger.call).mockResolvedValue(undefined);
+    const remove = jest.fn();
+    const addEventListener = jest
+      .spyOn(AppState, 'addEventListener')
+      .mockReturnValue({ remove });
+
+    const result = render(
+      <PredictDeviceAuthBootstrap>
+        <></>
+      </PredictDeviceAuthBootstrap>,
+    );
+    await waitFor(() => {
+      expect(refreshVenueProfile).toHaveBeenCalledTimes(1);
+    });
+    const listener = addEventListener.mock.calls[0][1];
+    listener('background');
+    expect(refreshVenueProfile).toHaveBeenCalledTimes(1);
+    listener('active');
+    await waitFor(() => {
+      expect(refreshVenueProfile).toHaveBeenCalledTimes(2);
+    });
+
+    result.unmount();
+    expect(remove).toHaveBeenCalledTimes(1);
   });
 
   it('prepares only the local key while signed out', async () => {

@@ -1,5 +1,6 @@
 import {
   VENUE_PROFILE_ID,
+  VENUE_PROFILE_TARGET_TIMEOUT_MS,
   VenueProfileResolver,
   venueProfileSha256,
 } from './venueSigningProfiles';
@@ -60,6 +61,9 @@ const build = (
     target?: number;
     now?: () => number;
     environment?: 'dev' | 'uat';
+    getSigningProfile?: (options?: {
+      signal?: AbortSignal;
+    }) => Promise<{ id: string; version: number }>;
   } = {},
 ) => {
   const storage = options.storage ?? memoryStorage();
@@ -69,10 +73,12 @@ const build = (
     storage,
   });
   const client = options.client ?? new FakeClient();
-  const getSigningProfile = jest.fn(async () => ({
-    id: VENUE_PROFILE_ID,
-    version: options.target ?? 1,
-  }));
+  const getSigningProfile =
+    options.getSigningProfile ??
+    jest.fn(async () => ({
+      id: VENUE_PROFILE_ID,
+      version: options.target ?? 1,
+    }));
   const log = jest.fn();
   const resolver = new VenueProfileResolver({
     client: client as unknown as RemoteVenueProfileClient,
@@ -147,7 +153,7 @@ describe('VenueProfileResolver', () => {
     expect(JSON.parse(String(storage.value)).floor).toBe(1);
   });
 
-  it('refuses a target below the floor instead of signing with the previous version', async () => {
+  it('ignores a target below the floor and keeps signing with the version it used', async () => {
     const { resolver, client, getSigningProfile, log, storage } = build({
       target: 4,
     });
@@ -155,12 +161,37 @@ describe('VenueProfileResolver', () => {
     await resolver.refresh();
     getSigningProfile.mockResolvedValue({ id: VENUE_PROFILE_ID, version: 1 });
     await resolver.refresh();
-    await expect(resolver.resolve()).resolves.toBeUndefined();
+    await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
     expect(log).toHaveBeenCalledWith(
       'PredictNext: venue profile refused',
       'profile_below_floor',
     );
-    expect(JSON.parse(String(storage.value)).floor).toBe(4);
+    expect(JSON.parse(String(storage.value))).toMatchObject({
+      targetVersion: 4,
+      floor: 4,
+    });
+  });
+
+  it('shares one in-flight refresh so an older answer cannot land last', async () => {
+    const { resolver, client, getSigningProfile } = build({ target: 4 });
+    client.bodies.set(4, profileWith(4));
+    let answer: (value: { id: string; version: number }) => void = () =>
+      undefined;
+    getSigningProfile.mockImplementationOnce(
+      async () =>
+        new Promise((resolve) => {
+          answer = resolve;
+        }),
+    );
+    const first = resolver.refresh();
+    const second = resolver.refresh();
+    while (getSigningProfile.mock.calls.length === 0) {
+      await Promise.resolve();
+    }
+    answer({ id: VENUE_PROFILE_ID, version: 4 });
+    await Promise.all([first, second]);
+    expect(getSigningProfile).toHaveBeenCalledTimes(1);
+    await expect(resolver.resolve()).resolves.toMatchObject({ version: 4 });
   });
 
   it('keeps the last target when predict-api is unreachable', async () => {
@@ -265,6 +296,76 @@ describe('VenueProfileResolver', () => {
     expect(venueProfileCacheKey('uat', VENUE_PROFILE_ID)).toBe(
       `predict.venue-profiles.uat.${VENUE_PROFILE_ID}`,
     );
+  });
+
+  it('drops a cached revocation ETag whose list was rejected', async () => {
+    const storage = memoryStorage();
+    storage.value = JSON.stringify({
+      revokedRaw: revoked([]),
+      revokedEtag: '"stale"',
+      profiles: {},
+      floor: 0,
+    });
+    const client = new FakeClient();
+    client.result = {
+      status: 'modified',
+      raw: revoked([2]),
+      etag: '"fresh"',
+    };
+    const resolver = new VenueProfileResolver({
+      client: client as unknown as RemoteVenueProfileClient,
+      store: new VenueProfileStore({
+        environment: 'dev',
+        profileId: VENUE_PROFILE_ID,
+        storage,
+      }),
+      getSigningProfile: jest.fn(async () => ({
+        id: VENUE_PROFILE_ID,
+        version: 1,
+      })),
+      bundledRevokedRaw: revoked([2]),
+      log: jest.fn(),
+    });
+
+    await resolver.resolve();
+    await resolver.refresh();
+
+    expect(client.fetchRevoked).toHaveBeenCalledWith({
+      id: VENUE_PROFILE_ID,
+      etag: undefined,
+    });
+    expect(JSON.parse(String(storage.value))).toMatchObject({
+      revokedEtag: '"fresh"',
+    });
+  });
+
+  it('gives up on a hung target lookup and still resolves', async () => {
+    jest.useFakeTimers();
+    try {
+      const captured: { signal?: AbortSignal } = {};
+      const { resolver, log } = build({
+        getSigningProfile: async ({ signal: lookupSignal } = {}) => {
+          captured.signal = lookupSignal;
+          return new Promise((_resolve, reject) => {
+            lookupSignal?.addEventListener('abort', () =>
+              reject(new Error('aborted')),
+            );
+          });
+        },
+      });
+
+      const refreshing = resolver.refresh();
+      await jest.advanceTimersByTimeAsync(VENUE_PROFILE_TARGET_TIMEOUT_MS + 1);
+
+      await expect(refreshing).resolves.toBeUndefined();
+      expect(captured.signal?.aborted).toBe(true);
+      expect(log).toHaveBeenCalledWith(
+        'PredictNext: venue profile target fetch failed',
+      );
+      await expect(resolver.resolve()).resolves.toMatchObject({ version: 1 });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('is due after the unchanged refresh interval', async () => {

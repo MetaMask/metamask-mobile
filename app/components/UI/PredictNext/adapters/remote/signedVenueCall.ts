@@ -67,6 +67,31 @@ export class VenueSigningUnavailableError extends Error {
   }
 }
 
+/** A profile refetch in a signing path cannot outlive this. */
+const VENUE_PROFILE_REFRESH_TIMEOUT_MS = 10_000;
+
+/** One refetch, bounded: a hung registry or target request must not hold a
+ * user's order open. On timeout the caller reports signing unavailable
+ * rather than retrying with a profile the server just refused. */
+const refreshProfileOnce = async (requestSent: boolean): Promise<void> => {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      refreshVenueProfileAfterRefusal(),
+      new Promise<never>((_resolve, reject) => {
+        timer = setTimeout(
+          () => reject(new VenueSigningUnavailableError(requestSent)),
+          VENUE_PROFILE_REFRESH_TIMEOUT_MS,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer !== undefined) {
+      clearTimeout(timer);
+    }
+  }
+};
+
 /** Read work paused after the bounded signed calls; server scan progress
  * remains authoritative and a later observation can continue it. */
 export class VenueReadBudgetExhaustedError extends Error {
@@ -107,11 +132,13 @@ const isRenewable = (attempt: SignedAttempt): boolean =>
   (attempt.status === 403 && attempt.code === 'venue_authorization_invalid') ||
   (attempt.status === 409 && attempt.code === 'venue_signature_expired');
 
-/** predict-api wants a profile version this phone has not resolved yet. */
+/** predict-api wants a profile version this phone has not resolved yet.
+ * Statuses follow `contracts/v1/fixtures/api-errors.v1.json`: update
+ * required is 409, not ready is 503. */
 const isProfileStale = (attempt: SignedAttempt): boolean =>
-  attempt.status === 409 &&
-  (attempt.code === 'venue_profile_update_required' ||
-    attempt.code === 'venue_profile_not_ready');
+  (attempt.status === 409 &&
+    attempt.code === 'venue_profile_update_required') ||
+  (attempt.status === 503 && attempt.code === 'venue_profile_not_ready');
 
 /**
  * Renders and signs `operation`, then sends the call. There is one round
@@ -149,7 +176,7 @@ export const sendSigned = async <Response>(
       // signed-out and disabled sessions resolve to undefined just the same;
       // one refresh is harmless and the second answer is final.
       if (!(await resolveVenueProfile())) {
-        await refreshVenueProfileAfterRefusal();
+        await refreshProfileOnce(requestSent);
         signed = await deps.signOperation(intent, signInput);
       }
     }
@@ -172,7 +199,7 @@ export const sendSigned = async <Response>(
     }
     const described = await readAttempt(response);
     if (!retried && isProfileStale(described)) {
-      await refreshVenueProfileAfterRefusal();
+      await refreshProfileOnce(requestSent);
       return attempt(true);
     }
     if (!isRenewable(described)) {
@@ -224,7 +251,7 @@ export const sendSignedRead = async <Response>(
       throw error;
     }
     if (!header && !(await resolveVenueProfile())) {
-      await refreshVenueProfileAfterRefusal();
+      await refreshProfileOnce(requestSent);
       header = await deps.signRead(proposed);
     }
     if (!header) {
@@ -276,7 +303,7 @@ export const sendSignedRead = async <Response>(
     if (proposed === undefined) {
       const action = await retryAction(first, retried, false);
       if (action === 'refresh') {
-        await refreshVenueProfileAfterRefusal();
+        await refreshProfileOnce(requestSent);
         return attempt(true);
       }
       return first;
@@ -291,7 +318,7 @@ export const sendSignedRead = async <Response>(
       if (next === undefined) {
         const action = await retryAction(response, retried, true);
         if (action === 'refresh') {
-          await refreshVenueProfileAfterRefusal();
+          await refreshProfileOnce(requestSent);
         }
         if (action) {
           return attempt(true);

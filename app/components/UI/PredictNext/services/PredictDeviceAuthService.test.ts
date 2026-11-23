@@ -455,6 +455,56 @@ describe('PredictDeviceAuthService.signOperation', () => {
     });
   });
 
+  it('signs the snapshot the confirmation sheet previewed', async () => {
+    const { service } = createService();
+    const input = {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy' as const,
+        outcome: 'yes' as const,
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    };
+    const preview = await service.previewOperation('order.place', input);
+
+    await expect(
+      service.signOperation('order.place', {
+        ...input,
+        profile: preview?.profile,
+      }),
+    ).resolves.toBeDefined();
+  });
+
+  it('refuses to sign figures from a different profile snapshot', async () => {
+    const { service } = createService();
+    const input = {
+      inputs: {
+        marketId: 'MKT-1',
+        idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
+        action: 'buy' as const,
+        outcome: 'yes' as const,
+        amountCents: 5000,
+      },
+      values: { count: '10.00', price: '0.5000' },
+      confirmed: true,
+    };
+    const preview = await service.previewOperation('order.place', input);
+
+    await expect(
+      service.signOperation('order.place', {
+        ...input,
+        profile: {
+          version: (preview?.profile.version ?? 1) + 1,
+          sha256: preview?.profile.sha256 ?? '0'.repeat(64),
+        },
+      }),
+    ).rejects.toMatchObject({ name: 'TemplateError', rule: 'confirmation' });
+    expect(mockSignDeviceKey).not.toHaveBeenCalled();
+  });
+
   it('signs exactly the profile payload: no field the profile does not render', async () => {
     const { service } = createService();
 
@@ -552,7 +602,7 @@ describe('PredictDeviceAuthService.signOperation', () => {
   it('keeps previewOperation rendering without an overlay', async () => {
     const { service } = createService();
 
-    const display = await service.previewOperation('order.place', {
+    const preview = await service.previewOperation('order.place', {
       inputs: {
         marketId: 'MKT-1',
         idempotencyKey: 'a1b2c3d4-1111-4222-8333-444455556666',
@@ -564,11 +614,17 @@ describe('PredictDeviceAuthService.signOperation', () => {
       confirmed: true,
     });
 
-    expect(display).toEqual({
-      maxCost: '5.20',
-      minProceeds: '4.80',
-      payout: '10.00',
-      contracts: '10.00',
+    expect(preview).toEqual({
+      display: {
+        maxCost: '5.20',
+        minProceeds: '4.80',
+        payout: '10.00',
+        contracts: '10.00',
+      },
+      profile: {
+        version: 1,
+        sha256: expect.stringMatching(/^[A-Za-z0-9_-]{43}$/u),
+      },
     });
   });
 });

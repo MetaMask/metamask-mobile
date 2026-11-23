@@ -33,8 +33,11 @@ import type {
   PredictVenueId,
   PredictWithdrawReceipt,
 } from '../../types';
-import type { SignOperationInput } from '../../auth/signing/signOperationTypes';
-import type { InvariantDisplay } from '../../auth/signing/profileTemplates';
+import type {
+  SignOperationInput,
+  VenueOperationPreview,
+  VenueProfilePin,
+} from '../../auth/signing/signOperationTypes';
 import {
   kalshiOrderSigningInput,
   loadFeeCeilingCentsPerContract,
@@ -255,7 +258,7 @@ export interface KalshiOrderSigningDependencies {
   previewOperation?: (
     intent: 'order.place',
     input: SignOperationInput,
-  ) => Promise<InvariantDisplay | undefined>;
+  ) => Promise<VenueOperationPreview | undefined>;
 }
 
 const UUID =
@@ -280,6 +283,8 @@ interface PinnedOrderPreview {
   signing: KalshiOrderSigningInput | undefined;
   snapshot: string;
   review?: PredictOrderReview;
+  /** The profile snapshot the review's figures came from. */
+  profile?: VenueProfilePin;
 }
 
 const MAX_PINNED_PREVIEWS = 32;
@@ -426,19 +431,20 @@ export class KalshiRemoteAdapter {
       },
       reviewOrder: async (previewId) => {
         const pinned = currentPreview(previewId);
-        const display = await signing?.previewOperation?.('order.place', {
+        const preview = await signing?.previewOperation?.('order.place', {
           ...pinned.signing,
           approvalGeneration: pinned.approvalGeneration,
         });
-        if (currentPreview(previewId) !== pinned || !display) {
+        if (currentPreview(previewId) !== pinned || !preview) {
           throw PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED);
         }
+        pinned.profile = preview.profile;
         pinned.review = {
           previewId,
-          maxCost: display.maxCost,
-          contracts: display.contracts,
-          payout: display.payout,
-          proceedsIfFullyFilled: display.minProceeds,
+          maxCost: preview.display.maxCost,
+          contracts: preview.display.contracts,
+          payout: preview.display.payout,
+          proceedsIfFullyFilled: preview.display.minProceeds,
         };
         return { ...pinned.review };
       },
@@ -456,6 +462,7 @@ export class KalshiRemoteAdapter {
             {
               ...pinned.signing,
               approvalGeneration: pinned.approvalGeneration,
+              ...(pinned.profile ? { profile: pinned.profile } : {}),
               confirmed: true,
             },
           );
