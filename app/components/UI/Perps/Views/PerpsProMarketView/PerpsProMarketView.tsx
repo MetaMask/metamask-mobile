@@ -146,7 +146,10 @@ const PerpsProOrderBookColumn = ({
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol, providerId });
-  const { minimumOrderAmount } = useMinimumOrderAmount({ asset: symbol });
+  const { minimumOrderAmount } = useMinimumOrderAmount({
+    asset: symbol,
+    providerId,
+  });
 
   const handleSelectPrice = useCallback(
     (price: string, size?: string) => {

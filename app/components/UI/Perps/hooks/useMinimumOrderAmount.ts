@@ -36,7 +36,10 @@ export function useMinimumOrderAmount(
   const { asset, providerId } = params;
 
   // Get market data which may contain minimum order size
-  const { marketData, isLoading, error } = usePerpsMarketData(asset);
+  const { marketData, isLoading, error } = usePerpsMarketData({
+    asset,
+    providerId,
+  });
 
   const { orderCapabilities } = usePerpsProvider({ symbol: asset, providerId });
   const venueMinimumNotionalUsd =

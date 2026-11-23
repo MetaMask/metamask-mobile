@@ -61,6 +61,10 @@ describe('useMinimumOrderAmount', () => {
       symbol: 'ETH',
       providerId: 'lighter',
     });
+    expect(mockUsePerpsMarketData).toHaveBeenCalledWith({
+      asset: 'ETH',
+      providerId: 'lighter',
+    });
   });
 
   it('returns undefined, not the Hyperliquid default, while capabilities load', () => {
