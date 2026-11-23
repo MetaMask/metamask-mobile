@@ -43,7 +43,7 @@ function buildSnapNotification(id: string): INotification {
       message: 'test snap message',
       origin: '@metamask/test-snap',
     },
-  } as INotification;
+  };
 }
 
 describe('Notifications settings toggles — integration', () => {
@@ -163,9 +163,7 @@ describe('Notifications settings toggles — integration', () => {
 
       // Act
       await harness.notificationServicesController.enableMetamaskNotifications();
-      await harness.waitFor(
-        () => harness.pushController.state.isPushEnabled === true,
-      );
+      await harness.waitFor(() => harness.pushController.state.isPushEnabled);
 
       // Assert
       expect(harness.mocks.pushService.createRegToken).toHaveBeenCalledTimes(1);

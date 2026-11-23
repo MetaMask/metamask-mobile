@@ -253,9 +253,7 @@ export function buildNotificationsIntegrationHarness(
       (...args: unknown[]) => putNotificationPreferences(...args),
     );
 
-    const pushMessenger = buildPushControllerMessenger(
-      rootMessenger as unknown as Parameters<GetNotificationServicesPushControllerMessenger>[0],
-    );
+    const pushMessenger = buildPushControllerMessenger(rootMessenger);
 
     const pushController = new pushServicesModule.Controller({
       messenger: pushMessenger,
@@ -272,9 +270,7 @@ export function buildNotificationsIntegrationHarness(
       },
     });
 
-    const controllerMessenger = buildControllerMessenger(
-      rootMessenger as unknown as Parameters<GetNotificationServicesControllerMessenger>[0],
-    );
+    const controllerMessenger = buildControllerMessenger(rootMessenger);
 
     const notificationServicesController =
       new notificationServicesModule.Controller({

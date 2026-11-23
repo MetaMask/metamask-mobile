@@ -26169,19 +26169,6 @@
       "count": 5
     }
   },
-  "tests/integration/harnesses/notifications/notifications.integration.test.ts": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
-      "count": 1
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "tests/integration/harnesses/notifications/notifications.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 2
-    }
-  },
   "tests/integration/harnesses/perps/lighter-mobile-key-recovery.ts": {
     "typescript/unbound-method": {
       "count": 2
