@@ -6,6 +6,8 @@ import type {
   PredictMarket,
   PredictMarketGroup,
   PredictMarketLayout,
+  PredictMarketOption,
+  PredictOutcome,
 } from '../../../types';
 import {
   createMarketLayoutProjection,
@@ -52,7 +54,7 @@ const createMarket = (
   outcomes: [
     { id: `${id}-yes` as PredictEntityId, side: 'yes', label: 'Yes' },
     { id: `${id}-no` as PredictEntityId, side: 'no', label: 'No' },
-  ],
+  ] as unknown as Readonly<[PredictOutcome, PredictOutcome]>,
 });
 
 const choice = (key: string, displayOrder?: number): PredictMarketGroup => ({
@@ -377,22 +379,19 @@ describe('createMarketLayoutProjection', () => {
 
   it('shows a line whose group the API dropped as malformed as a standard card', () => {
     const layout = layoutOf('total_points', 2, FULL_GAME);
-    const outcomes = [
-      { id: 'yes', side: 'yes', label: 'Over' },
-      { id: 'no', side: 'no', label: 'Under' },
+    const outcomes: Readonly<[PredictOutcome, PredictOutcome]> = [
+      { id: 'yes' as PredictEntityId, side: 'yes', label: 'Over' },
+      { id: 'no' as PredictEntityId, side: 'no', label: 'Under' },
     ];
     const totalLine = (
       id: string,
-      option: unknown,
+      option: PredictMarketOption | undefined,
       displayOrder: number,
     ): PredictMarket => ({
       id: id as PredictEntityId,
       question: id,
       status: 'active',
-      outcomes: outcomes.map((o) => ({
-        ...o,
-        id: o.id as PredictEntityId,
-      })) as PredictMarket['outcomes'],
+      outcomes,
       layout,
       group: {
         key: 'totals',

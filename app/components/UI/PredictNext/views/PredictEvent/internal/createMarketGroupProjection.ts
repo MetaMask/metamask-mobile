@@ -155,11 +155,11 @@ const refreshGroupEntry = (
 
   let changed = false;
   const markets = entry.markets.map((market) => {
-    const next = replace(market);
+    const next = replace(market) as typeof market;
     if (next !== market) {
       changed = true;
     }
-    return next;
+    return next as typeof market;
   });
   return changed ? { ...entry, markets } : entry;
 };
