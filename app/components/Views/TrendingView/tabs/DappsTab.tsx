@@ -154,6 +154,7 @@ const DappsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
           />
           <TileCarousel<SiteData>
             data={networks.data}
+            max={networks.data.length}
             isLoading={false}
             renderItem={(site, index) => (
               <SiteTileRowItem
