@@ -2,6 +2,7 @@ import '../../../../../../tests/component-view/mocks';
 import { renderPredictPortfolioScreen } from '../../../../../../tests/component-view/renderers/predictNext';
 import { createComponentViewQueryClient } from '../../../../../../tests/component-view/render';
 import { AccessibilityInfo } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
@@ -1925,14 +1926,23 @@ describe('PredictPortfolioScreen', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows Deposit under review with the first 8 characters of operationId', async () => {
+    it('shows Deposit under review with full supportReference and lets the user copy it', async () => {
       configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
       const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
       expect(
         await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
       ).toHaveTextContent(
-        `Deposit under review · Ref ${needsReviewDeposit.operationId.slice(0, 8)}`,
+        `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
+      );
+
+      fireEvent.press(
+        view.getByTestId(
+          `${PredictPortfolioScreenTestIds.DEPOSIT_STATUS}-copy`,
+        ),
+      );
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        needsReviewDeposit.next.supportReference,
       );
     });
 

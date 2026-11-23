@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, TouchableOpacity } from 'react-native';
+import { AccessibilityInfo, StyleSheet, TouchableOpacity } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useIsFocused } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -33,6 +34,17 @@ const ADDRESS_POLL_INTERVAL_MS = 2_000;
 // A BodySm line is 22pt tall; 11pt above and below makes a 44pt target.
 const STATUS_LINE_HIT_SLOP = { top: 11, bottom: 11 };
 
+const styles = StyleSheet.create({
+  referenceText: {
+    writingDirection: 'ltr',
+  },
+});
+
+const getSupportReference = (deposit: PredictDepositOperation): string =>
+  deposit.next?.kind === 'review'
+    ? deposit.next.supportReference
+    : deposit.operationId;
+
 interface DepositStatusLineProps {
   venueId: PredictVenueId;
   testID: string;
@@ -40,7 +52,7 @@ interface DepositStatusLineProps {
 
 const statusCopy = (
   deposit: PredictDepositOperation,
-): { label: string; color: TextColor } | null => {
+): { label: string; color: TextColor; supportReference?: string } | null => {
   switch (deposit.status) {
     case 'awaiting_transfer':
       return {
@@ -52,13 +64,16 @@ const statusCopy = (
         label: strings('predict_next.deposit.status.processing'),
         color: TextColor.TextAlternative,
       };
-    case 'under_review':
+    case 'under_review': {
+      const supportReference = getSupportReference(deposit);
       return {
         label: strings('predict_next.deposit.status.under_review', {
-          reference: deposit.operationId.slice(0, 8),
+          reference: supportReference,
         }),
         color: TextColor.WarningDefault,
+        supportReference,
       };
+    }
     case 'failed':
       return {
         label: strings('predict_next.deposit.status.failed'),
@@ -119,6 +134,8 @@ const useDepositStatusAnnouncement = (
 interface DepositStatusSheetHostProps {
   venueId: PredictVenueId;
   deposit: PredictDepositOperation;
+  isVisible: boolean;
+  onHide: () => void;
   onClose: () => void;
 }
 
@@ -127,6 +144,8 @@ interface DepositStatusSheetHostProps {
 const DepositStatusSheetHost = ({
   venueId,
   deposit,
+  isVisible,
+  onHide,
   onClose,
 }: DepositStatusSheetHostProps): React.JSX.Element => {
   const fundingWallet = useSelector(selectEvmAddress) as PredictHex | undefined;
@@ -141,24 +160,32 @@ const DepositStatusSheetHost = ({
   const [cancelFailed, setCancelFailed] = useState(false);
 
   const continueDeposit = useCallback(
-    async (target: PredictDepositOperation) => {
-      onClose();
-      await flow.payOpenDeposit(target);
+    (target: PredictDepositOperation) => {
+      onHide();
+      void (async () => {
+        try {
+          await flow.payOpenDeposit(target);
+        } finally {
+          onClose();
+        }
+      })();
     },
-    [flow, onClose],
+    [flow, onClose, onHide],
   );
 
   const cancelDeposit = useCallback(
-    async (target: PredictDepositOperation) => {
+    (target: PredictDepositOperation) => {
       setIsCancelling(true);
       setCancelFailed(false);
-      const cancelled = await flow.cancelOpenDeposit(target);
-      if (cancelled) {
-        onClose();
-      } else {
-        setIsCancelling(false);
-        setCancelFailed(true);
-      }
+      void (async () => {
+        const cancelled = await flow.cancelOpenDeposit(target);
+        if (cancelled) {
+          onClose();
+        } else {
+          setIsCancelling(false);
+          setCancelFailed(true);
+        }
+      })();
     },
     [flow, onClose],
   );
@@ -167,6 +194,7 @@ const DepositStatusSheetHost = ({
     <DepositInProgressSheet
       deposit={deposit}
       hasSubmittedTransfer={flow.hasSubmittedTransfer(deposit)}
+      isVisible={isVisible}
       isCancelling={isCancelling}
       cancelFailed={cancelFailed}
       onContinue={continueDeposit}
@@ -186,23 +214,32 @@ export const DepositStatusLine = ({
   testID,
 }: DepositStatusLineProps): React.JSX.Element | null => {
   const deposit = useDepositStatus(venueId);
-  const [sheetDeposit, setSheetDeposit] = useState<
-    PredictDepositOperation | undefined
-  >();
+  const [sheetOperationId, setSheetOperationId] = useState<string | null>(null);
+  const [isSheetVisible, setIsSheetVisible] = useState(true);
 
   const openSheet = useCallback(() => {
     if (deposit?.status === 'awaiting_transfer') {
-      setSheetDeposit(deposit);
+      setIsSheetVisible(true);
+      setSheetOperationId(deposit.operationId);
     }
   }, [deposit]);
 
-  const closeSheet = useCallback(() => setSheetDeposit(undefined), []);
+  const hideSheet = useCallback(() => setIsSheetVisible(false), []);
+  const closeSheet = useCallback(() => {
+    setSheetOperationId(null);
+    setIsSheetVisible(true);
+  }, []);
+
+  const liveSheetDeposit =
+    sheetOperationId !== null && deposit?.operationId === sheetOperationId
+      ? deposit
+      : null;
 
   const copy = deposit ? statusCopy(deposit) : null;
   const isInteractive = deposit?.status === 'awaiting_transfer';
   useDepositStatusAnnouncement(deposit, copy?.label);
 
-  if (!copy && !sheetDeposit) {
+  if (!copy && !liveSheetDeposit) {
     return null;
   }
 
@@ -232,16 +269,55 @@ export const DepositStatusLine = ({
               />
             </Box>
           </TouchableOpacity>
+        ) : copy.supportReference ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              color={copy.color}
+              twClassName="shrink"
+              testID={testID}
+            >
+              {strings('predict_next.deposit.status.under_review_label')}{' '}
+              <Text
+                variant={TextVariant.BodySm}
+                color={copy.color}
+                style={styles.referenceText}
+              >
+                {copy.supportReference}
+              </Text>
+            </Text>
+            <TouchableOpacity
+              onPress={() => Clipboard.setString(copy.supportReference ?? '')}
+              hitSlop={STATUS_LINE_HIT_SLOP}
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'predict_next.deposit.status.copy_reference',
+              )}
+              testID={`${testID}-copy`}
+            >
+              <Icon
+                name={IconName.Copy}
+                size={IconSize.Xs}
+                color={IconColor.WarningDefault}
+              />
+            </TouchableOpacity>
+          </Box>
         ) : (
           <Text variant={TextVariant.BodySm} color={copy.color} testID={testID}>
             {copy.label}
           </Text>
         )
       ) : null}
-      {sheetDeposit ? (
+      {liveSheetDeposit ? (
         <DepositStatusSheetHost
           venueId={venueId}
-          deposit={sheetDeposit}
+          deposit={liveSheetDeposit}
+          isVisible={isSheetVisible}
+          onHide={hideSheet}
           onClose={closeSheet}
         />
       ) : null}

@@ -1,13 +1,26 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AccessibilityInfo, Modal, StyleSheet, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Modal,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
   BottomSheetHeader,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   Button,
   ButtonSize,
   ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -28,7 +41,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 0,
   },
+  referenceText: {
+    writingDirection: 'ltr',
+  },
 });
+
+const getSupportReference = (deposit: PredictDepositOperation): string =>
+  deposit.next?.kind === 'review'
+    ? deposit.next.supportReference
+    : deposit.operationId;
 
 const describeDeposit = (
   deposit: PredictDepositOperation | null,
@@ -51,10 +72,7 @@ const describeDeposit = (
     case 'under_review':
       return strings('predict_next.deposit.in_progress.under_review', {
         amount,
-        reference:
-          deposit.next?.kind === 'review'
-            ? deposit.next.supportReference
-            : deposit.operationId.slice(0, 8),
+        reference: getSupportReference(deposit),
       });
     case 'processing':
       return strings('predict_next.deposit.in_progress.processing', {
@@ -70,6 +88,8 @@ interface DepositInProgressSheetProps {
   deposit: PredictDepositOperation | null;
   /** Whether a transfer for this deposit already went out and only needs reporting. */
   hasSubmittedTransfer?: boolean;
+  /** Controls modal visibility without unmounting the sheet host mid-action. */
+  isVisible?: boolean;
   isCancelling: boolean;
   cancelFailed: boolean;
   onContinue: (deposit: PredictDepositOperation) => void;
@@ -87,6 +107,7 @@ interface DepositInProgressSheetProps {
 export const DepositInProgressSheet = ({
   deposit,
   hasSubmittedTransfer = false,
+  isVisible = true,
   isCancelling,
   cancelFailed,
   onContinue,
@@ -100,6 +121,8 @@ export const DepositInProgressSheet = ({
     deposit.next?.kind === 'wallet_transfer'
       ? deposit
       : null;
+  const reviewReference =
+    deposit?.status === 'under_review' ? getSupportReference(deposit) : null;
   const cancelFailedText = cancelFailed
     ? strings('predict_next.deposit.in_progress.cancel_failed')
     : undefined;
@@ -115,7 +138,7 @@ export const DepositInProgressSheet = ({
   return (
     <View pointerEvents="box-none" style={styles.modalHost}>
       <Modal
-        visible
+        visible={isVisible}
         transparent
         animationType="none"
         statusBarTranslucent
@@ -132,12 +155,56 @@ export const DepositInProgressSheet = ({
                 {strings('predict_next.deposit.in_progress.title')}
               </BottomSheetHeader>
               <Box twClassName="gap-4 px-4 pb-6">
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {describeDeposit(deposit, hasSubmittedTransfer)}
-                </Text>
+                {reviewReference && deposit ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    gap={2}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                      twClassName="shrink"
+                    >
+                      {strings(
+                        'predict_next.deposit.in_progress.under_review_label',
+                        {
+                          amount: formatUsd(deposit.amount),
+                        },
+                      )}{' '}
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.TextAlternative}
+                        style={styles.referenceText}
+                      >
+                        {reviewReference}
+                      </Text>
+                    </Text>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={strings(
+                        'predict_next.deposit.status.copy_reference',
+                      )}
+                      onPress={() => Clipboard.setString(reviewReference)}
+                      testID={
+                        PredictDepositScreenTestIds.IN_PROGRESS_COPY_REFERENCE
+                      }
+                    >
+                      <Icon
+                        name={IconName.Copy}
+                        size={IconSize.Sm}
+                        color={IconColor.IconAlternative}
+                      />
+                    </TouchableOpacity>
+                  </Box>
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {describeDeposit(deposit, hasSubmittedTransfer)}
+                  </Text>
+                )}
                 {cancelFailedText ? (
                   <Text
                     variant={TextVariant.BodySm}

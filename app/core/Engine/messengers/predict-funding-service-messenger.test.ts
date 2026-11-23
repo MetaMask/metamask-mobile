@@ -56,11 +56,12 @@ describe('getPredictFundingServiceMessenger', () => {
       cancelDeposit: [KALSHI_VENUE_ID, 'operation-id'],
       getDepositStatus: [KALSHI_VENUE_ID],
       acknowledgeDepositNotice: [KALSHI_VENUE_ID, 'operation-id'],
+      refreshDepositStatus: [KALSHI_VENUE_ID],
     };
     try {
       expect(register).toHaveBeenCalledTimes(Object.keys(argsByMethod).length);
       for (const [action] of register.mock.calls) {
-        const method = action.split(':')[1] as keyof typeof argsByMethod;
+        const method = action.split(':')[1];
         expect(service[method as keyof PredictFundingService]).toEqual(
           expect.any(Function),
         );
@@ -73,6 +74,7 @@ describe('getPredictFundingServiceMessenger', () => {
         if (method in funding) {
           expect(funding[method as keyof typeof funding]).toHaveBeenCalledWith(
             ...args.slice(1),
+            { signal: expect.any(AbortSignal) },
           );
         }
       }
@@ -114,9 +116,7 @@ describe('getPredictFundingServiceInitMessenger', () => {
       jest.fn().mockResolvedValue('bearer-token'),
     );
 
-    const initMessenger = getPredictFundingServiceInitMessenger(
-      rootMessenger as never,
-    );
+    const initMessenger = getPredictFundingServiceInitMessenger(rootMessenger);
 
     await expect(
       initMessenger.call('AuthenticationController:getBearerToken'),
@@ -171,13 +171,7 @@ describe('getPredictFundingServiceInitMessenger', () => {
     const rootMessenger = new Messenger<MockAnyNamespace, never, GlobalEvents>({
       namespace: MOCK_ANY_NAMESPACE,
     });
-    const initMessenger = getPredictFundingServiceInitMessenger(
-      rootMessenger as unknown as Messenger<
-        MockAnyNamespace,
-        GlobalActions,
-        GlobalEvents
-      >,
-    );
+    const initMessenger = getPredictFundingServiceInitMessenger(rootMessenger);
     const abandon = jest.fn();
 
     initMessenger.subscribe('KeyringController:lock', abandon);
@@ -216,9 +210,7 @@ describe('getPredictFundingServiceInitMessenger', () => {
       'PredictDeviceAuthService:invalidateA2t',
       invalidateA2t,
     );
-    const initMessenger = getPredictFundingServiceInitMessenger(
-      rootMessenger as never,
-    );
+    const initMessenger = getPredictFundingServiceInitMessenger(rootMessenger);
 
     expect(initMessenger.call('AuthenticationController:getState')).toBe(
       signedIn,

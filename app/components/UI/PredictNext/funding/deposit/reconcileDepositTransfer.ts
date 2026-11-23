@@ -278,9 +278,10 @@ const rankResumeCandidate = (tx: TransactionMeta): number => {
 /**
  * Matches an `awaiting_transfer` deposit against `TransactionController` state
  * on service resume. Checks chain, USDC token contract, zero native value,
- * ERC-20 `transfer(depositAddress, amount)` calldata, and clock-independent
- * `requestId` (`predict-deposit:<operationId>`) where present (falling back to
- * `tx.time >= createdAt` for untagged transactions).
+ * ERC-20 `transfer(depositAddress, amount)` calldata, and the exact
+ * `requestId` (`predict-deposit:<operationId>`). Untagged or differently tagged
+ * transactions are left alone so reused deposit addresses or unrelated failed
+ * attempts never report or cancel the wrong operation.
  *
  * Priority: confirmed/submitted with hash (`report`) > pending (`pending`) >
  * rejected/failed (`cancel`). A deposit with no matching transaction returns
@@ -317,7 +318,6 @@ export const matchDepositTransferForResume = ({
     return { kind: 'none' };
   }
   const expectedRequestId = depositTransferRequestId(deposit.operationId);
-  const createdAtMs = Date.parse(deposit.createdAt);
   const expectedToken = target.tokenContract.toLowerCase();
   const expectedRecipient = target.depositAddress.toLowerCase();
 
@@ -352,14 +352,8 @@ export const matchDepositTransferForResume = ({
     ) {
       continue;
     }
-    if (tx.requestId !== undefined) {
-      if (tx.requestId !== expectedRequestId) {
-        continue;
-      }
-    } else if (!Number.isNaN(createdAtMs)) {
-      if (typeof tx.time !== 'number' || tx.time < createdAtMs) {
-        continue;
-      }
+    if (tx.requestId !== expectedRequestId) {
+      continue;
     }
     if (
       !best ||

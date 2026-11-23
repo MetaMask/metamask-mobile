@@ -13,7 +13,7 @@ const setup = (
   let kalshiActive = initial.kalshiActive ?? true;
   let unlocked = initial.unlocked ?? true;
   let signedIn = initial.signedIn ?? true;
-  let sessionChanged: () => void = () => undefined;
+  let sessionChanged: (forceResume?: boolean) => void = () => undefined;
   let appChanged: (state: AppStateStatus) => void = () => undefined;
   let networkChanged: (state: NetInfoState) => void = () => undefined;
   const service = {
@@ -67,6 +67,9 @@ const setup = (
       signedIn = next;
       sessionChanged();
     },
+    forceSessionResume: () => {
+      sessionChanged(true);
+    },
     app: (state: AppStateStatus) => appChanged(state),
     network: (state: unknown) => networkChanged(state as NetInfoState),
   };
@@ -117,6 +120,16 @@ describe('bindDepositResumeLifecycle', () => {
     expect(harness.service.stopDepositPolling).toHaveBeenCalledTimes(1);
 
     harness.app('active');
+    expect(harness.service.resumeDeposits).toHaveBeenCalledTimes(1);
+
+    harness.cleanup();
+  });
+
+  it('forces a fresh resume when an eligible profile reset notifies with forceResume', () => {
+    const harness = setup();
+    harness.service.resumeDeposits.mockClear();
+
+    harness.forceSessionResume();
     expect(harness.service.resumeDeposits).toHaveBeenCalledTimes(1);
 
     harness.cleanup();

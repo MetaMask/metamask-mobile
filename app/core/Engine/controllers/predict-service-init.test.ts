@@ -19,10 +19,11 @@ import type {
   PredictMarketDataServiceEvents,
   PredictMarketDataServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
-import type {
-  PredictFundingServiceActions,
-  PredictFundingServiceEvents,
-  PredictFundingServiceMessenger,
+import {
+  PredictFundingService,
+  type PredictFundingServiceActions,
+  type PredictFundingServiceEvents,
+  type PredictFundingServiceMessenger,
 } from '../../../components/UI/PredictNext/services/PredictFundingService';
 import type {
   PredictPortfolioServiceActions,
@@ -350,6 +351,9 @@ describe('Predict service initialization', () => {
         if (action === 'AuthenticationController:getState') {
           return { isSignedIn: session.isSignedIn };
         }
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return Promise.resolve({ canonicalProfileId: 'profile-1' });
+        }
         if (action === 'KeyringController:getState') {
           return { isUnlocked: session.isUnlocked };
         }
@@ -391,6 +395,32 @@ describe('Predict service initialization', () => {
 
       expect(changeIdentity).toHaveBeenCalledTimes(1);
       controller.destroy();
+    });
+
+    it('forces a fresh deposit resume on profileSignIn while isSignedIn stays true', () => {
+      const originalAppState = AppState.currentState;
+      AppState.currentState = 'active';
+      const resumeDeposits = jest
+        .spyOn(PredictFundingService.prototype, 'resumeDeposits')
+        .mockResolvedValue(undefined);
+      try {
+        const { controller, handlers } = buildFundingInit({
+          venue: 'kalshi',
+          isUnlocked: true,
+          isSignedIn: true,
+        });
+        const changeIdentity = jest.spyOn(controller, 'changeIdentity');
+        expect(resumeDeposits).toHaveBeenCalledTimes(1);
+
+        handlers.get('AuthenticationController:profileSignIn')?.();
+
+        expect(changeIdentity).toHaveBeenCalledTimes(1);
+        expect(resumeDeposits).toHaveBeenCalledTimes(2);
+        controller.destroy();
+      } finally {
+        resumeDeposits.mockRestore();
+        AppState.currentState = originalAppState;
+      }
     });
 
     it('changes identity when the session signs out, not when it refreshes', () => {

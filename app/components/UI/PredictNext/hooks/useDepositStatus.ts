@@ -85,12 +85,27 @@ export const useDepositStatus = (
     };
   }, [venueId]);
 
+  const hasOpenDeposit = isOpenDeposit(serviceDeposit);
+
+  useEffect(() => {
+    if (!isFocused || !hasOpenDeposit) {
+      return;
+    }
+    try {
+      void Engine.controllerMessenger
+        .call('PredictFundingService:refreshDepositStatus', venueId)
+        ?.catch(() => undefined);
+    } catch {
+      // Ignore when the service is unavailable (for example on a non-Kalshi Venue).
+    }
+  }, [hasOpenDeposit, isFocused, venueId]);
+
   useEffect(() => {
     if (isOpenDeposit(serviceDeposit)) {
       setShownNotice(null);
       return;
     }
-    if (isFocused && isOneTimeNotice(serviceDeposit)) {
+    if (isFocused && isOneTimeNotice(serviceDeposit) && shownNotice === null) {
       const noticeKey = `${serviceDeposit.operationId}:${serviceDeposit.status}`;
       setShownNotice(serviceDeposit);
       if (acknowledgedRef.current !== noticeKey) {
@@ -98,7 +113,7 @@ export const useDepositStatus = (
         acknowledgeNotice(venueId, serviceDeposit.operationId);
       }
     }
-  }, [isFocused, serviceDeposit, venueId]);
+  }, [isFocused, serviceDeposit, shownNotice, venueId]);
 
   useEffect(() => {
     if (wasFocusedRef.current && !isFocused) {

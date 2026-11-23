@@ -2,6 +2,9 @@ import {
   DEPOSIT_POLL_DELAYS_MS,
   DEPOSIT_POLL_MAX_DURATION_MS,
   DEPOSIT_SLOW_NETWORK_MULTIPLIER,
+  DEPOSIT_SLOW_POLL_INTERVAL_MS,
+  DEPOSIT_SLOW_POLL_MAX_DURATION_MS,
+  depositNextPollDelayMs,
   depositPollDelayMs,
 } from './depositPolling';
 
@@ -37,5 +40,22 @@ describe('depositPollDelayMs', () => {
   it('falls back to the product default when network tier is null', () => {
     expect(depositPollDelayMs(0, null)).toBe(2_000);
     expect(depositPollDelayMs(2, null)).toBe(8_000);
+  });
+
+  it('transitions from fast polling at the 10-minute cap to slower follow-up until 60 minutes', () => {
+    expect(depositNextPollDelayMs(4, 0, 'WIFI')).toBe(30_000);
+    expect(
+      depositNextPollDelayMs(4, DEPOSIT_POLL_MAX_DURATION_MS - 30_000, 'WIFI'),
+    ).toBe(30_000);
+    expect(
+      depositNextPollDelayMs(4, DEPOSIT_POLL_MAX_DURATION_MS - 10_000, 'WIFI'),
+    ).toBe(DEPOSIT_SLOW_POLL_INTERVAL_MS);
+    expect(
+      depositNextPollDelayMs(4, DEPOSIT_POLL_MAX_DURATION_MS, 'SLOW_CELLULAR'),
+    ).toBe(DEPOSIT_SLOW_POLL_INTERVAL_MS * DEPOSIT_SLOW_NETWORK_MULTIPLIER);
+    expect(
+      depositNextPollDelayMs(4, DEPOSIT_SLOW_POLL_MAX_DURATION_MS, 'WIFI'),
+    ).toBeNull();
+    expect(depositNextPollDelayMs(0, 0, 'NONE')).toBeNull();
   });
 });

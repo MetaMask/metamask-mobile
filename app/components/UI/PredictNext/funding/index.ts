@@ -21,6 +21,7 @@ export {
 } from './deposit/depositTransferExecutor';
 export {
   canReuseClientOperationId,
+  continueDeposit,
   payDeposit,
   startDeposit,
   type DepositOutcome,

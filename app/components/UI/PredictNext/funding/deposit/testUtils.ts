@@ -74,7 +74,7 @@ export const makeDepositTransferTx = (
 };
 
 /** Drains pending Promise microtasks after advancing fake timers. */
-export const flushMicrotasks = async (ticks = 10): Promise<void> => {
+export const flushMicrotasks = async (ticks = 30): Promise<void> => {
   for (let index = 0; index < ticks; index += 1) {
     await Promise.resolve();
   }

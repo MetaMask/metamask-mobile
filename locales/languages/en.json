@@ -4175,6 +4175,7 @@
         "awaiting_transfer": "Your deposit of {{amount}} is waiting for its transfer.",
         "processing": "Your deposit of {{amount}} is on its way. It'll be available in a moment.",
         "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
+        "under_review_label": "Your deposit of {{amount}} is under review. Support reference:",
         "unknown": "A deposit is already in progress. Try again in a moment.",
         "continue": "Continue",
         "cancel": "Cancel deposit",
@@ -4185,6 +4186,8 @@
         "awaiting_transfer": "Deposit waiting for your transfer",
         "processing": "Deposit processing",
         "under_review": "Deposit under review · Ref {{reference}}",
+        "under_review_label": "Deposit under review · Ref",
+        "copy_reference": "Copy support reference",
         "failed": "Deposit failed",
         "cancelled": "Deposit cancelled"
       },

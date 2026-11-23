@@ -541,11 +541,18 @@ describe('matchDepositTransferForResume', () => {
     ...overrides,
   });
 
+  const makeResumeTx = (
+    overrides: Partial<TransactionMeta> = {},
+  ): TransactionMeta =>
+    makeDepositTransferTx(DEPOSIT_SOURCE, {
+      ...overrides,
+    });
+
   it.each([TransactionStatus.submitted, TransactionStatus.confirmed])(
-    'returns report for a matching %s transaction with hash',
+    'returns report for a tagged %s transaction with hash',
     (status) => {
       const result = matchDepositTransferForResume({
-        transactions: [makeTx({ status, hash: HASH_1 })],
+        transactions: [makeResumeTx({ status, hash: HASH_1 })],
         deposit: makeDeposit(),
       });
 
@@ -560,7 +567,7 @@ describe('matchDepositTransferForResume', () => {
   it('matches a tagged transaction for the same operationId even when device clock is behind createdAt', () => {
     const result = matchDepositTransferForResume({
       transactions: [
-        makeTx({
+        makeResumeTx({
           status: TransactionStatus.submitted,
           hash: HASH_1,
           requestId: depositTransferRequestId(OPERATION_ID),
@@ -580,7 +587,7 @@ describe('matchDepositTransferForResume', () => {
   it.each([
     [
       'wrong amount',
-      makeTx({
+      makeResumeTx({
         txParams: {
           from: FROM,
           to: USDC,
@@ -591,7 +598,7 @@ describe('matchDepositTransferForResume', () => {
     ],
     [
       'wrong address',
-      makeTx({
+      makeResumeTx({
         txParams: {
           from: FROM,
           to: USDC,
@@ -602,20 +609,41 @@ describe('matchDepositTransferForResume', () => {
     ],
     [
       'wrong token contract',
-      makeTx({
+      makeResumeTx({
         txParams: { from: FROM, to: OTHER_ADDRESS, data: DATA, value: '0x0' },
       }),
     ],
-    ['wrong chain', makeTx({ chainId: '0x1' })],
+    ['wrong chain', makeResumeTx({ chainId: '0x1' })],
     [
       'non-zero native value',
-      makeTx({ txParams: { from: FROM, to: USDC, data: DATA, value: '0x1' } }),
+      makeResumeTx({
+        txParams: { from: FROM, to: USDC, data: DATA, value: '0x1' },
+      }),
     ],
     [
       'different operationId requestId',
-      makeTx({ requestId: depositTransferRequestId(OTHER_OPERATION_ID) }),
+      makeResumeTx({ requestId: depositTransferRequestId(OTHER_OPERATION_ID) }),
     ],
-    ['older than createdAt without tag', makeTx({ time: CREATED_AT_MS - 1 })],
+    [
+      'untagged confirmed transaction',
+      makeTx({ status: TransactionStatus.confirmed, hash: HASH_1 }),
+    ],
+    [
+      'untagged submitted transaction',
+      makeTx({ status: TransactionStatus.submitted, hash: HASH_1 }),
+    ],
+    [
+      'untagged pending transaction',
+      makeTx({ status: TransactionStatus.unapproved, hash: undefined }),
+    ],
+    [
+      'untagged failed transaction',
+      makeTx({ status: TransactionStatus.failed, hash: undefined }),
+    ],
+    [
+      'untagged rejected transaction',
+      makeTx({ status: TransactionStatus.rejected, hash: undefined }),
+    ],
   ])('returns none for %s', (_label, tx) => {
     expect(
       matchDepositTransferForResume({
@@ -625,11 +653,88 @@ describe('matchDepositTransferForResume', () => {
     ).toStrictEqual({ kind: 'none' });
   });
 
+  it('prefers a tagged submitted transfer over a newer untagged confirmed lookalike', () => {
+    const untaggedLookalike = makeTx({
+      id: 'tx-untagged-confirmed',
+      status: TransactionStatus.confirmed,
+      hash: HASH_2,
+      time: CREATED_AT_MS + 10_000,
+    });
+    const taggedSubmitted = makeResumeTx({
+      id: 'tx-tagged-submitted',
+      status: TransactionStatus.submitted,
+      hash: HASH_1,
+      time: CREATED_AT_MS + 1_000,
+    });
+
+    expect(
+      matchDepositTransferForResume({
+        transactions: [untaggedLookalike, taggedSubmitted],
+        deposit: makeDeposit(),
+      }),
+    ).toStrictEqual({
+      kind: 'report',
+      txHash: HASH_1,
+      chainId: 8453,
+    });
+  });
+
+  it('ignores prior tagged and untagged transfers on a reused deposit address for a new operation', () => {
+    const priorOperationConfirmed = makeResumeTx({
+      id: 'tx-prior-op',
+      status: TransactionStatus.confirmed,
+      hash: HASH_1,
+      requestId: depositTransferRequestId(OPERATION_ID),
+      time: CREATED_AT_MS + 1_000,
+    });
+    const untaggedLookalike = makeTx({
+      id: 'tx-untagged-recent',
+      status: TransactionStatus.failed,
+      hash: undefined,
+      time: CREATED_AT_MS + 60_000,
+    });
+    const laterOperation = makeDeposit({
+      operationId: OTHER_OPERATION_ID as PredictEntityId,
+      createdAt: new Date(
+        CREATED_AT_MS + 30_000,
+      ).toISOString() as PredictTimestamp,
+    });
+
+    expect(
+      matchDepositTransferForResume({
+        transactions: [priorOperationConfirmed, untaggedLookalike],
+        deposit: laterOperation,
+      }),
+    ).toStrictEqual({ kind: 'none' });
+
+    const laterOperationSubmitted = makeResumeTx({
+      id: 'tx-later-op',
+      status: TransactionStatus.submitted,
+      hash: HASH_2,
+      requestId: depositTransferRequestId(OTHER_OPERATION_ID),
+      time: CREATED_AT_MS + 35_000,
+    });
+    expect(
+      matchDepositTransferForResume({
+        transactions: [
+          priorOperationConfirmed,
+          untaggedLookalike,
+          laterOperationSubmitted,
+        ],
+        deposit: laterOperation,
+      }),
+    ).toStrictEqual({
+      kind: 'report',
+      txHash: HASH_2,
+      chainId: 8453,
+    });
+  });
+
   it.each([TransactionStatus.rejected, TransactionStatus.failed])(
-    'returns cancel for a matching %s transaction',
+    'returns cancel for a tagged %s transaction',
     (status) => {
       const result = matchDepositTransferForResume({
-        transactions: [makeTx({ status, hash: undefined })],
+        transactions: [makeResumeTx({ status, hash: undefined })],
         deposit: makeDeposit(),
       });
 
@@ -637,10 +742,10 @@ describe('matchDepositTransferForResume', () => {
     },
   );
 
-  it('returns none for a dropped transaction', () => {
+  it('returns none for a tagged dropped transaction', () => {
     const result = matchDepositTransferForResume({
       transactions: [
-        makeTx({ status: TransactionStatus.dropped, hash: undefined }),
+        makeResumeTx({ status: TransactionStatus.dropped, hash: undefined }),
       ],
       deposit: makeDeposit(),
     });
@@ -653,39 +758,36 @@ describe('matchDepositTransferForResume', () => {
     TransactionStatus.approved,
     TransactionStatus.signed,
     TransactionStatus.submitted,
-  ])(
-    'returns pending for a matching %s transaction without a hash',
-    (status) => {
-      const tx = makeTx({ status, hash: undefined });
-      const result = matchDepositTransferForResume({
-        transactions: [tx],
-        deposit: makeDeposit(),
-      });
+  ])('returns pending for a tagged %s transaction without a hash', (status) => {
+    const tx = makeResumeTx({ status, hash: undefined });
+    const result = matchDepositTransferForResume({
+      transactions: [tx],
+      deposit: makeDeposit(),
+    });
 
-      expect(result).toStrictEqual({ kind: 'pending', transactionMeta: tx });
-    },
-  );
+    expect(result).toStrictEqual({ kind: 'pending', transactionMeta: tx });
+  });
 
   it('prefers confirmed/submitted over pending and pending over rejected/failed', () => {
-    const rejected = makeTx({
+    const rejected = makeResumeTx({
       id: 'tx-rejected',
       status: TransactionStatus.rejected,
       hash: undefined,
       time: CREATED_AT_MS + 4000,
     });
-    const pending = makeTx({
+    const pending = makeResumeTx({
       id: 'tx-pending',
       status: TransactionStatus.unapproved,
       hash: undefined,
       time: CREATED_AT_MS + 3000,
     });
-    const submitted = makeTx({
+    const submitted = makeResumeTx({
       id: 'tx-submitted',
       status: TransactionStatus.submitted,
       hash: HASH_1,
       time: CREATED_AT_MS + 1000,
     });
-    const confirmed = makeTx({
+    const confirmed = makeResumeTx({
       id: 'tx-confirmed',
       status: TransactionStatus.confirmed,
       hash: HASH_2,
@@ -710,7 +812,7 @@ describe('matchDepositTransferForResume', () => {
   it('still matches an awaiting_transfer deposit whose plan already expired (next.kind === wait)', () => {
     const result = matchDepositTransferForResume({
       transactions: [
-        makeTx({
+        makeResumeTx({
           status: TransactionStatus.submitted,
           hash: HASH_1,
           requestId: depositTransferRequestId(OPERATION_ID),
@@ -731,7 +833,7 @@ describe('matchDepositTransferForResume', () => {
   it('returns none when the deposit is not awaiting_transfer', () => {
     expect(
       matchDepositTransferForResume({
-        transactions: [makeTx({ status: TransactionStatus.submitted })],
+        transactions: [makeResumeTx({ status: TransactionStatus.submitted })],
         deposit: makeDeposit({
           status: 'processing',
           next: { kind: 'wait' },

@@ -35,6 +35,7 @@ import { subscribeToActiveVenueChanges } from '../../../components/UI/PredictNex
 import { store } from '../../../store';
 import type { MessengerClientInitFunction } from '../types';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { createDepositStatusJournal } from '../../../components/UI/PredictNext/services/internal/depositStatusJournal';
 import { createOrderDispatchJournal } from '../../../components/UI/PredictNext/services/internal/orderDispatchJournal';
 import { bindDepositResumeLifecycle } from '../../../components/UI/PredictNext/services/internal/depositResumeLifecycle';
 import { bindOrderRecoveryLifecycle } from '../../../components/UI/PredictNext/services/internal/orderRecoveryLifecycle';
@@ -292,11 +293,18 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
       const state = initMessenger.call('TransactionController:getState');
       return Array.isArray(state?.transactions) ? state.transactions : [];
     },
+    journal: createDepositStatusJournal(StorageWrapper),
+    getIdentityScope: async () => {
+      const profile = await initMessenger.call(
+        'AuthenticationController:getSessionProfile',
+      );
+      return profile?.canonicalProfileId || undefined;
+    },
   });
 
   // Lock stops observation; replacing the identity also detaches funding state.
   // Deposit resume/polling also follows unlock, sign-in, and Active Venue.
-  let notifyDepositLifecycle: () => void = () => undefined;
+  let notifyDepositLifecycle: (forceResume?: boolean) => void = () => undefined;
   const onLock = () => {
     controller.stopObserving();
     notifyDepositLifecycle();
@@ -306,15 +314,15 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
   };
   const onProfileSignIn = () => {
     controller.changeIdentity();
-    notifyDepositLifecycle();
+    notifyDepositLifecycle(true);
   };
-  let signedIn =
-    initMessenger.call('AuthenticationController:getState')?.isSignedIn ===
-    true;
+  let signedIn = Boolean(
+    initMessenger.call('AuthenticationController:getState')?.isSignedIn,
+  );
   const authenticationChanged = () => {
-    const next =
-      initMessenger.call('AuthenticationController:getState')?.isSignedIn ===
-      true;
+    const next = Boolean(
+      initMessenger.call('AuthenticationController:getState')?.isSignedIn,
+    );
     if (next !== signedIn) {
       signedIn = next;
       controller.changeIdentity();
@@ -347,10 +355,11 @@ export const predictFundingServiceInit: MessengerClientInitFunction<
       return active.status === 'ready' && active.venue === KALSHI_VENUE_ID;
     },
     isUnlocked: () =>
-      initMessenger.call('KeyringController:getState')?.isUnlocked === true,
+      Boolean(initMessenger.call('KeyringController:getState')?.isUnlocked),
     isSignedIn: () =>
-      initMessenger.call('AuthenticationController:getState')?.isSignedIn ===
-      true,
+      Boolean(
+        initMessenger.call('AuthenticationController:getState')?.isSignedIn,
+      ),
     subscribeSession: (listener) => {
       notifyDepositLifecycle = listener;
       return () => {

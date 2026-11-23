@@ -20,7 +20,7 @@ export interface DepositResumeLifecycleOptions {
   isKalshiActive: () => boolean;
   isUnlocked: () => boolean;
   isSignedIn: () => boolean;
-  subscribeSession: (listener: () => void) => () => void;
+  subscribeSession: (listener: (forceResume?: boolean) => void) => () => void;
   appState?: Pick<typeof AppState, 'currentState' | 'addEventListener'>;
   network?: { addEventListener: typeof netInfoAddEventListener };
 }
@@ -66,7 +66,9 @@ export const bindDepositResumeLifecycle = ({
     }
   };
 
-  const unsubscribeSession = subscribeSession(() => sync());
+  const unsubscribeSession = subscribeSession((forceResume = false) =>
+    sync(forceResume),
+  );
 
   const appSubscription = appState.addEventListener('change', (state) => {
     const nextActive = state === 'active';

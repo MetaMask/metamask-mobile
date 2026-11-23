@@ -47,6 +47,7 @@ export type PredictFundingServiceInitMessenger = Messenger<
       GlobalActions,
       {
         type:
+          | 'AuthenticationController:getSessionProfile'
           | 'AuthenticationController:getState'
           | 'KeyringController:getState'
           | 'TransactionController:getState';
@@ -95,6 +96,7 @@ export const getPredictFundingServiceInitMessenger = (
   rootMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
+      'AuthenticationController:getSessionProfile',
       'AuthenticationController:getState',
       'KeyringController:getState',
       'TransactionController:getState',

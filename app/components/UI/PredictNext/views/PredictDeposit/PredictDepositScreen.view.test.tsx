@@ -389,6 +389,7 @@ describe('PredictDepositScreen', () => {
       'PredictFundingService:prepareDeposit': async () => {
         throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
       },
+      'PredictFundingService:getDeposit': async () => openDeposit,
       'PredictFundingService:listOpenDeposits': async () => [openDeposit],
       'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
     });
@@ -632,6 +633,7 @@ describe('PredictDepositScreen', () => {
       .mockResolvedValueOnce({ ...openDeposit, status: 'processing' });
     mockFunding({
       'PredictFundingService:prepareDeposit': prepareDeposit,
+      'PredictFundingService:getDeposit': async () => openDeposit,
       'PredictFundingService:listOpenDeposits': async () => [openDeposit],
       'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
     });
@@ -729,6 +731,7 @@ describe('PredictDepositScreen', () => {
       'PredictFundingService:prepareDeposit': async () => {
         throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
       },
+      'PredictFundingService:getDeposit': async () => openDeposit,
       'PredictFundingService:listOpenDeposits': async () => [openDeposit],
       'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
     });
@@ -801,6 +804,7 @@ describe('PredictDepositScreen', () => {
       'PredictFundingService:prepareDeposit': async () => {
         throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
       },
+      'PredictFundingService:getDeposit': async () => openDeposit,
       'PredictFundingService:listOpenDeposits': async () => [openDeposit],
       'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
     });
@@ -863,6 +867,7 @@ describe('PredictDepositScreen', () => {
       .mockResolvedValueOnce({ ...openDeposit, status: 'processing' });
     mockFunding({
       'PredictFundingService:prepareDeposit': prepareDeposit,
+      'PredictFundingService:getDeposit': async () => openDeposit,
       'PredictFundingService:listOpenDeposits': async () => [openDeposit],
       'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
     });
@@ -965,6 +970,7 @@ describe('PredictDepositScreen', () => {
       'PredictFundingService:prepareDeposit': async () => {
         throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
       },
+      'PredictFundingService:getDeposit': async () => newDeposit,
       'PredictFundingService:listOpenDeposits': async () => [newDeposit],
       'PredictFundingService:reportDepositTransfer': reportDepositTransfer,
     });
@@ -1108,6 +1114,7 @@ describe('PredictDepositScreen', () => {
       'PredictFundingService:prepareDeposit': async () => {
         throw PredictError.from(PredictErrorCode.DEPOSIT_IN_PROGRESS);
       },
+      'PredictFundingService:getDeposit': async () => nearExpiryDeposit,
       'PredictFundingService:listOpenDeposits': async () => [nearExpiryDeposit],
       'PredictFundingService:cancelDeposit': cancelDeposit,
     });

@@ -3,7 +3,9 @@ import { renderPredictNext } from '../../../../../../tests/component-view/render
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { focusManager, onlineManager } from '@tanstack/react-query';
+import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { formatGameStartShort } from '../../events/game';
 import { KalshiDebugTestIds } from '../../onboarding/KalshiDebugPanel';
@@ -2062,15 +2064,177 @@ describe('PredictHome', () => {
       ).toHaveTextContent('$123.13');
     });
 
-    it('shows Deposit under review with the first 8 characters of operationId', async () => {
+    it('shows Deposit under review with full supportReference and lets the user copy it', async () => {
       configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
       const view = renderPredictNext();
 
       expect(
         await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
       ).toHaveTextContent(
-        `Deposit under review · Ref ${needsReviewDeposit.operationId.slice(0, 8)}`,
+        `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
       );
+
+      fireEvent.press(
+        view.getByTestId(`${PredictHomeTestIds.DEPOSIT_STATUS}-copy`),
+      );
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        needsReviewDeposit.next.supportReference,
+      );
+    });
+
+    it.each([
+      [
+        'completed',
+        { ...awaitingTransferDeposit, status: 'completed', next: null },
+      ],
+      ['cancelled', cancelledDeposit],
+    ])(
+      'rechecks live deposit before Continue can send USDC when %s and creates no transaction',
+      async (_label, resolvedDeposit) => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:getDeposit') {
+              return Promise.resolve(resolvedDeposit);
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const addTxSpy = jest.spyOn(
+          Engine.context.TransactionController,
+          'addTransaction',
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:getDeposit',
+            'kalshi',
+            awaitingTransferDeposit.operationId,
+          ),
+        );
+        expect(addTxSpy).not.toHaveBeenCalled();
+        expect(
+          callsTo('PredictFundingService:reportDepositTransfer'),
+        ).toHaveLength(0);
+      },
+    );
+
+    it('hides Continue live when an open sheet transitions to cancelled', async () => {
+      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+      const view = renderPredictNext();
+
+      const statusLine = await view.findByTestId(
+        PredictHomeTestIds.DEPOSIT_STATUS,
+      );
+      fireEvent.press(statusLine);
+      expect(
+        await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        ),
+      ).toBeOnTheScreen();
+
+      act(() =>
+        publishPredictNextDepositStatus({
+          ...awaitingTransferDeposit,
+          status: 'cancelled',
+          next: null,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+        ).not.toBeOnTheScreen(),
+      );
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CLOSE),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps two failed notices separate across visits without acknowledging the second on the first visit', async () => {
+      const failedA = makeFailedDeposit({
+        operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f' as PredictEntityId,
+      });
+      const failedB = makeFailedDeposit({
+        operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e60' as PredictEntityId,
+      });
+      const pending = [failedA, failedB];
+      configurePredictNextFeeds({ depositStatus: failedA });
+      const baseImplementation = messengerCall.getMockImplementation();
+      messengerCall.mockImplementation((action: string, ...args: unknown[]) => {
+        if (action === 'PredictFundingService:getDepositStatus') {
+          return pending[0] ?? null;
+        }
+        if (action === 'PredictFundingService:acknowledgeDepositNotice') {
+          const opId = args[1] as string;
+          const idx = pending.findIndex((item) => item.operationId === opId);
+          if (idx !== -1) {
+            pending.splice(idx, 1);
+            publishPredictNextDepositStatus(pending[0] ?? null);
+          }
+          return undefined;
+        }
+        return baseImplementation?.(action, ...args);
+      });
+
+      const firstVisit = renderPredictNext();
+      expect(
+        await firstVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit failed');
+      await waitFor(() =>
+        expect(
+          callsTo('PredictFundingService:acknowledgeDepositNotice'),
+        ).toEqual([
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedA.operationId,
+          ],
+        ]),
+      );
+      firstVisit.unmount();
+
+      const secondVisit = renderPredictNext();
+      expect(
+        await secondVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit failed');
+      await waitFor(() =>
+        expect(
+          callsTo('PredictFundingService:acknowledgeDepositNotice'),
+        ).toEqual([
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedA.operationId,
+          ],
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedB.operationId,
+          ],
+        ]),
+      );
+      secondVisit.unmount();
+
+      const thirdVisit = renderPredictNext();
+      await thirdVisit.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+      expect(
+        thirdVisit.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).not.toBeOnTheScreen();
     });
 
     it.each([
@@ -2110,7 +2274,7 @@ describe('PredictHome', () => {
         ...needsReviewDeposit,
         operationId: transferReportedDeposit.operationId,
       };
-      const underReviewText = `Deposit under review · Ref ${underReviewDeposit.operationId.slice(0, 8)}`;
+      const underReviewText = `Deposit under review · Ref ${underReviewDeposit.next.supportReference}`;
       const depositAnnouncements = (announce: jest.SpyInstance) =>
         announce.mock.calls
           .map(([message]) => message)
