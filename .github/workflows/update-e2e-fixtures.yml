@@ -15,6 +15,12 @@
 #
 # Trigger: weekly schedule (runs from the default branch) or manually via the
 # Actions tab with workflow_dispatch.
+#
+# Dry run: set `dry_run` on a manual run to build, validate and export the
+# fixture without pushing a branch or opening a PR. The result is written to the
+# run summary and the updated fixture is uploaded as an artifact. A PR is only
+# ever opened from a run on the default branch, so a manual run from any other
+# branch is always a dry run.
 
 name: Update E2E Fixtures
 
@@ -23,6 +29,11 @@ on:
     - cron: '0 6 * * 1' # 06:00 UTC every Monday
   workflow_dispatch:
     inputs:
+      dry_run:
+        description: 'Dry run: validate and export the fixture, but do not push a branch or open a PR'
+        required: false
+        type: boolean
+        default: false
       runner_provider:
         description: 'Runner provider: inherit uses the repo NAMESPACE_RUNNER_* variables'
         required: false
@@ -176,12 +187,47 @@ jobs:
           cat "$RESULT_FILE"
 
           if git diff --quiet -- "$FIXTURE_PATH"; then
-            echo "SHOULD_COMMIT=false" >> "$GITHUB_OUTPUT"
+            SHOULD_COMMIT=false
             echo "Committed fixture is up to date."
           else
-            echo "SHOULD_COMMIT=true" >> "$GITHUB_OUTPUT"
+            SHOULD_COMMIT=true
             echo "Committed fixture is out of date; updated fixture exported."
           fi
+          echo "SHOULD_COMMIT=${SHOULD_COMMIT}" >> "$GITHUB_OUTPUT"
+
+          # Surface the outcome on the run page so a dry run (or a quiet week)
+          # is readable without opening the logs or downloading artifacts.
+          {
+            echo "### E2E fixture validation"
+            echo ""
+            echo "- Fixture update needed: \`${SHOULD_COMMIT}\`"
+            echo "- Run ref: \`${GITHUB_REF_NAME}\` (\`${GITHUB_SHA::12}\`)"
+            echo ""
+            echo "<details><summary>Validation result</summary>"
+            echo ""
+            echo '```json'
+            cat "$RESULT_FILE"
+            echo '```'
+            echo "</details>"
+            if [ -f tests/reports/fixture-validation-diff.txt ]; then
+              echo ""
+              echo "<details><summary>Diff report (first 300 lines)</summary>"
+              echo ""
+              echo '```text'
+              head -n 300 tests/reports/fixture-validation-diff.txt
+              echo '```'
+              echo "</details>"
+            fi
+            if [ "$SHOULD_COMMIT" = "true" ]; then
+              echo ""
+              echo "<details><summary>Fixture diff stat</summary>"
+              echo ""
+              echo '```text'
+              git diff --stat -- "$FIXTURE_PATH"
+              echo '```'
+              echo "</details>"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload updated fixture
         if: ${{ steps.evaluate.outputs.SHOULD_COMMIT == 'true' }}
@@ -207,7 +253,15 @@ jobs:
   open-fixture-pr:
     name: Open fixture update PR
     needs: update-fixtures
-    if: ${{ needs.update-fixtures.outputs.SHOULD_COMMIT == 'true' }}
+    # The PR branch is cut from the default branch, so only a run on the default
+    # branch (and not a dry run) may open one. Otherwise a run from another ref
+    # would commit that ref's exported app state onto the default branch.
+    if: >-
+      ${{
+        needs.update-fixtures.outputs.SHOULD_COMMIT == 'true' &&
+        inputs.dry_run != true &&
+        github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+      }}
     runs-on: >-
       ${{
         (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider ||
