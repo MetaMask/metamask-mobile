@@ -188,11 +188,8 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     expect(renderResult.getByText(SWAP_AGAIN_BUTTON_LABEL)).toBeOnTheScreen();
   });
 
-  it('shows skipped attempt details without transaction-only content', async () => {
+  it('shows skipped attempt details and opens Ramps for the source token', async () => {
     const { renderResult } = await openSwapDetails(2);
-    const consoleLogSpy = jest
-      .spyOn(console, 'log')
-      .mockImplementation(() => undefined);
 
     expect(
       within(
@@ -236,8 +233,24 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
 
     await userEvent.press(addFundsButton);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[RecurringSwapDetails:AddFunds] Add funds pressed',
+    const rampRouteParams = await renderResult.findByTestId(
+      `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
+    );
+    expect(rampRouteParams).toHaveTextContent(
+      `"screen":"${Routes.RAMP.TOKEN_SELECTION_ROOT}"`,
+      { exact: false },
+    );
+    expect(rampRouteParams).toHaveTextContent(
+      `"screen":"${Routes.RAMP.AMOUNT_INPUT}"`,
+      { exact: false },
+    );
+    expect(rampRouteParams).toHaveTextContent(
+      `"assetId":"${MOCK_RECURRING_OPEN_ORDER.src.asset.assetId}"`,
+      { exact: false },
+    );
+    expect(rampRouteParams).not.toHaveTextContent(
+      MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
+      { exact: false },
     );
   });
 
