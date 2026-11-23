@@ -38,6 +38,8 @@ import TradeWalletActions, {
   TRADE_FOCUSED_BORDER_OPACITY,
 } from './TradeWalletActions';
 import { springboardEnter } from './TradeWalletActions.animations';
+import { selectCollectiblesEnabled } from '#app/components/UI/Collectibles/selectors/featureFlags';
+import { collectiblesTestIds } from '#app/components/UI/Collectibles/Collectibles.testIds';
 import {
   TRADE_TRAY_GLASS_FILL_OPACITY,
   TRADE_TRAY_GLASS_RADIUS,
@@ -139,6 +141,10 @@ jest.mock('react-native-reanimated', () => {
     },
   };
 });
+
+jest.mock('#app/components/UI/Collectibles/selectors/featureFlags', () => ({
+  selectCollectiblesEnabled: jest.fn(),
+}));
 
 jest.mock('../../UI/Perps', () => ({
   selectPerpsEnabledFlag: jest.fn(),
@@ -614,6 +620,30 @@ describe('TradeWalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     ).toBeNull();
+  });
+
+  it('shows the collectibles row when the flag is on', () => {
+    jest.mocked(selectCollectiblesEnabled).mockReturnValue(true);
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(getByTestId(collectiblesTestIds.tradeMenuItem)).toBeOnTheScreen();
+  });
+
+  it('hides the collectibles row when the flag is off', () => {
+    jest.mocked(selectCollectiblesEnabled).mockReturnValue(false);
+
+    const { queryByTestId } = renderScreen(
+      TradeWalletActions,
+      { name: 'TradeWalletActions' },
+      { state: mockInitialState },
+    );
+
+    expect(queryByTestId(collectiblesTestIds.tradeMenuItem)).toBeNull();
   });
 
   it('renders the notched bottom edge by default', () => {
