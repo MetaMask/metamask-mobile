@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added Gold and Silver 15-minute Up/Down markets under a 15m filter on the Predict Finance feed (#40313)
+
 ### Changed
 
 - Updated the copy on the Add funds from your bank screen to align with the content guidelines
