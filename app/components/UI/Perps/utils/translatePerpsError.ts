@@ -134,8 +134,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.POSITION_NOT_FOUND]: 'perps.errors.position_not_found',
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
-  [PERPS_ERROR_CODES.ORDERS_FAILED]: 'perps.errors.ordersFailed',
-  [PERPS_ERROR_CODES.BATCH_INCOMPLETE]: 'perps.errors.batchIncomplete',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
@@ -215,7 +213,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.editTriggerUnsupported',
   [PERPS_ERROR_CODES.ORDER_EDIT_ORDER_UNVERIFIABLE]:
     'perps.errors.orderValidation.editOrderUnverifiable',
-  [PERPS_ERROR_CODES.ORDER_NO_LONGER_OPEN]: 'perps.errors.orderNoLongerOpen',
   // Strategy placement validation errors (TWAP / scale / chase)
   [PERPS_ERROR_CODES.ORDER_STRATEGY_PARAMS_NOT_SUPPORTED]:
     'perps.errors.orderValidation.strategyParamsNotSupported',
@@ -249,11 +246,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.scaleNotionalTooSmall',
   [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
     'perps.errors.orderValidation.scalePreviewStale',
-  // Internal scale-order failures; not caused by user input
-  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED]:
-    'perps.errors.orderValidation.scaleSizeConservationFailed',
-  [PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT]:
-    'perps.errors.orderValidation.scaleExposureExceedsIntent',
   [PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID]:
     'perps.errors.orderValidation.chaseIntervalInvalid',
   [PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID]:
@@ -290,8 +282,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.SWAP_FAILED]: 'perps.errors.swapFailed',
   [PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND]: 'perps.errors.spotPairNotFound',
   [PERPS_ERROR_CODES.PRICE_UNAVAILABLE]: 'perps.errors.priceUnavailable',
-  [PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE]:
-    'perps.errors.liquidationPriceUnavailable',
   // Batch operation errors
   [PERPS_ERROR_CODES.BATCH_CANCEL_FAILED]: 'perps.errors.batchCancelFailed',
   [PERPS_ERROR_CODES.BATCH_CLOSE_FAILED]: 'perps.errors.batchCloseFailed',
@@ -310,10 +300,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
   [PERPS_ERROR_CODES.PRICE_MOVED]: 'perps.errors.priceMoved',
-  // HyperLiquid post-only rejections
-  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS]:
-    'perps.errors.postOnlyWouldCross',
-  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW]: 'perps.errors.postOnlyWindow',
   [PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'perps.errors.rateLimitExceeded',
   // Network/service errors
   [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',
