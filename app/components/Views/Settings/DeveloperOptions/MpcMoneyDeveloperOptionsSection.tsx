@@ -59,7 +59,7 @@ export const MpcMoneyDeveloperOptionsSection = () => {
   );
 
   const create = useCallback(
-    () =>
+    async () =>
       run('Create MPC Money account', async () => {
         const account =
           await Engine.context.MoneyAccountController.createMoneyAccount({
@@ -71,7 +71,7 @@ export const MpcMoneyDeveloperOptionsSection = () => {
   );
 
   const sign = useCallback(
-    () =>
+    async () =>
       run('Sign test message', async () => {
         const address = mpc;
         if (!address) {
@@ -121,7 +121,9 @@ export const MpcMoneyDeveloperOptionsSection = () => {
         variant={ButtonVariant.Secondary}
         style={styles.accessory}
         size={ButtonSize.Lg}
-        onPress={create}
+        onPress={() => {
+          void create();
+        }}
         isFullWidth
         testID={MpcMoneyDeveloperOptionsSelectorsIDs.CREATE_BUTTON}
       >
@@ -131,7 +133,9 @@ export const MpcMoneyDeveloperOptionsSection = () => {
         variant={ButtonVariant.Secondary}
         style={styles.accessory}
         size={ButtonSize.Lg}
-        onPress={sign}
+        onPress={() => {
+          void sign();
+        }}
         isFullWidth
         testID={MpcMoneyDeveloperOptionsSelectorsIDs.SIGN_BUTTON}
       >
