@@ -13,15 +13,15 @@ import { isEqual } from 'lodash';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-import {
-  NATIVE_HEADER_BAR_HEIGHT,
-  useNativeHeader,
-} from '../../../components/hooks/useNativeHeader';
+import { useNativeHeader } from '../../../components/hooks/useNativeHeader';
 import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import {
   toNativeHeaderItems,
   type NativeHeaderConfig,
 } from './headerStandardNativeItems';
+
+// The JS header's height (MMDS `h-14`), not the 44pt bar's, so content keeps its spacing.
+const NATIVE_HEADER_CONTENT_OFFSET = 56;
 
 interface NativeBarProps {
   config: NativeHeaderConfig;
@@ -29,7 +29,7 @@ interface NativeBarProps {
   style?: StyleProp<ViewStyle>;
   testID?: string;
   onLayout?: (event: LayoutChangeEvent) => void;
-  /** Content scrolls under the bar: no spacer, and gets the bar's height. */
+  /** Content scrolls under the bar: no spacer, and gets the space to leave. */
   onInset?: (inset: number) => void;
 }
 
@@ -39,7 +39,7 @@ export interface HeaderStandardNativeProps extends NativeBarProps {
 }
 
 /**
- * Leaves a spacer as tall as the native bar in the JS header's place, so the
+ * Leaves a spacer as tall as the JS header in its place, so the
  * screen's layout (and keyboard avoidance) is unchanged under the bar. With
  * `onInset`, renders nothing and reports that height instead, so content can
  * scroll under the bar's glass.
@@ -55,7 +55,7 @@ const NativeBar = ({
   const tw = useTailwind();
   const { top } = useSafeAreaInsets();
   const { handlers, ...look } = config;
-  const inset = top + NATIVE_HEADER_BAR_HEIGHT;
+  const inset = top + NATIVE_HEADER_CONTENT_OFFSET;
   const isContentUnderBar = onInset !== undefined;
 
   const onInsetRef = useRef(onInset);

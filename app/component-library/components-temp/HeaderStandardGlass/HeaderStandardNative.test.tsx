@@ -8,10 +8,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import HeaderStandardNative from './HeaderStandardNative';
 import type { NativeHeaderConfig } from './headerStandardNativeItems';
-import {
-  NATIVE_HEADER_BAR_HEIGHT,
-  useNativeHeader,
-} from '../../../components/hooks/useNativeHeader';
+import { useNativeHeader } from '../../../components/hooks/useNativeHeader';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -19,7 +16,6 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../components/hooks/useNativeHeader', () => ({
-  NATIVE_HEADER_BAR_HEIGHT: 44,
   useNativeHeader: jest.fn(() => true),
 }));
 
@@ -82,13 +78,13 @@ describe('HeaderStandardNative', () => {
     jest.mocked(useSelector).mockReturnValue(true);
   });
 
-  it('leaves a spacer as tall as the native bar in the header slot', () => {
+  it('leaves a spacer as tall as the JS header in the header slot', () => {
     const { getByTestId } = render(
       inNavigator(nativeHeader(buildConfig(jest.fn()), 'header'), 'stack'),
     );
 
     expect(getByTestId('header')).toHaveStyle({
-      height: 62 + NATIVE_HEADER_BAR_HEIGHT,
+      height: 62 + 56,
     });
   });
 
@@ -117,7 +113,7 @@ describe('HeaderStandardNative', () => {
       );
 
       expect(queryByTestId('header')).toBeNull();
-      expect(onInset).toHaveBeenLastCalledWith(62 + NATIVE_HEADER_BAR_HEIGHT);
+      expect(onInset).toHaveBeenLastCalledWith(62 + 56);
     });
 
     it('turns on the UIKit scroll edge effect', () => {
