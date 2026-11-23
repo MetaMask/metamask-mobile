@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
   BoxFlexDirection,
@@ -10,25 +9,27 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
+import Logger from '../../../../../util/Logger';
 
 const MoneyEarningsFooter = (): React.ReactElement => {
-  const insets = useSafeAreaInsets();
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
 
   const handleAdd = useCallback(() => {
-    void navigateToMoneyDeposit();
+    navigateToMoneyDeposit().catch((error: unknown) => {
+      Logger.error(
+        error as Error,
+        '[MoneyEarningsFooter] Failed to navigate to deposit',
+      );
+    });
   }, [navigateToMoneyDeposit]);
 
   return (
-    <Box
-      twClassName="gap-3 px-4 pt-3"
-      style={{ paddingBottom: insets.bottom + 12 }}
-    >
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
+    <Box twClassName="px-4">
+      <Box flexDirection={BoxFlexDirection.Row}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          twClassName="flex-1"
+          isFullWidth
           onPress={handleAdd}
           testID={MoneyEarningsViewTestIds.ADD_BUTTON}
         >

@@ -112,9 +112,14 @@ const EarningsTab = (): React.ReactElement => {
         onActiveIndexChange={setActivePointIndex}
         setScrollEnabled={setScrollEnabled}
       />
-      {hasHistoricalEarnings ? (
-        <Box twClassName="py-4">
-          <EarningsSummary points={chartPoints} locale={locale} />
+      {hasHistoricalEarnings && selectedRangeData ? (
+        <Box twClassName="pb-4">
+          <EarningsSummary
+            points={chartPoints}
+            locale={locale}
+            rangeStart={selectedRangeData.range_start}
+            rangeEndExclusive={selectedRangeData.range_end}
+          />
         </Box>
       ) : null}
     </ScrollView>

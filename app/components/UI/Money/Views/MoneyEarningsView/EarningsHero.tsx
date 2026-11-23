@@ -12,6 +12,7 @@ import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import type { InterestHistoryGranularity } from '../../types/moneyInterestHistory';
 import { formatSignedUsdWithThreshold } from '../../utils/moneyFormatFiat';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
+import { isCrossYearRange } from './EarningsChart.utils';
 
 interface EarningsHeroProps {
   totalEarnedUsd: number;
@@ -31,8 +32,6 @@ const formatPeriodDateRange = (
 ): string => {
   const startDate = new Date(periodStart);
   const endDate = new Date(Date.parse(periodEndExclusive) - 1);
-  const rangeStartDate = new Date(rangeStart);
-  const rangeEndDate = new Date(Date.parse(rangeEndExclusive) - 1);
   const options: Intl.DateTimeFormatOptions = {
     month: 'short',
     timeZone: 'UTC',
@@ -42,7 +41,7 @@ const formatPeriodDateRange = (
     options.day = 'numeric';
   }
 
-  if (rangeStartDate.getUTCFullYear() !== rangeEndDate.getUTCFullYear()) {
+  if (isCrossYearRange(rangeStart, rangeEndExclusive)) {
     options.year = 'numeric';
   }
 

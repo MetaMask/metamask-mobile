@@ -10,6 +10,16 @@ const mockUseRoute = jest.fn();
 const mockTabsBarProps = jest.fn();
 const mockEarningsTab = jest.fn();
 const mockMoneyEarningsFooter = jest.fn(() => null);
+
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: (): {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  } => ({ top: 48, bottom: 34, left: 0, right: 0 }),
+}));
+
 interface MockTabsBarProps {
   tabs: TabItem[];
   activeIndex: number;
@@ -114,6 +124,16 @@ describe('MoneyEarningsView', () => {
         }),
       );
     });
+  });
+
+  it('applies the bottom safe area inset to the container', () => {
+    const { getByTestId } = renderWithProvider(<MoneyEarningsView />);
+
+    expect(
+      StyleSheet.flatten(
+        getByTestId(MoneyEarningsViewTestIds.CONTAINER).props.style,
+      ),
+    ).toHaveProperty('paddingBottom', 34);
   });
 
   it('initializes the Earnings tab when route params are missing', () => {

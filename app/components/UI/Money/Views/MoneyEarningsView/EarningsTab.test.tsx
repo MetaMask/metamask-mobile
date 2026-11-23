@@ -367,13 +367,13 @@ describe('EarningsTab', () => {
 
     expect(
       getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_DATE(0)),
-    ).toHaveTextContent('Sunday, Nov 15, 2026');
+    ).toHaveTextContent('Sunday, Nov 15');
 
     fireEvent.press(getByLabelText(strings('money.earnings.range_3m')));
 
     expect(
       getByTestId(MoneyEarningsViewTestIds.SUMMARY_ROW_DATE(0)),
-    ).toHaveTextContent('November 2026');
+    ).toHaveTextContent('November');
   });
 
   it('omits unavailable buckets from the earnings rows', () => {

@@ -69,16 +69,28 @@ export const formatPointDateRange = (
   return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
 };
 
+export const isCrossYearRange = (
+  rangeStart: string,
+  rangeEndExclusive: string,
+): boolean => {
+  const rangeStartDate = new Date(rangeStart);
+  const rangeEndDate = new Date(Date.parse(rangeEndExclusive) - 1);
+
+  return rangeStartDate.getUTCFullYear() !== rangeEndDate.getUTCFullYear();
+};
+
 /**
  * Formats an earnings bucket date for its summary row.
  *
  * @param point - Earnings bucket to format.
  * @param locale - Locale used for the formatted date.
+ * @param includeYear - Whether to include the year in the formatted date.
  * @returns A locale-aware date label based on the bucket granularity.
  */
 export const formatEarningsPointDate = (
   point: EarningsPoint,
   locale: string,
+  includeYear = true,
 ): string => {
   const { displayStart, displayEnd } = getBucketDisplayDateRange(point);
 
@@ -88,14 +100,14 @@ export const formatEarningsPointDate = (
         weekday: 'long',
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
+        ...(includeYear ? { year: 'numeric' } : {}),
         timeZone: 'UTC',
       }).format(new Date(displayStart));
     case 'week': {
       const formatter = getIntlDateTimeFormatter(locale, {
         month: 'short',
         day: 'numeric',
-        year: 'numeric',
+        ...(includeYear ? { year: 'numeric' } : {}),
         timeZone: 'UTC',
       });
       const startLabel = formatter.format(new Date(displayStart));
@@ -108,7 +120,7 @@ export const formatEarningsPointDate = (
     case 'month':
       return getIntlDateTimeFormatter(locale, {
         month: 'long',
-        year: 'numeric',
+        ...(includeYear ? { year: 'numeric' } : {}),
         timeZone: 'UTC',
       }).format(new Date(displayStart));
   }

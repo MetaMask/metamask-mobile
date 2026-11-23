@@ -6,6 +6,7 @@ import {
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
@@ -35,11 +36,13 @@ const isEnabledTab = (
 
 const MoneyEarningsView = (): React.ReactElement => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { bottom } = useSafeAreaInsets();
   const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled);
   const { params } = useRoute<MoneyEarningsRoute>();
   const initialActiveTab = getInitialActiveTab(params?.activeTab);
   const [activeTab, setActiveTab] =
     useState<MoneyEarningsTab>(initialActiveTab);
+
   const tabs = useMemo<MoneyEarningsTabItem[]>(
     () => [
       {
@@ -86,6 +89,7 @@ const MoneyEarningsView = (): React.ReactElement => {
     <Box
       testID={MoneyEarningsViewTestIds.CONTAINER}
       twClassName="flex-1 bg-default"
+      style={{ paddingBottom: bottom }}
     >
       <HeaderStandardGlass
         isGlass={isGlassHeader}
