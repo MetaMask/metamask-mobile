@@ -1,4 +1,4 @@
-import { useEffect, useRef, type MutableRefObject } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import {
   CHAIN_IDS,
   TransactionMeta,
@@ -33,7 +33,7 @@ function isLighterPerpsDeposit(type: TransactionType | string | undefined) {
 }
 
 function releaseAppliedKey(
-  appliedKeyRef: MutableRefObject<string | undefined>,
+  appliedKeyRef: RefObject<string | undefined>,
   requestKey: string,
 ): void {
   if (appliedKeyRef.current === requestKey) {
@@ -62,7 +62,7 @@ function logLighterAccountUnlessDepositOwnsIt({
   currentType: string | undefined;
   destination: PerpsReceiveDestination;
   from: string | undefined;
-  lookupKeyRef: MutableRefObject<string | undefined>;
+  lookupKeyRef: RefObject<string | undefined>;
   source: PerpsWithdrawSource;
 }): void {
   const checkingLighter = destination === 'lighter' || source === 'lighter';
@@ -111,7 +111,7 @@ async function replaceWithLighterDeposit({
 }: {
   from: Hex;
   nextType: TransactionType;
-  snapshotRef: MutableRefObject<HyperliquidConfirmationSnapshot | undefined>;
+  snapshotRef: RefObject<HyperliquidConfirmationSnapshot | undefined>;
   transactionMeta: TransactionMeta;
 }): Promise<void> {
   const mainnetNetworkClientId =
@@ -160,12 +160,12 @@ function depositMainnetUsdcWhenUnregistered({
   snapshotRef,
   transactionMeta,
 }: {
-  appliedKeyRef: MutableRefObject<string | undefined>;
+  appliedKeyRef: RefObject<string | undefined>;
   generation: number;
-  lookupGenerationRef: MutableRefObject<number>;
+  lookupGenerationRef: RefObject<number>;
   nextType: TransactionType;
   requestKey: string;
-  snapshotRef: MutableRefObject<HyperliquidConfirmationSnapshot | undefined>;
+  snapshotRef: RefObject<HyperliquidConfirmationSnapshot | undefined>;
   transactionMeta: TransactionMeta;
 }): void {
   const from = transactionMeta.txParams?.from;
