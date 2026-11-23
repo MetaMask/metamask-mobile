@@ -1,6 +1,7 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import { act, render, waitFor } from '@testing-library/react-native';
+import { earnRatesFixture } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import configureStore from '../../../../../util/test/configureStore';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -14,7 +15,6 @@ import type { ReferralMeDto } from '../../../../../core/Engine/controllers/rewar
 import * as SettingsSelectors from '../../../../../selectors/settings';
 // eslint-disable-next-line import-x/no-namespace
 import * as RewardsMoneyFlagSelectors from '../../../../../selectors/featureFlagController/rewardsMoneyController';
-import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { setPendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
 import PendingMoneyReferralInvite, {
   MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS,
@@ -46,10 +46,6 @@ jest.mock('../../../../../core/NavigationService', () => ({
   },
 }));
 
-jest.mock('../../hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
-}));
-
 jest.mock('../../hooks/useReferralMe', () => ({
   useReferralMe: () => ({
     profileId: undefined,
@@ -74,14 +70,7 @@ const buildReferralMe = (
   referral_code: null,
   referral_code_status: null,
   referred_by: null,
-  earn_rates: {
-    cashback_rate_bps: null,
-    cashback_earning_start: null,
-    cashback_earning_end: null,
-    revshare_rate_bps: null,
-    revshare_earning_start: null,
-    revshare_earning_end: null,
-  },
+  earn_rates: earnRatesFixture(),
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
   excluded_regions: [],
@@ -123,7 +112,18 @@ const renderInvite = ({
       pendingReferralCode,
       isReferralLinkPending,
     },
-    rewards: { geoLocation },
+    ...(geoLocation
+      ? {
+          engine: {
+            backgroundState: {
+              GeolocationController: {
+                location: geoLocation,
+                status: 'complete' as const,
+              },
+            },
+          },
+        }
+      : {}),
   });
   const view = render(
     <Provider store={store}>
@@ -152,7 +152,6 @@ describe('PendingMoneyReferralInvite', () => {
   it('does nothing when no deeplink left a code', () => {
     renderInvite({ pendingReferralCode: null });
 
-    expect(useGeoRewardsMetadata).not.toHaveBeenCalled();
     expect(mockFetchReferralMe).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
@@ -166,7 +165,6 @@ describe('PendingMoneyReferralInvite', () => {
         { referralCode: 'KOL1', entryType: 'deeplink' },
       );
     });
-    expect(useGeoRewardsMetadata).toHaveBeenCalledWith({ enabled: true });
     expect(mockFetchReferralMe).toHaveBeenCalledWith({ forceFresh: true });
     expect(store.getState().rewardsMoney.pendingReferralCode).toBe('KOL1');
   });

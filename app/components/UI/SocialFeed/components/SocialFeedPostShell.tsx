@@ -252,9 +252,12 @@ const SocialFeedPostFooter = ({
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
           />
-          {/* Default face keeps the count's look; AnimatedNumericText defaults to Hero. */}
+          {/* Default face keeps the count's look; AnimatedNumericText defaults to Hero.
+              No container glide until Reanimated 4.6+ (TSA-1725): it could
+              leave the count drawn over the post's GIF. */}
           <AnimatedNumericText
             animated={getHardwareTier() !== 'LOW'}
+            animateContainerLayout={false}
             color={TextColor.TextAlternative}
             fontFamily={FontFamily.Default}
             value={String(copyCount)}

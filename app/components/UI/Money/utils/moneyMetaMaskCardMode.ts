@@ -8,7 +8,8 @@ export type MoneyMetaMaskCardMode =
   | 'manage'
   | 'verifying'
   | 'loading'
-  | 'setup';
+  | 'setup'
+  | 'sign_in';
 
 export type MoneyCardSetupView =
   | { kind: 'reconciling' }
@@ -101,7 +102,6 @@ export const deriveMoneyMetaMaskCardMode = ({
   isCardVerified,
   isResidencyBlocked,
   isMoneyAccountVisible,
-  hasMoneyAccountBaseRequirements,
   hasMoneyAccountRequirements,
   isCardStateResolved,
   isCardHomeDataResolved,
@@ -131,13 +131,13 @@ export const deriveMoneyMetaMaskCardMode = ({
     return 'setup';
   }
 
+  // A logged-out cardholder never sees a balance or a link offer. Log in first.
+  if (isCardholder && !isCardAuthenticated) {
+    return 'sign_in';
+  }
+
   // Card already linked to the Money account -> manage it.
   if (isCardLinkedToMoneyAccount) return 'manage';
-
-  // Cardholder who hasn't authenticated yet -> offer to link (needs base reqs).
-  if (isCardholder && !isCardAuthenticated) {
-    return hasMoneyAccountBaseRequirements ? 'link' : null;
-  }
 
   // Residency-blocked users can't link.
   if (isResidencyBlocked) return null;

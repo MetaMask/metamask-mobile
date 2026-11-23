@@ -55,7 +55,7 @@ const MoneyActionButtonRow = ({
     />
     <MainActionButtonGlass
       iconName={IconName.Arrow2UpRight}
-      label={strings('money.action.transfer')}
+      label={strings('money.action.move')}
       onPress={transfer.onPress}
       isDisabled={transfer.disabled}
       testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
