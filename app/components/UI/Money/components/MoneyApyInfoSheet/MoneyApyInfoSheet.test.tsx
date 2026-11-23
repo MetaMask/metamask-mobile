@@ -34,21 +34,15 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
-  const MockBottomSheet = ReactActual.forwardRef(
-    (
-      { children, testID }: { children: React.ReactNode; testID?: string },
-      ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        onCloseBottomSheet: jest.fn(),
-        onOpenBottomSheet: jest.fn(),
-      }));
-      return ReactActual.createElement(View, { testID }, children);
-    },
-  );
+  const MockBottomSheet = ({
+    children,
+    testID,
+  }: {
+    children: React.ReactNode;
+    testID?: string;
+  }) => <View testID={testID}>{children}</View>;
 
   return {
     ...actual,

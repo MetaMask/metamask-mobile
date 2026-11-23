@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -14,7 +14,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -62,7 +61,6 @@ const CheckBulletRow = ({
 );
 
 const MoneyEstimatedBalanceSheet = () => {
-  const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const { depositAmountFiat, projectedAmountFiat, apy } =
     useParams<MoneyEstimatedBalanceSheetParams>();
@@ -84,7 +82,6 @@ const MoneyEstimatedBalanceSheet = () => {
 
   return (
     <BottomSheet
-      ref={sheetRef}
       goBack={handleGoBack}
       testID={MoneyEstimatedBalanceSheetTestIds.CONTAINER}
       keyboardAvoidingViewEnabled={false}
