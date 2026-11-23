@@ -11841,11 +11841,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/Views/RewardsMoneyDashboard.view.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView.test.tsx": {
     "typescript/promise-function-async": {
       "count": 1
