@@ -372,6 +372,285 @@ describe('parsePredictVenueCatalog', () => {
     );
   });
 
+  describe('home', () => {
+    const feeds = {
+      'nfl-games': 'sports-football-nfl-games',
+      'college-football-games': 'sports-football-ncaa-games',
+      'politics-trump': 'politics-trump',
+    };
+    const trending = {
+      kind: 'trending',
+      sources: ['nfl-games', 'college-football-games'],
+      screen: 'sports',
+    };
+    const sportsRow = {
+      kind: 'games-row',
+      id: 'sports',
+      title: 'Sports',
+      feed: 'nfl-games',
+      screen: 'sports-football-nfl',
+    };
+    const categories = { kind: 'categories' };
+    const politics = {
+      kind: 'feed-preview',
+      id: 'politics',
+      title: 'Politics',
+      feed: 'politics-trump',
+      screen: 'politics',
+    };
+    const KALSHI_SECTIONS = [trending, sportsRow, categories, politics];
+    const parseHome = (home: unknown) =>
+      parsePredictVenueCatalog(createCatalog({ feeds, home }), venueId).home;
+    const droppedLog = (dropped: unknown[], noun = 'Home section') => [
+      `[PredictNext] Dropped ${dropped.length} Venue catalog ${noun}${
+        dropped.length === 1 ? '' : 's'
+      } for kalshi`,
+      { dropped },
+    ];
+
+    it("keeps Kalshi's sections in catalog order and logs nothing", () => {
+      expect(parseHome({ sections: KALSHI_SECTIONS })).toEqual({
+        sections: KALSHI_SECTIONS,
+      });
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('keeps a reordered layout as served', () => {
+      const sections = [politics, categories, sportsRow, trending];
+
+      expect(parseHome({ sections })).toEqual({ sections });
+    });
+
+    it('has no home when the catalog has none, and logs nothing', () => {
+      expect(
+        parsePredictVenueCatalog(createCatalog({ feeds }), venueId),
+      ).not.toHaveProperty('home');
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('keeps an empty layout', () => {
+      expect(parseHome({ sections: [] })).toEqual({ sections: [] });
+    });
+
+    it.each([
+      ['a string', 'sports'],
+      ['an array', [trending]],
+      ['null', null],
+      ['an object without sections', { layout: [] }],
+      ['an object whose sections is not an array', { sections: {} }],
+    ])(
+      'has no home, and keeps the rest of the catalog, when home is %s',
+      (_name, home) => {
+        const result = parsePredictVenueCatalog(
+          createCatalog({ feeds, home }),
+          venueId,
+        );
+
+        expect(result).not.toHaveProperty('home');
+        expect(result.feeds).toEqual(feeds);
+        expect(Logger.log).toHaveBeenCalledWith(
+          '[PredictNext] Dropped 1 Venue catalog Home for kalshi',
+          { dropped: [home] },
+        );
+      },
+    );
+
+    it.each([
+      ['an unknown kind', { kind: 'leaderboard', id: 'top' }],
+      ['no kind', { id: 'sports', title: 'Sports', feed: 'nfl-games' }],
+      ['not an object', 'trending'],
+      ['null', null],
+      [
+        'a games row on a Feed key missing from feeds',
+        { ...sportsRow, feed: 'nba-games' },
+      ],
+      ['a games row without a title', { ...sportsRow, title: '' }],
+      [
+        'a games row whose ID is not kebab-case',
+        { ...sportsRow, id: 'Sports' },
+      ],
+      [
+        'a games row whose screen is not kebab-case',
+        { ...sportsRow, screen: 'NFL' },
+      ],
+      ['a preview without a screen', { ...politics, screen: undefined }],
+      [
+        'a preview on a Feed key missing from feeds',
+        { ...politics, feed: 'politics-iran' },
+      ],
+      ['a Trending without sources', { kind: 'trending', sources: [] }],
+      [
+        'a Trending whose sources are not an array',
+        { kind: 'trending', sources: 'nfl-games' },
+      ],
+      [
+        'a Trending with no source in feeds',
+        { kind: 'trending', sources: ['nba-games'] },
+      ],
+    ])('drops and logs %s, and keeps the other sections', (_name, section) => {
+      const home = parseHome({ sections: [section, ...KALSHI_SECTIONS] });
+
+      expect(home).toEqual({ sections: KALSHI_SECTIONS });
+      expect(Logger.log).toHaveBeenCalledWith(...droppedLog([section]));
+    });
+
+    it('ignores unknown section fields', () => {
+      expect(
+        parseHome({
+          sections: [
+            { ...sportsRow, badge: 'live' },
+            { ...categories, x: 1 },
+          ],
+          footer: true,
+        }),
+      ).toEqual({ sections: [sportsRow, categories] });
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('keeps a screen the catalog does not serve; the header resolves it', () => {
+      const row = { ...sportsRow, screen: 'sports-basketball-nba' };
+
+      expect(parseHome({ sections: [row] })).toEqual({ sections: [row] });
+    });
+
+    it('keeps a games row and a Trending without a screen', () => {
+      const { screen: _row, ...row } = sportsRow;
+      const { screen: _trending, ...bareTrending } = trending;
+
+      expect(parseHome({ sections: [bareTrending, row] })).toEqual({
+        sections: [bareTrending, row],
+      });
+    });
+
+    it("drops and logs Trending's sources missing from feeds or repeated, and keeps the rest", () => {
+      const home = parseHome({
+        sections: [
+          {
+            ...trending,
+            sources: [
+              'nba-games',
+              'nfl-games',
+              'nfl-games',
+              7,
+              'college-football-games',
+            ],
+          },
+        ],
+      });
+
+      expect(home).toEqual({ sections: [trending] });
+      expect(Logger.log).toHaveBeenCalledWith(
+        ...droppedLog(['nba-games', 'nfl-games', 7], 'Trending source'),
+      );
+    });
+
+    it('drops a section that repeats an earlier ID, or a second Trending or Categories', () => {
+      const repeatedRow = { ...sportsRow, title: 'More sports' };
+      const repeatedPreview = { ...politics, id: 'sports' };
+      const home = parseHome({
+        sections: [
+          ...KALSHI_SECTIONS,
+          repeatedRow,
+          repeatedPreview,
+          trending,
+          categories,
+        ],
+      });
+
+      expect(home).toEqual({ sections: KALSHI_SECTIONS });
+      expect(Logger.log).toHaveBeenCalledWith(
+        ...droppedLog([repeatedRow, repeatedPreview, trending, categories]),
+      );
+    });
+
+    it('keeps the first eight sections and drops the rest', () => {
+      const rows = Array.from({ length: 10 }, (_, index) => ({
+        ...sportsRow,
+        id: `row-${index + 1}`,
+      }));
+
+      const home = parseHome({ sections: rows });
+
+      expect(home?.sections).toEqual(rows.slice(0, 8));
+      expect(Logger.log).toHaveBeenCalledWith(...droppedLog(rows.slice(8)));
+    });
+
+    describe('Feed reads', () => {
+      const manyFeeds = Object.fromEntries(
+        Array.from({ length: 10 }, (_, index) => [
+          `feed-${index + 1}`,
+          `feed-id-${index + 1}`,
+        ]),
+      );
+      const parseWithManyFeeds = (sections: unknown[]) =>
+        parsePredictVenueCatalog(
+          createCatalog({ feeds: manyFeeds, home: { sections } }),
+          venueId,
+        ).home;
+      const row = (feed: string) => ({
+        kind: 'games-row',
+        id: feed,
+        title: feed,
+        feed,
+      });
+
+      it('drops a section that would take Home past eight Feed reads', () => {
+        const sections = [
+          {
+            kind: 'trending',
+            sources: [
+              'feed-1',
+              'feed-2',
+              'feed-3',
+              'feed-4',
+              'feed-5',
+              'feed-6',
+              'feed-7',
+            ],
+          },
+          row('feed-1'),
+          row('feed-8'),
+          row('feed-9'),
+        ];
+
+        const home = parseWithManyFeeds(sections);
+
+        // A row on a Trending source costs no extra read.
+        expect(home?.sections).toEqual(sections.slice(0, 3));
+        expect(Logger.log).toHaveBeenCalledWith(...droppedLog([row('feed-9')]));
+      });
+
+      it('trims Trending to the sources that fit', () => {
+        const sources = Array.from(
+          { length: 10 },
+          (_, index) => `feed-${index + 1}`,
+        );
+
+        const home = parseWithManyFeeds([
+          row('feed-10'),
+          { kind: 'trending', sources },
+        ]);
+
+        expect(home?.sections[1]).toEqual({
+          kind: 'trending',
+          sources: [
+            'feed-1',
+            'feed-2',
+            'feed-3',
+            'feed-4',
+            'feed-5',
+            'feed-6',
+            'feed-7',
+            'feed-10',
+          ],
+        });
+        expect(Logger.log).toHaveBeenCalledWith(
+          ...droppedLog(['feed-8', 'feed-9'], 'Trending source'),
+        );
+      });
+    });
+  });
+
   it('rejects a catalog for another Venue instead of using it', () => {
     expectInvalidCatalog(createCatalog({ venueId: 'polymarket' }));
   });

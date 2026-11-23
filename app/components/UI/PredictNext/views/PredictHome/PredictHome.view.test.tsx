@@ -1968,6 +1968,8 @@ describe('PredictHome', () => {
           trending: 'test-trending',
         },
         searchSupported: false,
+        // Kalshi's layout: the parser keeps only what this Venue's Feeds serve.
+        home: KALSHI_STATIC_VENUE_CATALOG.home,
       });
       const testEvents = [
         makePredictNextGameEvent('test-1', 'Owls', 'Hawks', 'NCAAF'),
