@@ -96,9 +96,10 @@ const LIVE_ROW_BUFFER = 10;
 /** A row counts as viewable once a tenth of it is on screen, as on the Feed. */
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
 
-const positionCardTestIds = (
-  { marketId, side }: PredictPosition,
-): {
+const positionCardTestIds = ({
+  marketId,
+  side,
+}: PredictPosition): {
   root: string;
   value: string;
   pnl: string;
@@ -409,9 +410,10 @@ const useMarketTabs = (event: PredictEvent): MarketTab[] => {
       cached?.projection === projection &&
       cached?.flatRows === flatRows &&
       cached?.isGame === isGame;
-    const tabs = reuseTabs && cached
-      ? cached.tabs
-      : toMarketTabs(event, projection, flatRows);
+    const tabs =
+      reuseTabs && cached
+        ? cached.tabs
+        : toMarketTabs(event, projection, flatRows);
     cacheRef.current = {
       markets: event.markets,
       projection,
@@ -659,19 +661,25 @@ const EventMarketListContent = ({
     },
     [],
   );
-  const handleSectionToggle = useCallback((stateKey: string, open: boolean): void => {
-    setOpenSections((current) => ({ ...current, [stateKey]: open }));
-    // Closing a section folds it back to its first cards.
-    if (!open) {
-      setExpandedSections(({ [stateKey]: _closed, ...rest }) => rest);
-    }
-  }, []);
-  const handleViewAll = useCallback((stateKey: string, periodKey: string): void => {
-    setExpandedSections((current) => ({
-      ...current,
-      [stateKey]: [...(current[stateKey] ?? []), periodKey],
-    }));
-  }, []);
+  const handleSectionToggle = useCallback(
+    (stateKey: string, open: boolean): void => {
+      setOpenSections((current) => ({ ...current, [stateKey]: open }));
+      // Closing a section folds it back to its first cards.
+      if (!open) {
+        setExpandedSections(({ [stateKey]: _closed, ...rest }) => rest);
+      }
+    },
+    [],
+  );
+  const handleViewAll = useCallback(
+    (stateKey: string, periodKey: string): void => {
+      setExpandedSections((current) => ({
+        ...current,
+        [stateKey]: [...(current[stateKey] ?? []), periodKey],
+      }));
+    },
+    [],
+  );
   const handlePeriodSelect = useCallback(
     (stateKey: string, periodKey: string): void => {
       setSelectedPeriods((current) => ({ ...current, [stateKey]: periodKey }));
