@@ -32,8 +32,6 @@ export interface RootState {
     appTheme: 'light' | 'dark';
   };
   rewards: {
-    optinAllowedForGeo: boolean;
-    optinAllowedForGeoLoading: boolean;
     rewardsControllerState: {
       activeAccount: {
         subscriptionId: string | null;
@@ -69,8 +67,6 @@ export const createMockStore = (
       appTheme: 'light' as const,
     },
     rewards: {
-      optinAllowedForGeo: true,
-      optinAllowedForGeoLoading: false,
       rewardsControllerState: {
         activeAccount: {
           subscriptionId: null,

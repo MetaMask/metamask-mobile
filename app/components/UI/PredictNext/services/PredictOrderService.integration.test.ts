@@ -18,6 +18,7 @@ import type { PredictConfig } from '../config/predictConfig';
 import { subscribeToActiveVenueChanges } from '../implementation/subscribeToActiveVenueChanges';
 import type { PredictConfiguredVenue } from '../implementation/types';
 import type { PredictOrderServiceOrderResolvedEvent } from './PredictOrderService';
+import { createOrderDispatchJournal } from './internal/orderDispatchJournal';
 
 const previewResponse = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',
@@ -1187,6 +1188,134 @@ describe('PredictNext Order Preview request', () => {
           ([url]) => isCommitUrl(url) || isObserveUrl(url),
         ),
       ).toHaveLength(0);
+    });
+  });
+  describe('commit outcome from the API (PRED-1524)', () => {
+    // REAL: PredictApiReadClient (body parsing), KalshiRemoteAdapter,
+    // PredictOrderService and its recovery journal. MOCKED: fetch, the
+    // bearer token, the journal's storage.
+    const IDENTITY = 'user-one';
+
+    const composeJournaled = async (
+      commitAnswer: () => { status: number; body?: unknown },
+    ) => {
+      let commits = 0;
+      const harness = buildPredictNextIntegrationHarness((url, init) => {
+        const path = new URL(String(url)).pathname;
+        if (path.endsWith('/orders/preview')) {
+          return {
+            body: {
+              ...previewResponse,
+              expiresAt: new Date(Date.now() + 30_000).toISOString(),
+            },
+          };
+        }
+        if (isCommitUrl(url) && init?.method === 'POST') {
+          commits += 1;
+          return commitAnswer();
+        }
+        if (path.endsWith('/orders')) {
+          return { body: { operations: [] } };
+        }
+        // Reconciliation cannot settle it in this test: it stays unknown.
+        return { status: 503, body: { code: 'venue_unavailable' } };
+      });
+      let raw: string | null = null;
+      const journal = createOrderDispatchJournal({
+        getItem: async () => raw,
+        setItem: async (_key: string, value: string) => {
+          raw = value;
+        },
+        removeItem: async () => {
+          raw = null;
+        },
+      });
+      const orderService = new PredictOrderService({
+        messenger: getPredictOrderServiceMessenger(
+          harness.messenger as unknown as Parameters<
+            typeof getPredictOrderServiceMessenger
+          >[0],
+        ),
+        trading: harness.adapter.trading,
+        venueId: harness.adapter.venueId,
+        journal,
+        observationDelayMs: 0,
+        backgroundObservationDelaysMs: [60_000],
+      });
+      await orderService.resumeRecovery(IDENTITY);
+      await quoteBuy(orderService);
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        previewResponse.previewId,
+        { kind: 'user-approved' } as const,
+      );
+      return {
+        commit,
+        orderService,
+        journaled: () => journal.list(IDENTITY, KALSHI_VENUE_ID),
+        commits: () => commits,
+      };
+    };
+
+    // The same code both ways: only the body's outcome decides.
+    it('clears the journal when the API says the commit was not placed', async () => {
+      const flow = await composeJournaled(() => ({
+        status: 503,
+        body: { code: 'venue_unavailable', outcome: 'not_placed' },
+      }));
+
+      await expect(flow.commit).rejects.toMatchObject({
+        code: 'VENUE_UNAVAILABLE',
+        metadata: { phase: 'commit', outcome: 'not_placed' },
+      });
+
+      expect(flow.commits()).toBe(1);
+      expect(await flow.journaled()).toEqual([]);
+      expect(flow.orderService.getRecovery(KALSHI_VENUE_ID)).toEqual([]);
+      flow.orderService.destroy();
+    });
+
+    it.each([
+      // Before PRED-1524 the phone read this code as "refused before relay".
+      ['a refusal code but no outcome', { code: 'insufficient_balance' }],
+      ['no outcome', { code: 'venue_unavailable' }],
+      ['an unknown outcome', { code: 'venue_unavailable', outcome: 'later' }],
+      ['a body that is not an API error', '<html>Bad Gateway</html>'],
+    ])(
+      'keeps the operation in recovery after a commit failure with %s',
+      async (_name, body) => {
+        const flow = await composeJournaled(() => ({ status: 503, body }));
+
+        await expect(flow.commit).rejects.toMatchObject({
+          code: 'ORDER_OUTCOME_UNKNOWN',
+          metadata: { phase: 'commit', outcome: 'unknown' },
+        });
+
+        expect(flow.commits()).toBe(1);
+        expect(await flow.journaled()).toEqual([
+          expect.objectContaining({
+            previewId: previewResponse.previewId,
+            recoveryState: 'unresolved',
+          }),
+        ]);
+        expect(flow.orderService.getRecovery(KALSHI_VENUE_ID)).toEqual([
+          { previewId: previewResponse.previewId, status: 'checking' },
+        ]);
+        flow.orderService.destroy();
+      },
+    );
+
+    it('keeps the operation in recovery when the commit gets no answer', async () => {
+      const flow = await composeJournaled(() => {
+        throw new TypeError('Network request failed');
+      });
+
+      await expect(flow.commit).rejects.toMatchObject({
+        code: 'ORDER_OUTCOME_UNKNOWN',
+      });
+
+      expect(await flow.journaled()).toHaveLength(1);
+      flow.orderService.destroy();
     });
   });
 });

@@ -29,7 +29,6 @@ import {
 } from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import { trackVbaEvent } from './vbaAnalytics';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -62,6 +61,7 @@ const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
+const mockExitVbaOnboardingToMoneyHome = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
 let mockChooseCurrency = false;
@@ -191,6 +191,8 @@ jest.mock('./vbaDepositDebug', () => ({
 jest.mock('./hooks/useVbaOnboardingRouting', () => ({
   navigateToVbaOnboardingDestination: (...args: unknown[]) =>
     mockNavigateToVbaOnboardingDestination(...args),
+  exitVbaOnboardingToMoneyHome: (...args: unknown[]) =>
+    mockExitVbaOnboardingToMoneyHome(...args),
 }));
 
 jest.mock('../../../../../hooks/useScreenPerformance');
@@ -461,10 +463,11 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
 
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledWith(
+      mockNavigation,
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('returns to Money home when there is no navigation history', async () => {
@@ -477,10 +480,11 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledWith(
+      mockNavigation,
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders cached Pix details immediately and revalidates in the background', async () => {

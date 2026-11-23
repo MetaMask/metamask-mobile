@@ -14,9 +14,17 @@ import {
   type UseCursorPaginatedListResult,
 } from './useCursorPaginatedList';
 
+/**
+ * Cashback the rebates list asks for.
+ *
+ * Predict is the same rebate as swaps and perps. The ledger returns
+ * `PREDICT_FEE_CASHBACK` only when a request names it, and a named list
+ * replaces the default scope, so this list names all three.
+ */
 export const CASHBACK_LEDGER_ORIGIN_TYPES: EarningOriginType[] = [
   'SWAPS_FEE_CASHBACK',
   'PERPS_FEE_CASHBACK',
+  'PREDICT_FEE_CASHBACK',
 ];
 
 export type UseCashbackLedgerResult =

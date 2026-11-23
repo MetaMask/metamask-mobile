@@ -4,9 +4,11 @@
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/Views/RewardsDashboard.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../tests/component-view/mocks';
-import { fireEvent, within } from '@testing-library/react-native';
+import { act, fireEvent, within } from '@testing-library/react-native';
 import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
@@ -16,6 +18,27 @@ import {
 } from '../../../../../tests/component-view/renderers/rewardsMoney';
 import { referralMeFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { strings } from '../../../../../locales/i18n';
+
+const engineWithState = Engine as unknown as {
+  state?: Record<string, unknown>;
+};
+
+const publishDeviceGeo = (
+  store: { dispatch: (action: unknown) => void },
+  location: string,
+  status: 'complete' | 'error' = 'complete',
+) => {
+  engineWithState.state = {
+    ...(engineWithState.state ?? {}),
+    GeolocationController: { location, status },
+  };
+  act(() => {
+    store.dispatch(updateBgState({ key: 'GeolocationController' }));
+  });
+};
+
+const optedIn = (engine: jest.Mock) =>
+  engine.mock.calls.some((call) => call[0] === 'RewardsController:optIn');
 
 describe('RewardsDashboard copy trading', () => {
   afterEach(() => {
@@ -142,5 +165,88 @@ describe('RewardsDashboard subscription sections', () => {
     expect(
       queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describe('RewardsDashboard opt-in geolocation', () => {
+  const regionBlocked = strings(
+    'rewards.onboarding.not_supported_region_description',
+  );
+  let engineStateBefore: Record<string, unknown> | undefined;
+
+  beforeEach(() => {
+    engineStateBefore = engineWithState.state;
+  });
+
+  afterEach(() => {
+    if (engineStateBefore === undefined) {
+      delete engineWithState.state;
+    } else {
+      engineWithState.state = engineStateBefore;
+    }
+    restoreRewardsDashboardStore();
+  });
+
+  it('holds the opt-in CTA while the device location is unresolved', async () => {
+    const { findByTestId, queryByText, engine } = renderRewardsDashboard({
+      socialV1: false,
+      subscriptionId: null,
+      geoStatus: 'loading',
+    });
+
+    const action = await findByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION);
+    fireEvent.press(action);
+
+    expect(action.props.accessibilityState?.disabled).toBe(true);
+    expect(queryByText(regionBlocked)).not.toBeOnTheScreen();
+    expect(optedIn(engine)).toBe(false);
+  });
+
+  it('disables opt-in and explains a blocked region', async () => {
+    const { findByTestId, findByText, engine } = renderRewardsDashboard({
+      socialV1: false,
+      subscriptionId: null,
+      geoLocation: 'GB',
+    });
+
+    expect(await findByText(regionBlocked)).toBeOnTheScreen();
+    fireEvent.press(await findByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION));
+
+    expect(optedIn(engine)).toBe(false);
+  });
+
+  it('blocks opt-in after the open dashboard sees a blocked location', async () => {
+    const { findByTestId, findByText, queryByText, store, engine } =
+      renderRewardsDashboard({
+        socialV1: false,
+        subscriptionId: null,
+        geoLocation: 'US',
+      });
+
+    const action = await findByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION);
+
+    expect(action.props.accessibilityState?.disabled ?? false).toBe(false);
+    expect(queryByText(regionBlocked)).not.toBeOnTheScreen();
+
+    publishDeviceGeo(store, 'GB');
+
+    expect(await findByText(regionBlocked)).toBeOnTheScreen();
+    fireEvent.press(action);
+
+    expect(optedIn(engine)).toBe(false);
+  });
+
+  it('keeps opt-in blocked when a refresh fails after a blocked location', async () => {
+    const { findByText, findByTestId, engine } = renderRewardsDashboard({
+      socialV1: false,
+      subscriptionId: null,
+      geoLocation: 'GB',
+      geoStatus: 'error',
+    });
+
+    expect(await findByText(regionBlocked)).toBeOnTheScreen();
+    fireEvent.press(await findByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION));
+
+    expect(optedIn(engine)).toBe(false);
   });
 });

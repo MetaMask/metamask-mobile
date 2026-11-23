@@ -29,7 +29,9 @@ import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
-import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
+import RecurringScheduleFields, {
+  type RecurringScheduleFieldsRef,
+} from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
@@ -44,7 +46,6 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
-import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
@@ -96,6 +97,7 @@ const BridgeRecurringBuyViewContent = ({
   const navigation = useNavigation<AppNavigationProp>();
   const isScreenFocused = useIsFocused();
   const inputRef = useRef<TokenInputAreaRef>(null);
+  const scheduleFieldsRef = useRef<RecurringScheduleFieldsRef>(null);
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const {
@@ -115,6 +117,11 @@ const BridgeRecurringBuyViewContent = ({
     isDestAmountLoading,
     isFlipDisabled,
     isQuoteSponsored,
+    recurringOrderMinAmount: {
+      formattedMinAmountInSelectedCurrency,
+      hasError: hasMinAmountError,
+      isBelowMinAmount,
+    },
     sourceAmountInput,
     sourceToken,
     sourceAmount,
@@ -203,10 +210,15 @@ const BridgeRecurringBuyViewContent = ({
     keypadRef,
   } = useRecurringBuyKeypad({ sourceAmountInput });
 
-  const dismissInputAndKeypad = useCallback(() => {
+  const blurInputs = useCallback(() => {
     inputRef.current?.blur();
+    scheduleFieldsRef.current?.blur();
+  }, []);
+
+  const dismissInputAndKeypad = useCallback(() => {
+    blurInputs();
     closeKeypad();
-  }, [closeKeypad]);
+  }, [blurInputs, closeKeypad]);
 
   const handleBannersLayout = useCallback((event: LayoutChangeEvent) => {
     const nextHasVisibleBanner = event.nativeEvent.layout.height > 0;
@@ -216,14 +228,6 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const {
-    formattedMinAmountInSelectedCurrency,
-    hasError: hasMinAmountError,
-    isBelowMinAmount,
-  } = useRecurringOrderMinAmount({
-    sourceToken,
-    sourceAmount,
-  });
   const canPreviewOrder =
     Boolean(activeQuote) &&
     scheduleValidation.isValid &&
@@ -366,7 +370,7 @@ const BridgeRecurringBuyViewContent = ({
         <ScrollView
           testID={BridgeViewSelectorsIDs.RECURRING_BUY_SCROLL}
           style={tw.style('flex-1 min-h-0')}
-          contentContainerStyle={tw.style('grow-0')}
+          contentContainerStyle={tw.style('grow')}
           showsVerticalScrollIndicator={false}
           onScrollBeginDrag={dismissInputAndKeypad}
           onScroll={handleScroll}
@@ -378,97 +382,107 @@ const BridgeRecurringBuyViewContent = ({
             />
           }
         >
-          <SwapsInputs
-            inputRef={inputRef}
-            sourceToken={sourceToken}
-            sourceAmountInput={sourceAmountInput}
-            destToken={destToken}
-            destTokenAmount={destTokenAmount}
-            isDestAmountLoading={isDestAmountLoading}
-            isFlipDisabled={isFlipDisabled}
-            onSourceInputPress={focusAmount}
-            onSourceTokenPress={handleSourceTokenPress}
-            onSourceMaxPress={handleSourceMaxPress}
-            onFlipPress={handleFlipTokensPress}
-            onDestInputPress={closeKeypad}
-            onDestTokenPress={handleDestTokenPress}
-            sourceTokenAreaTestID={
-              BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA
-            }
-            destTokenAreaTestID={
-              BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA
-            }
-            sourceAmountTypeToggleTestID={
-              BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
-            }
-            hideDestAmount
-            destAmountReplacementLabelTestID={
-              BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
-            }
-          />
-
-          <Box twClassName="-mt-1">
-            <RecurringScheduleFields
-              onEveryPress={focusEvery}
-              onRepeatPress={focusRepeat}
-              onDismissKeypad={dismissInputAndKeypad}
-              onUnitPress={handleUnitPress}
-              onRepeatInfoPress={handleRepeatInfoPress}
+          <Box
+            twClassName="flex-1"
+            testID={BridgeViewSelectorsIDs.RECURRING_BUY_DISMISS_AREA}
+            onStartShouldSetResponder={() => true}
+            onResponderRelease={dismissInputAndKeypad}
+          >
+            <SwapsInputs
+              inputRef={inputRef}
+              sourceToken={sourceToken}
+              sourceAmountInput={sourceAmountInput}
+              destToken={destToken}
+              destTokenAmount={destTokenAmount}
+              isDestAmountLoading={isDestAmountLoading}
+              isFlipDisabled={isFlipDisabled}
+              onSourceInputPress={focusAmount}
+              onSourceTokenPress={handleSourceTokenPress}
+              onSourceMaxPress={handleSourceMaxPress}
+              onFlipPress={handleFlipTokensPress}
+              onDestInputPress={closeKeypad}
+              onDestTokenPress={handleDestTokenPress}
+              sourceTokenAreaTestID={
+                BridgeViewSelectorsIDs.RECURRING_SOURCE_TOKEN_AREA
+              }
+              destTokenAreaTestID={
+                BridgeViewSelectorsIDs.RECURRING_DEST_TOKEN_AREA
+              }
+              sourceAmountTypeToggleTestID={
+                BridgeViewSelectorsIDs.RECURRING_SOURCE_AMOUNT_TYPE_TOGGLE
+              }
+              hideDestAmount
+              destAmountReplacementLabelTestID={
+                BridgeViewSelectorsIDs.RECURRING_DEST_YOU_GET
+              }
             />
 
-            <Box
-              testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
-              onLayout={handleBannersLayout}
-              twClassName={hasVisibleBanner ? 'mt-2' : undefined}
-              onTouchEnd={dismissInputAndKeypad}
-            >
-              <SwapsBanners
-                gap={2}
-                onAdjustSourceAmount={handleSourcePresetAmountSelect}
+            <Box twClassName="-mt-1">
+              <RecurringScheduleFields
+                ref={scheduleFieldsRef}
+                onEveryPress={focusEvery}
+                onRepeatPress={focusRepeat}
+                onDismissKeypad={dismissInputAndKeypad}
+                onUnitPress={handleUnitPress}
+                onRepeatInfoPress={handleRepeatInfoPress}
+              />
+
+              <Box
+                testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
+                onLayout={handleBannersLayout}
+                twClassName={hasVisibleBanner ? 'mt-2' : undefined}
+                onTouchEnd={dismissInputAndKeypad}
               >
-                <HardwareWalletUnsupportedBanner />
-                <QuoteErrorBanner />
-                <TokenWarningBanner />
-                <DestAssetRequireActivateBanner />
-                <InsufficientNativeReserveBanner />
-                <MissingQuoteAndAssetsPriceDataBanner />
-                <SentinelFeeTokenErrorBanner
-                  reason={feeTokenValidation.reason}
-                  unsupportedPairMessage={strings(
-                    'bridge.recurring.unsupported_fee_token_pair',
-                    {
-                      supportedTokens:
-                        feeTokenValidation.reason === 'unsupported-pair'
-                          ? feeTokenValidation.supportedTokenSymbols.join(', ')
-                          : '',
-                    },
-                  )}
-                  unavailableMessage={strings(
-                    'bridge.recurring.fee_tokens_unavailable',
-                  )}
-                  retryLabel={strings('bridge.recurring.try_again')}
-                  onRetry={feeTokenValidation.retry}
-                  testIDs={FEE_TOKEN_ERROR_BANNER_TEST_IDS}
-                />
-              </SwapsBanners>
+                <SwapsBanners
+                  gap={2}
+                  onAdjustSourceAmount={handleSourcePresetAmountSelect}
+                >
+                  <HardwareWalletUnsupportedBanner />
+                  <QuoteErrorBanner />
+                  <TokenWarningBanner />
+                  <DestAssetRequireActivateBanner />
+                  <InsufficientNativeReserveBanner />
+                  <MissingQuoteAndAssetsPriceDataBanner />
+                  <SentinelFeeTokenErrorBanner
+                    reason={feeTokenValidation.reason}
+                    unsupportedPairMessage={strings(
+                      'bridge.recurring.unsupported_fee_token_pair',
+                      {
+                        supportedTokens:
+                          feeTokenValidation.reason === 'unsupported-pair'
+                            ? feeTokenValidation.supportedTokenSymbols.join(
+                                ', ',
+                              )
+                            : '',
+                      },
+                    )}
+                    unavailableMessage={strings(
+                      'bridge.recurring.fee_tokens_unavailable',
+                    )}
+                    retryLabel={strings('bridge.recurring.try_again')}
+                    onRetry={feeTokenValidation.retry}
+                    testIDs={FEE_TOKEN_ERROR_BANNER_TEST_IDS}
+                  />
+                </SwapsBanners>
+              </Box>
             </Box>
-          </Box>
 
-          <PriceRangeRow
-            token={priceRange ? priceRangeToken : undefined}
-            minLabel={priceRangeMinLabel}
-            maxLabel={priceRangeMaxLabel}
-            onPress={handlePriceRangePress}
-          />
-
-          <Box onTouchEnd={dismissInputAndKeypad}>
-            <OrdersTabs
-              enabledChainIds={enabledChainIds}
-              openOrders={openOrders}
-              history={history}
-              activeTab={recurringOrdersTab}
-              onTabChange={setRecurringOrdersTab}
+            <PriceRangeRow
+              token={priceRange ? priceRangeToken : undefined}
+              minLabel={priceRangeMinLabel}
+              maxLabel={priceRangeMaxLabel}
+              onPress={handlePriceRangePress}
             />
+
+            <Box onTouchEnd={dismissInputAndKeypad}>
+              <OrdersTabs
+                enabledChainIds={enabledChainIds}
+                openOrders={openOrders}
+                history={history}
+                activeTab={recurringOrdersTab}
+                onTabChange={setRecurringOrdersTab}
+              />
+            </Box>
           </Box>
         </ScrollView>
 
@@ -476,6 +490,7 @@ const BridgeRecurringBuyViewContent = ({
           onPreviewOrder={handlePreviewOrder}
           label={previewOrderLabel}
           destinationTokenSymbol={destToken?.symbol}
+          isBelowMinAmount={isBelowMinAmount}
           isPreviewDisabled={
             !scheduleValidation.isValid ||
             !feeTokenValidation.isValid ||
@@ -487,6 +502,7 @@ const BridgeRecurringBuyViewContent = ({
         <SwapsKeypad
           ref={keypadRef}
           onChange={handleKeypadChange}
+          onClose={blurInputs}
           {...keypadProps}
         >
           {sourceAmount && sourceAmount !== '0' ? (
@@ -495,7 +511,7 @@ const BridgeRecurringBuyViewContent = ({
               label={previewOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={!canPreviewOrder}
-              loading={isLoading}
+              loading={isLoading && !isBelowMinAmount}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions

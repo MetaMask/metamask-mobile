@@ -7,7 +7,13 @@ import {
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  IconName,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -16,16 +22,20 @@ import { useActivity } from '../../hooks/useActivity';
 import { usePortfolioSummary } from '../../hooks/usePortfolioSummary';
 import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
+import {
+  usePredictNextDepositAvailable,
+  usePredictWithdrawAvailable,
+} from '../../funding';
 import { PredictNextRoutes } from '../../navigation/routes';
 import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
-import { usePredictWithdrawAvailable } from '../../funding';
 import type { PredictEntityId, PredictPosition } from '../../types';
 import type {
   PredictNextStackParamList,
   PredictPortfolioTab,
 } from '../../navigation/types';
 import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
+import { DepositStatusLine } from '../../components/DepositStatusLine';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
@@ -75,6 +85,12 @@ export const PredictPortfolioScreen = () => {
       tab: activeTab,
     },
   });
+
+  const canDeposit = usePredictNextDepositAvailable(venueId);
+  const openDeposit = useCallback(
+    () => navigation.navigate(PredictNextRoutes.DEPOSIT, { venueId }),
+    [navigation, venueId],
+  );
 
   const browseMarkets = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -144,7 +160,26 @@ export const PredictPortfolioScreen = () => {
           onWithdrawPress={
             withdrawResolution.status === 'ready' ? openWithdraw : undefined
           }
+          depositStatus={
+            <DepositStatusLine
+              venueId={venueId}
+              testID={PredictPortfolioScreenTestIds.DEPOSIT_STATUS}
+            />
+          }
         />
+        {canDeposit ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            isFullWidth
+            startIconName={IconName.Add}
+            onPress={openDeposit}
+            twClassName="mb-4"
+            testID={PredictPortfolioScreenTestIds.ADD_FUNDS}
+          >
+            {strings('predict_next.portfolio.add_funds')}
+          </Button>
+        ) : null}
         <PortfolioRecoveryPanel venueId={venueId} />
         <PortfolioTabs activeTab={activeTab} onTabPress={setActiveTab} />
         <Box twClassName="flex-1">

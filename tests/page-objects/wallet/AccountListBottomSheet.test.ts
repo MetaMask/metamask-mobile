@@ -2,10 +2,16 @@ jest.mock('../../framework/Gestures', () => ({
   __esModule: true,
   default: {
     scrollIntoView: jest.fn(),
+    scrollIntoViewFullyVisible: jest.fn(),
     waitAndTap: jest.fn(),
     swipe: jest.fn(),
     longPress: jest.fn(),
   },
+}));
+
+jest.mock('../../framework/AppiumUtilities', () => ({
+  ...jest.requireActual('../../framework/AppiumUtilities'),
+  isOptionalElementVisible: jest.fn(),
 }));
 
 jest.mock('../../framework', () => ({
@@ -26,6 +32,7 @@ jest.mock('../../framework', () => ({
 }));
 
 import Gestures from '../../framework/Gestures';
+import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import { Utilities, type AppiumElement } from '../../framework';
 import AccountListBottomSheet from './AccountListBottomSheet';
 
@@ -160,10 +167,71 @@ describe('AccountListBottomSheet account creation visibility', () => {
   });
 
   describe('tapAddAccountButtonV2', () => {
-    it('scrolls the Add account control into view before tapping', async () => {
-      const tapTarget = createCell();
-      const scrollIntoView = jest.mocked(Gestures.scrollIntoView);
+    it('scrolls with the account-list container when Add account is not visible', async () => {
+      const preScrollTarget = createCell();
+      const postScrollTarget = createCell();
+      const scrollable = createCell();
+      const scrollIntoViewFullyVisible = jest.mocked(
+        Gestures.scrollIntoViewFullyVisible,
+      );
       const waitAndTap = jest.mocked(Gestures.waitAndTap);
+      jest.mocked(isOptionalElementVisible).mockResolvedValue(false);
+      jest
+        .spyOn(AccountListBottomSheet, 'waitForAccountSyncToComplete')
+        .mockResolvedValue();
+      const getAddAccountButtonTapTarget = jest
+        .spyOn(
+          AccountListBottomSheet as unknown as {
+            getAddAccountButtonTapTarget: (
+              srpIndex: number,
+            ) => Promise<AppiumElement>;
+          },
+          'getAddAccountButtonTapTarget',
+        )
+        .mockResolvedValueOnce(preScrollTarget)
+        .mockResolvedValueOnce(postScrollTarget);
+      jest
+        .spyOn(
+          AccountListBottomSheet as unknown as {
+            getAccountListScrollable: () => Promise<AppiumElement>;
+          },
+          'getAccountListScrollable',
+        )
+        .mockResolvedValue(scrollable);
+      scrollIntoViewFullyVisible.mockResolvedValue();
+      waitAndTap.mockResolvedValue();
+
+      await AccountListBottomSheet.tapAddAccountButtonV2({
+        syncTimeoutMs: 25_000,
+      });
+
+      expect(scrollIntoViewFullyVisible).toHaveBeenCalledWith(
+        expect.any(Promise),
+        {
+          direction: 'down',
+          maxScrolls: 10,
+          scrollableElement: scrollable,
+        },
+      );
+      expect(getAddAccountButtonTapTarget).toHaveBeenCalledTimes(2);
+      expect(waitAndTap).toHaveBeenCalledWith(
+        expect.any(Promise),
+        expect.objectContaining({
+          elemDescription: 'Add Account button in V2 multichain accounts',
+        }),
+      );
+      expect(
+        scrollIntoViewFullyVisible.mock.invocationCallOrder[0],
+      ).toBeLessThan(waitAndTap.mock.invocationCallOrder[0]);
+    });
+
+    it('skips scroll when Add account is already visible', async () => {
+      const tapTarget = createCell();
+      const scrollIntoViewFullyVisible = jest.mocked(
+        Gestures.scrollIntoViewFullyVisible,
+      );
+      const waitAndTap = jest.mocked(Gestures.waitAndTap);
+      jest.mocked(isOptionalElementVisible).mockResolvedValue(true);
       jest
         .spyOn(AccountListBottomSheet, 'waitForAccountSyncToComplete')
         .mockResolvedValue();
@@ -177,26 +245,14 @@ describe('AccountListBottomSheet account creation visibility', () => {
           'getAddAccountButtonTapTarget',
         )
         .mockResolvedValue(tapTarget);
-      scrollIntoView.mockResolvedValue();
       waitAndTap.mockResolvedValue();
 
       await AccountListBottomSheet.tapAddAccountButtonV2({
         syncTimeoutMs: 25_000,
       });
 
-      expect(scrollIntoView).toHaveBeenCalledWith(expect.any(Promise), {
-        direction: 'down',
-        maxScrolls: 10,
-      });
-      expect(waitAndTap).toHaveBeenCalledWith(
-        expect.any(Promise),
-        expect.objectContaining({
-          elemDescription: 'Add Account button in V2 multichain accounts',
-        }),
-      );
-      expect(scrollIntoView.mock.invocationCallOrder[0]).toBeLessThan(
-        waitAndTap.mock.invocationCallOrder[0],
-      );
+      expect(scrollIntoViewFullyVisible).not.toHaveBeenCalled();
+      expect(waitAndTap).toHaveBeenCalled();
     });
   });
 

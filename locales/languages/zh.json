@@ -9984,7 +9984,6 @@
     },
     "action": {
       "add": "添加",
-      "transfer": "发送",
       "card": "卡",
       "details": "详情"
     },
@@ -10106,8 +10105,6 @@
       "contact_support": "联系支持团队"
     },
     "transfer_sheet": {
-      "title": "发送资金到",
-      "between_accounts": "其他账户",
       "perps_account": "永续合约（Perps）账户",
       "predictions_account": "预测（Predictions）账户",
       "send_external": "外部地址",

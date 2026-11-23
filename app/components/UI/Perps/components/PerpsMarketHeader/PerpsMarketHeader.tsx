@@ -289,8 +289,10 @@ const PerpsMarketHeader = ({
         }
         position={BadgeWrapperPosition.TopRight}
         positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-        positionXOffset={-4}
-        positionYOffset={4}
+        // Pull the badge in so it hugs the wallet glyph's top-right corner and
+        // stays inside the capsule instead of straddling its top edge.
+        positionXOffset={-6}
+        positionYOffset={8}
         badge={
           walletRiskBadge ? (
             <Box

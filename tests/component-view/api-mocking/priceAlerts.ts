@@ -9,13 +9,14 @@
  */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock, { type Scope } from 'nock';
+import nock from 'nock';
 import AppConstants from '../../../app/core/AppConstants';
 import {
   clearAllNockMocks,
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 import type {
   AbsolutePriceAlert,
   PercentChangeAlert,
@@ -96,6 +97,8 @@ export function setupPriceAlertsApiMock(
     .query(true)
     .reply(200, alerts)
     .persist();
+
+  installDefaultApiMocks();
 }
 
 /**
@@ -104,7 +107,7 @@ export function setupPriceAlertsApiMock(
  * after {@link setupPriceAlertsApiMock} has already been called in beforeEach.
  * Returns the nock scope so callers can assert `scope.isDone()`.
  */
-export function setupPriceAlertsPostMock(): Scope {
+export function setupPriceAlertsPostMock(): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .post(ALERTS_PATH)
     .reply(201, mockCreatedAlert);
@@ -114,7 +117,7 @@ export function setupPriceAlertsPostMock(): Scope {
  * Registers a one-shot DELETE /v1/alerts/:id nock interceptor.
  * Returns the nock scope so callers can assert `scope.isDone()`.
  */
-export function setupPriceAlertsDeleteMock(alertId: string): Scope {
+export function setupPriceAlertsDeleteMock(alertId: string): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .delete(`${ALERTS_PATH}/${alertId}`)
     .reply(200);
@@ -124,7 +127,7 @@ export function setupPriceAlertsDeleteMock(alertId: string): Scope {
  * Registers a one-shot PATCH /v1/alerts/:id nock interceptor.
  * Returns the nock scope so callers can assert `scope.isDone()`.
  */
-export function setupPriceAlertsPatchMock(alertId: string): Scope {
+export function setupPriceAlertsPatchMock(alertId: string): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .patch(`${ALERTS_PATH}/${alertId}`)
     .reply(200);
@@ -136,7 +139,7 @@ export function setupPriceAlertsPatchMock(alertId: string): Scope {
  */
 export function setupPercentPriceAlertsPostMock(
   expectedBody: SavePercentAlertParams,
-): Scope {
+): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .post(
       PERCENT_ALERTS_PATH,
@@ -152,7 +155,7 @@ export function setupPercentPriceAlertsPostMock(
 export function setupPercentPriceAlertsPatchMock(
   alertId: string,
   expectedBody: UpdatePercentAlertParams,
-): Scope {
+): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .patch(
       `${PERCENT_ALERTS_PATH}/${alertId}`,
@@ -165,6 +168,11 @@ export function setupPercentPriceAlertsPatchMock(
  * Sets up a nock interceptor for GET /v1/alerts/supported-chains.
  * Used by TokenDetails to determine if the bell icon should be shown.
  *
+ * Call this AFTER {@link setupPriceAlertsApiMock}: the shared defaults also
+ * intercept this path, and re-installing the defaults here moves them behind
+ * this feature interceptor so the `chains` argument wins (feature mocks
+ * always win — nock answers with the interceptor registered first).
+ *
  * @param chains - The list of CAIP-2 chain identifiers to return. Defaults to ['eip155:1'].
  */
 export function setupPriceAlertsSupportedChainsMock(
@@ -174,6 +182,8 @@ export function setupPriceAlertsSupportedChainsMock(
     .get('/v1/alerts/supported-chains')
     .reply(200, chains)
     .persist();
+
+  installDefaultApiMocks();
 }
 
 /**

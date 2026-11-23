@@ -12,6 +12,7 @@ import { Text } from '@metamask/design-system-react-native';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import Engine from '../../../../../core/Engine';
 import ToastService from '../../../../../core/ToastService';
 import {
@@ -2706,6 +2707,33 @@ describe('PerpsOrderView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
+    // Regression: the deposit branch leaves this screen as soon as the
+    // confirmation resolves, and the tracker's re-entry that finally places
+    // the order can fire long afterwards (the credit wait is up to 90 s),
+    // while the user is on some other screen (e.g. another market's details).
+    // That late re-entry must place the order but must not navigate back to
+    // this order's market. Funds arriving while the user is still here keep
+    // navigating — see the test above.
+    it('does not navigate to the market when funds arrive after the deposit branch left the screen', async () => {
+      const { placeOrder, submit, settleConfirm, confirmDepositOnChain } =
+        arrangeDepositFlow();
+
+      await submit();
+      await settleConfirm();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      await confirmDepositOnChain();
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+        }),
+      );
+    });
+
     // A confirmed deposit is a commitment: the tracker places the order after
     // the user has left by design, so neither the sheet being swiped away nor
     // a validation still in flight at submit time may abandon it.
@@ -2730,6 +2758,41 @@ describe('PerpsOrderView', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
+    // With `waitForResult` confirmations the transaction-confirmed event (and
+    // so the tracker's re-entry) can fire while `onConfirm` is still awaited —
+    // before the deposit branch has set `hasLeftAfterDepositRef`. If the user
+    // swiped the sheet away during that await, they are already elsewhere, so
+    // the re-entry must place the order without navigating back.
+    it('does not navigate to the market when the sheet was swiped away before the confirmation settled', async () => {
+      const {
+        placeOrder,
+        submit,
+        settleConfirm,
+        confirmDepositOnChain,
+        dismissSheet,
+      } = arrangeDepositFlow();
+
+      await submit();
+      dismissSheet();
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      await confirmDepositOnChain();
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+        }),
+      );
+
+      await settleConfirm();
+
+      // Only the dismissal itself navigated; the settled confirmation must
+      // not pop the screen the user already landed on either.
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
     it('does not navigate again when the confirmation settles after the sheet was swiped away mid-confirm', async () => {
       const {
         placeOrder,
@@ -2751,6 +2814,14 @@ describe('PerpsOrderView', () => {
       await confirmDepositOnChain();
 
       expect(placeOrder).toHaveBeenCalledTimes(1);
+      // The late re-entry must not navigate back to this order's market
+      // either: the sheet close already took the user elsewhere.
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+        }),
+      );
     });
 
     // Deposit confirm dismisses first; funds arriving later re-enter
@@ -7920,11 +7991,12 @@ describe('PerpsOrderView', () => {
       await fill();
 
       const toast = showToast.mock.calls.at(-1)?.[0];
-      expect(toast.linkButtonOptions.label).toBe(
+      expect(toast.closeButtonOptions.variant).toBe(ButtonVariants.Link);
+      expect(toast.closeButtonOptions.label).toBe(
         'social_leaderboard.post_trade_share.post_to_feed',
       );
 
-      toast.linkButtonOptions.onPress();
+      toast.closeButtonOptions.onPress();
 
       expect(openPostTradeComposer).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -8003,7 +8075,7 @@ describe('PerpsOrderView', () => {
 
       expect(showToast).toHaveBeenCalled();
       expect(
-        showToast.mock.calls.at(-1)?.[0]?.linkButtonOptions,
+        showToast.mock.calls.at(-1)?.[0]?.closeButtonOptions,
       ).toBeUndefined();
     });
   });

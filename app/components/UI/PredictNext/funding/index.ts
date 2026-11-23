@@ -12,3 +12,36 @@ export type {
   PredictFundingResolution,
   PredictFundingUnavailableReason,
 } from './types';
+export { usePredictNextDepositAvailable } from './usePredictNextDepositAvailable';
+export {
+  createSimulatedTransferExecutor,
+  createWalletTransferExecutor,
+  depositTransferRequestId,
+  type DepositTransferExecutor,
+} from './deposit/depositTransferExecutor';
+export {
+  canReuseClientOperationId,
+  continueDeposit,
+  payDeposit,
+  startDeposit,
+  type DepositOutcome,
+  type DepositWorkflowDeps,
+} from './deposit/runDeposit';
+export {
+  clearAllSessionDepositTransfers,
+  clearSessionDepositTransfer,
+  clearSessionDepositTransfersForOperation,
+  findMatchingDepositTransaction,
+  findMatchingUnapprovedDepositTransactions,
+  getSessionDepositTransfer,
+  isKnownFailedDepositHash,
+  matchDepositTransferForResume,
+  recordSessionDepositTransfer,
+  waitForPendingDepositTransaction,
+  type DepositResumeMatch,
+  type DepositTransactionMessenger,
+  type ExistingDepositTransfer,
+  type MatchDepositTransferForResumeParams,
+} from './deposit/reconcileDepositTransfer';
+export { checkDepositPlan } from './deposit/checkDepositPlan';
+export { toUsdcBaseUnits } from './deposit/usdcTransfer';

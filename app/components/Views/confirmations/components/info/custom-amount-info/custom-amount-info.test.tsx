@@ -2659,6 +2659,93 @@ describe('CustomAmountInfo', () => {
     ).toBeOnTheScreen();
   });
 
+  describe('when the deposit prefill is skipped and nothing can fund it', () => {
+    const renderWithSkippedPrefill = (transactionType: TransactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [],
+        hasTokens: false,
+      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          depositPrefillStatus: DepositPrefillStatus.Skipped,
+        }),
+      );
+
+      return render({ transactionType });
+    };
+
+    it('offers Buy crypto for a Predict deposit', () => {
+      const { getByText } = renderWithSkippedPrefill(
+        TransactionType.predictDeposit,
+      );
+
+      expect(
+        getByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('confirm.custom_amount.buy_predict')),
+      ).toBeOnTheScreen();
+    });
+
+    it.each([
+      TransactionType.perpsDeposit,
+      TransactionType.moneyAccountDeposit,
+    ])('keeps Buy crypto hidden for %s', (transactionType) => {
+      const { queryByText } = renderWithSkippedPrefill(transactionType);
+
+      expect(
+        queryByText(strings('confirm.custom_amount.buy_button')),
+      ).toBeNull();
+    });
+  });
+
+  it('keeps the keypad and hides Buy crypto for a Predict deposit with a skipped prefill and a payment option', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '0',
+        depositPrefillStatus: DepositPrefillStatus.Skipped,
+      }),
+    );
+
+    const { getByTestId, queryByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
+  });
+
+  it('keeps Buy crypto hidden for a Predict deposit while its prefill loads', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.predictDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        depositPrefillStatus: DepositPrefillStatus.Loading,
+      }),
+    );
+
+    const { queryByText } = render({
+      transactionType: TransactionType.predictDeposit,
+    });
+
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
+  });
+
   it('renders headless buy error when no alert message is present', () => {
     const headlessBuyError = 'Unable to complete purchase';
 

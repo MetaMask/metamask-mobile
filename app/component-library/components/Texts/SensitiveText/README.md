@@ -18,9 +18,9 @@ Boolean to determine whether the text should be hidden or visible.
 
 Determines the length of the hidden text (number of dots). Can be a predefined SensitiveTextLength or a custom string number.
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
-| [SensitiveTextLengthType](./SensitiveText.types.ts#L14) \| [CustomLength](./SensitiveText.types.ts#L19) | No   | SensitiveTextLength.Short                              |
+| <span style="color:gray;font-size:14px">TYPE</span>                                                     | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :------------------------------------------------------------------------------------------------------ | :------------------------------------------------------ | :----------------------------------------------------- |
+| [SensitiveTextLengthType](./SensitiveText.types.ts#L14) \| [CustomLength](./SensitiveText.types.ts#L19) | No                                                      | SensitiveTextLength.Short                              |
 
 ### `children`
 
@@ -33,9 +33,9 @@ The text content to be displayed or hidden.
 ## Usage
 
 ```javascript
-import SensitiveText from 'app/component-library/components/Texts/SensitiveText';
-import { TextVariant } from 'app/component-library/components/Texts/Text';
-import { SensitiveTextLength } from 'app/component-library/components/Texts/SensitiveText/SensitiveText.types';
+import SensitiveText from '#app/component-library/components/Texts/SensitiveText';
+import { TextVariant } from '#app/component-library/components/Texts/Text';
+import { SensitiveTextLength } from '#app/component-library/components/Texts/SensitiveText/SensitiveText.types';
 
 <SensitiveText
   isHidden={true}
