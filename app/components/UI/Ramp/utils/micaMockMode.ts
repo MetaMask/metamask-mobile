@@ -41,7 +41,7 @@ export function injectMicaTermsIds(quote: any): any {
   Logger.log('[MiCA Mock] Injecting MICA_EEA_BUY termsId into quote');
   return {
     ...quote,
-    termsIds: ['MICA_EEA_BUY', ...(quote.termsIds || [])],
+    termsIds: ['MICA_EEA_BUY', ...(quote.termsIds ?? [])],
   };
 }
 

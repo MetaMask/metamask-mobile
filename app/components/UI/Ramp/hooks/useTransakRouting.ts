@@ -998,12 +998,12 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
                   quote,
                   quoteId: quote.quoteId,
                   metadata: {
-                    options: sourceOfIncomeForm.metadata?.options || [],
+                    options: sourceOfIncomeForm.metadata?.options ?? [],
                     documentProofOptions: [],
                     expiresAt: '',
                     kycUrl: '',
                     workFlowRunId: '',
-                    ...(sourceOfIncomeForm.metadata || {}),
+                    ...sourceOfIncomeForm.metadata,
                   },
                   ...(baseRouteParams ?? {}),
                 });
@@ -1084,8 +1084,8 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
 
               navigateToAdditionalVerificationCallback({
                 quote,
-                kycUrl: metadata.kycUrl || '',
-                workFlowRunId: metadata.workFlowRunId || '',
+                kycUrl: metadata.kycUrl ?? '',
+                workFlowRunId: metadata.workFlowRunId ?? '',
                 amount,
               });
               return;

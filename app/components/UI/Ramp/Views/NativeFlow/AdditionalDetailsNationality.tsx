@@ -57,7 +57,7 @@ export interface AdditionalDetailsNationalityParams {
 }
 
 const AdditionalDetailsNationality = (): React.JSX.Element => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { quote, quoteId, metadata, onSubmitted, headlessSessionId } =
@@ -78,9 +78,9 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
   const [countryOfCitizenship, setCountryOfCitizenship] = useState('');
 
   const employmentStatusOptions: { name: string; value: string }[] =
-    metadata.employmentStatusOptions || [];
+    metadata.employmentStatusOptions ?? [];
   const countryOfCitizenshipOptions: { name: string; value: string }[] =
-    metadata.countryOfCitizenshipOptions || [];
+    metadata.countryOfCitizenshipOptions ?? [];
 
   const hasFieldsMissing =
     !employmentStatusOptions.length || !countryOfCitizenshipOptions.length;
@@ -251,7 +251,9 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
                   label: strings(
                     'deposit.additional_details_nationality.retry_button',
                   ),
-                  onPress: handleRetryFetchRequirements,
+                  onPress: () => {
+                    void handleRetryFetchRequirements();
+                  },
                   disabled: retrying,
                 }}
                 style={styles.errorBanner}
@@ -298,7 +300,9 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            onPress={handleSubmit}
+            onPress={() => {
+              void handleSubmit();
+            }}
             isLoading={loading}
             isDisabled={!isFormValid || loading}
             isFullWidth

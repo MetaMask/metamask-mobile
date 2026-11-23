@@ -110,7 +110,7 @@ const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
   const [modalVisible, setModalVisible] = useState(false);
 
   const selectedOption = options.find((opt) => opt.value === selectedValue);
-  const displayText = selectedOption?.name || placeholder;
+  const displayText = selectedOption?.name ?? placeholder;
 
   const handleSelect = (value: string) => {
     onValueChange(value);

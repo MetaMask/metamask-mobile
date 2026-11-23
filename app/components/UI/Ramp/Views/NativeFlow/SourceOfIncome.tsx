@@ -58,7 +58,7 @@ export interface SourceOfIncomeParams {
 }
 
 const SourceOfIncome = (): React.JSX.Element => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const {
@@ -92,7 +92,7 @@ const SourceOfIncome = (): React.JSX.Element => {
   const [sourceOfFundsType, setSourceOfFundsType] = useState('');
 
   const sourceOfFundsOptions: { name: string; value: string }[] =
-    metadata.options || [];
+    metadata.options ?? [];
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -257,7 +257,9 @@ const SourceOfIncome = (): React.JSX.Element => {
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            onPress={handleSubmit}
+            onPress={() => {
+              void handleSubmit();
+            }}
             isLoading={loading}
             isDisabled={!isFormValid || loading}
             isFullWidth

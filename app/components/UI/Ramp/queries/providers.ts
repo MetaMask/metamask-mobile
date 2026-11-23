@@ -22,9 +22,9 @@ export const rampsProvidersOptions = (params: ProvidersQueryParams) =>
   queryOptions({
     queryKey: rampsProvidersKeys.detail(params),
     queryFn: async (): Promise<ProvidersResponse> => {
-      const response = (await Engine.context.RampsController.getProviders(
+      const response = await Engine.context.RampsController.getProviders(
         params.regionCode,
-      )) as ProvidersResponse;
+      );
 
       if (__DEV__) {
         response.providers = injectMockNativeProviderIfNeeded(

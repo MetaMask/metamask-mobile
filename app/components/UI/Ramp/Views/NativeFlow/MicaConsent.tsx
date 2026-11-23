@@ -108,7 +108,7 @@ export interface MicaConsentParams {
 }
 
 const MicaConsent = (): React.JSX.Element => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(styleSheet, {});
   const { quote, quoteId, onConsentSubmitted, headlessSessionId } =
@@ -192,8 +192,8 @@ const MicaConsent = (): React.JSX.Element => {
         return;
       }
 
-      await getKycRequirement(quoteId, { quoteId });
-      await getAdditionalRequirements(quoteId, { quoteId });
+      await getKycRequirement(quoteId);
+      await getAdditionalRequirements(quoteId);
 
       if (onConsentSubmitted) {
         onConsentSubmitted();
@@ -311,7 +311,9 @@ const MicaConsent = (): React.JSX.Element => {
                     ? {
                         variant: ButtonVariants.Link,
                         label: strings('deposit.mica.retry_button'),
-                        onPress: handleRetry,
+                        onPress: () => {
+                          void handleRetry();
+                        },
                         disabled: loading || retrying,
                       }
                     : undefined
@@ -464,7 +466,9 @@ const MicaConsent = (): React.JSX.Element => {
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            onPress={handleSubmit}
+            onPress={() => {
+              void handleSubmit();
+            }}
             isLoading={loading}
             isDisabled={!isFormValid || loading}
             isFullWidth
