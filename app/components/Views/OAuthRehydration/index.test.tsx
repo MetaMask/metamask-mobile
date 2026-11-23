@@ -2183,11 +2183,8 @@ describe('OAuthRehydration', () => {
       addEventListenerSpy.mockRestore();
     });
 
-    it('logs a successful social token exchange and still verifies', async () => {
+    it('continues to password after arrival MFA verify succeeds', async () => {
       enableMfaFlags();
-      mockEngine.context.AuthenticationController.exchangeSocialAccessToken.mockResolvedValue(
-        undefined,
-      );
       mockVerifyForSocialLogin.mockResolvedValue({
         verifiedMethod: 'totp',
       });
@@ -2201,9 +2198,7 @@ describe('OAuthRehydration', () => {
           getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
         ).toBeOnTheScreen();
       });
-      expect(Logger.log).toHaveBeenCalledWith(
-        'OAuthRehydration: social login exchange ok',
-      );
+      expect(mockVerifyForSocialLogin).toHaveBeenCalled();
     });
 
     it('opens the password screen when listing fallback methods fails', async () => {

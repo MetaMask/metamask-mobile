@@ -3,6 +3,7 @@ import {
   getMfaErrorCode,
   type EnrolledCredential,
 } from '@metamask/profile-sync-controller/sdk';
+import Engine from '../../../core/Engine';
 import { selectEnrolledCredentials } from '../../../selectors/identity';
 import {
   createSocialLoginControllerAdapter,
@@ -123,6 +124,19 @@ const verifyForSocialLogin = async ({
    */
   methods?: readonly MfaMethod[];
 }): Promise<MfaFlowResult & { verifiedMethod: MfaMethod }> => {
+  // Pair the social identifier before locked verify. Failure is non-fatal —
+  // the kit will fail similarly if pairing is still required.
+  try {
+    await Engine.context.AuthenticationController.exchangeSocialAccessToken();
+  } catch (exchangeError) {
+    Logger.log('useMfa: social login exchange failed', {
+      message:
+        exchangeError instanceof Error
+          ? exchangeError.message
+          : String(exchangeError),
+    });
+  }
+
   // One adapter for every attempt: it keeps the flow's verification token.
   const controller = createSocialLoginControllerAdapter();
   const methodsToTry = method

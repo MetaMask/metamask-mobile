@@ -14,6 +14,7 @@ import { mobilePasskeyAdapter } from './passkeyAdapter';
 import { useMfa } from './useMfa';
 import { analytics } from '../../analytics/analytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import Engine from '../../../core/Engine';
 
 jest.mock('./engine/activeFlow', () => ({
   startMfaFlow: jest.fn(),
@@ -28,7 +29,15 @@ jest.mock('./passkeyAdapter', () => ({
   mobilePasskeyAdapter: {},
 }));
 
-jest.mock('../../Logger', () => ({ error: jest.fn() }));
+jest.mock('../../Logger', () => ({ error: jest.fn(), log: jest.fn() }));
+
+jest.mock('../../../core/Engine', () => ({
+  context: {
+    AuthenticationController: {
+      exchangeSocialAccessToken: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
 
 jest.mock('../../analytics/analytics', () => ({
   analytics: { trackEvent: jest.fn() },
@@ -59,6 +68,11 @@ describe('useMfa', () => {
     jest
       .mocked(createSocialLoginControllerAdapter)
       .mockReturnValue(socialLoginController);
+    jest
+      .mocked(Engine.context.AuthenticationController.exchangeSocialAccessToken)
+      .mockReset()
+      .mockResolvedValue(undefined);
+    jest.mocked(Logger.log).mockClear();
   });
 
   it('returns the cached credentials', () => {
@@ -172,6 +186,31 @@ describe('useMfa', () => {
     });
 
     const reason: MfaReason = { operation: 'qa.verifyForSocialLogin' };
+
+    it('pairs the social identifier before starting verify', async () => {
+      await renderUseMfa().verifyForSocialLogin({ reason });
+
+      expect(
+        Engine.context.AuthenticationController.exchangeSocialAccessToken,
+      ).toHaveBeenCalledTimes(1);
+      expect(mockStartMfaFlow).toHaveBeenCalled();
+    });
+
+    it('still verifies when social token exchange fails', async () => {
+      jest
+        .mocked(
+          Engine.context.AuthenticationController.exchangeSocialAccessToken,
+        )
+        .mockRejectedValueOnce(new Error('exchange failed'));
+
+      await renderUseMfa().verifyForSocialLogin({ reason });
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        'useMfa: social login exchange failed',
+        expect.objectContaining({ message: 'exchange failed' }),
+      );
+      expect(mockStartMfaFlow).toHaveBeenCalled();
+    });
 
     it('starts with passkey so the highest enrolled method opens directly', async () => {
       await renderUseMfa().verifyForSocialLogin({ reason });

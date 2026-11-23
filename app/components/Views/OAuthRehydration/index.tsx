@@ -106,7 +106,6 @@ import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
 import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
-import Engine from '../../../core/Engine';
 import { useMfa } from '../../../util/identity/mfa';
 import type {
   MfaMethod,
@@ -646,12 +645,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   /**
    * Pre-password locked social MFA via Account kit `verifyForSocialLogin`.
    * Arrival tries passkey then totp. Email is included only for Telegram,
-   * where that inbox is not the sign-in factor.
-   *
-   * Needs the social identifier paired (`exchangeSocialAccessToken`). Pairing
-   * runs after unlock via `performSignIn` when MFA UI kit / BFTC is on — that
-   * requires a **cold app restart** after changing auth-controller init or
-   * `.js.env` (Engine does not pick it up via Fast Refresh).
+   * where that inbox is not the sign-in factor. Social pairing runs inside
+   * `verifyForSocialLogin`.
    */
   const offerLockedSocialMfaVerify = useCallback(async () => {
     if (!canOfferSocialMfaVerify) {
@@ -664,20 +659,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setPasswordFromVerify(false);
     lockedVerifyInFlightRef.current = true;
     try {
-      // Surface Auth pairing failures in Metro (kit may show "Something went wrong").
-      try {
-        await Engine.context.AuthenticationController.exchangeSocialAccessToken();
-        Logger.log('OAuthRehydration: social login exchange ok');
-      } catch (exchangeError) {
-        Logger.log('OAuthRehydration: social login exchange failed', {
-          message:
-            exchangeError instanceof Error
-              ? exchangeError.message
-              : String(exchangeError),
-        });
-        // Still attempt MFA — if exchange failed, kit will fail similarly.
-      }
-
       // Google/Apple sign-in email is the first factor, so it is not a
       // recovery factor. Telegram's inbox is separate, so email stays.
       const arrivalMethods: MfaMethod[] | undefined =
