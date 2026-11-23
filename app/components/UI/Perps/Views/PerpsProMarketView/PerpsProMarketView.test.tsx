@@ -27,6 +27,15 @@ import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { playSelection } from '../../../../../util/haptics';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/perpsBrandRefresh',
+  () => ({
+    selectPerpsBrandRefreshEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('../../../../../util/haptics');
 
 const mockSetTitleSectionHeight = jest.fn();
@@ -143,8 +152,21 @@ const mockCommitLimitPrice = jest.fn();
 const mockCommitTriggerPrice = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockSetTriggerPrice = jest.fn();
-let mockOrderFormType: 'market' | 'limit' | 'stop_market' | 'stop_limit' =
-  'market';
+const mockCommitPriceToField = jest.fn(() => false);
+let mockActivePriceField:
+  | 'limit'
+  | 'trigger'
+  | 'scaleStart'
+  | 'scaleEnd'
+  | 'chaseMaxDistance'
+  | null = null;
+let mockOrderFormType:
+  | 'market'
+  | 'limit'
+  | 'stop_market'
+  | 'stop_limit'
+  | 'scale'
+  | 'chase' = 'market';
 let mockOrderBookPosition: 'left' | 'right' = 'left';
 let mockIsOrderBookExpanded = true;
 const mockSetOrderBookExpanded = jest.fn();
@@ -489,6 +511,8 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
     commitTriggerPrice: mockCommitTriggerPrice,
     setOrderType: mockSetOrderType,
     setTriggerPrice: mockSetTriggerPrice,
+    activePriceField: mockActivePriceField,
+    commitPriceToField: mockCommitPriceToField,
   }),
 }));
 
@@ -576,6 +600,8 @@ describe('PerpsProMarketView', () => {
     jest.clearAllMocks();
     mockConnectionInitialized = true;
     mockOrderFormType = 'market';
+    mockActivePriceField = null;
+    mockCommitPriceToField.mockReset().mockReturnValue(false);
     mockSzDecimals = undefined;
     mockOrderBookPosition = 'left';
     mockIsOrderBookExpanded = true;
@@ -1433,6 +1459,100 @@ describe('PerpsProMarketView', () => {
     expect(mockSetTriggerPrice).not.toHaveBeenCalled();
     expect(mockCommitLimitPrice).not.toHaveBeenCalled();
   });
+
+  describe('focused price field routing', () => {
+    const singleBidBook: OrderBookData = {
+      bids: [
+        {
+          price: '89950',
+          size: '1.5',
+          total: '1.5',
+          notional: '134925',
+          totalNotional: '134925',
+        },
+      ],
+      asks: [],
+      spread: '100',
+      spreadPercentage: '0.11',
+      midPrice: '90000',
+      lastUpdated: 1700000000000,
+      maxTotal: '1.5',
+    };
+
+    beforeEach(() => {
+      mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+        orderBook: singleBidBook,
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: jest.fn(),
+      }));
+    });
+
+    it('fills a focused Scale field in place instead of switching order type', () => {
+      mockOrderFormType = 'scale';
+      mockActivePriceField = 'scaleStart';
+      mockCommitPriceToField.mockReturnValue(true);
+
+      const { getByTestId } = renderView();
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+        ),
+      );
+
+      expect(mockCommitPriceToField).toHaveBeenCalledWith(
+        'scaleStart',
+        '89950',
+      );
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(mockCommitLimitPrice).not.toHaveBeenCalled();
+      expect(mockCommitTriggerPrice).not.toHaveBeenCalled();
+    });
+
+    it('falls back to switching to limit when Scale has no field focused', () => {
+      // With nothing focused, a Scale order-book tap still falls back to Limit.
+      mockOrderFormType = 'scale';
+      mockActivePriceField = null;
+
+      const { getByTestId } = renderView();
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+        ),
+      );
+
+      expect(mockCommitPriceToField).not.toHaveBeenCalled();
+      expect(mockSetOrderType).toHaveBeenCalledWith('limit');
+      expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+    });
+
+    it('falls back to the order-type default when the focused field has no registered handler', () => {
+      // A stale selection (e.g. left over after a type switch outside this
+      // hook's reset) must not silently swallow the tap.
+      mockOrderFormType = 'stop_market';
+      mockActivePriceField = 'scaleStart';
+      mockCommitPriceToField.mockReturnValue(false);
+
+      const { getByTestId } = renderView();
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+        ),
+      );
+
+      expect(mockCommitPriceToField).toHaveBeenCalledWith(
+        'scaleStart',
+        '89950',
+      );
+      expect(mockCommitTriggerPrice).toHaveBeenCalledWith('89950');
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+    });
+  });
+
   it('commits a book price unchanged while the asset precision is unknown', () => {
     // szDecimals arrives asynchronously. Canonicalizing against the fallback
     // precision rounds a sub-dollar book price to 0, which would then be
@@ -1530,6 +1650,67 @@ describe('PerpsProMarketView', () => {
       renderView();
 
       expect(mockRecordMarketViewed).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('brand refresh insets', () => {
+    const edgeInsets = { top: 47, bottom: 34 };
+    const headerGlassTestID = `${PerpsProMarketViewSelectorsIDs.HEADER}-glass`;
+
+    const renderWithInsets = () =>
+      renderWithProvider(<PerpsProMarketView edgeInsets={edgeInsets} />, {
+        state: { engine: { backgroundState } },
+      });
+
+    afterEach(() => {
+      jest.mocked(selectPerpsBrandRefreshEnabled).mockReturnValue(false);
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(false);
+    });
+
+    it('reserves the floating header height and clears the home indicator', () => {
+      jest.mocked(selectPerpsBrandRefreshEnabled).mockReturnValue(true);
+
+      const { getByTestId } = renderWithInsets();
+      const scrollView = getByTestId(
+        PerpsProMarketViewSelectorsIDs.SCROLL_VIEW,
+      );
+
+      expect(
+        within(scrollView).getByTestId(
+          PerpsProMarketViewSelectorsIDs.HEADER_SPACER,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(scrollView).getByTestId(
+          PerpsProMarketViewSelectorsIDs.BOTTOM_INSET_SPACER,
+        ),
+      ).toHaveStyle({ height: 34 });
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 47 });
+    });
+
+    it('lets the service banner pad the status bar instead of the header', () => {
+      jest.mocked(selectPerpsBrandRefreshEnabled).mockReturnValue(true);
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(true);
+
+      const { getByTestId } = renderWithInsets();
+
+      expect(getByTestId(headerGlassTestID)).toHaveStyle({ paddingTop: 0 });
+    });
+
+    it('adds no spacers with the flag off', () => {
+      const { queryByTestId } = renderView();
+
+      expect(
+        queryByTestId(PerpsProMarketViewSelectorsIDs.HEADER_SPACER),
+      ).toBeNull();
+      expect(
+        queryByTestId(PerpsProMarketViewSelectorsIDs.BOTTOM_INSET_SPACER),
+      ).toBeNull();
+      expect(queryByTestId(headerGlassTestID)).toBeNull();
     });
   });
 });

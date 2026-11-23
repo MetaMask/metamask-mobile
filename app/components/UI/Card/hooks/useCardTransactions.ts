@@ -92,6 +92,10 @@ export function useCardTransactions(
     getNextPageParam: (lastPage: CardTransactionPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
     enabled: Boolean(cardController && isAuthenticated && providerId),
+    // The app QueryClient treats data as fresh for 5 minutes. A purchase
+    // happens outside the app, so every open of this screen must request.
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const items = useMemo(

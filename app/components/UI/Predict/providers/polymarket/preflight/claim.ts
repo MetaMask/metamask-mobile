@@ -7,12 +7,17 @@ import {
   MIN_PUSD_BALANCE_FOR_CLAIM_GAS,
 } from '../constants';
 import {
+  POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   type PolymarketProtocolDefinition,
 } from '../protocol/definitions';
 import { toDepositWalletCalls, type DepositWalletCall } from '../depositWallet';
 import { OperationType, type SafeTransaction } from '../safe/types';
-import { encodeErc20Transfer, encodeRedeemPositions } from '../utils';
+import {
+  encodeErc20Transfer,
+  encodeRedeemPositions,
+  encodeRouterRedeem,
+} from '../utils';
 import {
   buildSignedSafeExecution,
   compileAllowanceMaintenanceTransactions,
@@ -32,6 +37,59 @@ const MIN_PUSD_BALANCE_FOR_CLAIM_GAS_RAW = BigInt(
 );
 
 type PolymarketV2ProtocolDefinition = PolymarketProtocolDefinition;
+
+/**
+ * Gamma market version keyed by the position's condition id
+ * (`position.outcomeId`), resolved at the provider edge by loading Gamma
+ * through `position.marketId`. Only 'v2' routes a claim to the Router; a
+ * missing or unknown version keeps the CTF claim.
+ */
+export type ClaimMarketVersions = Record<string, string | undefined>;
+
+function partitionClaimPositions({
+  positions,
+  marketVersions,
+}: {
+  positions: PredictPosition[];
+  marketVersions: ClaimMarketVersions;
+}): { ctfPositions: PredictPosition[]; v2Positions: PredictPosition[] } {
+  const ctfPositions: PredictPosition[] = [];
+  const v2Positions: PredictPosition[] = [];
+
+  for (const position of positions) {
+    if (marketVersions[position.outcomeId] === 'v2') {
+      v2Positions.push(position);
+    } else {
+      ctfPositions.push(position);
+    }
+  }
+
+  return { ctfPositions, v2Positions };
+}
+
+function buildV2ClaimSubtransactions({
+  positions,
+}: {
+  positions: PredictPosition[];
+}): SafeTransaction[] {
+  const { router } = POLYMARKET_POSITIONS_PROTOCOL.contracts;
+
+  // negRisk does not change the call: the Router routes the condition id to
+  // the V2 module handling binary and neg-risk markets. The Router operator
+  // approval is a claim requirement, not part of the redeem calls.
+  return positions.map((position) => ({
+    to: router,
+    data: encodeRouterRedeem({
+      conditionId: position.outcomeId,
+      outcomeIndex: position.outcomeIndex,
+      // Shares are 6-decimal base units; toFixed(6) rounds away float noise
+      // so parseUnits never rejects the formatted amount.
+      amount: parseUnits(position.size.toFixed(6), 6).toString(),
+    }),
+    operation: OperationType.Call,
+    value: '0',
+  }));
+}
 
 function buildClaimSubtransactions({
   positions,
@@ -59,15 +117,24 @@ export function getClaimRequirements({
   positions,
   protocol = POLYMARKET_V2_PROTOCOL,
   includeLegacySweep = true,
+  marketVersions = {},
 }: {
   positions: PredictPosition[];
   protocol?: PolymarketV2ProtocolDefinition;
   includeLegacySweep?: boolean;
+  marketVersions?: ClaimMarketVersions;
 }): V2AllowanceRequirement[] {
-  const requiresStandardAdapter = positions.some(
+  const { ctfPositions, v2Positions } = partitionClaimPositions({
+    positions,
+    marketVersions,
+  });
+  const requiresStandardAdapter = ctfPositions.some(
     (position) => !position.negRisk,
   );
-  const requiresNegRiskAdapter = positions.some((position) => position.negRisk);
+  const requiresNegRiskAdapter = ctfPositions.some(
+    (position) => position.negRisk,
+  );
+  const requiresV2Router = v2Positions.length > 0;
 
   return [
     ...(includeLegacySweep
@@ -92,6 +159,16 @@ export function getClaimRequirements({
           },
         ]
       : []),
+    ...(requiresV2Router
+      ? [
+          {
+            type: 'erc1155-operator' as const,
+            tokenAddress:
+              POLYMARKET_POSITIONS_PROTOCOL.contracts.positionManager,
+            operator: POLYMARKET_POSITIONS_PROTOCOL.contracts.router,
+          },
+        ]
+      : []),
   ];
 }
 
@@ -108,12 +185,14 @@ export async function planClaim({
   positions,
   safeAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  marketVersions = {},
   safeLegacyUsdceBalance: providedSafeLegacyUsdceBalance,
 }: {
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
   protocol?: PolymarketV2ProtocolDefinition;
+  marketVersions?: ClaimMarketVersions;
   safeLegacyUsdceBalance?: bigint;
 }): Promise<ClaimPlan> {
   const safeLegacyUsdceBalance =
@@ -130,6 +209,7 @@ export async function planClaim({
         positions,
         protocol,
         includeLegacySweep: safeLegacyUsdceBalance > 0n,
+        marketVersions,
       }),
     }),
     getRawTokenBalance({
@@ -147,6 +227,7 @@ export async function planClaim({
     protocol,
     signer,
     positions,
+    marketVersions,
     safeAddress,
     missingRequirements,
     safeLegacyUsdceBalance,
@@ -166,6 +247,7 @@ function compileClaimTransactions({
   protocol = POLYMARKET_V2_PROTOCOL,
   signer,
   positions,
+  marketVersions = {},
   safeAddress,
   missingRequirements,
   safeLegacyUsdceBalance,
@@ -174,6 +256,7 @@ function compileClaimTransactions({
   protocol?: PolymarketV2ProtocolDefinition;
   signer: Signer;
   positions: PredictPosition[];
+  marketVersions?: ClaimMarketVersions;
   safeAddress: string;
   missingRequirements: V2AllowanceRequirement[];
   safeLegacyUsdceBalance: bigint;
@@ -186,11 +269,17 @@ function compileClaimTransactions({
     usdceBalance: safeLegacyUsdceBalance,
   });
 
+  const { ctfPositions, v2Positions } = partitionClaimPositions({
+    positions,
+    marketVersions,
+  });
+
   transactions.push(
     ...buildClaimSubtransactions({
-      positions,
+      positions: ctfPositions,
       protocol,
     }),
+    ...buildV2ClaimSubtransactions({ positions: v2Positions }),
   );
 
   if (gasTokenDeficit > 0n) {
@@ -212,10 +301,12 @@ export async function planDepositWalletClaim({
   positions,
   walletAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  marketVersions = {},
 }: {
   positions: PredictPosition[];
   walletAddress: string;
   protocol?: PolymarketV2ProtocolDefinition;
+  marketVersions?: ClaimMarketVersions;
 }): Promise<DepositWalletCall[]> {
   if (!positions || positions.length === 0) {
     throw new Error('No positions provided for deposit wallet claim');
@@ -226,6 +317,7 @@ export async function planDepositWalletClaim({
       positions,
       protocol,
       includeLegacySweep: false,
+      marketVersions,
     }),
   );
 
@@ -234,9 +326,15 @@ export async function planDepositWalletClaim({
     requirements,
   });
 
+  const { ctfPositions, v2Positions } = partitionClaimPositions({
+    positions,
+    marketVersions,
+  });
+
   const transactions = [
     ...compileRequirementTransactions(missingRequirements),
-    ...buildClaimSubtransactions({ positions, protocol }),
+    ...buildClaimSubtransactions({ positions: ctfPositions, protocol }),
+    ...buildV2ClaimSubtransactions({ positions: v2Positions }),
   ];
 
   if (transactions.length === 0) {
@@ -251,12 +349,14 @@ export async function buildClaimTransaction({
   positions,
   safeAddress,
   protocol = POLYMARKET_V2_PROTOCOL,
+  marketVersions,
   safeLegacyUsdceBalance,
 }: {
   signer: Signer;
   positions: PredictPosition[];
   safeAddress: string;
   protocol?: PolymarketV2ProtocolDefinition;
+  marketVersions?: ClaimMarketVersions;
   safeLegacyUsdceBalance?: bigint;
 }) {
   const plan = await planClaim({
@@ -264,6 +364,7 @@ export async function buildClaimTransaction({
     positions,
     safeAddress,
     protocol,
+    marketVersions,
     safeLegacyUsdceBalance,
   });
 

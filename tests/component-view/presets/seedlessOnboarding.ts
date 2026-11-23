@@ -30,3 +30,46 @@ export const initialStateSeedlessOnboarding = () =>
     .withRemoteFeatureFlags({})
     .withMinimalAnalyticsController()
     .withOverrides(seedlessSocialLoginStateOverrides);
+
+/**
+ * Baseline Redux state for the Security & privacy marketing-consent section
+ * (MetaMetricsAndDataCollectionSection) rendered for a social-login user.
+ *
+ * Mirrors the desync setup from GE-644 / GE-647: the user has marketing
+ * consent enabled locally while the auth server still holds its own
+ * `is_opt_in` value, and every toggle POSTs the new choice to the auth
+ * server (see tests/component-view/api-mocking/seedless-onboarding.ts).
+ */
+export const initialStateSeedlessSecuritySettings = (
+  options: {
+    /** Local marketing preference (state.security.dataCollectionForMarketing). */
+    dataCollectionForMarketing?: boolean;
+    /** AnalyticsController.optedIn — gates marketing consent traits. */
+    analyticsOptedIn?: boolean;
+  } = {},
+) =>
+  initialStateSeedlessOnboarding()
+    .withMinimalKeyringController()
+    .withMinimalAnalyticsController({
+      optedIn: options.analyticsOptedIn ?? true,
+    })
+    .withOverrides({
+      security: {
+        allowLoginWithRememberMe: false,
+        dataCollectionForMarketing: options.dataCollectionForMarketing ?? true,
+        isNFTAutoDetectionModalViewed: false,
+        osAuthEnabled: true,
+        shouldShowConsentSheet: true,
+        dataSharingPreference: null,
+      },
+      engine: {
+        backgroundState: {
+          // A vault marks the seedless login flow
+          // (selectSeedlessOnboardingLoginFlow), which is what routes every
+          // consent write to OAuthService.updateMarketingOptInStatus.
+          SeedlessOnboardingController: {
+            vault: 'seedless-cv-vault',
+          },
+        },
+      },
+    } as DeepPartial<RootState>);

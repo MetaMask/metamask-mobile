@@ -4,19 +4,15 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { DiscountType } from '@metamask/bridge-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
+import DottedUnderline from '../../../../../../UI/DottedUnderline';
 import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
 import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
 import Skeleton from '../../../../../../../component-library/components-temp/Skeleton/Skeleton';
@@ -24,20 +20,21 @@ import {
   TextColor as LegacyTextColor,
   TextVariant as LegacyTextVariant,
 } from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import { useTheme } from '../../../../../../../util/theme';
 import AddRewardsAccount from '../../../../../Rewards/components/AddRewardsAccount/AddRewardsAccount';
-import MembershipVipBadge from '../../../../../shared/MembershipVipBadge/MembershipVipBadge';
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../../../Rewards/components/RewardPointsAnimation';
+import PredictFeeTotal from '../../../../components/PredictFeeTotal/PredictFeeTotal';
 import { usePredictRewards } from '../../../../hooks/usePredictRewards';
-import { formatPrice } from '../../../../utils/format';
+import type { PredictFeePolicy } from '../../../../types';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   loading?: boolean;
   total: number;
   originalTotal?: number;
-  feePolicyDiscountType?: DiscountType;
+  feePolicy?: PredictFeePolicy;
   rewardsFeeAmountUsd?: number;
   rewardsLoadingOverride?: boolean;
   handleFeesInfoPress: () => void;
@@ -49,11 +46,12 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   handleFeesInfoPress,
   total,
   originalTotal,
-  feePolicyDiscountType,
+  feePolicy,
   rewardsFeeAmountUsd,
   rewardsLoadingOverride = false,
 }) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const {
     shouldShowRewardsRow,
     accountOptedIn,
@@ -77,14 +75,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
       <Box twClassName="pt-4 pb-6 flex-col gap-4">
         <Box twClassName="py-1">
           <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row items-center gap-1">
-              <Skeleton width={52} height={16} style={tw.style('my-1')} />
-              <Skeleton
-                width={16}
-                height={16}
-                style={tw.style('rounded-full')}
-              />
-            </Box>
+            <Skeleton width={52} height={16} style={tw.style('my-1')} />
             <Skeleton width={60} height={16} style={tw.style('my-1')} />
           </Box>
         </Box>
@@ -107,7 +98,7 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
           style={tw.style('py-1')}
         >
           <Box twClassName="flex-row justify-between items-center">
-            <Box twClassName="flex-row items-center gap-1">
+            <DottedUnderline color={colors.text.alternative}>
               <Text
                 variant={TextVariant.BodyMd}
                 fontWeight={FontWeight.Medium}
@@ -115,35 +106,13 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
               >
                 {strings('predict.fee_summary.total')}
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Box>
-            <Box twClassName="flex-row items-center gap-2">
-              {feePolicyDiscountType === DiscountType.SUBSCRIPTION &&
-                originalTotal !== undefined && (
-                  <>
-                    <MembershipVipBadge hasProEntitlement />
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="line-through"
-                    >
-                      {formatPrice(originalTotal, { maximumDecimals: 2 })}
-                    </Text>
-                  </>
-                )}
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {formatPrice(total, { maximumDecimals: 2 })}
-              </Text>
-            </Box>
+            </DottedUnderline>
+            <PredictFeeTotal
+              total={total}
+              originalTotal={originalTotal}
+              feePolicy={feePolicy}
+              fontWeight={FontWeight.Medium}
+            />
           </Box>
         </TouchableOpacity>
 

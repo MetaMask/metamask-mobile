@@ -10,6 +10,7 @@ import { VerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(),
+  useSelector: jest.fn(),
 }));
 
 const mockedUseDispatch = useDispatch as jest.MockedFunction<

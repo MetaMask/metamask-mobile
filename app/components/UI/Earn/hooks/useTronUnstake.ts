@@ -26,7 +26,7 @@ import {
 export type ResourceType = 'energy' | 'bandwidth';
 
 interface UseTronUnstakeParams {
-  token: TokenI;
+  token?: TokenI;
 }
 
 interface UseTronUnstakeReturn {
@@ -76,8 +76,9 @@ const useTronUnstake = ({
 
   // Derive whether token is on Tron chain
   const isTronAsset = useMemo(
-    () => Boolean(isTronChainId(String(token.chainId) as Hex)),
-    [token.chainId],
+    () =>
+      Boolean(token?.chainId && isTronChainId(String(token.chainId) as Hex)),
+    [token?.chainId],
   );
 
   // Tron unstaking is enabled when both flag is on and token is on Tron chain
@@ -91,14 +92,15 @@ const useTronUnstake = ({
 
   // Determine the staked balance to use for withdrawal
   const stakedBalanceOverride = useMemo(() => {
+    if (!token) return undefined;
     if (stakedTrxTotal > 0) return stakedTrxTotal;
     if (token.isStaked) return token.balance;
     return undefined;
-  }, [stakedTrxTotal, token.isStaked, token.balance]);
+  }, [stakedTrxTotal, token]);
 
   // Build enriched Tron token with staked balance for withdrawal flow (acts as receipt token)
   const tronWithdrawalToken = useMemo(() => {
-    if (!isTronEnabled) return undefined;
+    if (!isTronEnabled || !token) return undefined;
 
     return buildTronEarnTokenIfEligible(token, {
       isTrxStakingEnabled: true,
@@ -118,13 +120,13 @@ const useTronUnstake = ({
     undefined,
   );
 
-  const chainId = String(token.chainId);
+  const chainId = token?.chainId ? String(token.chainId) : '';
 
   const validateUnstakeAmount = useCallback<
     UseTronUnstakeReturn['validateUnstakeAmount']
   >(
     async (amount: string) => {
-      if (!selectedTronAccount?.id || !chainId) return null;
+      if (!isTronEnabled || !selectedTronAccount?.id || !chainId) return null;
 
       setValidating(true);
       setErrors(undefined);
@@ -169,12 +171,12 @@ const useTronUnstake = ({
 
       return validation;
     },
-    [selectedTronAccount, chainId, resourceType],
+    [isTronEnabled, selectedTronAccount, chainId, resourceType],
   );
 
   const confirmUnstake = useCallback<UseTronUnstakeReturn['confirmUnstake']>(
     async (amount: string) => {
-      if (!selectedTronAccount?.id || !chainId) return null;
+      if (!isTronEnabled || !selectedTronAccount?.id || !chainId) return null;
 
       setValidating(true);
       setErrors(undefined);
@@ -191,7 +193,7 @@ const useTronUnstake = ({
 
       return confirmation;
     },
-    [selectedTronAccount, chainId, resourceType],
+    [isTronEnabled, selectedTronAccount, chainId, resourceType],
   );
 
   return {

@@ -2,7 +2,12 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { Hex } from '@metamask/utils';
 import { AnimationDuration } from '@metamask/design-tokens';
 import React, { useMemo, type ReactNode } from 'react';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import type { LayoutChangeEvent } from 'react-native';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  type SharedValue,
+} from 'react-native-reanimated';
 import {
   BadgeNetwork,
   BadgeWrapper,
@@ -12,7 +17,6 @@ import {
   BoxAlignItems,
   ButtonIcon,
   ButtonIconSize,
-  HeaderSubpage,
   IconName,
   IconColor,
   IconSize,
@@ -21,8 +25,11 @@ import {
   FontWeight,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
-import { formatAddress } from '../../../../util/address';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
+import HeaderSubpageGlass from '../../../../component-library/components-temp/HeaderSubpageGlass';
+import { toFormattedAddress } from '../../../../util/address';
 import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
@@ -34,6 +41,28 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
 import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import type { TdpVersion } from '../analytics/getTdpAnalyticsBase';
+import { TokenDetailsIds } from '../testIds';
+
+const COMPACT_ADDRESS_EDGE_LENGTH = 4;
+
+const TITLE_PROPS = {
+  numberOfLines: 1,
+  ellipsizeMode: 'tail',
+  twClassName: 'shrink min-w-0',
+  testID: 'token-details-title',
+} as const;
+
+const formatCompactContractAddress = (address: string): string => {
+  const formatted = toFormattedAddress(address);
+  const tail = formatted.slice(-COMPACT_ADDRESS_EDGE_LENGTH);
+  if (formatted.toLowerCase().startsWith('0x')) {
+    return `0x..${tail}`;
+  }
+  if (formatted.length <= COMPACT_ADDRESS_EDGE_LENGTH * 2) {
+    return formatted;
+  }
+  return `${formatted.slice(0, COMPACT_ADDRESS_EDGE_LENGTH)}..${tail}`;
+};
 
 export const TokenDetailsInlineHeader = ({
   token,
@@ -46,6 +75,10 @@ export const TokenDetailsInlineHeader = ({
   titleEndAccessory,
   description,
   tdpVersion,
+  hideContractAddress = false,
+  isGlass = false,
+  onLayout,
+  scrollY,
 }: {
   token: TokenDetailsRouteParams;
   securityData: TokenSecurityData | null | undefined;
@@ -67,18 +100,34 @@ export const TokenDetailsInlineHeader = ({
    * events report the correct `tdp_version`.
    */
   tdpVersion?: TdpVersion;
+  /**
+   * When `true`, omits the contract address (and copy button) from the header
+   * subtitle. The memecoin TDP V1 sets this because the address lives in the
+   * security-social row instead; the legacy TDP leaves it `false`.
+   */
+  hideContractAddress?: boolean;
+  /**
+   * Floats the header over the page on its glass backdrop, with the buttons in
+   * capsules, as on the brand refresh.
+   */
+  isGlass?: boolean;
+  /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
+  onLayout?: (event: LayoutChangeEvent) => void;
+  /** The page's scroll offset, which fades the glass backdrop in. */
+  scrollY?: SharedValue<number>;
 }) => {
+  const tw = useTailwind();
   const { isStockToken } = useRWAToken();
   const { securityConfig, handleSecurityBadgePress } =
     useTokenSecurityBadgePress(token, securityData, tdpVersion);
 
   const isNativeToken = token.isETH || token.isNative;
   const contractAddress = useMemo(() => {
-    if (isNativeToken) {
+    if (hideContractAddress || isNativeToken) {
       return null;
     }
     return resolveTokenContractAddress(token);
-  }, [token, isNativeToken]);
+  }, [token, isNativeToken, hideContractAddress]);
   const handleCopyContractAddress = useCopyTokenContractAddress(
     contractAddress,
     onCopyAddress,
@@ -169,15 +218,89 @@ export const TokenDetailsInlineHeader = ({
     }
 
     if (buttons.length === 0) return undefined;
+    // On glass the actions share one capsule, as on the home header.
+    if (isGlass) {
+      return <CapsuleGlass twClassName="gap-1 px-1">{buttons}</CapsuleGlass>;
+    }
     return (
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-2">
         {buttons}
       </Box>
     );
-  }, [starButton, onPriceAlertPress, onSharePress]);
+  }, [starButton, onPriceAlertPress, onSharePress, isGlass]);
 
-  const inlineDescription = useMemo(() => {
-    if (!contractAddress) {
+  const tokenName = token.name?.trim() || token.ticker || token.symbol;
+  const tokenTicker = token.ticker || token.symbol;
+  const showTickerBelowName = Boolean(
+    tokenTicker && tokenName && tokenTicker !== tokenName,
+  );
+
+  // The trailing detail that sits next to the ticker: contract address at rest,
+  // live price once the user scrolls past the hero.
+  const trailingDetail = useMemo(() => {
+    if (description) {
+      return (
+        <Animated.View
+          key="live-price"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
+          {description}
+        </Animated.View>
+      );
+    }
+
+    if (contractAddress) {
+      return (
+        <Animated.View
+          key="contract-address"
+          entering={FadeIn.duration(AnimationDuration.Fast)}
+          exiting={FadeOut.duration(AnimationDuration.Fast)}
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="shrink-0 gap-1"
+            testID={TokenDetailsIds.header.address}
+          >
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              numberOfLines={1}
+            >
+              {formatCompactContractAddress(contractAddress)}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Copy}
+              size={ButtonIconSize.Xs}
+              onPress={handleCopyContractAddress}
+              iconProps={{
+                color: IconColor.IconAlternative,
+                size: IconSize.Sm,
+              }}
+              testID={TokenDetailsIds.header.copyAddressButton}
+              accessibilityLabel={strings('token.contract_address')}
+            />
+          </Box>
+        </Animated.View>
+      );
+    }
+
+    return null;
+  }, [description, contractAddress, handleCopyContractAddress]);
+
+  const hasSubtitle = showTickerBelowName || trailingDetail;
+
+  // Reserve the description row so HeaderSubpageGlass lays out the subtitle
+  // accessory; the actual content lives in `subtitleAccessory`.
+  const headerDescription = useMemo(
+    () => (hasSubtitle ? <Box /> : undefined),
+    [hasSubtitle],
+  );
+
+  const subtitleAccessory = useMemo(() => {
+    if (!hasSubtitle) {
       return undefined;
     }
 
@@ -185,56 +308,42 @@ export const TokenDetailsInlineHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        twClassName="w-full min-w-0 gap-1"
+        style={tw.style('min-w-0 flex-1 -ml-1')}
+        testID={TokenDetailsIds.header.subtitle}
       >
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-        >
-          {formatAddress(contractAddress, 'short')}
-        </Text>
-        <ButtonIcon
-          iconName={IconName.Copy}
-          size={ButtonIconSize.Xs}
-          onPress={handleCopyContractAddress}
-          iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-          testID="copy-contract-address-button"
-          accessibilityLabel={strings('token.contract_address')}
-        />
+        {showTickerBelowName ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            twClassName="shrink min-w-0"
+            testID={TokenDetailsIds.header.ticker}
+          >
+            {tokenTicker}
+          </Text>
+        ) : null}
+        {trailingDetail}
       </Box>
     );
-  }, [contractAddress, handleCopyContractAddress]);
-
-  const headerDescription = useMemo(() => {
-    const content = description ?? inlineDescription;
-    if (!content) {
-      return undefined;
-    }
-
-    return (
-      <Animated.View
-        key={description ? 'live-price' : 'contract-address'}
-        entering={FadeIn.duration(AnimationDuration.Fast)}
-        exiting={FadeOut.duration(AnimationDuration.Fast)}
-      >
-        {content}
-      </Animated.View>
-    );
-  }, [description, inlineDescription]);
+  }, [hasSubtitle, showTickerBelowName, tokenTicker, trailingDetail, tw]);
 
   return (
-    <HeaderSubpage
+    <HeaderSubpageGlass
+      isGlass={isGlass}
+      onLayout={onLayout}
+      scrollY={scrollY}
       includesTopInset
-      twClassName="min-h-14 h-auto bg-default justify-center"
-      startAccessory={
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={onBackPress}
-          testID="back-arrow-button"
-        />
+      // The glass backdrop replaces the solid background.
+      twClassName={
+        isGlass
+          ? 'min-h-14 h-auto justify-center'
+          : 'min-h-14 h-auto bg-default justify-center'
       }
+      onBack={onBackPress}
+      backButtonProps={{ testID: 'back-arrow-button' }}
       endAccessory={endAccessory}
       avatar={
         <BadgeWrapper
@@ -249,9 +358,13 @@ export const TokenDetailsInlineHeader = ({
           <AssetLogo asset={token} />
         </BadgeWrapper>
       }
-      title={token.ticker || token.symbol}
+      title={tokenName}
+      // Long names (e.g. Robinhood stock tokens) would otherwise keep their full
+      // width and push the title badges under the watchlist star.
+      titleProps={TITLE_PROPS}
       titleEndAccessory={titleEndAccessory ?? defaultTitleEndAccessory}
       description={headerDescription}
+      descriptionEndAccessory={subtitleAccessory}
     />
   );
 };

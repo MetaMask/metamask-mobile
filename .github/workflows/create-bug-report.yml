@@ -5,6 +5,8 @@ on: create
 jobs:
   create-bug-report:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Extract version from branch name if release branch
         id: extract_version

@@ -7,6 +7,11 @@ import TrendingListHeader from './TrendingListHeader';
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn().mockReturnValue(true);
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
@@ -43,7 +48,7 @@ describe('TrendingListHeader', () => {
   });
 
   it('renders back button and title when search is not visible', () => {
-    const { getByTestId, queryByPlaceholderText, queryByTestId } = render(
+    const { getByTestId, queryByPlaceholderText } = render(
       <TrendingListHeader {...defaultProps} />,
     );
 

@@ -10,9 +10,9 @@ This component extends [ListItemMultiSelectProps](../../List/ListItemMultiSelect
 
 Props for the [Avatar](../../../../Avatars/Avatar.tsx) component (with the exception of size). Avatar size is restricted to size Md(32x32) for Cells
 
-| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19)                                              | Yes                                                     |
+| <span style="color:gray;font-size:14px">TYPE</span>    | <span style="color:gray;font-size:14px">REQUIRED</span> |
+| :----------------------------------------------------- | :------------------------------------------------------ |
+| [AvatarProps](../../../../Avatars/Avatar.types.ts#L19) | Yes                                                     |
 
 ### `title`
 
@@ -83,9 +83,8 @@ Default: false
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import CellMultiSelect from 'app/component-library/components/Cells/variants/CellMultiSelect/CellMultiSelect';
-import { CellVariant } from 'app/component-library/components/Cells/Cell.types';
+import CellMultiSelect from '#app/component-library/components/Cells/Cell/variants/CellMultiSelect/CellMultiSelect';
+import { CellVariant } from '#app/component-library/components/Cells/Cell/Cell.types';
 
 <CellMultiSelect
   avatarProps={AVATAR_PROPS}

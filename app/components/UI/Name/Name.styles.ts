@@ -22,7 +22,7 @@ const styleSheet = (params: {
   const baseStyle: ViewStyle = {
     borderRadius: 99,
     paddingVertical: 4,
-    gap: 5,
+    gap: 4,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',

@@ -3,7 +3,6 @@ import { Linking } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   Text,
@@ -20,10 +19,14 @@ import {
 } from '../../constants/limitOrders';
 import { LimitOrderMetaMaskFeeInfoSheetSelectorsIDs } from './LimitOrderMetaMaskFeeInfoSheet.testIds';
 import type { LimitOrderMetaMaskFeeInfoSheetProps } from './LimitOrderMetaMaskFeeInfoSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const LimitOrderMetaMaskFeeInfoSheet = ({
   goBack,
 }: LimitOrderMetaMaskFeeInfoSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeSheet = useCallback(() => {
@@ -46,14 +49,15 @@ const LimitOrderMetaMaskFeeInfoSheet = ({
       testID={LimitOrderMetaMaskFeeInfoSheetSelectorsIDs.SHEET}
       goBack={goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: LimitOrderMetaMaskFeeInfoSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.limit.metamask_fee_info_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         alignItems={BoxAlignItems.Center}
         gap={3}

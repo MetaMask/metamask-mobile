@@ -9,6 +9,10 @@ import { AdvancedGasPriceModal } from './advanced-gas-price-modal';
 const mockPersistGasFeePreference = jest.fn();
 const mockUseTransactionMetadataRequest = jest.fn();
 
+jest.mock('../../../../../hooks/useIsGlassHeader', () => ({
+  useIsGlassHeader: () => false,
+}));
+
 jest.mock('../../../../../../util/transaction-controller');
 jest.mock('../../../hooks/gas/usePersistGasFeePreference', () => ({
   usePersistGasFeePreference: jest.fn(() => mockPersistGasFeePreference),

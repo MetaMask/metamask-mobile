@@ -42,6 +42,7 @@ export function predictDepositFlags(): Record<string, unknown> {
   return {
     ...getBaseFlags(),
     predictTradingEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    predictHomeRedesign: { enabled: true, minimumVersion: '0.0.0' },
   };
 }
 

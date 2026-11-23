@@ -33,6 +33,7 @@ describe('getCardControllerMessenger', () => {
         ]),
         events: expect.arrayContaining([
           'KeyringController:unlock',
+          'AuthenticationController:stateChange',
           'RemoteFeatureFlagController:stateChange',
         ]),
       }),

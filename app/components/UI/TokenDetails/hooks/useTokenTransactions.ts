@@ -40,13 +40,11 @@ import {
 } from '../../../../selectors/currencyRateController';
 import { TokenI } from '../../Tokens/types';
 import { RootState } from '../../../../reducers';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain';
 import {
   AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
   SupportedCaipChainId,
 } from '@metamask/multichain-network-controller';
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Transaction type alias for this hook.
@@ -198,11 +196,9 @@ export const useTokenTransactions = (
     [selectedAddressForAsset],
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const nonEvmTransactionsData = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
   );
-  ///: END:ONLY_INCLUDE_IF
 
   // Get all transactions (EVM or non-EVM)
   const allTransactions = useMemo(() => {
@@ -212,7 +208,6 @@ export const useTokenTransactions = (
       (tx: Transaction) => tx.type !== TransactionType.gasPayment,
     );
 
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (asset.chainId && isNonEvmChainId(asset.chainId)) {
       const txs =
         nonEvmTransactionsData?.transactions?.filter(
@@ -274,7 +269,6 @@ export const useTokenTransactions = (
         (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
       );
     }
-    ///: END:ONLY_INCLUDE_IF
 
     return transactions;
   }, [
@@ -284,12 +278,9 @@ export const useTokenTransactions = (
     asset.symbol,
     asset.isNative,
     asset.isETH,
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     nonEvmTransactionsData,
-    ///: END:ONLY_INCLUDE_IF
   ]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   /**
    * EVM bridge transactions arriving at this non-EVM asset.
    *
@@ -351,7 +342,6 @@ export const useTokenTransactions = (
     evmTransactions,
     isNonEvmAsset,
   ]);
-  ///: END:ONLY_INCLUDE_IF
 
   // Wrapper for shared mUSD claim detection utility
   const checkIsMusdClaimForCurrentView = useCallback(
@@ -469,11 +459,18 @@ export const useTokenTransactions = (
         return true;
       }
 
+      const fromAddress = from ?? '';
+      const toAddress = to ?? '';
+      const accountAddress = selectedAddress ?? '';
+      const involvesSelectedAddress =
+        areAddressesEqual(fromAddress, accountAddress) ||
+        areAddressesEqual(toAddress, accountAddress);
+      const matchesCurrentChain =
+        chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID);
+
       if (
-        (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(to ?? '', selectedAddress ?? '')) &&
-        (chainId === tx.chainId ||
-          (!tx.chainId && networkId === tx.networkID)) &&
+        involvesSelectedAddress &&
+        matchesCurrentChain &&
         tx.status !== 'unapproved'
       ) {
         if (
@@ -519,14 +516,21 @@ export const useTokenTransactions = (
         return true;
       }
 
+      const fromAddress = from ?? '';
+      const toAddress = to ?? '';
+      const accountAddress = selectedAddress ?? '';
+      const involvesSelectedAddress =
+        areAddressesEqual(fromAddress, accountAddress) ||
+        areAddressesEqual(toAddress, accountAddress) ||
+        tokenTransferRecipients.some((recipient) =>
+          areAddressesEqual(recipient, accountAddress),
+        );
+      const matchesCurrentChain =
+        chainId === tx.chainId || (!tx.chainId && networkId === tx.networkID);
+
       if (
-        (areAddressesEqual(from ?? '', selectedAddress ?? '') ||
-          areAddressesEqual(to ?? '', selectedAddress ?? '') ||
-          tokenTransferRecipients.some((recipient) =>
-            areAddressesEqual(recipient, selectedAddress ?? ''),
-          )) &&
-        (chainId === tx.chainId ||
-          (!tx.chainId && networkId === tx.networkID)) &&
+        involvesSelectedAddress &&
+        matchesCurrentChain &&
         tx.status !== 'unapproved'
       ) {
         if (to?.toLowerCase() === navAddress) return true;
@@ -664,12 +668,16 @@ export const useTokenTransactions = (
             }
             const alreadySubmitted = submittedNonces.includes(nonce);
             const alreadyConfirmed = confirmedTxs.find(
-              (confirmedTransaction: Transaction) =>
-                areAddressesEqual(
+              (confirmedTransaction: Transaction) => {
+                const confirmedFromAddress =
                   safeToChecksumAddress(confirmedTransaction.txParams.from) ??
-                    '',
-                  selectedAddress ?? '',
-                ) && confirmedTransaction.txParams.nonce === nonce,
+                  '';
+                const accountAddress = selectedAddress ?? '';
+                return (
+                  areAddressesEqual(confirmedFromAddress, accountAddress) &&
+                  confirmedTransaction.txParams.nonce === nonce
+                );
+              },
             );
             if (alreadyConfirmed) {
               return false;

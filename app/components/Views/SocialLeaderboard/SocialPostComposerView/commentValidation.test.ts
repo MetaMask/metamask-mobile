@@ -1,7 +1,5 @@
 import {
-  clipComposerComment,
   commentContainsUrl,
-  COMPOSER_COMMENT_MAX_LENGTH,
   countCommentWords,
   isComposerCommentValid,
 } from './commentValidation';
@@ -51,15 +49,9 @@ describe('commentValidation', () => {
     it('returns false for empty text', () => {
       expect(isComposerCommentValid('')).toBe(false);
     });
-  });
 
-  describe('clipComposerComment', () => {
-    it('truncates text past the character limit', () => {
-      const input = 'a'.repeat(COMPOSER_COMMENT_MAX_LENGTH + 10);
-
-      expect(clipComposerComment(input)).toHaveLength(
-        COMPOSER_COMMENT_MAX_LENGTH,
-      );
+    it('returns false when the text is longer than 250 characters', () => {
+      expect(isComposerCommentValid(`${'alpha '.repeat(50)}end`)).toBe(false);
     });
   });
 });

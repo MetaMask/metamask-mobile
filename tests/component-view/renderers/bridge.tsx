@@ -58,7 +58,21 @@ const RecurringSwapDetailsViewWithSession = withBridgeSession(
 
 const ScreensStack = createNativeStackNavigator();
 const BridgeProbeStack = createNativeStackNavigator();
+const LimitOrderActivityStack = createNativeStackNavigator();
 const BridgeViewParamsProbe = createRouteParamsProbe(Routes.BRIDGE.BRIDGE_VIEW);
+
+export function BridgeLimitOrderActivityNavigator() {
+  return (
+    <LimitOrderActivityStack.Navigator screenOptions={{ headerShown: false }}>
+      <LimitOrderActivityStack.Screen
+        name={Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY}
+        component={
+          SwapsLimitOrderActivityPage as unknown as React.ComponentType<object>
+        }
+      />
+    </LimitOrderActivityStack.Navigator>
+  );
+}
 
 function BridgeNavigatorProbe() {
   return (
@@ -311,9 +325,9 @@ export function renderLimitOrderTabRow({
         Component: BridgeModalStack as unknown as React.ComponentType<object>,
       },
       {
-        name: Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+        name: Routes.BRIDGE.ROOT,
         Component:
-          SwapsLimitOrderActivityPage as unknown as React.ComponentType<object>,
+          BridgeLimitOrderActivityNavigator as unknown as React.ComponentType<object>,
       },
       {
         name: Routes.WEBVIEW.MAIN,

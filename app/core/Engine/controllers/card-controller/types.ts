@@ -10,6 +10,7 @@ import type {
 } from '@metamask/account-tree-controller';
 import type { AccountsControllerGetStateAction } from '@metamask/accounts-controller';
 import type {
+  KeyringControllerGetStateAction,
   KeyringControllerUnlockEvent,
   KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
@@ -124,6 +125,10 @@ export interface CardLinkWriteBody {
   status: CardLinkWriteStatus;
   providerCardholderId?: string;
   linkedAccountRef?: string;
+  walletProof?: {
+    message: string;
+    signature: string;
+  };
 }
 
 export interface CardClientInfo {
@@ -147,8 +152,6 @@ export type CardControllerState = {
   providerUserId: string | null;
   /** Last reason the active provider session became unauthenticated. */
   lastUnauthenticatedReason: CardUnauthenticatedReason | null;
-  /** CAIP-10 account IDs that are card holders. */
-  cardholderAccounts: string[];
   /**
    * Per-provider persistent data keyed by provider ID.
    * Values are JSON-serializable objects (e.g. `{ location: 'us' }`).
@@ -184,7 +187,6 @@ export type CardControllerState = {
   /** `null` until fetched; `[]` means never linked. */
   cardLinks: CardLink[] | null;
   cardLinksFetchedAt: number | null;
-  cardLinksSeeded: boolean;
   /** Card API refused this client version (403); treated as the flag being off. */
   cardLinkApiBlocked: boolean;
 };
@@ -203,7 +205,9 @@ type CardControllerAllowedActions =
   | AccountsControllerGetStateAction
   | AccountTreeControllerGetAccountFromSelectedAccountGroupAction
   | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | AuthenticationController.AuthenticationControllerRefreshCanonicalProfileIdAction
   | RemoteFeatureFlagControllerGetStateAction
+  | KeyringControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | NetworkControllerGetNetworkClientByIdAction
@@ -215,6 +219,8 @@ type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent
   | RemoteFeatureFlagControllerStateChangeEvent
   | KeyringControllerUnlockEvent
+  | AuthenticationController.AuthenticationControllerStateChangeEvent
+  | AuthenticationController.AuthenticationControllerProfileSignInEvent
   | TransactionControllerTransactionConfirmedEvent
   | TransactionControllerTransactionFailedEvent;
 

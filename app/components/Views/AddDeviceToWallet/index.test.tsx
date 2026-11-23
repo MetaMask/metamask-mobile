@@ -24,7 +24,10 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
+const mockBeforeRemoveListeners = new Set<() => void>();
+const mockGoBack = jest.fn(() => {
+  mockBeforeRemoveListeners.forEach((listener) => listener());
+});
 let mockIsQrTabSwitcherOpen = false;
 
 jest.mock('@react-navigation/native', () => {
@@ -34,6 +37,15 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      addListener: (event: string, callback: () => void) => {
+        if (event === 'beforeRemove') {
+          mockBeforeRemoveListeners.add(callback);
+        }
+
+        return () => {
+          mockBeforeRemoveListeners.delete(callback);
+        };
+      },
     }),
   };
 });
@@ -83,6 +95,7 @@ const renderComponent = (
 describe('AddDeviceToWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBeforeRemoveListeners.clear();
     mockIsQrTabSwitcherOpen = false;
   });
 
@@ -118,33 +131,42 @@ describe('AddDeviceToWallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders instruction point 1', () => {
+    it('renders the instruction titles and descriptions', () => {
       const { getByText } = renderComponent();
 
       expect(
-        getByText(strings('app_settings.add_device.points.one')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders instruction points 3 and 4', () => {
-      const { getByText } = renderComponent();
-
-      expect(
-        getByText(strings('app_settings.add_device.points.three')),
+        getByText(strings('app_settings.add_device.points.one_title')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('app_settings.add_device.points.four')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders point 2 bold text fragments', () => {
-      const { getByText } = renderComponent();
-
-      expect(
-        getByText(strings('app_settings.add_device.points.two_bold_one')),
+        getByText(strings('app_settings.add_device.points.one_description')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('app_settings.add_device.points.two_bold_two')),
+        getByText(strings('app_settings.add_device.points.two_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('app_settings.add_device.points.two_description_prefix'),
+          {
+            exact: false,
+          },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('app_settings.add_device.points.two_description_path'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.three_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.three_description')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.four_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.four_description')),
       ).toBeOnTheScreen();
     });
 
@@ -185,9 +207,22 @@ describe('AddDeviceToWallet', () => {
       fireEvent.press(getByTestId('button-icon'));
 
       await waitFor(() => {
-        expect(mockResetState).toHaveBeenCalled();
+        expect(mockResetState).toHaveBeenCalledTimes(1);
         expect(mockGoBack).toHaveBeenCalled();
       });
+    });
+
+    it('resets QR sync state when the screen is removed without the header', async () => {
+      renderComponent({
+        phase: QrSyncPhases.DISPLAYING_OTP,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      await waitFor(() => {
+        expect(mockResetState).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
   });
 
@@ -349,6 +384,29 @@ describe('AddDeviceToWallet', () => {
           { pop: true },
         );
       });
+    });
+
+    it('keeps QR sync secrets when the screen is removed for import', () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.AWAITING_PASSWORD,
+        pendingSecretImports,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      expect(mockResetState).not.toHaveBeenCalled();
+    });
+
+    it('keeps provisioning metadata when the screen is removed during Phase C', () => {
+      renderComponent({
+        provisioningStatus: QrSyncProvisioningStatuses.SECRETS_IMPORTED,
+        provisioningMetadata: pendingSecretImports,
+        pendingSecretImports: null,
+      });
+
+      mockBeforeRemoveListeners.forEach((listener) => listener());
+
+      expect(mockResetState).not.toHaveBeenCalled();
     });
 
     it('does not navigate to import when sync failed with stale secret data', async () => {

@@ -3,8 +3,10 @@ import {
   Box,
   FontWeight,
   Text,
+  TextColor,
   TextVariant,
   Icon,
+  IconColor,
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
@@ -21,14 +23,14 @@ const SignInResumeProgress = ({ stage }: SignInResumeProgressProps) => {
 
   return (
     <Box
-      twClassName="gap-2.5 px-4 py-3 rounded-xl bg-background-muted"
+      twClassName="gap-2.5 px-4 py-3 rounded-xl bg-muted"
       testID={CardAuthenticationSelectors.RESUME_PROGRESS}
     >
       <Box twClassName="flex-row items-center gap-2.5">
         <Icon
           name={identityVerified ? IconName.Confirmation : IconName.Info}
           size={IconSize.Md}
-          twClassName={identityVerified ? 'text-success-default' : undefined}
+          color={identityVerified ? IconColor.SuccessDefault : undefined}
         />
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {strings(
@@ -42,12 +44,12 @@ const SignInResumeProgress = ({ stage }: SignInResumeProgressProps) => {
         <Icon
           name={IconName.Info}
           size={IconSize.Md}
-          twClassName="text-icon-alternative"
+          color={IconColor.IconAlternative}
         />
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="text-text-alternative"
+          color={TextColor.TextAlternative}
         >
           {strings('card.card_authentication.resume_progress_spending')}
         </Text>

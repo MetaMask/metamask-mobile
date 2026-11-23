@@ -12,6 +12,7 @@ import {
   POLYMARKET_POSITIONS_PROTOCOL,
   POLYMARKET_V2_PROTOCOL,
   getClobV2BuilderCode,
+  getPolymarketProtocolForMarketVersion,
   getProtocolDepositTokenAddress,
   getProtocolWithdrawTokenAddress,
 } from './definitions';
@@ -138,6 +139,36 @@ describe('polymarket protocol definitions', () => {
     );
     expect(getProtocolWithdrawTokenAddress(POLYMARKET_V2_PROTOCOL)).toBe(
       MATIC_CONTRACTS_V2.collateral,
+    );
+  });
+
+  it('collects the positions-protocol fee authorization on pUSD', () => {
+    expect(POLYMARKET_POSITIONS_PROTOCOL.collateral.tradingToken).toBe(
+      MATIC_CONTRACTS_V2.collateral,
+    );
+    expect(POLYMARKET_POSITIONS_PROTOCOL.collateral.feeAuthorizationToken).toBe(
+      MATIC_CONTRACTS_V2.collateral,
+    );
+  });
+
+  it('routes v2 markets to the positions protocol', () => {
+    expect(getPolymarketProtocolForMarketVersion('v2')).toBe(
+      POLYMARKET_POSITIONS_PROTOCOL,
+    );
+  });
+
+  it('routes v1, missing, and unknown versions to the CTF protocol', () => {
+    expect(getPolymarketProtocolForMarketVersion('v1')).toBe(
+      POLYMARKET_V2_PROTOCOL,
+    );
+    expect(getPolymarketProtocolForMarketVersion(undefined)).toBe(
+      POLYMARKET_V2_PROTOCOL,
+    );
+    expect(getPolymarketProtocolForMarketVersion('v3')).toBe(
+      POLYMARKET_V2_PROTOCOL,
+    );
+    expect(getPolymarketProtocolForMarketVersion('')).toBe(
+      POLYMARKET_V2_PROTOCOL,
     );
   });
 });

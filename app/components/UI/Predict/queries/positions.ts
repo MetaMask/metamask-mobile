@@ -14,4 +14,6 @@ export const predictPositionsOptions = ({ address }: { address: string }) =>
     queryFn: async (): Promise<PredictPosition[]> =>
       Engine.context.PredictController.getPositions({ address }),
     staleTime: 5_000,
+    retry: (failureCount, error) =>
+      !error.message.includes('timed out') && failureCount < 2,
   });

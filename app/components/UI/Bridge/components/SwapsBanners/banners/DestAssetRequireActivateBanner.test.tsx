@@ -90,7 +90,7 @@ describe('DestAssetRequireActivateBanner', () => {
     expect(
       getByText(
         strings('bridge.dest_asset_require_activate_warning_title', {
-          network: XlmScope.Pubnet,
+          network: 'Stellar',
           token: 'USDC',
         }),
       ),
@@ -98,7 +98,7 @@ describe('DestAssetRequireActivateBanner', () => {
     expect(
       getByText(
         strings('bridge.dest_asset_require_activate_warning_message', {
-          network: XlmScope.Pubnet,
+          network: 'Stellar',
           token: 'USDC',
         }),
       ),
@@ -162,7 +162,7 @@ describe('DestAssetRequireActivateBanner', () => {
         strings(
           'bridge.dest_asset_require_activate_warning_message_different_account',
           {
-            network: XlmScope.Pubnet,
+            network: 'Stellar',
             account: 'Account 2',
             token: 'USDC',
           },

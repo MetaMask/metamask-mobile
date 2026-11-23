@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, {
   useCallback,
-  useContext,
   useEffect,
   useRef,
   useState,
@@ -24,9 +23,11 @@ import {
 } from '../../../actions/browser';
 import { selectAvatarAccountType } from '../../../selectors/settings';
 import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
+  AvatarAccount,
+  AvatarAccountSize,
+  toast,
+} from '@metamask/design-system-react-native';
+import { getAvatarAccountVariant } from '../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { useAccounts } from '../../hooks/useAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import AppConstants from '../../../core/AppConstants';
@@ -51,10 +52,8 @@ import styleSheet from './styles';
 import Routes from '../../../constants/navigation/Routes';
 import { MAX_BROWSER_TABS, MAX_MOUNTED_TABS } from './constants';
 import { getMountedTabIds } from './utils';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import DiscoveryTab from '../DiscoveryTab/DiscoveryTab';
-///: END:ONLY_INCLUDE_IF
 
 /**
  * Component that wraps all the browser
@@ -75,7 +74,6 @@ export const BrowserPure = (props) => {
   const { top: topInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { topInset });
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { toastRef } = useContext(ToastContext);
   const browserUrl = props.route?.params?.url;
   const linkType = props.route?.params?.linkType;
   const prevSiteHostname = useRef(browserUrl);
@@ -246,17 +244,16 @@ export const BrowserPure = (props) => {
       });
 
       // Show active account toast
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Account,
-        labelOptions: [
-          {
-            label: `${accountName} `,
-            isBold: true,
-          },
-          { label: strings('toast.now_active') },
-        ],
-        accountAddress: address,
-        accountAvatarType,
+      toast({
+        title: `${accountName} ${strings('toast.now_active')}`,
+        startAccessory: (
+          <AvatarAccount
+            address={address}
+            size={AvatarAccountSize.Md}
+            variant={getAvatarAccountVariant(accountAvatarType)}
+          />
+        ),
+        showCloseButton: false,
       });
     };
 
@@ -277,7 +274,6 @@ export const BrowserPure = (props) => {
     permittedAccountsList,
     ensByAccountAddress,
     accountAvatarType,
-    toastRef,
   ]);
 
   // componentDidMount
@@ -412,6 +408,14 @@ export const BrowserPure = (props) => {
   const closeTabsView = useCallback(() => {
     setShouldShowTabs(false);
 
+    // Search pushes Browser onto the root stack (Globe from ExploreSearch).
+    // Back must return to Search — do not just hide the tabs overlay, which
+    // would reveal the active WebView (often portfolio.metamask.io).
+    if (route.params?.fromExploreSearch) {
+      navigation.goBack();
+      return;
+    }
+
     // Check if the active tab still exists in the tabs list
     const activeTabExists = tabs.some((tab) => tab.id === activeTabId);
 
@@ -421,7 +425,13 @@ export const BrowserPure = (props) => {
     if (tabs.length === 0 || !activeTabExists) {
       navigation.navigate(Routes.TRENDING_VIEW);
     }
-  }, [tabs, activeTabId, setShouldShowTabs, navigation]);
+  }, [
+    tabs,
+    activeTabId,
+    setShouldShowTabs,
+    navigation,
+    route.params?.fromExploreSearch,
+  ]);
 
   const renderTabList = useCallback(() => {
     if (shouldShowTabs) {

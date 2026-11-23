@@ -1,32 +1,31 @@
 import React from 'react';
 import {
-  IconColor as DsIconColor,
-  IconSize as DsIconSize,
+  Box,
+  BannerBaseActionButtonLayout,
+  IconAlert,
+  IconAlertSeverity,
+  IconColor,
+  IconSize,
   Spinner,
-} from '@metamask/design-system-react-native';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import {
-  ButtonIconVariant,
-  ToastVariants,
+  ToastSeverity,
   type ToastOptions,
-} from '../../../component-library/components/Toast/Toast.types';
-import ToastService from '../../../core/ToastService';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-import type { Theme } from '../../../util/theme/models';
 import type { TrackedQuickBuyTrade } from './quickBuyTradeTracker';
 
 export type QuickBuyToastKind = 'pending' | 'complete' | 'failed';
 
-interface BuildQuickBuyToastParams {
-  trade: TrackedQuickBuyTrade;
-  theme: Theme;
+/** Action rendered on the complete toast, such as Post to feed. */
+export interface QuickBuyToastLinkButtonOptions {
+  label: string;
+  onPress: () => void;
 }
 
-const closeButtonOptions = {
-  variant: ButtonIconVariant.Icon as const,
-  iconName: IconName.Close,
-  onPress: () => ToastService.toastRef?.current?.closeToast(),
-};
+interface BuildQuickBuyToastParams {
+  trade: TrackedQuickBuyTrade;
+  /** Only rendered on the complete toast. */
+  linkButtonOptions?: QuickBuyToastLinkButtonOptions;
+}
 
 /**
  * Pure builder for the QuickBuy swap-lifecycle toasts. Renders an action title
@@ -36,7 +35,7 @@ const closeButtonOptions = {
  */
 export function buildQuickBuyToastOptions(
   kind: QuickBuyToastKind,
-  { trade, theme }: BuildQuickBuyToastParams,
+  { trade, linkButtonOptions }: BuildQuickBuyToastParams,
 ): ToastOptions {
   const title = strings(
     `social_leaderboard.quick_buy.toast_${kind}_${trade.tradeMode}`,
@@ -47,46 +46,58 @@ export function buildQuickBuyToastOptions(
     },
   );
 
-  const descriptionOptions = trade.rate
-    ? { description: trade.rate }
-    : undefined;
+  const description = trade.rate || undefined;
+  // Pin the action to the trailing edge; the design-system default stacks it
+  // below the title and description. Drop the close X as well: with the X the
+  // action, X and text compete for width and the text wraps into a narrow
+  // column. Swipe and auto-dismiss still close the toast, and this matches the
+  // Perps post-to-feed toast, which has no X.
+  const actionButton = linkButtonOptions
+    ? {
+        actionButtonLabel: linkButtonOptions.label,
+        actionButtonOnPress: linkButtonOptions.onPress,
+        actionButtonLayout: BannerBaseActionButtonLayout.End,
+        showCloseButton: false,
+      }
+    : {};
 
   switch (kind) {
     case 'complete':
       return {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Confirmation,
-        iconColor: theme.colors.success.default,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Success,
         hasNoTimeout: false,
-        labelOptions: [{ label: title, isBold: true }],
-        descriptionOptions,
-        closeButtonOptions,
+        title,
+        description,
+        // The design-system toast top-aligns its content when the title wraps,
+        // which pins the default check to the first line. Wrapping the check in
+        // a self-centered box keeps it level with the middle of the text block.
+        startAccessory: (
+          <Box twClassName="self-center">
+            <IconAlert
+              severity={IconAlertSeverity.Success}
+              size={IconSize.Lg}
+            />
+          </Box>
+        ),
+        ...actionButton,
       };
     case 'failed':
       return {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Error,
-        iconColor: theme.colors.error.default,
-        backgroundColor: 'transparent',
+        severity: ToastSeverity.Danger,
         hasNoTimeout: false,
-        labelOptions: [{ label: title, isBold: true }],
-        descriptionOptions,
-        closeButtonOptions,
+        title,
+        description,
       };
     case 'pending':
     default:
       return {
-        variant: ToastVariants.Icon,
-        iconName: IconName.Loading,
         hasNoTimeout: false,
-        labelOptions: [{ label: title, isBold: true }],
-        descriptionOptions,
-        closeButtonOptions,
+        title,
+        description,
         startAccessory: (
           <Spinner
-            color={DsIconColor.IconDefault}
-            spinnerIconProps={{ size: DsIconSize.Lg }}
+            color={IconColor.IconDefault}
+            spinnerIconProps={{ size: IconSize.Lg }}
           />
         ),
       };

@@ -5,13 +5,12 @@ import {
   buildSocialFeedQueryKey,
   FEED_PAGE_LIMIT,
 } from '../data/socialFeedQueries';
-import { toSocialFeedRequest } from '../data/socialFeedSource';
-import type { FeedAudience } from '../types';
+import { toSocialFeedRequest, type FeedScope } from '../data/socialFeedSource';
 import { readAuthorComment } from '../reactions';
 import { patchFeedCommentEngagementInCache } from './patchFeedCommentEngagementInCache';
 
-const globalFeedKey = (audience: FeedAudience) => {
-  const request = toSocialFeedRequest({ kind: 'all', audience });
+const globalFeedKey = (scope: FeedScope) => {
+  const request = toSocialFeedRequest({ scope });
   if (!request) {
     throw new Error('expected a global feed request');
   }
@@ -34,7 +33,7 @@ const feedItem = (commentId: string, count: number) =>
 describe('patchFeedCommentEngagementInCache', () => {
   it('updates authorComment engagement for the matching Call id', () => {
     const queryClient = new QueryClient();
-    const queryKey = globalFeedKey('all');
+    const queryKey = globalFeedKey('leaderboard');
     queryClient.setQueryData(queryKey, {
       pages: [
         {

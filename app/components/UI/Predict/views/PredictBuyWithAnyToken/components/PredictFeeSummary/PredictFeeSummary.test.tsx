@@ -1,5 +1,4 @@
 import React from 'react';
-import { DiscountType } from '@metamask/bridge-controller';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import PredictFeeSummary from './PredictFeeSummary';
@@ -27,6 +26,16 @@ jest.mock('../../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
         )
       : null;
 });
+
+jest.mock(
+  '../../../../../../../component-library/components-temp/Skeleton/Skeleton',
+  () => {
+    const { View: RNView } = jest.requireActual('react-native');
+    return function MockSkeleton(props: { width?: number }) {
+      return <RNView testID={`skeleton-${props.width}`} />;
+    };
+  },
+);
 
 jest.mock('../../../../utils/format', () => ({
   formatPrice: jest.fn(
@@ -154,7 +163,7 @@ describe('PredictFeeSummary', () => {
     expect(mockUsePredictRewards).toHaveBeenCalledWith(1.5);
   });
 
-  it('renders skeleton layout when loading is true', () => {
+  it('renders total skeletons without an info icon placeholder while fees load', () => {
     setRewardsState({
       shouldShowRewardsRow: true,
       accountOptedIn: true,
@@ -164,6 +173,11 @@ describe('PredictFeeSummary', () => {
 
     expect(screen.queryByText('Total')).not.toBeOnTheScreen();
     expect(screen.queryByText('Estimated points')).not.toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-52')).toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-60')).toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-120')).toBeOnTheScreen();
+    expect(screen.getByTestId('skeleton-92')).toBeOnTheScreen();
+    expect(screen.queryByTestId('skeleton-16')).not.toBeOnTheScreen();
   });
 
   it('renders total and triggers fee info press callback', () => {
@@ -187,14 +201,27 @@ describe('PredictFeeSummary', () => {
     render(
       <PredictFeeSummary
         {...baseProps}
-        feePolicyDiscountType={DiscountType.SUBSCRIPTION}
         originalTotal={15}
+        feePolicy={{ builderCode: 'predict-pro-builder' }}
       />,
     );
 
     expect(screen.getByText('$15.00')).toBeOnTheScreen();
     expect(screen.getByText('$13.50')).toBeOnTheScreen();
     expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
+  });
+
+  it('hides the original total without a fee policy builder code', () => {
+    render(
+      <PredictFeeSummary
+        {...baseProps}
+        originalTotal={15}
+        feePolicy={{ builderCode: '' }}
+      />,
+    );
+
+    expect(screen.queryByText('$15.00')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('rewards-member-badge')).not.toBeOnTheScreen();
   });
 
   it('renders rewards animation in idle state for opted-in accounts', () => {

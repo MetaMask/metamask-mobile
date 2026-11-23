@@ -207,10 +207,22 @@ export class WalletHomeSections {
     } = {},
   ): Promise<void> {
     if (!isPerformanceSuiteActive()) {
+      // Prefer openPredictHomeFromWallet (Trade actions) for smoke entry.
+      // Keep this path for callers that still scroll the homepage section —
+      // match Perps short passes + clearTabBar so taps are not blocked.
+      const clippedHeaderNudge = options.overshootSwipe ?? {
+        direction: 'up' as const,
+        percentage: 0.2,
+      };
       if (
         await WalletHomeScroll.tapIfAlreadyVisible(
           this.predictionsSectionHeader,
           'Predictions section',
+          {
+            tapTimeout: 5_000,
+            overshootSwipe: clippedHeaderNudge,
+            clearTabBar: true,
+          },
         )
       ) {
         return;
@@ -232,7 +244,9 @@ export class WalletHomeSections {
                     : ('down' as const),
                 percentage: 0.15,
               },
-              timeout: 60_000,
+              maxAttempts: 2,
+              tapTimeout: 3_000,
+              clearTabBar: true,
             },
           ),
         [direction, fallbackDirection],

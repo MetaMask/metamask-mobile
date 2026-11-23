@@ -22,10 +22,13 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   return { useTailwind: () => tw };
 });
 
-jest.mock('../../../Predict/hooks/usePredictNavigation', () => ({
-  usePredictNavigation: () => ({
-    navigateToMarketDetails: jest.fn(),
-    navigateToBuyPreview: jest.fn(),
+jest.mock('../../../PredictNext', () => ({
+  PredictEventValues: { ENTRY_POINT: { REWARDS: 'rewards' } },
+  createPredictCampaignEventRef: jest.fn(),
+  usePredictAvailability: () => true,
+  usePredictEntryActions: () => ({
+    openPredict: jest.fn(),
+    canOpenPredict: () => true,
   }),
 }));
 

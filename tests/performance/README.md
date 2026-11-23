@@ -19,6 +19,7 @@ The performance framework lives under the `tests/` directory alongside the rest 
 - [Quality Gates & Thresholds](#quality-gates--thresholds)
 - [Page Object Model](#page-object-model)
 - [Shared Flows](#shared-flows)
+- [Interrupting Screens](#interrupting-screens)
 - [Environment Variables](#environment-variables)
 - [Reports and Metrics](#reports-and-metrics)
 - [Aggregated Reports](#aggregated-reports)
@@ -81,13 +82,13 @@ Local emulator and simulator projects live in `tests/playwright.config.ts`. Clou
 
 ### Available Projects
 
-| Project Name                        | Platform | Environment     | Test Scope            |
-| ----------------------------------- | -------- | --------------- | --------------------- |
-| `android`                           | Android  | Local Emulator  | Demo fixture spec     |
-| `ios`                               | iOS      | Local Simulator | Demo fixture spec     |
-| `testmu-android`                    | Android  | TestMu          | Login tests only      |
-| `testmu-android-onboarding`         | Android  | TestMu          | Onboarding tests      |
-| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding   |
+| Project Name                         | Platform | Environment     | Test Scope          |
+| ------------------------------------ | -------- | --------------- | ------------------- |
+| `android`                            | Android  | Local Emulator  | Demo fixture spec   |
+| `ios`                                | iOS      | Local Simulator | Demo fixture spec   |
+| `testmu-android`                     | Android  | TestMu          | Login tests only    |
+| `testmu-android-onboarding`          | Android  | TestMu          | Onboarding tests    |
+| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding |
 
 ### Configuration Details
 
@@ -541,6 +542,10 @@ await loginToAppPlaywright();
 await loginToAppPlaywright({ scenarioType: 'login' });
 ```
 
+In performance runs, login ends with a short settle window that dismisses
+known interrupting sheets before `test_body` starts. See
+[Interrupting Screens](#interrupting-screens).
+
 ### `onboardingFlowImportSRPPlaywright(srp)`
 
 Complete onboarding flow for importing a wallet:
@@ -572,6 +577,142 @@ await AppiumContextHelpers.switchToNativeContext();
 // Switch to a specific web/dapp context
 await AppiumContextHelpers.switchToWebViewContext(DAPP_URL);
 ```
+
+## Interrupting Screens
+
+Marketing and onboarding sheets can slide over a flow the test did not open
+them in. Login specs run the imported-wallet app
+(`TESTMU_ANDROID_APP_URL`, project `testmu-android` in
+`tests/playwright.testmu.config.ts`) on TestMu. On that app
+`dataCollectionForMarketing` is still unset, so the Experience Enhancer
+consent sheet ("Help us enhance your experience", **No thanks** / **I agree**)
+slides up about 2s after Unlock. The performance fixture enables an
+**interrupting-screen guard** that dismisses these sheets, so tests do not fail
+because of them.
+
+### How it works
+
+The guard is serial. It never polls in the background, because WebDriver
+commands on one Appium session are not safely concurrent. It runs at two
+points:
+
+1. **Post-login settle window.** `loginToAppPlaywright` waits for wallet home,
+   then polls the page source for known screens for
+   `INTERRUPTING_SCREEN_SETTLE_MS` (default 4000ms). This happens inside the
+   `login` phase, before `test_body` starts, and each screen that appears is
+   dismissed. A sheet that is already up hides the wallet chrome, so the
+   wallet-home wait (`waitForWalletHomePlaywright`) itself checks for known
+   screens after every failed readiness pass. A dismissal extends the wait by
+   15s so readiness is re-checked (on TestMu a pass with the sheet up takes
+   about 16s and the dismiss tap about 15s). On timeout the page source is
+   attached as `page-source-wallet-home-timeout`, and the wait gets one
+   dismiss-and-retry (AI fallback included).
+2. **Dismiss and retry once.** When `Gestures.tap` / `Gestures.waitAndTap` or
+   `Assertions.expectElementToBeVisible` / `AppiumAssertions.expectElementToBeVisible`
+   fails, the guard reads the page source once:
+   - If a screen from the **registry** is present, it taps that screen's
+     non-consenting control and retries the original action once.
+   - Otherwise, if the **AI fallback** is enabled, it sends the screenshot and
+     page source to Claude. The model says whether an unrelated overlay is
+     blocking the flow and which control dismisses it without consenting. The
+     guard taps that control and retries the original action once.
+   - If nothing is dismissed, the original error is rethrown unchanged.
+
+Presence probes (`Utilities.isElementVisible`, `isOptionalElementVisible`,
+ready-state polling) skip the guard, because an absent element is an expected
+result there.
+
+The registry and AI paths are both limited:
+
+- The registry lists only "No thanks" / "Not now" / "Remind me later" /
+  close controls. A unit test checks every entry against the safety rules.
+- The AI path runs only when `AI_LOCATOR_RECOVERY_ENABLED=true` and
+  `ANTHROPIC_API_KEY` are both set (the same opt-in as
+  [AI locator recovery](../framework/ai-locator/README.md)). It refuses
+  secret-bearing screens before taking a screenshot. It is limited to 3 model
+  calls per test. The suggested control is tapped only if its locator, the
+  model's label and the on-device text are all free of accept / agree /
+  confirm / sign / buy / continue / enable-type words, and at least one of
+  them reads like a dismissal.
+- Settle dismisses at most 5 screens. Each screen gets at most 2 failed
+  dismiss attempts.
+
+### Timing
+
+Guard time never counts toward a metric:
+
+- All guard time (page source reads, taps, model calls) is removed from every
+  running `TimerHelper` / `TimerStore` timer
+  (`TimerStore.excludeFromActiveTimers`). Overhead tracking is suspended while
+  the guard runs, so the guard's own polls are not subtracted twice.
+- The phase timings attachment stores guard time as
+  `nested:interrupting_screens_settle` and
+  `nested:interrupting_screens_recovery`. The `nested:` prefix is the same one
+  `recordElapsedPhase` uses, so shard totals do not add it on top of the
+  enclosing phase.
+- Each dismissal is attached to the test as
+  `interrupting-screen-dismissed-<screen>` (JSON with `source: registry | ai`,
+  `trigger`, `locator`, `durationMs`, `duringActiveTimer`). When
+  `duringActiveTimer` is `true`, the dismissal itself was excluded, but the
+  failed wait before it was not, so review that metric.
+
+### Adding a screen to the registry
+
+Promote a screen when an `interrupting-screen-dismissed-*` attachment with
+`source: "ai"` keeps appearing, or when you know a sheet can interrupt flows.
+Add it to `INTERRUPTING_SCREEN_REGISTRY` in
+`tests/framework/interrupting-screens/InterruptingScreenRegistry.ts`:
+
+```typescript
+import { MySheetSelectorsIDs } from '../../../app/components/Views/MySheet/MySheet.testIds';
+
+{
+  name: 'my-promo-sheet',
+  // Any of these in the page source means the sheet is up.
+  detect: [testID(MySheetSelectorsIDs.CONTAINER)],
+  // Non-consenting controls, tried in order.
+  dismiss: [testID(MySheetSelectorsIDs.NOT_NOW_BUTTON), text('Not now')],
+},
+```
+
+- Reuse the component's `*.testIds.ts` constants. Use `text()` only when the
+  screen has no testID.
+- `detect` must be unique to the sheet. A container or title testID works
+  best.
+- `dismiss` must never consent, enable, accept or buy. The registry unit test
+  fails if it does.
+- Run `yarn jest tests/framework/interrupting-screens`.
+
+### Disabling
+
+Set `INTERRUPTING_SCREEN_GUARD_ENABLED=false` to turn the guard off. Set
+`INTERRUPTING_SCREEN_SETTLE_MS=0` to keep the dismiss-and-retry path but skip
+the post-login window. Outside the performance fixture (Appium smoke), the
+guard is never configured and every hook is a no-op.
+
+### Verifying on TestMu
+
+Login performance tests run on TestMu (`ProviderName.TESTMU`), not a local
+emulator. CI submits them through
+`.github/scripts/qa-automation/performance-tests/run-testmu-hyperexecute.sh`
+(`BUILD_TYPE=imported-wallet`, `LT_USERNAME` / `LT_ACCESS_KEY`) as the
+`testmu-android` project. A single login spec can be checked the same way
+locally:
+
+1. Set `LT_USERNAME`, `LT_ACCESS_KEY`, and `TESTMU_ANDROID_APP_URL` (the
+   imported-wallet `lt://` app) in `.e2e.env`, then run
+   `yarn run-playwright:android-testmu` (or one spec:
+   `yarn playwright test tests/performance/login/asset-balances.spec.ts --project testmu-android --config tests/playwright.testmu.config.ts`).
+   Add `AI_LOCATOR_RECOVERY_ENABLED=true` and `ANTHROPIC_API_KEY` to also
+   exercise the AI fallback.
+2. In the Playwright report, check that the test passed and has an
+   `interrupting-screen-dismissed-experience-enhancer-marketing-consent`
+   attachment with `trigger: "settle"`.
+3. In the TestMu session recording, check that the sheet slides up after
+   Unlock and is closed with **No thanks** before the measured steps start.
+4. In `appium-phase-timings`, check that
+   `nested:interrupting_screens_settle` is present and that the step timers do
+   not include it.
 
 ## Environment Variables
 
@@ -682,11 +823,11 @@ ci_build_variant:rc release_version:7.58.0
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                                      | Content                                             |
-| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
+| File Type | Location                                                                      | Content                                       |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                     |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                     |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                              |
 | Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario TestMu app profiling + API calls |
 
 ### HTML Report Contents

@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useEffect } from 'react';
 import { View, Image, Linking, Platform } from 'react-native';
+import { useSelector } from 'react-redux';
 import { createStyles } from './styles';
 import { strings } from '../../../../locales/i18n';
 import { createNavigationDetails } from '../../../util/navigation/navUtils';
@@ -7,11 +8,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { useTheme } from '../../../util/theme';
 import ReusableModal, { ReusableModalRef } from '../ReusableModal';
 import Logger from '../../../util/Logger';
-import ButtonIcon from '../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
 import { MM_APP_STORE_LINK, MM_PLAY_STORE_LINK } from '../../../constants/urls';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -21,10 +17,12 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import {
   Button,
   ButtonVariant,
-  HeaderBase,
+  IconName,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import HeaderBaseGlass from '../../../component-library/components-temp/HeaderBaseGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 /* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
@@ -37,6 +35,7 @@ export const createUpdateNeededNavDetails = createNavigationDetails(
 
 const UpdateNeeded = () => {
   const { colors } = useTheme();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const modalRef = useRef<ReusableModalRef | null>(null);
@@ -96,25 +95,28 @@ const UpdateNeeded = () => {
 
   return (
     <ReusableModal ref={modalRef} style={styles.screen}>
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        applyStyleToContainer
         style={styles.header}
         includesTopInset
         twClassName="h-auto"
-        endAccessory={
-          <ButtonIcon
-            onPress={triggerClose}
-            iconName={IconName.Close}
-            iconColor={IconColor.Default}
-            testID="update-needed-modal-close-button"
-          />
-        }
+        testID="update-needed-modal-header"
+        endButtonIconProps={[
+          {
+            onPress: triggerClose,
+            iconName: IconName.Close,
+            testID: 'update-needed-modal-close-button',
+          },
+        ]}
       >
         <Image
           style={styles.headerLogo}
           source={metamaskName}
           resizeMode="contain"
         />
-      </HeaderBase>
+      </HeaderBaseGlass>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.images}>
           <Image

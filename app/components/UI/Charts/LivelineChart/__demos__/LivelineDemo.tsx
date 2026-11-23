@@ -29,7 +29,7 @@ import type {
   HoverPoint,
   OrderbookData,
 } from '../LivelineChart.types';
-import { useTheme } from 'app/util/theme';
+import { useTheme } from '../../../../../util/theme';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 

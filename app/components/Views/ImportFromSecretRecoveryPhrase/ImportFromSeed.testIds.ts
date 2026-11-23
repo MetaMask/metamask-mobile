@@ -16,13 +16,4 @@ export const ImportFromSeedSelectorsIDs = {
   QR_CODE_BUTTON_ID: 'import-from-seed-screen-qr-code-button-id',
   CONTINUE_BUTTON_ID: 'import-from-seed-screen-continue-button-id',
   WHAT_IS_SEEDPHRASE_LINK_ID: 'import-from-seed-screen-seedphrase-link-id',
-  IMPORT_FROM_EXTENSION_LINK_ID:
-    'import-from-seed-screen-import-from-extension-link-id',
-  IMPORT_OPTIONS_SHEET_ID: 'import-from-seed-screen-import-options-sheet-id',
-  IMPORT_OPTIONS_SHEET_CLOSE_ID:
-    'import-from-seed-screen-import-options-sheet-close-id',
-  IMPORT_FROM_SRP_QR_OPTION_ID:
-    'import-from-seed-screen-import-from-srp-qr-option-id',
-  IMPORT_FROM_EXTENSION_OPTION_ID:
-    'import-from-seed-screen-import-from-extension-option-id',
 };

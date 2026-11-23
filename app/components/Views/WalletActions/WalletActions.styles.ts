@@ -12,9 +12,6 @@ const styleSheet = () =>
       width: '100%',
       paddingVertical: 16,
     },
-    icon: {
-      marginHorizontal: 16,
-    },
   });
 
 export default styleSheet;

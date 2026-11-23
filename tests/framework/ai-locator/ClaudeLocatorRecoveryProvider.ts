@@ -83,6 +83,20 @@ export class ClaudeLocatorRecoveryProvider implements LocatorRecoveryProvider {
 }
 
 /**
+ * AI recovery opt-in shared by locator recovery and the interrupting-screen
+ * fallback: `AI_LOCATOR_RECOVERY_ENABLED=true` and a non-empty
+ * `ANTHROPIC_API_KEY`.
+ */
+export function isLocatorRecoveryEnabled(
+  env: Record<string, string | undefined> = process.env,
+): boolean {
+  return (
+    env.AI_LOCATOR_RECOVERY_ENABLED === LOCATOR_RECOVERY_ENABLED &&
+    Boolean(env.ANTHROPIC_API_KEY?.trim())
+  );
+}
+
+/**
  * Creates the opt-in recovery provider used by performance tests.
  *
  * Keeping this factory undefined by default ensures regular performance runs
@@ -92,11 +106,7 @@ export class ClaudeLocatorRecoveryProvider implements LocatorRecoveryProvider {
 export function createClaudeLocatorRecoveryProvider():
   | ClaudeLocatorRecoveryProvider
   | undefined {
-  if (process.env.AI_LOCATOR_RECOVERY_ENABLED !== LOCATOR_RECOVERY_ENABLED) {
-    return undefined;
-  }
-
-  if (!process.env.ANTHROPIC_API_KEY?.trim()) {
+  if (!isLocatorRecoveryEnabled()) {
     return undefined;
   }
 

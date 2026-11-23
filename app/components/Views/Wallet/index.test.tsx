@@ -2,6 +2,7 @@ import React from 'react';
 import type { Json } from '@metamask/utils';
 
 let mockSearchPasteTreatment = false;
+let mockShowPrivacyToast = false;
 
 jest.mock('../TrendingView/search/useHomepageSearchPaste', () => ({
   useHomepageSearchPaste: jest.fn(() => ({
@@ -22,6 +23,25 @@ jest.mock('react-native-device-info', () => ({
   getSystemVersion: jest.fn(() => '17.0'),
   getTotalMemorySync: jest.fn(() => 4000000000),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
+
+jest.mock('../../../selectors/legalNotices', () => {
+  const actual = jest.requireActual('../../../selectors/legalNotices');
+  return {
+    ...actual,
+    shouldShowNewPrivacyToastSelector: (
+      state: Parameters<typeof actual.shouldShowNewPrivacyToastSelector>[0],
+    ) =>
+      mockShowPrivacyToast || actual.shouldShowNewPrivacyToastSelector(state),
+  };
+});
 
 // Mock components BEFORE importing the main component
 jest.mock('../AssetDetails/AssetDetailsActions', () => ({
@@ -92,12 +112,17 @@ jest.mock('../../UI/Perps/hooks/usePerpsChaseOrders', () => ({
 
 // Control Money account feature flag per test (default false so existing tests are unaffected)
 let mockMoneyAccountEnabled = false;
+let mockMoneyDepositBrazeCampaignEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
+  selectIsMoneyDepositBrazeCampaignEnabledFlag: jest.fn(
+    () => mockMoneyDepositBrazeCampaignEnabled,
+  ),
 }));
 
 let mockMoneyAccountVisible = false;
 jest.mock('../../UI/Money/selectors/visibility', () => ({
+  selectMoneyAccountAccessBlockReason: jest.fn(() => undefined),
   selectIsMoneyAccountVisible: jest.fn(() => mockMoneyAccountVisible),
 }));
 
@@ -114,6 +139,21 @@ jest.mock('../../UI/Money/components/MoneyBalanceCard', () => {
   };
 });
 
+jest.mock(
+  '../../UI/Money/components/MoneyDepositBrazeCampaignObserver/MoneyDepositBrazeCampaignObserver',
+  () => {
+    const ReactMock = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () =>
+        ReactMock.createElement(View, {
+          testID: 'money-deposit-braze-campaign-observer-mock',
+        }),
+    };
+  },
+);
+
 // Mock NetworkConnectionBanner so the Wallet view's render does not depend on
 // NetworkController / controllerMessenger APIs. Without this, the banner hook
 // throws during render and the ErrorBoundary swallows the failure, making
@@ -122,6 +162,7 @@ jest.mock('../../UI/NetworkConnectionBanner', () => ({
   NetworkConnectionBannerContent: () => null,
 }));
 let mockNetworkConnectionBannerVisible = false;
+let mockSlowNetworkBannerVisible = false;
 jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
   useNetworkConnectionBanner: () => ({
     status: mockNetworkConnectionBannerVisible ? 'unavailable' : 'available',
@@ -135,6 +176,10 @@ jest.mock('../../hooks/useNetworkConnectionBanner', () => ({
           switchableInfuraNetworkClientId: null,
         }
       : null,
+    isVisible:
+      mockNetworkConnectionBannerVisible || mockSlowNetworkBannerVisible,
+    isSlowNetwork: mockSlowNetworkBannerVisible,
+    dismissSlowNetwork: jest.fn(),
     updateRpc: jest.fn(),
     switchToInfura: jest.fn(),
   }),
@@ -279,8 +324,17 @@ jest.mock('../Homepage/components/HomepageActionButtonsGrid', () => {
 });
 
 // Control carousel/braze banner flags per test (default off so existing tests are unaffected)
-const mockCarouselBannersEnabled = false;
+let mockCarouselBannersEnabled = false;
 const mockBrazeBannerHomeEnabled = false;
+let mockIsAccountGroupFunded = false;
+let mockAssetsHaveLoaded = true;
+jest.mock('../../../selectors/assets/balances', () => ({
+  ...jest.requireActual('../../../selectors/assets/balances'),
+  selectIsAccountGroupFunded: () => mockIsAccountGroupFunded,
+}));
+jest.mock('../../UI/Assets/hooks/useAssetsHaveLoaded', () => ({
+  useAssetsHaveLoaded: () => mockAssetsHaveLoaded,
+}));
 jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
   selectCarouselBannersFlag: jest.fn(() => mockCarouselBannersEnabled),
   selectContentfulCarouselEnabledFlag: jest.fn(() => false),
@@ -292,6 +346,9 @@ jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
 let mockSocialV1Enabled = false;
 jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
+  selectHasSocialV1Access: jest.fn(
+    () => mockSocialV1VariantName === 'treatment',
+  ),
 }));
 
 const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';
@@ -382,6 +439,10 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   };
 });
 
+jest.mock('../../../hooks/usePrefetchMoneyAccountPlusSubscriptions', () => ({
+  usePrefetchMoneyAccountPlusSubscriptions: jest.fn(),
+}));
+
 import Wallet, { useHomeDeepLinkEffects } from './';
 import renderWithProvider, {
   renderScreen,
@@ -392,7 +453,15 @@ import {
   renderHook,
   waitFor,
 } from '@testing-library/react-native';
-import { Animated, InteractionManager, StyleSheet } from 'react-native';
+import {
+  Animated,
+  InteractionManager,
+  Linking,
+  StyleSheet,
+} from 'react-native';
+import { toast } from '@metamask/design-system-react-native';
+import { strings } from '../../../../locales/i18n';
+import { CONSENSYS_PRIVACY_POLICY } from '../../../constants/urls';
 import type { ReactTestInstance } from 'react-test-renderer';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -401,6 +470,8 @@ import {
   createMockInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
+import { PullToRefreshTestIds } from './components/PullToRefresh/PullToRefresh';
+import { __fireRiveViewError } from '../../../__mocks__/rive-app-react-native';
 import { WalletHomeOnboardingStepsSelectors } from '../../UI/WalletHomeOnboardingSteps/WalletHomeOnboardingSteps.testIds';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -422,6 +493,8 @@ import { selectInterimHeaderNavBarEnabled } from '../../../selectors/featureFlag
 import { selectHomeBrandRefreshSurfacesEnabled } from '../../../selectors/featureFlagController/homeBrandRefreshSurfaces';
 import { TabsListProps } from '../../../component-library/components-temp/Tabs';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../component-library/components-temp/HeaderGlass';
+
+const toastMock = toast as unknown as jest.Mock & { dismiss: jest.Mock };
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -886,9 +959,11 @@ const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockShowPrivacyToast = false;
   mockPerpsEnabled = true;
   mockPerpsGTMModalEnabled = false;
   mockMoneyAccountEnabled = false;
+  mockMoneyDepositBrazeCampaignEnabled = false;
   mockMoneyAccountVisible = false;
   mockDiscoveryPillsVariantName = 'control';
   mockActionButtonsGridVariantName = 'control';
@@ -896,6 +971,10 @@ beforeEach(() => {
   mockHeaderNavBarVariantName = 'control';
   mockSocialV1VariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
+  mockSlowNetworkBannerVisible = false;
+  mockCarouselBannersEnabled = false;
+  mockIsAccountGroupFunded = false;
+  mockAssetsHaveLoaded = true;
 });
 
 describe('Wallet', () => {
@@ -923,6 +1002,33 @@ describe('Wallet', () => {
     expect(capturedContext).toBeDefined();
   });
 
+  it('opens the privacy policy from the privacy toast action', () => {
+    mockShowPrivacyToast = true;
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined as never);
+
+    try {
+      render(Wallet);
+      const privacyToast = toastMock.mock.calls.find(
+        ([options]) =>
+          options?.title === strings('privacy_policy.toast_message'),
+      );
+      const openPrivacyPolicy = privacyToast?.[0]?.actionButtonOnPress;
+      if (typeof openPrivacyPolicy !== 'function') {
+        throw new Error('privacy toast action was not registered');
+      }
+
+      openPrivacyPolicy();
+
+      expect(toastMock.dismiss).toHaveBeenCalledTimes(1);
+      expect(openURL).toHaveBeenCalledWith(CONSENSYS_PRIVACY_POLICY);
+    } finally {
+      openURL.mockRestore();
+      mockShowPrivacyToast = false;
+    }
+  });
+
   it('should render homepage scroll context', () => {
     render(Wallet);
 
@@ -942,36 +1048,6 @@ describe('Wallet', () => {
     mockIsPastPrivacyPolicyDate = true;
 
     renderWalletWithRootState(undecidedState);
-    mockIsPastPrivacyPolicyDate = false;
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.EXPERIENCE_ENHANCER,
-    });
-  });
-
-  it('opens the marketing consent modal for a social-login wallet with no consent decision', () => {
-    const socialLoginState = {
-      ...mockInitialState,
-      engine: {
-        ...mockInitialState.engine,
-        backgroundState: {
-          ...mockInitialState.engine.backgroundState,
-          SeedlessOnboardingController: {
-            ...mockInitialState.engine.backgroundState
-              .SeedlessOnboardingController,
-            vault: 'encrypted-vault-data',
-          },
-        },
-      },
-    } as unknown as typeof mockInitialState;
-    jest
-      .mocked(useSelector)
-      .mockImplementation((callback: (state: unknown) => unknown) =>
-        callback(socialLoginState),
-      );
-    mockIsPastPrivacyPolicyDate = true;
-
-    renderWalletWithRootState(socialLoginState);
     mockIsPastPrivacyPolicyDate = false;
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -2038,20 +2114,38 @@ describe('MoneyBalanceCard slot', () => {
 
   it('shows the standalone MoneyBalanceCard when breakdown is disabled', () => {
     mockMoneyAccountEnabled = true;
+    mockMoneyDepositBrazeCampaignEnabled = true;
     mockMoneyAccountVisible = true;
 
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
+    expect(
+      getByTestId('money-deposit-braze-campaign-observer-mock'),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not mount the campaign observer when its feature flag is disabled', () => {
+    mockMoneyAccountEnabled = true;
+    mockMoneyAccountVisible = true;
+
+    const { queryByTestId } = render(Wallet);
+
+    expect(
+      queryByTestId('money-deposit-braze-campaign-observer-mock'),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the standalone MoneyBalanceCard when breakdown is disabled and Money is geo-ineligible', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = false;
 
-    const { getByTestId } = render(Wallet);
+    const { getByTestId, queryByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
+    expect(
+      queryByTestId('money-deposit-braze-campaign-observer-mock'),
+    ).not.toBeOnTheScreen();
   });
 
   it('suppresses the standalone MoneyBalanceCard in breakdown treatment', () => {
@@ -2069,6 +2163,74 @@ describe('MoneyBalanceCard slot', () => {
       }),
     );
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();
+  });
+});
+
+describe('Home growth banner during the onboarding checklist', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockCarouselBannersEnabled = true;
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(mockInitialState),
+      );
+  });
+
+  const renderWithChecklistAtStep = (stepIndex: number) => {
+    const state = {
+      ...mockStateWalletHomePostOnboardingActive,
+      onboarding: {
+        ...mockStateWalletHomePostOnboardingActive.onboarding,
+        walletHomeOnboardingSteps: { suppressedReason: null, stepIndex },
+      },
+    };
+    jest.mocked(useSelector).mockImplementation((callback) => callback(state));
+    return renderWalletWithRootState(state);
+  };
+
+  it('shows the growth banner on an unfunded account when the checklist is not showing', () => {
+    const { getByTestId } = render(Wallet);
+
+    expect(getByTestId(CAROUSEL_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it.each([
+    { stepIndex: 0, isFunded: false },
+    { stepIndex: 1, isFunded: false },
+    // Funds arrived after the fund step stopped watching the balance.
+    { stepIndex: 0, isFunded: true },
+  ])(
+    'hides the growth banner while the checklist shows step $stepIndex (funded: $isFunded)',
+    ({ stepIndex, isFunded }) => {
+      mockIsAccountGroupFunded = isFunded;
+
+      const { queryByTestId } = renderWithChecklistAtStep(stepIndex);
+
+      expect(queryByTestId(CAROUSEL_TEST_ID)).not.toBeOnTheScreen();
+    },
+  );
+
+  it('shows the growth banner on a funded account once the checklist is past the fund step', () => {
+    mockIsAccountGroupFunded = true;
+
+    const { getByTestId } = renderWithChecklistAtStep(1);
+
+    expect(getByTestId(CAROUSEL_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('passes no growth banner to the balance breakdown while the checklist shows the fund step', () => {
+    mockBalanceBreakdownVariantName = 'treatment';
+
+    renderWithChecklistAtStep(0);
+
+    expect(mockHomepage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        balanceBreakdownSectionProps: expect.objectContaining({
+          children: null,
+        }),
+      }),
+    );
   });
 });
 
@@ -2243,6 +2405,21 @@ describe('Header and Nav Bar refresh AB test', () => {
     ).toBe('automatic');
   });
 
+  it('keeps the native fallback refresh control below the native header', () => {
+    mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+    const { getByTestId } = render(Wallet);
+
+    act(() => {
+      __fireRiveViewError({ message: 'Rive unavailable', type: 4 });
+    });
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
+        .refreshControl.props.progressViewOffset,
+    ).toBe(0);
+  });
+
   describe('floating JS header', () => {
     const HEADER_MIN_HEIGHT = 56;
 
@@ -2280,20 +2457,31 @@ describe('Header and Nav Bar refresh AB test', () => {
     });
 
     it('clears the header from the first frame using its min height', () => {
-      const { getByTestId } = render(Wallet);
+      const { getByTestId, queryByTestId } = render(Wallet);
 
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT }));
-      expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
-        HEADER_MIN_HEIGHT,
+      ).toEqual(
+        expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT + 16 }),
       );
+      const indicator = queryByTestId(PullToRefreshTestIds.INDICATOR);
+      if (indicator) {
+        expect(StyleSheet.flatten(indicator.props.style)).toEqual(
+          expect.objectContaining({
+            top: HEADER_MIN_HEIGHT,
+          }),
+        );
+      } else {
+        expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
+          HEADER_MIN_HEIGHT,
+        );
+      }
       expect(capturedContext.containerScreenY).toBe(HEADER_MIN_HEIGHT);
     });
 
     it('tracks the measured header height for content and section visibility', () => {
-      const { getByTestId } = render(Wallet);
+      const { getByTestId, queryByTestId } = render(Wallet);
 
       act(() => {
         fireEvent(
@@ -2306,8 +2494,19 @@ describe('Header and Nav Bar refresh AB test', () => {
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: 72 }));
-      expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(72);
+      ).toEqual(expect.objectContaining({ paddingTop: 72 + 16 }));
+      const indicator = queryByTestId(PullToRefreshTestIds.INDICATOR);
+      if (indicator) {
+        expect(StyleSheet.flatten(indicator.props.style)).toEqual(
+          expect.objectContaining({
+            top: 72,
+          }),
+        );
+      } else {
+        expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
+          72,
+        );
+      }
       expect(capturedContext.containerScreenY).toBe(72);
     });
 
@@ -2335,7 +2534,9 @@ describe('Header and Nav Bar refresh AB test', () => {
             .contentContainerStyle,
         ),
       ).toEqual(
-        expect.objectContaining({ paddingTop: 47 + HEADER_MIN_HEIGHT }),
+        expect.objectContaining({
+          paddingTop: 47 + HEADER_MIN_HEIGHT + 16,
+        }),
       );
     });
 
@@ -2380,21 +2581,21 @@ describe('Header and Nav Bar refresh AB test', () => {
           getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
             .contentContainerStyle,
         ),
-      ).toEqual(expect.objectContaining({ paddingTop: 0 }));
+      ).toEqual(expect.objectContaining({ paddingTop: 16 }));
     });
 
-    it('insets the balance from the floating header capsule', () => {
+    it('does not stack a second balance inset under the floating header', () => {
       const { getByTestId } = render(Wallet);
 
       expect(
         StyleSheet.flatten(
           getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
             .props.style,
-        ),
-      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+        ).paddingTop,
+      ).toBe(0);
     });
 
-    it('keeps the balance inset unchanged when Social V1 is enabled', () => {
+    it('does not add a balance inset when Social V1 is enabled', () => {
       mockSocialV1Enabled = true;
 
       const { getByTestId } = render(Wallet);
@@ -2403,8 +2604,8 @@ describe('Header and Nav Bar refresh AB test', () => {
         StyleSheet.flatten(
           getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
             .props.style,
-        ),
-      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+        ).paddingTop,
+      ).toBe(0);
     });
 
     it('leaves the balance inset to the native bar when it owns the header', () => {
@@ -2453,7 +2654,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the treatment avatar when Social V1 is enabled', () => {
+  it('opens the account hub from the treatment avatar when Social V1 is enabled', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
     mockSocialV1Enabled = true;
 
@@ -2462,7 +2663,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
   it('opens rewards from the treatment gift icon', () => {
@@ -2485,7 +2686,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the account name above the balance when Social V1 is enabled', () => {
+  it('opens the account hub from the account name above the balance when Social V1 is enabled', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
     mockSocialV1Enabled = true;
 
@@ -2494,16 +2695,17 @@ describe('Header and Nav Bar refresh AB test', () => {
       getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
   });
 
-  it('opens the profile drawer from the Social header profile button', () => {
+  it('does not render a profile button in the Social header', () => {
     enableSocialLayout();
 
-    const { getByTestId } = renderWithNavigationProp();
-    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
+    const { queryByTestId } = renderWithNavigationProp();
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER);
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('opens the account selector from the Social header account name', () => {
@@ -2518,13 +2720,24 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
   });
 
-  it('does not render the settings menu in the Social header', () => {
+  it('renders the settings menu in the Social header', () => {
     enableSocialLayout();
 
-    const { queryByTestId } = renderWithNavigationProp();
+    const { getByTestId } = renderWithNavigationProp();
     expect(
-      queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
-    ).not.toBeOnTheScreen();
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the settings menu from the Social header hamburger', () => {
+    enableSocialLayout();
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW);
   });
 
   describe('Social V1 account picker row', () => {
@@ -2643,6 +2856,16 @@ describe('Homepage balance breakdown A/B test', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTAINER),
     ).toHaveStyle({ paddingBottom: 16 });
+  });
+
+  it('renders the banner area when the slow network banner is visible', () => {
+    mockSlowNetworkBannerVisible = true;
+
+    const { getByTestId } = render(Wallet);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.HOMEPAGE_BANNER_CONTENT),
+    ).toBeOnTheScreen();
   });
 
   it('hides breakdown rows during wallet-home post-onboarding', () => {

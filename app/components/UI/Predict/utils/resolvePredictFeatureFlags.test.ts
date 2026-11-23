@@ -44,6 +44,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
       isMembershipFeeWaiverEnabled: false,
+      disablePolymarketV2Markets: false,
       predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
       predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
@@ -823,6 +824,231 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictPortfolioEnabled).toBe(true);
+    });
+  });
+
+  describe('disablePolymarketV2Markets', () => {
+    const mockVersionGate = (result: boolean | undefined) =>
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return result;
+        }
+        return undefined;
+      });
+
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockVersionGate(false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockVersionGate(false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(true);
+    });
+  });
+
+  describe('chainlinkApiKey', () => {
+    const fakeKey = 'fake-chainlink-key-for-tests';
+    const mockVersionGate = (result: boolean | undefined) =>
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'chainlinkApiKey' in flag
+          ? result
+          : undefined,
+      );
+
+    it('is undefined when the flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+      expect(result).not.toHaveProperty('chainlinkApiKey');
+    });
+
+    it('returns the key when the flag is enabled and the version gate passes', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: fakeKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+
+    it('is undefined when the flag is disabled or below its minimum version', () => {
+      mockVersionGate(false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            chainlinkApiKey: fakeKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+    });
+
+    it.each([
+      ['empty', ''],
+      ['blank', '   '],
+      ['empty after trim', ' \t\n '],
+      ['not a string', 42],
+      ['longer than 512 characters', 'k'.repeat(513)],
+      ['holding a control character', 'fake\u0007key'],
+      ['holding a tab inside it', 'fake\tkey'],
+      ['holding a non-ASCII character', 'fake-kéy'],
+    ])('is undefined when the key is %s', (_label, chainlinkApiKey) => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+    });
+
+    it('trims the key', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: ` ${fakeKey} `,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+
+    it('accepts a key of 512 printable ASCII characters', () => {
+      mockVersionGate(true);
+      const longKey = `a${' ~'.repeat(255)}z`;
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: longKey,
+          },
+        },
+      });
+
+      expect(longKey).toHaveLength(512);
+      expect(result.chainlinkApiKey).toBe(longKey);
+    });
+
+    it('unwraps the progressive rollout shape', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '8.20.0',
+              chainlinkApiKey: fakeKey,
+            },
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
     });
   });
 

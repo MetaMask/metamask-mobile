@@ -47,7 +47,6 @@ const placeholderTextColor = mockTheme.colors.text.muted;
 
 const baseEditForm: NetworkFormState = {
   rpcUrl: 'https://rpc.example.com',
-  failoverRpcUrls: undefined,
   rpcName: 'RPC',
   rpcUrlForm: '',
   rpcNameForm: '',

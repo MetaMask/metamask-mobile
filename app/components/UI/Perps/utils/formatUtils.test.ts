@@ -11,7 +11,9 @@ import {
   formatVolume,
   formatCoinVolume,
   formatPositionSize,
+  formatAccountLeverage,
   formatLeverage,
+  formatCrossMarginRatio,
   formatLiquidationDistance,
   parseCurrencyString,
   truncateToTwoDecimals,
@@ -34,6 +36,7 @@ import {
 import {
   countSignificantFigures,
   hasExceededSignificantFigures,
+  PERPS_CONSTANTS,
   roundToSignificantFigures,
 } from '@metamask/perps-controller';
 import { FUNDING_RATE_CONFIG } from '../constants/perpsConfig';
@@ -72,26 +75,26 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 describe('formatUtils', () => {
   describe('formatFundingRate', () => {
-    it('displays zero display value when input is undefined', () => {
+    it('displays the missing-rate placeholder when input is undefined', () => {
       // Given an undefined funding rate value
       const value = undefined;
 
       // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      // Then it shows that the rate is unavailable
+      expect(result).toBe(PERPS_CONSTANTS.FallbackPercentageDisplay);
     });
 
-    it('displays zero display value when input is null', () => {
+    it('displays the missing-rate placeholder when input is null', () => {
       // Given a null funding rate value
       const value = null;
 
       // When formatting the funding rate
       const result = formatFundingRate(value);
 
-      // Then it should return the zero display constant
-      expect(result).toBe(FUNDING_RATE_CONFIG.ZeroDisplay);
+      // Then it shows that the rate is unavailable
+      expect(result).toBe(PERPS_CONSTANTS.FallbackPercentageDisplay);
     });
 
     it('formats positive funding rate correctly', () => {
@@ -1346,10 +1349,10 @@ describe('formatUtils', () => {
       expect(formatPnl(-987654.32)).toBe('-$987,654.32');
     });
 
-    it('should handle invalid inputs', () => {
-      expect(formatPnl('invalid')).toBe('$0.00');
-      expect(formatPnl(NaN)).toBe('$0.00');
-      expect(formatPnl('')).toBe('$0.00');
+    it('returns the missing-value placeholder for non-numeric PnL', () => {
+      expect(formatPnl('invalid')).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+      expect(formatPnl(NaN)).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+      expect(formatPnl('')).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
     });
 
     it('should round to 2 decimal places', () => {
@@ -1375,10 +1378,16 @@ describe('formatUtils', () => {
       expect(formatPercentage(-99.999)).toBe('-100.00%');
     });
 
-    it('should handle invalid inputs', () => {
-      expect(formatPercentage('invalid')).toBe('0.00%');
-      expect(formatPercentage(NaN)).toBe('0.00%');
-      expect(formatPercentage('')).toBe('0.00%');
+    it('returns the missing-value placeholder for non-numeric percentages', () => {
+      expect(formatPercentage('invalid')).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
+      expect(formatPercentage(NaN)).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
+      expect(formatPercentage('')).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
     });
 
     it('should round to 2 decimal places', () => {
@@ -1554,10 +1563,12 @@ describe('formatUtils', () => {
       expect(formatPositionSize(1)).toBe('1'); // exactly at threshold
     });
 
-    it('should handle invalid inputs', () => {
-      expect(formatPositionSize('invalid')).toBe('0');
-      expect(formatPositionSize(NaN)).toBe('0');
-      expect(formatPositionSize('')).toBe('0');
+    it('returns the missing-value placeholder for non-numeric sizes', () => {
+      expect(formatPositionSize('invalid')).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
+      expect(formatPositionSize(NaN)).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
+      expect(formatPositionSize('')).toBe(PERPS_CONSTANTS.FallbackDataDisplay);
     });
 
     it('should handle zero', () => {
@@ -1625,6 +1636,35 @@ describe('formatUtils', () => {
       expect(formatLiquidationDistance(0, 70)).toBeUndefined();
       expect(formatLiquidationDistance(100, 'abc')).toBeUndefined();
       expect(formatLiquidationDistance(100, Infinity)).toBeUndefined();
+    });
+  });
+
+  describe('formatCrossMarginRatio', () => {
+    it.each([
+      [0.174, '17.4%'],
+      [0.634, '63.4%'],
+      [0.63, '63%'],
+      [0.30004, '30%'],
+      [0, '0%'],
+      [0.0255, '2.6%'],
+      [0.1245, '12.5%'],
+    ])('formats %s as an unsigned percentage (%s)', (ratio, expected) => {
+      expect(formatCrossMarginRatio(ratio, 'en-US')).toBe(expected);
+    });
+
+    it('follows the locale decimal separator', () => {
+      expect(formatCrossMarginRatio(0.174, 'de-DE')).toMatch(/^17,4\s?%$/u);
+    });
+  });
+
+  describe('formatAccountLeverage', () => {
+    it('formats one decimal with an x suffix', () => {
+      expect(formatAccountLeverage(2, 'en-US')).toBe('2.0x');
+      expect(formatAccountLeverage(1.04, 'en-US')).toBe('1.0x');
+    });
+
+    it('uses the locale decimal separator', () => {
+      expect(formatAccountLeverage(2.5, 'de-DE')).toBe('2,5x');
     });
   });
 

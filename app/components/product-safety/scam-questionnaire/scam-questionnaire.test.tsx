@@ -1,10 +1,11 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 import { ScamQuestionnaire } from './scam-questionnaire';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { confirmSupportConsent } from '../../../util/support';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 
 const mockTrackViewed = jest.fn();
 const mockTrackContactSupport = jest.fn();
@@ -20,6 +21,7 @@ jest.mock('./useScamQuestionnaireMetrics', () => ({
 
 jest.mock('../../../util/support', () => ({
   confirmSupportConsent: jest.fn(),
+  openSupportWithSavedPreference: jest.fn().mockReturnValue(false),
   rejectSupportConsent: jest.fn(),
 }));
 
@@ -30,7 +32,7 @@ const setup = () => {
   const onReject = jest.fn();
   const onBypass = jest.fn();
   const onDismiss = jest.fn();
-  const utils = render(
+  const utils = renderWithProvider(
     <ScamQuestionnaire
       onCleanPass={onCleanPass}
       onReject={onReject}

@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { useSessionProfileId } from '../../../../../util/notifications/hooks/useSessionProfileId';
+import { useSocialProfileId } from '../../../../../util/social/useSocialProfileId';
 import type { MySocialProfile } from './useMyProfile';
 import { resolveMyProfileAddress } from './resolveMyProfileAddress';
 
@@ -15,7 +15,7 @@ export const useMyProfileAddress = (
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const { profileId: sessionProfileId, isLoading } = useSessionProfileId();
+  const { profileId: sessionProfileId, isLoading } = useSocialProfileId();
 
   if (isLoading) {
     return undefined;

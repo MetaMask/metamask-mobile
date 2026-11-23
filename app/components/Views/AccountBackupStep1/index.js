@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView, BackHandler, Image, Platform } from 'react-native';
+import { ScrollView, BackHandler, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PropTypes from 'prop-types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -197,9 +197,7 @@ const AccountBackupStep1 = (props) => {
           </Box>
 
           <FooterGlass
-            twClassName={`px-0 mt-auto justify-end ${
-              Platform.OS === 'android' ? 'mb-6' : 'mb-4'
-            }`}
+            twClassName="px-0 mt-auto justify-end py-2"
             primaryButtonProps={{
               children: strings('account_backup_step_1.cta_text'),
               onPress: goNext,

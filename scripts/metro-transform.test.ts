@@ -1,85 +1,56 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import metroTransformer from '../metro.transform';
 
 jest.mock('@expo/metro-config/babel-transformer', () => ({
-  transform: jest.fn((input: { src: string }) => input),
+  transform: jest.fn(),
 }));
 jest.mock('react-native-svg-transformer/expo', () => ({
   transform: jest.fn(),
 }));
 
-const { getBuildTypeFeatures } = metroTransformer;
+interface MockTransformer {
+  transform: jest.Mock;
+}
+const defaultTransformer = jest.requireMock<MockTransformer>(
+  '@expo/metro-config/babel-transformer',
+);
+const svgTransformer = jest.requireMock<MockTransformer>(
+  'react-native-svg-transformer/expo',
+);
 
-describe('Lighter signer code fencing', () => {
-  afterEach(() => {
-    jest.restoreAllMocks();
+const options = { dev: false, platform: 'ios' };
+
+// Metro calls the transformer with its own Babel plugins as well.
+const metroArgs = (src: string, filename: string) => ({
+  src,
+  filename,
+  options,
+  plugins: [jest.fn(), jest.fn()],
+});
+
+describe('metro.transform', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  // Exercise the real fence removal on Root: a disabled render alone still
-  // leaves its static import and the 10 MB signer in Metro's dependency graph.
-  it.each([
-    ['production', undefined, false],
-    ['production', 'false', false],
-    ['dev', undefined, false],
-    ['dev', 'false', false],
-    ['production', 'true', true],
-    ['dev', 'true', true],
-  ])(
-    'includes the Root signer import=%s/%s only when enabled=%s',
-    async (environment, flag, enabled) => {
-      jest.replaceProperty(process, 'env', {
-        ...process.env,
-        METAMASK_ENVIRONMENT: environment,
-        MM_PERPS_LIGHTER_PROVIDER_ENABLED: flag,
-        CODE_FENCING_FEATURES: '["snaps","keyring-snaps","multi-srp","solana","bitcoin","tron"]',
-        SKIP_TRANSFORM_LINT: 'true',
-      });
-      const filename = path.resolve(
-        __dirname,
-        '../app/components/Views/Root/index.tsx',
-      );
+  it('sends non-SVG files to the Expo transformer without Metro plugins', () => {
+    metroTransformer.transform(metroArgs('export const a = 1;', 'app/a.ts'));
 
-      const result = await metroTransformer.transform({
-        src: fs.readFileSync(filename, 'utf8'),
-        filename,
-        options: {},
-      });
-
-      expect(result.src.includes('LighterSignerWebView')).toBe(enabled);
-      expect(result.src.includes('isLighterProviderEnabled')).toBe(enabled);
-    },
-  );
-
-  it('excludes the Lighter fence from production without an override', () => {
-    const features = getBuildTypeFeatures({
-      NODE_ENV: 'test',
-      METAMASK_BUILD_TYPE: 'main',
-      METAMASK_ENVIRONMENT: 'production',
+    expect(defaultTransformer.transform).toHaveBeenCalledWith({
+      src: 'export const a = 1;',
+      filename: 'app/a.ts',
+      options,
     });
-
-    expect(features).not.toContain('lighter');
+    expect(svgTransformer.transform).not.toHaveBeenCalled();
   });
 
-  it('excludes the Lighter fence in development without an opt-in', () => {
-    const features = getBuildTypeFeatures({
-      NODE_ENV: 'test',
-      METAMASK_BUILD_TYPE: 'main',
-      METAMASK_ENVIRONMENT: 'dev',
-      MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'false',
+  it('sends SVG files to the SVG transformer without Metro plugins', () => {
+    metroTransformer.transform(metroArgs('<svg />', 'app/images/icon.svg'));
+
+    expect(svgTransformer.transform).toHaveBeenCalledWith({
+      src: '<svg />',
+      filename: 'app/images/icon.svg',
+      options,
     });
-
-    expect(features).not.toContain('lighter');
-  });
-
-  it('includes the Lighter fence for an explicit production override', () => {
-    const features = getBuildTypeFeatures({
-      NODE_ENV: 'test',
-      METAMASK_BUILD_TYPE: 'main',
-      METAMASK_ENVIRONMENT: 'production',
-      MM_PERPS_LIGHTER_PROVIDER_ENABLED: 'true',
-    });
-
-    expect(features).toContain('lighter');
+    expect(defaultTransformer.transform).not.toHaveBeenCalled();
   });
 });

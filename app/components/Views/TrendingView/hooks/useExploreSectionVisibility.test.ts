@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import { View } from 'react-native';
 import { useExploreScrollContext } from '../components/ExploreScroll';
 import useExploreSectionVisibility from './useExploreSectionVisibility';

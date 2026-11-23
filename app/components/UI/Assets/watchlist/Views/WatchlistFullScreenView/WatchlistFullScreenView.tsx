@@ -1,21 +1,23 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import ReorderableList from 'react-native-reorderable-list';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
-  Button,
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonBase,
+  ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
-  ButtonVariant,
-  ButtonSize,
-  HeaderStandard,
+  FontWeight,
+  IconColor,
   IconName,
   Text,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { useTokenWatchlistQuery } from '../../hooks/useTokenWatchlistQuery';
@@ -31,9 +33,16 @@ import WatchlistEmptyCTA from '../../components/WatchlistEmptyCTA';
 import WatchlistSearchContent from './WatchlistSearchContent';
 import { useWatchlistEditDraft } from './useWatchlistEditDraft';
 import styleSheet from './WatchlistFullScreenView.styles';
+import { useSelector } from 'react-redux';
+import CapsuleGlass from '../../../../../../component-library/components-temp/CapsuleGlass';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
+
+/** Header controls sit on the glass capsule; the default press fill would cover it. */
+const HEADER_ICON_BUTTON_CLASS = 'bg-transparent';
 
 const rowExitAnimation = FadeOut.duration(ANIMATION_DURATION);
 const rowLayoutAnimation = LinearTransition.duration(ANIMATION_DURATION);
@@ -43,6 +52,7 @@ interface WatchlistFullViewRouteParams {
 }
 
 const WatchlistFullScreenView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
@@ -115,51 +125,69 @@ const WatchlistFullScreenView = () => {
     }
 
     if (isEditMode) {
-      return (
-        <TouchableOpacity
+      const doneButton = (
+        <ButtonBase
+          size={ButtonBaseSize.Md}
           onPress={handleDonePress}
           testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
-          accessibilityRole="button"
           accessibilityLabel={strings('token_watchlist.done')}
+          twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
         >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('token_watchlist.done')}
-          </Text>
-        </TouchableOpacity>
+          {strings('token_watchlist.done')}
+        </ButtonBase>
+      );
+
+      return isGlassHeader ? (
+        <CapsuleGlass twClassName="shrink-0">{doneButton}</CapsuleGlass>
+      ) : (
+        doneButton
       );
     }
 
-    return (
-      <View style={styles.headerEndActions}>
+    const headerActions = (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+      >
         <ButtonIcon
+          iconProps={{ color: IconColor.IconDefault }}
           iconName={IconName.Search}
           size={ButtonIconSize.Md}
           onPress={handleSearchPress}
           testID={WatchlistFullScreenViewSelectorsIDs.SEARCH_BUTTON}
           accessibilityLabel="Search"
+          twClassName={HEADER_ICON_BUTTON_CLASS}
         />
         {hasItems ? (
-          <TouchableOpacity
+          <ButtonIcon
+            iconProps={{ color: IconColor.IconDefault }}
+            iconName={IconName.Edit}
+            size={ButtonIconSize.Md}
             onPress={handleEditPress}
             testID={WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON}
-            accessibilityRole="button"
             accessibilityLabel={strings('token_watchlist.edit')}
-          >
-            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-              {strings('token_watchlist.edit')}
-            </Text>
-          </TouchableOpacity>
+            twClassName={HEADER_ICON_BUTTON_CLASS}
+          />
         ) : null}
-      </View>
+      </Box>
+    );
+
+    if (!isGlassHeader) {
+      return headerActions;
+    }
+
+    return (
+      <CapsuleGlass twClassName="shrink-0 px-2">{headerActions}</CapsuleGlass>
     );
   }, [
+    isGlassHeader,
     handleDonePress,
     handleEditPress,
     handleSearchPress,
     hasItems,
     isEditMode,
     isSearchMode,
-    styles.headerEndActions,
   ]);
 
   const listContent = useMemo(() => {
@@ -223,7 +251,9 @@ const WatchlistFullScreenView = () => {
       testID={WatchlistFullScreenViewSelectorsIDs.CONTAINER}
     >
       {!isSearchMode ? (
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           includesTopInset
           onBack={isEditMode ? undefined : handleBack}
           backButtonProps={
@@ -251,16 +281,6 @@ const WatchlistFullScreenView = () => {
             >
               {strings('token_watchlist.fullscreen_title')}
             </Text>
-          </View>
-
-          <View style={styles.tabContainer}>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Sm}
-              testID={WatchlistFullScreenViewSelectorsIDs.TOKENS_TAB}
-            >
-              {strings('token_watchlist.tokens_tab')}
-            </Button>
           </View>
 
           {listContent}

@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   Button,
@@ -11,9 +10,12 @@ import {
 import React, { useCallback, useRef } from 'react';
 import { Alert, Modal, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import { Nft } from '@metamask/assets-controllers';
+import { Nft, Source } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
+import BottomSheetHeaderGlass from '../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 interface NftGridItemBottomSheetProps {
   isVisible: boolean;
@@ -26,6 +28,7 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
   onClose,
   nft,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const handleSheetClose = useCallback(() => {
@@ -67,6 +70,9 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
       nft.address,
       nft.tokenId,
       networkClientId,
+      // Refreshing is not a new add: Source.Detected never overwrites the
+      // stored source, whereas the default (Source.Custom) would.
+      { source: Source.Detected },
     );
   }, [nft, getNetworkClientId]);
 
@@ -76,11 +82,14 @@ const NftGridItemBottomSheet: React.FC<NftGridItemBottomSheetProps> = ({
     <View testID="nft-grid-item-bottom-sheet">
       <Modal visible transparent animationType="none" statusBarTranslucent>
         <BottomSheet ref={sheetRef} onClose={onClose}>
-          <BottomSheetHeader onClose={handleSheetClose}>
+          <BottomSheetHeaderGlass
+            isGlass={isGlassHeader}
+            onClose={handleSheetClose}
+          >
             <Text variant={TextVariant.HeadingMd}>
               {strings('wallet.collectible_action_title')}
             </Text>
-          </BottomSheetHeader>
+          </BottomSheetHeaderGlass>
 
           <Box twClassName="pt-4 mx-4 flex gap-4">
             <Button

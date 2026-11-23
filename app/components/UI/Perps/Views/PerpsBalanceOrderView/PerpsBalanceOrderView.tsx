@@ -8,12 +8,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  HeaderStandard,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -36,6 +31,8 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsLiveAccount, usePerpsLivePrices } from '../../hooks/stream';
 import { TraceName } from '../../../../../util/trace';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 
 /** Applies an order-book limit selection once, without overwriting later edits. */
 const InitialLimitPrice = ({ price }: { price?: string }) => {
@@ -52,6 +49,7 @@ const InitialLimitPrice = ({ price }: { price?: string }) => {
 
 /** Direct venue-balance trading, independent of deposit confirmations and UI mode. */
 const PerpsBalanceOrderView = () => {
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
   const { params } =
     useRoute<RouteProp<PerpsNavigationParamList, 'PerpsBalanceOrder'>>();
   const navigation = useNavigation();
@@ -126,7 +124,9 @@ const PerpsBalanceOrderView = () => {
       accessible={false}
       testID={PerpsBalanceOrderViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isBrandRefresh}
+        isFloating={false}
         title={params.asset}
         onBack={navigation.goBack}
         backButtonProps={{ testID: PerpsBalanceOrderViewSelectorsIDs.BACK }}

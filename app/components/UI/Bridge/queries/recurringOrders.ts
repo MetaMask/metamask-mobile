@@ -1,24 +1,27 @@
 import type {
+  GetRecurringOrderQuery,
   GetRecurringOrdersByAssetQuery,
-  GetRecurringOrdersQuery,
-  GetRecurringSwapsQuery,
+  RecurringOrdersQueryParams,
+  RecurringSwapsQueryParams,
+} from '../api/recurringOrders.types';
+export type {
+  RecurringOrdersQueryParams,
+  RecurringSwapsQueryParams,
 } from '../api/recurringOrders.types';
 
-export const RECURRING_ORDERS_STALE_TIME = 5 * 60 * 1000;
+export const RECURRING_ORDERS_STALE_TIME = 0;
 export const RECURRING_ORDERS_PAGE_LIMIT = 20;
 export const RECURRING_SWAPS_PAGE_LIMIT = 20;
 export const RECURRING_ORDERS_QUERY_KEY =
   'RecurringOrdersDataService:getRecurringOrders' as const;
+export const RECURRING_ORDER_QUERY_KEY =
+  'RecurringOrdersDataService:getRecurringOrder' as const;
 export const RECURRING_ORDERS_BY_ASSET_QUERY_KEY =
   'RecurringOrdersDataService:getRecurringOrdersByAsset' as const;
 
-export type RecurringOrdersQueryParams = Omit<
-  GetRecurringOrdersQuery,
-  'cursor'
->;
+export type RecurringOrderQueryParams = Readonly<GetRecurringOrderQuery>;
 export type RecurringOrdersByAssetQueryParams =
   Readonly<GetRecurringOrdersByAssetQuery>;
-export type RecurringSwapsQueryParams = Omit<GetRecurringSwapsQuery, 'cursor'>;
 export type RecurringOrdersQueryKey = readonly [
   typeof RECURRING_ORDERS_QUERY_KEY,
   RecurringOrdersQueryParams,
@@ -29,16 +32,25 @@ export type RecurringOrdersByAssetQueryKey = readonly [
 ];
 
 export const recurringOrdersQueries = {
+  getRecurringOrder: (
+    orderId: string,
+    { accountAddress }: RecurringOrderQueryParams,
+  ) => ({
+    queryKey: [RECURRING_ORDER_QUERY_KEY, orderId, { accountAddress }] as const,
+    staleTime: RECURRING_ORDERS_STALE_TIME,
+  }),
   getRecurringOrders: ({
     walletAddress,
-    status,
+    orderStates,
     chainId,
+    assetId,
     limit,
   }: RecurringOrdersQueryParams) => {
-    const params: RecurringOrdersQueryParams = {
+    const params = {
       walletAddress: walletAddress.toLowerCase(),
-      ...(status ? { status: [...status] } : {}),
+      ...(orderStates ? { orderStates: [...orderStates] } : {}),
       ...(chainId ? { chainId } : {}),
+      ...(assetId ? { assetId } : {}),
       ...(limit === undefined ? {} : { limit }),
     };
 
@@ -63,9 +75,10 @@ export const recurringOrdersQueries = {
   },
   getRecurringSwaps: (
     orderId: string,
-    { limit }: RecurringSwapsQueryParams,
+    { accountAddress, limit }: RecurringSwapsQueryParams,
   ) => {
-    const params: RecurringSwapsQueryParams = {
+    const params = {
+      accountAddress,
       ...(limit === undefined ? {} : { limit }),
     };
 

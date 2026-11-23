@@ -4,6 +4,7 @@ import initialRootState, {
   backgroundState,
 } from '../../util/test/initial-root-state';
 import { captureException } from '@sentry/react-native';
+import { getErrorMessage } from '../../util/test/getErrorMessage';
 
 const oldState = {
   engine: {
@@ -466,7 +467,7 @@ describe('Migration #29', () => {
       const newState = await migration(state);
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      expect(getErrorMessage(mockedCaptureException.mock.calls[0][0])).toBe(
         errorMessage,
       );
     });
