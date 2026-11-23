@@ -1463,6 +1463,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  collectiblesEnabled: {
+    name: 'collectiblesEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.23.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   configRegistryApiEnabled: {
     name: 'configRegistryApiEnabled',
     type: FeatureFlagType.Remote,

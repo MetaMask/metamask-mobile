@@ -1556,7 +1556,7 @@
       "private_description": "Private profiles can't publish posts. Make your profile public to start posting."
     },
     "post_trade_share": {
-      "swap_in_progress": "Swap in progress",
+      "trade_in_progress": "Trade in progress",
       "complete": "Swap complete",
       "failed": "Swap failed",
       "order_in_progress": "Order in progress",
@@ -5412,9 +5412,8 @@
   },
   "collectibles": {
     "title": "Collectibles",
-    "home_section": {
-      "description": "Explore collectibles packs and cards.",
-      "open_collectibles": "Explore Collectibles"
+    "trade_menu": {
+      "description": "Explore packs and cards"
     }
   },
   "collectible": {
@@ -9955,15 +9954,15 @@
       "body_suffix": "- with trading, sending, and spending built in.",
       "body_no_apy": "MetaMask Money is a stablecoin account with trading, sending, and spending built in.",
       "benefit_convert_title": "Converts to MetaMask USD, 1:1",
-      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, with no fees.",
+      "benefit_convert_body": "Funds you add convert 1:1 to MetaMask USD, a dollar-backed stablecoin.",
       "benefit_earn_title": "Earn automatically",
       "benefit_earn_body": "Earnings land in your balance in real time, with nothing to claim.",
       "benefit_trade_title": "Trade from the same balance",
       "benefit_trade_body": "Fund swaps, perps, and predictions directly from your Money balance.",
-      "benefit_withdraw_title": "Withdraw anytime",
-      "benefit_withdraw_body": "No lockups, notice periods, or penalties. Your money is always yours to take out.",
+      "benefit_withdraw_title": "No lockups",
+      "benefit_withdraw_body": "There are no notice periods or penalties to swap or send your funds.",
       "benefit_send_title": "Send or spend anywhere",
-      "benefit_send_body": "Send to any wallet or bank, or spend with MetaMask Card.",
+      "benefit_send_body": "Send to any wallet or bank, or spend globally with MetaMask Card.",
       "cta": "Start earning",
       "close": "Close"
     },
@@ -11261,6 +11260,7 @@
     "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Includes {{feePercentage}}% MetaMask fee",
     "discount_badge_promo": "Promo",
+    "discount_badge_free": "Free",
     "discount_badge_dao": "DAO",
     "no_mm_fee": "No MM fee",
     "token_suspicious": "Suspicious",
