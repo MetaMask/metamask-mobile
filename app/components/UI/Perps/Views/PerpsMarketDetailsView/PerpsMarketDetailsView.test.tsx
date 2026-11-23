@@ -56,6 +56,9 @@ let mockActiveProvider: PerpsActiveProviderMode | undefined;
 
 import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 jest.mock('../../../../../util/haptics');
+jest.mock('../../hooks/usePerpsSocialTabsPrefetch', () => ({
+  usePerpsSocialTabsPrefetch: jest.fn(),
+}));
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
