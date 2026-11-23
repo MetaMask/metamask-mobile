@@ -55,15 +55,19 @@ const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 
 const DEFAULT_APY = 6.2;
 
+function mockVaultApy(apyPercent?: number) {
+  mockUseMoneyVaultApy.mockReturnValue({
+    apyDecimal: apyPercent === undefined ? undefined : apyPercent / 100,
+    apyPercent,
+    vaultApyQuery: { isLoading: false },
+  } as unknown as ReturnType<typeof useMoneyVaultApy>);
+}
+
 describe('MoneyApyInfoSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({ apy: DEFAULT_APY });
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: 0.062,
-      apyPercent: DEFAULT_APY,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    mockVaultApy(DEFAULT_APY);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
     });
@@ -182,11 +186,7 @@ describe('MoneyApyInfoSheet', () => {
 
   it('falls back to the live APY when the route omits it', () => {
     mockUseParams.mockReturnValue({});
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: 0.045,
-      apyPercent: 4.5,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    mockVaultApy(4.5);
 
     const { getByTestId } = renderWithProvider(<MoneyApyInfoSheet />);
 
@@ -198,11 +198,7 @@ describe('MoneyApyInfoSheet', () => {
 
   it('omits the APY headline when APY is unavailable', () => {
     mockUseParams.mockReturnValue({});
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: undefined,
-      apyPercent: undefined,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    mockVaultApy();
 
     const { queryByTestId, queryByText, getByText } = renderWithProvider(
       <MoneyApyInfoSheet />,

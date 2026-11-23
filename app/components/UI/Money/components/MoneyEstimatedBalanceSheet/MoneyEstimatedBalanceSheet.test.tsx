@@ -57,19 +57,24 @@ const DEPOSIT_AMOUNT = '$100.00';
 const PROJECTED_AMOUNT = '$106.20';
 const DEFAULT_APY = 6.2;
 
+const BASE_PARAMS = {
+  depositAmountFiat: DEPOSIT_AMOUNT,
+  projectedAmountFiat: PROJECTED_AMOUNT,
+};
+
+function mockVaultApy(apyPercent?: number) {
+  mockUseMoneyVaultApy.mockReturnValue({
+    apyDecimal: apyPercent === undefined ? undefined : apyPercent / 100,
+    apyPercent,
+    vaultApyQuery: { isLoading: false },
+  } as unknown as ReturnType<typeof useMoneyVaultApy>);
+}
+
 describe('MoneyEstimatedBalanceSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseParams.mockReturnValue({
-      depositAmountFiat: DEPOSIT_AMOUNT,
-      projectedAmountFiat: PROJECTED_AMOUNT,
-      apy: DEFAULT_APY,
-    });
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: 0.062,
-      apyPercent: DEFAULT_APY,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    mockUseParams.mockReturnValue({ ...BASE_PARAMS, apy: DEFAULT_APY });
+    mockVaultApy(DEFAULT_APY);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
     });
@@ -155,15 +160,8 @@ describe('MoneyEstimatedBalanceSheet', () => {
   });
 
   it('falls back to the live APY when the route omits it', () => {
-    mockUseParams.mockReturnValue({
-      depositAmountFiat: DEPOSIT_AMOUNT,
-      projectedAmountFiat: PROJECTED_AMOUNT,
-    });
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: 0.045,
-      apyPercent: 4.5,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    mockUseParams.mockReturnValue(BASE_PARAMS);
+    mockVaultApy(4.5);
 
     const { getByTestId } = renderWithProvider(<MoneyEstimatedBalanceSheet />);
 
@@ -181,15 +179,8 @@ describe('MoneyEstimatedBalanceSheet', () => {
   });
 
   it('renders the no-APY subtitle and hides the disclaimer when APY is unavailable', () => {
-    mockUseParams.mockReturnValue({
-      depositAmountFiat: DEPOSIT_AMOUNT,
-      projectedAmountFiat: PROJECTED_AMOUNT,
-    });
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyDecimal: undefined,
-      apyPercent: undefined,
-      vaultApyQuery: { isLoading: false },
-    } as unknown as ReturnType<typeof useMoneyVaultApy>);
+    mockUseParams.mockReturnValue(BASE_PARAMS);
+    mockVaultApy();
 
     const { getByTestId, queryByTestId } = renderWithProvider(
       <MoneyEstimatedBalanceSheet />,
