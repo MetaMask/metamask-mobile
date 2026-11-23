@@ -1,4 +1,5 @@
-import { handleSwapUrl } from '../handleSwapUrl';
+import { createSwapDeeplinkIntent, handleSwapUrl } from '../handleSwapUrl';
+import { startSwapBridgePageLoadTrace } from '../../../../../components/UI/Bridge/utils/swapBridgePageLoadTrace';
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux/ReduxService';
 import { resetBridgeState } from '../../../../redux/slices/bridge';
@@ -937,5 +938,62 @@ describe('handleSwapUrl', () => {
         initialTab: BridgeTabKey.Market,
       },
     });
+  });
+
+  it('starts the Swap View Loaded trace when the intent is prepared, not when it is resolved', async () => {
+    const mockStartTrace = startSwapBridgePageLoadTrace as jest.Mock;
+    mockStartTrace.mockImplementationOnce((params: object) => ({
+      ...params,
+      swapViewTraceId: 'trace-id',
+    }));
+
+    const intent = await createSwapDeeplinkIntent({
+      swapPath:
+        'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    });
+
+    expect(mockStartTrace).not.toHaveBeenCalled();
+
+    await intent.prepare?.();
+
+    expect(mockStartTrace).toHaveBeenCalledTimes(1);
+    expect(
+      mockResetBridgeControllerState.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockStartTrace.mock.invocationCallOrder[0]);
+    expect(intent.target.params).toStrictEqual({
+      screen: 'BridgeView',
+      params: expect.objectContaining({
+        sourceToken: expectedSourceToken,
+        sourcePage: 'deeplink',
+        swapViewTraceId: 'trace-id',
+      }),
+    });
+  });
+
+  it('ignores a swap deeplink while another one is still in flight', async () => {
+    const swapPath =
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+    let resolveMetadata: (value: unknown) => void = () => undefined;
+    mockFetchAssetMetadata.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveMetadata = resolve;
+        }),
+    );
+
+    const first = handleSwapUrl({ swapPath });
+    await handleSwapUrl({ swapPath });
+    resolveMetadata({
+      ...expectedSourceToken,
+      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    });
+    await first;
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(startSwapBridgePageLoadTrace).toHaveBeenCalledTimes(1);
+
+    await handleSwapUrl({ swapPath });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
   });
 });

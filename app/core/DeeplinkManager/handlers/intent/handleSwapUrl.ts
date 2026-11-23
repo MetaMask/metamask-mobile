@@ -338,27 +338,23 @@ function getInitialRouteParams(
  *
  * All parameters are optional, allows partial deep linking
  */
-const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => {
-  const tracedParams = startSwapBridgePageLoadTrace(params);
-
-  return {
-    type: 'main-stack',
-    routeName: Routes.BRIDGE.ROOT,
-    params: {
-      screen: Routes.BRIDGE.BRIDGE_VIEW,
-      params: tracedParams,
-    },
-  };
-};
+const bridgeTarget = (params: BridgeRouteParams): DeeplinkIntent['target'] => ({
+  type: 'main-stack',
+  routeName: Routes.BRIDGE.ROOT,
+  params: {
+    screen: Routes.BRIDGE.BRIDGE_VIEW,
+    params,
+  },
+});
 
 /**
- * Resolve the navigation target for a swap deeplink. Token metadata lookup and
+ * Resolve the Bridge params for a swap deeplink. Token metadata lookup and
  * chain enabling must complete before navigation, so this builder is async and
  * fully resolves the Bridge params up front.
  */
-const resolveSwapTarget = async (
+const resolveSwapRouteParams = async (
   swapPath: string,
-): Promise<DeeplinkIntent['target']> => {
+): Promise<BridgeRouteParams> => {
   // Parse URL parameters
   const urlParams = getSwapUrlParams(swapPath);
 
@@ -399,7 +395,7 @@ const resolveSwapTarget = async (
       ? ethers.utils.formatUnits(atomicAmount, sourceToken.decimals)
       : undefined;
 
-  return bridgeTarget({
+  return {
     sourceToken: sourceToken ?? undefined,
     destToken: destToken ?? undefined,
     sourceAmount: sourceAmount ?? undefined,
@@ -407,17 +403,35 @@ const resolveSwapTarget = async (
     bridgeViewMode: BridgeViewMode.Unified,
     location: MetaMetricsSwapsEventSource.MainView,
     ...initialRouteParams,
-  });
+  };
 };
 
 export const createSwapDeeplinkIntent = async ({
   swapPath,
-}: HandleSwapUrlParams): Promise<DeeplinkIntent> => ({
-  target: await resolveSwapTarget(swapPath),
-  prepare: resetSwapSessionBeforeDeeplink,
-});
+}: HandleSwapUrlParams): Promise<DeeplinkIntent> => {
+  const routeParams = await resolveSwapRouteParams(swapPath);
+  const intent: DeeplinkIntent = {
+    target: bridgeTarget(routeParams),
+    // Intent executors read `target` after `prepare`, so the Swap View Loaded
+    // trace starts here, immediately before navigation, rather than at resolve.
+    prepare: () => {
+      resetSwapSessionBeforeDeeplink();
+      intent.target = bridgeTarget(startSwapBridgePageLoadTrace(routeParams));
+    },
+  };
+  return intent;
+};
+
+let isSwapDeeplinkInFlight = false;
 
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
+  // Repeated in-app deeplink deliveries would otherwise each open a Bridge
+  // view and start an overlapping Swap View Loaded trace.
+  if (isSwapDeeplinkInFlight) {
+    return;
+  }
+  isSwapDeeplinkInFlight = true;
+
   const initialRouteParams = getInitialRouteParams(getSwapUrlParams(swapPath));
 
   try {
@@ -436,5 +450,7 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params,
     });
+  } finally {
+    isSwapDeeplinkInFlight = false;
   }
 };
