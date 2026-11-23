@@ -7,7 +7,7 @@ import {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import type {
   MfaMethod,
   MfaReason,
@@ -108,7 +108,12 @@ export const useMoneyMfa = () => {
   );
 
   let status: MoneyMfaStatus;
-  if (!isFlagEnabled || !isKitEnabled || !isMoneyAccountEnabled) {
+  if (
+    !isMfaDevBuild() ||
+    !isFlagEnabled ||
+    !isKitEnabled ||
+    !isMoneyAccountEnabled
+  ) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';

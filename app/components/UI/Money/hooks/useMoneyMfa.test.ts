@@ -4,7 +4,7 @@ import { useSelector } from 'react-redux';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import { useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import {
   selectMoneyEnableMfaFlag,
   selectMoneyEnableMoneyAccountFlag,
@@ -33,6 +33,7 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 }));
 
 jest.mock('../../../../util/identity/mfa', () => ({
+  isMfaDevBuild: jest.fn(),
   useMfa: jest.fn(),
 }));
 
@@ -171,6 +172,7 @@ describe('useMoneyMfa', () => {
       setMigration('done');
     });
     mockRefreshEnrolledCredentials.mockResolvedValue([]);
+    jest.mocked(isMfaDevBuild).mockReturnValue(true);
   });
 
   describe('status', () => {
@@ -188,6 +190,14 @@ describe('useMoneyMfa', () => {
 
     it('returns unavailable when the MFA kit is disabled', () => {
       const { result } = arrange({ isKitEnabled: false });
+
+      expect(result.current.status).toBe('unavailable');
+    });
+
+    it('returns unavailable in production and beta builds', () => {
+      jest.mocked(isMfaDevBuild).mockReturnValue(false);
+
+      const { result } = arrange();
 
       expect(result.current.status).toBe('unavailable');
     });
