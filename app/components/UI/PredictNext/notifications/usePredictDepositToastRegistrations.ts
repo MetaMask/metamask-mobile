@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
+import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';

@@ -739,7 +739,7 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
         const iconAppearance = resolveToastIconAppearance(iconColor);
         const icon = (
           <Icon
-            name={iconName as DsIconName}
+            name={iconName}
             size={IconSize.Lg}
             color={iconAppearance.color}
             style={iconAppearance.style}
