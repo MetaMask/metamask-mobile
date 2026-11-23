@@ -155,7 +155,7 @@ export const isWalletHomeReadyOnIOSStable = async (): Promise<boolean> => {
           readySince = undefined;
           throw new Error('iOS login screen is still displayed');
         }
-        if (!(await isAnyWalletHomeChildIndicatorDisplayed())) {
+        if (!(await isWalletHomeReadyOnIOS())) {
           readySince = undefined;
           throw new Error('iOS wallet home is not ready');
         }

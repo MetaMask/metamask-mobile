@@ -156,7 +156,7 @@ describe('isWalletHomeReadyOnIOSStable', () => {
     await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(false);
   });
 
-  it('does not treat an existing but undisplayed wallet hierarchy as stable', async () => {
+  it('accepts an existing wallet hierarchy when login is hidden', async () => {
     jest
       .mocked(Matchers.getElementByID)
       .mockImplementation(async (elementId) => {
@@ -170,7 +170,7 @@ describe('isWalletHomeReadyOnIOSStable', () => {
         } as unknown as AppiumElement;
       });
 
-    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(false);
+    await expect(isWalletHomeReadyOnIOSStable()).resolves.toBe(true);
   });
 
   it('returns false when wallet chrome is not visible', async () => {
