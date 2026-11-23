@@ -624,22 +624,31 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
     ).toHaveDisplayValue('1');
   });
 
-  it('closes the keypad when tapping outside it', async () => {
-    const renderResult = renderBridgeView();
+  it.each([
+    ['source amount', openAmountKeypad],
+    ['Every', openEveryKeypad],
+    ['Repeats', openRepeatKeypad],
+  ])(
+    'closes the keypad when tapping outside the active %s input',
+    async (_inputName, openKeypad) => {
+      const renderResult = renderBridgeView();
 
-    await openRecurringTab(renderResult);
-    await openEveryKeypad(renderResult);
-    fireEvent(
-      renderResult.getByTestId(RecurringScheduleFieldsSelectorsIDs.CONTAINER),
-      'responderRelease',
-    );
+      await openRecurringTab(renderResult);
+      await openKeypad(renderResult);
+      fireEvent(
+        renderResult.getByTestId(
+          BridgeViewSelectorsIDs.RECURRING_BUY_DISMISS_AREA,
+        ),
+        'responderRelease',
+      );
 
-    await waitFor(() => {
-      expect(
-        renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
-      ).not.toBeOnTheScreen();
-    });
-  });
+      await waitFor(() => {
+        expect(
+          renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+        ).not.toBeOnTheScreen();
+      });
+    },
+  );
 
   it('closes the keypad when tapping a banner', async () => {
     const renderResult = renderBridgeView();
@@ -1861,16 +1870,23 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
   });
 
   describe('price range', () => {
-    it('keeps the label outside the press target', async () => {
+    it('dismisses the keypad from the label without opening the sheet', async () => {
       const renderResult = renderRecurringPriceRangeView();
 
       await openRecurringTab(renderResult);
-      await userEvent.press(
+      await openEveryKeypad(renderResult);
+      fireEvent(
         renderResult.getByText(
           strings('bridge.recurring.price_range.input_label'),
         ),
+        'responderRelease',
       );
 
+      await waitFor(() => {
+        expect(
+          renderResult.queryByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+        ).not.toBeOnTheScreen();
+      });
       expect(
         renderResult.queryByTestId(PriceRangeSheetSelectorsIDs.SHEET),
       ).not.toBeOnTheScreen();

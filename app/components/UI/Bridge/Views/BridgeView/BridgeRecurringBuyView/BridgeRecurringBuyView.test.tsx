@@ -33,6 +33,7 @@ import {
   RECURRING_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
   RECURRING_ORDERS_REFETCH_INTERVAL,
 } from '../../../constants/recurringOrders';
+import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import BridgeRecurringBuyView from './index';
@@ -40,6 +41,7 @@ import BridgeRecurringBuyView from './index';
 const mockNavigate = jest.fn();
 const mockUseIsFocused = jest.fn();
 const mockCloseKeypad = jest.fn();
+const mockSourceInputBlur = jest.fn();
 const mockScheduleFieldsBlur = jest.fn();
 let mockPreviewOrderHandler: (() => void) | undefined;
 
@@ -115,9 +117,29 @@ jest.mock('./BridgeRecurringBuyFooterView', () => ({
   },
 }));
 
-jest.mock('../../../components/SwapsInputs', () => ({
-  SwapsInputs: () => null,
-}));
+jest.mock('../../../components/SwapsInputs', () => {
+  const ReactModule = jest.requireActual<typeof React>('react');
+
+  return {
+    SwapsInputs: ({
+      inputRef,
+    }: {
+      inputRef: React.Ref<{
+        blur: () => void;
+        focus: () => void;
+        isFocused: () => boolean;
+      }>;
+    }) => {
+      ReactModule.useImperativeHandle(inputRef, () => ({
+        blur: mockSourceInputBlur,
+        focus: jest.fn(),
+        isFocused: jest.fn(() => false),
+      }));
+
+      return null;
+    },
+  };
+});
 
 jest.mock('../../../components/SwapsKeypad', () => ({
   SwapsKeypad: ({ onClose }: { onClose?: () => void }) => {
@@ -159,21 +181,12 @@ jest.mock('../../../components/RecurringScheduleFields', () => {
   return {
     __esModule: true,
     default: ReactModule.forwardRef(
-      (
-        { onDismissKeypad }: { onDismissKeypad: () => void },
-        ref: React.Ref<{ blur: () => void }>,
-      ) => {
-        const { Pressable } =
-          jest.requireActual<typeof import('react-native')>('react-native');
-
+      (_props: unknown, ref: React.Ref<{ blur: () => void }>) => {
         ReactModule.useImperativeHandle(ref, () => ({
           blur: mockScheduleFieldsBlur,
         }));
 
-        return ReactModule.createElement(Pressable, {
-          testID: 'dismiss-schedule-keypad',
-          onPress: onDismissKeypad,
-        });
+        return null;
       },
     ),
   };
@@ -385,7 +398,7 @@ describe('BridgeRecurringBuyView', () => {
     });
   });
 
-  it('blurs the schedule fields and closes the keypad when tapping outside', () => {
+  it('blurs all fields and closes the keypad when tapping outside', () => {
     const { getByTestId } = renderWithProvider(
       <BridgeRecurringBuyView
         location={MetaMetricsSwapsEventSource.BottomNavBar}
@@ -393,13 +406,17 @@ describe('BridgeRecurringBuyView', () => {
       { state: createBridgeTestState() },
     );
 
-    fireEvent.press(getByTestId('dismiss-schedule-keypad'));
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_DISMISS_AREA),
+      'responderRelease',
+    );
 
+    expect(mockSourceInputBlur).toHaveBeenCalledTimes(1);
     expect(mockScheduleFieldsBlur).toHaveBeenCalledTimes(1);
     expect(mockCloseKeypad).toHaveBeenCalledTimes(1);
   });
 
-  it('blurs the schedule fields when the keypad is minimized', () => {
+  it('blurs all fields when the keypad is minimized', () => {
     const { getByTestId } = renderWithProvider(
       <BridgeRecurringBuyView
         location={MetaMetricsSwapsEventSource.BottomNavBar}
@@ -409,6 +426,7 @@ describe('BridgeRecurringBuyView', () => {
 
     fireEvent.press(getByTestId('close-keypad'));
 
+    expect(mockSourceInputBlur).toHaveBeenCalledTimes(1);
     expect(mockScheduleFieldsBlur).toHaveBeenCalledTimes(1);
     expect(mockCloseKeypad).not.toHaveBeenCalled();
   });
