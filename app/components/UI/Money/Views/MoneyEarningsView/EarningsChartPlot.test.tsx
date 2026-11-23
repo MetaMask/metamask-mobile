@@ -72,7 +72,6 @@ const renderPlot = ({
       yAxisValuesUsd={yAxisValuesUsd}
       chartMaximumUsd={2}
       activeIndex={activeIndex}
-      plotWidth={300}
       locale="en-US"
       panResponder={createPanResponder()}
       onPointPressIn={onPointPressIn}
@@ -138,7 +137,7 @@ describe('EarningsChartPlot', () => {
     ).toBeOnTheScreen();
   });
 
-  it('dims inactive bars and shows the selected point pill', () => {
+  it('dims inactive bars', () => {
     const { getByTestId } = renderPlot({ activeIndex: 0 });
 
     expect(
@@ -146,9 +145,6 @@ describe('EarningsChartPlot', () => {
         getByTestId(MoneyEarningsViewTestIds.CHART_FILL(1)).props.style,
       ),
     ).toEqual(expect.objectContaining({ opacity: 0.35 }));
-    expect(getByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toHaveTextContent(
-      '+$2.00 · Nov 9',
-    );
   });
 
   it('forwards point, layout, and touch callbacks', () => {

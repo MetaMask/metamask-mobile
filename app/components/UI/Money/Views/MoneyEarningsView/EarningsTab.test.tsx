@@ -246,7 +246,7 @@ describe('EarningsTab', () => {
     );
     expect(
       getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
-    ).toHaveTextContent('Jan 2026 – Nov 2026');
+    ).toHaveTextContent('Jan – Nov');
   });
 
   it('formats day and month range dates in the hero', () => {
@@ -268,7 +268,39 @@ describe('EarningsTab', () => {
     );
     expect(
       getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
-    ).toHaveTextContent('Nov 2026');
+    ).toHaveTextContent('Nov');
+  });
+
+  it('keeps the year when selecting a bucket from a cross-year range', () => {
+    const crossYearRange = {
+      ...createRange(
+        '7d',
+        [
+          createBucket('2026-12-30T00:00:00.000Z', '10'),
+          createBucket('2027-01-02T00:00:00.000Z', '10'),
+        ],
+        '20',
+      ),
+      range_end: '2027-01-06T00:00:00.000Z',
+    };
+    setHistoricalEarningsResult({
+      data: {
+        ...historicalEarnings,
+        ranges: [
+          crossYearRange,
+          ...historicalEarnings.ranges.filter(({ range }) => range !== '7d'),
+        ],
+      },
+    });
+
+    const { getByLabelText, getByTestId } = renderWithProvider(<EarningsTab />);
+
+    fireEvent.press(getByLabelText(strings('money.earnings.range_1w')));
+    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)), 'pressIn');
+
+    expect(
+      getByTestId(MoneyEarningsViewTestIds.HERO_PERIOD_DATE),
+    ).toHaveTextContent('Jan 2, 2027');
   });
 
   it('formats a non-zero sub-cent range total as less than one cent', () => {

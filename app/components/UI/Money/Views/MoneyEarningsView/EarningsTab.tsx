@@ -114,6 +114,8 @@ const EarningsTab = (): React.ReactElement => {
           periodGranularity={
             activePoint?.granularity ?? selectedRangeData.granularity
           }
+          rangeStart={selectedRangeData.range_start}
+          rangeEndExclusive={selectedRangeData.range_end}
         />
       ) : null}
       <EarningsChart

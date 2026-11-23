@@ -25,12 +25,6 @@ export const formatDate = (timestamp: string, locale: string): string =>
     timeZone: 'UTC',
   }).format(new Date(timestamp));
 
-export const formatMonthLabel = (timestamp: string, locale: string): string =>
-  getIntlDateTimeFormatter(locale, {
-    month: 'short',
-    timeZone: 'UTC',
-  }).format(new Date(timestamp));
-
 const formatThreeMonthAxisLabel = (start: Date, locale: string): string => {
   const month = fmt(locale, { month: 'short' }).format(start);
   const [firstCharacter, ...remainingCharacters] = Array.from(month);
@@ -73,21 +67,6 @@ export const formatPointDateRange = (
   const startLabel = formatDate(displayStart, locale);
   const endLabel = formatDate(displayEnd, locale);
   return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
-};
-
-export const formatPointPillLabel = (
-  point: EarningsPoint,
-  locale: string,
-): string => {
-  if (point.granularity === 'week') {
-    return formatPointDateRange(point, locale);
-  }
-
-  if (point.granularity === 'month') {
-    return formatMonthLabel(point.start, locale);
-  }
-
-  return formatDate(point.start, locale);
 };
 
 export const getXAxisLabels = (

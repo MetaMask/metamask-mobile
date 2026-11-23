@@ -173,7 +173,6 @@ const EarningsChart = ({
         yAxisValuesUsd={yAxisValuesUsd}
         chartMaximumUsd={chartMaximumUsd}
         activeIndex={activeIndex}
-        plotWidth={plotWidth}
         locale={locale}
         panResponder={panResponder}
         onPointPressIn={handlePointPressIn}

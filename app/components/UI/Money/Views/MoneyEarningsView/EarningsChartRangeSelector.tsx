@@ -32,6 +32,7 @@ const EarningsChartRangeSelector = ({
     variant={FilterButtonVariant.Secondary}
     twClassName="w-full justify-between"
     testID={MoneyEarningsViewTestIds.RANGE_SELECTOR}
+    scrollEnabled={false}
   >
     {EARNINGS_RANGES.map((range) => {
       const label = strings(RANGE_LABEL_KEYS[range]);

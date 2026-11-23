@@ -4,9 +4,7 @@ import {
   clampUsdToCents,
   formatAxisUsd,
   formatDate,
-  formatMonthLabel,
   formatPointDateRange,
-  formatPointPillLabel,
   getNiceUsdChartMaximum,
   getXAxisLabels,
 } from './EarningsChart.utils';
@@ -59,7 +57,6 @@ describe('EarningsChart.utils', () => {
   describe('date formatting', () => {
     it('formats dates in UTC', () => {
       expect(formatDate('2026-11-09T23:00:00.000Z', 'en-US')).toBe('Nov 9');
-      expect(formatMonthLabel('2026-11-09T23:00:00.000Z', 'en-US')).toBe('Nov');
     });
 
     it('formats a point date range using the exclusive period end', () => {
@@ -71,22 +68,6 @@ describe('EarningsChart.utils', () => {
           'en-US',
         ),
       ).toBe('Nov 9 – Nov 15');
-    });
-
-    it.each([
-      ['day', 'Nov 9'],
-      ['week', 'Nov 9 – Nov 15'],
-      ['month', 'Nov'],
-    ] as const)('formats %s pill labels', (granularity, expected) => {
-      expect(
-        formatPointPillLabel(
-          createPoint({
-            granularity,
-            periodEndExclusive: '2026-11-16T00:00:00.000Z',
-          }),
-          'en-US',
-        ),
-      ).toBe(expected);
     });
   });
 

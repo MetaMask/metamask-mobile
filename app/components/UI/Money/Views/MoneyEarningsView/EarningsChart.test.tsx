@@ -268,9 +268,6 @@ describe('EarningsChart', () => {
       weeklyChart.getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)),
       'pressIn',
     );
-    expect(
-      weeklyChart.getByTestId(MoneyEarningsViewTestIds.CHART_PILL),
-    ).toHaveTextContent('+$1.00 · Nov 9 – Nov 15');
 
     const monthlyEntries = createResponse([
       createRange(
@@ -449,7 +446,7 @@ describe('EarningsChart', () => {
     });
   });
 
-  it('activates only the held bucket and renders its earnings pill', () => {
+  it('activates only the held bucket', () => {
     const { getByTestId } = renderChart();
 
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
@@ -474,13 +471,10 @@ describe('EarningsChart', () => {
         getByTestId(MoneyEarningsViewTestIds.CHART_FILL(1)).props.style,
       ),
     ).toEqual(expect.objectContaining({ opacity: 0.35 }));
-    expect(getByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toHaveTextContent(
-      '+$1.00 · Nov 9',
-    );
   });
 
   it('clears the active bucket when the hold ends', () => {
-    const { getByTestId, queryByTestId } = renderChart();
+    const { getByTestId } = renderChart();
 
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressOut');
@@ -494,9 +488,6 @@ describe('EarningsChart', () => {
       selected: false,
       disabled: false,
     });
-    expect(
-      queryByTestId(MoneyEarningsViewTestIds.CHART_PILL),
-    ).not.toBeOnTheScreen();
   });
 
   it('does not persist a bucket after a tap gesture', () => {
@@ -515,129 +506,6 @@ describe('EarningsChart', () => {
       selected: false,
       disabled: false,
     });
-  });
-
-  it('renders the held pill as a single absolutely-positioned element so the label does not truncate', () => {
-    const entries = createResponse([
-      createRange('30d', [
-        createBucket('2026-11-09T00:00:00.000Z', '1'),
-        createBucket('2026-11-10T00:00:00.000Z', '2'),
-        createBucket('2026-11-11T00:00:00.000Z', '3'),
-      ]),
-    ]);
-    const { getByTestId } = renderChart({ entries });
-
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(2)), 'pressIn');
-
-    const pill = getByTestId(MoneyEarningsViewTestIds.CHART_PILL);
-    expect(typeof pill.props.onLayout).toBe('function');
-    expect(flattenStyle(pill.props.style)).toEqual(
-      expect.objectContaining({
-        position: 'absolute',
-        top: -12,
-      }),
-    );
-  });
-
-  it('hides the pill until onLayout measures its width, then reveals it centered and clamped under the bar', () => {
-    const entries = createResponse([
-      createRange('30d', [
-        createBucket('2026-11-09T00:00:00.000Z', '1'),
-        createBucket('2026-11-10T00:00:00.000Z', '2'),
-        createBucket('2026-11-11T00:00:00.000Z', '3'),
-      ]),
-    ]);
-    const { getByTestId } = renderChart({ entries });
-
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PLOT), 300);
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)), 'pressIn');
-
-    const pill = getByTestId(MoneyEarningsViewTestIds.CHART_PILL);
-
-    // Pre-measurement: invisible to avoid a visible shift.
-    expect(flattenStyle(pill.props.style)).toEqual(
-      expect.objectContaining({ opacity: 0 }),
-    );
-
-    fireLayout(pill, 80);
-
-    const measuredStyle = flattenStyle(
-      getByTestId(MoneyEarningsViewTestIds.CHART_PILL).props.style,
-    );
-    // Bar 1 of 3 on a 300pt plot: center = (1 + 0.5) / 3 * 300 = 150.
-    // Clamped left = 150 - 80 / 2 = 110.
-    expect(measuredStyle).toEqual(
-      expect.objectContaining({ left: 110, opacity: 1 }),
-    );
-  });
-
-  it('clamps the pill to the left edge when the first bar is selected', () => {
-    const entries = createResponse([
-      createRange('30d', [
-        createBucket('2026-11-09T00:00:00.000Z', '1'),
-        createBucket('2026-11-10T00:00:00.000Z', '2'),
-        createBucket('2026-11-11T00:00:00.000Z', '3'),
-      ]),
-    ]);
-    const { getByTestId } = renderChart({ entries });
-
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PLOT), 300);
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PILL), 120);
-
-    // Bar 0 center = 50; 50 - 60 = -10, clamped to 0.
-    expect(
-      flattenStyle(
-        getByTestId(MoneyEarningsViewTestIds.CHART_PILL).props.style,
-      ),
-    ).toEqual(expect.objectContaining({ left: 0 }));
-  });
-
-  it('clamps the pill to the right edge when the last bar is selected', () => {
-    const entries = createResponse([
-      createRange('30d', [
-        createBucket('2026-11-09T00:00:00.000Z', '1'),
-        createBucket('2026-11-10T00:00:00.000Z', '2'),
-        createBucket('2026-11-11T00:00:00.000Z', '3'),
-      ]),
-    ]);
-    const { getByTestId } = renderChart({ entries });
-
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PLOT), 300);
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(2)), 'pressIn');
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PILL), 120);
-
-    // Bar 2 center = 250; 250 - 60 = 190; clamp to plotWidth - pillWidth = 180.
-    expect(
-      flattenStyle(
-        getByTestId(MoneyEarningsViewTestIds.CHART_PILL).props.style,
-      ),
-    ).toEqual(expect.objectContaining({ left: 180 }));
-  });
-
-  it('keeps the pill visible when the selected bar changes', () => {
-    const entries = createResponse([
-      createRange('30d', [
-        createBucket('2026-11-09T00:00:00.000Z', '1'),
-        createBucket('2026-11-10T00:00:00.000Z', '2'),
-        createBucket('2026-11-11T00:00:00.000Z', '3'),
-      ]),
-    ]);
-    const { getByTestId } = renderChart({ entries });
-
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PLOT), 300);
-
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)), 'pressIn');
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PILL), 80);
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)), 'pressOut');
-
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
-
-    expect(
-      flattenStyle(
-        getByTestId(MoneyEarningsViewTestIds.CHART_PILL).props.style,
-      ),
-    ).toEqual(expect.objectContaining({ opacity: 1 }));
   });
 
   it('scrubs from a non-first bucket without resetting to the first bucket', () => {
@@ -732,7 +600,6 @@ describe('EarningsChart', () => {
 
     // Press bar 1 → anchors the scrub at its centre (x = 150).
     fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(1)), 'pressIn');
-    fireLayout(getByTestId(MoneyEarningsViewTestIds.CHART_PILL), 80);
 
     // Simulate the capture → grant handshake at the pressed bar's centre so
     // PanResponder's internal gestureState is realistic: x0 = 150, moveX = 150.
@@ -760,11 +627,6 @@ describe('EarningsChart', () => {
       getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)).props
         .accessibilityState.selected,
     ).toBe(true);
-    expect(
-      flattenStyle(
-        getByTestId(MoneyEarningsViewTestIds.CHART_PILL).props.style,
-      ),
-    ).toEqual(expect.objectContaining({ opacity: 1 }));
 
     // Drag 49px right of centre — still inside bar 1's slot, no switch.
     dragTo(199);
@@ -782,7 +644,7 @@ describe('EarningsChart', () => {
   });
 
   it('updates selection while dragging and clears on release', () => {
-    const { getByTestId, queryByTestId } = renderChart();
+    const { getByTestId } = renderChart();
     const plot = getByTestId(MoneyEarningsViewTestIds.CHART_PLOT);
     let timestamp = 1_000;
     const buildResponderEvent = (locationX: number) => {
@@ -845,14 +707,12 @@ describe('EarningsChart', () => {
       getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(2)).props
         .accessibilityState.disabled,
     ).toBe(true);
-    expect(queryByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toBeNull();
     expect(mockOnActiveIndexChange).toHaveBeenNthCalledWith(1, 1);
     expect(mockOnActiveIndexChange).toHaveBeenNthCalledWith(2, null);
 
     act(() => {
       plot.props.onResponderRelease(buildResponderEvent(250));
     });
-    expect(queryByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toBeNull();
   });
 
   it('claims movement while parent scrolling is paused', () => {
@@ -862,19 +722,6 @@ describe('EarningsChart', () => {
     expect(
       plot.props.onMoveShouldSetResponderCapture(createResponderEvent(20, 5)),
     ).toBe(true);
-  });
-
-  it('renders precise positive sub-cent earnings in the held pill', () => {
-    const entries = createResponse([
-      createRange('30d', [createBucket('2026-11-09T00:00:00.000Z', '0.001')]),
-    ]);
-    const { getByTestId } = renderChart({ entries });
-
-    fireEvent(getByTestId(MoneyEarningsViewTestIds.CHART_SLOT(0)), 'pressIn');
-
-    expect(getByTestId(MoneyEarningsViewTestIds.CHART_PILL)).toHaveTextContent(
-      '+$0.001 · Nov 9',
-    );
   });
 
   it('exposes bucket date, amount, selected, and disabled accessibility state', () => {

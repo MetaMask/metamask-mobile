@@ -20,7 +20,6 @@ export const MoneyEarningsViewTestIds = {
     `money-earnings-view-chart-y-label-${index}`,
   CHART_GRIDLINE: (index: number): string =>
     `money-earnings-view-chart-gridline-${index}`,
-  CHART_PILL: 'money-earnings-view-chart-pill',
   RANGE_SELECTOR: 'money-earnings-view-range-selector',
   SUMMARY: 'money-earnings-view-summary',
   ADD_BUTTON: 'money-earnings-view-add-button',

@@ -19,6 +19,8 @@ interface EarningsHeroProps {
   periodStart: string;
   periodEndExclusive: string;
   periodGranularity: InterestHistoryGranularity;
+  rangeStart: string;
+  rangeEndExclusive: string;
 }
 
 const formatEarningsAmountUsd = (amountUsd: number): string =>
@@ -30,24 +32,29 @@ const formatPeriodDateRange = (
   periodStart: string,
   periodEndExclusive: string,
   granularity: InterestHistoryGranularity,
+  rangeStart: string,
+  rangeEndExclusive: string,
 ): string => {
-  const options =
-    granularity === 'month'
-      ? {
-          month: 'short' as const,
-          year: 'numeric' as const,
-          timeZone: 'UTC' as const,
-        }
-      : {
-          month: 'short' as const,
-          day: 'numeric' as const,
-          timeZone: 'UTC' as const,
-        };
+  const startDate = new Date(periodStart);
+  const endDate = new Date(Date.parse(periodEndExclusive) - 1);
+  const rangeStartDate = new Date(rangeStart);
+  const rangeEndDate = new Date(Date.parse(rangeEndExclusive) - 1);
+  const options: Intl.DateTimeFormatOptions = {
+    month: 'short',
+    timeZone: 'UTC',
+  };
+
+  if (granularity !== 'month') {
+    options.day = 'numeric';
+  }
+
+  if (rangeStartDate.getUTCFullYear() !== rangeEndDate.getUTCFullYear()) {
+    options.year = 'numeric';
+  }
+
   const formatter = getIntlDateTimeFormatter(I18n.locale, options);
-  const startLabel = formatter.format(new Date(periodStart));
-  const endLabel = formatter.format(
-    new Date(Date.parse(periodEndExclusive) - 1),
-  );
+  const startLabel = formatter.format(startDate);
+  const endLabel = formatter.format(endDate);
 
   return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
 };
@@ -57,6 +64,8 @@ const EarningsHero = ({
   periodStart,
   periodEndExclusive,
   periodGranularity,
+  rangeStart,
+  rangeEndExclusive,
 }: EarningsHeroProps): React.ReactElement => {
   const prefix = totalEarnedUsd > 0 ? '+' : '';
   const color =
@@ -85,6 +94,8 @@ const EarningsHero = ({
           periodStart,
           periodEndExclusive,
           periodGranularity,
+          rangeStart,
+          rangeEndExclusive,
         )}
       </Text>
     </Box>

@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { PanResponder, Pressable } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -16,7 +15,6 @@ import { isAvailableBucket, type EarningsPoint } from './earningsHistory';
 import {
   formatAxisUsd,
   formatPointDateRange,
-  formatPointPillLabel,
   getChartBarHeight,
 } from './EarningsChart.utils';
 import { MoneyEarningsViewTestIds } from './MoneyEarningsView.testIds';
@@ -31,7 +29,6 @@ interface EarningsChartPlotProps {
   yAxisValuesUsd: number[];
   chartMaximumUsd: number;
   activeIndex: number | null;
-  plotWidth: number;
   locale: string;
   panResponder: ReturnType<typeof PanResponder.create>;
   onPointPressIn: (index: number, point: EarningsPoint) => void;
@@ -47,7 +44,6 @@ const EarningsChartPlot = ({
   yAxisValuesUsd,
   chartMaximumUsd,
   activeIndex,
-  plotWidth,
   locale,
   panResponder,
   onPointPressIn,
@@ -56,7 +52,6 @@ const EarningsChartPlot = ({
   setScrollEnabled,
 }: EarningsChartPlotProps): React.ReactElement => {
   const tw = useTailwind();
-  const [pillWidth, setPillWidth] = useState<number | null>(null);
 
   return (
     <Box
@@ -143,60 +138,6 @@ const EarningsChartPlot = ({
             );
           })}
         </Box>
-
-        {activeIndex !== null &&
-        points[activeIndex] &&
-        isAvailableBucket(points[activeIndex])
-          ? (() => {
-              const point = points[activeIndex];
-              const barCenter =
-                ((activeIndex + 0.5) / points.length) * plotWidth;
-              // Center the pill under the bar, clamped to the plot bounds so
-              // edge pills don't overflow. Hidden (opacity 0) until the first
-              // onLayout gives us the measured width, then revealed in the
-              // same frame to avoid a visible shift.
-              const left =
-                pillWidth !== null
-                  ? Math.max(
-                      0,
-                      Math.min(
-                        barCenter - pillWidth / 2,
-                        plotWidth - pillWidth,
-                      ),
-                    )
-                  : barCenter;
-
-              return (
-                <Box
-                  pointerEvents="none"
-                  testID={MoneyEarningsViewTestIds.CHART_PILL}
-                  twClassName={`absolute -top-3 rounded-full bg-text-default px-2 py-0.5 ${
-                    pillWidth === null ? 'opacity-0' : 'opacity-100'
-                  }`}
-                  style={{ left }}
-                  onLayout={({ nativeEvent: { layout } }) => {
-                    setPillWidth((currentPillWidth) =>
-                      currentPillWidth === layout.width
-                        ? currentPillWidth
-                        : layout.width,
-                    );
-                  }}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    twClassName="text-primary-inverse"
-                    numberOfLines={1}
-                  >
-                    {`${formatSignedUsd(point.amountUsd ?? 0)} · ${formatPointPillLabel(
-                      point,
-                      locale,
-                    )}`}
-                  </Text>
-                </Box>
-              );
-            })()
-          : null}
       </Box>
 
       <Box twClassName="absolute bottom-0 left-0 right-12 h-10 flex-row">
