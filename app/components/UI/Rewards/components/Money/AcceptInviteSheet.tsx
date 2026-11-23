@@ -181,14 +181,6 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !canAcceptMoneyReferralInvite(referralMe) &&
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
-  // Hold analytics while a lookup is in flight. A missing or failed read is
-  // still an offer, using the local copy, and later data can close an
-  // ineligible invite before it is counted as viewed.
-  const isCopyPending =
-    !profileId ||
-    referralMeEntry == null ||
-    referralMeEntry.loading ||
-    (referralMeEntry.data == null && !referralMeEntry.error);
 
   const {
     referralCode,
@@ -245,13 +237,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !isRateLimited &&
     acceptAllowedForGeo;
 
-  // An offer is viewed only once this sheet is showing one: never on a
-  // payload still in flight, and never for a stale deeplink, an existing
-  // referee, or a geo-blocked country, which close themselves without the
-  // user seeing an invite. Those closes answer nothing, so a viewed
-  // interaction here would have no answer to pair with — unless geo lands
-  // after the offer was already viewed, which is answered as dismissed.
-  const isOfferOnScreen = !isCopyPending && !shouldAutoDismiss;
+  const isOfferOnScreen = !shouldAutoDismiss;
 
   useEffect(() => {
     if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
@@ -282,7 +268,7 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   // One answer per sheet, and the first one recorded is the answer: a close
   // that follows Accept or Decline is the sheet acting on that press, not a
   // second interaction. An answer also requires the matching viewed
-  // interaction, since the sheet can be dismissed while its copy is pending.
+  // interaction.
   // `refused` is not an answer: the sheet stays open, so it does not lock
   // this guard.
   const trackResponded = useCallback(
@@ -422,8 +408,9 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
 
   useEffect(() => {
     if (shouldDismissForReferralVariant) {
-      // Deliberately not `handleGoBack`: no offer was on screen to answer, so
-      // this close is not a response and no viewed was recorded for it.
+      if (hasTrackedOfferViewedRef.current) {
+        trackResponded('dismissed');
+      }
       navigation.goBack();
       return;
     }

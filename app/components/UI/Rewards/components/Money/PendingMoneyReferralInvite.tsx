@@ -34,7 +34,7 @@ export const MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS = 5000;
  */
 export const MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS = 500;
 
-const detectAppInstallationWithTimeout = (): Promise<boolean> =>
+const detectAppInstallationWithTimeout = async (): Promise<boolean> =>
   new Promise<boolean>((resolve) => {
     const timer = setTimeout(
       () => resolve(true),
@@ -56,9 +56,9 @@ interface PresenterProps {
 }
 
 /**
- * Reads referral me fresh, then opens the invite sheet over whatever the
- * deeplink navigated to. A first session
- * after installing from a Branch link opens it as `restored_context`. A user
+ * Reads referral me fresh, then opens the invite sheet over the deeplink
+ * destination. A first session after installing from a Branch link opens it
+ * as `restored_context`. A user
  * who cannot accept an invite or a confirmed excluded region drops the code.
  * If eligibility cannot be confirmed, the sheet owns the final outcome.
  */
@@ -153,7 +153,7 @@ const PendingMoneyReferralInvitePresenter = ({
           // for the newer one.
           openInvite(appInstalled);
         })
-        .catch(() =>
+        .catch(async () =>
           appInstallationPromise.then(openInvite, () => openInvite(true)),
         );
     });

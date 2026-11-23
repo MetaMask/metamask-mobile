@@ -12160,11 +12160,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/Money/PendingMoneyReferralInvite.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
   "app/components/UI/Rewards/components/Money/RefererHeroCard.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
