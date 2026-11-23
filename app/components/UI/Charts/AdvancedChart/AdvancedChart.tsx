@@ -858,13 +858,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       //   trades. Gated behind slbMode so other consumers (e.g. Perps) keep
       //   their stable latest-N-candle viewport + REALTIME_UPDATE path and never
       //   take a full-data resend on a visible-range-only change.
-      // - Any consumer bumped `viewportRevision`, an explicit re-frame request
-      //   that avoids a WebView remount.
+      // - Any consumer bumped `viewportRevision` (an explicit re-frame request
+      //   that avoids a WebView remount) and the viewport actually differs from
+      //   the last one sent. The request is consumed either way so a stale
+      //   revision cannot trigger a resend on a later range change.
       const viewportRevisionChanged =
         viewportRevisionRef.current !== prevViewportRevisionSentRef.current;
+      prevViewportRevisionSentRef.current = viewportRevisionRef.current;
       if (
         (slbModeRef.current && visibleRangeChanged) ||
-        viewportRevisionChanged
+        (viewportRevisionChanged && visibleRangeChanged)
       ) {
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);

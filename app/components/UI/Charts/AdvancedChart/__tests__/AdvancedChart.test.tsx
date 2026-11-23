@@ -369,6 +369,30 @@ describe('AdvancedChart', () => {
       expect(sends[1].payload.visibleFromMs).toBe(900000);
     });
 
+    it('does not re-post when the revision changes but the viewport is unchanged, nor on a later range change', () => {
+      const { rerender } = renderLoaded(0);
+
+      rerender(
+        <AdvancedChart
+          ohlcvData={MOCK_BARS}
+          visibleFromMs={1000000}
+          visibleToMs={1000300}
+          viewportRevision={1}
+        />,
+      );
+      expect(getOhlcvSends()).toHaveLength(1);
+
+      rerender(
+        <AdvancedChart
+          ohlcvData={MOCK_BARS}
+          visibleFromMs={900000}
+          visibleToMs={1000300}
+          viewportRevision={1}
+        />,
+      );
+      expect(getOhlcvSends()).toHaveLength(1);
+    });
+
     it('does not re-post when only the visible range changes', () => {
       const { rerender } = renderLoaded(0);
 
