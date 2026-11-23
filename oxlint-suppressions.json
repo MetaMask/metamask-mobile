@@ -1274,9 +1274,6 @@
     }
   },
   "app/components/UI/Bridge/Views/BridgeView/BridgeRecurringBuyView/BridgeRecurringBuyView.view.test.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 6
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
