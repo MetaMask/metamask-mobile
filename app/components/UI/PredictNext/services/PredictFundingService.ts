@@ -3,19 +3,76 @@ import type { DataServiceInvalidateQueriesAction } from '@metamask/base-data-ser
 import type { Json } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
+import { isUnsentCommitFailure } from '../errors/commitOutcome';
 import type { VenueFundingAdapter } from '../adapters/types';
-import { portfolioQueries } from '../queries/portfolioQueries';
+import { clearAllSessionDepositTransfers } from '../funding';
+import {
+  portfolioQueries,
+  portfolioQueryFamilies,
+} from '../queries/portfolioQueries';
 import type {
   PredictDepositApproval,
   PredictDepositOperation,
   PredictDepositParams,
   PredictDepositStatus,
   PredictDepositTransferParams,
+  PredictReadOptions,
   PredictVenueId,
+  PredictWithdrawPreview,
+  PredictWithdrawPreviewParams,
+  PredictWithdrawReceipt,
+  PredictWithdrawReceiptStatus,
 } from '../types';
+import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_FUNDING_SERVICE_NAME = 'PredictFundingService' as const;
+
+/** Receipt statuses that end the Withdraw workflow with a known outcome, so
+ * the balance reads must be refreshed. `rejected` ended before money moved. */
+const TERMINAL_WITHDRAW_STATUSES: Partial<
+  Record<PredictWithdrawReceiptStatus, true>
+> = { settled: true, failed: true, returned: true };
+
+/** What a Withdraw Commit resolved to. `not_placed` never left a Withdraw
+ * behind, so the amount can be quoted again. `unknown` may already be at the
+ * Venue: the caller keeps the Preview and must not submit it again. */
+export type WithdrawCommitResolution =
+  | { outcome: 'receipt'; receipt: PredictWithdrawReceipt }
+  | { outcome: 'not_placed'; error: PredictError }
+  | { outcome: 'unknown'; error: PredictError };
+
+const asPredictError = (error: unknown): PredictError =>
+  error instanceof PredictError
+    ? error
+    : PredictError.from(PredictErrorCode.UNKNOWN);
+
+/** A deadline or a cancelled transport is not proof the Commit missed the
+ * Venue. The name is the signal the platform gives us; status codes are not. */
+const isLostCommitTransport = (error: unknown): boolean =>
+  error instanceof Error &&
+  (error.name === 'AbortError' || error.name === 'TimeoutError');
+
+/** A receipt read that finds no Preview and no operation. This is read-side
+ * absence, not the commit's own `outcome`: the backend stores the operation
+ * before it calls the Venue, so no record means nothing was sent. Any other
+ * read failure proves nothing. */
+const isMissingWithdrawOperation = (error: unknown): boolean => {
+  if (!(error instanceof PredictError)) {
+    return false;
+  }
+  const bodyCode = error.metadata?.bodyCode;
+  return bodyCode === 'preview_not_found' || bodyCode === 'operation_not_found';
+};
+
+const resolutionFromReadError = (
+  recoveryError: unknown,
+  priorError: PredictError,
+): WithdrawCommitResolution => ({
+  outcome: isMissingWithdrawOperation(recoveryError) ? 'not_placed' : 'unknown',
+  error: recoveryError instanceof PredictError ? recoveryError : priorError,
+});
 
 /** Statuses after which a deposit needs nothing more from the app. Only
  * `failed` is final: see {@link stageOf}. */
@@ -68,6 +125,18 @@ interface KnownDeposit {
   /** The clock when the latest answer this service took arrived. */
   receivedAt: number;
 }
+
+/** The approved intent stays private even if a caller edits its quote. */
+interface PinnedWithdrawPreview {
+  generation: number;
+  preview: PredictWithdrawPreview;
+  dispatched: boolean;
+}
+
+// Match the adapter's decimal-string comparison without floating-point loss.
+const isSameAmount = (left: string, right: string): boolean =>
+  left.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '') ===
+  right.replace(/(\.\d*?)0+$/u, '$1').replace(/\.$/u, '');
 
 /** When a call was sent, so its answer can be placed against others. */
 interface CallTicket {
@@ -138,8 +207,9 @@ export type PredictFundingServiceActions =
   | PredictFundingServiceListOpenDepositsAction
   | PredictFundingServiceReportDepositTransferAction
   | PredictFundingServiceCancelDepositAction
-  // Consumed action: a completed deposit changed the Balance. The cache
-  // itself stays owned by the portfolio service.
+  // Consumed action: a Deposit that completes, or a Withdrawal that leaves
+  // or returns money, changed the Balance. The cache itself stays owned by
+  // the portfolio service.
   | DataServiceInvalidateQueriesAction<'PredictPortfolioService'>;
 
 /**
@@ -172,11 +242,12 @@ export interface PredictFundingServiceOptions {
 }
 
 /**
- * Owns the deposit workflow for one Venue: starting and signing a deposit,
- * reading it, reporting its transfer and cancelling it. The backend's
- * deposit operation is the record; this service keeps only what it needs
- * in memory to announce each resolution once, and nothing about a deposit
- * is persisted on the phone.
+ * Owns the funding workflows for one Venue.
+ *
+ * **Deposits.** Starting and signing a deposit, reading it, reporting its
+ * transfer and cancelling it. The backend's deposit operation is the record;
+ * this service keeps only what it needs in memory to announce each
+ * resolution once, and nothing about a deposit is persisted on the phone.
  *
  * **One deposit per key.** Repeated `prepareDeposit` calls with one
  * `clientOperationId` share the call in flight. The backend also answers a
@@ -192,9 +263,19 @@ export interface PredictFundingServiceOptions {
  * a call sent after the answer the service last took arrived. The caller
  * still gets every answer as the backend sent it.
  *
- * **Identity.** {@link PredictFundingService.clearState} forgets every
- * deposit and detaches calls in flight, so nothing the previous person
- * started is announced for the next one.
+ * **Withdrawals.** The server quote, the Commit of an approved quote, and the
+ * receipt read a surface polls. The phone supplies no identity, destination,
+ * or idempotency key — the backend owns all three — so a retry only ever
+ * references `previewId`, and repeated Commits converge on one operation.
+ * A lock stops observations without detaching a dispatched Commit. An identity
+ * change aborts only Commits that have not been sent, detaches shared calls,
+ * and drops their eventual answers. Observation belongs to the surface:
+ * {@link useWithdrawReceipt} polls only while the Withdraw sheet is mounted.
+ * Nothing is persisted.
+ *
+ * **Identity.** {@link PredictFundingService.changeIdentity} forgets all
+ * in-memory funding state. {@link PredictFundingService.stopObserving} keeps
+ * the current identity's pinned intents and receipt transitions intact.
  */
 export class PredictFundingService {
   readonly #messenger: PredictFundingServiceMessenger;
@@ -207,8 +288,23 @@ export class PredictFundingService {
   #clock = 0;
   /** `prepareDeposit` calls in flight, by `clientOperationId`. */
   readonly #preparing = new Map<string, Promise<PredictDepositOperation>>();
-  /** Bumped by `clearState`: answers to older calls are not tracked. */
+  /** Approved Withdrawal intents and their shared Commits, by Preview ID. */
+  readonly #previews = new Map<string, PinnedWithdrawPreview>();
+  readonly #committing = new Map<string, Promise<PredictWithdrawReceipt>>();
+  /** The last status each Preview's receipt reported, so a balance read is
+   * invalidated once per transition rather than once per poll. */
+  readonly #statusByPreview = new Map<string, PredictWithdrawReceiptStatus>();
+  /** Commits whose bearer token may still be resolving. Aborting one before
+   * it is sent keeps the previous session's Commit from going out. */
+  readonly #commitTransports = new Set<AbortController>();
+  /** Receipt reads whose bearer token may still be resolving. An observation
+   * can replay a stored submission, so it must not go out for the next
+   * Predict User either. */
+  readonly #observationTransports = new Set<AbortController>();
+  /** Bumped on identity changes: older answers are not tracked and old
+   * Previews cannot be committed. */
   #generation = 0;
+  #cleanupLifecycle?: () => void;
 
   constructor({ messenger, funding, venueId }: PredictFundingServiceOptions) {
     this.#messenger = messenger;
@@ -257,7 +353,7 @@ export class PredictFundingService {
         PredictError.from(PredictErrorCode.VENUE_SIGNING_REFUSED, {
           metadata: {
             phase: 'commit',
-            mutationRelay: 'not_relayed_this_invocation',
+            requestSent: false,
           },
         }),
       );
@@ -327,19 +423,310 @@ export class PredictFundingService {
     return this.#track(await this.#funding.cancelDeposit(operationId), ticket);
   }
 
-  /**
-   * Forgets every deposit this process saw and detaches calls in flight.
-   * Engine `resetState` calls it when the wallet, and so the Predict User,
-   * is replaced.
-   */
+  /** Quotes one Withdrawal and pins the returned intent for approval. Each
+   * call asks the backend for its destination and expiry again. */
+  async requestWithdrawPreview(
+    venueId: PredictVenueId,
+    params: PredictWithdrawPreviewParams,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawPreview> {
+    this.#assertVenue(venueId);
+    const generation = this.#generation;
+    try {
+      const preview = await withPredictNextTrace(
+        {
+          method: 'requestWithdrawPreview',
+          name: TraceName.PredictNextWithdrawPreview,
+          op: TraceOperation.PredictDataFetch,
+          tags: { venueId: this.#venueId },
+          data: { mode: this.#modeOf(params) },
+        },
+        () => this.#funding.previewWithdraw(params, options),
+      );
+      this.#assertNotAbandoned(generation);
+      this.#previews.set(preview.previewId, {
+        generation,
+        preview: { ...preview, destination: { ...preview.destination } },
+        dispatched: false,
+      });
+      this.#evictPreviews(preview.previewId);
+      return preview;
+    } catch (error) {
+      // An abandoned session is UNAUTHENTICATED even when the request
+      // rejected, so an old failure never surfaces as the next person's.
+      this.#assertNotAbandoned(generation);
+      throw error;
+    }
+  }
+
+  /** Commits one approved Preview. Every caller shares the mutation, but
+   * cancelling one caller only stops that caller waiting for its answer. */
+  commitWithdrawPreview(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt> {
+    let pinned: PinnedWithdrawPreview;
+    try {
+      this.#assertVenue(venueId);
+      pinned = this.#approvedPreview(previewId, this.#generation);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    const inFlight = this.#committing.get(previewId);
+    if (inFlight) {
+      return this.#waitForCommit(inFlight, options?.signal);
+    }
+    const transport = new AbortController();
+    this.#commitTransports.add(transport);
+    // Defer dispatch until the shared promise is registered. Even a caller
+    // re-entering while the adapter starts joins this same Commit.
+    const committed = Promise.resolve()
+      .then(() => this.#commitWithdraw(previewId, pinned, transport, options))
+      .finally(() => {
+        this.#commitTransports.delete(transport);
+        if (this.#committing.get(previewId) === committed) {
+          this.#committing.delete(previewId);
+        }
+      });
+    this.#committing.set(previewId, committed);
+    return this.#waitForCommit(committed, options?.signal);
+  }
+
+  async #commitWithdraw(
+    previewId: string,
+    pinned: PinnedWithdrawPreview,
+    transport: AbortController,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt> {
+    this.#approvedPreview(previewId, pinned.generation);
+    if (
+      !pinned.dispatched &&
+      Date.parse(pinned.preview.expiresAt) <= Date.now()
+    ) {
+      throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED, {
+        metadata: {
+          phase: 'commit',
+          requestSent: false,
+        },
+      });
+    }
+    try {
+      const receipt = await withPredictNextTrace(
+        {
+          method: 'commitWithdrawPreview',
+          name: TraceName.PredictNextWithdrawCommit,
+          op: TraceOperation.PredictDataFetch,
+          tags: { venueId: this.#venueId },
+          resultData: (result) => ({ status: result.status }),
+        },
+        () =>
+          this.#funding.commitWithdraw(
+            previewId,
+            { ...options, signal: transport.signal },
+            () => {
+              pinned.dispatched = true;
+              this.#commitTransports.delete(transport);
+            },
+          ),
+      );
+      this.#assertNotAbandoned(pinned.generation);
+      this.#assertWithdrawIntent(receipt, pinned);
+      this.#recordStatus(receipt);
+      return receipt;
+    } catch (error) {
+      // An abandoned session cannot record even an already-sent Commit.
+      this.#assertNotAbandoned(pinned.generation);
+      throw error;
+    }
+  }
+
+  #waitForCommit(
+    committed: Promise<PredictWithdrawReceipt>,
+    signal?: AbortSignal,
+  ): Promise<PredictWithdrawReceipt> {
+    if (!signal) {
+      return committed;
+    }
+    return new Promise((resolve, reject) => {
+      const abort = (): void => {
+        const error = new Error('The request was aborted.');
+        error.name = 'AbortError';
+        signal.removeEventListener('abort', abort);
+        reject(error);
+      };
+      committed.then(
+        (receipt) => {
+          signal.removeEventListener('abort', abort);
+          resolve(receipt);
+        },
+        (error) => {
+          signal.removeEventListener('abort', abort);
+          reject(error);
+        },
+      );
+      if (signal.aborted) {
+        abort();
+      } else {
+        signal.addEventListener('abort', abort);
+      }
+    });
+  }
+
+  /** Commits one approved Withdraw Preview. A Commit that provably changed
+   * nothing (never sent, or `outcome: not_placed` from the API) is
+   * `not_placed`. Any other failure may be at the Venue, so it is resolved by
+   * reading the same operation. An unauthenticated Commit stays `unknown`
+   * without that read: the caller asks {@link reconcileWithdrawObservation}
+   * when the person checks again, and this method never sends a second POST. */
+  async reconcileWithdrawCommit(
+    venueId: PredictVenueId,
+    previewId: string,
+  ): Promise<WithdrawCommitResolution> {
+    try {
+      return {
+        outcome: 'receipt',
+        receipt: await this.commitWithdrawPreview(venueId, previewId),
+      };
+    } catch (error) {
+      const predictError = asPredictError(error);
+      if (isLostCommitTransport(error)) {
+        return this.#readWithdrawResolution(venueId, previewId, predictError);
+      }
+      // A replaced session may have dispatched this Preview earlier: what
+      // this call proves says nothing about that one.
+      if (predictError.code === PredictErrorCode.UNAUTHENTICATED) {
+        return { outcome: 'unknown', error: predictError };
+      }
+      if (isUnsentCommitFailure(error)) {
+        return { outcome: 'not_placed', error: predictError };
+      }
+      // No guarantee: the Commit may be at the Venue. Read it to find out.
+      return this.#readWithdrawResolution(venueId, previewId, predictError);
+    }
+  }
+
+  /** Reads one Withdraw whose Commit reply was lost. Never submits. */
+  reconcileWithdrawObservation(
+    venueId: PredictVenueId,
+    previewId: string,
+    priorError: PredictError,
+  ): Promise<WithdrawCommitResolution> {
+    return this.#readWithdrawResolution(venueId, previewId, priorError);
+  }
+
+  async #readWithdrawResolution(
+    venueId: PredictVenueId,
+    previewId: string,
+    priorError: PredictError,
+  ): Promise<WithdrawCommitResolution> {
+    try {
+      return {
+        outcome: 'receipt',
+        receipt: await this.observeWithdraw(venueId, previewId),
+      };
+    } catch (recoveryError) {
+      return resolutionFromReadError(recoveryError, priorError);
+    }
+  }
+
+  /** Reads the canonical receipt. Never submits: an unresolved operation is
+   * resolved by the backend's own venue reads. A surface calls this on its
+   * backoff schedule while it is mounted. */
+  async observeWithdraw(
+    venueId: PredictVenueId,
+    previewId: string,
+    options?: PredictReadOptions,
+  ): Promise<PredictWithdrawReceipt> {
+    this.#assertVenue(venueId);
+    const generation = this.#generation;
+    const pinned = this.#previews.get(previewId);
+    const transport = new AbortController();
+    const abortForCaller = (): void => transport.abort();
+    if (options?.signal?.aborted) {
+      transport.abort();
+    }
+    options?.signal?.addEventListener('abort', abortForCaller);
+    this.#observationTransports.add(transport);
+    try {
+      const receipt = await this.#funding.observeWithdraw(previewId, {
+        ...options,
+        signal: transport.signal,
+      });
+      // The fence stays after the answer, exactly as a Commit's does: a read
+      // sent for one Predict User is never recorded against the next.
+      this.#assertNotAbandoned(generation);
+      if (transport.signal.aborted) {
+        const error = new Error('The request was aborted.');
+        error.name = 'AbortError';
+        throw error;
+      }
+      if (pinned) {
+        this.#assertWithdrawIntent(receipt, pinned);
+      }
+      this.#recordStatus(receipt);
+      return receipt;
+    } catch (error) {
+      // An abandoned session is UNAUTHENTICATED even when the transport
+      // rejected because it was aborted. A caller-only abort keeps its
+      // AbortError so the surface can tell a local cancellation apart.
+      this.#assertNotAbandoned(generation);
+      throw error;
+    } finally {
+      this.#observationTransports.delete(transport);
+      options?.signal?.removeEventListener('abort', abortForCaller);
+    }
+  }
+
+  /** Engine reset replaces the wallet and therefore the Predict User. */
   clearState(): void {
+    this.changeIdentity();
+  }
+
+  /** Stops observation on lock or background without forgetting this user. */
+  stopObserving(): void {
+    for (const transport of this.#observationTransports) {
+      transport.abort();
+    }
+    this.#observationTransports.clear();
+    for (const transport of this.#commitTransports) {
+      transport.abort();
+    }
+    // A Commit aborted before dispatch never left the phone, so the next
+    // confirm must start its own POST instead of joining that doomed promise.
+    // A dispatched Commit stays joinable: it may already be at the venue.
+    for (const previewId of this.#committing.keys()) {
+      if (this.#previews.get(previewId)?.dispatched !== true) {
+        this.#committing.delete(previewId);
+      }
+    }
+  }
+
+  /** Detaches the previous identity, leaving dispatched mutations alive until
+   * they settle. Their answers cannot cross the generation fence. */
+  changeIdentity(): void {
     this.#generation += 1;
+    this.stopObserving();
+    this.#previews.clear();
+    this.#committing.clear();
+    this.#statusByPreview.clear();
     this.#known.clear();
     this.#preparing.clear();
+    clearAllSessionDepositTransfers(this.#venueId);
+  }
+
+  /** Runtime composition registers the subscriptions it owns around this
+   * service, so destroying the service releases them too. */
+  setLifecycleCleanup(cleanup: () => void): void {
+    this.#cleanupLifecycle = cleanup;
   }
 
   destroy(): void {
+    // Nothing may read a deposit or a Withdrawal once the service is gone: a
+    // destroyed Engine must not read the previous person's receipt.
     this.clearState();
+    this.#cleanupLifecycle?.();
+    this.#cleanupLifecycle = undefined;
     this.#messenger.unregisterActionHandler(
       'PredictFundingService:prepareDeposit',
     );
@@ -411,6 +798,33 @@ export class PredictFundingService {
     }
   }
 
+  /** The receipt a Commit or an observation produced becomes the state the
+   * sheet renders, and a status transition invalidates the balance reads. */
+  #recordStatus(receipt: PredictWithdrawReceipt): void {
+    const previous = this.#statusByPreview.get(receipt.previewId);
+    this.#statusByPreview.set(receipt.previewId, receipt.status);
+    // One invalidation per transition: entering `processing` means the
+    // account balance moved, and a terminal status settles what is left.
+    if (previous === receipt.status) {
+      return;
+    }
+    if (
+      receipt.status === 'processing' ||
+      TERMINAL_WITHDRAW_STATUSES[receipt.status] === true
+    ) {
+      this.#invalidateFundingReads();
+    }
+  }
+
+  /** Fire-and-forget: a Withdrawal that enters or leaves `processing`
+   * changed Balance and Summary. A failed invalidation must not fail the
+   * committed Withdrawal; the reads stay stale only until their next fetch. */
+  #invalidateFundingReads(): void {
+    for (const family of portfolioQueryFamilies(this.#venueId)) {
+      this.#invalidateFamily(family).catch(() => undefined);
+    }
+  }
+
   async #invalidateFamily(family: [string, ...Json[]]): Promise<void> {
     try {
       await this.#messenger.call('PredictPortfolioService:invalidateQueries', {
@@ -418,15 +832,94 @@ export class PredictFundingService {
       });
     } catch (error) {
       Logger.error(
-        ensureError(error, 'PredictFundingService.invalidateBalanceReads'),
-        'PredictNext: failed to refresh the Balance after a deposit',
+        ensureError(error, 'PredictFundingService.invalidateFundingReads'),
+        'PredictNext: failed to refresh balance reads after funding',
       );
     }
   }
 
+  #modeOf(params: PredictWithdrawPreviewParams): 'fixed' | 'sweep_all' {
+    return 'sweepAll' in params ? 'sweep_all' : 'fixed';
+  }
+
   #assertVenue(venueId: PredictVenueId): void {
     if (venueId !== this.#venueId) {
-      throw PredictError.from(PredictErrorCode.UNSUPPORTED_VENUE);
+      throw PredictError.from(PredictErrorCode.UNSUPPORTED_VENUE, {
+        metadata: { venueId },
+      });
+    }
+  }
+
+  #evictPreviews(newestPreviewId: string): void {
+    for (const [previewId, pinned] of this.#previews) {
+      if (pinned.generation !== this.#generation) {
+        this.#previews.delete(previewId);
+      }
+    }
+    for (const [previewId, pinned] of this.#previews) {
+      if (this.#previews.size <= 50) {
+        break;
+      }
+      const status = this.#statusByPreview.get(previewId);
+      const settled =
+        status === 'rejected' ||
+        (status !== undefined && TERMINAL_WITHDRAW_STATUSES[status] === true);
+      if (
+        previewId !== newestPreviewId &&
+        !this.#committing.has(previewId) &&
+        (!pinned.dispatched || settled)
+      ) {
+        this.#previews.delete(previewId);
+      }
+    }
+  }
+
+  #approvedPreview(
+    previewId: string,
+    generation: number,
+  ): PinnedWithdrawPreview {
+    const pinned = this.#previews.get(previewId);
+    if (
+      !pinned ||
+      pinned.generation !== this.#generation ||
+      generation !== this.#generation
+    ) {
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
+        metadata: {
+          phase: 'commit',
+          requestSent: false,
+        },
+      });
+    }
+    return pinned;
+  }
+
+  #assertWithdrawIntent(
+    receipt: PredictWithdrawReceipt,
+    { preview }: PinnedWithdrawPreview,
+  ): void {
+    const amountsMatch =
+      preview.requestedAmount === undefined
+        ? receipt.requestedAmount === undefined
+        : receipt.requestedAmount !== undefined &&
+          isSameAmount(preview.requestedAmount, receipt.requestedAmount);
+    if (
+      receipt.previewId !== preview.previewId ||
+      receipt.mode !== preview.mode ||
+      !amountsMatch ||
+      receipt.destination.address !== preview.destination.address ||
+      receipt.destination.network !== preview.destination.network ||
+      receipt.destination.source !== preview.destination.source
+    ) {
+      throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+    }
+  }
+
+  #assertNotAbandoned(generation: number): void {
+    if (generation !== this.#generation) {
+      // The session that quoted the Preview is gone; the same code the
+      // backend uses for a rejected token keeps this out of user copy.
+      throw PredictError.from(PredictErrorCode.UNAUTHENTICATED);
     }
   }
 }

@@ -292,8 +292,7 @@ const preOperationFailure = (code: PredictErrorCode, bodyCode: string) =>
       status: 422,
       bodyCode,
       phase: 'commit',
-      mutationRelay: 'not_relayed_this_invocation',
-      operationOutcome: 'unknown',
+      outcome: 'not_placed',
     },
   });
 
@@ -547,8 +546,7 @@ describe('PredictOrderService', () => {
     it('keeps a failed mutation financially unknown while preserving its cause and observe-only history', async () => {
       const metadata = {
         phase: 'commit',
-        mutationRelay: 'unknown',
-        operationOutcome: 'unknown',
+        outcome: 'unknown',
         status: 503,
         bodyCode: 'upstream_timeout',
         requestSent: true,
@@ -964,8 +962,6 @@ describe('PredictOrderService', () => {
           metadata: {
             phase: 'commit',
             requestSent: false,
-            mutationRelay: 'not_relayed_this_invocation',
-            operationOutcome: 'unknown',
           },
         }),
       );
@@ -1130,8 +1126,6 @@ describe('PredictOrderService', () => {
             status: 404,
             bodyCode: 'operation_not_found',
             phase: 'observe',
-            mutationRelay: 'not_a_mutation',
-            operationOutcome: 'unknown',
           },
         },
       );

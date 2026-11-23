@@ -831,18 +831,19 @@ describe('EarningsTab tax documentation', () => {
       pending: '0',
       claimed: '0',
     };
-    const { findByTestId, queryByTestId, engine } = renderEarningsTab({
-      persona: 'referrer',
-      summary: followTrade,
-      claimReady: true,
-      referralMe: {
-        ...referralMeFixture('referrer'),
-        localized_text: { ...COPY, taxFormUrl: '' },
-      },
-      handlers: {
-        'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
-      },
-    });
+    const { findByTestId, findByText, queryByTestId, engine } =
+      renderEarningsTab({
+        persona: 'referrer',
+        summary: followTrade,
+        claimReady: true,
+        referralMe: {
+          ...referralMeFixture('referrer'),
+          localized_text: { ...COPY, taxFormUrl: '' },
+        },
+        handlers: {
+          'RewardsMoneyController:getTaxMe': () => Promise.resolve(OPEN_FORM),
+        },
+      });
 
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER),
@@ -851,8 +852,11 @@ describe('EarningsTab tax documentation', () => {
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
     expect(
+      await findByText(`${COPY.balance} \u2022 ${COPY.mUSD}`),
+    ).toBeOnTheScreen();
+    expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).toHaveTextContent('$1.00');
+    ).toHaveTextContent('$58.50');
     expect(
       queryByTestId(TAX_FORM_OPEN_FORM_SHEET_TEST_IDS.CONTINUE),
     ).toBeNull();

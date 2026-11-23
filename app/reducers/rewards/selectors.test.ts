@@ -20,10 +20,7 @@ import {
   selectSeasonTiers,
   selectSeasonActivityTypes,
   selectSeasonWaysToEarn,
-  selectGeoLocation,
   selectOptinAllowedForGeo,
-  selectOptinAllowedForGeoLoading,
-  selectOptinAllowedForGeoError,
   selectCandidateSubscriptionId,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
@@ -1029,129 +1026,84 @@ describe('Rewards selectors', () => {
     });
   });
 
-  describe('selectGeoLocation', () => {
-    it('returns null when geo location is not set', () => {
-      const mockState = { rewards: { geoLocation: null } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectGeoLocation));
-      expect(result.current).toBeNull();
-    });
-
-    it('returns geo location when set', () => {
-      const mockState = { rewards: { geoLocation: 'US' } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() => useSelector(selectGeoLocation));
-      expect(result.current).toBe('US');
-    });
-  });
-
   describe('selectOptinAllowedForGeo', () => {
-    it('returns false when opt-in is not allowed for geo', () => {
-      const mockState = { rewards: { optinAllowedForGeo: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
+    const stateWithGeo = (
+      location: string | undefined,
+      status: 'idle' | 'loading' | 'complete' | 'error' | undefined,
+    ) =>
+      ({
+        rewards: {},
+        engine: {
+          backgroundState: {
+            GeolocationController: { location, status },
+          },
+        },
+      }) as RootState;
 
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeo),
+    it('returns null while there is no known location and the lookup has not finished', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, undefined))).toBe(
+        null,
       );
-      expect(result.current).toBe(false);
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'idle'))).toBe(
+        null,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'loading'))).toBe(
+        null,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'loading'))).toBe(
+        null,
+      );
     });
 
-    it('returns true when opt-in is allowed for geo', () => {
-      const mockState = { rewards: { optinAllowedForGeo: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
+    it('keeps a known location in force while a refresh is loading', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('US', 'loading'))).toBe(
+        true,
       );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeo),
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'loading'))).toBe(
+        false,
       );
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectOptinAllowedForGeoLoading', () => {
-    it('returns false when geo check is not loading', () => {
-      const mockState = { rewards: { optinAllowedForGeoLoading: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoLoading),
-      );
-      expect(result.current).toBe(false);
     });
 
-    it('returns true when geo check is loading', () => {
-      const mockState = { rewards: { optinAllowedForGeoLoading: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
+    it('fails open when the lookup errors or resolves to UNKNOWN with no usable location', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo(undefined, 'error'))).toBe(
+        true,
       );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoLoading),
+      expect(selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'error'))).toBe(
+        true,
       );
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectOptinAllowedForGeoError', () => {
-    it('returns false when there is no geo error', () => {
-      const mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoError),
-      );
-      expect(result.current).toBe(false);
+      expect(
+        selectOptinAllowedForGeo(stateWithGeo('UNKNOWN', 'complete')),
+      ).toBe(true);
     });
 
-    it('returns true when there is a geo error', () => {
-      const mockState = { rewards: { optinAllowedForGeoError: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-
-      const { result } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoError),
-      );
-      expect(result.current).toBe(true);
+    it('keeps a blocked location blocked when a later refresh fails', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'error'))).toBe(false);
     });
 
-    it('handles error state changes correctly', () => {
-      let mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
+    it('returns false when a settled location starts with a blocked region', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('GB', 'complete'))).toBe(
+        false,
       );
+      expect(selectOptinAllowedForGeo(stateWithGeo('UK-ENG', 'complete'))).toBe(
+        false,
+      );
+      expect(selectOptinAllowedForGeo(stateWithGeo('GI', 'complete'))).toBe(
+        false,
+      );
+    });
 
-      const { result, rerender } = renderHook(() =>
-        useSelector(selectOptinAllowedForGeoError),
+    it('returns true when a settled location is outside the blocked regions', () => {
+      expect(selectOptinAllowedForGeo(stateWithGeo('US-CA', 'complete'))).toBe(
+        true,
       );
-      expect(result.current).toBe(false);
+    });
 
-      mockState = { rewards: { optinAllowedForGeoError: true } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-      rerender();
-      expect(result.current).toBe(true);
+    it('flips when the same screen sees a new location', () => {
+      const allowed = stateWithGeo('US', 'complete');
+      const blocked = stateWithGeo('GB', 'complete');
 
-      mockState = { rewards: { optinAllowedForGeoError: false } };
-      mockedUseSelector.mockImplementation((selector) =>
-        selector(normalizeRootState(mockState)),
-      );
-      rerender();
-      expect(result.current).toBe(false);
+      expect(selectOptinAllowedForGeo(allowed)).toBe(true);
+      expect(selectOptinAllowedForGeo(blocked)).toBe(false);
     });
   });
   describe('selectCandidateSubscriptionId', () => {
@@ -1972,13 +1924,11 @@ describe('Rewards selectors', () => {
         const state = createMockRootState({
           seasonId: '',
           seasonName: '',
-          geoLocation: '',
           candidateSubscriptionId: 'sub-empty-test',
         });
 
         expect(selectSeasonId(state)).toBe('');
         expect(selectSeasonName(state)).toBe('');
-        expect(selectGeoLocation(state)).toBe('');
         expect(selectCandidateSubscriptionId(state)).toBe('sub-empty-test');
       });
 
@@ -1986,23 +1936,18 @@ describe('Rewards selectors', () => {
         const longString = 'a'.repeat(10000);
         const state = createMockRootState({
           seasonName: longString,
-          geoLocation: longString,
         });
 
         expect(selectSeasonName(state)).toBe(longString);
-        expect(selectGeoLocation(state)).toBe(longString);
       });
 
       it('handles strings with special characters correctly', () => {
-        const specialString = '!@#$%^&*()_+-=[]{}|;:,.<>?';
         const unicodeString = '🎉🌟✨🎊🎈';
         const state = createMockRootState({
           seasonName: unicodeString,
-          geoLocation: 'en-US',
         });
 
         expect(selectSeasonName(state)).toBe(unicodeString);
-        expect(selectGeoLocation(state)).toBe('en-US');
       });
     });
 
@@ -2158,9 +2103,6 @@ describe('Rewards selectors', () => {
         balanceTotal: 2750.5,
         balanceUpdatedAt: new Date('2024-03-15T14:30:00Z'),
         candidateSubscriptionId: 'sub-candidate-12345',
-        geoLocation: 'US-CA',
-        optinAllowedForGeo: true,
-        optinAllowedForGeoLoading: false,
         hideUnlinkedAccountsBanner: true,
         hideCurrentAccountNotOptedInBanner: [
           {
@@ -2202,9 +2144,6 @@ describe('Rewards selectors', () => {
         expect(selectCandidateSubscriptionId(comprehensiveState)).toBe(
           'sub-candidate-12345',
         );
-        expect(selectGeoLocation(comprehensiveState)).toBe('US-CA');
-        expect(selectOptinAllowedForGeo(comprehensiveState)).toBe(true);
-        expect(selectOptinAllowedForGeoLoading(comprehensiveState)).toBe(false);
         expect(selectHideUnlinkedAccountsBanner(comprehensiveState)).toBe(true);
         expect(
           selectHideCurrentAccountNotOptedInBannerArray(comprehensiveState),

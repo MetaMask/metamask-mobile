@@ -1,7 +1,6 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import { render } from '@testing-library/react-native';
-import Routes from '../../../../../../constants/navigation/Routes';
 import VbaAccountCreateError from '../VbaAccountCreateError';
 import type { VbaOnboardingParamList } from '../routes';
 import VbaAccountCreateErrorAdapter from './AccountCreateErrorAdapter';
@@ -14,6 +13,7 @@ import {
 
 const mockNavigation = { navigate: jest.fn() };
 const mockOpenCompletedVbaAccount = jest.fn();
+const mockExitVbaOnboardingToMoneyHome = jest.fn();
 const mockResumeOnboarding = jest.fn();
 const mockOpenSupportWithConsent = jest.fn();
 const mockVbaAccountCreateError = jest.fn(
@@ -38,6 +38,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../hooks/useVbaOnboardingRouting', () => ({
   openCompletedVbaAccount: (...args: unknown[]) =>
     mockOpenCompletedVbaAccount(...args),
+  exitVbaOnboardingToMoneyHome: (...args: unknown[]) =>
+    mockExitVbaOnboardingToMoneyHome(...args),
   useOpenVbaOnboarding: () => mockResumeOnboarding,
 }));
 
@@ -149,17 +151,25 @@ describe('VbaAccountCreateErrorAdapter', () => {
     );
   });
 
-  it('leaves account creation from Back and Done', () => {
-    mockRouteParams = { variant: 'details' };
+  it.each([
+    ['details error', 'onBack', { variant: 'details' as const }],
+    ['details error', 'onSecondary', { variant: 'details' as const }],
+    ['generic error', 'onBack', { variant: 'generic' as const }],
+    ['generic error', 'onSecondary', { variant: 'generic' as const }],
+  ] as const)('leaves the %s from %s', (_label, action, params) => {
+    mockRouteParams = params;
     const props = renderAdapter();
 
-    props.onBack?.();
-    props.onSecondary();
+    if (action === 'onBack') {
+      props.onBack?.();
+    } else {
+      props.onSecondary();
+    }
 
-    expect(mockNavigation.navigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledWith(
+      mockNavigation,
+    );
+    expect(mockNavigation.navigate).not.toHaveBeenCalled();
   });
 });

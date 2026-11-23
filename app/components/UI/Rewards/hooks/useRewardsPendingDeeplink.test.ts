@@ -197,27 +197,142 @@ describe('useRewardsPendingDeeplink', () => {
     expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
   });
 
-  it.each([
-    ['page', 'campaigns', Routes.REWARDS_CAMPAIGNS_VIEW],
-    ['campaign', 'ondo', Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW],
-    ['campaign', 'season1', Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW],
-    [
-      'campaign',
-      'predict-the-pitch',
-      Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
-    ],
-  ])(
-    'routes %s=%s into the rewards flow and clears the pending deeplink',
-    (key, value, expectedScreen) => {
-      renderWithPendingDeeplink({ [key]: value });
+  const buildCampaign = (
+    type: CampaignType,
+    overrides: Partial<CampaignDto> = {},
+  ): CampaignDto => ({
+    id: 'campaign-active',
+    type,
+    name: 'Campaign',
+    startDate: '2020-01-01T00:00:00.000Z',
+    endDate: '2099-01-01T00:00:00.000Z',
+    termsAndConditions: null,
+    excludedRegions: [],
+    details: null,
+    featured: false,
+    showUpcomingDate: false,
+    ...overrides,
+  });
+
+  const mockCampaigns = (
+    campaigns: CampaignDto[],
+    overrides: { isLoading?: boolean; hasError?: boolean } = {},
+  ) => {
+    mockUseRewardCampaigns.mockReturnValue({
+      campaigns,
+      categorizedCampaigns: { active: [], upcoming: [], previous: [] },
+      isLoading: overrides.isLoading ?? false,
+      hasError: overrides.hasError ?? false,
+      hasLoaded: true,
+      fetchCampaigns: jest.fn(),
+    });
+  };
+
+  it('routes page=campaigns into the rewards flow and clears the pending deeplink', () => {
+    renderWithPendingDeeplink({ page: 'campaigns' });
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+      screen: Routes.REWARDS_CAMPAIGNS_VIEW,
+      params: undefined,
+    });
+    expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+  });
+
+  describe.each([
+    {
+      campaign: 'ondo',
+      type: CampaignType.ONDO_HOLDING,
+      detailsScreen: Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+    },
+    {
+      campaign: 'season1',
+      type: CampaignType.SEASON_1,
+      detailsScreen: Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+    },
+    {
+      campaign: 'predict-the-pitch',
+      type: CampaignType.PREDICT_THE_PITCH,
+      detailsScreen: Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+    },
+  ])('campaign=$campaign', ({ campaign, type, detailsScreen }) => {
+    it('waits for the campaign list before opening the details page', () => {
+      renderWithPendingDeeplink({ campaign });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('opens the active campaign of its type with its id', () => {
+      mockCampaigns([
+        buildCampaign(type, {
+          id: 'ended',
+          startDate: '2020-01-01T00:00:00.000Z',
+          endDate: '2020-02-01T00:00:00.000Z',
+        }),
+        buildCampaign(type, { id: 'active' }),
+      ]);
+
+      renderAfterSettledFetch({ campaign });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: expectedScreen,
-        params: undefined,
+        screen: detailsScreen,
+        params: { campaignId: 'active' },
       });
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
-    },
-  );
+    });
+
+    it('opens the most recently ended campaign when none is active', () => {
+      mockCampaigns([
+        buildCampaign(type, {
+          id: 'older-ended',
+          startDate: '2020-01-01T00:00:00.000Z',
+          endDate: '2020-02-01T00:00:00.000Z',
+        }),
+        buildCampaign(type, {
+          id: 'latest-ended',
+          startDate: '2020-03-01T00:00:00.000Z',
+          endDate: '2020-04-01T00:00:00.000Z',
+        }),
+        buildCampaign(type, {
+          id: 'upcoming',
+          startDate: '2098-01-01T00:00:00.000Z',
+          endDate: '2099-01-01T00:00:00.000Z',
+        }),
+      ]);
+
+      renderAfterSettledFetch({ campaign });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: detailsScreen,
+        params: { campaignId: 'latest-ended' },
+      });
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('stays on the home when only an upcoming campaign exists', () => {
+      mockCampaigns([
+        buildCampaign(type, {
+          id: 'upcoming',
+          startDate: '2098-01-01T00:00:00.000Z',
+          endDate: '2099-01-01T00:00:00.000Z',
+        }),
+      ]);
+
+      renderAfterSettledFetch({ campaign });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+
+    it('stays on the home when the campaign list is empty', () => {
+      mockCampaigns([]);
+
+      renderAfterSettledFetch({ campaign });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
+    });
+  });
 
   describe('campaign=perps-comp', () => {
     const buildPerpsCampaign = (
@@ -235,20 +350,6 @@ describe('useRewardsPendingDeeplink', () => {
       showUpcomingDate: false,
       ...overrides,
     });
-
-    const mockCampaigns = (
-      campaigns: CampaignDto[],
-      overrides: { isLoading?: boolean; hasError?: boolean } = {},
-    ) => {
-      mockUseRewardCampaigns.mockReturnValue({
-        campaigns,
-        categorizedCampaigns: { active: [], upcoming: [], previous: [] },
-        isLoading: overrides.isLoading ?? false,
-        hasError: overrides.hasError ?? false,
-        hasLoaded: true,
-        fetchCampaigns: jest.fn(),
-      });
-    };
 
     it('navigates to the active perps campaign with its id', () => {
       mockCampaigns([
@@ -269,7 +370,7 @@ describe('useRewardsPendingDeeplink', () => {
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
     });
 
-    it('stays on the home when only a past perps campaign exists', () => {
+    it('opens the most recently ended perps campaign when none is active', () => {
       mockCampaigns([
         buildPerpsCampaign({
           id: 'perps-past',
@@ -280,7 +381,10 @@ describe('useRewardsPendingDeeplink', () => {
 
       renderAfterSettledFetch({ campaign: 'perps-comp' });
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
+        screen: Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+        params: { campaignId: 'perps-past' },
+      });
       expect(mockDispatch).toHaveBeenCalledWith(setPendingDeeplink(null));
     });
 

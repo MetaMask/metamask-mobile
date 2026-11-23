@@ -21,20 +21,36 @@ inputs:
     description: 'Target path in android/keystores/ (e.g. internalRelease.keystore). Required for Android.'
     required: false
 
+outputs:
+  env-file:
+    description: >-
+      Path to a 0600 file of `export KEY=value` lines, one per key in the signer secret.
+      Source it only in the step that signs; the values are never written to GITHUB_ENV.
+    value: ${{ steps.fetch.outputs.env-file }}
+
 runs:
   using: 'composite'
   steps:
+    # Credentials go to step outputs, not the job environment, so later steps cannot
+    # re-read the signer secret from Secrets Manager.
     - name: Configure AWS credentials
+      id: aws
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ inputs.aws-role-to-assume }}
         aws-region: ${{ inputs.aws-region }}
+        output-credentials: true
+        output-env-credentials: false
 
-    - name: Fetch secret and export as environment variables
+    - name: Fetch secret into a temp env file
+      id: fetch
       shell: bash
       env:
         AWS_REGION: ${{ inputs.aws-region }}
         AWS_SECRET_NAME: ${{ inputs.aws-secret-name }}
+        AWS_ACCESS_KEY_ID: ${{ steps.aws.outputs.aws-access-key-id }}
+        AWS_SECRET_ACCESS_KEY: ${{ steps.aws.outputs.aws-secret-access-key }}
+        AWS_SESSION_TOKEN: ${{ steps.aws.outputs.aws-session-token }}
       run: |
         echo "🔐 Fetching secret from Secrets Manager..."
         secret_json=$(aws secretsmanager get-secret-value \
@@ -43,32 +59,36 @@ runs:
           --query SecretString \
           --output text)
 
+        # RUNNER_TEMP is emptied at the end of every job.
+        env_file="$RUNNER_TEMP/signing-secrets.env"
+        (umask 077 && : > "$env_file")
+
         keys=$(echo "$secret_json" | jq -r 'keys[]')
         for key in $keys; do
+          # The file is sourced by bash, so only plain variable names are allowed.
+          if [[ ! "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+            echo "::warning::Skipping signer secret key '$key': not a valid environment variable name."
+            continue
+          fi
           value=$(echo "$secret_json" | jq -r --arg k "$key" '.[$k]')
           # Mask each line (add-mask doesn't support multiline values)
           printf '%s' "$value" | while IFS= read -r line || [[ -n "$line" ]]; do
             echo "::add-mask::$line"
           done
-          # Use heredoc for GITHUB_ENV to support multiline values (e.g. base64 certs).
-          # uuidgen is not installed on every runner image (e.g. Namespace Linux);
-          # fall back to the kernel's UUID source, present on any Linux.
-          delimiter="$(uuidgen 2>/dev/null || cat /proc/sys/kernel/random/uuid)"
-          {
-            echo "${key}<<${delimiter}"
-            printf '%s' "$value"
-            echo
-            echo "${delimiter}"
-          } >> "$GITHUB_ENV"
-          echo "✅ Set secret for key: $key"
+          printf 'export %s=%q\n' "$key" "$value" >> "$env_file"
+          echo "✅ Stored secret for key: $key"
         done
+        echo "env-file=$env_file" >> "$GITHUB_OUTPUT"
 
     - name: Configure Android Signing Certificates
       if: inputs.platform == 'android'
       shell: bash
       env:
         ANDROID_KEYSTORE_TARGET: ${{ inputs.android-keystore-path }}
+        SIGNING_ENV_FILE: ${{ steps.fetch.outputs.env-file }}
       run: |
+        # shellcheck source=/dev/null
+        source "$SIGNING_ENV_FILE"
         echo "📦 Configuring Android keystore..."
         if [[ -z "$ANDROID_KEYSTORE" ]]; then
           echo "⚠️ ANDROID_KEYSTORE is not set. Skipping keystore decoding."
@@ -94,7 +114,11 @@ runs:
     - name: Configure iOS Signing Certificates
       if: inputs.platform == 'ios'
       shell: bash
+      env:
+        SIGNING_ENV_FILE: ${{ steps.fetch.outputs.env-file }}
       run: |
+        # shellcheck source=/dev/null
+        source "$SIGNING_ENV_FILE"
         echo "📦 Configuring iOS code signing..."
 
         CERT_PATH="$RUNNER_TEMP/build_certificate.p12"

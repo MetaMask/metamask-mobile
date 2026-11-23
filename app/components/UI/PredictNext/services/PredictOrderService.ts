@@ -5,6 +5,7 @@ import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PredictError, PredictErrorCode } from '../errors';
+import { isUnsentCommitFailure } from '../errors/commitOutcome';
 import type {
   PredictOrderApproval,
   PredictOrderReview,
@@ -110,7 +111,7 @@ interface OrderOperation {
   readonly contextEpoch: number;
   reviewed: boolean;
   /** Once dispatched, later calls observe only unless the first invocation
-   * was explicitly proven not relayed. Observation errors never reset it. */
+   * was proven not placed. Observation errors never reset it. */
   posted: boolean;
   state: OrderOperationState;
   /** When the first Commit was dispatched. */
@@ -141,13 +142,6 @@ const isInProgressReceipt = (receipt: PredictOrderReceipt): boolean =>
 
 const isTerminalReceipt = (receipt: PredictOrderReceipt): boolean =>
   TERMINAL_RECEIPT_STATUSES.includes(receipt.status);
-
-/** Evidence applies only to the first mutation invocation, never an observe
- * failure or an earlier ambiguous submission. HTTP status alone is not proof. */
-const isUnsentCommitFailure = (error: unknown): error is PredictError =>
-  error instanceof PredictError &&
-  error.metadata?.phase === 'commit' &&
-  error.metadata?.mutationRelay === 'not_relayed_this_invocation';
 
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms));
@@ -265,7 +259,8 @@ export interface PredictOrderServiceOptions {
  * have reached the backend: it is submitted or ambiguous, never cancelled.
  * The Commit is signed and POSTed once; afterwards the operation is only
  * read (GET by Preview reference), which never submits. Only explicit
- * not-relayed evidence from the first mutation attempt allows re-approval.
+ * proof that the first Commit changed nothing (never sent, or the API's
+ * `outcome: not_placed`) allows re-approval.
  * Expiry alone never resolves an earlier dispatch. Only a fresh missing
  * operation read after backend preview expiry and grace can prove it absent.
  *
@@ -640,7 +635,7 @@ export class PredictOrderService {
     return PredictError.from(PredictErrorCode.ORDER_OUTCOME_UNKNOWN, {
       metadata: {
         phase: 'commit',
-        mutationRelay: 'unknown',
+        outcome: 'unknown',
         causeCode: PredictErrorCode.UNAUTHENTICATED,
       },
     });
@@ -1234,7 +1229,7 @@ export class PredictOrderService {
       throw PredictError.from(PredictErrorCode.UNAUTHENTICATED, {
         metadata: {
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
+          requestSent: false,
         },
       });
     }
@@ -1251,7 +1246,7 @@ export class PredictOrderService {
       throw PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
         metadata: {
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
+          requestSent: false,
         },
       });
     }
@@ -1309,7 +1304,7 @@ export class PredictOrderService {
           });
           throw PredictError.from(PredictErrorCode.PREVIEW_EXPIRED);
         }
-        // Even not-relayed mutation metadata cannot resolve an observation.
+        // A read failure never resolves a submission, whatever it carries.
         operation.ambiguous = true;
         throw error;
       }

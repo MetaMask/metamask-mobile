@@ -374,7 +374,28 @@ describe('RewardsEnvironmentToggle', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides the Money field when the money env may not be changed', () => {
+    it('hides the disabled Money host when Rewards env changes are closed', () => {
+      mockCall.mockImplementation((action: string) => {
+        if (action === 'RewardsController:canChangeRewardsEnvUrl') return false;
+        if (action === 'RewardsMoneyController:canChangeRewardsMoneyEnvUrl')
+          return false;
+        if (action === 'RewardsMoneyController:getRewardsMoneyEnvUrl')
+          return MONEY_PRD_URL;
+        return undefined;
+      });
+
+      const { queryByTestId, queryByText, toJSON } = render(
+        <RewardsEnvironmentToggle />,
+      );
+
+      expect(toJSON()).toBeNull();
+      expect(queryByText(MONEY_PRD_URL)).toBeNull();
+      expect(
+        queryByTestId('rewards-money-environment-toggle-trigger'),
+      ).toBeNull();
+    });
+
+    it('shows the build Money host disabled when the env may not be changed', () => {
       mockCall.mockImplementation((action: string) => {
         if (action === 'RewardsController:canChangeRewardsEnvUrl') return true;
         if (action === 'RewardsController:getRewardsEnvUrl') return UAT_URL;
@@ -382,18 +403,22 @@ describe('RewardsEnvironmentToggle', () => {
           return UAT_URL;
         if (action === 'RewardsMoneyController:canChangeRewardsMoneyEnvUrl')
           return false;
+        if (action === 'RewardsMoneyController:getRewardsMoneyEnvUrl')
+          return MONEY_DEV_URL;
         return undefined;
       });
 
-      const { getByTestId, queryByTestId } = render(
+      const { getByTestId, getByText, queryByTestId } = render(
         <RewardsEnvironmentToggle />,
       );
 
+      expect(getByText(MONEY_DEV_URL)).toBeOnTheScreen();
       expect(
-        getByTestId('rewards-environment-toggle-trigger'),
-      ).toBeOnTheScreen();
+        getByTestId('rewards-money-environment-toggle-trigger'),
+      ).toBeDisabled();
+      fireEvent.press(getByTestId('rewards-money-environment-toggle-trigger'));
       expect(
-        queryByTestId('rewards-money-environment-toggle-trigger'),
+        queryByTestId(`money-environment-option-${MONEY_UAT_URL}`),
       ).toBeNull();
     });
 

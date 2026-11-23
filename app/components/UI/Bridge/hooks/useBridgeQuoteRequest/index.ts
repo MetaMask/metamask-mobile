@@ -204,6 +204,8 @@ export const useBridgeQuoteRequest = (
             ? swapQuoteFetchTrace.start({
                 srcChainId: sourceToken?.chainId,
                 destChainId: destToken?.chainId,
+                srcTokenAddress: sourceToken?.address,
+                destTokenAddress: destToken?.address,
                 isRefresh: requestOptions.isRefresh ?? false,
               })
             : undefined;

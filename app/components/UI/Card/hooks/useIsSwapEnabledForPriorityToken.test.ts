@@ -67,7 +67,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
   });
 
   describe('Authentication State', () => {
-    it('returns true when user is not authenticated regardless of address match', () => {
+    it('returns false when the user is logged out and the address is not owned', () => {
       mockSelectSelectedInternalAccount.mockImplementation((scope) => {
         if (scope === 'eip155:0') {
           return mockEvmAccount;
@@ -94,10 +94,10 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         ),
       );
 
-      expect(result.current).toBe(true);
+      expect(result.current).toBe(false);
     });
 
-    it('returns true when user is not authenticated even with undefined priority token', () => {
+    it('returns false when the user is logged out and there is no priority token', () => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         if (selector === selectIsCardAuthenticated) {
           return false; // Not authenticated
@@ -115,7 +115,7 @@ describe('useIsSwapEnabledForPriorityToken', () => {
         useIsSwapEnabledForPriorityToken(undefined),
       );
 
-      expect(result.current).toBe(true);
+      expect(result.current).toBe(false);
     });
 
     it('returns false when user is authenticated and address is not owned by any account', () => {

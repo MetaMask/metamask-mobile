@@ -40,7 +40,15 @@ export function usePerpsLivePrices(
         if (!newPrices) {
           return;
         }
-        setPrices(newPrices);
+        // Live WebSocket ticks deliver only the symbols that changed, so
+        // replacing would wipe every other subscribed symbol's price. Merge
+        // instead, and treat an empty payload as the channel's cache-clear
+        // signal so stale prices do not survive a reconnect or account switch.
+        if (Object.keys(newPrices).length === 0) {
+          setPrices({});
+          return;
+        }
+        setPrices((prev) => ({ ...prev, ...newPrices }));
       },
       throttleMs,
     });

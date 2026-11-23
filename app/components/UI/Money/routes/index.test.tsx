@@ -38,6 +38,7 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     CardController: {
       fetchCardHomeData: jest.fn(),
+      state: { isAuthenticated: true },
     },
   },
 }));
@@ -182,6 +183,7 @@ jest.mock('../components/MoneyDeeplinkModal/MoneyDeeplinkModal', () => ({
 describe('MoneyTabScreenStack', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Engine.context.CardController.state.isAuthenticated = true;
   });
 
   it('registers Money home, activity, and how-it-works screens', () => {
@@ -233,6 +235,19 @@ describe('MoneyTabScreenStack', () => {
     expect(
       Engine.context.CardController.fetchCardHomeData,
     ).toHaveBeenCalledWith();
+  });
+
+  it('does not prefetch card home data when the cardholder is logged out', () => {
+    Engine.context.CardController.state.isAuthenticated = false;
+    const { getByTestId } = renderWithProvider(<MoneyTabScreenStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    fireEvent.press(getByTestId(`money-screen-${Routes.MONEY.HOME}-focus`));
+
+    expect(
+      Engine.context.CardController.fetchCardHomeData,
+    ).not.toHaveBeenCalled();
   });
 
   it('does not attach card prefetch listeners to other Money routes', () => {

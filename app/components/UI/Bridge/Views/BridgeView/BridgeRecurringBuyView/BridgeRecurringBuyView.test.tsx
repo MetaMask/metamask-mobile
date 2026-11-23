@@ -25,8 +25,8 @@ import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
 import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
-import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
+import type { UseOrderMinAmountResult } from '../../../hooks/useOrderMinAmount';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import {
@@ -39,6 +39,8 @@ import BridgeRecurringBuyView from './index';
 
 const mockNavigate = jest.fn();
 const mockUseIsFocused = jest.fn();
+const mockCloseKeypad = jest.fn();
+const mockScheduleFieldsBlur = jest.fn();
 let mockPreviewOrderHandler: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
@@ -75,10 +77,6 @@ jest.mock('../../../hooks/useRecurringOrdersListTrace', () => ({
 
 jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
-}));
-
-jest.mock('../../../hooks/useRecurringOrderMinAmount', () => ({
-  useRecurringOrderMinAmount: jest.fn(),
 }));
 
 jest.mock('./useRecurringBuySwapInputs', () => ({
@@ -122,7 +120,16 @@ jest.mock('../../../components/SwapsInputs', () => ({
 }));
 
 jest.mock('../../../components/SwapsKeypad', () => ({
-  SwapsKeypad: () => null,
+  SwapsKeypad: ({ onClose }: { onClose?: () => void }) => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const { Pressable } =
+      jest.requireActual<typeof import('react-native')>('react-native');
+
+    return ReactModule.createElement(Pressable, {
+      testID: 'close-keypad',
+      onPress: onClose,
+    });
+  },
 }));
 
 jest.mock('../../../components/SwapsBanners', () => ({
@@ -146,10 +153,31 @@ jest.mock('../../../components/PriceRangeRow', () => ({
   default: () => null,
 }));
 
-jest.mock('../../../components/RecurringScheduleFields', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../../../components/RecurringScheduleFields', () => {
+  const ReactModule = jest.requireActual<typeof React>('react');
+
+  return {
+    __esModule: true,
+    default: ReactModule.forwardRef(
+      (
+        { onDismissKeypad }: { onDismissKeypad: () => void },
+        ref: React.Ref<{ blur: () => void }>,
+      ) => {
+        const { Pressable } =
+          jest.requireActual<typeof import('react-native')>('react-native');
+
+        ReactModule.useImperativeHandle(ref, () => ({
+          blur: mockScheduleFieldsBlur,
+        }));
+
+        return ReactModule.createElement(Pressable, {
+          testID: 'dismiss-schedule-keypad',
+          onPress: onDismissKeypad,
+        });
+      },
+    ),
+  };
+});
 
 jest.mock('./RecurringOrderRow', () => ({
   createRecurringOrdersTab: () => ({
@@ -189,6 +217,33 @@ const mockActiveQuote = {
   },
   estimatedProcessingTimeInSeconds: 90,
 };
+
+function createMockRecurringBuySwapInputs(
+  recurringOrderMinAmount: UseOrderMinAmountResult = {
+    formattedMinAmountInSelectedCurrency: '$100.00',
+    hasError: false,
+    isBelowMinAmount: false,
+    minAmountUsd: 100,
+  },
+) {
+  return {
+    destToken,
+    destTokenAmount: '10',
+    enabledChainIds: [],
+    handleDestTokenPress: jest.fn(),
+    handleFlipTokensPress: jest.fn(),
+    handleSourceMaxPress: jest.fn(),
+    handleSourcePresetAmountSelect: jest.fn(),
+    handleSourceTokenPress: jest.fn(),
+    isDestAmountLoading: false,
+    isFlipDisabled: false,
+    isQuoteSponsored: false,
+    recurringOrderMinAmount,
+    sourceAmountInput: { value: '1' },
+    sourceToken,
+    sourceAmount: '1',
+  };
+}
 
 const expectAdvancedOrderProperties = (
   event: { category: string },
@@ -244,30 +299,11 @@ describe('BridgeRecurringBuyView', () => {
       isValid: true,
       retry: jest.fn(),
     });
-    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
-      formattedMinAmountInSelectedCurrency: '$100.00',
-      hasError: false,
-      isBelowMinAmount: false,
-      minAmountUsd: 100,
-    });
-    jest.mocked(useRecurringBuySwapInputs).mockReturnValue({
-      destToken,
-      destTokenAmount: '10',
-      enabledChainIds: [],
-      handleDestTokenPress: jest.fn(),
-      handleFlipTokensPress: jest.fn(),
-      handleSourceMaxPress: jest.fn(),
-      handleSourcePresetAmountSelect: jest.fn(),
-      handleSourceTokenPress: jest.fn(),
-      isDestAmountLoading: false,
-      isFlipDisabled: false,
-      isQuoteSponsored: false,
-      sourceAmountInput: { value: '1' },
-      sourceToken,
-      sourceAmount: '1',
-    } as never);
+    jest
+      .mocked(useRecurringBuySwapInputs)
+      .mockReturnValue(createMockRecurringBuySwapInputs() as never);
     jest.mocked(useRecurringBuyKeypad).mockReturnValue({
-      close: jest.fn(),
+      close: mockCloseKeypad,
       focusAmount: jest.fn(),
       focusEvery: jest.fn(),
       focusRepeat: jest.fn(),
@@ -349,6 +385,34 @@ describe('BridgeRecurringBuyView', () => {
     });
   });
 
+  it('blurs the schedule fields and closes the keypad when tapping outside', () => {
+    const { getByTestId } = renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      { state: createBridgeTestState() },
+    );
+
+    fireEvent.press(getByTestId('dismiss-schedule-keypad'));
+
+    expect(mockScheduleFieldsBlur).toHaveBeenCalledTimes(1);
+    expect(mockCloseKeypad).toHaveBeenCalledTimes(1);
+  });
+
+  it('blurs the schedule fields when the keypad is minimized', () => {
+    const { getByTestId } = renderWithProvider(
+      <BridgeRecurringBuyView
+        location={MetaMetricsSwapsEventSource.BottomNavBar}
+      />,
+      { state: createBridgeTestState() },
+    );
+
+    fireEvent.press(getByTestId('close-keypad'));
+
+    expect(mockScheduleFieldsBlur).toHaveBeenCalledTimes(1);
+    expect(mockCloseKeypad).not.toHaveBeenCalled();
+  });
+
   it('loads the orders of the EVM account of the selected group when a non-EVM account is selected', () => {
     renderWithProvider(
       <BridgeRecurringBuyView
@@ -426,12 +490,14 @@ describe('BridgeRecurringBuyView', () => {
   });
 
   it('does not preview an order below the recurring minimum', () => {
-    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
-      formattedMinAmountInSelectedCurrency: '€90.00',
-      hasError: false,
-      isBelowMinAmount: true,
-      minAmountUsd: 100,
-    });
+    jest.mocked(useRecurringBuySwapInputs).mockReturnValue(
+      createMockRecurringBuySwapInputs({
+        formattedMinAmountInSelectedCurrency: '€90.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 100,
+      }) as never,
+    );
     const { getByTestId } = renderWithProvider(
       <BridgeRecurringBuyView
         location={MetaMetricsSwapsEventSource.BottomNavBar}
@@ -454,12 +520,14 @@ describe('BridgeRecurringBuyView', () => {
   });
 
   it('fails closed when the minimum cannot be validated', () => {
-    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
-      formattedMinAmountInSelectedCurrency: undefined,
-      hasError: true,
-      isBelowMinAmount: false,
-      minAmountUsd: 100,
-    });
+    jest.mocked(useRecurringBuySwapInputs).mockReturnValue(
+      createMockRecurringBuySwapInputs({
+        formattedMinAmountInSelectedCurrency: undefined,
+        hasError: true,
+        isBelowMinAmount: false,
+        minAmountUsd: 100,
+      }) as never,
+    );
     const { getByTestId } = renderWithProvider(
       <BridgeRecurringBuyView
         location={MetaMetricsSwapsEventSource.BottomNavBar}
