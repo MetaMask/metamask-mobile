@@ -1,10 +1,10 @@
 import { MockEventsObject } from '../../../framework';
 import { TOKEN_API_TOKENS_RESPONSE } from '../token-api-responses.ts';
 import { MUSD_TOKEN_API_RESPONSE } from '../musd/musd-token-response.ts';
+import { TOKEN_SUPPORTED_NETWORKS_V2 } from '../synced/token-supported-networks-v2';
 import type {
   TokenAssetsV2Response,
   TokenSuggestedOccurrenceFloorsV1Response,
-  TokenSupportedNetworksV2Response,
   TokensAssetsV3Response,
 } from '../../api-response-types';
 
@@ -108,20 +108,7 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
     {
       urlEndpoint: tokenV2SupportedNetworksRegex,
       responseCode: 200,
-      response: {
-        fullSupport: [
-          'eip155:1',
-          'eip155:137',
-          'eip155:56',
-          'eip155:59144',
-          'eip155:8453',
-          'eip155:10',
-          'eip155:42161',
-          'eip155:534352',
-          'eip155:1329',
-        ],
-        partialSupport: [],
-      } satisfies TokenSupportedNetworksV2Response,
+      response: TOKEN_SUPPORTED_NETWORKS_V2,
     },
     {
       urlEndpoint: suggestedOccurrenceFloorsRegex,

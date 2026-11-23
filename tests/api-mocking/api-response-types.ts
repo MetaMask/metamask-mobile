@@ -37,8 +37,19 @@ import type { Country } from '@metamask/ramps-controller';
 import type { EntryCollection } from 'contentful';
 import type { ContentfulSlideSkeleton } from '../../app/components/UI/Carousel/fetchCarouselSlidesFromContentful';
 
-/** `price.api` `GET /v3/spot-prices` (with market data), keyed by CAIP-19 asset id. */
-export type PriceSpotPricesV3Response = Record<string, CoinGeckoSpotPrice>;
+/**
+ * `price.api` `GET /v3/spot-prices` (with market data), keyed by CAIP-19 asset
+ * id. The API also sends the fields below, which `CoinGeckoSpotPrice` does not
+ * declare.
+ */
+export type PriceSpotPricesV3Response = Record<
+  string,
+  CoinGeckoSpotPrice & {
+    pricePercentChange5m?: number;
+    pricePercentChange4h?: number;
+    liquidity?: number;
+  }
+>;
 
 /** `price.api` `GET /v1/exchange-rates`. */
 export type PriceExchangeRatesV1Response = V1ExchangeRatesResponse;

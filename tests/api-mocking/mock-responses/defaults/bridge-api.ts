@@ -1,4 +1,4 @@
-import { StatusTypes } from '@metamask/bridge-controller';
+import type { StatusTypes } from '@metamask/bridge-controller';
 import type {
   BridgeGetTokensResponse,
   BridgeGetTxStatusResponse,
@@ -403,7 +403,7 @@ const BRIDGE_TOP_ASSETS_CHAIN_1 = [
   },
 ];
 
-const BRIDGE_TOKEN_DETAILS_CHAIN_1 = [
+export const BRIDGE_TOKEN_DETAILS_CHAIN_1 = [
   {
     address: '0x0000000000000000000000000000000000000000',
     chainId: 1,
@@ -599,7 +599,7 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
       urlEndpoint:
         /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTxStatus(\?.*)?$/,
       response: {
-        status: StatusTypes.PENDING,
+        status: 'PENDING' as StatusTypes.PENDING,
         srcChain: { chainId: 1 },
       } satisfies BridgeGetTxStatusResponse,
       responseCode: 200,

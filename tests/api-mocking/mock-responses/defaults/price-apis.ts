@@ -1,10 +1,8 @@
 import { MockEventsObject } from '../../../framework';
-import type {
-  PriceExchangeRatesV1Response,
-  PriceHistoricalPricesV1Response,
-  PriceSpotPricesV3Response,
-  PriceSupportedNetworksV2Response,
-} from '../../api-response-types';
+import type { PriceHistoricalPricesV1Response } from '../../api-response-types';
+import { PRICE_EXCHANGE_RATES_V1 } from '../synced/price-exchange-rates-v1';
+import { PRICE_SPOT_PRICES_V3 } from '../synced/price-spot-prices-v3';
+import { PRICE_SUPPORTED_NETWORKS_V2 } from '../synced/price-supported-networks-v2';
 
 /**
  * Mock data for cryptocurrency price API endpoints used in E2E testing.
@@ -76,159 +74,19 @@ export const PRICE_API_MOCKS: MockEventsObject = {
       urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v2\/supportedNetworks$/,
       responseCode: 200,
-      response: {
-        fullSupport: [
-          'eip155:1',
-          'eip155:10',
-          'eip155:56',
-          'eip155:137',
-          'eip155:42161',
-          'eip155:43114',
-          'eip155:8453',
-          'eip155:59144',
-          'eip155:324',
-          'eip155:534352',
-          'eip155:1101',
-          'eip155:1284',
-          'eip155:1285',
-          'eip155:100',
-          'eip155:250',
-          'eip155:1313161554',
-          'eip155:25',
-          'eip155:42220',
-          'eip155:288',
-          'eip155:2222',
-          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-          'bip122:000000000019d6689c085ae165831e93',
-        ],
-        partialSupport: {
-          spotPricesV2: [],
-          spotPricesV3: [],
-        },
-      } satisfies PriceSupportedNetworksV2Response,
+      response: PRICE_SUPPORTED_NETWORKS_V2,
     },
     {
       urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v1\/exchange-rates\?baseCurrency=.*$/,
       responseCode: 200,
-      response: {
-        usd: {
-          name: 'US Dollar',
-          ticker: 'usd',
-          value: 1,
-          currencyType: 'fiat',
-        },
-        eth: {
-          name: 'Ether',
-          ticker: 'eth',
-          value: 0.000233,
-          currencyType: 'crypto',
-        },
-        matic: {
-          name: 'Matic',
-          ticker: 'matic',
-          value: 0.000344,
-          currencyType: 'crypto',
-        },
-        btc: {
-          name: 'Bitcoin',
-          ticker: 'btc',
-          value: 0.000008333,
-          currencyType: 'crypto',
-        },
-        eur: { name: 'Euro', ticker: 'eur', value: 0.85, currencyType: 'fiat' },
-        gbp: {
-          name: 'British Pound Sterling',
-          ticker: 'gbp',
-          value: 0.73,
-          currencyType: 'fiat',
-        },
-        jpy: {
-          name: 'Japanese Yen',
-          ticker: 'jpy',
-          value: 110,
-          currencyType: 'fiat',
-        },
-      } satisfies PriceExchangeRatesV1Response,
+      response: PRICE_EXCHANGE_RATES_V1,
     },
     {
       urlEndpoint:
         /^https:\/\/price\.api\.cx\.metamask\.io\/v3\/spot-prices(\?.*)?$/,
       responseCode: 200,
-      response: {
-        'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {
-          id: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
-          price: 0.999588,
-          marketCap: 5000000000,
-          pricePercentChange1h: 0.01,
-          pricePercentChange1d: 0.1,
-          pricePercentChange7d: 0.5,
-          pricePercentChange14d: 0.8,
-          pricePercentChange30d: 1.0,
-          pricePercentChange200d: 2.0,
-          pricePercentChange1y: 5.0,
-        },
-        'eip155:1/slip44:60': {
-          id: 'eip155:1/slip44:60',
-          price: 4280.15,
-          marketCap: 500000000000,
-          pricePercentChange1h: 0.5,
-          pricePercentChange1d: 2.5,
-          pricePercentChange7d: 5.0,
-          pricePercentChange14d: 8.0,
-          pricePercentChange30d: 10.0,
-          pricePercentChange200d: 20.0,
-          pricePercentChange1y: 50.0,
-        },
-        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
-          id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          price: 1.0,
-          marketCap: 35000000000,
-          pricePercentChange1h: 0.01,
-          pricePercentChange1d: 0.1,
-          pricePercentChange7d: 0.2,
-          pricePercentChange14d: 0.3,
-          pricePercentChange30d: 0.5,
-          pricePercentChange200d: 1.0,
-          pricePercentChange1y: 2.0,
-        },
-        'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c': {
-          id: 'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c',
-          price: 1.02,
-          marketCap: 500000000,
-          pricePercentChange1h: 0.01,
-          pricePercentChange1d: 0.05,
-          pricePercentChange7d: 0.15,
-          pricePercentChange14d: 0.25,
-          pricePercentChange30d: 0.4,
-          pricePercentChange200d: 0.8,
-          pricePercentChange1y: 1.5,
-        },
-        'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
-          id: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
-          price: 1.0,
-          marketCap: 1000000000,
-          pricePercentChange1h: 0.01,
-          pricePercentChange1d: 0.1,
-          pricePercentChange7d: 0.2,
-          pricePercentChange14d: 0.3,
-          pricePercentChange30d: 0.5,
-          pricePercentChange200d: 1.0,
-          pricePercentChange1y: 2.0,
-        },
-        'eip155:137/slip44:966': {
-          id: 'eip155:137/slip44:966',
-          price: 1.0,
-          marketCap: 50000000,
-          pricePercentChange1h: 0.5,
-          pricePercentChange1d: 1.0,
-          pricePercentChange7d: 3.0,
-          pricePercentChange14d: 5.0,
-          pricePercentChange30d: 8.0,
-          pricePercentChange200d: 15.0,
-          pricePercentChange1y: 20.0,
-        },
-      } satisfies PriceSpotPricesV3Response,
+      response: PRICE_SPOT_PRICES_V3,
     },
     {
       urlEndpoint:
