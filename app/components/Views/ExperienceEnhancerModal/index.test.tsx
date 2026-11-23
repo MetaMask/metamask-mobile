@@ -1,9 +1,8 @@
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { strings } from '../../../../locales/i18n';
-import OAuthService from '../../../core/OAuthService/OAuthService';
 import ExperienceEnhancerModal from './';
 import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerModal.testIds';
 
@@ -36,29 +35,13 @@ jest.mock(
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
-  useSelector: jest.fn(),
-}));
-
-jest.mock('../../../core/OAuthService/OAuthService', () => ({
-  __esModule: true,
-  default: {
-    updateMarketingOptInStatus: jest.fn(),
-  },
 }));
 
 describe('ExperienceEnhancerModal', () => {
   const dispatchMock = jest.fn();
-  const useSelectorMock = useSelector as jest.Mock;
-  const updateMarketingOptInStatusMock = jest.mocked(
-    OAuthService.updateMarketingOptInStatus,
-  );
 
   beforeEach(() => {
     (useDispatch as jest.Mock).mockReturnValue(dispatchMock);
-    useSelectorMock.mockImplementation(
-      (selector: (state: unknown) => unknown) => selector({}),
-    );
-    updateMarketingOptInStatusMock.mockResolvedValue(undefined);
     mockIsEnabled.mockReturnValue(true);
   });
 
@@ -67,7 +50,6 @@ describe('ExperienceEnhancerModal', () => {
   });
 
   it('should handle cancel button press correctly', () => {
-    useSelectorMock.mockReturnValue(true);
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     const cancelButton = getByTestId(
@@ -78,11 +60,9 @@ describe('ExperienceEnhancerModal', () => {
     expect(dispatchMock).toHaveBeenCalledWith(
       setDataCollectionForMarketing(false),
     );
-    expect(updateMarketingOptInStatusMock).toHaveBeenCalledWith(false);
   });
 
   it('should handle accept button press correctly', () => {
-    useSelectorMock.mockReturnValue(true);
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     const acceptButton = getByTestId(
@@ -93,47 +73,9 @@ describe('ExperienceEnhancerModal', () => {
     expect(dispatchMock).toHaveBeenCalledWith(
       setDataCollectionForMarketing(true),
     );
-    expect(updateMarketingOptInStatusMock).toHaveBeenCalledWith(true);
-  });
-
-  it('does not post to the auth server for non-social-login users', () => {
-    useSelectorMock.mockReturnValue(false);
-    const { getByTestId } = render(<ExperienceEnhancerModal />);
-
-    fireEvent.press(
-      getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.ACCEPT_BUTTON),
-    );
-    fireEvent.press(
-      getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON),
-    );
-
-    expect(updateMarketingOptInStatusMock).not.toHaveBeenCalled();
-  });
-
-  it('keeps the local decision when the auth server sync fails', async () => {
-    useSelectorMock.mockReturnValue(true);
-    updateMarketingOptInStatusMock.mockRejectedValue(new Error('sync failed'));
-    const { getByTestId } = render(<ExperienceEnhancerModal />);
-
-    fireEvent.press(
-      getByTestId(ExperienceEnhancerBottomSheetSelectorsIDs.CANCEL_BUTTON),
-    );
-
-    // Flush the rejected sync before asserting no revert happened.
-    await act(async () => {
-      await Promise.resolve();
-    });
-
-    expect(dispatchMock).toHaveBeenCalledWith(
-      setDataCollectionForMarketing(false),
-    );
-    expect(dispatchMock).not.toHaveBeenCalledWith(
-      setDataCollectionForMarketing(true),
-    );
   });
 
   it('sends marketing consent signals when MetaMetrics is on', () => {
-    useSelectorMock.mockReturnValue(false);
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     fireEvent.press(
@@ -148,7 +90,6 @@ describe('ExperienceEnhancerModal', () => {
 
   it('keeps the marketing choice without sending signals when MetaMetrics is off', () => {
     mockIsEnabled.mockReturnValue(false);
-    useSelectorMock.mockReturnValue(false);
     const { getByTestId } = render(<ExperienceEnhancerModal />);
 
     fireEvent.press(
