@@ -1,11 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
-import {
-  Box,
-  Skeleton,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Skeleton } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import {
@@ -83,14 +78,7 @@ const BenefitsTab: React.FC = () => {
   }
 
   return (
-    <Box twClassName="gap-3 px-4 pb-4" testID={BENEFITS_TAB_TEST_IDS.CONTAINER}>
-      <Text
-        variant={TextVariant.HeadingMd}
-        twClassName="py-3"
-        accessibilityRole="header"
-      >
-        {strings('rewards.benefits.list_header')}
-      </Text>
+    <Box twClassName="gap-3 p-4" testID={BENEFITS_TAB_TEST_IDS.CONTAINER}>
       {benefits.map((benefit) => (
         <BenefitCard key={benefit.id} benefit={benefit} />
       ))}
