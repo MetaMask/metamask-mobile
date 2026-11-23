@@ -41,5 +41,51 @@ export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
         },
       },
     },
+    // CHOMP derived identities — fetched on every keyring unlock by the
+    // MoneyAccountLifecycleController, followed by a registration-status
+    // lookup per Money Account address.
+    {
+      urlEndpoint:
+        /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities$/u,
+      responseCode: 200,
+      response: { identities: [] },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities\/address\/0x[a-fA-F0-9]{40}$/u,
+      responseCode: 404,
+      response: { code: 'ADDRESS_NOT_ASSOCIATED' },
+    },
+    // Money Account positions are polled after unlock when the feature is
+    // enabled. Tests that need a funded account override this empty fallback.
+    {
+      urlEndpoint:
+        /^https:\/\/money\.api\.cx\.metamask\.io\/v1\/positions\/0x[a-fA-F0-9]{40}$/u,
+      responseCode: 200,
+      response: {
+        address: '0x0000000000000000000000000000000000000000',
+        as_of_block: 0,
+        as_of_timestamp: new Date().toISOString(),
+        data_freshness: 'live',
+        indexer_lag_seconds: 0,
+        balance: null,
+        positions: [],
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/money\.api\.cx\.metamask\.io\/v1\/positions\/0x[a-fA-F0-9]{40}\/history(\?|$)/u,
+      responseCode: 200,
+      response: {
+        address: '0x0000000000000000000000000000000000000000',
+        cash_flows: [],
+        next_cursor: null,
+        has_more: false,
+        as_of_block: 0,
+        as_of_timestamp: new Date().toISOString(),
+        data_freshness: 'live',
+        indexer_lag_seconds: 0,
+      },
+    },
   ],
 };

@@ -15,7 +15,7 @@ export const DEFAULT_RADIOBUTTON_LABEL_TEXTCOLOR = TextColor.Default;
 
 // Sample
 export const SAMPLE_RADIOBUTTON_PROPS: RadioButtonProps = {
-  label: 'Sample RadioButton Label',
+  label: 'Sample radio button label',
   isChecked: false,
   isDisabled: false,
   isReadOnly: false,

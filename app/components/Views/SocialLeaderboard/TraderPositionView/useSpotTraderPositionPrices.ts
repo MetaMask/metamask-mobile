@@ -11,6 +11,12 @@ import { selectCurrentCurrency } from '../../../../selectors/currencyRateControl
 import Logger from '../../../../util/Logger';
 import { PERIOD_TO_API, type TimePeriod } from './traderPositionData';
 
+/**
+ * Price API v3 root. Declared once so the spot-price and historical-price
+ * requests below cannot drift apart.
+ */
+const PRICE_API_V3_BASE_URL = 'https://price.api.cx.metamask.io/v3';
+
 export interface SpotTraderPositionPricesParams {
   positionParam: Position | undefined;
   caipChainId: CaipChainId | undefined;
@@ -35,12 +41,14 @@ export function useSpotTraderPositionPrices(
     [caipChainId],
   );
 
+  // Live revisions hand over a new `Position` for the same token, so the
+  // fetches key on the address rather than the object.
+  const tokenAddress = positionParam?.tokenAddress;
+
   const allMarketData = useSelector(selectTokenMarketData);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const cachedMarket = hexChainId
-    ? allMarketData?.[hexChainId]?.[
-        positionParam?.tokenAddress?.toLowerCase() as Hex
-      ]
+    ? allMarketData?.[hexChainId]?.[tokenAddress?.toLowerCase() as Hex]
     : undefined;
 
   const [fetchedMarketCap, setFetchedMarketCap] = useState<number>();
@@ -51,18 +59,18 @@ export function useSpotTraderPositionPrices(
     if (
       !enabled ||
       cachedMarket?.marketCap != null ||
-      !positionParam ||
+      tokenAddress === undefined ||
       !caipChainId
     ) {
       return;
     }
-    const assetId = toAssetId(positionParam.tokenAddress, caipChainId);
+    const assetId = toAssetId(tokenAddress, caipChainId);
     if (!assetId) return;
 
     let cancelled = false;
     (async () => {
       try {
-        const url = `https://price.api.cx.metamask.io/v3/spot-prices?${new URLSearchParams(
+        const url = `${PRICE_API_V3_BASE_URL}/spot-prices?${new URLSearchParams(
           {
             assetIds: assetId,
             includeMarketData: 'true',
@@ -90,7 +98,7 @@ export function useSpotTraderPositionPrices(
   }, [
     enabled,
     cachedMarket?.marketCap,
-    positionParam,
+    tokenAddress,
     caipChainId,
     currentCurrency,
   ]);
@@ -107,7 +115,7 @@ export function useSpotTraderPositionPrices(
       return;
     }
 
-    if (!positionParam) {
+    if (tokenAddress === undefined) {
       setPricesByPeriod({});
       setIsLoading(false);
       return;
@@ -122,12 +130,12 @@ export function useSpotTraderPositionPrices(
     setIsLoading(true);
     let cancelled = false;
 
-    const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
+    const assetIdentifier = `erc20:${tokenAddress}`;
     const vsCurrency = currentCurrency.toLowerCase();
 
     const fetchPeriod = async (period: TimePeriod) => {
       const apiPeriod = PERIOD_TO_API[period];
-      const uri = `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
+      const uri = `${PRICE_API_V3_BASE_URL}/historical-prices/${caipChainId}/${assetIdentifier}?timePeriod=${apiPeriod}&vsCurrency=${vsCurrency}`;
       try {
         const response = await fetch(uri);
         if (response.status === 204 || !response.ok)
@@ -163,7 +171,7 @@ export function useSpotTraderPositionPrices(
     return () => {
       cancelled = true;
     };
-  }, [enabled, positionParam, caipChainId, currentCurrency]);
+  }, [enabled, tokenAddress, caipChainId, currentCurrency]);
 
   return {
     pricesByPeriod,

@@ -35,19 +35,29 @@ describe('createAsyncBatcher', () => {
   });
 
   it('resets the idle timer on each submit until the burst settles', async () => {
-    const processor = jest.fn(async () => undefined);
-    const batcher = createAsyncBatcher<string>(processor, 30);
+    // Real timers flake on CI: a 15ms wait can run after the 30ms debounce
+    // when the event loop is busy, so the batch fires before this assertion.
+    jest.useFakeTimers();
+    try {
+      const processor = jest.fn(async () => undefined);
+      const batcher = createAsyncBatcher<string>(processor, 30);
 
-    batcher.submit('a');
-    await wait(15);
-    batcher.submit('b');
-    await wait(15);
-    expect(processor).not.toHaveBeenCalled();
+      const first = batcher.submit('a');
+      await jest.advanceTimersByTimeAsync(15);
+      const second = batcher.submit('b');
+      await jest.advanceTimersByTimeAsync(15);
 
-    await batcher.submit('c');
+      expect(processor).not.toHaveBeenCalled();
 
-    expect(processor).toHaveBeenCalledTimes(1);
-    expect(processor).toHaveBeenCalledWith(['a', 'b', 'c']);
+      const third = batcher.submit('c');
+      await jest.advanceTimersByTimeAsync(30);
+      await Promise.all([first, second, third]);
+
+      expect(processor).toHaveBeenCalledTimes(1);
+      expect(processor).toHaveBeenCalledWith(['a', 'b', 'c']);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('rejects every submit that contributed to a failing batch', async () => {

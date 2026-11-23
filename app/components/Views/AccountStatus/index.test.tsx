@@ -1,4 +1,5 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import AccountStatus from '.';
@@ -13,6 +14,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { AccountStatusSelectorIDs } from './AccountStatus.testIds';
 import { AccountType } from '../../../constants/onboarding';
+import WalletNotFoundImg from '../../../images/wallet-not-found.png';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -30,7 +33,6 @@ let mockRouteParams:
       type?: string;
       accountName?: string;
       oauthLoginSuccess?: boolean;
-      onboardingTraceCtx?: unknown;
       provider?: string;
     }
   | undefined = {};
@@ -54,6 +56,16 @@ jest.mock('../../../util/theme', () => {
     useTheme: () => mockTheme,
   };
 });
+
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  getTraceContext: jest.fn().mockReturnValue({
+    _name: 'OnboardingJourneyOverall',
+    _id: 'mock-trace-id',
+  }),
+}));
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
@@ -90,6 +102,43 @@ describe('AccountStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+  });
+
+  describe('Illustration image', () => {
+    it.each([
+      AuthConnection.Google,
+      AuthConnection.Apple,
+      AuthConnection.Telegram,
+      undefined,
+    ])(
+      'shows the social login avatar and MetaMask fox when the wallet already exists (%s)',
+      (provider) => {
+        mockRouteParams = { type: 'found', provider };
+        const { getByTestId, UNSAFE_queryByType } = renderWithProvider(
+          <AccountStatus />,
+        );
+
+        expect(
+          getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_SOCIAL_AVATAR),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_FOX_AVATAR),
+        ).toBeOnTheScreen();
+        expect(UNSAFE_queryByType(Image)).toBeNull();
+      },
+    );
+
+    it('shows wallet-not-found image when type is not_exist', () => {
+      mockRouteParams = { type: 'not_exist' };
+      const { UNSAFE_getByType, queryByTestId } = renderWithProvider(
+        <AccountStatus />,
+      );
+
+      expect(UNSAFE_getByType(Image).props.source).toBe(WalletNotFoundImg);
+      expect(
+        queryByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_FOX_AVATAR),
+      ).toBeNull();
+    });
   });
 
   describe('Behavior Tests', () => {

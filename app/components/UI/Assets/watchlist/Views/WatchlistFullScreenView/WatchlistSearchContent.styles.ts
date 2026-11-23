@@ -28,7 +28,7 @@ const styleSheet = (params: {
       paddingVertical: 16,
     },
     skeletonOverlay: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       paddingHorizontal: 16,
       backgroundColor: theme.colors.background.default,
     },

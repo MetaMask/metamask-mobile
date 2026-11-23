@@ -2,9 +2,15 @@ import {
   TRIGGER_TYPES,
   INotification,
 } from '@metamask/notification-services-controller/notification-services';
+import { ImageSourcePropType } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
+import { ModalFieldType } from '../../constants';
+import { getNotificationBadge } from '../../methods/common';
 import { NotificationMenuItem } from './NotificationMenuItem';
-import { NotificationModalDetails } from './NotificationModalDetails';
+import {
+  ModalField,
+  NotificationModalDetails,
+} from './NotificationModalDetails';
 import { ExtractedNotification } from '../node-guard';
 
 type GuardFn<T extends INotification = INotification> = (
@@ -38,6 +44,16 @@ type SentReceivedNotification =
   | ERC721Notification
   | ERC1155Notification
   | NativeSentReceiveNotification;
+
+interface TemplatedNotification {
+  type: INotification['type'];
+  createdAt: INotification['createdAt'];
+  template?: {
+    title: string;
+    body?: string;
+  };
+}
+
 const isSent = (
   n:
     | NativeSentReceiveNotification
@@ -59,3 +75,37 @@ export const label_address_to = (n: SentReceivedNotification): string =>
   isSent(n)
     ? strings('notifications.modal.label_address_to')
     : strings('notifications.modal.label_address_to_you');
+
+export const createTemplateMenuItem = (
+  notification: TemplatedNotification,
+  imageUrl: string | ImageSourcePropType,
+): NotificationMenuItem => ({
+  title: notification.template?.title ?? '',
+  description: {
+    start: notification.template?.body ?? '',
+  },
+  image: {
+    url: imageUrl,
+  },
+  badgeIcon: getNotificationBadge(notification.type),
+  createdAt: notification.createdAt.toString(),
+});
+
+export const getSentReceivedModalFields = (
+  notification: SentReceivedNotification,
+): ModalField[] => [
+  {
+    type: ModalFieldType.ADDRESS,
+    label: label_address_from(notification),
+    address: notification.payload.data.from,
+  },
+  {
+    type: ModalFieldType.ADDRESS,
+    label: label_address_to(notification),
+    address: notification.payload.data.to,
+  },
+  {
+    type: ModalFieldType.TRANSACTION,
+    txHash: notification.payload.tx_hash,
+  },
+];

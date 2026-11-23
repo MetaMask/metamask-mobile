@@ -57,6 +57,13 @@ export function useHaptics(): HapticsPlayer {
     await withGatedPlayback(gateOptions, vendorSelection);
   }, [gateOptions]);
 
+  const fireImpact = useCallback(
+    (moment: HapticImpactMoment) => {
+      playImpact(moment).catch(() => undefined);
+    },
+    [playImpact],
+  );
+
   return useMemo(
     () => ({
       playSuccessNotification,
@@ -64,6 +71,7 @@ export function useHaptics(): HapticsPlayer {
       playWarningNotification,
       playImpact,
       playSelection: playSelectionFn,
+      fireImpact,
     }),
     [
       playSuccessNotification,
@@ -71,6 +79,7 @@ export function useHaptics(): HapticsPlayer {
       playWarningNotification,
       playImpact,
       playSelectionFn,
+      fireImpact,
     ],
   );
 }

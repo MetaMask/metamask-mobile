@@ -531,7 +531,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           {overlaySeries.map((series, index) => (
             <LineChart
               key={`${series.label}-${index}`}
-              style={StyleSheet.absoluteFillObject}
+              style={StyleSheet.absoluteFill}
               data={series.data.map((point) => point.value)}
               svg={{ stroke: series.color, strokeWidth: 2 }}
               contentInset={CHART_CONTENT_INSET}
@@ -543,7 +543,7 @@ const PredictDetailsChart: React.FC<PredictDetailsChartProps> = ({
           ))}
           {/* Tooltip overlay - rendered last to appear on top */}
           <LineChart
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             data={primaryChartData}
             svg={{ stroke: 'transparent', strokeWidth: 0 }}
             contentInset={CHART_CONTENT_INSET}

@@ -6,7 +6,6 @@ import { View, ActivityIndicator } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonSize,
@@ -15,7 +14,11 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { NotificationMoment } from '../../../../../util/haptics';
+import {
+  ImpactMoment,
+  NotificationMoment,
+  useHaptics,
+} from '../../../../../util/haptics';
 import { strings } from '../../../../../../locales/i18n';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../../component-library/components/Toast/Toast.types';
@@ -23,13 +26,13 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
-  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
-import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import PerpsCloseTotals from '../PerpsClosePositionBottomSheet/components/PerpsCloseTotals';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -41,25 +44,35 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
   onClose?: () => void;
   /** When provided, only these positions are shown and closed. */
   positions?: Position[];
+  /** Drops "all" from the title, which would misdescribe a filtered subset. */
+  isFiltered?: boolean;
+  enableHaptics?: boolean;
 }
 
 const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   sheetRef: externalSheetRef,
   onClose: onExternalClose,
   positions: propPositions,
+  isFiltered = false,
+  enableHaptics = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation<AppNavigationProp>();
   const internalSheetRef = useRef<BottomSheetRef>(null);
   const sheetRef = externalSheetRef || internalSheetRef;
   const { showToast } = usePerpsToasts();
+  const { playImpact } = useHaptics();
 
   // Fetch positions from live stream (used only when no positions prop is passed)
   const liveResult = usePerpsLivePositions({
@@ -83,10 +96,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
-
-  // Check opt-in status for rewards
-  const { accountOptedIn, account: rewardsAccount } =
-    usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
 
   // Track screen viewed event
   usePerpsEventTracking({
@@ -207,6 +216,16 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       },
     });
 
+  const handleCloseAllPress = useCallback(() => {
+    if (isClosing) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
+    }
+    handleCloseAll();
+  }, [enableHaptics, handleCloseAll, isClosing, playImpact]);
+
   const handleClose = useCallback(() => {
     if (externalSheetRef) {
       sheetRef.current?.onCloseBottomSheet(() => {
@@ -239,19 +258,28 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     [handleKeepButtonPress, isClosing],
   );
 
+  const closeCount = positions?.length ?? 0;
+
   const primaryButtonProps = useMemo(
     () => ({
       children: isClosing
         ? strings('perps.close_all_modal.closing')
-        : strings('perps.close_all_modal.close_all'),
-      onPress: handleCloseAll,
+        : strings('perps.close_all_modal.close_count', { count: closeCount }),
+      onPress: handleCloseAllPress,
       size: ButtonSize.Lg,
       isDisabled: isClosing,
       isDanger: true,
       testID: PerpsCloseAllPositionsViewSelectorsIDs.CLOSE_ALL_BUTTON,
     }),
-    [handleCloseAll, isClosing],
+    [closeCount, handleCloseAllPress, isClosing],
   );
+
+  const title = isFiltered
+    ? strings('perps.close_all_modal.title_filtered')
+    : strings('perps.close_all_modal.title');
+  const description = strings('perps.close_all_modal.description', {
+    count: closeCount,
+  });
 
   const goBack = externalSheetRef ? undefined : navigation.goBack;
   const onClose = externalSheetRef ? onExternalClose : undefined;
@@ -265,12 +293,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={onClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
-          {strings('perps.close_all_modal.title')}
-        </BottomSheetHeader>
+          {title}
+        </BottomSheetHeaderGlass>
         <Box paddingHorizontal={4}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator
@@ -292,12 +321,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={onClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
-          {strings('perps.close_all_modal.title')}
-        </BottomSheetHeader>
+          {title}
+        </BottomSheetHeaderGlass>
         <Box paddingHorizontal={4}>
           <View style={styles.emptyContainer}>
             <Text
@@ -320,12 +350,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       onClose={onClose}
       testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
       >
-        {strings('perps.close_all_modal.title')}
-      </BottomSheetHeader>
+        {title}
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="py-2">
         <Box paddingHorizontal={4}>
@@ -335,7 +366,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             style={styles.description}
             testID={PerpsCloseAllPositionsViewSelectorsIDs.DESCRIPTION}
           >
-            {strings('perps.close_all_modal.description')}
+            {description}
           </Text>
         </Box>
 
@@ -359,25 +390,23 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             </View>
           </Box>
         ) : (
-          <PerpsCloseSummary
-            totalMargin={calculations.totalMargin}
-            totalPnl={calculations.totalPnl}
-            totalFees={calculations.totalFees}
-            feeDiscountPercentage={calculations.avgFeeDiscountPercentage}
-            metamaskFeeRate={calculations.avgMetamaskFeeRate}
-            protocolFeeRate={calculations.avgProtocolFeeRate}
-            originalMetamaskFeeRate={calculations.avgOriginalMetamaskFeeRate}
-            receiveAmount={calculations.receiveAmount}
-            shouldShowRewards={calculations.shouldShowRewards}
-            estimatedPoints={calculations.totalEstimatedPoints}
-            bonusBips={calculations.avgBonusBips}
-            isLoadingFees={calculations.isLoading}
-            isLoadingRewards={calculations.isLoading}
-            hasRewardsError={calculations.hasError}
-            accountOptedIn={accountOptedIn}
-            rewardsAccount={rewardsAccount}
-            enableTooltips={false}
-          />
+          <>
+            <PerpsCloseTotals
+              pnl={calculations.totalPnl}
+              receiveAmount={calculations.receiveAmount}
+              margin={calculations.totalMargin}
+              marginMode={calculations.summaryMarginMode}
+              testIDs={{
+                marginValue:
+                  PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
+                receiveValue:
+                  PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
+                pnlValue: PerpsCloseAllPositionsViewSelectorsIDs.PNL_VALUE,
+                pnlRow: PerpsCloseAllPositionsViewSelectorsIDs.PNL_ROW,
+              }}
+            />
+            <PerpsRebateBanner containerTwClassName="px-4 mb-3" />
+          </>
         )}
       </Box>
 

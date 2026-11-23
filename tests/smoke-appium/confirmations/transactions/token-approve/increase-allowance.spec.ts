@@ -16,10 +16,9 @@ import {
 } from '../../../../framework/fixtures/FixtureUtils.js';
 import RowComponents from '../../../../page-objects/Browser/Confirmations/RowComponents.js';
 import TokenApproveConfirmation from '../../../../page-objects/Confirmation/TokenApproveConfirmation.js';
-import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations.js';
+import { setupSimulationEnabledNetworksMocks } from '../../../../api-mocking/mock-responses/simulations.js';
 import { TestDappSelectorsWebIDs } from '../../../../selectors/Browser/TestDapp.selectors.js';
 import { DappVariants } from '../../../../framework/Constants.js';
-import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers.js';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks.js';
@@ -55,12 +54,7 @@ function buildIncreaseAllowanceFixture({
 }
 
 const testSpecificMock = async (mockServer: Mockttp) => {
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
-    response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
-    responseCode: 200,
-  });
+  await setupSimulationEnabledNetworksMocks(mockServer);
   await setupRemoteFeatureFlagsMock(
     mockServer,
     Object.assign({}, ...confirmationFeatureFlags),

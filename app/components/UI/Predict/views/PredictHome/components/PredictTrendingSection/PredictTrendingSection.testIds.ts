@@ -8,6 +8,7 @@ import { PredictHomeSelectorsIDs } from '../../../../Predict.testIds';
 export const PREDICT_TRENDING_SECTION_TEST_IDS = {
   SECTION: PredictHomeSelectorsIDs.TRENDING_SECTION,
   HEADER: 'predict-home-trending-header',
+  HEADER_CHEVRON: 'predict-home-trending-header-chevron',
   CARD_PREFIX: 'predict-home-trending-card',
   SKELETON_PREFIX: 'predict-home-trending-skeleton',
   ERROR_STATE: 'predict-home-trending-error-state',

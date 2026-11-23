@@ -1,10 +1,11 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet } from 'react-native';
-import BottomSheet, {
+import {
+  BottomSheet,
+  Button,
+  ButtonVariant,
   type BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+} from '@metamask/design-system-react-native';
 import { Box } from '../../../Box/Box';
 import {
   AlignItems,
@@ -29,6 +30,10 @@ import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockE
 import { Transaction } from '@metamask/keyring-api';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
+import { BlockExplorersModalSelectorsIDs } from './BlockExplorersModal.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
@@ -47,6 +52,7 @@ interface BlockExplorersModalRouteParams {
 }
 
 const BlockExplorersModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -101,10 +107,14 @@ const BlockExplorersModal = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      testID={BlockExplorersModalSelectorsIDs.SHEET}
+    >
+      <BottomSheetHeaderGlass isGlass={isGlassHeader}>
         {strings('bridge_transaction_details.view_on_block_explorer')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box
         style={styles.container}
         flexDirection={FlexDirection.Column}

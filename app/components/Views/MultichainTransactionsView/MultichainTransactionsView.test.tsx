@@ -1,4 +1,6 @@
 import React from 'react';
+import { FlashList } from '@shopify/flash-list';
+import { StyleSheet, type GestureResponderEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
@@ -8,24 +10,17 @@ import {
   TransactionStatus,
   TransactionType,
 } from '@metamask/keyring-api';
-import MultichainTransactionsView, {
-  getMultichainTransactionItemType,
-} from './MultichainTransactionsView';
+import MultichainTransactionsView from './MultichainTransactionsView';
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
-import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
+import type { ButtonProps } from '@metamask/design-system-react-native';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { configureUseAnalyticsExternalLinkMock } from '../../../util/test/analyticsMock';
-import {
-  selectIsActivityRedesignEnabled,
-  selectIsTransactionsRedesignEnabled,
-} from '../../../selectors/featureFlagController/activityRedesign';
 import { ActivityListItemRow } from '../../UI/ActivityListItemRow/ActivityListItemRow';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 import Routes from '../../../constants/navigation/Routes';
-jest.useFakeTimers();
+import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 
 jest.mock('../../../util/analytics/externalLinkTracking', () => ({
   ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
@@ -45,16 +40,8 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
-jest.mock(
-  '../../UI/MultichainTransactionListItem',
-  () => 'MockTransactionListItem',
-);
 jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
   ActivityListItemRow: jest.fn(() => null),
-}));
-jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
-  selectIsActivityRedesignEnabled: jest.fn(() => false),
-  selectIsTransactionsRedesignEnabled: jest.fn(() => false),
 }));
 jest.mock('../../UI/Bridge/utils/transaction-history', () => ({
   handleUnifiedSwapsTxHistoryItemClick: jest.fn(),
@@ -70,10 +57,8 @@ jest.mock('../../hooks/useMultichainTransactionDisplay', () => ({
     isRedeposit: false,
   })),
 }));
-jest.mock('../../../component-library/components/Buttons/Button', () => {
-  const ButtonVariants = { Link: 'Link', Primary: 'Primary' };
-  const ButtonSize = { Lg: 'Lg', Md: 'Md' };
-
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
   const MockButton = (props: ButtonProps) => {
     MockButton.lastProps = props;
     return 'MockButton';
@@ -82,10 +67,8 @@ jest.mock('../../../component-library/components/Buttons/Button', () => {
   MockButton.lastProps = {} as ButtonProps;
 
   return {
-    __esModule: true,
-    default: MockButton,
-    ButtonVariants,
-    ButtonSize,
+    ...actual,
+    Button: MockButton,
   };
 });
 
@@ -141,41 +124,12 @@ describe('MultichainTransactionsView', () => {
     },
   ];
 
-  it('uses distinct recycle pools for standard and bridge transactions', () => {
-    expect(
-      getMultichainTransactionItemType(mockTransactions[0], false, {}),
-    ).toBe('transaction');
-    expect(
-      getMultichainTransactionItemType(mockTransactions[1], false, {}),
-    ).toBe('transaction');
-    expect(
-      getMultichainTransactionItemType(mockTransactions[0], false, {
-        [mockTransactions[0].id]: {},
-      }),
-    ).toBe('bridge-transaction');
-  });
-
-  const customRender = (ui: React.ReactElement) => {
-    const utils = render(ui);
-
-    return {
-      ...utils,
-      queryAllByTestId: (id: string) => {
-        if (id === 'transaction-item') {
-          return Array(mockTransactions.length).fill({});
-        }
-        return utils.queryAllByTestId(id);
-      },
-    };
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.clearAllTimers();
 
-    const { default: MockButton } = jest.requireMock(
-      '../../../component-library/components/Buttons/Button',
-    ) as { default: { lastProps: ButtonProps } };
+    const { Button: MockButton } = jest.requireMock(
+      '@metamask/design-system-react-native',
+    ) as { Button: { lastProps: ButtonProps } };
     MockButton.lastProps = {} as ButtonProps;
 
     configureUseAnalyticsExternalLinkMock();
@@ -207,9 +161,6 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return mockTransactionsData;
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return false;
-      }
       return null;
     });
   });
@@ -225,7 +176,7 @@ describe('MultichainTransactionsView', () => {
       return null;
     });
 
-    const { getByText } = customRender(
+    const { getByText } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -235,19 +186,7 @@ describe('MultichainTransactionsView', () => {
     expect(getByText('wallet.no_transactions')).toBeTruthy();
   });
 
-  it('renders transaction list items when transactions are available', async () => {
-    const { queryAllByTestId } = customRender(
-      <MultichainTransactionsView
-        selectedAddress={mockSelectedAddress}
-        chainId={SolScope.Mainnet}
-      />,
-    );
-
-    const transactionItems = queryAllByTestId('transaction-item');
-    expect(transactionItems.length).toBe(2);
-  });
-
-  it('renders redesigned activity rows for asset details when activity redesign is enabled', async () => {
+  it('renders activity rows for asset details', async () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectSelectedInternalAccountFormattedAddress) {
         return mockSelectedAddress;
@@ -255,13 +194,10 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       return null;
     });
 
-    const { queryAllByTestId } = customRender(
+    const { queryAllByTestId } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -278,11 +214,78 @@ describe('MultichainTransactionsView', () => {
       }),
       undefined,
     );
+    expect(useMultichainTransactionDisplay).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'tx-123' }),
+      SolScope.Mainnet,
+    );
     expect(
       jest.mocked(ActivityListItemRow).mock.calls[0][0],
     ).not.toHaveProperty('title');
     expect(queryAllByTestId('activity-list-date-header')).toHaveLength(2);
   });
+
+  it.each([
+    [TransactionType.StakeDeposit, 'stake', 'out'],
+    [TransactionType.StakeWithdraw, 'unstake', 'in'],
+  ])(
+    'classifies a Tron %s as a %s row',
+    async (keyringType, expectedType, expectedDirection) => {
+      const movement = [
+        {
+          address: mockSelectedAddress,
+          asset: {
+            amount: '100',
+            fungible: true,
+            type: 'tron:728126428/slip44:195',
+            unit: 'TRX',
+          },
+        },
+      ];
+      const stakingTransaction = {
+        id: 'tron-stake',
+        chain: 'tron:728126428',
+        from: keyringType === TransactionType.StakeDeposit ? movement : [],
+        to: keyringType === TransactionType.StakeWithdraw ? movement : [],
+        type: keyringType,
+        status: TransactionStatus.Confirmed,
+        timestamp: 1742400000,
+      };
+
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectSelectedInternalAccountFormattedAddress) {
+          return mockSelectedAddress;
+        }
+        if (selector === selectNonEvmTransactions) {
+          return { transactions: [stakingTransaction] };
+        }
+        return null;
+      });
+
+      render(
+        <MultichainTransactionsView
+          selectedAddress={mockSelectedAddress}
+          chainId={SolScope.Mainnet}
+          location={TransactionDetailLocation.AssetDetails}
+        />,
+      );
+
+      expect(ActivityListItemRow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item: expect.objectContaining({
+            type: expectedType,
+            data: expect.objectContaining({
+              token: expect.objectContaining({
+                symbol: 'TRX',
+                amount: '100',
+                direction: expectedDirection,
+              }),
+            }),
+          }),
+        }),
+        undefined,
+      );
+    },
+  );
 
   it('keeps swaps carrying bridge history on the redesigned row instead of the legacy bridge row', async () => {
     const bridgeHistoryItem = {
@@ -302,16 +305,13 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-1': bridgeHistoryItem };
       }
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -362,16 +362,13 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-1': bridgeHistoryItem };
       }
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -396,13 +393,10 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: [{ ...mockTransactions[0], chain: undefined }] };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -464,16 +458,13 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-arrival-1': bridgeHistoryItem };
       }
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -485,8 +476,8 @@ describe('MultichainTransactionsView', () => {
     expect(ActivityListItemRow).toHaveBeenCalledWith(
       expect.objectContaining({
         item: expect.objectContaining({
+          hash: '0xbase-source-hash',
           type: 'bridge',
-          raw: expect.objectContaining({ type: 'localTransaction' }),
         }),
       }),
       undefined,
@@ -541,16 +532,13 @@ describe('MultichainTransactionsView', () => {
         // mockTransactions[0].id === FILL_SIGNATURE, i.e. the indexed fill.
         return { transactions: mockTransactions };
       }
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return { 'bridge-arrival-1': bridgeHistoryItem };
       }
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -565,10 +553,10 @@ describe('MultichainTransactionsView', () => {
 
     expect(bridgeRows).toHaveLength(1);
     // The surviving row is the arrival (the EVM source tx), not the fill.
-    expect(bridgeRows[0][0].item.raw?.type).toBe('localTransaction');
+    expect(bridgeRows[0][0].item.hash).toBe('0xbase-source-hash');
   });
 
-  it('falls back to the bridge-status screen when a bridge arrival is tapped with details redesign off', async () => {
+  it('navigates to ActivityDetails when a bridge arrival is tapped', async () => {
     const bridgeArrival = {
       id: 'bridge-arrival-1',
       chainId: '0x2105',
@@ -586,20 +574,13 @@ describe('MultichainTransactionsView', () => {
       if (selector === selectNonEvmTransactions) {
         return { transactions: [] };
       }
-      // List redesign on, details redesign off.
-      if (selector === selectIsActivityRedesignEnabled) {
-        return true;
-      }
-      if (selector === selectIsTransactionsRedesignEnabled) {
-        return false;
-      }
       if (selector === selectBridgeHistoryForAccount) {
         return {};
       }
       return null;
     });
 
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
@@ -611,20 +592,17 @@ describe('MultichainTransactionsView', () => {
     const rowProps = jest.mocked(ActivityListItemRow).mock.calls[0][0];
     rowProps.onPress?.(rowProps.item);
 
-    // Must not be inert.
-    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
-      expect.objectContaining({
-        evmTxMeta: expect.objectContaining({ id: 'bridge-arrival-1' }),
-      }),
-    );
-    expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
-      expect.anything(),
+      expect.objectContaining({
+        chainId: 'eip155:8453',
+        txIdentifier: '0xbase-source-hash',
+      }),
     );
   });
 
   it('does not render view more link for bitcoin activity', async () => {
-    const { queryByText } = customRender(
+    const { queryByText } = render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={BtcScope.Mainnet}
@@ -637,18 +615,18 @@ describe('MultichainTransactionsView', () => {
   });
 
   it('tracks External Link Clicked when view more explorer link is pressed', () => {
-    customRender(
+    render(
       <MultichainTransactionsView
         selectedAddress={mockSelectedAddress}
         chainId={SolScope.Mainnet}
       />,
     );
 
-    const { default: MockButton } = jest.requireMock(
-      '../../../component-library/components/Buttons/Button',
-    ) as { default: { lastProps: ButtonProps } };
+    const { Button: MockButton } = jest.requireMock(
+      '@metamask/design-system-react-native',
+    ) as { Button: { lastProps: ButtonProps } };
 
-    MockButton.lastProps.onPress?.();
+    MockButton.lastProps.onPress?.({} as GestureResponderEvent);
 
     expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
       expect.any(Function),
@@ -662,5 +640,51 @@ describe('MultichainTransactionsView', () => {
       screen: 'SimpleWebview',
       params: { url: 'https://solscan.io/account/testaddress' },
     });
+  });
+
+  it('moves the refresh spinner below a floating header', () => {
+    const { UNSAFE_getByType } = render(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        enableRefresh
+        refreshControlOffset={96}
+      />,
+    );
+
+    expect(
+      UNSAFE_getByType(FlashList).props.refreshControl.props.progressViewOffset,
+    ).toBe(96);
+  });
+
+  it('pads the list to clear a footer floating over it', () => {
+    const { UNSAFE_getByType } = render(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+        contentBottomInset={120}
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        UNSAFE_getByType(FlashList).props.contentContainerStyle,
+      ),
+    ).toMatchObject({ paddingBottom: 120 });
+  });
+
+  it('keeps the default bottom padding without an inset', () => {
+    const { UNSAFE_getByType } = render(
+      <MultichainTransactionsView
+        selectedAddress={mockSelectedAddress}
+        chainId={SolScope.Mainnet}
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        UNSAFE_getByType(FlashList).props.contentContainerStyle,
+      ),
+    ).toMatchObject({ paddingBottom: 80 });
   });
 });

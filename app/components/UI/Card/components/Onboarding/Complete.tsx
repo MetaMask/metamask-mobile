@@ -1,34 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Image } from 'react-native';
 import {
   StackActions,
   useNavigation,
   useRoute,
   RouteProp,
 } from '@react-navigation/native';
+import { useDispatch, useSelector } from 'react-redux';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import OnboardingStep from './OnboardingStep';
-import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-import { useDispatch } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { CardActions, CardScreens } from '../../util/metrics';
+import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
+import { CardProviderIds } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { getCardBaanxToken } from '../../util/cardTokenVault';
 import Logger from '../../../../../util/Logger';
-import MM_CARD_ONBOARDING_SUCCESS from '../../../../../images/mm-card-onboarding-success.png';
-import {
-  Box,
-  FontFamily,
-  FontWeight,
-  Text,
-  TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import CardVerifiedContent from './CardVerifiedContent';
+
+export { COMPLETE_ENTRANCE_START_TIMEOUT_MS } from './CardVerifiedContent';
 
 /**
  * Route params for Complete screen
@@ -45,10 +38,16 @@ interface CompleteRouteParams {
   nextDestination?: NextDestination;
 }
 
+/**
+ * Baanx card onboarding success ("You're verified"). Continue is the only
+ * exit. The visual lives in `CardVerifiedContent`, which Immersve also shows
+ * in place after KYC.
+ */
 const Complete = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [isLoading, setIsLoading] = useState(false);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
@@ -58,9 +57,11 @@ const Complete = () => {
   useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({
-          screen: CardScreens.COMPLETE,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            screen: CardScreens.COMPLETE,
+          }),
+        )
         .build(),
     );
   }, [trackEvent, createEventBuilder]);
@@ -69,9 +70,11 @@ const Complete = () => {
     setIsLoading(true);
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.COMPLETE_BUTTON,
-        })
+        .addProperties(
+          withCardProvider(CardProviderIds.Baanx, {
+            action: CardActions.COMPLETE_BUTTON,
+          }),
+        )
         .build(),
     );
 
@@ -114,53 +117,18 @@ const Complete = () => {
     }
   };
 
-  const renderFormFields = () => (
-    <>
-      <Box twClassName="flex flex-1 items-center justify-center">
-        <Image
-          source={MM_CARD_ONBOARDING_SUCCESS}
-          resizeMode="contain"
-          style={tw.style('w-full h-full')}
-        />
-      </Box>
-      <Text
-        fontFamily={FontFamily.Accent}
-        fontWeight={FontWeight.Regular}
-        twClassName="text-[36px] text-center leading-1"
-      >
-        {strings('card.card_onboarding.complete.title')}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        twClassName="text-center text-text-alternative px-4"
-      >
-        {strings('card.card_onboarding.complete.description')}
-      </Text>
-    </>
-  );
-
-  const renderActions = () => (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      isDisabled={isLoading}
-      isLoading={isLoading}
-      isFullWidth
-      testID="complete-confirm-button"
-    >
-      {strings('card.card_onboarding.complete.confirm_button')}
-    </Button>
-  );
-
   return (
-    <OnboardingStep
-      title=""
-      description=""
-      formFields={renderFormFields()}
-      actions={renderActions()}
-      headerMode="back"
-    />
+    <SafeAreaView
+      edges={['right', 'bottom', 'left']}
+      style={tw.style('flex-1 bg-default')}
+    >
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
+        includesTopInset
+      />
+      <CardVerifiedContent onContinue={handleContinue} isLoading={isLoading} />
+    </SafeAreaView>
   );
 };
 

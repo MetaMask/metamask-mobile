@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details.styles';
@@ -31,6 +31,8 @@ import {
   getMoneyActivityStatus,
   moneyActivityLabel,
 } from '../../../../../UI/Money/utils/classifyMoneyActivity';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -44,6 +46,7 @@ export const SUMMARY_SECTION_TYPES = [
 ];
 
 export function TransactionDetails() {
+  const isGlassHeader = useIsGlassHeader();
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const { transactionMeta } = useTransactionDetails();
@@ -61,7 +64,9 @@ export function TransactionDetails() {
 
   return (
     <View style={styles.wrapper}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={title}
         onBack={handleBack}
         backButtonProps={{ testID: 'transaction-details-back-button' }}

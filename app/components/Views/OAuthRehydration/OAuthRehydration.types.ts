@@ -1,5 +1,3 @@
-import type { TraceContext } from '../../../util/trace';
-
 /**
  * Route params for `OnboardingOAuthRehydrate` (nested in onboarding navigator).
  * @see Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE
@@ -7,7 +5,6 @@ import type { TraceContext } from '../../../util/trace';
 export interface OnboardingOAuthRehydrateParams {
   previous_screen?: string;
   oauthLoginSuccess?: boolean;
-  onboardingTraceCtx?: TraceContext;
 }
 
 /**

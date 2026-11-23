@@ -5,7 +5,7 @@ import {
 } from '@metamask/controller-utils';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import useApprovalRequest from '../useApprovalRequest';
-import { Alert, Severity } from '../../types/alerts';
+import { Alert, NO_ALERTS, Severity } from '../../types/alerts';
 import { useSignatureRequest } from '../signatures/useSignatureRequest';
 import { isSIWESignatureRequest } from '../../utils/signature';
 import { strings } from '../../../../../../locales/i18n';
@@ -46,7 +46,7 @@ export default function useDomainMismatchAlerts(): Alert[] {
 
   const alerts = useMemo(() => {
     if (!isInvalidSIWEDomain) {
-      return [];
+      return NO_ALERTS;
     }
 
     return [

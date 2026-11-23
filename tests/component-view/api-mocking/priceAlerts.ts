@@ -1,6 +1,6 @@
 /**
  * Price Alerts API mock for component view tests.
- * Intercepts GET https://price-alerts.dev-api.cx.metamask.io/v1/alerts?asset=*
+ * Intercepts GET {PRICE_ALERTS_API.URL}/v1/alerts?asset=*
  *
  * Note: api.ts uses Engine.context.AuthenticationController.getBearerToken()
  * for the Authorization header — that is already stubbed in mocks.ts.
@@ -9,7 +9,8 @@
  */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock, { type Scope } from 'nock';
+import nock from 'nock';
+import AppConstants from '../../../app/core/AppConstants';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -22,7 +23,7 @@ import type {
   UpdatePercentAlertParams,
 } from '../../../app/components/UI/Assets/PriceAlerts/constants';
 
-const PRICE_ALERTS_ORIGIN = 'https://price-alerts.dev-api.cx.metamask.io';
+const PRICE_ALERTS_ORIGIN = AppConstants.PRICE_ALERTS_API.URL;
 const ALERTS_PATH = '/v1/alerts';
 const PERCENT_ALERTS_PATH = `${ALERTS_PATH}/percent-change`;
 
@@ -103,7 +104,7 @@ export function setupPriceAlertsApiMock(
  * after {@link setupPriceAlertsApiMock} has already been called in beforeEach.
  * Returns the nock scope so callers can assert `scope.isDone()`.
  */
-export function setupPriceAlertsPostMock(): Scope {
+export function setupPriceAlertsPostMock(): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .post(ALERTS_PATH)
     .reply(201, mockCreatedAlert);
@@ -113,7 +114,7 @@ export function setupPriceAlertsPostMock(): Scope {
  * Registers a one-shot DELETE /v1/alerts/:id nock interceptor.
  * Returns the nock scope so callers can assert `scope.isDone()`.
  */
-export function setupPriceAlertsDeleteMock(alertId: string): Scope {
+export function setupPriceAlertsDeleteMock(alertId: string): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .delete(`${ALERTS_PATH}/${alertId}`)
     .reply(200);
@@ -123,7 +124,7 @@ export function setupPriceAlertsDeleteMock(alertId: string): Scope {
  * Registers a one-shot PATCH /v1/alerts/:id nock interceptor.
  * Returns the nock scope so callers can assert `scope.isDone()`.
  */
-export function setupPriceAlertsPatchMock(alertId: string): Scope {
+export function setupPriceAlertsPatchMock(alertId: string): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .patch(`${ALERTS_PATH}/${alertId}`)
     .reply(200);
@@ -135,7 +136,7 @@ export function setupPriceAlertsPatchMock(alertId: string): Scope {
  */
 export function setupPercentPriceAlertsPostMock(
   expectedBody: SavePercentAlertParams,
-): Scope {
+): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .post(
       PERCENT_ALERTS_PATH,
@@ -151,7 +152,7 @@ export function setupPercentPriceAlertsPostMock(
 export function setupPercentPriceAlertsPatchMock(
   alertId: string,
   expectedBody: UpdatePercentAlertParams,
-): Scope {
+): nock.Scope {
   return nock(PRICE_ALERTS_ORIGIN)
     .patch(
       `${PERCENT_ALERTS_PATH}/${alertId}`,

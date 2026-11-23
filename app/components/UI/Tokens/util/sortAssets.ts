@@ -48,6 +48,10 @@ export function sortAssets<T>(
     const bValue = getNestedValue(b, key);
 
     // Always move undefined values to the end, regardless of sort order
+    if (aValue == null && bValue == null) {
+      return 0;
+    }
+
     if (aValue == null) {
       return 1;
     }

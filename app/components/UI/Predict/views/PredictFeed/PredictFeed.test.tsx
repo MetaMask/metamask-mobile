@@ -1,7 +1,7 @@
 /**
  * Unit tests for PredictFeed.
  */
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import {
   PredictMarketListSelectorsIDs,
@@ -99,9 +99,12 @@ import {
   type UsePredictMarketDataOptions,
 } from '../../hooks/usePredictMarketData';
 import { usePredictSearchMarketData } from '../../hooks/usePredictSearchMarketData';
+import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
+import { TraceName } from '../../../../../util/trace';
 
 const mockUsePredictMarketData = usePredictMarketData as jest.Mock;
 const mockUsePredictSearchMarketData = usePredictSearchMarketData as jest.Mock;
+const mockUsePredictMeasurement = usePredictMeasurement as jest.Mock;
 
 const mockUseSelector = jest.fn();
 const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
@@ -116,6 +119,27 @@ let mockWimbledonTabFlag = {
 let mockIsFeaturedCarouselEnabled = false;
 let mockIsUpDownEnabled = false;
 let mockIsPredictPortfolioEnabled = false;
+let mockIsPredictBrandRefreshEnabled = false;
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  () => ({
+    selectPredictBrandRefreshEnabled: 'selectPredictBrandRefreshEnabled',
+  }),
+);
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
 
 jest.mock('react-redux', () => {
   const actualReactRedux = jest.requireActual('react-redux');
@@ -125,7 +149,13 @@ jest.mock('react-redux', () => {
   };
 });
 
+// The venue picker is a PredictNext module with its own view tests.
+jest.mock('../../../PredictNext/venueSelection', () => ({
+  PredictVenueSelectorButton: () => null,
+}));
+
 jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
   selectPredictFeaturedCarouselEnabledFlag:
     'selectPredictFeaturedCarouselEnabledFlag',
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',
@@ -345,8 +375,11 @@ describe('PredictFeed', () => {
     mockIsFeaturedCarouselEnabled = false;
     mockIsUpDownEnabled = false;
     mockIsPredictPortfolioEnabled = false;
+    mockIsPredictBrandRefreshEnabled = false;
     mockUseSelector.mockImplementation((selector: string) => {
       switch (selector) {
+        case 'selectPredictBrandRefreshEnabled':
+          return mockIsPredictBrandRefreshEnabled;
         case 'selectPredictFeaturedCarouselEnabledFlag':
           return mockIsFeaturedCarouselEnabled;
         case 'selectPredictHotTabFlag':
@@ -507,6 +540,22 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
 
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('renders header buttons without glass capsules when the brand refresh is off', () => {
+      const { queryByTestId } = render(<PredictFeed />);
+
+      expect(queryByTestId('capsule')).toBeNull();
+    });
+
+    it('renders back and search in glass capsules when the brand refresh is on', () => {
+      mockIsPredictBrandRefreshEnabled = true;
+
+      const { getAllByTestId, getByTestId } = render(<PredictFeed />);
+      fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
+
+      expect(getAllByTestId('capsule')).toHaveLength(2);
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
   });
@@ -1034,6 +1083,62 @@ describe('PredictFeed', () => {
       expect(getEnabledForCategory('hot')).toBe(true);
       expect(getEnabledForCategory('trending')).toBe(false);
       expect(getEnabledForCategory('new')).toBe(false);
+    });
+  });
+
+  describe('feed TTI measurement', () => {
+    const getLatestMeasurementConditions = (): boolean[] | undefined => {
+      const calls = mockUsePredictMeasurement.mock.calls as [
+        { conditions?: boolean[]; traceName?: string },
+      ][];
+      return calls[calls.length - 1]?.[0]?.conditions;
+    };
+
+    it('keeps PredictFeedView open while the active tab is in its initial fetch', () => {
+      mockUsePredictMarketData.mockReturnValue({
+        marketData: [],
+        isFetching: true,
+        isFetchingMore: false,
+        error: null,
+        hasMore: false,
+        refetch: jest.fn(),
+        fetchMore: jest.fn(),
+      });
+
+      render(<PredictFeed />);
+
+      expect(mockUsePredictMeasurement).toHaveBeenCalledWith(
+        expect.objectContaining({
+          traceName: TraceName.PredictFeedView,
+          conditions: [true, false],
+        }),
+      );
+    });
+
+    it('ends PredictFeedView after the active tab leaves its initial skeleton', async () => {
+      render(<PredictFeed />);
+
+      await waitFor(() => {
+        expect(getLatestMeasurementConditions()).toEqual([true, true]);
+      });
+    });
+
+    it('keeps PredictFeedView open until tabs mount', () => {
+      mockUseFeedScrollManager.mockReturnValue({
+        headerTranslateY: { value: 0 },
+        headerHidden: false,
+        headerHeight: 100,
+        tabBarHeight: 48,
+        layoutReady: false,
+        onTabSwitch: jest.fn(),
+        scrollHandler: jest.fn(),
+        onHeaderLayout: jest.fn(),
+        onTabBarLayout: jest.fn(),
+      });
+
+      render(<PredictFeed />);
+
+      expect(getLatestMeasurementConditions()).toEqual([true, false]);
     });
   });
 });

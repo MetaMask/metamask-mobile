@@ -39,6 +39,20 @@ jest.mock('./components/QuickBuyActionFooter', () => {
   };
 });
 
+jest.mock('../Bridge/hooks/useEnsureDestTokenSecurityData', () => ({
+  useEnsureDestTokenSecurityData: jest.fn(),
+}));
+
+jest.mock('../Bridge/components/SwapsBanners', () => {
+  const ReactMock = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    SwapsBanners: ({ children }: { children: React.ReactNode }) => children,
+    TokenWarningBanner: () =>
+      ReactMock.createElement(View, { testID: 'mock-token-warning-banner' }),
+  };
+});
+
 describe('QuickBuyAmountScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,6 +69,12 @@ describe('QuickBuyAmountScreen', () => {
     expect(screen.UNSAFE_queryByType(ScrollView)).toBeNull();
   });
 
+  it('renders the token warning banner', () => {
+    render(<QuickBuyAmountScreen />);
+
+    expect(screen.getByTestId('mock-token-warning-banner')).toBeOnTheScreen();
+  });
+
   it('renders unsupported chain message when chain is unsupported', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       isUnsupportedChain: true,
@@ -68,10 +88,11 @@ describe('QuickBuyAmountScreen', () => {
     expect(screen.queryByTestId('quick-buy-amount-container')).toBeNull();
   });
 
-  it('leaves the amount area interactive when the user has funds to pay with', () => {
+  it('leaves the amount area and keypad interactive when the user has funds', () => {
     render(<QuickBuyAmountScreen />);
 
-    expect(screen.queryByTestId('quick-buy-disabled-section')).toBeNull();
+    expect(screen.queryByTestId('quick-buy-disabled-amount')).toBeNull();
+    expect(screen.queryByTestId('quick-buy-disabled-keypad')).toBeNull();
   });
 
   // TSA-984: with nothing to pay with no quote can be fetched, so the amount
@@ -84,12 +105,28 @@ describe('QuickBuyAmountScreen', () => {
 
     render(<QuickBuyAmountScreen />);
 
-    const disabled = screen.getByTestId('quick-buy-disabled-section');
+    const disabled = screen.getByTestId('quick-buy-disabled-amount');
     expect(disabled.props.pointerEvents).toBe('none');
     expect(screen.getByTestId('quick-buy-amount-container')).toBeOnTheScreen();
   });
 
-  it('keeps the toolbar outside the inert region so the sheet can still be closed', () => {
+  // Regression guard: the keypad must stay mounted and expanded so the sheet
+  // height never depends on `hasNoPayWithFunds` (that dependency made a funded
+  // account open collapsed then expand — a visible flash). It is blocked rather
+  // than collapsed, so its digit keys cannot type into a dead amount field.
+  it('keeps the keypad mounted but inert when the user has nothing to pay with', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      isUnsupportedChain: false,
+      hasNoPayWithFunds: true,
+    });
+
+    render(<QuickBuyAmountScreen />);
+
+    const disabledKeypad = screen.getByTestId('quick-buy-disabled-keypad');
+    expect(disabledKeypad.props.pointerEvents).toBe('none');
+  });
+
+  it('keeps the toolbar outside the inert regions so the sheet can still be closed', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       isUnsupportedChain: false,
       hasNoPayWithFunds: true,
@@ -99,8 +136,16 @@ describe('QuickBuyAmountScreen', () => {
 
     // The toolbar owns the close button — trapping the user in an inert sheet
     // would be a worse failure than the bug being fixed.
-    const disabled = screen.getByTestId('quick-buy-disabled-section');
     expect(screen.getByTestId('mock-toolbar')).toBeOnTheScreen();
-    expect(within(disabled).queryByTestId('mock-toolbar')).toBeNull();
+    expect(
+      within(screen.getByTestId('quick-buy-disabled-amount')).queryByTestId(
+        'mock-toolbar',
+      ),
+    ).toBeNull();
+    expect(
+      within(screen.getByTestId('quick-buy-disabled-keypad')).queryByTestId(
+        'mock-toolbar',
+      ),
+    ).toBeNull();
   });
 });

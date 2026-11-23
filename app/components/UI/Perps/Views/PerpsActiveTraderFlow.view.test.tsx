@@ -32,6 +32,7 @@ import PerpsLeverageBottomSheet from '../components/PerpsLeverageBottomSheet/Per
 import PerpsLimitPriceBottomSheet from '../components/PerpsLimitPriceBottomSheet/PerpsLimitPriceBottomSheet';
 import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWarningBottomSheet/PerpsCrossMarginWarningBottomSheet';
 import type { Order } from '@metamask/perps-controller';
+import { PerpsLeverageBottomSheetSelectorsIDs } from '../Perps.testIds';
 
 const FlipSheetWrapper: React.FC = () => (
   <PerpsFlipPositionConfirmSheet
@@ -42,6 +43,7 @@ const FlipSheetWrapper: React.FC = () => (
 );
 
 const mockOnSelectAction = jest.fn();
+const mockOnLeverageConfirm = jest.fn();
 const AdjustMarginSheetWrapper: React.FC = () => (
   <PerpsAdjustMarginActionSheet
     onClose={jest.fn()}
@@ -53,7 +55,7 @@ const LeverageVisibleWrapper: React.FC = () => (
   <PerpsLeverageBottomSheet
     isVisible
     onClose={jest.fn()}
-    onConfirm={jest.fn()}
+    onConfirm={mockOnLeverageConfirm}
     leverage={5}
     minLeverage={1}
     maxLeverage={50}
@@ -200,6 +202,7 @@ describe('Active Trader Flow', () => {
 
   beforeEach(() => {
     mockOnSelectAction.mockClear();
+    mockOnLeverageConfirm.mockClear();
   });
 
   it('complete trading session: browse positions, modify, flip, configure trade, then bulk-close and cancel', async () => {
@@ -280,19 +283,29 @@ describe('Active Trader Flow', () => {
     ).toBeOnTheScreen();
 
     // ── PHASE 5: Configure leverage for next trade ───────────────────────
-    // Trader opens leverage sheet: title, current 5x, presets (2x, 10x), Set
+    // Trader opens leverage sheet, reviews risk, selects 10x, and confirms
     cleanup();
     renderPerpsView(LeverageVisibleWrapper, 'LeverageTest');
     expect(await screen.findByText(LEVERAGE_MODAL_TITLE)).toBeOnTheScreen();
-    const fiveXElements = screen.getAllByText('5x');
-    expect(fiveXElements.length).toBeGreaterThanOrEqual(1);
     expect(
-      screen.getByText(
-        strings('perps.order.leverage_modal.set_leverage', { leverage: 5 }),
+      screen.queryByTestId(
+        PerpsLeverageBottomSheetSelectorsIDs.LIQUIDATION_DISTANCE_VALUE,
       ),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('2x')).toBeOnTheScreen();
-    expect(screen.getByText('10x')).toBeOnTheScreen();
+    ).not.toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(
+        `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+      ),
+    );
+    expect(
+      screen.getByTestId(
+        `${PerpsLeverageBottomSheetSelectorsIDs.PICKER_ITEM}-10`,
+      ).props.accessibilityState,
+    ).toEqual({ selected: true });
+    fireEvent.press(
+      screen.getByTestId(PerpsLeverageBottomSheetSelectorsIDs.SET_BUTTON),
+    );
+    expect(mockOnLeverageConfirm).toHaveBeenCalledWith(10, 'preset');
 
     // Trader dismisses leverage sheet — title disappears
     cleanup();
@@ -347,7 +360,7 @@ describe('Active Trader Flow', () => {
     fireEvent.press(dismissButton);
 
     // ── PHASE 8: Bulk close all positions ────────────────────────────────
-    // Trader reviews close-all summary: title, description, margin, receive,
+    // Trader reviews close-all summary: title, description, receive, P&L,
     // Keep Positions and Close All buttons
     cleanup();
     renderPerpsCloseAllPositionsView({
@@ -355,19 +368,30 @@ describe('Active Trader Flow', () => {
     });
     expect(await screen.findByText(CLOSE_ALL_TITLE)).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_all_modal.description')),
+      screen.getByText(
+        strings('perps.close_all_modal.description', {
+          count: multiplePositions.length,
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.margin')),
+      screen.queryByText(strings('perps.close_position.margin')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.close_position.total_receive')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.you_receive')),
+      screen.getByText(strings('perps.close_position.included_pnl')),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.close_all_modal.keep_positions')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_all_modal.close_all')),
+      screen.getByText(
+        strings('perps.close_all_modal.close_count', {
+          count: multiplePositions.length,
+        }),
+      ),
     ).toBeOnTheScreen();
 
     // After closing — no positions → empty state
@@ -388,7 +412,11 @@ describe('Active Trader Flow', () => {
     });
     expect(await screen.findByText(CANCEL_ALL_TITLE)).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.cancel_all_modal.description')),
+      screen.getByText(
+        strings('perps.cancel_all_modal.description', {
+          count: multipleOrders.length,
+        }),
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.cancel_all_modal.keep_orders')),

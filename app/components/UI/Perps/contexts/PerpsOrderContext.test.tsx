@@ -1,5 +1,5 @@
 import React from 'react';
-import { renderHook, render } from '@testing-library/react-native';
+import { act, renderHook, render } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { PerpsOrderProvider, usePerpsOrderContext } from './PerpsOrderContext';
 import {
@@ -38,11 +38,25 @@ describe('PerpsOrderContext', () => {
     setTakeProfitPrice: jest.fn(),
     setStopLossPrice: jest.fn(),
     setLimitPrice: jest.fn(),
+    commitLimitPrice: jest.fn(),
+    commitTriggerPrice: jest.fn(),
+    hasBlurredLimitPrice: false,
+    hasBlurredTriggerPrice: false,
+    triggerPrice: undefined,
+    setTriggerPrice: jest.fn(),
+    resetPriceInputInteraction: jest.fn(),
+    activePriceField: null,
+    setActivePriceField: jest.fn(),
+    registerPriceFieldHandlers: jest.fn(),
+    commitPriceToField: jest.fn(),
     setOrderType: jest.fn(),
+    pendingReduceOnly: undefined,
     handlePercentageAmount: jest.fn(),
     handleMaxAmount: jest.fn(),
     handleMinAmount: jest.fn(),
     maxPossibleAmount: 1000,
+    setMaxPossibleAmountOverride: jest.fn(),
+    setEstimatedFeeRate: jest.fn(),
     balanceForValidation: 1000,
   };
 
@@ -51,8 +65,8 @@ describe('PerpsOrderContext', () => {
     mockUsePerpsOrderForm.mockReturnValue(mockOrderFormReturn);
   });
 
-  const renderHookWithProvider = (
-    hook: () => UsePerpsOrderFormReturn,
+  const renderHookWithProvider = <Result,>(
+    hook: () => Result,
     providerProps?: {
       initialAsset?: string;
       initialDirection?: 'long' | 'short';
@@ -121,7 +135,46 @@ describe('PerpsOrderContext', () => {
     it('provides the order form state to context', () => {
       const { result } = renderHookWithProvider(() => usePerpsOrderContext());
 
-      expect(result.current).toEqual(mockOrderFormReturn);
+      expect(result.current).toEqual({
+        ...mockOrderFormReturn,
+        fillOrderBookSize: expect.any(Function),
+        clearOrderBookSizeFill: expect.any(Function),
+      });
+    });
+
+    it('sets the amount and keeps the exact size of an order-book fill', () => {
+      const fill = {
+        size: '0.00406',
+        amount: '331.66',
+        price: '81690',
+        field: 'limit' as const,
+      };
+      const { result } = renderHookWithProvider(() => usePerpsOrderContext());
+
+      act(() => {
+        result.current.fillOrderBookSize(fill);
+      });
+
+      expect(mockOrderFormReturn.setAmount).toHaveBeenCalledWith('331.66');
+      expect(result.current.orderBookSizeFill).toEqual(fill);
+    });
+
+    it('drops a recorded order-book fill when cleared', () => {
+      const { result } = renderHookWithProvider(() => usePerpsOrderContext());
+      act(() => {
+        result.current.fillOrderBookSize({
+          size: '0.29',
+          amount: '722.1',
+          price: '2490',
+          field: 'limit',
+        });
+      });
+
+      act(() => {
+        result.current.clearOrderBookSizeFill();
+      });
+
+      expect(result.current.orderBookSizeFill).toBeUndefined();
     });
 
     it('passes through all properties from usePerpsOrderForm', () => {
@@ -137,6 +190,8 @@ describe('PerpsOrderContext', () => {
       expect(result.current.setTakeProfitPrice).toBeDefined();
       expect(result.current.setStopLossPrice).toBeDefined();
       expect(result.current.setLimitPrice).toBeDefined();
+      expect(result.current.triggerPrice).toBeUndefined();
+      expect(result.current.setTriggerPrice).toBeDefined();
       expect(result.current.setOrderType).toBeDefined();
       expect(result.current.handlePercentageAmount).toBeDefined();
       expect(result.current.handleMaxAmount).toBeDefined();
@@ -179,7 +234,11 @@ describe('PerpsOrderContext', () => {
     it('returns context value when used within provider', () => {
       const { result } = renderHookWithProvider(() => usePerpsOrderContext());
 
-      expect(result.current).toEqual(mockOrderFormReturn);
+      expect(result.current).toEqual({
+        ...mockOrderFormReturn,
+        fillOrderBookSize: expect.any(Function),
+        clearOrderBookSizeFill: expect.any(Function),
+      });
       expect(result.current.orderForm.asset).toBe('BTC');
       expect(result.current.orderForm.direction).toBe('long');
       expect(result.current.orderForm.amount).toBe('100');
@@ -313,6 +372,7 @@ describe('PerpsOrderContext', () => {
       expect(contextResult).toHaveProperty('setStopLossPrice');
       expect(contextResult).toHaveProperty('setLimitPrice');
       expect(contextResult).toHaveProperty('setOrderType');
+      expect(contextResult).toHaveProperty('pendingReduceOnly');
       expect(contextResult).toHaveProperty('handlePercentageAmount');
       expect(contextResult).toHaveProperty('handleMaxAmount');
       expect(contextResult).toHaveProperty('handleMinAmount');

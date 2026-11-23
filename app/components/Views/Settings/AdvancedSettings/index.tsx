@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import type { Dispatch } from 'redux';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
@@ -28,7 +28,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  HeaderStandard,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -43,6 +42,10 @@ import type { RootState } from '../../../../reducers';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { SettingsToggleRow } from '../components/SettingsToggleRow';
 import { createStyles } from './AdvancedSettings.styles';
+import { selectIsBasicFunctionalityConsolidationEnabled } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { selectMoneyAccountStatusPageEnabled } from '../../../UI/Money/selectors/featureFlags';
 
 interface SettingsState {
   showHexData: boolean;
@@ -63,6 +66,7 @@ interface StateProps {
   dismissSmartAccountSuggestionEnabled: ReturnType<
     typeof selectDismissSmartAccountSuggestionEnabled
   >;
+  isBasicFunctionalityConsolidationEnabled: boolean;
 }
 
 interface DispatchProps {
@@ -94,7 +98,12 @@ const AdvancedSettings = ({
   route,
   smartTransactionsOptInStatus,
   dismissSmartAccountSuggestionEnabled,
+  isBasicFunctionalityConsolidationEnabled,
 }: Props) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isMoneyAccountStatusPageEnabled = useSelector(
+    selectMoneyAccountStatusPageEnabled,
+  );
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const scrollView = useRef<KeyboardAwareScrollView | null>(null);
@@ -159,7 +168,9 @@ const AdvancedSettings = ({
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={baseStyles.flexGrow}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.advanced_title')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ testID: AdvancedViewSelectorsIDs.BACK_BUTTON }}
@@ -242,7 +253,9 @@ const AdvancedSettings = ({
             onValueChange={setShowHexData}
           />
 
-          <AutoDetectTokensSettings />
+          {!isBasicFunctionalityConsolidationEnabled && (
+            <AutoDetectTokensSettings />
+          )}
 
           <SettingsToggleRow
             title={strings('app_settings.show_fiat_on_testnets')}
@@ -282,6 +295,32 @@ const AdvancedSettings = ({
               {strings('app_settings.state_logs_button')}
             </Button>
           </View>
+
+          {isMoneyAccountStatusPageEnabled && (
+            <View style={styles.setting}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('app_settings.money_account_status')}
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                style={styles.desc}
+              >
+                {strings('app_settings.money_account_status_desc')}
+              </Text>
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={() => navigation.navigate(Routes.MONEY.ACCOUNT_STATUS)}
+                style={styles.accessory}
+                testID={AdvancedViewSelectorsIDs.MONEY_ACCOUNT_STATUS_BUTTON}
+              >
+                {strings('app_settings.money_account_status_button')}
+              </Button>
+            </View>
+          )}
         </View>
       </KeyboardAwareScrollView>
     </SafeAreaView>
@@ -295,6 +334,8 @@ const mapStateToProps = (state: SettingsRootState): StateProps => ({
   smartTransactionsOptInStatus: selectSmartTransactionsOptInStatus(state),
   dismissSmartAccountSuggestionEnabled:
     selectDismissSmartAccountSuggestionEnabled(state),
+  isBasicFunctionalityConsolidationEnabled:
+    selectIsBasicFunctionalityConsolidationEnabled(state),
 });
 
 const mapDispatchToProps = (dispatch: Dispatch): DispatchProps => ({

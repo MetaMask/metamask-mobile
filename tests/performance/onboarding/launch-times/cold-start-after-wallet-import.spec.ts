@@ -1,12 +1,12 @@
 import { test } from '../../../framework/fixtures/playwright';
 import {
+  Performance,
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
-import PlaywrightGestures from '../../../framework/PlaywrightGestures';
+import AppiumGestures from '../../../framework/AppiumGestures';
 import LoginView from '../../../page-objects/wallet/LoginView';
-import PlaywrightAssertions from '../../../framework/PlaywrightAssertions';
-import { asPlaywrightElement } from '../../../framework/EncapsulatedElement';
+import AppiumAssertions from '../../../framework/AppiumAssertions';
 import {
   loginToAppPlaywright,
   onboardingFlowImportSRPPlaywright,
@@ -14,20 +14,20 @@ import {
 import TimerHelper from '../../../framework/TimerHelper';
 
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { skipHermesCollectionUntilRestart } from '../../helpers/appProfiling';
 
-test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_3 ?? '');
 
-      await PlaywrightGestures.terminateApp(currentDeviceDetails);
-      await PlaywrightGestures.activateApp(currentDeviceDetails);
+      await skipHermesCollectionUntilRestart();
+      await AppiumGestures.terminateApp(currentDeviceDetails);
+      await AppiumGestures.activateApp(currentDeviceDetails);
 
-      await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(LoginView.loginButton),
-      );
+      await AppiumAssertions.expectElementToBeVisible(LoginView.loginButton);
 
       await loginToAppPlaywright({
         scenarioType: 'onboarding',
@@ -42,9 +42,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
         currentDeviceDetails.platform,
       );
       await timer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.headerRoot),
-        );
+        await AppiumAssertions.expectElementToBeVisible(WalletView.headerRoot);
       });
 
       performanceTracker.addTimer(timer);

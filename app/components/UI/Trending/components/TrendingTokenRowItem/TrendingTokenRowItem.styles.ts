@@ -13,9 +13,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingBottom: 8,
       gap: 16,
     },
-    badge: {
-      borderRadius: 16,
-    },
     leftContainer: {
       flex: 1,
       minWidth: 0,

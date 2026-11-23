@@ -1,13 +1,16 @@
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   ButtonsAlignment,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import PerpsProModalPortal from './PerpsProModalPortal';
+import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PerpsProPositionsOptionSheetProps {
   isVisible: boolean;
@@ -33,6 +36,8 @@ const PerpsProPositionsOptionSheet = ({
   testID = 'perps-pro-positions-option-sheet',
   children,
 }: PerpsProPositionsOptionSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { playImpact, playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const wasVisibleRef = useRef(false);
 
@@ -53,9 +58,19 @@ const PerpsProPositionsOptionSheet = ({
   }, [onClose]);
 
   const handleApply = useCallback(() => {
+    playImpact(ImpactMoment.PrimaryCTA).catch(() => undefined);
     onApply();
     handleClose();
-  }, [handleClose, onApply]);
+  }, [handleClose, onApply, playImpact]);
+
+  const handleClear = useCallback(() => {
+    if (!onClear) {
+      return;
+    }
+    playSelection().catch(() => undefined);
+    onClear();
+    handleClose();
+  }, [handleClose, onClear, playSelection]);
 
   const primaryButtonProps = useMemo(
     () => ({
@@ -71,14 +86,11 @@ const PerpsProPositionsOptionSheet = ({
       onClear
         ? {
             children: strings('perps.sort.clear'),
-            onPress: () => {
-              onClear();
-              handleClose();
-            },
+            onPress: handleClear,
             testID: `${testID}-clear`,
           }
         : undefined,
-    [handleClose, onClear, testID],
+    [handleClear, onClear, testID],
   );
 
   if (!isVisible) {
@@ -88,12 +100,13 @@ const PerpsProPositionsOptionSheet = ({
   return (
     <PerpsProModalPortal onRequestClose={handleClose}>
       <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{ testID: `${testID}-close` }}
         >
           {title}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
 
         {children}
 

@@ -4,6 +4,9 @@ import PerpsBalanceBottomSheet from './PerpsBalanceBottomSheet';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
+import { usePerpsHomeActions } from '../../hooks/usePerpsHomeActions';
+import { createPerpsCrossMarginSummaryMock } from '../../__mocks__/perpsHooksMocks';
 
 const mockHandleAddFunds = jest.fn();
 const mockHandleWithdraw = jest.fn();
@@ -20,14 +23,6 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
     isEligible: mockIsEligible,
     isProcessing: false,
     error: null,
-  })),
-}));
-
-const mockNavigateToActivity = jest.fn();
-
-jest.mock('../../hooks/usePerpsNavigation', () => ({
-  usePerpsNavigation: jest.fn(() => ({
-    navigateToActivity: mockNavigateToActivity,
   })),
 }));
 
@@ -50,6 +45,14 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 
+const mockCrossMarginSummary = createPerpsCrossMarginSummaryMock({
+  isCrossMarginEnabled: true,
+});
+
+jest.mock('../../hooks/usePerpsCrossMarginSummary', () => ({
+  usePerpsCrossMarginSummary: jest.fn(() => mockCrossMarginSummary),
+}));
+
 jest.mock('../PerpsBottomSheetTooltip', () => {
   const { View, Text } = jest.requireActual('react-native');
   return jest.fn(({ isVisible, testID, onClose }) =>
@@ -67,7 +70,12 @@ const renderSheet = (
   privacyMode = false,
 ) =>
   renderWithProvider(
-    <PerpsBalanceBottomSheet isVisible onClose={jest.fn()} {...props} />,
+    <PerpsBalanceBottomSheet
+      isVisible
+      onClose={jest.fn()}
+      buttonLocation={PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME}
+      {...props}
+    />,
     {
       state: {
         engine: {
@@ -94,6 +102,13 @@ describe('PerpsBalanceBottomSheet', () => {
       unrealizedPnl: '50.25',
       returnOnEquity: '5.5',
     };
+    Object.assign(mockCrossMarginSummary, {
+      hasCrossExposure: false,
+      accountRatio: undefined,
+      maintenanceMargin: undefined,
+      accountLeverage: undefined,
+      crossMarginUsage: undefined,
+    });
   });
 
   it('renders nothing when not visible', () => {
@@ -102,6 +117,15 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(
       queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+
+  it.each([
+    PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
+  ])('attributes deposit and withdraw to the %s opener', (buttonLocation) => {
+    renderSheet({ buttonLocation });
+
+    expect(usePerpsHomeActions).toHaveBeenCalledWith({ buttonLocation });
   });
 
   it('renders the sheet with balance, available, and PnL values', () => {
@@ -144,16 +168,12 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('closes the sheet and navigates to activity when the history button is pressed', () => {
-    const onClose = jest.fn();
-    const { getByTestId } = renderSheet({ onClose });
+  it('does not render the history button', () => {
+    const { queryByTestId } = renderSheet();
 
-    fireEvent.press(
-      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.HISTORY_BUTTON),
-    );
-
-    expect(onClose).toHaveBeenCalledTimes(1);
-    expect(mockNavigateToActivity).toHaveBeenCalledTimes(1);
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.HISTORY_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('closes the sheet and invokes handleWithdraw when the withdraw button is pressed', () => {
@@ -229,6 +249,29 @@ describe('PerpsBalanceBottomSheet', () => {
     expect(
       queryByTestId(
         PerpsBalanceBottomSheetSelectorsIDs.GEO_BLOCK_BOTTOM_SHEET_TOOLTIP,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not render the cross margin summary without cross exposure', () => {
+    const { queryByTestId } = renderSheet();
+
+    expect(
+      queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_SUMMARY),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a placeholder for cross margin metrics that cannot be computed', () => {
+    Object.assign(mockCrossMarginSummary, { hasCrossExposure: true });
+
+    const { getByTestId, queryByTestId } = renderSheet();
+
+    expect(
+      getByTestId(PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE),
+    ).toHaveTextContent('--');
+    expect(
+      queryByTestId(
+        `${PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE}-tone`,
       ),
     ).not.toBeOnTheScreen();
   });

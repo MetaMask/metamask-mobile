@@ -7,6 +7,11 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockUseRoute = jest.fn();
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
@@ -24,6 +29,8 @@ jest.mock('@metamask/design-system-react-native', () => {
   } = jest.requireActual('react-native');
 
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     Box: ({
       children,
       testID,
@@ -106,9 +113,9 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string>) => {
     const translations: Record<string, string> = {
-      'sdk_connect_v2.show_otp.modal_title': 'Link MetaMask Agent CLI',
+      'sdk_connect_v2.show_otp.modal_title': 'Link MetaMask Agent wallet',
       'sdk_connect_v2.show_otp.modal_description':
-        'Pair MetaMask Mobile with your MetaMask Agent CLI.',
+        'Pair MetaMask Mobile with your MetaMask Agent wallet.',
       'sdk_connect_v2.show_otp.code_label': 'ENTER CODE IN TERMINAL',
       'sdk_connect_v2.show_otp.expires_in': `Expires in ${params?.time}`,
       'sdk_connect_v2.show_otp.expired': 'Code expired',
@@ -142,7 +149,7 @@ describe('SDKConnectV2OtpModal', () => {
     expect(
       getByTestId(SDKConnectV2OtpModalSelectors.CONTAINER),
     ).toBeOnTheScreen();
-    expect(getByText('Link MetaMask Agent CLI')).toBeOnTheScreen();
+    expect(getByText('Link MetaMask Agent wallet')).toBeOnTheScreen();
     expect(getByText('ENTER CODE IN TERMINAL')).toBeOnTheScreen();
     expect(getByText('Securing the connection')).toBeOnTheScreen();
     expect(

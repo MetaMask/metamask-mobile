@@ -1,4 +1,7 @@
 import {
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -14,7 +17,8 @@ import {
 import { AnimationDuration } from '@metamask/design-tokens';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
-import React from 'react';
+import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import { StyleSheet } from 'react-native';
 import Animated, {
   useAnimatedReaction,
@@ -23,17 +27,36 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import { PERPS_COLLATERAL_SYMBOL } from '../../constants/perpsConfig';
 import LivePriceHeader from '../LivePriceDisplay/LivePriceHeader';
 import PerpsMarketIdentity from '../PerpsMarketIdentity';
 import PerpsModeToggle from '../PerpsModeToggle';
+import ButtonIconGlass from '../../../../../component-library/components-temp/ButtonIconGlass';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
+import HeaderGlass from '../../../../../component-library/components-temp/HeaderGlass';
+import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/perpsBrandRefresh';
 import { usePerpsLivePrices } from '../../hooks/stream';
+import { getCrossMarginRatioAlert } from '../../utils/crossMarginSummary';
 import {
   PERPS_MARKET_HEADER_HEIGHT,
   type PerpsMarketHeaderProps,
 } from './PerpsMarketHeader.types';
 
 export { PERPS_MARKET_HEADER_HEIGHT };
+
+/**
+ * Cross margin risk badge on the wallet button. The "!" is the non-colour cue.
+ * The spoken name is the Figma label for the metric.
+ */
+const WALLET_RISK_BADGE = {
+  warning: {
+    backgroundClassName: 'bg-warning-default',
+  },
+  danger: {
+    backgroundClassName: 'bg-error-default',
+  },
+} as const;
 
 const COMPACT_PRICE_ENTER_OFFSET_PX = 8;
 const SUBTITLE_CROSSFADE_HEIGHT = 20;
@@ -52,6 +75,10 @@ const styles = StyleSheet.create({
   },
   sizer: {
     opacity: 0,
+  },
+  walletRiskBadgeText: {
+    fontSize: 10,
+    lineHeight: 12,
   },
 });
 
@@ -113,17 +140,56 @@ const PerpsMarketHeader = ({
   showMarketIdentity = true,
   endAccessory,
   onWalletPress,
+  walletRiskTone,
   onFavoritePress,
   isFavorite = false,
   mode,
   onModeChange,
+  enableHaptics = false,
+  enableModeHaptics = false,
   scrollY,
   priceSectionHeight,
+  currentPrice: currentPriceOverride,
+  topInset,
 }: PerpsMarketHeaderProps) => {
+  const { playImpact, playSelection } = useHaptics();
+  const isBrandRefresh = useSelector(selectPerpsBrandRefreshEnabled) === true;
+  const shouldEnableModeHaptics = enableModeHaptics || enableHaptics;
   const fallbackScrollY = useSharedValue(0);
   const fallbackPriceSectionHeight = useSharedValue(0);
   const scrollYSv = scrollY ?? fallbackScrollY;
   const priceSectionHeightSv = priceSectionHeight ?? fallbackPriceSectionHeight;
+
+  const handleBackPress = useCallback(() => {
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onBackPress?.();
+  }, [enableHaptics, onBackPress, playImpact]);
+
+  const handleIdentityPress = useCallback(() => {
+    if (!onIdentityPress) {
+      return;
+    }
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onIdentityPress();
+  }, [enableHaptics, onIdentityPress, playImpact]);
+
+  const handleWalletPress = useCallback(() => {
+    if (enableHaptics) {
+      playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+    }
+    onWalletPress?.();
+  }, [enableHaptics, onWalletPress, playImpact]);
+
+  const handleFavoritePress = useCallback(() => {
+    if (enableHaptics) {
+      playSelection().catch(() => undefined);
+    }
+    onFavoritePress?.();
+  }, [enableHaptics, onFavoritePress, playSelection]);
 
   const compactProgress = useSharedValue(0);
 
@@ -163,7 +229,15 @@ const PerpsMarketHeader = ({
     throttleMs: 1000,
   });
   const priceData = livePrices[market.symbol];
-  const currentPrice = priceData?.price ? parseFloat(priceData.price) : 0;
+  // Same as Lite: when the parent passes the chart-synced price, display it
+  // as-is (including 0 → "$---"). Live mids are only used when the parent
+  // does not supply a price.
+  const currentPrice =
+    currentPriceOverride !== undefined
+      ? currentPriceOverride
+      : priceData?.price
+        ? parseFloat(priceData.price)
+        : 0;
   const percentChange24h =
     priceData?.percentChange24h !== undefined
       ? parseFloat(priceData.percentChange24h)
@@ -199,75 +273,130 @@ const PerpsMarketHeader = ({
     </Box>
   );
 
+  const walletRiskAlert = getCrossMarginRatioAlert(walletRiskTone);
+  const walletRiskBadge = walletRiskAlert
+    ? WALLET_RISK_BADGE[walletRiskAlert]
+    : undefined;
+
+  const iconButtons = [
+    onWalletPress ? (
+      <BadgeWrapper
+        key="wallet"
+        // The wrapper pins itself to the top of the row. Center it with the star.
+        twClassName="self-center"
+        testID={
+          testIDs.walletButton ? `${testIDs.walletButton}-wrapper` : undefined
+        }
+        position={BadgeWrapperPosition.TopRight}
+        positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
+        // Pull the badge in so it hugs the wallet glyph's top-right corner and
+        // stays inside the capsule instead of straddling its top edge.
+        positionXOffset={-6}
+        positionYOffset={8}
+        badge={
+          walletRiskBadge ? (
+            <Box
+              accessible={false}
+              importantForAccessibility="no-hide-descendants"
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName={`h-3 w-3 rounded-full ${walletRiskBadge.backgroundClassName}`}
+              testID={
+                testIDs.walletButton
+                  ? `${testIDs.walletButton}-risk-badge`
+                  : undefined
+              }
+            >
+              <Text
+                variant={TextVariant.BodyXs}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.PrimaryInverse}
+                style={styles.walletRiskBadgeText}
+              >
+                !
+              </Text>
+            </Box>
+          ) : null
+        }
+      >
+        <ButtonIcon
+          iconName={IconName.Wallet}
+          size={ButtonIconSize.Md}
+          onPress={handleWalletPress}
+          accessibilityLabel={
+            walletRiskBadge
+              ? `${strings('perps.market_details.wallet')}, ${strings(
+                  'perps.crossMarginSummary.account_ratio',
+                )}`
+              : strings('perps.market_details.wallet')
+          }
+          testID={testIDs.walletButton}
+        />
+      </BadgeWrapper>
+    ) : null,
+    onFavoritePress ? (
+      <ButtonIcon
+        key="favorite"
+        iconName={isFavorite ? IconName.StarFilled : IconName.Star}
+        size={ButtonIconSize.Md}
+        onPress={handleFavoritePress}
+        accessibilityLabel={strings(
+          isFavorite
+            ? 'perps.market_details.remove_from_watchlist'
+            : 'perps.market_details.add_to_watchlist',
+        )}
+        testID={testIDs.favoriteButton}
+      />
+    ) : null,
+  ].filter(Boolean);
+
   const rightActions =
     endAccessory ??
-    (onWalletPress || onFavoritePress || (onModeChange && mode) ? (
+    (iconButtons.length > 0 || (onModeChange && mode) ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
+        twClassName="gap-2"
       >
-        {onWalletPress ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="size-10"
+        {/* On glass the icons share one capsule, as on the home header. */}
+        {isBrandRefresh && iconButtons.length > 0 ? (
+          <CapsuleGlass
+            twClassName="gap-1 px-1.5"
+            testID={`${testIDs.container}-actions-capsule`}
           >
-            <ButtonIcon
-              iconName={IconName.Wallet}
-              size={ButtonIconSize.Md}
-              onPress={onWalletPress}
-              accessibilityLabel={strings('perps.market_details.wallet')}
-              testID={testIDs.walletButton}
-            />
-          </Box>
-        ) : null}
-        {onFavoritePress ? (
-          <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Center}
-            twClassName="size-10"
-          >
-            <ButtonIcon
-              iconName={isFavorite ? IconName.StarFilled : IconName.Star}
-              size={ButtonIconSize.Md}
-              onPress={onFavoritePress}
-              accessibilityLabel={strings(
-                isFavorite
-                  ? 'perps.market_details.remove_from_watchlist'
-                  : 'perps.market_details.add_to_watchlist',
-              )}
-              testID={testIDs.favoriteButton}
-            />
-          </Box>
-        ) : null}
+            {iconButtons}
+          </CapsuleGlass>
+        ) : (
+          iconButtons
+        )}
         {onModeChange && mode ? (
-          <Box justifyContent={BoxJustifyContent.Center} twClassName="h-10">
-            <PerpsModeToggle
-              mode={mode}
-              variant="active"
-              onChange={onModeChange}
-              source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
-            />
-          </Box>
+          <PerpsModeToggle
+            mode={mode}
+            variant="active"
+            onChange={onModeChange}
+            enableHaptics={shouldEnableModeHaptics}
+            isCapsule={isBrandRefresh}
+            source={PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN}
+          />
         ) : null}
       </Box>
     ) : null);
 
-  return (
+  const header = (
     <Box
       testID={testIDs.container}
       style={styles.container}
-      twClassName="border-b border-muted bg-default px-4"
+      // The glass backdrop replaces the solid background.
+      twClassName={isBrandRefresh ? 'px-4' : 'bg-default px-4'}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       gap={2}
     >
       {onBackPress ? (
-        <ButtonIcon
+        <ButtonIconGlass
+          isCapsule={isBrandRefresh}
           iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Sm}
-          onPress={onBackPress}
+          onPress={handleBackPress}
           accessibilityLabel={strings('perps.market_details.back')}
           testID={testIDs.backButton}
         />
@@ -281,7 +410,7 @@ const PerpsMarketHeader = ({
             maxLeverage={market.maxLeverage}
             size={32}
             gap={2}
-            onPress={onIdentityPress}
+            onPress={onIdentityPress ? handleIdentityPress : undefined}
             subtitleContent={displaySubtitleAndPrice}
             testIDs={{
               assetIcon: testIDs.assetIcon,
@@ -295,6 +424,20 @@ const PerpsMarketHeader = ({
 
       {rightActions}
     </Box>
+  );
+
+  if (!isBrandRefresh) {
+    return header;
+  }
+
+  return (
+    <HeaderGlass
+      topInset={topInset}
+      scrollDistance={scrollY}
+      testID={`${testIDs.container}-glass`}
+    >
+      {header}
+    </HeaderGlass>
   );
 };
 

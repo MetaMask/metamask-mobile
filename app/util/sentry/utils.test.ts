@@ -1,10 +1,13 @@
 /* eslint-disable dot-notation */
 import {
   Scope,
-  UserFeedback,
-  captureUserFeedback,
+  captureFeedback,
   getClient,
   getGlobalScope,
+  init as sentryInit,
+  reactNativeTracingIntegration,
+  reactNavigationIntegration,
+  setTag as sentrySetTag,
 } from '@sentry/react-native';
 import {
   deriveSentryEnvironment,
@@ -17,20 +20,27 @@ import {
   rewriteBreadcrumb,
   setEASUpdateContext,
   isSentryEnabled,
+  getNavIntegration,
+  setupSentry,
 } from './utils';
 import { DeepPartial } from '../test/renderWithProvider';
 import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { TraceName } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
+import { resetOutgoingRequestAnnotationForTesting } from './outgoingRequestContext';
 import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
+import { Platform } from 'react-native';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
-const mockedCaptureUserFeedback = jest.mocked(captureUserFeedback);
+import type { Json } from '@metamask/utils';
+import { getInvalidMockedFeatureFlag } from '../../selectors/featureFlagController/mocks';
+const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
 
@@ -60,6 +70,18 @@ jest.mock('../device', () => ({
 
 jest.mock('./tags', () => ({
   getTraceTags: jest.fn(() => ({ mockTag: 'mockValue' })),
+}));
+
+jest.mock('../trace', () => ({
+  hasMetricsConsent: jest.fn().mockResolvedValue(true),
+  TraceName: {
+    UIStartup: 'UIStartup',
+    SwapQuoteFetch: 'Swap Quote Fetch',
+  },
+}));
+
+jest.mock('./navigationInitializationAppStart', () => ({
+  beginNavigationInitializationAppStart: jest.fn(),
 }));
 
 jest.mock('../../constants/ota', () => ({
@@ -247,6 +269,12 @@ describe('excludeEvents', () => {
     expect(eventExcluded).toBe(event);
   });
 
+  it('drops the NavigationChildren wrapper transaction', async () => {
+    const event = { transaction: 'NavigationChildren' };
+    const eventExcluded = excludeEvents(event);
+    expect(eventExcluded).toBeNull();
+  });
+
   it('returns performance event null if empty', async () => {
     const eventExcluded = excludeEvents(null);
     expect(eventExcluded).toBe(null);
@@ -335,19 +363,16 @@ describe('captureSentryFeedback', () => {
   it('captures Sentry user feedback', async () => {
     const mockSentryId = '123';
     const mockComments = 'Comment';
-    const expectedUserFeedback: UserFeedback = {
-      event_id: mockSentryId,
+    captureSentryFeedback({
+      sentryId: mockSentryId,
+      comments: mockComments,
+    });
+    expect(mockedCaptureFeedback).toHaveBeenCalledWith({
+      associatedEventId: mockSentryId,
+      message: mockComments,
       name: '',
       email: '',
-      comments: mockComments,
-    };
-    captureSentryFeedback({
-      sentryId: expectedUserFeedback.event_id,
-      comments: expectedUserFeedback.comments,
     });
-    expect(mockedCaptureUserFeedback).toHaveBeenCalledWith(
-      expectedUserFeedback,
-    );
   });
 
   describe('maskObject', () => {
@@ -360,14 +385,28 @@ describe('captureSentryFeedback', () => {
       collectibles: { favorites: {}, isNftFetchingProgress: false },
       engine: {
         backgroundState: {
-          AccountTrackerController: {
-            accountsByChainId: {
-              '0x1': {
-                '0x6312c98831D74754F86dd4936668A13B7e9bA411': {
-                  balance: '0x0',
-                },
+          // `AccountTrackerController`/`CurrencyRateController` no longer exist
+          // in `EngineState`; `AssetsController` is now the sole source of
+          // asset/balance/price data and `sentryStateMask` masks it entirely
+          // (see `AssetsController: { [AllProperties]: false }` above).
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
               },
             },
+            assetsBalance: {
+              '1be55f5b-eba9-41a7-a9ed-a6a8274aca27': {
+                'eip155:1/slip44:60': { amount: '0' },
+              },
+            },
+            assetsPrice: {},
+            customAssets: {},
+            assetPreferences: {},
           },
           AccountsController: {
             internalAccounts: {
@@ -421,16 +460,6 @@ describe('captureSentryFeedback', () => {
             approvalFlows: [],
             pendingApprovalCount: 0,
             pendingApprovals: {},
-          },
-          CurrencyRateController: {
-            currencyRates: {
-              ETH: {
-                conversionDate: 1720196397083,
-                conversionRate: 298514,
-                usdConversionRate: 298514,
-              },
-            },
-            currentCurrency: 'usd',
           },
           GasFeeController: {
             estimatedGasFeeTimeBounds: {},
@@ -1344,5 +1373,284 @@ describe('setEASUpdateContext', () => {
       error,
     );
     expect(scopeMock.setTag).not.toHaveBeenCalled();
+  });
+});
+
+describe('getNavIntegration', () => {
+  it('returns an object that exposes registerNavigationContainer', () => {
+    const integration = getNavIntegration();
+    expect(integration).toBeDefined();
+    expect(typeof integration.registerNavigationContainer).toBe('function');
+  });
+
+  it('returns the same instance on repeated calls (memoised)', () => {
+    expect(getNavIntegration()).toBe(getNavIntegration());
+  });
+
+  it('is created lazily with enableTimeToInitialDisplay: true so TTID spans are emitted', () => {
+    // getNavIntegration() is lazy: nothing runs at import time. isolateModules
+    // gives us a fresh module registry; calling getNavIntegration() inside it
+    // triggers creation and records the factory call on the shared jest.fn() mock.
+    const mockedFactory = jest.mocked(reactNavigationIntegration);
+    mockedFactory.mockClear();
+    jest.isolateModules(() => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const utils = require('./utils') as typeof import('./utils');
+      utils.getNavIntegration();
+    });
+    expect(mockedFactory).toHaveBeenCalledWith(
+      expect.objectContaining({ enableTimeToInitialDisplay: true }),
+    );
+  });
+
+  it('returns the no-op stub when hasTestOverrides is true', () => {
+    // Covers lines 644-646 (_noOpNavIntegration object + its arrow function body)
+    // and lines 651-653 (the hasTestOverrides early-return branch).
+    // Uses isolateModules + doMock so the flag is set before utils.ts is evaluated.
+
+    // Track the factory BEFORE the isolated block. reactNavigationIntegration is a
+    // single jest.fn() created in testSetup.js and shared across all module registries,
+    // so clearing it here and asserting after the block is valid — exactly the same
+    // pattern used by the laziness test above.
+    const mockedFactory = jest.mocked(reactNavigationIntegration);
+    mockedFactory.mockClear();
+
+    jest.isolateModules(() => {
+      jest.doMock('../test/utils', () => ({
+        hasTestOverrides: true,
+        isE2EOrExpEnvironment: false,
+      }));
+      const { getNavIntegration: fresh } =
+        require('./utils') as typeof import('./utils'); // eslint-disable-line @typescript-eslint/no-require-imports
+      const stub = fresh();
+      // The stub exposes registerNavigationContainer but it is a no-op
+      expect(typeof stub.registerNavigationContainer).toBe('function');
+      // Actually invoke the arrow function to cover its body
+      expect(stub.registerNavigationContainer({} as never)).toBeUndefined();
+    });
+
+    // Critical guard: the real Sentry factory must NOT have been invoked when
+    // hasTestOverrides is true. Removing the early-return from getNavIntegration()
+    // would cause reactNavigationIntegration() to be called, making this fail.
+    // Without this assertion the test passes whether the early-return exists or not
+    // because jest.fn() also returns a function that returns undefined.
+    expect(mockedFactory).not.toHaveBeenCalled();
+  });
+});
+
+describe('setupSentry', () => {
+  const mockedInit = jest.mocked(sentryInit);
+  const mockedSetTag = jest.mocked(sentrySetTag);
+
+  const originalDsn = process.env.MM_SENTRY_DSN;
+
+  beforeEach(() => {
+    mockedInit.mockClear();
+    mockedSetTag.mockClear();
+    jest.mocked(beginNavigationInitializationAppStart).mockClear();
+    process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
+  });
+
+  afterEach(() => {
+    process.env.MM_SENTRY_DSN = originalDsn;
+    resetOutgoingRequestAnnotationForTesting();
+  });
+
+  it('initialises Sentry with navIntegration (ReactNavigation) in the explicit integrations list', async () => {
+    await setupSentry();
+
+    expect(mockedInit).toHaveBeenCalledTimes(1);
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      integrations: { name: string }[];
+    };
+    const integrationNames = initOptions.integrations.map((i) => i.name);
+
+    // ReactNavigation (navIntegration) is the explicit addition in this PR.
+    expect(integrationNames).toContain('ReactNavigation');
+    // Replaces the default tracing integration so nitro-fetch is instrumented.
+    expect(integrationNames).toContain('ReactNativeTracing');
+    expect(reactNativeTracingIntegration).toHaveBeenCalledWith({
+      traceFetch: true,
+    });
+  });
+
+  it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {
+    await setupSentry();
+
+    // Must NOT be set globally — the tag is scoped to transactions only
+    // so it never appears on error events.
+    expect(mockedSetTag).not.toHaveBeenCalledWith('perf_fix', 'nav-tracing-v1');
+
+    // Verify beforeSendTransaction stamps the tag on kept events
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSendTransaction: (event: {
+        tags?: Record<string, string>;
+      }) => { tags?: Record<string, string> } | null;
+    };
+    const mockEvent = { transaction: 'SomeRoute', tags: {} };
+    const result = initOptions.beforeSendTransaction(mockEvent);
+    expect(result).not.toBeNull();
+    expect((result as { tags?: Record<string, string> }).tags?.perf_fix).toBe(
+      'nav-tracing-v1',
+    );
+  });
+
+  it('returns null from beforeSendTransaction when excludeEvents filters the event', async () => {
+    // Covers the `if (filtered)` false branch (lines 709-714): when excludeEvents
+    // returns null the perf_fix block is skipped and null is forwarded to the SDK.
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      beforeSendTransaction: (event: {
+        transaction?: string;
+        tags?: Record<string, string>;
+      }) => null | { tags?: Record<string, string> };
+    };
+
+    // 'Route Change' is always dropped by excludeEvents — exercises the null path
+    const result = initOptions.beforeSendTransaction({
+      transaction: 'Route Change',
+      tags: {},
+    });
+    expect(result).toBeNull();
+  });
+
+  it('registers outgoing request annotation when a Sentry client exists', async () => {
+    const on = jest.fn();
+    mockedGetClient.mockReturnValue({
+      on,
+    } as unknown as ReturnType<typeof getClient>);
+
+    await setupSentry();
+
+    expect(on).toHaveBeenCalledWith(
+      'beforeOutgoingRequestSpan',
+      expect.any(Function),
+    );
+    mockedGetClient.mockReset();
+  });
+
+  it('enables standalone app start tracing so app start survives the dropped wrapper transaction', async () => {
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      _experiments?: { enableStandaloneAppStartTracing?: boolean };
+    };
+
+    expect(initOptions._experiments?.enableStandaloneAppStartTracing).toBe(
+      true,
+    );
+    expect(beginNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
+  });
+
+  describe('tracesSampler', () => {
+    let replacedOS: jest.ReplaceProperty<typeof Platform.OS> | undefined;
+    const setPlatformOS = (os: typeof Platform.OS) => {
+      replacedOS?.restore();
+      replacedOS = jest.replaceProperty(Platform, 'OS', os);
+    };
+    const globalWithDev = global as typeof global & { __DEV__: boolean };
+    const mockGetState = jest.mocked(store.getState);
+    const setRemoteRates = (transactionSampleRates: Json) =>
+      mockGetState.mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        ...getInvalidMockedFeatureFlag({ sentry: { transactionSampleRates } }),
+      } as unknown as RootState);
+
+    const future = '2999-01-01T00:00:00Z';
+
+    const getInitOptions = async () => {
+      await setupSentry();
+      const initOptions = mockedInit.mock.calls[0][0] as {
+        tracesSampleRate: number;
+        tracesSampler: (context: {
+          name: string;
+          parentSampled?: boolean;
+        }) => number | boolean;
+      };
+      return initOptions;
+    };
+
+    beforeEach(() => {
+      mockGetState.mockReturnValue(undefined as unknown as RootState);
+    });
+
+    afterEach(() => {
+      replacedOS?.restore();
+      globalWithDev.__DEV__ = false;
+    });
+
+    it('inherits the parent decision, else uses tracesSampleRate, without a remote rate', async () => {
+      setPlatformOS('android');
+      const { tracesSampler, tracesSampleRate } = await getInitOptions();
+
+      expect(tracesSampleRate).toBe(0.03);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: true }),
+      ).toBe(true);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(false);
+    });
+
+    it('uses the remote rate for the current platform ahead of the parent decision', async () => {
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt: future },
+      });
+
+      setPlatformOS('android');
+      const { tracesSampler } = await getInitOptions();
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(0.25);
+
+      setPlatformOS('ios');
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+    });
+
+    it('ignores an expired remote rate', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse(expiresAt) + 1);
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
+    it('stops using a remote rate once it expires mid-session', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest.spyOn(Date, 'now');
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      dateNow.mockReturnValue(Date.parse(expiresAt) - 1);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
+
+      dateNow.mockReturnValue(Date.parse(expiresAt));
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
+    it('keeps full sampling in dev builds even with a remote rate', async () => {
+      globalWithDev.__DEV__ = true;
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.5, expiresAt: future },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);
+    });
   });
 });

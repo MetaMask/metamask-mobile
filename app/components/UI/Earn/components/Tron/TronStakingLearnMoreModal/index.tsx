@@ -67,7 +67,7 @@ const TronStakingLearnMoreModal = () => {
   useEffect(() => {
     trace({
       name: TraceName.EarnFaqApys,
-      data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+      data: { experience: EARN_EXPERIENCES.TRX_STAKING },
     });
     endTrace({ name: TraceName.EarnFaq });
   }, []);

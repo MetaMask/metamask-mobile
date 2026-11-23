@@ -12,7 +12,7 @@ import { useTheme } from '../../../../util/theme';
 import { useStyles } from '../../../../component-library/hooks';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
-import { devApiEnv } from '../../../../core/devApiEnv';
+import { getApiEnv } from '../../../../core/apiEnv';
 import styleSheet from './DeveloperOptions.styles';
 
 const CLEAR_AUTH_SESSION_TEST_ID = 'identity-dev-clear-auth-session-button';
@@ -47,7 +47,7 @@ const IdentityDeveloperOptionsSection = () => {
         style={styles.desc}
       >
         {strings('app_settings.developer_options.identity.description', {
-          env: devApiEnv(),
+          env: getApiEnv(),
         })}
       </Text>
       <Button

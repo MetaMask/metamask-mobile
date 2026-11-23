@@ -1,8 +1,12 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import type { FailedNetwork } from '@metamask/network-connection-banner-controller';
 
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
-import NetworkConnectionBanner from './NetworkConnectionBanner';
+import NetworkConnectionBanner, {
+  SLOW_NETWORK_BANNER_TEST_ID,
+} from './NetworkConnectionBanner';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 jest.mock('../../hooks/useNetworkConnectionBanner');
@@ -36,19 +40,58 @@ jest.mock('@metamask/design-system-react-native', () => {
 
 const useNetworkConnectionBannerMock = jest.mocked(useNetworkConnectionBanner);
 
+/**
+ * Build a `FailedNetwork` for the hook mock.
+ *
+ * @param overrides - Partial `FailedNetwork` fields to override the defaults.
+ * @returns The failing-network object.
+ */
+function makeNetwork(overrides: Partial<FailedNetwork> = {}): FailedNetwork {
+  return {
+    networkClientId: 'test-client',
+    name: 'Polygon Mainnet',
+    rpcUrl: 'https://polygon-rpc.com',
+    chainId: '0x89',
+    isInfuraEndpoint: false,
+    switchableInfuraNetworkClientId: null,
+    ...overrides,
+  };
+}
+
 describe('NetworkConnectionBanner', () => {
   const mockUpdateRpc = jest.fn();
+
+  function mockBannerState(
+    overrides: Partial<ReturnType<typeof useNetworkConnectionBanner>> = {},
+  ) {
+    useNetworkConnectionBannerMock.mockReturnValue({
+      status: 'available',
+      network: null,
+      isVisible: false,
+      isSlowNetwork: false,
+      dismissSlowNetwork: jest.fn(),
+      updateRpc: mockUpdateRpc,
+      switchToInfura: jest.fn(),
+      ...overrides,
+    });
+  }
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   describe('when banner is not visible', () => {
-    it('does not render when visible is false', () => {
-      useNetworkConnectionBannerMock.mockReturnValue({
-        networkConnectionBannerState: { visible: false },
-        updateRpc: mockUpdateRpc,
-        switchToInfura: jest.fn(),
+    it('does not render when the status is available', () => {
+      mockBannerState();
+
+      const { root } = renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(root).toBeUndefined();
+    });
+
+    it('does not render when there is no failing network', () => {
+      mockBannerState({
+        status: 'degraded',
       });
 
       const { root } = renderWithProvider(<NetworkConnectionBanner />);
@@ -85,17 +128,10 @@ describe('NetworkConnectionBanner', () => {
     it.each(customNetworkStatusTestCases)(
       'renders the banner with correct structure for $status status with custom network',
       ({ status, expectedMessage, updateRpcButtonText }) => {
-        useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x89',
-            status,
-            networkName: 'Polygon Mainnet',
-            rpcUrl: 'https://polygon-rpc.com',
-            isInfuraEndpoint: false,
-          },
-          updateRpc: mockUpdateRpc,
-          switchToInfura: jest.fn(),
+        mockBannerState({
+          status,
+          network: makeNetwork(),
+          isVisible: true,
         });
 
         const { getByTestId, getByText } = renderWithProvider(
@@ -111,17 +147,15 @@ describe('NetworkConnectionBanner', () => {
     it.each(infuraNetworkStatusTestCases)(
       'renders the banner with correct structure for $status status with Infura network',
       ({ status, expectedMessage }) => {
-        useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: 'Ethereum Mainnet',
+        mockBannerState({
+          status,
+          network: makeNetwork({
+            name: 'Ethereum Mainnet',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
+            chainId: '0x1',
             isInfuraEndpoint: true,
-          },
-          updateRpc: mockUpdateRpc,
-          switchToInfura: jest.fn(),
+          }),
+          isVisible: true,
         });
 
         const { getByTestId, getByText, queryByText } = renderWithProvider(
@@ -138,17 +172,10 @@ describe('NetworkConnectionBanner', () => {
     it.each(customNetworkStatusTestCases)(
       'calls updateRpc when Update RPC button is pressed for $status status',
       ({ status, updateRpcButtonText }) => {
-        useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x89',
-            status,
-            networkName: 'Polygon Mainnet',
-            rpcUrl: 'https://polygon-rpc.com',
-            isInfuraEndpoint: false,
-          },
-          updateRpc: mockUpdateRpc,
-          switchToInfura: jest.fn(),
+        mockBannerState({
+          status,
+          network: makeNetwork(),
+          isVisible: true,
         });
 
         const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
@@ -156,13 +183,89 @@ describe('NetworkConnectionBanner', () => {
         const updateButton = getByText(updateRpcButtonText);
         fireEvent.press(updateButton);
 
-        expect(mockUpdateRpc).toHaveBeenCalledWith(
-          'https://polygon-rpc.com',
-          status,
-          '0x89',
-        );
+        expect(mockUpdateRpc).toHaveBeenCalled();
       },
     );
+  });
+
+  describe('when the network is slow', () => {
+    it('renders the slow network message', () => {
+      mockBannerState({
+        isVisible: true,
+        isSlowNetwork: true,
+      });
+
+      const { getByTestId, getByText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+
+      expect(getByTestId(SLOW_NETWORK_BANNER_TEST_ID)).toBeOnTheScreen();
+      expect(getByText('Slow connection')).toBeOnTheScreen();
+      expect(getByText('Data may take longer to load.')).toBeOnTheScreen();
+    });
+
+    it('dismisses when the close button is pressed', () => {
+      const mockDismiss = jest.fn();
+      mockBannerState({
+        isVisible: true,
+        isSlowNetwork: true,
+        dismissSlowNetwork: mockDismiss,
+      });
+
+      const { getByLabelText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+      fireEvent.press(getByLabelText('Dismiss slow connection banner'));
+
+      expect(mockDismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('labels the close button for screen readers', () => {
+      mockBannerState({
+        isVisible: true,
+        isSlowNetwork: true,
+      });
+
+      const { getByLabelText } = renderWithProvider(
+        <NetworkConnectionBanner />,
+      );
+
+      expect(
+        getByLabelText('Dismiss slow connection banner'),
+      ).toBeOnTheScreen();
+    });
+
+    it('announces the banner to screen readers when it appears', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      mockBannerState({
+        isVisible: true,
+        isSlowNetwork: true,
+      });
+
+      renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(announceSpy).toHaveBeenCalledTimes(1);
+      expect(announceSpy).toHaveBeenCalledWith(
+        'Slow connection. Data may take longer to load.',
+      );
+      announceSpy.mockRestore();
+    });
+
+    it('does not announce when the network is not slow', () => {
+      const announceSpy = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      mockBannerState();
+
+      renderWithProvider(<NetworkConnectionBanner />);
+
+      expect(announceSpy).not.toHaveBeenCalled();
+      announceSpy.mockRestore();
+    });
   });
 
   describe('edge cases', () => {
@@ -180,17 +283,15 @@ describe('NetworkConnectionBanner', () => {
     it.each(emptyNameTestCases)(
       'handles network with empty name for $status status',
       ({ status, expectedMessage }) => {
-        useNetworkConnectionBannerMock.mockReturnValue({
-          networkConnectionBannerState: {
-            visible: true,
-            chainId: '0x1',
-            status,
-            networkName: '',
+        mockBannerState({
+          status,
+          network: makeNetwork({
+            name: '',
             rpcUrl: 'https://mainnet.infura.io/v3/test',
+            chainId: '0x1',
             isInfuraEndpoint: true,
-          },
-          updateRpc: mockUpdateRpc,
-          switchToInfura: jest.fn(),
+          }),
+          isVisible: true,
         });
 
         const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
@@ -200,17 +301,13 @@ describe('NetworkConnectionBanner', () => {
     );
 
     it('limits primary message to 2 lines for long network names', () => {
-      useNetworkConnectionBannerMock.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x89',
-          status: 'unavailable',
-          networkName: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
+      mockBannerState({
+        status: 'unavailable',
+        network: makeNetwork({
+          name: 'Monad Mainnet YOYOMI JOK.OK.OK.OK.OK.OK.OK.OK',
           rpcUrl: 'https://custom-rpc.example.com',
-          isInfuraEndpoint: false,
-        },
-        updateRpc: mockUpdateRpc,
-        switchToInfura: jest.fn(),
+        }),
+        isVisible: true,
       });
 
       const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
@@ -222,17 +319,10 @@ describe('NetworkConnectionBanner', () => {
     });
 
     it('handles multiple rapid button presses', () => {
-      useNetworkConnectionBannerMock.mockReturnValue({
-        networkConnectionBannerState: {
-          visible: true,
-          chainId: '0x89',
-          status: 'degraded',
-          networkName: 'Polygon Mainnet',
-          rpcUrl: 'https://polygon-rpc.com',
-          isInfuraEndpoint: false,
-        },
-        updateRpc: mockUpdateRpc,
-        switchToInfura: jest.fn(),
+      mockBannerState({
+        status: 'degraded',
+        network: makeNetwork(),
+        isVisible: true,
       });
 
       const { getByText } = renderWithProvider(<NetworkConnectionBanner />);
@@ -245,11 +335,6 @@ describe('NetworkConnectionBanner', () => {
       fireEvent.press(updateButton);
 
       expect(mockUpdateRpc).toHaveBeenCalledTimes(3);
-      expect(mockUpdateRpc).toHaveBeenCalledWith(
-        'https://polygon-rpc.com',
-        'degraded',
-        '0x89',
-      );
     });
   });
 });

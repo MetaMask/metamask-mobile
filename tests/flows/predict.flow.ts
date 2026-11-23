@@ -1,21 +1,32 @@
 import { Assertions, Utilities } from '../framework';
 import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
-import PredictBalance from '../page-objects/Predict/PredictBalance';
-import PredictMarketList from '../page-objects/Predict/PredictMarketList';
+import PredictHome from '../page-objects/Predict/PredictHome';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../page-objects/wallet/WalletActionsBottomSheet';
 
-export const openPredictWithdrawPayConfirmation = async (): Promise<void> => {
+/**
+ * Opens Predict Home from wallet via Trade actions.
+ * Prefer this over homepage Predictions-section scroll — the section can sit
+ * below the short scroll budget or under the tab bar after returning from
+ * market details (same shape as openPerpsHomeFromWallet).
+ */
+export const openPredictHomeFromWallet = async (
+  options: { description?: string } = {},
+): Promise<void> => {
   await TabBarComponent.tapActions();
   await WalletActionsBottomSheet.tapPredictButton();
-  await PredictMarketList.waitForScreenToDisplay({
-    description: 'Predict market list should be visible',
+  await PredictHome.waitForScreenToDisplay({
+    description: options.description ?? 'Predict home should be visible',
   });
-  await PredictBalance.expectBalanceCardVisible();
+};
+
+export const openPredictWithdrawPayConfirmation = async (): Promise<void> => {
+  await openPredictHomeFromWallet();
+  await PredictHome.expectPrimaryValueVisible();
 
   await Utilities.executeWithRetry(
     async () => {
-      await PredictBalance.tapWithdraw();
+      await PredictHome.tapWithdraw();
       await Assertions.expectElementToBeVisible(
         TransactionPayConfirmation.keyboardContainer,
         {

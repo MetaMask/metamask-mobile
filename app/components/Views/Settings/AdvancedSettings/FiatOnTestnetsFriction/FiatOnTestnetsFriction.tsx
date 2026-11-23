@@ -1,18 +1,16 @@
-import React, { useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import {
+  BottomSheet,
+  type BottomSheetRef,
   Button,
   ButtonVariant,
   ButtonSize,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import AppConstants from '../../../../../core/AppConstants';
 import createStyles from './FiatOnTestnetsFriction.styles';
@@ -27,16 +25,18 @@ import Routes from '../../../../../constants/navigation/Routes';
 const FiatOnTestnetsFriction = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
-  const { colors } = useTheme();
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   return (
-    <BottomSheet ref={sheetRef}>
+    <BottomSheet ref={sheetRef} goBack={handleGoBack}>
       <View style={styles.frictionContainer}>
         <Icon
           name={IconName.Danger}
-          color={colors.warning.default}
+          color={IconColor.WarningDefault}
           size={IconSize.Xl}
         />
         <Text style={styles.heading}>

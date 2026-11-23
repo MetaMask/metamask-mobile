@@ -187,6 +187,25 @@ describe('usePerpsLiveOrderBook', () => {
       );
     });
 
+    it('ignores callbacks from a replaced subscription', () => {
+      const callbacks: ((data: OrderBookData) => void)[] = [];
+      mockSubscribeToOrderBook.mockImplementation(({ callback }) => {
+        callbacks.push(callback);
+        return jest.fn();
+      });
+      const { result, rerender } = renderHook(
+        ({ symbol }) => usePerpsLiveOrderBook({ symbol, throttleMs: 0 }),
+        { initialProps: { symbol: 'BTC' } },
+      );
+
+      rerender({ symbol: 'ETH' });
+      act(() => callbacks[1]({ ...mockOrderBookData, spread: '200' }));
+      act(() => callbacks[0]({ ...mockOrderBookData, spread: 'stale' }));
+
+      expect(result.current.dataSymbol).toBe('ETH');
+      expect(result.current.orderBook?.spread).toBe('200');
+    });
+
     it('returns initial loading state', () => {
       const mockUnsubscribe = jest.fn();
       mockSubscribeToOrderBook.mockReturnValue(mockUnsubscribe);
@@ -356,6 +375,41 @@ describe('usePerpsLiveOrderBook', () => {
       expect(result.current.orderBook).toEqual(secondUpdate);
     });
 
+    it('applies the first snapshot of a new subscription immediately inside the throttle window', () => {
+      let capturedCallback: (data: OrderBookData) => void = jest.fn();
+      mockSubscribeToOrderBook.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const { result, rerender } = renderHook(
+        ({ symbol }) =>
+          usePerpsLiveOrderBook({
+            symbol,
+            throttleMs: 100,
+          }),
+        { initialProps: { symbol: 'BTC' } },
+      );
+
+      const firstUpdate = { ...mockOrderBookData, spread: '100' };
+      const nextSymbolUpdate = { ...mockOrderBookData, spread: '250' };
+
+      act(() => {
+        capturedCallback(firstUpdate);
+      });
+      expect(result.current.orderBook).toEqual(firstUpdate);
+
+      rerender({ symbol: 'ETH' });
+
+      act(() => {
+        capturedCallback(nextSymbolUpdate);
+      });
+
+      expect(result.current.orderBook).toEqual(nextSymbolUpdate);
+      expect(result.current.dataSymbol).toBe('ETH');
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it('applies pending update after throttle period', () => {
       let capturedCallback: (data: OrderBookData) => void = jest.fn();
       mockSubscribeToOrderBook.mockImplementation((params) => {
@@ -469,6 +523,26 @@ describe('usePerpsLiveOrderBook', () => {
       expect(result.current.error).toEqual(setupError);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.orderBook).toBeNull();
+      expect(result.current.dataSymbol).toBe('BTC');
+    });
+
+    it('associates an aggregated setup failure with the requested symbol', () => {
+      const setupError = new Error('Conflicting aggregated payload');
+      mockAggregatedSubscribe.mockImplementation(() => {
+        throw setupError;
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsLiveOrderBook({
+          symbol: 'BTC',
+          channel: 'orderBookAggregated',
+        }),
+      );
+
+      expect(result.current.error).toEqual(setupError);
+      expect(result.current.isLoading).toBe(false);
+      expect(result.current.connectionStatus).toBe('error');
+      expect(result.current.dataSymbol).toBe('BTC');
     });
 
     it('converts non-Error objects to Error during setup', () => {

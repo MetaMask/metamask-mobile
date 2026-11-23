@@ -220,6 +220,32 @@ export async function setupMockRequest(
 }
 
 /**
+ * Default answer for `GET /v1/profiles/{profileId}` when a test does not mock
+ * the profile itself: the profile does not exist.
+ *
+ * Only the single-segment profile route is matched. Sub-resources such as
+ * `profiles/username/availability` or `profiles/x/account` are left to their
+ * own mocks or to the proxy passthrough, so a 404 never leaks into them.
+ *
+ * Priority 2 beats the `/proxy` passthrough (mockttp `RulePriority.DEFAULT`
+ * is 1) and stays below test-specific mocks (999).
+ *
+ * @param server - The mockttp server instance
+ */
+export async function setupDefaultProfileNotFoundMock(server: Mockttp) {
+  await setupMockRequest(
+    server,
+    {
+      requestMethod: 'GET',
+      url: /^https:\/\/profile(\.dev-api|\.uat-api|\.api)?\.cx\.metamask\.io\/v1\/profiles\/[^/?#]+$/,
+      responseCode: 404,
+      response: { code: 'PROFILE_NOT_FOUND', message: 'Profile not found' },
+    },
+    2,
+  );
+}
+
+/**
  * Sets up a mock for Server-Sent Events (SSE) endpoints through the mobile proxy.
  * Unlike {@link setupMockRequest}, this sends the response with
  * `Content-Type: text/event-stream` so that SSE clients (e.g. expo/fetch)
@@ -456,8 +482,18 @@ export async function setupAccountsV2SupportedNetworksMock(
     requestMethod: 'GET',
     url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
     response: {
-      fullSupport: [1, 137, 56, 59144, 8453, 10, 42161, 534352, 1329],
-      partialSupport: { balances: [42220, 43114] },
+      fullSupport: [
+        'eip155:1',
+        'eip155:137',
+        'eip155:56',
+        'eip155:59144',
+        'eip155:8453',
+        'eip155:10',
+        'eip155:42161',
+        'eip155:534352',
+        'eip155:1329',
+      ],
+      partialSupport: ['eip155:42220', 'eip155:43114'],
     },
     responseCode: 200,
   });

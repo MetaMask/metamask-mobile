@@ -13,6 +13,10 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
   useRoute: () => ({ params: { campaignId: 'campaign-ondo-123' } }),

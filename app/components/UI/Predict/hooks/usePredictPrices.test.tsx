@@ -425,6 +425,59 @@ describe('usePredictPrices', () => {
         1,
       );
     });
+
+    it('does not resume polling when an in-flight request finishes after polling stops', async () => {
+      jest.useFakeTimers();
+      const resolvers: ((value: GetPriceResponse) => void)[] = [];
+      (
+        Engine.context.PredictController.getPrices as jest.Mock
+      ).mockImplementation(
+        () =>
+          new Promise<GetPriceResponse>((resolve) => {
+            resolvers.push(resolve);
+          }),
+      );
+      const queries = [
+        {
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+        },
+      ];
+
+      const { rerender } = renderHook(
+        ({ pollingInterval }: { pollingInterval?: number }) =>
+          usePredictPrices({ queries, pollingInterval }),
+        { initialProps: { pollingInterval: 5000 as number | undefined } },
+      );
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      rerender({ pollingInterval: undefined });
+
+      await waitFor(() => {
+        expect(
+          Engine.context.PredictController.getPrices,
+        ).toHaveBeenCalledTimes(2);
+      });
+
+      await act(async () => {
+        resolvers[0]?.(mockPrices);
+        await Promise.resolve();
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(15000);
+      });
+
+      expect(Engine.context.PredictController.getPrices).toHaveBeenCalledTimes(
+        2,
+      );
+    });
   });
 
   describe('reactivity', () => {

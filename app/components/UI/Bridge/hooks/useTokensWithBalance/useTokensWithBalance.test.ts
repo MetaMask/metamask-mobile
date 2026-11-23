@@ -1,4 +1,8 @@
-import { initialState } from '../../_mocks_/initialState';
+import {
+  evmAccountId,
+  initialState,
+  optimismToken1Address,
+} from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTokensWithBalance } from '.';
 import { constants } from 'ethers';
@@ -12,7 +16,6 @@ jest.mock('../../../Tokens/util', () => ({
 }));
 
 describe('useTokensWithBalance', () => {
-  const mockAddress = '0x1234567890123456789012345678901234567890' as Hex;
   const mockChainId = '0x1' as Hex;
   const optimismChainId = '0xa' as Hex;
   const solanaChainId = SolScope.Mainnet;
@@ -162,24 +165,13 @@ describe('useTokensWithBalance', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          AccountTrackerController: {
-            accountsByChainId: {
-              ...initialState.engine.backgroundState.AccountTrackerController
-                .accountsByChainId,
-              [mockChainId]: {
-                [mockAddress]: {
-                  balance: '0x0' as Hex,
-                },
-              },
-            },
-          },
-          TokenBalancesController: {
-            tokenBalances: {
-              [mockAddress]: {
-                [mockChainId]: {
-                  [token1Address]: '0x0de0b6b3a7640000' as Hex /* 1 TOKEN1 */,
-                  [token2Address]: '0x0' as Hex,
-                },
+          AssetsController: {
+            ...initialState.engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...initialState.engine.backgroundState.AssetsController
+                .assetsBalance,
+              [evmAccountId]: {
+                [`eip155:1/erc20:${token1Address}`]: { amount: '1' },
               },
             },
           },
@@ -222,14 +214,19 @@ describe('useTokensWithBalance', () => {
         ...initialState.engine,
         backgroundState: {
           ...initialState.engine.backgroundState,
-          TokenBalancesController: {
-            tokenBalances: {
-              [mockAddress]: {
-                [mockChainId]: {
-                  [token1Address]: '0x1' as Hex, // Very small amount
+          AssetsController: {
+            ...initialState.engine.backgroundState.AssetsController,
+            assetsBalance: {
+              ...initialState.engine.backgroundState.AssetsController
+                .assetsBalance,
+              [evmAccountId]: {
+                ...initialState.engine.backgroundState.AssetsController
+                  .assetsBalance[evmAccountId],
+                [`eip155:1/erc20:${token1Address}`]: {
+                  amount: '0.000000000000000001',
                 },
-                [optimismChainId]: {
-                  [token3Address]: '0x1' as Hex, // Very small amount on Optimism
+                [`eip155:10/erc20:${optimismToken1Address}`]: {
+                  amount: '0.000000000000000001',
                 },
               },
             },

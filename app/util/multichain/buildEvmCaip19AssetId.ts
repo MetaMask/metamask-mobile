@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import type { CaipAssetType, Hex } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 
 /**
@@ -11,6 +11,9 @@ import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
  * @param chainId - The EVM chain ID in hex format (e.g. "0x1" for Mainnet).
  * @returns A CAIP-19 asset ID string, e.g. "eip155:1/erc20:0xabc…".
  */
-export function buildEvmCaip19AssetId(address: string, chainId: Hex): string {
-  return `${toEvmCaipChainId(chainId)}/erc20:${address.toLowerCase()}`;
+export function buildEvmCaip19AssetId(
+  address: string,
+  chainId: Hex,
+): CaipAssetType {
+  return `${toEvmCaipChainId(chainId)}/erc20:${address.toLowerCase()}` as CaipAssetType;
 }

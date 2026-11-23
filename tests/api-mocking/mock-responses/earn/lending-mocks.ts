@@ -1,7 +1,7 @@
 /**
  * Stablecoin lending E2E API mocks.
  * Sets up feature flags, Accounts API balance overrides, lending markets,
- * lending positions, gas fees, and Merkl rewards.
+ * lending positions, and gas fees.
  */
 
 import { Mockttp } from 'mockttp';
@@ -182,6 +182,10 @@ export async function setupLendingMocks(
   // Feature flags
   await setupRemoteFeatureFlagsMock(mockServer, {
     earnStablecoinLendingEnabled: { enabled: true, minimumVersion: '0.0.0' },
+    earnMoneyTokenListItemCtaEnabled: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     homepageRedesignV1: { enabled: true, minimumVersion: '0.0.0' },
   });
 
@@ -201,11 +205,25 @@ export async function setupLendingMocks(
     responseCode: 200,
   });
 
+  const accountsApiV5OrV6BalancesResponse = buildAccountsApiV5Response(
+    usdcBalance,
+    hasExistingPosition,
+  );
   await setupMockRequest(
     mockServer,
     {
       url: /accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances/,
-      response: buildAccountsApiV5Response(usdcBalance, hasExistingPosition),
+      response: accountsApiV5OrV6BalancesResponse,
+      requestMethod: 'GET',
+      responseCode: 200,
+    },
+    1000,
+  );
+  await setupMockRequest(
+    mockServer,
+    {
+      url: /accounts\.api\.cx\.metamask\.io\/v6\/multiaccount\/balances/,
+      response: accountsApiV5OrV6BalancesResponse,
       requestMethod: 'GET',
       responseCode: 200,
     },
@@ -341,14 +359,6 @@ export async function setupLendingMocks(
       },
     },
     requestMethod: 'POST',
-    responseCode: 200,
-  });
-
-  // Merkl rewards (empty — no pending claims)
-  await setupMockRequest(mockServer, {
-    url: /api\.merkl\.xyz\/v4\/users\/0x[a-fA-F0-9]+\/rewards\?chainId=/,
-    response: [],
-    requestMethod: 'GET',
     responseCode: 200,
   });
 

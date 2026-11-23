@@ -32,16 +32,16 @@ describe('engineReducer', () => {
   it('should update backgroundState when dispatching UPDATE_BG_STATE action', () => {
     const reduxInitialState = {
       backgroundState: {
-        AccountTrackerController: {},
+        AssetsController: {},
       },
     };
 
-    const key = 'AccountTrackerController';
+    const key = 'AssetsController';
     // changing the mock version to suit this test manually due to our current global mock
     // TODO: Replace "any" with type
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (Engine as any).state = {
-      AccountTrackerController: { accounts: 'testValue' },
+      AssetsController: { accounts: 'testValue' },
     };
     const { backgroundState } = engineReducer(
       reduxInitialState,
@@ -49,7 +49,7 @@ describe('engineReducer', () => {
     );
     expect(backgroundState).toEqual({
       ...reduxInitialState.backgroundState,
-      AccountTrackerController: Engine.state[key],
+      AssetsController: Engine.state[key],
     });
   });
 });

@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Pressable } from 'react-native';
 import {
   BannerAlert,
   BannerAlertSeverity,
   Box,
+  Button,
+  ButtonVariant,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -16,6 +16,7 @@ import {
   IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Skeleton,
   Spinner,
   Text,
   TextColor,
@@ -27,40 +28,56 @@ import MoneyCardTiltAnimation from '../MoneyCardTiltAnimation';
 import { MoneyMetaMaskCardTestIds } from './MoneyMetaMaskCard.testIds';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useSelector } from 'react-redux';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
 import {
   CardActions,
   CardEntryPoint,
   CardScreens,
+  withCardProvider,
 } from '../../../Card/util/metrics';
 
 import { FLAT_BANNER_ALERT_STYLE } from '../../../shared/flatBannerAlertStyle';
-
-// The link layout gives the card slightly more room than the upsell and manage
-// rows, which use the component's default thumbnail size.
-const LINK_CARD_WIDTH = 111;
-const LINK_CARD_HEIGHT = 70;
+import {
+  MoneyMetaMaskCardMode,
+  type MoneyCardSetupView,
+} from '../../utils/moneyMetaMaskCardMode';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 interface MoneyMetaMaskCardProps {
   /**
    * 'upsell' (default): virtual/metal card rows.
    * 'link': card-linking CTA layout.
    * 'manage': cardholder management layout with available balance and metal upsell.
+   * 'setup': unfinished card setup.
    */
-  mode?: 'upsell' | 'link' | 'manage' | 'verifying' | 'loading';
+  mode?: MoneyMetaMaskCardMode;
   onGetNowPress: () => void;
   /** Called when the "Link card" button is pressed (link mode only). */
   onLinkPress?: () => void;
-  /** When true, disables the link-mode CTA. */
+  /** When true, disables link-mode press handlers. */
   isLinkDisabled?: boolean;
   /** Called when the "Manage" button is pressed (manage mode only). */
   onManagePress?: () => void;
+  /** Called when the "Log in" button is pressed (sign_in mode only). */
+  onSignInPress?: () => void;
+  setupView?: MoneyCardSetupView;
+  onSetupContinuePress?: () => void;
+  /** True while a Money account funding approval is running in the background. */
+  isSetupContinueLoading?: boolean;
+  onHeaderPress?: (mode: MoneyMetaMaskCardMode) => void;
   /**
    * Whether the user holds a Metal card. When true, link/manage layouts use the
-   * Metal card image and 3% cashback copy.
+   * Metal card image.
    */
   showMetalCard?: boolean;
   /** User's available card balance (manage mode only). */
   cardBalance?: string;
+  /**
+   * When true, the spendable amount is still being read. Manage mode shows a
+   * skeleton instead of a balance.
+   */
+  isBalanceLoading?: boolean;
   /** Whether the available card balance should be masked (manage mode only). */
   privacyMode?: boolean;
   /**
@@ -90,14 +107,10 @@ interface MoneyMetaMaskCardProps {
 const CardRow = ({
   isMetalCard,
   cardName,
-  cashbackPercentage,
-  onPress,
   testID,
 }: {
   isMetalCard: boolean;
   cardName: string;
-  cashbackPercentage: string;
-  onPress: () => void;
   testID: string;
 }) => (
   <Box
@@ -113,29 +126,10 @@ const CardRow = ({
       twClassName="gap-4"
     >
       <MoneyCardTiltAnimation isMetalCard={isMetalCard} />
-      <Box twClassName="gap-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {cardName}
-        </Text>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
-        >
-          {strings('money.metamask_card.cashback', {
-            percentage: cashbackPercentage,
-          })}
-        </Text>
-      </Box>
+      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        {cardName}
+      </Text>
     </Box>
-    <Button
-      variant={ButtonVariant.Secondary}
-      size={ButtonSize.Md}
-      onPress={onPress}
-      twClassName="self-center"
-    >
-      {strings('money.metamask_card.get_now')}
-    </Button>
   </Box>
 );
 
@@ -162,30 +156,18 @@ const CheckBullet = ({ text, testID }: { text: string; testID: string }) => (
 );
 
 const LinkContent = ({
-  onLinkPress,
   showMetalCard,
   apy,
   hideCardImage,
-  isLinkDisabled = false,
 }: {
-  onLinkPress: () => void;
   showMetalCard: boolean;
   apy: number | undefined;
   hideCardImage: boolean;
-  isLinkDisabled?: boolean;
 }) => {
   const hasApy = apy !== undefined;
   const subtitle = hasApy
     ? strings('money.metamask_card.link_subtitle', { apy })
     : strings('money.metamask_card.link_subtitle_no_apy');
-  const cashbackBullet = (
-    <CheckBullet
-      text={strings('money.metamask_card.link_bullet_cashback', {
-        percentage: showMetalCard ? '3' : '1',
-      })}
-      testID={MoneyMetaMaskCardTestIds.LINK_BULLET_CASHBACK}
-    />
-  );
   const apyBullet = hasApy ? (
     <CheckBullet
       text={strings('money.metamask_card.link_bullet_apy', { apy })}
@@ -203,13 +185,14 @@ const LinkContent = ({
         {subtitle}
       </Text>
       {hideCardImage ? (
-        <Box
-          twClassName="gap-2"
-          testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
-        >
-          {cashbackBullet}
-          {apyBullet}
-        </Box>
+        apyBullet ? (
+          <Box
+            twClassName="gap-2"
+            testID={MoneyMetaMaskCardTestIds.LINK_CONTAINER}
+          >
+            {apyBullet}
+          </Box>
+        ) : null
       ) : (
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -219,41 +202,27 @@ const LinkContent = ({
         >
           <MoneyCardTiltAnimation
             isMetalCard={showMetalCard}
-            width={LINK_CARD_WIDTH}
-            height={LINK_CARD_HEIGHT}
             testID={MoneyMetaMaskCardTestIds.LINK_CARD_IMAGE}
           />
-          <Box twClassName="gap-2 flex-1 justify-center">
-            {cashbackBullet}
-            {apyBullet}
-          </Box>
+          {apyBullet ? (
+            <Box twClassName="gap-2 flex-1 justify-center">{apyBullet}</Box>
+          ) : null}
         </Box>
       )}
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonSize.Lg}
-        isFullWidth
-        isDisabled={isLinkDisabled}
-        onPress={onLinkPress}
-        testID={MoneyMetaMaskCardTestIds.LINK_BUTTON}
-        twClassName="mt-3"
-      >
-        {strings('money.metamask_card.link_card')}
-      </Button>
     </Box>
   );
 };
 
 const ManageContent = ({
   cardBalance,
+  isBalanceLoading,
   isBalanceStale,
-  onManagePress,
   showMetalCard,
   privacyMode,
 }: {
   cardBalance: string;
+  isBalanceLoading: boolean;
   isBalanceStale: boolean;
-  onManagePress: () => void;
   showMetalCard: boolean;
   privacyMode: boolean;
 }) => (
@@ -267,38 +236,157 @@ const ManageContent = ({
     >
       <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
       <Box alignItems={BoxAlignItems.End} twClassName="gap-1 flex-1">
-        <SensitiveText
+        {isBalanceLoading ? (
+          <Skeleton
+            height={24}
+            width={100}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE_SKELETON}
+          />
+        ) : (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={
+              isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
+            }
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+            testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
+          >
+            {cardBalance}
+          </SensitiveText>
+        )}
+      </Box>
+    </Box>
+  </Box>
+);
+
+const HEADER_TITLE_KEY_BY_MODE = {
+  upsell: 'money.metamask_card.upsell_title',
+  link: 'money.metamask_card.link_title',
+  manage: 'money.metamask_card.title',
+  verifying: 'money.metamask_card.title',
+  loading: 'money.metamask_card.title',
+  setup: 'money.metamask_card.title',
+  sign_in: 'money.metamask_card.title',
+} as const satisfies Record<MoneyMetaMaskCardMode, string>;
+
+/**
+ * Copy for each pending setup state. The section keeps the default card row
+ * (card art + two lines) and only swaps the copy, instead of a banner.
+ */
+const getSetupCopy = (
+  setupView: Exclude<MoneyCardSetupView, { kind: 'reconciling' }>,
+): { title: string; description: string } => {
+  switch (setupView.kind) {
+    case 'kyc_under_review':
+      return {
+        title: strings('money.metamask_card.setup.reviewing_title'),
+        description: strings('money.metamask_card.setup.reviewing_description'),
+      };
+    case 'provisioning':
+      return {
+        title: strings('money.metamask_card.setup.creating_title'),
+        description: strings('money.metamask_card.setup.creating_description'),
+      };
+    default:
+      // Only the identity step has its own row copy so far. Other steps
+      // reuse the generic setup copy until they get their own lines.
+      if (setupView.step === 'kyc') {
+        return {
+          title: strings('money.metamask_card.setup.finish_kyc_title'),
+          description: strings(
+            'money.metamask_card.setup.finish_kyc_description',
+          ),
+        };
+      }
+      return {
+        title: strings('card.card_home.messages.setup_incomplete.title'),
+        description: strings(
+          `card.card_home.messages.setup_incomplete.descriptions.${setupView.step}`,
+        ),
+      };
+  }
+};
+
+const SetupContent = ({
+  setupView,
+  showMetalCard,
+}: {
+  setupView: MoneyCardSetupView;
+  showMetalCard: boolean;
+}) => {
+  if (setupView.kind === 'reconciling') {
+    return (
+      <Box
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Center}
+        twClassName="py-3"
+        testID={MoneyMetaMaskCardTestIds.SETUP_SPINNER}
+      >
+        <Spinner spinnerIconProps={{ size: IconSize.Lg }} />
+      </Box>
+    );
+  }
+
+  const { title, description } = getSetupCopy(setupView);
+
+  return (
+    <Box testID={MoneyMetaMaskCardTestIds.SETUP_CONTAINER}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="pt-3 gap-4"
+      >
+        {/* Muted while pending so the card doesn't read as ready to use. */}
+        <Box
+          twClassName="opacity-50"
+          testID={MoneyMetaMaskCardTestIds.SETUP_CARD_ART}
+        >
+          <MoneyCardTiltAnimation isMetalCard={showMetalCard} />
+        </Box>
+        <Box twClassName="gap-1 flex-1">
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            testID={MoneyMetaMaskCardTestIds.SETUP_TITLE}
+          >
+            {title}
+          </Text>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            testID={MoneyMetaMaskCardTestIds.SETUP_DESCRIPTION}
+          >
+            {description}
+          </Text>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+const SignInContent = () => (
+  <Box testID={MoneyMetaMaskCardTestIds.SIGN_IN_CONTAINER}>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="pt-3 gap-4"
+    >
+      <Box testID={MoneyMetaMaskCardTestIds.SIGN_IN_CARD_ART}>
+        <MoneyCardTiltAnimation isMetalCard={false} />
+      </Box>
+      <Box twClassName="gap-1 flex-1">
+        <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          color={
-            isBalanceStale ? TextColor.TextAlternative : TextColor.TextDefault
-          }
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Medium}
-          testID={MoneyMetaMaskCardTestIds.MANAGE_BALANCE}
+          testID={MoneyMetaMaskCardTestIds.SIGN_IN_PROMPT}
         >
-          {cardBalance}
-        </SensitiveText>
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
-        >
-          {strings('money.metamask_card.cashback', {
-            percentage: showMetalCard ? '3' : '1',
-          })}
+          {strings('money.metamask_card.sign_in_prompt')}
         </Text>
       </Box>
     </Box>
-    <Button
-      variant={ButtonVariant.Secondary}
-      size={ButtonSize.Lg}
-      isFullWidth
-      onPress={onManagePress}
-      testID={MoneyMetaMaskCardTestIds.MANAGE_BUTTON}
-    >
-      {strings('money.metamask_card.manage_card')}
-    </Button>
   </Box>
 );
 
@@ -307,9 +395,15 @@ const MoneyMetaMaskCard = ({
   onGetNowPress,
   onLinkPress,
   onManagePress,
+  onSignInPress,
+  onSetupContinuePress,
+  setupView,
+  isSetupContinueLoading = false,
+  onHeaderPress,
   showMetalCard = false,
   isLinkDisabled = false,
   cardBalance,
+  isBalanceLoading = false,
   isBalanceStale = false,
   privacyMode = false,
   apy,
@@ -321,20 +415,25 @@ const MoneyMetaMaskCard = ({
   analyticsReady = true,
 }: MoneyMetaMaskCardProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const hasTrackedViewRef = useRef(false);
   const cardType = showMetalCard ? 'metal' : 'virtual';
 
+  const tw = useTailwind();
+
   const buildAnalyticsProperties = useCallback(
-    (action?: CardActions) => ({
-      screen: analyticsScreen,
-      entrypoint: analyticsEntryPoint,
-      mode,
-      card_type: cardType,
-      flow: analyticsFlow,
-      card_state: analyticsCardState,
-      action,
-    }),
+    (action?: CardActions) =>
+      withCardProvider(activeProviderId, {
+        screen: analyticsScreen,
+        entrypoint: analyticsEntryPoint,
+        mode,
+        card_type: cardType,
+        flow: analyticsFlow,
+        card_state: analyticsCardState,
+        action,
+      }),
     [
+      activeProviderId,
       analyticsScreen,
       analyticsEntryPoint,
       mode,
@@ -345,7 +444,7 @@ const MoneyMetaMaskCard = ({
   );
 
   const trackCardButtonClick = useCallback(
-    (action: CardActions) => {
+    (action: CardActions | undefined) => {
       if (!analyticsScreen || !analyticsEntryPoint) return;
 
       trackEvent(
@@ -405,27 +504,85 @@ const MoneyMetaMaskCard = ({
     onManagePress?.();
   }, [trackCardButtonClick, onManagePress]);
 
+  const handleSetupSectionPress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_SETUP_BUTTON);
+    onManagePress?.();
+  }, [trackCardButtonClick, onManagePress]);
+
+  const handleSetupContinuePress = useCallback(() => {
+    trackCardButtonClick(CardActions.MONEY_ACCOUNT_METAMASK_CARD_SETUP_BUTTON);
+    onSetupContinuePress?.();
+  }, [trackCardButtonClick, onSetupContinuePress]);
+
+  const handleSignInPress = useCallback(() => {
+    trackCardButtonClick(CardActions.AUTHENTICATION_LOGIN_BUTTON);
+    onSignInPress?.();
+  }, [trackCardButtonClick, onSignInPress]);
+
+  const isInteractionDisabled =
+    mode === 'verifying' ||
+    mode === 'loading' ||
+    isLinkDisabled ||
+    (mode === 'setup' && setupView?.kind === 'reconciling');
+
+  const pressHandler = useMemo(
+    () =>
+      isInteractionDisabled
+        ? undefined
+        : (
+            {
+              upsell: handleGetNowPress,
+              link: handleLinkPress,
+              manage: handleManagePress,
+              setup: handleSetupSectionPress,
+              sign_in: handleSignInPress,
+            } satisfies Partial<Record<MoneyMetaMaskCardMode, () => void>>
+          )[mode],
+    [
+      handleGetNowPress,
+      handleLinkPress,
+      handleManagePress,
+      handleSetupSectionPress,
+      handleSignInPress,
+      isInteractionDisabled,
+      mode,
+    ],
+  );
+
+  const handleContentPress = useCallback(() => {
+    pressHandler?.();
+  }, [pressHandler]);
+
+  const handleHeaderPress = useCallback(() => {
+    onHeaderPress?.(mode);
+    pressHandler?.();
+  }, [mode, onHeaderPress, pressHandler]);
+
   let content: React.ReactNode = null;
   if (mode === 'link') {
     content = (
       <LinkContent
-        onLinkPress={handleLinkPress}
         showMetalCard={showMetalCard}
         apy={apy}
         hideCardImage={hideCardImage}
-        isLinkDisabled={isLinkDisabled}
       />
     );
   } else if (mode === 'manage') {
     content = (
       <ManageContent
         cardBalance={cardBalance ?? ''}
+        isBalanceLoading={isBalanceLoading}
         isBalanceStale={isBalanceStale}
-        onManagePress={handleManagePress}
         showMetalCard={showMetalCard}
         privacyMode={privacyMode}
       />
     );
+  } else if (mode === 'setup') {
+    content = setupView ? (
+      <SetupContent setupView={setupView} showMetalCard={showMetalCard} />
+    ) : null;
+  } else if (mode === 'sign_in') {
+    content = <SignInContent />;
   } else if (mode === 'verifying') {
     content = (
       <Box twClassName="pt-3">
@@ -450,6 +607,7 @@ const MoneyMetaMaskCard = ({
       </Box>
     );
   } else {
+    // Upsell mode
     content = (
       <>
         <Text
@@ -462,30 +620,69 @@ const MoneyMetaMaskCard = ({
         <CardRow
           isMetalCard={false}
           cardName={strings('money.metamask_card.virtual_card')}
-          cashbackPercentage="1"
-          onPress={handleGetNowPress}
           testID={MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW}
         />
       </>
     );
   }
 
-  let headerTitleKey: string;
-  if (mode === 'link') {
-    headerTitleKey = 'money.metamask_card.link_title';
-  } else if (mode === 'manage' || mode === 'verifying' || mode === 'loading') {
-    headerTitleKey = 'money.metamask_card.title';
-  } else {
-    headerTitleKey = 'money.metamask_card.upsell_title';
-  }
+  const headerTitleKey = HEADER_TITLE_KEY_BY_MODE[mode];
+  // Continue is its own control. Leaving it inside the row press target makes
+  // VoiceOver treat the whole section as one button, so Continue never gets a
+  // turn, and a tap can fire either action.
+  const showsSetupContinue =
+    mode === 'setup' && setupView?.kind === 'action_required';
+  const showsSignIn = mode === 'sign_in';
+
+  const contentPressable = (
+    <Pressable
+      testID={MoneyMetaMaskCardTestIds.CONTENT}
+      style={tw.style('gap-3')}
+      onPress={pressHandler ? handleContentPress : undefined}
+    >
+      {content}
+    </Pressable>
+  );
 
   return (
     <Box
       twClassName="px-4 py-3 gap-3"
       testID={MoneyMetaMaskCardTestIds.CONTAINER}
     >
-      <MoneySectionHeader title={strings(headerTitleKey)} />
-      {content}
+      <MoneySectionHeader
+        testID={MoneyMetaMaskCardTestIds.HEADER}
+        title={strings(headerTitleKey)}
+        onPress={pressHandler ? handleHeaderPress : undefined}
+      />
+      {showsSetupContinue ? (
+        <Box twClassName="gap-4">
+          {contentPressable}
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            onPress={handleSetupContinuePress}
+            isLoading={isSetupContinueLoading}
+            isDisabled={isSetupContinueLoading}
+            testID={MoneyMetaMaskCardTestIds.SETUP_CONTINUE_BUTTON}
+          >
+            {strings('money.metamask_card.setup.continue')}
+          </Button>
+        </Box>
+      ) : showsSignIn ? (
+        <Box twClassName="gap-4">
+          {contentPressable}
+          <Button
+            variant={ButtonVariant.Secondary}
+            isFullWidth
+            onPress={handleSignInPress}
+            testID={MoneyMetaMaskCardTestIds.SIGN_IN_BUTTON}
+          >
+            {strings('money.metamask_card.sign_in_cta')}
+          </Button>
+        </Box>
+      ) : (
+        contentPressable
+      )}
     </Box>
   );
 };

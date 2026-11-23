@@ -96,6 +96,10 @@ jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity } = jest.requireActual('react-native');
 
   return {
+    // The glass header's ButtonIconGlass reads this enum at module load.
+
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     HeaderStandard: () => null,
     Box: ({
       children,
@@ -255,6 +259,7 @@ describe('ReviewOrder', () => {
         MetaMetricsEvents.CARD_VIEWED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         screen: CardScreens.REVIEW_ORDER,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
@@ -271,6 +276,7 @@ describe('ReviewOrder', () => {
         MetaMetricsEvents.CARD_BUTTON_CLICKED,
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.REVIEW_ORDER_PAY,
       });
     });

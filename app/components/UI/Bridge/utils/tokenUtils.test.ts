@@ -1,8 +1,12 @@
 import { constants } from 'ethers';
 import {
+  convertApiTokenToBridgeToken,
   getNativeSourceToken,
   getDefaultDestToken,
+  getDefaultTokenPairForChains,
+  isNetworkSupportedForNonMarketSwapTab,
   isSameBridgeToken,
+  isTokenSupportedForNonMarketSwapTab,
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
@@ -123,6 +127,22 @@ describe('tokenUtils', () => {
     });
   });
 
+  describe('convertApiTokenToBridgeToken', () => {
+    it('converts an EVM slip44 asset to the zero address', () => {
+      const result = convertApiTokenToBridgeToken({
+        assetId: 'eip155:5042/slip44:5042',
+        name: 'USDC',
+        symbol: 'USDC',
+        decimals: 18,
+      });
+
+      expect(result).toMatchObject({
+        address: constants.AddressZero,
+        chainId: '0x13b2',
+      });
+    });
+  });
+
   describe('getDefaultDestToken', () => {
     it('returns token for direct hex chainId lookup', () => {
       const result = getDefaultDestToken(CHAIN_IDS.MAINNET);
@@ -236,6 +256,99 @@ describe('tokenUtils', () => {
       // Only chainId should be different (CAIP format instead of hex)
       expect(result?.chainId).toBe(caipChainId);
       expect(result?.chainId).not.toBe(originalToken.chainId);
+    });
+  });
+
+  describe('getDefaultTokenPairForChains', () => {
+    it('returns undefined when there are no enabled chains', () => {
+      const result = getDefaultTokenPairForChains([]);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('anchors on Ethereum mainnet ETH/mUSD when Ethereum is enabled', () => {
+      const result = getDefaultTokenPairForChains(['eip155:56', 'eip155:1']);
+
+      expect(result?.sourceToken).toEqual(getNativeSourceToken('eip155:1'));
+      expect(result?.sourceToken.chainId).toBe('0x1');
+      expect(result?.destToken?.symbol).toBe('mUSD');
+      expect(result?.destToken?.chainId).toBe('0x1');
+    });
+
+    it('falls back to the first enabled chain when Ethereum is not enabled', () => {
+      const result = getDefaultTokenPairForChains(['eip155:56', 'eip155:8453']);
+
+      expect(result?.sourceToken).toEqual(getNativeSourceToken('eip155:56'));
+      expect(result?.sourceToken.chainId).toBe('0x38');
+      expect(result?.destToken?.chainId).toBe('0x38');
+    });
+
+    it('omits destToken when the default dest would equal the source token', () => {
+      // eip155:999999 has no configured dest token and no native token
+      // mapping conflict scenario is hard to construct naturally, so this
+      // guards against getDefaultDestToken returning undefined gracefully.
+      const result = getDefaultTokenPairForChains(['eip155:999999']);
+
+      expect(result?.sourceToken).toEqual(
+        getNativeSourceToken('eip155:999999'),
+      );
+      expect(result?.destToken).toBeUndefined();
+    });
+  });
+
+  describe('isNetworkSupportedForNonMarketSwapTab', () => {
+    beforeEach(() => {
+      jest
+        .mocked(isNonEvmChainId)
+        .mockImplementation(
+          (chainId) =>
+            typeof chainId === 'string' && chainId.startsWith('solana:'),
+        );
+    });
+
+    it('returns true for an enabled EVM network', () => {
+      expect(isNetworkSupportedForNonMarketSwapTab('0x1', ['eip155:1'])).toBe(
+        true,
+      );
+    });
+
+    it('returns false for a disabled network', () => {
+      expect(
+        isNetworkSupportedForNonMarketSwapTab('0x1', ['eip155:8453']),
+      ).toBe(false);
+    });
+
+    it('returns false for a non-EVM network', () => {
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as const;
+
+      expect(
+        isNetworkSupportedForNonMarketSwapTab(solanaChainId, [solanaChainId]),
+      ).toBe(false);
+    });
+  });
+
+  describe('isTokenSupportedForNonMarketSwapTab', () => {
+    it('returns true for a non-RWA token on an enabled network', () => {
+      expect(
+        isTokenSupportedForNonMarketSwapTab(createMockToken(), ['eip155:1']),
+      ).toBe(true);
+    });
+
+    it('returns false for an RWA token on an enabled network', () => {
+      expect(
+        isTokenSupportedForNonMarketSwapTab(
+          createMockToken({
+            name: 'Ondo Tokenized Apple',
+          }),
+          ['eip155:1'],
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false for a token on a disabled network', () => {
+      expect(
+        isTokenSupportedForNonMarketSwapTab(createMockToken(), ['eip155:8453']),
+      ).toBe(false);
     });
   });
 

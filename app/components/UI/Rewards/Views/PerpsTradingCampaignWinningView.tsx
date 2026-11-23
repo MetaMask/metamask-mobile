@@ -5,8 +5,7 @@ import { formatOrdinalRank, formatSignedUsd } from '../utils/formatUtils';
 import { useGetPerpsTradingCampaignLeaderboardPosition } from '../hooks/useGetPerpsTradingCampaignLeaderboardPosition';
 import CampaignWinningView from './CampaignWinningView';
 import Routes from '../../../../constants/navigation/Routes';
-
-const PRIZE_EMAIL = 'perpscampaign@consensys.net';
+import { REWARDS_WINNER_CONTACT_EMAIL } from '../constants/campaignWinnerContact';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PerpsTradingCampaignWinningRouteParams = {
@@ -61,7 +60,7 @@ const PerpsTradingCampaignWinningView: React.FC = () => {
     <CampaignWinningView
       testID={PERPS_TRADING_CAMPAIGN_WINNING_VIEW_TEST_IDS.CONTAINER}
       viewName="PerpsTradingCampaignWinningView"
-      prizeEmail={PRIZE_EMAIL}
+      prizeEmail={REWARDS_WINNER_CONTACT_EMAIL}
       campaignName={campaignName}
       campaignId={campaignId}
       analyticsPageType="perps_trading_campaign_winning"

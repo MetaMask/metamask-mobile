@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { selectTransak } from '../../../../selectors/rampsController';
-import { selectDepositProviderApiKey } from '../../../../selectors/featureFlagController/deposit';
 import {
   getProviderToken,
   storeProviderToken,
@@ -62,6 +61,7 @@ export interface UseTransakControllerResult {
     network: string,
     paymentMethod: string,
     fiatAmount: string,
+    isFeeExcludedFromFiat?: boolean,
   ) => Promise<TransakBuyQuote>;
   getKycRequirement: (quoteId: string) => Promise<TransakKycRequirement>;
   getAdditionalRequirements: (
@@ -116,16 +116,6 @@ function getRampsController() {
 
 export function useTransakController(): UseTransakControllerResult {
   const transakState = useSelector(selectTransak);
-  const providerApiKey = useSelector(selectDepositProviderApiKey);
-
-  const apiKeySetRef = useRef(false);
-
-  useEffect(() => {
-    if (providerApiKey && !apiKeySetRef.current) {
-      getRampsController().transakSetApiKey(providerApiKey);
-      apiKeySetRef.current = true;
-    }
-  }, [providerApiKey]);
 
   const checkExistingToken = useCallback(async (): Promise<boolean> => {
     try {
@@ -216,6 +206,7 @@ export function useTransakController(): UseTransakControllerResult {
       network: string,
       paymentMethod: string,
       fiatAmount: string,
+      isFeeExcludedFromFiat = true,
     ) =>
       getRampsController().transakGetBuyQuote(
         fiatCurrency,
@@ -223,6 +214,7 @@ export function useTransakController(): UseTransakControllerResult {
         network,
         paymentMethod,
         fiatAmount,
+        isFeeExcludedFromFiat,
       ),
     [],
   );

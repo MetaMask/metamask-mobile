@@ -3,11 +3,16 @@ import React from 'react';
 import { useStyles } from '../../../../../component-library/hooks';
 import { View } from 'react-native';
 import styleSheet from './EarnTokenSelector.styles';
-import Text, {
+import {
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { AvatarTokenSize } from '@metamask/design-system-react-native';
+} from '@metamask/design-system-react-native';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import SelectButton, {
   SelectButtonSize,
@@ -16,19 +21,12 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import { useSelector } from 'react-redux';
-import { selectNetworkName } from '../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenI } from '../../../Tokens/types';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { formatEarnRatePercentage } from '../../../Earn/utils';
 import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnTokenSelectorProps {
@@ -42,7 +40,6 @@ const EarnTokenSelector = ({
 }: EarnTokenSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
-  const networkName = useSelector(selectNetworkName);
   const { getEarnToken, getOutputToken } = useEarnTokens();
   const earnToken = getEarnToken(someEarnToken);
   const outputToken = getOutputToken(someEarnToken);
@@ -51,8 +48,8 @@ const EarnTokenSelector = ({
   // for staking flows we want to display the earn token (e.g. TRX, ETH).
   const tokenToRender = (
     action === EARN_INPUT_VIEW_ACTIONS.WITHDRAW
-      ? outputToken || someEarnToken
-      : earnToken || outputToken || someEarnToken
+      ? (outputToken ?? someEarnToken)
+      : (earnToken ?? outputToken ?? someEarnToken)
   ) as EarnTokenDetails | TokenI | undefined;
 
   const rawApr =
@@ -61,7 +58,9 @@ const EarnTokenSelector = ({
   const aprValue = parseFloat(rawApr);
 
   const apr =
-    Number.isFinite(aprValue) && aprValue > 0 ? aprValue.toFixed(1) : undefined;
+    Number.isFinite(aprValue) && aprValue > 0
+      ? formatEarnRatePercentage(aprValue)
+      : undefined;
 
   const handlePress = () => {
     trace({ name: TraceName.EarnTokenList });
@@ -98,21 +97,26 @@ const EarnTokenSelector = ({
     }
 
     return (
-      <AssetLogo asset={tokenToRender as TokenI} size={AvatarTokenSize.Md} />
+      <AssetLogo asset={tokenToRender as TokenI} size={AvatarTokenSize.Lg} />
     );
   };
+
+  const balanceFormatted = (tokenToRender as EarnTokenDetails | undefined)
+    ?.balanceFormatted;
 
   const renderStartAccessory = () => (
     <View style={styles.startAccessoryContainer}>
       <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            name={networkName}
-            imageSource={
+        style={styles.avatarWrapper}
+        position={BadgeWrapperPosition.BottomRight}
+        badge={
+          <BadgeNetwork
+            twClassName="h-4 w-4 rounded bg-default"
+            src={
               tokenToRender?.chainId
-                ? getNetworkImageSource({ chainId: tokenToRender.chainId })
+                ? (getNetworkImageSource({
+                    chainId: tokenToRender.chainId,
+                  }) as React.ComponentProps<typeof BadgeNetwork>['src'])
                 : undefined
             }
           />
@@ -120,42 +124,42 @@ const EarnTokenSelector = ({
       >
         {renderTokenAvatar()}
       </BadgeWrapper>
-      <Text
-        variant={TextVariant.BodyMDMedium}
-        style={styles.tokenText}
-        numberOfLines={1}
-      >
-        {tokenToRender?.name ?? ''}
-      </Text>
+      <View style={styles.tokenDetails}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
+          {tokenToRender?.name ?? ''}
+        </Text>
+        {balanceFormatted !== undefined && (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {balanceFormatted}
+          </Text>
+        )}
+      </View>
     </View>
   );
 
-  const renderEndAccessory = () => (
-    <View style={styles.endAccessoryContainer}>
-      {apr ? (
+  const renderEndAccessory = () =>
+    apr ? (
+      <View style={styles.endAccessoryContainer}>
         <Text
-          variant={TextVariant.BodyMDMedium}
-          color={TextColor.Success}
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.SuccessDefault}
           numberOfLines={1}
         >
           {`${apr}% APR`}
         </Text>
-      ) : null}
-
-      {(tokenToRender as EarnTokenDetails | undefined)?.balanceFormatted !==
-        undefined && (
-        <Text
-          style={styles.balanceText}
-          variant={TextVariant.BodySMMedium}
-          color={TextColor.Alternative}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {(tokenToRender as EarnTokenDetails | undefined)?.balanceFormatted}
-        </Text>
-      )}
-    </View>
-  );
+      </View>
+    ) : null;
 
   return (
     <SelectButton

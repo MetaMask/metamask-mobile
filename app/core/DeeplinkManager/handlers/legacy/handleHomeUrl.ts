@@ -1,16 +1,14 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { setContentPreviewToken } from '../../../../actions/notification/helpers';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { resolveDeeplinkNavigatedTarget } from '../../../Performance/DeeplinkPerformance';
 
 export function navigateToHomeUrl(params: { homePath?: string }) {
   const { homePath } = params;
 
-  // Preview Content Token
   const urlParams = new URLSearchParams(
     homePath?.includes('?') ? homePath.split('?')[1] : '',
   );
-  setContentPreviewToken(urlParams.get('previewToken'));
 
   // Open Network Selector Deeplink
   const openNetworkSelectorParam = urlParams
@@ -18,6 +16,8 @@ export function navigateToHomeUrl(params: { homePath?: string }) {
     ?.toLowerCase();
   const shouldOpenNetworkSelector = openNetworkSelectorParam === 'true';
 
+  // Declare target before navigate; home is often already focused (no state change fires).
+  resolveDeeplinkNavigatedTarget({ targetRoute: Routes.WALLET.HOME });
   NavigationService.navigation.navigate(Routes.WALLET.HOME);
 
   if (shouldOpenNetworkSelector) {

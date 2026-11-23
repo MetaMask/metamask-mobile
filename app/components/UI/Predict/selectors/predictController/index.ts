@@ -1,6 +1,6 @@
 import { createSelector, weakMapMemoize } from 'reselect';
 import { RootState } from '../../../../../reducers';
-import { PredictPositionStatus } from '../../types';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 const weakMapMemoizeOptions = {
@@ -45,18 +45,27 @@ const selectPredictClaimablePositionsByAddress = createSelector(
     selectPredictClaimablePositions,
     (_state: RootState, address: string) => address,
   ],
-  (claimablePositions, address) => claimablePositions[address] || [],
+  (claimablePositions, address) => {
+    // Controller keys by signer address; confirmation reads by
+    // `txParams.from`, which TransactionController lowercases. The controller
+    // collapses casings on write, but if two ever coexist, prefer the one
+    // that has positions over an exact-case empty leftover.
+    const normalizedAddress = address.toLowerCase();
+    const matches = Object.keys(claimablePositions).filter(
+      (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+    );
+    const matchedAddress =
+      matches.find((addressKey) => claimablePositions[addressKey]?.length) ??
+      matches[0];
+    return matchedAddress ? claimablePositions[matchedAddress] : [];
+  },
   weakMapMemoizeOptions,
 );
 
 const selectPredictWonPositions = createSelector(
   [selectPredictClaimablePositionsByAddress],
   (claimablePositions) =>
-    claimablePositions.filter(
-      (position) =>
-        position.status === PredictPositionStatus.WON ||
-        position.status === PredictPositionStatus.REDEEMABLE,
-    ),
+    claimablePositions.filter(isActionableClaimablePosition),
   weakMapMemoizeOptions,
 );
 

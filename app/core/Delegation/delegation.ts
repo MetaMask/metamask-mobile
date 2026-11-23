@@ -1,6 +1,6 @@
 import { encode } from '@metamask/abi-utils';
+import { keccak256 } from '@metamask/native-utils';
 import { getChecksumAddress } from '@metamask/utils';
-import { keccak } from 'ethereumjs-util';
 import { getCaveatArrayPacketHash, type Caveat } from './caveat';
 import { resolveCaveats, type Caveats } from './caveatBuilder';
 import { concat, toFunctionSelector, toHex, type Hex } from './utils';
@@ -26,11 +26,6 @@ export const ANY_BENEFICIARY = '0x0000000000000000000000000000000000000a11';
  */
 export const DELEGATION_TYPEHASH =
   '0x88c1d2ecf185adf710588203a5f263f0ff61be0d33da39792cde19ba9aa4331e' as Hex;
-
-/**
- * The function selector for the redeemDelegations function
- */
-export const REDEEM_DELEGATIONS_SELECTOR = '0xcef6d209' as Hex;
 
 /**
  * Converts a Delegation to a DelegationStruct.
@@ -150,7 +145,7 @@ export const getDelegationHashOffchain = (input: Delegation): Hex => {
       delegationStruct.salt,
     ],
   );
-  return toHex(keccak(Buffer.from(encoded)));
+  return toHex(keccak256(encoded));
 };
 
 interface BaseCreateDelegationOptions {

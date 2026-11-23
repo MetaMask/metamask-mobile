@@ -2,6 +2,8 @@ import {
   ChainId,
   formatChainIdToCaip,
   DeepPartial,
+  toBridgeAssetV2,
+  getNativeAssetForChainId,
 } from '@metamask/bridge-controller';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { isQuoteNetworkFeeUnavailable } from '.';
@@ -20,7 +22,12 @@ const createQuote = (
       chainId: formatChainIdToCaip(ChainId.BTC),
       quote: {
         feeData: {
-          network: [{ normalizedAmount: '0.0001' }],
+          network: [
+            {
+              normalizedAmount: '0.0001',
+              asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.BTC)),
+            },
+          ],
         },
       },
     },
@@ -208,7 +215,7 @@ describe('isQuoteNetworkFeeUnavailable', () => {
     expect(
       isQuoteNetworkFeeUnavailable(
         createQuote({
-          chainId: undefined,
+          chainId: null as never,
         }),
       ),
     ).toBe(false);

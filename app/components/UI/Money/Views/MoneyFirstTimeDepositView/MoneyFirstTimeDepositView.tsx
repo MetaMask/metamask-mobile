@@ -1,16 +1,18 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { BackHandler, PixelRatio, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Rive, {
-  AutoBind,
-  useRive,
+import {
+  Fit,
+  RiveView,
+  useRiveFile,
+  useRiveNumber,
   useRiveString,
   useRiveTrigger,
-  Fit,
-  RNRiveError,
-} from 'rive-react-native';
+  useViewModelInstance,
+  type RiveError,
+} from '@rive-app/react-native';
 import { createProjectLogger } from '@metamask/utils';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -26,6 +28,7 @@ import { MoneyFirstTimeDepositViewTestIds } from './MoneyFirstTimeDepositView.te
 import useMountEffect from '../../hooks/useMountEffect';
 import MoneyAccountFirstTimeDepositAnimationV4 from '../../../../../animations/money_account_first_time_deposit_v4.riv';
 import Routes from '../../../../../constants/navigation/Routes';
+import { playSuccessNotification } from '../../../../../util/haptics';
 
 const log = createProjectLogger('money-first-time-deposit');
 
@@ -70,20 +73,41 @@ const MoneyFirstTimeDepositView = () => {
   const parallaxEnabled = useSelector(selectMoneyParallaxAnimationEnabledFlag);
   const reduceMotion = useReduceMotion();
 
-  const [ref, riveRef] = useRive();
+  const { riveFile } = useRiveFile(MoneyAccountFirstTimeDepositAnimationV4);
+  const { instance } = useViewModelInstance(riveFile, {
+    artboardName: RIVE_ARTBOARD_NAME,
+    async: true,
+  });
 
-  const [, setTitle] = useRiveString(riveRef, RIVE_TITLE_PATH);
-  const [, setContent] = useRiveString(riveRef, RIVE_CONTENT_PATH);
-  const [, setButtonText] = useRiveString(riveRef, BUTTON_TEXT_PATH);
+  const { setValue: setTitle } = useRiveString(RIVE_TITLE_PATH, instance);
+  const { setValue: setContent } = useRiveString(RIVE_CONTENT_PATH, instance);
+  const { setValue: setButtonText } = useRiveString(BUTTON_TEXT_PATH, instance);
+  const { setValue: setXValue } = useRiveNumber(RIVE_X_VALUE_PATH, instance);
+  const { setValue: setYValue } = useRiveNumber(RIVE_Y_VALUE_PATH, instance);
 
   const goHome = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    navigation.navigate(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      },
+      { pop: true },
+    );
   }, [navigation]);
 
   useMountEffect(trackScreenViewed);
+
+  // The success toast (and its haptic) is skipped for this screen, so the
+  // tap plays once the deposit animation is actually on screen.
+  const hasPlayedDepositHaptic = useRef(false);
+  useEffect(() => {
+    if (!instance || hasPlayedDepositHaptic.current) {
+      return;
+    }
+    hasPlayedDepositHaptic.current = true;
+    playSuccessNotification().catch(() => undefined);
+  }, [instance]);
 
   // Intercept Android hardware-back so it behaves like tapping "Done".
   useEffect(() => {
@@ -98,28 +122,25 @@ const MoneyFirstTimeDepositView = () => {
   }, [goHome]);
 
   // Listen for the Rive "Done" button trigger
-  useRiveTrigger(riveRef, RIVE_DONE_TRIGGER, () => {
-    goHome();
+  useRiveTrigger(RIVE_DONE_TRIGGER, instance, {
+    onTrigger: goHome,
   });
 
-  // Once the Rive ref is ready, inject the i18n text.
+  // Once the view-model instance is ready, inject the i18n text.
   useEffect(() => {
-    if (!riveRef) return;
+    if (!instance) return;
 
     setTitle(strings('money.first_time_deposit.title'));
     setContent(strings('money.first_time_deposit.content'));
     setButtonText(strings('money.first_time_deposit.button_text'));
-  }, [riveRef, setTitle, setContent, setButtonText]);
+  }, [instance, setTitle, setContent, setButtonText]);
 
   const applyTilt = useCallback(
     (x: number, y: number) => {
-      // viewTag() is null while the native Rive view is detached; dispatching
-      // then throws "found null reactTag".
-      if (!riveRef || riveRef.viewTag() === null) return;
-      riveRef.setNumber(RIVE_X_VALUE_PATH, tiltToParallaxValue(x));
-      riveRef.setNumber(RIVE_Y_VALUE_PATH, pitchToParallaxValue(y));
+      setXValue(tiltToParallaxValue(x));
+      setYValue(pitchToParallaxValue(y));
     },
-    [riveRef],
+    [setXValue, setYValue],
   );
 
   useDeviceOrientation(applyTilt, {
@@ -127,7 +148,7 @@ const MoneyFirstTimeDepositView = () => {
   });
 
   const handleError = useCallback(
-    (riveError: RNRiveError) => {
+    (riveError: RiveError) => {
       log(`Rive error: ${riveError.message}`);
       goHome();
     },
@@ -136,17 +157,19 @@ const MoneyFirstTimeDepositView = () => {
 
   return (
     <View style={styles.root}>
-      <Rive
-        ref={ref}
-        source={MoneyAccountFirstTimeDepositAnimationV4}
-        artboardName={RIVE_ARTBOARD_NAME}
-        dataBinding={AutoBind(true)}
-        fit={Fit.Layout}
-        layoutScaleFactor={PixelRatio.get()}
-        style={StyleSheet.absoluteFillObject}
-        onError={handleError}
-        testID={MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION}
-      />
+      {riveFile && instance && (
+        <RiveView
+          file={riveFile}
+          artboardName={RIVE_ARTBOARD_NAME}
+          dataBind={instance}
+          autoPlay
+          fit={Fit.Layout}
+          layoutScaleFactor={PixelRatio.get()}
+          style={StyleSheet.absoluteFill}
+          onError={handleError}
+          testID={MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION}
+        />
+      )}
     </View>
   );
 };

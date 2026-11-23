@@ -1,0 +1,411 @@
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { useCardSignIn } from './useCardSignIn';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { CardProviderIds } from '../../../../core/Engine/controllers/card-controller/provider-types';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn().mockReturnValue({ event: 'built' });
+const mockAddProperties = jest.fn().mockReturnValue({ build: mockBuild });
+const mockCreateEventBuilder = jest.fn().mockReturnValue({
+  addProperties: mockAddProperties,
+});
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+const mockResumeImmersveOnboarding = jest.fn();
+jest.mock('./useImmersveResumeOnboarding', () => ({
+  useImmersveResumeOnboarding: () => mockResumeImmersveOnboarding,
+}));
+
+const mockHandoffMfa = jest.fn();
+jest.mock('./useImmersveMfaHandoff', () => ({
+  useImmersveMfaHandoff: () => mockHandoffMfa,
+}));
+
+const mockResolveSignIn = jest.fn();
+const mockVerifyAccountForSignIn = jest.fn();
+const mockAuthenticateWithWallet = jest.fn();
+const mockSelectSignInOption = jest.fn();
+const mockGetSignInOptions = jest.fn();
+
+jest.mock('../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      CardController: {
+        resolveSignIn: (...args: unknown[]) => mockResolveSignIn(...args),
+        verifyAccountForSignIn: (...args: unknown[]) =>
+          mockVerifyAccountForSignIn(...args),
+        authenticateWithWallet: (...args: unknown[]) =>
+          mockAuthenticateWithWallet(...args),
+        selectSignInOption: (...args: unknown[]) =>
+          mockSelectSignInOption(...args),
+        getSignInOptions: (...args: unknown[]) => mockGetSignInOptions(...args),
+      },
+    },
+  },
+}));
+
+const SELECTED = '0x1111111111111111111111111111111111111111';
+const GROUP_2 = '0x2222222222222222222222222222222222222222';
+const GROUP_3 = '0x3333333333333333333333333333333333333333';
+const EXTRA = '0x4444444444444444444444444444444444444444';
+
+let mockSelectedSignInAddress = '0x1111111111111111111111111111111111111111';
+
+jest.mock('react-redux', () => {
+  const selected = '0x1111111111111111111111111111111111111111';
+  const group2 = '0x2222222222222222222222222222222222222222';
+  const group3 = '0x3333333333333333333333333333333333333333';
+  const extra = '0x4444444444444444444444444444444444444444';
+
+  const state = {
+    evmAccounts: [
+      { address: selected },
+      { address: group2 },
+      { address: group3 },
+      { address: extra },
+    ],
+    accountGroups: [{ id: 'group-1' }, { id: 'group-2' }],
+    get selectedAccount() {
+      return { address: mockSelectedSignInAddress, type: 'eip155:eoa' };
+    },
+    accountsByGroupId: (groupId: string) => {
+      if (groupId === 'group-1') {
+        return [
+          { address: selected, type: 'eip155:eoa' },
+          { address: group2, type: 'eip155:eoa' },
+        ];
+      }
+      return [{ address: group3, type: 'eip155:eoa' }];
+    },
+  };
+
+  return {
+    useSelector: (selector: (s: typeof state) => unknown) => selector(state),
+  };
+});
+
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectInternalEvmAccounts: (state: { evmAccounts: { address: string }[] }) =>
+    state.evmAccounts,
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountGroups: (state: { accountGroups: { id: string }[] }) =>
+      state.accountGroups,
+  }),
+);
+
+const mockMoneySignInState: {
+  address: string | null;
+  countries: string[];
+} = {
+  address: null,
+  countries: [],
+};
+
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: () =>
+    mockMoneySignInState.address
+      ? { address: mockMoneySignInState.address }
+      : null,
+}));
+
+jest.mock('../../../../selectors/featureFlagController/card', () => ({
+  immersveFundingChannelForCountry: (
+    countryFunding: Record<string, unknown> | null | undefined,
+    country: string | null | undefined,
+  ) => {
+    if (!country || !countryFunding) {
+      return null;
+    }
+    return (
+      (countryFunding as Record<string, unknown>)[country.toUpperCase()] ?? null
+    );
+  },
+  isMoneyAccountFundingChannel: (
+    channel: { source?: string } | null | undefined,
+  ) => channel?.source === 'moneyAccount',
+  selectCardImmersveCountryFunding: () =>
+    Object.fromEntries(
+      mockMoneySignInState.countries.map((country) => [
+        country.toUpperCase(),
+        {
+          source: 'moneyAccount',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+          network: 'monad-mainnet',
+          caipChainId: 'eip155:143',
+          tokenAddress: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          decimals: 6,
+        },
+      ]),
+    ),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope:
+    (state: { selectedAccount: { address: string; type: string } }) => () =>
+      state.selectedAccount,
+  selectInternalAccountsByGroupId: (state: {
+    accountsByGroupId: (groupId: string) => {
+      address: string;
+      type: string;
+    }[];
+  }) => state.accountsByGroupId,
+}));
+
+describe('useCardSignIn', () => {
+  const walletOption = {
+    providerId: CardProviderIds.Immersve,
+    method: 'siwe' as const,
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockHandoffMfa.mockReset();
+    mockSelectedSignInAddress = SELECTED;
+    mockMoneySignInState.address = null;
+    mockMoneySignInState.countries = [];
+    mockResolveSignIn.mockResolvedValue({
+      kind: 'email',
+      option: {
+        providerId: CardProviderIds.Baanx,
+        method: 'email_password',
+      },
+    });
+    mockAuthenticateWithWallet.mockResolvedValue({ done: true });
+    mockResumeImmersveOnboarding.mockResolvedValue(undefined);
+  });
+
+  it('resolves with the selected account first, then the next two by group order', async () => {
+    const { result } = renderHook(() => useCardSignIn('GB'));
+
+    await waitFor(() => {
+      expect(result.current.resolution?.kind).toBe('email');
+    });
+
+    expect(mockResolveSignIn).toHaveBeenCalledWith({
+      country: 'GB',
+      candidateAddresses: [SELECTED, GROUP_2, GROUP_3],
+      deviceAddresses: [SELECTED, GROUP_2, GROUP_3, EXTRA],
+    });
+    expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires CARD_SIGN_IN_RESOLVED without addresses', async () => {
+    mockResolveSignIn.mockResolvedValue({
+      kind: 'wallet',
+      option: walletOption,
+      address: SELECTED,
+      source: 'lookup',
+    });
+
+    const { result } = renderHook(() => useCardSignIn('GB'));
+
+    await waitFor(() => {
+      expect(result.current.resolution?.kind).toBe('wallet');
+    });
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_SIGN_IN_RESOLVED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'wallet',
+        source: 'lookup',
+        addresses_checked: 3,
+        duration_ms: expect.any(Number),
+      }),
+    );
+    expect(mockAddProperties.mock.calls[0][0]).not.toHaveProperty('address');
+  });
+
+  it('signInWithWallet authenticates then resumes Immersve onboarding', async () => {
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+
+    await act(async () => {
+      await result.current.signInWithWallet({
+        option: walletOption,
+        address: SELECTED,
+        country: 'GB',
+      });
+    });
+
+    expect(mockAuthenticateWithWallet).toHaveBeenCalledWith({
+      option: walletOption,
+      address: SELECTED,
+      country: 'GB',
+      autoSignup: false,
+    });
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({ done: true }),
+      expect.objectContaining({ country: 'GB', address: SELECTED }),
+    );
+    expect(mockResumeImmersveOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        alreadyAuthenticated: true,
+        address: SELECTED,
+        country: 'GB',
+      }),
+    );
+  });
+
+  it('hands off to MFA and skips resume when a method must be chosen', async () => {
+    mockHandoffMfa.mockReturnValue(true);
+    mockAuthenticateWithWallet.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_select',
+        options: [{ method: 'phone', maskedDestination: '+64 *****1234' }],
+      },
+    });
+
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+
+    await act(async () => {
+      await result.current.signInWithWallet({
+        option: walletOption,
+        address: SELECTED,
+        country: 'GB',
+      });
+    });
+
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nextStep: expect.objectContaining({ type: 'mfa_select' }),
+      }),
+      expect.objectContaining({
+        country: 'GB',
+        address: SELECTED,
+      }),
+    );
+    expect(mockResumeImmersveOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('hands off to MFA when sign-in returns a code step', async () => {
+    mockHandoffMfa.mockReturnValue(true);
+    mockAuthenticateWithWallet.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
+        method: 'email',
+        maskedDestination: 'j***@example.com',
+        expiresAt: null,
+      },
+    });
+
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+
+    await act(async () => {
+      await result.current.signInWithWallet({
+        option: walletOption,
+        address: SELECTED,
+        country: 'GB',
+      });
+    });
+
+    expect(mockHandoffMfa).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nextStep: expect.objectContaining({ type: 'mfa_code' }),
+      }),
+      expect.objectContaining({ country: 'GB', address: SELECTED }),
+    );
+    expect(mockResumeImmersveOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('does not resume when the MFA handoff rejects an unfinished login', async () => {
+    mockHandoffMfa.mockImplementation(() => {
+      throw new Error('Unexpected login step');
+    });
+    mockAuthenticateWithWallet.mockResolvedValue({ done: false });
+
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+
+    await expect(
+      act(async () => {
+        await result.current.signInWithWallet({
+          option: walletOption,
+          address: SELECTED,
+          country: 'GB',
+        });
+      }),
+    ).rejects.toThrow('Unexpected login step');
+    expect(mockResumeImmersveOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('retry re-runs resolveSignIn', async () => {
+    const { result } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+    expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      result.current.retry();
+    });
+
+    await waitFor(() => {
+      expect(mockResolveSignIn).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('does not resolve again when only the selected account changes', async () => {
+    const { result, rerender } = renderHook(() => useCardSignIn('GB'));
+    await waitFor(() => {
+      expect(result.current.resolution).not.toBeNull();
+    });
+    expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
+
+    mockSelectedSignInAddress = GROUP_2;
+    rerender(undefined);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockResolveSignIn).toHaveBeenCalledTimes(1);
+  });
+
+  it('looks up only the Money account when the country uses that funding channel', async () => {
+    const moneyAccount = '0x000000000000000000000000000000000000dEaD';
+    mockMoneySignInState.address = moneyAccount;
+    mockMoneySignInState.countries = ['NZ'];
+
+    renderHook(() => useCardSignIn('NZ'));
+
+    await waitFor(() => {
+      expect(mockResolveSignIn).toHaveBeenCalledWith({
+        country: 'NZ',
+        candidateAddresses: [moneyAccount],
+        deviceAddresses: [moneyAccount],
+      });
+    });
+  });
+
+  it('does not resolve when country is null', () => {
+    const { result } = renderHook(() => useCardSignIn(null));
+    expect(mockResolveSignIn).not.toHaveBeenCalled();
+    expect(result.current.resolution).toBeNull();
+  });
+});

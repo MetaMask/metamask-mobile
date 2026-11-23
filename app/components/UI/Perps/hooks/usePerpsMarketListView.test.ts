@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react-hooks';
+import { act, renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { usePerpsMarketListView } from './usePerpsMarketListView';
 import { usePerpsMarkets } from './usePerpsMarkets';
@@ -13,11 +13,13 @@ import {
   type SortDirection,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import { setPerpsMarketListPreferences } from '../../../../actions/settings';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsRecentlyViewedMarkets,
   selectPerpsMarketFilterPreferences,
 } from '../selectors/perpsController';
+import { selectPerpsMarketListPreferences } from '../selectors/marketListPreferences';
 
 // Mock sortMarkets utility
 jest.mock('@metamask/perps-controller', () => ({
@@ -31,7 +33,13 @@ const mockSortMarkets = sortMarkets as jest.MockedFunction<typeof sortMarkets>;
 jest.mock('./usePerpsMarkets');
 jest.mock('./usePerpsSearch');
 jest.mock('./usePerpsSorting');
-jest.mock('react-redux');
+
+const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+  useDispatch: () => mockDispatch,
+}));
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
@@ -62,11 +70,19 @@ const mockSelectorState = (overrides: {
   watchlist?: string[];
   recentlyViewed?: string[];
   sortPreference?: { optionId: string; direction: string };
+  marketListPreference?: {
+    marketTypeFilter: MarketTypeFilter;
+    showFavoritesOnly: boolean;
+  };
 }) => {
   const {
     watchlist = [],
     recentlyViewed = [],
     sortPreference = { optionId: 'volume', direction: 'desc' },
+    marketListPreference = {
+      marketTypeFilter: 'all' as MarketTypeFilter,
+      showFavoritesOnly: false,
+    },
   } = overrides;
 
   mockUseSelector.mockImplementation((selector) => {
@@ -74,6 +90,9 @@ const mockSelectorState = (overrides: {
     if (selector === selectPerpsRecentlyViewedMarkets) return recentlyViewed;
     if (selector === selectPerpsMarketFilterPreferences) {
       return sortPreference;
+    }
+    if (selector === selectPerpsMarketListPreferences) {
+      return marketListPreference;
     }
     return undefined;
   });
@@ -661,6 +680,7 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 3,
+        memecoin: 0,
         stock: 0,
         'pre-ipo': 0,
         index: 0,
@@ -760,6 +780,7 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 2,
+        memecoin: 0,
         stock: 2,
         'pre-ipo': 0,
         index: 0,
@@ -790,6 +811,7 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketCounts).toEqual({
         crypto: 0,
+        memecoin: 0,
         stock: 0,
         'pre-ipo': 0,
         index: 0,
@@ -858,6 +880,52 @@ describe('usePerpsMarketListView', () => {
       expect(result.current.marketCounts.crypto).toBe(1);
       expect(result.current.marketCounts.stock).toBe(1);
     });
+
+    it('counts non-HIP-3 memecoin-tagged markets under both crypto and memecoin', () => {
+      const markets = [
+        { ...createMockMarket('BTC', '$1B'), isHip3: false },
+        {
+          ...createMockMarket('DOGE', '$500M'),
+          isHip3: false,
+          tags: ['memecoin'],
+        },
+        {
+          ...createMockMarket('PEPE', '$200M'),
+          isHip3: false,
+          tags: ['memecoin', 'top-100'],
+        },
+        {
+          ...createMockMarket('FAKE', '$100M'),
+          isHip3: true,
+          marketType: 'stock' as const,
+          tags: ['memecoin'],
+        },
+      ];
+
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: markets as unknown as ReturnType<
+          typeof usePerpsMarkets
+        >['markets'],
+        isLoading: false,
+        isRefreshing: false,
+        error: null,
+        refresh: jest.fn(),
+      });
+
+      mockUsePerpsSearch.mockReturnValue({
+        searchQuery: '',
+        setSearchQuery: jest.fn(),
+        filteredMarkets: markets,
+        clearSearch: jest.fn(),
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      // DOGE + PEPE are non-HIP-3 crypto with memecoin tag; FAKE is HIP-3
+      // and must not count under memecoin.
+      expect(result.current.marketCounts.crypto).toBe(3);
+      expect(result.current.marketCounts.memecoin).toBe(2);
+    });
   });
 
   describe('Recently Viewed Markets', () => {
@@ -893,6 +961,23 @@ describe('usePerpsMarketListView', () => {
       expect(
         result.current.recentlyViewedState.recentlyViewedMarketObjects,
       ).toEqual([]);
+    });
+
+    it('keeps only watchlisted markets in recently viewed when the watchlist filter is on', () => {
+      mockSelectorState({
+        recentlyViewed: ['SOL', 'BTC', 'ETH'],
+        watchlist: ['BTC', 'ETH'],
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ showWatchlistOnly: true }),
+      );
+
+      expect(
+        result.current.recentlyViewedState.recentlyViewedMarketObjects.map(
+          (m) => m.symbol,
+        ),
+      ).toEqual(['BTC', 'ETH']);
     });
   });
 
@@ -1184,6 +1269,159 @@ describe('usePerpsMarketListView', () => {
 
       expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
         'stock',
+      );
+    });
+
+    it('restores the last persisted market category when no filter param is provided', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'commodity',
+      );
+    });
+
+    it('persists a selected market category', () => {
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      act(() => {
+        result.current.marketTypeFilterState.setMarketTypeFilter('crypto');
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsMarketListPreferences({
+          marketTypeFilter: 'crypto',
+          showFavoritesOnly: false,
+        }),
+      );
+    });
+
+    it('persists enabling the watchlist filter and clears the category', () => {
+      mockSelectorState({
+        watchlist: ['BTC'],
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { result } = renderHook(() => usePerpsMarketListView());
+
+      act(() => {
+        result.current.favoritesState.setShowFavoritesOnly(true);
+      });
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsMarketListPreferences({
+          marketTypeFilter: 'all',
+          showFavoritesOnly: true,
+        }),
+      );
+    });
+
+    it('does not overwrite the saved category with a route-provided filter', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('clears a saved watchlist filter when opening with an explicit category', () => {
+      mockSelectorState({
+        watchlist: ['BTC'],
+        marketListPreference: {
+          marketTypeFilter: 'all',
+          showFavoritesOnly: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      expect(result.current.marketTypeFilterState.marketTypeFilter).toBe(
+        'crypto',
+      );
+      expect(result.current.favoritesState.showFavoritesOnly).toBe(false);
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite the saved category when a route filter changes on rerender', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { rerender } = renderHook(
+        ({
+          defaultMarketTypeFilter,
+        }: {
+          defaultMarketTypeFilter: MarketTypeFilter;
+        }) => usePerpsMarketListView({ defaultMarketTypeFilter }),
+        {
+          initialProps: {
+            defaultMarketTypeFilter: 'crypto' as MarketTypeFilter,
+          },
+        },
+      );
+
+      rerender({ defaultMarketTypeFilter: 'stock' });
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not overwrite the saved preferences with a route-provided watchlist filter', () => {
+      mockSelectorState({
+        watchlist: ['BTC'],
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      renderHook(() => usePerpsMarketListView({ showWatchlistOnly: true }));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('persists the user choice made after arriving with a route-provided filter', () => {
+      mockSelectorState({
+        marketListPreference: {
+          marketTypeFilter: 'commodity',
+          showFavoritesOnly: false,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsMarketListView({ defaultMarketTypeFilter: 'crypto' }),
+      );
+
+      act(() => {
+        result.current.marketTypeFilterState.setMarketTypeFilter('forex');
+      });
+
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setPerpsMarketListPreferences({
+          marketTypeFilter: 'forex',
+          showFavoritesOnly: false,
+        }),
       );
     });
   });

@@ -1,21 +1,55 @@
 /**
- * Vendored from metamask-extension shared/lib/activity/types.ts
- * Branch: origin/n3ps/activity-v3-prototype
- * TODO: Replace with shared @metamask/activity-adapters package when published.
+ * `@metamask/client-utils` is the source of truth for activity types (same as
+ * extension). Remaining mobile-only fields are leftovers to delete as call sites move over.
  */
-import type { Transaction } from '@metamask/keyring-api';
-import type { V1TransactionByHashResponse } from '@metamask/core-backend';
+import type {
+  ActivityItem as ClientUtilsActivityItem,
+  ActivityKind,
+  Fee as ActivityFee,
+  PerpsOrderKind,
+  TokenAmount as ClientUtilsTokenAmount,
+} from '@metamask/client-utils';
+import type { TriggerOrderType } from '@metamask/perps-controller';
 import type { CaipChainId } from '@metamask/utils';
-import type { TransactionGroup } from './adapters/transaction-group';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../components/UI/Predict/types';
-import type { RampsOrder } from '@metamask/ramps-controller';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
-export type Status = 'pending' | 'success' | 'failed' | 'cancelled';
+export type {
+  ActivityKind,
+  PerpsOrderKind,
+  Status,
+  Fee as ActivityFee,
+} from '@metamask/client-utils';
+
+export type TokenAmount = ClientUtilsTokenAmount & {
+  /**
+   * Keyring (non-EVM) amounts are already human-readable. Display/fiat must
+   * not run `formatUnits` on them even when token metadata supplies decimals.
+   */
+  amountIsHumanReadable?: boolean;
+};
+
+/**
+ * Returns whether an asset type represents an NFT standard supported by the
+ * activity UI.
+ *
+ * @param assetType - The asset type to inspect.
+ * @returns `true` for ERC-721 and ERC-1155 assets.
+ */
+export function isNftAssetType(
+  assetType: string | undefined,
+): assetType is 'erc721' | 'erc1155' {
+  const normalizedAssetType = assetType?.toLowerCase();
+  return normalizedAssetType === 'erc721' || normalizedAssetType === 'erc1155';
+}
+
+/**
+ * Returns whether a token amount represents an NFT.
+ *
+ * @param token - The token amount to inspect.
+ * @returns `true` when the token uses an NFT standard.
+ */
+export function isNftToken(token: TokenAmount | undefined): boolean {
+  return isNftAssetType(token?.assetType);
+}
 
 /**
  * Perps order-lifecycle kinds (market/limit/stop, long/short, open/close).
@@ -33,59 +67,7 @@ export const PERPS_ORDER_KINDS = [
   'marketCloseLong',
   'limitLong',
   'limitCloseLong',
-] as const;
-
-export type PerpsOrderKind = (typeof PERPS_ORDER_KINDS)[number];
-
-export type ActivityKind =
-  | 'receive'
-  | 'sell'
-  | 'buy'
-  | 'deposit'
-  | 'stake'
-  | 'unstake'
-  | 'swap'
-  | 'swapIncomplete'
-  | 'claim'
-  | 'claimMusdBonus'
-  | 'send'
-  | 'wrap'
-  | 'unwrap'
-  | 'approveSpendingCap'
-  | 'revokeSpendingCap'
-  | 'increaseSpendingCap'
-  | 'contractInteraction'
-  | 'contractDeployment'
-  | 'bridge'
-  | 'convert'
-  | 'nftBuy'
-  | 'nftSell'
-  | 'smartAccountUpgrade'
-  | 'lendingDeposit'
-  | 'lendingWithdrawal'
-  | 'predictionsAddFunds'
-  | 'predictionsWithdrawFunds'
-  | 'predictionClaimWinnings'
-  | 'predictionCashedOut'
-  | 'predictionPlaced'
-  | 'perpsAddFunds'
-  | 'perpsWithdraw'
-  | 'perpsOpenLong'
-  | 'perpsCloseLong'
-  | 'perpsCloseLongLiquidated'
-  | 'perpsCloseLongStopLoss'
-  | 'perpsOpenShort'
-  | 'perpsCloseShort'
-  | 'perpsCloseShortLiquidated'
-  | 'perpsCloseShortStopLoss'
-  | 'perpsPaidFundingFees'
-  | 'perpsReceivedFundingFees'
-  | 'perpsCloseShortTakeProfit'
-  | 'perpsCloseLongTakeProfit'
-  | 'assetActivation'
-  | 'assetDeactivation'
-  | PerpsOrderKind
-  | 'nftMint';
+] as const satisfies readonly PerpsOrderKind[];
 
 const PERPS_ORDER_KIND_SET: ReadonlySet<string> = new Set(PERPS_ORDER_KINDS);
 
@@ -98,169 +80,79 @@ export function isPerpsOrderKind(kind: ActivityKind): kind is PerpsOrderKind {
   return PERPS_ORDER_KIND_SET.has(kind);
 }
 
-export interface TokenAmount {
-  amount?: string;
-  decimals?: number;
-  isUnlimitedApproval?: boolean;
-  symbol?: string;
-  // CAIP-19 asset id (from adapters)
-  assetId?: string;
-  direction: 'in' | 'out';
+type WithMobileTokenAmount<T> = T extends ClientUtilsTokenAmount
+  ? TokenAmount
+  : T extends object
+    ? { [P in keyof T]: WithMobileTokenAmount<T[P]> }
+    : T;
+
+type PredictActivityKind =
+  | 'predictionPlaced'
+  | 'predictionCashedOut'
+  | 'predictionClaimWinnings'
+  | 'predictionSettled';
+
+interface PredictDataExtras {
+  eventTitle?: string;
+  icon?: string;
 }
 
 /**
- * A fee associated with a transaction (e.g. the base network/gas fee). `amount`
- * is in the smallest unit of `symbol`/`assetId` (typically the native token).
- * Mirrors metamask-extension `shared/lib/activity/types.ts#ActivityFee`.
+ * Venue-scoped CAIP-2 `chainId` for Kalshi Predict rows. Kalshi has no chain,
+ * so this is never Polygon or any real chain: it only keys the details source.
+ * The row hides the network badge for `prediction*` kinds and the details
+ * screen fetches a transaction only for `eip155:` chains.
  */
-export interface ActivityFee {
-  type: string;
-  amount?: string;
-  decimals?: number;
-  symbol?: string;
-  assetId?: string;
+export const KALSHI_VENUE_CHAIN_ID: CaipChainId = 'kalshi:mainnet';
+
+/**
+ * Settlement details, carried on the item so the details screen renders
+ * without a lookup. Amounts are plain decimal strings: shared activity code
+ * must not import PredictNext types (ADR-0020). Proceeds are `data.token`.
+ */
+export interface PredictSettlementExtras {
+  outcomeLabel?: string;
+  marketQuestion?: string;
+  /** Side the Predict User held. */
+  side: 'yes' | 'no';
+  /** The Market's result. `scalar` is a non-binary payout per share. */
+  result: 'yes' | 'no' | 'scalar';
+  shares: string;
+  /** Signed. Absent when the backend cannot establish the cost basis. */
+  realizedPnl?: string;
 }
 
-interface ActivityData<Type extends ActivityKind, Data> {
-  type: Type;
-  chainId: CaipChainId;
-  status: Status;
-  timestamp: number;
-  hash?: string;
-  isEarliestNonce?: boolean;
-  /* Used by legacy details modals. Interim until redesigned details are implemented */
-  raw?:
-    | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
-    | { type: 'keyringTransaction'; data: Transaction }
-    | { type: 'localTransaction'; data: TransactionGroup }
-    | { type: 'perpsTransaction'; data: PerpsTransaction }
-    | { type: 'predictActivity'; data: PredictActivity }
-    | { type: 'rampOrder'; data: FiatOrder | RampsOrder };
-  data: Data;
+type ActivityDataExtras<ActivityType> = ActivityType extends 'predictionSettled'
+  ? PredictSettlementExtras & PredictDataExtras & ActivityDataExtrasCommon
+  : ActivityType extends PredictActivityKind
+    ? PredictDataExtras & ActivityDataExtrasCommon
+    : ActivityDataExtrasCommon;
+
+interface ActivityDataExtrasCommon {
+  fees?: ActivityFee[];
+  perpsTriggerOrderType?: TriggerOrderType;
 }
 
-export type ActivityListItem =
-  | ActivityData<
-      'send' | 'receive',
-      {
-        from: string;
-        to: string;
-        token?: TokenAmount;
-        fees?: ActivityFee[];
+type ActivityItemForKind<T, Kind extends ActivityKind> = T extends {
+  type: infer ActivityType;
+  data: infer D;
+}
+  ? Kind extends Extract<ActivityType, ActivityKind>
+    ? Omit<T, 'type' | 'data'> & {
+        type: Kind;
+        data: WithMobileTokenAmount<D> & ActivityDataExtras<Kind>;
       }
-    >
-  | ActivityData<
-      | 'swap'
-      | 'convert'
-      | 'lendingDeposit'
-      | 'lendingWithdrawal'
-      | 'wrap'
-      | 'unwrap',
-      {
-        sourceToken?: TokenAmount;
-        destinationToken?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >
-  | ActivityData<
-      'swapIncomplete',
-      {
-        sourceToken?: TokenAmount;
-      }
-    >
-  | ActivityData<
-      'bridge',
-      {
-        sourceToken?: TokenAmount;
-        destinationToken?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >
-  | ActivityData<
-      'buy' | 'claim' | 'deposit' | 'stake' | 'unstake',
-      {
-        from?: string;
-        to?: string;
-        token?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >
-  | ActivityData<
-      'claimMusdBonus',
-      {
-        token?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >
-  | ActivityData<
-      'approveSpendingCap' | 'revokeSpendingCap' | 'increaseSpendingCap',
-      {
-        token?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >
-  | ActivityData<
-      'nftBuy' | 'nftMint' | 'nftSell',
-      {
-        from?: string;
-        to?: string;
-        token?: TokenAmount;
-        paymentToken?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >
-  | ActivityData<
-      'contractInteraction',
-      {
-        from: string;
-        to: string;
-        token?: TokenAmount;
-        fees?: ActivityFee[];
-        methodId?: string;
-        transactionCategory?: string;
-        transactionProtocol?: string;
-        transactionType?: string;
-      }
-    >
-  | ActivityData<
-      'assetActivation' | 'assetDeactivation',
-      {
-        from?: string;
-        to?: string;
-        token?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >
-  | ActivityData<
-      | 'sell'
-      | 'contractDeployment'
-      | 'smartAccountUpgrade'
-      | 'predictionsAddFunds'
-      | 'predictionsWithdrawFunds'
-      | 'predictionClaimWinnings'
-      | 'predictionCashedOut'
-      | 'predictionPlaced'
-      | 'perpsAddFunds'
-      | 'perpsWithdraw'
-      | 'perpsOpenLong'
-      | 'perpsCloseLong'
-      | 'perpsCloseLongLiquidated'
-      | 'perpsCloseLongStopLoss'
-      | 'perpsOpenShort'
-      | 'perpsCloseShort'
-      | 'perpsCloseShortLiquidated'
-      | 'perpsCloseShortStopLoss'
-      | 'perpsPaidFundingFees'
-      | 'perpsReceivedFundingFees'
-      | 'perpsCloseShortTakeProfit'
-      | 'perpsCloseLongTakeProfit'
-      | PerpsOrderKind,
-      {
-        from?: string;
-        to?: string;
-        token?: TokenAmount;
-        sourceToken?: TokenAmount;
-        destinationToken?: TokenAmount;
-        fees?: ActivityFee[];
-      }
-    >;
+    : never
+  : never;
+
+type SplitByKind<T> = {
+  [Kind in ActivityKind]: ActivityItemForKind<T, Kind>;
+}[ActivityKind];
+
+type WithMobileFields<T> = T extends unknown
+  ? T & { isEarliestNonce?: boolean }
+  : never;
+
+export type ActivityListItem = WithMobileFields<
+  SplitByKind<ClientUtilsActivityItem>
+>;

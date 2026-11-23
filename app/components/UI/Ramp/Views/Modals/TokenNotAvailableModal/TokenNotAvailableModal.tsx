@@ -7,7 +7,6 @@ import {
   Button,
   ButtonBaseSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -25,10 +24,14 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { useRampsProviders } from '../../../hooks/useRampsProviders';
 import { useRampsTokens } from '../../../hooks/useRampsTokens';
 import { createProviderSelectionModalNavigationDetails } from '../ProviderSelectionModal';
+import { createNestedTokenSelectionNavDetails } from '../../TokenSelection';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
 import type { BuyFlowOrigin } from '../../BuildQuote/BuildQuote';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface TokenNotAvailableModalParams {
   assetId: string;
@@ -43,6 +46,7 @@ export const createTokenNotAvailableModalNavigationDetails =
   );
 
 function TokenNotAvailableModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { assetId, buyFlowOrigin } = useParams<TokenNotAvailableModalParams>();
   const navigation = useNavigation<AppNavigationProp>();
@@ -79,14 +83,22 @@ function TokenNotAvailableModal() {
     sheetRef.current?.onCloseBottomSheet(() => {
       if (buyFlowOrigin === 'tokenInfo') {
         // Token Info buy flow: return to the Tokens Full View screen
-        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW as never);
+        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW, undefined, {
+          pop: true,
+        });
       } else if (buyFlowOrigin === 'homeTokenList') {
         // Home token list buy flow: return to home screen
-        navigation.navigate(Routes.WALLET.HOME as never);
+        navigation.navigate(
+          Routes.HOME_TABS,
+          { screen: Routes.WALLET.HOME },
+          { pop: true },
+        );
       } else {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-        });
+        navigateWithDetails(
+          navigation,
+          createNestedTokenSelectionNavDetails(),
+          { pop: true },
+        );
       }
     });
   }, [
@@ -146,11 +158,17 @@ function TokenNotAvailableModal() {
           navigation.goBack();
         } else if (buyFlowOrigin === 'homeTokenList') {
           // Home token list buy flow: return to home screen
-          navigation.navigate(Routes.WALLET.HOME as never);
+          navigation.navigate(
+            Routes.HOME_TABS,
+            { screen: Routes.WALLET.HOME },
+            { pop: true },
+          );
         } else {
-          navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-            screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-          });
+          navigateWithDetails(
+            navigation,
+            createNestedTokenSelectionNavDetails(),
+            { pop: true },
+          );
         }
       }
     },
@@ -164,7 +182,9 @@ function TokenNotAvailableModal() {
       onClose={handleDismiss}
       testID={TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS.MODAL}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('fiat_on_ramp.token_unavailable_modal.title')}
         onClose={handleClose}
         closeButtonProps={{

@@ -12,6 +12,8 @@ jest.mock('../../../../reducers/fiatOrders', () => ({
 jest.mock('../selectors/featureFlags', () => ({
   selectMusdConversionBlockedCountries: (state: unknown) =>
     mockSelectMusdConversionBlockedCountries(state),
+  selectPooledStakingEnabledFlag: jest.fn(),
+  selectStablecoinLendingEnabledFlag: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({

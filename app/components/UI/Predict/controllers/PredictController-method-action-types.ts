@@ -225,7 +225,15 @@ export type PredictControllerConfirmClaimAction = {
 };
 
 /**
- * Refresh eligibility status
+ * Refresh eligibility status.
+ *
+ * Concurrent callers share one in-flight request. A confirmed
+ * `eligible` / `ineligible` result stays in state while a re-check is in
+ * flight, so a routine foreground refresh or a slow geoblock check never
+ * blocks a user who was already confirmed; only the first check (or a
+ * retry after `unavailable`) reports `checking`. A definitive result
+ * requires a country; failures and incomplete responses become
+ * `unavailable` so they are never described as a geo-restriction.
  */
 export type PredictControllerRefreshEligibilityAction = {
   type: `PredictController:refreshEligibility`;
@@ -370,6 +378,25 @@ export type PredictControllerGetBalanceAction = {
   handler: PredictController['getBalance'];
 };
 
+/**
+ * Checks whether the gas station can pay a withdraw of `amountRaw` in pUSD.
+ *
+ * The withdraw confirmation simulates an unsigned `pUSD.transfer` from the
+ * EOA, which holds no pUSD, so its gas fee token list is always empty before
+ * `beforeSign` swaps in the Safe call. This quotes gas fee tokens for the
+ * real Safe call instead. Deposit-wallet withdraws always return `true`
+ * because the relayer pays their gas.
+ *
+ * @param params - The parameters.
+ * @param params.address - The EOA that owns the Predict account.
+ * @param params.amountRaw - The pUSD amount to withdraw, in raw units.
+ * @returns `true` when pUSD can pay the withdraw gas.
+ */
+export type PredictControllerIsWithdrawGasFeeTokenAvailableAction = {
+  type: `PredictController:isWithdrawGasFeeTokenAvailable`;
+  handler: PredictController['isWithdrawGasFeeTokenAvailable'];
+};
+
 export type PredictControllerPrepareWithdrawAction = {
   type: `PredictController:prepareWithdraw`;
   handler: PredictController['prepareWithdraw'];
@@ -453,6 +480,7 @@ export type PredictControllerMethodActions =
   | PredictControllerClearPendingDepositAction
   | PredictControllerGetAccountStateAction
   | PredictControllerGetBalanceAction
+  | PredictControllerIsWithdrawGasFeeTokenAvailableAction
   | PredictControllerPrepareWithdrawAction
   | PredictControllerBeforePublishAction
   | PredictControllerBeforeSignAction

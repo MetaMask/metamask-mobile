@@ -6,7 +6,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './EnterEmail.styles';
@@ -32,6 +31,9 @@ import { useTransakController } from '../../hooks/useTransakController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { EnterEmailSelectorsIDs } from './EnterEmail.testIds';
+import { useSelector } from 'react-redux';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface V2EnterEmailParams {
   amount?: string;
@@ -49,6 +51,7 @@ export const createV2EnterEmailNavDetails =
   createNavigationDetails<V2EnterEmailParams>(Routes.RAMP.ENTER_EMAIL);
 
 const V2EnterEmail = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const params = useParams<V2EnterEmailParams>();
   const [email, setEmail] = useState('');
@@ -157,7 +160,9 @@ const V2EnterEmail = () => {
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={strings('deposit.enter_email.navbar_title')}
           onBack={handleHeaderBack}
           backButtonProps={{ testID: 'deposit-back-navbar-button' }}

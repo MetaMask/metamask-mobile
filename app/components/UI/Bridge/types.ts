@@ -33,6 +33,8 @@ export interface PopularToken {
     isDestination: boolean;
   };
   securityData?: SecurityData;
+  rwaData?: TokenRwaData;
+  badgeLabel?: string;
 }
 
 export interface IncludeAsset {
@@ -71,10 +73,13 @@ export interface BridgeToken {
   metadata?: Record<string, unknown>;
   rwaData?: TokenRwaData;
   securityData?: SecurityData;
+  badgeLabel?: string;
 }
 
 export enum BridgeViewMode {
+  /** @deprecated Legacy mode. Use `BridgeViewMode.Unified`. */
   Swap = 'Swap',
+  /** @deprecated Legacy mode. Use `BridgeViewMode.Unified`. */
   Bridge = 'Bridge',
   Unified = 'Unified',
 }

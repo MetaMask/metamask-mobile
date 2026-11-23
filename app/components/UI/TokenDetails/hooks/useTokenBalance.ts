@@ -4,32 +4,36 @@ import { RootState } from '../../../../reducers';
 import { TokenI } from '../../Tokens/types';
 import {
   selectAsset,
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   selectTronSpecialAssetsBySelectedAccountGroup,
-  ///: END:ONLY_INCLUDE_IF
 } from '../../../../selectors/assets/assets-list';
 import { toFormattedAddress } from '../../../../util/address';
 import {
   selectCurrencyRateForChainId,
   selectUSDConversionRateByChainId,
 } from '../../../../selectors/currencyRateController';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import I18n from '../../../../../locales/i18n';
 import { formatWithThreshold } from '../../../../util/assets';
 import { createStakedTrxAsset } from '../../AssetOverview/utils/createStakedTrxAsset';
 import { isTronNativeToken } from '../utils/isTronNativeToken';
-///: END:ONLY_INCLUDE_IF
 
 export interface UseTokenBalanceResult {
+  /**
+   * Token balance as a locale-formatted display string (e.g. `'1,500'`,
+   * `'<0.00001'`, or `'0'` for zero). Do not parse this with `Number()` —
+   * formatted values return `NaN`. For presence checks use
+   * `Boolean(balance) && balance !== '0'`. For approximate USD amounts
+   * (e.g. analytics buckets) use `balanceFiatUsd` via the
+   * `calculateUsdBalance: true` overload — never as a presence check: it
+   * returns 0 when conversion rates are missing and mis-parses
+   * non-'.'-decimal locales.
+   */
   balance: string | undefined;
   fiatBalance: string | undefined;
   tokenFormattedBalance: string | undefined;
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   isTronNative: boolean;
   stakedTrxAsset: TokenI | undefined;
   inLockPeriodBalance: string | undefined;
   readyForWithdrawalBalance: string | undefined;
-  ///: END:ONLY_INCLUDE_IF
 }
 
 export interface UseTokenBalanceWithUsdResult extends UseTokenBalanceResult {
@@ -68,15 +72,18 @@ export function useTokenBalance(
       : undefined,
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const isTronNative = isTronNativeToken(token);
   const {
     stakedTrxForEnergy,
     stakedTrxForBandwidth,
     trxInLockPeriod,
     trxReadyForWithdrawal,
-  } = useSelector(selectTronSpecialAssetsBySelectedAccountGroup);
-
-  const isTronNative = isTronNativeToken(token);
+  } =
+    useSelector((state: RootState) =>
+      isTronNative
+        ? selectTronSpecialAssetsBySelectedAccountGroup(state)
+        : undefined,
+    ) ?? {};
 
   const totalStaked =
     (Number(stakedTrxForEnergy?.balance) || 0) +
@@ -112,7 +119,6 @@ export function useTokenBalance(
           maximumFractionDigits: 5,
         }) || undefined
       : undefined;
-  ///: END:ONLY_INCLUDE_IF
 
   const balance = processedAsset?.balance;
 
@@ -122,12 +128,10 @@ export function useTokenBalance(
     tokenFormattedBalance: balance
       ? `${balance} ${processedAsset.symbol}`
       : undefined,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     isTronNative,
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
-    ///: END:ONLY_INCLUDE_IF
   };
 
   if (!options?.calculateUsdBalance) {

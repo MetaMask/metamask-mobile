@@ -4,6 +4,7 @@ import {
   BRIDGE_DEV_API_BASE_URL,
   BRIDGE_PROD_API_BASE_URL,
   BRIDGE_UAT_API_BASE_URL,
+  QuoteMetadataMigrationPhase,
 } from '@metamask/bridge-controller';
 import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
 
@@ -13,8 +14,6 @@ import { NETWORK_CHAIN_ID } from '../util/networks/customNetworks';
  */
 export const NATIVE_SWAPS_TOKEN_ADDRESS: Hex =
   '0x0000000000000000000000000000000000000000';
-
-export const ETH_USDT_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
 
 export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   Hex | CaipChainId,
@@ -76,3 +75,6 @@ export const getBridgeApiBaseUrlForMetaMaskEnv = (): string => {
 export const BRIDGE_API_BASE_URL = getBridgeApiBaseUrlForMetaMaskEnv();
 
 export const BATCH_SELL_ENABLED = process.env.MM_BATCH_SELL_ENABLED === 'true';
+
+export const BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE =
+  QuoteMetadataMigrationPhase.V2WithV1Fallback;

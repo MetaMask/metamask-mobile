@@ -1,20 +1,15 @@
+import Assertions from '../../framework/Assertions';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import {
-  encapsulated,
-  EncapsulatedElementType,
-  asPlaywrightElement,
-} from '../../framework/EncapsulatedElement';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import UnifiedGestures from '../../framework/UnifiedGestures';
-import { sleep } from '../../framework/Utilities';
-import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
-import PlaywrightUtilities, {
+  Utilities,
   getDriver,
-} from '../../framework/PlaywrightUtilities';
-import { PlaywrightGestures } from '../../framework';
-import { expect } from '@playwright/test';
+  sleep,
+  type AppiumElement,
+} from '../../framework';
+import { PLAYGROUND_PACKAGE_ID } from '../../framework/Constants';
+import AppiumUtilities from '../../framework/AppiumUtilities';
 import { MMConnectDappTestIds } from '../../selectors/MMConnect/MMConnectDapp.testIds';
-import { ScrollOptions } from '../../framework/PlaywrightGestures';
 
 function escapeTestId(value: string): string {
   return value
@@ -26,102 +21,100 @@ function escapeTestId(value: string): string {
 }
 
 class RNPlaygroundDapp {
-  private getByTestId(testId: string): EncapsulatedElementType {
-    return encapsulated({
-      appium: () => PlaywrightMatchers.getElementById(testId, { exact: true }),
-    });
+  private getByTestId(testId: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(testId);
   }
 
   // App-level selectors
-  get appContainer(): EncapsulatedElementType {
+  get appContainer(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.RM_APP_CONTAINER);
   }
 
-  get appTitle(): EncapsulatedElementType {
+  get appTitle(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.RM_APP_TITLE);
   }
 
-  get connectButton(): EncapsulatedElementType {
+  get connectButton(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.CONNECT_BUTTON);
   }
 
-  get disconnectButton(): EncapsulatedElementType {
+  get disconnectButton(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.DISCONNECT_BUTTON);
   }
 
-  get scopesSection(): EncapsulatedElementType {
+  get scopesSection(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.SCOPES_SECTION);
   }
 
-  get errorSection(): EncapsulatedElementType {
+  get errorSection(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.ERROR_SECTION);
   }
 
-  get connectLegacyButton(): EncapsulatedElementType {
+  get connectLegacyButton(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.CONNECT_BUTTON_LEGACY);
   }
 
   // Legacy EVM selectors
-  get legacyEvmCard(): EncapsulatedElementType {
+  get legacyEvmCard(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_CARD);
   }
 
-  get legacyEvmChainIdValue(): EncapsulatedElementType {
+  get legacyEvmChainIdValue(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_CHAIN_ID_VALUE);
   }
 
-  get legacyEvmAccountsValue(): EncapsulatedElementType {
+  get legacyEvmAccountsValue(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_ACCOUNTS_VALUE);
   }
 
-  get legacyEvmActiveAccount(): EncapsulatedElementType {
+  get legacyEvmActiveAccount(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_ACTIVE_ACCOUNT);
   }
 
-  get legacyEvmResponseText(): EncapsulatedElementType {
+  get legacyEvmResponseText(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
 
-  get legacyEvmBtnPersonalSign(): EncapsulatedElementType {
+  get legacyEvmBtnPersonalSign(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_PERSONAL_SIGN);
   }
 
-  get legacyEvmBtnSendTransaction(): EncapsulatedElementType {
+  get legacyEvmBtnSendTransaction(): Promise<AppiumElement> {
     return this.getByTestId(
       MMConnectDappTestIds.LEGACY_EVM_BTN_SEND_TRANSACTION,
     );
   }
 
-  get legacyEvmBtnSwitchPolygon(): EncapsulatedElementType {
+  get legacyEvmBtnSwitchPolygon(): Promise<AppiumElement> {
     return this.getByTestId(MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_POLYGON);
   }
 
   // Dynamic selectors
-  getNetworkCheckbox(caipChainId: string): EncapsulatedElementType {
+  getNetworkCheckbox(caipChainId: string): Promise<AppiumElement> {
     return this.getByTestId(
       `dynamic-inputs-checkbox-${escapeTestId(caipChainId)}`,
     );
   }
 
-  getScopeCard(scope: string): EncapsulatedElementType {
+  getScopeCard(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD}-${escapeTestId(scope)}`,
     );
   }
 
-  getScopeNetworkName(scope: string): EncapsulatedElementType {
+  getScopeNetworkName(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD_NETWORK_NAME}-${escapeTestId(scope)}`,
     );
   }
 
-  getMethodSelect(scope: string): EncapsulatedElementType {
+  getMethodSelect(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD_METHOD_SELECT}-${escapeTestId(scope)}`,
     );
   }
 
-  getInvokeButton(scope: string): EncapsulatedElementType {
+  getInvokeButton(scope: string): Promise<AppiumElement> {
     return this.getByTestId(
       `${MMConnectDappTestIds.SCOPE_CARD_INVOKE_BTN}-${escapeTestId(scope)}`,
     );
@@ -131,7 +124,7 @@ class RNPlaygroundDapp {
     scope: string,
     method: string,
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedScope = escapeTestId(scope);
     const escapedMethod = escapeTestId(method);
     return this.getByTestId(
@@ -143,7 +136,7 @@ class RNPlaygroundDapp {
     scope: string,
     method: string,
     index = 0,
-  ): EncapsulatedElementType {
+  ): Promise<AppiumElement> {
     const escapedScope = escapeTestId(scope);
     const escapedMethod = escapeTestId(method);
     return this.getByTestId(
@@ -153,73 +146,71 @@ class RNPlaygroundDapp {
 
   // App lifecycle
   async switchToPlayground(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const drv = getDriver();
-        await drv.execute('mobile: activateApp', {
-          appId: PLAYGROUND_PACKAGE_ID,
-        });
-        await sleep(1000);
-      },
+    const drv = getDriver();
+    await drv.execute('mobile: activateApp', {
+      appId: PLAYGROUND_PACKAGE_ID,
     });
+    await sleep(1000);
   }
 
   async waitForPlaygroundReady(timeoutMs = 15000): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.appContainer);
-        await element.waitForDisplayed({
-          timeout: timeoutMs,
-          timeoutMsg:
-            'RNPlaygroundDapp: app container not visible (playground not ready)',
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.appContainer, {
+      timeout: timeoutMs,
+      description:
+        'RNPlaygroundDapp: app container not visible (playground not ready)',
     });
   }
 
   async ensureInPlayground(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        try {
-          const element = await asPlaywrightElement(this.appContainer);
-          await element.waitForDisplayed({
-            timeout: 3000,
-            timeoutMsg:
-              'RNPlaygroundDapp: app container not visible (will switch to playground)',
-          });
-        } catch {
-          await this.switchToPlayground();
-          await this.waitForPlaygroundReady();
-        }
-      },
-    });
+    try {
+      await Assertions.expectElementToBeVisible(this.appContainer, {
+        timeout: 3000,
+        description:
+          'RNPlaygroundDapp: app container not visible (will switch to playground)',
+      });
+    } catch {
+      await this.switchToPlayground();
+      await this.waitForPlaygroundReady();
+    }
   }
 
   // Simple actions
   async tapNetworkCheckbox(caipChainId: string): Promise<void> {
-    await UnifiedGestures.tap(this.getNetworkCheckbox(caipChainId));
+    await Gestures.tap(this.getNetworkCheckbox(caipChainId), {
+      elemDescription: `RNPlayground network checkbox ${caipChainId}`,
+    });
   }
 
   async tapConnect(): Promise<void> {
-    await UnifiedGestures.tap(this.connectButton);
+    await Gestures.tap(this.connectButton, {
+      elemDescription: 'RNPlayground connect',
+    });
   }
 
   async tapConnectLegacy(): Promise<void> {
-    await UnifiedGestures.tap(this.connectLegacyButton);
+    await Gestures.tap(this.connectLegacyButton, {
+      elemDescription: 'RNPlayground connect legacy',
+    });
   }
 
   async tapDisconnect(): Promise<void> {
-    await UnifiedGestures.tap(this.disconnectButton);
+    await Gestures.tap(this.disconnectButton, {
+      elemDescription: 'RNPlayground disconnect',
+    });
   }
 
   async tapInvoke(scope: string): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.getInvokeButton(scope));
+    await Gestures.waitAndTap(this.getInvokeButton(scope), {
+      elemDescription: `RNPlayground invoke ${scope}`,
+    });
   }
 
   async tapLegacyEvmButton(
-    buttonGetter: EncapsulatedElementType,
+    buttonGetter: Promise<AppiumElement>,
   ): Promise<void> {
-    await UnifiedGestures.waitAndTap(buttonGetter);
+    await Gestures.waitAndTap(buttonGetter, {
+      elemDescription: 'RNPlayground legacy EVM button',
+    });
   }
 
   // Complex actions
@@ -230,181 +221,149 @@ class RNPlaygroundDapp {
     minScrollAttempts = 0,
     direction: 'up' | 'down' = 'up',
   ): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const { width, height } =
-          await PlaywrightUtilities.getDeviceScreenSize();
-        const amountToScroll = direction === 'up' ? 600 : -600;
-        const from = { x: width / 2, y: height / 2 };
-        const to = { x: width / 2, y: height / 2 - amountToScroll };
-        const methodSelect = await asPlaywrightElement(
-          this.getMethodSelect(scope),
-        );
-        await PlaywrightGestures.waitAndTap(methodSelect, {
-          delay: 1000,
-        });
-        await sleep(700);
+    const { width, height } = await AppiumUtilities.getDeviceScreenSize();
+    const amountToScroll = direction === 'up' ? 600 : -600;
+    const from = { x: width / 2, y: height / 2 };
+    const to = { x: width / 2, y: height / 2 - amountToScroll };
+    const drv = getDriver();
 
-        // We scroll right away as we know from the test flow that we can scroll right away.
-        if (minScrollAttempts > 0) {
-          for (let attempt = 0; attempt < minScrollAttempts; attempt++) {
-            await PlaywrightGestures.swipe({
-              scrollParams: { direction },
-              duration: 200,
-              from,
-              to,
-            });
-          }
-        }
-
-        for (let attempt = 0; attempt < maxScrollAttempts; attempt++) {
-          try {
-            const option =
-              await PlaywrightMatchers.getElementByText(methodName);
-            const isVisible = await option.isVisible();
-            if (isVisible) {
-              await option.click();
-              await sleep(500);
-              return;
-            }
-          } catch {
-            // Option not found or not visible yet
-          }
-
-          await PlaywrightGestures.swipe({
-            scrollParams: { direction },
-            duration: 200,
-            from,
-            to,
-          });
-          await sleep(300);
-        }
-
-        throw new Error(
-          `Method "${methodName}" not found in picker after ${maxScrollAttempts} scroll attempts`,
-        );
-      },
+    await Gestures.waitAndTap(this.getMethodSelect(scope), {
+      delay: 1000,
+      elemDescription: `RNPlayground method select ${scope}`,
     });
+    await sleep(700);
+
+    // We scroll right away as we know from the test flow that we can scroll right away.
+    if (minScrollAttempts > 0) {
+      for (let attempt = 0; attempt < minScrollAttempts; attempt++) {
+        await drv.swipe({
+          direction,
+          duration: 200,
+          from,
+          to,
+        });
+      }
+    }
+
+    for (let attempt = 0; attempt < maxScrollAttempts; attempt++) {
+      try {
+        const option = Matchers.getElementByText(methodName);
+        const resolved = (await Promise.resolve(option)) as AppiumElement;
+        const isVisible = await resolved.isVisible();
+        if (isVisible) {
+          await Gestures.tap(option, {
+            elemDescription: `RNPlayground method option ${methodName}`,
+          });
+          await sleep(500);
+          return;
+        }
+      } catch {
+        // Option not found or not visible yet
+      }
+
+      await drv.swipe({
+        direction,
+        duration: 200,
+        from,
+        to,
+      });
+      await sleep(300);
+    }
+
+    throw new Error(
+      `Method "${methodName}" not found in picker after ${maxScrollAttempts} scroll attempts`,
+    );
   }
 
   /**
    * Scroll an element into view with making sure it's fully visible.
    * @param elemGetter - The element to scroll to
-   * @param options
+   * @param options - WDIO scroll options (scrollParams / percent) used by MMConnect specs
    */
   async scrollToElement(
-    elemGetter: EncapsulatedElementType,
-    options?: ScrollOptions,
+    elemGetter: Promise<AppiumElement>,
+    options?: {
+      scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
+      percent?: number;
+      maxScrolls?: number;
+      from?: { x: number; y: number };
+      to?: { x: number; y: number };
+    },
   ): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const elem = await asPlaywrightElement(elemGetter);
-        await PlaywrightGestures.scrollIntoViewFullyVisible(elem, options);
-      },
+    await Gestures.scrollIntoViewFullyVisible(elemGetter, {
+      direction: options?.scrollParams?.direction ?? 'up',
+      percent: options?.percent,
+      maxScrolls: options?.maxScrolls,
+      from: options?.from,
+      to: options?.to,
     });
   }
 
   // Assertions
   async assertConnected(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.scopesSection);
-        await element.waitForDisplayed({
-          timeout: 15000,
-          timeoutMsg:
-            'RNPlaygroundDapp: scopes section not visible (expected connected)',
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.scopesSection, {
+      timeout: 15000,
+      description:
+        'RNPlaygroundDapp: scopes section not visible (expected connected)',
     });
   }
 
   async assertDisconnected(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.connectButton);
-        await element.waitForDisplayed({
-          timeout: 15000,
-          timeoutMsg:
-            'RNPlaygroundDapp: connect button not visible (expected disconnected)',
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.connectButton, {
+      timeout: 15000,
+      description:
+        'RNPlaygroundDapp: connect button not visible (expected disconnected)',
     });
   }
 
   async assertScopeCardVisible(scope: string): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.getScopeCard(scope));
-        await element.waitForDisplayed({
-          timeout: 15000,
-          timeoutMsg: `RNPlaygroundDapp: scope card "${scope}" not visible`,
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.getScopeCard(scope), {
+      timeout: 15000,
+      description: `RNPlaygroundDapp: scope card "${scope}" not visible`,
     });
   }
 
   async waitForResult(scope: string, method: string, index = 0): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(
-          this.getResultCode(scope, method, index),
-        );
-        await element.waitForDisplayed({
-          timeout: 15000,
-          timeoutMsg: `RNPlaygroundDapp: result code for ${scope}/${method}[${index}] not visible`,
-        });
+    await Assertions.expectElementToBeVisible(
+      this.getResultCode(scope, method, index),
+      {
+        timeout: 15000,
+        description: `RNPlaygroundDapp: result code for ${scope}/${method}[${index}] not visible`,
       },
-    });
+    );
   }
 
   async assertLegacyEvmConnected(): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.legacyEvmCard);
-        await element.waitForDisplayed({
-          timeout: 15000,
-          timeoutMsg: 'Legacy EVM card not found',
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.legacyEvmCard, {
+      timeout: 15000,
+      description: 'Legacy EVM card not found',
     });
   }
 
   async assertLegacyEvmHasAccounts(timeoutMs = 10000): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.legacyEvmAccountsValue);
-        await element.waitForDisplayed({
-          timeout: timeoutMs,
-          timeoutMsg: 'RNPlaygroundDapp: legacy EVM accounts value not visible',
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.legacyEvmAccountsValue, {
+      timeout: timeoutMs,
+      description: 'RNPlaygroundDapp: legacy EVM accounts value not visible',
     });
   }
 
   async assertLegacyEvmActiveAccount(timeoutMs = 10000): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(this.legacyEvmActiveAccount);
-        await element.waitForDisplayed({
-          timeout: timeoutMs,
-          timeoutMsg: 'RNPlaygroundDapp: legacy EVM active account not visible',
-        });
-      },
+    await Assertions.expectElementToBeVisible(this.legacyEvmActiveAccount, {
+      timeout: timeoutMs,
+      description: 'RNPlaygroundDapp: legacy EVM active account not visible',
     });
   }
 
   async getLegacyEvmChainId(): Promise<string> {
-    const element = await asPlaywrightElement(this.legacyEvmChainIdValue);
-    await element.waitForDisplayed({
+    await Assertions.expectElementToBeVisible(this.legacyEvmChainIdValue, {
       timeout: 10000,
-      timeoutMsg: 'RNPlaygroundDapp: legacy EVM chain ID value not visible',
+      description: 'RNPlaygroundDapp: legacy EVM chain ID value not visible',
     });
-    return (await element.textContent()) ?? '';
+    return Utilities.getElementText(this.legacyEvmChainIdValue);
   }
 
   async getLegacyEvmResponseText(): Promise<string> {
-    const element = await asPlaywrightElement(this.legacyEvmResponseText);
-    return (await element.textContent()) ?? '';
+    return Utilities.getElementText(this.legacyEvmResponseText);
   }
 
   async assertResultCodeContains(
@@ -414,19 +373,23 @@ class RNPlaygroundDapp {
     index = 0,
     timeoutMs = 15000,
   ): Promise<void> {
-    await encapsulatedAction({
-      appium: async () => {
-        const element = await asPlaywrightElement(
-          this.getResultCode(scope, method, index),
-        );
-        await element.waitForDisplayed({
-          timeout: timeoutMs,
-          timeoutMsg: `RNPlaygroundDapp: result code for ${scope}/${method}[${index}] not visible`,
-        });
-        const text = await element.textContent();
-        expect(text).toContain(expectedText);
-      },
+    const result = this.getResultCode(scope, method, index);
+    await Assertions.expectElementToBeVisible(result, {
+      timeout: timeoutMs,
+      description: `RNPlaygroundDapp: result code for ${scope}/${method}[${index}] not visible`,
     });
+    await Utilities.executeWithRetry(
+      async () => {
+        const text = await Utilities.getElementText(result);
+        if (!text.includes(expectedText)) {
+          throw new Error(`Expected "${expectedText}" in "${text}"`);
+        }
+      },
+      {
+        timeout: timeoutMs,
+        description: `RNPlaygroundDapp: result code should contain "${expectedText}"`,
+      },
+    );
   }
 }
 

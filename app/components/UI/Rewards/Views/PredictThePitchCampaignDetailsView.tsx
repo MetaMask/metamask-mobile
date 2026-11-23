@@ -14,7 +14,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -35,7 +34,7 @@ import PredictThePitchLeaderboard, {
   PREDICT_THE_PITCH_LEADERBOARD_TEST_IDS,
 } from '../components/Campaigns/PredictThePitchLeaderboard';
 import PredictThePitchPortfolio from '../components/Campaigns/PredictThePitchPortfolio';
-import PredictThePitchPrizePool from '../components/Campaigns/PredictThePitchPrizePool';
+import CampaignPrizePoolSection from '../components/Campaigns/CampaignPrizePoolSection';
 import PredictThePitchStatsSummary from '../components/Campaigns/PredictThePitchStatsSummary';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -55,6 +54,8 @@ import {
   type CampaignHowItWorks as CampaignHowItWorksData,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PredictThePitchCampaignDetailsRouteParams = {
@@ -74,6 +75,7 @@ export function resetPredictThePitchCampaignDetailsSessionAutoNavigationForTests
 }
 
 const PredictThePitchCampaignDetailsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -324,7 +326,9 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={
             campaign?.name ??
             strings('rewards.predict_the_pitch_campaign.title')
@@ -494,24 +498,12 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
               )}
 
               {showPrizePoolSection && (
-                <>
-                  <Box twClassName="my-1 border-b border-border-muted" />
-                  <Box twClassName="p-4">
-                    <Text
-                      variant={TextVariant.HeadingMd}
-                      fontWeight={FontWeight.Bold}
-                      twClassName="mb-1"
-                    >
-                      {strings('rewards.campaign_prize_pool.title')}
-                    </Text>
-                    <PredictThePitchPrizePool
-                      prizePool={prizePool}
-                      isLoading={isPrizePoolLoading}
-                      hasError={hasPrizePoolError}
-                      refetch={refetchPrizePool}
-                    />
-                  </Box>
-                </>
+                <CampaignPrizePoolSection
+                  prizePool={prizePool}
+                  isLoading={isPrizePoolLoading}
+                  hasError={hasPrizePoolError}
+                  refetch={refetchPrizePool}
+                />
               )}
 
               {showLeaderboardSection && (

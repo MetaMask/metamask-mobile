@@ -1,18 +1,16 @@
 import Matchers from '../../framework/Matchers';
+import Gestures from '../../framework/Gestures';
 import { SmartAccountIds } from '../../../app/components/Views/MultichainAccounts/SmartAccount.testIds';
-import { EncapsulatedElementType } from '../../framework';
+import { type AppiumElement } from '../../framework';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import type { PlaywrightElement } from '../../framework/PlaywrightAdapter';
 import Assertions from '../../framework/Assertions';
 
 class SmartAccount {
-  get container(): EncapsulatedElementType {
+  get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(SmartAccountIds.SMART_ACCOUNT_CONTAINER);
   }
 
-  get smartAccountSwitch(): EncapsulatedElementType {
+  get smartAccountSwitch(): Promise<AppiumElement> {
     return Matchers.getElementByID(SmartAccountIds.SMART_ACCOUNT_SWITCH);
   }
 
@@ -28,24 +26,23 @@ class SmartAccount {
       },
     );
 
-    const labelEl = await PlaywrightMatchers.getElementByText(networkName);
-    await PlaywrightGestures.scrollIntoView(labelEl);
+    await Gestures.scrollIntoView(Matchers.getElementByText(networkName));
 
     const switchEl = PlatformDetector.isIOS()
       ? await this.getIosSwitchInNetworkRow(networkName)
       : await this.getAndroidSwitchInNetworkRow(networkName);
 
-    await PlaywrightGestures.waitAndTap(switchEl, {
+    await Gestures.waitAndTap(Promise.resolve(switchEl), {
       elemDescription: `Smart account switch for "${networkName}"`,
       timeout: 15_000,
       checkForDisplayed: false,
-      checkForEnabled: false,
+      checkEnabled: false,
     });
   }
 
   private async getAndroidSwitchInNetworkRow(
     networkName: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     // UiAutomator2 XPath2 breaks on `/following::*` — use Y-alignment instead.
     return this.getFallbackSwitchAlignedToLabel(networkName);
   }
@@ -53,7 +50,7 @@ class SmartAccount {
   /** Prefer first switch after the network label; fall back to Y-alignment. */
   private async getIosSwitchInNetworkRow(
     networkName: string,
-  ): Promise<PlaywrightElement> {
+  ): Promise<AppiumElement> {
     const switchId = SmartAccountIds.SMART_ACCOUNT_SWITCH;
     const byTestIdXPath = `//*[@name='${networkName}' or @label='${networkName}']/following::*[@name='${switchId}'][1]`;
     const byTestId = await Matchers.getAllElementsByXPath(byTestIdXPath);
@@ -73,9 +70,11 @@ class SmartAccount {
   /** Pick switch to the right of the label with closest center Y. */
   private async getFallbackSwitchAlignedToLabel(
     networkName: string,
-  ): Promise<PlaywrightElement> {
-    const labelEl = await PlaywrightMatchers.getElementByText(networkName);
-    await PlaywrightGestures.scrollIntoView(labelEl);
+  ): Promise<AppiumElement> {
+    const labelEl = (await Matchers.getElementByText(
+      networkName,
+    )) as AppiumElement;
+    await Gestures.scrollIntoView(labelEl);
 
     const labelLocation = await labelEl.unwrap().getLocation();
     const labelSize = await labelEl.unwrap().getSize();
@@ -91,7 +90,7 @@ class SmartAccount {
       );
     }
 
-    let bestSwitch: PlaywrightElement | undefined;
+    let bestSwitch: AppiumElement | undefined;
     let bestDelta = Number.POSITIVE_INFINITY;
     for (const switchEl of switchElements) {
       const switchLocation = await switchEl.unwrap().getLocation();
@@ -117,14 +116,14 @@ class SmartAccount {
     return bestSwitch;
   }
 
-  private async getAndroidSmartAccountSwitches(): Promise<PlaywrightElement[]> {
+  private async getAndroidSmartAccountSwitches(): Promise<AppiumElement[]> {
     return Matchers.getAllElementsByXPath(
       `//*[@resource-id='${SmartAccountIds.SMART_ACCOUNT_SWITCH}']`,
     );
   }
 
   /** Prefer testID; fall back to XCUIElementTypeSwitch if iOS drops it. */
-  private async getIosSmartAccountSwitches(): Promise<PlaywrightElement[]> {
+  private async getIosSmartAccountSwitches(): Promise<AppiumElement[]> {
     const byTestId = await Matchers.getAllElementsByXPath(
       `//*[@name='${SmartAccountIds.SMART_ACCOUNT_SWITCH}']`,
     );

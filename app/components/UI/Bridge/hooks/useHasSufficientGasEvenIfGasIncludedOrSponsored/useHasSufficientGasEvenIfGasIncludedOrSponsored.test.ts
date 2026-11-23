@@ -2,7 +2,12 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useHasSufficientGasEvenIfGasIncludedOrSponsored } from './index';
 import { useLatestBalance } from '../useLatestBalance';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
-import { ChainId, formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  formatChainIdToCaip,
+  getNativeAssetForChainId,
+  toBridgeAssetV2,
+} from '@metamask/bridge-controller';
 import { BigNumber } from 'ethers';
 
 // Mock dependencies
@@ -36,6 +41,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
               },
             ],
           },
@@ -69,6 +75,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.01',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
               },
             ],
           },
@@ -102,6 +109,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '9.200359292e-8',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
               },
             ],
           },
@@ -136,6 +144,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
               },
             ],
           },
@@ -165,6 +174,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: undefined,
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
               },
             ],
           },
@@ -197,6 +207,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
               },
             ],
           },
@@ -231,6 +242,9 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.001',
+                asset: toBridgeAssetV2(
+                  getNativeAssetForChainId(ChainId.SOLANA),
+                ),
               },
             ],
           },
@@ -265,6 +279,9 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.01',
+                asset: toBridgeAssetV2(
+                  getNativeAssetForChainId(ChainId.SOLANA),
+                ),
               },
             ],
           },
@@ -298,6 +315,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.0001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.BTC)),
               },
             ],
           },
@@ -328,6 +346,7 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
             network: [
               {
                 normalizedAmount: '0.0001',
+                asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.BTC)),
               },
             ],
           },
@@ -337,6 +356,65 @@ describe('useHasSufficientGasEvenIfGasIncludedOrSponsored', () => {
       mockUseLatestBalance.mockReturnValue({
         displayBalance: '0.001',
         atomicBalance: BigNumber.from('100000'), // 0.001 BTC in sats
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useHasSufficientGasEvenIfGasIncludedOrSponsored({
+            quote: mockQuote,
+          }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(true);
+    });
+  });
+
+  describe('for Stellar non-native source with reserve', () => {
+    const createStellarNonNativeQuote = () => {
+      const nativeAsset = toBridgeAssetV2(
+        getNativeAssetForChainId(ChainId.STELLAR),
+      );
+      return {
+        chainId: formatChainIdToCaip(ChainId.STELLAR),
+        quote: {
+          src: {
+            asset: {
+              assetId:
+                'stellar:pubnet/credit_alphanum4:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+            },
+          },
+          feeData: {
+            network: [{ normalizedAmount: '0.00001', asset: nativeAsset }],
+            reserve: [{ normalizedAmount: '1.5', asset: nativeAsset }],
+          },
+        },
+      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+    };
+
+    it('returns false when native balance cannot cover quote fee and reserve', () => {
+      const mockQuote = createStellarNonNativeQuote();
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '0.4',
+        atomicBalance: BigNumber.from('4000000'),
+      });
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useHasSufficientGasEvenIfGasIncludedOrSponsored({
+            quote: mockQuote,
+          }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when native balance covers quote fee and reserve', () => {
+      const mockQuote = createStellarNonNativeQuote();
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '2',
+        atomicBalance: BigNumber.from('20000000'),
       });
 
       const { result } = renderHookWithProvider(

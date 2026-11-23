@@ -5,6 +5,8 @@ export const SecurityPrivacyViewSelectorsIDs = {
   REVEAL_SEED_BUTTON: 'reveal-seed-button',
   CHANGE_PASSWORD_CONTAINER: 'change-password-section',
   CHANGE_PASSWORD_BUTTON: 'change-password-button',
+  MFA_SECTION: 'mfa-section',
+  MFA_BUTTON: 'mfa-button',
   METAMETRICS_SWITCH: 'metametrics-switch',
   DATA_COLLECTION_SWITCH: 'data-collection-switch',
   AUTO_LOCK_SECTION: 'auto-lock-section',

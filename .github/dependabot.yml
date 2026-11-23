@@ -13,3 +13,8 @@ updates:
       - "dependencies"
       - "javascript"
       - "team-mobile-platform"
+    ignore:
+      # react-native-passkeys@1.0.0 is an unrelated placeholder package; we
+      # stay on an exact 0.x pin (enforced in yarn.config.cjs).
+      - dependency-name: "react-native-passkeys"
+        versions: [">=1.0.0"]

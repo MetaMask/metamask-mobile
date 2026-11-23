@@ -413,7 +413,7 @@ describe('Quotes', () => {
 
     backHandlerMock.mockImplementation((event, handler) => {
       if (event === 'hardwareBackPress') {
-        handler();
+        handler({ type: 'hardwareBackPress', timeStamp: 0 });
         return { remove: removeMock } as NativeEventSubscription;
       }
       return { remove: jest.fn() } as NativeEventSubscription;
@@ -423,7 +423,10 @@ describe('Quotes', () => {
     fireEvent.press(
       screen.getByRole('button', { name: 'Explore more options' }),
     );
-    backHandlerMock.mock.calls[0][1]();
+    backHandlerMock.mock.calls[0][1]({
+      type: 'hardwareBackPress',
+      timeStamp: 0,
+    });
     unmount();
     expect(removeMock).toHaveBeenCalled();
     backHandlerMock.mockRestore();

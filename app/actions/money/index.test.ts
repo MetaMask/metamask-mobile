@@ -9,15 +9,18 @@ import {
 import Engine from '../../core/Engine';
 import Logger from '../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../selectors/moneyAccountController';
-import { whenMoneyAccountUpgradeReady } from '../../core/Engine/controllers/money-account-upgrade-controller-init';
 import type { RootState } from '../../reducers';
+import type { Hex } from '@metamask/utils';
 
 jest.mock('../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
+      MoneyAccountLifecycleController: {
+        upgradeMoneyAccount: jest.fn(),
+        state: { moneyAccounts: {}, addressRegistrations: {} },
+      },
       MoneyAccountUpgradeController: {
-        upgradeAccount: jest.fn(),
         state: { upgradedAccounts: {} },
       },
     },
@@ -36,20 +39,12 @@ jest.mock('../../selectors/moneyAccountController', () => ({
   selectPrimaryMoneyAccount: jest.fn(),
 }));
 
-jest.mock(
-  '../../core/Engine/controllers/money-account-upgrade-controller-init',
-  () => ({
-    whenMoneyAccountUpgradeReady: jest.fn(() => Promise.resolve()),
-  }),
-);
-
-const mockUpgradeAccount = Engine.context.MoneyAccountUpgradeController
-  .upgradeAccount as jest.Mock;
+const mockUpgradeAccount = Engine.context.MoneyAccountLifecycleController
+  .upgradeMoneyAccount as jest.Mock;
 const mockSelectPrimaryMoneyAccount =
   selectPrimaryMoneyAccount as unknown as jest.Mock;
 const mockLogError = Logger.error as jest.Mock;
 const mockLogLog = Logger.log as jest.Mock;
-const mockWhenReady = whenMoneyAccountUpgradeReady as jest.Mock;
 
 const ADDRESS = '0x1111111111111111111111111111111111111111' as const;
 const OTHER_ADDRESS = '0x2222222222222222222222222222222222222222' as const;
@@ -83,22 +78,29 @@ describe('upgradeMoneyAccount', () => {
     dispatch = jest.fn();
     getState = jest.fn().mockReturnValue({} as RootState);
     mockUpgradeAccount.mockResolvedValue(undefined);
+    Engine.context.MoneyAccountLifecycleController.state = {
+      moneyAccounts: {},
+      addressRegistrations: {},
+    };
     Engine.context.MoneyAccountUpgradeController.state = {
       upgradedAccounts: {},
     };
   });
 
-  it('calls MoneyAccountUpgradeController.upgradeAccount with the primary money account address', async () => {
+  it('upgrades through MoneyAccountLifecycleController', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
 
     dispatchUpgrade();
     await flushPromises();
 
-    expect(mockUpgradeAccount).toHaveBeenCalledWith(ADDRESS);
+    expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
   });
 
-  it('logs the start of an upgrade, noting the account was not previously recorded', async () => {
+  it('logs the start of an upgrade with the recorded lifecycle and upgrade', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts[
+      ADDRESS
+    ] = { type: 'notInIdentity' };
 
     dispatchUpgrade();
     await flushPromises();
@@ -106,15 +108,22 @@ describe('upgradeMoneyAccount', () => {
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
       'starting upgrade',
-      { address: ADDRESS, recordedBefore: false },
+      { address: ADDRESS, lifecycle: 'notInIdentity', upgraded: false },
     );
   });
 
-  it('logs the start of an upgrade, noting the account was previously recorded', async () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+  it('reads the recorded lifecycle and upgrade under the lowercased address', async () => {
+    const checksummedAddress = '0xAbCdEf0000000000000000000000000000000001';
+    const accountKey = checksummedAddress.toLowerCase() as Hex;
+    mockSelectPrimaryMoneyAccount.mockReturnValue({
+      address: checksummedAddress,
+    });
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts[
+      accountKey
+    ] = { type: 'notInIdentity' };
     Engine.context.MoneyAccountUpgradeController.state = {
       upgradedAccounts: {
-        [ADDRESS]: { configFingerprint: 'fingerprint', completedAt: 1 },
+        [accountKey]: { configFingerprint: 'fingerprint', completedAt: 1 },
       },
     };
 
@@ -124,16 +133,24 @@ describe('upgradeMoneyAccount', () => {
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
       'starting upgrade',
-      { address: ADDRESS, recordedBefore: true },
+      {
+        address: checksummedAddress,
+        lifecycle: 'notInIdentity',
+        upgraded: true,
+      },
     );
   });
 
-  it('logs success with the duration and the recorded upgrade status', async () => {
+  it('logs the settled upgrade with the duration and the recorded upgrade', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    const recorded = { configFingerprint: 'fingerprint', completedAt: 123 };
+    Engine.context.MoneyAccountLifecycleController.state.moneyAccounts[
+      ADDRESS
+    ] = { type: 'notInIdentity' };
     mockUpgradeAccount.mockImplementationOnce(async () => {
       Engine.context.MoneyAccountUpgradeController.state = {
-        upgradedAccounts: { [ADDRESS]: recorded },
+        upgradedAccounts: {
+          [ADDRESS]: { configFingerprint: 'fingerprint', completedAt: 1 },
+        },
       };
     });
 
@@ -142,13 +159,31 @@ describe('upgradeMoneyAccount', () => {
 
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade succeeded',
-      expect.objectContaining({
+      'upgrade settled',
+      {
         address: ADDRESS,
-        recordedBefore: false,
         durationMs: expect.any(Number),
-        recorded,
-      }),
+        lifecycle: 'notInIdentity',
+        upgraded: true,
+      },
+    );
+  });
+
+  it('logs a settled upgrade that upgraded nothing as not upgraded', async () => {
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+
+    dispatchUpgrade();
+    await flushPromises();
+
+    expect(mockLogLog).toHaveBeenCalledWith(
+      expect.stringContaining('upgradeMoneyAccount'),
+      'upgrade settled',
+      {
+        address: ADDRESS,
+        durationMs: expect.any(Number),
+        lifecycle: undefined,
+        upgraded: false,
+      },
     );
   });
 
@@ -167,7 +202,7 @@ describe('upgradeMoneyAccount', () => {
     );
     expect(mockLogLog).not.toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade succeeded',
+      'upgrade settled',
       expect.anything(),
     );
   });
@@ -230,7 +265,7 @@ describe('upgradeMoneyAccount', () => {
     expect(mockLogError).not.toHaveBeenCalled();
     expect(mockLogLog).toHaveBeenCalledWith(
       expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade succeeded',
+      'upgrade settled',
       expect.objectContaining({ address: ADDRESS }),
     );
   });
@@ -439,22 +474,6 @@ describe('upgradeMoneyAccount', () => {
     );
   });
 
-  it('skips quietly (no Sentry error) when the controller is not ready', async () => {
-    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
-    mockWhenReady.mockRejectedValueOnce(new Error('bootstrap not scheduled'));
-
-    dispatchUpgrade();
-    await flushPromises();
-
-    expect(mockUpgradeAccount).not.toHaveBeenCalled();
-    expect(mockLogError).not.toHaveBeenCalled();
-    expect(mockLogLog).toHaveBeenCalledWith(
-      expect.stringContaining('upgradeMoneyAccount'),
-      'upgrade controller not ready; skipping',
-      expect.objectContaining({ address: ADDRESS }),
-    );
-  });
-
   it('deduplicates concurrent upgrades for the same address', async () => {
     mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     mockUpgradeAccount.mockReturnValueOnce(new Promise(() => undefined));
@@ -498,7 +517,6 @@ describe('upgradeMoneyAccount', () => {
     // the first, aborted signal, the retry wrapper would give up before
     // calling the controller again.
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, ADDRESS);
   });
 
   it('does not restart when the takeover signal is already aborted', async () => {
@@ -594,19 +612,121 @@ describe('upgradeMoneyAccount', () => {
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
   });
 
-  it('does not deduplicate upgrades for different addresses', async () => {
+  it('runs separately when the primary money account address changes', async () => {
     mockUpgradeAccount.mockReturnValue(new Promise(() => undefined));
 
-    mockSelectPrimaryMoneyAccount.mockReturnValueOnce({ address: ADDRESS });
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
     dispatchUpgrade();
-    mockSelectPrimaryMoneyAccount.mockReturnValueOnce({
-      address: OTHER_ADDRESS,
-    });
+    await flushPromises();
+    mockSelectPrimaryMoneyAccount.mockReturnValue({ address: OTHER_ADDRESS });
     dispatchUpgrade();
     await flushPromises();
 
     expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(1, ADDRESS);
-    expect(mockUpgradeAccount).toHaveBeenNthCalledWith(2, OTHER_ADDRESS);
+  });
+
+  describe('when the primary money account changes during a run', () => {
+    const settledLogs = () =>
+      mockLogLog.mock.calls.filter(
+        ([, message]) => message === 'upgrade settled',
+      );
+
+    it('stops the run before its first attempt and restarts it for the new primary', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+
+      dispatchUpgrade();
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: OTHER_ADDRESS });
+      await flushPromises();
+      await flushPromises();
+
+      expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+      expect(mockLogLog).toHaveBeenCalledWith(
+        '[upgradeMoneyAccount]',
+        'primary money account changed; stopping run',
+        { address: ADDRESS, primaryAddress: OTHER_ADDRESS },
+      );
+      expect(settledLogs()).toStrictEqual([
+        [
+          '[upgradeMoneyAccount]',
+          'upgrade settled',
+          expect.objectContaining({ address: OTHER_ADDRESS }),
+        ],
+      ]);
+      expect(mockLogError).not.toHaveBeenCalled();
+    });
+
+    it('stops the run during a retry backoff and restarts it for the new primary', async () => {
+      jest.useFakeTimers();
+      try {
+        mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+        mockUpgradeAccount
+          .mockRejectedValueOnce(retryableStepError())
+          .mockResolvedValueOnce(undefined);
+
+        dispatchUpgrade();
+        await jest.advanceTimersByTimeAsync(0);
+        expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+
+        mockSelectPrimaryMoneyAccount.mockReturnValue({
+          address: OTHER_ADDRESS,
+        });
+        await jest.advanceTimersByTimeAsync(10_000);
+
+        expect(mockUpgradeAccount).toHaveBeenCalledTimes(2);
+        expect(mockLogLog).toHaveBeenCalledWith(
+          '[upgradeMoneyAccount]',
+          'primary money account changed; stopping run',
+          { address: ADDRESS, primaryAddress: OTHER_ADDRESS },
+        );
+        expect(settledLogs()).toStrictEqual([
+          [
+            '[upgradeMoneyAccount]',
+            'upgrade settled',
+            expect.objectContaining({ address: OTHER_ADDRESS }),
+          ],
+        ]);
+        // Only the retried failure from the first attempt is reported.
+        expect(mockLogError).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('stops the run without restarting when there is no longer a valid primary', async () => {
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: ADDRESS });
+
+      dispatchUpgrade();
+      mockSelectPrimaryMoneyAccount.mockReturnValue(undefined);
+      await flushPromises();
+      await flushPromises();
+
+      expect(mockUpgradeAccount).not.toHaveBeenCalled();
+      expect(mockLogLog).toHaveBeenCalledWith(
+        '[upgradeMoneyAccount]',
+        'primary money account changed; stopping run',
+        { address: ADDRESS, primaryAddress: undefined },
+      );
+      expect(settledLogs()).toStrictEqual([]);
+      expect(mockLogError).not.toHaveBeenCalled();
+    });
+
+    it('treats a primary address that differs only in case as unchanged', async () => {
+      const lowercase = '0xabcdef0000000000000000000000000000000001';
+      const mixedCase = '0xABCdef0000000000000000000000000000000001';
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: lowercase });
+
+      dispatchUpgrade();
+      mockSelectPrimaryMoneyAccount.mockReturnValue({ address: mixedCase });
+      await flushPromises();
+
+      expect(mockUpgradeAccount).toHaveBeenCalledTimes(1);
+      expect(settledLogs()).toStrictEqual([
+        [
+          '[upgradeMoneyAccount]',
+          'upgrade settled',
+          expect.objectContaining({ address: lowercase }),
+        ],
+      ]);
+    });
   });
 });

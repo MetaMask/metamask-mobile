@@ -1,10 +1,19 @@
 import {
   buildCampaignOutcomeToastCompositeKey,
+  buildSeasonSubscriptionCompositeKey,
   buildSubscriptionCampaignCompositeKey,
   buildSubscriptionVipTransactionCompositeKey,
 } from './compositeKeys';
 
 describe('rewards compositeKeys', () => {
+  describe('buildSeasonSubscriptionCompositeKey', () => {
+    it('joins season and subscription ids', () => {
+      expect(buildSeasonSubscriptionCompositeKey('season-1', 'sub-2')).toBe(
+        'season-1:sub-2',
+      );
+    });
+  });
+
   describe('buildSubscriptionCampaignCompositeKey', () => {
     it('joins subscription and campaign ids', () => {
       expect(buildSubscriptionCampaignCompositeKey('sub-1', 'camp-2')).toBe(

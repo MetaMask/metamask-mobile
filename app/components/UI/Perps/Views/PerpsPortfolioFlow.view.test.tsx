@@ -20,6 +20,10 @@ import {
   defaultPositionForViews,
 } from '../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { PerpsPositionsViewSelectorsIDs } from '../Perps.testIds';
+import {
+  clearPerpsOutreachApiMocks,
+  setupPerpsOutreachApiMock,
+} from '../../../../../tests/component-view/api-mocking/perpsOutreach';
 
 const TIMEOUT_MS = 3000;
 
@@ -36,6 +40,15 @@ describe('Portfolio & Account Flow', () => {
     EMPTY_TITLE = strings('perps.position.list.empty_title');
     ADD_MARGIN = strings('perps.adjust_margin.add_margin');
     REDUCE_MARGIN = strings('perps.adjust_margin.reduce_margin');
+  });
+
+  // The home view fetches the Terminal outreach banner on mount.
+  beforeEach(() => {
+    setupPerpsOutreachApiMock();
+  });
+
+  afterEach(() => {
+    clearPerpsOutreachApiMocks();
   });
 
   it('browses positions, handles geo-restrictions, and adjusts margin', async () => {

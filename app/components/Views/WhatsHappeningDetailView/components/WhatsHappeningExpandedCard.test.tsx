@@ -146,7 +146,7 @@ describe('WhatsHappeningExpandedCard', () => {
       />,
     );
     expect(screen.queryByText('AI')).toBeNull();
-    expect(screen.queryByText('AI Generated')).toBeNull();
+    expect(screen.queryByText('AI generated')).toBeNull();
     expect(screen.getByText('Bullish')).toBeOnTheScreen();
   });
 

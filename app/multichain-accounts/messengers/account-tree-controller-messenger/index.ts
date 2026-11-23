@@ -32,6 +32,7 @@ export function getAccountTreeControllerMessenger(
     actions: [
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccount',
+      'AccountsController:getAccounts',
       'AccountsController:getSelectedMultichainAccount',
       'AccountsController:setSelectedAccount',
       'UserStorageController:getState',
@@ -42,8 +43,16 @@ export function getAccountTreeControllerMessenger(
       'AuthenticationController:getSessionProfile',
       'MultichainAccountService:createMultichainAccountGroup',
       'MultichainAccountService:createMultichainAccountGroups',
+      // account-tree-controller ^8.0.0: required for :{import,export}State
+      'MultichainAccountService:createMultichainAccountWallet',
+      'MultichainAccountService:removeMultichainAccountWallet',
+      'KeyringController:removeAccount',
       'SnapController:getSnap',
       'KeyringController:getState',
+      'KeyringController:verifyPassword',
+      'KeyringController:withController',
+      'KeyringController:withKeyringV2',
+      'KeyringController:withKeyringV2Unsafe',
     ],
     events: [
       'AccountsController:accountsAdded',

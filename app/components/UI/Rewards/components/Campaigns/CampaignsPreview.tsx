@@ -1,16 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { Pressable, ActivityIndicator } from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useTheme } from '../../../../../util/theme';
 import {
   Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
+  SectionHeader,
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,16 +14,49 @@ import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
-import CampaignReminder from './CampaignReminder';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatus } from './CampaignTile.utils';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { navigateToRewardsRoute } from '../../utils';
+import {
+  buildMoneyAccountSweepstakesTileCampaign,
+  getMoneyAccountSweepstakesSeries,
+} from '../../utils/moneyAccountSweepstakesSeries';
+
+/**
+ * Collapse MONEY_ACCOUNT_SWEEPSTAKES into one series tile (same as CampaignsView),
+ * then return featured campaigns for the dashboard preview.
+ */
+export function getFeaturedPreviewCampaigns(
+  campaigns: CampaignDto[],
+): CampaignDto[] {
+  const series = getMoneyAccountSweepstakesSeries(campaigns);
+  const seriesTile = buildMoneyAccountSweepstakesTileCampaign(series);
+  const anyMasFeatured = series.campaigns.some((c) => c.featured);
+  let seriesPlaced = false;
+  const collapsed: CampaignDto[] = [];
+
+  for (const campaign of campaigns) {
+    if (campaign.type === CampaignType.MONEY_ACCOUNT_SWEEPSTAKES) {
+      if (!seriesPlaced && seriesTile && anyMasFeatured) {
+        seriesPlaced = true;
+        collapsed.push({ ...seriesTile, featured: true });
+      }
+      continue;
+    }
+    collapsed.push(campaign);
+  }
+
+  return collapsed.filter((c) => c.featured);
+}
 
 /**
  * CampaignsPreview shows featured campaigns on the dashboard.
- * All campaigns marked `featured` are displayed, in API order. Upcoming campaigns
- * use {@link CampaignReminder}; active or complete campaigns use {@link CampaignTile}.
+ * All campaigns marked `featured` are displayed as the standard image campaign
+ * card used throughout Rewards, in API order.
+ * Consecutive MONEY_ACCOUNT_SWEEPSTAKES campaigns collapse to a single tile.
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
@@ -38,7 +66,7 @@ const CampaignsPreview: React.FC = () => {
     useRewardCampaigns();
 
   const featuredCampaigns = useMemo(
-    (): CampaignDto[] => (campaigns ?? []).filter((c) => c.featured),
+    (): CampaignDto[] => getFeaturedPreviewCampaigns(campaigns ?? []),
     [campaigns],
   );
 
@@ -49,47 +77,37 @@ const CampaignsPreview: React.FC = () => {
   }, [navigation]);
 
   return (
-    <Box
-      twClassName="gap-3 p-4"
-      testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}
-    >
-      <Pressable
+    <Box testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}>
+      <SectionHeader
+        title={strings('rewards.campaigns_preview.title')}
+        isInteractive
         onPress={handleNavigateToCampaigns}
-        style={tw.style('flex-row items-center gap-1')}
-      >
+        startAccessory={
+          (isLoading || !hasLoaded) && !hasFeaturedCampaigns ? (
+            <ActivityIndicator size="small" color={colors.primary.default} />
+          ) : undefined
+        }
+      />
+      {/* paddingTop matches the Home tab, where sections pair SectionHeader
+          with a pt-3 content box. */}
+      <Box paddingTop={3} twClassName="gap-3 px-4">
         {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
-          <ActivityIndicator size="small" color={colors.primary.default} />
+          <Skeleton style={tw.style('h-50 rounded-xl')} />
         )}
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.campaigns_preview.title')}
-        </Text>
-        <Icon
-          name={IconName.ArrowRight}
-          size={IconSize.Md}
-          color={IconColor.IconAlternative}
-        />
-      </Pressable>
 
-      {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
-        <Skeleton style={tw.style('h-50 rounded-xl')} />
-      )}
+        {!isLoading && hasLoaded && hasError && !hasFeaturedCampaigns && (
+          <RewardsErrorBanner
+            title={strings('rewards.campaigns_view.error_title')}
+            description={strings('rewards.campaigns_view.error_description')}
+            onConfirm={fetchCampaigns}
+            confirmButtonLabel={strings('rewards.campaigns_view.retry_button')}
+          />
+        )}
 
-      {!isLoading && hasLoaded && hasError && !hasFeaturedCampaigns && (
-        <RewardsErrorBanner
-          title={strings('rewards.campaigns_view.error_title')}
-          description={strings('rewards.campaigns_view.error_description')}
-          onConfirm={fetchCampaigns}
-          confirmButtonLabel={strings('rewards.campaigns_view.retry_button')}
-        />
-      )}
-
-      {featuredCampaigns.map((campaign) =>
-        getCampaignStatus(campaign) === 'upcoming' ? (
-          <CampaignReminder key={campaign.id} campaign={campaign} />
-        ) : (
+        {featuredCampaigns.map((campaign) => (
           <CampaignTile key={campaign.id} campaign={campaign} />
-        ),
-      )}
+        ))}
+      </Box>
     </Box>
   );
 };

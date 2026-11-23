@@ -1,9 +1,18 @@
 import React from 'react';
-import { Platform, Switch } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import { Image, Platform, StyleSheet, Switch } from 'react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
 import ManageCardListItem from '../../../components/ManageCardListItem';
+import applePayMark from '../../../components/ApplePayUsageSheet/assets/apple-pay-mark.png';
+
+const APPLE_PAY_MARK_ASPECT_RATIO = 170 / 109;
+
+const styles = StyleSheet.create({
+  applePayMark: {
+    width: 38,
+    height: 38 / APPLE_PAY_MARK_ASPECT_RATIO,
+  },
+});
 import { strings } from '../../../../../../../locales/i18n';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { CardType } from '../../../types';
@@ -34,14 +43,24 @@ interface ManageCardOptionsProps {
   onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
+  onContactDetails: () => void;
+  showDigitalWalletInstructions: boolean;
+  onDigitalWalletInstructions: () => void;
+  showHowToUseApplePay?: boolean;
+  onHowToUseApplePay?: () => void;
   showUnlinkMoneyAccount: boolean;
   onUnlinkMoneyAccount: () => void;
+  showRevokeAllowance?: boolean;
+  onRevokeAllowance?: () => void;
+  fundingAccountName?: string;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
   onCashback: () => void;
   onTravel: () => void;
+  onTransactionHistory?: () => void;
+  showTransactionHistoryDuringSetup?: boolean;
 }
 
 const ManageCardOptions = ({
@@ -64,14 +83,24 @@ const ManageCardOptions = ({
   onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
+  onContactDetails,
+  showDigitalWalletInstructions,
+  onDigitalWalletInstructions,
+  showHowToUseApplePay = false,
+  onHowToUseApplePay,
   showUnlinkMoneyAccount,
   onUnlinkMoneyAccount,
+  showRevokeAllowance = false,
+  onRevokeAllowance,
+  fundingAccountName,
   onOrderMetalCard,
   isSpendingLimitActive,
   onChangeAsset,
   hasPriorityTokenBalance,
   onCashback,
   onTravel,
+  onTransactionHistory,
+  showTransactionHistoryDuringSetup = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -81,9 +110,6 @@ const ManageCardOptions = ({
     !hasSetupAlerts &&
     isAuthenticated &&
     card;
-
-  const showTeaserOptions =
-    !isLoading && !isAuthenticated && !hasSetupActions && !hasAlertOnlyState;
 
   const isEligibleForMetalCard =
     isMetalCardCheckoutEnabled &&
@@ -108,9 +134,33 @@ const ManageCardOptions = ({
     ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
     : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted';
 
+  const showTransactionHistory =
+    Boolean(onTransactionHistory) &&
+    !isLoading &&
+    isAuthenticated &&
+    Boolean(card) &&
+    !hideManageOptions &&
+    (isFullySetUp || showTransactionHistoryDuringSetup);
+
   return (
     <>
       <Box style={tw.style((hasSetupActions || hasAlertOnlyState) && 'hidden')}>
+        {isFullySetUp && showHowToUseApplePay && Platform.OS === 'ios' && (
+          <ManageCardListItem
+            title={strings('card.apple_pay_usage.row_title')}
+            startAccessory={
+              <Image
+                source={applePayMark}
+                resizeMode="contain"
+                accessible={false}
+                style={styles.applePayMark}
+              />
+            }
+            rightIcon={IconName.ArrowRight}
+            onPress={onHowToUseApplePay}
+            testID={CardHomeSelectors.APPLE_PAY_USAGE_ITEM}
+          />
+        )}
         {isEligibleForMetalCard && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
@@ -126,7 +176,9 @@ const ManageCardOptions = ({
         )}
         {capabilities?.supportsFundingLimits &&
           !showUnlinkMoneyAccount &&
-          ((isAuthenticated && !isLoading && card) || showTeaserOptions) && (
+          isAuthenticated &&
+          !isLoading &&
+          card && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.change_asset')}
               description={strings(
@@ -136,11 +188,10 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
             />
           )}
-        {((isFullySetUp && !hideManageOptions) || showTeaserOptions) &&
-          ((isAuthenticated &&
-            capabilities?.supportsCashback &&
-            account?.verificationStatus === 'VERIFIED') ||
-            (showTeaserOptions && capabilities?.supportsCashback)) && (
+        {isFullySetUp &&
+          !hideManageOptions &&
+          capabilities?.supportsCashback &&
+          account?.verificationStatus === 'VERIFIED' && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.cashback', {
                 cashbackPercentage: card?.type === CardType.METAL ? '3' : '1',
@@ -153,8 +204,7 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.CASHBACK_ITEM}
             />
           )}
-        {((isAuthenticated && !isLoading && card && !hideManageOptions) ||
-          showTeaserOptions) && (
+        {isAuthenticated && !isLoading && card && !hideManageOptions && (
           <ManageCardListItem
             title={strings(
               cardDetailsVisible
@@ -168,70 +218,83 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON}
           />
         )}
-        {((isAuthenticated &&
+        {isFullySetUp &&
+          !hideManageOptions &&
+          showDigitalWalletInstructions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.add_to_digital_wallet',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.add_to_digital_wallet_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onDigitalWalletInstructions}
+              testID={CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM}
+            />
+          )}
+        {isAuthenticated &&
           !isLoading &&
           card &&
           capabilities?.supportsPinView &&
           cardHasPin &&
-          !hideManageOptions) ||
-          (showTeaserOptions && capabilities?.supportsPinView)) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.view_pin')}
-            description={strings(
-              'card.card_home.manage_card_options.view_pin_description',
-            )}
-            onPress={onViewPin}
-            isLoading={isPinLoading}
-            testID={CardHomeSelectors.VIEW_PIN_BUTTON}
-          />
-        )}
-        {((isAuthenticated &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.view_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.view_pin_description',
+              )}
+              onPress={onViewPin}
+              isLoading={isPinLoading}
+              testID={CardHomeSelectors.VIEW_PIN_BUTTON}
+            />
+          )}
+        {isAuthenticated &&
           !isLoading &&
           card &&
           card.status === CardStatus.ACTIVE &&
           capabilities?.supportsPinSet &&
           cardHasPin &&
-          !hideManageOptions) ||
-          (showTeaserOptions && capabilities?.supportsPinSet)) && (
-          <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.set_pin')}
-            description={strings(
-              'card.card_home.manage_card_options.set_pin_description',
-            )}
-            onPress={onSetPin}
-            testID={CardHomeSelectors.SET_PIN_BUTTON}
-          />
-        )}
-        {((isAuthenticated &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings('card.card_home.manage_card_options.set_pin')}
+              description={strings(
+                'card.card_home.manage_card_options.set_pin_description',
+              )}
+              onPress={onSetPin}
+              testID={CardHomeSelectors.SET_PIN_BUTTON}
+            />
+          )}
+        {isAuthenticated &&
           !isLoading &&
           card?.isFreezable &&
           card?.status !== CardStatus.BLOCKED &&
-          !hideManageOptions) ||
-          showTeaserOptions) && (
-          <ManageCardListItem
-            title={
-              isFrozen && isAuthenticated
-                ? strings('card.card_home.manage_card_options.unfreeze_card')
-                : strings('card.card_home.manage_card_options.freeze_card')
-            }
-            description={strings(
-              isFrozen && isAuthenticated
-                ? 'card.card_home.manage_card_options.unfreeze_card_description'
-                : 'card.card_home.manage_card_options.freeze_card_description',
-            )}
-            rightElement={
-              <Switch
-                value={isFrozen && isAuthenticated}
-                onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
-                disabled={isFreezeLoading}
-                style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
-                testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
-              />
-            }
-            testID="freeze-card-list-item"
-          />
-        )}
-        {capabilities?.supportsFundingLimits &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                isFrozen
+                  ? 'card.card_home.manage_card_options.unfreeze_card'
+                  : 'card.card_home.manage_card_options.freeze_card',
+              )}
+              description={strings(
+                isFrozen
+                  ? 'card.card_home.manage_card_options.unfreeze_card_description'
+                  : 'card.card_home.manage_card_options.freeze_card_description',
+              )}
+              rightElement={
+                <Switch
+                  value={isFrozen}
+                  onValueChange={isFreezeLoading ? undefined : onToggleFreeze}
+                  disabled={isFreezeLoading}
+                  style={tw.style(Platform.OS === 'ios' ? 'mr-2' : '')}
+                  testID={CardHomeSelectors.FREEZE_CARD_TOGGLE}
+                />
+              }
+              testID="freeze-card-list-item"
+            />
+          )}
+        {isAuthenticated &&
+          capabilities?.supportsFundingLimits &&
           !isLoading &&
           !hideManageOptions && (
             <ManageCardListItem
@@ -242,6 +305,21 @@ const ManageCardOptions = ({
               rightIcon={IconName.ArrowRight}
               onPress={onManageSpendingLimit}
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+            />
+          )}
+        {isFullySetUp &&
+          capabilities?.supportsContactDetails &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.contact_details',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.contact_details_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onContactDetails}
+              testID={CardHomeSelectors.CONTACT_DETAILS_ITEM}
             />
           )}
         {isFullySetUp && showUnlinkMoneyAccount && (
@@ -257,19 +335,41 @@ const ManageCardOptions = ({
             testID={CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM}
           />
         )}
-      </Box>
-      {capabilities?.supportsTravel &&
-        ((isFullySetUp && !hideManageOptions) || showTeaserOptions) && (
+        {isFullySetUp && showRevokeAllowance && onRevokeAllowance && (
           <ManageCardListItem
-            title={strings('card.card_home.manage_card_options.travel_title')}
-            description={strings(
-              'card.card_home.manage_card_options.travel_description',
+            title={strings(
+              'card.card_home.manage_card_options.unlink_funding_account',
             )}
-            rightIcon={IconName.Export}
-            onPress={onTravel}
-            testID={CardHomeSelectors.TRAVEL_ITEM}
+            description={strings(
+              'card.card_home.manage_card_options.unlink_funding_account_description',
+              { accountName: fundingAccountName },
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={onRevokeAllowance}
+            testID={CardHomeSelectors.REVOKE_ALLOWANCE_ITEM}
           />
         )}
+      </Box>
+      {showTransactionHistory ? (
+        <ManageCardListItem
+          title={strings('card.transactions.manage_entry_title')}
+          description={strings('card.transactions.manage_entry_description')}
+          rightIcon={IconName.ArrowRight}
+          onPress={onTransactionHistory}
+          testID={CardHomeSelectors.TRANSACTION_HISTORY_ITEM}
+        />
+      ) : null}
+      {capabilities?.supportsTravel && isFullySetUp && !hideManageOptions && (
+        <ManageCardListItem
+          title={strings('card.card_home.manage_card_options.travel_title')}
+          description={strings(
+            'card.card_home.manage_card_options.travel_description',
+          )}
+          rightIcon={IconName.ArrowSquareOut}
+          onPress={onTravel}
+          testID={CardHomeSelectors.TRAVEL_ITEM}
+        />
+      )}
     </>
   );
 };

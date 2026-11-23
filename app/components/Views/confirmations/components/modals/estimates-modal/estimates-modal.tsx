@@ -1,14 +1,17 @@
-import React from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
-import { View } from 'react-native';
+import React, { useCallback, useRef } from 'react';
+import { Modal } from 'react-native';
+import {
+  BottomSheet,
+  BottomSheetRef,
+  Box,
+} from '@metamask/design-system-react-native';
 
-import { useStyles } from '../../../../../../component-library/hooks';
 import { strings } from '../../../../../../../locales/i18n';
-import BottomModal from '../../UI/bottom-modal';
 import { GasOption } from '../../../components/gas/gas-option';
 import { useGasOptions } from '../../../hooks/gas/useGasOptions';
 import { GasModalType } from '../../../constants/gas';
-import styleSheet from './estimates-modal.styles';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 export const EstimatesModal = ({
   setActiveModal,
@@ -17,24 +20,43 @@ export const EstimatesModal = ({
   setActiveModal: (modal: GasModalType) => void;
   handleCloseModals: () => void;
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const isGlassHeader = useIsGlassHeader();
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { options } = useGasOptions({ setActiveModal, handleCloseModals });
 
+  const handleSheetClosed = useCallback(() => {
+    handleCloseModals();
+  }, [handleCloseModals]);
+
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   return (
-    <BottomModal
-      onBackdropPress={handleCloseModals}
-      onBackButtonPress={handleCloseModals}
-      onSwipeComplete={handleCloseModals}
+    <Modal
+      visible
+      animationType="none"
+      transparent
+      presentationStyle="overFullScreen"
+      onRequestClose={handleRequestClose}
     >
-      <View style={styles.container}>
-        <HeaderStandard
-          title={strings('transactions.gas_modal.edit_network_fee')}
-          onClose={handleCloseModals}
-        />
-        {options.map((option) => (
-          <GasOption key={option.key} option={option} />
-        ))}
-      </View>
-    </BottomModal>
+      <BottomSheet
+        ref={bottomSheetRef}
+        keyboardAvoidingViewEnabled={false}
+        onClose={handleSheetClosed}
+      >
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
+          onClose={handleRequestClose}
+        >
+          {strings('transactions.gas_modal.edit_network_fee')}
+        </BottomSheetHeaderGlass>
+        <Box twClassName="flex flex-col">
+          {options.map((option) => (
+            <GasOption key={option.key} option={option} />
+          ))}
+        </Box>
+      </BottomSheet>
+    </Modal>
   );
 };

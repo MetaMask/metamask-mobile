@@ -5,10 +5,9 @@ import { ButtonVariant, TextColor } from '@metamask/design-system-react-native';
 import RiveOnboardingStepper from './RiveOnboardingStepper';
 import { RiveOnboardingStepperTestIds } from './RiveOnboardingStepper.testIds';
 import {
-  __getLastMockedMethods,
-  __clearLastMockedMethods,
-  __mockRiveFireState,
-} from '../../../__mocks__/rive-react-native';
+  __mockRiveTriggerInput,
+  __resetRiveMocks,
+} from '../../../__mocks__/rive-app-react-native';
 import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/Logger', () => ({
@@ -79,7 +78,7 @@ const defaultProps = {
 describe('RiveOnboardingStepper', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __clearLastMockedMethods();
+    __resetRiveMocks();
   });
 
   describe('Rendering', () => {
@@ -191,19 +190,20 @@ describe('RiveOnboardingStepper', () => {
       ).toBeNull();
     });
 
-    it('reveals content without waiting for Rive onPlay', () => {
+    it('reveals content without waiting for the Rive view to become ready', () => {
       const { getByTestId } = render(
         <RiveOnboardingStepper {...defaultProps} enableRiveAnimation={false} />,
       );
-      // The content is gated behind onPlay when Rive is on; with it off the
-      // footer button must be visible (not opacity-0) immediately.
+      // The content is gated behind riveViewRef readiness when Rive is on;
+      // with it off the footer button must be visible (not opacity-0)
+      // immediately.
       expect(getByTestId(RiveOnboardingStepperTestIds.TITLE)).toBeOnTheScreen();
       expect(
         getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
       ).toBeVisible();
     });
 
-    it('advances steps on Continue without firing a Rive trigger', () => {
+    it('advances steps on Continue when the Rive animation is disabled', () => {
       const onStepChange = jest.fn();
       const { getByTestId } = render(
         <RiveOnboardingStepper
@@ -214,7 +214,6 @@ describe('RiveOnboardingStepper', () => {
       );
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
       expect(onStepChange).toHaveBeenCalledWith(1);
-      expect(__mockRiveFireState).not.toHaveBeenCalled();
     });
   });
 
@@ -254,10 +253,9 @@ describe('RiveOnboardingStepper', () => {
         <RiveOnboardingStepper {...defaultProps} />,
       );
       fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
-      expect(__mockRiveFireState).toHaveBeenCalledWith(
-        mockStateMachineName,
-        mockTriggerName,
-      );
+      // The state machine is bound via the `stateMachineName` prop on
+      // RiveView; triggerInput only receives the trigger name.
+      expect(__mockRiveTriggerInput).toHaveBeenCalledWith(mockTriggerName);
     });
 
     it('calls onComplete when Continue is pressed on the last step', () => {
@@ -336,18 +334,13 @@ describe('RiveOnboardingStepper', () => {
   });
 
   describe('Error handling', () => {
-    it('logs error and does not crash when Rive fireState throws', () => {
-      const riveMethods = __getLastMockedMethods();
-      // Rive isn't mounted yet at this point; render first
+    it('logs error and does not crash when Rive triggerInput throws', () => {
       const { getByTestId } = render(
         <RiveOnboardingStepper {...defaultProps} />,
       );
-      const methods = __getLastMockedMethods();
-      if (methods) {
-        methods.fireState.mockImplementationOnce(() => {
-          throw new Error('Rive error');
-        });
-      }
+      __mockRiveTriggerInput.mockImplementationOnce(() => {
+        throw new Error('Rive error');
+      });
 
       expect(() =>
         fireEvent.press(

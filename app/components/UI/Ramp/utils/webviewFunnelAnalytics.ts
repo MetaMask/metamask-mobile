@@ -6,7 +6,9 @@ export type CloseSource =
   | 'callback_success'
   | 'callback_error'
   | 'http_error'
-  | 'background';
+  | 'background'
+  // Embedded checkout limit-error fallback handed off to the hosted widget.
+  | 'fallback_hosted';
 
 export interface FunnelBaseProps {
   checkout_session_id: string;

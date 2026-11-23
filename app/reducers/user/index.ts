@@ -31,12 +31,16 @@ export const userInitialState: UserState = {
   musdConversionEducationSeen: false,
   musdConversionAssetDetailCtasSeen: {},
   moneyOnboardingSeen: false,
+  moneySplashSeen: false,
   moneyEarnBannerDismissedTokens: {},
   tokenOverviewChartType: ChartType.Line,
   tokenOverviewChartInterval: DEFAULT_TOKEN_OVERVIEW_CHART_INTERVAL,
   tokenIndicators: [],
   onboardingStepperProgress: {},
   appInstallEventFired: false,
+  pendingAppInstall: null,
+  bridgeLimitTabSeen: false,
+  bridgeRecurringTabSeen: false,
 };
 
 /**
@@ -167,6 +171,11 @@ const userReducer = (
         ...state,
         moneyOnboardingSeen: action.payload.seen,
       };
+    case UserActionType.SET_MONEY_SPLASH_SEEN:
+      return {
+        ...state,
+        moneySplashSeen: action.payload.seen,
+      };
     case UserActionType.SET_MONEY_EARN_BANNER_DISMISSED:
       return {
         ...state,
@@ -207,6 +216,27 @@ const userReducer = (
       return {
         ...state,
         appInstallEventFired: true,
+      };
+    case UserActionType.SET_PENDING_APP_INSTALL:
+      return {
+        ...state,
+        pendingAppInstall: action.payload.pendingAppInstall,
+      };
+    case UserActionType.CLEAR_PENDING_APP_INSTALL:
+      // Return the same reference when there is nothing pending so declining
+      // analytics does not trigger a redundant persist write.
+      return state.pendingAppInstall === null
+        ? state
+        : { ...state, pendingAppInstall: null };
+    case UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN:
+      return {
+        ...state,
+        bridgeLimitTabSeen: true,
+      };
+    case UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN:
+      return {
+        ...state,
+        bridgeRecurringTabSeen: true,
       };
     default:
       return state;

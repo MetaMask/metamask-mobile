@@ -7,6 +7,7 @@ import {
   selectAsset,
   selectTronSpecialAssetsBySelectedAccountGroup,
   TronSpecialAssetsMap,
+  TronSpecialAssetsStatus,
 } from '../../../../selectors/assets/assets-list';
 import {
   selectCurrencyRateForChainId,
@@ -40,6 +41,7 @@ const createEmptySpecialAssetsMap = (): TronSpecialAssetsMap => ({
   stakedTrxForEnergy: undefined,
   stakedTrxForBandwidth: undefined,
   totalStakedTrx: 0,
+  status: TronSpecialAssetsStatus.Ready,
   trxReadyForWithdrawal: undefined,
   trxStakingRewards: undefined,
   trxInLockPeriod: undefined,
@@ -56,11 +58,16 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
       stakedTrxForEnergy: undefined,
       stakedTrxForBandwidth: undefined,
       totalStakedTrx: 0,
+      status: 'ready',
       trxReadyForWithdrawal: undefined,
       trxStakingRewards: undefined,
       trxInLockPeriod: undefined,
     }),
   ),
+  TronSpecialAssetsStatus: {
+    Loading: 'loading',
+    Ready: 'ready',
+  },
 }));
 
 jest.mock('../../../../selectors/currencyRateController', () => ({
@@ -115,6 +122,7 @@ describe('useTokenBalance', () => {
     expect(result.current.balance).toBe('100');
     expect(result.current.fiatBalance).toBe('$100.00');
     expect(result.current.tokenFormattedBalance).toBe('100 DAI');
+    expect(mockSelectTronResources).not.toHaveBeenCalled();
   });
 
   it('passes through isStaked when token is staked', () => {

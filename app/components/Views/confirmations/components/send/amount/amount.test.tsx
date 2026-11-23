@@ -1,7 +1,9 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
 
+import { mockTheme } from '../../../../../../util/theme';
 import renderWithProvider, {
   ProviderValues,
 } from '../../../../../../util/test/renderWithProvider';
@@ -15,18 +17,30 @@ import {
   solanaSendStateMock,
 } from '../../../__mocks__/send.mock';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
-import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
+import {
+  getNarrowCurrencyAffix,
+  useCurrencyConversions,
+} from '../../../hooks/send/useCurrencyConversions';
+import I18n from '../../../../../../../locales/i18n';
 import { useSendContext } from '../../../context/send-context';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { InitSendLocation } from '../../../constants/send';
 import { Amount } from './amount';
-import { getFontSizeForInputLength } from './amount.styles';
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { getFormatters } from '../../../../../../components/hooks/useFormatters';
+import {
+  formatToFixedDecimals,
+  fromHexWithDecimals,
+} from '../../../utils/send';
 
 jest.mock('../../../context/send-context', () => ({
   useSendContext: jest.fn(),
 }));
 
-jest.mock('../../../hooks/send/useCurrencyConversions');
+jest.mock('../../../hooks/send/useCurrencyConversions', () => ({
+  ...jest.requireActual('../../../hooks/send/useCurrencyConversions'),
+  useCurrencyConversions: jest.fn(),
+}));
 
 jest.mock('../../../hooks/send/useSendNavbar', () => ({
   useSendNavbar: () => ({
@@ -61,7 +75,7 @@ jest.mock('../../../../../../core/Engine', () => ({
       currencyRates: {
         ETH: {
           conversionRate: 2000,
-          conversionDate: Date.now(),
+          conversionDate: 1700000000000,
         },
       },
     },
@@ -127,6 +141,7 @@ const mockUseSendContext = useSendContext as jest.MockedFunction<
   typeof useSendContext
 >;
 const mockUseParams = jest.mocked(useParams);
+const mockUpdateValue = jest.fn();
 const mockAmountSelectionMetrics = {
   captureAmountSelected: jest.fn(),
   setAmountInputMethodManual: jest.fn(),
@@ -157,7 +172,7 @@ describe('Amount', () => {
         symbol: 'ETH',
         decimals: 18,
       },
-      updateValue: jest.fn(),
+      updateValue: mockUpdateValue,
     } as unknown as ReturnType<typeof useSendContext>);
     mockUseCurrencyConversion.mockReturnValue({
       conversionSupportedForAsset: true,
@@ -177,11 +192,130 @@ describe('Amount', () => {
     expect(getByTestId('send_amount')).toBeTruthy();
   });
 
+  it('uses the rendered suffix for font sizing and accessibility', () => {
+    mockUseSendContext.mockReturnValue({
+      asset: {
+        chainId: '0x1',
+        address: ETHEREUM_ADDRESS,
+        isNative: true,
+        symbol: 'LONGTOKEN',
+        decimals: 18,
+      },
+      updateValue: mockUpdateValue,
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { getByRole, getByTestId, getByText } = renderComponent();
+
+    const tokenFontSize = getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2);
+
+    expect(getByRole('text', { name: '0 LONGTOKEN' })).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(getByText('LONGTOKEN').props.style),
+    ).toMatchObject({
+      fontSize: tokenFontSize,
+      lineHeight: tokenFontSize,
+    });
+
+    fireEvent.press(getByTestId('fiat_toggle'));
+
+    const fiatFontSize = getFontSizeForInputLength(4 + '$'.length + 2);
+
+    expect(getByRole('text', { name: '$0.00' })).toBeOnTheScreen();
+    expect(StyleSheet.flatten(getByText('$').props.style)).toMatchObject({
+      fontSize: fiatFontSize,
+      lineHeight: fiatFontSize,
+    });
+  });
+
+  it('announces a postfix currency amount with the affix separator', () => {
+    const originalLocale = I18n.locale;
+    I18n.locale = 'fr';
+    const { suffix } = getNarrowCurrencyAffix('EUR', 'fr');
+    mockUseCurrencyConversion.mockReturnValue({
+      conversionSupportedForAsset: true,
+      fiatCurrencySymbol: 'EUR',
+      getFiatValue: '4500',
+      getFiatDisplayValue: () => '4 500,00 €',
+      getNativeValue: () => '1',
+    } as unknown as ReturnType<typeof useCurrencyConversions>);
+
+    try {
+      const { getByRole, getByTestId } = renderComponent();
+      fireEvent.press(getByTestId('fiat_toggle'));
+
+      expect(suffix).toMatch(/^\s/u);
+      expect(getByRole('text', { name: `0.00${suffix}` })).toBeOnTheScreen();
+    } finally {
+      I18n.locale = originalLocale;
+    }
+  });
+
+  it('sizes the cursor to the Hero amount', () => {
+    const { getByTestId } = renderComponent();
+    const fontSize = getFontSizeForInputLength(1 + 'ETH'.length + 2);
+
+    expect(getByTestId('send-amount-cursor')).toHaveStyle({
+      backgroundColor: mockTheme.colors.text.muted,
+      height: Math.round(fontSize * 0.95),
+      marginHorizontal: 0,
+      width: 1,
+    });
+  });
+
   it('display default value of amount as placeholder', () => {
     const { getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').children[0]).toEqual('0');
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
     fireEvent.press(getByTestId('fiat_toggle'));
-    expect(getByTestId('send_amount').children[0]).toEqual('0.00');
+    expect(getByTestId('send_amount')).toHaveTextContent('0.00');
+  });
+
+  it('formats the main input with animated thousands commas', () => {
+    const { getByRole, getByTestId } = renderComponent();
+
+    fireEvent.press(getByRole('button', { name: '1' }));
+    fireEvent.press(getByRole('button', { name: '2' }));
+    fireEvent.press(getByRole('button', { name: '3' }));
+    fireEvent.press(getByRole('button', { name: '4' }));
+
+    expect(getByTestId('send_amount')).toHaveTextContent('1,234');
+  });
+
+  it('seeds display and send-context value from predefinedAmount', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
+    expect(mockUpdateValue).toHaveBeenCalledWith('25.515000');
+  });
+
+  it('switches predefinedAmount entry to token mode', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    renderComponent();
+
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalled();
+  });
+
+  it('does not restore predefinedAmount after the user clears the field', () => {
+    mockUseParams.mockReturnValue({ predefinedAmount: '25.515000' });
+
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('send_amount')).toHaveTextContent('25.515000');
+
+    // Clear every digit until the keypad reports an empty value.
+    const deleteButton = getByTestId('keypad-delete-button');
+    for (let i = 0; i < 10; i++) {
+      fireEvent.press(deleteButton);
+    }
+
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
+    expect(
+      mockAmountSelectionMetrics.setAmountInputTypeToken,
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('asset passed in nav params should be used if present', () => {
@@ -213,7 +347,7 @@ describe('Amount', () => {
 
     const { getByRole, getByText } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
-    expect(getByText('$ 4500.00')).toBeTruthy();
+    expect(getByText('$ 4500.00')).toBeOnTheScreen();
   });
 
   it('display fiat conversion of amount entered for solana asset', () => {
@@ -233,7 +367,7 @@ describe('Amount', () => {
 
     const { getByRole, getByText } = renderComponent();
     fireEvent.press(getByRole('button', { name: '1' }));
-    expect(getByText('$ 250.00')).toBeTruthy();
+    expect(getByText('$ 250.00')).toBeOnTheScreen();
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', () => {
@@ -263,8 +397,8 @@ describe('Amount', () => {
     const { getByRole, getByText, getByTestId } = renderComponent();
     fireEvent.press(getByTestId('fiat_toggle'));
     fireEvent.press(getByRole('button', { name: '5' }));
-    expect(getByText('1 ETH')).toBeTruthy();
-    expect(getByText('$ 250.00 available')).toBeTruthy();
+    expect(getByText('1 ETH')).toBeOnTheScreen();
+    expect(getByText('$ 250.00 available')).toBeOnTheScreen();
   });
 
   it('calls metrics methods on changing fiat mode', () => {
@@ -363,6 +497,28 @@ describe('Amount', () => {
   //   expect(getByText('0.05 TKN available')).toBeTruthy();
   // });
 
+  it('formats the available token balance with the shared quantity formatter', () => {
+    const rawBalance = '0x1E240';
+    const decimals = 5;
+    const tokenAmount = formatToFixedDecimals(
+      fromHexWithDecimals(rawBalance, decimals),
+      decimals,
+    );
+
+    mockUseSendContext.mockReturnValue({
+      asset: { ...SOLANA_ASSET, rawBalance, decimals },
+      updateValue: jest.fn(),
+    } as unknown as ReturnType<typeof useSendContext>);
+
+    const { getByText } = renderComponent(solanaSendStateMock);
+
+    expect(
+      getByText(
+        `${getFormatters().formatTokenQuantity(tokenAmount as `${number}`, 'SOL')} available`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
   it('display total balance correctly for non-evm token', () => {
     mockUseSendContext.mockReturnValue({
       asset: { ...SOLANA_ASSET, rawBalance: '0x17D78400', decimals: 6 },
@@ -370,7 +526,7 @@ describe('Amount', () => {
     } as unknown as ReturnType<typeof useSendContext>);
 
     const { getByText } = renderComponent(solanaSendStateMock);
-    expect(getByText('400 SOL available')).toBeTruthy();
+    expect(getByText('400 SOL available')).toBeOnTheScreen();
   });
 
   it('on amount page options - 25%, 50%, 75%, Max are present', () => {
@@ -437,17 +593,5 @@ describe('Amount', () => {
     expect(mockSetOptions).toHaveBeenCalledWith({
       headerRight: expect.any(Function),
     });
-  });
-});
-
-describe('getFontSizeForInputLength', () => {
-  it('renders correct font size using input and symbol length', () => {
-    expect(getFontSizeForInputLength(1)).toEqual(60);
-    expect(getFontSizeForInputLength(10)).toEqual(60);
-    expect(getFontSizeForInputLength(12)).toEqual(48);
-    expect(getFontSizeForInputLength(18)).toEqual(32);
-    expect(getFontSizeForInputLength(24)).toEqual(24);
-    expect(getFontSizeForInputLength(32)).toEqual(18);
-    expect(getFontSizeForInputLength(40)).toEqual(12);
   });
 });

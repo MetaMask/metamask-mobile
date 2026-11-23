@@ -6,8 +6,6 @@ import '../../../../tests/component-view/mocks';
  * — local TransactionController outgoing rows; accounts API for incoming/outgoing API paths.
  */
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
-import { RefreshControl } from 'react-native';
-import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import {
@@ -27,6 +25,7 @@ import {
 } from '../../../../tests/component-view/renderers/activity';
 import { getRouteProbeTestId } from '../../../../tests/component-view/render';
 import {
+  ActivityListSelectorsIDs,
   activityListRowItemTestId,
   activityListRowPendingSpinnerTestId,
   activityListRowSubtitleTestId,
@@ -35,12 +34,17 @@ import {
 
 const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
 
-const transactionControllerWithIncomingSync = Engine.context
-  .TransactionController as unknown as {
-  updateIncomingTransactions: jest.MockedFunction<() => Promise<void>>;
-};
-
 describeForPlatforms('ActivityList', () => {
+  beforeEach(() => {
+    // Configured EVM networks start the accounts history query. Local rows stay
+    // unmounted while that query is loading, so answer it before render.
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
   it('shows pending and confirmed local rows then opens transaction details from a confirmed row', async () => {
     const pendingRowIndex = 1;
     const confirmedRowIndex = 3;
@@ -50,10 +54,19 @@ describeForPlatforms('ActivityList', () => {
       pendingTransaction,
     ]).build();
 
-    const { findByTestId } = renderActivityListViewWithRoutes({
+    const { findByTestId, queryByTestId } = renderActivityListViewWithRoutes({
       state,
-      extraRoutes: [{ name: Routes.MODAL.ROOT_MODAL_FLOW }],
+      extraRoutes: [{ name: Routes.ACTIVITY_DETAILS }],
     });
+
+    await waitFor(
+      () => {
+        expect(
+          queryByTestId(ActivityListSelectorsIDs.LOADING_INDICATOR),
+        ).toBeNull();
+      },
+      { timeout: 10000 },
+    );
 
     const pendingRow = await findByTestId(
       activityListRowItemTestId(pendingRowIndex),
@@ -84,33 +97,8 @@ describeForPlatforms('ActivityList', () => {
     fireEvent.press(confirmedRow);
 
     expect(
-      await findByTestId(getRouteProbeTestId(Routes.MODAL.ROOT_MODAL_FLOW)),
+      await findByTestId(getRouteProbeTestId(Routes.ACTIVITY_DETAILS)),
     ).toBeOnTheScreen();
-  });
-
-  it('pull to refresh on an empty list syncs incoming transactions through Engine', async () => {
-    const updateIncomingSpy = jest
-      .spyOn(
-        transactionControllerWithIncomingSync,
-        'updateIncomingTransactions',
-      )
-      .mockResolvedValue(undefined);
-
-    const { UNSAFE_getByType } = renderActivityListView({
-      overrides: {
-        settings: {
-          basicFunctionalityEnabled: true,
-        },
-      },
-    });
-
-    fireEvent(UNSAFE_getByType(RefreshControl), 'refresh');
-
-    await waitFor(() => {
-      expect(updateIncomingSpy).toHaveBeenCalledTimes(1);
-    });
-
-    updateIncomingSpy.mockRestore();
   });
 });
 
@@ -147,7 +135,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
       { timeout: 10000 },
     );
 
-    expect(incomingTitle).toHaveTextContent('Received');
+    expect(incomingTitle).toHaveTextContent('Received ETH');
     expect(
       await findByTestId(activityListRowSubtitleTestId(incomingHash)),
     ).toHaveTextContent('From: 0x80181...229cC');
@@ -177,7 +165,7 @@ describeForPlatforms('ActivityList — accounts API transactions', () => {
       { timeout: 10000 },
     );
 
-    expect(outgoingTitle).toHaveTextContent('Sent');
+    expect(outgoingTitle).toHaveTextContent('Sent ETH');
     expect(
       await findByTestId(activityListRowSubtitleTestId(outgoingHash)),
     ).toHaveTextContent('To: 0x80181...229cC');

@@ -13,6 +13,7 @@ import Engine from '../../../../../core/Engine';
 import {
   selectBridgeControllerState,
   selectDestToken,
+  selectIsMaxSourceAmount,
 } from '../../../../../core/redux/slices/bridge';
 import { getDecimalChainId } from '../../../../../util/networks';
 import { MAX_INPUT_LENGTH } from '../../components/TokenInputArea';
@@ -20,22 +21,17 @@ import { BridgeToken } from '../../types';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
 import {
   FIAT_INPUT_DECIMALS,
+  FIAT_KEYPAD_CURRENCY,
   formatFiatInputAmount,
   formatSecondaryTokenAmount,
   formatTokenInputAmountFromFiat,
 } from '../../utils/sourceAmountInputMode';
 import { formatCurrency, getCurrencySymbol } from '../../utils/currencyUtils';
 import { playSelection } from '../../../../../util/haptics';
-import { useABTest } from '../../../../../hooks';
-import {
-  SWAPS_HAPTICS_AB_KEY,
-  SWAPS_HAPTICS_EXPOSURE_METADATA,
-  SWAPS_HAPTICS_VARIANTS,
-} from '../../haptics/abTestConfig';
 import { useSourceAmountCursor } from '../useSourceAmountCursor';
 import { useTokenFiatRate } from '../useTokenFiatRate';
+import { useSwapsFeatureId } from '../useSwapsFeatureId';
 
-const FIAT_KEYPAD_CURRENCY = 'SWAPS_FIAT_INPUT';
 const TOKEN_AMOUNT_DENOMINATION: InputPrimaryDenomination = 'token_amount';
 const FIAT_VALUE_DENOMINATION: InputPrimaryDenomination = 'fiat_value';
 
@@ -44,11 +40,13 @@ const getFiatToggleEventProperties = ({
   nextPrimaryDenomination,
   sourceToken,
   destToken,
+  featureId,
 }: {
   previousPrimaryDenomination: InputPrimaryDenomination;
   nextPrimaryDenomination: InputPrimaryDenomination;
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
+  featureId: FeatureId;
 }) => {
   const srcChainId = sourceToken?.chainId
     ? getDecimalChainId(sourceToken.chainId)
@@ -77,7 +75,7 @@ const getFiatToggleEventProperties = ({
     new_primary_denomination: nextPrimaryDenomination,
     token_symbol_source: sourceToken?.symbol ?? '',
     token_symbol_destination: destToken?.symbol ?? null,
-    feature_id: FeatureId.UNIFIED_SWAP_BRIDGE,
+    feature_id: featureId,
   };
 };
 
@@ -85,27 +83,23 @@ export const useSourceAmountInput = ({
   isFiatToggleEnabled,
   sourceAmount,
   sourceToken,
+  tokenFiatRate,
   onSourceAmountChange,
 }: {
   isFiatToggleEnabled: boolean;
   sourceAmount: string | undefined;
   sourceToken: BridgeToken | undefined;
+  tokenFiatRate?: number;
   onSourceAmountChange: (value: string | undefined) => void;
 }) => {
   const [fiatAmount, setFiatAmount] = useState<string | undefined>();
+  const featureId = useSwapsFeatureId();
   const bridgeControllerState = useSelector(selectBridgeControllerState);
   const destToken = useSelector(selectDestToken);
+  const isMaxSourceAmount = useSelector(selectIsMaxSourceAmount);
   const currentCurrency = useSelector(selectCurrentCurrency);
-  const fiatRate = useTokenFiatRate(sourceToken);
-  const { variant: swapsHapticsVariant, isActive: isSwapsHapticsAbActive } =
-    useABTest(
-      SWAPS_HAPTICS_AB_KEY,
-      SWAPS_HAPTICS_VARIANTS,
-      SWAPS_HAPTICS_EXPOSURE_METADATA,
-    );
-  const shouldPlaySwapsHaptics = Boolean(
-    isSwapsHapticsAbActive && swapsHapticsVariant.enableSwapHaptics,
-  );
+  const polledFiatRate = useTokenFiatRate(sourceToken);
+  const fiatRate = tokenFiatRate ?? polledFiatRate;
   const inputPrimaryDenomination =
     bridgeControllerState?.inputPrimaryDenomination ??
     TOKEN_AMOUNT_DENOMINATION;
@@ -116,7 +110,12 @@ export const useSourceAmountInput = ({
     useState<InputPrimaryDenomination>(inputPrimaryDenomination);
   const isFiatMode =
     activeInputPrimaryDenomination === FIAT_VALUE_DENOMINATION && canToggle;
-  const amount = isFiatMode ? fiatAmount : sourceAmount;
+  // Redux keeps the full Max amount for the quote; the first edit commits the
+  // truncated string via setSourceAmount, which clears the Max flag.
+  const tokenInputAmount = isMaxSourceAmount
+    ? (formatSecondaryTokenAmount(sourceAmount) ?? sourceAmount)
+    : sourceAmount;
+  const amount = isFiatMode ? fiatAmount : tokenInputAmount;
   const isFiatInputChangeRef = useRef(false);
 
   useEffect(() => {
@@ -145,11 +144,12 @@ export const useSourceAmountInput = ({
             nextPrimaryDenomination,
             sourceToken,
             destToken,
+            featureId,
           }),
         );
       }
     },
-    [activeInputPrimaryDenomination, destToken, sourceToken],
+    [activeInputPrimaryDenomination, destToken, sourceToken, featureId],
   );
 
   const handleAmountChange = useCallback(
@@ -247,9 +247,7 @@ export const useSourceAmountInput = ({
       return;
     }
 
-    if (shouldPlaySwapsHaptics) {
-      playSelection().catch(() => undefined);
-    }
+    playSelection().catch(() => undefined);
 
     if (isFiatMode) {
       setSourceAmountCursorPositionToEnd(sourceAmount);
@@ -269,7 +267,6 @@ export const useSourceAmountInput = ({
     isFiatMode,
     setInputPrimaryDenomination,
     setSourceAmountCursorPositionToEnd,
-    shouldPlaySwapsHaptics,
     sourceAmount,
   ]);
 

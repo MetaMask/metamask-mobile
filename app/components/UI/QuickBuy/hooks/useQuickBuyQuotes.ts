@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector } from 'react-redux';
+import { createSelector } from 'reselect';
 import { debounce } from 'lodash';
 import {
   formatAddressToCaipReference,
@@ -10,8 +11,6 @@ import {
   toQuoteResponseV2,
   type BridgeAppState,
   type GenericQuoteRequest,
-  type L1GasFees,
-  type NonEvmFees,
   type QuoteResponse,
 } from '@metamask/bridge-controller';
 import type { RootState } from '../../../../reducers';
@@ -22,7 +21,12 @@ import { areAddressesEqual } from '../../../../util/address';
 import { calcTokenValue } from '../../../../util/transactions';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
-import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  getCurrencyRateControllerCurrentCurrency,
+  getCurrencyRateControllerCurrencyRates,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+} from '../../../../selectors/assets/assets-migration';
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
@@ -36,6 +40,7 @@ import {
 import { getDecimalChainId } from '../../../../util/networks';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import {
   QuickBuyEventProperties,
   buildQuickBuySharedAnalyticsProperties,
@@ -51,6 +56,10 @@ import {
   streamQuickBuyQuotes,
 } from '../utils/streamQuickBuyQuotes';
 import { parseCaipAssetType } from '@metamask/utils';
+import { BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE } from '../../../../constants/bridge';
+import { useBridgeSession } from '../../Bridge/hooks/useBridgeSession';
+import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
+import type { QuoteParams } from '../../Bridge/providers/SwapQuotesProvider/utils';
 
 export type QuickBuyQuote = QuoteResponse;
 
@@ -62,9 +71,11 @@ export interface QuickBuyQuotesAnalyticsContext {
   /** USD amount the user has selected; used as `amount_usd`. */
   amountUsd?: number;
   /** Entry surface for FeatureId mapping on fetchQuotes. */
-  source?: QuickBuySheetSource;
+  source: QuickBuySheetSource;
   /** Trade-screen entry attribution when hosted on TraderPositionView. */
   originalEntryPoint?: QuickBuyOriginalEntryPoint;
+  isCopyTrade?: boolean;
+  copyTradeOrigin?: CopyTradeOrigin;
 }
 
 export type EnrichedQuickBuyQuote = QuoteResponse;
@@ -75,7 +86,8 @@ interface UseQuickBuyQuotesParams {
   sourceToken: BridgeToken | undefined;
   destToken: BridgeToken | undefined;
   sourceTokenAmount: string | undefined;
-  analyticsContext?: QuickBuyQuotesAnalyticsContext;
+  insufficientBalance?: boolean;
+  analyticsContext: QuickBuyQuotesAnalyticsContext;
   /** When set, overrides the recommended quote with the quote matching this requestId. */
   selectedQuoteRequestId?: string;
   /**
@@ -125,6 +137,7 @@ const buildQuoteRequest = ({
   destAddress,
   gasIncluded,
   gasIncluded7702,
+  insufficientBalance,
 }: {
   sourceToken: BridgeToken;
   destToken: BridgeToken;
@@ -134,6 +147,7 @@ const buildQuoteRequest = ({
   destAddress: string | undefined;
   gasIncluded: boolean;
   gasIncluded7702: boolean;
+  insufficientBalance: boolean;
 }): GenericQuoteRequest | null => {
   let normalizedSourceAmount: string;
   try {
@@ -160,6 +174,7 @@ const buildQuoteRequest = ({
     destWalletAddress: destAddress ?? walletAddress,
     gasIncluded,
     gasIncluded7702,
+    insufficientBal: insufficientBalance,
   };
 };
 
@@ -168,22 +183,51 @@ const buildQuoteRequest = ({
 // exchange-rate-denominated amounts, …) from raw fetchQuotes results. We inject
 // our locally-held quotes into this shape instead of going through Redux so the
 // BridgeController background state stays untouched.
-const selectQuoteMetadataDeps = (state: RootState) => ({
-  bridgeController: state.engine.backgroundState.BridgeController,
-  gasFeeEstimatesByChainId:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
-    {},
-  multichainAssetsRates:
-    state.engine.backgroundState.MultichainAssetsRatesController,
-  tokenRates: state.engine.backgroundState.TokenRatesController,
-  currencyRate: state.engine.backgroundState.CurrencyRateController,
-  bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
-});
+//
+// Built with `createSelector` (not a plain object-literal selector) so the
+// nested `multichainAssetsRates`/`tokenRates`/`currencyRate` wrappers keep a
+// stable reference when their underlying (already-memoized) inputs haven't
+// changed. A plain selector would allocate fresh wrapper objects on every
+// call, which always fails `shallowEqual` in the consuming `useSelector` and
+// causes a re-render on every Redux dispatch regardless of relevance.
+const selectQuoteMetadataDeps = createSelector(
+  [
+    (state: RootState) => state.engine.backgroundState.BridgeController,
+    (state: RootState) =>
+      state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+      {},
+    getMultichainAssetsRatesControllerConversionRates,
+    getTokenRatesControllerMarketData,
+    getCurrencyRateControllerCurrentCurrency,
+    getCurrencyRateControllerCurrencyRates,
+    (state: RootState) => selectRemoteFeatureFlags(state).bridgeConfig,
+  ],
+  (
+    bridgeController,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    marketData,
+    currentCurrency,
+    currencyRates,
+    bridgeConfig,
+  ) => ({
+    bridgeController,
+    gasFeeEstimatesByChainId,
+    multichainAssetsRates: { conversionRates, historicalPrices: {} },
+    tokenRates: { marketData },
+    currencyRate: { currentCurrency, currencyRates },
+    bridgeConfig,
+  }),
+);
 
+/**
+ * @deprecated Use useSwapQuotes instead
+ */
 export function useQuickBuyQuotes({
   sourceToken,
   destToken,
   sourceTokenAmount,
+  insufficientBalance = false,
   analyticsContext,
   selectedQuoteRequestId,
   immediateFetchToken,
@@ -196,19 +240,11 @@ export function useQuickBuyQuotes({
     selectGasIncludedQuoteParams,
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
-  const isStreamQuotesFlagEnabled = useSelector(
-    selectSocialAIQuickBuyStreamQuotesEnabled,
-  );
   const { track } = useSocialLeaderboardAnalytics();
 
-  // Stream quotes (surfacing each provider as it replies) only when the
-  // QuickBuy-specific `socialAIQuickBuyStreamQuotes` flag is on AND the client is
+  // Stream quotes (surfacing each provider as it replies) when the client is
   // gated on for bridge SSE — otherwise fall back to the one-shot fetch.
-  const shouldStream = useMemo(
-    () =>
-      isStreamQuotesFlagEnabled && isQuoteStreamingEnabled(bridgeFeatureFlags),
-    [isStreamQuotesFlagEnabled, bridgeFeatureFlags],
-  );
+  const shouldStream = isQuoteStreamingEnabled(bridgeFeatureFlags);
 
   const [rawQuotes, setRawQuotes] = useState<QuickBuyQuote[]>([]);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
@@ -257,8 +293,16 @@ export function useQuickBuyQuotes({
         destAddress: destAddress ?? null,
         gasIncluded,
         gasIncluded7702,
+        insufficientBalance,
       }),
-    [slippage, sourceTokenAmount, destAddress, gasIncluded, gasIncluded7702],
+    [
+      slippage,
+      sourceTokenAmount,
+      destAddress,
+      gasIncluded,
+      gasIncluded7702,
+      insufficientBalance,
+    ],
   );
   const nonSlippageRequestParamsKey = JSON.stringify([
     sourceTokenAmount ?? null,
@@ -283,7 +327,61 @@ export function useQuickBuyQuotes({
     settledRequestParamsKeyRef.current = null;
   }, []);
 
+  const maybeSwapQuotes = useSwapQuotes();
+  const isBridgeControllerActive = Boolean(maybeSwapQuotes);
+  const { setQuoteParams } = useBridgeSession();
+
+  // If migrated, set swap quoteParams to trigger quote polling
+  const previousBridgeQuoteParamsRef = useRef<QuoteParams | null>(null);
+  useEffect(() => {
+    if (isBridgeControllerActive) {
+      const quoteParams: QuoteParams = {
+        srcToken: sourceToken,
+        destToken,
+        srcAmount: sourceTokenAmount,
+        slippage,
+        walletAddress,
+        destWalletAddress: destAddress,
+        gasIncluded,
+        gasIncluded7702,
+      };
+      const previous = previousBridgeQuoteParamsRef.current;
+      previousBridgeQuoteParamsRef.current = quoteParams;
+
+      // Backend hydration alone must not restart the quote stream.
+      const isHydrationOnlySlippageChange =
+        !isSlippageUserOverride &&
+        previous !== null &&
+        previous.slippage === undefined &&
+        slippage !== undefined &&
+        (Object.keys(quoteParams) as (keyof QuoteParams)[]).every(
+          (key) => key === 'slippage' || previous[key] === quoteParams[key],
+        );
+      if (isHydrationOnlySlippageChange) {
+        return;
+      }
+
+      setQuoteParams(quoteParams);
+    }
+  }, [
+    isBridgeControllerActive,
+    sourceToken,
+    destToken,
+    sourceTokenAmount,
+    slippage,
+    isSlippageUserOverride,
+    walletAddress,
+    destAddress,
+    gasIncluded,
+    gasIncluded7702,
+    setQuoteParams,
+  ]);
+
   const fetchQuotes = useCallback(async () => {
+    if (isBridgeControllerActive) {
+      return;
+    }
+
     abortControllerRef.current?.abort();
 
     if (
@@ -306,6 +404,7 @@ export function useQuickBuyQuotes({
       destAddress: destAddress ?? undefined,
       gasIncluded,
       gasIncluded7702,
+      insufficientBalance,
     });
 
     if (!params) {
@@ -329,23 +428,28 @@ export function useQuickBuyQuotes({
 
     const featureId = getQuickBuyFeatureId(analyticsContext?.source);
 
-    // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
-    // — both events guard on this single value instead of duplicating the check.
-    const quotesBaseProps =
-      analyticsContext?.traderAddress && analyticsContext?.caip19
-        ? {
-            ...buildQuickBuySharedAnalyticsProperties({
-              source: analyticsContext.source,
-              originalEntryPoint: analyticsContext.originalEntryPoint,
-            }),
-            [QuickBuyEventProperties.TRADER_ADDRESS]:
-              analyticsContext.traderAddress,
-            [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
-            [QuickBuyEventProperties.AMOUNT_USD]:
-              analyticsContext.amountUsd ?? 0,
-            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
-          }
-        : null;
+    // Shared by REQUESTED + RECEIVED. Null without a destination asset — both
+    // events guard on this single value instead of duplicating the check.
+    // Every request is counted; the trader is attached only when one is known.
+    const quotesBaseProps = analyticsContext?.caip19
+      ? {
+          ...buildQuickBuySharedAnalyticsProperties({
+            source: analyticsContext.source,
+            originalEntryPoint: analyticsContext.originalEntryPoint,
+            isCopyTrade: analyticsContext.isCopyTrade,
+            copyTradeOrigin: analyticsContext.copyTradeOrigin,
+          }),
+          ...(analyticsContext.traderAddress
+            ? {
+                [QuickBuyEventProperties.TRADER_ADDRESS]:
+                  analyticsContext.traderAddress,
+              }
+            : {}),
+          [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
+          [QuickBuyEventProperties.AMOUNT_USD]: analyticsContext.amountUsd ?? 0,
+          [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
+        }
+      : null;
 
     if (quotesBaseProps) {
       track(
@@ -468,6 +572,7 @@ export function useQuickBuyQuotes({
       fireReceived(0);
     }
   }, [
+    isBridgeControllerActive,
     sourceToken,
     destToken,
     sourceTokenAmount,
@@ -476,6 +581,7 @@ export function useQuickBuyQuotes({
     destAddress,
     gasIncluded,
     gasIncluded7702,
+    insufficientBalance,
     shouldStream,
     resetQuotesIdle,
     analyticsContext,
@@ -493,6 +599,9 @@ export function useQuickBuyQuotes({
     nonSlippageRequestParamsKey,
   );
   useEffect(() => {
+    if (isBridgeControllerActive) {
+      return;
+    }
     const previousSlippage = previousSlippageRef.current;
     const previousNonSlippageRequestParamsKey =
       previousNonSlippageRequestParamsKeyRef.current;
@@ -510,11 +619,12 @@ export function useQuickBuyQuotes({
       return;
     }
 
-    debouncedFetchQuotes();
+    debouncedFetchQuotes()?.catch(() => undefined);
     return () => {
       debouncedFetchQuotes.cancel();
     };
   }, [
+    isBridgeControllerActive,
     debouncedFetchQuotes,
     isSlippageUserOverride,
     nonSlippageRequestParamsKey,
@@ -528,13 +638,21 @@ export function useQuickBuyQuotes({
   // debounce. The initial render is a no-op (token unchanged from its initial).
   const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
   useEffect(() => {
+    if (isBridgeControllerActive) {
+      return;
+    }
     if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
       return;
     }
     prevImmediateFetchTokenRef.current = immediateFetchToken;
     debouncedFetchQuotes.cancel();
-    fetchQuotes();
-  }, [immediateFetchToken, debouncedFetchQuotes, fetchQuotes]);
+    fetchQuotes().catch(() => undefined);
+  }, [
+    isBridgeControllerActive,
+    immediateFetchToken,
+    debouncedFetchQuotes,
+    fetchQuotes,
+  ]);
 
   // Auto-refresh quotes on a fixed interval indefinitely.
   // `refreshCount` starts at 0 and increments on each successful fetch, so
@@ -557,7 +675,7 @@ export function useQuickBuyQuotes({
     const delay = Math.max(0, quoteRefreshRateMs - elapsed);
 
     const timer = setTimeout(() => {
-      fetchQuotes();
+      fetchQuotes().catch(() => undefined);
     }, delay);
 
     return () => clearTimeout(timer);
@@ -572,7 +690,7 @@ export function useQuickBuyQuotes({
   /** Reset the refresh counter and re-fetch immediately (for "Get new quote" CTA). */
   const refetchQuotes = useCallback(() => {
     setRefreshCount(0);
-    fetchQuotes();
+    fetchQuotes().catch(() => undefined);
   }, [fetchQuotes]);
 
   useEffect(
@@ -583,7 +701,7 @@ export function useQuickBuyQuotes({
     [],
   );
 
-  const metadataDeps = useSelector(selectQuoteMetadataDeps, shallowEqual);
+  const metadataDeps = useSelector(selectQuoteMetadataDeps);
 
   const enrichedResult = useMemo(() => {
     // BridgeController.fetchQuotes called directly (not via internal polling)
@@ -623,6 +741,7 @@ export function useQuickBuyQuotes({
     return selectBridgeQuotesBase(controllerFields, {
       sortOrder: SortOrder.COST_ASC,
       selectedQuote: null,
+      migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
     });
   }, [rawQuotes, metadataDeps, sourceToken, destToken]);
 

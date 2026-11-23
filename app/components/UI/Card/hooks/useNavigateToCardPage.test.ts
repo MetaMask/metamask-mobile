@@ -12,6 +12,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { BrowserTab } from '../../Tokens/types';
 import { CardActions } from '../util/metrics';
+import { selectCardActiveProviderId } from '../../../../selectors/cardController';
 import { Linking } from 'react-native';
 
 jest.mock('react-redux', () => ({
@@ -97,8 +98,14 @@ const STABLE_EMPTY_TABS: BrowserTab[] = [];
 
 const setupMocks = (
   mockEventBuilder: ReturnType<typeof createMockEventBuilder>,
+  browserTabs: BrowserTab[] | null | undefined = STABLE_EMPTY_TABS,
 ) => {
-  (useSelector as jest.Mock).mockReturnValue(STABLE_EMPTY_TABS);
+  (useSelector as jest.Mock).mockImplementation((selector) => {
+    if (selector === selectCardActiveProviderId) {
+      return 'baanx';
+    }
+    return browserTabs;
+  });
   (useAnalytics as jest.Mock).mockReturnValue({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
@@ -166,7 +173,12 @@ describe('useNavigateToInternalBrowserPage', () => {
 
       it('navigates to existing tab when one exists', () => {
         const tab = createMockBrowserTab({ id: tabId, url });
-        (useSelector as jest.Mock).mockReturnValue([tab]);
+        (useSelector as jest.Mock).mockImplementation((selector) => {
+          if (selector === selectCardActiveProviderId) {
+            return 'baanx';
+          }
+          return [tab];
+        });
         (urlCheckFn as jest.Mock).mockReturnValue(true);
 
         const { result } = renderHook(() =>
@@ -202,7 +214,10 @@ describe('useNavigateToInternalBrowserPage', () => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.CARD_BUTTON_CLICKED,
         );
-        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({ action });
+        expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+          provider: 'baanx',
+          action,
+        });
         expect(mockTrackEvent).toHaveBeenCalled();
       });
     },
@@ -212,7 +227,12 @@ describe('useNavigateToInternalBrowserPage', () => {
     it.each([undefined, null, []])(
       'handles browser tabs as %p without throwing',
       (tabsValue) => {
-        (useSelector as jest.Mock).mockReturnValue(tabsValue);
+        (useSelector as jest.Mock).mockImplementation((selector) => {
+          if (selector === selectCardActiveProviderId) {
+            return 'baanx';
+          }
+          return tabsValue;
+        });
 
         const { result } = renderHook(() =>
           useNavigateToInternalBrowserPage(mockNavigation),
@@ -326,6 +346,7 @@ describe('useNavigateToCardPage', () => {
       });
 
       expect(mockEventBuilder.addProperties).toHaveBeenCalledWith({
+        provider: 'baanx',
         action: CardActions.NAVIGATE_TO_TRAVEL_PAGE,
       });
     });

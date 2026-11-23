@@ -7,10 +7,17 @@ import Engine from '../../../../core/Engine';
 import { useFocusEffect } from '@react-navigation/native';
 
 /**
- * Hook to manage fetching candidate subscription ID and setting it in Redux state
- * This hook doesn't return a value - the candidateSubscriptionId should be accessed via Redux selectors
+ * Fetches the candidate subscription id into Redux.
+ *
+ * The Rewards tab refreshes on focus. HomeTabs passes `refreshOnFocus: false`
+ * so returning to the main tabs does not scan opt-in status again; the retry
+ * state still refetches.
  */
-export const useCandidateSubscriptionId = () => {
+export const useCandidateSubscriptionId = ({
+  refreshOnFocus = true,
+}: {
+  refreshOnFocus?: boolean;
+} = {}) => {
   const dispatch = useDispatch();
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
 
@@ -33,13 +40,24 @@ export const useCandidateSubscriptionId = () => {
 
   useEffect(() => {
     if (candidateSubscriptionId === 'retry') {
-      fetchCandidateSubscriptionId();
+      void fetchCandidateSubscriptionId();
     }
   }, [candidateSubscriptionId, fetchCandidateSubscriptionId]);
 
+  useEffect(() => {
+    if (refreshOnFocus) {
+      return;
+    }
+    void fetchCandidateSubscriptionId();
+  }, [fetchCandidateSubscriptionId, refreshOnFocus]);
+
   useFocusEffect(
     useCallback(() => {
-      fetchCandidateSubscriptionId();
-    }, [fetchCandidateSubscriptionId]),
+      if (!refreshOnFocus) {
+        return undefined;
+      }
+      void fetchCandidateSubscriptionId();
+      return undefined;
+    }, [fetchCandidateSubscriptionId, refreshOnFocus]),
   );
 };

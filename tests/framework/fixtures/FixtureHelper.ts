@@ -67,7 +67,6 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
-import { FrameworkDetector } from '../FrameworkDetector';
 import { DeviceCommandHandler } from '../services/device-commands';
 import {
   getPhaseTimer,
@@ -537,8 +536,10 @@ export async function withFixtures(
     currentDeviceDetails,
     disableSynchronization: _disableSynchronization = false,
   } = options;
+  const isRemoteCloudDevice =
+    currentDeviceDetails?.isBrowserstack || currentDeviceDetails?.isRemoteCloud;
   const deviceCommands =
-    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+    currentDeviceDetails && !isRemoteCloudDevice
       ? new DeviceCommandHandler({ currentDeviceDetails, logger })
       : undefined;
 
@@ -688,11 +689,7 @@ export async function withFixtures(
     }
 
     // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
-    if (
-      process.env.CI !== 'true' &&
-      FrameworkDetector.isAppium() &&
-      shouldHandleMetroDevLauncherLocally()
-    ) {
+    if (process.env.CI !== 'true' && shouldHandleMetroDevLauncherLocally()) {
       if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
         await dismissDevelopmentServerPickerPlaywright();
       }
@@ -777,7 +774,7 @@ export async function withFixtures(
     }
 
     // skipReactNativeReload was Detox-only (device.reloadReactNative); Appium
-    // uses softReloadAppForFixtures / fixture bootstrap instead (MMQA-2230).
+    // uses softReloadAppForFixtures / fixture bootstrap instead.
 
     if (mockServerInstance) {
       try {

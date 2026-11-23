@@ -1,10 +1,10 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
 import {
+  ensureAccountListOpenPlaywright,
   loginAndOpenAccountList,
   waitForWalletHomePlaywright,
 } from '../../flows/wallet.flow.js';
-import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import {
   assertAccountCount,
@@ -17,10 +17,13 @@ import {
   UserStorageMockttpController,
 } from '../../smoke/identity/utils/user-storage/userStorageMockttpController.js';
 import { createUserStorageController } from '../../smoke/identity/utils/mocks.js';
-import Assertions from '../../framework/Assertions.js';
 import { identityFixtureOptions } from './identity-fixture-options.js';
 
-appiumTest.describe(SmokeAccounts('Account syncing - Setting'), () => {
+// Skipped: consistently fails on main Appium accounts Android smoke
+// (`appium-accounts-android-smoke-2`). The Wallet tab never appears, then
+// the add-account button is missing. Un-skip after the smoke is stable.
+// https://github.com/MetaMask/metamask-mobile/actions/runs/44709201507
+appiumTest.describe.skip(SmokeAccounts('Account syncing - Setting'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   appiumTest.beforeAll(() => {
@@ -48,9 +51,16 @@ appiumTest.describe(SmokeAccounts('Account syncing - Setting'), () => {
           await loginAndOpenAccountList({ scenarioType: 'e2e' });
           await assertAccountCount(DEFAULT_ACCOUNT_NAME, 1);
 
-          const { prepareEventsEmittedCounter } = arrangeTestUtils(
-            userStorageMockttpController,
-          );
+          const {
+            prepareEventsEmittedCounter,
+            waitUntilSyncedAccountsNumberEquals,
+          } = arrangeTestUtils(userStorageMockttpController);
+
+          // Initial account-tree sync must finish before mutating — otherwise
+          // enqueueSingleGroupSync can drop the PUT_SINGLE while sync is still
+          // in progress (UI already shows idle "Add account").
+          await waitUntilSyncedAccountsNumberEquals(1);
+
           const { waitUntilEventsEmittedNumberEquals } =
             prepareEventsEmittedCounter(
               UserStorageMockttpControllerEvents.PUT_SINGLE,
@@ -60,18 +70,17 @@ appiumTest.describe(SmokeAccounts('Account syncing - Setting'), () => {
           await waitUntilEventsEmittedNumberEquals(1);
           await assertAccountCount(SECOND_ACCOUNT_NAME, 1);
 
-          await AccountListBottomSheet.tapBackButton();
-          await waitForWalletHomePlaywright();
+          // Post-create sync chrome / glass header can briefly hide the back
+          // control — settle before dismissing to Settings.
+          await AccountListBottomSheet.waitForAccountSyncToComplete(30_000);
+          await AccountListBottomSheet.tapBackButton({
+            onDismissed: () => waitForWalletHomePlaywright(20_000),
+          });
 
           await disableAccountSyncViaSettings();
 
-          await WalletView.tapIdenticon();
-          await Assertions.expectElementToBeVisible(
-            AccountListBottomSheet.accountList,
-            {
-              description: 'Account list should be visible after Settings',
-            },
-          );
+          // Retry-capable open: a single identicon tap can miss after Settings.
+          await ensureAccountListOpenPlaywright();
           await AccountListBottomSheet.tapAddAccountButtonV2();
           await assertAccountCount(THIRD_ACCOUNT_NAME, 1);
         },

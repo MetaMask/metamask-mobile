@@ -1,12 +1,17 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'expo-image';
-import { AvatarAccount } from '@metamask/design-system-react-native';
+import {
+  AvatarAccount,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import TradeRow from './TradeRow';
-import { formatTradeTime } from '../../utils/formatters';
+import { formatTradeTime } from '../../../../UI/SocialFeed/utils/formatters';
 
 jest.mock('../../../../../util/haptics', () => ({
   playImpact: jest.fn(),
@@ -32,32 +37,55 @@ describe('TradeRow', () => {
     mockPlayImpact.mockClear();
   });
 
-  it('renders the "Bought" label for an enter trade (no trader name)', () => {
-    renderWithProvider(<TradeRow trade={baseTrade} />);
+  // Spot names the direction, not the stage: a token row has no LONG/SHORT
+  // badge, so the verb is the only buy/sell signal it carries.
+  it.each([
+    ['opened', 'Bought'],
+    ['added', 'Bought'],
+    ['reduced', 'Sold'],
+    ['closed', 'Sold'],
+  ] as const)('renders the spot label for a %s fill', (action, label) => {
+    renderWithProvider(<TradeRow trade={baseTrade} action={action} />);
 
-    expect(screen.getByText('Bought')).toBeOnTheScreen();
+    expect(screen.getByText(label)).toBeOnTheScreen();
     expect(screen.queryByText(/nodestack\.eth/)).toBeNull();
   });
 
+  // Perps read in position-lifecycle language; the LONG/SHORT badge alongside
+  // already carries the direction.
+  it.each([
+    ['opened', 'Opened'],
+    ['added', 'Added'],
+    ['reduced', 'Reduced'],
+    ['closed', 'Closed'],
+  ] as const)('renders the perp label for a %s fill', (action, label) => {
+    renderWithProvider(
+      <TradeRow
+        trade={{
+          ...baseTrade,
+          classification: 'perp',
+          perpPositionType: 'long',
+        }}
+        action={action}
+      />,
+    );
+
+    expect(screen.getByText(label)).toBeOnTheScreen();
+  });
+
   it('renders a time-only timestamp without the date', () => {
-    renderWithProvider(<TradeRow trade={baseTrade} />);
+    renderWithProvider(<TradeRow trade={baseTrade} action="opened" />);
 
     expect(
       screen.getByText(formatTradeTime(baseTrade.timestamp)),
     ).toBeOnTheScreen();
   });
 
-  it('renders the "Sold" label for an exit trade (no trader name)', () => {
-    renderWithProvider(<TradeRow trade={{ ...baseTrade, intent: 'exit' }} />);
-
-    expect(screen.getByText('Sold')).toBeOnTheScreen();
-    expect(screen.queryByText(/nodestack\.eth/)).toBeNull();
-  });
-
   it('renders the avatar image when a real image url is provided', () => {
     renderWithProvider(
       <TradeRow
         trade={baseTrade}
+        action="opened"
         traderImageUrl={REAL_AVATAR_URL}
         traderAddress={TRADER_ADDRESS}
       />,
@@ -69,16 +97,87 @@ describe('TradeRow', () => {
 
   it('renders the Maskicon fallback when the image url is absent', () => {
     renderWithProvider(
-      <TradeRow trade={baseTrade} traderAddress={TRADER_ADDRESS} />,
+      <TradeRow
+        trade={baseTrade}
+        action="opened"
+        traderAddress={TRADER_ADDRESS}
+      />,
     );
 
     expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
     expect(screen.UNSAFE_queryByType(Image)).toBeNull();
   });
 
+  it('omits the leverage and direction badges on a perp fill', () => {
+    renderWithProvider(
+      <TradeRow
+        trade={{
+          ...baseTrade,
+          classification: 'perp',
+          perpPositionType: 'long',
+          perpLeverage: 2,
+        }}
+        action="opened"
+      />,
+    );
+
+    expect(screen.getByText('Opened')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `trade-row-perp-badges-${baseTrade.transactionHash}`,
+      ),
+    ).toBeNull();
+    expect(screen.queryByText('2x')).toBeNull();
+    expect(screen.queryByText('LONG')).toBeNull();
+  });
+
+  it('shows a success plus avatar for a positive spot fill', () => {
+    renderWithProvider(
+      <TradeRow trade={baseTrade} action="opened" showValueAvatar />,
+    );
+
+    expect(
+      screen.UNSAFE_getByProps({
+        name: IconName.Add,
+        color: IconColor.SuccessDefault,
+        size: IconSize.Lg,
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByTestId(`trade-row-value-avatar-${baseTrade.transactionHash}`),
+    ).toBeOnTheScreen();
+    expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+  });
+
+  it('shows an error minus avatar for a negative perp fill', () => {
+    renderWithProvider(
+      <TradeRow
+        trade={{
+          ...baseTrade,
+          intent: 'exit',
+          usdCost: 0,
+          classification: 'perp',
+          perpPositionType: 'short',
+        }}
+        action="closed"
+        showValueAvatar
+      />,
+    );
+
+    expect(
+      screen.UNSAFE_getByProps({
+        name: IconName.Minus,
+        color: IconColor.ErrorDefault,
+        size: IconSize.Lg,
+      }),
+    ).toBeTruthy();
+  });
+
   it('calls onPress with the trade when the row is tapped', () => {
     const onPress = jest.fn();
-    renderWithProvider(<TradeRow trade={baseTrade} onPress={onPress} />);
+    renderWithProvider(
+      <TradeRow trade={baseTrade} action="opened" onPress={onPress} />,
+    );
 
     fireEvent.press(
       screen.getByTestId(`trade-row-${baseTrade.transactionHash}`),
@@ -89,7 +188,7 @@ describe('TradeRow', () => {
   });
 
   it('does not fire a press when no onPress is provided', () => {
-    renderWithProvider(<TradeRow trade={baseTrade} />);
+    renderWithProvider(<TradeRow trade={baseTrade} action="opened" />);
 
     // Disabled Pressable: pressing is a no-op (no throw, nothing to assert beyond render).
     expect(() =>

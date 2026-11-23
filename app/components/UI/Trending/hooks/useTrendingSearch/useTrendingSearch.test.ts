@@ -165,8 +165,7 @@ describe('useTrendingSearch', () => {
     );
   });
 
-  it('returns combined search and trending results when search query provided', async () => {
-    // Search for 'ETH' which matches one trending result
+  it('returns search results in API order without merging trending matches', async () => {
     mockUseSearchRequest.mockReturnValue({
       results: mockSearchResults,
       isLoading: false,
@@ -185,20 +184,14 @@ describe('useTrendingSearch', () => {
     jest.advanceTimersByTime(200);
 
     await waitFor(() => {
-      expect(result.current.data).toHaveLength(2);
+      expect(result.current.data).toHaveLength(1);
     });
 
-    // Should contain ETH from trending (matches query) and USDC from search
-    expect(result.current.data).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ symbol: 'ETH' }),
-        expect.objectContaining({ symbol: 'USDC' }),
-      ]),
-    );
+    expect(result.current.data.map((item) => item.symbol)).toEqual(['USDC']);
   });
 
-  it('removes duplicate results when combining search and trending', async () => {
-    const duplicateResult = {
+  it('returns the API result object for a duplicate assetId without swapping in the trending copy', async () => {
+    const duplicateOfTrending = {
       assetId: mockTrendingResults[0].assetId as CaipChainId,
       symbol: mockTrendingResults[0].symbol,
       name: mockTrendingResults[0].name,
@@ -209,7 +202,7 @@ describe('useTrendingSearch', () => {
       pricePercentChange1d: '0',
     };
     mockUseSearchRequest.mockReturnValue({
-      results: [duplicateResult, mockSearchResults[0]],
+      results: [duplicateOfTrending, mockSearchResults[0]],
       isLoading: false,
       error: null,
       search: jest.fn(),
@@ -229,17 +222,146 @@ describe('useTrendingSearch', () => {
       expect(result.current.data).toHaveLength(2);
     });
 
-    // Should have ETH (deduplicated) and USDC (from search)
-    // DAI is filtered out because it doesn't match 'ETH' query
-    const assetIds = result.current.data.map((item) => item.assetId);
-    const uniqueAssetIds = new Set(assetIds);
-    expect(assetIds.length).toBe(uniqueAssetIds.size);
-    expect(result.current.data).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ symbol: 'ETH' }),
-        expect.objectContaining({ symbol: 'USDC' }),
-      ]),
+    // The API's own result objects pass through in API order; the trending
+    // list's copy is not swapped in for duplicate assetIds.
+    // The API's own result objects pass through in API order; the trending
+    // list's copy is not swapped in for duplicate assetIds.
+    expect(result.current.data.map((item) => item.assetId)).toEqual([
+      'eip155:1/erc20:0x123',
+      'eip155:1/erc20:0x789',
+    ]);
+    expect(result.current.data[0]).toEqual(
+      expect.objectContaining({ symbol: 'ETH', priceChangePct: { h24: '0' } }),
     );
+  });
+
+  it.each([
+    ['laptop', 'Laptop'],
+    ['$laptop', '$Laptop'],
+  ])(
+    'returns API order for "%s" without appending trending matches',
+    async (searchQuery, trendingName) => {
+      const trendingLaptop = {
+        ...mockTrendingResults[0],
+        symbol: 'LAPTOP',
+        name: trendingName,
+      };
+      const apiRankedFirst = {
+        assetId: 'eip155:8453/erc20:0xabc' as CaipChainId,
+        symbol: 'LAPTOP',
+        name: 'Laptop Official',
+        decimals: 18,
+        price: '1',
+        aggregatedUsdVolume: 1,
+        marketCap: 0,
+        pricePercentChange1d: '0',
+      };
+      mockUseTrendingRequest.mockReturnValue({
+        results: [trendingLaptop],
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+      mockUseSearchRequest.mockReturnValue({
+        results: [apiRankedFirst],
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      });
+
+      const { result } = renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery, sortBy: 'h24_trending' }),
+      );
+
+      jest.advanceTimersByTime(200);
+
+      await waitFor(() => {
+        expect(result.current.data).toHaveLength(1);
+      });
+
+      expect(result.current.data.map((item) => item.assetId)).toEqual([
+        'eip155:8453/erc20:0xabc',
+      ]);
+      expect(mockUseSearchRequest).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          query: searchQuery.replace(/^\$/, ''),
+        }),
+      );
+    },
+  );
+
+  it.each([
+    ['$ETH', 'ETH'],
+    ['  eth  ', 'eth'],
+    ['e$th', 'e$th'],
+  ])(
+    'normalizes every search query (trim + leading-$ strip): "%s" -> "%s"',
+    async (searchQuery, expectedQuery) => {
+      mockUseSearchRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: null,
+        search: jest.fn(),
+        loadMore: jest.fn(),
+        isLoadingMore: false,
+        hasNextPage: false,
+        totalCount: undefined,
+      });
+
+      renderHookWithProvider(() =>
+        useTrendingSearch({ searchQuery, sortBy: 'h24_trending' }),
+      );
+
+      jest.advanceTimersByTime(200);
+
+      expect(mockUseSearchRequest).toHaveBeenLastCalledWith(
+        expect.objectContaining({ query: expectedQuery }),
+      );
+    },
+  );
+
+  it('shows the trending list for a lone "$" query', async () => {
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({ searchQuery: '$', sortBy: 'h24_trending' }),
+    );
+
+    jest.advanceTimersByTime(200);
+
+    await waitFor(() => {
+      expect(result.current.data).toEqual(mockTrendingResults);
+    });
+  });
+
+  it('drops exact assetId repeats across search results, first occurrence wins', async () => {
+    const repeated = {
+      ...mockSearchResults[0],
+    };
+    mockUseSearchRequest.mockReturnValue({
+      results: [mockSearchResults[0], repeated],
+      isLoading: false,
+      error: null,
+      search: jest.fn(),
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      hasNextPage: false,
+      totalCount: undefined,
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTrendingSearch({ searchQuery: 'USDC', sortBy: 'h24_trending' }),
+    );
+
+    jest.advanceTimersByTime(200);
+
+    await waitFor(() => {
+      expect(result.current.data).toHaveLength(1);
+    });
+
+    expect(result.current.data[0].assetId).toBe('eip155:1/erc20:0x789');
   });
 
   it('returns trending loading state when no search query', () => {
@@ -291,70 +413,6 @@ describe('useTrendingSearch', () => {
       await waitFor(() => {
         expect(result1.current.data).toEqual(sortedResults);
         expect(result2.current.data).toEqual(sortedResults);
-      });
-    });
-
-    it('filters trending results by symbol case-insensitively', async () => {
-      const { result } = renderHookWithProvider(() =>
-        useTrendingSearch({ searchQuery: 'eth' }),
-      );
-
-      jest.advanceTimersByTime(200);
-
-      await waitFor(() => {
-        expect(result.current.data).toHaveLength(1);
-        expect(result.current.data[0].symbol).toBe('ETH');
-      });
-    });
-
-    it('filters trending results by name case-insensitively', async () => {
-      const { result } = renderHookWithProvider(() =>
-        useTrendingSearch({ searchQuery: 'ethereum' }),
-      );
-
-      jest.advanceTimersByTime(200);
-
-      await waitFor(() => {
-        expect(result.current.data).toHaveLength(1);
-        expect(result.current.data[0].name).toBe('Ethereum');
-      });
-    });
-
-    it('filters trending results by partial matches', async () => {
-      const { result } = renderHookWithProvider(() =>
-        useTrendingSearch({ searchQuery: 'dai' }),
-      );
-
-      jest.advanceTimersByTime(200);
-
-      await waitFor(() => {
-        expect(result.current.data).toHaveLength(1);
-        expect(result.current.data[0].symbol).toBe('DAI');
-      });
-    });
-
-    it('returns empty array when no trending results match query', async () => {
-      const { result } = renderHookWithProvider(() =>
-        useTrendingSearch({ searchQuery: 'NonExistent' }),
-      );
-
-      jest.advanceTimersByTime(200);
-
-      await waitFor(() => {
-        expect(result.current.data).toHaveLength(0);
-      });
-    });
-
-    it('trims whitespace from query before filtering', async () => {
-      const { result } = renderHookWithProvider(() =>
-        useTrendingSearch({ searchQuery: '  ETH  ' }),
-      );
-
-      jest.advanceTimersByTime(200);
-
-      await waitFor(() => {
-        expect(result.current.data).toHaveLength(1);
-        expect(result.current.data[0].symbol).toBe('ETH');
       });
     });
   });

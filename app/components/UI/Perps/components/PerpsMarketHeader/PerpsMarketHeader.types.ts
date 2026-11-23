@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { SharedValue } from 'react-native-reanimated';
 import type { PerpsMarketData, PerpsMode } from '@metamask/perps-controller';
+import type { CrossMarginRatioTone } from '../../utils/crossMarginSummary';
 
 /** Fixed header height, in px. */
 export const PERPS_MARKET_HEADER_HEIGHT = 64;
@@ -33,18 +34,43 @@ export interface PerpsMarketHeaderProps {
   endAccessory?: ReactNode;
   /** Default action row — ignored when `endAccessory` is provided. */
   onWalletPress?: () => void;
+  /**
+   * Cross margin risk shown as a badge on the wallet button. Only `warning`
+   * and `danger` render a badge; `safe` and `undefined` leave the icon plain.
+   */
+  walletRiskTone?: CrossMarginRatioTone;
   onFavoritePress?: () => void;
   isFavorite?: boolean;
   mode?: PerpsMode;
   onModeChange?: (mode: PerpsMode) => void;
+  /**
+   * When true, fires catalog haptics for header gestures and the mode pill.
+   * Defaults off so Lite market headers stay silent.
+   */
+  enableHaptics?: boolean;
+  /**
+   * When true, fires the mode-toggle haptic independently of other header
+   * gestures. This allows Lite/Pro switching feedback while Lite header
+   * navigation actions remain silent.
+   */
+  enableModeHaptics?: boolean;
   /**
    * Scroll offset from the parent's `Animated.ScrollView`, shared via
    * `useHeaderStandardAnimated()`. Drives the subtitle/price crossfade.
    */
   scrollY?: SharedValue<number>;
   /**
-   * Height of the scrollable price section above the header's threshold
-   * (e.g. `PRICE_SECTION_HEIGHT` from `PerpsMarketSummary`).
+   * Height of the scrollable price section above the header's threshold,
+   * measured from the market summary row.
    */
   priceSectionHeight?: SharedValue<number>;
+  /**
+   * Chart-synced price for the compact header (shown after scrolling past
+   * the summary). Pass the same `syncedChartCurrentPrice` given to
+   * `PerpsMarketSummary` so the header and chart prices match. When omitted,
+   * falls back to the live mid-price stream.
+   */
+  currentPrice?: number;
+  /** Status bar space the floating header pads, when the screen runs under it. */
+  topInset?: number;
 }

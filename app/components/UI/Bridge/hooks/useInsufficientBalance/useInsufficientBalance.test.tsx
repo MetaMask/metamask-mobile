@@ -10,7 +10,12 @@ import { SolScope } from '@metamask/keyring-api';
 import { initialState } from '../../_mocks_/initialState';
 // eslint-disable-next-line import-x/no-namespace -- jest.spyOn must patch the module namespace the hook imports
 import * as bridgeSlice from '../../../../../core/redux/slices/bridge';
-import { type DeepPartial } from '@metamask/bridge-controller';
+import {
+  ChainId,
+  getNativeAssetForChainId,
+  toBridgeAssetV2,
+  type DeepPartial,
+} from '@metamask/bridge-controller';
 import { merge } from 'lodash';
 
 // Mock selectMinSolBalance
@@ -40,7 +45,7 @@ const createMockStore = (
     ),
   );
   const rootReducer = (state = initialState) => state;
-  return createStore(rootReducer, initialState);
+  return createStore(rootReducer as never);
 };
 
 // Helper to wrap hook with provider
@@ -76,6 +81,7 @@ const createQuote = ({
         network: [
           {
             normalizedAmount: gasAmount,
+            asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
           },
         ],
       },
@@ -215,6 +221,7 @@ describe('useIsInsufficientBalance', () => {
               network: [
                 {
                   normalizedAmount: '0.01', // 0.01 ETH gas
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
                 },
               ],
             },
@@ -245,6 +252,7 @@ describe('useIsInsufficientBalance', () => {
               network: [
                 {
                   normalizedAmount: '0.02', // 0.02 ETH gas
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
                 },
               ],
             },
@@ -275,6 +283,7 @@ describe('useIsInsufficientBalance', () => {
               network: [
                 {
                   normalizedAmount: '0.001', // 0.001 ETH gas
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
                 },
               ],
             },
@@ -304,6 +313,7 @@ describe('useIsInsufficientBalance', () => {
               network: [
                 {
                   normalizedAmount: '1.5e-3', // 0.0015 ETH in scientific notation
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
                 },
               ],
             },
@@ -335,6 +345,7 @@ describe('useIsInsufficientBalance', () => {
               network: [
                 {
                   normalizedAmount: '5e-2', // 0.05 ETH in scientific notation
+                  asset: toBridgeAssetV2(getNativeAssetForChainId(ChainId.ETH)),
                 },
               ],
             },
@@ -374,6 +385,9 @@ describe('useIsInsufficientBalance', () => {
               network: [
                 {
                   normalizedAmount: '0.1', // 0.1 MATIC gas
+                  asset: toBridgeAssetV2(
+                    getNativeAssetForChainId(ChainId.POLYGON),
+                  ),
                 },
               ],
             },
@@ -404,6 +418,9 @@ describe('useIsInsufficientBalance', () => {
               network: [
                 {
                   normalizedAmount: '1', // 1 MATIC gas
+                  asset: toBridgeAssetV2(
+                    getNativeAssetForChainId(ChainId.POLYGON),
+                  ),
                 },
               ],
             },

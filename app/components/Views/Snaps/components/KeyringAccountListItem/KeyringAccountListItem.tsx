@@ -1,4 +1,3 @@
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import React, { useCallback } from 'react';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -73,7 +72,7 @@ const KeyringAccountListItem = ({
         <View style={styles.buttonContainer}>
           <ButtonIcon
             testID={KEYRING_ACCOUNT_LIST_ITEM_BUTTON}
-            iconName={IconName.Export}
+            iconName={IconName.ArrowSquareOut}
             iconColor={IconColor.Primary}
             size={ButtonIconSizes.Lg}
             onPress={handlePress}
@@ -85,4 +84,3 @@ const KeyringAccountListItem = ({
 };
 
 export default React.memo(KeyringAccountListItem);
-///: END:ONLY_INCLUDE_IF

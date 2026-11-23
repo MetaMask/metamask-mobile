@@ -2,10 +2,13 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useTokenTransactions } from './useTokenTransactions';
 import { TokenI } from '../../Tokens/types';
-import { TX_CONFIRMED } from '../../../../constants/transaction';
+import {
+  TX_CONFIRMED,
+  TX_SUBMITTED,
+  TX_UNAPPROVED,
+} from '../../../../constants/transaction';
 import { selectTransactions } from '../../../../selectors/transactionController';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
-import { selectIsActivityRedesignEnabled } from '../../../../selectors/featureFlagController/activityRedesign';
 import { selectTokens } from '../../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
@@ -38,13 +41,6 @@ jest.mock('../../../../selectors/transactionController', () => ({
   selectSwapsTransactions: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/activityRedesign',
-  () => ({
-    selectIsActivityRedesignEnabled: jest.fn(),
-  }),
-);
-
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccount: jest.fn(),
   selectSelectedInternalAccountAddress: jest.fn(),
@@ -60,6 +56,7 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 }));
 
 jest.mock('../../../../util/activity', () => ({
+  ...jest.requireActual('../../../../util/activity'),
   sortTransactions: jest.fn((txs: unknown[]) => txs),
 }));
 
@@ -154,26 +151,24 @@ const createAsset = (overrides: Partial<TokenI> = {}): TokenI => ({
 const setupMocks = (
   transactions: unknown[] = [],
   {
-    isActivityRedesignEnabled = false,
     bridgeHistory = {} as Record<string, unknown>,
+    selectedAddress = MOCK_ADDRESS,
   } = {},
 ) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectTransactions) return transactions;
     if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
-    if (selector === selectIsActivityRedesignEnabled)
-      return isActivityRedesignEnabled;
     if (selector === selectTokens) return [];
     if (selector === selectSelectedInternalAccount) {
-      return { address: MOCK_ADDRESS, metadata: { importTime: 0 } };
+      return { address: selectedAddress, metadata: { importTime: 0 } };
     }
     if (selector === selectSelectedInternalAccountByScope) {
-      return () => ({ address: MOCK_ADDRESS });
+      return () => ({ address: selectedAddress });
     }
     if (selector === selectConversionRate) return 1;
     if (selector === selectCurrentCurrency) return 'usd';
     // Inline selector for selectedAddressForAsset
-    return MOCK_ADDRESS;
+    return selectedAddress;
   });
 };
 
@@ -279,6 +274,43 @@ describe('useTokenTransactions', () => {
       expect(result.current.confirmedTxs.length).toBe(1);
     });
 
+    it('includes an ERC20 transfer on the recipient token page', async () => {
+      const transferData =
+        `0xa9059cbb${MOCK_RECIPIENT.slice(2).padStart(64, '0')}` +
+        '1'.padStart(64, '0');
+      const tx = createMockTransaction({
+        chainId: ETH_CHAIN_ID,
+        txParams: {
+          from: MOCK_ADDRESS,
+          to: MOCK_TOKEN_ADDRESS,
+          data: transferData,
+        },
+        isTransfer: true,
+        transferInformation: {
+          contractAddress: MOCK_TOKEN_ADDRESS,
+        },
+      });
+      setupMocks([tx], { selectedAddress: MOCK_RECIPIENT });
+
+      const asset = createAsset({
+        symbol: 'DAI',
+        isETH: false,
+        isNative: false,
+        address: MOCK_TOKEN_ADDRESS,
+        chainId: ETH_CHAIN_ID,
+      });
+
+      const { result } = renderHook(() => useTokenTransactions(asset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs).toEqual([
+        expect.objectContaining({ id: 'tx-1' }),
+      ]);
+    });
+
     it('excludes unrelated transactions from ERC20 token view', async () => {
       const tx = createMockTransaction({
         chainId: ETH_CHAIN_ID,
@@ -372,7 +404,7 @@ describe('useTokenTransactions', () => {
         type: TransactionType.gasPayment,
         txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
       });
-      setupMocks([send, fee], { isActivityRedesignEnabled: true });
+      setupMocks([send, fee]);
 
       const asset = createAsset({
         symbol: 'USDT',
@@ -388,38 +420,6 @@ describe('useTokenTransactions', () => {
       });
 
       expect(result.current.transactions.map((tx) => tx.id)).toEqual(['send']);
-    });
-
-    it('keeps gas_payment transactions when activity redesign is off', async () => {
-      const send = createMockTransaction({
-        id: 'send',
-        type: TransactionType.simpleSend,
-        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
-      });
-      const fee = createMockTransaction({
-        id: 'fee',
-        type: TransactionType.gasPayment,
-        txParams: { from: MOCK_ADDRESS, to: MOCK_TOKEN_ADDRESS },
-      });
-      setupMocks([send, fee], { isActivityRedesignEnabled: false });
-
-      const asset = createAsset({
-        symbol: 'USDT',
-        isETH: false,
-        isNative: false,
-        address: MOCK_TOKEN_ADDRESS,
-      });
-
-      const { result } = renderHook(() => useTokenTransactions(asset));
-
-      await waitFor(() => {
-        expect(result.current.transactionsUpdated).toBe(true);
-      });
-
-      expect(result.current.transactions.map((tx) => tx.id).sort()).toEqual([
-        'fee',
-        'send',
-      ]);
     });
   });
 
@@ -860,7 +860,6 @@ describe('useTokenTransactions', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectTransactions) return evmTxs;
         if (selector === selectBridgeHistoryForAccount) return bridgeHistory;
-        if (selector === selectIsActivityRedesignEnabled) return true;
         if (selector === selectTokens) return [];
         if (selector === selectSelectedInternalAccount) {
           return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
@@ -1004,7 +1003,6 @@ describe('useTokenTransactions', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectTransactions) return [];
         if (selector === selectBridgeHistoryForAccount) return {};
-        if (selector === selectIsActivityRedesignEnabled) return true;
         if (selector === selectTokens) return [];
         if (selector === selectSelectedInternalAccount) {
           return { address: SOLANA_ADDRESS, metadata: { importTime: 0 } };
@@ -1121,6 +1119,240 @@ describe('useTokenTransactions', () => {
 
       expect(result.current.transactions.map((tx) => tx.id)).toEqual([
         'swap-mixed',
+      ]);
+    });
+
+    it('replaces a pending unknown row when the same non-EVM transaction confirms', async () => {
+      const pendingTx = {
+        id: 'tron-swap-1',
+        chain: SOLANA_CHAIN_ID,
+        type: 'unknown',
+        status: 'unconfirmed',
+        time: 2,
+        from: [createSolanaMovement(SOL_ASSET_ID, 'SOL')],
+        to: [],
+      };
+
+      setupNonEvmMocks([pendingTx]);
+
+      const { result, rerender } = renderHook(() =>
+        useTokenTransactions(
+          solanaAsset({
+            symbol: 'SOL',
+            name: 'Solana',
+            isNative: true,
+            address: SOL_ASSET_ID,
+          }),
+        ),
+      );
+
+      await waitFor(() => {
+        expect(result.current.transactions).toHaveLength(1);
+      });
+
+      expect(result.current.transactions[0]).toMatchObject({
+        id: 'tron-swap-1',
+        type: 'unknown',
+        status: 'unconfirmed',
+      });
+
+      setupNonEvmMocks([
+        {
+          ...pendingTx,
+          type: 'send',
+          status: TX_CONFIRMED,
+          to: [createSolanaMovement(USDC_ASSET_ID, 'USDC')],
+        },
+      ]);
+      rerender({});
+
+      await waitFor(() => {
+        expect(result.current.transactions[0]).toMatchObject({
+          id: 'tron-swap-1',
+          type: 'send',
+          status: TX_CONFIRMED,
+        });
+      });
+    });
+  });
+
+  describe('address and chain gates', () => {
+    const nativeAsset = createAsset({
+      symbol: 'ETH',
+      isETH: true,
+      isNative: true,
+      address: '',
+      chainId: ETH_CHAIN_ID,
+    });
+
+    beforeEach(() => {
+      jest.mocked(isNonEvmChainId).mockReturnValue(false);
+      jest
+        .mocked(formatChainIdToCaip)
+        .mockImplementation((chainId) => `eip155:${chainId}`);
+    });
+
+    it('includes a native transaction sent to the selected account when from is missing', async () => {
+      const tx = createMockTransaction({
+        id: 'incoming-no-from',
+        txParams: { to: MOCK_ADDRESS },
+      });
+      setupMocks([tx]);
+
+      const { result } = renderHook(() => useTokenTransactions(nativeAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'incoming-no-from',
+      ]);
+    });
+
+    it('includes a native transaction with no chain id when the network id matches', async () => {
+      const tx = createMockTransaction({
+        id: 'legacy-network',
+        chainId: undefined,
+        networkID: '1',
+      });
+      setupMocks([tx]);
+
+      const { result } = renderHook(() => useTokenTransactions(nativeAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'legacy-network',
+      ]);
+    });
+
+    it('excludes a native transaction with no chain id when the network id differs', async () => {
+      const tx = createMockTransaction({
+        id: 'other-network',
+        chainId: undefined,
+        networkID: '5',
+      });
+      setupMocks([tx]);
+
+      const { result } = renderHook(() => useTokenTransactions(nativeAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs).toStrictEqual([]);
+      expect(result.current.transactions).toStrictEqual([]);
+    });
+
+    it('excludes an unapproved native transaction', async () => {
+      const tx = createMockTransaction({
+        id: 'unapproved-native',
+        status: TX_UNAPPROVED,
+      });
+      setupMocks([tx]);
+
+      const { result } = renderHook(() => useTokenTransactions(nativeAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.transactions).toStrictEqual([]);
+      expect(result.current.submittedTxs).toStrictEqual([]);
+    });
+
+    it('drops a submitted transaction whose nonce is already confirmed by the selected account', async () => {
+      const confirmed = createMockTransaction({
+        id: 'confirmed-nonce',
+        status: TX_CONFIRMED,
+        txParams: {
+          from: MOCK_ADDRESS.toLowerCase(),
+          to: MOCK_RECIPIENT,
+          nonce: '0x1',
+        },
+      });
+      const submitted = createMockTransaction({
+        id: 'submitted-nonce',
+        status: TX_SUBMITTED,
+        txParams: {
+          from: MOCK_ADDRESS,
+          to: MOCK_RECIPIENT,
+          nonce: '0x1',
+        },
+      });
+      setupMocks([confirmed, submitted]);
+
+      const { result } = renderHook(() => useTokenTransactions(nativeAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'confirmed-nonce',
+      ]);
+      expect(result.current.submittedTxs).toStrictEqual([]);
+    });
+
+    it('keeps a submitted transaction when the confirmed nonce belongs to another account', async () => {
+      const confirmed = createMockTransaction({
+        id: 'incoming-confirmed',
+        status: TX_CONFIRMED,
+        txParams: {
+          from: MOCK_RECIPIENT,
+          to: MOCK_ADDRESS,
+          nonce: '0x1',
+        },
+      });
+      const submitted = createMockTransaction({
+        id: 'own-submitted',
+        status: TX_SUBMITTED,
+        txParams: {
+          from: MOCK_ADDRESS,
+          to: MOCK_RECIPIENT,
+          nonce: '0x1',
+        },
+      });
+      setupMocks([confirmed, submitted]);
+
+      const { result } = renderHook(() => useTokenTransactions(nativeAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.confirmedTxs.map((item) => item.id)).toStrictEqual([
+        'incoming-confirmed',
+      ]);
+      expect(result.current.submittedTxs.map((item) => item.id)).toStrictEqual([
+        'own-submitted',
+      ]);
+    });
+
+    it('keeps the first submitted transaction when two share a nonce', async () => {
+      const first = createMockTransaction({
+        id: 'submitted-first',
+        status: TX_SUBMITTED,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x2' },
+      });
+      const second = createMockTransaction({
+        id: 'submitted-second',
+        status: TX_SUBMITTED,
+        txParams: { from: MOCK_ADDRESS, to: MOCK_RECIPIENT, nonce: '0x2' },
+      });
+      setupMocks([first, second]);
+
+      const { result } = renderHook(() => useTokenTransactions(nativeAsset));
+
+      await waitFor(() => {
+        expect(result.current.transactionsUpdated).toBe(true);
+      });
+
+      expect(result.current.submittedTxs.map((item) => item.id)).toStrictEqual([
+        'submitted-first',
       ]);
     });
   });

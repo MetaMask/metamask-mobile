@@ -1,10 +1,10 @@
 import { type AppThemeKey } from '../../util/theme/models';
 import { type Action } from 'redux';
 import { type ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
+import { type PendingAppInstall } from '../../reducers/user/types';
 
 // Action type enum
 export enum UserActionType {
-  LOCKED_APP = 'LOCKED_APP',
   CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
   LOGIN = 'LOGIN',
   LOGOUT = 'LOGOUT',
@@ -30,6 +30,7 @@ export enum UserActionType {
   SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN = 'SET_MUSD_CONVERSION_ASSET_DETAIL_CTA_SEEN',
   CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN = 'CLEAR_MUSD_CONVERSION_ASSET_DETAIL_CTAS_SEEN',
   SET_MONEY_ONBOARDING_SEEN = 'SET_MONEY_ONBOARDING_SEEN',
+  SET_MONEY_SPLASH_SEEN = 'SET_MONEY_SPLASH_SEEN',
   SET_MONEY_EARN_BANNER_DISMISSED = 'SET_MONEY_EARN_BANNER_DISMISSED',
   CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS = 'CLEAR_MONEY_EARN_BANNER_DISMISSED_TOKENS',
   SET_TOKEN_OVERVIEW_CHART_TYPE = 'SET_TOKEN_OVERVIEW_CHART_TYPE',
@@ -37,11 +38,13 @@ export enum UserActionType {
   SET_TOKEN_INDICATORS = 'SET_TOKEN_INDICATORS',
   SET_ONBOARDING_STEPPER_STEP = 'SET_ONBOARDING_STEPPER_STEP',
   SET_APP_INSTALL_EVENT_FIRED = 'SET_APP_INSTALL_EVENT_FIRED',
+  SET_PENDING_APP_INSTALL = 'SET_PENDING_APP_INSTALL',
+  CLEAR_PENDING_APP_INSTALL = 'CLEAR_PENDING_APP_INSTALL',
+  SET_BRIDGE_LIMIT_TAB_SEEN = 'SET_BRIDGE_LIMIT_TAB_SEEN',
+  SET_BRIDGE_RECURRING_TAB_SEEN = 'SET_BRIDGE_RECURRING_TAB_SEEN',
 }
 
 // User actions
-export type LockAppAction = Action<UserActionType.LOCKED_APP>;
-
 export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
 
 export type LoginAction = Action<UserActionType.LOGIN>;
@@ -125,6 +128,11 @@ export type SetMoneyOnboardingSeenAction =
     payload: { seen: boolean };
   };
 
+export type SetMoneySplashSeenAction =
+  Action<UserActionType.SET_MONEY_SPLASH_SEEN> & {
+    payload: { seen: boolean };
+  };
+
 export type SetMoneyEarnBannerDismissedAction =
   Action<UserActionType.SET_MONEY_EARN_BANNER_DISMISSED> & {
     payload: { key: string };
@@ -156,11 +164,24 @@ export type SetOnboardingStepperStepAction =
 export type SetAppInstallEventFiredAction =
   Action<UserActionType.SET_APP_INSTALL_EVENT_FIRED>;
 
+export type SetPendingAppInstallAction =
+  Action<UserActionType.SET_PENDING_APP_INSTALL> & {
+    payload: { pendingAppInstall: PendingAppInstall };
+  };
+
+export type ClearPendingAppInstallAction =
+  Action<UserActionType.CLEAR_PENDING_APP_INSTALL>;
+
+export type SetBridgeLimitTabSeenAction =
+  Action<UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN>;
+
+export type SetBridgeRecurringTabSeenAction =
+  Action<UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN>;
+
 /**
  * User actions union type
  */
 export type UserAction =
-  | LockAppAction
   | CheckForDeeplinkAction
   | LoginAction
   | LogoutAction
@@ -186,10 +207,15 @@ export type UserAction =
   | SetMusdConversionAssetDetailCtaSeenAction
   | ClearMusdConversionAssetDetailCtasSeenAction
   | SetMoneyOnboardingSeenAction
+  | SetMoneySplashSeenAction
   | SetMoneyEarnBannerDismissedAction
   | ClearMoneyEarnBannerDismissedTokensAction
   | SetTokenOverviewChartTypeAction
   | SetTokenOverviewChartIntervalAction
   | SetTokenIndicatorsAction
   | SetOnboardingStepperStepAction
-  | SetAppInstallEventFiredAction;
+  | SetAppInstallEventFiredAction
+  | SetPendingAppInstallAction
+  | ClearPendingAppInstallAction
+  | SetBridgeLimitTabSeenAction
+  | SetBridgeRecurringTabSeenAction;

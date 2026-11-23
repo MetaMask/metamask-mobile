@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import { DeviceEventEmitter } from 'react-native';
 
-import Engine from '../Engine';
+import { useMessenger } from '../../hooks/useMessenger';
 import type { AppNavigationProp } from '../NavigationService/types';
 import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from './showExtensionCancelledErrorSheet';
+import type { RouteMessengerInstance } from './route-messenger';
 
 interface UseAddDeviceResetToInstructionsListenerOptions {
   enabled?: boolean;
@@ -25,6 +26,8 @@ export const useAddDeviceResetToInstructionsListener = ({
   onReset,
   onNavigateBack,
 }: UseAddDeviceResetToInstructionsListenerOptions = {}): void => {
+  const messenger = useMessenger<RouteMessengerInstance>();
+
   useEffect(() => {
     if (!enabled) {
       return undefined;
@@ -34,21 +37,30 @@ export const useAddDeviceResetToInstructionsListener = ({
       ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
       () => {
         onReset?.();
-        Engine.context.QrSyncController.resetState();
 
-        if (!shouldGoBack) {
-          return;
-        }
+        const resetAndNavigate = async () => {
+          try {
+            await messenger.call('QrSyncController:resetState');
+          } catch {
+            // Still leave the screen if reset fails.
+          }
 
-        if (navigation?.canGoBack()) {
-          navigation.goBack();
-          return;
-        }
+          if (!shouldGoBack) {
+            return;
+          }
 
-        onNavigateBack?.();
+          if (navigation?.canGoBack()) {
+            navigation.goBack();
+            return;
+          }
+
+          onNavigateBack?.();
+        };
+
+        resetAndNavigate().catch(() => undefined);
       },
     );
 
     return () => subscription.remove();
-  }, [enabled, navigation, onNavigateBack, onReset, shouldGoBack]);
+  }, [enabled, messenger, navigation, onNavigateBack, onReset, shouldGoBack]);
 };

@@ -13,12 +13,14 @@ let mockQueryReturn: {
   data: unknown;
   isFetching: boolean;
   isLoading: boolean;
+  isFetched: boolean;
   error: Error | null;
   refetch: jest.Mock;
 } = {
   data: undefined,
   isFetching: false,
   isLoading: false,
+  isFetched: false,
   error: null,
   refetch: mockRefetch,
 };
@@ -81,6 +83,7 @@ describe('useRegistrationSettings', () => {
       data: undefined,
       isFetching: false,
       isLoading: false,
+      isFetched: false,
       error: null,
       refetch: mockRefetch,
     };
@@ -187,6 +190,7 @@ describe('useRegistrationSettings', () => {
         data: mockRegistrationSettingsResponse,
         isFetching: false,
         isLoading: false,
+        isFetched: true,
         error: null,
         refetch: mockRefetch,
       };
@@ -195,6 +199,7 @@ describe('useRegistrationSettings', () => {
 
       expect(result.current.data).toEqual(mockRegistrationSettingsResponse);
       expect(result.current.isLoading).toBe(false);
+      expect(result.current.isFetched).toBe(true);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.fetchData).toBe('function');
     });
@@ -204,6 +209,7 @@ describe('useRegistrationSettings', () => {
         data: undefined,
         isFetching: true,
         isLoading: true,
+        isFetched: false,
         error: null,
         refetch: mockRefetch,
       };
@@ -211,6 +217,7 @@ describe('useRegistrationSettings', () => {
       const { result } = renderHook(() => useRegistrationSettings());
 
       expect(result.current.isLoading).toBe(true);
+      expect(result.current.isFetched).toBe(false);
       expect(result.current.data).toBeNull();
     });
 
@@ -219,6 +226,7 @@ describe('useRegistrationSettings', () => {
         data: undefined,
         isLoading: false,
         isFetching: false,
+        isFetched: true,
         error: new Error('Registration settings error'),
         refetch: mockRefetch,
       };
@@ -228,6 +236,7 @@ describe('useRegistrationSettings', () => {
       expect(result.current.error).toEqual(
         new Error('Registration settings error'),
       );
+      expect(result.current.isFetched).toBe(true);
       expect(result.current.data).toBeNull();
     });
 
@@ -262,6 +271,21 @@ describe('useRegistrationSettings', () => {
   });
 
   describe('edge cases', () => {
+    it('reports settings as not fetched when the SDK is unavailable', () => {
+      mockQueryReturn = {
+        ...mockQueryReturn,
+        isFetched: true,
+      };
+      mockUseCardSDK.mockReturnValue({
+        ...jest.requireMock('../sdk'),
+        sdk: null,
+      });
+
+      const { result } = renderHook(() => useRegistrationSettings());
+
+      expect(result.current.isFetched).toBe(false);
+    });
+
     it('handles undefined SDK gracefully', () => {
       mockUseCardSDK.mockReturnValue({
         ...jest.requireMock('../sdk'),

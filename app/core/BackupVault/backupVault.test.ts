@@ -26,8 +26,6 @@ const mockStorageType = STORAGE_TYPE.AES_GCM;
 jest.mock('react-native-keychain', () => ({
   ...jest.requireActual('react-native-keychain'),
   STORAGE_TYPE: {
-    FB: 'FacebookConceal',
-    AES: 'KeystoreAES',
     AES_CBC: 'KeystoreAESCBC',
     AES_GCM_NO_AUTH: 'KeystoreAESGCM_NoAuth',
     AES_GCM: 'KeystoreAESGCM',
@@ -50,26 +48,21 @@ jest.mock('react-native-keychain', () => ({
   getInternetCredentials: jest.fn(
     async (server: string) => mockKeychainState[server],
   ),
-  resetInternetCredentials: jest.fn(async (server: string) => {
-    delete mockKeychainState[server];
+  resetInternetCredentials: jest.fn(async (options: { server: string }) => {
+    delete mockKeychainState[options.server];
   }),
 }));
 
-//TODO Mock the react-native-keychain module test the other functions inside backupVault
-/*
- These tests are extremely limited since we are unable to mock the react-native-keychain module
- Despite the fact that they are mocked in the jest setup file, they do not appear to be working.
- Therefore the best we can do for now is to test the error case that does not hit the keychain.
-
- Documentation for the testing react-native-keychain can be found here: https://github.com/oblador/react-native-keychain#unit-testing-with-jest
- More information on the issue can be found here: https://github.com/oblador/react-native-keychain/issues/460
-*/
 describe('backupVault file', () => {
   const dummyPassword = 'dummy-password';
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockKeychainState = {};
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('clearAllVaultBackups', () => {
@@ -184,6 +177,60 @@ describe('backupVault file', () => {
       const response = await backupVault(keyringState);
 
       expect(response).toEqual(mockedSuccessResponse);
+    });
+
+    it('skips keychain rewrite when existing backup already matches vault', async () => {
+      const vault = 'already-backed-up-vault';
+
+      await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
+
+      (setInternetCredentials as jest.Mock).mockClear();
+      (resetInternetCredentials as jest.Mock).mockClear();
+
+      const keyringState: KeyringControllerState = {
+        vault,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      const response = await backupVault(keyringState);
+
+      expect(response).toEqual({
+        success: true,
+        vault,
+        skipped: true,
+        skipReason: 'identical_keychain',
+      });
+      expect(setInternetCredentials).not.toHaveBeenCalled();
+      expect(resetInternetCredentials).not.toHaveBeenCalled();
+    });
+
+    it('re-reads keychain on a later call even for a previously confirmed vault, to self-heal keystore invalidation', async () => {
+      const vault = 'confirmed-vault';
+      const keyringState: KeyringControllerState = {
+        vault,
+        keyrings: [],
+        isUnlocked: false,
+      };
+
+      await setInternetCredentials(VAULT_BACKUP_KEY, VAULT_BACKUP_KEY, vault);
+      await backupVault(keyringState);
+
+      // Simulate the keychain entry becoming unreadable in between calls
+      // (e.g. Android Keystore key invalidated by a biometric enrollment
+      // change). A later call for the *same* vault string must still detect
+      // and repair this instead of trusting an in-memory "already confirmed"
+      // flag.
+      (getInternetCredentials as jest.Mock).mockClear();
+      (getInternetCredentials as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('Android Keystore key permanently invalidated');
+      });
+
+      const response = await backupVault(keyringState);
+
+      expect(getInternetCredentials).toHaveBeenCalledTimes(1);
+      expect(response).toEqual({ success: true, vault });
+      expect(mockKeychainState[VAULT_BACKUP_KEY]?.password).toBe(vault);
     });
 
     it('should still succeed if reading the existing backup throws (e.g. Android Keystore key invalidation)', async () => {

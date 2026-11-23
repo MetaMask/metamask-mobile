@@ -5,7 +5,7 @@ import {
   getDefaultCandlePeriodForDuration,
   calculateCandleCount,
 } from '@metamask/perps-controller';
-import { getCandlestickColors } from './chartConfig';
+import { getCandlestickColors, clampVisibleCandleCount } from './chartConfig';
 import { mockTheme } from '../../../../util/theme';
 
 describe('chartConfig', () => {
@@ -92,6 +92,24 @@ describe('chartConfig', () => {
 
       // Assert
       expect(count).toBe(10); // Should be at least 10 candles minimum
+    });
+  });
+
+  describe('clampVisibleCandleCount', () => {
+    it('returns the default for non-finite values', () => {
+      expect(clampVisibleCandleCount(Number.NaN)).toBe(30);
+    });
+
+    it('clamps below the minimum to 10', () => {
+      expect(clampVisibleCandleCount(3)).toBe(10);
+    });
+
+    it('clamps above the maximum to 250', () => {
+      expect(clampVisibleCandleCount(400)).toBe(250);
+    });
+
+    it('rounds a fractional count', () => {
+      expect(clampVisibleCandleCount(42.6)).toBe(43);
     });
   });
 

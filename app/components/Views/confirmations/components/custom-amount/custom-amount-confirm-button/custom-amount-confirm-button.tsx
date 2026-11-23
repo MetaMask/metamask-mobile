@@ -22,14 +22,15 @@ import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { CustomAmountStage } from '../../../hooks/custom-amount/useCustomAmountStage';
+import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
+import { usePredictWithdrawGasFeeToken } from '../../../hooks/gas/usePredictWithdrawGasFeeToken';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 
 export function CustomAmountConfirmButton({
-  alertTitle,
   isDisabled,
   onContinue,
   stage,
 }: Readonly<{
-  alertTitle: string | undefined;
   isDisabled: boolean;
   onContinue?: () => void;
   stage: CustomAmountStage;
@@ -39,9 +40,24 @@ export function CustomAmountConfirmButton({
   const { isHeadlessBuyInProgress, setIsConfirmationSubmitting } =
     useConfirmationContext();
   const { onConfirm } = useConfirmActions();
+  const isPayLoading = useIsTransactionPayLoading();
+  // Keep confirm disabled, without an alert, until the Predict withdraw gas
+  // fee token check settles, so the insufficient balance alert doesn't flash.
+  const {
+    isPending: isPredictWithdrawGasFeeTokenPending,
+    recheck: recheckPredictWithdrawGasFeeToken,
+  } = usePredictWithdrawGasFeeToken();
 
   const handleConfirm = useCallback(async () => {
     setIsConfirmationSubmitting(true);
+
+    // The cached check can be stale by now. Check again so a withdraw pUSD
+    // can no longer pay shows the alert instead of failing after signing.
+    if (!(await recheckPredictWithdrawGasFeeToken())) {
+      setIsConfirmationSubmitting(false);
+      return;
+    }
+
     onContinue?.();
 
     try {
@@ -50,20 +66,22 @@ export function CustomAmountConfirmButton({
       setIsConfirmationSubmitting(false);
       throw error;
     }
-  }, [onConfirm, onContinue, setIsConfirmationSubmitting]);
+  }, [
+    onConfirm,
+    onContinue,
+    recheckPredictWithdrawGasFeeToken,
+    setIsConfirmationSubmitting,
+  ]);
 
   const disabled =
     isDisabled ||
     stage !== CustomAmountStage.ShowTotals ||
     hasBlockingAlerts ||
+    isPayLoading ||
+    isPredictWithdrawGasFeeTokenPending ||
     isHeadlessBuyInProgress;
 
-  const enabledButtonLabel = useButtonLabel();
-
-  const buttonLabel =
-    stage === CustomAmountStage.Loading
-      ? enabledButtonLabel
-      : (alertTitle ?? enabledButtonLabel);
+  const buttonLabel = useButtonLabel();
 
   return (
     <Button
@@ -85,9 +103,18 @@ export function CustomAmountConfirmButton({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
   const { payWithOption } = useParams<ConfirmationParams>({});
+  const { payToken } = useTransactionPayToken();
 
   if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
     return strings('confirm.deposit_edit_amount_money_account_send');
+  }
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+    if (payToken?.symbol) {
+      return strings('confirm.deposit_edit_amount_convert_token', {
+        symbol: payToken.symbol,
+      });
+    }
   }
 
   if (
@@ -97,10 +124,6 @@ function useButtonLabel() {
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
-  }
-
-  if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
-    return strings('earn.musd_conversion.confirm');
   }
 
   if (

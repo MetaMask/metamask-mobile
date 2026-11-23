@@ -1,4 +1,9 @@
 import { hexToBN } from '@metamask/controller-utils';
+import {
+  GasFeeEstimateType,
+  type GasFeeEstimates,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { Hex, add0x } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import I18n from '../../../../../locales/i18n';
@@ -187,4 +192,71 @@ export function normalizeGasInput(value: string) {
 export function convertGasInputToHexWEI(value: string) {
   const normalizedValue = normalizeGasInput(value);
   return add0x(decGWEIToHexWEI(normalizedValue) as Hex);
+}
+
+/**
+ * Returns the medium (market) max fee per gas, or gas price, from the estimates.
+ */
+export function getMarketFeeFromEstimates(
+  gasFeeEstimates: GasFeeEstimates | undefined,
+): Hex | undefined {
+  switch (gasFeeEstimates?.type) {
+    case GasFeeEstimateType.FeeMarket:
+      return gasFeeEstimates.medium?.maxFeePerGas;
+    case GasFeeEstimateType.Legacy:
+      return gasFeeEstimates.medium;
+    case GasFeeEstimateType.GasPrice:
+      return gasFeeEstimates.gasPrice;
+    default:
+      return undefined;
+  }
+}
+
+/**
+ * Whether the transaction still uses the gas fees suggested by the dapp.
+ */
+export function areDappSuggestedAndTxParamGasFeesTheSame(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  const { txParams, dappSuggestedGasFees } = transactionMeta ?? {};
+  const { gasPrice, maxFeePerGas, maxPriorityFeePerGas } = txParams ?? {};
+  const {
+    gasPrice: dappGasPrice,
+    maxFeePerGas: dappMaxFeePerGas,
+    maxPriorityFeePerGas: dappMaxPriorityFeePerGas,
+  } = dappSuggestedGasFees ?? {};
+
+  const hasTxParamsFees = Boolean(
+    gasPrice || maxFeePerGas || maxPriorityFeePerGas,
+  );
+  const hasDappFees = Boolean(
+    dappGasPrice || dappMaxFeePerGas || dappMaxPriorityFeePerGas,
+  );
+
+  if (!hasTxParamsFees || !hasDappFees) {
+    return false;
+  }
+
+  const gasPriceMatchesDappGasPrice = Boolean(
+    gasPrice && gasPrice === dappGasPrice,
+  );
+
+  // Dapp gas price can be upgraded to EIP-1559 fees on supported networks.
+  const eip1559FeesMatchDappGasPrice = Boolean(
+    dappGasPrice &&
+      maxFeePerGas === dappGasPrice &&
+      maxPriorityFeePerGas === dappGasPrice,
+  );
+
+  const eip1559FeesMatchDappEip1559Fees = Boolean(
+    maxFeePerGas &&
+      maxFeePerGas === dappMaxFeePerGas &&
+      maxPriorityFeePerGas === dappMaxPriorityFeePerGas,
+  );
+
+  return (
+    gasPriceMatchesDappGasPrice ||
+    eip1559FeesMatchDappGasPrice ||
+    eip1559FeesMatchDappEip1559Fees
+  );
 }

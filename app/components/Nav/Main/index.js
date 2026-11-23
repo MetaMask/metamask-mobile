@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useContext,
-} from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import {
   ActivityIndicator,
@@ -34,25 +28,26 @@ import {
 
 import ProtectYourWalletModal from '../../UI/ProtectYourWalletModal';
 import PushNotificationOnboardingRoot from '../../Views/Notifications/PushNotificationOnboarding/PushNotificationOnboardingRoot';
+import PendingMoneyReferralInvite from '../../UI/Rewards/components/Money/PendingMoneyReferralInvite';
 import { CliLoginPushNudgeListener } from '../../UI/CliLoginPushNudge';
 import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 import MoneyTransactionMonitor from '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor';
+import ProSubscriptionPaymentMonitor from '../../Views/ProSubscription/components/ProSubscriptionPaymentMonitor/ProSubscriptionPaymentMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
   setInfuraAvailabilityNotBlocked,
 } from '../../../actions/infuraAvailability';
 
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import ReviewModal from '../../UI/ReviewModal';
 import { useTheme } from '../../../util/theme';
 import RootRPCMethodsUI from './RootRPCMethodsUI';
 import {
-  ToastContext,
-  ToastVariants,
-} from '../../../component-library/components/Toast';
+  AvatarNetwork,
+  AvatarNetworkSize,
+  toast,
+} from '@metamask/design-system-react-native';
 import { useMinimumVersions } from '../../hooks/MinimumVersions';
 import {
   selectChainId,
@@ -73,9 +68,9 @@ import {
   DEPRECATED_NETWORKS,
   NETWORKS_CHAIN_ID,
 } from '../../../constants/network';
-import Routes from '../../../constants/navigation/Routes';
 import WarningAlert from '../../../components/UI/WarningAlert';
 import { GOERLI_DEPRECATED_ARTICLE } from '../../../constants/urls';
+import { getNetworkImageSource } from '../../../util/networks';
 import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
@@ -86,6 +81,7 @@ import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal
 import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 import { Authentication } from '../../../core';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
+import { useBasicFunctionalityConsolidation } from '../../hooks/useBasicFunctionalityConsolidation';
 import {
   useNetworksByNamespace,
   NetworkType,
@@ -93,12 +89,6 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { shouldShowNetworkListToast } from './utils';
-import {
-  clearNativeStackNavigatorOptions,
-  transparentModalScreenOptions,
-} from '../../../constants/navigation/clearStackNavigatorOptions';
-
-const NativeStack = createNativeStackNavigator();
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -139,6 +129,10 @@ const Main = (props) => {
   useNotificationHandler();
   useIdentityEffects();
   useMinimumVersions();
+  // Runs here rather than in App: the keyring unlocks while Login is still on
+  // screen, and Login hands the session over with a root-stack reset that
+  // would throw the migration sheet away with the rest of the stack.
+  useBasicFunctionalityConsolidation();
 
   const { chainId, networkClientId } = props;
 
@@ -206,7 +200,6 @@ const Main = (props) => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
-  const { toastRef } = useContext(ToastContext);
   const { networks } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
@@ -259,7 +252,6 @@ const Main = (props) => {
     providerConfig,
     networkName,
     networkImage,
-    toastRef,
     chainId,
     isEvmSelected,
     hasNetworkChanged,
@@ -298,34 +290,39 @@ const Main = (props) => {
             (curr) => curr.chainId === network.chainId,
           ),
       );
+      // Avatar matches the network named in the toast title.
+      const changedNetwork = deletedNetwork || newNetwork;
+      const changedNetworkImage = changedNetwork?.chainId
+        ? getNetworkImageSource({ chainId: changedNetwork.chainId })
+        : undefined;
 
       const shouldShowToast = shouldShowNetworkListToast({
         newNetworkChainId: newNetwork?.chainId,
         hasDeletedNetwork: Boolean(deletedNetwork),
       });
       if (shouldShowToast) {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: `${
-                (deletedNetwork?.name || newNetwork?.name) ??
-                strings('asset_details.network')
-              } `,
-              isBold: true,
-            },
-            {
-              label: deletedNetwork
-                ? strings('toast.network_removed')
-                : strings('toast.network_added'),
-            },
-          ],
-          networkImageSource: networkImage,
+        toast({
+          title: `${
+            (deletedNetwork?.name || newNetwork?.name) ??
+            strings('asset_details.network')
+          } ${
+            deletedNetwork
+              ? strings('toast.network_removed')
+              : strings('toast.network_added')
+          }`,
+          startAccessory: changedNetworkImage ? (
+            <AvatarNetwork
+              src={changedNetworkImage}
+              size={AvatarNetworkSize.Md}
+            />
+          ) : undefined,
+          hasNoTimeout: false,
+          showCloseButton: false,
         });
       }
     }
     previousNetworkConfigurations.current = networkConfigurations;
-  }, [networkConfigurations, networkImage, toastRef]);
+  }, [networkConfigurations]);
 
   useEffect(() => {
     if (locale.current !== I18n.locale) {
@@ -369,7 +366,7 @@ const Main = (props) => {
   }, [connectionChangeHandler]);
 
   const openDeprecatedNetworksArticle = () => {
-    Linking.openURL(GOERLI_DEPRECATED_ARTICLE);
+    Linking.openURL(GOERLI_DEPRECATED_ARTICLE).catch(() => undefined);
   };
 
   const renderDeprecatedNetworkAlert = (chainId, backUpSeedphraseVisible) => {
@@ -408,6 +405,7 @@ const Main = (props) => {
         <RampOrders />
         <EarnTransactionMonitor />
         <MoneyTransactionMonitor />
+        <ProSubscriptionPaymentMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,
@@ -415,6 +413,7 @@ const Main = (props) => {
         <ProtectYourWalletModal navigation={props.navigation} />
         <RootRPCMethodsUI navigation={props.navigation} />
         <ProtectWalletMandatoryModal />
+        <PendingMoneyReferralInvite />
         <PushNotificationOnboardingRoot />
         <CliLoginPushNudgeListener />
       </View>
@@ -494,27 +493,4 @@ const mapDispatchToProps = (dispatch) => ({
 
 const ConnectedMain = connect(mapStateToProps, mapDispatchToProps)(Main);
 
-const MainFlow = () => {
-  const { colors } = useTheme();
-  return (
-    <NativeStack.Navigator
-      initialRouteName={Routes.MAIN_FLOW}
-      screenOptions={{
-        headerShown: false,
-        contentStyle: { backgroundColor: colors.background.default },
-      }}
-    >
-      <NativeStack.Screen name={Routes.MAIN_FLOW} component={ConnectedMain} />
-      <NativeStack.Screen
-        name={'ReviewModal'}
-        component={ReviewModal}
-        options={{
-          ...clearNativeStackNavigatorOptions,
-          ...transparentModalScreenOptions,
-        }}
-      />
-    </NativeStack.Navigator>
-  );
-};
-
-export default MainFlow;
+export default ConnectedMain;

@@ -4,6 +4,11 @@ import {
 } from '../../../app/components/Views/Notifications/NotificationMenuView.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
+import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
+
+/** Matches `TEST_IDS.loadingContainer` in Notification List. */
+const NOTIFICATION_LIST_LOADING_TEST_ID = 'notification-list-loading';
 
 class NotificationMenuView {
   get title() {
@@ -28,10 +33,39 @@ class NotificationMenuView {
     );
   }
 
+  get loadingIndicator() {
+    return Matchers.getElementByID(NOTIFICATION_LIST_LOADING_TEST_ID);
+  }
+
   selectNotificationItem(id: string) {
     return Matchers.getElementByID(NotificationMenuViewSelectorsIDs.ITEM(id));
   }
 
+  /**
+   * Wait until the notification FlatList has finished loading.
+   * Feature announcements can appear before wallet notifications are merged;
+   * callers that need wallet rows should use {@link waitForNotificationItem}
+   * (scroll-based) rather than a bare hierarchy existence check.
+   */
+  async waitForListReady(timeout = 30_000): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(this.loadingIndicator, {
+      timeout,
+      description: 'notification list loading spinner gone',
+    });
+    await Assertions.expectElementToExist(
+      Matchers.getElementByID(
+        NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
+      ),
+      {
+        timeout,
+        description: 'notification list scroll view',
+      },
+    );
+  }
+
+  async tapOnAllTab() {
+    await Gestures.waitAndTap(this.all_tab);
+  }
   async tapOnWalletTab() {
     await Gestures.waitAndTap(this.wallet_tab);
   }
@@ -43,10 +77,81 @@ class NotificationMenuView {
       elemDescription: `Notification Menu - Notification Item with ID: ${id}`,
     });
   }
-  async scrollToNotificationItem(id: string) {
+
+  /**
+   * Prove a notification row is in the list by scrolling it into view.
+   *
+   * FlatList virtualizes off-screen rows, so `expectElementToExist` alone can
+   * time out even when mocks have merged — the item is simply not mounted yet.
+   *
+   * Wallet rows can also arrive *after* the loading spinner clears (feature
+   * announcements often paint first). A single scroll budget then fails with
+   * WDIO "scroll limit … scrolling up" (POM `direction: 'down'`) even though
+   * waiting longer would find the row. Retry short scroll passes until the
+   * outer timeout so late mock merges still succeed.
+   */
+  /**
+   * Reset the FlatList viewport toward the top after a failed down-scroll.
+   * Without this, retry passes start near the bottom and can miss a late-merged
+   * wallet row that mounts above the current offset.
+   */
+  async scrollListTowardTop(): Promise<void> {
+    await Gestures.swipe(
+      Matchers.getElementByID(
+        NotificationMenuViewSelectorsIDs.ITEM_LIST_SCROLLVIEW,
+      ),
+      'down',
+      {
+        speed: 'fast',
+        elemDescription: 'Notification list scroll toward top',
+      },
+    );
+  }
+
+  async waitForNotificationItem(
+    id: string,
+    options?: { direction?: 'up' | 'down'; timeout?: number },
+  ): Promise<void> {
+    // Default 90s so late wallet mock merges get multiple short scroll passes
+    // (each ~10s / 3 scrolls). Prior 30s only fit ~2 passes and left the list
+    // scrolled to the bottom between retries.
+    const timeout = options?.timeout ?? 90_000;
+    let attempt = 0;
+    await Utilities.executeWithRetry(
+      async () => {
+        if (attempt > 0) {
+          await this.scrollListTowardTop();
+        }
+        attempt += 1;
+        await this.scrollToNotificationItem(id, {
+          direction: options?.direction ?? 'down',
+          // ~3 scrolls per attempt (Gestures.scrollToElement: timeout/5000, capped 3–12)
+          timeout: 10_000,
+        });
+      },
+      {
+        timeout,
+        interval: 1_000,
+        description: `Notification item ${id} in list`,
+      },
+    );
+  }
+
+  async scrollToNotificationItem(
+    id: string,
+    options?: { direction?: 'up' | 'down'; timeout?: number },
+  ): Promise<void> {
+    // Bound the Appium scroll budget so a missing item fails fast with a clear
+    // error instead of looping until the suite timeout (CI: ~3 minutes).
+    // 40s → ~8 scrolls (Gestures.scrollToElement caps timeout/5000 between 3 and 12).
     await Gestures.scrollToElement(
       this.selectNotificationItem(id),
       this.scrollViewIdentifier,
+      {
+        elemDescription: `Notification Menu - scroll to item ${id}`,
+        direction: options?.direction ?? 'down',
+        timeout: options?.timeout ?? 40_000,
+      },
     );
   }
 }

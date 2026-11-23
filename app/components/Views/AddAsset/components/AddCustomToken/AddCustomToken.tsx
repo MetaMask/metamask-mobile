@@ -53,13 +53,11 @@ import CLText from '../../../../../component-library/components/Texts/Text/Text'
 import Logger from '../../../../../util/Logger';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import {
-  selectNetworkConfigurationByChainId,
   selectDefaultEndpointByChainId,
   selectProviderTypeByChainId,
 } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
 import { ImportAsset } from '../../utils/utils';
-import { selectIsAssetsUnifyStateEnabled } from '../../../../../selectors/featureFlagController/assetsUnifyState';
 import { toAssetId } from '../../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import useAssetVisibility from '../../../../UI/TokenDetails/components/useAssetVisibility';
 import type { TokenI } from '../../../../UI/Tokens/types';
@@ -69,7 +67,6 @@ import type { TokenI } from '../../../../UI/Tokens/types';
 interface AddCustomTokenProps {
   chainId: string;
   isTokenDetectionSupported?: boolean;
-  tabLabel?: string;
 }
 
 // --- Pure validation helpers ---
@@ -97,6 +94,10 @@ const getDecimalsError = (dec: string): string => {
   if (!dec.trim()) return strings('token.decimals_is_required');
   return '';
 };
+
+const getOptionalNetworkClientId = (
+  networkClientId: string | null,
+): string | undefined => networkClientId ?? undefined;
 
 // --- Hook: token metadata fetching ---
 
@@ -137,28 +138,27 @@ function useTokenMetadata(
         if (cancelled) return;
         setIsSmartContract(Boolean(isContract));
 
-        if (!isContract) return;
+        if (isContract) {
+          const { AssetsContractController } = Engine.context;
+          const clientId = getOptionalNetworkClientId(networkClientId);
+          const [d, s, n] = await Promise.all([
+            AssetsContractController.getERC20TokenDecimals(trimmed, clientId),
+            AssetsContractController.getERC721AssetSymbol(trimmed, clientId),
+            AssetsContractController.getERC20TokenName(trimmed, clientId),
+          ]);
+          if (cancelled) return;
 
-        const { AssetsContractController } = Engine.context;
-        const clientId = networkClientId ?? undefined;
-        const [d, s, n] = await Promise.all([
-          AssetsContractController.getERC20TokenDecimals(trimmed, clientId),
-          AssetsContractController.getERC721AssetSymbol(trimmed, clientId),
-          AssetsContractController.getERC20TokenName(trimmed, clientId),
-        ]);
-        if (cancelled) return;
-
-        setDecimals(String(d));
-        setSymbol(s);
-        setName(n);
+          setDecimals(String(d));
+          setSymbol(s);
+          setName(n);
+        }
       } catch (error) {
         Logger.error(
           error as Error,
           'useTokenMetadata: failed to fetch token metadata',
         );
-      } finally {
-        if (!cancelled) setIsLoading(false);
       }
+      if (!cancelled) setIsLoading(false);
     };
 
     run();
@@ -200,9 +200,6 @@ const AddCustomToken = ({
   const insets = useSafeAreaInsets();
 
   // Network selectors
-  const networkConfig = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, chainId),
-  );
   const defaultEndpoint = useSelector((state: RootState) =>
     selectDefaultEndpointByChainId(state, chainId as Hex),
   );
@@ -210,21 +207,13 @@ const AddCustomToken = ({
     selectProviderTypeByChainId(state, chainId as Hex),
   );
 
-  const networkName = networkConfig?.name ?? '';
   const networkClientId = defaultEndpoint?.networkClientId ?? null;
 
-  const isAssetsUnifyStateEnabled = useSelector(
-    selectIsAssetsUnifyStateEnabled,
-  );
-
-  // Provide address + chainId so the hook can determine whether the token is
-  // already hidden in AssetsController (isHidden) vs brand-new (not tracked).
   const tokenForVisibility = useMemo(
     () => (address && chainId ? ({ address, chainId } as TokenI) : undefined),
     [address, chainId],
   );
-  const { handleAddCustomAsset, handleHideToken, isHidden } =
-    useAssetVisibility(tokenForVisibility);
+  const { handleAddCustomAsset } = useAssetVisibility(tokenForVisibility);
 
   // Token metadata (async validation + RPC fetch)
   const {
@@ -288,40 +277,47 @@ const AddCustomToken = ({
   }, [navigation]);
 
   const addToken = useCallback(async (): Promise<void> => {
-    const { TokensController } = Engine.context;
-
     trace({ name: TraceName.ImportTokens });
-    await TokensController.addToken({
-      address: address.trim(),
-      symbol,
-      decimals: Number(decimals),
-      name,
-      networkClientId: networkClientId ?? '',
-    });
-    endTrace({ name: TraceName.ImportTokens });
 
-    if (isAssetsUnifyStateEnabled) {
-      const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
-      const trimmedAddress = address.trim();
-      const caipAssetType = toAssetId(trimmedAddress, caipChainId);
-      if (caipAssetType) {
-        try {
-          if (isHidden) {
-            // Token exists but was hidden — unhide it instead of re-adding
-            handleHideToken();
-          } else {
-            await handleAddCustomAsset(caipAssetType, {
-              address: trimmedAddress,
-              symbol,
-              name,
-              decimals: Number(decimals),
-              chainId: caipChainId,
-            });
-          }
-        } catch (error) {
-          Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
-        }
-      }
+    const caipChainId = formatChainIdToCaip(chainId as SupportedCaipChainId);
+    const trimmedAddress = address.trim();
+    const caipAssetType = toAssetId(trimmedAddress, caipChainId);
+
+    // AssetsController is the sole source of truth for custom tokens, so a
+    // failed (or skippable-but-unexpected) write must propagate and abort
+    // here — the caller (ConfirmAddAsset) relies on this rejecting to avoid
+    // navigating away and to keep the success toast/analytics/form-reset
+    // below from firing on a token that was never actually imported.
+    if (!caipAssetType) {
+      endTrace({ name: TraceName.ImportTokens });
+      const error = new Error(
+        'AddCustomToken: unable to derive CAIP asset type',
+      );
+      Logger.error(error, 'AddCustomToken: addCustomAsset failed');
+      throw error;
+    }
+
+    let didFailImport = false;
+    let importError: unknown;
+    try {
+      // addCustomAsset also clears the hidden flag. Hiding a custom token
+      // removes it from customAssets, so merely unhiding a hidden token
+      // (e.g. one with no balance) would leave it nowhere to be listed.
+      await handleAddCustomAsset(caipAssetType, {
+        address: trimmedAddress,
+        symbol,
+        name,
+        decimals: Number(decimals),
+        chainId: caipChainId,
+      });
+    } catch (error) {
+      didFailImport = true;
+      importError = error;
+      Logger.error(error as Error, 'AddCustomToken: addCustomAsset failed');
+    }
+    endTrace({ name: TraceName.ImportTokens });
+    if (didFailImport) {
+      throw importError;
     }
 
     try {
@@ -357,14 +353,10 @@ const AddCustomToken = ({
     symbol,
     decimals,
     name,
-    networkClientId,
     chainId,
     trackEvent,
     createEventBuilder,
-    isAssetsUnifyStateEnabled,
     handleAddCustomAsset,
-    handleHideToken,
-    isHidden,
   ]);
 
   const handleNext = useCallback(() => {
@@ -387,7 +379,6 @@ const AddCustomToken = ({
     ];
     navigation.push('ConfirmAddAsset', {
       selectedAsset,
-      networkName,
       addTokenList: addToken,
     });
   }, [
@@ -400,14 +391,13 @@ const AddCustomToken = ({
     name,
     decimals,
     chainId,
-    networkName,
     navigation,
     addToken,
   ]);
 
   // --- Styles ---
 
-  const baseInputFont = { fontFamily: 'Geist-Regular' };
+  const baseInputFont = { fontFamily: 'Inter-Regular' };
   const bottomInset = Platform.OS === 'ios' ? 0 : insets.bottom;
 
   const getInputStyle = (hasError: boolean) =>
@@ -591,7 +581,7 @@ const AddCustomToken = ({
                   <Icon
                     style={tw.style('text-info-default')}
                     size={IconSize.Xss}
-                    name={IconName.Export}
+                    name={IconName.ArrowSquareOut}
                   />
                 </Text>{' '}
               </Text>
@@ -600,7 +590,7 @@ const AddCustomToken = ({
         ) : null}
       </KeyboardAwareScrollView>
 
-      <Box style={tw.style('pt-4 m-4', { paddingBottom: bottomInset })}>
+      <Box style={tw.style('pt-4 my-4', { paddingBottom: bottomInset })}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}

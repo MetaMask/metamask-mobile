@@ -1,4 +1,4 @@
-import { getNetworkBadgeSource } from './network';
+import { getNetworkBadgeSource, resetNetworkBadgeSourceCache } from './network';
 import {
   isTestNet,
   getTestNetImageByChainId,
@@ -57,6 +57,7 @@ describe('getNetworkBadgeSource', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNetworkBadgeSourceCache();
   });
 
   describe('when chainId is a testnet', () => {
@@ -189,6 +190,53 @@ describe('getNetworkBadgeSource', () => {
       const result = getNetworkBadgeSource(chainId);
 
       expect(result).toBe(testnetImageSource);
+    });
+  });
+
+  describe('caching', () => {
+    it('resolves a chain ID once and reuses the result', () => {
+      const chainId = '0x2a';
+      const expectedImageSource = 'popular-network-image-source';
+
+      mockIsTestNet.mockReturnValue(false);
+      mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
+
+      const first = getNetworkBadgeSource(chainId);
+      const second = getNetworkBadgeSource(chainId);
+
+      expect(second).toBe(first);
+      expect(second).toBe(expectedImageSource);
+      expect(mockIsTestNet).toHaveBeenCalledTimes(1);
+      expect(mockGetDefaultNetworkByChainId).toHaveBeenCalledTimes(1);
+    });
+
+    it('caches an unresolved chain ID so it is not looked up again', () => {
+      const chainId = '0x999';
+
+      mockIsTestNet.mockReturnValue(false);
+      mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
+      mockIsCaipChainId.mockReturnValue(false);
+
+      expect(getNetworkBadgeSource(chainId)).toBeUndefined();
+      expect(getNetworkBadgeSource(chainId)).toBeUndefined();
+
+      expect(mockIsTestNet).toHaveBeenCalledTimes(1);
+      expect(mockIsCaipChainId).toHaveBeenCalledTimes(1);
+    });
+
+    it('caches each chain ID independently', () => {
+      const testnetChainId = '0xaa36a7';
+      const testnetImageSource = { uri: 'testnet-image-source' };
+
+      mockIsTestNet.mockImplementation((id) => id === testnetChainId);
+      mockGetTestNetImageByChainId.mockReturnValue(testnetImageSource);
+      mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
+
+      expect(getNetworkBadgeSource(testnetChainId)).toBe(testnetImageSource);
+      expect(getNetworkBadgeSource('0xfa')).toBe(
+        'unpopular-network-image-source',
+      );
+      expect(getNetworkBadgeSource(testnetChainId)).toBe(testnetImageSource);
     });
   });
 });

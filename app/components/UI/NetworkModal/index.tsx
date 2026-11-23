@@ -41,10 +41,10 @@ import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/netw
 
 import {
   NetworkConfiguration,
-  RpcEndpointType,
   AddNetworkFields,
 } from '@metamask/network-controller';
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { buildAddNetworkRpcEndpoint } from '../../../util/config-registry';
 import { Hex } from '@metamask/utils';
 import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
@@ -80,7 +80,6 @@ const NetworkModals = (props: NetworkProps) => {
       nickname,
       ticker,
       rpcUrl,
-      failoverRpcUrls,
       formattedRpcUrl,
       rpcPrefs: { blockExplorerUrl, imageUrl },
     },
@@ -213,14 +212,7 @@ const NetworkModals = (props: NetworkProps) => {
         defaultBlockExplorerUrlIndex: 0,
         name: nickname,
         nativeCurrency: ticker,
-        rpcEndpoints: [
-          {
-            url: rpcUrl,
-            failoverUrls: failoverRpcUrls,
-            name: nickname,
-            type: RpcEndpointType.Custom,
-          },
-        ],
+        rpcEndpoints: buildAddNetworkRpcEndpoint(props.networkConfiguration),
       });
 
       identify(addItemToChainIdList(chainId));
@@ -263,8 +255,6 @@ const NetworkModals = (props: NetworkProps) => {
 
   const handleNewNetwork = async (
     networkId: `0x${string}`,
-    networkRpcUrl: string,
-    networkFailoverRpcUrls: string[] | undefined,
     name: string,
     nativeCurrency: string,
     networkBlockExplorerUrl: string,
@@ -279,14 +269,7 @@ const NetworkModals = (props: NetworkProps) => {
       defaultBlockExplorerUrlIndex: blockExplorerUrl ? 0 : undefined,
       name,
       nativeCurrency,
-      rpcEndpoints: [
-        {
-          url: networkRpcUrl,
-          failoverUrls: networkFailoverRpcUrls,
-          name,
-          type: RpcEndpointType.Custom,
-        },
-      ],
+      rpcEndpoints: buildAddNetworkRpcEndpoint(props.networkConfiguration),
     } satisfies AddNetworkFields;
 
     return NetworkController.addNetwork(networkConfig);
@@ -306,8 +289,6 @@ const NetworkModals = (props: NetworkProps) => {
     } else {
       const addedNetwork = await handleNewNetwork(
         chainId as Hex,
-        rpcUrl,
-        failoverRpcUrls,
         nickname,
         ticker,
         blockExplorerUrl,

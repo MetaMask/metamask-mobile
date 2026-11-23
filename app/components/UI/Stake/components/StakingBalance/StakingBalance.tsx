@@ -6,18 +6,15 @@ import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  SensitiveText,
+  SensitiveTextLength,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+} from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
@@ -49,17 +46,27 @@ import UnstakingBanner from './StakingBanners/UnstakeBanner/UnstakeBanner';
 import StakingButtons from './StakingButtons/StakingButtons';
 import StakingCta from './StakingCta/StakingCta';
 import { filterExitRequests } from './utils';
-import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
+import {
+  selectPooledStakingEnabledFlag,
+  selectPooledStakingServiceInterruptionBannerEnabledFlag,
+} from '../../../Earn/selectors/featureFlags';
 import PercentageChange from '../../../../../component-library/components-temp/Price/PercentageChange';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import StakingEarnings from '../StakingEarnings';
+import EarnMaintenanceBanner from '../../../Earn/components/EarnMaintenanceBanner';
 import { useTheme } from '../../../../../util/theme';
+import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 export interface StakingBalanceProps {
   asset: TokenI;
+  /** Draws the stake buttons on brand refresh glass. */
+  isGlass?: boolean;
 }
 
-const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
+const StakingBalanceContent = ({
+  asset,
+  isGlass = false,
+}: StakingBalanceProps) => {
   const theme = useTheme();
 
   const [
@@ -72,6 +79,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const isPooledStakingServiceInterruptionBannerEnabled = useSelector(
+    selectPooledStakingServiceInterruptionBannerEnabledFlag,
+  );
   const privacyMode = useSelector(selectPrivacyMode);
 
   const { styles } = useStyles(styleSheet, { theme });
@@ -206,6 +216,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           }
           hasEthToUnstake={hasEthToUnstake}
           hasStakedPositions={hasStakedPositions}
+          isGlass={isGlass}
         />
       </>
     );
@@ -224,13 +235,13 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           }
         >
           <BadgeWrapper
-            badgePosition={BadgePosition.BottomRight}
-            style={styles.badgeWrapper}
-            badgeElement={
-              <Badge
-                variant={BadgeVariant.Network}
-                imageSource={NetworkBadgeSource(asset.chainId as Hex)}
+            twClassName="self-center"
+            position={BadgeWrapperPosition.BottomRight}
+            badge={
+              <BadgeNetwork
+                src={NetworkBadgeSource(asset.chainId as Hex)}
                 name={networkConfigurationByChainId?.name}
+                twClassName="h-5 w-5"
               />
             }
           >
@@ -244,11 +255,11 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             />
           </BadgeWrapper>
           <View style={styles.balances}>
-            <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
+            <Text variant={TextVariant.BodyMd} testID="staked-ethereum-label">
               {strings('stake.staked_ethereum')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               style={styles.tokenAmount}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -258,7 +269,16 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           </View>
         </AssetElement>
       )}
-      <View style={styles.container}>{renderStakingContent()}</View>
+      <View style={styles.container}>
+        {isPooledStakingServiceInterruptionBannerEnabled && (
+          <View style={styles.maintenanceBanner}>
+            <EarnMaintenanceBanner
+              experienceName={EARN_EXPERIENCES.POOLED_STAKING}
+            />
+          </View>
+        )}
+        {renderStakingContent()}
+      </View>
       <View style={styles.stakingEarnings}>
         <StakingEarnings asset={asset} />
       </View>
@@ -266,9 +286,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 };
 
-export const StakingBalance = ({ asset }: StakingBalanceProps) => (
+export const StakingBalance = ({ asset, isGlass }: StakingBalanceProps) => (
   <StakeSDKProvider>
-    <StakingBalanceContent asset={asset} />
+    <StakingBalanceContent asset={asset} isGlass={isGlass} />
   </StakeSDKProvider>
 );
 

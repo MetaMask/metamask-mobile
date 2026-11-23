@@ -1,4 +1,5 @@
 /* eslint-disable no-plusplus */
+import { keccak256 } from '@metamask/native-utils';
 import {
   bytesToHex,
   isHexString,
@@ -10,7 +11,6 @@ import {
   stringToBytes,
   type Hex,
 } from '@metamask/utils';
-import { keccak } from 'ethereumjs-util';
 
 type Address = Hex;
 
@@ -91,17 +91,6 @@ export function isHex(
 ): value is Hex {
   const { strict = true } = options || {};
   return strict ? isStrictHexString(value) : isHexString(value);
-}
-
-/**
- * Checks if two hex strings are equal.
- *
- * @param a - The first hex string.
- * @param b - The second hex string.
- * @returns True if the hex strings are equal, false otherwise.
- */
-export function isHexEqual(a: Hex, b: Hex) {
-  return a.toLowerCase() === b.toLowerCase();
 }
 
 interface PadOptions {
@@ -239,7 +228,7 @@ function normalizeSignature(signature: string): string {
 }
 
 function hashSignature(fn: string) {
-  return keccak(Buffer.from(stringToBytes(normalizeSignature(fn))));
+  return keccak256(stringToBytes(normalizeSignature(fn)));
 }
 /**
  * Returns the function selector for a given function definition.

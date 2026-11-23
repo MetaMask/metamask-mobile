@@ -7,6 +7,12 @@ import type {
 import type { AccountGroupId } from '@metamask/account-api';
 import type { SeasonRewardType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
+import type { RewardsInfoSheetModalParams } from '../components/RewardsInfoSheetModal';
+import type { TaxFormQuestionSheetParams } from '../components/Money/TaxFormQuestionSheet';
+import type { TaxFormOpenFormSheetParams } from '../components/Money/TaxFormOpenFormSheet';
+import type { TaxFormContactUsSheetParams } from '../components/Money/TaxFormContactUsSheet';
+import type { RewardsTaxFormViewParams } from '../Views/RewardsTaxFormView';
+import type { RewardsMoneyClaimsPausedModalParams } from '../components/Money/RewardsMoneyClaimsPausedModal';
 
 export interface RewardsOndoCampaignDetailsParams {
   campaignId?: string;
@@ -89,6 +95,15 @@ export interface RewardsPredictThePitchCampaignStatsParams {
   campaignId: string;
 }
 
+export interface RewardsMoneyAccountSweepstakesCampaignDetailsParams {
+  campaignId?: string;
+}
+
+export interface RewardsMoneyAccountSweepstakesCampaignWinningParams {
+  campaignId: string;
+  campaignName: string;
+}
+
 export interface RewardsModalAction {
   label: string;
   onPress: () => void | Promise<void>;
@@ -161,12 +176,29 @@ export interface RewardOptInAccountGroupModalParams {
 }
 
 /**
+ * How a referral link's code reached the invite, reported as `entry_type`.
+ * `restored_context` is a Branch deferred deeplink (the first session after
+ * installing from the link); `deeplink` is any other link.
+ */
+export type MoneyReferralEntryType = 'deeplink' | 'restored_context';
+
+/**
+ * Params for `RewardsMoneyInviteSheet`.
+ * `referralCode` prefills the sheet when the caller already has a code
+ * (deeplink or onboarding); it is absent when the user opens it to type one.
+ * `entryType` is set when the code came from a referral link.
+ */
+export interface RewardsMoneyInviteSheetParams {
+  referralCode?: string;
+  entryType?: MoneyReferralEntryType;
+}
+
+/**
  * Param list for screens registered in `RewardsNavigator`.
  */
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsStackParamList = {
-  ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsVipSplashView: undefined;
   RewardsVipView: undefined;
@@ -175,6 +207,9 @@ export type RewardsStackParamList = {
   RewardsVipRefereeSplashView: undefined;
   RewardsVipRefereeView: undefined;
   RewardsCampaignsView: undefined;
+  RewardsTradingCommissionsView: undefined;
+  RewardsTradingRebatesView: undefined;
+  RewardsEarningsHistoryView: undefined;
   RewardsCampaignTourStep: RewardsCampaignTourStepParams;
   RewardsCampaignDetails: RewardsOndoCampaignDetailsParams | undefined;
   RewardsOndoCampaignWinning: RewardsOndoCampaignWinningParams;
@@ -182,7 +217,6 @@ export type RewardsStackParamList = {
     | RewardsSeasonOneCampaignDetailsParams
     | undefined;
   RewardsCampaignMechanics: RewardsCampaignMechanicsParams;
-  RewardsMusdCalculatorView: undefined;
   RewardsOndoCampaignLeaderboard: RewardsOndoCampaignLeaderboardParams;
   RewardsOndoRwaAssetSelector: RewardsOndoRwaAssetSelectorParams;
   RewardsOndoCampaignPortfolioView: RewardsOndoCampaignPortfolioParams;
@@ -200,6 +234,10 @@ export type RewardsStackParamList = {
   RewardsPredictThePitchCampaignPortfolioView: RewardsPredictThePitchCampaignPortfolioParams;
   RewardsPredictThePitchCampaignWinning: RewardsPredictThePitchCampaignWinningParams;
   RewardsPredictThePitchCampaignStats: RewardsPredictThePitchCampaignStatsParams;
+  RewardsMoneyAccountSweepstakesCampaignDetails:
+    | RewardsMoneyAccountSweepstakesCampaignDetailsParams
+    | undefined;
+  RewardsMoneyAccountSweepstakesCampaignWinning: RewardsMoneyAccountSweepstakesCampaignWinningParams;
 };
 
 /**
@@ -212,7 +250,17 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsSelectSheet: RewardsSelectSheetParams;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsBottomSheetModal: RewardsBottomSheetModalParams | undefined;
+  RewardsInfoSheetModal: RewardsInfoSheetModalParams | undefined;
+  RewardsMoneyClaimsPausedModal:
+    | RewardsMoneyClaimsPausedModalParams
+    | undefined;
   RewardsClaimBottomSheetModal: RewardsClaimBottomSheetModalParams | undefined;
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
+  RewardsMoneyInviteSheet: RewardsMoneyInviteSheetParams | undefined;
+  RewardsMoneyTermsSheet: undefined;
+  RewardsTaxQuestionSheet: TaxFormQuestionSheetParams;
+  RewardsTaxOpenFormSheet: TaxFormOpenFormSheetParams;
+  RewardsTaxContactSheet: TaxFormContactUsSheetParams;
+  RewardsTaxFormView: RewardsTaxFormViewParams;
 };

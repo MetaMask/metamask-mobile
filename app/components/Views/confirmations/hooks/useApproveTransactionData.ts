@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 
-import { APPROVAL_4BYTE_SELECTORS, ZERO_AMOUNT } from '../constants/approve';
+import {
+  APPROVAL_4BYTE_SELECTORS,
+  APPROVAL_SELECTORS,
+  ZERO_AMOUNT,
+} from '../constants/approve';
 import {
   get4ByteCode,
   parseStandardTokenTransactionData,
@@ -81,32 +85,48 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
   const { txParams, networkClientId } = transactionMetadata ?? {};
   const data = txParams?.data;
-  const contractAddress = txParams?.to;
+
+  // Memoize parsing operations
+  const { fourByteCode, isApproval, parsedData } = useMemo(() => {
+    if (!data) {
+      return {
+        fourByteCode: undefined,
+        isApproval: false,
+        parsedData: undefined,
+      };
+    }
+
+    const code = get4ByteCode(data);
+
+    if (!APPROVAL_SELECTORS.has(code)) {
+      return { fourByteCode: code, isApproval: false, parsedData: undefined };
+    }
+
+    return {
+      fourByteCode: code,
+      isApproval: true,
+      parsedData: parseStandardTokenTransactionData(data),
+    };
+  }, [data]);
+
+  // Permit2 calls go to the Permit2 contract, so the token is in the calldata
+  const tokenAddress: string | undefined =
+    fourByteCode === APPROVAL_4BYTE_SELECTORS.PERMIT2_APPROVE
+      ? parsedData?.args?.token
+      : txParams?.to;
   const { details, isPending: isTokenStandardPending } =
-    useGetTokenStandardAndDetails(contractAddress, networkClientId);
+    useGetTokenStandardAndDetails(tokenAddress, networkClientId);
   const { tokenBalance } = useERC20TokenBalance(
-    contractAddress as string,
+    tokenAddress as string,
     txParams?.from as string,
     networkClientId as string,
   );
 
   const tokenStandard = details?.standard?.toUpperCase();
 
-  // Memoize parsing operations
-  const { fourByteCode, parsedData } = useMemo(() => {
-    if (!data) {
-      return { fourByteCode: undefined, parsedData: undefined };
-    }
-
-    const code = get4ByteCode(data);
-    const parsed = parseStandardTokenTransactionData(data);
-
-    return { fourByteCode: code, parsedData: parsed };
-  }, [data]);
-
   // Memoize the entire parsed approval data
   const parsedApproveData = useMemo((): ApproveTransactionData => {
-    if (!transactionMetadata || isTokenStandardPending || !parsedData) {
+    if (!transactionMetadata || isTokenStandardPending || !data) {
       return {
         isLoading: true,
       };
@@ -121,6 +141,16 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
       tokenBalance: undefined,
       tokenSymbol: details?.symbol as string,
     };
+
+    if (!isApproval) {
+      return result;
+    }
+
+    if (!parsedData) {
+      return {
+        isLoading: true,
+      };
+    }
 
     switch (fourByteCode) {
       case APPROVAL_4BYTE_SELECTORS.APPROVE: {
@@ -191,7 +221,9 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
         result.amount = amountInDecimals;
         result.rawAmount = rawAmount;
         result.expiration = expiration?.toString();
-        result.isRevoke = amount?.toString() === ZERO_AMOUNT;
+        result.isRevoke =
+          tokenStandard !== TokenStandard.ERC721 &&
+          amount?.toString() === ZERO_AMOUNT;
         result.approveMethod = ApproveMethod.PERMIT2_APPROVE;
         result.tokenBalance = calculateTokenBalance(
           tokenBalance ?? '0',
@@ -207,11 +239,13 @@ export const useApproveTransactionData = (): ApproveTransactionData => {
 
     return result;
   }, [
+    data,
     details.decimalsNumber,
     details.symbol,
     isTokenStandardPending,
     tokenStandard,
     fourByteCode,
+    isApproval,
     parsedData,
     transactionMetadata,
     tokenBalance,

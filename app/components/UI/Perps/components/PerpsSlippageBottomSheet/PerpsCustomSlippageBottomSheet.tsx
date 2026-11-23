@@ -1,24 +1,20 @@
 import {
+  BottomSheet,
+  BottomSheetFooter,
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
+  ButtonSize,
+  ButtonsAlignment,
   IconName,
   Text,
   TextColor,
   TextVariant,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import {
@@ -30,6 +26,9 @@ import {
 } from '../../constants/slippageConfig';
 import { PerpsCustomSlippageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { createStyles } from './PerpsCustomSlippageBottomSheet.styles';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsCustomSlippageBottomSheetProps {
   isVisible: boolean;
@@ -56,6 +55,7 @@ function clampToRange(pct: number): number {
 const PerpsCustomSlippageBottomSheet: React.FC<
   PerpsCustomSlippageBottomSheetProps
 > = ({ isVisible, currentValueBps, onClose, onSave }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -126,37 +126,34 @@ const PerpsCustomSlippageBottomSheet: React.FC<
     onSave(percentToBps(finalPct));
   }, [draftIsInRange, parsedDraft, onSave]);
 
-  const footerButtonProps = [
-    {
-      label: strings('perps.slippage.cancel'),
-      testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CANCEL,
-      variant: ButtonVariants.Secondary,
-      size: ButtonSize.Lg,
-      onPress: onClose,
-    },
-    {
-      label: strings('perps.slippage.set'),
-      testID: PerpsCustomSlippageBottomSheetSelectorsIDs.SET,
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
-      onPress: handleSet,
-      isDisabled: !draftIsInRange,
-    },
-  ];
+  const cancelButtonProps = {
+    children: strings('perps.slippage.cancel'),
+    testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CANCEL,
+    size: ButtonSize.Lg,
+    onPress: onClose,
+  };
+
+  const setButtonProps = {
+    children: strings('perps.slippage.set'),
+    testID: PerpsCustomSlippageBottomSheetSelectorsIDs.SET,
+    size: ButtonSize.Lg,
+    onPress: handleSet,
+    isDisabled: !draftIsInRange,
+  };
 
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      shouldNavigateBack={false}
-      onClose={onClose}
-    >
-      <BottomSheetHeader onClose={onClose}>
-        <Text variant={TextVariant.HeadingMd}>
-          {strings('perps.slippage.use_custom_title')}
-        </Text>
-      </BottomSheetHeader>
+    <BottomSheet ref={bottomSheetRef} onClose={onClose}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={onClose}
+        closeButtonProps={{
+          testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CLOSE,
+        }}
+      >
+        {strings('perps.slippage.use_custom_title')}
+      </BottomSheetHeaderGlass>
 
       <View style={styles.container}>
         <View
@@ -217,7 +214,11 @@ const PerpsCustomSlippageBottomSheet: React.FC<
         </View>
       </View>
 
-      <BottomSheetFooter buttonPropsArray={footerButtonProps} />
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Horizontal}
+        secondaryButtonProps={cancelButtonProps}
+        primaryButtonProps={setButtonProps}
+      />
     </BottomSheet>
   );
 };

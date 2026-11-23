@@ -6,12 +6,31 @@ import { SolScope } from '@metamask/keyring-api';
 import {
   ethChainId,
   evmAccountAddress,
+  evmAccountId,
   initialState,
   solanaNativeTokenAddress,
 } from '../../_mocks_/initialState';
 import { toChecksumAddress } from '../../../../../util/address';
 
 const nativeAddress = '0x0000000000000000000000000000000000000000' as Hex;
+const NATIVE_ETH_ASSET_ID = 'eip155:1/slip44:60';
+
+const withNativeEthBalance = (
+  amount: string,
+  assetsControllerOverrides: Record<string, unknown> = {},
+) => ({
+  ...initialState.engine.backgroundState.AssetsController,
+  assetsBalance: {
+    ...initialState.engine.backgroundState.AssetsController.assetsBalance,
+    [evmAccountId]: {
+      ...initialState.engine.backgroundState.AssetsController.assetsBalance[
+        evmAccountId
+      ],
+      [NATIVE_ETH_ASSET_ID]: { amount },
+    },
+  },
+  ...assetsControllerOverrides,
+});
 
 const stateWithUsdConversionRate = {
   ...initialState,
@@ -31,7 +50,7 @@ const stateWithUsdConversionRate = {
       },
     },
   },
-} as Parameters<typeof createBridgeTestState>[1];
+};
 
 describe('useTokenBalanceInUsd', () => {
   it('returns the USD balance for an EVM token when usdConversionRate is available', () => {
@@ -55,21 +74,7 @@ describe('useTokenBalanceInUsd', () => {
             },
             conversionRate: 2000,
           },
-          TokenBalancesController: {
-            tokenBalances: {
-              ...initialState.engine.backgroundState.TokenBalancesController
-                .tokenBalances,
-              [evmAccountAddress]: {
-                ...initialState.engine.backgroundState.TokenBalancesController
-                  .tokenBalances[evmAccountAddress],
-                [ethChainId]: {
-                  ...initialState.engine.backgroundState.TokenBalancesController
-                    .tokenBalances[evmAccountAddress][ethChainId],
-                  [nativeAddress]: '0x0de0b6b3a7640000' as Hex, // 1 ETH
-                },
-              },
-            },
-          },
+          AssetsController: withNativeEthBalance('1'),
         },
       },
     } as Parameters<typeof createBridgeTestState>[1]);
@@ -129,6 +134,37 @@ describe('useTokenBalanceInUsd', () => {
                 },
               },
             },
+            AssetsController: {
+              ...initialState.engine.backgroundState.AssetsController,
+              assetsInfo: {
+                ...initialState.engine.backgroundState.AssetsController
+                  .assetsInfo,
+                [`eip155:1/erc20:${lowercaseErc20}`]: {
+                  type: 'erc20' as const,
+                  symbol: 'TKN',
+                  name: 'TKN',
+                  decimals: 18,
+                },
+              },
+              assetsBalance: {
+                ...initialState.engine.backgroundState.AssetsController
+                  .assetsBalance,
+                [evmAccountId]: {
+                  [`eip155:1/erc20:${lowercaseErc20}`]: { amount: '1' },
+                },
+              },
+              assetsPrice: {
+                ...initialState.engine.backgroundState.AssetsController
+                  .assetsPrice,
+                [`eip155:1/erc20:${lowercaseErc20}`]: {
+                  assetPriceType: 'fungible',
+                  id: 'tkn',
+                  price: 10000,
+                  usdPrice: 10000,
+                  lastUpdated: 1700000000000,
+                },
+              },
+            },
           },
         },
       } as Parameters<typeof createBridgeTestState>[1],
@@ -152,11 +188,35 @@ describe('useTokenBalanceInUsd', () => {
       symbol: 'ETH',
       chainId: ethChainId,
     };
+    const evmBalancesWithoutNative = Object.fromEntries(
+      Object.entries(
+        initialState.engine.backgroundState.AssetsController.assetsBalance[
+          evmAccountId
+        ],
+      ).filter(([assetId]) => assetId !== NATIVE_ETH_ASSET_ID),
+    );
     const testState = createBridgeTestState(
       {
         bridgeReducerOverrides: { sourceToken },
       },
-      stateWithUsdConversionRate,
+      {
+        ...stateWithUsdConversionRate,
+        engine: {
+          ...stateWithUsdConversionRate.engine,
+          backgroundState: {
+            ...stateWithUsdConversionRate.engine.backgroundState,
+            AssetsController: {
+              ...stateWithUsdConversionRate.engine.backgroundState
+                .AssetsController,
+              assetsBalance: {
+                ...stateWithUsdConversionRate.engine.backgroundState
+                  .AssetsController.assetsBalance,
+                [evmAccountId]: evmBalancesWithoutNative,
+              },
+            },
+          },
+        },
+      },
     );
 
     const { result } = renderHookWithProvider(
@@ -218,6 +278,7 @@ describe('useTokenBalanceInUsd', () => {
               },
             },
           },
+          AssetsController: withNativeEthBalance('0'),
         },
       },
     } as Parameters<typeof createBridgeTestState>[1]);
@@ -278,6 +339,19 @@ describe('useTokenBalanceInUsd', () => {
               },
             },
           },
+          AssetsController: withNativeEthBalance('1', {
+            selectedCurrency: 'eur',
+            assetsPrice: {
+              ...initialState.engine.backgroundState.AssetsController
+                .assetsPrice,
+              [NATIVE_ETH_ASSET_ID]: {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
+          }),
         },
       },
     } as Parameters<typeof createBridgeTestState>[1]);
@@ -316,6 +390,19 @@ describe('useTokenBalanceInUsd', () => {
               },
             },
           },
+          AssetsController: withNativeEthBalance('1', {
+            assetsPrice: {
+              ...initialState.engine.backgroundState.AssetsController
+                .assetsPrice,
+              [NATIVE_ETH_ASSET_ID]: {
+                assetPriceType: 'fungible',
+                id: 'eth',
+                price: 0,
+                usdPrice: 2000,
+                lastUpdated: 1700000000000,
+              },
+            },
+          }),
         },
       },
     } as Parameters<typeof createBridgeTestState>[1]);

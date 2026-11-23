@@ -6,16 +6,14 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
   BottomSheet,
-  BottomSheetHeader,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import Spinner from '../../../../../UI/AnimatedSpinner';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -23,6 +21,8 @@ import { useEIP7702Networks } from '../../../hooks/7702/useEIP7702Networks';
 import AccountNetworkRow from './account-network-row';
 import styleSheet from './switch-account-type-modal.styles';
 import Engine from '../../../../../../core/Engine';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 
 interface SwitchAccountTypeModalRouteParams {
   address?: Hex;
@@ -34,6 +34,7 @@ interface SwitchAccountTypeModalParamList {
 }
 
 const SwitchAccountTypeModal = () => {
+  const isGlassHeader = useIsGlassHeader();
   const route =
     useRoute<
       RouteProp<
@@ -61,13 +62,14 @@ const SwitchAccountTypeModal = () => {
   if (!address) {
     return (
       <BottomSheet goBack={goBack}>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onBack={goBack}
           backButtonProps={{ testID: 'switch-account-goback' }}
         />
         <View style={styles.wrapper}>
           <View style={styles.spinner} testID="no-address-fallback">
-            <Text variant={TextVariant.BodyMD}>No account selected</Text>
+            <Text variant={TextVariant.BodyMd}>No account selected</Text>
           </View>
         </View>
       </BottomSheet>
@@ -76,7 +78,8 @@ const SwitchAccountTypeModal = () => {
 
   return (
     <BottomSheet goBack={goBack}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onBack={goBack}
         backButtonProps={{ testID: 'switch-account-goback' }}
       />
@@ -93,7 +96,7 @@ const SwitchAccountTypeModal = () => {
                 size={AvatarSize.Md}
                 accountAddress={address}
               />
-              <Text style={styles.account_name} variant={TextVariant.HeadingMD}>
+              <Text style={styles.account_name} variant={TextVariant.HeadingMd}>
                 {account?.metadata.name}
               </Text>
             </View>

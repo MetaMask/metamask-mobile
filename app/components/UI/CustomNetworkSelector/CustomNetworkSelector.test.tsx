@@ -24,6 +24,7 @@ jest.mock('../../../core/Multichain/utils', () => ({
 }));
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
 }));
 

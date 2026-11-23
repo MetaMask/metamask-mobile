@@ -2,7 +2,7 @@ import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { usePredictActivity } from './usePredictActivity';
-import type { PredictActivity } from '../types';
+import type { PredictActivity, PredictActivityPage } from '../types';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../constants/transactions';
 
 const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
@@ -48,7 +48,7 @@ jest.mock('react-redux', () => ({
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
 
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
@@ -57,7 +57,7 @@ const createWrapper = () => {
   return { Wrapper };
 };
 
-const createActivityPage = (
+const createActivities = (
   length: number,
   prefix = 'activity',
 ): PredictActivity[] =>
@@ -71,10 +71,22 @@ const createActivityPage = (
     },
   }));
 
+const createActivityPage = (
+  length: number,
+  prefix = 'activity',
+  nextCursor?: string,
+): PredictActivityPage => ({
+  activities: createActivities(length, prefix),
+  nextCursor,
+});
+
 describe('usePredictActivity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetActivity.mockResolvedValue([]);
+    mockGetActivity.mockResolvedValue({
+      activities: [],
+      nextCursor: undefined,
+    });
     mockEnsurePolygonNetworkExists.mockResolvedValue(undefined);
     mockGetEvmAccountFromSelectedAccountGroup.mockReturnValue({
       address: MOCK_ADDRESS,
@@ -92,10 +104,29 @@ describe('usePredictActivity', () => {
     expect(mockGetActivity).not.toHaveBeenCalled();
   });
 
+  it('does not fetch activity when enabled is false', () => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () => usePredictActivity({ enabled: false }),
+      {
+        wrapper: Wrapper,
+      },
+    );
+
+    expect(mockGetActivity).not.toHaveBeenCalled();
+    expect(mockEnsurePolygonNetworkExists).not.toHaveBeenCalled();
+    expect(result.current.data).toEqual([]);
+    expect(result.current.isFetching).toBe(false);
+  });
+
   it('fetches activity automatically on mount', async () => {
     const { Wrapper } = createWrapper();
-    const activity = createActivityPage(1);
-    mockGetActivity.mockResolvedValueOnce(activity);
+    const activity = createActivities(1);
+    mockGetActivity.mockResolvedValueOnce({
+      activities: activity,
+      nextCursor: undefined,
+    });
 
     const { result } = renderHook(() => usePredictActivity(), {
       wrapper: Wrapper,
@@ -111,7 +142,7 @@ describe('usePredictActivity', () => {
     expect(mockGetActivity).toHaveBeenCalledWith({
       address: MOCK_ADDRESS,
       limit: PREDICT_ACTIVITY_PAGE_SIZE,
-      offset: 0,
+      cursor: undefined,
     });
   });
 
@@ -130,7 +161,7 @@ describe('usePredictActivity', () => {
     expect(mockGetActivity).toHaveBeenCalledWith({
       address: MOCK_ADDRESS,
       limit: 10,
-      offset: 0,
+      cursor: undefined,
     });
   });
 
@@ -170,14 +201,18 @@ describe('usePredictActivity', () => {
     expect(mockGetActivity).toHaveBeenLastCalledWith({
       address: MOCK_ADDRESS,
       limit: PREDICT_ACTIVITY_PAGE_SIZE,
-      offset: 0,
+      cursor: undefined,
     });
     expect(result.current.isRefetching).toBe(false);
   });
 
-  it('fetches the next page when the previous page reaches the limit', async () => {
+  it('fetches the next page with the cursor from the previous page', async () => {
     const { Wrapper } = createWrapper();
-    const firstPage = createActivityPage(PREDICT_ACTIVITY_PAGE_SIZE, 'first');
+    const firstPage = createActivityPage(
+      PREDICT_ACTIVITY_PAGE_SIZE,
+      'first',
+      'cursor-1',
+    );
     const secondPage = createActivityPage(5, 'second');
     mockGetActivity
       .mockResolvedValueOnce(firstPage)
@@ -198,24 +233,32 @@ describe('usePredictActivity', () => {
     expect(mockGetActivity).toHaveBeenLastCalledWith({
       address: MOCK_ADDRESS,
       limit: PREDICT_ACTIVITY_PAGE_SIZE,
-      offset: PREDICT_ACTIVITY_PAGE_SIZE,
+      cursor: 'cursor-1',
     });
     await waitFor(() => {
-      expect(result.current.data).toEqual([...firstPage, ...secondPage]);
+      expect(result.current.data).toEqual([
+        ...firstPage.activities,
+        ...secondPage.activities,
+      ]);
     });
   });
 
-  it('keeps the first activity when offset pages return duplicate ids', async () => {
+  it('keeps the first activity when pages return duplicate ids', async () => {
     const { Wrapper } = createWrapper();
-    const firstPage = createActivityPage(PREDICT_ACTIVITY_PAGE_SIZE, 'first');
+    const firstPage = createActivityPage(
+      PREDICT_ACTIVITY_PAGE_SIZE,
+      'first',
+      'cursor-1',
+    );
     const duplicateActivity = {
-      ...firstPage[PREDICT_ACTIVITY_PAGE_SIZE - 1],
+      ...firstPage.activities[PREDICT_ACTIVITY_PAGE_SIZE - 1],
       title: 'First page copy',
     };
-    const uniqueActivity = createActivityPage(1, 'second')[0];
-    mockGetActivity
-      .mockResolvedValueOnce(firstPage)
-      .mockResolvedValueOnce([duplicateActivity, uniqueActivity]);
+    const uniqueActivity = createActivities(1, 'second')[0];
+    mockGetActivity.mockResolvedValueOnce(firstPage).mockResolvedValueOnce({
+      activities: [duplicateActivity, uniqueActivity],
+      nextCursor: undefined,
+    });
 
     const { result } = renderHook(() => usePredictActivity(), {
       wrapper: Wrapper,
@@ -230,13 +273,16 @@ describe('usePredictActivity', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.data).toEqual([...firstPage, uniqueActivity]);
+      expect(result.current.data).toEqual([
+        ...firstPage.activities,
+        uniqueActivity,
+      ]);
     });
   });
 
-  it('continues pagination when the previous page is shorter than the limit', async () => {
+  it('continues pagination when the previous page has a next cursor', async () => {
     const { Wrapper } = createWrapper();
-    const firstPage = createActivityPage(1, 'first');
+    const firstPage = createActivityPage(1, 'first', 'cursor-1');
     const secondPage = createActivityPage(1, 'second');
     mockGetActivity
       .mockResolvedValueOnce(firstPage)
@@ -257,16 +303,22 @@ describe('usePredictActivity', () => {
     expect(mockGetActivity).toHaveBeenLastCalledWith({
       address: MOCK_ADDRESS,
       limit: PREDICT_ACTIVITY_PAGE_SIZE,
-      offset: PREDICT_ACTIVITY_PAGE_SIZE,
+      cursor: 'cursor-1',
     });
     await waitFor(() => {
-      expect(result.current.data).toEqual([...firstPage, ...secondPage]);
+      expect(result.current.data).toEqual([
+        ...firstPage.activities,
+        ...secondPage.activities,
+      ]);
     });
   });
 
-  it('stops pagination when the previous page is empty', async () => {
+  it('stops pagination when the previous page has no next cursor', async () => {
     const { Wrapper } = createWrapper();
-    mockGetActivity.mockResolvedValueOnce([]);
+    mockGetActivity.mockResolvedValueOnce({
+      activities: createActivities(3),
+      nextCursor: undefined,
+    });
 
     const { result } = renderHook(() => usePredictActivity(), {
       wrapper: Wrapper,

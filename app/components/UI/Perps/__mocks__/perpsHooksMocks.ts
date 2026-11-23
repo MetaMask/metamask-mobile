@@ -1,4 +1,5 @@
 import type { UsePerpsMarketStatsReturn } from '../hooks/usePerpsMarketStats';
+import type { UsePerpsCrossMarginSummaryReturn } from '../hooks/usePerpsCrossMarginSummary';
 import { type Position, type Order } from '@metamask/perps-controller';
 
 /**
@@ -111,7 +112,7 @@ export const defaultPerpsPositionMock: Position = {
   },
   liquidationPrice: '2500.00',
   maxLeverage: 50,
-  returnOnEquity: '10.3',
+  returnOnEquity: '0.103',
   cumulativeFunding: {
     allTime: '0',
     sinceOpen: '0',
@@ -143,8 +144,29 @@ export const defaultPerpsMarketStatsMock: UsePerpsMarketStatsReturn = {
   fundingRate: '0.0100%',
   currentPrice: 3000,
   isLoading: false,
+  dataSymbol: 'ETH',
+  hasLiveData: true,
   refresh: jest.fn(),
 };
+
+export const defaultPerpsCrossMarginSummaryMock: UsePerpsCrossMarginSummaryReturn =
+  {
+    isCrossMarginEnabled: false,
+    hasCrossExposure: false,
+    accountRatio: undefined,
+    maintenanceMargin: undefined,
+    accountLeverage: undefined,
+    crossMarginUsage: undefined,
+    tone: undefined,
+  };
+
+/** Cross margin summary hook result, with the fields a test wants to change. */
+export const createPerpsCrossMarginSummaryMock = (
+  overrides: Partial<UsePerpsCrossMarginSummaryReturn> = {},
+): UsePerpsCrossMarginSummaryReturn => ({
+  ...defaultPerpsCrossMarginSummaryMock,
+  ...overrides,
+});
 
 export const defaultPerpsRewardsMock = {
   shouldShowRewardsRow: false,

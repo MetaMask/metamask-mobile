@@ -105,11 +105,13 @@ function TokenIconWithNetworkBadge({
       <BadgeWrapper
         badgePosition={BadgePosition.BottomRight}
         badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            name={networkName}
-            imageSource={networkImage}
-          />
+          networkImage ? (
+            <Badge
+              variant={BadgeVariant.Network}
+              name={networkName}
+              imageSource={networkImage}
+            />
+          ) : undefined
         }
         style={styles.badgeWrapper}
       >

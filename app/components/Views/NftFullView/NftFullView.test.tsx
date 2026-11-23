@@ -15,6 +15,33 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../UI/NftGrid/NftGrid', () => 'NftGrid');
 
+let mockHomeBrandRefreshSurfacesEnabled = false;
+jest.mock(
+  '../../../selectors/featureFlagController/homeBrandRefreshSurfaces',
+  () => ({
+    selectHomeBrandRefreshSurfacesEnabled: () =>
+      mockHomeBrandRefreshSurfacesEnabled,
+  }),
+);
+
+const mockHeaderStandardGlassProps = jest.fn();
+jest.mock(
+  '../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const ActualHeaderStandardGlass = jest.requireActual(
+      '../../../component-library/components-temp/HeaderStandardGlass',
+    ).default;
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderStandardGlassProps(props);
+        return ReactActual.createElement(ActualHeaderStandardGlass, props);
+      },
+    };
+  },
+);
+
 describe('NftFullView', () => {
   const initialState = {
     engine: {
@@ -26,6 +53,7 @@ describe('NftFullView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockHomeBrandRefreshSurfacesEnabled = false;
   });
 
   afterEach(() => {
@@ -66,5 +94,31 @@ describe('NftFullView', () => {
 
     // Assert
     expect(getByText('NFTs')).toBeOnTheScreen();
+  });
+
+  it('keeps the hand-built header when the home brand refresh flag is off', () => {
+    // Arrange & Act
+    renderWithProvider(<NftFullView />, { state: initialState });
+
+    // Assert
+    expect(mockHeaderStandardGlassProps).not.toHaveBeenCalled();
+  });
+
+  it('renders the glass header and navigates back when the home brand refresh flag is on', () => {
+    // Arrange
+    mockHomeBrandRefreshSurfacesEnabled = true;
+    const { getByTestId, getByText } = renderWithProvider(<NftFullView />, {
+      state: initialState,
+    });
+
+    // Act
+    fireEvent.press(getByTestId('back-button'));
+
+    // Assert
+    expect(mockHeaderStandardGlassProps).toHaveBeenCalledWith(
+      expect.objectContaining({ isGlass: true, isFloating: false }),
+    );
+    expect(getByText('NFTs')).toBeOnTheScreen();
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

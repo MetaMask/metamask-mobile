@@ -1,4 +1,5 @@
 import type { BottomSheetFooterButtonProps } from '@metamask/design-system-react-native';
+import type { MarginMode } from '@metamask/perps-controller';
 
 export interface PerpsBottomSheetTooltipProps {
   /**
@@ -33,6 +34,11 @@ export interface PerpsBottomSheetTooltipProps {
   buttonConfig?: BottomSheetFooterButtonProps[];
 
   /**
+   * Margin mode tag rendered beside the title.
+   */
+  titleMarginMode?: MarginMode;
+
+  /**
    * Analytics: screen context for button_location tracking.
    * When provided, overrides the default 'tooltip' button_location
    * to indicate which screen the tooltip was opened from.
@@ -43,6 +49,9 @@ export interface PerpsBottomSheetTooltipProps {
 export type PerpsTooltipContentKey =
   | 'leverage'
   | 'liquidation_price'
+  | 'cross_liquidation_price'
+  | 'cross_no_liquidation_price'
+  | 'cross_liquidation_estimate_unavailable'
   | 'liquidation_distance'
   | 'margin'
   | 'fees'
@@ -64,4 +73,10 @@ export type PerpsTooltipContentKey =
   | 'oracle_price'
   | 'spread'
   | 'pay_with'
-  | 'slippage';
+  | 'slippage'
+  | 'size_skew'
+  | 'twap_runtime'
+  | 'account_ratio'
+  | 'maintenance_margin'
+  | 'account_leverage'
+  | 'cross_margin_usage';

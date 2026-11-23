@@ -3,10 +3,12 @@ import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
 import { View, TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../../../locales/i18n';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import AppConstants from '../../../../../../../core/AppConstants';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import styleSheet from './LegalLinks.styles';
@@ -31,7 +33,11 @@ const FooterLegalLinks = () => {
         }
         style={styles.legalLink}
       >
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.PrimaryDefault}
+        >
           {strings('stake.terms_of_service')}
         </Text>
       </TouchableOpacity>
@@ -42,7 +48,11 @@ const FooterLegalLinks = () => {
         }
         style={styles.legalLink}
       >
-        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Primary}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.PrimaryDefault}
+        >
           {strings('stake.risk_disclosure')}
         </Text>
       </TouchableOpacity>

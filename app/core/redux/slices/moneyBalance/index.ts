@@ -21,14 +21,44 @@ export interface PersistedRedeemableRaw {
   raw: string;
 }
 
+export interface PersistedLocalMoneyFlow {
+  /** Money account address the confirmed transaction moved funds for. */
+  address: string;
+  /** Epoch milliseconds when that transaction was confirmed locally. */
+  confirmedAt: number;
+  /**
+   * Confirmed receipt block. While the post-confirm fresh window is open,
+   * Money balance UI queries include this as `minBlock` so API reads must
+   * reach that block (or fall back to RPC).
+   */
+  minBlock?: number;
+}
+
 export interface MoneyBalanceSliceState {
   lastKnownBalance: PersistedMoneyBalance | null;
   redeemable: PersistedRedeemableRaw | null;
+  /**
+   * The most recent locally-confirmed transaction that moved the Money Account
+   * balance, in either direction.
+   *
+   * The live balance reflects such a transaction immediately, while anything
+   * derived from the backend's on-chain ingest (e.g. Rewards qualifying
+   * deposits) only catches up on the next ingest run. Consumers compare this
+   * against their own freshness watermark to tell the user their figure is
+   * still catching up. Persisted, because the ingest lag outlives a session.
+   *
+   * Builds before the marker carried an address persisted a bare epoch-ms
+   * number here. That shape cannot be attributed to an account, so
+   * {@link getUsableLastLocalFlowConfirmedAt} discards it. The key name is kept
+   * so redux-persist keeps reconciling into the same slot.
+   */
+  lastLocalFlowConfirmedAt: PersistedLocalMoneyFlow | number | null;
 }
 
 export const initialState: MoneyBalanceSliceState = {
   lastKnownBalance: null,
   redeemable: null,
+  lastLocalFlowConfirmedAt: null,
 };
 
 const name = 'moneyBalance';
@@ -52,6 +82,12 @@ const slice = createSlice({
     ) => {
       state.redeemable = action.payload;
     },
+    setLastLocalMoneyFlow: (
+      state,
+      action: PayloadAction<PersistedLocalMoneyFlow>,
+    ) => {
+      state.lastLocalFlowConfirmedAt = action.payload;
+    },
   },
 });
 
@@ -71,6 +107,12 @@ export const selectMoneyAccountRedeemable = createSelector(
   (moneyBalance) => moneyBalance.redeemable,
 );
 
+export const selectLastLocalMoneyFlow = createSelector(
+  selectMoneyBalanceState,
+  // Falls back to null for state persisted before this field existed.
+  (moneyBalance) => moneyBalance.lastLocalFlowConfirmedAt ?? null,
+);
+
 /**
  * A cached redeemable is only safe to use as the exact source amount when it
  * belongs to the Money Account currently funding the transaction — otherwise a
@@ -85,6 +127,26 @@ export const getUsableMoneyAccountRedeemableRaw = (
   areAddressesEqual(redeemable.address, address) &&
   redeemable.raw
     ? redeemable.raw
+    : undefined;
+
+/**
+ * A confirmed local flow only says something about the account it moved funds
+ * for. Reading it without that check would let a marker left by a previously
+ * active Money Account tell the current one its figures are catching up, when
+ * nothing local has happened on it at all.
+ *
+ * Also discards the bare-timestamp shape persisted by builds before the marker
+ * carried an address, which cannot be attributed to any account.
+ */
+export const getUsableLastLocalFlowConfirmedAt = (
+  marker: PersistedLocalMoneyFlow | number | null | undefined,
+  address: string | undefined,
+): number | undefined =>
+  typeof marker === 'object' &&
+  marker !== null &&
+  address &&
+  areAddressesEqual(marker.address, address)
+    ? marker.confirmedAt
     : undefined;
 
 /**
@@ -106,4 +168,5 @@ export const {
   setLastKnownMoneyBalance,
   clearLastKnownMoneyBalance,
   setMoneyAccountRedeemableRaw,
+  setLastLocalMoneyFlow,
 } = actions;

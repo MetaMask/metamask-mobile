@@ -274,6 +274,7 @@ describe('useActivityScreenViewed', () => {
       [ActivityTypeFilter.All, ActivityScreenTabName.All],
       [ActivityTypeFilter.Transactions, ActivityScreenTabName.Transactions],
       [ActivityTypeFilter.BuySell, ActivityScreenTabName.BuySell],
+      [ActivityTypeFilter.LimitOrders, ActivityScreenTabName.LimitOrders],
       [ActivityTypeFilter.Perps, ActivityScreenTabName.Perps],
       [ActivityTypeFilter.Predictions, ActivityScreenTabName.Predictions],
       [ActivityTypeFilter.MetamaskCard, ActivityScreenTabName.MetamaskCard],

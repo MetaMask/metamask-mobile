@@ -1,17 +1,11 @@
-import React, { useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { Modal, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { NetworkClientId } from '@metamask/network-controller';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
 import ButtonPill from '../../../../../../../../../component-library/components-temp/Buttons/ButtonPill/ButtonPill';
-import ButtonIcon from '../../../../../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../../../../component-library/components/Texts/Text';
 
 import { IndividualFiatDisplay } from '../../../../../../../../UI/SimulationDetails/FiatDisplay/FiatDisplay';
 import {
@@ -35,13 +29,20 @@ import {
   isPermitDaiUnlimited,
 } from '../../../../../../utils/signature';
 import { TokenDetailsERC20 } from '../../../../../../utils/token';
-import BottomModal from '../../../../../UI/bottom-modal';
+import {
+  BottomSheet,
+  BottomSheetRef,
+  Box,
+  Text,
+} from '@metamask/design-system-react-native';
 
 import styleSheet from './value-display.styles';
 import { strings } from '../../../../../../../../../../locales/i18n';
 import AnimatedPulse from '../../../../../UI/animated-pulse';
 import { selectContractExchangeRatesByChainId } from '../../../../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../../../../reducers';
+import BottomSheetHeaderGlass from '../../../../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useIsGlassHeader } from '../../../../../../../../hooks/useIsGlassHeader';
 
 interface SimulationValueDisplayParams {
   /** ID of the associated chain. */
@@ -97,7 +98,9 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
   allowed,
   canDisplayValueAsUnlimited = false,
 }) => {
+  const isGlassHeader = useIsGlassHeader();
   const [hasValueModalOpen, setHasValueModalOpen] = useState(false);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
 
   const theme = useTheme();
 
@@ -180,6 +183,14 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
     setHasValueModalOpen(true);
   }
 
+  const handleRequestClose = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setHasValueModalOpen(false);
+  }, []);
+
   return (
     <View style={styles.wrapper}>
       <View style={styles.flexRowTokenValueAndAddress}>
@@ -235,33 +246,31 @@ const SimulationValueDisplay: React.FC<SimulationValueDisplayParams> = ({
           ))}
       </View>
       {hasValueModalOpen && (
-        /**
-         * TODO replace BottomModal instances with BottomSheet
-         * {@see {@link https://github.com/MetaMask/metamask-mobile/issues/12656}}
-         */
-        <BottomModal onClose={() => setHasValueModalOpen(false)}>
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => setHasValueModalOpen(false)}
+        <Modal
+          visible
+          animationType="none"
+          transparent
+          presentationStyle="overFullScreen"
+          onRequestClose={handleRequestClose}
+        >
+          <BottomSheet
+            ref={bottomSheetRef}
+            keyboardAvoidingViewEnabled={false}
+            onClose={handleSheetClosed}
           >
-            <View style={styles.valueModal}>
-              <View style={styles.valueModalHeader}>
-                <ButtonIcon
-                  iconColor={IconColor.Default}
-                  style={styles.valueModalHeaderIcon}
-                  onPress={() => setHasValueModalOpen(false)}
-                  iconName={IconName.ArrowLeft}
-                />
-                <Text style={styles.valueModalHeaderText}>
-                  {modalHeaderText}
-                </Text>
-              </View>
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
+              onClose={handleRequestClose}
+            >
+              {modalHeaderText}
+            </BottomSheetHeaderGlass>
+            <Box twClassName="flex flex-col">
               <Text style={styles.valueModalText}>
                 {tokenValueMaxPrecision}
               </Text>
-            </View>
-          </TouchableOpacity>
-        </BottomModal>
+            </Box>
+          </BottomSheet>
+        </Modal>
       )}
     </View>
   );

@@ -332,9 +332,15 @@ generateIosBinary() {
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
 	echo "Generating archive packages for $scheme in $configuration configuration"
+	# E2E builds compile AppDelegate's `#elseif E2E` deeplink fallback (keyless Branch drops custom-scheme URLs)
+	local -a e2eOverrides=()
+	if [ "$METAMASK_ENVIRONMENT" = "e2e" ]; then
+		e2eOverrides=('SWIFT_ACTIVE_COMPILATION_CONDITIONS=$(inherited) E2E')
+	fi
+
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
-		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
+		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build "${e2eOverrides[@]}"
 	fi
 	
 	if [ "$IS_DEVICE_BUILD" = "true" ] || [ "$IS_SIM_BUILD" != "true" ]; then
@@ -353,7 +359,7 @@ generateIosBinary() {
 			echo "Overriding signing: using development certificate and profile for Release archive"
 		fi
 
-		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}"
+		xcodebuild -workspace MetaMask.xcworkspace -scheme "$scheme" -configuration "$configuration" archive -archivePath "build/$scheme.xcarchive" -destination generic/platform=ios "${archiveOverrides[@]}" "${e2eOverrides[@]}"
 		echo "Generating ipa for $scheme"
 		xcodebuild -exportArchive -archivePath build/$scheme.xcarchive -exportPath build/output -exportOptionsPlist $exportOptionsPlist
 	fi
@@ -491,9 +497,9 @@ createEnvFile() {
 	esac
 	local build_name="${build_type}-${normalized_env}"
 
-	# Read env + secret keys from builds.yml (single source of truth).
-	# Any env var set in the shell (from builds.yml, workflow, or feature flags)
-	# that matches a key in builds.yml will be written to .env.
+	# Read env keys from builds.yml. Any env var set in the shell (from builds.yml,
+	# workflow, or feature flags) that matches a key in builds.yml will be written to .env.
+	# Secrets stay out of .env: the workflow step already has them in its environment.
 	local builds_yml_keys
 	builds_yml_keys=$(node -e "
 		const yaml = require('js-yaml');
@@ -501,11 +507,7 @@ createEnvFile() {
 		const config = yaml.load(fs.readFileSync('${__DIRNAME__}/../builds.yml', 'utf8'));
 		const build = config.builds['${build_name}'];
 		if (!build) { console.error('Build not found: ${build_name}'); process.exit(1); }
-		const keys = new Set([
-			...Object.keys(build.env || {}),
-			...Object.keys(build.secrets || {}),
-		]);
-		keys.forEach(k => console.log(k));
+		Object.keys(build.env || {}).forEach(k => console.log(k));
 	")
 
 	if [ $? -ne 0 ]; then
@@ -513,18 +515,12 @@ createEnvFile() {
 		return 1
 	fi
 
-	# Create .env file and export to GITHUB_ENV
 	> .env
 	local exported_count=0
 	while IFS= read -r var; do
 		if [ -n "${!var+x}" ]; then
 			value="${!var}"
 			echo "${var}=${value}" >> .env
-
-			if [ -n "${GITHUB_ENV:-}" ]; then
-				echo "${var}=${value}" >> "$GITHUB_ENV"
-			fi
-
 			exported_count=$((exported_count + 1))
 		fi
 	done <<< "$builds_yml_keys"
@@ -610,7 +606,8 @@ buildExpoUpdate() {
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
-			--non-interactive
+			--non-interactive \
+			--emit-metadata
 		ios_exit_code=$?
 		
 		if [ $ios_exit_code -ne 0 ]; then
@@ -625,7 +622,8 @@ buildExpoUpdate() {
 			--channel "${EXPO_CHANNEL}" \
 			--private-key-path "./keys/private-key.pem" \
 			--message "${UPDATE_MESSAGE}" \
-			--non-interactive
+			--non-interactive \
+			--emit-metadata
 		android_exit_code=$?
 		
 		if [ $android_exit_code -ne 0 ]; then

@@ -9,6 +9,7 @@ import { initialState as initialBridgeState } from '../../core/redux/slices/brid
 import { initialState as initialQrKeyringScannerState } from '../../core/redux/slices/qrKeyringScanner';
 import { initialState as initialCardState } from '../../core/redux/slices/card';
 import { initialState as initialMoneyBalanceState } from '../../core/redux/slices/moneyBalance';
+import { initialState as initialSocialEarlyAccessState } from '../../core/redux/slices/socialEarlyAccess';
 import { initialState as initialTerminalOrderAnalyticsState } from '../../core/redux/slices/terminalOrderAnalytics';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
@@ -18,7 +19,7 @@ import { initialState as initialPerformanceState } from '../../core/redux/slices
 import { initialState as initialSampleCounterState } from '../../features/SampleFeature/reducers/sample-counter';
 import { isTestEnvironment } from './utils';
 import { initialState as initialRewardsState } from '../../reducers/rewards';
-import { initialState as initialNetworkConnectionBannerState } from '../../reducers/networkConnectionBanner';
+import { initialState as initialRewardsMoneyState } from '../../reducers/rewardsMoney';
 // A cast is needed here because we use enums in some controllers, and TypeScript doesn't consider
 // the string value of an enum as satisfying an enum type.
 export const backgroundState: EngineState =
@@ -29,6 +30,7 @@ const initialRootState: RootState = {
     isPna25Acknowledged: false,
     newPrivacyPolicyToastClickedOrClosed: false,
     newPrivacyPolicyToastShownDate: null,
+    arcUsageNoticeShown: false,
   },
   collectibles: undefined,
   engine: { backgroundState },
@@ -72,13 +74,13 @@ const initialRootState: RootState = {
   bridge: initialBridgeState,
   banners: {
     dismissedBanners: [],
-    lastDismissedBrazeBanner: null,
   },
   sampleCounter: initialSampleCounterState,
   card: initialCardState,
   moneyBalance: initialMoneyBalanceState,
+  socialEarlyAccess: initialSocialEarlyAccessState,
   rewards: initialRewardsState,
-  networkConnectionBanner: initialNetworkConnectionBannerState,
+  rewardsMoney: initialRewardsMoneyState,
   attribution: {
     attribution: null,
   },

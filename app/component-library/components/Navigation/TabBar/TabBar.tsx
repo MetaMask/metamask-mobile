@@ -20,16 +20,18 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { buildBottomNavClickedProperties } from '../../../../core/Analytics/events/navigation';
 import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import { TabBarProps, TabBarIconKey } from './TabBar.types';
 import {
+  BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY,
   ICON_BY_TAB_BAR_ICON_KEY,
   LABEL_BY_TAB_BAR_ICON_KEY,
 } from './TabBar.constants';
 import { selectChainId } from '../../../../selectors/networkController';
-import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../../components/UI/Money/hooks/useMoneyHomeNavigation';
 
 const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
   [TabBarIconKey.Wallet]: IconName.HomeFilled,
@@ -45,7 +47,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const tabBarRef = useRef(null);
   const previousTabIndexRef = useRef<number>(state.index);
   const tw = useTailwind();
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
@@ -75,6 +77,15 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
           previousTabIndexRef.current = index;
         }
         callback?.();
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_DRAWER)
+            .addProperties(
+              buildBottomNavClickedProperties(
+                BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY[tabBarIconKey],
+              ),
+            )
+            .build(),
+        );
         switch (rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {

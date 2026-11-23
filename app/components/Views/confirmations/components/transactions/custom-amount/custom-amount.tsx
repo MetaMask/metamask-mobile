@@ -1,19 +1,22 @@
 import React from 'react';
-import { Animated, View } from 'react-native';
+import { Pressable } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
-import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import {
-  useIsTransactionPayLoading,
-  useTransactionPayIsMaxAmount,
-} from '../../../hooks/pay/useTransactionPayData';
 import { useConfirmationContext } from '../../../context/confirmation-context';
-import { useBlinkingCursor } from '../../../../../UI/Ramp/hooks/useBlinkingCursor';
+import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  FontFamily,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
+import { parseAmountWithAssistiveDecimals } from './custom-amount.utils';
+import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
+
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -38,13 +41,20 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
 
   const { isHeadlessBuyInProgress } = useConfirmationContext();
   const disabled = disabledProp || isHeadlessBuyInProgress;
-  const isMaxAmount = useTransactionPayIsMaxAmount();
-  const isQuotesLoading = useIsTransactionPayLoading();
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
-  const formattedAmount = formatAmountWithLocaleSeparators(amountFiat);
-  const amountLength = formattedAmount.length;
+
+  const isEditing = showCursor && !disabled;
+  const { typedText, assistiveText } = parseAmountWithAssistiveDecimals(
+    amountFiat,
+    isEditing,
+  );
+
+  const amountLength =
+    typedText.length +
+    assistiveText.length +
+    INPUT_SIDE_MARGIN_CHARACTER_RESERVE;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -52,37 +62,74 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     disabled,
   });
 
-  const showLoader = isLoading || (isMaxAmount && isQuotesLoading);
+  // The input always shows the full amount being paid (the balance on Max),
+  // which is known synchronously and no longer changes once quotes resolve —
+  // so there is no Max-specific quote-loading skeleton to show here.
+  const showLoader = isLoading;
   const cursorVisible = showCursor && !disabled && !showLoader;
-  const cursorOpacity = useBlinkingCursor(cursorVisible);
 
   if (showLoader) {
-    return <CustomAmountSkeleton />;
+    // Pressable so the user can always fall back to entering an amount, even
+    // when the prefill or quote being awaited never resolves.
+    return <CustomAmountSkeleton onPress={disabled ? undefined : onPress} />;
   }
 
+  const amountColor = hasAlert
+    ? TextColor.ErrorDefault
+    : disabled
+      ? TextColor.TextMuted
+      : TextColor.TextDefault;
+  const amountStyle = styles.input;
+
   return (
-    <View style={styles.container}>
-      <Text testID="custom-amount-symbol" style={styles.input}>
-        {fiatSymbol}
-      </Text>
-      <Text
-        testID="custom-amount-input"
-        style={styles.input}
-        onPress={disabled ? undefined : onPress}
-      >
-        {formattedAmount}
-      </Text>
-      {cursorVisible && (
-        <Animated.View
-          testID="custom-amount-cursor"
-          style={[styles.cursor, { opacity: cursorOpacity }]}
-        />
-      )}
-    </View>
+    <AnimatedAmountDisplay
+      accessibilityLabel={`${fiatSymbol}${typedText}${assistiveText}`}
+      amountAccessible
+      amountTestID={TransactionPayComponentIDs.AMOUNT_VALUE}
+      animated
+      color={amountColor}
+      containerStyle={styles.container}
+      cursor={
+        cursorVisible
+          ? {
+              animated: true,
+              style: styles.cursor,
+              testID: 'custom-amount-cursor',
+            }
+          : false
+      }
+      onPress={disabled ? undefined : onPress}
+      prefix={
+        <Text
+          fontFamily={FontFamily.Hero}
+          testID="custom-amount-symbol"
+          style={amountStyle}
+        >
+          {fiatSymbol}
+        </Text>
+      }
+      style={amountStyle}
+      suffix={
+        assistiveText ? (
+          <Text
+            fontFamily={FontFamily.Hero}
+            testID="custom-amount-assistive"
+            onPress={disabled ? undefined : onPress}
+            style={[amountStyle, styles.assistive]}
+          >
+            {assistiveText}
+          </Text>
+        ) : undefined
+      }
+      testID="custom-amount-input"
+      value={typedText}
+    />
   );
 });
 
-export function CustomAmountSkeleton() {
+export function CustomAmountSkeleton({
+  onPress,
+}: { onPress?: () => void } = {}) {
   const { styles } = useStyles(styleSheet, {
     amountLength: 1,
     hasAlert: false,
@@ -90,8 +137,13 @@ export function CustomAmountSkeleton() {
   });
 
   return (
-    <View style={styles.container} testID="custom-amount-skeleton">
-      <Skeleton height={70} width={80} />
-    </View>
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      style={styles.container}
+      testID="custom-amount-skeleton"
+    >
+      <Skeleton height={88} twClassName="rounded-lg" width={80} />
+    </Pressable>
   );
 }

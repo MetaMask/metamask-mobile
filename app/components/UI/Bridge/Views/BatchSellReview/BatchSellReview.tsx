@@ -18,8 +18,8 @@ import {
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
-  HeaderStandard,
   IconColor,
   IconName,
   Text,
@@ -56,11 +56,13 @@ import {
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
 import { useTrackBatchSellQuotePageViewed } from '../../hooks/useTrackBatchSellQuotePageViewed';
 import { useTrackBatchSellQuotePageReviewClicked } from '../../hooks/useTrackBatchSellQuotePageReviewClicked';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const TOTAL_RECEIVED_SKELETON_WIDTH = 195;
-const TOTAL_RECEIVED_SKELETON_HEIGHT = 50;
+const TOTAL_RECEIVED_SKELETON_HEIGHT = 56;
 
 const getTokenKey = (token: BridgeToken) => `${token.chainId}:${token.address}`;
 
@@ -86,9 +88,10 @@ function TotalReceivedValue({
 
   return (
     <Text
-      variant={TextVariant.DisplayLg}
+      variant={TextVariant.AmountDisplayLg}
+      fontFamily={FontFamily.Hero}
       color={TextColor.SuccessDefault}
-      twClassName="min-w-0 flex-1 font-semibold"
+      twClassName="min-w-0 flex-1"
     >
       {totalReceived.formattedFiat}
     </Text>
@@ -112,6 +115,7 @@ function areBatchSellValueMapsEqual(
 }
 
 export function BatchSellReview() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
@@ -362,8 +366,14 @@ export function BatchSellReview() {
         testID={BatchSellReviewSelectorsIDs.CONTAINER}
         twClassName="flex-1 bg-default"
       >
-        <HeaderStandard title="" onBack={handleBackPress} includesTopInset />
-        <Box twClassName="gap-1 px-4 pb-6">
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          title=""
+          onBack={handleBackPress}
+          includesTopInset
+        />
+        <Box twClassName="gap-1 px-4 pt-4 pb-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}

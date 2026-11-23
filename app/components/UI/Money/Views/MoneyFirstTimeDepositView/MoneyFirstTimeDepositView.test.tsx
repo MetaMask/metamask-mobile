@@ -1,6 +1,7 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import { BackHandler } from 'react-native';
+import { RiveErrorType, type RiveError } from '@rive-app/react-native';
 import MoneyFirstTimeDepositView from './MoneyFirstTimeDepositView';
 import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -9,6 +10,12 @@ import { useDeviceOrientation } from '../../hooks/useDeviceOrientation';
 import { SCREEN_NAMES } from '../../constants/moneyEvents';
 import { MoneyFirstTimeDepositViewTestIds } from './MoneyFirstTimeDepositView.testIds';
 import { PARALLAX_REST_VALUE } from '../../utils/parallax';
+import {
+  __fireRiveTrigger,
+  __getRivePropertySetter,
+  __resetRiveMocks,
+} from '../../../../../__mocks__/rive-app-react-native';
+import { playSuccessNotification } from '../../../../../util/haptics';
 
 const mockNavigate = jest.fn();
 const mockTrackScreenViewed = jest.fn();
@@ -48,37 +55,34 @@ jest.mock('../../hooks/useMountEffect', () => ({
   default: (fn: () => void) => fn(),
 }));
 
-let mockTriggerCallbacks: Record<string, () => void> = {};
-const mockSetString = jest.fn();
-const mockSetNumber = jest.fn();
-const mockViewTag = jest.fn();
-let mockRiveInstanceReady = true;
-let mockOnError: ((error: { message: string }) => void) | undefined;
-
-jest.mock('rive-react-native', () => ({
-  __esModule: true,
-  default: jest.fn(({ onError, ...props }) => {
-    mockOnError = onError;
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { View } = require('react-native');
-    return <View {...props} />;
-  }),
-  useRive: () => [
-    jest.fn(),
-    mockRiveInstanceReady
-      ? { setNumber: mockSetNumber, viewTag: mockViewTag }
-      : null,
-  ],
-  useRiveString: () => [undefined, mockSetString],
-  useRiveTrigger: (_riveRef: unknown, path: string, callback?: () => void) => {
-    if (callback) {
-      mockTriggerCallbacks[path] = callback;
-    }
-  },
-  AutoBind: (value: boolean) => ({ type: 'autobind', value }),
-  Fit: { Layout: 'layout' },
-  RNRiveError: class {},
+jest.mock('../../../../../util/haptics', () => ({
+  playSuccessNotification: jest.fn(() => Promise.resolve()),
 }));
+
+// Local wrapper around the global Nitro Rive mock: captures the RiveView
+// props (onError) and lets tests withhold the view-model instance.
+let mockInstanceReady = true;
+const mockRiveViewProps: {
+  current?: { onError?: (error: RiveError) => void };
+} = {};
+
+jest.mock('@rive-app/react-native', () => {
+  const actual = jest.requireActual('@rive-app/react-native');
+  const ReactActual = jest.requireActual('react');
+  const MockRiveView = (props: { onError?: (error: RiveError) => void }) => {
+    mockRiveViewProps.current = props;
+    return ReactActual.createElement(actual.RiveView, props);
+  };
+  return {
+    __esModule: true,
+    ...actual,
+    useViewModelInstance: (source?: unknown, params?: unknown) =>
+      mockInstanceReady
+        ? actual.useViewModelInstance(source, params)
+        : { instance: null, isLoading: true, error: null },
+    RiveView: MockRiveView,
+  };
+});
 
 /** Runs the tilt callback the view handed to `useDeviceOrientation`. */
 const emitTilt = (x: number, y: number) => {
@@ -95,11 +99,10 @@ const tiltSubscriptionEnabled = (): boolean => {
 describe('MoneyFirstTimeDepositView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTriggerCallbacks = {};
-    mockOnError = undefined;
+    __resetRiveMocks();
+    mockRiveViewProps.current = undefined;
     mockParallaxFlagEnabled = true;
-    mockRiveInstanceReady = true;
-    mockViewTag.mockReturnValue(1);
+    mockInstanceReady = true;
 
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackScreenViewed: mockTrackScreenViewed,
@@ -118,6 +121,23 @@ describe('MoneyFirstTimeDepositView', () => {
       expect(
         getByTestId(MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
+    });
+
+    it('does not render the Rive animation until the view-model instance is ready', () => {
+      mockInstanceReady = false;
+
+      const { queryByTestId } = render(<MoneyFirstTimeDepositView />);
+
+      expect(
+        queryByTestId(MoneyFirstTimeDepositViewTestIds.RIVE_ANIMATION),
+      ).toBeNull();
+      expect(playSuccessNotification).not.toHaveBeenCalled();
+    });
+
+    it('plays a success haptic once the deposit animation is ready', () => {
+      render(<MoneyFirstTimeDepositView />);
+
+      expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -138,14 +158,17 @@ describe('MoneyFirstTimeDepositView', () => {
   });
 
   describe('Rive text initialization', () => {
-    it('sets title and content strings on mount', () => {
+    it('sets title, content and button strings on mount', () => {
       render(<MoneyFirstTimeDepositView />);
 
-      expect(mockSetString).toHaveBeenCalledWith(
+      expect(__getRivePropertySetter('title')).toHaveBeenCalledWith(
         strings('money.first_time_deposit.title'),
       );
-      expect(mockSetString).toHaveBeenCalledWith(
+      expect(__getRivePropertySetter('content')).toHaveBeenCalledWith(
         strings('money.first_time_deposit.content'),
+      );
+      expect(__getRivePropertySetter('button')).toHaveBeenCalledWith(
+        strings('money.first_time_deposit.button_text'),
       );
     });
   });
@@ -154,7 +177,7 @@ describe('MoneyFirstTimeDepositView', () => {
     it('navigates back when done trigger fires', () => {
       render(<MoneyFirstTimeDepositView />);
 
-      mockTriggerCallbacks.done();
+      act(() => __fireRiveTrigger('done'));
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
@@ -164,7 +187,12 @@ describe('MoneyFirstTimeDepositView', () => {
     it('navigates back when Rive reports an error', () => {
       render(<MoneyFirstTimeDepositView />);
 
-      mockOnError?.({ message: 'test rive error' });
+      act(() =>
+        mockRiveViewProps.current?.onError?.({
+          message: 'test rive error',
+          type: RiveErrorType.Unknown,
+        }),
+      );
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
@@ -230,8 +258,12 @@ describe('MoneyFirstTimeDepositView', () => {
 
       emitTilt(0, 0);
 
-      expect(mockSetNumber).toHaveBeenCalledWith('xValue', PARALLAX_REST_VALUE);
-      expect(mockSetNumber).toHaveBeenCalledWith('yValue', PARALLAX_REST_VALUE);
+      expect(__getRivePropertySetter('xValue')).toHaveBeenCalledWith(
+        PARALLAX_REST_VALUE,
+      );
+      expect(__getRivePropertySetter('yValue')).toHaveBeenCalledWith(
+        PARALLAX_REST_VALUE,
+      );
     });
 
     it('drives the horizontal axis in the same direction as the roll', () => {
@@ -239,7 +271,7 @@ describe('MoneyFirstTimeDepositView', () => {
 
       emitTilt(1, 0);
 
-      expect(mockSetNumber).toHaveBeenCalledWith('xValue', 100);
+      expect(__getRivePropertySetter('xValue')).toHaveBeenCalledWith(100);
     });
 
     it('drives the vertical axis opposite to the pitch, matching the artboard travel', () => {
@@ -247,25 +279,7 @@ describe('MoneyFirstTimeDepositView', () => {
 
       emitTilt(0, 1);
 
-      expect(mockSetNumber).toHaveBeenCalledWith('yValue', 0);
-    });
-
-    it('does not dispatch before the Rive instance exists', () => {
-      mockRiveInstanceReady = false;
-      render(<MoneyFirstTimeDepositView />);
-
-      emitTilt(1, 1);
-
-      expect(mockSetNumber).not.toHaveBeenCalled();
-    });
-
-    it('does not dispatch to a detached Rive view', () => {
-      mockViewTag.mockReturnValue(null);
-      render(<MoneyFirstTimeDepositView />);
-
-      emitTilt(1, 1);
-
-      expect(mockSetNumber).not.toHaveBeenCalled();
+      expect(__getRivePropertySetter('yValue')).toHaveBeenCalledWith(0);
     });
   });
 

@@ -1,25 +1,14 @@
-import {
-  DeviceManagementKitBuilder,
-  type DeviceManagementKit,
-} from '@ledgerhq/device-management-kit';
-import { RNBleTransportFactory } from '@ledgerhq/device-transport-kit-react-native-ble';
-import DevLogger from '../SDKConnect/utils/DevLogger';
 import { validatedVersionGatedFeatureFlag } from '../../util/remoteFeatureFlag';
 import { FeatureFlagNames } from '../../constants/featureFlags';
 
 /**
- * Whether the Ledger DMK stack is enabled, read fresh from the merged feature
- * flags. Pure — no caching; callers pass the current flag state.
+ * Whether the Ledger DMK stack is enabled for the given merged feature flags.
+ * Pure — no caching.
  *
- * Resolution: `LEDGER_FORCE_DMK=true` env var (build-time override) takes
- * precedence; otherwise the `ledgerDmk` flag is resolved — a boolean value is
- * used directly (dev-tool override), otherwise the version-gated remote flag is
- * evaluated via `validatedVersionGatedFeatureFlag`. Defaults to `false`. Mirrors
- * the `selectLedgerDmkEnabled` Redux selector.
- *
- * Both the keyring (at engine init, reading persisted state) and the adapter
- * factory (in `useAdapterLifecycle`, reading live state) call this, so they
- * agree as long as the flag is stable across the two reads.
+ * Resolution: `LEDGER_FORCE_DMK=true` (build-time env) wins; otherwise a
+ * boolean `ledgerDmk` flag is used directly and a version-gated flag is
+ * evaluated via `validatedVersionGatedFeatureFlag`. Defaults to `false`.
+ * Mirrors the `selectLedgerDmkEnabled` Redux selector.
  */
 export const isDmkEnabled = (
   flags: Record<string, unknown> | null | undefined = {},
@@ -32,68 +21,36 @@ export const isDmkEnabled = (
     : (validatedVersionGatedFeatureFlag(raw) ?? false);
 };
 
-const state: { dmk: DeviceManagementKit | null } = { dmk: null };
+/**
+ * Module-level holder for the Ledger DMK mode. Engine initialization seeds
+ * it before constructing the keyring; adapter creation reads the same value.
+ * `undefined` until the first Engine initialization; re-seeded on re-init.
+ */
+let ledgerDmkEnabled: boolean | undefined;
 
-export const getDmk = (): DeviceManagementKit => {
-  if (!state.dmk) {
-    try {
-      state.dmk = new DeviceManagementKitBuilder()
-        .addTransport(RNBleTransportFactory)
-        .build();
-    } catch (error) {
-      DevLogger.log('[DMK] Failed to build DeviceManagementKit:', error);
-      throw error;
-    }
-  } else {
-    DevLogger.log('[DMK] Returning cached DeviceManagementKit instance');
-  }
-  return state.dmk;
+/**
+ * Seed the mode from merged persisted feature flags (remote flags overlaid
+ * by local overrides; `LEDGER_FORCE_DMK` is honored). Engine initialization
+ * calls this before constructing the keyring.
+ *
+ * @param flags - Merged persisted feature flags.
+ * @returns Whether the DMK stack is active.
+ */
+export const initializeLedgerDmkMode = (
+  flags: Record<string, unknown> | null | undefined,
+): boolean => {
+  ledgerDmkEnabled = isDmkEnabled(flags);
+  return ledgerDmkEnabled;
 };
 
 /**
- * Tears down the cached DeviceManagementKit and clears the singleton so the
- * next {@link getDmk} builds a fresh instance.
+ * Read the mode seeded at Engine initialization.
  *
- * Stops BLE discovery, disconnects any open sessions, then closes the kit.
- * Each step is independently guarded so a failure in one does not skip the
- * others. The cache is cleared only after teardown so a concurrent
- * {@link getDmk} cannot construct a second kit while this instance still owns
- * the transport.
+ * Defaults to `false` (the legacy Ledger stack) if read before any Engine
+ * initialization: adapter creation cannot happen before Engine exists, so
+ * the default never selects a stack for an actual adapter, and it matches
+ * the flag-off resolution of `isDmkEnabled`.
+ *
+ * @returns Whether the DMK stack is active.
  */
-export const resetDmk = async (): Promise<void> => {
-  const dmk = state.dmk;
-  if (!dmk) {
-    return;
-  }
-
-  try {
-    try {
-      await dmk.stopDiscovering();
-    } catch (error) {
-      DevLogger.log('[DMK] Failed to stop discovering during reset:', error);
-    }
-
-    try {
-      const sessions = dmk.listConnectedDevices();
-      await Promise.allSettled(
-        sessions.map((connectedDevice) =>
-          dmk.disconnect({ sessionId: connectedDevice.sessionId }),
-        ),
-      );
-    } catch (error) {
-      DevLogger.log('[DMK] Failed to disconnect sessions during reset:', error);
-    }
-
-    try {
-      dmk.close();
-    } catch (error) {
-      DevLogger.log('[DMK] Failed to close during reset:', error);
-    }
-  } finally {
-    // Clear only after BLE teardown so concurrent getDmk() cannot build a
-    // second DeviceManagementKit while this instance still holds the transport.
-    if (state.dmk === dmk) {
-      state.dmk = null;
-    }
-  }
-};
+export const getLedgerDmkMode = (): boolean => ledgerDmkEnabled ?? false;

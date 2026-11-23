@@ -1,5 +1,4 @@
 import { AppState, AppStateStatus } from 'react-native';
-import branch from 'react-native-branch';
 import Logger from '../util/Logger';
 import { MetaMetricsEvents } from './Analytics';
 import { AnalyticsEventBuilder } from '../util/analytics/AnalyticsEventBuilder';
@@ -11,16 +10,8 @@ import DevLogger from './SDKConnect/utils/DevLogger';
 import ReduxService from './redux';
 import generateDeviceAnalyticsMetaData from '../util/metrics';
 import generateUserSettingsAnalyticsMetaData from '../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import { UserProfileProperty } from '../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import {
-  selectExistingUser,
-  selectAppInstallEventFired,
-} from '../reducers/user/selectors';
-import { setAppInstallEventFired } from '../actions/user';
+import { captureAppInstallOnce } from '../util/analytics/appInstallEvent';
 import AppConstants from './AppConstants';
-
-/** Prevents parallel start() calls from double-firing before Redux persists. */
-let trackAppInstallInFlight = false;
 
 /** Delay so an incoming deeplink can land before App Opened fires. */
 const APP_OPENED_DEEPLINK_DELAY_MS = 2000;
@@ -74,73 +65,6 @@ interface AppOpenedSourceProperties {
   notification_subtype?: string;
 }
 
-/**
- * Fire the App Installed analytics event exactly once on first install.
- * Mirrors the extension's addAppInstalledEvent / onInstall logic:
- * - Sets InstallDateMobile user trait (yyyy-mm-dd)
- * - Adds install_source + deeplink_path when app was opened via a Branch
- * deferred deeplink (+is_first_session && +clicked_branch_link)
- * - The analytics queue handles pre-opt-in buffering automatically
- */
-export async function trackAppInstallOnce() {
-  if (trackAppInstallInFlight) {
-    return;
-  }
-
-  trackAppInstallInFlight = true;
-  try {
-    const state = ReduxService.store.getState();
-    const existingUser = selectExistingUser(state);
-    const alreadyFired = selectAppInstallEventFired(state);
-
-    if (existingUser || alreadyFired) {
-      return;
-    }
-
-    // Set install date trait (yyyy-mm-dd), mirrors InstallDateExt on extension
-    const installDate = new Date().toISOString().split('T')[0];
-    analytics.identify({
-      [UserProfileProperty.INSTALL_DATE_MOBILE]: installDate,
-    });
-
-    // Detect deferred deeplink install via Branch
-    const branchParams = await branch.getLatestReferringParams();
-    const isFirstSession = branchParams?.['+is_first_session'] as
-      | boolean
-      | undefined;
-    const clickedBranchLink = branchParams?.['+clicked_branch_link'] as
-      | boolean
-      | undefined;
-
-    const isDeferredDeeplinkInstall =
-      isFirstSession === true && clickedBranchLink === true;
-
-    const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.APP_INSTALLED,
-    );
-
-    if (isDeferredDeeplinkInstall) {
-      const deeplinkPath = branchParams?.$deeplink_path as string | undefined;
-      eventBuilder.addProperties({
-        install_source: 'deeplink',
-        ...(deeplinkPath ? { deeplink_path: deeplinkPath } : {}),
-      });
-    }
-
-    analytics.trackEvent(eventBuilder.build());
-
-    // Only persist after tracking succeeds so a failed attempt can retry
-    ReduxService.store.dispatch(setAppInstallEventFired());
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'AppStateManager: Error tracking app install event',
-    );
-  } finally {
-    trackAppInstallInFlight = false;
-  }
-}
-
 export class AppStateEventListener {
   private appStateSubscription:
     | ReturnType<typeof AppState.addEventListener>
@@ -155,6 +79,7 @@ export class AppStateEventListener {
   private openedFromPushAt = 0;
   private openedFromPush: PushOpenDetails | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
+  private openedAt = Date.now();
 
   constructor() {
     this.lastAppState = AppState.currentState;
@@ -165,6 +90,7 @@ export class AppStateEventListener {
       // Already started
       return;
     }
+    this.openedAt = Date.now();
     this.appStateSubscription = AppState.addEventListener(
       'change',
       this.handleAppStateChange,
@@ -174,8 +100,8 @@ export class AppStateEventListener {
     // This ensures user is identified with full traits including chain_id_list when the app starts
     this.identifyUserOnAppStart();
 
-    // Fire App Installed event once on first install
-    this.trackAppInstallOnce();
+    // Record a first install so App Installed can be emitted after consent
+    this.captureAppInstallOnce();
 
     setTimeout(() => {
       this.processAppStateChange(AppOpenedType.ColdStart);
@@ -222,6 +148,11 @@ export class AppStateEventListener {
     }
   }
 
+  /** When the app last cold started or came back from the background, in epoch ms. */
+  public getOpenedAt(): number {
+    return this.openedAt;
+  }
+
   public clearPendingDeeplink() {
     this.pendingDeeplink = null;
     this.pendingDeeplinkSource = null;
@@ -232,6 +163,7 @@ export class AppStateEventListener {
     // Transitioning from inactive (e.g. system permission dialogs, incoming calls)
     // back to active should NOT count as the user opening the app.
     if (nextAppState === 'active' && this.lastAppState === 'background') {
+      this.openedAt = Date.now();
       // delay to allow time for the deeplink to be set
       setTimeout(() => {
         this.processAppStateChange(AppOpenedType.WarmStart);
@@ -262,7 +194,7 @@ export class AppStateEventListener {
     }
   };
 
-  private trackAppInstallOnce = trackAppInstallOnce;
+  private captureAppInstallOnce = captureAppInstallOnce;
 
   // Push opens are only detectable via the deeplink on the push payload, so a
   // push without a deeplink is reported as direct.

@@ -17,17 +17,18 @@ import {
   ButtonVariant,
   ButtonIcon,
   ButtonIconSize,
+  FontFamily,
+  FontWeight,
   IconName,
   Skeleton,
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { strings } from '../../../../../locales/i18n';
-import CopyableField from '../components/ReferralDetails/CopyableField';
+import CopyableField from '../components/CopyableField';
 import { RewardsMetricsButtons } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -193,16 +194,16 @@ const CampaignWinningView: React.FC<CampaignWinningViewProps> = ({
               >
                 {rankDisplay !== null ? (
                   <Text
-                    variant={TextVariant.HeadingMd}
-                    fontWeight={FontWeight.Medium}
+                    variant={TextVariant.AmountDisplayLg}
+                    fontFamily={FontFamily.Hero}
                     color={TextColor.TextDefault}
-                    style={tw.style('text-[64px] leading-[72px]')}
                     twClassName="text-center"
+                    testID={`${testID}-rank`}
                   >
                     {rankDisplay}
                   </Text>
                 ) : isRankLoading ? (
-                  <Skeleton style={tw.style('h-8 w-36 rounded-lg')} />
+                  <Skeleton style={tw.style('h-14 w-36 rounded-lg')} />
                 ) : null}
 
                 {resultDisplay !== null ? (

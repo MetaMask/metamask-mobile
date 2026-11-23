@@ -2,6 +2,7 @@ import {
   STORE_PRIVACY_POLICY_SHOWN_DATE,
   STORE_PRIVACY_POLICY_CLICKED_OR_CLOSED,
   STORE_PNA25_ACKNOWLEDGED,
+  STORE_ARC_USAGE_NOTICE_SHOWN,
   LegalNoticesActionTypes,
 } from '../../actions/legalNotices';
 
@@ -9,6 +10,7 @@ export interface LegalNoticesState {
   isPna25Acknowledged: boolean;
   newPrivacyPolicyToastClickedOrClosed: boolean;
   newPrivacyPolicyToastShownDate: number | null;
+  arcUsageNoticeShown: boolean;
 }
 
 const currentDate = new Date(Date.now());
@@ -19,6 +21,7 @@ const initialState: LegalNoticesState = {
   isPna25Acknowledged: false,
   newPrivacyPolicyToastClickedOrClosed: false,
   newPrivacyPolicyToastShownDate: null,
+  arcUsageNoticeShown: false,
 };
 
 const legalNoticesReducer = (
@@ -44,6 +47,10 @@ const legalNoticesReducer = (
 
     case STORE_PNA25_ACKNOWLEDGED: {
       return { ...state, isPna25Acknowledged: true };
+    }
+
+    case STORE_ARC_USAGE_NOTICE_SHOWN: {
+      return { ...state, arcUsageNoticeShown: true };
     }
 
     default:

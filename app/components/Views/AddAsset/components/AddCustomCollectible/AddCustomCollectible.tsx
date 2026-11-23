@@ -2,19 +2,21 @@ import React, {
   useState,
   useEffect,
   useCallback,
-  useContext,
   useRef,
   useMemo,
 } from 'react';
 import { useSelector } from 'react-redux';
 import { TextInput } from 'react-native';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../component-library/components/Toast';
+import { Source } from '@metamask/assets-controllers';
 import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  toast,
+  ToastSeverity,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { isValidAddress } from 'ethereumjs-util';
 import ActionView from '../../../../UI/ActionView';
@@ -50,6 +52,10 @@ const getTokenIdError = (id: string): string => {
   return '';
 };
 
+const getNetworkClientId = (
+  networkClientId: string | null,
+): string | undefined => networkClientId ?? undefined;
+
 // --- Hook: smart contract validation ---
 
 function useSmartContractCheck(
@@ -79,7 +85,7 @@ function useSmartContractCheck(
         const isContract = await isSmartContractAddress(
           trimmed,
           chainId,
-          networkClientId ?? undefined,
+          getNetworkClientId(networkClientId),
         );
         if (cancelled) return;
         setIsSmartContract(Boolean(isContract));
@@ -88,9 +94,8 @@ function useSmartContractCheck(
           error as Error,
           'useSmartContractCheck: failed to validate address',
         );
-      } finally {
-        if (!cancelled) setIsLoading(false);
       }
+      if (!cancelled) setIsLoading(false);
     };
 
     run();
@@ -135,7 +140,6 @@ const AddCustomCollectible = ({
 
   const { colors, themeAppearance } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { toastRef } = useContext(ToastContext);
   const tw = useTailwind();
 
   const selectedAddress = useSelector(
@@ -194,43 +198,33 @@ const AddCustomCollectible = ({
         );
 
         if (!isOwner) {
-          toastRef?.current?.showToast({
-            variant: ToastVariants.Plain,
-            labelOptions: [
-              { label: strings('collectible.not_owner_error_title') },
-            ],
-            descriptionOptions: {
-              description: strings('collectible.not_owner_error'),
-            },
+          toast({
+            title: strings('collectible.not_owner_error_title'),
+            description: strings('collectible.not_owner_error'),
+            severity: ToastSeverity.Danger,
             hasNoTimeout: false,
           });
         }
 
         return isOwner;
       } catch {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Plain,
-          labelOptions: [
-            {
-              label: strings('collectible.ownership_verification_error_title'),
-            },
-          ],
-          descriptionOptions: {
-            description: strings('collectible.ownership_verification_error'),
-          },
+        toast({
+          title: strings('collectible.ownership_verification_error_title'),
+          description: strings('collectible.ownership_verification_error'),
+          severity: ToastSeverity.Danger,
           hasNoTimeout: false,
         });
 
         return false;
       }
-    }, [selectedAddress, address, tokenId, networkClientId, toastRef]);
+    }, [selectedAddress, address, tokenId, networkClientId]);
 
   const addNft = useCallback(async (): Promise<void> => {
     setHasSubmitted(true);
     if (addressError || tokenIdError || isValidating) return;
 
     setIsSubmitting(true);
-    try {
+    const submitCollectible = async (): Promise<void> => {
       if (!(await validateCollectibleOwnership())) return;
 
       // TODO: Replace "any" with type
@@ -238,7 +232,9 @@ const AddCustomCollectible = ({
       const { NftController } = Engine.context as any;
 
       trace({ name: TraceName.ImportNfts });
-      await NftController.addNft(address, tokenId, networkClientId);
+      await NftController.addNft(address, tokenId, networkClientId, {
+        source: Source.Custom,
+      });
       endTrace({ name: TraceName.ImportNfts });
 
       try {
@@ -255,9 +251,9 @@ const AddCustomCollectible = ({
       }
 
       navigation.goBack();
-    } finally {
-      setIsSubmitting(false);
-    }
+    };
+
+    await submitCollectible().finally(() => setIsSubmitting(false));
   }, [
     addressError,
     tokenIdError,
@@ -278,7 +274,7 @@ const AddCustomCollectible = ({
 
   // --- Styles ---
 
-  const baseInputFont = { fontFamily: 'Geist-Regular' };
+  const baseInputFont = { fontFamily: 'Inter-Regular' };
 
   const getInputStyle = (hasError: boolean) =>
     tw.style(

@@ -2,7 +2,7 @@ import {
   type PerpsMarketData,
   type SortField,
 } from '@metamask/perps-controller';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { RefreshControlProps, StyleProp, ViewStyle } from 'react-native';
 
 /**
  * Props for PerpsMarketList component
@@ -29,6 +29,24 @@ export interface PerpsMarketListProps {
     | React.ComponentType<unknown>
     | React.ReactElement
     | null;
+  /**
+   * Optional row rendered as the first list item and pinned with FlashList
+   * `stickyHeaderIndices`. Use this for chrome that should sit below
+   * {@link ListHeaderComponent} at rest (e.g. recently viewed) and stay
+   * stuck under the category pills after that header scrolls away.
+   */
+  stickyHeader?: React.ReactElement | null;
+  /**
+   * On filter change, scroll to just below {@link ListHeaderComponent} (only if
+   * scrolled past it) instead of offset 0. Requires `stickyHeader`.
+   * @default false
+   */
+  keepHeaderHiddenOnReset?: boolean;
+  /**
+   * Replaces the default "no markets" message when `markets` is empty (e.g. the
+   * watchlist block with suggestions).
+   */
+  emptyComponent?: React.ReactElement;
   /**
    * Optional icon size for market row items
    * @default HOME_SCREEN_CONFIG.DefaultIconSize
@@ -61,6 +79,10 @@ export interface PerpsMarketListProps {
    * view. Falls back to {@link filterKey} when omitted.
    */
   scrollResetKey?: string;
+  /**
+   * Optional pull-to-refresh control passed through to FlashList.
+   */
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   /**
    * Test ID for E2E testing
    */

@@ -13,11 +13,15 @@ import {
 import Engine from '../../../../../core/Engine';
 import { isSmartContractAddress } from '../../../../../util/transactions';
 import { POLYGON_MAINNET_CHAIN_ID } from './constants';
-import type { PolymarketProtocolDefinition } from './protocol/definitions';
+import type {
+  BasePolymarketPositionsProtocolDefinition,
+  PolymarketProtocolDefinition,
+} from './protocol/definitions';
 import type { SafeTransaction } from './safe/types';
 import type { ApiKeyCreds } from './types';
 import type { Signer } from '../types';
 import { getL2Headers, getPolymarketEndpoints } from './utils';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 export const DEPOSIT_WALLET_FACTORY_ADDRESS =
   '0x00000000000Fb5C9ADea0298D729A0CB3823Cc07';
@@ -28,9 +32,10 @@ const DEPOSIT_WALLET_FACTORY_BEACON_SELECTOR = '0x49493a4d';
 
 const DEPOSIT_WALLET_DOMAIN_NAME = 'DepositWallet';
 const DEPOSIT_WALLET_DOMAIN_VERSION = '1';
-// Polymarket's relayer rejects deadlines above 300s, so use the maximum
-// allowed window to reduce intermittent "deadline too soon" failures.
-const DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS = 300;
+// Polymarket's relayer rejects batches whose deadline is less than ~240s
+// ahead of its own clock ("deadline too soon"). 600s matches Polymarket's
+// SDKs and leaves room for device clocks that run behind.
+const DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS = 600;
 
 const RELAYER_SUCCESS_STATES = new Set(['STATE_CONFIRMED']);
 const RELAYER_FAILURE_STATES = new Set(['STATE_FAILED', 'STATE_INVALID']);
@@ -259,16 +264,21 @@ function decodeBeaconAddress(response: unknown): Hex | undefined {
   }
 }
 
-export async function readDepositWalletFactoryBeacon(): Promise<
-  Hex | undefined
-> {
+function getPolygonEthQuery(): EthQuery {
   const { NetworkController } = Engine.context;
   const networkClientId = NetworkController.findNetworkClientIdByChainId(
     numberToHex(POLYGON_MAINNET_CHAIN_ID),
   );
-  const ethQuery = new EthQuery(
+
+  return new EthQuery(
     NetworkController.getNetworkClientById(networkClientId).provider,
   );
+}
+
+export async function readDepositWalletFactoryBeacon(): Promise<
+  Hex | undefined
+> {
+  const ethQuery = getPolygonEthQuery();
 
   try {
     const response = await query(ethQuery, 'call', [
@@ -306,15 +316,31 @@ export async function resolveDepositWalletAddress({
   isWalletDeployed?: (walletAddress: Hex) => Promise<boolean>;
 }): Promise<Hex> {
   const uupsWalletAddress = deriveDepositWalletUupsAddress(ownerAddress);
-  const beaconAddress = await readFactoryBeacon();
+  const beaconPromise = readFactoryBeacon();
+  const deployedPromise = isWalletDeployed(uupsWalletAddress);
+  // The UUPS address is derived locally, so this code check shares no data
+  // with the beacon read. Settle it here so a missing beacon can return
+  // without leaving a rejection unhandled.
+  const deployedSettled = deployedPromise.then(
+    (isDeployed): { ok: true; isDeployed: boolean } => ({
+      ok: true,
+      isDeployed,
+    }),
+    (error: unknown): { ok: false; error: unknown } => ({ ok: false, error }),
+  );
+  const beaconAddress = await beaconPromise;
 
   if (!beaconAddress) {
     return uupsWalletAddress;
   }
 
-  const uupsWalletIsDeployed = await isWalletDeployed(uupsWalletAddress);
+  const deployed = await deployedSettled;
 
-  if (uupsWalletIsDeployed) {
+  if (!deployed.ok) {
+    throw deployed.error;
+  }
+
+  if (deployed.isDeployed) {
     return uupsWalletAddress;
   }
 
@@ -335,7 +361,7 @@ async function postRelayerProxy<TResponse>(
   envelope: RelayerProxyEnvelope,
 ): Promise<TResponse> {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
-  const response = await fetch(`${CLOB_RELAYER}/transaction`, {
+  const response = await fetchWithTimeout(`${CLOB_RELAYER}/transaction`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(envelope),
@@ -434,6 +460,35 @@ const DEPOSIT_WALLET_EIP712_TYPES = {
   ],
 };
 
+async function readPolygonBlockTimestamp(): Promise<number | undefined> {
+  try {
+    const block = await query(getPolygonEthQuery(), 'getBlockByNumber', [
+      'latest',
+      false,
+    ]);
+    const timestamp = Number(block?.timestamp);
+
+    return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The deadline is counted from the later of the device clock and the latest
+ * Polygon block, so a device clock running behind can't push it under the
+ * relayer's minimum.
+ */
+async function getDepositWalletBatchDeadline(): Promise<string> {
+  const deviceTimestamp = Math.floor(Date.now() / 1000);
+  const chainTimestamp = await readPolygonBlockTimestamp();
+
+  return String(
+    Math.max(deviceTimestamp, chainTimestamp ?? 0) +
+      DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS,
+  );
+}
+
 export async function executeDepositWalletBatch({
   signer,
   walletAddress,
@@ -447,10 +502,10 @@ export async function executeDepositWalletBatch({
     throw new Error('Deposit wallet batch requires at least one call');
   }
 
-  const nonce = await getDepositWalletNonce({ ownerAddress: signer.address });
-  const deadline = String(
-    Math.floor(Date.now() / 1000) + DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS,
-  );
+  const [nonce, deadline] = await Promise.all([
+    getDepositWalletNonce({ ownerAddress: signer.address }),
+    getDepositWalletBatchDeadline(),
+  ]);
   const normalizedWalletAddress = getAddress(walletAddress);
 
   const signature = await signer.signTypedMessage(
@@ -630,7 +685,7 @@ export async function syncDepositWalletCollateralBalanceAllowance({
     address: signerAddress,
     apiKey,
   });
-  const response = await fetch(
+  const response = await fetchWithTimeout(
     `${protocol.transport.clobBaseUrl}${requestPath}?${queryString}`,
     {
       method: 'GET',
@@ -642,6 +697,49 @@ export async function syncDepositWalletCollateralBalanceAllowance({
     const responseText = await response.text();
     throw new Error(
       `Failed to sync deposit wallet collateral balance allowance: ${response.status} ${responseText}`,
+    );
+  }
+}
+
+/**
+ * The positions-protocol counterpart of the collateral sync: asks the CLOB
+ * to refresh its view of a deposit wallet's balance and allowance for a
+ * single position before it will accept a sell order for it. Same request
+ * shape as the collateral sync — only the asset type and the position id
+ * differ.
+ */
+export async function syncDepositWalletPositionBalanceAllowance({
+  protocol,
+  signerAddress,
+  apiKey,
+  tokenId,
+}: {
+  protocol: BasePolymarketPositionsProtocolDefinition;
+  signerAddress: string;
+  apiKey: ApiKeyCreds;
+  tokenId: string;
+}): Promise<void> {
+  const requestPath = '/balance-allowance/update';
+  const queryString = `asset_type=CONDITIONAL-V2&token_id=${encodeURIComponent(
+    tokenId,
+  )}&signature_type=3`;
+  const headers = await getL2Headers({
+    l2HeaderArgs: { method: 'GET', requestPath },
+    address: signerAddress,
+    apiKey,
+  });
+  const response = await fetchWithTimeout(
+    `${protocol.transport.clobBaseUrl}${requestPath}?${queryString}`,
+    {
+      method: 'GET',
+      headers,
+    },
+  );
+
+  if (!response.ok) {
+    const responseText = await response.text();
+    throw new Error(
+      `Failed to sync deposit wallet position balance allowance: ${response.status} ${responseText}`,
     );
   }
 }

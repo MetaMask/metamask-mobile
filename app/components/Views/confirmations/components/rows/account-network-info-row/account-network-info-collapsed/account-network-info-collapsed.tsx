@@ -11,10 +11,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { selectAvatarAccountType } from '../../../../../../../selectors/settings';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
@@ -22,6 +18,11 @@ import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
 import { selectWalletsMap } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 const AccountNetworkInfoCollapsed = () => {
   const mockAvatarAccountType = useSelector(selectAvatarAccountType);
@@ -59,7 +60,10 @@ const AccountNetworkInfoCollapsed = () => {
               </Text>
             </View>
             {hasMoreThanOneWallet && (
-              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
                 {walletName}
               </Text>
             )}

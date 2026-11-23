@@ -12,7 +12,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { NavigationContainer } from '@react-navigation/native';
+import { IndependentNavigationContainer } from '../../../util/test/IndependentNavigationContainer';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 import { isTokenDiscoveryBrowserEnabled } from '../../../util/browser';
@@ -23,10 +23,13 @@ import {
   sortMultichainAccountsByLastSelected,
 } from '../../../core/Permissions';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { parseCaipAccountId } from '@metamask/utils';
+import { toast } from '@metamask/design-system-react-native';
+import { strings } from '../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import BrowserTab from '../BrowserTab/BrowserTab';
+
+const toastMock = toast as unknown as jest.Mock;
 
 const Browser = BrowserComponent as React.ComponentType<
   Record<string, unknown>
@@ -47,6 +50,14 @@ jest.mock('../../../core/Permissions', () => ({
   getPermittedCaipAccountIdsByHostname: jest.fn(),
   sortMultichainAccountsByLastSelected: jest.fn(),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('../BrowserTab/BrowserTab', () => ({
   __esModule: true,
@@ -185,7 +196,7 @@ describe('Browser - Rendering and Initialization', () => {
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
         <ThemeContext.Provider value={mockTheme}>
-          <NavigationContainer independent>
+          <IndependentNavigationContainer>
             <Stack.Navigator>
               <Stack.Screen name={Routes.BROWSER.VIEW}>
                 {() => (
@@ -202,7 +213,7 @@ describe('Browser - Rendering and Initialization', () => {
                 )}
               </Stack.Screen>
             </Stack.Navigator>
-          </NavigationContainer>
+          </IndependentNavigationContainer>
         </ThemeContext.Provider>
       </Provider>,
       { state: { ...mockInitialState } },
@@ -217,7 +228,7 @@ describe('Browser - Rendering and Initialization', () => {
     });
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -234,7 +245,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -248,7 +259,7 @@ describe('Browser - Rendering and Initialization', () => {
     const mockCreateNewTab = jest.fn();
     renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -265,7 +276,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -278,7 +289,7 @@ describe('Browser - Rendering and Initialization', () => {
     // Render the component with an initial prop value
     const { rerender } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -295,7 +306,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -305,7 +316,7 @@ describe('Browser - Rendering and Initialization', () => {
     // rerender with a different route value
     rerender(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -324,7 +335,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
     );
     // Check if navigate was called to show the modal
@@ -342,7 +353,7 @@ describe('Browser - Rendering and Initialization', () => {
 
     const { rerender } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -359,7 +370,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
       { state: { ...mockInitialState } },
     );
@@ -370,7 +381,7 @@ describe('Browser - Rendering and Initialization', () => {
     // rerender with a new URL when max tabs are reached, coming from Explore (fromTrending)
     rerender(
       <Provider store={mockStore(mockInitialState)}>
-        <NavigationContainer independent>
+        <IndependentNavigationContainer>
           <Stack.Navigator>
             <Stack.Screen name={Routes.BROWSER.VIEW}>
               {() => (
@@ -393,7 +404,7 @@ describe('Browser - Rendering and Initialization', () => {
               )}
             </Stack.Screen>
           </Stack.Navigator>
-        </NavigationContainer>
+        </IndependentNavigationContainer>
       </Provider>,
     );
 
@@ -413,13 +424,6 @@ describe('Browser - Rendering and Initialization', () => {
 
   it('shows active account toast when visiting a site with permitted accounts', () => {
     // 1. Mock dependencies
-    const mockShowToast = jest.fn();
-    const mockCloseToast = jest.fn();
-    const mockToastRef = {
-      current: { showToast: mockShowToast, closeToast: mockCloseToast },
-    };
-
-    // Mock required values
     const testAccountAddress = '0xabcdef123456789';
     const oldHostname = 'site1.com';
     const newHostname = 'site2.com';
@@ -484,17 +488,9 @@ describe('Browser - Rendering and Initialization', () => {
         address === testAccountAddress ? mockAccountName : 'Unknown Account';
 
       // Show toast - this is what we want to test
-      mockToastRef.current.showToast({
-        variant: 'Account',
-        labelOptions: [
-          {
-            label: `${accountName} `,
-            isBold: true,
-          },
-          { label: 'now active.' },
-        ],
-        accountAddress: address,
-        accountAvatarType: 'JazzIcon',
+      toast({
+        title: `${accountName} ${strings('toast.now_active')}`,
+        showCloseButton: false,
       });
 
       return true;
@@ -503,37 +499,22 @@ describe('Browser - Rendering and Initialization', () => {
     // Verify toast is not shown initially for site1
     const prevHostnameResult = checkIfActiveAccountChanged(oldHostname);
     expect(prevHostnameResult).toBe(false);
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
 
     // Verify toast is shown when changing to site2
-    mockShowToast.mockReset();
+    toastMock.mockReset();
     const newHostnameResult = checkIfActiveAccountChanged(newHostname);
     expect(newHostnameResult).toBe(true);
-    expect(mockShowToast).toHaveBeenCalled();
-    expect(mockShowToast).toHaveBeenCalledWith(
+    expect(toast).toHaveBeenCalled();
+    expect(toast).toHaveBeenCalledWith(
       expect.objectContaining({
-        variant: 'Account',
-        accountAddress: testAccountAddress,
-        labelOptions: expect.arrayContaining([
-          expect.objectContaining({
-            isBold: true,
-            label: `${mockAccountName} `,
-          }),
-          expect.objectContaining({
-            label: 'now active.',
-          }),
-        ]),
+        title: `${mockAccountName} ${strings('toast.now_active')}`,
+        showCloseButton: false,
       }),
     );
   });
 
   describe('useEffect for active account toast', () => {
-    const mockShowToast = jest.fn();
-    const mockCloseToast = jest.fn();
-    const mockToastRef = {
-      current: { showToast: mockShowToast, closeToast: mockCloseToast },
-    };
-
     const testAccountAddress1 = '0x123';
     const testAccountAddress2 = '0x456';
     const mockAccountName1 = 'Account 1';
@@ -574,33 +555,34 @@ describe('Browser - Rendering and Initialization', () => {
       activeTab: 1,
     };
 
+    const browserTree = (
+      props: Partial<React.ComponentProps<typeof Browser>>,
+    ) => (
+      <Provider store={mockStore(mockInitialState)}>
+        <ThemeContext.Provider value={mockTheme}>
+          <IndependentNavigationContainer>
+            <Stack.Navigator>
+              <Stack.Screen name={Routes.BROWSER.VIEW}>
+                {() => <Browser {...defaultBrowserProps} {...props} />}
+              </Stack.Screen>
+            </Stack.Navigator>
+          </IndependentNavigationContainer>
+        </ThemeContext.Provider>
+      </Provider>
+    );
+
     const renderBrowserWithProps = (
       props: Partial<React.ComponentProps<typeof Browser>>,
     ) =>
-      renderWithProvider(
-        <Provider store={mockStore(mockInitialState)}>
-          <ThemeContext.Provider value={mockTheme}>
-            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
-                <Stack.Navigator>
-                  <Stack.Screen name={Routes.BROWSER.VIEW}>
-                    {() => <Browser {...defaultBrowserProps} {...props} />}
-                  </Stack.Screen>
-                </Stack.Navigator>
-              </NavigationContainer>
-            </ToastContext.Provider>
-          </ThemeContext.Provider>
-        </Provider>,
-        {
-          state: {
-            ...mockInitialState,
-            browser: {
-              tabs: props.tabs || defaultBrowserProps.tabs,
-              activeTab: props.activeTab || defaultBrowserProps.activeTab,
-            },
+      renderWithProvider(browserTree(props), {
+        state: {
+          ...mockInitialState,
+          browser: {
+            tabs: props.tabs || defaultBrowserProps.tabs,
+            activeTab: props.activeTab || defaultBrowserProps.activeTab,
           },
         },
-      );
+      });
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -628,38 +610,21 @@ describe('Browser - Rendering and Initialization', () => {
         route: { params: { url: 'https://initial.com' } },
       });
 
-      expect(mockShowToast).not.toHaveBeenCalled(); // No toast on initial render for initial.com
+      expect(toast).not.toHaveBeenCalled(); // No toast on initial render for initial.com
 
       rerender(
-        <Provider store={mockStore(mockInitialState)}>
-          <ThemeContext.Provider value={mockTheme}>
-            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
-                <Stack.Navigator>
-                  <Stack.Screen name={Routes.BROWSER.VIEW}>
-                    {() => (
-                      <Browser
-                        {...defaultBrowserProps}
-                        route={{ params: { url: 'https://newsite.com' } }}
-                      />
-                    )}
-                  </Stack.Screen>
-                </Stack.Navigator>
-              </NavigationContainer>
-            </ToastContext.Provider>
-          </ThemeContext.Provider>
-        </Provider>,
+        browserTree({
+          route: { params: { url: 'https://newsite.com' } },
+        }),
       );
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          accountAddress: testAccountAddress1,
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: `${mockEnsByAccountAddress[testAccountAddress1]} `,
-            }),
-          ]),
+          title: expect.stringContaining(
+            mockEnsByAccountAddress[testAccountAddress1],
+          ),
+          showCloseButton: false,
         }),
       );
     });
@@ -683,7 +648,7 @@ describe('Browser - Rendering and Initialization', () => {
       const { rerender } = renderBrowserWithProps({
         route: { params: { url: 'https://currentsite.com' } },
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
 
       // Rerender with accounts
       (useAccounts as jest.Mock).mockReturnValue({
@@ -693,35 +658,18 @@ describe('Browser - Rendering and Initialization', () => {
       });
 
       rerender(
-        <Provider store={mockStore(mockInitialState)}>
-          <ThemeContext.Provider value={mockTheme}>
-            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
-                <Stack.Navigator>
-                  <Stack.Screen name={Routes.BROWSER.VIEW}>
-                    {() => (
-                      <Browser
-                        {...defaultBrowserProps}
-                        route={{ params: { url: 'https://currentsite.com' } }}
-                      />
-                    )}
-                  </Stack.Screen>
-                </Stack.Navigator>
-              </NavigationContainer>
-            </ToastContext.Provider>
-          </ThemeContext.Provider>
-        </Provider>,
+        browserTree({
+          route: { params: { url: 'https://currentsite.com' } },
+        }),
       );
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith(
         expect.objectContaining({
-          accountAddress: testAccountAddress1,
-          labelOptions: expect.arrayContaining([
-            expect.objectContaining({
-              label: `${mockEnsByAccountAddress[testAccountAddress1]} `,
-            }),
-          ]),
+          title: expect.stringContaining(
+            mockEnsByAccountAddress[testAccountAddress1],
+          ),
+          showCloseButton: false,
         }),
       );
     });
@@ -743,33 +691,16 @@ describe('Browser - Rendering and Initialization', () => {
         route: { params: { url: 'https://initial.com' } },
       });
       // Toast for initial.com
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      mockShowToast.mockClear();
+      expect(toast).toHaveBeenCalledTimes(1);
+      toastMock.mockClear();
 
       rerender(
-        <Provider store={mockStore(mockInitialState)}>
-          <ThemeContext.Provider value={mockTheme}>
-            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
-                <Stack.Navigator>
-                  <Stack.Screen name={Routes.BROWSER.VIEW}>
-                    {() => (
-                      <Browser
-                        {...defaultBrowserProps}
-                        route={{
-                          params: { url: 'https://anothernewsite.com' },
-                        }}
-                      />
-                    )}
-                  </Stack.Screen>
-                </Stack.Navigator>
-              </NavigationContainer>
-            </ToastContext.Provider>
-          </ThemeContext.Provider>
-        </Provider>,
+        browserTree({
+          route: { params: { url: 'https://anothernewsite.com' } },
+        }),
       );
 
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('does not show toast when already on the same host with permitted accounts', () => {
@@ -784,31 +715,16 @@ describe('Browser - Rendering and Initialization', () => {
       const { rerender } = renderBrowserWithProps({
         route: { params: { url: 'https://samesite.com' } },
       });
-      expect(mockShowToast).toHaveBeenCalledTimes(1); // Initial toast
-      mockShowToast.mockClear();
+      expect(toast).toHaveBeenCalledTimes(1); // Initial toast
+      toastMock.mockClear();
 
       // Rerender with same URL (e.g., due to some other state change not affecting URL or accounts)
       rerender(
-        <Provider store={mockStore(mockInitialState)}>
-          <ThemeContext.Provider value={mockTheme}>
-            <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-              <NavigationContainer independent>
-                <Stack.Navigator>
-                  <Stack.Screen name={Routes.BROWSER.VIEW}>
-                    {() => (
-                      <Browser
-                        {...defaultBrowserProps}
-                        route={{ params: { url: 'https://samesite.com' } }}
-                      />
-                    )}
-                  </Stack.Screen>
-                </Stack.Navigator>
-              </NavigationContainer>
-            </ToastContext.Provider>
-          </ThemeContext.Provider>
-        </Provider>,
+        browserTree({
+          route: { params: { url: 'https://samesite.com' } },
+        }),
       );
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('does not show toast when there are no accounts', () => {
@@ -829,7 +745,7 @@ describe('Browser - Rendering and Initialization', () => {
         route: { params: { url: 'https://anyvalidurl.com' } },
       });
 
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('does not show toast when effectiveUrl is null or undefined', () => {
@@ -849,7 +765,7 @@ describe('Browser - Rendering and Initialization', () => {
         route: { params: { url: null } }, // browserUrl will be null
         tabs: [{ id: 1, url: null, image: '', isArchived: false }], // currentUrl might become homePageUrl initially
       });
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(toast).not.toHaveBeenCalled();
     });
 
     it('uses browserUrl from props when currentUrl is not set initially', () => {
@@ -871,16 +787,20 @@ describe('Browser - Rendering and Initialization', () => {
         // We are testing the case where currentUrl is not set via route.params.url initially and it defaults to homePageUrl
         // and then a new browserUrl prop is passed
       });
-      expect(mockShowToast).not.toHaveBeenCalled(); // homePageUrl likely won't have permitted accounts
+      expect(toast).not.toHaveBeenCalled(); // homePageUrl likely won't have permitted accounts
 
       // Simulate a new navigation where browserUrl is passed directly in route.params
       /* const { rerender } = */ renderBrowserWithProps({
         route: { params: { url: 'https://propurl.com' } },
       });
 
-      expect(mockShowToast).toHaveBeenCalledTimes(1);
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({ accountAddress: testAccountAddress1 }),
+      expect(toast).toHaveBeenCalledTimes(1);
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: expect.stringContaining(
+            mockEnsByAccountAddress[testAccountAddress1],
+          ),
+        }),
       );
     });
   });

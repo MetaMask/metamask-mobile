@@ -4,6 +4,7 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
@@ -42,7 +43,10 @@ describe('resolvePredictFeatureFlags', () => {
       predictPortfolioEnabled: false,
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
+      isMembershipFeeWaiverEnabled: false,
+      disablePolymarketV2Markets: false,
       predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
+      predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
       predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
     });
   });
@@ -352,6 +356,66 @@ describe('resolvePredictFeatureFlags', () => {
     });
   });
 
+  describe('isMembershipFeeWaiverEnabled', () => {
+    it('defaults to false when the remote flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.isMembershipFeeWaiverEnabled).toBe(false);
+    });
+
+    it('returns true when the remote flag is enabled and the version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag)
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSubscriptionFeeWaiverEnabled: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.isMembershipFeeWaiverEnabled).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag)
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSubscriptionFeeWaiverEnabled: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.isMembershipFeeWaiverEnabled).toBe(false);
+    });
+  });
+
   describe('predictWimbledonTab', () => {
     it('returns default disabled flag when flag is missing', () => {
       const result = resolvePredictFeatureFlags({});
@@ -424,6 +488,123 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
+    });
+  });
+
+  describe('predictHomeCategories', () => {
+    const remoteCategories = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      categories: [
+        { id: 'tech', tagSlug: 'tech', label: 'Tech', iconName: 'Data' },
+        { id: 'sports', tagSlug: 'sports', enabled: false },
+        { id: 'culture', tagSlug: 'pop-culture', label: 'Culture' },
+      ],
+    };
+
+    it('returns bundled categories when flag is missing', () => {
+      expect(resolvePredictFeatureFlags({}).predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    const passCategoriesVersionGate = () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'categories' in flag
+          ? Boolean((flag as { enabled?: boolean }).enabled)
+          : undefined,
+      );
+    };
+
+    it('returns remote categories in LD order with defaulted enabled flags', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: { predictHomeCategories: remoteCategories },
+      });
+
+      expect(result.predictHomeCategories.categories).toEqual([
+        {
+          id: 'tech',
+          tagSlug: 'tech',
+          label: 'Tech',
+          iconName: 'Data',
+          enabled: true,
+        },
+        { id: 'sports', tagSlug: 'sports', enabled: false },
+        {
+          id: 'culture',
+          tagSlug: 'pop-culture',
+          label: 'Culture',
+          enabled: true,
+        },
+      ]);
+    });
+
+    it('falls back to bundled categories when version requirement is not met', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'categories' in flag
+          ? false
+          : undefined,
+      );
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            ...remoteCategories,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when the flag is disabled', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: { ...remoteCategories, enabled: false },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when an entry is missing id or tagSlug', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            categories: [{ id: 'tech', label: 'Tech' }],
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
+    });
+
+    it('falls back to bundled categories when every entry is disabled', () => {
+      passCategoriesVersionGate();
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeCategories: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            categories: [{ id: 'tech', tagSlug: 'tech', enabled: false }],
+          },
+        },
+      });
+
+      expect(result.predictHomeCategories).toEqual(
+        DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+      );
     });
   });
 
@@ -643,6 +824,231 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictPortfolioEnabled).toBe(true);
+    });
+  });
+
+  describe('disablePolymarketV2Markets', () => {
+    const mockVersionGate = (result: boolean | undefined) =>
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return result;
+        }
+        return undefined;
+      });
+
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockVersionGate(false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockVersionGate(false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictDisablePolymarketV2Markets: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.disablePolymarketV2Markets).toBe(true);
+    });
+  });
+
+  describe('chainlinkApiKey', () => {
+    const fakeKey = 'fake-chainlink-key-for-tests';
+    const mockVersionGate = (result: boolean | undefined) =>
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        flag && typeof flag === 'object' && 'chainlinkApiKey' in flag
+          ? result
+          : undefined,
+      );
+
+    it('is undefined when the flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+      expect(result).not.toHaveProperty('chainlinkApiKey');
+    });
+
+    it('returns the key when the flag is enabled and the version gate passes', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: fakeKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+
+    it('is undefined when the flag is disabled or below its minimum version', () => {
+      mockVersionGate(false);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            chainlinkApiKey: fakeKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+    });
+
+    it.each([
+      ['empty', ''],
+      ['blank', '   '],
+      ['empty after trim', ' \t\n '],
+      ['not a string', 42],
+      ['longer than 512 characters', 'k'.repeat(513)],
+      ['holding a control character', 'fake\u0007key'],
+      ['holding a tab inside it', 'fake\tkey'],
+      ['holding a non-ASCII character', 'fake-kéy'],
+    ])('is undefined when the key is %s', (_label, chainlinkApiKey) => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBeUndefined();
+    });
+
+    it('trims the key', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: ` ${fakeKey} `,
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
+    });
+
+    it('accepts a key of 512 printable ASCII characters', () => {
+      mockVersionGate(true);
+      const longKey = `a${' ~'.repeat(255)}z`;
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            enabled: true,
+            minimumVersion: '8.20.0',
+            chainlinkApiKey: longKey,
+          },
+        },
+      });
+
+      expect(longKey).toHaveLength(512);
+      expect(result.chainlinkApiKey).toBe(longKey);
+    });
+
+    it('unwraps the progressive rollout shape', () => {
+      mockVersionGate(true);
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictCryptoPriceFeed: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '8.20.0',
+              chainlinkApiKey: fakeKey,
+            },
+          },
+        },
+      });
+
+      expect(result.chainlinkApiKey).toBe(fakeKey);
     });
   });
 
@@ -1025,6 +1431,13 @@ describe('resolvePredictFeatureFlags', () => {
               'spreads',
               'totals',
               'first_half_moneyline',
+              'first_half_spreads',
+              'team_totals_home',
+              'team_totals_away',
+              'anytime_touchdowns',
+              'first_touchdowns',
+              'rushing_yards',
+              'receiving_yards',
               'soccer_halftime_result',
               'soccer_player_goals',
               'points',
@@ -1038,6 +1451,13 @@ describe('resolvePredictFeatureFlags', () => {
         'spreads',
         'totals',
         'first_half_moneyline',
+        'first_half_spreads',
+        'team_totals_home',
+        'team_totals_away',
+        'anytime_touchdowns',
+        'first_touchdowns',
+        'rushing_yards',
+        'receiving_yards',
         'soccer_halftime_result',
         'soccer_player_goals',
       ]);

@@ -8,15 +8,22 @@ import {
   PERPS_EVENT_VALUE,
   PerpsMode,
 } from '@metamask/perps-controller';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react';
 import { useSelector } from 'react-redux';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsModeSelectionBottomSheet from '../../components/PerpsModeSelectionBottomSheet';
+import { usePerpsHeaderEntryNavigation } from '../../hooks/usePerpsHeaderEntryNavigation';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMode } from '../../hooks/usePerpsMode';
-import { selectIsFirstTimePerpsUser } from '../../selectors/perpsController';
+import { selectPerpsLastViewedMarketSymbol } from '../../selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../selectors/featureFlags';
 import { markPerpsModeSelectionCompleted } from '../../utils/perpsModeSelectionStorage';
 import { PERPS_MODE_ANALYTICS_PROPERTY } from '../../utils/perpsModeAnalytics';
@@ -27,10 +34,10 @@ import {
   PERPS_MODE_SELECTION_SCREEN_TYPE,
 } from '../../utils/openPerpsModeSelection';
 import {
-  buildDefaultProMarket,
   dropPerpsHomeFromStackHistory,
   resolvePerpsHomeNavigationTarget,
   toPerpsNavigatorScreenParams,
+  withHomeDroppedFromHistory,
 } from '../../utils/perpsModeSwitch';
 
 type ModeSelectionRoute = RouteProp<
@@ -61,11 +68,22 @@ const PerpsModeSelectionView: React.FC = () => {
     },
   });
   const { mode: selectedMode, setMode } = usePerpsMode();
-  const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
   const isProModeEnabled = useSelector(selectPerpsProModeEnabledFlag);
+  const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
+  const [trackProEntryExposure, setTrackProEntryExposure] = useState(false);
+  const [pendingProEntry, setPendingProEntry] = useState<PerpsMode | null>(
+    null,
+  );
+  // Keep this above the leave effect. useABTest emits Experiment Viewed from
+  // an effect, and effects run in hook order, so exposure lands before the
+  // sheet unmounts.
+  const { getProSwitchTarget } = usePerpsHeaderEntryNavigation({
+    trackExposure: trackProEntryExposure,
+  });
 
   const hasSelectedRef = useRef(false);
   const dismissEmittedRef = useRef(false);
+  const continuedAsPreselectedRef = useRef(false);
   const openedAtRef = useRef(Date.now());
 
   const emitDismissIfNeeded = useCallback(() => {
@@ -82,57 +100,18 @@ const PerpsModeSelectionView: React.FC = () => {
     });
   }, [entry, source, track]);
 
-  // Cover swipe / hardware back / programmatic goBack without a Lite/Pro pick.
-  // Selection sets hasSelectedRef first so select → goBack is not counted as dismiss.
-  useEffect(() => {
-    openedAtRef.current = Date.now();
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
-      emitDismissIfNeeded();
-    });
-    return unsubscribe;
-  }, [emitDismissIfNeeded, navigation]);
-
-  const handleClose = useCallback(() => {
-    // Sheet dismiss (X / backdrop / swipe) — beforeRemove also fires after goBack;
-    // emit here so dismiss is recorded even if navigation teardown is odd.
-    emitDismissIfNeeded();
-    navigation.goBack();
-  }, [emitDismissIfNeeded, navigation]);
-
   const continueAfterSelection = useCallback(
     (mode: PerpsMode) => {
-      if (isFirstTimePerpsUser) {
-        navigation.navigate(
-          Routes.PERPS.TUTORIAL,
-          mode === PerpsMode.Pro
-            ? {
-                source,
-                redirectScreen: Routes.PERPS.MARKET_DETAILS,
-                redirectParams: {
-                  market: buildDefaultProMarket(),
-                  source,
-                },
-              }
-            : { source },
-        );
-        return;
-      }
-
       if (entry === 'home' && mode === PerpsMode.Pro) {
         // Modal is nested under the Perps stack when opened from home.
         // Reset that parent stack so Perps Home is discarded while Pro is
         // active (TAT-3612) — same behavior as the old direct header switch.
+        const target = getProSwitchTarget(
+          withHomeDroppedFromHistory({ source }),
+        );
         navigation.getParent()?.reset({
           index: 0,
-          routes: [
-            {
-              name: Routes.PERPS.MARKET_DETAILS,
-              params: {
-                market: buildDefaultProMarket(),
-                source,
-              },
-            },
-          ],
+          routes: [{ name: target.screen, params: target.params }],
         });
         return;
       }
@@ -142,13 +121,17 @@ const PerpsModeSelectionView: React.FC = () => {
         // Pro-mode selector: `setMode` has run but this closure still holds the
         // pre-selection render's value, so reading it back would send a user who
         // picked Pro to Lite Home.
+        const enteringPro = isProModeEnabled && mode === PerpsMode.Pro;
         navigation.navigate(
           Routes.PERPS.ROOT,
           toPerpsNavigatorScreenParams(
-            resolvePerpsHomeNavigationTarget(
-              isProModeEnabled && mode === PerpsMode.Pro,
-              { source },
-            ),
+            enteringPro
+              ? getProSwitchTarget({ source })
+              : resolvePerpsHomeNavigationTarget(
+                  false,
+                  { source },
+                  lastViewedMarketSymbol,
+                ),
           ),
         );
         return;
@@ -166,12 +149,93 @@ const PerpsModeSelectionView: React.FC = () => {
 
       // `home` + Lite: dismiss only — already on Perps Home.
     },
-    [entry, isFirstTimePerpsUser, isProModeEnabled, navigation, source],
+    [
+      entry,
+      getProSwitchTarget,
+      isProModeEnabled,
+      lastViewedMarketSymbol,
+      navigation,
+      source,
+    ],
   );
+
+  const leaveChooserAfterSelection = useCallback(
+    (mode: PerpsMode) => {
+      // Home → Pro resets the parent Perps stack (clears the modal too).
+      if (entry === 'home' && mode === PerpsMode.Pro) {
+        continueAfterSelection(mode);
+        return;
+      }
+
+      // Market → Pro must drop Home while the modal is still nested under the
+      // Perps stack — after goBack the parent relationship is gone.
+      if (entry === 'market' && mode === PerpsMode.Pro) {
+        continueAfterSelection(mode);
+        navigation.goBack();
+        return;
+      }
+
+      navigation.goBack();
+      requestAnimationFrame(() => {
+        continueAfterSelection(mode);
+      });
+    },
+    [continueAfterSelection, entry, navigation],
+  );
+
+  const hasLeftAfterProEntryRef = useRef(false);
+  useEffect(() => {
+    if (pendingProEntry === null || hasLeftAfterProEntryRef.current) {
+      return;
+    }
+    hasLeftAfterProEntryRef.current = true;
+    leaveChooserAfterSelection(pendingProEntry);
+  }, [leaveChooserAfterSelection, pendingProEntry]);
+
+  const continueAsPreselectedIfNeeded = useCallback(() => {
+    if (
+      entry !== 'trade' ||
+      hasSelectedRef.current ||
+      continuedAsPreselectedRef.current
+    ) {
+      return;
+    }
+    continuedAsPreselectedRef.current = true;
+    markPerpsModeSelectionCompleted().catch(() => undefined);
+    requestAnimationFrame(() => {
+      continueAfterSelection(selectedMode);
+    });
+  }, [continueAfterSelection, entry, selectedMode]);
+
+  const handleBeforeRemove = useEffectEvent(() => {
+    emitDismissIfNeeded();
+    continueAsPreselectedIfNeeded();
+  });
+
+  // Cover swipe / hardware back / programmatic goBack without a Lite/Pro pick.
+  // Selection sets hasSelectedRef first so select → goBack is not counted as dismiss.
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () =>
+      handleBeforeRemove(),
+    );
+    return unsubscribe;
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    // Sheet dismiss (X / backdrop / swipe) — beforeRemove also fires after goBack;
+    // emit here so dismiss is recorded even if navigation teardown is odd.
+    emitDismissIfNeeded();
+    continueAsPreselectedIfNeeded();
+    navigation.goBack();
+  }, [continueAsPreselectedIfNeeded, emitDismissIfNeeded, navigation]);
 
   const handleSelect = useCallback(
     async (mode: PerpsMode) => {
       hasSelectedRef.current = true;
+      const shouldTrackProEntry =
+        mode === PerpsMode.Pro &&
+        isProModeEnabled &&
+        (entry === 'home' || entry === 'trade');
       setMode(mode);
       await markPerpsModeSelectionCompleted();
 
@@ -183,34 +247,20 @@ const PerpsModeSelectionView: React.FC = () => {
         entry,
       });
 
-      // Home → Pro resets the parent Perps stack (clears the modal too).
-      if (entry === 'home' && mode === PerpsMode.Pro && !isFirstTimePerpsUser) {
-        continueAfterSelection(mode);
+      if (shouldTrackProEntry) {
+        // Arm exposure and leave on the next effect flush. Navigating in this
+        // turn unmounts the sheet before useABTest can emit Experiment Viewed.
+        setTrackProEntryExposure(true);
+        setPendingProEntry(mode);
         return;
       }
 
-      // Market → Pro must drop Home while the modal is still nested under the
-      // Perps stack — after goBack the parent relationship is gone.
-      if (
-        entry === 'market' &&
-        mode === PerpsMode.Pro &&
-        !isFirstTimePerpsUser
-      ) {
-        continueAfterSelection(mode);
-        navigation.goBack();
-        return;
-      }
-
-      navigation.goBack();
-      requestAnimationFrame(() => {
-        continueAfterSelection(mode);
-      });
+      leaveChooserAfterSelection(mode);
     },
     [
-      continueAfterSelection,
       entry,
-      isFirstTimePerpsUser,
-      navigation,
+      isProModeEnabled,
+      leaveChooserAfterSelection,
       setMode,
       source,
       track,

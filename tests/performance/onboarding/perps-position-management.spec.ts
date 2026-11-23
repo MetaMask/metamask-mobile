@@ -15,10 +15,10 @@ import {
   isPositionOpen,
   resolvePerpsGtmOnboardingModalEnabled,
 } from '../../flows/perps.flow.js';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions.js';
-import { asPlaywrightElement } from '../../framework/EncapsulatedElement.js';
+import AppiumAssertions from '../../framework/AppiumAssertions.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 const testEnvironment = process.env.E2E_PERFORMANCE_BUILD_VARIANT || 'rc';
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(`${Performance} ${PerformancePreps}`, () => {
@@ -37,7 +37,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       const selectMarketTimer = new TimerHelper(
         'Market list screen visible',
-        { ios: 7500, android: 6000 },
+        { ios: 7500, android: 2400 },
         currentDeviceDetails.platform,
       );
       const openOrderScreenTimer = new TimerHelper(
@@ -61,6 +61,7 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       // Perps requires independent account for each device to avoid clashes when running tests in parallel
       await selectAccountByDevice(currentDeviceDetails.deviceName);
 
+      await enableHermesAppProfiling();
       await WalletView.scrollAndTapPerpsSection();
       const productionFeatureFlags = await fetchProductionFeatureFlags(
         'main',
@@ -72,24 +73,24 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
 
       if (perpsGtmOnboardingModalEnabled) {
         await selectPerpsMainScreenTimer.measure(async () => {
-          await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+          await AppiumAssertions.expectElementToBeVisible(
+            PerpsOnboarding.tutorialTitle,
           );
         });
         await dismissPerpsOnboardingTutorialIfPresent();
       }
 
       await selectMarketTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PerpsMarketListView.withdrawButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsMarketListView.withdrawButton,
         );
       });
 
       await PerpsMarketListView.tapMarketRowItemBTC();
 
       await MarketDetailsScreenTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PerpsMarketDetailsView.header),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsMarketDetailsView.assetName,
         );
       });
       // Check if there's an existing position and close it before continuing
@@ -107,8 +108,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await PerpsMarketDetailsView.tapLongButton();
       // Open Position
       await openOrderScreenTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PerpsOrderView.placeOrderButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsOrderView.placeOrderButton,
         );
       });
 
@@ -117,8 +118,8 @@ test.describe(`${Performance} ${PerformancePreps}`, () => {
       await PerpsOrderView.tapPlaceOrder();
 
       await openPositionTimer.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PerpsMarketDetailsView.closeButton),
+        await AppiumAssertions.expectElementToBeVisible(
+          PerpsMarketDetailsView.closeButton,
           { timeout: 30000 },
         );
       });

@@ -69,4 +69,24 @@ describe('MainNotificationToggle', () => {
       getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
     ).toHaveProp('disabled', true);
   });
+
+  it('disables the switch when disabled prop is true', () => {
+    arrangeMocks();
+    const { getByTestId } = render(<MainNotificationToggle disabled />);
+
+    expect(
+      getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
+    ).toHaveProp('disabled', true);
+  });
+
+  it('hides the description when showDescription is false', () => {
+    arrangeMocks();
+    const { queryByText } = render(
+      <MainNotificationToggle showDescription={false} />,
+    );
+
+    expect(
+      queryByText('app_settings.allow_notifications_desc'),
+    ).not.toBeOnTheScreen();
+  });
 });

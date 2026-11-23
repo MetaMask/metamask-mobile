@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { useWindowDimensions, View } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
 import type { Provider } from '@metamask/ramps-controller';
-import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -12,16 +11,16 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import {
   createNavigationDetails,
   useParams,
+  navigateWithDetails,
 } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import ProviderSelection from './ProviderSelection';
+import { createNestedTokenSelectionNavDetails } from '../../TokenSelection';
 import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
-import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
-import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
-import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
+import { usePreviouslyUsedProviderIds } from '../../../hooks/useProviderPickerOptions';
 import { providerSupportsAsset } from '../../../utils/providerSupportsAsset';
 import { parseUserFacingError } from '../../../utils/parseUserFacingError';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -29,6 +28,11 @@ import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
+import { useRampScreenPerformance } from '../../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../../constants/rampScreenPerformance';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -64,17 +68,7 @@ function ProviderSelectionModal() {
     selectedToken,
   } = useRampsController();
 
-  const legacyOrdersProviders = useSelector(getOrdersProviders);
-  const controllerOrders = useSelector(
-    selectRampsOrdersForSelectedAccountGroup,
-  );
-
-  const ordersProviders = useMemo(() => {
-    const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
-      (o) => o.providerId,
-    );
-    return Array.from(new Set([...legacyOrdersProviders, ...v2ProviderIds]));
-  }, [legacyOrdersProviders, controllerOrders]);
+  const ordersProviders = usePreviouslyUsedProviderIds(providers);
 
   const hasPaymentModalInStack = useNavigationState((state) =>
     state.routes.some(
@@ -137,12 +131,22 @@ function ProviderSelectionModal() {
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
 
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.PROVIDER_SELECTION_MODAL,
+    contentReady:
+      skipQuotes ||
+      (quoteFetchParams !== null && (quotes != null || quotesError != null)),
+    contentState: quotesError
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : displayProviders.length === 0
+        ? RAMP_SCREEN_CONTENT_STATE.EMPTY
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
+
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction && skipQuotes) {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
-        });
+        navigateWithDetails(navigation, createNestedTokenSelectionNavDetails());
       }
     },
     [navigation, skipQuotes],
@@ -164,7 +168,7 @@ function ProviderSelectionModal() {
           })
           .build(),
       );
-      setSelectedProvider(provider);
+      setSelectedProvider(provider, { userSelected: true });
       navigation.goBack();
     },
     [
@@ -198,9 +202,7 @@ function ProviderSelectionModal() {
           }
           showQuotes={!skipQuotes && amount > 0 && !!selectedPaymentMethod}
           showBackButton={hasPaymentModalInStack}
-          ordersProviders={ordersProviders.filter(
-            (id): id is string => id != null,
-          )}
+          ordersProviders={ordersProviders}
           onBack={handleBack}
           onProviderSelect={handleProviderSelect}
         />

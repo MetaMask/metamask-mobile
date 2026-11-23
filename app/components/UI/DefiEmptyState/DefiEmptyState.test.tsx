@@ -32,10 +32,7 @@ describe('DefiEmptyState', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith('TrendingView', {
-      screen: 'TrendingFeed',
-      params: {
-        initialTab: EXPLORE_TAB_INDEX.SITES,
-      },
+      initialTab: EXPLORE_TAB_INDEX.SITES,
     });
   });
 });

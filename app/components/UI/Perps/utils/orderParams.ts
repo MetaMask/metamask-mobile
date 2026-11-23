@@ -1,15 +1,37 @@
 import {
   ORDER_SLIPPAGE_CONFIG,
+  isLimitExecutionOrderType,
+  isStrategyOrderType,
+  isTriggerOrderType,
   type InputMethod,
+  type ExpectedScaleLadder,
+  type MarginMode,
   type Order,
   type OrderParams,
   type OrderType,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { derivePerpsTradeAction } from './deriveTradeAction';
 import { toPerpsEntryAttribution } from './perpsAnalyticsAttribution';
+import type { MaxSlippageSource } from '../constants/slippageConfig';
 
 type OrderTrackingData = OrderParams['trackingData'];
+
+/**
+ * Identify Scale orders whose quantity grids belong to the venue.
+ *
+ * @param orderType - Selected order type.
+ * @param providerId - Resolved execution route.
+ * @returns Whether the venue owns Scale normalization.
+ */
+export const isVenueSizedScaleOrder = (
+  orderType: OrderType,
+  providerId: PerpsProviderType | undefined,
+): boolean =>
+  orderType === 'scale' &&
+  providerId === PROVIDER_CONFIG.VenueSizedScaleProvider;
 
 export interface BuildPerpsOrderTrackingDataInput {
   /** Required margin string (converted to a number for the event). */
@@ -26,6 +48,8 @@ export interface BuildPerpsOrderTrackingDataInput {
   marketPrice: number;
   /** Input method that produced the amount ('default' for the Pro inline form). */
   inputMethod: InputMethod;
+  /** Order type determines whether slippage settings affect execution. */
+  orderType: OrderType;
   source?: string;
   sourceSection?: string;
   currentMarketPosition?: Position | null;
@@ -35,6 +59,9 @@ export interface BuildPerpsOrderTrackingDataInput {
   /** Pay-with-any-token context (lite only); omit for the direct Pro path. */
   hasCustomTokenSelected?: boolean;
   payToken?: { symbol?: string; chainId?: string | number } | null;
+  maxSlippageBps?: number;
+  maxSlippageSource?: MaxSlippageSource;
+  estimatedSlippageBps?: number;
 }
 
 /**
@@ -51,6 +78,7 @@ export const buildPerpsOrderTrackingData = ({
   feeResults,
   marketPrice,
   inputMethod,
+  orderType,
   source,
   sourceSection,
   currentMarketPosition,
@@ -59,6 +87,9 @@ export const buildPerpsOrderTrackingData = ({
   vipTier,
   hasCustomTokenSelected,
   payToken,
+  maxSlippageBps,
+  maxSlippageSource,
+  estimatedSlippageBps,
 }: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
   marginUsed: Number(marginRequired),
   totalFee: feeResults.totalFee,
@@ -84,25 +115,41 @@ export const buildPerpsOrderTrackingData = ({
     : {}),
   vipTier: vipTier ?? undefined,
   vipDiscount: feeResults.feeDiscountPercentage,
+  ...(!isStrategyOrderType(orderType) && !isLimitExecutionOrderType(orderType)
+    ? {
+        ...(maxSlippageBps !== undefined ? { maxSlippageBps } : {}),
+        ...(maxSlippageSource !== undefined ? { maxSlippageSource } : {}),
+        ...(estimatedSlippageBps !== undefined ? { estimatedSlippageBps } : {}),
+      }
+    : {}),
 });
 
 export interface BuildPerpsOrderParamsInput {
   asset: string;
   isBuy: boolean;
-  /** Position size (token units) — kept for backward compat; provider recalculates from usdAmount. */
+  /** Position size (token units); exact full closes intentionally omit usdAmount. */
   size: string;
   orderType: OrderType;
-  /** Effective price used for both `currentPrice` and `priceAtCalculation`. */
+  /** Price reference for `currentPrice` and supported calculation fields. */
   effectivePrice: number;
   leverage: number;
-  usdAmount: string;
-  /** User-configured max slippage (bps); limit orders override to the fixed default. */
+  usdAmount?: string;
+  /** Effective max slippage (bps); limit orders use the fixed default. */
   maxSlippageBps: number;
   limitPrice?: string;
+  chaseMaxDistanceBps?: number;
+  /** Trigger price for stop/take placements; omitted for market and limit. */
+  triggerPrice?: string;
   takeProfitPrice?: string;
   stopLossPrice?: string;
   /** Reduce-only flag (Pro only); omitted for lite. */
   reduceOnly?: boolean;
+  twapDuration?: number;
+  twapRandomize?: boolean;
+  /** Provider route required for strategy placement. */
+  providerId?: PerpsProviderType;
+  /** Explicit collateral mode; omit to keep the provider's isolated default. */
+  marginMode?: MarginMode;
   /**
    * True when the order consumes the full open position.
    * Enables the controller's minimum-notional exemption for dust closes.
@@ -113,9 +160,10 @@ export interface BuildPerpsOrderParamsInput {
 
 /**
  * Pure assembly of the controller `OrderParams` shared by the lite
- * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit orders
- * use the fixed default slippage; TP/SL/limit price and `reduceOnly` are only
- * included when present. TP/SL are never attached to reduce-only orders.
+ * (`PerpsOrderView`) and Pro (`usePerpsProOrderForm`) order forms. Limit-execution
+ * orders use the fixed default slippage; TP/SL, limit price, trigger price, and
+ * `reduceOnly` are only included when present. TP/SL are never attached to
+ * reduce-only, trigger, or strategy orders.
  *
  * @param input - Order params inputs.
  * @returns The controller `OrderParams`.
@@ -130,31 +178,87 @@ export const buildPerpsOrderParams = ({
   usdAmount,
   maxSlippageBps,
   limitPrice,
+  chaseMaxDistanceBps,
+  providerId,
+  marginMode,
+  triggerPrice,
   takeProfitPrice,
   stopLossPrice,
   reduceOnly,
+  twapDuration,
+  twapRandomize,
   isFullClose,
   trackingData,
-}: BuildPerpsOrderParamsInput): OrderParams => ({
-  symbol: asset,
-  isBuy,
-  size,
-  orderType,
-  currentPrice: effectivePrice,
-  leverage,
-  usdAmount,
-  priceAtCalculation: effectivePrice,
-  maxSlippageBps:
-    orderType === 'limit'
-      ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
-      : maxSlippageBps,
-  ...(reduceOnly !== undefined ? { reduceOnly } : {}),
-  ...(isFullClose !== undefined ? { isFullClose } : {}),
-  ...(orderType === 'limit' && limitPrice ? { price: limitPrice } : {}),
-  // Reduce-only closes cannot attach TP/SL — omit even if stale values remain.
-  ...(!reduceOnly && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
-  ...(!reduceOnly && stopLossPrice?.trim() ? { stopLossPrice } : {}),
-  trackingData,
+}: BuildPerpsOrderParamsInput): OrderParams => {
+  const isStrategyOrder = isStrategyOrderType(orderType);
+  const isVenueSizedScale = isVenueSizedScaleOrder(orderType, providerId);
+  const canAttachTpSl =
+    !reduceOnly && !isTriggerOrderType(orderType) && !isStrategyOrder;
+
+  return {
+    symbol: asset,
+    isBuy,
+    size,
+    orderType,
+    currentPrice: effectivePrice,
+    leverage,
+    ...(usdAmount !== undefined ? { usdAmount } : {}),
+    ...(!isVenueSizedScale ? { priceAtCalculation: effectivePrice } : {}),
+    ...(!isStrategyOrder
+      ? {
+          maxSlippageBps: isLimitExecutionOrderType(orderType)
+            ? ORDER_SLIPPAGE_CONFIG.DefaultLimitSlippageBps
+            : maxSlippageBps,
+        }
+      : {}),
+    ...(reduceOnly !== undefined ? { reduceOnly } : {}),
+    ...(!isVenueSizedScale && isFullClose !== undefined ? { isFullClose } : {}),
+    ...(orderType === 'chase' && chaseMaxDistanceBps !== undefined
+      ? { chaseMaxDistanceBps }
+      : {}),
+    ...(isLimitExecutionOrderType(orderType) && limitPrice
+      ? { price: limitPrice }
+      : {}),
+    ...(isTriggerOrderType(orderType) && triggerPrice?.trim()
+      ? { triggerPrice }
+      : {}),
+    ...(orderType === 'twap' && twapDuration !== undefined
+      ? { twapDuration }
+      : {}),
+    ...(orderType === 'twap' && twapRandomize !== undefined
+      ? { twapRandomize }
+      : {}),
+    ...(providerId !== undefined ? { providerId } : {}),
+    ...(marginMode !== undefined ? { marginMode } : {}),
+    ...(canAttachTpSl && takeProfitPrice?.trim() ? { takeProfitPrice } : {}),
+    ...(canAttachTpSl && stopLossPrice?.trim() ? { stopLossPrice } : {}),
+    trackingData,
+  };
+};
+
+/** Assemble the exact Scale request for both current-form observation and placement. */
+export const buildPerpsScaleOrderParams = ({
+  scaleMinPrice,
+  scaleMaxPrice,
+  scaleNumOrders,
+  scaleSkew,
+  expectedScaleLadder,
+  ...input
+}: Omit<BuildPerpsOrderParamsInput, 'orderType'> & {
+  scaleMinPrice: string;
+  scaleMaxPrice: string;
+  scaleNumOrders: number;
+  scaleSkew: number;
+  expectedScaleLadder?: ExpectedScaleLadder;
+}): OrderParams => ({
+  ...buildPerpsOrderParams({ ...input, orderType: 'scale' }),
+  scaleMinPrice,
+  scaleMaxPrice,
+  scaleNumOrders,
+  scaleSkew,
+  ...(isVenueSizedScaleOrder('scale', input.providerId)
+    ? { expectedScaleLadder }
+    : {}),
 });
 
 export interface BuildEditOrderParamsInput {

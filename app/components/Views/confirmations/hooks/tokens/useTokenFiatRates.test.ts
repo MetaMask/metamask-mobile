@@ -21,28 +21,79 @@ const CONVERSION_RATE_2_MOCK = 5;
 const USD_RATE_1_MOCK = 6;
 const USD_RATE_2_MOCK = 7;
 
+// Native assets used purely to seed the migrated currency-rate/market-data
+// selectors (see assets-migration.ts): decimal(CHAIN_ID_1_MOCK) == 291,
+// decimal(CHAIN_ID_2_MOCK) == 1110.
+const NATIVE_ASSET_ID_1_MOCK = 'eip155:291/slip44:60';
+const NATIVE_ASSET_ID_2_MOCK = 'eip155:1110/slip44:60';
+const TOKEN_ASSET_ID_1_MOCK = `eip155:291/erc20:${ADDRESS_1_MOCK}`;
+const TOKEN_ASSET_ID_2_MOCK = `eip155:1110/erc20:${ADDRESS_2_MOCK}`;
+
 function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
   return renderHookWithProvider(() => useTokenFiatRates(requests), {
     state: {
       engine: {
         backgroundState: {
           ...backgroundState,
-          CurrencyRateController: {
-            currentCurrency: 'tst',
-            currencyRates: {
-              [TICKER_1_MOCK]: {
-                conversionRate: CONVERSION_RATE_1_MOCK,
-                usdConversionRate: USD_RATE_1_MOCK,
+          // Any non-'usd' currency preserves the pre-migration test's intent
+          // of exercising the non-USD conversionRate path.
+          AssetsController: {
+            selectedCurrency: 'eur' as const,
+            assetsInfo: {
+              [NATIVE_ASSET_ID_1_MOCK]: {
+                type: 'native' as const,
+                symbol: TICKER_1_MOCK,
+                name: TICKER_1_MOCK,
+                decimals: 18,
               },
-              [TICKER_2_MOCK]: {
-                conversionRate: CONVERSION_RATE_2_MOCK,
-                usdConversionRate: USD_RATE_2_MOCK,
+              [NATIVE_ASSET_ID_2_MOCK]: {
+                type: 'native' as const,
+                symbol: TICKER_2_MOCK,
+                name: TICKER_2_MOCK,
+                decimals: 18,
+              },
+              [TOKEN_ASSET_ID_1_MOCK]: {
+                type: 'erc20' as const,
+                symbol: 'TOKEN1',
+                name: 'Token 1',
+                decimals: 18,
+              },
+              [TOKEN_ASSET_ID_2_MOCK]: {
+                type: 'erc20' as const,
+                symbol: 'TOKEN2',
+                name: 'Token 2',
+                decimals: 18,
               },
             },
-          },
-          AssetsController: {
-            ...backgroundState.AssetsController,
-            selectedCurrency: 'usd',
+            assetsBalance: {},
+            assetsPrice: {
+              [NATIVE_ASSET_ID_1_MOCK]: {
+                assetPriceType: 'fungible' as const,
+                price: CONVERSION_RATE_1_MOCK,
+                usdPrice: USD_RATE_1_MOCK,
+                lastUpdated: 0,
+              },
+              [NATIVE_ASSET_ID_2_MOCK]: {
+                assetPriceType: 'fungible' as const,
+                price: CONVERSION_RATE_2_MOCK,
+                usdPrice: USD_RATE_2_MOCK,
+                lastUpdated: 0,
+              },
+              // Fiat price such that dividing by the native conversion rate
+              // reproduces PRICE_1_MOCK / PRICE_2_MOCK (native-denominated).
+              [TOKEN_ASSET_ID_1_MOCK]: {
+                assetPriceType: 'fungible' as const,
+                price: PRICE_1_MOCK * CONVERSION_RATE_1_MOCK,
+                usdPrice: PRICE_1_MOCK * CONVERSION_RATE_1_MOCK,
+                lastUpdated: 0,
+              },
+              [TOKEN_ASSET_ID_2_MOCK]: {
+                assetPriceType: 'fungible' as const,
+                price: PRICE_2_MOCK * CONVERSION_RATE_2_MOCK,
+                usdPrice: PRICE_2_MOCK * CONVERSION_RATE_2_MOCK,
+                lastUpdated: 0,
+              },
+            },
           },
           NetworkController: {
             networkConfigurationsByChainId: {
@@ -51,22 +102,6 @@ function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
               },
               [CHAIN_ID_2_MOCK]: {
                 nativeCurrency: TICKER_2_MOCK,
-              },
-            },
-          },
-          TokenRatesController: {
-            marketData: {
-              [CHAIN_ID_1_MOCK]: {
-                [ADDRESS_1_MOCK]: {
-                  tokenAddress: ADDRESS_1_MOCK,
-                  price: PRICE_1_MOCK,
-                },
-              },
-              [CHAIN_ID_2_MOCK]: {
-                [ADDRESS_2_MOCK]: {
-                  tokenAddress: ADDRESS_2_MOCK,
-                  price: PRICE_2_MOCK,
-                },
               },
             },
           },

@@ -6,10 +6,8 @@ import { usePendingAmountAlerts } from '../alerts/usePendingAmountAlerts';
 const PENDING_AMOUNT_ALERTS: AlertKeys[] = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
-  AlertKeys.InsufficientPredictBalance,
-  AlertKeys.InsufficientPerpsBalance,
-  AlertKeys.InsufficientMoneyAccountBalance,
   AlertKeys.FiatBuyAmountLimit,
+  AlertKeys.DepositLimit,
 ];
 
 const KEYBOARD_ALERTS: AlertKeys[] = [
@@ -17,39 +15,31 @@ const KEYBOARD_ALERTS: AlertKeys[] = [
   AlertKeys.InsufficientPayTokenBalance,
   AlertKeys.SignedOrSubmitted,
   AlertKeys.MMPayHardwareAccount,
-  AlertKeys.InsufficientPredictBalance,
-  AlertKeys.InsufficientPerpsBalance,
-  AlertKeys.InsufficientMoneyAccountBalance,
   AlertKeys.FiatBuyAmountLimit,
+  AlertKeys.DepositLimit,
 ];
 
 const ON_CHANGE_ALERTS = [
   AlertKeys.PerpsDepositMinimum,
   AlertKeys.InsufficientPayTokenBalance,
-  AlertKeys.InsufficientPredictBalance,
-  AlertKeys.InsufficientPerpsBalance,
-  AlertKeys.InsufficientMoneyAccountBalance,
   AlertKeys.FiatBuyAmountLimit,
+  AlertKeys.DepositLimit,
 ];
 
 export function useTransactionCustomAmountAlerts({
   isInputChanged,
   isKeyboardVisible,
-  pendingTokenAmount,
   pendingFiatAmount,
 }: {
   isInputChanged: boolean;
   isKeyboardVisible: boolean;
-  pendingTokenAmount: string;
   pendingFiatAmount?: string;
 }): {
   alertContent?: ReactElement;
   alertMessage?: string;
-  alertTitle?: string;
 } {
   const { alerts: confirmationAlerts } = useAlerts();
   const pendingTokenAlerts = usePendingAmountAlerts({
-    pendingTokenAmount,
     pendingFiatAmount,
   });
 
@@ -75,7 +65,18 @@ export function useTransactionCustomAmountAlerts({
   }, [confirmationAlerts, isInputChanged, isKeyboardVisible]);
 
   const alerts = useMemo(() => {
-    const merged = [...pendingTokenAlerts, ...filteredAlerts];
+    // An alert evaluated from the pending amount can also be registered as a
+    // confirmation alert (deposit and fiat buy limits are both), which would
+    // otherwise surface the same key twice. Keep the pending copy, which is
+    // derived from the amount currently on the keypad.
+    const seenKeys = new Set<string>();
+    const merged = [...pendingTokenAlerts, ...filteredAlerts].filter((a) => {
+      if (seenKeys.has(a.key)) {
+        return false;
+      }
+      seenKeys.add(a.key);
+      return true;
+    });
 
     // The hardware wallet alert can only be fixed by switching accounts, so
     // its message takes priority over amount-level alerts.
@@ -91,18 +92,13 @@ export function useTransactionCustomAmountAlerts({
     return {};
   }
 
-  const alertTitle =
-    firstAlert.title ?? (firstAlert.message as string | undefined);
-
-  const alertMessage = firstAlert.title
-    ? (firstAlert.message as string | undefined)
-    : undefined;
+  const alertMessage =
+    (firstAlert.message as string | undefined) ?? firstAlert.title;
 
   const alertContent = firstAlert.content as ReactElement | undefined;
 
   return {
     alertContent,
     alertMessage,
-    alertTitle,
   };
 }

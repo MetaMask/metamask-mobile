@@ -106,10 +106,9 @@ export class BrowserStackConfigBuilder {
           debug: true,
           local: isLocal,
           interactiveDebugging: true,
-          networkLogsOptions: {
-            captureContent: true,
-          },
-          networkLogs: true,
+          // Keep network log capture off for performance lanes (parity with
+          // TestMu HE / Sauce Labs — network capture adds session overhead).
+          networkLogs: false,
           appiumVersion: '3.1.0',
           idleTimeout: DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS,
           deviceName: device.name,
@@ -157,6 +156,7 @@ export class BrowserStackConfigBuilder {
         'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,
         'appium:fullReset': true,
+        // Performance Appium settings (parity with TestMu HE / Sauce Labs)
         'appium:settings[actionAcknowledgmentTimeout]': 3000,
         'appium:settings[ignoreUnimportantViews]': true,
         'appium:settings[snapshotMaxDepth]': 62,

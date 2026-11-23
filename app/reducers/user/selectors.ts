@@ -67,6 +67,9 @@ export const selectMusdConversionAssetDetailCtasSeen = (state: RootState) =>
 export const selectMoneyOnboardingSeen = (state: RootState) =>
   state.user?.moneyOnboardingSeen ?? false;
 
+export const selectMoneySplashSeen = (state: RootState) =>
+  state.user?.moneySplashSeen ?? false;
+
 /**
  * Selects the moneyEarnBannerDismissedTokens state
  */
@@ -106,3 +109,22 @@ export const selectOnboardingStepperProgress = (state: RootState) =>
  */
 export const selectAppInstallEventFired = (state: RootState) =>
   state.user?.appInstallEventFired ?? false;
+
+/**
+ * Selects the install captured on first launch that is still awaiting an
+ * analytics consent decision, or `null` when nothing is pending.
+ */
+export const selectPendingAppInstall = (state: RootState) =>
+  state.user?.pendingAppInstall ?? null;
+
+/**
+ * Selects whether the Swaps Limit tab has been opened
+ */
+export const selectBridgeLimitTabSeen = (state: RootState) =>
+  state.user?.bridgeLimitTabSeen ?? false;
+
+/**
+ * Selects whether the Swaps Recurring tab has been opened
+ */
+export const selectBridgeRecurringTabSeen = (state: RootState) =>
+  state.user?.bridgeRecurringTabSeen ?? false;

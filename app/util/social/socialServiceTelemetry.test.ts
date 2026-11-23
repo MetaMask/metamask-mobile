@@ -313,6 +313,43 @@ describe('buildSocialLoggerErrorOptions', () => {
     });
   });
 
+  it('puts profileId on context and extras, not tags', () => {
+    const error = makeHttpError(500, 'create failed');
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'profile_onboarding',
+      operation: 'create_profile',
+      extraMessage: 'Profile onboarding create profile failed',
+      source: 'SocialProfileOnboardingView',
+      endpoint: 'create_profile',
+      error,
+      profileId: 'profile-abc',
+    });
+
+    expect(result.tags).toEqual(
+      expect.objectContaining({
+        feature: SOCIAL_SENTRY_FEATURE,
+        surface: 'profile_onboarding',
+        operation: 'create_profile',
+        endpoint: 'create_profile',
+        errorCategory: 'http_error',
+      }),
+    );
+    expect(result.tags).not.toHaveProperty('profileId');
+    expect(result.context?.data).toEqual(
+      expect.objectContaining({
+        operation: 'create_profile',
+        endpoint: 'create_profile',
+        profileId: 'profile-abc',
+      }),
+    );
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        profileId: 'profile-abc',
+        httpStatus: 500,
+      }),
+    );
+  });
+
   it('includes durationMs and queryParams on the non-endpoint extras branch', () => {
     const result = buildSocialLoggerErrorOptions({
       surface: 'quick_buy',
@@ -434,6 +471,37 @@ describe('reportSocialServiceFailure', () => {
     );
   });
 
+  it('forwards profileId onto Logger context and extras', () => {
+    const error = new Error('create failed');
+    reportSocialServiceFailure(error, {
+      surface: 'profile_onboarding',
+      operation: 'create_profile',
+      extraMessage: 'Profile onboarding create profile failed',
+      source: 'SocialProfileOnboardingView',
+      endpoint: 'create_profile',
+      profileId: 'profile-xyz',
+    });
+
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: SOCIAL_SENTRY_FEATURE,
+          surface: 'profile_onboarding',
+          operation: 'create_profile',
+        }),
+        context: expect.objectContaining({
+          name: 'social',
+          data: expect.objectContaining({ profileId: 'profile-xyz' }),
+        }),
+        extras: expect.objectContaining({ profileId: 'profile-xyz' }),
+      }),
+    );
+    expect(mockLoggerError.mock.calls[0][1].tags).not.toHaveProperty(
+      'profileId',
+    );
+  });
+
   it('skips the breadcrumb when breadcrumb is false', () => {
     reportSocialServiceFailure(
       new Error('refresh failed'),
@@ -493,6 +561,28 @@ describe('useLogSocialQueryError', () => {
 
     rerender({ queryError: null });
     expect(mockLoggerError).toHaveBeenCalledTimes(1);
+  });
+
+  describe('one query watched by two hooks', () => {
+    const context = {
+      surface: 'trader_feed' as const,
+      operation: 'fetch_feed',
+      extraMessage: 'Social feed fetch failed',
+      source: 'useSocialFeed',
+      endpoint: 'feed' as const,
+    };
+
+    it('reports the shared error once', () => {
+      const sharedError = new Error('feed down');
+
+      renderHook(() => {
+        useLogSocialQueryError(sharedError, context);
+        useLogSocialQueryError(sharedError, context);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+    });
   });
 });
 
@@ -568,6 +658,7 @@ describe('addSocialBreadcrumb', () => {
     const endpoints: SocialEndpoint[] = [
       'leaderboard',
       'following',
+      'followers',
       'open_positions',
       'closed_positions',
       'position_by_id',

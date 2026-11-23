@@ -28,6 +28,10 @@ const mockNavigate = jest.fn();
 const mockExitRewardsFlow = jest.fn();
 let mockVipSplashAccepted: Record<string, boolean> = {};
 
+jest.mock('../../../../selectors/featureFlagController/glassHeaders', () => ({
+  selectGlassHeadersEnabled: () => false,
+}));
+
 jest.mock('../components/Vip/VipEquityMultiplierSection', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -329,6 +333,7 @@ const defaultDashboard: VipDashboardState = {
     earned: 5_555_555,
     threshold: 7_777_777,
     percent: 71.4,
+    lifetimeQualifyingPoints: null,
   },
   tiers: [
     {
@@ -357,6 +362,7 @@ const defaultDashboard: VipDashboardState = {
     },
   ],
   localizedText: {
+    equityLifetimePointsDescription: 'Lifetime total: {points}',
     periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
     transactionsTitle: 'Transactions',
@@ -457,7 +463,7 @@ describe('RewardsVipView', () => {
     );
   });
 
-  it('renders the guarded VIP shell with the pilot title and invite button', () => {
+  it('renders the guarded VIP shell with the pilot title', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: defaultDashboard,
       isLoading: false,
@@ -470,9 +476,6 @@ describe('RewardsVipView', () => {
 
     expect(getByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeOnTheScreen();
     expect(getAllByText('Acme Rewards Beta')[0]).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON),
-    ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_VIEW_TEST_IDS.TRANSACTIONS_BUTTON),
     ).toBeOnTheScreen();
@@ -769,6 +772,7 @@ describe('RewardsVipView', () => {
         ...defaultDashboard,
         program: { id: 'mock-vip-program', name: 'Acme Rewards Beta — Custom' },
         localizedText: {
+          equityLifetimePointsDescription: 'Lifetime total: {points}',
           memberIdTitle: 'Member ID',
           transactionsTitle: 'Transactions',
           swapsFeeTitle: 'Swap fees',

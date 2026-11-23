@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useStore } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { QuickBuyEventProperties, QuickBuyEventValues } from '../analytics';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
@@ -11,6 +11,7 @@ const mockBridgeControllerResetState = jest.fn();
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
+  useStore: jest.fn(),
 }));
 
 jest.mock('../analytics', () => {
@@ -77,6 +78,26 @@ jest.mock('../../../../core/Analytics', () => ({
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
   resetBridgeState: () => mockResetBridgeState(),
+  setSourceToken: (payload: unknown) => ({
+    type: 'bridge/setSourceToken',
+    payload,
+  }),
+  setDestToken: (payload: unknown) => ({
+    type: 'bridge/setDestToken',
+    payload,
+  }),
+  setSourceAmount: (payload: unknown) => ({
+    type: 'bridge/setSourceAmount',
+    payload,
+  }),
+  setSourceAmountAsMax: (payload: unknown) => ({
+    type: 'bridge/setSourceAmountAsMax',
+    payload,
+  }),
+  setIsDestTokenManuallySet: (payload: unknown) => ({
+    type: 'bridge/setIsDestTokenManuallySet',
+    payload,
+  }),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -92,16 +113,22 @@ jest.mock('../../../../core/Engine', () => ({
 
 const TRADER = '0xTrader';
 const CAIP19 = 'eip155:1/erc20:0xtoken';
+const ANALYTICS_CONTEXT = { source: 'profile_position' as const };
 
 describe('useQuickBuyAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
+    (useStore as jest.Mock).mockReturnValue({
+      getState: () => ({ bridge: {} }),
+    });
   });
 
   describe('trackAmountSelected', () => {
     it('fires AMOUNT_SELECTED with correct properties', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackAmountSelected(
@@ -125,7 +152,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('includes slider_percent when provided', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackAmountSelected(
@@ -145,7 +174,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('includes preset_value when provided', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackAmountSelected(
@@ -167,7 +198,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('does not include slider_percent when not provided', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackAmountSelected(
@@ -181,7 +214,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('is a no-op when traderAddress is empty', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics('', CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics('', CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackAmountSelected(
@@ -194,7 +229,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('is a no-op when caip19 is empty', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, ''));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, '', ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackAmountSelected(
@@ -208,7 +245,10 @@ describe('useQuickBuyAnalytics', () => {
 
     it('prefers analyticsContext.traderAddress over the hook arg', () => {
       const { result } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19, { traderAddress: '0xOverride' }),
+        useQuickBuyAnalytics(TRADER, CAIP19, {
+          ...ANALYTICS_CONTEXT,
+          traderAddress: '0xOverride',
+        }),
       );
 
       act(() => {
@@ -229,7 +269,9 @@ describe('useQuickBuyAnalytics', () => {
 
   describe('trackQuickBuyInteracted', () => {
     it('fires QUOTE_SELECTED with quote index and count', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackQuoteSelected(1, 3);
@@ -247,7 +289,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('fires PAY_WITH_SELECTED with token and previous token', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackPayWithSelected('USDC', 'ETH');
@@ -265,7 +309,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('fires RECEIVE_TOKEN_SELECTED with token and previous token', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackReceiveTokenSelected('USDC', 'ETH');
@@ -283,7 +329,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('fires SLIPPAGE_CHANGED with new and previous slippage', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackSlippageChanged('2', '0.5');
@@ -302,7 +350,7 @@ describe('useQuickBuyAnalytics', () => {
 
     it('includes trade_type when tradeMode is provided', () => {
       const { result } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19, undefined, 'buy'),
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT, 'buy'),
       );
 
       act(() => {
@@ -320,7 +368,7 @@ describe('useQuickBuyAnalytics', () => {
 
     it('includes trade_type as sell when tradeMode is sell', () => {
       const { result } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19, undefined, 'sell'),
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT, 'sell'),
       );
 
       act(() => {
@@ -336,8 +384,29 @@ describe('useQuickBuyAnalytics', () => {
       );
     });
 
+    it('marks shared events as copy trades when only a copy-trade origin is set', () => {
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT, undefined, {
+          commentId: 'comment-1',
+        }),
+      );
+
+      act(() => {
+        result.current.trackQuoteSelected(0, 1);
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_INTERACTED,
+        expect.objectContaining({
+          [QuickBuyEventProperties.IS_COPY_TRADE]: true,
+        }),
+      );
+    });
+
     it('does not include trade_type when tradeMode is not provided', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackQuoteSelected(0, 1);
@@ -348,7 +417,9 @@ describe('useQuickBuyAnalytics', () => {
     });
 
     it('is a no-op when traderAddress is empty', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics('', CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics('', CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackQuoteSelected(0, 1);
@@ -360,7 +431,9 @@ describe('useQuickBuyAnalytics', () => {
 
   describe('trackTradeSubmitted / trackTradeCompleted', () => {
     it('fires TRADE_SUBMITTED with provided props', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackTradeSubmitted({ foo: 'bar' });
@@ -368,12 +441,18 @@ describe('useQuickBuyAnalytics', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_SUBMITTED,
-        { foo: 'bar' },
+        {
+          foo: 'bar',
+          [QuickBuyEventProperties.SOURCE]: ANALYTICS_CONTEXT.source,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: false,
+        },
       );
     });
 
     it('fires TRADE_COMPLETED with provided props', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.trackTradeCompleted({ tx: '0xhash' });
@@ -381,14 +460,20 @@ describe('useQuickBuyAnalytics', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_QUICK_BUY_TRADE_COMPLETED,
-        { tx: '0xhash' },
+        {
+          tx: '0xhash',
+          [QuickBuyEventProperties.SOURCE]: ANALYTICS_CONTEXT.source,
+          [QuickBuyEventProperties.IS_COPY_TRADE]: false,
+        },
       );
     });
   });
 
   describe('markTradeSubmitted', () => {
     it('updates dismissStageRef to CONFIRMATION and sets tradeSubmittedRef', () => {
-      const { result } = renderHook(() => useQuickBuyAnalytics(TRADER, CAIP19));
+      const { result } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
 
       act(() => {
         result.current.markTradeSubmitted();
@@ -404,7 +489,7 @@ describe('useQuickBuyAnalytics', () => {
   describe('unmount — DISMISSED event', () => {
     it('fires DISMISSED on unmount when trade was not submitted', () => {
       const { unmount } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19),
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
       );
 
       unmount();
@@ -422,7 +507,7 @@ describe('useQuickBuyAnalytics', () => {
 
     it('includes amount_usd in DISMISSED event when an amount was selected', () => {
       const { result, unmount } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19),
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
       );
 
       act(() => {
@@ -445,7 +530,7 @@ describe('useQuickBuyAnalytics', () => {
 
     it('does NOT fire DISMISSED when trade was submitted', () => {
       const { result, unmount } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19),
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
       );
 
       act(() => {
@@ -463,7 +548,7 @@ describe('useQuickBuyAnalytics', () => {
 
     it('dispatches resetBridgeState on unmount', () => {
       const { unmount } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19),
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
       );
 
       unmount();
@@ -472,14 +557,78 @@ describe('useQuickBuyAnalytics', () => {
       expect(mockResetBridgeState).toHaveBeenCalled();
     });
 
+    const mockPriorBridgeInputs = (inputs: Record<string, unknown>) =>
+      (useStore as jest.Mock).mockReturnValue({
+        getState: () => ({ bridge: inputs }),
+      });
+
+    it('restores pre-existing bridge inputs after the reset on unmount', () => {
+      const sourceToken = { address: '0xsrc', chainId: '0x1' };
+      const destToken = { address: '0xdest', chainId: '0x1' };
+      mockPriorBridgeInputs({
+        sourceToken,
+        destToken,
+        sourceAmount: '1.5',
+        isMaxSourceAmount: false,
+        isDestTokenManuallySet: true,
+      });
+      const { unmount } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
+
+      unmount();
+
+      expect(mockDispatch.mock.calls.map(([action]) => action)).toEqual([
+        { type: 'bridge/reset' },
+        { type: 'bridge/setSourceToken', payload: sourceToken },
+        { type: 'bridge/setDestToken', payload: destToken },
+        { type: 'bridge/setSourceAmount', payload: '1.5' },
+        { type: 'bridge/setIsDestTokenManuallySet', payload: true },
+      ]);
+    });
+
+    it('restores a max source amount as max on unmount', () => {
+      mockPriorBridgeInputs({
+        sourceAmount: '2',
+        isMaxSourceAmount: true,
+      });
+      const { unmount } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
+
+      unmount();
+
+      expect(mockDispatch).toHaveBeenCalledWith({
+        type: 'bridge/setSourceAmountAsMax',
+        payload: '2',
+      });
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'bridge/setSourceAmount' }),
+      );
+    });
+
     it('calls BridgeController.resetState on unmount', () => {
       const { unmount } = renderHook(() =>
-        useQuickBuyAnalytics(TRADER, CAIP19),
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
       );
 
       unmount();
 
       expect(mockBridgeControllerResetState).toHaveBeenCalled();
+    });
+
+    it('skips the bridge reset on unmount after preserveBridgeStateOnUnmount', () => {
+      const { result, unmount } = renderHook(() =>
+        useQuickBuyAnalytics(TRADER, CAIP19, ANALYTICS_CONTEXT),
+      );
+
+      act(() => {
+        result.current.preserveBridgeStateOnUnmount();
+      });
+      unmount();
+
+      expect(mockResetBridgeState).not.toHaveBeenCalled();
+      expect(mockBridgeControllerResetState).not.toHaveBeenCalled();
     });
 
     it('does not fire DISMISSED or reset bridge when shared analytics props update', () => {

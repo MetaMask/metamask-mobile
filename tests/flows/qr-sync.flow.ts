@@ -6,25 +6,21 @@ import { openE2EUrl } from '../framework/DeepLink';
 import Assertions from '../framework/Assertions';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
-import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import AddDeviceToWalletView from '../page-objects/Onboarding/AddDeviceToWalletView';
 import AddWalletView from '../page-objects/Onboarding/AddWalletView';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
-import WalletView from '../page-objects/wallet/WalletView';
-import { FrameworkDetector } from '../framework/FrameworkDetector';
 import type CommandQueueServer from '../framework/fixtures/CommandQueueServer';
 import { E2ECommandTypes } from '../framework/types';
 import { sleep } from '../framework/Utilities';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
-import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
 import {
   closeOnboardingModals,
   dismissExperienceEnhancerModal,
   dismissOnboardingInterestQuestionnaire,
   dismissPushNotificationExistingUserSheet,
-  loginToApp,
+  ensureAccountListOpenPlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
@@ -89,8 +85,8 @@ export const applyQrSyncSrpReadyPayload = async ({
 };
 
 /**
- * New-user path: onboarding → Import SRP → extension link → inject sync-ready
- * → create password → MetaMetrics → wallet home.
+ * New-user path: onboarding → social import sheet → Import from MetaMask extension
+ * → inject sync-ready → create password → MetaMetrics → wallet home.
  */
 export const completeNewUserQrSyncSrp = async ({
   mnemonic = IDENTITY_TEAM_SEED_PHRASE,
@@ -112,13 +108,9 @@ export const completeNewUserQrSyncSrp = async ({
   await OnboardingView.tapHaveAnExistingWallet();
 
   if (SEEDLESS_ONBOARDING_ENABLED) {
-    await OnboardingSheet.tapImportSeedButton();
+    await OnboardingSheet.tapImportFromExtensionButton();
   }
 
-  await Assertions.expectElementToBeVisible(ImportWalletView.container, {
-    description: 'Import from seed screen should be visible',
-  });
-  await ImportWalletView.tapImportFromExtensionLink();
   await AddDeviceToWalletView.expectScreenVisible();
 
   await applyQrSyncSrpReadyPayload({
@@ -138,8 +130,8 @@ export const completeNewUserQrSyncSrp = async ({
   );
   await CreatePasswordView.enterPassword(password);
   await CreatePasswordView.reEnterPassword(password);
-  await CreatePasswordView.tapIUnderstandCheckBox();
   await CreatePasswordView.tapCreatePasswordButton();
+  await CreatePasswordView.tapPasswordWarningConfirmButton();
 
   await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
     description: 'MetaMetrics Opt-In should be visible',
@@ -156,18 +148,6 @@ export const completeNewUserQrSyncSrp = async ({
       await ExperienceEnhancerBottomSheet.tapIAgree();
     } catch {
       // Optional post-metrics sheet
-    }
-    try {
-      await Assertions.expectElementToBeVisible(
-        OnboardingSuccessView.container,
-        {
-          description: 'Onboarding success may appear after QR sync import',
-          timeout: 5_000,
-        },
-      );
-      await OnboardingSuccessView.tapDone();
-    } catch {
-      // Some builds go straight to wallet home
     }
     await dismissPushNotificationExistingUserSheet();
     await dismissExperienceEnhancerModal();
@@ -188,18 +168,9 @@ export const completeExistingUserQrSyncSrp = async ({
   mnemonic?: string;
   commandQueueServer?: CommandQueueServer;
 } = {}): Promise<void> => {
-  if (FrameworkDetector.isAppium()) {
-    await loginToAppPlaywright({ scenarioType: 'e2e' });
-  } else {
-    await loginToApp();
-  }
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(
-    AccountListBottomSheet.accountList,
-    {
-      description: 'Account list should be visible',
-    },
-  );
+  await loginToAppPlaywright({ scenarioType: 'e2e' });
+  // Retry open — first post-login tap can no-op while wallet chrome settles.
+  await ensureAccountListOpenPlaywright();
   await AccountListBottomSheet.tapAddWalletButton();
   await AddWalletView.expectScreenVisible();
   await AddWalletView.tapLinkMetaMaskExtension();

@@ -11,6 +11,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Routes from '../../../constants/navigation/Routes';
+import { strings } from '../../../../locales/i18n';
 import {
   ACTIVITY_DETAIL_EVENTS,
   TransactionDetailLocation,
@@ -129,6 +130,34 @@ describe('TransactionElement', () => {
     await waitFor(() => {
       expect(screen.getByText('Test Action')).toBeOnTheScreen();
     });
+  });
+
+  it('hides speed-up for pending swaps, bridges, and their approvals', async () => {
+    for (const type of [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ]) {
+      const tx = {
+        id: 'pending-tx',
+        type,
+        status: 'submitted',
+        chainId: '0x1',
+        time: Date.now(),
+        txParams: { to: '0x456', from: '0x123', nonce: '0x1' },
+      };
+      const { unmount } = renderWithProvider(
+        <Provider store={store}>
+          <TransactionElement tx={tx} />
+        </Provider>,
+      );
+      await waitFor(() => {
+        expect(screen.getByText('Test Action')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText(strings('transaction.speedup'))).toBeNull();
+      unmount();
+    }
   });
 
   describe('MUSD conversion navigation', () => {

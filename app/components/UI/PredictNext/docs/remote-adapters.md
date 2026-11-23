@@ -26,6 +26,7 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 - user-visible intent and confirmation,
 - selected Funding Wallet context,
 - wallet transaction signing and submission,
+- the device signature over each Kalshi request, and sending that payload plus signature to predict-api,
 - canonical rendering and safe local workflow projection,
 - runtime validation of backend responses,
 - client/contract compatibility headers.
@@ -34,7 +35,7 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 
 - Kalshi admin or per-user credentials,
 - authoritative Predict User to Venue Account mapping,
-- Kalshi request signing,
+- delivery of the signed request to Kalshi,
 - durable external-operation outcomes,
 - Venue retry/reconciliation policy.
 
@@ -42,21 +43,23 @@ The backend is not a Venue. Canonical entities remain `venueId: 'kalshi'`, never
 
 - validating authenticated MetaMask identity,
 - deriving the authoritative Predict User and resolving the Venue Account,
-- Kalshi credential custody and request signing,
+- Kalshi credential custody, and delivery of the device-signed payload and signature to Kalshi,
 - durable Account Setup and financial-operation records,
 - Venue DTO normalization,
 - protocol-specific rate limiting and safe reconciliation,
 - redacted observability, kill switches, and support references.
 
+The device signs the Kalshi request. Mobile forwards the payload and the signature to predict-api, and predict-api delivers both to Kalshi.
+
 A privileged backend route never authorizes from a client-supplied wallet address, email, profile ID, user ID, or Kalshi external user ID. Wallet addresses used for Deposit or Withdraw are validated operation parameters, not proof of person identity.
 
 ## Mobile transport
 
-The installed MetaMask platform client has no supported generic request API. The first public-read slice therefore uses one narrow, injected Predict API GET transport. It is deliberately unauthenticated, forwards cancellation, retains no response bodies in errors, and performs no response caching or retry. The MarketDataService alone owns response caching, deduplication, and bounded retry.
+The installed MetaMask platform client has no supported generic request API. The Predict API slices therefore use one narrow, injected Predict API transport. Its GETs send a fresh MetaMask bearer token, forward cancellation, retain no response bodies in errors, and perform no response caching or retry. The MarketDataService alone owns response caching, deduplication, and bounded retry.
 
 Base URL and client version come from composition/configuration; environment differences do not create different Venue adapters. A concrete `KalshiRemoteAdapter` is preferable to a configurable remote-adapter factory while Kalshi is the only consumer.
 
-Before account-scoped routes or writes, adopt an explicit required-auth, method-capable transport. Prefer a shared uncached platform request primitive when available; do not silently reuse the public-read client's unauthenticated behavior.
+Account-scoped Balance reads use an explicit required-auth path on the same narrow transport. It obtains a fresh MetaMask bearer token for each request and never stores or logs it. The Venue catalog and every other Predict API route are also authenticated: each request resolves a fresh bearer token, and a missing or failed token provider is a 401 before HTTP.
 
 ## Canonical backend contract
 
@@ -69,7 +72,22 @@ The mobile/backend API exposes product capabilities, not raw Kalshi endpoints. R
 - every response contains canonical Venue context where relevant,
 - credentials, PII, and raw KYC payloads never appear in canonical responses.
 
-Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. The first read-only slice needs only Venue Status and Event list/detail; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot. Do not define a separate price, account, or write route until a slice requires it.
+Contract-version header enforcement and cross-repository fixture tooling are deferred until their semantics and value are proven. Public reads now include Venue Status, Event list/detail, and Market history; Event responses embed the initial optional Outcome Bid Price and Ask Price snapshot.
+
+Market history uses `GET /v1/venues/{venueId}/markets/{marketId}/history?range={range}` with the supported ranges `LIVE`, `1D`, `1W`, `1M`, `1Y`, and `ALL`. The response contains the Venue and Market identity, range, backend observation time, and canonical timestamp/Yes-price/No-price points. The backend derives each binary Market No price as the exact fixed-point complement of the authoritative Yes trade price. Every range is a REST history snapshot through the backend observation time; mobile does not poll, interpolate, or generate points. `LIVE` alone is extended on the client: while the Event Screen shows the `LIVE` range, mobile appends one point per streamed quote (see below) after the snapshot's last timestamp, using the quote's `lastPrice` as the Yes price and its exact complement as the No price. The appended points are server-observed trades, not client-generated values; the trail is bounded, in-memory only, and discarded when the range or Outcome changes.
+
+Search uses `GET /v1/venues/{venueId}/search?q={text}&limit={limit}`. The adapter validates the Venue identity of the response and of every returned Event; the response is an unpaginated `{ venueId, events }` page ranked by the backend.
+
+### Live data stream
+
+The backend exposes one authenticated WebSocket at `/v1/stream/live-data` on the same base URL as REST. Mobile subscribes by Venue and topic: `game` for Event ids and `market` for Market ids. Frames carry canonical `PredictGame` and `PredictMarket` field names only; venue-native payloads never reach mobile. Two frame kinds patch the read model:
+
+- **Game** frames are patches. Omitted fields mean "unchanged", so mobile accumulates frames per Event and applies each field only when its observation time is not older than the REST value it would replace.
+- **Quote** frames are full price snapshots for one Market. Outcome `bidPrice`/`askPrice` patch onto the REST Outcome by `outcomes[].id`; an omitted side means that side of the book is empty right now. The quote also carries the stream-only `lastPrice`, a `volume` that shares REST's unit, and its observation time, which mobile writes to `PredictMarket.updatedAt`.
+
+The stream is a patch layer over REST, never a replacement for it: REST remains the recovery path, the query cache is not mutated, and the parser rejects malformed known fields while accepting unknown ones so an added server field or Game status cannot black-hole live updates. Wire shapes are specified in the Predict API's `LIVE_DATA_STREAM*.md` documents and validated on mobile by `contracts/v1/liveData.ts`.
+
+The agreed next public-read contract uses Venue-qualified Feed reads, immutable Event reads, and a Rolling Series current-Event read. All return complete canonical Events; the backend owns Feed selection/order, single Category and Series normalization, current-Event selection, Sports/Game snapshot normalization, Outcome Game Selection, Kalshi lifecycle mapping, decimal-string Volume, and approved HTTPS image URLs. No separate Game route is required initially. See [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). Do not define a separate price, account, or write route until a slice requires it.
 
 ## Sensitive-data rule
 
@@ -116,6 +134,18 @@ prepare -> explicit confirmation -> commit -> reconcile
 - App teardown may stop observation but must not erase a committed operation.
 
 Detailed KYC, Deposit, Order, and Withdraw contracts belong to their accepted ADRs and active Jira slices rather than this scaffold.
+
+## Deposits (PRED-1494)
+
+`KalshiRemoteAdapter.funding` owns the Kalshi deposit routes under `/v1/venues/kalshi/deposits`. `PredictFundingService` calls only that object, and the queries call only the service. Every route detail (paths, bodies, the device signature, error codes) stays inside the adapter.
+
+- `prepareDeposit(params, approval)` posts `{ amount, clientOperationId }` unsigned first. The backend answers either the values to sign (`amountCents`, `clientOperationId`) or the deposit that `clientOperationId` already created. If the values to sign do not match what the user entered, the adapter sends nothing more and fails with `INVALID_RESPONSE`. Otherwise it signs the `funding.deposit` intent of the venue profile through `PredictDeviceAuthService` and posts again with the device envelope and the exact signed bytes. The backend relays the signed request to Kalshi's `crypto-addresses` endpoint and answers the deposit with its Funding Plan. A deposit answered with a different amount also fails as `INVALID_RESPONSE`. The backend's own `venue_preview_mismatch` and `client_operation_id_conflict` map to `DEPOSIT_MISMATCH`.
+- `getDeposit`, `listOpenDeposits` (`?state=open`), `reportDepositTransfer` (`/{operationId}/transfer`) and `cancelDeposit` (`/{operationId}/cancel`) need the bearer token but no device signature.
+- The deposit routes map `operation_not_found` to `DEPOSIT_NOT_FOUND` and `venue_preview_mismatch` to `DEPOSIT_MISMATCH`. The order routes keep their own mapping for those two codes. Only the transfer report maps the five transfer codes (`transfer_chain_mismatch`, `transfer_hash_invalid`, `transfer_hash_mismatch`, `transfer_hash_reused` and `transfer_not_expected`), all to `DEPOSIT_TRANSFER_MISMATCH`. A code only picks the product error and its copy; it never says whether the call changed anything.
+- Whether a failed commit changed anything comes from the API (PRED-1524). Every commit route (order commit, deposit create, deposit transfer report, deposit cancel, withdrawal commit) may add `outcome: "not_placed"` to its error body: the API's guarantee that this call created or sent nothing. `PredictApiReadClient` reads it into `PredictHttpError.outcome`, and the adapter copies it to the commit error's metadata. A missing field, any other value, a body that is not JSON, a timeout or no response is `unknown`, and the operation is kept and reconciled. The other proof is local: `requestSent: false` when the phone refused the call before it left the device. `isUnsentCommitFailure` in `errors/commitOutcome.ts` is the one place that reads both. Reads carry no `outcome`, so a read failure never resolves a submission.
+- Kalshi deposits and withdrawals are gated by `PREDICT_FUNDING_IMPLEMENTATIONS.next` and the Venue catalog's `actions` (no mobile rollout flag; see [the public API contract](./public-api-contract.md)). That gate covers the entry point, not the service: `PredictFundingService` runs a withdrawal whenever a flow reaches it.
+
+Kalshi has confirmed that the phone may send the device-signed `crypto-addresses` request straight to Kalshi instead of through predict-api (PRED-1500). That is not decided. If it is adopted, the signature stays the same and only `adapter.funding.prepareDeposit` changes: it sends the signed request to Kalshi, then reports the venue's deposit ID and address to the backend. `PredictFundingService`, its messenger actions and `fundingQueries` do not change. The trust boundary above would then list delivery of that one request under what mobile owns.
 
 ## Eligibility and rollout
 

@@ -10,6 +10,7 @@
 
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useExploreSearch } from './useExploreSearch';
+import { useExploreSearchPerformance } from './useExploreSearchPerformance';
 
 // ---------------------------------------------------------------------------
 // Feed hook mocks
@@ -20,9 +21,21 @@ const mockPerpsData = [{ market: { symbol: 'BTC' } }];
 const mockStocksData = [{ assetId: 'stock-1' }];
 const mockPredictionsData = [{ id: 'pred-1' }];
 const mockSitesData = [{ url: 'https://example.com' }];
+const mockEarnData = [{ kind: 'money-account', id: 'money-account' }];
 const mockFetchMore = jest.fn();
 const mockTokensLoadMore = jest.fn();
 const mockStocksLoadMore = jest.fn();
+const mockMarkFeedReady = jest.fn();
+const mockMarkCachedTokens = jest.fn();
+const mockMarkCachedStocks = jest.fn();
+const mockMarkCachedPredictions = jest.fn();
+const mockPredictionsPerformance = {
+  startRequest: jest.fn(),
+  markCachedResult: mockMarkCachedPredictions,
+};
+const mockOnFocus = jest.fn();
+const mockOnBlur = jest.fn();
+let mockIsExploreEarnSectionVisible = false;
 
 jest.mock('../feeds/tokens/useTokensFeed', () => ({
   useTokensFeed: jest.fn(() => ({
@@ -49,8 +62,8 @@ jest.mock('../feeds/stocks/useStocksFeed', () => ({
   })),
 }));
 
-jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
-  usePredictionsFeed: jest.fn(() => ({
+jest.mock('../../../UI/PredictNext/trending/usePredictTrendingFeed', () => ({
+  usePredictTrendingFeed: jest.fn(() => ({
     data: mockPredictionsData,
     isLoading: false,
     fetchMore: mockFetchMore,
@@ -59,8 +72,27 @@ jest.mock('../feeds/predictions/usePredictionsFeed', () => ({
   })),
 }));
 
+let mockIsPredictTrendingSupported = true;
+jest.mock(
+  '../../../UI/PredictNext/trending/usePredictTrendingSupported',
+  () => ({
+    usePredictTrendingSupported: () => mockIsPredictTrendingSupported,
+  }),
+);
+
 jest.mock('../feeds/sites/useSitesFeed', () => ({
   useSitesFeed: jest.fn(() => ({ data: mockSitesData, isLoading: false })),
+}));
+
+jest.mock('../feeds/earn/useEarnSearchFeed', () => ({
+  useEarnSearchFeed: jest.fn(() => ({
+    data: mockEarnData,
+    isLoading: false,
+  })),
+}));
+
+jest.mock('../../../UI/Earn/selectors/visibility', () => ({
+  selectIsExploreEarnSectionVisible: () => mockIsExploreEarnSectionVisible,
 }));
 
 // ---------------------------------------------------------------------------
@@ -71,13 +103,34 @@ let mockIsPerpsEnabled = true;
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (s: unknown) => unknown) =>
-    selector({ perpsEnabled: mockIsPerpsEnabled }),
+    selector({
+      perpsEnabled: mockIsPerpsEnabled,
+    }),
   ),
 }));
 
 jest.mock('../../../UI/Perps', () => ({
   selectPerpsEnabledFlag: (state: { perpsEnabled: boolean }) =>
     state.perpsEnabled,
+}));
+
+jest.mock('./useExploreSearchPerformance', () => ({
+  useExploreSearchPerformance: jest.fn(() => ({
+    tokens: {
+      startRequest: jest.fn(),
+      markCachedResult: mockMarkCachedTokens,
+    },
+    stocks: {
+      startRequest: jest.fn(),
+      markCachedResult: mockMarkCachedStocks,
+    },
+    predictions: {
+      ...mockPredictionsPerformance,
+    },
+    onFocus: mockOnFocus,
+    onBlur: mockOnBlur,
+    markFeedReady: mockMarkFeedReady,
+  })),
 }));
 
 // ---------------------------------------------------------------------------
@@ -95,8 +148,9 @@ jest.mock('../../../../../locales/i18n', () => ({
 import { useTokensFeed } from '../feeds/tokens/useTokensFeed';
 import { usePerpsFeed } from '../feeds/perps/usePerpsFeed';
 import { useStocksFeed } from '../feeds/stocks/useStocksFeed';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { usePredictTrendingFeed } from '../../../UI/PredictNext';
 import { useSitesFeed } from '../feeds/sites/useSitesFeed';
+import { useEarnSearchFeed } from '../feeds/earn/useEarnSearchFeed';
 
 const renderExploreSearch = (query = '') =>
   renderHook(() => useExploreSearch(query, { exposePagination: true }));
@@ -109,6 +163,8 @@ describe('useExploreSearch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
+    mockIsExploreEarnSectionVisible = false;
+    mockIsPredictTrendingSupported = true;
     (useTokensFeed as jest.Mock).mockReturnValue({
       data: mockTokensData,
       isLoading: false,
@@ -138,6 +194,58 @@ describe('useExploreSearch', () => {
       expect(feedIds).toEqual(['tokens', 'stocks', 'predictions', 'sites']);
       expect(feedIds).not.toContain('perps');
     });
+
+    it('inserts Earn after Perps when the Explore Earn section is visible', () => {
+      mockIsExploreEarnSectionVisible = true;
+
+      const { result } = renderExploreSearch();
+
+      expect(result.current.sections.map((section) => section.feedId)).toEqual([
+        'tokens',
+        'perps',
+        'earn',
+        'stocks',
+        'predictions',
+        'sites',
+      ]);
+    });
+
+    it('omits predictions while the Active Venue has no Explore predictions', () => {
+      mockIsPredictTrendingSupported = false;
+
+      const { result } = renderExploreSearch();
+
+      expect(result.current.sections.map((section) => section.feedId)).toEqual([
+        'tokens',
+        'perps',
+        'stocks',
+        'sites',
+      ]);
+    });
+
+    it('omits unsupported predictions from performance measurement feeds', () => {
+      mockIsPredictTrendingSupported = false;
+
+      renderExploreSearch();
+
+      expect(useExploreSearchPerformance).toHaveBeenCalledWith(
+        expect.objectContaining({
+          enabledFeeds: ['tokens', 'perps', 'stocks', 'sites'],
+        }),
+      );
+    });
+
+    it('omits Earn when the Explore Earn section is not visible', () => {
+      const { result } = renderExploreSearch();
+
+      expect(result.current.sections.map((section) => section.feedId)).toEqual([
+        'tokens',
+        'perps',
+        'stocks',
+        'predictions',
+        'sites',
+      ]);
+    });
   });
 
   describe('section items', () => {
@@ -161,6 +269,19 @@ describe('useExploreSearch', () => {
       expect(perpsSection?.items).toEqual([mockPerpsData[0].market]);
       expect(stocksSection?.items).toEqual(mockStocksData);
       expect(sitesSection?.items).toEqual(mockSitesData);
+    });
+
+    it('maps Earn feed data without changing other feed sections', () => {
+      mockIsExploreEarnSectionVisible = true;
+
+      const { result } = renderExploreSearch();
+      const earnSection = result.current.sections.find(
+        (section) => section.feedId === 'earn',
+      );
+
+      expect(earnSection?.items).toEqual(mockEarnData);
+      expect(earnSection?.isLoading).toBe(false);
+      expect(earnSection?.total).toBe(mockEarnData.length);
     });
   });
 
@@ -221,7 +342,7 @@ describe('useExploreSearch', () => {
     });
 
     it('reflects updated hasMore from the predictions feed', () => {
-      (usePredictionsFeed as jest.Mock).mockReturnValue({
+      (usePredictTrendingFeed as jest.Mock).mockReturnValue({
         data: mockPredictionsData,
         isLoading: false,
         fetchMore: mockFetchMore,
@@ -241,7 +362,7 @@ describe('useExploreSearch', () => {
 
       const mockSearchFetchMore = jest.fn();
 
-      (usePredictionsFeed as jest.Mock).mockReturnValue({
+      (usePredictTrendingFeed as jest.Mock).mockReturnValue({
         data: mockPredictionsData,
         isLoading: false,
         fetchMore: mockSearchFetchMore,
@@ -313,6 +434,55 @@ describe('useExploreSearch', () => {
       expect(tokensSection?.total).toBe(2101);
     });
 
+    it('measures loaded items instead of the server total', () => {
+      (useTokensFeed as jest.Mock).mockReturnValue({
+        data: mockTokensData,
+        isLoading: false,
+        totalCount: 2101,
+      });
+
+      renderExploreSearch();
+
+      expect(mockMarkFeedReady).toHaveBeenCalledWith(
+        'tokens',
+        true,
+        mockTokensData.length,
+      );
+    });
+
+    it('rechecks readiness and cache state when Search regains focus', () => {
+      const { rerender } = renderHook(
+        ({
+          focusCount,
+          isFocused,
+        }: {
+          focusCount: number;
+          isFocused: boolean;
+        }) =>
+          useExploreSearch('eth', {
+            exposePagination: true,
+            isFocused,
+            focusCount,
+          }),
+        { initialProps: { focusCount: 0, isFocused: true } },
+      );
+
+      mockMarkFeedReady.mockClear();
+      mockMarkCachedTokens.mockClear();
+      mockMarkCachedStocks.mockClear();
+      mockMarkCachedPredictions.mockClear();
+      rerender({ focusCount: 1, isFocused: true });
+
+      expect(mockMarkFeedReady).toHaveBeenCalledWith(
+        'tokens',
+        true,
+        mockTokensData.length,
+      );
+      expect(mockMarkCachedTokens).toHaveBeenCalledWith('eth');
+      expect(mockMarkCachedStocks).toHaveBeenCalledWith('eth');
+      expect(mockMarkCachedPredictions).toHaveBeenCalledWith('eth');
+    });
+
     it('passes undefined total when the tokens feed has no totalCount', () => {
       const { result } = renderExploreSearch();
       const tokensSection = result.current.sections.find(
@@ -366,13 +536,38 @@ describe('useExploreSearch', () => {
       expect(useTokensFeed).toHaveBeenCalledWith({ query: '' });
       expect(usePerpsFeed).toHaveBeenCalledWith({ query: '' });
       expect(useStocksFeed).toHaveBeenCalledWith({ query: '' });
-      expect(usePredictionsFeed).toHaveBeenCalledWith(
+      expect(usePredictTrendingFeed).toHaveBeenCalledWith({ query: '' });
+      expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
+    });
+
+    it('passes search performance to predictions for a non-empty query', () => {
+      renderExploreSearch('bitcoin');
+
+      expect(usePredictTrendingFeed).toHaveBeenCalledWith(
         expect.objectContaining({
-          variant: 'trending',
-          query: '',
+          performance: mockPredictionsPerformance,
         }),
       );
-      expect(useSitesFeed).toHaveBeenCalledWith({ query: '' });
+    });
+
+    it('passes the visibility state to the Earn feed', () => {
+      mockIsExploreEarnSectionVisible = true;
+
+      renderExploreSearch('');
+
+      expect(useEarnSearchFeed).toHaveBeenCalledWith({
+        query: '',
+        enabled: true,
+      });
+    });
+
+    it('passes disabled state to the Earn feed when the section is not visible', () => {
+      renderExploreSearch('');
+
+      expect(useEarnSearchFeed).toHaveBeenCalledWith({
+        query: '',
+        enabled: false,
+      });
     });
   });
 });

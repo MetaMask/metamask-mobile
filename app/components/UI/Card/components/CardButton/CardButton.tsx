@@ -11,6 +11,8 @@ import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.test
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RootState } from '../../../../../reducers';
+import { selectCardActiveProviderId } from '../../../../../selectors/cardController';
+import { withCardProvider } from '../../util/metrics';
 
 interface CardButtonProps {
   onPress: () => void;
@@ -24,6 +26,7 @@ interface CardButtonProps {
 
 const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const activeProviderId = useSelector(selectCardActiveProviderId);
   const flagsResolved = useSelector(
     (state: RootState) =>
       (state.engine.backgroundState.RemoteFeatureFlagController
@@ -33,13 +36,18 @@ const CardButton: React.FC<CardButtonProps> = ({ onPress, touchAreaSlop }) => {
   const hasTrackedViewedEvent = useRef(false);
 
   useEffect(() => {
-    if (hasTrackedViewedEvent.current || !flagsResolved) return;
+    // Wait until the active provider is known so we don't permanently lock null.
+    if (hasTrackedViewedEvent.current || !flagsResolved || !activeProviderId) {
+      return;
+    }
     hasTrackedViewedEvent.current = true;
 
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED).build(),
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_VIEWED)
+        .addProperties(withCardProvider(activeProviderId))
+        .build(),
     );
-  }, [trackEvent, createEventBuilder, flagsResolved]);
+  }, [trackEvent, createEventBuilder, flagsResolved, activeProviderId]);
 
   return (
     <ButtonIcon

@@ -19,7 +19,7 @@ export const DEFAULT_CHECKBOX_ICONSIZE = IconSize.Md;
 
 // Sample
 export const SAMPLE_CHECKBOX_PROPS: CheckboxProps = {
-  label: 'Sample Checkbox Label',
+  label: 'Sample checkbox label',
   isChecked: false,
   isIndeterminate: false,
   isDisabled: false,

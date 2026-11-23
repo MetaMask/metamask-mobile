@@ -2,12 +2,25 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { debounce } from 'lodash';
 import { v4 as uuidv4 } from 'uuid';
 import { CaipChainId } from '@metamask/utils';
-import { BridgeClientId, getClientHeaders } from '@metamask/bridge-controller';
+import {
+  BridgeClientId,
+  FeatureId,
+  getClientHeaders,
+  SwapFeatureTag,
+} from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
 import { getBaseSemVerVersion } from '../../../../util/version';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
+import { useSwapsFeatureId } from './useSwapsFeatureId';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -21,9 +34,12 @@ interface SearchTokensResponse {
   };
 }
 
+type SearchTraceResult = 'success' | 'error';
+
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
   includeAssets: IncludeAsset[];
+  enabled?: boolean;
 }
 
 interface UseSearchTokensResult {
@@ -37,6 +53,21 @@ interface UseSearchTokensResult {
   resetSearch: () => void;
 }
 
+const getBucket = (
+  value: number,
+  thresholds: readonly number[],
+  labels: readonly string[],
+): string => {
+  const index = thresholds.findIndex((threshold) => value <= threshold);
+  return labels[index === -1 ? labels.length - 1 : index];
+};
+
+const getQueryLengthBucket = (length: number): string =>
+  getBucket(length, [2, 5, 10], ['0-2', '3-5', '6-10', '11+']);
+
+const getResultCountBucket = (count: number): string =>
+  getBucket(count, [0, 5, 20], ['0', '1-5', '6-20', '21+']);
+
 /**
  * Custom hook to search tokens via the Bridge API
  * @param params - Configuration object containing chainIds and includeAssets
@@ -45,7 +76,9 @@ interface UseSearchTokensResult {
 export const useSearchTokens = ({
   chainIds,
   includeAssets,
+  enabled = true,
 }: UseSearchTokensParams): UseSearchTokensResult => {
+  const featureId = useSwapsFeatureId();
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchCursor, setSearchCursor] = useState<string | undefined>();
@@ -58,6 +91,8 @@ export const useSearchTokens = ({
   // Use refs to store the latest values without causing re-renders or callback recreation
   const chainIdsRef = useRef(chainIds);
   const includeAssetsRef = useRef(includeAssets);
+  const featureIdRef = useRef(featureId);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Update refs when values change
   useEffect(() => {
@@ -67,6 +102,10 @@ export const useSearchTokens = ({
   useEffect(() => {
     includeAssetsRef.current = includeAssets;
   }, [includeAssets]);
+
+  useEffect(() => {
+    featureIdRef.current = featureId;
+  }, [featureId]);
 
   useEffect(() => {
     Engine.context.AuthenticationController.getBearerToken()
@@ -87,7 +126,11 @@ export const useSearchTokens = ({
 
   const searchTokens = useCallback(
     async (query: string, cursor?: string) => {
-      if (!query.trim()) {
+      if (!enabled) {
+        return;
+      }
+      const trimmedQuery = query.trim();
+      if (!trimmedQuery) {
         // If query is empty, reset search state
         resetSearch();
         return;
@@ -95,18 +138,20 @@ export const useSearchTokens = ({
 
       // Determine if this is a pagination request (same query with cursor)
       const isPagination =
-        cursor && currentSearchQueryRef.current === query.trim();
+        cursor && currentSearchQueryRef.current === trimmedQuery;
 
       if (isPagination) {
         setIsLoadingMore(true);
       } else {
         setIsSearchLoading(true);
-        currentSearchQueryRef.current = query.trim();
-        setCurrentSearchQuery(query.trim());
+        currentSearchQueryRef.current = trimmedQuery;
+        setCurrentSearchQuery(trimmedQuery);
         setSearchResults([]);
       }
 
       let traceId: string | undefined;
+      let traceResult: SearchTraceResult = 'success';
+      let resultCount = 0;
 
       try {
         const requestBody: {
@@ -114,9 +159,11 @@ export const useSearchTokens = ({
           query: string;
           after?: string;
           includeAssets?: IncludeAsset[];
+          featureId: FeatureId;
         } = {
           chainIds: chainIdsRef.current,
-          query: query.trim(),
+          query: trimmedQuery,
+          featureId: featureIdRef.current,
         };
 
         if (cursor) {
@@ -127,11 +174,18 @@ export const useSearchTokens = ({
           requestBody.includeAssets = includeAssetsRef.current;
         }
 
-        traceId = isPagination ? undefined : uuidv4();
-        if (traceId) {
+        if (!isPagination) {
+          traceId = uuidv4();
           trace({
             name: TraceName.SwapTokenSearch,
+            op: TraceOperation.BridgeDataFetch,
             id: traceId,
+            data: {
+              chain_scope:
+                chainIdsRef.current.length > 1 ? 'multi_chain' : 'single_chain',
+              query_length_bucket: getQueryLengthBucket(trimmedQuery.length),
+            },
+            tags: { feature: SwapFeatureTag.SWAP },
             startTime: Date.now(),
           });
         }
@@ -161,7 +215,22 @@ export const useSearchTokens = ({
         const searchResultData: PopularToken[] = Array.isArray(searchData.data)
           ? searchData.data
           : [];
+        resultCount = searchResultData.length;
 
+        if (resultCount === 0 && featureId !== FeatureId.UNIFIED_SWAP_BRIDGE) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS,
+            )
+              .addProperties({
+                // TODO use location from navigation context
+                location: 'Main View',
+                feature_id: featureId,
+                search_query: trimmedQuery,
+              })
+              .build(),
+          );
+        }
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
           searchData.pageInfo?.hasNextPage
@@ -180,6 +249,7 @@ export const useSearchTokens = ({
           setSearchResults(searchResultData);
         }
       } catch (error) {
+        traceResult = 'error';
         console.error('Error searching tokens:', error);
         // Reset search state on error only if it's not a pagination request
         if (!isPagination) {
@@ -191,6 +261,10 @@ export const useSearchTokens = ({
             name: TraceName.SwapTokenSearch,
             id: traceId,
             timestamp: Date.now(),
+            data: {
+              result: traceResult,
+              result_count_bucket: getResultCountBucket(resultCount),
+            },
           });
         }
 
@@ -201,7 +275,14 @@ export const useSearchTokens = ({
         }
       }
     },
-    [resetSearch, bearerToken],
+    [
+      bearerToken,
+      enabled,
+      resetSearch,
+      featureId,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   // Create debounced search function

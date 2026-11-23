@@ -227,12 +227,12 @@ describe('NotificationManager', () => {
       findNetworkClientIdByChainId: jest.fn(),
     };
 
-    const mockAccountTrackerController = {
-      refresh: jest.fn(),
+    const mockAssetsController = {
+      getAssets: jest.fn().mockResolvedValue(undefined),
     };
 
-    const mockTokenBalancesController = {
-      updateBalances: jest.fn(),
+    const mockAccountsController = {
+      getAccountByAddress: jest.fn().mockReturnValue({ id: 'account-id' }),
     };
 
     let showNotificationSpy: jest.SpyInstance;
@@ -241,9 +241,9 @@ describe('NotificationManager', () => {
       // Set up spies and mocks once before all tests
       Object.defineProperty(Engine, 'context', {
         value: {
-          AccountTrackerController: mockAccountTrackerController,
+          AssetsController: mockAssetsController,
+          AccountsController: mockAccountsController,
           NetworkController: mockNetworkController,
-          TokenBalancesController: mockTokenBalancesController,
           TransactionController: mockTransactionController,
         },
         writable: true,
@@ -432,7 +432,7 @@ describe('NotificationManager', () => {
     it('shows a confirm notification for a transaction with nonce', async () => {
       const transactionMeta = {
         id: '0x123',
-        txParams: { nonce: '0x1' },
+        txParams: { nonce: '0x1', from: '0xSender' },
         chainId: '0x1',
         time: 123,
         status: 'confirmed' as TransactionMeta['status'],
@@ -469,6 +469,380 @@ describe('NotificationManager', () => {
           }),
         }),
       );
+
+      // The post-confirmation refresh must use a CAIP chain ID:
+      // AssetsController.getAssets expects `chainIds: CaipChainId[]`, not the
+      // transaction's raw hex chainId.
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [{ id: 'account-id' }],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+    });
+
+    it('refreshes both the sender and recipient when the recipient is also a wallet account', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      const recipientAccount = { id: 'recipient-account-id' };
+      mockAccountsController.getAccountByAddress.mockImplementation(
+        (address: string) => {
+          if (address === '0xSender') {
+            return senderAccount;
+          }
+          if (address === '0xRecipient') {
+            return recipientAccount;
+          }
+          return undefined;
+        },
+      );
+
+      const transactionMeta = {
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+          from: '0xSender',
+          to: '0xRecipient',
+        },
+        chainId: '0x1',
+        time: 123,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionMeta, {
+        id: '0x123',
+        assetType: 'ETH',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      // A send to another of the user's own accounts must refresh the
+      // recipient's balance too, not just the sender's.
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [senderAccount, recipientAccount],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+    });
+
+    it('decodes the real recipient from calldata for an ERC-20 transfer instead of using the token contract address', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      const tokenContractAccount = { id: 'token-contract-account-id' };
+      const realRecipientAccount = { id: 'real-recipient-account-id' };
+      const tokenContractAddress = '0xTokenContract';
+      const realRecipientAddress = '0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0';
+
+      mockAccountsController.getAccountByAddress.mockImplementation(
+        (address: string) => {
+          if (address === '0xSender') {
+            return senderAccount;
+          }
+          if (address === tokenContractAddress) {
+            return tokenContractAccount;
+          }
+          if (address.toLowerCase() === realRecipientAddress.toLowerCase()) {
+            return realRecipientAccount;
+          }
+          return undefined;
+        },
+      );
+
+      const transactionMeta = {
+        id: '0x123',
+        type: TransactionType.tokenMethodTransfer,
+        txParams: {
+          nonce: '0x1',
+          from: '0xSender',
+          // `to` is the token contract for an ERC-20 transfer, not the
+          // recipient — the real recipient is only in `data`.
+          to: tokenContractAddress,
+          data: '0xa9059cbb00000000000000000000000056ced0d816c668d7c0bcc3fbf0ab2c6896f589a00000000000000000000000000000000000000000000000000000000000000001',
+        },
+        chainId: '0x1',
+        time: 123,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x123',
+        txParams: {
+          nonce: '0x1',
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionMeta, {
+        id: '0x123',
+        assetType: 'ERC20',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      // Must refresh the sender and the decoded real recipient, and must
+      // NOT refresh the token contract "account" (getAccountByAddress would
+      // return undefined for it anyway, but this pins the intended
+      // behavior).
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [senderAccount, realRecipientAccount],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+      expect(mockAssetsController.getAssets).not.toHaveBeenCalledWith(
+        expect.arrayContaining([tokenContractAccount]),
+        expect.anything(),
+      );
+    });
+
+    it('refreshes the sender and recipient for a native token transfer', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      const recipientAccount = { id: 'recipient-account-id' };
+
+      mockAccountsController.getAccountByAddress.mockImplementation(
+        (address: string) => {
+          if (address === '0xSender') {
+            return senderAccount;
+          }
+          if (address === '0xRecipient') {
+            return recipientAccount;
+          }
+          return undefined;
+        },
+      );
+
+      const transactionMeta = {
+        id: '0x124',
+        txParams: {
+          nonce: '0x2',
+          from: '0xSender',
+          to: '0xRecipient',
+        },
+        chainId: '0x1',
+        time: 124,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x124',
+        txParams: {
+          nonce: '0x2',
+        },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionMeta, {
+        id: '0x124',
+        assetType: 'ETH',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [senderAccount, recipientAccount],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+    });
+
+    it('decodes the recipient from the second calldata arg for a transferFrom transfer', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      const realRecipientAccount = { id: 'real-recipient-account-id' };
+      const tokenContractAddress = '0xTokenContract';
+      const fromAddress = '0x1111111111111111111111111111111111111111';
+      const realRecipientAddress = '0x56ced0d816c668d7c0bcc3fbf0ab2c6896f589a0';
+
+      mockAccountsController.getAccountByAddress.mockImplementation(
+        (address: string) => {
+          if (address === '0xSender') {
+            return senderAccount;
+          }
+          if (address.toLowerCase() === realRecipientAddress.toLowerCase()) {
+            return realRecipientAccount;
+          }
+          return undefined;
+        },
+      );
+
+      const transactionMeta = {
+        id: '0x125',
+        type: TransactionType.tokenMethodTransferFrom,
+        txParams: {
+          nonce: '0x3',
+          from: '0xSender',
+          to: tokenContractAddress,
+          // transferFrom(from, to, tokenId): recipient is the 2nd arg.
+          data: `0x23b872dd000000000000000000000000${fromAddress.slice(
+            2,
+          )}000000000000000000000000${realRecipientAddress.slice(
+            2,
+          )}0000000000000000000000000000000000000000000000000000000000000001`,
+        },
+        chainId: '0x1',
+        time: 125,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x125',
+        txParams: { nonce: '0x3' },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionMeta, {
+        id: '0x125',
+        assetType: 'ERC721',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [senderAccount, realRecipientAccount],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+    });
+
+    it('falls back to the token contract address when transfer calldata is malformed', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      const tokenContractAddress = '0xTokenContract';
+
+      mockAccountsController.getAccountByAddress.mockImplementation(
+        (address: string) => {
+          if (address === '0xSender') {
+            return senderAccount;
+          }
+          return undefined;
+        },
+      );
+
+      const transactionMeta = {
+        id: '0x126',
+        type: TransactionType.tokenMethodTransfer,
+        txParams: {
+          nonce: '0x4',
+          from: '0xSender',
+          to: tokenContractAddress,
+          // Truncated calldata that cannot be decoded.
+          data: '0xa9059cbb',
+        },
+        chainId: '0x1',
+        time: 126,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x126',
+        txParams: { nonce: '0x4' },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      subscribeCallback(transactionMeta, {
+        id: '0x126',
+        assetType: 'ERC20',
+      });
+
+      jest.advanceTimersByTime(2000);
+
+      // The decode failure must not throw; the sender is still refreshed and
+      // the undecodable recipient falls back to the token contract address
+      // (which resolves to no account, so only the sender is refreshed).
+      expect(mockAssetsController.getAssets).toHaveBeenCalledWith(
+        [senderAccount],
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+        }),
+      );
+    });
+
+    it('does not throw when the transaction chainId is malformed', async () => {
+      const senderAccount = { id: 'sender-account-id' };
+      mockAccountsController.getAccountByAddress.mockReturnValue(
+        senderAccount as never,
+      );
+
+      const transactionMeta = {
+        id: '0x127',
+        txParams: {
+          nonce: '0x5',
+          from: '0xSender',
+          to: '0xRecipient',
+        },
+        // Malformed chainId: toEvmCaipChainId throws synchronously on this.
+        chainId: 'not-a-hex-chain-id',
+        time: 127,
+        status: 'confirmed' as TransactionMeta['status'],
+      };
+
+      mockTransactionController.state.transactions.push(
+        transactionMeta as unknown as TransactionMeta,
+      );
+
+      notificationManager.watchSubmittedTransaction({
+        id: '0x127',
+        txParams: { nonce: '0x5' },
+        silent: false,
+      });
+
+      const subscribeCallback =
+        mockControllerMessenger.subscribeOnceIf.mock.calls[0][1];
+
+      // Must not throw even though building the CAIP chain id fails; the
+      // catch logs and the rest of the callback (trace/cleanup) still runs.
+      expect(() =>
+        subscribeCallback(transactionMeta, {
+          id: '0x127',
+          assetType: 'ETH',
+        }),
+      ).not.toThrow();
+
+      jest.advanceTimersByTime(2000);
+
+      expect(mockAssetsController.getAssets).not.toHaveBeenCalled();
     });
 
     it('shows a confirm notification for EIP-7702 transaction without nonce', async () => {

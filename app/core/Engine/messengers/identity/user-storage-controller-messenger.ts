@@ -27,7 +27,7 @@ export function getUserStorageControllerMessenger(
   rootMessenger.delegate({
     actions: [
       'KeyringController:getState',
-      'SnapController:handleRequest',
+      'KeyringController:withKeyringV2Unsafe',
       'AuthenticationController:getBearerToken',
       'AuthenticationController:getSessionProfile',
       'AuthenticationController:isSignedIn',

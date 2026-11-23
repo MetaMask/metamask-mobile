@@ -220,6 +220,37 @@ describe('SitesSearchFooter', () => {
     });
   });
 
+  describe('custom onPress', () => {
+    it('passes the query and open_url action when URL link is pressed', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <SitesSearchFooter searchQuery="metamask.io" onPress={onPress} />,
+      );
+
+      fireEvent.press(getByTestId('trending-search-footer-url-link'));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith('metamask.io', 'open_url');
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('passes the search url and engine_search action when search link is pressed', () => {
+      const onPress = jest.fn();
+      const { getByTestId } = render(
+        <SitesSearchFooter searchQuery="ethereum" onPress={onPress} />,
+      );
+
+      fireEvent.press(getByTestId('trending-search-footer-search-link'));
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+      expect(onPress).toHaveBeenCalledWith(
+        'https://search.brave.com/search?q=ethereum',
+        'engine_search',
+      );
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
+    });
+  });
+
   describe('text display', () => {
     it('displays search query in Brave search link', () => {
       const { getByText } = render(

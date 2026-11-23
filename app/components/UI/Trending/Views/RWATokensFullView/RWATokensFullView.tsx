@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import TrendingQuickBuy from '../../components/TrendingQuickBuy/TrendingQuickBuy';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,7 +9,10 @@ import {
 import { useRwaTokens } from '../../hooks/useRwaTokens/useRwaTokens';
 import { useTokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
 import TokenListPageLayout from '../../components/TokenListPageLayout/TokenListPageLayout';
-import { RWA_NETWORKS_LIST } from '../../utils/trendingNetworksList';
+import {
+  RWA_NETWORKS_LIST,
+  RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD,
+} from '../../utils/trendingNetworksList';
 import { useABTest } from '../../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -17,6 +20,7 @@ import {
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../../../Views/TrendingView/search/abTestConfig';
 import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
+import { useShowRobinhoodRwa } from '../../../../Views/TrendingView/feeds/stocks/useStocksFeed';
 
 const RWATokensFullView = () => {
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
@@ -67,6 +71,15 @@ const RWATokensFullView = () => {
     closeQuickBuy,
   );
 
+  const showRobinhoodRwa = useShowRobinhoodRwa();
+  const allowedNetworks = useMemo(
+    () =>
+      showRobinhoodRwa
+        ? RWA_NETWORKS_LIST
+        : RWA_NETWORKS_LIST_WITHOUT_ROBINHOOD,
+    [showRobinhoodRwa],
+  );
+
   return (
     <TokenListPageLayout
       title={strings('trending.stocks')}
@@ -76,7 +89,7 @@ const RWATokensFullView = () => {
       searchResults={searchResults}
       isLoading={isLoading}
       onRefresh={handleRefresh}
-      allowedNetworks={RWA_NETWORKS_LIST}
+      allowedNetworks={allowedNetworks}
       onLoadMore={loadMore}
       isLoadingMore={isLoadingMore}
       onQuickTrade={
