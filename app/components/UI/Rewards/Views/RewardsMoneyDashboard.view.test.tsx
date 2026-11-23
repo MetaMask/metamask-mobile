@@ -483,6 +483,23 @@ const subscriptionReads = {
   }),
 };
 
+/**
+ * A read handler whose first call fails and whose later calls never settle, so
+ * a test can observe the tab mid-request after an error. `reads.count` is the
+ * number of calls so far.
+ */
+const failFirstThenHang = (message: string) => {
+  const reads = { count: 0 };
+  const handler = async () => {
+    reads.count += 1;
+    if (reads.count === 1) {
+      throw new Error(message);
+    }
+    return new Promise(() => undefined);
+  };
+  return { handler, reads };
+};
+
 describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => {
   it('labels the first tab Overview and keeps campaigns and benefits out of it', async () => {
     const { findByTestId, queryByTestId } = renderRewardsMoneyDashboard({
@@ -679,22 +696,14 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
   });
 
   it('keeps the benefits error up while the tab re-reads on a later visit', async () => {
-    let benefitsReads = 0;
+    const benefits = failFirstThenHang('benefits unavailable');
     const { findByTestId, getByTestId, queryByText } =
       renderRewardsMoneyDashboard({
         persona: 'referee',
         subscriptionId: 'sub-1',
         handlers: {
           ...subscriptionReads,
-          // The first read fails. Later reads never settle, so the tab is
-          // observed mid-request.
-          'RewardsController:getBenefits': async () => {
-            benefitsReads += 1;
-            if (benefitsReads === 1) {
-              throw new Error('benefits unavailable');
-            }
-            return new Promise(() => undefined);
-          },
+          'RewardsController:getBenefits': benefits.handler,
         },
       });
 
@@ -709,7 +718,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
 
     await waitFor(() => {
-      expect(benefitsReads).toBeGreaterThan(1);
+      expect(benefits.reads.count).toBeGreaterThan(1);
     });
     expect(getByTestId(BENEFITS_TAB_TEST_IDS.ERROR)).toBeOnTheScreen();
     expect(
@@ -755,22 +764,14 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
   });
 
   it('keeps the campaigns error up while Retry is in flight', async () => {
-    let campaignsReads = 0;
+    const campaigns = failFirstThenHang('campaigns unavailable');
     const { findByText, findByTestId, getByText, queryByText } =
       renderRewardsMoneyDashboard({
         persona: 'referee',
         subscriptionId: 'sub-1',
         handlers: {
           ...subscriptionReads,
-          // The first read fails. Later reads never settle, so the tab is
-          // observed mid-request.
-          'RewardsController:getCampaigns': async () => {
-            campaignsReads += 1;
-            if (campaignsReads === 1) {
-              throw new Error('campaigns unavailable');
-            }
-            return new Promise(() => undefined);
-          },
+          'RewardsController:getCampaigns': campaigns.handler,
         },
       });
 
@@ -782,7 +783,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     );
 
     await waitFor(() => {
-      expect(campaignsReads).toBe(2);
+      expect(campaigns.reads.count).toBe(2);
     });
     expect(
       getByText(strings('rewards.campaigns_view.error_title')),
@@ -793,22 +794,14 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
   });
 
   it('keeps the campaigns error up while the tab re-reads on a later visit', async () => {
-    let campaignsReads = 0;
+    const campaigns = failFirstThenHang('campaigns unavailable');
     const { findByText, findByTestId, getByTestId, queryByText } =
       renderRewardsMoneyDashboard({
         persona: 'referee',
         subscriptionId: 'sub-1',
         handlers: {
           ...subscriptionReads,
-          // The first read fails. Later reads never settle, so the tab is
-          // observed mid-request.
-          'RewardsController:getCampaigns': async () => {
-            campaignsReads += 1;
-            if (campaignsReads === 1) {
-              throw new Error('campaigns unavailable');
-            }
-            return new Promise(() => undefined);
-          },
+          'RewardsController:getCampaigns': campaigns.handler,
         },
       });
 
@@ -825,7 +818,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     );
 
     await waitFor(() => {
-      expect(campaignsReads).toBeGreaterThan(1);
+      expect(campaigns.reads.count).toBeGreaterThan(1);
     });
     expect(
       await findByText(strings('rewards.campaigns_view.error_title')),
