@@ -330,6 +330,11 @@ test('a scenario issue follows the bug-report template and routes to its team', 
   });
 });
 
+test('every Hermes ticket carries the existing performance labels', () => {
+  assert.ok(BASE_LABELS.includes('performance'));
+  assert.ok(BASE_LABELS.includes('area-performance'));
+});
+
 test('Rewards is filed in RWDS without a team label or GitHub mention', () => {
   const rewards = finding({
     scenario: 'Rewards_tab_time-to-content',

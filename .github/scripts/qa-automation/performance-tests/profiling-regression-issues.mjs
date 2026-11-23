@@ -32,7 +32,12 @@ export const RECURRENCE_MARKER = 'hermes-profile-regression-recurrence';
 /** Marker key of run-level issues opened before each scenario got its own bug. */
 export const SLOW_RUN_KEY = 'slow-run';
 /** `type-bug` and `regression-main` follow the labeler for a `main` bug. */
-export const BASE_LABELS = ['type-bug', 'area-performance', 'regression-main'];
+export const BASE_LABELS = [
+  'type-bug',
+  'area-performance',
+  'performance',
+  'regression-main',
+];
 export const MAX_ISSUE_FRAMES = 5;
 export const MAX_TRACKED_ISSUES = 200;
 /**
