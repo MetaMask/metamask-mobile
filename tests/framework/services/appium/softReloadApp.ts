@@ -35,6 +35,9 @@ const IOS_APP_STATE_BACKGROUND_SUSPENDED = 2;
 const IOS_APP_STATE_BACKGROUND = 3;
 const IOS_APP_STATE_FOREGROUND = 4;
 
+/**
+ * Reads the iOS app process state via XCUITest `mobile: queryAppState`.
+ */
 const queryIosAppState = async (
   drv: WebdriverIO.Browser,
   bundleId: string,

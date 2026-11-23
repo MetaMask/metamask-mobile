@@ -81,9 +81,7 @@ const dismissMetroMock =
 const isAndroidMock = PlatformDetector.isAndroid as jest.MockedFunction<
   typeof PlatformDetector.isAndroid
 >;
-const isIOSMock = PlatformDetector.isIOS as jest.MockedFunction<
-  typeof PlatformDetector.isIOS
->;
+const isIOSMock = jest.mocked(PlatformDetector.isIOS);
 
 const createDrv = (
   overrides: Partial<{
