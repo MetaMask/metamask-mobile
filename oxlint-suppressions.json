@@ -14933,11 +14933,6 @@
       "count": 18
     }
   },
-  "app/components/Views/ActivityDetails/templates/rampDetailsUtils.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/Views/ActivityList/ActivityList.test.tsx": {
     "typescript/promise-function-async": {
       "count": 11
