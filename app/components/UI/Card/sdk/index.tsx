@@ -163,7 +163,7 @@ export const CardSDKProvider = ({
     }
 
     hasFetchedInitialUserDataRef.current = true;
-    fetchUserDataRef.current();
+    void fetchUserDataRef.current();
   }, [sdk, onboardingId, hasInitialOnboardingId]);
 
   const logoutFromProvider = useCallback(async () => {
