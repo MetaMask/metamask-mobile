@@ -581,7 +581,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
   it('resolves geolocation before enabling create password for social login', async () => {
     let resolveGeolocation!: (location: string) => void;
     const geolocationMock = jest.fn(
-      () =>
+      async () =>
         new Promise<string>((resolve) => {
           resolveGeolocation = resolve;
         }),
@@ -596,7 +596,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
               GeolocationController: { location: 'UNKNOWN' },
             },
           },
-        } as DeepPartial<RootState>,
+        },
       });
 
     await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);

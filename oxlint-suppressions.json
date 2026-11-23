@@ -15205,11 +15205,8 @@
     "typescript/no-misused-promises": {
       "count": 1
     },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/promise-function-async": {
-      "count": 4
+      "count": 3
     }
   },
   "app/components/Views/ChoosePassword/index.test.tsx": {
