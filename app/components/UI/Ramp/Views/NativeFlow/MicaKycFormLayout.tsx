@@ -1,0 +1,168 @@
+/**
+ * Shared layout for the MiCA KYC form screens (source of income, employment
+ * and nationality): header, progress, title, error and missing-fields
+ * banners, and the privacy + continue footer.
+ */
+
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
+import {
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { useStyles } from '../../../../hooks/useStyles';
+import { strings } from '../../../../../../locales/i18n';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
+import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import PrivacySection from '../../components/PrivacySection';
+import { getKycProgress, type KycStep } from '../../utils/kycProgress';
+import styleSheet from './SourceOfIncome.styles';
+
+export interface MicaKycFormMissingFields {
+  title: string;
+  description: string;
+  retryLabel: string;
+  retrying: boolean;
+  onRetry: () => Promise<void>;
+}
+
+interface MicaKycFormLayoutProps {
+  headerTitle: string;
+  title: string;
+  subtitle: string;
+  step: KycStep;
+  error: string | null;
+  /** Set when the form options are missing and must be refetched. */
+  missingFields?: MicaKycFormMissingFields;
+  loading: boolean;
+  isSubmitDisabled: boolean;
+  onSubmit: () => Promise<void>;
+  children: React.ReactNode;
+}
+
+const MicaKycFormLayout = ({
+  headerTitle,
+  title,
+  subtitle,
+  step,
+  error,
+  missingFields,
+  loading,
+  isSubmitDisabled,
+  onSubmit,
+  children,
+}: MicaKycFormLayoutProps): React.JSX.Element => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
+  const navigation = useNavigation<AppNavigationProp>();
+  const { styles } = useStyles(styleSheet, {});
+
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  return (
+    <ScreenLayout>
+      <ScreenLayout.Body>
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
+          title={headerTitle}
+          onBack={handleGoBack}
+          onClose={handleGoBack}
+          backButtonProps={{ testID: 'deposit-back-navbar-button' }}
+          closeButtonProps={{ testID: 'deposit-close-navbar-button' }}
+          includesTopInset
+        />
+        <KeyboardAwareScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          enableAutomaticScroll
+          showsVerticalScrollIndicator={false}
+        >
+          <ScreenLayout.Content>
+            <DepositProgressBar {...getKycProgress(step, true)} />
+
+            <View style={styles.section}>
+              <Text variant={TextVariant.HeadingMd} style={styles.title}>
+                {title}
+              </Text>
+              <Text variant={TextVariant.BodyMd} style={styles.subtitle}>
+                {subtitle}
+              </Text>
+            </View>
+
+            {error && (
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                title={strings('deposit.mica.errorTitle')}
+                description={error}
+                style={styles.errorBanner}
+              />
+            )}
+
+            {missingFields && (
+              <BannerAlert
+                severity={BannerAlertSeverity.Error}
+                title={missingFields.title}
+                description={missingFields.description}
+                actionButtonProps={{
+                  variant: ButtonVariants.Link,
+                  label: missingFields.retryLabel,
+                  onPress: () => {
+                    void missingFields.onRetry();
+                  },
+                  disabled: missingFields.retrying,
+                }}
+                style={styles.errorBanner}
+              />
+            )}
+
+            <View style={styles.fields}>{children}</View>
+          </ScreenLayout.Content>
+        </KeyboardAwareScrollView>
+      </ScreenLayout.Body>
+
+      <ScreenLayout.Footer>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <PrivacySection>
+            <Text variant={TextVariant.BodySm}>
+              {strings('deposit.source_of_income.privacy_text')}
+            </Text>
+          </PrivacySection>
+
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
+            onPress={() => {
+              void onSubmit();
+            }}
+            isLoading={loading}
+            isDisabled={isSubmitDisabled || loading}
+            isFullWidth
+          >
+            {strings('deposit.source_of_income.continue_button')}
+          </Button>
+
+          <PoweredByTransak name="powered-by-transak-logo" />
+        </ScreenLayout.Content>
+      </ScreenLayout.Footer>
+    </ScreenLayout>
+  );
+};
+
+export default MicaKycFormLayout;

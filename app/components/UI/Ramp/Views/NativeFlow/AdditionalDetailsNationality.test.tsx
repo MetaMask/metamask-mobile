@@ -319,6 +319,29 @@ describe('AdditionalDetailsNationality', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('keeps the retry action available after a failed refetch', async () => {
+    mockUseParamsReturn.metadata = {
+      ...mockMetadata,
+      countryOfCitizenshipOptions: [],
+    };
+    mockGetAdditionalRequirements.mockRejectedValue(new Error('network down'));
+
+    const { getByText, findByText } = renderScreen();
+    fireEvent.press(
+      getByText('deposit.additional_details_nationality.retry_button'),
+    );
+    await findByText('deposit.mica.errorTitle');
+
+    mockGetAdditionalRequirements.mockClear();
+    fireEvent.press(
+      getByText('deposit.additional_details_nationality.retry_button'),
+    );
+
+    await waitFor(() => {
+      expect(mockGetAdditionalRequirements).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('routes back to the headless host when a headless session is active', () => {
     mockUseParamsReturn.headlessSessionId = 'headless-1';
 
