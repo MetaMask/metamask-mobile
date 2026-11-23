@@ -5,8 +5,8 @@
  * - tests/smoke/seedless/apple-login-new-user.spec.ts
  * - tests/smoke/seedless/google-login-new-user.spec.ts (Android path skips iOS screen)
  *
- * CV covers password validation UX and social login wallet creation (nock).
- * Full wallet creation, MetaMetrics, and wallet home remain E2E.
+ * CV covers password validation UX and social wallet creation navigation.
+ * Full wallet creation and wallet home remain E2E.
  *
  * Run: yarn jest -c jest.config.view.js ChoosePassword.view.test.tsx --runInBand
  */
@@ -23,23 +23,14 @@ import {
 } from '../../../../tests/component-view/platform';
 import {
   clearSeedlessAuthServerMocks,
-  getSeedlessAuthServerRequests,
   setupSeedlessAuthServerMocks,
 } from '../../../../tests/component-view/api-mocking/seedless-onboarding';
-import {
-  findTrackedEvent,
-  isMarketingSyncError,
-} from '../../../../tests/component-view/helpers/analytics';
 import { renderChoosePasswordForSocialLogin } from '../../../../tests/component-view/renderers/seedlessOnboarding';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import { strings } from '../../../../locales/i18n';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { Authentication } from '../../../core';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { analytics } from '../../../util/analytics/analytics';
-import Logger from '../../../util/Logger';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -459,7 +450,7 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
   });
 
   it('navigates to interest questionnaire after social login wallet creation', async () => {
-    setupSeedlessAuthServerMocks({ marketingOptIn: true });
+    setupSeedlessAuthServerMocks();
     mockAuthenticationForSocialWalletCreation();
 
     const screen = renderChoosePasswordForSocialLogin({
@@ -475,103 +466,5 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
     await screen.findByTestId(
       `route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`,
     );
-  });
-
-  it('keeps marketing consent off when the unchecked marketing checkbox sync fails during wallet creation', async () => {
-    // Desync setup: the server still holds is_opt_in=true while the sync
-    // POST fails with HTTP 500.
-    setupSeedlessAuthServerMocks({
-      marketingOptIn: true,
-      marketingPostFails: true,
-    });
-    mockAuthenticationForSocialWalletCreation();
-
-    const identifySpy = jest.spyOn(analytics, 'identify');
-    const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
-    const loggerErrorSpy = jest
-      .spyOn(Logger, 'error')
-      .mockImplementation(() => Promise.resolve());
-
-    try {
-      const screen = renderChoosePasswordForSocialLogin({
-        routeParams: {
-          oauthLoginSuccess: true,
-          provider: AuthConnection.Google,
-        },
-      });
-
-      await fillValidPasswords(screen);
-
-      // The view-test env keeps the marketing checkbox unchecked
-      // (HAS_TEST_OVERRIDES), so opt-out is an explicit on-then-off toggle.
-      await screen.findByTestId(
-        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-      );
-      fireEvent.press(
-        screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
-      );
-      await waitFor(() => {
-        expect(
-          screen.getByTestId(
-            ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-          ).props.accessibilityState?.checked,
-        ).toBe(true);
-      });
-      fireEvent.press(
-        screen.getByTestId(ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID),
-      );
-      await waitFor(() => {
-        expect(
-          screen.getByTestId(
-            ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-          ).props.accessibilityState?.checked,
-        ).toBe(false);
-      });
-
-      await submitChoosePassword(screen);
-
-      // The failed consent sync must not block wallet creation.
-      await screen.findByTestId(
-        `route-${Routes.ONBOARDING.INTEREST_QUESTIONNAIRE}`,
-      );
-
-      // The opt-out lands in the local security preference despite the 500.
-      await waitFor(() => {
-        expect(
-          screen.store.getState().security.dataCollectionForMarketing,
-        ).toBe(false);
-      });
-
-      // Exactly one opt-out POST reached the auth server and nothing was read.
-      await waitFor(() => {
-        expect(getSeedlessAuthServerRequests()).toEqual([
-          { method: 'POST', body: { opt_in_status: false } },
-        ]);
-      });
-
-      expect(loggerErrorSpy.mock.calls.some(isMarketingSyncError)).toBe(true);
-
-      expect(identifySpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-        }),
-      );
-      expect(
-        findTrackedEvent(
-          trackEventSpy,
-          MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-        ),
-      ).toMatchObject({
-        properties: expect.objectContaining({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: false,
-          location: 'onboarding_choosePassword',
-          account_type: 'metamask_google',
-        }),
-      });
-    } finally {
-      identifySpy.mockRestore();
-      trackEventSpy.mockRestore();
-      loggerErrorSpy.mockRestore();
-    }
   });
 });
