@@ -998,9 +998,63 @@ const fq = { team: '', view: '', host: '' }; // search text inside the long list
 let myTeams = new Set(); try { myTeams = new Set(JSON.parse(localStorage.getItem('foxy.myteams.v1')) || []); } catch {}
 let dupeCounts = new Map(); let span = 1; let wfMarkers = ''; let axis = null; // axis: see buildAxis()
 let openEp = null; let pendingEp = false;
+if (location.hash === '#endpoints') tab = 'endpoints';
 const detailCache = new Map();
 const $ = (s) => document.querySelector(s);
 const icon = (name) => `<svg class="ic"><use href="#i-${name}"/></svg>`;
+
+// ---- history: the browser's Back and Forward walk through where you have been --------------------------------------------
+// An entry is the tab, the opened request or endpoint and the filters. render() keeps the current entry describing what is on screen
+// (replaceState), and navigate() pushes a new entry for a drill-in, so Back returns to the screen exactly as it was left.
+const navSnap = () => ({
+  tab, open, openEp, filter, ui: { ...ui },
+  adv: { ...Object.fromEntries(FACETS.map((f) => [f.id, { on: [...adv[f.id].on], not: adv[f.id].not }])), scope: adv.team.scope, minMs: adv.minMs },
+});
+let navKey = '', navHold = false, navLast = { t: 0, kind: '' };
+const navBootUntil = performance.now() + 2000; // a reload restores its entry, then the capture streams back in: don't let that empty first render overwrite it
+const navBooting = () => performance.now() < navBootUntil;
+/** What single thing changed, so a burst of typing becomes one entry instead of one per keystroke. */
+function navKind(prev, next) {
+  if (!prev) return '';
+  const a = JSON.parse(prev), same = (x, y) => JSON.stringify(x) === JSON.stringify(y);
+  if (a.filter !== next.filter && same({ ...a, filter: 0 }, { ...next, filter: 0 })) return 'text';
+  if (a.adv.minMs !== next.adv.minMs && same({ ...a, adv: { ...a.adv, minMs: 0 } }, { ...next, adv: { ...next.adv, minMs: 0 } })) return 'ms';
+  return '';
+}
+function navWrite(push) {
+  const snap = navSnap(), key = JSON.stringify(snap);
+  if (key === navKey) return;
+  const first = !navKey, kind = navKind(navKey, snap), now = Date.now();
+  const merge = kind && navLast.kind === kind && now - navLast.t < 1500;
+  navLast = { t: now, kind }; navKey = key;
+  try { (push && !first && !merge ? history.pushState : history.replaceState).call(history, snap, '', '#' + tab); } catch { /* browsers rate-limit history writes; losing one is fine */ }
+}
+/** Any change to the tab, the open row or the filters is a step you can go Back from. */
+const syncNav = () => { if (!navHold && !navBooting()) navWrite(true); };
+/** Runs a change to what is on screen. With push, Back undoes it; without, it only updates the current entry. */
+function navigate(change, push = true) {
+  syncNav(); navHold = true;
+  try { change(); } finally { navHold = false; }
+  navWrite(push);
+}
+function navReveal() {
+  if (tab === 'timeline' && open) { const row = timelineV.reveal(open, 'center'); if (row) row.classList.add('flash'); }
+  else if (tab === 'endpoints' && openEp) endpointsV.reveal(openEp, 'start');
+}
+function applyNav(st) {
+  if (!st || typeof st !== 'object' || !st.adv) return;
+  navHold = true;
+  try {
+    tab = st.tab === 'endpoints' ? 'endpoints' : 'timeline'; open = st.open ?? null; openEp = st.openEp ?? null;
+    filter = st.filter || ''; $('#filter').value = filter; Object.assign(ui, st.ui);
+    for (const f of FACETS) { adv[f.id].on = new Set(st.adv[f.id]?.on || []); adv[f.id].not = Boolean(st.adv[f.id]?.not); }
+    adv.team.scope = st.adv.scope || 'any'; adv.minMs = st.adv.minMs || 0;
+    render();
+  } finally { navHold = false; }
+  navKey = JSON.stringify(navSnap()); navLast = { t: 0, kind: '' };
+  requestAnimationFrame(navReveal);
+}
+window.addEventListener('popstate', (e) => applyNav(e.state));
 // Pause holds incoming updates in a queue here; the app is still captured by the server, so nothing is lost.
 let connected = false, paused = false;
 const pending = [];
@@ -2077,7 +2131,7 @@ function render() {
   all.forEach((r) => dupeCounts.set(reqKey(r), (dupeCounts.get(reqKey(r)) || 0) + 1));
   span = Math.max(1, all.reduce((m, r) => Math.max(m, r.relMs + (r.durationMs || 0)), 0), markers.reduce((m, x) => Math.max(m, x.relMs), 0));
   computePhases(all);
-  if (ui.phase && !phases.some((p) => p.id === ui.phase)) ui.phase = null; // its marker was deleted
+  if (ui.phase && !navBooting() && !phases.some((p) => p.id === ui.phase)) ui.phase = null; // its marker was deleted
   // the axis covers the whole capture, or just the phase being filtered to; breaks are decided from every request so filters never move it
   const zoom = ui.phase && phases.find((p) => p.id === ui.phase);
   axis = buildAxis([...all.map((r) => [r.relMs, r.relMs + (r.durationMs || 0)]), ...markers.map((m) => [m.relMs, m.relMs])],
@@ -2092,6 +2146,7 @@ function render() {
   if (tab === 'timeline') renderTimeline();
   else if (document.activeElement?.matches?.('textarea.note')) pendingEp = true; // don't clobber a note being typed
   else renderEndpoints();
+  syncNav();
 }
 let raf = 0; const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
 
@@ -2110,9 +2165,11 @@ function chipFilter(e) {
 }
 function openInTimeline(key) {
   const r = reqs.get(key); if (!r) return;
-  if (!match(r)) { filter = ''; $('#filter').value = ''; ui.cat = 'all'; ui.errors = false; ui.dupes = false; ui.owner = null; ui.phase = null; clearAdv(); }
-  const ph = phaseByKey.get(key); if (ph) collapsed.delete(ph.id);
-  tab = 'timeline'; open = key; render();
+  navigate(() => { // Back returns to the Endpoints screen you came from
+    if (!match(r)) { filter = ''; $('#filter').value = ''; ui.cat = 'all'; ui.errors = false; ui.dupes = false; ui.owner = null; ui.phase = null; clearAdv(); }
+    const ph = phaseByKey.get(key); if (ph) collapsed.delete(ph.id);
+    tab = 'timeline'; open = key; render();
+  });
   requestAnimationFrame(() => { const row = timelineV.reveal(key, 'center'); if (row) row.classList.add('flash'); });
 }
 $('#endpoints').addEventListener('click', (e) => {
@@ -2125,7 +2182,8 @@ $('#endpoints').addEventListener('click', (e) => {
   const call = e.target.closest('[data-open]'); if (call) { openInTimeline(call.dataset.open); return; }
   if (e.target.closest('tr.detail')) return;
   const tr = e.target.closest('tr.ep'); if (!tr) return;
-  openEp = openEp === tr.dataset.k ? null : tr.dataset.k; render();
+  const nextEp = openEp === tr.dataset.k ? null : tr.dataset.k;
+  navigate(() => { openEp = nextEp; render(); }, nextEp !== null);
   if (openEp) endpointsV.reveal(openEp, 'start'); // same as the Timeline: the opened endpoint goes to the top
 });
 $('#endpoints').addEventListener('input', (e) => {
@@ -2143,14 +2201,13 @@ $('#phasePill').addEventListener('click', (e) => { if (e.target.closest('#phaseC
 $('#stripin').addEventListener('click', (e) => {
   const flag = e.target.closest('b[data-pid]');
   if (flag) { // jump to the phase header in the Timeline
-    tab = 'timeline'; collapsed.delete(flag.dataset.pid);
-    render();
+    navigate(() => { tab = 'timeline'; collapsed.delete(flag.dataset.pid); render(); });
     const row = timelineV.reveal(`phase:${flag.dataset.pid}`, 'start');
     if (row) { row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
     return;
   }
   const bk = e.target.closest('.bk[data-k]'); if (!bk) return;
-  tab = 'timeline'; render();
+  navigate(() => { tab = 'timeline'; render(); });
   const row = timelineV.reveal(bk.dataset.k, 'center'); if (!row) return;
   row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
 });
@@ -2213,11 +2270,12 @@ $('#timeline').addEventListener('click', (e) => {
   }
   if (e.target.closest('tr.detail')) return;
   const tr = e.target.closest('tr.req'); if (!tr) return;
-  open = open === tr.dataset.k ? null : tr.dataset.k; render();
+  const nextOpen = open === tr.dataset.k ? null : tr.dataset.k;
+  navigate(() => { open = nextOpen; render(); }, nextOpen !== null);
   if (open) timelineV.reveal(open, 'start'); // a row you open goes to the top, right under the header, so its detail has the room
 });
-$('#tabTimeline').onclick = () => { tab = 'timeline'; render(); };
-$('#tabEndpoints').onclick = () => { tab = 'endpoints'; render(); };
+$('#tabTimeline').onclick = () => navigate(() => { tab = 'timeline'; render(); });
+$('#tabEndpoints').onclick = () => navigate(() => { tab = 'endpoints'; render(); });
 $('#filter').oninput = (e) => { filter = e.target.value.toLowerCase(); render(); };
 $('#clear').onclick = async () => { await fetch('/api/clear', { method: 'POST' }); };
 $('#reset').onclick = () => { timelineGrid.reset(render); endpointsGrid.reset(render); };
@@ -2422,7 +2480,7 @@ $('#mkList').addEventListener('click', (e) => {
   if (e.target.closest('#mkLearn')) { openHelp('markers'); return; }
   const b = e.target.closest('button[data-act]'); if (!b) return;
   if (b.dataset.act === 'del') api('/api/marker/' + encodeURIComponent(b.dataset.id), 'DELETE');
-  else { ui.phase = ui.phase === b.dataset.id ? null : b.dataset.id; tab = 'timeline'; render(); }
+  else navigate(() => { ui.phase = ui.phase === b.dataset.id ? null : b.dataset.id; tab = 'timeline'; render(); });
 });
 $('#mkList').addEventListener('change', (e) => { const i = e.target.closest('input.mk-name'); if (i && i.value.trim()) api('/api/marker/' + encodeURIComponent(i.dataset.id), 'PATCH', { label: i.value }); });
 $('#mkList').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('input.mk-name')) e.target.blur(); });
@@ -2591,6 +2649,10 @@ endpointsGrid.init(render);
 renderTimeSeg();
 renderConn();
 connect(); render();
+if (history.state?.adv) { // reload: put back the entry we were on, and scroll to the open row once the capture has streamed in
+  applyNav(history.state);
+  setTimeout(() => { navHold = true; try { render(); } finally { navHold = false; } navKey = JSON.stringify(navSnap()); navReveal(); }, 2050);
+} else navWrite(false); // first visit: the entry Back returns to
 if (localStorage.getItem('foxy.help.hide') !== '1') openHelp('start'); // shown on every launch until you tick the box
 
 // ---- animated logo (Rive). The emoji stays as the fallback if the runtime or the file cannot load. ----
