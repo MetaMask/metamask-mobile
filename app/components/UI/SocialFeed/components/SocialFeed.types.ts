@@ -15,12 +15,6 @@ import type {
 import type { SocialFeedListState } from '../utils/getSocialFeedListState';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
 
-/**
- * Who scrolls the feed. `content` renders inside the host's scroll view;
- * `virtualized` owns a list, which realtime needs to stay smooth.
- */
-export type SocialFeedScrollMode = 'content' | 'virtualized';
-
 /** What the feed knows about a tapped post's position. */
 export interface SocialFeedPositionPressContext {
   /** True when the feed was streaming socket revisions while showing the post. */

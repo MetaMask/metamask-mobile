@@ -409,13 +409,3 @@ export function toSocialV1FeedItem(
     ...(live ? { live } : {}),
   };
 }
-
-/** Maps a page of loaded rows, preserving order. */
-/**
- * Maps a page of loaded rows, preserving order. One `now` for the whole page so
- * every open position's hold time is measured against the same instant.
- */
-export const toSocialV1FeedItems = (
-  rows: TraderFeedRow[],
-  now: number = Date.now(),
-): SocialV1FeedItem[] => rows.map((row) => toSocialV1FeedItem(row, now));

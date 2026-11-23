@@ -1478,9 +1478,7 @@
       },
       "sub_header": {
         "at_connector": "в",
-        "market_cap_suffix": "РК",
-        "size_at_price": "{{size}} по {{price}}",
-        "size_at_market_cap": "{{size}} при {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "РК"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} П/У (30 дн.)",
@@ -1995,22 +1993,6 @@
         "4": "Чт",
         "5": "Пт",
         "6": "Сб"
-      },
-      "tooltip": {
-        "label": "{{action}} по {{price}}",
-        "bought": "Куплено",
-        "sold": "Продано",
-        "perps_closed": "Закрыто",
-        "perps_long_opened": "Открыта длинная позиция",
-        "perps_long_added": "Длинная позиция увеличена",
-        "perps_long_reduced": "Длинная позиция уменьшена",
-        "perps_short_opened": "Короткая позиция открыта",
-        "perps_short_added": "Короткая позиция увеличена",
-        "perps_short_reduced": "Выкуплено",
-        "spot_opened": "Куплено",
-        "spot_added": "Куплено ещё",
-        "spot_reduced": "Частично продано",
-        "spot_closed": "Всё продано"
       }
     },
     "trader_position": {

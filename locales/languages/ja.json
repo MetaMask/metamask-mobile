@@ -1478,9 +1478,7 @@
       },
       "sub_header": {
         "at_connector": "at",
-        "market_cap_suffix": "時価総額",
-        "size_at_price": "{{price}}で{{size}}",
-        "size_at_market_cap": "{{size}} / {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "時価総額"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}}の損益 (30日)",
@@ -1995,22 +1993,6 @@
         "4": "木",
         "5": "金",
         "6": "土"
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "購入しました",
-        "sold": "売却しました",
-        "perps_closed": "クローズ済み",
-        "perps_long_opened": "ロングをオープンしました",
-        "perps_long_added": "ロングに追加されました",
-        "perps_long_reduced": "ロングを減らしました",
-        "perps_short_opened": "ショートをオープンしました",
-        "perps_short_added": "ショートに追加されました",
-        "perps_short_reduced": "買い戻しました",
-        "spot_opened": "購入しました",
-        "spot_added": "追加購入しました",
-        "spot_reduced": "一部売却しました",
-        "spot_closed": "すべて売却しました"
       }
     },
     "trader_position": {

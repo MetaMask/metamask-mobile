@@ -18070,19 +18070,6 @@
       "count": 1
     }
   },
-  "app/components/Views/SocialLeaderboard/TraderPositionView/usePerpsTraderPositionPrices.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/Views/SocialLeaderboard/TraderPositionView/usePerpsTraderPositionPrices.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    }
-  },
   "app/components/Views/SocialLeaderboard/TraderPositionView/useSpotTraderPositionPrices.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 3

@@ -1478,9 +1478,7 @@
       },
       "sub_header": {
         "at_connector": "tại",
-        "market_cap_suffix": "Vốn hóa thị trường",
-        "size_at_price": "{{size}} ở mức {{price}}",
-        "size_at_market_cap": "{{size}} tại {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "Vốn hóa thị trường"
       },
       "trader_stats": {
         "pnl_30d": "Lãi/Lỗ {{pnl}} (30 ngày)",
@@ -1995,22 +1993,6 @@
         "4": "T5",
         "5": "T6",
         "6": "T7"
-      },
-      "tooltip": {
-        "label": "{{action}} ở giá {{price}}",
-        "bought": "Đã mua",
-        "sold": "Đã bán",
-        "perps_closed": "Đã đóng",
-        "perps_long_opened": "Đã mở vị thế mua khống",
-        "perps_long_added": "Đã tăng vị thế mua khống",
-        "perps_long_reduced": "Đã giảm vị thế mua khống",
-        "perps_short_opened": "Đã mở vị thế bán khống",
-        "perps_short_added": "Đã tăng vị thế bán khống",
-        "perps_short_reduced": "Đã mua lại",
-        "spot_opened": "Đã mua",
-        "spot_added": "Đã mua thêm",
-        "spot_reduced": "Đã bán một phần",
-        "spot_closed": "Đã bán hết"
       }
     },
     "trader_position": {

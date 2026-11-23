@@ -1478,9 +1478,7 @@
       },
       "sub_header": {
         "at_connector": "em",
-        "market_cap_suffix": "MC",
-        "size_at_price": "{{size}} a {{price}}",
-        "size_at_market_cap": "{{size}} a {{marketCap}} {{abbreviation}}"
+        "market_cap_suffix": "MC"
       },
       "trader_stats": {
         "pnl_30d": "{{pnl}} P&L (30d)",
@@ -1995,22 +1993,6 @@
         "4": "Qui.",
         "5": "Sex.",
         "6": "Sáb."
-      },
-      "tooltip": {
-        "label": "{{action}} @ {{price}}",
-        "bought": "Comprado",
-        "sold": "Vendidos",
-        "perps_closed": "Fechado",
-        "perps_long_opened": "Abriu posição long",
-        "perps_long_added": "Adicionado à posição long",
-        "perps_long_reduced": "Redução longa",
-        "perps_short_opened": "Posição short aberta",
-        "perps_short_added": "Adicionado à posição short",
-        "perps_short_reduced": "Recomprado",
-        "spot_opened": "Comprado",
-        "spot_added": "Comprou mais",
-        "spot_reduced": "Vendeu alguns",
-        "spot_closed": "Vendeu tudo"
       }
     },
     "trader_position": {
