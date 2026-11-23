@@ -258,8 +258,10 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
     Number(amountOut) / Number(cryptoAmount);
   const providerName = getProviderName(order.provider, data);
   const { formatCurrency, formatCurrencyWithMinThreshold } = useFormatters();
+  // An empty string would become 0 through Number(), so treat it as missing.
   const formatFiat = (value: number | string | undefined) =>
-    (currency && formatCurrency(Number(value), currency)) || '...';
+    (currency && value !== '' && formatCurrency(Number(value), currency)) ||
+    '...';
   const formatRate = (value: number) =>
     (currency && formatCurrencyWithMinThreshold(value, currency)) || '...';
 
@@ -515,17 +517,14 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                 </Text>
               </ListItemColumn>
               <ListItemColumn>
-                {cryptoFee ? (
-                  <Text variant={TextVariant.BodySMBold}>
-                    {formatFiat(
-                      order.orderType === OrderOrderTypeEnum.Buy
-                        ? cryptoFee
-                        : orderData?.totalFeesFiat,
-                    )}
-                  </Text>
-                ) : (
-                  <Text variant={TextVariant.BodySMBold}>...</Text>
-                )}
+                {/* No truthy check: a 0 fee is real, and formatFiat shows "..." when the fee is missing. */}
+                <Text variant={TextVariant.BodySMBold}>
+                  {formatFiat(
+                    order.orderType === OrderOrderTypeEnum.Buy
+                      ? cryptoFee
+                      : orderData?.totalFeesFiat,
+                  )}
+                </Text>
               </ListItemColumn>
             </ListItem>
           </Row>
