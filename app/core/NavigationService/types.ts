@@ -720,9 +720,6 @@ export type RootStackParamList = {
   RewardsMoneyInviteSheet:
     | RewardsNavigationParamList['RewardsMoneyInviteSheet']
     | undefined;
-  RewardsMoneyTermsSheet:
-    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
-    | undefined;
   RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
   RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
   RewardsTaxContactSheet: RewardsNavigationParamList['RewardsTaxContactSheet'];

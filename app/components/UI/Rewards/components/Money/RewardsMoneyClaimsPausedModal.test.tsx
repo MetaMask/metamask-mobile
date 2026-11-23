@@ -1,19 +1,41 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import RewardsMoneyClaimsPausedModal, {
   REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS,
 } from './RewardsMoneyClaimsPausedModal';
 
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+
+let mockLocalizedText:
+  | { termsDescription?: string; termsLearnMore?: string; termsUrl?: string }
+  | undefined;
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
+  useSelector: jest.fn((selector: (state: unknown) => unknown) => selector({})),
 }));
+
+jest.mock('../../../../../reducers/rewardsMoney/selectors', () => ({
+  selectReferralMeLocalizedText: jest.fn(() => mockLocalizedText),
+}));
+
+jest.mock('../../../../../selectors/identity', () => ({
+  selectSessionProfileId: jest.fn(() => 'profile-a'),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
+    navigate: mockNavigate,
   }),
 }));
 
@@ -80,6 +102,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 const TEST_IDS = REWARDS_MONEY_CLAIMS_PAUSED_MODAL_TEST_IDS;
 
+const TERMS_DESCRIPTION = 'Rewards are paid in mUSD under these terms.';
+const TERMS_LEARN_MORE = 'Learn more';
+const TERMS_URL = 'https://example.com/terms';
+
 const TOTALS = {
   lifetime_total: '132000000',
   claimable: '0',
@@ -123,9 +149,14 @@ const LABELS = {
 describe('RewardsMoneyClaimsPausedModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLocalizedText = {
+      termsDescription: TERMS_DESCRIPTION,
+      termsLearnMore: TERMS_LEARN_MORE,
+      termsUrl: TERMS_URL,
+    };
   });
 
-  it('renders the title, description, totals, and Got it', () => {
+  it('renders the title, description, totals, and the terms button', () => {
     const { getByTestId, getByText, queryByText } = render(
       <RewardsMoneyClaimsPausedModal
         route={{
@@ -165,10 +196,15 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     expect(getByText('$10.00')).toBeOnTheScreen();
     expect(queryByText('Blocking reason')).not.toBeOnTheScreen();
     expect(queryByText('SUSPENDED')).not.toBeOnTheScreen();
-    expect(getByText('Got it')).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.TERMS_DIVIDER)).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.TERMS_DESCRIPTION)).toHaveTextContent(
+      TERMS_DESCRIPTION,
+    );
+    expect(getByText(TERMS_LEARN_MORE)).toBeOnTheScreen();
+    expect(queryByText('Got it')).not.toBeOnTheScreen();
   });
 
-  it('shows the balance rows without the paused explanation', () => {
+  it('shows the balance rows with the terms button without the paused explanation', () => {
     const { getByTestId, getByText, queryByTestId, queryByText } = render(
       <RewardsMoneyClaimsPausedModal
         route={{
@@ -191,7 +227,11 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     expect(getByText('$132.00')).toBeOnTheScreen();
     expect(getByText('Held')).toBeOnTheScreen();
     expect(getByText('$100.00')).toBeOnTheScreen();
-    expect(getByText('Got it')).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.TERMS_DESCRIPTION)).toHaveTextContent(
+      TERMS_DESCRIPTION,
+    );
+    expect(getByText(TERMS_LEARN_MORE)).toBeOnTheScreen();
+    expect(queryByText('Got it')).not.toBeOnTheScreen();
   });
 
   it('lists Pending above Held and hides zero Held, Blocked, and Voided', () => {
@@ -248,11 +288,37 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     const ids = renderedTestIds(toJSON());
     const pendingIndex = ids.indexOf(`${TEST_IDS.TOTALS}-pending`);
     const heldIndex = ids.indexOf(`${TEST_IDS.TOTALS}-held`);
+    const claimedIndex = ids.indexOf(`${TEST_IDS.TOTALS}-claimed`);
+    const termsIndex = ids.indexOf(TEST_IDS.TERMS_DESCRIPTION);
     expect(pendingIndex).toBeGreaterThanOrEqual(0);
     expect(heldIndex).toBeGreaterThan(pendingIndex);
+    expect(termsIndex).toBeGreaterThan(claimedIndex);
   });
 
-  it('goes back when Got it is pressed', () => {
+  it('hides the terms description when the copy is empty', () => {
+    mockLocalizedText = {
+      termsLearnMore: TERMS_LEARN_MORE,
+      termsUrl: TERMS_URL,
+    };
+    const { queryByTestId, getByText } = render(
+      <RewardsMoneyClaimsPausedModal
+        route={{
+          params: {
+            title: 'Claims paused',
+            description: 'You cannot claim rewards right now.',
+            totals: TOTALS,
+            labels: LABELS,
+          },
+        }}
+      />,
+    );
+
+    expect(queryByTestId(TEST_IDS.TERMS_DIVIDER)).toBeNull();
+    expect(queryByTestId(TEST_IDS.TERMS_DESCRIPTION)).toBeNull();
+    expect(getByText(TERMS_LEARN_MORE)).toBeOnTheScreen();
+  });
+
+  it('opens the terms URL in the browser when the terms button is pressed', () => {
     const { getByTestId } = render(
       <RewardsMoneyClaimsPausedModal
         route={{
@@ -266,7 +332,72 @@ describe('RewardsMoneyClaimsPausedModal', () => {
       />,
     );
 
+    fireEvent.press(getByTestId(TEST_IDS.TERMS));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: TERMS_URL,
+        timestamp: expect.any(Number),
+      },
+    });
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('shows Got it and goes back on the paused sheet when there is no terms URL', () => {
+    mockLocalizedText = {
+      termsDescription: TERMS_DESCRIPTION,
+      termsLearnMore: TERMS_LEARN_MORE,
+      termsUrl: '   ',
+    };
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <RewardsMoneyClaimsPausedModal
+        route={{
+          params: {
+            title: 'Claims paused',
+            description: 'You cannot claim rewards right now.',
+            totals: TOTALS,
+            labels: LABELS,
+          },
+        }}
+      />,
+    );
+
+    expect(queryByTestId(TEST_IDS.TERMS)).toBeNull();
+    expect(queryByText(TERMS_LEARN_MORE)).toBeNull();
+    expect(getByTestId(TEST_IDS.TERMS_DESCRIPTION)).toHaveTextContent(
+      TERMS_DESCRIPTION,
+    );
+    expect(getByText('Got it')).toBeOnTheScreen();
+
     fireEvent.press(getByTestId(TEST_IDS.GOT_IT));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('shows Got it on the breakdown sheet when there is no terms URL', () => {
+    mockLocalizedText = {
+      termsDescription: TERMS_DESCRIPTION,
+      termsLearnMore: TERMS_LEARN_MORE,
+    };
+    const { getByTestId, queryByTestId } = render(
+      <RewardsMoneyClaimsPausedModal
+        route={{
+          params: {
+            variant: 'breakdown',
+            title: 'Breakdown',
+            totals: TOTALS,
+            labels: LABELS,
+          },
+        }}
+      />,
+    );
+
+    expect(queryByTestId(TEST_IDS.TERMS)).toBeNull();
+
+    fireEvent.press(getByTestId(TEST_IDS.GOT_IT));
+
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

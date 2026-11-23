@@ -198,7 +198,6 @@ const Routes = {
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
     REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
-    REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
     REWARDS_TAX_QUESTION_SHEET: 'RewardsTaxQuestionSheet',
     REWARDS_TAX_OPEN_FORM_SHEET: 'RewardsTaxOpenFormSheet',
     REWARDS_TAX_CONTACT_SHEET: 'RewardsTaxContactSheet',
