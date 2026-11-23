@@ -1,15 +1,21 @@
-# Upload to Namespace and/or GitHub artifact stores, retrying Namespace action
-# failures up to 3 times to absorb transient CreateArtifact ECONNREFUSED
-# failures. Composite actions only expose the nested `uses:` step outcome, so
+# Upload to Namespace and/or GitHub artifact stores, retrying each store's action
+# failures up to 3 times to absorb transient CreateArtifact ECONNREFUSED and
+# ETIMEDOUT failures. Composite actions only expose the nested `uses:` step outcome, so
 # non-retryable Namespace errors are not distinguished here yet.
 # By default both stores must succeed on Namespace runners: GitHub API consumers
 # (qa-stats, freeze-timings, gh run download) cannot see Namespace storage. See
 # "Runner provider switch" in .github/CONTRIBUTING.md. Set skip-github=true for
 # large Namespace-only artifacts that no GitHub API consumer needs.
+# The GitHub upload is retried like the Namespace one, and callers whose GitHub
+# copy is only a convenience (the Jest coverage shards: GitHub holds just
+# jest-results.json for qa-stats) can set github-required=false so a GitHub
+# artifact API ETIMEDOUT warns instead of failing a passing test shard. That
+# only relaxes the requirement while Namespace succeeds; a Namespace failure
+# still fails the step.
 name: 'Dual upload E2E artifact'
 description: >
-  Upload an artifact to the Namespace store and the GitHub store, retrying
-  Namespace action failures up to 3 times. The step fails unless every required
+  Upload an artifact to the Namespace store and the GitHub store, retrying each
+  store's failures up to 3 times. The step fails unless every required
   store succeeds. Set skip-github to upload Namespace-only (GitHub is still
   required when the runner is not Namespace).
 
@@ -49,6 +55,14 @@ inputs:
       runners (GitHub remains the only store).
     required: false
     default: 'false'
+  github-required:
+    description: >
+      When false, a failed GitHub upload only warns, provided the Namespace
+      upload succeeded. Use when the GitHub copy is a convenience for API
+      consumers, not something the workflow depends on. Ignored on non-Namespace
+      runners, where GitHub is the only store and always required.
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -69,6 +83,7 @@ runs:
       shell: bash
       env:
         ATTEMPT: '2'
+        STORE_NAME: Namespace
         RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
       run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" retry-wait
 
@@ -89,6 +104,7 @@ runs:
       shell: bash
       env:
         ATTEMPT: '3'
+        STORE_NAME: Namespace
         RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
       run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" retry-wait
 
@@ -104,10 +120,52 @@ runs:
         retention-days: ${{ inputs.retention-days }}
         overwrite: true
 
-    - name: Upload to GitHub
+    - name: Upload to GitHub (attempt 1)
       id: gh-1
       # skip-github only applies on Namespace (GitHub is the only store otherwise).
       if: ${{ inputs.skip-github != 'true' || !contains(inputs.runner-provider, 'namespace') }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ contains(inputs.runner-provider, 'namespace') && inputs.github-path != '' && inputs.github-path || inputs.path }}
+        if-no-files-found: ${{ inputs.if-no-files-found }}
+        retention-days: ${{ inputs.retention-days }}
+        overwrite: true
+
+    - name: Wait before GitHub retry (attempt 2)
+      if: ${{ steps.gh-1.outcome == 'failure' }}
+      shell: bash
+      env:
+        ATTEMPT: '2'
+        STORE_NAME: GitHub
+        RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
+      run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" retry-wait
+
+    - name: Upload to GitHub (attempt 2)
+      id: gh-2
+      if: ${{ steps.gh-1.outcome == 'failure' }}
+      continue-on-error: true
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ contains(inputs.runner-provider, 'namespace') && inputs.github-path != '' && inputs.github-path || inputs.path }}
+        if-no-files-found: ${{ inputs.if-no-files-found }}
+        retention-days: ${{ inputs.retention-days }}
+        overwrite: true
+
+    - name: Wait before GitHub retry (attempt 3)
+      if: ${{ steps.gh-1.outcome == 'failure' && steps.gh-2.outcome == 'failure' }}
+      shell: bash
+      env:
+        ATTEMPT: '3'
+        STORE_NAME: GitHub
+        RETRY_WAIT_SECONDS: ${{ inputs.retry-wait-seconds }}
+      run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" retry-wait
+
+    - name: Upload to GitHub (attempt 3)
+      id: gh-3
+      if: ${{ steps.gh-1.outcome == 'failure' && steps.gh-2.outcome == 'failure' }}
       continue-on-error: true
       uses: actions/upload-artifact@v7
       with:
@@ -124,6 +182,9 @@ runs:
         NS_2: ${{ steps.ns-2.outcome }}
         NS_3: ${{ steps.ns-3.outcome }}
         GH_1: ${{ steps.gh-1.outcome }}
+        GH_2: ${{ steps.gh-2.outcome }}
+        GH_3: ${{ steps.gh-3.outcome }}
         RUNNER_PROVIDER: ${{ inputs.runner-provider }}
         SKIP_GITHUB: ${{ inputs.skip-github }}
+        GITHUB_REQUIRED: ${{ inputs.github-required }}
       run: node "$GITHUB_ACTION_PATH/dual-upload-e2e-artifact.mjs" require-both-stores

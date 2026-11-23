@@ -258,6 +258,10 @@ export function daysToWalk({
 }: DaysToWalkInput): string[] {
   const yesterday = addDays(today, -1);
   const earliestAllowed = addDays(today, -maxBackfill);
+  // A gap is repairable for as long as the index would keep its day, which is
+  // wider than the cold-start window: a night that cannot finish everything
+  // leaves gaps older than the backfill, and they must still be drained.
+  const earliestGap = addDays(today, -(RETENTION_DAYS - 1));
 
   if (index.newestDay === '') {
     return daysInRange(earliestAllowed, yesterday);
@@ -267,13 +271,15 @@ export function daysToWalk({
   const from = resumeFrom < earliestAllowed ? earliestAllowed : resumeFrom;
   const fresh =
     daysBetween(from, yesterday) >= 0 ? daysInRange(from, yesterday) : [];
-  const gaps = index.gapDays.filter(
-    (day) => day >= earliestAllowed && !fresh.includes(day),
-  );
+  const gaps = index.gapDays
+    .filter((day) => day >= earliestGap && !fresh.includes(day))
+    .sort()
+    .reverse();
 
   // Fresh days come first so a day that can never be walked — its runs aged
   // out of the API, say — cannot hold the window back forever by refilling the
-  // budget every night. Gaps are best-effort repair with whatever is left.
+  // budget every night. Gaps are best-effort repair with whatever is left,
+  // newest first because those are the days a PR comment is most likely to need.
   return [...fresh, ...gaps].slice(0, maxBackfill).sort();
 }
 

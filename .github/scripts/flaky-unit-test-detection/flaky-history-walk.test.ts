@@ -146,13 +146,13 @@ describe('requestShareForDay', () => {
 });
 
 describe('orderDaysForWalk', () => {
-  it('walks fresh days before gap repairs', () => {
+  it('walks fresh days before gap repairs, newest first', () => {
     const ordered = orderDaysForWalk(
       ['2026-10-30', '2026-11-07', '2026-11-12'],
       ['2026-10-30'],
     );
 
-    expect(ordered).toEqual(['2026-11-07', '2026-11-12', '2026-10-30']);
+    expect(ordered).toEqual(['2026-11-12', '2026-11-07', '2026-10-30']);
     expect(requestShareForDay({ spent: 0 })).toBeGreaterThanOrEqual(
       HEAVY_DAY_REST_REQUESTS,
     );
@@ -204,6 +204,59 @@ describe('walkDay', () => {
     );
     expect(result.complete).toBe(false);
     expect(result.hits).toEqual([]);
+  });
+
+  it('starts no request once the wall-clock deadline has passed', async () => {
+    const octokit = fakeOctokit();
+
+    const result = await walkDay({
+      octokit: octokit as never,
+      owner: 'MetaMask',
+      repo: 'metamask-mobile',
+      day: '2026-11-11',
+      budget: newWalkBudget(),
+      deadlineMs: Date.now() - 1,
+    });
+
+    expect(octokit.rest.actions.listWorkflowRuns).not.toHaveBeenCalled();
+    expect(result.complete).toBe(false);
+  });
+
+  it('keeps what it found and stays incomplete when the deadline passes mid-day', async () => {
+    const octokit = fakeOctokit();
+    const deadlineMs = Date.now() + 60_000;
+    let now = deadlineMs - 1_000;
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
+    octokit.rest.actions.listJobsForWorkflowRun.mockImplementation(
+      async (params: JobsRequest) => {
+        const response = jobsResponse(params);
+        if (params.page === 2) {
+          now = deadlineMs + 1;
+        }
+        return response;
+      },
+    );
+    octokit.rest.actions.downloadJobLogsForWorkflowRun.mockResolvedValue({
+      data: `FAIL ${FILE}\n`,
+    });
+
+    try {
+      const result = await walkDay({
+        octokit: octokit as never,
+        owner: 'MetaMask',
+        repo: 'metamask-mobile',
+        day: '2026-11-11',
+        budget: newWalkBudget(),
+        deadlineMs,
+      });
+
+      expect(result.complete).toBe(false);
+      expect(
+        octokit.rest.actions.downloadJobLogsForWorkflowRun,
+      ).not.toHaveBeenCalled();
+    } finally {
+      jest.restoreAllMocks();
+    }
   });
 
   it('does not send a retry when the request budget is spent', async () => {

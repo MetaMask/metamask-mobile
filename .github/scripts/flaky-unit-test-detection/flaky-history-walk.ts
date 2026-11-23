@@ -56,6 +56,20 @@ export const MAX_REST_REQUESTS_PER_BUILD = 800;
 /** REST allows 1000 requests per hour; confirmed fail-then-pass jobs are rare. */
 export const MAX_LOG_FETCHES_PER_BUILD = 300;
 
+/**
+ * Wall-clock the walk may use before it stops starting work. The job's own
+ * timeout is 60 minutes and cancels the step without publishing anything, so
+ * the walk has to give up early enough to write and publish what it has.
+ */
+export const DEFAULT_WALK_DEADLINE_MINUTES = 40;
+
+/**
+ * Days one build attempts. A heavy weekday costs several minutes of API time on
+ * its own, so a night that is behind catches up over several builds instead of
+ * walking everything and never saving.
+ */
+export const MAX_DAYS_PER_BUILD = 5;
+
 /** Shared across every day in one build, not reset per day. */
 export type WalkBudget = {
   restRequests: number;
@@ -85,6 +99,11 @@ export function requestShareForDay({
   return share;
 }
 
+/**
+ * Newest first, fresh days ahead of gap repairs. The days a build cannot reach
+ * are the oldest ones, which become gaps for a later night, so the index's
+ * newest day keeps tracking yesterday and PR comments stay fresh.
+ */
 export function orderDaysForWalk(
   days: readonly string[],
   gapDays: readonly string[],
@@ -99,8 +118,8 @@ export function orderDaysForWalk(
       fresh.push(day);
     }
   }
-  fresh.sort();
-  repair.sort();
+  fresh.sort().reverse();
+  repair.sort().reverse();
   return [...fresh, ...repair];
 }
 
@@ -444,6 +463,8 @@ export type WalkDayInput = {
    * `budget / daysQueued`, which is what left every day unfinished.
    */
   maxRequestsForDay?: number;
+  /** Epoch milliseconds after which no further request is started. */
+  deadlineMs?: number;
 };
 
 /**
@@ -462,6 +483,7 @@ export async function walkDay({
   day,
   budget,
   maxRequestsForDay = MAX_REST_REQUESTS_PER_BUILD,
+  deadlineMs,
 }: WalkDayInput): Promise<WalkDayResult> {
   const empty: WalkDayResult = {
     hits: [],
@@ -473,10 +495,13 @@ export async function walkDay({
   };
 
   let requestsForDay = 0;
+  const pastDeadline = (): boolean =>
+    deadlineMs !== undefined && Date.now() >= deadlineMs;
   const spend = (): boolean => {
     if (
       budget.restRequests >= MAX_REST_REQUESTS_PER_BUILD ||
-      requestsForDay >= maxRequestsForDay
+      requestsForDay >= maxRequestsForDay ||
+      pastDeadline()
     ) {
       return false;
     }
@@ -541,7 +566,8 @@ export async function walkDay({
       }
       if (
         budget.restRequests >= MAX_REST_REQUESTS_PER_BUILD ||
-        requestsForDay >= maxRequestsForDay
+        requestsForDay >= maxRequestsForDay ||
+        pastDeadline()
       ) {
         // A later candidate was not inspected. The day stays queued.
         const moreRuns = candidates.some((other) =>

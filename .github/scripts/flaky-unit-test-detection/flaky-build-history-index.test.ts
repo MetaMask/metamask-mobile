@@ -3,9 +3,15 @@ import { tmpdir } from 'os';
 import { join } from 'path';
 import {
   loadPriorIndex,
+  queueDeferredDaysAsGaps,
   renderBuildSummary,
 } from './flaky-build-history-index';
-import { INDEX_VERSION, emptyIndex, mergeDayHits } from './flaky-history-index';
+import {
+  INDEX_VERSION,
+  emptyIndex,
+  mergeDayHits,
+  daysToWalk,
+} from './flaky-history-index';
 
 // Virtual because @actions/* is installed under .github/scripts, which the
 // repo-wide jest run does not have on its resolution path.
@@ -139,5 +145,38 @@ describe('renderBuildSummary', () => {
     });
 
     expect(summary).toContain('| Index window | empty |');
+  });
+});
+
+describe('queueDeferredDaysAsGaps', () => {
+  it('queues deferred days older than the newest walked day', () => {
+    const index = queueDeferredDaysAsGaps(populated, [
+      '2026-09-18',
+      '2026-09-19',
+    ]);
+
+    expect(index.gapDays).toStrictEqual(['2026-09-18', '2026-09-19']);
+  });
+
+  it('leaves days newer than the newest walked day to the next fresh walk', () => {
+    const index = queueDeferredDaysAsGaps(populated, ['2026-09-21']);
+
+    expect(index.gapDays).toStrictEqual([]);
+  });
+
+  it('queues nothing when no day was walked', () => {
+    expect(queueDeferredDaysAsGaps(emptyIndex(), ['2026-09-19'])).toStrictEqual(
+      emptyIndex(),
+    );
+  });
+
+  it('lets the next build pick the deferred days up as repairs', () => {
+    const index = queueDeferredDaysAsGaps(populated, ['2026-09-10']);
+
+    expect(daysToWalk({ index, today: '2026-09-23' })).toStrictEqual([
+      '2026-09-10',
+      '2026-09-21',
+      '2026-09-22',
+    ]);
   });
 });

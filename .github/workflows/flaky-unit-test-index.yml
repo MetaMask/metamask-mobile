@@ -14,6 +14,13 @@
 # for the next night rather than all of them being left half-walked. Job logs
 # are also read hours after the fact rather than weeks, when they still exist.
 #
+# The walk is bounded in both days and wall-clock (MMQA-2633). It goes newest
+# day first, attempts a handful of days, and stops starting work after a
+# deadline well inside the job timeout, so the build always reaches the publish
+# step. Days it did not reach are queued as gaps and drained on later nights.
+# Without that bound a backlog plus a slow API outran the 60 minute timeout
+# every night, and nothing the walk had found was ever saved.
+#
 # The index is published as an artifact and the next build merges into it, so
 # each night extends the window instead of recomputing it. The build resumes
 # from the last day the index actually covers, which is what turns a failed
@@ -116,12 +123,18 @@ jobs:
       # a valid chain artifact from a build the producer already declared unusable.
       - name: Build the index
         id: build-index
+        # Backstop only: the script stops itself at the deadline above, and a
+        # step that is cancelled by the job timeout publishes nothing.
+        timeout-minutes: 50
         working-directory: .github/scripts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FLAKY_PRIOR_INDEX_PATH: ${{ github.workspace }}/.flaky-history-index-prior/flaky-history-index.json
           FLAKY_BACKFILL_DAYS: ${{ inputs.backfill_days }}
+          # Leaves room under the job timeout to write and publish the index.
+          FLAKY_WALK_DEADLINE_MINUTES: '40'
+          FLAKY_MAX_DAYS_PER_BUILD: '5'
         run: yarn flaky-build-history-index
 
       - name: Publish the index
