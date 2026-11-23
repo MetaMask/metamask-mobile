@@ -14,6 +14,8 @@ import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testId
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../components/Money/ClaimableRewardsCard.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard.testIds';
+import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
+import { SHARE_CODE_SHEET_TEST_IDS } from '../components/Money/ShareCodeSheet';
 import { EARNINGS_TAB_TEST_IDS } from '../components/Money/Tabs/EarningsTab.testIds';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
@@ -57,7 +59,7 @@ describe('RewardsMoneyDashboard', () => {
       `${EARNINGS_HISTORY_TEST_IDS.ROW}-${EARNINGS_HISTORY_ROW.id}`,
     );
     expect(
-      within(historyRow).getByText(REFERRAL_LOCALIZED_TEXT.historyRebate),
+      within(historyRow).getByText(REFERRAL_LOCALIZED_TEXT.rebateSwaps),
     ).toBeOnTheScreen();
     expect(within(historyRow).getByText('+$1.00')).toBeOnTheScreen();
 
@@ -161,6 +163,155 @@ describe('RewardsMoneyDashboard', () => {
     ).toHaveLength(ledgerCallsBeforeRetry);
     expect(
       queryByTestId(REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
+    ).not.toBeOnTheScreen();
+  });
+});
+
+describe('RewardsMoneyDashboard share code', () => {
+  function activeRefereeReferral() {
+    return {
+      ...referralMeFixture('referee'),
+      referral_code_status: 'ACTIVE' as const,
+      referral_code: {
+        code: 'SOPHIE',
+        kind: 'standard',
+        status: 'ACTIVE',
+        share_url: 'https://link.metamask.io/invite?code=SOPHIE',
+      },
+    };
+  }
+
+  it('opens the share code sheet from the header for an active referrer code', async () => {
+    const { findByTestId, findByText, getByTestId, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referrer',
+        moneyControllerEnabled: true,
+        subscriptionId: 'sub-1',
+      });
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      await findByText(REFERRAL_LOCALIZED_TEXT.shareCode),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON));
+
+    expect(
+      await findByTestId(SHARE_CODE_SHEET_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the share code sheet from the header for a referee with an active code', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referee',
+        moneyControllerEnabled: true,
+        referralMe: activeRefereeReferral(),
+      });
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON));
+
+    expect(
+      await findByTestId(SHARE_CODE_SHEET_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the share code sheet when only the code record is active', async () => {
+    const { findByTestId, getByTestId } = renderRewardsMoneyDashboard({
+      persona: 'referrer',
+      moneyControllerEnabled: true,
+      subscriptionId: 'sub-1',
+      referralMe: {
+        ...referralMeFixture('referrer'),
+        referral_code_status: null,
+      },
+    });
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON));
+
+    expect(
+      await findByTestId(SHARE_CODE_SHEET_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('leaves the header share control off when the active code is blank', async () => {
+    const referrer = referralMeFixture('referrer');
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referrer',
+        moneyControllerEnabled: true,
+        subscriptionId: 'sub-1',
+        referralMe: {
+          ...referrer,
+          referral_code: referrer.referral_code
+            ? { ...referrer.referral_code, code: '   ' }
+            : null,
+        },
+      });
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    );
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.REWARDS_SETTINGS_VIEW)),
+    ).toBeOnTheScreen();
+  });
+
+  it('leaves the header share control off when the referral code is paused', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderRewardsMoneyDashboard({
+        persona: 'referrer',
+        moneyControllerEnabled: true,
+        subscriptionId: 'sub-1',
+        referralMe: {
+          ...referralMeFixture('referrer'),
+          referral_code_status: 'PAUSED',
+        },
+      });
+
+    expect(
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
+    );
+
+    expect(
+      await findByTestId(getRouteProbeTestId(Routes.REWARDS_SETTINGS_VIEW)),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
     ).not.toBeOnTheScreen();
   });
 });

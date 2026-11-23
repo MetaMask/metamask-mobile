@@ -1,13 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
-  Button,
-  ButtonSize,
-  ButtonVariant,
   IconName,
   Text,
   TextColor,
@@ -20,7 +16,6 @@ import type {
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { useMoneyHeroEntries } from '../../hooks/useMoneyHeroEntries';
-import ShareCodeSheet from './ShareCodeSheet';
 import MoneyHeroErrorBanner from './MoneyHeroErrorBanner';
 import MoneyHeroIdentityHeader from './MoneyHeroIdentityHeader';
 import MoneyMetricCard from './MoneyMetricCard';
@@ -32,7 +27,6 @@ import { earnedByOthersLifetime } from '../../utils/earningsSummaryTotals';
 export const REFERER_HERO_CARD_TEST_IDS = {
   CONTAINER: 'referer-hero-card',
   REFERRAL_CODE: 'referer-hero-card-referral-code',
-  SHARE_BUTTON: 'referer-hero-card-share-button',
   REFERRALS_TOTAL: 'referer-hero-card-referrals-total',
   TRADE_COMMISSIONS_TOTAL: 'referer-hero-card-trade-commissions-total',
   IDENTITY: 'referer-hero-card-identity',
@@ -64,7 +58,6 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const showTradingCommissions = useSelector(selectIsSocialV1Enabled);
-  const [isShareOpen, setIsShareOpen] = useState(false);
   const commissionsInfoDescription = localizedText.copyTradingInfoDescription;
   const openCommissionsInfo = useCallback(() => {
     if (!commissionsInfoDescription) {
@@ -128,40 +121,16 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           titleRowClassName="px-4 pb-4"
         />
         <Box twClassName="h-px bg-border-muted" />
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="mt-4 px-4"
-        >
-          <Box twClassName="min-w-0 flex-1">
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {localizedText.yourReferralCode}
-            </Text>
-            <Text
-              variant={TextVariant.HeadingLg}
-              testID={REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE}
-            >
-              {showShareableCode ? code : '-'}
-            </Text>
-          </Box>
-          {showShareableCode && localizedText.share ? (
-            // Button applies `self-start` unless it is full width, which would
-            // override the row's centering, so it is wrapped to stay centered.
-            <Box>
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Md}
-                onPress={() => setIsShareOpen(true)}
-                accessibilityLabel={localizedText.share}
-                testID={REFERER_HERO_CARD_TEST_IDS.SHARE_BUTTON}
-              >
-                {localizedText.share}
-              </Button>
-            </Box>
-          ) : null}
+        <Box twClassName="mt-4 px-4">
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {localizedText.yourReferralCode}
+          </Text>
+          <Text
+            variant={TextVariant.HeadingLg}
+            testID={REFERER_HERO_CARD_TEST_IDS.REFERRAL_CODE}
+          >
+            {showShareableCode ? code : '-'}
+          </Text>
         </Box>
       </Box>
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
@@ -180,7 +149,7 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
         />
         {showTradingCommissions ? (
           <MoneyMetricCard
-            iconName={IconName.Copy}
+            iconName={IconName.People}
             label={localizedText.tradingCommissionsSection}
             amount={
               unavailableAmount ??
@@ -197,15 +166,6 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
           />
         ) : null}
       </Box>
-      {isShareOpen ? (
-        <ShareCodeSheet
-          open
-          code={referralCode?.code}
-          shareUrl={referralCode?.share_url}
-          localizedText={localizedText}
-          onClose={() => setIsShareOpen(false)}
-        />
-      ) : null}
     </Box>
   );
 };

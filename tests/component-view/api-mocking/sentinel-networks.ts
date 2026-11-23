@@ -19,6 +19,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 const SENTINEL_ETHEREUM_MAINNET_ORIGIN =
   'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io';
@@ -64,6 +65,8 @@ export function setupSentinelNetworksRelayEnabledMock(): void {
     .get('/network')
     .reply(200, ETHEREUM_MAINNET_FLAGS)
     .persist();
+
+  installDefaultApiMocks();
 }
 
 export function clearSentinelNetworksMocks(): void {

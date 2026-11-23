@@ -299,15 +299,48 @@ describe('Membership', () => {
     });
 
     it('renders the renews on row with renewal date', () => {
-      const { getByTestId } = renderMembership();
+      // Membership reads new Date(), and test setup only stubs Date.now.
+      // After 2027-07-20 this row becomes "Ended on".
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-10-07T00:00:00.000Z'));
+      try {
+        const { getByTestId } = renderMembership();
 
-      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex(strings('pro_hub.membership.renews_on')),
-      );
-      expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex('Jul 19, 2027'),
-      );
+        expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+          toRegex(strings('pro_hub.membership.renews_on')),
+        );
+        expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
+          toRegex('Jul 20, 2027'),
+        );
+      } finally {
+        jest.useRealTimers();
+        Date.now = jest.fn(() => 123);
+      }
     });
+
+    it.each([
+      SUBSCRIPTION_STATUSES.unpaid,
+      SUBSCRIPTION_STATUSES.paused,
+      SUBSCRIPTION_STATUSES.pastDue,
+    ])(
+      'says Ended on, not Renews on, for a %s plan whose period has passed',
+      (status) => {
+        const { getByTestId } = renderMembership({
+          ...subscription,
+          status,
+          currentPeriodEnd: '2020-01-15T12:00:00.000Z',
+        });
+
+        const endedRow = getByTestId(MembershipTestIds.RENEWS_ON_ROW);
+        expect(endedRow).toHaveTextContent(
+          toRegex(strings('pro_hub.membership.ended_on')),
+        );
+        expect(endedRow).toHaveTextContent(toRegex('Jan 15, 2020'));
+        expect(endedRow).not.toHaveTextContent(
+          strings('pro_hub.membership.renews_on'),
+        );
+      },
+    );
   });
 
   // ── Manage section ─────────────────────────────────────────────────────────
@@ -654,7 +687,7 @@ describe('Membership', () => {
       expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
       expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
       expect(getByTestId(MembershipTestIds.RENEWS_ON_ROW)).toHaveTextContent(
-        toRegex(strings('pro_hub.membership.renews_on')),
+        toRegex(strings('pro_hub.membership.ended_on')),
       );
     });
 

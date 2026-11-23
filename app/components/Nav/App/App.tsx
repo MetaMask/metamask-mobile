@@ -51,7 +51,10 @@ import PerpsWebSocketHealthToast, {
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
 import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
-import { usePredictOrderToastRegistrations } from '../../UI/PredictNext/notifications';
+import {
+  usePredictDepositToastRegistrations,
+  usePredictOrderToastRegistrations,
+} from '../../UI/PredictNext/notifications';
 import { usePerpsWithdrawToastRegistrations } from '../../UI/Perps/hooks/usePerpsWithdrawToastRegistrations';
 import { useQuickBuyToastRegistrations } from '../../UI/QuickBuy/hooks/useQuickBuyToastRegistrations';
 import { PostTradeShareBottomSheet } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
@@ -1430,18 +1433,21 @@ const App: React.FC = () => {
   // an operation started on one Venue still notifies after a switch.
   const predictRegistrations = usePredictToastRegistrations();
   const predictOrderRegistrations = usePredictOrderToastRegistrations();
+  const predictDepositRegistrations = usePredictDepositToastRegistrations();
   const perpsWithdrawRegistrations = usePerpsWithdrawToastRegistrations();
   const quickBuyRegistrations = useQuickBuyToastRegistrations();
   const toastRegistrations = useMemo(
     () => [
       ...predictRegistrations,
       ...predictOrderRegistrations,
+      ...predictDepositRegistrations,
       ...perpsWithdrawRegistrations,
       ...quickBuyRegistrations,
     ],
     [
       predictRegistrations,
       predictOrderRegistrations,
+      predictDepositRegistrations,
       perpsWithdrawRegistrations,
       quickBuyRegistrations,
     ],

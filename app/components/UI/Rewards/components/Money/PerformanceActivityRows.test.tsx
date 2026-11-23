@@ -1,11 +1,16 @@
 import React from 'react';
-import { Text, TextColor } from '@metamask/design-system-react-native';
+import {
+  AvatarIcon,
+  IconName,
+  Text,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import type {
   CommissionEntryView,
   LedgerEarningEntryDto,
-  ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../../tests/component-view/presets/rewardsMoney';
 import {
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
@@ -14,16 +19,6 @@ import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from './PerformanceActivityRows';
-
-const LOCALIZED_TEXT = {
-  copiedOnce: 'Copied 1 time',
-  copiedTimes: 'Copied {count} times',
-  rebatePerpsVolume: 'Perps volume',
-  rebateSwapsVolume: 'Swaps volume',
-  rebatePredictions: 'Predictions',
-  rebateSwaps: 'Swaps',
-  voided: 'Voided',
-} as unknown as ReferralLocalizedText;
 
 const amountColor = (
   getAllByType: (
@@ -107,7 +102,7 @@ describe('PerformanceActivityRows', () => {
     expect(amountColor(UNSAFE_getAllByType, '+$1.00')).toBe(
       TextColor.SuccessDefault,
     );
-    expect(getByText('Perps volume')).toBeOnTheScreen();
+    expect(getByText('Perps')).toBeOnTheScreen();
     expect(
       getByText(
         formatRewardsRelativeTime(new Date('2026-09-01T12:00:00.000Z')),
@@ -116,7 +111,7 @@ describe('PerformanceActivityRows', () => {
     expect(queryByText('Predictions')).toBeNull();
   });
 
-  it('labels a swaps cashback row as swaps volume', () => {
+  it('labels a swaps cashback row as swaps', () => {
     const { getByText } = renderWithProvider(
       <PerformanceRebateRow
         item={rebate({ earning_origin_type: 'SWAPS_FEE_CASHBACK' })}
@@ -124,7 +119,7 @@ describe('PerformanceActivityRows', () => {
       />,
     );
 
-    expect(getByText('Swaps volume')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
   });
 
   it('labels a predict cashback row from localized_text', () => {
@@ -143,6 +138,22 @@ describe('PerformanceActivityRows', () => {
     );
 
     expect(getByText('Predictions')).toBeOnTheScreen();
+  });
+
+  it('labels a Predict cashback row with no fill source as Predictions', () => {
+    const { getByText, UNSAFE_getByType } = renderWithProvider(
+      <PerformanceRebateRow
+        item={rebate({
+          earning_origin_type: 'PREDICT_FEE_CASHBACK',
+          perps_source: null,
+          predict_source: null,
+        })}
+        localizedText={LOCALIZED_TEXT}
+      />,
+    );
+
+    expect(getByText('Predictions')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(AvatarIcon).props.iconName).toBe(IconName.Chart);
   });
 
   it('shows a partially voided rebate as the net credit in green', () => {

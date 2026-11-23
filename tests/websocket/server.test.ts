@@ -5,6 +5,18 @@ import nock from 'nock';
 import LocalWebSocketServer from './server.ts';
 import { ServerStatus } from '../framework/types.ts';
 
+// Nock v15 intercepts at the process-wide socket layer: re-activate at file
+// start in case a prior file in the same Jest worker restored nock, and
+// deactivate once this file is done so later files are not intercepted.
+beforeAll(() => {
+  if (!nock.isActive()) {
+    nock.activate();
+  }
+});
+afterAll(() => {
+  nock.restore();
+});
+
 jest.mock('../framework/logger.ts', () => ({
   LogLevel: { ERROR: 0, WARN: 1, INFO: 2, DEBUG: 3, TRACE: 4 },
   createLogger: () => ({

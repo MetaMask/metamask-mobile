@@ -24,8 +24,9 @@ interface HomeSportsSectionProps {
   /** Game Events; each renders as a small game card. */
   events: readonly PredictEvent[];
   isLoading: boolean;
-  /** Opens the Feed Screen behind the row. */
-  onOpen: () => void;
+  /** Opens the Feed Screen behind the row. Without it the header is not
+   * pressable and shows no chevron. */
+  onOpen?: () => void;
   onOpenEvent: (event: PredictEvent) => void;
   onOrder?: (
     event: PredictEvent,
@@ -66,10 +67,14 @@ export const HomeSportsSection = ({
       <SectionHeader
         testID={PredictHomeTestIds.HOME_SPORTS_HEADER}
         title={strings('predict_next.home_feed.sports')}
-        isInteractive
-        onPress={onOpen}
-        endIconProps={{ testID: PredictHomeTestIds.HOME_SPORTS_CHEVRON }}
         twClassName="py-0"
+        {...(onOpen
+          ? {
+              isInteractive: true,
+              onPress: onOpen,
+              endIconProps: { testID: PredictHomeTestIds.HOME_SPORTS_CHEVRON },
+            }
+          : {})}
       />
       <ScrollView
         testID={PredictHomeTestIds.HOME_SPORTS_ROW}

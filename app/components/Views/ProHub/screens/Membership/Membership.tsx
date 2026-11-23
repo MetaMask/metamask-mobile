@@ -35,11 +35,13 @@ import { useOpenMembershipInvoices } from '../../hooks/useOpenMembershipInvoices
 import { useResumeMembership } from '../../hooks/useResumeMembership';
 import {
   getMembershipManageAction,
-  isPeriodEndCancellationPending,
   MembershipManageAction,
 } from '../../ProHub.utils';
 import { MembershipTestIds } from './Membership.testIds';
-import { getMembershipDetails } from './Membership.utils';
+import {
+  getMembershipDetails,
+  getRenewalRowLabelKey,
+} from './Membership.utils';
 import HeaderBaseGlass from '../../../../../component-library/components-temp/HeaderBaseGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
@@ -428,11 +430,7 @@ const Membership = () => {
             </Box>
 
             <InfoRow
-              label={
-                isPeriodEndCancellationPending(subscription)
-                  ? strings('pro_hub.membership.ends_on')
-                  : strings('pro_hub.membership.renews_on')
-              }
+              label={strings(getRenewalRowLabelKey(subscription))}
               value={membershipDetails.renewsOn}
               testID={MembershipTestIds.RENEWS_ON_ROW}
             />
