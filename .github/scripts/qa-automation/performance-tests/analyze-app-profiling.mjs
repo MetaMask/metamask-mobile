@@ -1022,6 +1022,32 @@ function mergeFrameLists(profiles, property) {
     }));
 }
 
+/**
+ * Measurement of the scenario's first attempt. A retry usually follows a
+ * failed attempt, so measuring the worst attempt would compare a retry
+ * against a baseline that was not retried. A missing or unusable first
+ * attempt is `measured: false` and is never compared.
+ */
+function firstAttemptMeasurement(allProfiles, usableProfiles) {
+  const attempt = Math.min(...allProfiles.map((profile) => profile.retry));
+  const profiles = usableProfiles.filter((profile) => profile.retry === attempt);
+  const sum = (key) =>
+    profiles.reduce((total, profile) => total + (profile.skillAudit?.[key] || 0), 0);
+  const jsWorkMs = sum('jsWorkMs');
+  const runtimeAndIdleMs = sum('runtimeAndIdleMs');
+  const sampledMs = jsWorkMs + runtimeAndIdleMs;
+  return {
+    attempt,
+    measured: profiles.length > 0,
+    profileCount: profiles.length,
+    segmentCount: new Set(profiles.map((profile) => profile.segment)).size,
+    captureLengthMs: Number(sum('captureLengthMs').toFixed(2)),
+    jsWorkMs: Number(jsWorkMs.toFixed(2)),
+    jsDutyPct:
+      sampledMs > 0 ? Number(((jsWorkMs / sampledMs) * 100).toFixed(1)) : 0,
+  };
+}
+
 function groupProfiles(profiles, scenarioFilter = null) {
   const groups = new Map();
   const filter = sanitize(scenarioFilter).toLowerCase();
@@ -1049,6 +1075,7 @@ function groupProfiles(profiles, scenarioFilter = null) {
           left.fileName.localeCompare(right.fileName),
       );
       const allUsable = group.profiles.filter((profile) => !profile.skipped);
+      const firstAttempt = firstAttemptMeasurement(group.profiles, allUsable);
       const attemptJsWork = new Map();
       for (const profile of allUsable) {
         attemptJsWork.set(
@@ -1094,6 +1121,7 @@ function groupProfiles(profiles, scenarioFilter = null) {
           ),
         ).size,
         attempts: [...new Set(group.profiles.map((profile) => profile.retry))],
+        firstAttempt,
         selectedAttempt,
         excludedAttempts: [
           ...new Set(
