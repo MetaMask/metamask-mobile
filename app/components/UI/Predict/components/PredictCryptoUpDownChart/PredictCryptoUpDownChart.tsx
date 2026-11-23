@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PixelRatio } from 'react-native';
 import {
   Box,
@@ -21,6 +21,60 @@ import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.t
 const MIN_BOTTOM_PADDING_PX = 64;
 const BOTTOM_PADDING_HEIGHT_RATIO = 0.15;
 const BOTTOM_PADDING_FONT_SCALE_BOOST_PX = 24;
+
+// Liveline draws y-axis labels at `w - pad.right + 8` in 11px monospace.
+// 8 chars (e.g. "$100,000", "$51.50") fit in the default 64px gutter, while
+// 4+ integer-digit metal prices in cents (e.g. "$3,662.50") need more room.
+const MIN_RIGHT_PADDING_PX = 64;
+const LIVELINE_Y_LABEL_OFFSET_PX = 8;
+const Y_LABEL_CHAR_WIDTH_PX = 7.5;
+const Y_LABEL_TRAILING_MARGIN_PX = 4;
+const DEFAULT_FITTING_LABEL_CHARS = 8;
+
+const formatAxisValue = (value: number, isMetal: boolean): string => {
+  const sign = value < 0 ? '-' : '';
+  if (isMetal) {
+    const parts = Math.abs(value).toFixed(2).split('.');
+    return `${sign}$${parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')}.${parts[1]}`;
+  }
+  const whole = String(Math.round(Math.abs(value)));
+  return `${sign}$${whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+};
+
+export const computeRightPadding = (
+  values: number[],
+  symbol: string | undefined,
+): number => {
+  const isMetal = isMetalSymbol(symbol);
+  let minValue = Infinity;
+  let maxValue = -Infinity;
+
+  for (const v of values) {
+    if (Number.isFinite(v)) {
+      if (v < minValue) minValue = v;
+      if (v > maxValue) maxValue = v;
+    }
+  }
+
+  let maxLength = 0;
+  if (Number.isFinite(minValue)) {
+    maxLength = Math.max(maxLength, formatAxisValue(minValue, isMetal).length);
+  }
+  if (Number.isFinite(maxValue)) {
+    maxLength = Math.max(maxLength, formatAxisValue(maxValue, isMetal).length);
+  }
+
+  if (maxLength <= DEFAULT_FITTING_LABEL_CHARS) {
+    return MIN_RIGHT_PADDING_PX;
+  }
+
+  return Math.max(
+    MIN_RIGHT_PADDING_PX,
+    LIVELINE_Y_LABEL_OFFSET_PX +
+      Math.ceil(maxLength * Y_LABEL_CHAR_WIDTH_PX) +
+      Y_LABEL_TRAILING_MARGIN_PX,
+  );
+};
 
 export const computeBottomPadding = (
   chartHeight: number,
@@ -103,11 +157,22 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     window: chartWindow,
   } = useCryptoUpDownChartData(market, targetPrice);
 
+  const symbol = getCryptoSymbol(market);
   const chartHeight = explicitHeight ?? measuredHeight;
   const bottomPadding = computeBottomPadding(
     chartHeight,
     PixelRatio.getFontScale(),
   );
+  const rightPadding = useMemo(() => {
+    const values = data.map((point) => point.value);
+    if (Number.isFinite(value)) {
+      values.push(value);
+    }
+    if (typeof targetPrice === 'number' && Number.isFinite(targetPrice)) {
+      values.push(targetPrice);
+    }
+    return computeRightPadding(values, symbol);
+  }, [data, symbol, targetPrice, value]);
 
   useEffect(() => {
     if (connectionError || data.length === 0) {
@@ -170,7 +235,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
             hideControls
             badge={false}
             momentum={false}
-            padding={{ top: 8, right: 64, bottom: bottomPadding }}
+            padding={{ top: 8, right: rightPadding, bottom: bottomPadding }}
             referenceLine={
               targetPrice ? { value: targetPrice, label: 'Target' } : undefined
             }
@@ -179,7 +244,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
              * instead of resampling a persistent book.
              * orderbook={orderbook ?? undefined}
              */
-            formatValue={getCryptoUpDownFormatValue(getCryptoSymbol(market))}
+            formatValue={getCryptoUpDownFormatValue(symbol)}
             formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
           />
         ))}

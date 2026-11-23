@@ -452,9 +452,114 @@ describe('PredictFeedView (component view)', () => {
         'S&P 500 above 6000',
       ),
     ).toBeOnTheScreen();
+    expect(queryByTestId(getPredictFeedViewSelector.marketCard(5))).toBeNull();
+
+    listMarketsSpy.mockRestore();
+  });
+
+  it('orders Gold before Silver on the Finance 15 Min feed even when the API returns Silver first', async () => {
+    const createMetalWindow = (
+      id: string,
+      assetTag: 'gold' | 'silver',
+      seriesId: string,
+      seriesSlug: string,
+      seriesTitle: string,
+      endDate: string,
+    ): PredictMarket => ({
+      ...createMarket(id, `${seriesTitle} ${id}`),
+      endDate,
+      series: {
+        id: seriesId,
+        slug: seriesSlug,
+        title: seriesTitle,
+        recurrence: '15m',
+      },
+      tags: [assetTag, 'up-or-down'],
+    });
+
+    const silver1 = createMetalWindow(
+      'xag-1515',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      'Silver Up or Down 15m',
+      '2026-11-23T15:15:00Z',
+    );
+    const silver2 = createMetalWindow(
+      'xag-1530',
+      'silver',
+      '12968',
+      'silver-up-or-down-15m',
+      'Silver Up or Down 15m',
+      '2026-11-23T15:30:00Z',
+    );
+    const gold1 = createMetalWindow(
+      'xau-1515',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      'Gold Up or Down 15m',
+      '2026-11-23T15:15:00Z',
+    );
+    const gold2 = createMetalWindow(
+      'xau-1530',
+      'gold',
+      '12967',
+      'gold-up-or-down-15m',
+      'Gold Up or Down 15m',
+      '2026-11-23T15:30:00Z',
+    );
+    const unrelated1 = createMarket('fed-rates', 'Fed cuts rates');
+
+    const listMarketsSpy = jest.spyOn(
+      Engine.context.PredictController,
+      'listMarkets',
+    );
+    listMarketsSpy.mockImplementation(
+      async (params?: { series?: string[] }) => {
+        if (!params?.series?.length) {
+          return { markets: [], nextCursor: null };
+        }
+        return {
+          markets: [silver1, unrelated1, gold1, silver2, gold2],
+          nextCursor: null,
+        };
+      },
+    );
+
+    const { findByText, findByTestId, getByTestId, queryByTestId } =
+      renderPredictFeedView({
+        initialParams: { feedId: 'finance' },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  predictUpDown: {
+                    enabled: true,
+                    minimumVersion: '0.0.1',
+                  },
+                },
+              },
+            },
+          },
+        } as never,
+      });
+
+    fireEvent.press(await findByText('15 Min'));
+
     expect(
-      queryByTestId(getPredictFeedViewSelector.marketCard(5)),
-    ).toBeNull();
+      await findByTestId(getPredictFeedViewSelector.marketCard(1)),
+    ).toHaveAccessibleName('Gold Up or Down 15m');
+    expect(
+      within(getByTestId(getPredictFeedViewSelector.marketCard(2))).getByText(
+        'Fed cuts rates',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(getPredictFeedViewSelector.marketCard(3)),
+    ).toHaveAccessibleName('Silver Up or Down 15m');
+    expect(queryByTestId(getPredictFeedViewSelector.marketCard(4))).toBeNull();
 
     listMarketsSpy.mockRestore();
   });

@@ -392,7 +392,45 @@ describe('PredictFeedView', () => {
       );
     });
 
-    it('wires deduplicateSeriesMarkets as refine when up/down markets are enabled', () => {
+    it('wires deduplicateSeriesMarkets directly when up/down markets are enabled without a series order', () => {
+      mockPredictUpDownEnabled = true;
+      mockRouteParams = { feedId: 'finance' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'finance',
+          label: 'Finance',
+          activeFilter: {
+            id: 'all',
+            titleKey: 'predict.feed.filters.all',
+            params: {
+              tagSlugs: ['finance'],
+              status: 'open',
+              order: 'volume24hr',
+            },
+            isDynamic: false,
+          },
+        }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockUsePredictFeedMarketList).toHaveBeenCalledWith(
+        {
+          tagSlugs: ['finance'],
+          status: 'open',
+          order: 'volume24hr',
+        },
+        {
+          enabled: true,
+          showLiveFirst: false,
+          autoAdvanceEmptyPages: false,
+          filterStaleGameMarkets: false,
+          refine: deduplicateSeriesMarkets,
+        },
+      );
+    });
+
+    it('orders collapsed series cards by activeFilter.params.series when up/down markets are enabled', () => {
       mockPredictUpDownEnabled = true;
       mockRouteParams = { feedId: 'finance' };
       mockUsePredictFeedConfig.mockReturnValue(
@@ -425,9 +463,35 @@ describe('PredictFeedView', () => {
           showLiveFirst: false,
           autoAdvanceEmptyPages: false,
           filterStaleGameMarkets: false,
-          refine: deduplicateSeriesMarkets,
+          refine: expect.any(Function),
         },
       );
+
+      const options = mockUsePredictFeedMarketList.mock.calls.at(-1)?.[1] as {
+        refine: (markets: ReturnType<typeof createMarket>[]) => unknown[];
+      };
+      const silver = {
+        ...createMarket('xag-1', 'Silver Up or Down 15m'),
+        series: {
+          id: '12968',
+          slug: 'silver-up-or-down-15m',
+          title: 'Silver Up or Down 15m',
+          recurrence: '15m',
+        },
+        tags: ['silver', 'up-or-down'],
+      };
+      const gold = {
+        ...createMarket('xau-1', 'Gold Up or Down 15m'),
+        series: {
+          id: '12967',
+          slug: 'gold-up-or-down-15m',
+          title: 'Gold Up or Down 15m',
+          recurrence: '15m',
+        },
+        tags: ['gold', 'up-or-down'],
+      };
+
+      expect(options.refine([silver, gold])).toEqual([gold, silver]);
     });
 
     it('omits refine when up/down markets are disabled', () => {

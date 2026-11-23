@@ -67,7 +67,6 @@ const PredictFeedView: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictFeed'>>();
   const { feedId, initialTabId, initialFilterId, entryPoint } =
@@ -90,6 +89,18 @@ const PredictFeedView: React.FC = () => {
     setActiveFilterId,
     activeFilter,
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
+
+  const seriesOrder = activeFilter?.params?.series;
+  const refine = useMemo(() => {
+    if (!upDownEnabled) {
+      return undefined;
+    }
+    if (!seriesOrder?.length) {
+      return deduplicateSeriesMarkets;
+    }
+    return (marketsToRefine: PredictMarketType[]) =>
+      deduplicateSeriesMarkets(marketsToRefine, seriesOrder);
+  }, [seriesOrder, upDownEnabled]);
 
   const isReady = status === 'ready';
   const title =

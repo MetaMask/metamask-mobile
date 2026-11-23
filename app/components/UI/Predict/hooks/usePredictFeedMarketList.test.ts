@@ -439,9 +439,7 @@ describe('usePredictFeedMarketList', () => {
         id: seriesId,
         slug: seriesSlug,
         title:
-          assetTag === 'gold'
-            ? 'Gold Up or Down 15m'
-            : 'Silver Up or Down 15m',
+          assetTag === 'gold' ? 'Gold Up or Down 15m' : 'Silver Up or Down 15m',
         recurrence: '15m',
       },
       tags: [assetTag, 'up-or-down'],
@@ -573,6 +571,63 @@ describe('usePredictFeedMarketList', () => {
     expect(result.current.markets.map((market) => market.id)).toEqual([
       'xau-live',
       'regular-1',
+    ]);
+  });
+
+  it('orders silver-first API results gold-first when refine passes series order', () => {
+    const silver1: PredictMarket = {
+      ...createMarket('xag-1515'),
+      series: {
+        id: '12968',
+        slug: 'silver-up-or-down-15m',
+        title: 'Silver Up or Down 15m',
+        recurrence: '15m',
+      },
+      tags: ['silver', 'up-or-down'],
+    };
+    const silver2: PredictMarket = {
+      ...createMarket('xag-1530'),
+      series: {
+        id: '12968',
+        slug: 'silver-up-or-down-15m',
+        title: 'Silver Up or Down 15m',
+        recurrence: '15m',
+      },
+      tags: ['silver', 'up-or-down'],
+    };
+    const gold1: PredictMarket = {
+      ...createMarket('xau-1515'),
+      series: {
+        id: '12967',
+        slug: 'gold-up-or-down-15m',
+        title: 'Gold Up or Down 15m',
+        recurrence: '15m',
+      },
+      tags: ['gold', 'up-or-down'],
+    };
+    const unrelated1 = { ...createMarket('fed-rates'), tags: ['finance'] };
+    const unrelated2 = { ...createMarket('sp500-close'), tags: ['finance'] };
+
+    regularResult = createMarketListResult({
+      markets: [unrelated1, silver1, silver2, gold1, unrelated2],
+    });
+
+    const { result } = renderHook(() =>
+      usePredictFeedMarketList(
+        { series: ['12967', '12968'], status: 'open', order: 'ending_soon' },
+        {
+          showLiveFirst: false,
+          refine: (markets) =>
+            deduplicateSeriesMarkets(markets, ['12967', '12968']),
+        },
+      ),
+    );
+
+    expect(result.current.markets.map((market) => market.id)).toEqual([
+      'fed-rates',
+      'xau-1515',
+      'xag-1515',
+      'sp500-close',
     ]);
   });
 });
