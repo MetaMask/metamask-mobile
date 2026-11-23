@@ -21,11 +21,6 @@ import {
 
 const logger = createAppiumLogger('softReloadApp');
 
-/** XCUITest `queryAppState`: 4 = running in foreground. */
-const IOS_APP_STATE_FOREGROUND = 4;
-const IOS_FOREGROUND_ATTEMPTS = 3;
-const IOS_FOREGROUND_RETRY_MS = 1_000;
-
 const sleep = (ms: number): Promise<void> =>
   new Promise((resolve) => {
     const timer = setTimeout(resolve, ms);
@@ -35,31 +30,27 @@ const sleep = (ms: number): Promise<void> =>
     }
   });
 
-type QueryAppStateDriver = WebdriverIO.Browser & {
-  queryAppState?: (bundleId: string) => Promise<number>;
-};
+/** XCUITest `mobile: queryAppState` values. */
+const IOS_APP_STATE_BACKGROUND_SUSPENDED = 2;
+const IOS_APP_STATE_BACKGROUND = 3;
+const IOS_APP_STATE_FOREGROUND = 4;
 
-/**
- * Reads iOS app process state. Prefer the WDIO helper; fall back to the
- * XCUITest `mobile: queryAppState` command.
- */
 const queryIosAppState = async (
-  drv: QueryAppStateDriver,
+  drv: WebdriverIO.Browser,
   bundleId: string,
-): Promise<number> => {
-  if (typeof drv.queryAppState === 'function') {
-    return drv.queryAppState(bundleId);
-  }
-  const state = await drv.execute('mobile: queryAppState', { bundleId });
-  return Number(state);
-};
+): Promise<number> =>
+  Number(await drv.execute('mobile: queryAppState', { bundleId }));
 
 /**
- * Soft-reload can return from `launchApp` while SpringBoard is still showing
- * (MetaMask never reached the foreground). Callers then burn onboarding /
- * waitForAppReady / fixture-bootstrap budgets against the home screen.
- * Activate and re-check; fail fast so Playwright retry / session recreate can
- * heal instead of a multi-minute timeout.
+ * Soft-reload can return from `launchApp` while SpringBoard is still showing.
+ * Callers then burn fixture-bootstrap / onboarding / waitForAppReady budgets
+ * against the home screen.
+ *
+ * Only a backgrounded process is activated: `activateApp` keeps the running
+ * process and the `mobile: launchApp` fixture arguments it was started with.
+ * When the app is not running, `activateApp` would cold-start it without those
+ * arguments, so `/state.json` would never arrive. Fail fast instead and let
+ * Playwright retry on a recreated session.
  */
 async function ensureIosAppInForeground(
   drv: WebdriverIO.Browser | undefined,
@@ -70,44 +61,33 @@ async function ensureIosAppInForeground(
     return;
   }
 
-  const queryDrv = drv as QueryAppStateDriver;
-
-  for (let attempt = 1; attempt <= IOS_FOREGROUND_ATTEMPTS; attempt++) {
-    let state: number;
-    try {
-      state = await queryIosAppState(queryDrv, bundleId);
-    } catch (error) {
-      if (isDeviceHealthError(error)) {
-        requestSharedSessionRecreate();
-      }
-      throw error;
-    }
-
-    if (state === IOS_APP_STATE_FOREGROUND) {
-      if (attempt > 1) {
-        logger.info(
-          `iOS app reached foreground after activate (phase=${phase}, attempt=${attempt})`,
-        );
-      }
-      return;
-    }
-
-    logger.warn(
-      `iOS app not in foreground after soft-reload ${phase} ` +
-        `(state=${state}, attempt=${attempt}/${IOS_FOREGROUND_ATTEMPTS}); ` +
-        `activating ${bundleId}`,
-    );
-    await drv.activateApp(bundleId);
-    await sleep(IOS_FOREGROUND_RETRY_MS);
+  let state = await queryIosAppState(drv, bundleId);
+  if (state === IOS_APP_STATE_FOREGROUND) {
+    return;
   }
 
-  const error = new Error(
-    `iOS app ${bundleId} not in foreground after soft-reload ${phase} ` +
-      `(${IOS_FOREGROUND_ATTEMPTS} activate attempts). Soft reload left ` +
-      `SpringBoard; refusing to burn bootstrap/onboarding budgets.`,
-  );
+  if (
+    state === IOS_APP_STATE_BACKGROUND ||
+    state === IOS_APP_STATE_BACKGROUND_SUSPENDED
+  ) {
+    logger.warn(
+      `iOS app in background after soft-reload ${phase} (state=${state}); ` +
+        `activating ${bundleId}`,
+    );
+    // XCUITest activate returns once the app is in the foreground.
+    await drv.activateApp(bundleId);
+    state = await queryIosAppState(drv, bundleId);
+    if (state === IOS_APP_STATE_FOREGROUND) {
+      return;
+    }
+  }
+
   requestSharedSessionRecreate();
-  throw error;
+  throw new Error(
+    `iOS app ${bundleId} not in foreground after soft-reload ${phase} ` +
+      `(queryAppState=${state}). Not relaunching without fixture launch ` +
+      `arguments; failing fast instead of waiting on /state.json or app ready.`,
+  );
 }
 
 /**
