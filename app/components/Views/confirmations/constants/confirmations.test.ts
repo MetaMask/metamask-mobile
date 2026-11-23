@@ -21,4 +21,25 @@ describe('confirmation constants', () => {
       TransactionType.perpsWithdraw,
     );
   });
+
+  it('keeps a Lighter withdraw on the same full-screen confirmation as a Hyperliquid withdraw', () => {
+    expect(FULL_SCREEN_CONFIRMATIONS).toContain(
+      TransactionType.perpsLighterWithdraw,
+    );
+    expect(POST_QUOTE_TRANSACTION_TYPES).toContain(
+      TransactionType.perpsLighterWithdraw,
+    );
+    expect(REDESIGNED_TRANSACTION_TYPES).not.toContain(
+      TransactionType.perpsLighterWithdraw,
+    );
+  });
+
+  it('keeps a Lighter deposit on the redesigned confirmation', () => {
+    expect(REDESIGNED_TRANSACTION_TYPES).toContain(
+      TransactionType.perpsLighterDeposit,
+    );
+    expect(FULL_SCREEN_CONFIRMATIONS).toContain(
+      TransactionType.perpsLighterDeposit,
+    );
+  });
 });

@@ -115,7 +115,10 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
     isPerpsLighterConfirmationEnabled() &&
     isLighterProviderEnabled() &&
     providerFlagEnabled &&
-    hasTransactionType(transactionMeta, [TransactionType.perpsDeposit]);
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
+    ]);
 
   const closeSheet = useCallback(() => {
     setIsSheetVisible(false);
@@ -140,7 +143,7 @@ export const PerpsReceiveToRow: React.FC<PerpsReceiveToRowProps> = ({
 
   return (
     <>
-      <Box>
+      <Box twClassName="-mx-2">
         <KeyValueSelect
           accessibilityLabel={`${rowLabel}, ${selectedLabel}, ${selectedBalance}`}
           keyLabel={rowLabel}

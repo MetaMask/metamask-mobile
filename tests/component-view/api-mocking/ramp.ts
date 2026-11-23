@@ -2,6 +2,8 @@
 import nock from 'nock';
 import { SDK } from '../../../app/components/UI/Ramp/Aggregator/sdk';
 import { disableNetConnect, teardownNock } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
+import { restoreFetchPath, stubFetchPath } from './fetchStub';
 
 /** Staging (UAT) and production hosts — mock both so tests stay offline regardless of getSdkEnvironment(). */
 const RAMP_REGIONS_ORIGINS = [
@@ -228,6 +230,12 @@ function registerRampSdkNockInterceptors(): void {
       .query(true)
       .reply(200, mockRampCountryCacheData)
       .persist();
+
+    // The SDK re-fetches the light cache when a deeplink intent settles and
+    // aborts in-flight requests around the same moment; answer it at the
+    // fetch layer too so the reply cannot race the abort (the same reason
+    // quickBuy stubs its popular-tokens endpoint there).
+    stubFetchPath(origin, '/regions/us/light', mockRampCountryCacheData);
   }
 
   for (const origin of RAMP_ORDERS_ORIGINS) {
@@ -244,6 +252,7 @@ export function setupRampSdkApiMock(): void {
   resetRampAggregatorSdkForTests();
   disableNetConnect();
   registerRampSdkNockInterceptors();
+  installDefaultApiMocks();
 }
 
 /**
@@ -254,4 +263,7 @@ export function clearRampSdkApiMocks(): void {
   jest.clearAllMocks();
   resetRampAggregatorSdkForTests();
   teardownNock();
+  for (const origin of RAMP_REGIONS_ORIGINS) {
+    restoreFetchPath(origin, '/regions/us/light');
+  }
 }

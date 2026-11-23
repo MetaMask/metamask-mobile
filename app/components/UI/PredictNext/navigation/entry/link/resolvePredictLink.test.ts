@@ -156,6 +156,18 @@ describe('resolvePredictLink', () => {
       );
     });
 
+    it('opens a Feed Screen the app has never seen, leaving the catalog check to the screen', () => {
+      expect(
+        resolve('?venue=kalshi&feed=sports-basketball-nba&tab=games', KALSHI),
+      ).toStrictEqual(
+        predict(PredictNextRoutes.FEED, {
+          venueId: 'kalshi',
+          feedScreenId: 'sports-basketball-nba',
+          selectedTabId: 'games',
+        }),
+      );
+    });
+
     it.each(['?venue=kalshi', '', '?tab=crypto', '?feed=sports&q=nba'])(
       'opens PredictNext Home for %s',
       (path) => {
@@ -171,7 +183,7 @@ describe('resolvePredictLink', () => {
       ['?market=KXNFLGAME-1', 'venueMismatch'],
       ['?venue=polymarket&market=23246', 'venueMismatch'],
       ['?venue=polymarket', 'venueMismatch'],
-      ['?venue=kalshi&feed=unknown-screen', 'notFound'],
+      ['?venue=kalshi&feed=bad_screen!', 'notFound'],
       ['?venue=kalshi&market=KXNFLGAME-1-BUF', 'notFound'],
       ['?venue=limitless&event=1', 'notFound'],
     ])('gives a bounded not-found for %s (%s)', (path, reason) => {
