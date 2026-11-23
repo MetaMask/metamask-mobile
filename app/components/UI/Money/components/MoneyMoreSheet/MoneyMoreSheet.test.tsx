@@ -11,6 +11,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { useMoneyMfa, type MoneyMfaStatus } from '../../hooks/useMoneyMfa';
+import { createMockUseMoneyMfa } from '../../__fixtures__/useMoneyMfa';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -53,18 +54,9 @@ jest.mock('../../hooks/useMoneyMfa', () => ({
 const mockTurnOnMfa = jest.fn();
 
 const mockMfaStatus = (status: MoneyMfaStatus) =>
-  jest.mocked(useMoneyMfa).mockReturnValue({
-    status,
-    turnOn: mockTurnOnMfa,
-    addPasskey: jest.fn(),
-    retry: jest.fn(),
-    turnOff: jest.fn(),
-    isSettingUpBannerDismissed: false,
-    dismissSettingUpBanner: jest.fn(),
-    refreshCredentials: jest.fn(),
-    hasUnseenEnabledConfirmation: false,
-    showEnabledConfirmation: jest.fn(() => false),
-  });
+  jest
+    .mocked(useMoneyMfa)
+    .mockReturnValue(createMockUseMoneyMfa({ status, turnOn: mockTurnOnMfa }));
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();

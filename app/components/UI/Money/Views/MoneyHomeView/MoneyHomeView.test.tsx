@@ -35,6 +35,7 @@ import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/M
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyMfaTestIds } from '../../components/MoneyMfa/MoneyMfa.testIds';
 import { useMoneyMfa, type MoneyMfaStatus } from '../../hooks/useMoneyMfa';
+import { createMockUseMoneyMfa } from '../../__fixtures__/useMoneyMfa';
 import { ConfirmationLaunchSource } from '../../../../Views/confirmations/components/confirm/confirm-component';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
@@ -350,18 +351,16 @@ const mockMfaStatus = (
   status: MoneyMfaStatus,
   { hasUnseenEnabledConfirmation = false } = {},
 ) =>
-  jest.mocked(useMoneyMfa).mockReturnValue({
-    status,
-    turnOn: jest.fn(),
-    addPasskey: jest.fn(),
-    retry: mockMfaRetry,
-    turnOff: jest.fn(),
-    isSettingUpBannerDismissed: false,
-    dismissSettingUpBanner: mockMfaDismissBanner,
-    refreshCredentials: mockMfaRefreshCredentials,
-    hasUnseenEnabledConfirmation,
-    showEnabledConfirmation: mockShowEnabledConfirmation,
-  });
+  jest.mocked(useMoneyMfa).mockReturnValue(
+    createMockUseMoneyMfa({
+      status,
+      retry: mockMfaRetry,
+      dismissSettingUpBanner: mockMfaDismissBanner,
+      refreshCredentials: mockMfaRefreshCredentials,
+      hasUnseenEnabledConfirmation,
+      showEnabledConfirmation: mockShowEnabledConfirmation,
+    }),
+  );
 
 jest.mock('../../../../../core/NavigationService', () => ({
   __esModule: true,
@@ -2442,19 +2441,12 @@ describe('MoneyHomeView', () => {
     });
   });
 
+  // Screen flows are in the view test; this keeps analytics and the failed and off states.
   describe('2-step verification', () => {
     it('refreshes the enrolled credentials on focus', () => {
       renderWithProvider(<MoneyHomeView />);
 
       expect(mockMfaRefreshCredentials).toHaveBeenCalled();
-    });
-
-    it('renders the setup card when 2-step verification is not set up', () => {
-      mockMfaStatus('not_set_up');
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyMfaTestIds.SETUP_CARD)).toBeOnTheScreen();
     });
 
     it.each<MoneyMfaStatus>([
@@ -2492,14 +2484,6 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('shows the confirmation when it opens after 2-step verification turned on', () => {
-      mockMfaStatus('enabled', { hasUnseenEnabledConfirmation: true });
-
-      renderWithProvider(<MoneyHomeView />);
-
-      expect(mockShowEnabledConfirmation).toHaveBeenCalledTimes(1);
-    });
-
     it('shows no confirmation without a new setup', () => {
       mockMfaStatus('enabled');
 
@@ -2521,14 +2505,6 @@ describe('MoneyHomeView', () => {
         label_key: 'money.mfa.card_cta',
         component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
       });
-    });
-
-    it('renders the setting up banner while the Money account is set up', () => {
-      mockMfaStatus('setting_up');
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER)).toBeOnTheScreen();
     });
 
     it('retries the setup from the failed banner', () => {
@@ -2589,14 +2565,6 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
       });
-    });
-
-    it('shows the header badge when 2-step verification is enabled', () => {
-      mockMfaStatus('enabled');
-
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
-
-      expect(getByTestId(MoneyMfaTestIds.HEADER_BADGE)).toBeOnTheScreen();
     });
 
     it('opens the 2-step verification sheet from the header badge', () => {

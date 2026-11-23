@@ -13,6 +13,7 @@ import {
   useMoneyMfa,
   type MoneyMfaStatus,
 } from '../../../UI/Money/hooks/useMoneyMfa';
+import { createMockUseMoneyMfa } from '../../../UI/Money/__fixtures__/useMoneyMfa';
 import MfaSettings from './MfaSettings';
 
 const mockNavigate = jest.fn();
@@ -41,10 +42,9 @@ const mockUseMoneyMfa = jest.mocked(useMoneyMfa);
 const mockTurnOnMoneyMfa = jest.fn();
 
 const mockMoneyMfaStatus = (status: MoneyMfaStatus) => {
-  mockUseMoneyMfa.mockReturnValue({
-    status,
-    turnOn: mockTurnOnMoneyMfa,
-  } as unknown as ReturnType<typeof useMoneyMfa>);
+  mockUseMoneyMfa.mockReturnValue(
+    createMockUseMoneyMfa({ status, turnOn: mockTurnOnMoneyMfa }),
+  );
 };
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
 const mockShowToast = jest.fn();

@@ -1,9 +1,17 @@
 import '../../../../../../tests/component-view/mocks';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
-import { renderMoneyHomeVbaCard } from '../../../../../../tests/component-view/renderers/moneyHome';
+import {
+  renderMoneyHomeMfa,
+  renderMoneyHomeVbaCard,
+} from '../../../../../../tests/component-view/renderers/moneyHome';
+import Routes from '../../../../../constants/navigation/Routes';
+import { moneyMfaStore } from '../../../../../lib/Money/mfa/moneyMfaStore';
+import { moneyAccountMigration } from '../../../../../lib/Money/mfa/moneyAccountMigration';
+import { MoneyMfaTestIds } from '../../components/MoneyMfa/MoneyMfa.testIds';
+import { MoneyActionButtonRowTestIds } from '../../components/MoneyActionButtonRow/MoneyActionButtonRow.testIds';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
@@ -134,5 +142,92 @@ describeForPlatforms('MoneyHomeView VBA KYC card', () => {
     expect(
       queryByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_retry.CONTAINER),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describeForPlatforms('MoneyHomeView 2-step verification', () => {
+  beforeEach(() => {
+    moneyMfaStore.reset();
+    moneyAccountMigration.reset();
+  });
+
+  afterEach(() => {
+    moneyMfaStore.reset();
+    moneyAccountMigration.reset();
+  });
+
+  const startSettingUp = () => {
+    act(() => {
+      moneyAccountMigration.start().catch(() => undefined);
+    });
+  };
+
+  it('opens the intro from the setup card when 2-step verification is not set up', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = renderMoneyHomeMfa();
+
+    fireEvent.press(await findByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
+
+    expect(
+      await findByTestId(`route-${Routes.MONEY.MFA_INTRO}`),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyMfaTestIds.HEADER_BADGE)).not.toBeOnTheScreen();
+    expect(getByTestId(`route-${Routes.MONEY.MFA_INTRO}`)).toBeOnTheScreen();
+  });
+
+  it('opens the setting up sheet from Transfer while the Money account is set up', async () => {
+    startSettingUp();
+    const { findByTestId, queryByTestId } = renderMoneyHomeMfa();
+
+    expect(
+      await findByTestId(MoneyMfaTestIds.SETTING_UP_BANNER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      await findByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON),
+    );
+
+    expect(
+      await findByTestId(MoneyMfaTestIds.SETTING_UP_SHEET),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the setting up banner when it is closed', async () => {
+    startSettingUp();
+    const { findByTestId, queryByTestId } = renderMoneyHomeMfa();
+
+    fireEvent.press(
+      await findByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE),
+    );
+
+    await waitFor(() =>
+      expect(
+        queryByTestId(MoneyMfaTestIds.SETTING_UP_BANNER),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(moneyMfaStore.getState().isMigrationBannerDismissed).toBe(true);
+  });
+
+  it('opens the enabled sheet from the header badge when 2-step verification is on', async () => {
+    moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
+    const { findByTestId, queryByTestId } = renderMoneyHomeMfa();
+
+    fireEvent.press(await findByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+    expect(await findByTestId(MoneyMfaTestIds.ENABLED_SHEET)).toBeOnTheScreen();
+    expect(queryByTestId(MoneyMfaTestIds.SETUP_CARD)).not.toBeOnTheScreen();
+  });
+
+  it('shows the turned on confirmation once after setup finishes', async () => {
+    moneyMfaStore.setState({
+      isMoneyAccountMfaEnabled: true,
+      hasUnseenEnabledConfirmation: true,
+    });
+    const { findByTestId } = renderMoneyHomeMfa();
+
+    expect(await findByTestId(MoneyMfaTestIds.HEADER_BADGE)).toBeOnTheScreen();
+    await waitFor(() =>
+      expect(moneyMfaStore.getState().hasUnseenEnabledConfirmation).toBe(false),
+    );
   });
 });

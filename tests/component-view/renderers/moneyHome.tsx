@@ -10,6 +10,10 @@ import Routes from '../../../app/constants/navigation/Routes';
 import VbaOnboardingNavigator from '../../../app/components/UI/Ramp/Views/VirtualBankAccount/VbaOnboardingNavigator';
 import { renderScreenWithRoutes } from '../render';
 import { initialStateVba } from '../presets/vba';
+import { MoneyModalStack } from '../../../app/components/UI/Money/routes';
+import { IS_MONEY_MFA_ENABLED_FLAG_NAME } from '../../../app/lib/Money/feature-flags';
+import { FeatureFlagNames } from '../../../app/constants/featureFlags';
+import { MoneyAccountBalanceServiceQueryKeys } from '../../../app/components/UI/Money/queryKeys';
 
 /** KYC `finalStatus` values the Money home card splits. */
 export type MoneyHomeVbaKycFinalStatus = 'retry' | 'rejected';
@@ -24,6 +28,7 @@ type MoneyHomeKycSession = KycSessionStatus & {
 
 let restoreMoneyHomeStore: (() => void) | undefined;
 let restoreMoneyHomeKycState: (() => void) | undefined;
+let restoreMoneyHomeEngineCall: (() => void) | undefined;
 
 /**
  * Puts back the Engine `KycController.state` from before the last Money home
@@ -39,6 +44,8 @@ export function restoreMoneyHomeTestState(): void {
   restoreMoneyHomeStore?.();
   restoreMoneyHomeKycState?.();
   restoreMoneyHomeKycState = undefined;
+  restoreMoneyHomeEngineCall?.();
+  restoreMoneyHomeEngineCall = undefined;
 }
 
 // Jest evaluates this module once per test file. Registering here covers every
@@ -80,20 +87,22 @@ const buildSession = (
     : {}),
 });
 
-/**
- * Money home for an eligible VBA user whose stored KYC session has
- * `finalStatus`. The VBA onboarding navigator is registered so the card CTA
- * can reset onto it.
- *
- * @param finalStatus - Persisted KYC session outcome. `retry` also stores
- * `retryReasons: ['poa_resubmit']`.
- * @returns The rendered Money home screen and its store.
- */
-export function renderMoneyHomeVbaCard(
-  finalStatus: MoneyHomeVbaKycFinalStatus,
-): ReturnType<typeof renderScreenWithRoutes> {
-  const sessionStatus = buildSession(finalStatus);
-  const state = initialStateVba()
+const ENABLED_FLAG = { enabled: true, minimumVersion: '0.0.0' };
+
+// 25 mUSD, so Transfer is enabled.
+const MONEY_HOME_BALANCE = {
+  totalBalance: '25000000',
+  vmusdValueInMusd: '25000000',
+  musdBalance: '0',
+  source: 'api',
+  usedFallback: false,
+};
+
+const buildMoneyHomeState = (
+  backgroundState: Record<string, unknown> = {},
+  remoteFeatureFlags: Record<string, unknown> = {},
+) =>
+  initialStateVba()
     .withRemoteFeatureFlags({
       // Defaults on. Leaving it on subscribes to the accelerometer, which the
       // view-test sensor mock does not provide.
@@ -105,14 +114,12 @@ export function renderMoneyHomeVbaCard(
         enabled: false,
         minimumVersion: '0.0.0',
       },
+      ...remoteFeatureFlags,
     })
     .withOverrides({
       engine: {
         backgroundState: {
-          KycController: {
-            sessionStatus,
-            providerFlowStatus: 'submitted',
-          },
+          ...backgroundState,
           // Money home reads token balances for the card section. sortAssets
           // throws when PreferencesController.tokenSortConfig is missing.
           PreferencesController: {
@@ -126,6 +133,26 @@ export function renderMoneyHomeVbaCard(
       },
     } as unknown as DeepPartial<RootState>)
     .build();
+
+/**
+ * Money home for an eligible VBA user whose stored KYC session has
+ * `finalStatus`. The VBA onboarding navigator is registered so the card CTA
+ * can reset onto it.
+ *
+ * @param finalStatus - Persisted KYC session outcome. `retry` also stores
+ * `retryReasons: ['poa_resubmit']`.
+ * @returns The rendered Money home screen and its store.
+ */
+export function renderMoneyHomeVbaCard(
+  finalStatus: MoneyHomeVbaKycFinalStatus,
+): ReturnType<typeof renderScreenWithRoutes> {
+  const sessionStatus = buildSession(finalStatus);
+  const state = buildMoneyHomeState({
+    KycController: {
+      sessionStatus,
+      providerFlowStatus: 'submitted',
+    },
+  });
 
   const kycController = Engine.context.KycController as unknown as {
     state?: { sessionStatus: MoneyHomeKycSession };
@@ -154,5 +181,49 @@ export function renderMoneyHomeVbaCard(
   );
   bindMoneyHomeStore(view.store);
 
+  return view;
+}
+
+/** Money home with 2-step verification available and the Money modal stack registered. */
+export function renderMoneyHomeMfa(): ReturnType<
+  typeof renderScreenWithRoutes
+> {
+  const state = buildMoneyHomeState(
+    {},
+    {
+      [IS_MONEY_MFA_ENABLED_FLAG_NAME]: ENABLED_FLAG,
+      [FeatureFlagNames.mfaUiKit]: ENABLED_FLAG,
+    },
+  );
+  const engineCall = jest.spyOn(
+    Engine.controllerMessenger,
+    'call',
+  ) as unknown as jest.Mock;
+  const baseEngineCall = engineCall.getMockImplementation();
+  restoreMoneyHomeEngineCall?.();
+  restoreMoneyHomeEngineCall = () => {
+    if (baseEngineCall) {
+      engineCall.mockImplementation(baseEngineCall);
+    }
+  };
+  engineCall.mockImplementation((action: string, ...args: unknown[]) => {
+    if (
+      action === MoneyAccountBalanceServiceQueryKeys.FETCH_BALANCE_WITH_FALLBACK
+    ) {
+      return Promise.resolve(MONEY_HOME_BALANCE);
+    }
+    return baseEngineCall?.(action, ...args);
+  });
+
+  const view = renderScreenWithRoutes(
+    MoneyHomeView,
+    { name: Routes.MONEY.HOME },
+    [
+      { name: Routes.MONEY.MFA_INTRO },
+      { name: Routes.MONEY.MODALS.ROOT, Component: MoneyModalStack },
+    ],
+    { state },
+  );
+  bindMoneyHomeStore(view.store);
   return view;
 }
