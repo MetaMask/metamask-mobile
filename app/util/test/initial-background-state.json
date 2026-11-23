@@ -31,6 +31,7 @@
     "consentDecisionMade": false,
     "marketingCampaignCookieId": null,
     "marketingConsentDecisionMade": false,
+    "marketingConsentSyncPending": false,
     "optedIn": false,
     "optedInToMarketing": false
   },
@@ -39,9 +40,6 @@
     "isFetchingGatorPermissions": false,
     "lastSyncedTimestamp": -1,
     "pendingRevocations": []
-  },
-  "MarketingConsentController": {
-    "pendingMarketingConsent": null
   },
   "NftController": {
     "allNftContracts": {},

@@ -1,12 +1,12 @@
 import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
-import { getMarketingConsentControllerMessenger } from './marketing-consent-controller-messenger';
+import { getMarketingConsentSyncServiceMessenger } from './marketing-consent-sync-service-messenger';
 
-describe('getMarketingConsentControllerMessenger', () => {
-  it('delegates the AUS, analytics, auth and keyring access the controller needs', () => {
+describe('getMarketingConsentSyncServiceMessenger', () => {
+  it('delegates the AUS, analytics, auth and keyring access the service needs', () => {
     const rootMessenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
-    const messenger = getMarketingConsentControllerMessenger(
+    const messenger = getMarketingConsentSyncServiceMessenger(
       rootMessenger as never,
     );
 
@@ -22,6 +22,8 @@ describe('getMarketingConsentControllerMessenger', () => {
         'AnalyticsController:getState',
         'AnalyticsController:optInToMarketing',
         'AnalyticsController:optOutOfMarketing',
+        'AnalyticsController:applyRemoteMarketingConsent',
+        'AnalyticsController:clearMarketingConsentSyncPending',
         'AuthenticationController:getState',
         'KeyringController:getState',
       ],

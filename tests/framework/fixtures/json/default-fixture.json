@@ -235,9 +235,6 @@
             "moonpay": null
           }
         },
-        "MarketingConsentController": {
-          "pendingMarketingConsent": null
-        },
         "MoneyAccountController": {
           "moneyAccounts": {},
           "defaultMoneyAccountId": null

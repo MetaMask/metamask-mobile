@@ -1,18 +1,18 @@
 import {
-  MarketingConsentController,
-  type MarketingConsentControllerMessenger,
-} from '@metamask/marketing-consent-controller';
+  MarketingConsentSyncService,
+  type MarketingConsentSyncServiceMessenger,
+} from '@metamask/marketing-consent-sync-service';
 import { MOCK_ANY_NAMESPACE, type MockAnyNamespace } from '@metamask/messenger';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
-import { getMarketingConsentControllerMessenger } from '../messengers/marketing-consent-controller-messenger';
+import { getMarketingConsentSyncServiceMessenger } from '../messengers/marketing-consent-sync-service-messenger';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
 import type { MessengerClientInitRequest } from '../types';
-import { marketingConsentControllerInit } from './marketing-consent-controller-init';
+import { marketingConsentSyncServiceInit } from './marketing-consent-sync-service-init';
 
-jest.mock('@metamask/marketing-consent-controller');
+jest.mock('@metamask/marketing-consent-sync-service');
 
 function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<MarketingConsentControllerMessenger>
+  MessengerClientInitRequest<MarketingConsentSyncServiceMessenger>
 > {
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
     namespace: MOCK_ANY_NAMESPACE,
@@ -20,25 +20,21 @@ function getInitRequestMock(): jest.Mocked<
 
   return {
     ...buildMessengerClientInitRequestMock(baseMessenger),
-    controllerMessenger: getMarketingConsentControllerMessenger(
+    controllerMessenger: getMarketingConsentSyncServiceMessenger(
       baseMessenger as never,
     ),
   };
 }
 
-describe('marketingConsentControllerInit', () => {
-  it('creates the controller for the mobile client with persisted state', () => {
+describe('marketingConsentSyncServiceInit', () => {
+  it('creates the service for the mobile client without persisted state', () => {
     const request = getInitRequestMock();
-    request.persistedState = {
-      MarketingConsentController: { pendingMarketingConsent: false },
-    };
 
-    const { controller } = marketingConsentControllerInit(request);
+    const { controller } = marketingConsentSyncServiceInit(request);
 
-    expect(controller).toBeInstanceOf(MarketingConsentController);
-    expect(jest.mocked(MarketingConsentController)).toHaveBeenCalledWith({
+    expect(controller).toBeInstanceOf(MarketingConsentSyncService);
+    expect(jest.mocked(MarketingConsentSyncService)).toHaveBeenCalledWith({
       messenger: request.controllerMessenger,
-      state: { pendingMarketingConsent: false },
       clientType: 'mobile',
     });
   });

@@ -1,16 +1,15 @@
 import {
-  MarketingConsentController,
-  type MarketingConsentControllerMessenger,
-} from '@metamask/marketing-consent-controller';
+  MarketingConsentSyncService,
+  type MarketingConsentSyncServiceMessenger,
+} from '@metamask/marketing-consent-sync-service';
 import type { MessengerClientInitFunction } from '../types';
 
-export const marketingConsentControllerInit: MessengerClientInitFunction<
-  MarketingConsentController,
-  MarketingConsentControllerMessenger
-> = ({ controllerMessenger, persistedState }) => {
-  const controller = new MarketingConsentController({
+export const marketingConsentSyncServiceInit: MessengerClientInitFunction<
+  MarketingConsentSyncService,
+  MarketingConsentSyncServiceMessenger
+> = ({ controllerMessenger }) => {
+  const controller = new MarketingConsentSyncService({
     messenger: controllerMessenger,
-    state: persistedState.MarketingConsentController,
     clientType: 'mobile',
   });
   return { controller };
