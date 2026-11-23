@@ -64,7 +64,7 @@ const notificationPreferences = {
 
 export const USER_STORAGE_MOCK: MockEventsObject = {
   GET: [
-    // No stored consent, so MarketingConsentController writes the local value.
+    // No stored consent, so MarketingConsentSyncService writes the local value.
     {
       urlEndpoint: marketingConsentUrl,
       responseCode: 404,

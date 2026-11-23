@@ -48,14 +48,14 @@ describe('marketingAttribution sagas', () => {
 
   describe('watchMarketingAttributionOnConsentChange', () => {
     it.each([true, false])(
-      'saves a marketing preference of %s through MarketingConsentController',
+      'saves a marketing preference of %s through MarketingConsentSyncService',
       async (enabled) => {
         await expectSaga(watchMarketingAttributionOnConsentChange)
           .dispatch(setDataCollectionForMarketing(enabled))
           .silentRun(50);
 
         expect(mockMessengerCall).toHaveBeenCalledWith(
-          'MarketingConsentController:setMarketingConsent',
+          'MarketingConsentSyncService:setMarketingConsent',
           enabled,
         );
       },

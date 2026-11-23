@@ -21,13 +21,13 @@ import { selectAttributionRecord } from '../../selectors/attribution';
 
 const saveMarketingConsent = (enabled: boolean) =>
   Engine.controllerMessenger.call(
-    'MarketingConsentController:setMarketingConsent',
+    'MarketingConsentSyncService:setMarketingConsent',
     enabled,
   );
 
 /**
  * Save each marketing preference the UI writes through
- * MarketingConsentController, which applies it locally and syncs it to
+ * MarketingConsentSyncService, which applies it locally and syncs it to
  * Authenticated User Storage.
  */
 export function* watchMarketingAttributionOnConsentChange() {
