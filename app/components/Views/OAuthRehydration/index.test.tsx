@@ -303,8 +303,11 @@ describe('OAuthRehydration', () => {
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
     (traceMock as jest.Mock).mockImplementation(
-      (_config: unknown, fn?: () => Promise<void>) =>
-        fn ? fn() : Promise.resolve(),
+      async (_config: unknown, fn?: () => Promise<void>) => {
+        if (fn) {
+          await fn();
+        }
+      },
     );
     (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
   });
@@ -1272,9 +1275,10 @@ describe('OAuthRehydration', () => {
         },
       );
       (traceMock as jest.Mock).mockImplementation(
-        (config: { name?: string }, fn?: () => Promise<void>) => {
+        async (config: { name?: string }, fn?: () => Promise<void>) => {
           if (fn) {
-            return fn();
+            await fn();
+            return undefined;
           }
           if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
             return passwordAttemptCtx;
@@ -1350,9 +1354,10 @@ describe('OAuthRehydration', () => {
         },
       );
       (traceMock as jest.Mock).mockImplementation(
-        (config: { name?: string }, fn?: () => Promise<void>) => {
+        async (config: { name?: string }, fn?: () => Promise<void>) => {
           if (fn) {
-            return fn();
+            await fn();
+            return undefined;
           }
           if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
             return passwordAttemptCtx;
@@ -1492,9 +1497,10 @@ describe('OAuthRehydration', () => {
         },
       );
       (traceMock as jest.Mock).mockImplementation(
-        (config: { name?: string }, fn?: () => Promise<void>) => {
+        async (config: { name?: string }, fn?: () => Promise<void>) => {
           if (fn) {
-            return fn();
+            await fn();
+            return undefined;
           }
           if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
             return passwordAttemptCtx;
@@ -1532,7 +1538,7 @@ describe('OAuthRehydration', () => {
   describe('Component lifecycle', () => {
     it('prevents state updates after unmount', async () => {
       mockUnlockWallet.mockImplementation(
-        () =>
+        async () =>
           new Promise((resolve) => setTimeout(() => resolve(undefined), 1000)),
       );
       const { getByTestId, unmount } = renderWithProvider(<OAuthRehydration />);
@@ -1729,33 +1735,36 @@ describe('OAuthRehydration', () => {
       jest.useFakeTimers();
       enableMfaFlags();
 
-      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
-        state: {
-          engine: {
-            backgroundState: {
-              SeedlessOnboardingController: {
-                authConnection: undefined,
+      try {
+        const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+          state: {
+            engine: {
+              backgroundState: {
+                SeedlessOnboardingController: {
+                  authConnection: undefined,
+                },
               },
             },
           },
-        },
-      });
+        });
 
-      expect(
-        getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
-      ).toBeOnTheScreen();
-      expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
-
-      await act(async () => {
-        jest.advanceTimersByTime(10_000);
-      });
-
-      await waitFor(() => {
         expect(
-          getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+          getByTestId(WalletRecoverySelectorsIDs.LOADING_SCREEN),
         ).toBeOnTheScreen();
-      });
-      jest.useRealTimers();
+        expect(mockListActiveSocialLoginMethods).not.toHaveBeenCalled();
+
+        await act(async () => {
+          jest.advanceTimersByTime(10_000);
+        });
+
+        await waitFor(() => {
+          expect(
+            getByTestId(WalletRecoverySelectorsIDs.PASSWORD_SCREEN),
+          ).toBeOnTheScreen();
+        });
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('unlocks from MFA password step', async () => {
@@ -2285,8 +2294,12 @@ describe('OAuthRehydration', () => {
           const handle: ReturnType<
             typeof InteractionManager.runAfterInteractions
           > = {
-            then: (onFulfilled?: () => void, onRejected?: () => void) =>
-              Promise.resolve().then(onFulfilled, onRejected),
+            then: async (
+              onFulfilled?: () => void,
+              onRejected?: () => void,
+            ) => {
+              await Promise.resolve().then(onFulfilled, onRejected);
+            },
             done: () => undefined,
             cancel: () => undefined,
           };

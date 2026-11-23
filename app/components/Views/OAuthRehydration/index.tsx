@@ -1023,8 +1023,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
       setLoading(true);
 
-      // biometrics/passcode preference is applied only after sync succeeds
-      const authData: AuthData = {
+      const postMfaAuth = postMfaAuthPreferenceRef.current;
+      const authData: AuthData = postMfaAuth ?? {
         currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         oauth2Login: false,
       };
@@ -1038,8 +1038,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           await unlockWallet({
             password,
             authPreference: authData,
-            onBeforeNavigate: () =>
-              upgradeKeychainAuthAfterSuccessfulUnlock(password),
+            onBeforeNavigate: async () => {
+              // Skip when MFA already prompted for device biometrics — same
+              // as onRehydrateLogin — so iOS does not show a second sheet.
+              if (!postMfaAuth) {
+                await upgradeKeychainAuthAfterSuccessfulUnlock(password);
+              }
+            },
           });
         },
       );
@@ -1239,6 +1244,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     setPassword('');
   };
 
+  /** Void wrappers for props that must not accept promise-returning handlers. */
+  const onLoginPress = () => {
+    handleLogin().catch(() => undefined);
+  };
+  const onRecoveryMethodSelect = (method: WalletRecoveryMethod) => {
+    handleRecoveryMethodSelect(method).catch(() => undefined);
+  };
+
   /** Legacy Login reset-wallet (not Figma forgot-password recovery). */
   const toggleWarningModal = () => {
     track(MetaMetricsEvents.FORGOT_PASSWORD_CLICKED, {});
@@ -1285,7 +1298,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
             returnKeyType: 'done',
             autoCapitalize: 'none',
             secureTextEntry: true,
-            onSubmitEditing: handleLogin,
+            onSubmitEditing: onLoginPress,
             keyboardAppearance: themeAppearance,
           }}
         />
@@ -1301,7 +1314,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       <Button
         variant={ButtonVariant.Primary}
         size={ctaSize}
-        onPress={handleLogin}
+        onPress={onLoginPress}
         isDisabled={password.length === 0 || disabledInput || finalLoading}
         testID={LoginViewSelectors.LOGIN_BUTTON_ID}
         isLoading={finalLoading}
@@ -1357,7 +1370,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           isOffline={isRecoveryOffline}
           error={verifyError}
           onBack={handleUseOtherMethod}
-          onSelectMethod={handleRecoveryMethodSelect}
+          onSelectMethod={onRecoveryMethodSelect}
         />
       );
     }
@@ -1370,7 +1383,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         isDisabled={disabledInput}
         keyboardAppearance={themeAppearance}
         onChangePassword={handlePasswordChange}
-        onSubmit={handleLogin}
+        onSubmit={onLoginPress}
         onBack={handlePasswordBack}
       />
     );

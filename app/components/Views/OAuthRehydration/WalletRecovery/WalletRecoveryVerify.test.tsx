@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../locales/i18n';
 import WalletRecoveryVerify from './WalletRecoveryVerify';
 import { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';
 
@@ -26,19 +27,27 @@ describe('WalletRecoveryVerify', () => {
   it('renders copy without methods until the host opts them in', () => {
     const { getByText, queryByTestId, queryByText } = renderVerify();
 
-    expect(getByText("Verify it's you")).toBeOnTheScreen();
     expect(
-      getByText('Choose a security method to recover your wallet.'),
+      getByText(strings('wallet_recovery_mfa.verify_title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('wallet_recovery_mfa.verify_description')),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
-    ).toBeNull();
-    expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL)).toBeNull();
-    expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP)).toBeNull();
-    expect(queryByText("Can't use any of these?")).toBeNull();
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('wallet_recovery_mfa.cant_use_these')),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows only the enrolled methods the host passes', () => {
@@ -51,10 +60,16 @@ describe('WalletRecoveryVerify', () => {
     ).toBeOnTheScreen();
     expect(
       queryByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
-    ).toBeNull();
-    expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL)).toBeNull();
-    expect(queryByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP)).toBeNull();
-    expect(queryByText('or')).toBeNull();
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletRecoverySelectorsIDs.METHOD_EMAIL),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('wallet_recovery_mfa.or')),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders Figma verify methods when the host opts them all in', () => {
@@ -77,7 +92,9 @@ describe('WalletRecoveryVerify', () => {
     expect(
       getByTestId(WalletRecoverySelectorsIDs.METHOD_TOTP),
     ).toBeOnTheScreen();
-    expect(queryByText("Can't use any of these?")).toBeNull();
+    expect(
+      queryByText(strings('wallet_recovery_mfa.cant_use_these')),
+    ).not.toBeOnTheScreen();
   });
 
   it('notifies when the user picks a recovery method', () => {
@@ -101,7 +118,7 @@ describe('WalletRecoveryVerify', () => {
 
   it('shows failure and offline copy when provided', () => {
     const { getByTestId, getByText } = renderVerify({
-      error: 'Verification failed. Try again or choose another method.',
+      error: strings('wallet_recovery_mfa.method_failed'),
       isOffline: true,
     });
 
@@ -112,7 +129,7 @@ describe('WalletRecoveryVerify', () => {
       getByTestId(WalletRecoverySelectorsIDs.VERIFY_OFFLINE),
     ).toBeOnTheScreen();
     expect(
-      getByText('Connect to the internet to use these methods.'),
+      getByText(strings('wallet_recovery_mfa.offline_reason')),
     ).toBeOnTheScreen();
   });
 
@@ -142,7 +159,7 @@ describe('WalletRecoveryVerify', () => {
     ).toBeOnTheScreen();
     expect(
       queryByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('ignores method presses while busy', () => {
