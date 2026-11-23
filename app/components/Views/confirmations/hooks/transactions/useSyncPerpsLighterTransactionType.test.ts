@@ -160,7 +160,7 @@ describe('useSyncPerpsLighterTransactionType', () => {
     );
   });
 
-  it('creates a Lighter deposit without calldata and sets the payment provider when the address already has a Lighter account', async () => {
+  it('creates a Lighter deposit without calldata and sets the payment override when the address already has a Lighter account', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,

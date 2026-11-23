@@ -125,7 +125,7 @@ describe('buildLighterDepositRequest', () => {
 });
 
 describe('buildLighterExistingAccountDepositRequest', () => {
-  it('builds a mainnet deposit without calldata that sets the payment provider', () => {
+  it('builds a mainnet deposit without calldata that sets the payment override', () => {
     const request = buildLighterExistingAccountDepositRequest({
       amount: 5_000_000n,
       from: USER,
@@ -304,7 +304,7 @@ describe('replacePerpsTransaction', () => {
     );
   });
 
-  it('sets the payment provider on the new transaction before rejecting the previous approval', async () => {
+  it('sets the payment override on the new transaction before rejecting the previous approval', async () => {
     jest
       .mocked(addTransaction)
       .mockResolvedValue({ transactionMeta: { id: 'tx-2' } } as never);
@@ -331,7 +331,7 @@ describe('replacePerpsTransaction', () => {
     );
   });
 
-  it('does not set a payment provider when the request has none', async () => {
+  it('does not set a payment override when the request has none', async () => {
     jest.mocked(addTransaction).mockResolvedValue({} as never);
     const request = buildRetypedRequest(
       {
