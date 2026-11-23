@@ -11399,9 +11399,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:@metamask-previews/perps-controller@25.0.0-preview-2be370e":
-  version: 25.0.0-preview-2be370e
-  resolution: "@metamask-previews/perps-controller@npm:25.0.0-preview-2be370e"
+"@metamask/perps-controller@npm:@metamask-previews/perps-controller@25.0.0-preview-c785ff081":
+  version: 25.0.0-preview-c785ff081
+  resolution: "@metamask-previews/perps-controller@npm:25.0.0-preview-c785ff081"
   dependencies:
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11413,7 +11413,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.3.0"
     uuid: "npm:^14.0.3"
-  checksum: 10/271f9b1a4671830c1de89048df64de9cb4b2fbfc9bcff1245a6d08ae831a61bc981889da3be69d665b2c763a2a4253f7e3a5af4ac727a28d2bf405b8a8bcf076
+  checksum: 10/1ebb4eee1f38247402156949241e4bb4b58b539972ecfac8ec2bb9dbb02cc3b29b70558932adfd285c6cff1947e5d06a6fa53ed68424d7cabe6cab877ded8373
   languageName: node
   linkType: hard
 

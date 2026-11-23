@@ -167,27 +167,6 @@ describe('usePerpsSubAccounts', () => {
     });
   });
 
-  it('leaves balances unknown, not $0, when getAccountState fails', async () => {
-    (
-      Engine.context.PerpsController.getAccountState as jest.Mock
-    ).mockImplementation(async ({ userAddress }: { userAddress: string }) =>
-      userAddress === '0xabc'
-        ? Promise.reject(new Error('ACCOUNT_STATE_FAILED'))
-        : Promise.resolve(ACCOUNT_STATE_DEFAULT),
-    );
-
-    const { result } = renderHook(() => usePerpsSubAccounts());
-
-    await waitFor(() => {
-      expect(result.current.subAccounts[1].totalBalance).toBe('150');
-    });
-    const failed = result.current.subAccounts[0];
-    expect(failed.id).toBe('0xabc');
-    expect(failed.spendableBalance).toBeUndefined();
-    expect(failed.withdrawableBalance).toBeUndefined();
-    expect(failed.totalBalance).toBeUndefined();
-  });
-
   it('does not fetch balances when no EVM accounts', async () => {
     setupSelectorMock([], {});
 

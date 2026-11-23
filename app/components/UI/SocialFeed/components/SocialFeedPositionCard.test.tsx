@@ -123,8 +123,6 @@ jest.mock('./TraderAvatar', () => {
 });
 
 jest.mock('../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 

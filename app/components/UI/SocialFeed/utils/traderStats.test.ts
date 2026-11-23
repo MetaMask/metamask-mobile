@@ -6,8 +6,6 @@ import {
 } from './traderStats';
 
 jest.mock('../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: (key: string, params?: Record<string, string>) =>
     `${key}:${JSON.stringify(params ?? {})}`,
 }));

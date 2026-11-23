@@ -7,8 +7,8 @@ import {
   getIntlDateTimeFormatter,
   getIntlNumberFormatter,
 } from '../../../../util/intl';
-import { createFormatters } from '@metamask/client-utils';
-import { getFormatters } from '../../../hooks/useFormatters';
+import { createFormatters, type Formatters } from '@metamask/client-utils';
+import { getFormatters as getAppFormatters } from '../../../hooks/useFormatters';
 import { bpsToPercent } from '../constants/slippageConfig';
 import {
   type FiatRangeConfig,
@@ -58,6 +58,10 @@ export {
  */
 
 type PerpsDisplayValue = string | number | null | undefined;
+
+/** App-language formatters; English while i18n has no locale (e.g. a module mock). */
+const getFormatters = (): Formatters =>
+  I18n?.locale ? getAppFormatters() : createFormatters({ locale: 'en' });
 
 /** Core `formatPerpsDuration` in the app language. */
 export const formatPerpsDuration = (durationMs: PerpsDisplayValue): string =>

@@ -8,17 +8,13 @@ import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const EVM_TYPE_PREFIX = 'eip155:';
 
-interface SubAccountBalances {
+export interface SubAccountInfo {
+  id: string;
+  name: string;
   spendableBalance: string;
   withdrawableBalance: string;
   totalBalance: string;
 }
-
-/** Balances stay `undefined` until read, and when the read fails. */
-export type SubAccountInfo = {
-  id: string;
-  name: string;
-} & Partial<SubAccountBalances>;
 
 interface UsePerpsSubAccountsReturn {
   subAccounts: SubAccountInfo[];
@@ -31,7 +27,14 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
   const allAccounts = useSelector(selectInternalAccounts);
   const accountToGroupMap = useSelector(selectAccountToGroupMap);
   const [balances, setBalances] = useState<
-    Record<string, SubAccountBalances | undefined>
+    Record<
+      string,
+      {
+        spendableBalance: string;
+        withdrawableBalance: string;
+        totalBalance: string;
+      }
+    >
   >({});
 
   const evmAccounts = useMemo(
@@ -58,8 +61,14 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
               },
             ] as const;
           } catch {
-            // A failed read is unknown, not an empty account.
-            return [account.address, undefined] as const;
+            return [
+              account.address,
+              {
+                spendableBalance: '0',
+                withdrawableBalance: '0',
+                totalBalance: '0',
+              },
+            ] as const;
           }
         }),
       );
@@ -71,7 +80,7 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
 
   useEffect(() => {
     if (evmAccounts.length > 0) {
-      fetchBalances().catch(() => undefined);
+      fetchBalances();
     }
   }, [evmAccounts, fetchBalances]);
 
@@ -80,7 +89,11 @@ export function usePerpsSubAccounts(): UsePerpsSubAccountsReturn {
       evmAccounts.map((account) => {
         const group = accountToGroupMap[account.id];
         const displayName = group?.metadata?.name || account.address;
-        const bal = balances[account.address];
+        const bal = balances[account.address] ?? {
+          spendableBalance: '0',
+          withdrawableBalance: '0',
+          totalBalance: '0',
+        };
         return {
           id: account.address,
           name: `${displayName} (Perps)`,

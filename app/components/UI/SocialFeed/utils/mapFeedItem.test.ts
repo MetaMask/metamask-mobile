@@ -3,8 +3,6 @@ import { formatFeedSubHeader } from './formatFeedSubHeader';
 import { mockPerpFeedItem, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 
 jest.mock('../../../../../locales/i18n', () => ({
-  __esModule: true,
-  default: { locale: 'en' },
   strings: (key: string, params?: Record<string, string>) => {
     if (
       key === 'social_leaderboard.feed.sub_header.size_at_market_cap' &&
