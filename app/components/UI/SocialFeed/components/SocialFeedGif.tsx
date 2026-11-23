@@ -1,6 +1,7 @@
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useState } from 'react';
 import { Image, View, type ImageLoadEvent } from 'react-native';
+import { socialFeedImageAb } from '../socialFeedImageAb';
 
 /** Used until the GIF reports its size. */
 const DEFAULT_ASPECT_RATIO = 1;
@@ -59,7 +60,7 @@ const SocialFeedGif: React.FC<SocialFeedGifProps> = ({
   );
 
   const frameStyle = [tw.style('w-full'), { aspectRatio }];
-  if (!visible) {
+  if (socialFeedImageAb.disable || !visible) {
     return <View style={frameStyle} testID={testID} />;
   }
 

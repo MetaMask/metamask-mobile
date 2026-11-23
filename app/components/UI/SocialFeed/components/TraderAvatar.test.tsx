@@ -7,6 +7,7 @@ import { AvatarAccount } from '@metamask/design-system-react-native';
 import { FoxiconVariant } from '../../../../component-library/components-temp/Foxicon';
 import { assetByFoxiconVariant } from '../../../../component-library/components-temp/Foxicon/Foxicon.assets';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { socialFeedImageAb } from '../socialFeedImageAb';
 import { KNOWN_DEFAULT_AVATAR_URLS } from '../utils/avatarFallback';
 import TraderAvatar from './TraderAvatar';
 
@@ -15,6 +16,14 @@ const ENS_PLACEHOLDER_URL = KNOWN_DEFAULT_AVATAR_URLS[0];
 const ADDRESS = '0x0000000000000000000000000000000000000001';
 
 describe('TraderAvatar', () => {
+  beforeEach(() => {
+    socialFeedImageAb.disable = false;
+  });
+
+  afterEach(() => {
+    socialFeedImageAb.disable = true;
+  });
+
   it('renders the image when a real image url is provided', () => {
     renderWithProvider(
       <TraderAvatar

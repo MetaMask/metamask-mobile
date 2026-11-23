@@ -8,6 +8,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { parseFoxiconAvatarUrl } from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
 import ProfileAvatar from '../../../Views/SocialLeaderboard/MyProfileView/components/ProfileAvatar';
+import { socialFeedImageAb } from '../socialFeedImageAb';
 import { hasRealAvatar } from '../utils/avatarFallback';
 import { resolveTraderAvatarSeed } from '../utils/resolveTraderAvatarSeed';
 
@@ -71,7 +72,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
   const foxicon = parseFoxiconAvatarUrl(imageUrl);
   const avatarSeed = resolveTraderAvatarSeed(profileId, address);
 
-  if (foxicon) {
+  if (!socialFeedImageAb.disable && foxicon) {
     return (
       <ProfileAvatar
         avatarPresetId={foxicon.avatarPresetId}
@@ -82,7 +83,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
     );
   }
 
-  if (hasRealAvatar(imageUrl)) {
+  if (!socialFeedImageAb.disable && hasRealAvatar(imageUrl)) {
     return (
       <Image
         source={{ uri: imageUrl }}

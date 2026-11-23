@@ -10,6 +10,7 @@ import type { Position } from '@metamask/social-controllers';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
 import PerpsTokenLogo from '../../Perps/components/PerpsTokenLogo';
+import { socialFeedImageAb } from '../socialFeedImageAb';
 
 jest.mock('@metamask/design-system-react-native', () => ({
   ...jest.requireActual('@metamask/design-system-react-native'),
@@ -107,7 +108,12 @@ const basePosition: Position = {
 
 describe('PositionTokenAvatar', () => {
   beforeEach(() => {
+    socialFeedImageAb.disable = false;
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    socialFeedImageAb.disable = true;
   });
 
   it('loads the MetaMask icon when chain is already a CAIP id', () => {

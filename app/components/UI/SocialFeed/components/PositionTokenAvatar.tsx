@@ -7,6 +7,7 @@ import type { Position } from '@metamask/social-controllers';
 import { isCaipChainId } from '@metamask/utils';
 import { getAssetImageUrl } from '../../Bridge/hooks/useAssetMetadata/utils';
 import PerpsTokenLogo from '../../Perps/components/PerpsTokenLogo';
+import { socialFeedImageAb } from '../socialFeedImageAb';
 import { chainNameToId, getPositionNetworkBadge } from '../utils/chainMapping';
 import { HYPERLIQUID_CHAIN_NAME } from '../utils/perp';
 import BadgeWrapper, {
@@ -118,24 +119,27 @@ const PositionTokenAvatarComponent: React.FC<PositionTokenAvatarProps> = ({
     });
   };
 
-  const avatar = isHyperliquid ? (
-    <PerpsTokenLogo
-      symbol={position.tokenSymbol}
-      size={AVATAR_TOKEN_SIZE_TO_PIXELS[size]}
-      recyclingKey={position.tokenSymbol}
-    />
-  ) : (
-    <AvatarToken
-      name={position.tokenSymbol}
-      src={src}
-      size={size}
-      imageOrSvgProps={{
-        onImageError: handleImageError,
-        onSvgError: handleImageError,
-        imageProps: { cachePolicy: 'disk' },
-      }}
-    />
-  );
+  const avatar =
+    socialFeedImageAb.disable || (!isHyperliquid && !src) ? (
+      <AvatarToken name={position.tokenSymbol} size={size} />
+    ) : isHyperliquid ? (
+      <PerpsTokenLogo
+        symbol={position.tokenSymbol}
+        size={AVATAR_TOKEN_SIZE_TO_PIXELS[size]}
+        recyclingKey={position.tokenSymbol}
+      />
+    ) : (
+      <AvatarToken
+        name={position.tokenSymbol}
+        src={src}
+        size={size}
+        imageOrSvgProps={{
+          onImageError: handleImageError,
+          onSvgError: handleImageError,
+          imageProps: { cachePolicy: 'disk' },
+        }}
+      />
+    );
 
   if (showChainBadge && networkBadge) {
     return (

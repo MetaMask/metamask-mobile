@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { socialFeedImageAb } from '../socialFeedImageAb';
 import SocialFeedGif, { clampGifAspectRatio } from './SocialFeedGif';
 
 const getAspectRatio = (testID: string) =>
@@ -21,6 +22,14 @@ describe('clampGifAspectRatio', () => {
 });
 
 describe('SocialFeedGif', () => {
+  beforeEach(() => {
+    socialFeedImageAb.disable = false;
+  });
+
+  afterEach(() => {
+    socialFeedImageAb.disable = true;
+  });
+
   it('starts square and takes the GIF ratio once it loads', () => {
     render(<SocialFeedGif uri="https://static.klipy.com/a.gif" testID="gif" />);
 
