@@ -6,11 +6,11 @@ import type {
   LedgerClaimEntryDto,
   EarningsSummaryDto,
   LedgerEntryDto,
-  ReferralLocalizedText,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
@@ -55,25 +55,6 @@ jest.mock('../hooks/useInFlightClaims', () => ({
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
-const LOCALIZED_TEXT = {
-  history: 'History',
-  historyReferrals: 'Referral earning',
-  historyCommission: 'Commission',
-  historyRebate: 'Rebate',
-  historyClaimed: 'Claimed',
-  tradingActivityEmptyDescription:
-    'Your activity is empty now. Start trading to earn today!',
-  tradingActivityEmptyAction: 'Start trading',
-  copyTradingEmptyDescription:
-    'Share a trade to start earning from copies of it.',
-  copyTradingEmptyAction: 'Start sharing',
-  rewardsPausedTitle: 'Rewards paused',
-  rewardsPausedDescription:
-    "We've paused these rewards while we review them. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
-  rewardsPausedBanner: '{amount} of rewards paused.',
-  rewardsPausedLearnMore: 'Learn more',
-} as unknown as ReferralLocalizedText;
-
 const earning: LedgerEntryDto = {
   type: 'earning',
   id: 'earn-1',
@@ -226,7 +207,7 @@ describe('RewardsEarningsHistoryView', () => {
       getByTestId(REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(getByText('History')).toBeOnTheScreen();
-    expect(getByText('Rebate')).toBeOnTheScreen();
+    expect(getByText('Swaps')).toBeOnTheScreen();
     expect(getByText('+$1.00')).toBeOnTheScreen();
     expect(
       getByTestId(`${EARNINGS_HISTORY_TEST_IDS.ROW}-${earning.id}`),
@@ -341,10 +322,10 @@ describe('RewardsEarningsHistoryView', () => {
     );
 
     expect(
-      getByText('Share a trade to start earning from copies of it.'),
+      getByText(LOCALIZED_TEXT.copyTradingEmptyDescription),
     ).toBeOnTheScreen();
     expect(
-      queryByText('Your activity is empty now. Start trading to earn today!'),
+      queryByText(LOCALIZED_TEXT.tradingActivityEmptyDescription),
     ).toBeNull();
 
     fireEvent.press(
@@ -415,9 +396,8 @@ describe('RewardsEarningsHistoryView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
       {
-        title: 'Rewards paused',
-        description:
-          "We've paused these rewards while we review them. Your other rewards aren't affected, and you can still claim them as usual. You don't need to do anything.",
+        title: LOCALIZED_TEXT.rewardsPausedTitle,
+        description: LOCALIZED_TEXT.rewardsPausedDescription,
       },
     );
   });

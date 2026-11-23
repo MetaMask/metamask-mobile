@@ -264,6 +264,12 @@ export function renderRecurringOrderDetailsView({
           Routes.WEBVIEW.MAIN,
         ) as React.ComponentType<object>,
       },
+      {
+        name: Routes.RAMP.TOKEN_SELECTION,
+        Component: createRouteParamsProbe(
+          Routes.RAMP.TOKEN_SELECTION,
+        ) as React.ComponentType<object>,
+      },
     ],
     { state },
   );

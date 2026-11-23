@@ -844,6 +844,10 @@ export const bridgeTestState = {
           },
         },
       },
+      MoneyAccountController: {
+        moneyAccounts: {},
+        defaultMoneyAccountId: null,
+      },
       KeyringController: {
         vault: '',
         isUnlocked: true,
