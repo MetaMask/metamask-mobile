@@ -91,11 +91,9 @@ class SendView {
     // stability and retry until Amount.
     await Utilities.executeWithRetry(
       async () => {
-        try {
-          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+        // Presence probe: absence is expected while the asset picker is showing.
+        if (await Utilities.isElementVisible(this.amountScreen, 500)) {
           return;
-        } catch {
-          // Still on the asset picker
         }
 
         await Gestures.waitAndTap(this.ethTokenAssetButton, {
@@ -116,11 +114,8 @@ class SendView {
   async selectERC20Token(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        try {
-          await Utilities.waitForElementToBeVisible(this.amountScreen, 500);
+        if (await Utilities.isElementVisible(this.amountScreen, 500)) {
           return;
-        } catch {
-          // Still on the asset picker
         }
 
         await Gestures.waitAndTap(this.erc20TokenButton, {

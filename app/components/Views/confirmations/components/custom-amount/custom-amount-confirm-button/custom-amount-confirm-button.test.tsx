@@ -184,14 +184,18 @@ describe('CustomAmountConfirmButton', () => {
     expect(getByText('Convert USDC')).toBeOnTheScreen();
   });
 
-  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+  it.each([
+    TransactionType.perpsDeposit,
+    TransactionType.perpsLighterDeposit,
+    TransactionType.predictDeposit,
+  ])(
     'shows Send for %s when payWithOption is MoneyAccount even if payToken is set',
     (type) => {
       useRouteMock.mockReturnValue({
         key: 'mock-route',
         name: 'MockScreen',
         params: { payWithOption: 'money_account' },
-      } as never);
+      });
       useTransactionMetadataRequestMock.mockReturnValue({
         type,
       } as never);

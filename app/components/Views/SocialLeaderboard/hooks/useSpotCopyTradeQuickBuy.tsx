@@ -78,7 +78,7 @@ export const useSpotCopyTradeQuickBuy = ({
       }
       openQuickBuy(
         target,
-        commentId ? { commentId } : undefined,
+        commentId ? { commentId, authorId: item.author.id } : undefined,
         'buy',
         item.author.address,
       );

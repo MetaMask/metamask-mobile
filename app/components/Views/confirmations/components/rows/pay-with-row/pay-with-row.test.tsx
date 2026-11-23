@@ -603,7 +603,7 @@ describe('PayWithRow', () => {
         name: 'Credit Card',
         score: 1,
         icon: 'card-icon',
-      } as PaymentMethod);
+      });
 
       const { getByText, queryByText } = render();
 

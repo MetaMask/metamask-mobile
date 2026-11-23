@@ -281,6 +281,10 @@ const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
     'confirm.tooltip.money_account_deposit.transaction_fee',
   [TransactionType.perpsDeposit]:
     'confirm.tooltip.perps_deposit.transaction_fee',
+  [TransactionType.perpsLighterDeposit]:
+    'confirm.tooltip.perps_deposit.transaction_fee',
+  [TransactionType.perpsLighterWithdraw]:
+    'confirm.tooltip.perps_withdraw.swap_to_token',
 };
 
 function Tooltip({

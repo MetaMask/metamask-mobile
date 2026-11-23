@@ -28,7 +28,9 @@ export const REDESIGNED_TRANSACTION_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.predictDepositAndOrder,
   TransactionType.revokeDelegation,
   TransactionType.simpleSend,
@@ -62,8 +64,11 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
@@ -88,6 +93,7 @@ export const EARN_CONTRACT_INTERACTION_TYPES = [
  */
 export const HIDE_NETWORK_FILTER_TYPES = [
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.predictDepositAndOrder,
 ];
 
@@ -98,6 +104,7 @@ export const HIDE_NETWORK_FILTER_TYPES = [
 export const POST_QUOTE_TRANSACTION_TYPES = [
   TransactionType.predictWithdraw,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.moneyAccountWithdraw,
 ] as const;
 
@@ -124,8 +131,11 @@ export const PAY_TRANSACTION_TYPES = [
   ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
@@ -143,8 +153,11 @@ export const MM_PAY_TRANSACTION_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.musdClaim,
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictDepositAndOrder,
@@ -167,7 +180,9 @@ export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
  */
 export const PAY_TOKEN_REQUIRED_TRANSACTION_TYPES = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictDepositAndOrder,
 ] as const;

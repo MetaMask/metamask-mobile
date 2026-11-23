@@ -518,7 +518,7 @@ const SocialV1ViewContent: React.FC = () => {
 
       openQuickBuy(
         target,
-        commentId ? { commentId } : undefined,
+        commentId ? { commentId, authorId: item.author.id } : undefined,
         'buy',
         source,
         item.author.address,

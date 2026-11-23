@@ -164,7 +164,41 @@ describe('PredictApiReadClient deposit routes', () => {
       await expect(failed).rejects.toMatchObject({
         status: 409,
         bodyCode: 'deposit_in_progress',
+        deposit: cancelled,
       });
+    });
+
+    it.each([
+      ['not_placed', { code: 'insufficient_balance', outcome: 'not_placed' }],
+      ['unknown', { code: 'insufficient_balance' }],
+      ['unknown', { code: 'venue_unavailable', outcome: 'maybe' }],
+      ['unknown', { code: 'venue_unavailable', outcome: 'NOT_PLACED' }],
+      ['unknown', 'Bad Gateway'],
+      ['unknown', undefined],
+    ] as const)(
+      'reads outcome %s from the error body %j',
+      async (outcome, body) => {
+        fetchMock.mockResolvedValue(response(502, body));
+
+        await expect(
+          client.createDeposit(venueId, DEPOSIT, undefined, SIGNING),
+        ).rejects.toMatchObject({ outcome });
+      },
+    );
+
+    it('reads outcome unknown from a body that is not JSON', async () => {
+      fetchMock.mockResolvedValue({
+        ok: false,
+        status: 504,
+        json: jest.fn().mockRejectedValue(new SyntaxError('Unexpected <')),
+        clone() {
+          return this;
+        },
+      } as unknown as Response);
+
+      await expect(
+        client.createDeposit(venueId, DEPOSIT, undefined, SIGNING),
+      ).rejects.toMatchObject({ status: 504, outcome: 'unknown' });
     });
 
     it('sends nothing without signing inputs', async () => {
@@ -185,6 +219,28 @@ describe('PredictApiReadClient deposit routes', () => {
       });
       expect(fetchMock).not.toHaveBeenCalled();
     });
+  });
+
+  it.each([
+    [
+      'reportDepositTransfer',
+      () =>
+        client.reportDepositTransfer(venueId, OPERATION_ID, {
+          txHash: transferReported.txHash as PredictHex,
+          chainId: transferReported.chainId,
+        }),
+    ],
+    ['cancelDeposit', () => client.cancelDeposit(venueId, OPERATION_ID)],
+  ])('carries the body outcome on a %s error', async (_route, call) => {
+    fetchMock.mockResolvedValueOnce(
+      response(404, { code: 'operation_not_found', outcome: 'not_placed' }),
+    );
+    await expect(call()).rejects.toMatchObject({ outcome: 'not_placed' });
+
+    fetchMock.mockResolvedValueOnce(
+      response(404, { code: 'operation_not_found' }),
+    );
+    await expect(call()).rejects.toMatchObject({ outcome: 'unknown' });
   });
 
   it('reads one deposit by operation ID', async () => {

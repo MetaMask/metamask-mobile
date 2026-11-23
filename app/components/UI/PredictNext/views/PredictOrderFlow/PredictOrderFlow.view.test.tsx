@@ -12,7 +12,8 @@ import { Text, Button } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../../locales/i18n';
 import { renderPredictOrderFlow } from '../../../../../../tests/component-view/renderers/predictNext';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
+import Routes from '../../../../../constants/navigation/Routes';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import {
   composePredictNextOrderService,
   configurePredictNextCatalog,
@@ -1157,6 +1158,56 @@ describe('PredictOrderFlow', () => {
     ).toBeOnTheScreen();
   });
 
+  it('offers Add funds under an insufficient_balance quote when the Kalshi catalog includes deposit', async () => {
+    stubFetch(() => ({
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    }));
+    renderPredictOrderFlow(BuyProbe);
+    fireEvent.press(screen.getByTestId(PROBE_BUTTON));
+    await screen.findByTestId(PredictOrderFlowTestIds.SHEET, {}, SHEET_LOAD);
+    typeAmount('20');
+    await flushDebounce();
+
+    fireEvent.press(
+      await screen.findByTestId(PredictOrderFlowTestIds.ADD_FUNDS),
+    );
+
+    expect(
+      await screen.findByTestId(`route-${Routes.PREDICT.ROOT}-params`),
+    ).toHaveTextContent(
+      JSON.stringify({
+        screen: 'PredictNextDeposit',
+        params: { venueId: 'kalshi' },
+      }),
+    );
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.SHEET)).toBeNull();
+  });
+
+  it('offers no Add funds under an insufficient_balance quote while the Kalshi catalog omits deposit', async () => {
+    stubFetch(() => ({
+      status: 422,
+      body: {
+        code: 'insufficient_balance',
+        message: 'Estimated total debit exceeds the available balance.',
+      },
+    }));
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell'],
+    });
+
+    await openSheet();
+    typeAmount('20');
+    await flushDebounce();
+
+    expect(screen.getByTestId(PredictOrderFlowTestIds.ERROR)).toBeOnTheScreen();
+    expect(screen.queryByTestId(PredictOrderFlowTestIds.ADD_FUNDS)).toBeNull();
+  });
+
   it('presents the exact quoted values for approval before committing', async () => {
     stubFetch(() => ({ body: makePreview() }));
 
@@ -1249,6 +1300,7 @@ describe('PredictOrderFlow', () => {
         body: {
           code: 'preview_expired',
           message: 'Order Preview has expired; request a fresh quote.',
+          outcome: 'not_placed',
         },
       }),
     });

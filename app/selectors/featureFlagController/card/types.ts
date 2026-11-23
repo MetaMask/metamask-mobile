@@ -88,7 +88,6 @@ export interface SupportedToken {
 
 export interface SupportedChain {
   enabled?: boolean | null;
-  balanceScannerAddress?: `0x${string}` | null;
   foxConnectAddresses?: {
     global?: `0x${string}` | null;
     us?: `0x${string}` | null;

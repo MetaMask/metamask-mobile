@@ -27,6 +27,7 @@ import {
   buildReceiveWithAuthorizationData,
   canClaimEarnings,
   cashbackMeetsClaimMinimum,
+  displayClaimTotals,
   claimRouteOptions,
   showEarningsIndicator,
   claimRoutesForSummary,
@@ -200,6 +201,100 @@ describe('cashbackMeetsClaimMinimum', () => {
   it('is false when the summary is missing', () => {
     expect(cashbackMeetsClaimMinimum(null)).toBe(false);
     expect(cashbackMeetsClaimMinimum(undefined)).toBe(false);
+  });
+});
+
+describe('displayClaimTotals', () => {
+  it('keeps a route at the minimum available', () => {
+    expect(
+      displayClaimTotals(
+        summary({ claimable: ONE_DOLLAR, cashback: ONE_DOLLAR }),
+      ),
+    ).toEqual({ claimable: ONE_DOLLAR, pending: '0' });
+  });
+
+  it('moves a route under the minimum into pending', () => {
+    expect(
+      displayClaimTotals(
+        summary({ claimable: UNDER_DOLLAR, cashback: UNDER_DOLLAR }),
+      ),
+    ).toEqual({ claimable: '0', pending: UNDER_DOLLAR });
+  });
+
+  it('keeps cashback available and moves revenue share under the minimum', () => {
+    const mixed = summary({
+      claimable: '1400000',
+      cashback: ONE_DOLLAR,
+      revShare: '400000',
+    });
+    mixed.pending = '250000';
+
+    expect(displayClaimTotals(mixed)).toEqual({
+      claimable: ONE_DOLLAR,
+      pending: '650000',
+    });
+  });
+
+  it('adds delay pending to a route under the minimum', () => {
+    const below = summary({
+      claimable: UNDER_DOLLAR,
+      cashback: UNDER_DOLLAR,
+    });
+    below.pending = '100000';
+
+    expect(displayClaimTotals(below)).toEqual({
+      claimable: '0',
+      pending: '1099999',
+    });
+  });
+
+  it('leaves a route in claimable when the minimum is missing', () => {
+    const missing = summary({
+      claimable: UNDER_DOLLAR,
+      cashback: UNDER_DOLLAR,
+      minimum: '',
+    });
+
+    expect(displayClaimTotals(missing)).toEqual({
+      claimable: UNDER_DOLLAR,
+      pending: '0',
+    });
+  });
+
+  it('leaves a route in claimable when the minimum is unreadable', () => {
+    const unreadable = summary({
+      claimable: UNDER_DOLLAR,
+      cashback: UNDER_DOLLAR,
+      minimum: 'abc',
+    });
+
+    expect(displayClaimTotals(unreadable)).toEqual({
+      claimable: UNDER_DOLLAR,
+      pending: '0',
+    });
+  });
+
+  it('leaves a server-closed route in blocked and a tax hold in held', () => {
+    const closed = summary({
+      claimable: ONE_DOLLAR,
+      cashback: ONE_DOLLAR,
+      revShare: '0',
+    });
+    closed.held = '2000000';
+    closed.blocked = '400000';
+
+    expect(displayClaimTotals(closed)).toEqual({
+      claimable: ONE_DOLLAR,
+      pending: '0',
+    });
+    expect(closed.held).toBe('2000000');
+    expect(closed.blocked).toBe('400000');
+  });
+
+  it('keeps root claimable that no family accounts for', () => {
+    expect(
+      displayClaimTotals(summary({ claimable: '500000', cashback: '0' })),
+    ).toEqual({ claimable: '500000', pending: '0' });
   });
 });
 

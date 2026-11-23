@@ -119,6 +119,7 @@ function useButtonLabel() {
     payWithOption === PayWithOption.MoneyAccount &&
     hasTransactionType(transaction, [
       TransactionType.perpsDeposit,
+      TransactionType.perpsLighterDeposit,
       TransactionType.predictDeposit,
     ])
   ) {
@@ -140,6 +141,7 @@ function useButtonLabel() {
     hasTransactionType(transaction, [
       TransactionType.predictWithdraw,
       TransactionType.perpsWithdraw,
+      TransactionType.perpsLighterWithdraw,
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
