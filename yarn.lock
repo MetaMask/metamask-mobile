@@ -12290,7 +12290,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/subscription-controller@npm:^15.2.1":
+"@metamask/subscription-controller@npm:^15.3.0":
   version: 15.3.0
   resolution: "@metamask/subscription-controller@npm:15.3.0"
   dependencies:
