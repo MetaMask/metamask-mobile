@@ -214,6 +214,7 @@ export type ReferralLocalizedTextKey =
   | 'copiedOnce'
   | 'copiedTimes'
   | 'rebatePerpsVolume'
+  | 'rebatePerps'
   | 'rebateSwapsVolume'
   | 'rebatePredictions'
   | 'rebateSwaps'
