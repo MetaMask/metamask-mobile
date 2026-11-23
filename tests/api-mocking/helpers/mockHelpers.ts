@@ -8,6 +8,7 @@ import type {
 import { sleep } from '../../framework/Utilities.ts';
 import { getDecodedProxiedURL } from '../../smoke-appium/notifications/utils/helpers.ts';
 import { safeGetBodyText } from '../MockServerE2E.ts';
+import type { AccountsSupportedNetworksV2Response } from '../api-response-types.ts';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
 // Change this to DEBUG as needed (required to see `waitForProxiedRequestsMatching` dumps)
@@ -494,7 +495,7 @@ export async function setupAccountsV2SupportedNetworksMock(
         'eip155:1329',
       ],
       partialSupport: ['eip155:42220', 'eip155:43114'],
-    },
+    } satisfies AccountsSupportedNetworksV2Response,
     responseCode: 200,
   });
 }

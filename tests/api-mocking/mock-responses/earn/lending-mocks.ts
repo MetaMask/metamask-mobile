@@ -10,6 +10,12 @@ import { setupMockRequest } from '../../helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../../smoke-appium/notifications/utils/helpers';
 import { safeGetBodyText } from '../../MockServerE2E';
 import { DEFAULT_FIXTURE_ACCOUNT_CHECKSUM } from '../../../framework/fixtures/FixtureBuilder';
+import type {
+  AccountsBalancesV2Response,
+  AccountsMultiaccountBalancesV4Response,
+  AccountsMultiaccountBalancesV5Response,
+  TokenSupportedNetworksV2Response,
+} from '../../api-response-types';
 
 /** Lowercase test-account address used in Accounts API CAIP-10 identifiers. */
 const TEST_ACCOUNT = DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase();
@@ -32,6 +38,7 @@ export interface LendingMockOptions {
 
 function buildAccountsApiV4Response(usdcBalance: number) {
   return {
+    count: 2,
     balances: [
       {
         object: 'token',
@@ -57,7 +64,7 @@ function buildAccountsApiV4Response(usdcBalance: number) {
       },
     ],
     unprocessedNetworks: [],
-  };
+  } satisfies AccountsMultiaccountBalancesV4Response;
 }
 
 function buildAccountsApiV2Response(usdcBalance: number) {
@@ -88,11 +95,22 @@ function buildAccountsApiV2Response(usdcBalance: number) {
       },
     ],
     unprocessedNetworks: [],
-  };
+  } satisfies AccountsBalancesV2Response;
 }
 
 function buildAccountsApiV5Response(usdcBalance: number, hasPosition: boolean) {
-  const balances = [
+  const aaveUsdcBalance: AccountsMultiaccountBalancesV5Response['balances'][number] =
+    {
+      object: 'token',
+      assetId: AAVE_USDC_ASSET_ID,
+      symbol: 'aEthUSDC',
+      name: 'Aave Ethereum USDC',
+      type: 'erc20',
+      decimals: 6,
+      balance: `${usdcBalance / 2}.000000`,
+      accountId: `eip155:1:${TEST_ACCOUNT}`,
+    };
+  const balances: AccountsMultiaccountBalancesV5Response['balances'] = [
     {
       object: 'token',
       assetId: MAINNET_NATIVE_ASSET_ID,
@@ -113,27 +131,14 @@ function buildAccountsApiV5Response(usdcBalance: number, hasPosition: boolean) {
       balance: `${usdcBalance}.000000`,
       accountId: `eip155:1:${TEST_ACCOUNT}`,
     },
-    ...(hasPosition
-      ? [
-          {
-            object: 'token',
-            assetId: AAVE_USDC_ASSET_ID,
-            symbol: 'aEthUSDC',
-            name: 'Aave Ethereum USDC',
-            type: 'erc20',
-            decimals: 6,
-            balance: `${usdcBalance / 2}.000000`,
-            accountId: `eip155:1:${TEST_ACCOUNT}`,
-          },
-        ]
-      : []),
+    ...(hasPosition ? [aaveUsdcBalance] : []),
   ];
 
   return {
     count: balances.length,
     balances,
     unprocessedNetworks: [],
-  };
+  } satisfies AccountsMultiaccountBalancesV5Response;
 }
 
 const LENDING_MARKET_USDC = {
@@ -237,7 +242,7 @@ export async function setupLendingMocks(
       response: {
         fullSupport: ['eip155:1'],
         partialSupport: [],
-      },
+      } satisfies TokenSupportedNetworksV2Response,
       requestMethod: 'GET',
       responseCode: 200,
     },

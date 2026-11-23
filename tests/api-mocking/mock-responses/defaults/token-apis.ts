@@ -1,6 +1,12 @@
 import { MockEventsObject } from '../../../framework';
 import { TOKEN_API_TOKENS_RESPONSE } from '../token-api-responses.ts';
 import { MUSD_TOKEN_API_RESPONSE } from '../musd/musd-token-response.ts';
+import type {
+  TokenAssetsV2Response,
+  TokenSuggestedOccurrenceFloorsV1Response,
+  TokenSupportedNetworksV2Response,
+  TokensAssetsV3Response,
+} from '../../api-response-types';
 
 /**
  * Mock data for MetaMask token API endpoints used in E2E testing.
@@ -51,7 +57,7 @@ const SUGGESTED_OCCURRENCE_FLOORS_RESPONSE = {
   '10143': 1,
   '59144': 1,
   '98866': 1,
-};
+} satisfies TokenSuggestedOccurrenceFloorsV1Response;
 
 // OHLCV advanced chart (useOHLCVChart) — path includes CAIP asset id, e.g.
 // https://price.api.cx.metamask.io/v3/ohlcv-chart/eip155:8453/erc20:0x...?timePeriod=1d&vsCurrency=usd
@@ -92,12 +98,12 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
     {
       urlEndpoint: tokenV3AssetsRegex,
       responseCode: 200,
-      response: [],
+      response: [] satisfies TokensAssetsV3Response,
     },
     {
       urlEndpoint: tokenV2AssetsRegex,
       responseCode: 200,
-      response: [],
+      response: [] satisfies TokenAssetsV2Response,
     },
     {
       urlEndpoint: tokenV2SupportedNetworksRegex,
@@ -115,7 +121,7 @@ export const TOKEN_API_MOCKS: MockEventsObject = {
           'eip155:1329',
         ],
         partialSupport: [],
-      },
+      } satisfies TokenSupportedNetworksV2Response,
     },
     {
       urlEndpoint: suggestedOccurrenceFloorsRegex,

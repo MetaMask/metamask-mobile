@@ -1,4 +1,5 @@
 import { MockEventsObject } from '../../../framework';
+import type { GasSuggestedGasFeesResponse } from '../../api-response-types';
 
 // Gas fees response for Ethereum networks
 export const GAS_FEES_RESPONSE = {
@@ -26,8 +27,8 @@ export const GAS_FEES_RESPONSE = {
   historicalPriorityFeeRange: ['1', '5'],
   historicalBaseFeeRange: ['20', '30'],
   priorityFeeTrend: 'down',
-  baseFeeTrend: 'stable',
-};
+  baseFeeTrend: 'level',
+} satisfies GasSuggestedGasFeesResponse;
 
 // Polygon gas fees response for network 137
 export const POLYGON_GAS_FEES_RESPONSE = {
@@ -57,7 +58,7 @@ export const POLYGON_GAS_FEES_RESPONSE = {
   priorityFeeTrend: 'down',
   baseFeeTrend: 'down',
   version: '0.0.1',
-};
+} satisfies GasSuggestedGasFeesResponse;
 
 /**
  * Mock data for gas API endpoints used in E2E testing.

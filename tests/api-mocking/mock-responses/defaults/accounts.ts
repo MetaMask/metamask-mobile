@@ -1,5 +1,14 @@
 /* eslint-disable no-useless-escape */
 import { MockEventsObject } from '../../../framework';
+import type {
+  AccountsActiveNetworksV2Response,
+  AccountsBalancesV2Response,
+  AccountsMultiaccountBalancesV4Response,
+  AccountsMultiaccountBalancesV5Response,
+  AccountsMultiaccountBalancesV6Response,
+  AccountsMultiaccountTransactionsV5Response,
+  AccountsSupportedNetworksV2Response,
+} from '../../api-response-types';
 export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   data: [
     {
@@ -1207,7 +1216,7 @@ export const ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE = {
   data: [],
   pageInfo: { count: 0, hasNextPage: false },
   unprocessedAccounts: [],
-};
+} satisfies AccountsMultiaccountTransactionsV5Response;
 
 export const ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE = {
   activeNetworks: [
@@ -1216,7 +1225,7 @@ export const ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE = {
     'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
     'eip155:8453:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
   ],
-};
+} satisfies AccountsActiveNetworksV2Response;
 
 /**
  * Minimal mock data for accounts API endpoints used in E2E testing.
@@ -1273,7 +1282,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           'eip155:999',
         ],
         partialSupport: ['eip155:42220', 'eip155:43114'],
-      },
+      } satisfies AccountsSupportedNetworksV2Response,
     },
     {
       urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
@@ -1291,7 +1300,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           'eip155:1329',
         ],
         partialSupport: ['eip155:42220', 'eip155:43114'],
-      },
+      } satisfies AccountsSupportedNetworksV2Response,
     },
     {
       urlEndpoint:
@@ -1310,7 +1319,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           'eip155:1329',
         ],
         partialSupport: ['eip155:42220', 'eip155:43114'],
-      },
+      } satisfies AccountsSupportedNetworksV2Response,
     },
     {
       urlEndpoint:
@@ -1354,7 +1363,7 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           },
         ],
         unprocessedNetworks: [],
-      },
+      } satisfies AccountsBalancesV2Response,
     },
     {
       urlEndpoint:
@@ -1376,46 +1385,42 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           },
         ],
         unprocessedNetworks: [],
-      },
+      } satisfies AccountsBalancesV2Response,
     },
     {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances\?accountAddresses=.*$/,
       responseCode: 200,
       response: {
+        count: 2,
         balances: [
           {
-            count: 2,
-            balances: [
-              {
-                object: 'token',
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                name: 'Ether',
-                type: 'native',
-                decimals: 18,
-                chainId: 1,
-                balance: '0.000000000000000000',
-                accountAddress:
-                  'eip155:1:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-              },
-              {
-                object: 'token',
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'MATIC',
-                name: 'MATIC',
-                type: 'native',
-                decimals: 18,
-                chainId: 137,
-                balance: '0.000000000000000000',
-                accountAddress:
-                  'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-              },
-            ],
-            unprocessedNetworks: ['eip155:1329'],
+            object: 'token',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ether',
+            type: 'native',
+            decimals: 18,
+            chainId: 1,
+            balance: '0.000000000000000000',
+            accountAddress:
+              'eip155:1:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+          },
+          {
+            object: 'token',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'MATIC',
+            name: 'MATIC',
+            type: 'native',
+            decimals: 18,
+            chainId: 137,
+            balance: '0.000000000000000000',
+            accountAddress:
+              'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
           },
         ],
-      },
+        unprocessedNetworks: [1329],
+      } satisfies AccountsMultiaccountBalancesV4Response,
     },
     {
       urlEndpoint:
@@ -1425,17 +1430,17 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
         count: 0,
         balances: [],
         unprocessedNetworks: [],
-      },
+      } satisfies AccountsMultiaccountBalancesV5Response,
     },
     {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v6\/multiaccount\/balances\?.*$/,
       responseCode: 200,
       response: {
-        count: 0,
         balances: [],
         unprocessedNetworks: [],
-      },
+        unprocessedIncludeAssetIds: [],
+      } satisfies AccountsMultiaccountBalancesV6Response,
     },
     {
       urlEndpoint:

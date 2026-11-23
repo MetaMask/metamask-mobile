@@ -20,10 +20,11 @@ import {
   setupSpotPricesMock,
   setupSwapSocialAndComplianceMocks,
 } from './swap-mocks';
-import { toQuoteResponseV2 } from '@metamask/bridge-controller';
+import { StatusTypes, toQuoteResponseV2 } from '@metamask/bridge-controller';
+import type { BridgeGetTxStatusResponse } from '../../api-mocking/api-response-types';
 
 const BRIDGE_TX_STATUS_COMPLETE = {
-  status: 'COMPLETE',
+  status: StatusTypes.COMPLETE,
   srcChain: {
     chainId: 1,
     txHash:
@@ -34,7 +35,7 @@ const BRIDGE_TX_STATUS_COMPLETE = {
     txHash:
       '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
   },
-};
+} satisfies BridgeGetTxStatusResponse;
 
 // Quote id used by the bridgeQuoteStatusManager e2e coverage below. The
 // BridgeStatusController only calls getQuoteStatus for history items that

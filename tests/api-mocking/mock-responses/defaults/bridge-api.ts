@@ -1,3 +1,9 @@
+import { StatusTypes } from '@metamask/bridge-controller';
+import type {
+  BridgeGetTokensResponse,
+  BridgeGetTxStatusResponse,
+} from '../../api-response-types';
+
 const BRIDGE_TOP_ASSETS_CHAIN_1 = [
   {
     address: '0x0000000000000000000000000000000000000000',
@@ -564,7 +570,7 @@ const BRIDGE_TOKEN_DETAILS_CHAIN_1 = [
       },
     },
   },
-];
+] satisfies BridgeGetTokensResponse;
 
 /** Minimal valid response for `GET /getQuoteStatus` (QuoteStatusGetResponse). */
 const BRIDGE_QUOTE_STATUS_GET_RESPONSE = {
@@ -592,7 +598,10 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
     {
       urlEndpoint:
         /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/getTxStatus(\?.*)?$/,
-      response: { status: 'complete' },
+      response: {
+        status: StatusTypes.PENDING,
+        srcChain: { chainId: 1 },
+      } satisfies BridgeGetTxStatusResponse,
       responseCode: 200,
     },
     {

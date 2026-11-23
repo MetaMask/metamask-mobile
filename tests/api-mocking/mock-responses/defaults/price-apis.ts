@@ -1,4 +1,10 @@
 import { MockEventsObject } from '../../../framework';
+import type {
+  PriceExchangeRatesV1Response,
+  PriceHistoricalPricesV1Response,
+  PriceSpotPricesV3Response,
+  PriceSupportedNetworksV2Response,
+} from '../../api-response-types';
 
 /**
  * Mock data for cryptocurrency price API endpoints used in E2E testing.
@@ -99,7 +105,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           spotPricesV2: [],
           spotPricesV3: [],
         },
-      },
+      } satisfies PriceSupportedNetworksV2Response,
     },
     {
       urlEndpoint:
@@ -143,7 +149,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           value: 110,
           currencyType: 'fiat',
         },
-      },
+      } satisfies PriceExchangeRatesV1Response,
     },
     {
       urlEndpoint:
@@ -153,8 +159,6 @@ export const PRICE_API_MOCKS: MockEventsObject = {
         'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f': {
           id: 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f',
           price: 0.999588,
-          usd: 0.999588,
-          eth: 0.000233,
           marketCap: 5000000000,
           pricePercentChange1h: 0.01,
           pricePercentChange1d: 0.1,
@@ -167,8 +171,6 @@ export const PRICE_API_MOCKS: MockEventsObject = {
         'eip155:1/slip44:60': {
           id: 'eip155:1/slip44:60',
           price: 4280.15,
-          usd: 4280.15,
-          eth: 1.0,
           marketCap: 500000000000,
           pricePercentChange1h: 0.5,
           pricePercentChange1d: 2.5,
@@ -181,8 +183,6 @@ export const PRICE_API_MOCKS: MockEventsObject = {
         'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48': {
           id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
           price: 1.0,
-          usd: 1.0,
-          eth: 0.000233,
           marketCap: 35000000000,
           pricePercentChange1h: 0.01,
           pricePercentChange1d: 0.1,
@@ -195,8 +195,6 @@ export const PRICE_API_MOCKS: MockEventsObject = {
         'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c': {
           id: 'eip155:1/erc20:0x96f6ef951840721adbf46ac996b59e0235cb985c',
           price: 1.02,
-          usd: 1.02,
-          eth: 0.000238,
           marketCap: 500000000,
           pricePercentChange1h: 0.01,
           pricePercentChange1d: 0.05,
@@ -209,8 +207,6 @@ export const PRICE_API_MOCKS: MockEventsObject = {
         'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174': {
           id: 'eip155:137/erc20:0x2791bca1f2de4661ed88a30c99a7a9449aa84174',
           price: 1.0,
-          usd: 1.0,
-          eth: 0.000344,
           marketCap: 1000000000,
           pricePercentChange1h: 0.01,
           pricePercentChange1d: 0.1,
@@ -223,8 +219,6 @@ export const PRICE_API_MOCKS: MockEventsObject = {
         'eip155:137/slip44:966': {
           id: 'eip155:137/slip44:966',
           price: 1.0,
-          usd: 1.0,
-          eth: 0.000344,
           marketCap: 50000000,
           pricePercentChange1h: 0.5,
           pricePercentChange1d: 1.0,
@@ -234,7 +228,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           pricePercentChange200d: 15.0,
           pricePercentChange1y: 20.0,
         },
-      },
+      } satisfies PriceSpotPricesV3Response,
     },
     {
       urlEndpoint:
@@ -1192,7 +1186,7 @@ export const PRICE_API_MOCKS: MockEventsObject = {
           [1756305095045, 565121492.497665],
           [1756305284000, 604896446.913068],
         ],
-      },
+      } satisfies PriceHistoricalPricesV1Response,
     },
   ],
 };
