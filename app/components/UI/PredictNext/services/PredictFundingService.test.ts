@@ -36,6 +36,7 @@ import awaitingTransfer from '../contracts/v1/fixtures/funding-contract/awaiting
 import cancelled from '../contracts/v1/fixtures/funding-contract/cancelled.json';
 import credited from '../contracts/v1/fixtures/funding-contract/credited.json';
 import needsReview from '../contracts/v1/fixtures/funding-contract/needs-review.json';
+import requestingAddress from '../contracts/v1/fixtures/funding-contract/requesting-address.json';
 import transferReported from '../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import {
   PREDICT_FUNDING_SERVICE_NAME,
@@ -2278,6 +2279,124 @@ describe('PredictFundingService deposit flow', () => {
         'PredictPortfolioService:invalidateQueries',
         { queryKey: ['PredictPortfolioService:getBalance', venueId] },
       );
+    });
+
+    it('tracks and polls a deposit still requesting its address after a relaunch', async () => {
+      jest.useFakeTimers();
+      try {
+        const backing = new Map<string, string>();
+        const journal = createDepositStatusJournal({
+          getItem: async (key) => backing.get(key) ?? null,
+          setItem: async (key, value) => {
+            backing.set(key, value);
+          },
+          removeItem: async (key) => {
+            backing.delete(key);
+          },
+        });
+        const requesting = deposit(requestingAddress);
+
+        service.destroy();
+        const firstSession = new PredictFundingService({
+          messenger: messenger.messenger,
+          funding,
+          venueId,
+          journal,
+          getIdentityScope: async () => 'profile-1',
+        });
+        service = firstSession;
+        funding.listOpenDeposits.mockResolvedValueOnce([requesting]);
+        await firstSession.resumeDeposits();
+        await flushMicrotasks();
+
+        firstSession.destroy();
+        const relaunched = new PredictFundingService({
+          messenger: messenger.messenger,
+          funding,
+          venueId,
+          journal,
+          getIdentityScope: async () => 'profile-1',
+        });
+        service = relaunched;
+        funding.listOpenDeposits.mockResolvedValueOnce([requesting]);
+        funding.getDeposit.mockResolvedValue(requesting);
+
+        await relaunched.resumeDeposits();
+
+        expect(relaunched.getDepositStatus(venueId)).toStrictEqual(requesting);
+        jest.advanceTimersByTime(2_000);
+        await flushMicrotasks();
+        expect(funding.getDeposit).toHaveBeenCalledWith(
+          requesting.operationId,
+          { signal: expect.any(AbortSignal) },
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('keeps stored notices when a deposit is written during the journal load', async () => {
+      const backing = new Map<string, string>();
+      const loadGate = deferred<void>();
+      let gateNextRead = false;
+      const journal = createDepositStatusJournal({
+        getItem: async (key) => {
+          if (gateNextRead) {
+            gateNextRead = false;
+            await loadGate.promise;
+          }
+          return backing.get(key) ?? null;
+        },
+        setItem: async (key, value) => {
+          backing.set(key, value);
+        },
+        removeItem: async (key) => {
+          backing.delete(key);
+        },
+      });
+      const storedNotice = makeFailedDeposit({
+        operationId: '019324e4-1234-7abc-8000-000000000003' as PredictEntityId,
+      });
+      await journal.save('profile-1', venueId, {
+        unresolved: [],
+        notices: [storedNotice],
+      });
+
+      service.destroy();
+      const session = new PredictFundingService({
+        messenger: messenger.messenger,
+        funding,
+        venueId,
+        journal,
+        getIdentityScope: async () => 'profile-1',
+      });
+      service = session;
+      funding.listOpenDeposits.mockResolvedValueOnce([
+        deposit(awaitingTransfer),
+      ]);
+
+      gateNextRead = true;
+      const resumed = session.resumeDeposits();
+      await flushMicrotasks();
+      await session.prepareDeposit(venueId, PARAMS, APPROVAL);
+      await flushMicrotasks();
+      loadGate.resolve();
+      await resumed;
+      await flushMicrotasks();
+
+      const stored = JSON.parse(
+        backing.get('predict-next:deposit-status-journal:v1') ?? '{}',
+      );
+      expect(stored.scopes).toStrictEqual([
+        {
+          identityScope: 'profile-1',
+          venueId,
+          unresolved: [
+            { operationId: OPERATION_ID, lastStatus: 'awaiting_transfer' },
+          ],
+          notices: [storedNotice],
+        },
+      ]);
     });
   });
 });

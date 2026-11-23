@@ -168,6 +168,14 @@ const stageOf = (deposit: PredictDepositOperation): number => {
   }
 };
 
+/**
+ * Stage for a deposit known only from the journal. The journal keeps the last
+ * status but not the address, so it cannot place `processing` before or after
+ * `awaiting_transfer`. The backend never moves a deposit back past what an
+ * earlier process saw, so any live answer replaces a journal entry.
+ */
+const JOURNAL_STAGE = -1;
+
 /** What this process knows about one deposit. Never persisted. */
 interface KnownDeposit {
   status: PredictDepositStatus;
@@ -408,6 +416,9 @@ export class PredictFundingService {
   #identityScope?: string;
   #journalLoadedGeneration: number | null = null;
   #journalLoadInFlight: Promise<void> | null = null;
+  /** A journal write waits for the stored snapshot to merge, so it cannot
+   * replace stored notices with a partial in-memory view. */
+  #journalWritePending = false;
   /** Approved Withdrawal intents and their shared Commits, by Preview ID. */
   readonly #previews = new Map<string, PinnedWithdrawPreview>();
   readonly #committing = new Map<string, Promise<PredictWithdrawReceipt>>();
@@ -1072,6 +1083,7 @@ export class PredictFundingService {
     this.#identityScope = undefined;
     this.#journalLoadedGeneration = null;
     this.#journalLoadInFlight = null;
+    this.#journalWritePending = false;
     clearAllSessionDepositTransfers(this.#venueId);
     this.#publishDepositStatusIfChanged();
   }
@@ -1154,9 +1166,9 @@ export class PredictFundingService {
       }
       if (!scope) {
         this.#journalLoadedGeneration = generation;
+        this.#journalWritePending = false;
         return;
       }
-      this.#identityScope = scope;
       const snapshot = await this.#journal
         ?.load(scope, this.#venueId)
         .catch(() => ({ unresolved: [], notices: [] }));
@@ -1165,13 +1177,12 @@ export class PredictFundingService {
       }
       let statusChanged = false;
       for (const entry of snapshot.unresolved) {
-        if (!this.#unresolved.has(entry.operationId)) {
-          this.#unresolved.set(entry.operationId, entry.lastStatus);
-        }
+        // A live answer that arrived during the load is newer than the journal.
         if (!this.#known.has(entry.operationId)) {
+          this.#unresolved.set(entry.operationId, entry.lastStatus);
           this.#known.set(entry.operationId, {
             status: entry.lastStatus,
-            stage: entry.lastStatus === 'under_review' ? 4 : 1,
+            stage: JOURNAL_STAGE,
             receivedAt: 0,
           });
         }
@@ -1185,7 +1196,12 @@ export class PredictFundingService {
           statusChanged = true;
         }
       }
+      this.#identityScope = scope;
       this.#journalLoadedGeneration = generation;
+      if (this.#journalWritePending) {
+        this.#journalWritePending = false;
+        this.#writeJournal(scope);
+      }
       if (statusChanged) {
         this.#publishDepositStatusIfChanged();
       }
@@ -1198,40 +1214,35 @@ export class PredictFundingService {
     await load;
   }
 
+  /** Saves this identity's deposit state. Until the stored snapshot has been
+   * merged, the write waits for the load, which then saves the merged state. */
   #persistJournal(): void {
-    const journal = this.#journal;
-    if (!journal) {
+    if (!this.#journal || !this.#getIdentityScope) {
       return;
     }
     const generation = this.#generation;
-    const write = (scope: string): void => {
-      if (generation !== this.#generation) {
-        return;
-      }
-      void journal
-        .save(scope, this.#venueId, {
-          unresolved: Array.from(
-            this.#unresolved,
-            ([operationId, lastStatus]) => ({ operationId, lastStatus }),
-          ),
-          notices: Array.from(this.#pendingTerminalNotices.values()),
-        })
-        .catch(() => undefined);
-    };
-    if (this.#identityScope) {
-      write(this.#identityScope);
+    if (this.#identityScope && this.#journalLoadedGeneration === generation) {
+      this.#writeJournal(this.#identityScope);
       return;
     }
-    if (this.#getIdentityScope) {
-      void this.#getIdentityScope()
-        .then((scope) => {
-          if (scope && generation === this.#generation) {
-            this.#identityScope = scope;
-            write(scope);
-          }
-        })
-        .catch(() => undefined);
+    this.#journalWritePending = true;
+    if (this.#journalLoadedGeneration === generation) {
+      // Loaded while no identity was available: look it up again.
+      this.#journalLoadedGeneration = null;
     }
+    void this.#ensureJournalLoaded(generation);
+  }
+
+  #writeJournal(scope: string): void {
+    void this.#journal
+      ?.save(scope, this.#venueId, {
+        unresolved: Array.from(
+          this.#unresolved,
+          ([operationId, lastStatus]) => ({ operationId, lastStatus }),
+        ),
+        notices: Array.from(this.#pendingTerminalNotices.values()),
+      })
+      .catch(() => undefined);
   }
 
   /** Records what an answer says about its deposit and announces a
