@@ -84,8 +84,6 @@ export interface SDKConnectState {
   socketServerUrl: string; // Allow to customize different socket server url
 }
 
-export type SDKEventListener = (event: string) => void;
-
 export class SDKConnect {
   private static instance: SDKConnect;
 
