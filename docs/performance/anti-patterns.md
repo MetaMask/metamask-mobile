@@ -62,7 +62,7 @@ The most common "opening a screen is slow" cause: pagers/tabs/carousels mounting
 
 - ✅ Gate offscreen fetches (`enabled: isActive || hasEverBeenActive`); lazy-mount pager pages; `Promise.all` independent fetches.
 - ⚠️ A per-row hook backed by a **shared subscription** is fine — don't gate it (see streaming).
-- ✅ A heavy below-the-fold subtree that mounts during a **push transition** (long list, feed, chart panel) competes with the animation on the JS thread. Hold it back with the existing `useScreenTransitionComplete()` (`app/components/hooks/useScreenTransitionComplete.ts`), which turns `true` once the opening transition ends (or after a 450 ms fallback), and render an empty constant or a same-height placeholder until then. See [Deferring a heavy section](#deferring-a-heavy-section-until-the-push-transition-ends).
+- ✅ A heavy below-the-fold subtree (long list, feed, chart panel) that renders with the screen slows the **push transition**. Native-stack animates on the UI thread, but the push only starts once JS has rendered the new screen, and mounting a large subtree mid-push adds UI-thread work that drops frames. Hold it back with the existing `useScreenTransitionComplete()` (`app/components/hooks/useScreenTransitionComplete.ts`), which turns `true` once the opening transition ends (or after a 450 ms fallback), and render an empty constant or a same-height placeholder until then. See [Deferring a heavy section](#deferring-a-heavy-section-until-the-push-transition-ends).
 - **Find:** look for fetch hooks rendered per-tab/item and an `enabled` prop that exists but isn't wired.
 
 ### Deferring a heavy section until the push transition ends
