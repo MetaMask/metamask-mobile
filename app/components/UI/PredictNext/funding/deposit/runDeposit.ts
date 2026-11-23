@@ -478,7 +478,10 @@ export const continueDeposit = async (
   try {
     latest = await deps.funding.getDeposit(deposit.operationId);
   } catch (error) {
-    deps.logError(error, 'PredictNext: failed to verify deposit before continue');
+    deps.logError(
+      error,
+      'PredictNext: failed to verify deposit before continue',
+    );
     return {
       kind: 'failed',
       stage: 'prepare',
