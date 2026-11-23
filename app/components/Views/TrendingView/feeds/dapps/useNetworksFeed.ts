@@ -1,5 +1,7 @@
+import { useCallback, useEffect, useState } from 'react';
 import images from '../../../../../images/image-icons';
 import type { SiteData } from '../../../../UI/Sites/components/SiteRowItem/SiteRowItem';
+import { NFT_API_BASE_URL } from '../../../../UI/Sites/hooks/useSiteData/useSitesData';
 
 const NETWORKS: SiteData[] = [
   {
@@ -46,17 +48,49 @@ const NETWORKS: SiteData[] = [
   },
 ];
 
+interface ApiEcosystem {
+  id: string;
+  networkName: string;
+  logo: string;
+  hubUrl: string;
+}
+
+const toSiteData = (ecosystem: ApiEcosystem): SiteData => ({
+  id: ecosystem.id,
+  name: ecosystem.networkName,
+  url: ecosystem.hubUrl,
+  displayUrl: `${ecosystem.networkName} Hub`,
+  logoUrl: ecosystem.logo,
+});
+
 export interface UseNetworksFeedResult {
   data: SiteData[];
   isLoading: false;
   refetch: () => Promise<void>;
 }
 
-/** Static list of network "hub" sites; no remote fetch. */
-export const useNetworksFeed = (): UseNetworksFeedResult => ({
-  data: NETWORKS,
-  isLoading: false,
-  refetch: async () => {
-    /* Static data; no remote refetch. */
-  },
-});
+export const useNetworksFeed = (): UseNetworksFeedResult => {
+  const [data, setData] = useState<SiteData[]>(NETWORKS);
+
+  const refetch = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${NFT_API_BASE_URL}explore/sites/ecosystems`,
+      );
+      const { ecosystems } = (await response.json()) as {
+        ecosystems?: ApiEcosystem[];
+      };
+      if (response.ok && ecosystems?.length) {
+        setData(ecosystems.map(toSiteData));
+      }
+    } catch {
+      setData(NETWORKS);
+    }
+  }, []);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
+
+  return { data, isLoading: false, refetch };
+};
