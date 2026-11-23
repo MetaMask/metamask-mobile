@@ -56,6 +56,11 @@ describe('CardCashback', () => {
     jest
       .spyOn(AccessibilityInfo, 'announceForAccessibility')
       .mockImplementation(() => undefined);
+    jest.mocked(AccessibilityInfo.announceForAccessibility).mockClear();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('announces a failed claim and keeps the summary on screen', async () => {
@@ -95,5 +100,23 @@ describe('CardCashback', () => {
       );
     });
     expect(view.queryByTestId(CardCashbackSelectors.UNAVAILABLE)).toBeNull();
+  });
+
+  it('hides Claim when the claim was sent but the balance is stale', async () => {
+    mockClaim.mockResolvedValue('submitted_stale');
+    const view = render(<CardCashback />);
+
+    await waitFor(() => {
+      expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
+    });
+    fireEvent.press(view.getByTestId(CardCashbackSelectors.CLAIM));
+
+    await waitFor(() => {
+      expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
+    });
+    expect(view.getByTestId(CardCashbackSelectors.CLAIMABLE)).toBeOnTheScreen();
+    expect(view.queryByTestId(CardCashbackSelectors.UNAVAILABLE)).toBeNull();
+    expect(view.queryByTestId(CardCashbackSelectors.CLAIM_ERROR)).toBeNull();
+    expect(AccessibilityInfo.announceForAccessibility).not.toHaveBeenCalled();
   });
 });

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added mUSD back for Immersve cards and a wallet proof on the card link (#40338)
+
 ### Changed
 
 - Updated the copy on the Add funds from your bank screen to align with the content guidelines

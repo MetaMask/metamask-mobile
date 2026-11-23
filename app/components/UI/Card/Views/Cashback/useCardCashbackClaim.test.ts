@@ -144,4 +144,28 @@ describe('useCardCashbackClaim', () => {
 
     expect(outcome).toBe('failed');
   });
+
+  it('holds the result when the refresh after a claim fails', async () => {
+    givenAccount();
+    jest.mocked(runEarningsClaim).mockResolvedValue([
+      {
+        route: 'card-cashback',
+        submitted: true,
+        opened: true,
+      },
+    ]);
+    const { result } = renderHook(() =>
+      useCardCashbackClaim(async () => {
+        throw new Error('reload failed');
+      }),
+    );
+    let outcome = '';
+
+    await act(async () => {
+      outcome = await result.current.claim();
+    });
+
+    expect(runEarningsClaim).toHaveBeenCalledTimes(1);
+    expect(outcome).toBe('submitted_stale');
+  });
 });

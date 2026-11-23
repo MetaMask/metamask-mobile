@@ -16,7 +16,11 @@ import {
 } from '../../../Rewards/utils/claimEarnings';
 import type { ClaimVoucherDto } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 
-export type CardCashbackClaimResult = 'submitted' | 'failed' | 'skipped';
+export type CardCashbackClaimResult =
+  | 'submitted'
+  | 'submitted_stale'
+  | 'failed'
+  | 'skipped';
 
 /**
  * Card cashback claim. Reuses the Rewards claim stack and only the
@@ -85,7 +89,11 @@ export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
         },
       });
       if (outcomes.some((outcome) => outcome.submitted)) {
-        await onSubmitted?.();
+        try {
+          await onSubmitted?.();
+        } catch {
+          return 'submitted_stale';
+        }
         return 'submitted';
       }
       return 'failed';

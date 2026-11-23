@@ -111,7 +111,9 @@ const CardCashbackView: React.FC<CardCashbackViewProps> = ({
       {summary.blocking_reason || belowMinimum ? (
         <Text>
           {summary.blocking_reason ??
-            strings('card.card_home.cashback_screen.below_minimum')}
+            strings('card.card_home.cashback_screen.below_minimum', {
+              amount: formatMusdBaseUnits(summary.minimum_musd_base_units),
+            })}
         </Text>
       ) : null}
       {mpcAccount ? (
