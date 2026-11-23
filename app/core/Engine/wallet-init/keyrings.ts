@@ -195,7 +195,7 @@ export function getKeyringBuilders(
     keyrings.push(
       isRealMpcMoneyKeyringBuildEnabled()
         ? buildRealMpcMoneyKeyringBuilder({
-            getBearerToken: () =>
+            getBearerToken: async () =>
               messenger.call('AuthenticationController:getBearerToken'),
             getTwoFactorApproval: isMpcTwoFactorApprovalBuildEnabled()
               ? createMpcTwoFactorApproval({

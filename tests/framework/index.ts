@@ -62,6 +62,23 @@ export {
 } from './ai-locator/SelfHealingLocator.ts';
 export { createClaudeLocatorRecoveryProvider } from './ai-locator/ClaudeLocatorRecoveryProvider.ts';
 export {
+  createClaudeInterruptionRecoveryProvider,
+  isSafeDismissControl,
+  type InterruptionDecision,
+  type InterruptionRecoveryProvider,
+} from './ai-locator/ClaudeInterruptionRecoveryProvider.ts';
+export {
+  InterruptingScreenGuard,
+  interruptingScreenGuard,
+  type InterruptingScreenDismissal,
+  type InterruptingScreenGuardConfig,
+} from './interrupting-screens/InterruptingScreenGuard.ts';
+export {
+  INTERRUPTING_SCREEN_REGISTRY,
+  findInterruptingScreensInPageSource,
+  type InterruptingScreenDefinition,
+} from './interrupting-screens/InterruptingScreenRegistry.ts';
+export {
   isPerformanceSuiteActive,
   setPerformanceSuiteActive,
 } from './ai-locator/PerformanceLocatorRecovery.ts';

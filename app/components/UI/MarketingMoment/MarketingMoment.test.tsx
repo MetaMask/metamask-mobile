@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { View } from 'react-native';
+import { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MarketingMoment from './MarketingMoment';
 import type { MarketingMomentProps } from './MarketingMoment.types';
@@ -171,6 +172,10 @@ describe('MarketingMoment', () => {
     });
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders a string title as a header and a string description', () => {
     const { getByTestId } = renderMoment();
 
@@ -234,6 +239,31 @@ describe('MarketingMoment', () => {
     expect(getByTestId('artwork-wrapper')).toBeOnTheScreen();
     expect(getByTestId('marketing-moment-custom-art')).toBeOnTheScreen();
   });
+
+  it.each([
+    [undefined, [0, 100, 300], [200]],
+    [160, [0, 160, 480], [320]],
+  ])(
+    'staggers entering elements by enterStepMs (%s)',
+    (enterStepMs, downDelays, fadeDelays) => {
+      const delayFor = (builder: typeof FadeIn | typeof FadeInDown) => {
+        const delay = jest.fn().mockReturnValue(undefined);
+        jest
+          .spyOn(builder, 'duration')
+          .mockReturnValue({ delay } as unknown as ReturnType<
+            typeof builder.duration
+          >);
+        return delay;
+      };
+      const downDelay = delayFor(FadeInDown);
+      const fadeDelay = delayFor(FadeIn);
+
+      renderMoment({ enterStepMs, artwork: <View /> });
+
+      expect(downDelay.mock.calls.map(([ms]) => ms)).toEqual(downDelays);
+      expect(fadeDelay.mock.calls.map(([ms]) => ms)).toEqual(fadeDelays);
+    },
+  );
 
   it('renders the artwork in an animated view that accepts props', () => {
     const { getByTestId } = renderMoment({

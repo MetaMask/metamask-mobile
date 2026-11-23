@@ -1,4 +1,4 @@
-import { captureException } from '@sentry/react-native';
+import { reportSocialServiceFailure } from '../../../../util/social/socialServiceTelemetry';
 
 /** How long the composer waits for a post to be created before giving up. */
 export const CREATE_SWAP_COMMENT_TIMEOUT_MS = 7000;
@@ -20,11 +20,12 @@ export const withCreateSwapCommentTimeout = <T>(
   new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       const error = new CreateSwapCommentTimeoutError();
-      captureException(error, {
-        tags: {
-          feature: 'social',
-          context: 'createSwapComment.timeout',
-        },
+      reportSocialServiceFailure(error, {
+        surface: 'post_composer',
+        operation: 'create_comment_timeout',
+        extraMessage: 'Social post composer create comment timed out',
+        source: 'withCreateSwapCommentTimeout',
+        endpoint: 'create_comment',
       });
       reject(error);
     }, CREATE_SWAP_COMMENT_TIMEOUT_MS);

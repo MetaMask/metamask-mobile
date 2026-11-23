@@ -53,6 +53,7 @@ export enum FeatureFlagNames {
   ledgerDmk = 'ledgerDmk',
   tokenDetailsBrandRefresh = 'tokenDetailsBrandRefresh',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
+  rampsProvidersAheadOfHistory = 'rampsProvidersAheadOfHistory',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',

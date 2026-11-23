@@ -68,7 +68,9 @@ const MoneyTabScreenStack = () => {
         component={MoneyHomeView}
         listeners={{
           focus: () => {
-            Engine.context.CardController.fetchCardHomeData();
+            if (Engine.context.CardController.state.isAuthenticated) {
+              Engine.context.CardController.fetchCardHomeData();
+            }
           },
         }}
       />

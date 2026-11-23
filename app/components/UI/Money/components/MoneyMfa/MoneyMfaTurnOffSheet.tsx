@@ -36,7 +36,9 @@ const MoneyMfaTurnOffSheet = () => {
       button_intent: MONEY_BUTTON_INTENTS.DISABLE_MFA,
       label_key: 'money.mfa.turn_off_cta',
     });
-    sheetRef.current?.onCloseBottomSheet(turnOff);
+    sheetRef.current?.onCloseBottomSheet(() => {
+      void turnOff();
+    });
   }, [trackButtonClicked, turnOff]);
 
   const handleCancel = useCallback(() => {

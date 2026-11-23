@@ -42,9 +42,13 @@ const styles = StyleSheet.create({
 
 interface MoneyMfaShieldAnimationProps {
   size: number;
+  playDelayMs?: number;
 }
 
-const MoneyMfaShieldAnimation = ({ size }: MoneyMfaShieldAnimationProps) => {
+const MoneyMfaShieldAnimation = ({
+  size,
+  playDelayMs = SHIELD_PLAY_DELAY_MS,
+}: MoneyMfaShieldAnimationProps) => {
   const reduceMotion = useReduceMotion();
   const [hasRiveError, setHasRiveError] = useState(false);
   const { riveFile } = useRiveFile(moneyTwoFactorAnimation);
@@ -84,9 +88,9 @@ const MoneyMfaShieldAnimation = ({ size }: MoneyMfaShieldAnimationProps) => {
           action: 'play',
         }),
       );
-    }, SHIELD_PLAY_DELAY_MS);
+    }, playDelayMs);
     return () => clearTimeout(timer);
-  }, [isFocused, isRiveReady, riveViewRef, logError]);
+  }, [isFocused, isRiveReady, riveViewRef, logError, playDelayMs]);
 
   const dimensions = { width: size, height: size };
 

@@ -9,7 +9,6 @@ import {
 } from '../../../../reducers/rewardsMoney/selectors';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featureFlagController/rewardsMoneyController';
-import { useGeoRewardsMetadata } from '../../../UI/Rewards/hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../../UI/Rewards/hooks/useReferralMe';
 import { MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS } from '../../../UI/Rewards/components/Money/PendingMoneyReferralInvite';
 import {
@@ -72,7 +71,6 @@ export const useSocialPreviewReferralOffer = (): SocialPreviewReferralOffer => {
   const canCheck = Boolean(
     pendingReferralCode && isBasicFunctionalityEnabled && isRewardsMoneyEnabled,
   );
-  useGeoRewardsMetadata({ enabled: canCheck });
   const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
   const [status, setStatus] = useState<SocialPreviewReferralOfferStatus>(
     canCheck ? 'checking' : 'none',

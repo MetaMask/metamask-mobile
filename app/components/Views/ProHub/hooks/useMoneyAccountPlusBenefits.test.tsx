@@ -445,6 +445,20 @@ describe('useMoneyAccountPlusBenefits', () => {
     expect(result.current.resetsOn).toBe('Sep 15, 2026');
   });
 
+  it('shows the charge day as Resets on when the period ends at midnight UTC', () => {
+    const state = createState({ benefits: BENEFITS });
+    state.engine.backgroundState.SubscriptionController.subscriptions = [
+      {
+        ...createPlusSubscription(),
+        currentPeriodEnd: '2026-09-15T00:00:00.000Z',
+      },
+    ];
+
+    const { result } = renderBenefits(state);
+
+    expect(result.current.resetsOn).toBe('Sep 15, 2026');
+  });
+
   it('reports partial when a product cannot be mapped', async () => {
     const { result } = renderBenefits(
       createState({

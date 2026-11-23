@@ -16,6 +16,7 @@ import {
   InitializationState,
   type OrderBookPreferences,
   type PerpsActiveProviderMode,
+  type PerpsProviderType,
   type PerpsMode,
   type ProLayoutPreferences,
 } from '@metamask/perps-controller';
@@ -28,6 +29,29 @@ const selectPerpsProvider = createSelector(
   selectPerpsControllerState,
   (perpsControllerState): PerpsActiveProviderMode | undefined =>
     perpsControllerState?.activeProvider,
+);
+
+/**
+ * Venue an order without a route provider goes to. This is the live
+ * effective provider once the controller has resolved one. Until then it
+ * falls back like Core's trade config key: the saved default in aggregated
+ * mode, otherwise the selected direct venue.
+ */
+const selectPerpsOrderProvider = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState): PerpsProviderType | null => {
+    if (!perpsControllerState) {
+      return null;
+    }
+    const { effectiveProvider, activeProvider, defaultProvider } =
+      perpsControllerState;
+    if (effectiveProvider) {
+      return effectiveProvider;
+    }
+    return activeProvider === 'aggregated'
+      ? (defaultProvider ?? null)
+      : (activeProvider ?? null);
+  },
 );
 
 const selectPerpsAccountState = createSelector(
@@ -381,6 +405,7 @@ export const createSelectIsWatchlistMarket = (symbol: string) =>
 
 export {
   selectPerpsProvider,
+  selectPerpsOrderProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,

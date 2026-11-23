@@ -41,21 +41,20 @@ export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
         },
       },
     },
-    // MoneyAccountLifecycleController reads the derived identities on unlock.
+    // CHOMP derived identities — fetched on every keyring unlock by the
+    // MoneyAccountLifecycleController, followed by a registration-status
+    // lookup per Money Account address.
     {
       urlEndpoint:
-        /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities(\?|$)/u,
+        /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities$/u,
       responseCode: 200,
       response: { identities: [] },
     },
     {
       urlEndpoint:
         /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities\/address\/0x[a-fA-F0-9]{40}$/u,
-      responseCode: 400,
-      response: {
-        code: 'ADDRESS_NOT_ASSOCIATED',
-        message: 'Address is not associated with a Money account identity',
-      },
+      responseCode: 404,
+      response: { code: 'ADDRESS_NOT_ASSOCIATED' },
     },
     // Money Account positions are polled after unlock when the feature is
     // enabled. Tests that need a funded account override this empty fallback.

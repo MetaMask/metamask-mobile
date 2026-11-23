@@ -68,6 +68,35 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     });
   });
 
+  it('falls back to the dev MPC service when the URL overrides are empty', () => {
+    const original = {
+      cloud: process.env.MM_MONEY_MPC_CLOUD_URL,
+      relayer: process.env.MM_MONEY_MPC_RELAYER_URL,
+    };
+    process.env.MM_MONEY_MPC_CLOUD_URL = '';
+    process.env.MM_MONEY_MPC_RELAYER_URL = '';
+    let options: Record<string, unknown> = {};
+
+    jest.isolateModules(() => {
+      const { buildRealMpcMoneyKeyringBuilder: build } = jest.requireActual<
+        typeof import('./mpc-money-keyring-builder')
+      >('./mpc-money-keyring-builder');
+      options = (
+        build({ getBearerToken: jest.fn() })() as unknown as {
+          options: Record<string, unknown>;
+        }
+      ).options;
+    });
+
+    process.env.MM_MONEY_MPC_CLOUD_URL = original.cloud;
+    process.env.MM_MONEY_MPC_RELAYER_URL = original.relayer;
+    expect(options).toMatchObject({
+      cloudURL: 'https://mpc-service.dev-api.cx.metamask.io/v2',
+      relayerURL:
+        'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
+    });
+  });
+
   it('uses the bearer token as the profile token', async () => {
     const { options, getBearerToken } = buildKeyring();
 

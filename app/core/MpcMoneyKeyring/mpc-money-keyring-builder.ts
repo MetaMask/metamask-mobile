@@ -14,12 +14,17 @@ import {
 import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
 
-const MPC_CLOUD_URL =
-  process.env.MM_MONEY_MPC_CLOUD_URL ||
-  'https://mpc-service.dev-api.cx.metamask.io/v2';
-const MPC_RELAYER_URL =
-  process.env.MM_MONEY_MPC_RELAYER_URL ||
-  'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket';
+const envOrDefault = (value: string | undefined, fallback: string): string =>
+  value === undefined || value === '' ? fallback : value;
+
+const MPC_CLOUD_URL = envOrDefault(
+  process.env.MM_MONEY_MPC_CLOUD_URL,
+  'https://mpc-service.dev-api.cx.metamask.io/v2',
+);
+const MPC_RELAYER_URL = envOrDefault(
+  process.env.MM_MONEY_MPC_RELAYER_URL,
+  'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket',
+);
 
 // Signatures that only touch these contracts skip 2FA.
 export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
@@ -142,7 +147,7 @@ export function buildRealMpcMoneyKeyringBuilder({
       dkls23Lib,
       cloudURL: MPC_CLOUD_URL,
       relayerURL: MPC_RELAYER_URL,
-      getProfileToken: (options?: {
+      getProfileToken: async (options?: {
         twoFactor?: boolean;
         challenge?: Uint8Array;
       }) => {

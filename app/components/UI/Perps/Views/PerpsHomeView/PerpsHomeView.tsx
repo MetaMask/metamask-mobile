@@ -1343,9 +1343,6 @@ const PerpsHomeView = () => {
       isGlass={isBrandRefresh}
       onLayout={handleFloatingHeaderLayout}
       includesTopInset={headerIncludesTopInset}
-      // h-16 (64px) matches the Figma header when the Lite pill is shown
-      // (HeaderBase defaults to 56px).
-      twClassName={isPerpsProModeEnabled ? 'h-16' : undefined}
       scrollY={headerScrollY}
       titleSectionHeight={titleSectionHeightSv}
       title={perpsScreenTitle}
@@ -1394,7 +1391,7 @@ const PerpsHomeView = () => {
       scrollEventThrottle={16}
       testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
     >
-      <Box paddingBottom={3}>
+      <Box>
         <PerpsMarketBalanceActions
           showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
           hideBalanceSection
@@ -1425,7 +1422,7 @@ const PerpsHomeView = () => {
               ) : undefined
             }
             bottomLabel={availableBalance}
-            twClassName="px-4 pb-3"
+            twClassName="px-4 pb-5 pt-5"
           />
         </PerpsMarketBalanceActions>
 

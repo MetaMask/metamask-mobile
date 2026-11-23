@@ -165,6 +165,7 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
+import { useAssetsHaveLoaded } from '../../UI/Assets/hooks/useAssetsHaveLoaded';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -372,7 +373,14 @@ const Wallet = ({
 
   const walletHomeOnboardingStepIndex =
     useSelector(selectWalletHomeOnboardingSteps).stepIndex ?? 0;
-  const isAccountGroupFunded = useSelector(selectIsAccountGroupFunded);
+  const assetsHaveLoaded = useAssetsHaveLoaded();
+  const hasPositiveAccountGroupBalance = useSelector(
+    selectIsAccountGroupFunded,
+  );
+  // Gate with the latched load signal so background refreshes do not drop
+  // funded and hide/show the growth banner incorrectly.
+  const isAccountGroupFunded =
+    assetsHaveLoaded && hasPositiveAccountGroupBalance;
 
   const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
 

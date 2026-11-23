@@ -1,9 +1,8 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import MoneyMfaIntroView from './MoneyMfaIntroView';
+import MoneyMfaIntroView, { FLOW_ENTER_MS } from './MoneyMfaIntroView';
 import { MoneyMfaIntroViewTestIds } from './MoneyMfaIntroView.testIds';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -21,23 +20,18 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ goBack: mockGoBack, setOptions: mockSetOptions }),
 }));
 
-let mockRootRoutes: { name: string }[] = [];
-let mockStateListener: (() => void) | undefined;
-const mockStopNavigation = jest.fn();
-jest.mock('../../../../../core/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: {
-      getRootState: () => ({ routes: mockRootRoutes }),
-      addListener: (_event: string, listener: () => void) => {
-        mockStateListener = listener;
-        return mockStopNavigation;
-      },
-    },
+let mockStepName = 'idle';
+let mockStepListener: (() => void) | undefined;
+const mockStopStep = jest.fn();
+const createFlow = () => ({
+  getState: () => ({ step: { name: mockStepName } }),
+  subscribe: (listener: () => void) => {
+    mockStepListener = listener;
+    return mockStopStep;
   },
-}));
+});
 
-let mockActiveFlow: object | undefined;
+let mockActiveFlow: ReturnType<typeof createFlow> | undefined;
 let mockFlowListener: (() => void) | undefined;
 jest.mock('../../../../../util/identity/mfa/engine/activeFlow', () => ({
   getActiveMfaFlow: () => mockActiveFlow,
@@ -66,9 +60,9 @@ jest.mock('../../components/MoneyMfa/MoneyMfaShieldAnimation', () => {
 describe('MoneyMfaIntroView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockRootRoutes = [];
+    mockStepName = 'idle';
     mockActiveFlow = undefined;
-    mockStateListener = undefined;
+    mockStepListener = undefined;
     mockFlowListener = undefined;
     mockTurnOn.mockReturnValue(new Promise(() => undefined));
   });
@@ -79,6 +73,21 @@ describe('MoneyMfaIntroView', () => {
       screen.getByTestId(MoneyMfaIntroViewTestIds.CONTINUE_BUTTON),
     );
     return screen;
+  };
+
+  const startFlow = () => {
+    mockActiveFlow = createFlow();
+    act(() => mockFlowListener?.());
+  };
+
+  const showStep = (name: string) => {
+    mockStepName = name;
+    act(() => mockStepListener?.());
+  };
+
+  const endFlow = () => {
+    mockActiveFlow = undefined;
+    act(() => mockFlowListener?.());
   };
 
   it('renders the title, description and actions', () => {
@@ -108,7 +117,7 @@ describe('MoneyMfaIntroView', () => {
   it('starts 2-step verification setup on Continue and stays open until its screen opens', () => {
     pressContinue();
 
-    expect(mockTurnOn).toHaveBeenCalledTimes(1);
+    expect(mockTurnOn).toHaveBeenCalledWith('card');
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockTrackButtonClicked).toHaveBeenCalledWith({
       button_type: MONEY_BUTTON_TYPES.TEXT,
@@ -117,36 +126,59 @@ describe('MoneyMfaIntroView', () => {
     });
   });
 
-  it('closes once the 2-step verification screen is on top', () => {
+  it('closes once a full-screen step has slid over it', () => {
+    jest.useFakeTimers();
     pressContinue();
 
-    mockRootRoutes = [{ name: 'Main' }, { name: Routes.MFA.FLOW }];
-    act(() => mockStateListener?.());
+    startFlow();
+    showStep('intro');
+    showStep('totpSetup');
+    expect(mockGoBack).not.toHaveBeenCalled();
+    act(() => jest.advanceTimersByTime(FLOW_ENTER_MS));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockSetOptions).toHaveBeenCalledWith({ animation: 'none' });
-    expect(mockStopNavigation).toHaveBeenCalled();
+    expect(mockStopStep).toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
-  it('ignores navigation changes that do not open the 2-step verification screen', () => {
+  it('closes when the flow starts on a full-screen step', () => {
+    jest.useFakeTimers();
+    mockStepName = 'intro';
     pressContinue();
 
-    mockRootRoutes = [{ name: 'Main' }];
-    act(() => mockStateListener?.());
-
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('closes when the flow ends without opening a screen', () => {
-    pressContinue();
-
-    mockActiveFlow = {};
-    act(() => mockFlowListener?.());
-    expect(mockGoBack).not.toHaveBeenCalled();
-    mockActiveFlow = undefined;
-    act(() => mockFlowListener?.());
+    startFlow();
+    act(() => jest.advanceTimersByTime(FLOW_ENTER_MS));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('stays under the picker sheet until the flow ends', () => {
+    jest.useFakeTimers();
+    pressContinue();
+
+    startFlow();
+    showStep('picker');
+    act(() => jest.advanceTimersByTime(FLOW_ENTER_MS));
+    expect(mockGoBack).not.toHaveBeenCalled();
+    endFlow();
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
+  });
+
+  it('does not close after unmounting while a full-screen step slides in', () => {
+    jest.useFakeTimers();
+    const { unmount } = pressContinue();
+
+    startFlow();
+    showStep('intro');
+    unmount();
+    act(() => jest.advanceTimersByTime(FLOW_ENTER_MS));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    jest.useRealTimers();
   });
 
   it('closes when setup returns without a flow', async () => {
@@ -159,16 +191,19 @@ describe('MoneyMfaIntroView', () => {
   });
 
   it('closes only once and ignores a second Continue', async () => {
+    jest.useFakeTimers();
     mockTurnOn.mockResolvedValue(undefined);
     const { getByTestId } = pressContinue();
     fireEvent.press(getByTestId(MoneyMfaIntroViewTestIds.CONTINUE_BUTTON));
 
-    mockRootRoutes = [{ name: Routes.MFA.FLOW }];
-    act(() => mockStateListener?.());
+    startFlow();
+    showStep('intro');
     await act(async () => undefined);
+    act(() => jest.advanceTimersByTime(FLOW_ENTER_MS));
 
     expect(mockTurnOn).toHaveBeenCalledTimes(1);
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    jest.useRealTimers();
   });
 
   it('closes without starting setup on Not now', () => {

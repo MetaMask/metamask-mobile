@@ -10,10 +10,10 @@ import {
 jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn(() => Promise.resolve(null)),
+    getItem: jest.fn( async () => Promise.resolve(null)),
     getItemSync: jest.fn(() => null),
-    setItem: jest.fn(() => Promise.resolve()),
-    removeItem: jest.fn(() => Promise.resolve()),
+    setItem: jest.fn( async () => Promise.resolve()),
+    removeItem: jest.fn( async () => Promise.resolve()),
   },
 }));
 

@@ -39,8 +39,9 @@ export type MoneyMfaStatus =
   | 'enabled'
   | 'off';
 
-const getReason = (): MfaReason => ({
+const getReason = (presentation?: MfaReason['presentation']): MfaReason => ({
   operation: 'money.mfa.setup',
+  presentation,
 });
 
 const getAddPasskeyReason = (): MfaReason => ({
@@ -55,7 +56,7 @@ const getTurnOffReason = (): MfaReason => ({
 let activeMigration: Promise<void> | undefined;
 
 // The flow can outlive the screen that started it, so the result goes through the app-wide navigator.
-const migrate = (): Promise<void> => {
+const migrate =  async (): Promise<void> => {
   // A wallet reset clears `migrating`, so a run from the previous wallet is not reused.
   if (activeMigration && moneyAccountMigration.getStatus() === 'migrating') {
     return activeMigration;
@@ -140,34 +141,37 @@ export const useMoneyMfa = () => {
         iconColor: theme.colors.success.default,
         labelOptions: [{ label: strings(labelKey) }],
         hasNoTimeout: false,
-      } as ToastOptions);
+      });
     },
     [toastRef, theme],
   );
 
-  const turnOn = useCallback(async () => {
-    if (moneyAccountMigration.getStatus() === 'migrating') {
-      return;
-    }
-    try {
-      await verifyOrEnroll({
-        methods: MONEY_MFA_METHODS,
-        verifyWith: MONEY_MFA_METHODS,
-        maxSessionAgeMs: 0,
-        reason: getReason(),
-      });
-    } catch {
-      // The kit has already shown any error; backing out leaves 2FA as it was.
-      return;
-    }
-    if (moneyAccountMigration.getStatus() === 'done') {
-      moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
-      showToast('money.mfa.toast_on');
-      return;
-    }
-    moneyMfaStore.setState({ isMigrationBannerDismissed: false });
-    await migrate();
-  }, [verifyOrEnroll, showToast]);
+  const turnOn = useCallback(
+    async (presentation?: MfaReason['presentation']) => {
+      if (moneyAccountMigration.getStatus() === 'migrating') {
+        return;
+      }
+      try {
+        await verifyOrEnroll({
+          methods: MONEY_MFA_METHODS,
+          verifyWith: MONEY_MFA_METHODS,
+          maxSessionAgeMs: 0,
+          reason: getReason(presentation),
+        });
+      } catch {
+        // The kit has already shown any error; backing out leaves 2FA as it was.
+        return;
+      }
+      if (moneyAccountMigration.getStatus() === 'done') {
+        moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
+        showToast('money.mfa.toast_on');
+        return;
+      }
+      moneyMfaStore.setState({ isMigrationBannerDismissed: false });
+      await migrate();
+    },
+    [verifyOrEnroll, showToast],
+  );
 
   const addPasskey = useCallback(async () => {
     if (activeMethods.includes('passkey')) {
@@ -200,7 +204,7 @@ export const useMoneyMfa = () => {
     showToast('money.mfa.toast_off');
   }, [verifyOrEnroll, showToast]);
 
-  const retry = useCallback(() => {
+  const retry = useCallback( async () => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });
     return migrate();
   }, []);

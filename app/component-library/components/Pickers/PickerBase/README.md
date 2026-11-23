@@ -51,11 +51,11 @@ Custom styles for the main container.
 ```javascript
 import React from 'react';
 import { Text } from 'react-native';
-import PickerBase from 'app/component-library/components/Pickers/PickerBase';
-import { IconSize } from 'app/component-library/components/Icons/Icon';
+import PickerBase from '#app/component-library/components/Pickers/PickerBase';
+import { IconSize } from '#app/component-library/components/Icons/Icon';
 
 const ExampleComponent = () => (
-  <PickerBase 
+  <PickerBase
     onPress={() => console.log('Picker pressed')}
     iconSize={IconSize.Lg}
     dropdownIconStyle={{ marginLeft: 20 }}

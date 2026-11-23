@@ -8,6 +8,10 @@ import { isMoneyAccountEnabled } from '../../../lib/Money/feature-flags';
 /**
  * Initialize the MoneyAccountLifecycleController.
  *
+ * Gated on the Money Account flag, so it tracks the lifecycle and address
+ * registrations for every Money Account user. It never upgrades or migrates
+ * on its own: the client triggers both.
+ *
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger to use for the controller.
  * @param request.persistedState - The persisted state to hydrate from.
@@ -20,7 +24,9 @@ export const moneyAccountLifecycleControllerInit: MessengerClientInitFunction<
   const controller = new MoneyAccountLifecycleController({
     messenger: controllerMessenger,
     state: persistedState.MoneyAccountLifecycleController,
-    hooks: { isEnabled: isMoneyAccountEnabled },
+    hooks: {
+      isEnabled: isMoneyAccountEnabled,
+    },
   });
 
   controller.init();

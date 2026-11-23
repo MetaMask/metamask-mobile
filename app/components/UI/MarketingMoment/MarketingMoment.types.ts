@@ -94,6 +94,8 @@ export interface MarketingMomentProps {
    * is transparent when provided.
    */
   background?: ReactNode;
+  /** Delay between each entering element. Defaults to `AnimationDuration.Quickly`. */
+  enterStepMs?: number;
   /**
    * Forces a color theme for the copy and actions. Use `Theme.Dark` on a dark
    * brand background.
