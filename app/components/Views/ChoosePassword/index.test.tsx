@@ -89,7 +89,6 @@ import {
   getTraceContext,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
-import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
@@ -104,10 +103,6 @@ const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
 const mockCaptureException = captureException as jest.MockedFunction<
   typeof captureException
 >;
-
-OAuthLoginService.updateMarketingOptInStatus = jest
-  .fn()
-  .mockResolvedValue({ is_opt_in: true });
 
 const mockRefreshGeolocation = jest.fn().mockResolvedValue('GB');
 
@@ -1539,9 +1534,6 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
-        true,
-      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(true),
       );
@@ -1599,9 +1591,6 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
-        true,
-      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(true),
       );
@@ -1641,9 +1630,6 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
-        true,
-      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(true),
       );
@@ -1679,9 +1665,6 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       });
-      expect(OAuthLoginService.updateMarketingOptInStatus).toHaveBeenCalledWith(
-        false,
-      );
       expect(store.getActions()).toContainEqual(
         setDataCollectionForMarketing(false),
       );

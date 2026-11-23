@@ -28,9 +28,6 @@ import { UserProfileProperty } from '../../../../../../util/metrics/UserSettings
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
 import { updateCachedConsent } from '../../../../../../util/trace';
-import OAuthService from '../../../../../../core/OAuthService/OAuthService';
-import Logger from '../../../../../../util/Logger';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
@@ -79,10 +76,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   );
 
   const accountType = useSelector(selectOnboardingAccountType);
-
-  const isSeedlessOnboardingLoginFlow = useSelector(
-    selectSeedlessOnboardingLoginFlow,
-  );
 
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
 
@@ -237,16 +230,6 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     }
 
     dispatch(setDataCollectionForMarketing(value));
-
-    // Social-login wallets also store marketing consent server-side so the
-    // auth service can create the HubSpot contact for email marketing and
-    // learn of opt-outs. A failed sync keeps the local decision; only reads
-    // that would overwrite the local choice are gone.
-    if (isSeedlessOnboardingLoginFlow) {
-      OAuthService.updateMarketingOptInStatus(value).catch((error) => {
-        Logger.error(error as Error);
-      });
-    }
   };
 
   const renderMetaMetricsSection = () => (
