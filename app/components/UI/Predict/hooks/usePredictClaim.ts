@@ -141,7 +141,7 @@ export const usePredictClaim = () => {
           linkButtonOptions: {
             label: strings('predict.claim.toasts.error.try_again'),
             onPress: () => {
-              claim(analyticsContext);
+              claim(analyticsContext).catch(() => undefined);
             },
           },
         });
