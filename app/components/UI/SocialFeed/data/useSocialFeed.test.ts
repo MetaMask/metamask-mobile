@@ -9,7 +9,11 @@ import {
 import { useSelector } from 'react-redux';
 import { useLogSocialQueryError } from '../../../../util/social/socialServiceTelemetry';
 import { FEED_CAIP2_CHAINS } from './feed-constants';
-import { FEED_PAGE_LIMIT, buildSocialFeedQueryKey } from './socialFeedQueries';
+import {
+  FEED_MAX_PAGES,
+  FEED_PAGE_LIMIT,
+  buildSocialFeedQueryKey,
+} from './socialFeedQueries';
 import {
   mockFeedResponse,
   mockPerpFeedItem,
@@ -240,6 +244,7 @@ describe('useSocialFeed', () => {
 
     const observer = client.getQueryCache().getAll()[0]?.observers[0];
     expect(observer?.options.gcTime).toBe(0);
+    expect(observer?.options.maxPages).toBe(FEED_MAX_PAGES);
   });
 
   it('shares one cache entry between sources that normalise to the same request', async () => {
@@ -707,16 +712,23 @@ describe('useSocialFeed', () => {
       expect(observer?.options.staleTime).toBe(Infinity);
     });
 
-    it('keeps every loaded page while streaming', async () => {
+    it('keeps a sliding window of loaded pages while streaming', async () => {
       mockUseSocialFeedRealtime.mockReturnValue(null);
       const oldestItem = mockSpotFeedItem({
         positionId: 'oldest',
         timestamp: 1_699_999_000,
       });
+      const ancientItem = mockSpotFeedItem({
+        positionId: 'ancient',
+        timestamp: 1_699_998_000,
+      });
       mockCall.mockImplementation(
         (_action: string, options: { olderThan?: string }) => {
+          if (options.olderThan === 'cursor-3') {
+            return Promise.resolve(mockFeedResponse([ancientItem]));
+          }
           if (options.olderThan === 'cursor-2') {
-            return Promise.resolve(mockFeedResponse([oldestItem]));
+            return Promise.resolve(mockFeedResponse([oldestItem], 'cursor-3'));
           }
           if (options.olderThan === 'cursor-1') {
             return Promise.resolve(mockFeedResponse([olderItem], 'cursor-2'));
@@ -724,17 +736,36 @@ describe('useSocialFeed', () => {
           return Promise.resolve(mockFeedResponse([newerItem], 'cursor-1'));
         },
       );
+      const { client, wrapper } = createWrapper();
       const { result } = renderHook(
         () => useSocialFeed(trendingSource, { realtime: true }),
-        { wrapper: createWrapper().wrapper },
+        { wrapper },
       );
       await waitFor(() => expect(result.current.hasNextPage).toBe(true));
 
       act(() => result.current.loadMore());
       await waitFor(() => expect(result.current.posts).toHaveLength(2));
       act(() => result.current.loadMore());
-
       await waitFor(() => expect(result.current.posts).toHaveLength(3));
+
+      act(() => result.current.loadMore());
+      await waitFor(() => {
+        expect(result.current.rows.map((row) => row.core.positionId)).toEqual([
+          'older',
+          'oldest',
+          'ancient',
+        ]);
+      });
+      const request = toSocialFeedRequest(trendingSource);
+      expect(request).not.toBeNull();
+      const cached = client.getQueryData<{ pages: unknown[] }>(
+        buildSocialFeedQueryKey(
+          request as NonNullable<typeof request>,
+          FEED_PAGE_LIMIT,
+        ),
+      );
+      expect(cached?.pages).toHaveLength(FEED_MAX_PAGES);
+      expect(result.current.posts).toHaveLength(FEED_MAX_PAGES);
       expect(result.current.hasNextPage).toBe(false);
     });
   });

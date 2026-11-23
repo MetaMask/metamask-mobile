@@ -2,6 +2,12 @@
   "name": "metamask",
   "version": "8.22.0",
   "private": true,
+  "previewBuilds": {
+    "@metamask/social-controllers": {
+      "type": "breaking",
+      "previewVersion": "3.22.0-preview-20f24a578"
+    }
+  },
   "imports": {
     "#app/*": [
       "./app/*",

@@ -5,6 +5,13 @@ import type { FeedScope, SocialFeedRequest } from './socialFeedSource';
 /** Page size requested per feed page. */
 export const FEED_PAGE_LIMIT = 30;
 
+/**
+ * Sliding window of loaded infinite-query pages. A fourth `fetchNextPage`
+ * drops the oldest page so scrolled feeds cannot grow without bound in
+ * memory (posts, realtime revisions, and row trees).
+ */
+export const FEED_MAX_PAGES = 3;
+
 /** Messenger actions that return a `FeedResponse`; also the query-key roots. */
 export const SOCIAL_FEED_QUERY_ACTIONS = [
   'SocialService:fetchFeed',

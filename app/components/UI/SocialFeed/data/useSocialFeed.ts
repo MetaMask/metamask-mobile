@@ -12,6 +12,7 @@ import {
   useLogSocialQueryError,
 } from '../../../../util/social/socialServiceTelemetry';
 import {
+  FEED_MAX_PAGES,
   FEED_PAGE_LIMIT,
   buildSocialFeedQueryKey,
   fetchSocialFeedPage,
@@ -205,6 +206,9 @@ export const useSocialFeed = (
     getNextPageParam: getSocialFeedNextPageParam,
     initialPageParam: undefined as string | undefined,
     enabled: Boolean(request) && enabled && isUnlocked,
+    // Cap scrolled history: fetchNextPage appends then drops the oldest page
+    // once this window is full (see FEED_MAX_PAGES).
+    maxPages: FEED_MAX_PAGES,
     // ReactQueryService marks TanStack focused on foreground before React
     // commits enabled:false after auto-lock, so a focus or reconnect refetch
     // could run queryFn while the wallet is locked.
