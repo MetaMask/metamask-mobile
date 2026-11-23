@@ -11,7 +11,6 @@ import {
   ButtonSize,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   AvatarAccount,
   AvatarBaseSize,
   IconColor,
@@ -61,6 +60,8 @@ import {
 import { REDEEM_CONFIG } from './RedeemWallet.config';
 import { CardRedeemWithdrawalInProgressError } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import { capRedeemAmount } from '../../../../../core/Engine/controllers/card-controller/utils/redeemAmount';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface RedeemWalletProps {
   mode: RedeemableWalletMode;
@@ -72,6 +73,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const headerHandlers = useCardHeaderHandlers('back');
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
 
@@ -397,7 +399,9 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
       edges={['bottom']}
       testID={testIds.CONTAINER}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         includesTopInset
         twClassName="bg-background-default"
         {...headerHandlers}

@@ -1,6 +1,7 @@
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
-import { strings } from '../../../../locales/i18n';
+import I18n, { strings } from '../../../../locales/i18n';
 import { formatTimestampToDateTime } from '../../../util/date';
+import { getIntlDateTimeFormatter } from '../../../util/intl';
 import type { MfaFlowErrorCode } from '../../../util/identity/mfa';
 import type { MfaMethod } from '../../../util/identity/mfa/engine/types';
 
@@ -18,11 +19,10 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   invalid_attestation: 'mfa.errors.invalid_passkey',
   passkey_ceremony_cancelled: 'mfa.errors.passkey_cancelled',
   credential_already_enrolled: 'mfa.errors.email_taken',
+  email_claimed: 'mfa.errors.email_taken',
   otp_resend_cooldown: 'mfa.errors.cooldown',
   rate_limited: 'mfa.errors.cooldown',
   max_passkeys_reached: 'mfa.errors.limit_reached',
-  max_identifiers_reached: 'mfa.errors.limit_reached',
-  multi_primary_srp: 'mfa.errors.multi_primary_srp',
   authentication_required: 'mfa.errors.signed_out',
   passkey_unsupported: 'mfa.errors.unsupported',
   flow_in_progress: 'mfa.errors.flow_in_progress',
@@ -33,6 +33,19 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
  * Wording for authenticator app codes, which the app shows rather than an
  * email: a new code is in the app, not requested.
  */
+const ERROR_LINKS: Partial<Record<MfaFlowErrorCode, string>> = {
+  email_claimed: 'https://support.metamask.io/configure/wallet/email-in-use',
+};
+
+/**
+ * The help article for an error, if it has one.
+ *
+ * @param code - The error code.
+ * @returns The article URL.
+ */
+export const getErrorLink = (code: MfaFlowErrorCode): string | undefined =>
+  ERROR_LINKS[code];
+
 const TOTP_ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   invalid_code: 'mfa.errors.invalid_totp_code',
   flow_expired: 'mfa.errors.totp_expired',
@@ -66,6 +79,45 @@ export const getSpecificErrorMessage = (
   const key =
     (method === 'totp' ? TOTP_ERROR_KEYS[code] : undefined) ?? ERROR_KEYS[code];
   return key ? strings(key) : undefined;
+};
+
+/**
+ * Errors whose failure screen has its own title and description, rather than
+ * "Something went wrong" and the error's message.
+ */
+const SUPPORT_KEYS = {
+  title: 'mfa.failure.support_title',
+  description: 'mfa.failure.support_description',
+};
+
+const FAILURE_KEYS: Partial<
+  Record<MfaFlowErrorCode, { title: string; description: string }>
+> = {
+  max_identifiers_reached: SUPPORT_KEYS,
+  multi_primary_srp: SUPPORT_KEYS,
+  passkey_already_exists: {
+    title: 'mfa.failure.passkey_exists_title',
+    description: 'mfa.failure.passkey_exists_description',
+  },
+};
+
+/**
+ * The failure screen's copy for an error.
+ *
+ * @param code - The error's code.
+ * @returns The title, and a description when there is more to say.
+ */
+export const getFailureCopy = (
+  code: MfaFlowErrorCode,
+): { title: string; description?: string } => {
+  const keys = FAILURE_KEYS[code];
+  return keys
+    ? { title: strings(keys.title), description: strings(keys.description) }
+    : {
+        title: strings('mfa.failure.title'),
+        // The title already says something went wrong; only a specific reason adds to it.
+        description: getSpecificErrorMessage(code),
+      };
 };
 
 export const getErrorMessage = (
@@ -108,3 +160,52 @@ export const getAddedOn = (
         date: formatTimestampToDateTime(credential.enrolledAt),
       })
     : undefined;
+
+/**
+ * A day, as in `Oct 10, 2026`.
+ *
+ * @param timestamp - A time on that day.
+ * @returns The day.
+ */
+const formatDay = (timestamp: number): string =>
+  getIntlDateTimeFormatter(I18n.locale, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date(timestamp));
+
+/**
+ * When a passkey was last used, under its name in the list, as in
+ * `Last used Oct 10, 2026`.
+ *
+ * @param credential - The passkey.
+ * @returns The line.
+ */
+export const getLastUsedLine = (credential: EnrolledCredential): string =>
+  credential.lastUsedAt
+    ? strings('mfa.settings.last_used_on', {
+        date: formatDay(credential.lastUsedAt),
+      })
+    : strings('mfa.settings.not_used_yet');
+
+/**
+ * When a passkey was last used, as a value on its page, as in `Oct 10, 2026`.
+ *
+ * @param credential - The passkey.
+ * @returns The value.
+ */
+export const getLastUsedValue = (credential: EnrolledCredential): string =>
+  credential.lastUsedAt
+    ? formatDay(credential.lastUsedAt)
+    : strings('mfa.settings.not_used_yet');
+
+/**
+ * The day a method was set up, as in `Oct 10, 2026`.
+ *
+ * @param credential - The method.
+ * @returns The day, or `undefined` when the server didn't say.
+ */
+export const getCreatedOn = (
+  credential: EnrolledCredential,
+): string | undefined =>
+  credential.enrolledAt ? formatDay(credential.enrolledAt) : undefined;

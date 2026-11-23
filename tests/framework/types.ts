@@ -261,11 +261,26 @@ export enum LocalNodeType {
   bitcoin = 'bitcoin',
 }
 
+/**
+ * Body the app POSTs for the export-app-state command.
+ */
+export interface ExportedAppState {
+  /** The in-app state log document, parsed. */
+  stateLogs: Record<string, unknown>;
+  /**
+   * Fields, per controller, that controller metadata leaves out of state logs.
+   * Read from the running app, so it covers every Engine controller.
+   */
+  omittedFields: Record<string, string[]>;
+}
+
 export enum E2ECommandTypes {
   pushPrice = 'push-price',
   forceLiquidation = 'force-liquidation',
   mockDeposit = 'mock-deposit',
   exportState = 'export-state',
+  /** State log export, sanitized the same way as the in-app state logs. */
+  exportAppState = 'export-app-state',
   /** Inject QR sync sync-ready SRP payload (HAS_TEST_OVERRIDES Appium/Detox). */
   applyQrSyncSyncReady = 'apply-qr-sync-sync-ready',
 }

@@ -1,7 +1,6 @@
 import {
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipAssetId,
-  ///: END:ONLY_INCLUDE_IF
+  CaipChainId,
   Hex,
   isCaipAssetType,
   parseCaipAssetType,
@@ -27,9 +26,7 @@ import {
   selectTokenDisplayData,
 } from '../../../../selectors/tokenSearchDiscoveryDataController';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
-///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
-///: END:ONLY_INCLUDE_IF
 import { MarketDataDetails } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { formatMarketDetails } from '../utils/marketDetails';
@@ -71,6 +68,16 @@ interface TokenDetailsProps {
   marketData?: FungibleAssetPrice | null;
 }
 
+const toCaipChainId = (chainId: string, isNonEvm: boolean): CaipChainId =>
+  isNonEvm
+    ? (chainId as `${string}:${string}`)
+    : formatChainIdToCaip(chainId as Hex);
+
+const getSpotPriceEntry = (
+  response: Record<string, Record<string, unknown>> | null | undefined,
+  assetId: string,
+): Record<string, unknown> | undefined => response?.[assetId];
+
 const TokenDetails: React.FC<TokenDetailsProps> = ({
   asset,
   onCopyAddress,
@@ -97,14 +104,12 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
     selectTokenDisplayData(state, asset.chainId as Hex, asset.address as Hex),
   );
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const allMultichainAssetsRates = useSelector(selectMultichainAssetsRates);
 
   const multichainAssetRates =
     allMultichainAssetsRates[asset.address as CaipAssetId];
 
   const nonEvmMarketData = multichainAssetRates?.marketData;
-  ///: END:ONLY_INCLUDE_IF
 
   const evmMarketData = useSelector((state: RootState) =>
     !isNonEvmAsset && tokenContractAddress
@@ -156,9 +161,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
         const isNonEvm = isNonEvmChainId(asset.chainId as string);
 
         // Convert chainId to CAIP format for both EVM and non-EVM chains
-        const caipChainId = isNonEvm
-          ? (asset.chainId as `${string}:${string}`)
-          : formatChainIdToCaip(asset.chainId as Hex);
+        const caipChainId = toCaipChainId(asset.chainId as string, isNonEvm);
 
         const assetId = toAssetId(plainTokenAddress, caipChainId);
         if (!assetId) return;
@@ -175,7 +178,7 @@ const TokenDetails: React.FC<TokenDetailsProps> = ({
           string,
           Record<string, unknown>
         >;
-        setFetchedMarketData(response?.[assetId]);
+        setFetchedMarketData(getSpotPriceEntry(response, assetId));
       } catch (error) {
         console.error('Failed to fetch market data:', error);
       }

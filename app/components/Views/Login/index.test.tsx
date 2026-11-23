@@ -47,6 +47,7 @@ import { IconName } from '@metamask/design-system-react-native';
 import Logger from '../../../util/Logger';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import ReduxService from '../../../core/redux/ReduxService';
+import { checkForDeeplink } from '../../../actions/user';
 import { RecursivePartial } from '../../../core/Authentication/Authentication.test';
 import { RootState } from '../../../reducers';
 import { ReduxStore } from '../../../core/redux/types';
@@ -57,6 +58,7 @@ const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
 const mockGoBack = jest.fn();
 const mockReset = jest.fn();
+const mockSetOptions = jest.fn();
 const mockRoute = jest.fn().mockReturnValue({
   params: {
     locked: false,
@@ -124,6 +126,7 @@ jest.mock('@react-navigation/native', () => {
       replace: mockReplace,
       reset: mockReset,
       goBack: mockGoBack,
+      setOptions: mockSetOptions,
       dispatch: jest.fn((action) => {
         if (action.type === 'REPLACE') {
           mockReplace(action.payload.name, action.payload.params);
@@ -327,6 +330,7 @@ jest.mock('../../../core/redux', () => ({
   default: {
     store: {
       getState: jest.fn(() => ({ mock: 'state' })),
+      dispatch: jest.fn(),
     },
   },
 }));
@@ -765,6 +769,82 @@ describe('Login', () => {
       expect(mockLockApp).toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(result).toBe(false);
+    });
+  });
+
+  describe('resume overlay', () => {
+    const resumeRoute = {
+      params: { resumeOverlay: true },
+    };
+
+    const submitPassword = async () => {
+      const { getByTestId } = renderWithProvider(<Login />);
+      const passwordInput = getByTestId(LoginViewSelectors.PASSWORD_INPUT);
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'valid-password123');
+      });
+      await act(async () => {
+        fireEvent(passwordInput, 'submitEditing');
+        const promiseRef = (
+          trace as {
+            __traceCallbackPromiseRef?: { current: Promise<unknown> | null };
+          }
+        ).__traceCallbackPromiseRef;
+        if (promiseRef?.current) {
+          await promiseRef.current;
+          promiseRef.current = null;
+        }
+      });
+    };
+
+    it('disables the back gesture and consumes the Android back press', () => {
+      mockRoute.mockReturnValue(resumeRoute);
+      renderWithProvider(<Login />);
+
+      expect(mockSetOptions).toHaveBeenCalledWith({ gestureEnabled: false });
+      const handleBackPress = mockBackHandlerAddEventListener.mock.calls[0][1];
+      expect(handleBackPress()).toBe(true);
+      expect(mockLockApp).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dismisses Login after a password unlock and checks for a deeplink', async () => {
+      mockRoute.mockReturnValue(resumeRoute);
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(true);
+
+      await submitPassword();
+
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        password: 'valid-password123',
+        navigationBehavior: 'preserve',
+      });
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockLoginReduxStore.store.dispatch).toHaveBeenCalledWith(
+        checkForDeeplink(),
+      );
+    });
+
+    it('dismisses Login after a biometric unlock and checks for a deeplink', async () => {
+      mockRoute.mockReturnValue(resumeRoute);
+      mockUnlockWallet.mockReset();
+      mockUnlockWallet.mockResolvedValue(true);
+      const { getByTestId } = renderWithProvider(<Login />);
+      await waitForDeviceAuthIcon();
+
+      await act(async () => {
+        fireEvent.press(
+          getByTestId(LoginViewSelectors.DEVICE_AUTHENTICATION_ICON),
+        );
+      });
+
+      expect(mockUnlockWallet).toHaveBeenCalledWith({
+        navigationBehavior: 'preserve',
+      });
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockLoginReduxStore.store.dispatch).toHaveBeenCalledWith(
+        checkForDeeplink(),
+      );
     });
   });
 

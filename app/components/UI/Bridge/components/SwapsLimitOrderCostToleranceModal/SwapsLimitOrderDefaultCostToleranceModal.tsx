@@ -8,7 +8,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Text,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -18,7 +17,7 @@ import {
   selectLimitOrderCostTolerance,
   setLimitOrderCostTolerance,
 } from '../../../../../core/redux/slices/bridge';
-import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../constants/limitOrders';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selectors/bridge/featureFlags';
 import { CostToleranceButtonGroup } from './CostToleranceButtonGroup';
 import {
   COST_TOLERANCE_OPTIONS,
@@ -26,14 +25,20 @@ import {
 } from './constants';
 import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from './testIds';
 import type { CostToleranceOption } from './types';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const SwapsLimitOrderDefaultCostToleranceModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
+  const defaultCostTolerance = useSelector(
+    selectBridgeLimitOrderDefaultCostTolerance,
+  );
   const [selectedCostTolerance, setSelectedCostTolerance] = useState(
-    costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+    costTolerance ?? defaultCostTolerance,
   );
 
   const handleClose = useCallback(() => {
@@ -79,7 +84,9 @@ export const SwapsLimitOrderDefaultCostToleranceModal = () => {
       goBack={navigation.goBack}
       testID={SwapsLimitOrderCostToleranceModalSelectorsIDs.DEFAULT_SHEET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('bridge.cost_tolerance')}
         onClose={handleClose}
         closeButtonProps={{

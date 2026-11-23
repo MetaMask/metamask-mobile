@@ -5,6 +5,7 @@ import {
   Fit,
   RiveView,
   useRive,
+  useRiveBoolean,
   useRiveFile,
   useRiveNumber,
   useRiveTrigger,
@@ -14,6 +15,8 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import SocialOnboardingAnimation from '../../../../animations/social_v1_social-onboarding.riv';
 import Logger from '../../../../util/Logger';
+import { AppThemeKey } from '../../../../util/theme/models';
+import { useTheme } from '../../../../util/theme';
 import {
   PROFILE_ONBOARDING_RIVE_ARTBOARD,
   PROFILE_ONBOARDING_RIVE_ASSETS,
@@ -39,6 +42,12 @@ export const PROFILE_ONBOARDING_SCENE_DWELL_MS: Readonly<
 interface ProfileOnboardingIntroAnimationProps {
   /** Static content shown when the animation is skipped or fails. */
   fallback: React.ReactNode;
+  /**
+   * Latest `currentStep` from the state machine. Omitted while the file is
+   * still loading, and while the animation is skipped.
+   */
+  onStepChange?: (step: number) => void;
+  paused?: boolean;
 }
 
 /**
@@ -49,8 +58,9 @@ interface ProfileOnboardingIntroAnimationProps {
  */
 const ProfileOnboardingIntroAnimation: React.FC<
   ProfileOnboardingIntroAnimationProps
-> = ({ fallback }) => {
+> = ({ fallback, onStepChange, paused = false }) => {
   const tw = useTailwind();
+  const { themeAppearance } = useTheme();
   const skipAnimation = !useProfileOnboardingRiveEnabled();
   const [hasRiveError, setHasRiveError] = useState(false);
 
@@ -73,14 +83,43 @@ const ProfileOnboardingIntroAnimation: React.FC<
     }
   }, [loadError]);
   const { riveViewRef, setHybridRef } = useRive();
+  useEffect(() => {
+    if (!riveViewRef) return;
+    const playback = paused ? riveViewRef.pause() : riveViewRef.play();
+    playback.catch(() => undefined);
+  }, [paused, riveViewRef]);
   const { value: currentStep } = useRiveNumber(
     PROFILE_ONBOARDING_RIVE_PATHS.CURRENT_STEP,
+    instance,
+  );
+  const { setValue: setLightMode } = useRiveBoolean(
+    PROFILE_ONBOARDING_RIVE_PATHS.LIGHT_MODE,
     instance,
   );
   const { trigger: fireContinue } = useRiveTrigger(
     PROFILE_ONBOARDING_RIVE_PATHS.CONTINUE,
     instance,
   );
+
+  useEffect(() => {
+    if (!instance) {
+      return;
+    }
+    setLightMode(themeAppearance === AppThemeKey.light);
+  }, [instance, setLightMode, themeAppearance]);
+
+  useEffect(() => {
+    if (
+      skipAnimation ||
+      hasRiveError ||
+      loadError ||
+      currentStep === undefined ||
+      !Number.isFinite(currentStep)
+    ) {
+      return;
+    }
+    onStepChange?.(currentStep);
+  }, [currentStep, hasRiveError, loadError, onStepChange, skipAnimation]);
 
   const isPlaying =
     !skipAnimation && !hasRiveError && !loadError && Boolean(riveViewRef);
@@ -117,10 +156,10 @@ const ProfileOnboardingIntroAnimation: React.FC<
           artboardName={PROFILE_ONBOARDING_RIVE_ARTBOARD}
           stateMachineName={PROFILE_ONBOARDING_RIVE_STATE_MACHINE}
           dataBind={instance}
-          autoPlay
+          autoPlay={!paused}
           fit={Fit.Contain}
           alignment={Alignment.Center}
-          style={tw.style('flex-1')}
+          style={tw.style('h-full w-full')}
           onError={handleError}
           testID={SocialProfileOnboardingSelectorsIDs.INTRO_ANIMATION}
         />

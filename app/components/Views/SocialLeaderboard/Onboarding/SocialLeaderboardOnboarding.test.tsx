@@ -2,14 +2,13 @@ import { act, screen } from '@testing-library/react-native';
 import React from 'react';
 import { StackActions } from '@react-navigation/native';
 import { RiveErrorType, type RiveError } from '@rive-app/react-native';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import StorageWrapper from '../../../../store/storage-wrapper';
+import Logger from '../../../../util/Logger';
+import { SOCIAL_SENTRY_FEATURE } from '../../../../util/social/socialServiceTelemetry';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
 // eslint-disable-next-line import-x/no-restricted-paths
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
@@ -36,11 +35,15 @@ import {
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-const mockShowToast = jest.fn();
 let mockOnboardingRouteParams: { returnToTab?: boolean } | undefined;
-const mockToastRef = {
-  current: { showToast: mockShowToast, closeToast: jest.fn() },
-};
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -102,6 +105,7 @@ jest.mock('../analytics', () => {
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () => false,
   }),
 );
@@ -215,12 +219,7 @@ describe('SocialLeaderboardOnboarding', () => {
   });
 
   const renderComponent = () =>
-    renderWithProvider(
-      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-        <SocialLeaderboardOnboarding />
-      </ToastContext.Provider>,
-      {},
-    );
+    renderWithProvider(<SocialLeaderboardOnboarding />, {});
 
   it('renders the Rive animation and tracks the first slide on mount', () => {
     renderComponent();
@@ -895,19 +894,13 @@ describe('SocialLeaderboardOnboarding', () => {
     await advanceToNotifyStep();
     await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
 
-    expect(mockShowToast).toHaveBeenCalledWith(
-      expect.objectContaining({
-        variant: ToastVariants.Plain,
-        labelOptions: [{ label: 'Notifications are on', isBold: true }],
-        descriptionOptions: {
-          description:
-            "We'll send you transactions, price alerts, and updates.",
-        },
-        startAccessory: expect.any(Object),
-        customBottomOffset: expect.any(Number),
-        hasNoTimeout: false,
-      }),
-    );
+    expect(toast).toHaveBeenCalledWith({
+      title: 'Notifications are on',
+      description: "We'll send you transactions, price alerts, and updates.",
+      severity: ToastSeverity.Success,
+      hasNoTimeout: false,
+      showCloseButton: false,
+    });
   });
 
   it('lands on the leaderboard with the nudge banner (no toast) when permission is denied (OS off)', async () => {
@@ -918,7 +911,7 @@ describe('SocialLeaderboardOnboarding', () => {
     await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
 
     // No toast on denial — the leaderboard shows a persistent banner instead.
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
     // Still completes the flow (user is never ejected) and asks the leaderboard
     // to surface the "turn on notifications" banner.
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -937,7 +930,7 @@ describe('SocialLeaderboardOnboarding', () => {
     await advanceToNotifyStep();
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 
-    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(toast).not.toHaveBeenCalled();
   });
 
   it('completes on gotIt without requesting notification permission', async () => {
@@ -1137,6 +1130,7 @@ describe('SocialLeaderboardOnboarding', () => {
 
   it('marks seen and exits to the leaderboard on a fatal Rive error without tracking completion', () => {
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    const loggerErrorSpy = jest.spyOn(Logger, 'error').mockImplementation();
     renderComponent();
 
     act(() => {
@@ -1146,6 +1140,16 @@ describe('SocialLeaderboardOnboarding', () => {
       });
     });
 
+    expect(loggerErrorSpy).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: SOCIAL_SENTRY_FEATURE,
+          surface: 'leaderboard_onboarding',
+          operation: 'rive_runtime',
+        }),
+      }),
+    );
     expect(setItemSpy).toHaveBeenCalledWith(
       SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
       'true',
@@ -1158,6 +1162,7 @@ describe('SocialLeaderboardOnboarding', () => {
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
       expect.anything(),
     );
+    loggerErrorSpy.mockRestore();
   });
 
   it('stays on the onboarding for a non-fatal Rive error (missing binding / input)', () => {

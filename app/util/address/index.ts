@@ -436,7 +436,6 @@ export function getLabelTextByInternalAccount(
       return strings('accounts.qr_hardware');
     case ExtendedKeyringTypes.simple:
       return strings('accounts.imported');
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     case KeyringTypes.snap: {
       // TODO: We should return multiple labels if one day we allow 3rd party Snaps (since they might have 2 pills:
       // 1. For the SRP (if they provide `options.entropySource`)
@@ -454,7 +453,6 @@ export function getLabelTextByInternalAccount(
         return strings('accounts.snap_account_tag');
       }
     }
-    ///: END:ONLY_INCLUDE_IF
   }
   return null;
 }

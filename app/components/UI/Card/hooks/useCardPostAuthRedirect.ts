@@ -30,36 +30,44 @@ const isLinkFlowOrigin = (value: unknown): value is LinkFlowOrigin =>
   typeof (value as LinkFlowOrigin).screen === 'string';
 
 /**
+ * Reads `postAuthRedirect` from a card navigation stack when set by a Money
+ * account entry point. Returns undefined for direct card opens.
+ */
+export const findCardPostAuthRedirect = (
+  navigation: AppNavigationProp,
+): LinkFlowOrigin | undefined => {
+  let parent = navigation.getParent();
+
+  while (parent) {
+    const state = parent.getState();
+    for (const route of state.routes) {
+      const redirect = (route.params as { postAuthRedirect?: unknown })
+        ?.postAuthRedirect;
+      if (isLinkFlowOrigin(redirect)) {
+        return redirect;
+      }
+
+      const nestedParams = route.params as
+        | { params?: { postAuthRedirect?: unknown } }
+        | undefined;
+      const nestedRedirect = nestedParams?.params?.postAuthRedirect;
+      if (isLinkFlowOrigin(nestedRedirect)) {
+        return nestedRedirect;
+      }
+    }
+
+    parent = parent.getParent();
+  }
+
+  return undefined;
+};
+
+/**
  * Reads `postAuthRedirect` from the current card navigation stack when set by a
  * Money account entry point. Returns undefined for direct card opens.
  */
 export const useCardPostAuthRedirect = (): LinkFlowOrigin | undefined => {
   const navigation = useNavigation<AppNavigationProp>();
 
-  return useMemo(() => {
-    let parent = navigation.getParent();
-
-    while (parent) {
-      const state = parent.getState();
-      for (const route of state.routes) {
-        const redirect = (route.params as { postAuthRedirect?: unknown })
-          ?.postAuthRedirect;
-        if (isLinkFlowOrigin(redirect)) {
-          return redirect;
-        }
-
-        const nestedParams = route.params as
-          | { params?: { postAuthRedirect?: unknown } }
-          | undefined;
-        const nestedRedirect = nestedParams?.params?.postAuthRedirect;
-        if (isLinkFlowOrigin(nestedRedirect)) {
-          return nestedRedirect;
-        }
-      }
-
-      parent = parent.getParent();
-    }
-
-    return undefined;
-  }, [navigation]);
+  return useMemo(() => findCardPostAuthRedirect(navigation), [navigation]);
 };

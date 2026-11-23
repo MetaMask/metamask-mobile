@@ -143,6 +143,9 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
           placeholder={strings(
             'multichain_accounts.address_rows_list.search_placeholder',
           )}
+          inputAccessibilityLabel={strings(
+            'multichain_accounts.address_rows_list.search_placeholder',
+          )}
           value={searchPattern}
           onChangeText={handleSearchChange}
           onPressClearButton={() => handleSearchChange('')}

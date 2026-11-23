@@ -1,11 +1,4 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
@@ -15,18 +8,19 @@ import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
 import {
   incrementBridgeBalanceRefreshKey,
+  resetBridgeState,
   resetBridgeTokenInputs,
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import { PostTradeStatus } from '../../Bridge/components/PostTradeBottomSheet/PostTradeBottomSheet.types';
 import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../Bridge/utils/postTradeNotifications';
 import { completeHwSwapSuccess } from './hwSwapSuccess';
+import { notifyHwSubmissionOutcome } from './hwSubmissionOutcome';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -104,7 +98,6 @@ export function useHwSwapLifecycle({
   const dispatch = useDispatch();
   const navigation = useNavigation<AppStackNavigationProp>();
   const isFocused = useIsFocused();
-  const toastRef = useContext(ToastContext)?.toastRef;
 
   const progress = useSelector(selectHardwareWalletsSwaps);
   const progressRef = useRef(progress);
@@ -176,6 +169,22 @@ export function useHwSwapLifecycle({
     };
   }, [strategy.isSendFlow, isFocused]);
 
+  // Leaving without a reported submission (cancel, back, done after failure)
+  // resolves the caller's session as failed; a no-op once `submitted` was
+  // reported. Quick Buy also hands its bridge slice to this screen to reset.
+  const outcomeListenerId =
+    strategy.submitOptions.submissionParams?.outcomeListenerId;
+  useEffect(
+    () => () => {
+      notifyHwSubmissionOutcome(outcomeListenerId, { status: 'failed' });
+      if (strategy.isQuickBuy) {
+        dispatch(resetBridgeState());
+        Engine.context.BridgeController?.resetState?.();
+      }
+    },
+    [dispatch, outcomeListenerId, strategy.isQuickBuy],
+  );
+
   // Register before opening the QR scanner so transitionEnd cannot be missed.
   // This is Bridge-only; Send retains its existing scanner-owned completion.
   useEffect(() => {
@@ -211,7 +220,7 @@ export function useHwSwapLifecycle({
     const completeWithoutModal = () => {
       hasAutoNavigatedRef.current = true;
       clearCachedSubmission();
-      completeHwSwapSuccess({ dispatch, navigation, toastRef });
+      completeHwSwapSuccess({ dispatch, navigation });
     };
 
     if (strategy.isSendFlow) {
@@ -237,7 +246,21 @@ export function useHwSwapLifecycle({
       return;
     }
 
+    notifyHwSubmissionOutcome(outcomeListenerId, {
+      status: 'submitted',
+      transaction: submittedTransaction,
+    });
+
     if (isQrHardwareWallet && !isQrReturnTransitionEnded) return;
+
+    if (strategy.isQuickBuy) {
+      // Quick Buy surfaces its own pending/terminal toasts for this trade.
+      hasAutoNavigatedRef.current = true;
+      clearCachedSubmission();
+      dispatch(resetHardwareWalletsSwaps());
+      navigation.goBack();
+      return;
+    }
 
     hasAutoNavigatedRef.current = true;
     clearCachedSubmission();
@@ -264,9 +287,10 @@ export function useHwSwapLifecycle({
     isQrReturnTransitionEnded,
     navigation,
     strategy.isSendFlow,
+    strategy.isQuickBuy,
+    outcomeListenerId,
     strategy.submitOptions.submissionParams?.postTradeModalParams,
     submittedTransaction,
-    toastRef,
   ]);
 
   const reconcileStuckFlowProgress = useCallback(() => {
@@ -385,7 +409,7 @@ export function useHwSwapLifecycle({
 
   // ── Actions ──────────────────────────────────────────────────────
   const handleCancel = useCallback(() => {
-    cancelCurrentBatch();
+    void cancelCurrentBatch();
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
     navigateOnCancel();
@@ -455,8 +479,12 @@ export function useHwSwapLifecycle({
   const handleDone = useCallback(() => {
     clearCachedSubmission();
     dispatch(resetHardwareWalletsSwaps());
+    if (strategy.isQuickBuy) {
+      navigation.goBack();
+      return;
+    }
     navigation.navigate(Routes.TRANSACTIONS_VIEW, undefined, { pop: true });
-  }, [dispatch, navigation, clearCachedSubmission]);
+  }, [dispatch, navigation, clearCachedSubmission, strategy.isQuickBuy]);
 
   return {
     isRetrying,

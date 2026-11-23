@@ -29,13 +29,56 @@ describe('reportRewardsMoneyReadFailure', () => {
       'rewards-money',
     );
     reportRewardsMoneyReadFailure(
-      new RewardsMoneyHttpError('busy', 503, undefined, 30),
+      new RewardsMoneyHttpError('limited', 429, undefined, 30),
       'earningsSummary.fetch_failed',
       false,
       'rewards-money',
     );
 
     expect(mockCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('reports a 503 the data service already retried immediately', () => {
+    const busy = new RewardsMoneyHttpError('busy', 503, undefined, 2, true);
+
+    reportRewardsMoneyReadFailure(
+      busy,
+      'earningsSummary.fetch_failed',
+      false,
+      'rewards-money',
+    );
+
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
+    expect(mockCaptureException).toHaveBeenCalledWith(busy, {
+      tags: {
+        feature: 'rewards-money',
+        context: 'earningsSummary.fetch_failed',
+      },
+    });
+  });
+
+  it('reports a statement timeout (503, Retry-After 30) immediately', () => {
+    const timeout = new RewardsMoneyHttpError('slow', 503, undefined, 30);
+
+    reportRewardsMoneyReadFailure(
+      timeout,
+      'earningsSummary.fetch_failed',
+      false,
+      'rewards-money',
+    );
+
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports a busy status other than 429 or 503 immediately', () => {
+    reportRewardsMoneyReadFailure(
+      new RewardsMoneyHttpError('down', 502, undefined, 2),
+      'earningsSummary.fetch_failed',
+      false,
+      'rewards-money',
+    );
+
+    expect(mockCaptureException).toHaveBeenCalledTimes(1);
   });
 
   it('reports a short busy read once the refetch has failed', () => {

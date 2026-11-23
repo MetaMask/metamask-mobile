@@ -229,7 +229,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-2"
+          twClassName="mb-3"
         >
           {strings(
             direction === 'up'
@@ -244,7 +244,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
           prefix={directionToggle}
           suffix={percentSuffix}
           testID={CreatePriceAlertTestIds.PERCENT_INPUT}
-          cursorTwClassName="self-center h-10 w-0.5 bg-primary-default"
         />
 
         <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>

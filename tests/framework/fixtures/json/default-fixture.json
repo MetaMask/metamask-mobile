@@ -5,6 +5,7 @@
     "@MetaMask:UserTermsAcceptedv1.0": "true",
     "@MetaMask:existingUser": "true",
     "@MetaMask:predictGTMModalShown": "true",
+    "@MetaMask:socialTermsAccepted": "v1",
     "@MetaMask:solanaFeatureModalShownV2": "true"
   },
   "state": {
@@ -66,9 +67,11 @@
       "whitelist": []
     },
     "card": {
+      "applePaySplashSeen": false,
       "cardArrivalAnimationSeen": false,
       "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
+      "immersveFundingSettling": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
@@ -149,8 +152,6 @@
           "cardLinkApiBlocked": false,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
-          "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
@@ -161,7 +162,6 @@
           "signInLink": null,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
           "cardLinkApiBlocked": false
         },
         "ClaimsController": {
@@ -239,7 +239,12 @@
           "pendingMarketingConsent": null
         },
         "MoneyAccountController": {
-          "moneyAccounts": {}
+          "moneyAccounts": {},
+          "defaultMoneyAccountId": null
+        },
+        "MoneyAccountLifecycleController": {
+          "moneyAccounts": {},
+          "addressRegistrations": {}
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -344,7 +349,6 @@
               "nativeCurrency": "ETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "mainnet",
                   "type": "infura",
                   "url": "https://mainnet.infura.io/v3/{infuraProjectId}"
@@ -360,7 +364,6 @@
               "nativeCurrency": "MON",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "monad-mainnet",
                   "type": "infura",
                   "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
@@ -376,7 +379,6 @@
               "nativeCurrency": "SepoliaETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "sepolia",
                   "type": "infura",
                   "url": "https://sepolia.infura.io/v3/{infuraProjectId}"
@@ -392,7 +394,6 @@
               "nativeCurrency": "LineaETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "linea-sepolia",
                   "type": "infura",
                   "url": "https://linea-sepolia.infura.io/v3/{infuraProjectId}"
@@ -408,7 +409,6 @@
               "nativeCurrency": "LineaETH",
               "rpcEndpoints": [
                 {
-                  "failoverUrls": [],
                   "networkClientId": "linea-mainnet",
                   "type": "infura",
                   "url": "https://linea-mainnet.infura.io/v3/{infuraProjectId}"
@@ -459,8 +459,13 @@
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
           "cachedUserDataByProvider": {},
+          "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
+          "effectiveProvider": "hyperliquid",
+          "hasExplicitDefaultProviderSelection": false,
+          "hasExplicitProviderSelection": false,
+          "hasMigratedToMultiProvider": false,
           "hasPlacedFirstOrder": {
             "mainnet": false,
             "testnet": false
@@ -610,7 +615,8 @@
             "profileId": "",
             "tradingPrivacy": "public",
             "updatedAt": "",
-            "username": ""
+            "username": "",
+            "verified": false
           }
         },
         "QrSyncController": {
@@ -715,6 +721,11 @@
               "enabled": true,
               "featureVersion": null,
               "minimumVersion": null
+            },
+            "stellarAccounts": {
+              "enabled": true,
+              "featureVersion": null,
+              "minimumVersion": "0.0.0"
             }
           }
         },
@@ -827,6 +838,10 @@
       "lastLocalFlowConfirmedAt": null,
       "redeemable": null
     },
+    "socialEarlyAccess": {
+      "profileId": null,
+      "hasAccess": false
+    },
     "navigation": {
       "currentBottomNavRoute": "Wallet",
       "currentRoute": "AdvancedSettings"
@@ -903,25 +918,19 @@
       "campaignsFetching": false,
       "campaignsHasLoaded": false,
       "campaignsLoading": false,
-      "candidateSubscriptionId": "pending",
+      "candidateSubscriptionId": null,
       "dismissedCampaignOutcomeToasts": {},
-      "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
       "moneyAccountSweepstakesDrawProofs": {},
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
-      "onboardingActiveStep": "INTRO",
-      "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
       "ondoCampaignLeaderboards": {},
       "ondoCampaignPortfolio": {},
-      "optinAllowedForGeo": null,
-      "optinAllowedForGeoError": false,
-      "optinAllowedForGeoLoading": false,
       "pendingDeeplink": null,
       "pendingMasSeriesOptIn": {
         "needsRetry": false,
@@ -957,7 +966,18 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "answeredReferralCode": null,
+      "cashbackLedger": {},
+      "claimLocks": {},
+      "claimWaitingUntil": {},
+      "commissionMechanisms": {},
+      "commissions": {},
+      "earningsHistory": {},
       "earningsSummary": {},
+      "inFlightClaims": {},
+      "isReferralLinkPending": false,
+      "pendingReferralCode": null,
+      "referralFunnel": {},
       "referralMe": {}
     },
     "rpcEvents": {
@@ -976,7 +996,9 @@
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}
@@ -996,6 +1018,7 @@
       "perpsChartPreferences": {
         "preferredCandlePeriod": "15m"
       },
+      "perpsCrossMarginConfirmedAccounts": {},
       "perpsMarketListPreferences": {
         "marketTypeFilter": "all",
         "showFavoritesOnly": false
@@ -1018,6 +1041,8 @@
       "appServicesReady": false,
       "appTheme": "os",
       "backUpSeedphraseVisible": false,
+      "bridgeLimitTabSeen": false,
+      "bridgeRecurringTabSeen": false,
       "existingUser": true,
       "gasEducationCarouselSeen": false,
       "initialScreen": "",
@@ -1027,6 +1052,7 @@
       "loadingSet": false,
       "moneyEarnBannerDismissedTokens": {},
       "moneyOnboardingSeen": false,
+      "moneySplashSeen": false,
       "multichainAccountsIntroModalSeen": true,
       "musdConversionAssetDetailCtasSeen": {},
       "musdConversionEducationSeen": false,

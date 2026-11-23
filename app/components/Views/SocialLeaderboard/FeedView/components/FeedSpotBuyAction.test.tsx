@@ -50,23 +50,25 @@ jest.mock('../../../../UI/QuickBuy/hooks/useQuickBuySetup', () => ({
   }),
 }));
 
+jest.mock('../../../../UI/QuickBuy', () => ({
+  TOP_TRADERS_QUICK_BUY_FEATURES: {},
+}));
+
 let mockQuickBuyAnalyticsContext: { source?: string } | undefined;
-jest.mock('../../../../UI/QuickBuy', () => {
+jest.mock('../../../../UI/QuickBuy/QuickBuyRoot', () => {
   const { View } = jest.requireActual('react-native');
   return {
-    QuickBuy: {
-      Root: ({
-        isVisible,
-        analyticsContext,
-      }: {
-        isVisible: boolean;
-        analyticsContext?: { source?: string };
-      }) => {
-        mockQuickBuyAnalyticsContext = analyticsContext;
-        return isVisible ? <View testID="mock-quick-buy-open" /> : null;
-      },
+    __esModule: true,
+    default: ({
+      isVisible,
+      analyticsContext,
+    }: {
+      isVisible: boolean;
+      analyticsContext?: { source?: string };
+    }) => {
+      mockQuickBuyAnalyticsContext = analyticsContext;
+      return isVisible ? <View testID="mock-quick-buy-open" /> : null;
     },
-    TOP_TRADERS_QUICK_BUY_FEATURES: {},
   };
 });
 

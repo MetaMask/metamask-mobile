@@ -11,6 +11,7 @@ import OAuthRehydration from './index';
 import OAuthService from '../../../core/OAuthService/OAuthService';
 import { strings } from '../../../../locales/i18n';
 import {
+  AuthConnection,
   SeedlessOnboardingControllerErrorMessage,
   RecoveryError as SeedlessOnboardingControllerRecoveryError,
 } from '@metamask/seedless-onboarding-controller';
@@ -26,6 +27,8 @@ import { captureExceptionForced } from '../../../util/sentry/utils';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
+import { AccountType } from '../../../constants/onboarding';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockEngine = jest.mocked(Engine) as any;
@@ -39,6 +42,8 @@ const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
 const mockRequestBiometricsAccessControlForIOS = jest.fn();
 const mockUpdateAuthPreference = jest.fn();
+const mockAnalyticsIdentify = jest.fn();
+const mockAnalyticsTrackEvent = jest.fn();
 const UNLOCK_TRACE_TOKENS = {
   homepageReadyTraceToken: 1,
   deeplinkNavigatedTraceToken: 2,
@@ -84,8 +89,8 @@ jest.mock(
 
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    identify: jest.fn(),
-    trackEvent: jest.fn(),
+    identify: (...args: unknown[]) => mockAnalyticsIdentify(...args),
+    trackEvent: (...args: unknown[]) => mockAnalyticsTrackEvent(...args),
     trackView: jest.fn(),
     optIn: jest.fn().mockResolvedValue(undefined),
     optOut: jest.fn().mockResolvedValue(undefined),
@@ -172,8 +177,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+const mockGetMarketingOptInStatus = jest.fn().mockResolvedValue({
+  is_opt_in: false,
+});
+
 jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
+  getMarketingOptInStatus: (...args: unknown[]) =>
+    mockGetMarketingOptInStatus(...args),
 }));
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
@@ -207,6 +218,9 @@ const enterPasswordAndSubmit = async (
 describe('OAuthRehydration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetMarketingOptInStatus.mockResolvedValue({
+      is_opt_in: false,
+    });
     mockRoute.mockReturnValue({
       params: { locked: false, oauthLoginSuccess: true },
     });
@@ -284,6 +298,29 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
       });
+    });
+
+    it('does not read marketing consent from the OAuth backend after unlock', async () => {
+      const { getByTestId, store } = renderWithProvider(<OAuthRehydration />, {
+        state: {
+          engine: {
+            backgroundState: {
+              SeedlessOnboardingController: {
+                authConnection: AuthConnection.Google,
+              },
+            },
+          },
+          security: { dataCollectionForMarketing: false },
+        },
+      });
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(mockTrackOnboarding).toHaveBeenCalled();
+      });
+      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
+      expect(store.getState().security.dataCollectionForMarketing).toBe(false);
+      expect(mockAnalyticsIdentify).not.toHaveBeenCalled();
     });
 
     it('logs error when post-unlock biometric prompt fails', async () => {
@@ -1105,6 +1142,7 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
+      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );

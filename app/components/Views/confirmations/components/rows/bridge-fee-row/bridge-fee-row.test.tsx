@@ -432,6 +432,21 @@ describe('BridgeFeeRow', () => {
         ),
       ).toBeOnTheScreen();
     });
+
+    it.each([
+      [TransactionType.perpsWithdraw],
+      [TransactionType.predictWithdraw],
+    ])('renders withdraw tooltip copy for %s', async (type) => {
+      const { getByTestId, getByText } = render({ type });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(
+        getByText('MetaMask will swap to your desired token for you.'),
+      ).toBeOnTheScreen();
+    });
   });
 
   describe('network fee token icon', () => {

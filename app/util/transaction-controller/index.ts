@@ -56,7 +56,7 @@ async function addTempoTransaction({
     transaction.from,
     KeyringController as Parameters<typeof accountSupports7702>[1],
   );
-  // Classic transaction, we simply set pathUSD as default
+  // Classic transaction, we simply set OUSD as default
   // and add excludeNativeTokenForFee to signal to ignore native.
   // We enter this flow is dApp non-0x76 txs as well as send flow.
   if (!isTempoTransactionType(transaction)) {

@@ -42,6 +42,8 @@ export interface DeriveOrderSizingInput {
   maxSlippageBps?: number;
   /** True while market data is still loading (defers derived values). */
   isLoadingMarketData: boolean;
+  /** Exact base size to use instead of deriving it from `amount`. */
+  size?: string;
 }
 
 export interface DeriveOrderSizingResult {
@@ -194,6 +196,7 @@ export const deriveOrderSizing = ({
   isBuy = true,
   maxSlippageBps,
   isLoadingMarketData,
+  size,
 }: DeriveOrderSizingInput): DeriveOrderSizingResult => {
   const parsedLimitPrice = isLimitExecutionOrderType(orderType)
     ? Number.parseFloat(limitPrice ?? '')
@@ -231,11 +234,12 @@ export const deriveOrderSizing = ({
 
   const positionSize = isLoadingMarketData
     ? PERPS_CONSTANTS.FallbackDataDisplay
-    : calculatePositionSize({
+    : (size ??
+      calculatePositionSize({
         amount,
         price: effectivePrice,
         szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
-      });
+      }));
 
   let marginRequired: string | undefined;
   if (!isLoadingMarketData && amount) {

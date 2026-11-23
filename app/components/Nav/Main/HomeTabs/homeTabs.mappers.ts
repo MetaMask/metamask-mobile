@@ -40,8 +40,7 @@ export const shouldHideRewardsTabBar = (route: HomeTabRoute): boolean => {
   return !(
     !active ||
     active === Routes.REWARDS_DASHBOARD ||
-    active === Routes.REWARDS_MONEY_DASHBOARD ||
-    active === Routes.REWARDS_ONBOARDING_FLOW
+    active === Routes.REWARDS_MONEY_DASHBOARD
   );
 };
 
@@ -97,5 +96,8 @@ export const toNativeTabOptions = (
       : null),
     // Only set when hiding, so the shared style identity survives otherwise.
     ...(isHidden ? { tabBarStyle: TAB_BAR_HIDDEN_STYLE } : null),
+    ...(tab.tabBarSelectionEnabled === false
+      ? { tabBarSelectionEnabled: false }
+      : null),
   };
 };

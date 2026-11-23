@@ -31,6 +31,13 @@ const mockRouteParams: GasImpactModalRouteParams = {
   chainId: '1',
 };
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {

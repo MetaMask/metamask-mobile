@@ -4,11 +4,13 @@ import { PerpsOrderViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.
 import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
+import PerpsModeSelectionBottomSheet from '../page-objects/Perps/PerpsModeSelectionBottomSheet';
 import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
 import PerpsProMarketView from '../page-objects/Perps/PerpsProMarketView';
 import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
-import WalletView from '../page-objects/wallet/WalletView';
+import TabBarComponent from '../page-objects/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../page-objects/wallet/WalletActionsBottomSheet';
 
 /** Presence probe for optional Perps UI (tutorial / tooltip). Keep short — smoke fixtures pre-grant notifications and usually skip GTM. */
 const PERPS_OPTIONAL_UI_PROBE_MS = 1_000;
@@ -73,6 +75,27 @@ export const dismissPerpsOnboardingTutorialIfPresent =
       // Tutorial shown but dismiss failed — leave for caller / next attempt.
     }
   };
+
+/**
+ * Completes the one-time "Choose how you trade" chooser with Lite when shown.
+ * Trade → Perps opens it when perpsProModeEnabled is on and no selection is
+ * stored; app data is wiped per test, so this fires on every SmokePerps run.
+ * Pro specs select a market in Lite first, then switch via
+ * switchToPerpsProMode(). No-op (short probe) when pro mode is disabled.
+ */
+export const completePerpsModeSelectionIfPresent = async (): Promise<void> => {
+  if (
+    !(await PerpsModeSelectionBottomSheet.isChooserPresent(
+      PERPS_OPTIONAL_UI_PROBE_MS,
+    ))
+  ) {
+    return; // Chooser not shown.
+  }
+
+  // Throws on failure: callers run this inside executeWithRetry, which
+  // re-enters the whole Trade → Perps path for the next attempt.
+  await PerpsModeSelectionBottomSheet.selectLiteMode();
+};
 
 /**
  * Dismisses the post-order "Turn on notifications" bottom sheet when shown.
@@ -149,11 +172,19 @@ export const waitForOrderScreenVisible = async (
 };
 
 /**
- * Opens Perps from the wallet homepage and waits until the Perps home search
- * control is visible. Each attempt stays short so a late-mounted section can
- * be retried inside the outer budget.
+ * Opens Perps from the wallet and waits until the Perps home search control is
+ * visible.
+ *
+ * Uses Trade → Perps (same actions-sheet entry as Predict withdraw / deposit
+ * smokes). Unlike Predict, the Perps button is gated by the one-time Lite/Pro
+ * chooser when perpsProModeEnabled is on and no selection is stored — completed
+ * with Lite here; Pro callers switch afterwards via switchToPerpsProMode().
+ * Homepage Perps section scroll alone is insufficient: AB placement and
+ * deferred mount can leave the section below a short scroll budget, so #37617
+ * retries kept repeating the same 2-scroll miss
+ * (`Element not found within scroll limit of 2 scrolls`).
  */
-const openPerpsHomeFromWallet = async (): Promise<void> => {
+export const openPerpsHomeFromWallet = async (): Promise<void> => {
   await Utilities.executeWithRetry(
     async () => {
       if (
@@ -165,13 +196,15 @@ const openPerpsHomeFromWallet = async (): Promise<void> => {
         return;
       }
 
-      await WalletView.scrollAndTapPerpsSection();
+      await TabBarComponent.tapActions();
+      await WalletActionsBottomSheet.tapPerpsButton();
+      await completePerpsModeSelectionIfPresent();
       await dismissPerpsOnboardingTutorialIfPresent();
       await Assertions.expectElementToBeVisible(
         PerpsMarketListView.homeSearchToggle,
         {
           description: 'Perps home search control is visible',
-          timeout: 5_000,
+          timeout: 10_000,
         },
       );
     },

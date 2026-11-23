@@ -19,22 +19,51 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { AccountGroupId } from '@metamask/account-api';
 import { useBulkLinkState } from './useBulkLinkState';
 
+const hasSideEffectAccounts = (
+  sideEffectAccountGroupId: string | undefined,
+  sideEffectAccounts: readonly InternalAccount[],
+): boolean =>
+  Boolean(sideEffectAccountGroupId) && sideEffectAccounts.length > 0;
+
+/**
+ * Prefer the first account group in the wallet when it has accounts.
+ * Otherwise opt in the currently selected group.
+ */
+const selectAccountsToOptIn = (
+  sideEffectAccountGroupId: string | undefined,
+  sideEffectAccounts: readonly InternalAccount[],
+  activeGroupAccounts: readonly InternalAccount[],
+): readonly InternalAccount[] => {
+  if (hasSideEffectAccounts(sideEffectAccountGroupId, sideEffectAccounts)) {
+    return sideEffectAccounts;
+  }
+  return activeGroupAccounts;
+};
+
+/**
+ * After opt-in, link the selected group when it is not the group that was
+ * just opted in. When there is no side-effect group, link that id if present.
+ */
+const selectAccountGroupToLinkAfterOptIn = (
+  sideEffectAccountGroupId: string | undefined,
+  sideEffectAccounts: readonly InternalAccount[],
+  selectedAccountGroupId: string,
+): string | undefined => {
+  if (!hasSideEffectAccounts(sideEffectAccountGroupId, sideEffectAccounts)) {
+    return sideEffectAccountGroupId;
+  }
+  if (sideEffectAccountGroupId !== selectedAccountGroupId) {
+    return selectedAccountGroupId;
+  }
+  return undefined;
+};
+
 export interface UseOptinResult {
   /**
    * Function to initiate the optin process
-   * @param referralCode - Optional referral code to apply
-   * @param isPrefilled - Whether the referral code was prefilled
    * @param bulkLink - If true, bulk link all other account groups after opt-in succeeds
    */
-  optin: ({
-    referralCode,
-    isPrefilled,
-    bulkLink,
-  }: {
-    referralCode?: string;
-    isPrefilled?: boolean;
-    bulkLink?: boolean;
-  }) => Promise<void>;
+  optin: ({ bulkLink }: { bulkLink?: boolean }) => Promise<void>;
 
   /**
    * Loading state for optin operation
@@ -88,24 +117,12 @@ export const useOptin = (): UseOptinResult => {
   }, [sideEffectAccountGroupIdToLink, selectInternalAccountsByGroupIdSelector]);
 
   const handleOptin = useCallback(
-    async ({
-      referralCode,
-      isPrefilled,
-      bulkLink,
-    }: {
-      referralCode?: string;
-      isPrefilled?: boolean;
-      bulkLink?: boolean;
-    }) => {
+    async ({ bulkLink }: { bulkLink?: boolean }) => {
       if (!accountGroup?.id) {
         return;
       }
       const selectedAccountGroupId = accountGroup.id;
-      const referred = Boolean(referralCode);
       const metricsProps = {
-        referred,
-        referral_code_used: referralCode,
-        referral_code_input_type: isPrefilled ? 'prefill' : 'manual',
         bulk_link: bulkLink,
       };
       trackEvent(
@@ -123,25 +140,22 @@ export const useOptin = (): UseOptinResult => {
         // Cancel any running bulk link operation to prevent errors during opt-in
         cancelBulkLink();
 
-        // Make sure to always opt in the first account group in the wallet first
-        // Then link the side effect account group (currently selected) if it exists
-
-        const accountsToOptIn =
-          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? sideEffectAccounts
-            : activeGroupAccounts;
-
-        const accountGroupToLinkAfterOptIn =
-          sideEffectAccountGroupIdToLink && sideEffectAccounts.length > 0
-            ? sideEffectAccountGroupIdToLink !== selectedAccountGroupId
-              ? selectedAccountGroupId
-              : undefined
-            : sideEffectAccountGroupIdToLink;
+        // Opt in the first account group in the wallet, then link the
+        // currently selected group when it is a different group.
+        const accountsToOptIn = selectAccountsToOptIn(
+          sideEffectAccountGroupIdToLink,
+          sideEffectAccounts,
+          activeGroupAccounts,
+        );
+        const accountGroupToLinkAfterOptIn = selectAccountGroupToLinkAfterOptIn(
+          sideEffectAccountGroupIdToLink,
+          sideEffectAccounts,
+          selectedAccountGroupId,
+        );
 
         subscriptionId = await Engine.controllerMessenger.call(
           'RewardsController:optIn',
           accountsToOptIn as InternalAccount[],
-          referralCode || undefined,
         );
 
         if (subscriptionId) {
@@ -158,10 +172,6 @@ export const useOptin = (): UseOptinResult => {
           }
           identify({
             [UserProfileProperty.HAS_REWARDS_OPTED_IN]: UserProfileProperty.ON,
-            ...(referralCode && {
-              [UserProfileProperty.REWARDS_REFERRED]: true,
-              [UserProfileProperty.REWARDS_REFERRAL_CODE_USED]: referralCode,
-            }),
           });
           trackEvent(
             createEventBuilder(MetaMetricsEvents.REWARDS_OPT_IN_COMPLETED)

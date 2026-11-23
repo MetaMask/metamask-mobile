@@ -1,10 +1,42 @@
-import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
+import {
+  buildMusdAutorampRequest,
+  getMusdAutorampDepositRailReadiness,
+  type MusdAutorampDepositRailReadiness,
+} from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { TraceName } from '../../../../../util/trace';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+import {
+  AccountCreateRegistrationError,
+  getAccountCreateFiatFailureResult,
+  getAccountCreateResultFromError,
+  getAccountCreateResultFromResponse,
+} from './accountCreateError';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from './vbaCufTrace';
+import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
+
+/** Destination of every VBA autoramp: mUSD on Monad (CAIP-2 `eip155:143`). */
+const AUTORAMP_DESTINATION = {
+  currency_destination_symbol: 'mUSD',
+  token_chain_id: 'eip155:143',
+} as const;
+
+const trackAutorampCreateFailed = (sourceCurrency: VbaSourceCurrency) => {
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, () => ({
+    ...buildVbaBaseProperties({
+      currencySource: sourceCurrency,
+      failureReason: 'vba_create_failed',
+    }),
+    status: 'failed',
+  }));
+};
 
 /**
- * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
+ * `awaiting_provider`: KYC is approved, but the MoonPay customer or the
+ * deposit rail for the requested fiat is not Active yet.
  * `terminal`: only Rejected or Cancelled autoramps, and no replacement asked.
  */
 export type MusdAutorampSetupOutcome =
@@ -20,6 +52,18 @@ interface AutorampCursor {
   depositRailsSummary?: { currency?: string };
 }
 
+/** Only `ready` means an autoramp exists, so every other outcome ends with a reason. */
+const SETUP_END_REASON = {
+  ready: undefined,
+  waiting: VBA_CUF_END_REASON.KYC_PENDING,
+  awaiting_provider: VBA_CUF_END_REASON.KYC_PENDING,
+  terminal: VBA_CUF_END_REASON.KYC_REJECTED,
+  failed: VBA_CUF_END_REASON.ERROR,
+} as const satisfies Record<
+  MusdAutorampSetupOutcome,
+  VbaCufEndReason | undefined
+>;
+
 const setupByWallet = new Map<string, Promise<MusdAutorampSetupOutcome>>();
 
 /** Clears the in-flight setup guard between tests. */
@@ -32,6 +76,9 @@ const isForWallet = (autoramp: AutorampCursor, walletAddress: string) =>
 
 const isTerminal = (autoramp: AutorampCursor) =>
   autoramp.status === 'Rejected' || autoramp.status === 'Cancelled';
+
+const isAccountCreateFailure = (autoramp: AutorampCursor) =>
+  getAccountCreateFiatFailureResult(autoramp.status) !== null;
 
 const knownCurrency = (autoramp: AutorampCursor): string | undefined =>
   autoramp.depositRailsSummary?.currency;
@@ -48,7 +95,10 @@ export const findUsableAutoramp = <T extends AutorampCursor>(
   sourceCurrency?: string,
 ): T | undefined => {
   const usable = autoramps.filter(
-    (autoramp) => isForWallet(autoramp, walletAddress) && !isTerminal(autoramp),
+    (autoramp) =>
+      isForWallet(autoramp, walletAddress) &&
+      !isTerminal(autoramp) &&
+      !isAccountCreateFailure(autoramp),
   );
   if (!sourceCurrency) {
     return usable[0];
@@ -71,11 +121,111 @@ const isTerminalForCurrency = (
 const readAutoramps = (): AutorampCursor[] =>
   Engine.context.RampsController.state?.autoramps ?? [];
 
+const throwExistingAccountCreateFailure = (
+  autoramps: readonly AutorampCursor[],
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): void => {
+  const failedAutoramps = autoramps.filter(
+    (autoramp) =>
+      isForWallet(autoramp, walletAddress) && isAccountCreateFailure(autoramp),
+  );
+  const failedAutoramp = failedAutoramps.find(
+    (autoramp) => knownCurrency(autoramp) === sourceCurrency,
+  );
+  const result = getAccountCreateFiatFailureResult(failedAutoramp?.status);
+  if (result) {
+    throw new AccountCreateRegistrationError(result);
+  }
+};
+
+/**
+ * Creates the fiat to mUSD autoramp and reports the call as
+ * `Money VBA Autoramp Create Updated`. A failure is reported once, then thrown
+ * as an account-creation error for the caller's existing handling.
+ */
+const createAutoramp = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<void> => {
+  try {
+    const response = await Engine.context.RampsController.createAutoramp(
+      buildMusdAutorampRequest(walletAddress, sourceCurrency),
+    );
+    const result = getAccountCreateResultFromResponse(response);
+    if (
+      result?.kind === 'fiat' &&
+      (result.status === 'AuthorizationFailed' ||
+        result.status === 'RegistrationFailed')
+    ) {
+      trackAutorampCreateFailed(sourceCurrency);
+      throw new AccountCreateRegistrationError(result);
+    }
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, () => ({
+      ...buildVbaBaseProperties({ currencySource: sourceCurrency }),
+      status: 'succeeded',
+      autoramp_id: response.id,
+      ...AUTORAMP_DESTINATION,
+    }));
+  } catch (error) {
+    if (error instanceof AccountCreateRegistrationError) {
+      throw error;
+    }
+    trackAutorampCreateFailed(sourceCurrency);
+    throw new AccountCreateRegistrationError(
+      getAccountCreateResultFromError(error),
+    );
+  }
+};
+
+const getRailReadiness = async (
+  sourceCurrency: VbaSourceCurrency,
+): Promise<MusdAutorampDepositRailReadiness> => {
+  try {
+    const abilities =
+      await Engine.context.RampsController.refreshCustomerAbilities();
+    return getMusdAutorampDepositRailReadiness(abilities, sourceCurrency);
+  } catch (error) {
+    // Fail open: a closed rail still comes back from create as a 422.
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: { name: 'getRailReadiness', data: { sourceCurrency } },
+    });
+    return 'active';
+  }
+};
+
+/**
+ * Creates the autoramp only once its deposit rail is Active, so MoonPay never
+ * answers the create with a 422. A pending rail keeps the user waiting.
+ */
+const createAutorampWhenRailActive = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<MusdAutorampSetupOutcome> => {
+  const readiness = await getRailReadiness(sourceCurrency);
+  if (readiness === 'pending') {
+    return 'awaiting_provider';
+  }
+  if (readiness === 'blocked') {
+    // Reported and thrown like MoonPay's 422, without sending the create.
+    trackAutorampCreateFailed(sourceCurrency);
+    throw new AccountCreateRegistrationError({ kind: 'http', status: 422 });
+  }
+  await createAutoramp(walletAddress, sourceCurrency);
+  return 'ready';
+};
+
 const runSetup = async (
   walletAddress: string,
   sourceCurrency: VbaSourceCurrency,
   replaceTerminal: boolean,
 ): Promise<MusdAutorampSetupOutcome> => {
+  throwExistingAccountCreateFailure(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
   if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
@@ -86,6 +236,11 @@ const runSetup = async (
     refreshAutoramps: true,
   });
 
+  throwExistingAccountCreateFailure(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
   if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
@@ -93,10 +248,7 @@ const runSetup = async (
   // Hydrate reports ready when any fiat is usable. A different known fiat
   // does not satisfy this request, so create one for the requested currency.
   if (snapshot.autorampStatus === 'ready') {
-    await Engine.context.RampsController.createAutoramp(
-      buildMusdAutorampRequest(walletAddress, sourceCurrency),
-    );
-    return 'ready';
+    return await createAutorampWhenRailActive(walletAddress, sourceCurrency);
   }
 
   if (
@@ -129,25 +281,36 @@ const runSetup = async (
   }
 
   if (snapshot.autorampStatus === 'needs_wallet_registration') {
-    const registration =
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address: walletAddress,
-      });
+    const registration = await (async () => {
+      try {
+        return await Engine.context.RampsController.registerMoneyAccountWallet({
+          address: walletAddress,
+        });
+      } catch (error) {
+        throw new AccountCreateRegistrationError(
+          getAccountCreateResultFromError(error),
+        );
+      }
+    })();
     if (registration.type === 'lookupUnavailable') {
-      return 'failed';
+      throw new AccountCreateRegistrationError(
+        getAccountCreateResultFromError(registration.error),
+      );
     }
   } else if (snapshot.autorampStatus !== 'needs_source_currency') {
     return 'waiting';
   }
 
+  throwExistingAccountCreateFailure(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
   if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 
-  await Engine.context.RampsController.createAutoramp(
-    buildMusdAutorampRequest(walletAddress, sourceCurrency),
-  );
-  return 'ready';
+  return await createAutorampWhenRailActive(walletAddress, sourceCurrency);
 };
 
 /**
@@ -166,8 +329,21 @@ export const ensureMusdAutoramp = (
     return inFlight;
   }
 
+  const setupTraceId = startVbaCufChildTrace(TraceName.VbaAutorampSetup);
   const run = runSetup(walletAddress, sourceCurrency, replaceTerminal)
+    .then((outcome) => {
+      endVbaCufChildTrace(
+        setupTraceId,
+        outcome === 'ready',
+        SETUP_END_REASON[outcome],
+      );
+      return outcome;
+    })
     .catch((error: unknown) => {
+      endVbaCufChildTrace(setupTraceId, false, VBA_CUF_END_REASON.ERROR);
+      if (error instanceof AccountCreateRegistrationError) {
+        throw error;
+      }
       Logger.error(error as Error, {
         tags: { feature: 'vba-onboarding' },
         context: { name: 'ensureMusdAutoramp', data: { sourceCurrency } },

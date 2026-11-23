@@ -57,6 +57,15 @@ describe('ConnectingContent', () => {
     expect(getByTestId(CONNECTING_CONTENT_TEST_ID)).toBeOnTheScreen();
   });
 
+  it('uses a 16 sheet gutter on the shared content layout', () => {
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId(CONNECTING_CONTENT_TEST_ID)).toHaveStyle({
+      paddingHorizontal: 16,
+      paddingBottom: 16,
+    });
+  });
+
   it('renders spinner', () => {
     const { getByTestId } = renderComponent();
 

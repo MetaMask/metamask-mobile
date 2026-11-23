@@ -133,7 +133,10 @@ function getMoneyAccountState(balanceRaw?: string) {
               address: MONEY_ACCOUNT_ADDRESS_MOCK,
               id: 'account1',
               options: {
-                entropy: { id: MONEY_ACCOUNT_KEYRING_ID_MOCK },
+                entropy: {
+                  type: 'mnemonic',
+                  id: MONEY_ACCOUNT_KEYRING_ID_MOCK,
+                },
               },
             },
           },
@@ -1003,6 +1006,20 @@ describe('useTransactionCustomAmount', () => {
     expect(setConfirmationMetricMock).toHaveBeenCalledWith({
       properties: {
         mm_pay_amount_input_type: '50%',
+      },
+    });
+  });
+
+  it('sets the provided input type metric when updatePendingAmountPercentage is called with one', async () => {
+    const { result } = runHook();
+
+    await act(async () => {
+      result.current.updatePendingAmountPercentage(100, 'manual_snapped_max');
+    });
+
+    expect(setConfirmationMetricMock).toHaveBeenCalledWith({
+      properties: {
+        mm_pay_amount_input_type: 'manual_snapped_max',
       },
     });
   });

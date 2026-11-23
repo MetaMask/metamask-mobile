@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
+import {
+  useLiveTokenFiatRate,
+  useLiveTokenFiatRateState,
+} from '../useLiveTokenFiatRate';
+import type { BridgeToken } from '../../types';
 import { createMockToken } from '../../testUtils/fixtures';
 import {
   LimitOrderExecutionType,
@@ -15,12 +19,20 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../useLiveTokenFiatRate', () => ({
   useLiveTokenFiatRate: jest.fn(),
+  useLiveTokenFiatRateState: jest.fn(),
 }));
 
 jest.mock('../../utils/limitOrders/getSwapsLimitOrderPriceMarketComparison');
 
 const mockUseSelector = jest.mocked(useSelector);
+// Rates are arranged through `mockUseLiveTokenFiatRate` and loading through
+// `mockIsLiveTokenFiatRateLoading`; the state hook reads both.
 const mockUseLiveTokenFiatRate = jest.mocked(useLiveTokenFiatRate);
+const mockUseLiveTokenFiatRateState = jest.mocked(useLiveTokenFiatRateState);
+const mockIsLiveTokenFiatRateLoading = jest.fn<
+  boolean,
+  [BridgeToken | undefined]
+>();
 const mockGetSwapsLimitOrderPriceMarketComparison = jest.mocked(
   getSwapsLimitOrderPriceMarketComparison,
 );
@@ -93,6 +105,11 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue('usd');
     mockFiatRates();
+    mockIsLiveTokenFiatRateLoading.mockReturnValue(false);
+    mockUseLiveTokenFiatRateState.mockImplementation((token) => ({
+      rate: mockUseLiveTokenFiatRate(token),
+      isLoading: mockIsLiveTokenFiatRateLoading(token),
+    }));
     mockGetSwapsLimitOrderPriceMarketComparison.mockImplementation(
       actualGetSwapsLimitOrderPriceMarketComparison,
     );
@@ -465,6 +482,32 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       rerender({ destToken, sourceToken });
 
       expect(result.current.limitPrice).toBe('1');
+    });
+
+    it('waits for the default price mode reset when the token pair arrives after mount', () => {
+      mockUseLiveTokenFiatRate.mockImplementation((token) => {
+        if (token?.symbol === 'ETH') return 2000;
+        if (token?.symbol === 'USDC') return 1;
+        return undefined;
+      });
+      const initialProps: {
+        destToken: typeof usdc | undefined;
+        sourceToken: typeof sourceToken | undefined;
+      } = {
+        destToken: undefined,
+        sourceToken: undefined,
+      };
+      const { result, rerender } = renderHook(
+        (props) => useSwapsLimitOrderPriceAdjust(props),
+        { initialProps },
+      );
+
+      expect(result.current.limitPrice).toBeUndefined();
+
+      rerender({ destToken: usdc, sourceToken });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+      expect(result.current.limitPrice).toBe('2000');
     });
 
     it('does not follow the market after a percent preset or after the market preset', () => {
@@ -1074,5 +1117,102 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
 
     expect(result.current.limitPrice).toBe('1');
     expect(result.current.isCustomActive).toBe(false);
+  });
+
+  describe('isLimitPriceLoading', () => {
+    const dai = createMockToken({
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      symbol: 'DAI',
+      decimals: 18,
+    });
+
+    function mockRates(rates: Record<string, number | undefined>) {
+      mockUseLiveTokenFiatRate.mockImplementation((token) =>
+        token?.symbol ? rates[token.symbol] : undefined,
+      );
+    }
+
+    function mockLoadingSymbols(symbols: string[]) {
+      mockIsLiveTokenFiatRateLoading.mockImplementation((token) =>
+        Boolean(token?.symbol && symbols.includes(token.symbol)),
+      );
+    }
+
+    it('is false once the market price is seeded', () => {
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.limitPrice).toBe('1');
+      expect(result.current.isLimitPriceLoading).toBe(false);
+    });
+
+    it('is true for a new pair while its quoted rate is fetched, then the price is seeded', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+      expect(result.current.limitPrice).toBe('1');
+
+      mockRates({ ETH: 2000, DAI: undefined });
+      mockLoadingSymbols(['DAI']);
+      rerender({ destToken: dai, sourceToken });
+
+      expect(result.current.value).toBe('');
+      expect(result.current.isLimitPriceLoading).toBe(true);
+
+      mockRates({ ETH: 2000, DAI: 1.01 });
+      mockLoadingSymbols([]);
+      rerender({ destToken: dai, sourceToken });
+
+      expect(result.current.limitPrice).toBe('1.01');
+      expect(result.current.isLimitPriceLoading).toBe(false);
+    });
+
+    it('is false once the new pair turns out to have no quoted price', () => {
+      const { result, rerender } = renderPriceAdjustHook();
+
+      mockRates({ ETH: 2000, DAI: undefined });
+      mockLoadingSymbols(['DAI']);
+      rerender({ destToken: dai, sourceToken });
+      expect(result.current.isLimitPriceLoading).toBe(true);
+
+      mockLoadingSymbols([]);
+      rerender({ destToken: dai, sourceToken });
+
+      expect(result.current.value).toBe('');
+      expect(result.current.isLimitPriceLoading).toBe(false);
+    });
+
+    it('is true for a counter-token price while the counter rate is fetched', () => {
+      // A sell priced in USDC: ETH is quoted, USDC is the counter token.
+      mockRates({ ETH: 2000, USDC: undefined });
+      mockLoadingSymbols(['USDC']);
+
+      const { result } = renderPriceAdjustHook({ destToken: usdc });
+
+      expect(result.current.isLimitFiatMode).toBe(false);
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+      expect(result.current.isLimitPriceLoading).toBe(true);
+    });
+
+    it('is false for a fiat price while only the counter rate is fetched', () => {
+      mockRates({ ETH: undefined, LINK: 1 });
+      mockLoadingSymbols(['ETH']);
+
+      const { result } = renderPriceAdjustHook();
+
+      expect(result.current.isLimitFiatMode).toBe(true);
+      expect(result.current.limitPrice).toBe('1');
+      expect(result.current.isLimitPriceLoading).toBe(false);
+    });
+
+    it('is false once the user sets the price while a rate is fetched', () => {
+      mockRates({ ETH: 2000, LINK: undefined });
+      mockLoadingSymbols(['LINK']);
+      const { result } = renderPriceAdjustHook();
+      expect(result.current.isLimitPriceLoading).toBe(true);
+
+      act(() => {
+        result.current.handleLimitPriceChange(undefined);
+      });
+
+      expect(result.current.isLimitPriceLoading).toBe(false);
+    });
   });
 });

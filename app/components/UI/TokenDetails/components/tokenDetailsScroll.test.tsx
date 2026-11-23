@@ -176,4 +176,63 @@ describe('useLoadMoreOnScroll', () => {
     ).not.toThrow();
     expect(onLoadMore).not.toHaveBeenCalled();
   });
+
+  it('uses the callback from the render that enabled the page', () => {
+    const page = renderHook(() => useTokenDetailsScroll());
+    act(() => page.result.current.onScroll(scrollEvent(1400, 800, 2000)));
+    const first = jest.fn();
+    const second = jest.fn();
+    const listener = renderHook(
+      (props: { enabled: boolean; onLoadMore: jest.Mock }) =>
+        useLoadMoreOnScroll({
+          enabled: props.enabled,
+          onLoadMore: props.onLoadMore,
+        }),
+      {
+        initialProps: { enabled: false, onLoadMore: first },
+        wrapper: ({ children }: { children: React.ReactNode }) =>
+          React.createElement(
+            TokenDetailsScrollProvider,
+            { value: page.result.current.value },
+            children,
+          ),
+      },
+    );
+
+    listener.rerender({ enabled: true, onLoadMore: second });
+
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(first).not.toHaveBeenCalled();
+  });
+
+  it('follows a replaced callback on the next scroll without asking on the swap', () => {
+    const page = renderHook(() => useTokenDetailsScroll());
+    const first = jest.fn();
+    const second = jest.fn();
+    const listener = renderHook(
+      (props: { onLoadMore: jest.Mock }) =>
+        useLoadMoreOnScroll({ enabled: true, onLoadMore: props.onLoadMore }),
+      {
+        initialProps: { onLoadMore: first },
+        wrapper: ({ children }: { children: React.ReactNode }) =>
+          React.createElement(
+            TokenDetailsScrollProvider,
+            { value: page.result.current.value },
+            children,
+          ),
+      },
+    );
+
+    act(() => page.result.current.onScroll(scrollEvent(1400, 800, 2000)));
+    expect(first).toHaveBeenCalledTimes(1);
+
+    listener.rerender({ onLoadMore: second });
+
+    expect(second).not.toHaveBeenCalled();
+
+    act(() => page.result.current.onScroll(scrollEvent(1500, 800, 2000)));
+
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(first).toHaveBeenCalledTimes(1);
+  });
 });

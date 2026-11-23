@@ -601,6 +601,12 @@ export const DEFAULT_BRIDGE_API_MOCKS = {
       response: BRIDGE_QUOTE_STATUS_GET_RESPONSE,
       responseCode: 200,
     },
+    {
+      urlEndpoint:
+        /^https:\/\/bridge\.(api|dev-api)\.cx\.metamask\.io\/v2\/orders\/limit(\?.*)?$/,
+      response: { orders: [], hasNextPage: false, total: 0 },
+      responseCode: 200,
+    },
   ],
   POST: [
     {

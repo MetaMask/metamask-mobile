@@ -17,14 +17,10 @@ import { getBrand, getDeviceId } from 'react-native-device-info';
 import {
   FontWeight,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../../../component-library/components/Texts/Text';
 import useDataDeletion from './useDataDeletion';
 
 interface DeleteMetaMetricsDataProps {
@@ -39,13 +35,13 @@ interface DeleteMetaMetricsDataProps {
  *   And user goes into settings / security & privacy
  *   And no deletion request has been done before
  *   And "Delete Metametrics data" section text is "This will delete historical
- *     MetaMetrics data associated with your wallet.[...] View the ConsenSys Privacy Policy."
+ *     MetaMetrics data associated with your wallet.[...] View the Privacy Notice."
  *
  *   When user touches the "delete metametrics" button
  *   And approves deletion
  *
  *   Then "Delete Metametrics data" section text changes to "You initiated this action on [current date].
- *     This process can take up to 60 days. View the ConsenSys Privacy Policy."
+ *     This process can take up to 60 days. View the Privacy Notice."
  *   And "delete metametrics" button is now disabled
  *   And user still continues to be tracked or not depending on opt-out statusbut
  *   And the tracking strategy is not changed by the deletion action
@@ -59,7 +55,7 @@ interface DeleteMetaMetricsDataProps {
  *   And users scrolls down to the delete metametrics section
  *
  *   Then "Delete Metametrics data" section text is "This will delete historical
- *     MetaMetrics data associated with your wallet.[...] View the ConsenSys Privacy Policy."
+ *     MetaMetrics data associated with your wallet.[...] View the Privacy Notice."
  *   And user can click the "delete metametrics" button again
  *   (button availability is driven by metricsOptin state — opted-in means data is being tracked)
  *
@@ -72,7 +68,7 @@ interface DeleteMetaMetricsDataProps {
  *   And users scrolls down to the delete metametrics section
  *
  *   Then "Delete Metametrics data" section text is "You initiated this action on [current date].
- *     This process can take up to 60 days. View the ConsenSys Privacy Policy."
+ *     This process can take up to 60 days. View the Privacy Notice."
  *   And "delete metametrics" button is disabled
  *   And user can NOT click the "delete metametrics" button again until data deletion task is finished
  *   (button state is driven by metricsOptin — opted-out means no new data to delete)
@@ -200,15 +196,12 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
             >
               {strings('app_settings.delete_metrics_description_part_one')}
             </Text>{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              labelTextVariant={LibraryTextVariant.BodySMMedium}
+            <TextButton
+              variant={TextVariant.BodySm}
               onPress={openMetametricsHowto}
-              label={strings(
-                'app_settings.delete_metrics_description_part_two',
-              )}
-            />{' '}
+            >
+              {strings('app_settings.delete_metrics_description_part_two')}
+            </TextButton>{' '}
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -223,15 +216,14 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
             >
               {strings('app_settings.delete_metrics_description_before_delete')}
             </Text>{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              labelTextVariant={LibraryTextVariant.BodySMMedium}
+            <TextButton
+              variant={TextVariant.BodySm}
               onPress={openPrivacyPolicy}
-              label={strings(
+            >
+              {strings(
                 'app_settings.delete_metrics_description_privacy_policy',
               )}
-            />
+            </TextButton>
           </>
         ) : (
           <>
@@ -260,15 +252,14 @@ const DeleteMetaMetricsData = (props: DeleteMetaMetricsDataProps) => {
                 'app_settings.delete_metrics_description_after_delete_part_two',
               )}
             </Text>{' '}
-            <Button
-              variant={ButtonVariants.Link}
-              size={ButtonSize.Auto}
-              labelTextVariant={LibraryTextVariant.BodySMMedium}
+            <TextButton
+              variant={TextVariant.BodySm}
               onPress={openPrivacyPolicy}
-              label={strings(
+            >
+              {strings(
                 'app_settings.delete_metrics_description_privacy_policy',
               )}
-            />
+            </TextButton>
           </>
         )
       }

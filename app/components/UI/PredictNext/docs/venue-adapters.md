@@ -26,9 +26,9 @@ Structural presence is executable truth. Product capability metadata may control
 
 ## Public and account-scoped data
 
-Public Feed, Event, Category, Series, Sports/Game context, Market, Outcome, Volume, image, Bid Price, Ask Price, and Venue Status reads are scoped by `venueId`. The first Kalshi browse slice is deliberately unauthenticated and does not require a selected wallet or fake Venue Session.
+Feed, Event, Category, Series, Sports/Game context, Market, Outcome, Volume, image, Bid Price, Ask Price, Venue Status, and Venue catalog reads are scoped by `venueId`. Every Predict API read sends a MetaMask bearer token; none requires a selected wallet or fake Venue Session.
 
-A later account-scoped route must use explicit required authentication. Do not opportunistically attach identity to public reads unless the contract and cache scope are intentionally personalized.
+Account-scoped routes use explicit required authentication. Do not opportunistically attach identity beyond the bearer token to public reads unless the contract and cache scope are intentionally personalized.
 
 Account Readiness, Account Setup, portfolio, trading, and funding are account-scoped. Product modules use a session-bound client or equivalent narrow handle; they never receive credentials or raw Venue sessions.
 
@@ -132,6 +132,36 @@ Order Previews and Funding Plans are short-lived, server-issued artifacts:
 - retry is allowed only where the Venue supplies verified idempotency or lookup semantics.
 
 Do not freeze full trading or funding interfaces until their vertical slices begin.
+
+### Quoted Order review and approval
+
+`PredictOrderService` owns operation state, same-preview coalescing, dispatch,
+the minimal recovery journal, and observe-only recovery. Product callers pass
+the Preview identity and an explicit `user-approved` event, never venue DSL
+inputs or rendered order values. An omitted approval can only observe an
+already dispatched operation; it cannot reuse an earlier confirmation.
+
+Kalshi's adapter keeps bounded, expiring rendering context for at most 32
+quoted Previews. It copies the quote-time input snapshot and derives count and
+YES-leg price from the validated canonical Preview, so later form or response
+object mutations cannot change the reviewed body. This is private venue
+execution context, not React or product workflow state. Lifecycle invalidation
+clears it, and the Engine approval-revocation generation fences identity,
+profile and lock changes, including a lock followed by an unlock.
+
+The adapter asks the Engine-owned signing capability to check the pinned
+request and returns only canonical review figures. Reviewing does not grant
+confirmation. The actual approval event grants the first signature;
+transport-level A2T/signature renewal uses `confirmed: false`. The signed body
+is still transmitted verbatim. Restored recovery references contain no
+approval or executable quote data and never reach this mutation path.
+
+Wallet reset synchronously closes recovery and first dispatch until journal
+deletion finishes. Identity lookups captured before reset cannot resume the
+deleted wallet afterward. Discovery pages are only unresolved snapshots:
+they cannot recreate a journal entry or downgrade an order whose newer
+receipt has resolved, and a concurrent manual-review receipt retains its
+durable marker even while its storage write is pending.
 
 ## Adding another Venue
 

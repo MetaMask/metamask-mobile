@@ -728,6 +728,56 @@ describe('usePerpsMarkets', () => {
     });
   });
 
+  describe('Shared channel snapshot', () => {
+    it('keeps the markets reference when the subscription delivers the snapshot used on mount', () => {
+      const snapshot = mockMarketDataArray.map((market) => ({ ...market }));
+      mockChannelMarketsSnapshot = snapshot;
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(snapshot);
+        return mockUnsubscribe;
+      });
+      const renderedMarkets: unknown[] = [];
+
+      renderHook(() => {
+        const value = usePerpsMarkets();
+        renderedMarkets.push(value.markets);
+        return value;
+      });
+
+      expect(mockSubscribe).toHaveBeenCalledTimes(1);
+      expect(new Set(renderedMarkets).size).toBe(1);
+    });
+
+    it('applies each instance filter options to the same snapshot', () => {
+      const snapshot: PerpsMarketData[] = [
+        ...mockMarketDataArray,
+        { ...mockMarketDataArray[1], symbol: 'ZERO', volume: '$0' },
+      ];
+      mockChannelMarketsSnapshot = snapshot;
+      mockSubscribe.mockImplementation(({ callback }) => {
+        callback(snapshot);
+        return mockUnsubscribe;
+      });
+
+      const { result: hidesZeroVolume } = renderHook(() =>
+        usePerpsMarkets({ showZeroVolume: false }),
+      );
+      const { result: showsZeroVolume } = renderHook(() =>
+        usePerpsMarkets({ showZeroVolume: true }),
+      );
+
+      expect(hidesZeroVolume.current.markets.map((m) => m.symbol)).toEqual([
+        'BTC',
+        'ETH',
+      ]);
+      expect(showsZeroVolume.current.markets.map((m) => m.symbol)).toEqual([
+        'BTC',
+        'ETH',
+        'ZERO',
+      ]);
+    });
+  });
+
   describe('Cleanup', () => {
     it('unsubscribes from market data on unmount', () => {
       // Arrange

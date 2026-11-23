@@ -8,11 +8,13 @@ import {
   type CardTransaction,
 } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import type { UseCardTransactionsResult } from '../../hooks/useCardTransactions';
+import { MoneyActivityItemTestIds } from '../../../Money/components/MoneyActivityItem/MoneyActivityItem.testIds';
 import CardTransactionHistory from './CardTransactionHistory';
 
 const mockLoadMore = jest.fn();
 const mockRefetch = jest.fn(async () => undefined);
 const mockUseCardTransactions = jest.fn();
+let mockPrivacyMode = false;
 
 jest.mock('../../hooks/useCardTransactions', () => ({
   useCardTransactions: () => mockUseCardTransactions(),
@@ -49,20 +51,30 @@ jest.mock('react-native-safe-area-context', () => ({
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: () => false,
+  useSelector: () => mockPrivacyMode,
+}));
+
+jest.mock('../../../../../util/intl', () => ({
+  getIntlDateTimeFormatter: () => ({
+    format: () => '15 Jan',
+  }),
+  getIntlNumberFormatter: (
+    _locale: string,
+    options?: Intl.NumberFormatOptions,
+  ) => ({
+    format: (value: number) => {
+      if (options?.currency === 'BRL') {
+        return `R$${value.toFixed(2)}`;
+      }
+      return `$${value.toFixed(2)}`;
+    },
+  }),
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
   default: { locale: 'en-US' },
 }));
-
-jest.mock('../../components/CardTransactionRow/CardTransactionRow', () => {
-  const { Text } = jest.requireActual('react-native');
-  return ({ transaction }: { transaction: CardTransaction }) => (
-    <Text>{transaction.id}</Text>
-  );
-});
 
 function createTransaction(
   overrides: Partial<CardTransaction> = {},
@@ -101,6 +113,7 @@ function mockTransactions(
 describe('CardTransactionHistory', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrivacyMode = false;
     mockTransactions();
   });
 
@@ -223,5 +236,56 @@ describe('CardTransactionHistory', () => {
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
     expect(mockLoadMore).not.toHaveBeenCalled();
+  });
+
+  it('shows the billing amount for a same-currency purchase', () => {
+    mockTransactions({
+      items: [createTransaction()],
+    });
+
+    const { getByTestId, queryByTestId } = render(<CardTransactionHistory />);
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('-$10.00');
+    expect(
+      queryByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the merchant amount and the billing amount when currencies differ', () => {
+    mockTransactions({
+      items: [
+        createTransaction({
+          billingAmount: { value: '11.95', currency: 'USD' },
+          originalAmount: { value: '61.35', currency: 'BRL' },
+        }),
+      ],
+    });
+
+    const { getByTestId } = render(<CardTransactionHistory />);
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('-R$61.35');
+    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
+      '-$11.95',
+    );
+  });
+
+  it('masks a single amount line when privacy mode is on', () => {
+    mockPrivacyMode = true;
+    mockTransactions({
+      items: [createTransaction()],
+    });
+
+    const { getByTestId, queryByTestId } = render(<CardTransactionHistory />);
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('•'.repeat(6));
+    expect(
+      queryByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
+    ).not.toBeOnTheScreen();
   });
 });

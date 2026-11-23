@@ -1,8 +1,8 @@
 /**
  * Identifier for owner `GET /traders/:addressOrId` (profile + commented feed).
  *
- * Prefer the auth session `profileId` (OIDC `sub`, same as
- * `AuthenticationController.getSessionProfile`). Send it unprefixed — social-api
+ * Prefer the session's canonical profile id (OIDC `sub`, see
+ * `getSocialProfileId`). Send it unprefixed — social-api
  * maps it to Clicker's `ext:{profileId}`. Fall back to the linked onboarding
  * wallet, then the selected account, when no session exists yet.
  */

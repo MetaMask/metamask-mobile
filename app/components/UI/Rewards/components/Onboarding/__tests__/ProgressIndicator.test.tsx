@@ -73,9 +73,6 @@ describe('ProgressIndicator', () => {
         preloadedState: {
           user: { appTheme: 'light' as const },
           rewards: {
-            optinAllowedForGeo: true,
-            optinAllowedForGeoLoading: false,
-            onboardingActiveStep: 'INTRO',
             rewardsControllerState: {
               activeAccount: {
                 subscriptionId: null,
@@ -112,9 +109,6 @@ describe('ProgressIndicator', () => {
         preloadedState: {
           user: { appTheme: 'dark' as const },
           rewards: {
-            optinAllowedForGeo: true,
-            optinAllowedForGeoLoading: false,
-            onboardingActiveStep: 'INTRO',
             rewardsControllerState: {
               activeAccount: {
                 subscriptionId: null,

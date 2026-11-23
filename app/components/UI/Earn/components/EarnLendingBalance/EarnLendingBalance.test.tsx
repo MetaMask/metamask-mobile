@@ -161,6 +161,7 @@ jest.mock('../../hooks/useMusdConversionEligibility', () => ({
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
   selectIsMusdConversionFlowEnabledFlag: jest.fn(),
   selectPooledStakingEnabledFlag: jest.fn(),
   selectStablecoinLendingEnabledFlag: jest.fn(),

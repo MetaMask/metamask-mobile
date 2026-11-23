@@ -3,7 +3,7 @@ import {
   UiSlotsController,
   defaultUiSlotsControllerState,
 } from './UiSlotsController';
-import { PREDICT_UI_SLOTS_V1_CONTRACTS } from '../../../../components/UI/Predict/uiSlots/contracts/v1';
+import { MOBILE_UI_SLOTS_CONTRACTS } from '../../../../components/UI/UiSlots/contractRegistry';
 import { UI_SLOTS_CONTRACT_MAJOR, UI_SLOTS_SOFT_TTL_MS } from './config';
 import {
   UiSlotsHttpError,
@@ -78,7 +78,7 @@ const controllerOptions = {
     log: jest.fn(),
     error: jest.fn(),
   },
-  contractRegistry: PREDICT_UI_SLOTS_V1_CONTRACTS,
+  contractRegistry: MOBILE_UI_SLOTS_CONTRACTS,
 };
 
 function getActiveSlots(controller: UiSlotsController) {

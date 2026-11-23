@@ -1,0 +1,185 @@
+import React from 'react';
+import { fireEvent, within } from '@testing-library/react-native';
+import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
+import type {
+  CommissionEntryView,
+  ReferralLocalizedText,
+} from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
+import { useCommissions } from '../hooks/useCommissions';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows.testIds';
+import { TRADING_ACTIVITY_LIST_EMPTY_TEST_ID } from '../components/Money/TradingActivityListView';
+import RewardsTradingCommissionsView, {
+  REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS,
+} from './RewardsTradingCommissionsView';
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  return {
+    ...actual,
+    useNavigation: () => ({ navigate: jest.fn(), goBack: jest.fn() }),
+  };
+});
+
+jest.mock('../../../Views/ErrorBoundary', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
+
+jest.mock('../hooks/useCommissions');
+
+const PROFILE_ID = 'profile-a';
+const KEYRING_ID = 'entropy-source-1';
+const LOCALIZED_TEXT = {
+  tradingCommissionsSection: 'Trading commissions',
+  tradeCommissions: 'Trade commissions',
+  copiedOnce: 'Copied 1 time',
+  copiedTimes: 'Copied {count} times',
+  copyTradingEmptyDescription:
+    'Share a trade to start earning from copies of it.',
+  copyTradingEmptyAction: 'Start sharing',
+} as unknown as ReferralLocalizedText;
+
+const COMMISSION: CommissionEntryView = {
+  id: 'c1',
+  earning_origin_type: 'SOCIAL_FOLLOW_TRADE',
+  day: '2026-09-01',
+  token: { key: 'perps:BTC', symbol: 'BTC', source: 'PERPS' },
+  musd_amount: '2500000',
+  fee_amount_usd: '10',
+  fill_count: 3,
+  copied_times: 2,
+};
+
+const stateWith = (localizedText: Partial<ReferralLocalizedText>) => ({
+  engine: {
+    backgroundState: {
+      AuthenticationController: {
+        isSignedIn: true,
+        srpSessionData: {
+          [KEYRING_ID]: {
+            profile: { profileId: PROFILE_ID },
+          },
+        },
+      },
+      KeyringController: {
+        isUnlocked: true,
+        keyrings: [
+          {
+            type: ExtendedKeyringTypes.hd,
+            accounts: [],
+            metadata: { id: KEYRING_ID, name: '' },
+          },
+        ],
+      },
+    },
+  },
+  rewardsMoney: {
+    referralMe: {
+      [PROFILE_ID]: {
+        loading: false,
+        error: false,
+        data: { localized_text: localizedText },
+      },
+    },
+  },
+});
+
+describe('RewardsTradingCommissionsView', () => {
+  const loadMore = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useCommissions as jest.Mock).mockReturnValue({
+      items: [COMMISSION],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: true,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+  });
+
+  it('lists the session profile’s commissions under the localized section title', () => {
+    const { getByTestId, getByText } = renderWithProvider(
+      <RewardsTradingCommissionsView />,
+      { state: stateWith(LOCALIZED_TEXT) },
+    );
+
+    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID);
+    expect(
+      getByTestId(REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('BTC')).toBeOnTheScreen();
+    expect(getByText('Copied 2 times')).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        `${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${COMMISSION.id}`,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent(
+      getByTestId(REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS.LIST),
+      'endReached',
+    );
+
+    expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders no rows until localized text is available', () => {
+    const { queryByTestId } = renderWithProvider(
+      <RewardsTradingCommissionsView />,
+      {
+        state: {
+          ...stateWith({}),
+          rewardsMoney: {
+            referralMe: {
+              [PROFILE_ID]: { loading: false, error: false, data: null },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      queryByTestId(
+        `${PERFORMANCE_ACTIVITY_TEST_IDS.COMMISSION_ROW}-${COMMISSION.id}`,
+      ),
+    ).toBeNull();
+  });
+
+  it('shows the people icon on the copy-trading empty state', () => {
+    (useCommissions as jest.Mock).mockReturnValue({
+      items: [],
+      isLoading: false,
+      isLoadingMore: false,
+      hasMore: false,
+      error: null,
+      loadMore,
+      refresh: jest.fn(),
+      retry: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <RewardsTradingCommissionsView />,
+      { state: stateWith(LOCALIZED_TEXT) },
+    );
+
+    expect(
+      within(getByTestId(TRADING_ACTIVITY_LIST_EMPTY_TEST_ID)).UNSAFE_getByType(
+        AvatarIcon,
+      ).props.iconName,
+    ).toBe(IconName.People);
+  });
+});

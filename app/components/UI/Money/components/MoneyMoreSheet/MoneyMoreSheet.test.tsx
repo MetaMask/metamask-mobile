@@ -36,6 +36,7 @@ const mockTrackTokenSurfaceClicked = jest.fn();
 const mockTrackActivitySurfaceClicked = jest.fn();
 const mockTrackScreenViewed = jest.fn();
 const mockTrackComponentViewed = jest.fn();
+const mockTrackCampaignTriggered = jest.fn();
 const mockTrackOnboardingEvent = jest.fn();
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
@@ -95,6 +96,7 @@ describe('MoneyMoreSheet', () => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     jest.mocked(useMoneyAnalytics).mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
+      trackCampaignTriggered: mockTrackCampaignTriggered,
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
       trackTooltipClicked: mockTrackTooltipClicked,

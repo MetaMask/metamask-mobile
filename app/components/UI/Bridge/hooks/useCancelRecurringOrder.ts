@@ -1,11 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { parseCaipAssetType, createProjectLogger } from '@metamask/utils';
-import type { InfiniteData } from '@tanstack/query-core';
-import Engine from '../../../../core/Engine';
+import { assetIdsMatch } from '@metamask/bridge-controller';
 import {
-  RecurringOrderStatus,
+  isCaipAccountId,
+  isCaipAssetType,
+  parseCaipAccountId,
+  parseCaipAssetType,
+} from '@metamask/utils';
+import type { InfiniteData } from '@tanstack/query-core';
+import { recurringOrdersApiClient } from '../api/recurringOrders.client';
+import {
+  RecurringOrderState,
+  type CancelRecurringOrderResponse,
   type GetRecurringOrdersByAssetResponse,
-  type GetRecurringOrdersResponse,
+  type ListRecurringOrdersResponse,
   type RecurringOrder,
 } from '../api/recurringOrders.types';
 import {
@@ -13,21 +20,22 @@ import {
   RECURRING_ORDERS_QUERY_KEY,
   type RecurringOrdersQueryKey,
 } from '../queries/recurringOrders';
-
-const log = createProjectLogger('bridge-recurring-cancellation-history');
-const RECURRING_ORDER_QUERY_INVALIDATIONS = [
-  {
-    queryKey: RECURRING_ORDERS_QUERY_KEY,
-    refetchType: 'none',
-  },
-  {
-    queryKey: RECURRING_ORDERS_BY_ASSET_QUERY_KEY,
-    refetchType: 'active',
-  },
-] as const;
+import {
+  finishRecurringOrderTrace,
+  startRecurringOrderCancelTrace,
+} from '../utils/recurringOrderTrace';
+import { invalidateRecurringOrderQueries } from './invalidateRecurringOrderQueries';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+function recurringAssetIdsMatch(left: string, right: string): boolean {
+  return (
+    isCaipAssetType(left) &&
+    isCaipAssetType(right) &&
+    assetIdsMatch(left, right)
+  );
 }
 
 function isRecurringOrdersQueryKey(
@@ -44,8 +52,9 @@ function isRecurringOrdersQueryKey(
   const params = queryKey[1];
   return (
     typeof params.walletAddress === 'string' &&
-    (params.status === undefined || Array.isArray(params.status)) &&
+    (params.orderStates === undefined || Array.isArray(params.orderStates)) &&
     (params.chainId === undefined || typeof params.chainId === 'string') &&
+    (params.assetId === undefined || typeof params.assetId === 'string') &&
     (params.limit === undefined || typeof params.limit === 'number')
   );
 }
@@ -62,13 +71,16 @@ function isRecurringOrdersQueryKey(
  */
 function updateRecurringOrdersCaches(
   queryClient: ReturnType<typeof useQueryClient>,
-  order: RecurringOrder,
+  cancelledOrder: RecurringOrder,
 ): void {
-  const cancelledOrder = {
-    ...order,
-    status: RecurringOrderStatus.Cancelled,
-  };
-  const sourceChainId = parseCaipAssetType(order.src.asset.assetId).chainId;
+  const sourceAssetId = cancelledOrder.src.asset.assetId;
+  const destinationAssetId = cancelledOrder.dest.asset.assetId;
+  const sourceChainId = isCaipAssetType(sourceAssetId)
+    ? parseCaipAssetType(sourceAssetId).chainId
+    : undefined;
+  const orderWalletAddress = isCaipAccountId(cancelledOrder.account)
+    ? parseCaipAccountId(cancelledOrder.account).address
+    : cancelledOrder.account;
 
   queryClient
     .getQueryCache()
@@ -79,7 +91,7 @@ function updateRecurringOrdersCaches(
       }
 
       const params = query.queryKey[1];
-      queryClient.setQueryData<InfiniteData<GetRecurringOrdersResponse>>(
+      queryClient.setQueryData<InfiniteData<ListRecurringOrdersResponse>>(
         query.queryKey,
         (data) => {
           if (!data) {
@@ -89,22 +101,29 @@ function updateRecurringOrdersCaches(
           // Remove stale copies from every loaded page, including Open Orders.
           const pages = data.pages.map((page) => ({
             ...page,
-            orders: page.orders.filter(
-              ({ orderId }) => orderId !== order.orderId,
-            ),
+            orders: page.orders.filter(({ id }) => id !== cancelledOrder.id),
           }));
 
           // Reinsert only into compatible History caches for this wallet and chain.
           const isHistoryQuery =
-            params.status === undefined ||
-            params.status.includes(RecurringOrderStatus.Cancelled);
+            params.orderStates === undefined ||
+            params.orderStates.includes(RecurringOrderState.Cancelled);
           const isMatchingWallet =
             params.walletAddress.toLowerCase() ===
-            order.src.walletAddress.toLowerCase();
+            orderWalletAddress.toLowerCase();
           const isMatchingChain =
             params.chainId === undefined || params.chainId === sourceChainId;
+          const isMatchingAsset =
+            params.assetId === undefined ||
+            recurringAssetIdsMatch(params.assetId, sourceAssetId) ||
+            recurringAssetIdsMatch(params.assetId, destinationAssetId);
 
-          if (!isHistoryQuery || !isMatchingWallet || !isMatchingChain) {
+          if (
+            !isHistoryQuery ||
+            !isMatchingWallet ||
+            !isMatchingChain ||
+            !isMatchingAsset
+          ) {
             return { ...data, pages };
           }
 
@@ -120,7 +139,8 @@ function updateRecurringOrdersCaches(
                 ...firstPage,
                 orders: [...firstPage.orders, cancelledOrder].sort(
                   (left, right) =>
-                    Date.parse(right.createdAt) - Date.parse(left.createdAt),
+                    Date.parse(right.timingData.createdAt) -
+                    Date.parse(left.timingData.createdAt),
                 ),
               },
               ...remainingPages,
@@ -133,58 +153,49 @@ function updateRecurringOrdersCaches(
   queryClient.setQueriesData<GetRecurringOrdersByAssetResponse>(
     { queryKey: [RECURRING_ORDERS_BY_ASSET_QUERY_KEY] },
     (data) => {
-      if (!data?.some(({ orderId }) => orderId === order.orderId)) {
+      if (!data?.some(({ id }) => id === cancelledOrder.id)) {
         return data;
       }
 
-      return data.filter(({ orderId }) => orderId !== order.orderId);
+      return data.filter(({ id }) => id !== cancelledOrder.id);
     },
   );
 }
 
 export function useCancelRecurringOrder() {
   const queryClient = useQueryClient();
-  const mutation = useMutation<void, Error, RecurringOrder>({
+  const mutation = useMutation<
+    CancelRecurringOrderResponse,
+    Error,
+    RecurringOrder
+  >({
     mutationFn: (order) =>
-      Engine.controllerMessenger.call(
-        'RecurringOrdersDataService:cancelRecurringOrder',
-        order.orderId,
-      ),
-    onSuccess: async (_data, order) => {
+      recurringOrdersApiClient.cancelRecurringOrder(order.id, {
+        accountAddress: order.account,
+      }),
+    onSuccess: async ({ order }) => {
       updateRecurringOrdersCaches(queryClient, order);
-
-      await Promise.all(
-        RECURRING_ORDER_QUERY_INVALIDATIONS.map(async ({ queryKey }) => {
-          try {
-            await Engine.controllerMessenger.call(
-              'RecurringOrdersDataService:invalidateQueries',
-              { queryKey: [queryKey] },
-            );
-          } catch (error) {
-            log('Recurring-order service cache invalidation failed', error);
-          }
-        }),
-      );
-
-      await Promise.all(
-        RECURRING_ORDER_QUERY_INVALIDATIONS.map(
-          async ({ queryKey, refetchType }) => {
-            try {
-              await queryClient.invalidateQueries({
-                queryKey: [queryKey],
-                refetchType,
-              });
-            } catch (error) {
-              log('Recurring-order UI cache invalidation failed', error);
-            }
-          },
-        ),
-      );
+      await invalidateRecurringOrderQueries(queryClient);
     },
   });
 
+  async function cancelRecurringOrder(
+    order: RecurringOrder,
+  ): Promise<CancelRecurringOrderResponse> {
+    const traceHandle = startRecurringOrderCancelTrace();
+
+    try {
+      const response = await mutation.mutateAsync(order);
+      finishRecurringOrderTrace(traceHandle, { result: 'success' });
+      return response;
+    } catch (error) {
+      finishRecurringOrderTrace(traceHandle, { result: 'error' });
+      throw error;
+    }
+  }
+
   return {
-    cancelRecurringOrder: mutation.mutateAsync,
+    cancelRecurringOrder,
     isSubmitting: mutation.isPending,
     error: mutation.error,
     reset: mutation.reset,

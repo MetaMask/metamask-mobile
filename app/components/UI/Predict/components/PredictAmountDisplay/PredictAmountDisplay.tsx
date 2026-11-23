@@ -1,17 +1,16 @@
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useEffect, useRef } from 'react';
-import { Animated, TouchableOpacity } from 'react-native';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
-import Text, {
+  FontFamily,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import React from 'react';
+import { Platform } from 'react-native';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { useTheme } from '../../../../../util/theme';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
 import { PREDICT_AMOUNT_DISPLAY_TEST_IDS } from './PredictAmountDisplay.testIds';
 
 interface PredictAmountDisplayProps {
@@ -23,7 +22,7 @@ interface PredictAmountDisplayProps {
 
 const getFontSizeForInputLength = (contentLength: number) => {
   if (contentLength <= 8) {
-    return 60;
+    return 64;
   }
   if (contentLength <= 10) {
     return 48;
@@ -48,83 +47,55 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (isActive) {
-      // Start blinking animation
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    } else {
-      // Stop animation and hide cursor
-      fadeAnim.setValue(0);
-    }
-  }, [isActive, fadeAnim]);
 
   const amountValue = amount ? `$${amount}` : '$0';
   const fontSize = getFontSizeForInputLength(amountValue.length);
-  const lineHeight = fontSize + 10; // Add 10px to font size for line height
-  // Match the caret height to the glyph cap height so it reads as part of the typography.
-  const cursorHeight = Math.round(fontSize * 0.72);
+  const lineHeight = fontSize;
+  // Muted caret at 95% of the font size, nudged so it sits with the glyphs.
+  const cursorStyle = {
+    marginHorizontal: 0,
+    width: 1,
+    height: Math.round(fontSize * 0.95),
+    backgroundColor: colors.text.muted,
+    // Android renders glyphs lower than iOS in a line box equal to fontSize.
+    transform: [
+      {
+        translateY: Math.round(
+          fontSize * (Platform.OS === 'android' ? 0.02 : -0.04),
+        ),
+      },
+    ],
+  };
 
-  const content = (
+  return (
     <Box
       alignItems={BoxAlignItems.Center}
       twClassName="px-6"
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-      >
-        {/* Text only takes 1 arg */}
-        <Text
-          testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          color={hasError ? TextColor.Error : TextColor.Default}
-          variant={TextVariant.BodyMDMedium}
-          style={tw.style(
-            `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px] font-medium px-1`,
-          )}
-        >
-          {amountValue}
-        </Text>
-        {isActive && (
-          <Animated.View
-            testID={PREDICT_AMOUNT_DISPLAY_TEST_IDS.CURSOR}
-            style={[
-              tw.style(`w-0.5 h-[${cursorHeight}px] ml-0`),
-              {
-                opacity: fadeAnim,
-                backgroundColor: colors.text.default,
-              },
-            ]}
-          />
+      <AnimatedAmountDisplay
+        color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+        containerStyle={tw.style('items-center')}
+        cursor={
+          isActive
+            ? {
+                testID: PREDICT_AMOUNT_DISPLAY_TEST_IDS.CURSOR,
+                style: cursorStyle,
+              }
+            : false
+        }
+        fontFamily={FontFamily.Hero}
+        onPress={onPress}
+        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+        prefix="$"
+        style={tw.style(
+          `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px]`,
         )}
-      </Box>
+        value={amount || '0'}
+        variant={TextVariant.BodyMd}
+      />
     </Box>
   );
-
-  if (onPress) {
-    return (
-      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-        {content}
-      </TouchableOpacity>
-    );
-  }
-
-  return content;
 };
 
 export default PredictAmountDisplay;
