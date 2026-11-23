@@ -28,6 +28,7 @@ interface BridgeRecurringBuyFooterViewProps {
   onPreviewOrder: () => void;
   label: string;
   destinationTokenSymbol?: string;
+  isBelowMinAmount: boolean;
   isPreviewDisabled?: boolean;
 }
 
@@ -35,6 +36,7 @@ export const BridgeRecurringBuyFooterView = ({
   onPreviewOrder,
   label,
   destinationTokenSymbol,
+  isBelowMinAmount,
   isPreviewDisabled,
 }: BridgeRecurringBuyFooterViewProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -48,7 +50,8 @@ export const BridgeRecurringBuyFooterView = ({
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
-  const isInitialQuoteLoading = isLoading && !activeQuote;
+  const isQuoteLoading = isLoading && !isBelowMinAmount;
+  const isInitialQuoteLoading = isQuoteLoading && !activeQuote;
 
   const parsedEveryValue = parsePositiveInteger(everyValue);
   const parsedRepeatCount = parsePositiveInteger(repeatCount);
@@ -78,7 +81,11 @@ export const BridgeRecurringBuyFooterView = ({
     return null;
   }
 
-  if (!isInitialQuoteLoading && (!activeQuote || !quotesLastFetched)) {
+  if (
+    !isBelowMinAmount &&
+    !isInitialQuoteLoading &&
+    (!activeQuote || !quotesLastFetched)
+  ) {
     return null;
   }
 
@@ -97,10 +104,10 @@ export const BridgeRecurringBuyFooterView = ({
         onPress={onPreviewOrder}
         label={label}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
-        disabled={isPreviewDisabled}
-        loading={isLoading}
+        disabled={isBelowMinAmount || isPreviewDisabled}
+        loading={isQuoteLoading}
       />
-      {activeQuote && spendSummaryValues ? (
+      {!isBelowMinAmount && activeQuote && spendSummaryValues ? (
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}

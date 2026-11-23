@@ -38,12 +38,31 @@ jest.mock('../../../../core/RPCMethods/RPCMethodMiddleware', () => ({
   },
 }));
 
+const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
+const mockRemoveQueries = jest.fn();
+const mockResetQueries = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+      removeQueries: (...args: unknown[]) => mockRemoveQueries(...args),
+      resetQueries: (...args: unknown[]) => mockResetQueries(...args),
+    },
+  },
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
       ApprovalController: {
         add: jest.fn(),
+      },
+      SubscriptionController: {
+        getSubscriptions: jest.fn(),
+        isUserEligibleForTrial: jest.fn(),
       },
       SubscriptionDelegationService: {
         checkMoneyAccountBalance: jest.fn(),
@@ -151,6 +170,10 @@ const mockedCheckBalance = Engine.context.SubscriptionDelegationService
 const mockedStartSubscription = Engine.context.SubscriptionDelegationService
   .startSubscriptionWithDelegation as jest.Mock;
 const mockedApprovalAdd = Engine.context.ApprovalController.add as jest.Mock;
+const mockedGetSubscriptions = Engine.context.SubscriptionController
+  .getSubscriptions as jest.Mock;
+const mockedIsUserEligibleForTrial = Engine.context.SubscriptionController
+  .isUserEligibleForTrial as jest.Mock;
 const mockedUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockedWaitForMembershipTopUp = jest.mocked(waitForMembershipTopUp);
 const mockIsProduction = jest.mocked(isProduction);
@@ -181,9 +204,12 @@ describe('useStartProSubscription', () => {
       status: 'trialing',
     });
     mockedApprovalAdd.mockResolvedValue(undefined);
+    mockedGetSubscriptions.mockResolvedValue([]);
+    mockedIsUserEligibleForTrial.mockResolvedValue(true);
     (
       Engine.context as { TransactionPayController?: unknown }
     ).TransactionPayController = undefined;
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockedUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
     });
@@ -240,6 +266,9 @@ describe('useStartProSubscription', () => {
       mockedStartSubscription.mock.invocationCallOrder[0],
     );
     expect(outcome).toEqual({ outcome: StartProSubscriptionOutcome.Ready });
+    expect(mockedGetSubscriptions).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).toHaveBeenCalledTimes(1);
   });
 
   it('forwards useTestClock when test clocks are enabled outside production', async () => {
@@ -290,6 +319,9 @@ describe('useStartProSubscription', () => {
     });
 
     expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockedGetSubscriptions).not.toHaveBeenCalled();
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
     expect(result.current.errorMessage).toBeUndefined();
   });
@@ -302,6 +334,13 @@ describe('useStartProSubscription', () => {
     });
 
     const billedOn = formatExpectedMembershipDate(addDays(FIXED_NOW, 14));
+    expect(mockedGetSubscriptions).toHaveBeenCalledTimes(1);
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    expect(mockedGetSubscriptions.mock.invocationCallOrder[0]).toBeLessThan(
+      mockedApprovalAdd.mock.invocationCallOrder[0],
+    );
     expect(mockedApprovalAdd).toHaveBeenCalledWith({
       id: expect.any(String),
       origin: ORIGIN_METAMASK,
@@ -315,6 +354,74 @@ describe('useStartProSubscription', () => {
         billedOn,
       },
     });
+  });
+
+  it('stops checkout without a join error when the trial is no longer available', async () => {
+    mockedIsUserEligibleForTrial.mockResolvedValue(false);
+    const { result } = renderHook(() => useStartProSubscription());
+    let thrownError: Error | undefined;
+
+    await act(async () => {
+      try {
+        await result.current.startSubscription(PLAN, { isTrial: true });
+      } catch (error) {
+        thrownError = error as Error;
+      }
+    });
+
+    expect(thrownError?.message).toBe('Plus trial is no longer available');
+    expect(mockedGetSubscriptions).toHaveBeenCalledTimes(1);
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledWith(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockResetQueries).toHaveBeenCalledTimes(1);
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBeUndefined();
+  });
+
+  it('rechecks trial eligibility before topping up and skips the top-up when ineligible', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '10000000',
+      requiredBalance: '49990000',
+    });
+    mockedIsUserEligibleForTrial.mockResolvedValue(false);
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current
+        .startSubscription(PLAN, { isTrial: true })
+        .catch(() => undefined);
+    });
+
+    expect(mockedIsUserEligibleForTrial).toHaveBeenCalledTimes(1);
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(mockResetQueries).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBeUndefined();
+  });
+
+  it('leaves the cached trial answer alone and does not start when the recheck fails', async () => {
+    mockedGetSubscriptions.mockRejectedValue(new Error('network'));
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current
+        .startSubscription(PLAN, { isTrial: true })
+        .catch(() => undefined);
+    });
+
+    expect(mockResetQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).not.toHaveBeenCalled();
+    expect(mockedApprovalAdd).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error'),
+    );
   });
 
   it('uses the plan amount for both monthly and total on a monthly plan', async () => {
