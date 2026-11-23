@@ -4,7 +4,7 @@ import {
   useScreenTransitionComplete,
 } from './useScreenTransitionComplete';
 
-type TransitionEndListener = (event: { data: { closing: boolean } }) => void;
+type TransitionEndListener = (event: { data?: { closing: boolean } }) => void;
 type FocusListener = () => void;
 
 const mockUnsubscribe = jest.fn();
@@ -54,6 +54,14 @@ describe('useScreenTransitionComplete', () => {
     const { result } = renderHook(() => useScreenTransitionComplete());
 
     act(() => transitionListener?.({ data: { closing: false } }));
+
+    expect(result.current).toBe(true);
+  });
+
+  it('returns true when a tab navigator ends a transition without event data', () => {
+    const { result } = renderHook(() => useScreenTransitionComplete());
+
+    act(() => transitionListener?.({}));
 
     expect(result.current).toBe(true);
   });

@@ -45,8 +45,10 @@ export function useScreenTransitionComplete(): boolean {
     const unsubscribeTransition = navigation.addListener(
       'transitionEnd',
       (event) => {
-        // `closing` belongs to the screen leaving the stack.
-        if (event.data.closing) {
+        // `closing` belongs to the screen leaving the stack. A tab navigator
+        // emits `transitionEnd` with no `data`, so read it defensively.
+        const { closing } = (event.data ?? {}) as { closing?: boolean };
+        if (closing) {
           return;
         }
         markComplete();
