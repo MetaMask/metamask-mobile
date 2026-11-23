@@ -84,6 +84,7 @@
   main { flex: 1; overflow: auto; }
   table { width: 100%; table-layout: fixed; border-collapse: collapse; }
   main > table { min-width: 1100px; } /* narrower windows scroll instead of crushing columns */
+  tr.vs td, tr.vs:hover td { padding: 0 !important; border: 0 !important; background: transparent !important; }  /* virtual list spacers: only a height */
   table[hidden] { display: none; }
   th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--color-border-muted); vertical-align: middle; }
   td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -92,6 +93,16 @@
   th .lbl:hover { color: var(--color-text-default); background: var(--color-background-hover); }
   th .lbl:active { cursor: grabbing; }
   th.dragging { opacity: .4; }
+  /* click a header to sort: the arrow shows the direction (a faint one is the view's natural order, a faint ghost on hover is a hint) */
+  th.sortable .lbl { cursor: pointer; }
+  th .sort-ind { display: inline-block; width: 0; height: 0; margin-left: 7px; vertical-align: middle; border-left: 4px solid transparent; border-right: 4px solid transparent; opacity: 0; transition: opacity .12s; }
+  th.sortable:hover .sort-ind { opacity: .35; border-bottom: 5px solid currentColor; }
+  th.sort-asc, th.sort-desc { color: var(--color-text-default); }
+  th.sort-asc .sort-ind, th.sort-desc .sort-ind { opacity: 1; color: var(--color-primary-default); }
+  th.sort-asc .sort-ind { border-bottom: 5px solid currentColor; border-top: 0; }
+  th.sort-desc .sort-ind { border-top: 5px solid currentColor; border-bottom: 0; }
+  th.sort-implicit { color: var(--color-text-alternative); }
+  th.sort-implicit .sort-ind { opacity: .5; color: currentColor; }
   th.drop-left { box-shadow: inset 3px 0 0 var(--color-primary-default); }
   th.drop-right { box-shadow: inset -3px 0 0 var(--color-primary-default); }
   .grip { position: absolute; top: 0; right: 0; width: 10px; height: 100%; cursor: col-resize; z-index: 2; }
@@ -487,7 +498,6 @@
   .stat .ic { width: 16px; height: 16px; color: var(--color-text-muted); }
   .stat b { font-weight: 600; color: var(--color-text-default); }
   @media (max-width: 860px) { .stat { padding: 0 11px; } }
-  @media (max-width: 1400px) { .subbar .tip { display: none; } } /* the tip only shows when it fits on the row instead of wrapping under it */
   /* the wordmark: MetaMask's Grotzec Condensed Bold, all caps, tight tracking. Served from app/fonts so there's one copy */
   @font-face { font-family: 'Grotzec Cond'; src: url('/font/grotzec-cond-bold.otf') format('opentype'); font-weight: 700; font-style: normal; font-display: block; }
   .wordmark { font-family: 'Grotzec Cond', var(--font-family, 'Inter', sans-serif); font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: -.012em; line-height: 1; }
@@ -610,7 +620,18 @@
     --cat-third: #9b3fd1; --surface-1: #ffffff; --surface-2: #ffffff; --tile-base: #fafafc; --on-primary: #ffffff;
     --art-o: #d4500f; --art-b: #3348e6; --art-l: #3b8a14; --art-p: #9b3fd1; --art-y: #a86c00; --art-r: #d1293d; }
   html[data-theme="light"] .chip { color: color-mix(in srgb, var(--c, #555) 58%, #000); }
-  html[data-theme="light"] .chip.party, html[data-theme="light"] .chip.none { color: var(--color-text-alternative); }
+  /* neutral package / unowned chips: a lighter grey with a softer fill, so they recede instead of reading as dark slabs */
+  html[data-theme="light"] .chip.party, html[data-theme="light"] .chip.none { color: #6b6e76; background: rgba(0,0,0,.035); }
+  html[data-theme="light"] .chip.party .scope { color: #8a8d95; }
+  /* a soft shadow under the sticky header row, so it separates from the rows scrolling beneath it. One continuous gradient across every column. */
+  th::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 10px; background: linear-gradient(rgba(0,0,0,.4), transparent); pointer-events: none; opacity: 0; transition: opacity .15s ease; }
+  main.scrolled th::after { opacity: 1; } /* only once the list has scrolled under the header */
+  html[data-theme="light"] th::after { background: linear-gradient(rgba(20,20,40,.17), rgba(20,20,40,.05) 45%, transparent); }
+  /* active tab / segment / pill: a white thumb on the grey track in light mode, instead of a heavy 21% black slab */
+  html[data-theme="light"] { --fill-active: #ffffff; }
+  html[data-theme="light"] .tabs button.active, html[data-theme="light"] .seg button.active, html[data-theme="light"] .tfmt button.active, html[data-theme="light"] .tabs [aria-selected="true"],
+  html[data-theme="light"] .actions .tfmt button[aria-pressed="true"], html[data-theme="light"] .actions .theme-opt[aria-checked="true"] { box-shadow: 0 1px 2px rgba(20,20,40,.16), 0 0 0 .5px rgba(20,20,40,.05); }
+  html[data-theme="light"] .seg button.active .n { background: rgba(0,0,0,.07); }
   html[data-theme="light"] .mkpop, html[data-theme="light"] .actions { box-shadow: 0 18px 48px rgba(20,20,40,.18), 0 2px 8px rgba(20,20,40,.08); }
   html[data-theme="light"] dialog#help { box-shadow: 0 28px 80px rgba(20,20,40,.28); }
   html[data-theme="light"] dialog#help::backdrop { background: rgba(240,240,246,.6); }
@@ -714,6 +735,75 @@
   #conn .conn-n { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--r-ctl); background: var(--color-primary-default); color: var(--on-primary); font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; pointer-events: none; }
   html[data-theme="light"] #conn.conn-btn.running { color: color-mix(in srgb, var(--color-success-default) 58%, #000); }
   html[data-theme="light"] #conn.conn-btn.paused { color: color-mix(in srgb, var(--color-warning-default) 58%, #000); }
+
+  /* filters: a button on the right of the filter row that opens a panel styled like Markers */
+  .subbar { position: relative; }
+  .subbar > .flt-btn { height: 35px; box-sizing: border-box; padding-top: 0; padding-bottom: 0; border-radius: var(--r-box); }
+  .flt-btn .ic { width: 15px; height: 15px; }
+  .flt-btn.on { color: var(--color-primary-default); }
+  .advpills { display: contents; }
+  .advpills .ownerpill { max-width: 360px; height: 35px; box-sizing: border-box; padding-left: 12px; }
+  .advpills .ownerpill .pv { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-default); font-weight: 600; }
+  .advpills .ownerpill .pk { white-space: nowrap; }
+  .fpop { width: min(540px, calc(100vw - 24px)); }
+  .fpop h2 button#fltClear { padding: 6px 12px; border-radius: var(--r-ctl); font-size: 13px; }
+  .fpop .presets button { display: inline-flex; align-items: center; gap: 6px; }
+  .fpop .presets button .ic { width: 13px; height: 13px; }
+  .fpop .presets button[aria-pressed="true"] { color: var(--color-primary-default); background: var(--color-primary-muted); }
+  .fsec { margin-top: 14px; padding-top: 4px; }
+  .fsec-h { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; min-height: 26px; font-size: 13px; font-weight: 650; color: var(--color-text-default); }
+  .fsec-h .sp { flex: 1; }
+  .fsec-h .fsub { font-weight: 500; font-size: 12px; color: var(--color-text-muted); }
+  .fpop .mini { display: inline-flex; gap: 2px; padding: 2px; border-radius: var(--r-ctl); background: var(--fill-1); }
+  .fpop .mini button { padding: 3px 10px; font-size: 12px; border-radius: var(--r-ctl); background: transparent; color: var(--color-text-alternative); }
+  .fpop .mini button:hover { color: var(--color-text-default); }
+  .fpop .mini button[aria-pressed="true"] { background: var(--fill-active, var(--fill-3)); color: var(--color-text-default); font-weight: 600; }
+  .fpop .mini button[aria-pressed="true"].neg { background: var(--color-error-muted); color: var(--color-error-default); }
+  .fpop .fsearch { position: relative; display: flex; margin-bottom: 4px; }
+  .fpop .fsearch input { width: 100%; box-sizing: border-box; padding: 6px 10px 6px 34px; font-size: 13px; }
+  .fpop .fsearch .ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--color-text-muted); pointer-events: none; }
+  .flist { display: flex; flex-direction: column; gap: 1px; max-height: 188px; overflow: auto; margin: 0 -6px; padding: 0 6px; }
+  .fopt { display: flex; align-items: center; gap: 2px; }
+  .fpop .fopt .fchk { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 5px 8px; border-radius: var(--r-ctl); background: transparent; color: var(--color-text-default); text-align: left; font-weight: 500; font-size: 13px; }
+  .fpop .fopt .fchk:hover { background: var(--fill-1); }
+  .fchk .box { flex: none; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 5px; box-shadow: inset 0 0 0 1.5px var(--color-text-muted); color: transparent; }
+  .fchk .box .ic { width: 12px; height: 12px; }
+  .fchk[aria-checked="true"] .box { background: var(--color-primary-default); box-shadow: none; color: var(--on-primary, #fff); }
+  .fsec.neg .fchk[aria-checked="true"] .box { background: var(--color-error-default); }
+  .fchk .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--color-text-muted)); }
+  .fchk .fl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fchk .fl.mono { font-family: var(--font-family-mono); font-size: 12px; }
+  .fchk .fn { flex: none; font-size: 11.5px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+  .fpop .fopt .fstar { flex: none; background: transparent; color: var(--color-text-muted); }
+  .fpop .fopt .fstar:hover { color: var(--color-text-default); background: var(--fill-2); }
+  .fpop .fopt .fstar[aria-pressed="true"] { color: var(--color-warning-default); }
+  html[data-theme="light"] .fpop .fopt .fstar[aria-pressed="true"] { color: color-mix(in srgb, var(--color-warning-default) 70%, #000); }
+  .fempty { padding: 8px 8px; font-size: 12.5px; color: var(--color-text-muted); }
+  .fmsrow { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-text-alternative); }
+  .fmsrow input { width: 110px; box-sizing: border-box; padding: 6px 10px; font-size: 13px; }
+  .fmsrow .mini button { padding: 3px 9px; }
+
+  /* request detail: which screen the request was made from */
+  .vstrip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-bottom: 14px; padding: 10px 14px; border-radius: var(--r-box); background: var(--surface-1, var(--color-background-alternative)); }
+  html[data-theme="light"] .vstrip { background: #ffffff; }
+  .vstrip > .ic { width: 18px; height: 18px; color: var(--color-primary-default); }
+  .vstrip .vk { font-size: 12px; font-weight: 600; color: var(--color-text-muted); }
+  .vstrip .vname { font: 600 14px var(--font-family-mono); color: var(--color-text-default); letter-spacing: 0; }
+  .vstrip .vname.boot { font: 600 14px var(--font-family); color: var(--color-warning-default); }
+  html[data-theme="light"] .vstrip .vname.boot { color: color-mix(in srgb, var(--color-warning-default) 58%, #000); }
+  .vstrip .vsub { flex-basis: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; padding-left: 30px; font-size: 12px; color: var(--color-text-alternative); }
+  .vstrip.none > .ic { color: var(--color-text-muted); }
+  .vstrip.none .vsub { flex-basis: auto; padding-left: 0; }
+  .vsrc { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-family-mono); font-size: 12px; }
+  .vsrc .vsrck { font-family: var(--font-family); color: var(--color-text-muted); }
+  .vsrc a.gh { color: var(--color-text-default); text-decoration: none; }
+  .vsrc a.gh:hover { color: var(--color-primary-default); text-decoration: underline; }
+  .vsrc a.gh .ic { width: 12px; height: 12px; margin-left: 5px; vertical-align: -1px; opacity: .45; transition: opacity .12s; }
+  .vsrc a.gh:hover .ic { opacity: 1; }
+  .vchip { padding: 2px 10px; border-radius: var(--r-ctl); font-size: 12px; font-weight: 500; color: var(--color-text-alternative); background: var(--fill-1); white-space: nowrap; }
+  .vchip.fresh { color: var(--color-primary-default); background: var(--color-primary-muted); }
+  .vchip.warn { color: var(--color-warning-default); background: var(--color-warning-muted); }
+  html[data-theme="light"] .vchip.warn { color: color-mix(in srgb, var(--color-warning-default) 58%, #000); }
 </style>
 </head>
 <body>
@@ -725,7 +815,11 @@
   <symbol id="i-reset" viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></symbol>
   <symbol id="i-clipboard" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M9 2h6a1.5 1.5 0 0 1 1.5 1.5V4H18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1.5v-.5A1.5 1.5 0 0 1 9 2zM8 11v1.6h8V11H8zm0 4v1.6h5.5V15H8z"/></symbol>
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
-  <symbol id="i-network" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M11 7.6l-5 8.2 1.7 1 5-8.2zM13 7.6l5 8.2-1.7 1-5-8.2zM8.1 17.3h7.8v1.9H8.1z"/></symbol>
+  <symbol id="i-network" viewBox="0 0 24 24"><rect x="2.6" y="3.6" width="18.8" height="12.8" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M8.2 20.4h7.6M12 16.6v3.8" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M9.4 13V8m0 0L7.5 9.9M9.4 8l1.9 1.9M14.6 8v5m0 0-1.9-1.9m1.9 1.9 1.9-1.9" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-screen" viewBox="0 0 24 24"><rect x="6.5" y="2.8" width="11" height="18.4" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10.4 18.2h3.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3.6 5.2A1 1 0 0 1 4.4 3.6h15.2a1 1 0 0 1 .8 1.6L14 13.3v6.1a1 1 0 0 1-1.45.9l-2.2-1.1a1 1 0 0 1-.55-.9v-5L3.6 5.2z"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.9l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></symbol>
+  <symbol id="i-star-o" viewBox="0 0 24 24"><path d="M12 2.9l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="2.4" rx="1.2"/><rect x="3" y="10.8" width="18" height="2.4" rx="1.2"/><rect x="3" y="16.6" width="18" height="2.4" rx="1.2"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
@@ -788,8 +882,17 @@
   <button class="tog" data-flag="dupes" title="Identical request made more than once: same method, URL and (for POST/PUT/PATCH) body"><i class="dot dup"></i>Duplicates <span class="n"></span></button>
   <span id="ownerPill"></span>
   <span id="phasePill"></span>
+  <span id="sortPill"></span>
+  <span id="advPills" class="advpills"></span>
   <span class="spacer"></span>
-  <span class="tip">Tip: click any team or package chip to filter by it</span>
+  <button id="fltBtn" class="btn flt-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="fltpop" title="Filters: narrow the capture by code owner, status, method, host or speed (F)"><svg class="ic"><use href="#i-filter"/></svg><span class="lbl">Filters</span><b class="badge-n" id="fltCount" hidden>0</b></button>
+  <div class="mkpop fpop" id="fltpop" role="dialog" aria-label="Filters">
+    <h2><svg class="ic"><use href="#i-filter"/></svg>Filters<span class="sp"></span><button id="fltClear" type="button" title="Remove every filter in this panel">Clear All</button><button id="fltClose" class="icon-btn sm" type="button" aria-label="Close filters"><svg class="ic"><use href="#i-close"/></svg></button></h2>
+    <div class="mk-h">Quick Filters</div>
+    <div class="presets" id="fltPresets"></div>
+    <div id="fltBody"></div>
+    <div class="mk-foot">Pick several values to match any of them. Different sections must all match. <kbd class="k">F</kbd> opens this panel · <kbd class="k">Esc</kbd> closes</div>
+  </div>
 </div>
 <div class="strip" aria-label="Requests over time"><div class="stripin" id="stripin"></div><div class="axis" id="axis"></div></div>
 <main>
@@ -807,6 +910,51 @@
 // ============================================================================
 const reqs = new Map(); let markers = []; let tab = 'timeline'; let filter = ''; let open = null;
 const ui = { cat: 'all', errors: false, dupes: false, owner: null, phase: null };
+// Column sorting, per tab. null is the tab's natural order: the Timeline is newest first (grouped into phases), Endpoints is first call first.
+// A sort is { id: column, dir: 1 (ascending) | -1 (descending) }.
+const sorts = { timeline: null, endpoints: null };
+const NATURAL_SORT = { timeline: { id: 't', dir: -1 }, endpoints: { id: 'first', dir: 1 } };
+const sortOf = (which) => sorts[which] ?? { ...NATURAL_SORT[which], implicit: true };
+/** The Timeline keeps its phases while sorted by time (# or Time, either way round); any other column lists requests flat. */
+const phasesHidden = () => Boolean(sorts.timeline) && sorts.timeline.id !== 'id' && sorts.timeline.id !== 't';
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+/** Sorts rows by a column's `sort` key. Rows with no value sit last in either direction; ties fall back to `tie`. */
+function sortRows(rows, sort, def, tie) {
+  const none = (k) => k == null || k === '' || (typeof k === 'number' && Number.isNaN(k));
+  const keyed = rows.map((row) => ({ row, k: def.sort(row) }));
+  keyed.sort((a, b) => {
+    const an = none(a.k), bn = none(b.k);
+    if (an || bn) return an && bn ? tie(a.row, b.row) : an ? 1 : -1;
+    const c = typeof a.k === 'number' && typeof b.k === 'number' ? a.k - b.k : collator.compare(String(a.k), String(b.k));
+    return c ? c * sort.dir : tie(a.row, b.row);
+  });
+  return keyed.map((x) => x.row);
+}
+/** Click a header: a new column sorts in its first direction, then the opposite, then back to the natural order. */
+function cycleSort(which, colId) {
+  const def = grids[which].byId[colId]; if (!def || !def.sort) return;
+  const natural = NATURAL_SORT[which], cur = sorts[which] ?? natural, first = def.sortFirst === 'desc' ? -1 : 1;
+  let next;
+  if (cur.id !== colId) next = colId === natural.id ? { ...natural } : { id: colId, dir: first }; // the natural column's first click is "back to the default view"
+  else if (colId === natural.id) next = { id: colId, dir: -cur.dir }; // then it just flips
+  else next = cur.dir === first ? { id: colId, dir: -first } : null;
+  setSort(which, next && next.id === natural.id && next.dir === natural.dir ? null : next);
+}
+function setSort(which, sort) {
+  sorts[which] = sort;
+  grids[which].markSort();
+  $('main').scrollTop = 0; // a new order starts from its top
+  render();
+}
+// Filters panel: each facet keeps a set of picked values (any of them matches), and "is not" flips it into an exclusion. Facets combine with AND.
+const adv = {
+  team: { on: new Set(), not: false, scope: 'any' }, // scope: any | site (call site) | via (started from)
+  view: { on: new Set(), not: false },
+  status: { on: new Set(), not: false }, method: { on: new Set(), not: false }, host: { on: new Set(), not: false },
+  minMs: 0,
+};
+const fq = { team: '', view: '', host: '' }; // search text inside the long lists
+let myTeams = new Set(); try { myTeams = new Set(JSON.parse(localStorage.getItem('foxy.myteams.v1')) || []); } catch {}
 let dupeCounts = new Map(); let span = 1; let wfMarkers = '';
 let openEp = null; let pendingEp = false;
 const detailCache = new Map();
@@ -962,28 +1110,61 @@ function fileTail(info) {
   const tail = parts.slice(-2).join('/');
   return { tail, loc: info.line ? `:${info.line}:${info.col}` : '' };
 }
-function fnCell(info, sub) {
+/** A call site as a compact cell. Table rows stay quiet; `copy` adds the hover copy button where there is room for it (detail panels). */
+function fnCell(info, sub, { copy = false } = {}) {
   if (!info) return '<span class="dim">(no stack)</span>';
   const t = fileTail(info);
   const kind = info.unsymbolicated ? 'unsym' : info.kind;
   const where = `${info.file}:${info.line}:${info.col}`;
-  return `<div class="fn hv${sub ? ' sub' : ''}"><span class="bar ${esc(kind)}"></span><div class="fn-text"><div class="fn-name">${fnLabel(info.method)}</div><div class="fn-file">${esc(t.tail)}<span class="loc">${esc(t.loc)}</span></div></div>${cp(where, 'Copy file:line:col', { ho: true, abs: true })}</div>`;
+  return `<div class="fn${copy ? ' hv' : ''}${sub ? ' sub' : ''}"><span class="bar ${esc(kind)}"></span><div class="fn-text"><div class="fn-name">${fnLabel(info.method)}</div><div class="fn-file">${esc(t.tail)}<span class="loc">${esc(t.loc)}</span></div></div>${copy ? cp(where, 'Copy file:line:col', { ho: true, abs: true }) : ''}</div>`;
 }
 const fnLabel = (name) => `${esc(name)}${String(name).startsWith('<') ? '' : '<span class="paren">()</span>'}`;
 const fnTitle = (info) => (info ? `${info.method}()  ${info.file}:${info.line}:${info.col}` : '');
 
-const haystack = (r) => [r.host, r.path, r.method, r.callSite, r.owner, r.callSiteInfo?.pkg, r.callSiteInfo?.method, ...(r.codeOwners || []), ...(r.ownerCodeOwners || [])].join(' ').toLowerCase();
+const haystack = (r) => [r.host, r.path, r.method, r.callSite, r.owner, r.callSiteInfo?.pkg, r.callSiteInfo?.method, r.view?.route, ...(r.codeOwners || []), ...(r.ownerCodeOwners || [])].join(' ').toLowerCase();
 const ownerMatch = (r) => {
   const o = ui.owner; if (!o) return true;
   if (o.type === 'team') return [...(r.codeOwners || []), ...(r.ownerCodeOwners || [])].some((x) => team(x) === o.value);
   return r.callSiteInfo?.pkg === o.value;
 };
+// Values a request has for each Filters facet (a request can have several: one per owning team)
+const NO_TEAM = '__no_team__';
+const VIEW_BOOT = '__before_navigation__', VIEW_UNKNOWN = '__unknown_view__'; // no screen yet (app start) / the app build did not report one
+const STATUS_LABEL = { '2xx': '2xx Success', '3xx': '3xx Redirect', '4xx': '4xx Client error', '5xx': '5xx Server error', error: 'Failed (no response)', pending: 'Pending' };
+const STATUS_ORDER = Object.keys(STATUS_LABEL);
+const FACETS = [
+  { id: 'team', label: 'Code owner', sub: 'CODEOWNERS teams', search: 'Search teams' },
+  { id: 'view', label: 'Screen', search: 'Search screens', mono: true },
+  { id: 'status', label: 'Status' },
+  { id: 'method', label: 'Method' },
+  { id: 'host', label: 'Host', search: 'Search hosts', mono: true },
+];
+const FACET_VALUES = {
+  team: (r) => {
+    const s = adv.team.scope, own = s === 'site' ? r.codeOwners : s === 'via' ? r.ownerCodeOwners : [...(r.codeOwners || []), ...(r.ownerCodeOwners || [])];
+    const v = [...new Set((own || []).map(team))];
+    return v.length ? v : [NO_TEAM];
+  },
+  view: (r) => [r.view ? r.view.route || VIEW_BOOT : VIEW_UNKNOWN],
+  status: (r) => [r.error ? 'error' : r.status ? `${String(r.status)[0]}xx` : 'pending'],
+  method: (r) => [r.method || '?'],
+  host: (r) => [r.host || '?'],
+};
+const advMatch = (r) => {
+  for (const f of FACETS) {
+    const s = adv[f.id]; if (!s.on.size) continue;
+    if (FACET_VALUES[f.id](r).some((v) => s.on.has(v)) === s.not) return false; // picked-and-hit fails an "is not"; missed fails an "is"
+  }
+  return !adv.minMs || r.durationMs >= adv.minMs;
+};
+const advActive = () => FACETS.filter((f) => adv[f.id].on.size).length + (adv.minMs ? 1 : 0);
 const match = (r) => (!filter || haystack(r).includes(filter))
   && (ui.cat === 'all' || category(r) === ui.cat)
   && (!ui.errors || isFailed(r))
   && (!ui.dupes || dupeCounts.get(reqKey(r)) > 1)
   && (!ui.phase || phaseByKey.get(r.key)?.id === ui.phase)
-  && ownerMatch(r);
+  && ownerMatch(r)
+  && advMatch(r);
 
 // ============================================================================
 // markers & phases: each marker starts a phase that lasts until the next marker
@@ -1015,7 +1196,7 @@ const phaseChip = (p) => `<span class="chip" data-phase="${esc(p.id)}" style="--
 // ============================================================================
 // column grid: drag header labels to reorder, drag the grips to resize
 // ============================================================================
-function createGrid(id, defs) {
+function createGrid(id, defs, { getSort, onSort } = {}) {
   const el = $('#' + id), key = `foxy.layout.v6.${id}`;
   const byId = Object.fromEntries(defs.map((d) => [d.id, d]));
   const isAuto = (c) => Boolean(byId[c].fit); // auto columns size themselves to their content
@@ -1056,21 +1237,40 @@ function createGrid(id, defs) {
       const font = d.mono ? small : body;
       const lo = measure(val(d.fit.min) ?? '', font), hi = d.fit.max ? measure(val(d.fit.max), font) : Infinity;
       const w = Math.min(hi, Math.max(lo, measure(samples[d.id] ?? '', font)));
-      const label = measure(d.label, `600 12px ${fam()}`) + 26; // header label + its padding
+      const label = measure(d.label, `600 12px ${fam()}`) + 26 + (d.sort ? 15 : 0); // header label + its padding + the sort arrow
       fitPx[d.id] = Math.ceil(Math.max(w + 24, label, d.fit.minPx || 0));
     }
     applyWidths();
+  }
+
+  /** Shows the current sort in the header: the arrow, and aria-sort for screen readers. */
+  function markSort() {
+    const s = getSort ? getSort() : null;
+    el.querySelectorAll('th').forEach((th) => {
+      const on = Boolean(s) && s.id === th.dataset.id;
+      th.classList.toggle('sortable', Boolean(byId[th.dataset.id].sort));
+      th.classList.toggle('sort-asc', on && s.dir === 1);
+      th.classList.toggle('sort-desc', on && s.dir === -1);
+      th.classList.toggle('sort-implicit', on && Boolean(s.implicit));
+      if (on) th.setAttribute('aria-sort', s.dir === 1 ? 'ascending' : 'descending'); else th.removeAttribute('aria-sort');
+    });
   }
 
   function buildHead(onChange) {
     normalize();
     el.querySelector('colgroup').innerHTML = st.order.map((c) => `<col data-id="${c}">`).join('');
     const tr = el.querySelector('thead tr');
-    tr.innerHTML = st.order.map((c, i) => `<th data-id="${c}"><span class="lbl" draggable="true" title="Drag to reorder">${esc(byId[c].label)}</span>${isAuto(c) || !nextFlex(i) ? '' : `<span class="grip" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize ${esc(byId[c].label)} column" title="Drag to resize, double-click to reset"></span>`}</th>`).join('');
+    tr.innerHTML = st.order.map((c, i) => `<th data-id="${c}"><span class="lbl" draggable="true" tabindex="0"${byId[c].sort ? ' role="button"' : ''} title="${byId[c].sort ? 'Click to sort, drag to reorder' : 'Drag to reorder'}">${esc(byId[c].label)}${byId[c].sort ? '<i class="sort-ind"></i>' : ''}</span>${isAuto(c) || !nextFlex(i) ? '' : `<span class="grip" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize ${esc(byId[c].label)} column" title="Drag to resize, double-click to reset"></span>`}</th>`).join('');
     applyWidths();
+    markSort();
 
     tr.querySelectorAll('th').forEach((th, i) => {
       const colId = th.dataset.id, lbl = th.querySelector('.lbl'), grip = th.querySelector('.grip');
+      // sort (a drag never produces a click, so reordering does not sort)
+      if (byId[colId].sort && onSort) {
+        lbl.addEventListener('click', () => onSort(colId));
+        lbl.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSort(colId); } });
+      }
       // reorder
       lbl.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', colId); e.dataTransfer.effectAllowed = 'move'; th.classList.add('dragging'); });
       lbl.addEventListener('dragend', () => tr.querySelectorAll('th').forEach((t) => t.classList.remove('dragging', 'drop-left', 'drop-right')));
@@ -1110,7 +1310,7 @@ function createGrid(id, defs) {
     });
   }
   return {
-    byId, el, fit,
+    byId, el, fit, markSort,
     order: () => st.order,
     colspan: () => st.order.length,
     init: (onChange) => buildHead(onChange),
@@ -1129,16 +1329,16 @@ const waterfallCell = (r) => {
 };
 
 const TIMELINE_COLS = [
-  { id: 'id', label: '#', w: 0.03, fit: { min: '000', max: '000000' }, cell: (r) => td(r.id, { cls: 'dim num' }) },
-  { id: 't', label: 'Time', w: 0.045, fit: TIME_FIT, cell: (r) => td(tf(r.relMs), { cls: 'alt num' }) },
-  { id: 'owners', label: 'Code Owners', w: 0.15, cell: (r) => td(rowChips(r), { title: [...(r.codeOwners || []), ...(r.ownerCodeOwners || []).map((o) => o + ' (via)')].join(', ') || r.callSiteInfo?.pkg || '' }) },
-  { id: 'site', label: 'Call Site', w: 0.2, cell: (r) => td(fnCell(r.callSiteInfo), { title: fnTitle(r.callSiteInfo) }) },
-  { id: 'from', label: 'Started From', w: 0.13, cell: (r) => td(r.ownerInfo ? fnCell(r.ownerInfo, true) : '', { title: fnTitle(r.ownerInfo) }) },
-  { id: 'method', label: 'Method', w: 0.045, mono: true, fit: { min: 'GET', max: 'OPTIONS' }, cell: (r) => td(esc(r.method), { cls: 'alt mono' }) },
-  { id: 'host', label: 'Host', w: 0.105, cell: (r) => td(esc(r.host), { cls: 'host', title: r.host }) },
-  { id: 'path', label: 'Path', w: 0.11, cell: (r) => td(esc(r.path) + (r.query ? '<span class="dim">?…</span>' : '') + cp(r.url, 'Copy full URL', { ho: true, abs: true }), { cls: 'mono hv', title: r.path + (r.query ? '?' + r.query : '') }) },
-  { id: 'status', label: 'Status', w: 0.05, fit: { min: '', minPx: 74 }, cell: (r) => td(`<span class="st ${stClass(r)}">${esc(r.error ? 'err' : r.status ?? '…')}</span>`, { title: r.error || '' }) },
-  { id: 'ms', label: 'ms', w: 0.04, fit: { min: '000', max: '000000' }, cell: (r) => td(r.durationMs ?? '', { cls: 'alt num' }) },
+  { id: 'id', label: '#', w: 0.03, fit: { min: '000', max: '000000' }, sort: (r) => r.id, cell: (r) => td(r.id, { cls: 'dim num' }) },
+  { id: 't', label: 'Time', w: 0.045, fit: TIME_FIT, sort: (r) => r.relMs, cell: (r) => td(tf(r.relMs), { cls: 'alt num' }) },
+  { id: 'owners', label: 'Code Owners', w: 0.15, sort: (r) => (r.codeOwners || []).map(team).join(', ') || r.callSiteInfo?.pkg || '', cell: (r) => td(rowChips(r), { title: [...(r.codeOwners || []), ...(r.ownerCodeOwners || []).map((o) => o + ' (via)')].join(', ') || r.callSiteInfo?.pkg || '' }) },
+  { id: 'site', label: 'Call Site', w: 0.2, sort: (r) => (r.callSiteInfo ? `${r.callSiteInfo.method} ${r.callSiteInfo.file}` : ''), cell: (r) => td(fnCell(r.callSiteInfo), { title: fnTitle(r.callSiteInfo) }) },
+  { id: 'from', label: 'Started From', w: 0.13, sort: (r) => (r.ownerInfo ? `${r.ownerInfo.method} ${r.ownerInfo.file}` : ''), cell: (r) => td(r.ownerInfo ? fnCell(r.ownerInfo, true) : '', { title: fnTitle(r.ownerInfo) }) },
+  { id: 'method', label: 'Method', w: 0.045, mono: true, fit: { min: 'GET', max: 'OPTIONS' }, sort: (r) => r.method, cell: (r) => td(esc(r.method), { cls: 'alt mono' }) },
+  { id: 'host', label: 'Host', w: 0.105, sort: (r) => r.host, cell: (r) => td(esc(r.host), { cls: 'host', title: r.host }) },
+  { id: 'path', label: 'Path', w: 0.11, sort: (r) => r.path, cell: (r) => td(esc(r.path) + (r.query ? '<span class="dim">?…</span>' : '') + '', { cls: 'mono', title: r.path + (r.query ? '?' + r.query : '') }) },
+  { id: 'status', label: 'Status', w: 0.05, fit: { min: '', minPx: 74 }, sort: (r) => (r.error ? -1 : r.status), cell: (r) => td(`<span class="st ${stClass(r)}">${esc(r.error ? 'err' : r.status ?? '…')}</span>`, { title: r.error || '' }) },
+  { id: 'ms', label: 'ms', w: 0.04, fit: { min: '000', max: '000000' }, sort: (r) => r.durationMs, sortFirst: 'desc', cell: (r) => td(r.durationMs ?? '', { cls: 'alt num' }) },
   { id: 'wf', label: 'Waterfall', w: 0.12, cell: waterfallCell },
 ];
 
@@ -1210,21 +1410,22 @@ function buildGroups(list) {
 }
 
 const ENDPOINT_COLS = [
-  { id: 'phase', label: 'Phase', w: 0.11, cell: (g) => { const p = phaseByKey.get(g.list[0].key); return td(p ? `<div class="chips">${phaseChip(p)}</div>` : '<span class="dim">—</span>', { title: p ? `First called during "${p.label}"` : 'Add markers to see which phase each endpoint first appears in' }); } },
-  { id: 'first', label: 'First', w: 0.05, fit: TIME_FIT, cell: (g) => td(tf(g.first), { cls: 'alt num', title: `first call at ${clock(g.list[0].ts)}` }) },
-  { id: 'owners', label: 'Code Owners', w: 0.13, cell: (g) => td(`<div class="chips">${g.chips || noneChip('—')}</div>`) },
-  { id: 'sites', label: 'Call Sites', w: 0.14, cell: (g) => td(`${[...g.sites.values()].slice(0, 1).map((e) => fnCell(e.info)).join('')}${g.sites.size > 1 ? `<span class="dim">+${g.sites.size - 1} more call sites</span>` : ''}`, { title: [...g.sites.values()].map((e) => fnTitle(e.info)).join('\n') }) },
-  { id: 'endpoint', label: 'Endpoint', w: 0.19, cell: (g) => td(`<span class="host">${esc(g.k)}</span>${cp(g.k, 'Copy endpoint', { ho: true, abs: true })}`, { cls: 'mono hv', title: g.k }) },
-  { id: 'calls', label: 'Calls', w: 0.045, fit: { min: '00', max: '000000' }, cell: (g) => td(g.n, { cls: 'num' }) },
-  { id: 'dupes', label: 'Identical Dupes', w: 0.1, cell: (g) => td(g.dupes ? `<span class="dupe-pill l${g.dupes > 5 ? 3 : g.dupes > 2 ? 2 : 1}" title="${g.dupes} repeat${g.dupes > 1 ? 's' : ''} of an identical request (${g.wastedMs} ms, ${bytes(g.wastedBytes) || '0 B'} redundant)">+${g.dupes}</span>` : '<span class="dim">—</span>') },
-  { id: 'statuses', label: 'Statuses', w: 0.085, cell: (g) => td(statusPills(g.st)) },
-  { id: 'avg', label: 'Avg ms', w: 0.055, fit: { min: '000', max: '000000' }, cell: (g) => td(g.avg ?? '', { cls: 'alt num', title: g.avg == null ? '' : `p95 ${g.p95} ms, max ${g.max} ms` }) },
+  { id: 'phase', label: 'Phase', w: 0.11, sort: (g) => phaseByKey.get(g.list[0].key)?.start, cell: (g) => { const p = phaseByKey.get(g.list[0].key); return td(p ? `<div class="chips">${phaseChip(p)}</div>` : '<span class="dim">—</span>', { title: p ? `First called during "${p.label}"` : 'Add markers to see which phase each endpoint first appears in' }); } },
+  { id: 'first', label: 'First', w: 0.05, fit: TIME_FIT, sort: (g) => g.first, cell: (g) => td(tf(g.first), { cls: 'alt num', title: `first call at ${clock(g.list[0].ts)}` }) },
+  { id: 'owners', label: 'Code Owners', w: 0.13, sort: (g) => g.ownerText, cell: (g) => td(`<div class="chips">${g.chips || noneChip('—')}</div>`) },
+  { id: 'sites', label: 'Call Sites', w: 0.14, sort: (g) => { const e = [...g.sites.values()][0]; return e ? `${e.info.method} ${e.info.file}` : ''; }, cell: (g) => td(`${[...g.sites.values()].slice(0, 1).map((e) => fnCell(e.info)).join('')}${g.sites.size > 1 ? `<span class="dim">+${g.sites.size - 1} more call sites</span>` : ''}`, { title: [...g.sites.values()].map((e) => fnTitle(e.info)).join('\n') }) },
+  { id: 'endpoint', label: 'Endpoint', w: 0.19, sort: (g) => g.k, cell: (g) => td(`<span class="host">${esc(g.k)}</span>`, { cls: 'mono', title: g.k }) },
+  { id: 'calls', label: 'Calls', w: 0.045, fit: { min: '00', max: '000000' }, sort: (g) => g.n, sortFirst: 'desc', cell: (g) => td(g.n, { cls: 'num' }) },
+  { id: 'dupes', label: 'Identical Dupes', w: 0.1, sort: (g) => g.dupes, sortFirst: 'desc', cell: (g) => td(g.dupes ? `<span class="dupe-pill l${g.dupes > 5 ? 3 : g.dupes > 2 ? 2 : 1}" title="${g.dupes} repeat${g.dupes > 1 ? 's' : ''} of an identical request (${g.wastedMs} ms, ${bytes(g.wastedBytes) || '0 B'} redundant)">+${g.dupes}</span>` : '<span class="dim">—</span>') },
+  { id: 'statuses', label: 'Statuses', w: 0.085, sort: (g) => g.failed, sortFirst: 'desc', cell: (g) => td(statusPills(g.st)) },
+  { id: 'avg', label: 'Avg ms', w: 0.055, fit: { min: '000', max: '000000' }, sort: (g) => g.avg, sortFirst: 'desc', cell: (g) => td(g.avg ?? '', { cls: 'alt num', title: g.avg == null ? '' : `p95 ${g.p95} ms, max ${g.max} ms` }) },
   { id: 'activity', label: 'Activity', w: 0.12, cell: (g) => td(lane(g, false), { title: 'Every call on the capture timeline (ringed = repeat of an identical request)' }) },
-  { id: 'verdict', label: 'Verdict', w: 0.095, cell: (g) => td(verdictChip(g.k)) },
+  { id: 'verdict', label: 'Verdict', w: 0.095, sort: (g) => { const i = VERDICTS.findIndex((x) => x.id === verdictOf(g.k).v); return i < 0 ? null : i; }, cell: (g) => td(verdictChip(g.k)) },
 ];
 
-const timelineGrid = createGrid('timeline', TIMELINE_COLS);
-const endpointsGrid = createGrid('endpoints', ENDPOINT_COLS);
+const timelineGrid = createGrid('timeline', TIMELINE_COLS, { getSort: () => sortOf('timeline'), onSort: (c) => cycleSort('timeline', c) });
+const endpointsGrid = createGrid('endpoints', ENDPOINT_COLS, { getSort: () => sortOf('endpoints'), onSort: (c) => cycleSort('endpoints', c) });
+const grids = { timeline: timelineGrid, endpoints: endpointsGrid };
 
 // ============================================================================
 // detail panel: call chain + request / response
@@ -1285,8 +1486,11 @@ function queryParams(url) {
 /** The path and :line:col of a stack frame, linked to that line on GitHub when the file is ours. */
 function fileLink(f) {
   const text = `${esc(f.file)}<span class="loc">${esc(f.line ? ':' + f.line + ':' + f.col : '')}</span>`;
-  const url = ghUrl(f);
-  return url ? `<a class="gh" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="Open ${esc(f.file)}${f.line ? ' at line ' + f.line : ''} on GitHub">${text}${icon('external')}</a>` : text;
+  // Package frames carry their GitHub link from the server (the source line behind the bundled file, when it resolves)
+  const pkg = f.link;
+  const url = pkg ? pkg.url : ghUrl(f);
+  const title = pkg ? `Open ${pkg.text} on GitHub` : `Open ${f.file}${f.line ? ' at line ' + f.line : ''} on GitHub`;
+  return url ? `<a class="gh" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${esc(title)}">${text}${icon('external')}</a>` : text;
 }
 
 function renderChain(r, d) {
@@ -1340,12 +1544,171 @@ function stackText(r, d) {
   return [`${r.method} ${r.url}`, ...real.map((f) => `  at ${f.method}() (${f.file}:${f.line}:${f.col})`)].join('\n');
 }
 
+/** Where each screen is defined in the app source. Looked up on the server and cached; refreshed now and then so line numbers follow edits. */
+const viewSrc = new Map(); // route -> { at, source, loading }
+function viewSource(route) {
+  if (!route) return null;
+  const c = viewSrc.get(route);
+  if (!c || (!c.loading && Date.now() - c.at > 30000)) {
+    const keep = c?.source ?? null, done = (source) => { viewSrc.set(route, { at: Date.now(), source, loading: false }); schedule(); };
+    viewSrc.set(route, { at: Date.now(), source: keep, loading: true });
+    fetch('/api/view?route=' + encodeURIComponent(route)).then((res) => (res.ok ? res.json() : null)).then((d) => done(d?.source ?? keep), () => done(keep));
+  }
+  return viewSrc.get(route).source;
+}
+/** `Views/Settings/index.tsx:52`, linked to that line on GitHub when it can be. */
+function sourceLink(s) {
+  const parts = String(s.file).split('/'), text = `${parts.slice(-2).join('/')}:${s.line}`, url = ghUrl({ file: s.file, line: s.line, kind: 'app' });
+  return url
+    ? `<a class="gh" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="Open ${esc(s.file)} at line ${s.line} on GitHub">${esc(text)}${icon('external')}</a>`
+    : `<span title="${esc(`${s.file}:${s.line}`)}">${esc(text)}</span>`;
+}
+
+/** Where in the app the request was made: the focused screen, how it got there, and how long it had been showing. */
+function viewStrip(r) {
+  const v = r.view;
+  if (!v) return `<div class="vstrip none">${icon('screen')}<span class="vk">Launched from</span><span class="vsub">Not reported. Rebuild and restart the app to record which screen each request comes from.</span></div>`;
+  const chip = (text, cls, tip) => `<span class="vchip ${cls || ''}" title="${esc(tip || '')}">${esc(text)}</span>`;
+  const chips = [];
+  if (v.ready && v.screenAgeMs != null) {
+    const fresh = v.screenAgeMs < 500;
+    chips.push(chip(fresh ? `fired ${dur(v.screenAgeMs)} after the screen opened` : `on screen for ${dur(v.screenAgeMs)}`, fresh ? 'fresh' : '', fresh ? 'Made right as the screen appeared: most likely triggered by mounting it' : 'How long this screen had been showing when the request was made'));
+  }
+  if (v.appState && v.appState !== 'active') chips.push(chip(`app ${v.appState}`, 'warn', 'The app was not in the foreground'));
+  if (v.params?.length) chips.push(chip(`params: ${v.params.join(', ')}`, '', 'Names of the screen params (values are never recorded)'));
+  const name = v.ready ? v.route : 'Before navigation was ready';
+  const sub = v.ready ? (v.path.length > 1 ? v.path.join('  ›  ') : '') : 'App start-up: the navigator had not mounted yet, so no screen was showing.';
+  // the screen's source file and line, plus where it is registered in a navigator when that is a different place
+  const src = v.ready ? viewSource(v.route) : null, reg = src?.registeredIn;
+  const where = src ? [
+    `<span class="vsrc"><span class="vsrck">${src.guess ? 'Best match' : src.resolved ? 'Defined in' : 'Registered in'}</span>${sourceLink(src)}</span>`,
+    reg && src.resolved && (reg.file !== src.file || reg.line !== src.line) ? `<span class="vsrc"><span class="vsrck">Registered in</span>${sourceLink(reg)}</span>` : '',
+  ].join('') : '';
+  const row = sub || where ? `<div class="vsub">${sub ? `<span>${esc(sub)}</span>` : ''}${where}</div>` : '';
+  return `<div class="vstrip">${icon('screen')}<span class="vk">Launched from</span><span class="vname ${v.ready ? '' : 'boot'}">${esc(name)}</span>${chips.join('')}${row}</div>`;
+}
+
 function renderDetailRow(r, cols) {
   const d = fetchDetail(r.key);
-  return `<tr class="detail"><td colspan="${cols}"><div class="dgrid">
+  return `<tr class="detail"><td colspan="${cols}">${viewStrip(r)}<div class="dgrid">
     <section class="panel"><h3>Call Chain${d ? cp(stackText(r, d), 'Copy stack trace', { right: true, label: 'Copy Stack' }) : ''}</h3>${renderChain(r, d)}</section>
     <section class="panel"><h3>Request &amp; Response</h3>${renderIO(r, d)}</section></div></td></tr>`;
 }
+
+// ============================================================================
+// virtual list: with thousands of requests only the rows near the viewport exist in the DOM.
+// Two spacer rows stand in for everything above and below, so the scrollbar still covers the whole list.
+// ============================================================================
+/**
+ * Windowed <tbody>. An item is one logical row (it can render several <tr>s, like a request plus its open detail).
+ *   item = { id, hk, kind, est, tall?, html: () => '<tr>…' }
+ * Row heights vary (chips wrap, details open), so each item's real height is measured the first time it is on screen
+ * and remembered under `hk`; until then the average of its kind stands in. Whenever a measurement changes where things sit
+ * above the viewport, the scroll position is corrected so what you are looking at does not jump.
+ */
+function createVirtualBody(table) {
+  const tbody = table.querySelector('tbody'), thead = table.querySelector('thead'), scroller = $('main');
+  const OVERSCAN = 700; // px rendered beyond each edge of the viewport
+  const topSp = document.createElement('tr'), botSp = document.createElement('tr');
+  for (const sp of [topSp, botSp]) { sp.className = 'vs'; sp.setAttribute('aria-hidden', 'true'); sp.innerHTML = '<td colspan="99"></td>'; }
+  let items = [], idx = new Map(), offs = new Float64Array(1), s = 0, e = 0, built = false, ticking = false;
+  const cache = new Map(), stat = new Map(); // measured heights by hk; per-kind averages (open rows excluded) for the unmeasured
+  const n = () => items.length;
+  const est = (it) => { const k = stat.get(it.kind); return k ? k.sum / k.n : it.est; };
+  function layout() {
+    offs = new Float64Array(items.length + 1);
+    let y = 0;
+    for (let i = 0; i < items.length; i++) { offs[i] = y; y += cache.get(items[i].hk) ?? est(items[i]); }
+    offs[items.length] = y;
+  }
+  /** Viewport in tbody coordinates, plus what the sticky header covers. */
+  function geom() {
+    const top = tbody.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop, hh = thead.offsetHeight;
+    return { top, hh, v0: scroller.scrollTop + hh - top, v1: scroller.scrollTop + scroller.clientHeight - top };
+  }
+  const firstBelow = (y) => { let lo = 0, hi = n(); while (lo < hi) { const m = (lo + hi) >> 1; if (offs[m + 1] > y) hi = m; else lo = m + 1; } return lo; }; // first item whose bottom is past y
+  const firstAtOrAfter = (y) => { let lo = 0, hi = n(); while (lo < hi) { const m = (lo + hi) >> 1; if (offs[m] >= y) hi = m; else lo = m + 1; } return lo; };
+  const markup = (i) => items[i].html().replace(/<tr(?=[\s>])/g, `<tr data-vi="${i}"`);
+  const markupRange = (a, b) => { let h = ''; for (let i = a; i < b; i++) h += markup(i); return h; };
+  const spacers = () => { topSp.firstChild.style.height = offs[s] + 'px'; botSp.firstChild.style.height = offs[n()] - offs[e] + 'px'; };
+  function paint(a, b) {
+    tbody.textContent = ''; tbody.append(topSp, botSp);
+    botSp.insertAdjacentHTML('beforebegin', markupRange(a, b));
+  }
+  function slide(a, b) {
+    if (a >= e || b <= s) { paint(a, b); return; } // jumped somewhere with nothing in common
+    while (topSp.nextElementSibling !== botSp && +topSp.nextElementSibling.dataset.vi < a) topSp.nextElementSibling.remove();
+    while (botSp.previousElementSibling !== topSp && +botSp.previousElementSibling.dataset.vi >= b) botSp.previousElementSibling.remove();
+    if (a < s) topSp.insertAdjacentHTML('afterend', markupRange(a, s));
+    if (b > e) botSp.insertAdjacentHTML('beforebegin', markupRange(e, b));
+  }
+  /** Reads the real height of every rendered item. True when any of them differs from what the layout assumed. */
+  function measure() {
+    const sums = new Map();
+    for (let el = topSp.nextElementSibling; el && el !== botSp; el = el.nextElementSibling) {
+      const i = +el.dataset.vi; sums.set(i, (sums.get(i) || 0) + el.getBoundingClientRect().height);
+    }
+    let changed = false;
+    for (const [i, h] of sums) {
+      const it = items[i]; if (!it) continue;
+      const old = cache.get(it.hk);
+      if (old !== undefined && Math.abs(old - h) < 0.4) continue;
+      changed = true; cache.set(it.hk, h);
+      if (!it.tall) { const k = stat.get(it.kind) || { sum: 0, n: 0 }; if (old === undefined) { k.n++; k.sum += h; } else k.sum += h - old; stat.set(it.kind, k); }
+    }
+    return changed;
+  }
+  /** Brings the DOM in line with the scroll position. `full` rebuilds the window instead of sliding it. */
+  function sync(full) {
+    if (!table.offsetParent) return; // the other tab is showing
+    layout();
+    const g = geom(), ai = Math.min(firstBelow(g.v0), Math.max(0, n() - 1)), aOff = offs[ai] - g.v0;
+    const a = Math.min(n(), firstBelow(g.v0 - OVERSCAN)), b = Math.min(n(), firstAtOrAfter(g.v1 + OVERSCAN) + 1);
+    if (full || !built) paint(a, b); else slide(a, b);
+    s = a; e = Math.max(a, b); built = true; spacers();
+    if (measure()) {
+      layout(); spacers();
+      const delta = offs[ai] - aOff - g.v0; // the item at the top of the view must stay put
+      if (n() && Math.abs(delta) > 0.5) scroller.scrollTop += delta;
+    }
+  }
+  const requestSync = () => { if (ticking) return; ticking = true; requestAnimationFrame(() => { ticking = false; sync(false); }); };
+  scroller.addEventListener('scroll', requestSync, { passive: true });
+  tbody.addEventListener('toggle', requestSync, true); // opening a <details> changes the row's height
+
+  return {
+    /** Replaces the list. When the view is scrolled, the item at the top of it stays where it is even if rows were added above it. */
+    setItems(next, cols) {
+      let prev = null;
+      if (built && n() && scroller.scrollTop > 2 && table.offsetParent) {
+        layout(); const g = geom(), i = Math.min(firstBelow(g.v0), n() - 1);
+        prev = { id: items[i].id, off: offs[i] - g.v0 };
+      }
+      items = next; idx = new Map(next.map((it, i) => [it.id, i]));
+      topSp.firstChild.colSpan = botSp.firstChild.colSpan = cols;
+      sync(true);
+      if (prev && idx.has(prev.id)) {
+        const delta = offs[idx.get(prev.id)] - prev.off - geom().v0;
+        if (Math.abs(delta) > 0.5) scroller.scrollTop += delta;
+      }
+    },
+    /** Scrolls an item into view (rendering it first) and returns its first <tr>, or null when it is not in the list. */
+    reveal(id, block) {
+      const i = idx.get(id); if (i == null || !table.offsetParent) return null;
+      const place = () => {
+        layout(); const g = geom(), first = tbody.querySelector(`tr[data-vi="${i}"]`);
+        const h = first ? first.getBoundingClientRect().height : offs[i + 1] - offs[i]; // centre the row itself, not its open detail
+        const v0 = block === 'start' ? offs[i] : offs[i] - Math.max(0, (g.v1 - g.v0 - h) / 2);
+        scroller.scrollTop = v0 - g.hh + g.top;
+      };
+      place(); sync(false); place(); sync(false); place(); // estimated heights above the target settle as they are measured
+      return tbody.querySelector(`tr[data-vi="${i}"]`);
+    },
+    /** Row heights depend on the column widths, so a resize makes every remembered height stale. */
+    invalidate() { cache.clear(); stat.clear(); },
+  };
+}
+const timelineV = createVirtualBody($('#timeline')), endpointsV = createVirtualBody($('#endpoints'));
 
 // ============================================================================
 // rendering
@@ -1385,30 +1748,44 @@ function renderTimeline() {
     method: every.reduce((m, r) => (r.method.length > m.length ? r.method : m), 'GET'), status: '', ms: String(every.reduce((m, r) => Math.max(m, r.durationMs || 0), 0)),
   });
   const matched = [...reqs.values()].filter(match);
-  // each pause's divider goes right after its oldest visible request
+  const sort = sorts.timeline, flat = phasesHidden(), oldestFirst = Boolean(sort) && !flat && sort.dir === 1;
+  // each pause's divider goes right next to its oldest visible request (a flat sorted list has no pauses to show)
   const oldestHeld = new Map();
-  for (const r of matched) {
+  if (!flat) for (const r of matched) {
     const g = heldKeys.get(r.key); if (g == null || !pauses.has(g)) continue;
     const cur = oldestHeld.get(g); if (!cur || r.relMs < cur.relMs) oldestHeld.set(g, r);
   }
   const dividerAt = new Map([...oldestHeld].map(([g, r]) => [r.key, g]));
-  const rowHtml = (r) => `<tr class="req ${open === r.key ? 'open' : ''}" data-k="${esc(r.key)}">${order.map((c) => timelineGrid.byId[c].cell(r)).join('')}</tr>${open === r.key ? renderDetailRow(r, cols) : ''}${dividerAt.has(r.key) ? heldDivider(dividerAt.get(r.key), cols) : ''}`;
+  // newest first puts the requests that arrived during a pause above the divider; oldest first puts them below it
+  const rowHtml = (r) => {
+    const divider = dividerAt.has(r.key) ? heldDivider(dividerAt.get(r.key), cols) : '';
+    return `${oldestFirst ? divider : ''}<tr class="req ${open === r.key ? 'open' : ''}" data-k="${esc(r.key)}">${order.map((c) => timelineGrid.byId[c].cell(r)).join('')}</tr>${open === r.key ? renderDetailRow(r, cols) : ''}${oldestFirst ? '' : divider}`;
+  };
   // keep <details> open/closed state while re-rendering the detail row
   const openState = [...document.querySelectorAll('tr.detail details')].map((d) => d.open);
-  let html = '';
-  if (phases.length) {
-    for (const p of [...phases].reverse()) { // newest phase first, newest request first inside it
+  // The list is a flat array of items (phase headers and requests); the virtual body only turns the ones near the viewport into HTML.
+  const reqItem = (r) => ({ id: r.key, kind: 'req', est: 36, tall: open === r.key, hk: `${r.key}${open === r.key ? '#open' : ''}${dividerAt.has(r.key) ? '#div' : ''}`, html: () => rowHtml(r) });
+  const noteItem = (id, text, cls) => ({ id, kind: 'note', est: 44, hk: id, html: () => `<tr${cls ? ` class="${cls}"` : ''}><td colspan="${cols}" class="empty">${text}</td></tr>` });
+  // Any column but # and Time lists requests flat in that order; # and Time keep the phases and just choose which end comes first.
+  const rows = flat ? sortRows(matched, sort, timelineGrid.byId[sort.id], (a, b) => b.relMs - a.relMs) : matched.sort((a, b) => (oldestFirst ? a.relMs - b.relMs : b.relMs - a.relMs));
+  const items = [];
+  if (phases.length && !flat) {
+    const byPhase = new Map();
+    for (const r of rows) { const p = phaseByKey.get(r.key); if (!byPhase.has(p)) byPhase.set(p, []); byPhase.get(p).push(r); }
+    for (const p of oldestFirst ? phases : [...phases].reverse()) { // newest phase first by default, requests in the same direction inside it
       if (ui.phase && ui.phase !== p.id) continue;
-      html += phaseHeader(p, cols);
+      items.push({ id: `phase:${p.id}`, kind: 'phase', est: 46, hk: `phase:${p.id}`, html: () => phaseHeader(p, cols) });
       if (collapsed.has(p.id)) continue;
-      const inPhase = matched.filter((r) => phaseByKey.get(r.key) === p).sort((a, b) => b.relMs - a.relMs);
-      html += inPhase.length ? inPhase.map(rowHtml).join('') : `<tr class="phase-empty"><td colspan="${cols}" class="empty">${p.n ? 'No requests in this phase match the filters.' : 'Nothing was requested in this phase.'}</td></tr>`;
+      const inPhase = byPhase.get(p) || [];
+      if (inPhase.length) for (const r of inPhase) items.push(reqItem(r));
+      else items.push(noteItem(`empty:${p.id}`, p.n ? 'No requests in this phase match the filters.' : 'Nothing was requested in this phase.', 'phase-empty'));
     }
+  } else if (rows.length) {
+    for (const r of rows) items.push(reqItem(r));
   } else {
-    html = matched.sort((a, b) => b.relMs - a.relMs).map(rowHtml).join(''); // newest first
+    items.push(noteItem('empty', reqs.size ? 'No requests match these filters.' : 'Waiting for requests… launch the app with FOXY="true".'));
   }
-  if (!matched.length && !phases.length) html = `<tr><td colspan="${cols}" class="empty">${reqs.size ? 'No requests match these filters.' : 'Waiting for requests… launch the app with FOXY="true".'}</td></tr>`;
-  $('#timeline tbody').innerHTML = html;
+  timelineV.setItems(items, cols);
   const now = document.querySelectorAll('tr.detail details');
   if (now.length === openState.length) now.forEach((d, i) => { d.open = openState[i]; });
 }
@@ -1457,7 +1834,7 @@ function renderEndpointDetail(g, cols) {
       <span class="c-own"><div class="chips">${ownerChips(r.callSiteInfo, r.codeOwners, r.ownerCodeOwners, 2) || noneChip('—')}</div></span>
       <span>${badge}</span></div>`;
   }).reverse().join(''); // newest first, like the Timeline
-  const callers = [...g.sites.values()].sort((a, b) => b.n - a.n).map((e) => `<div class="caller">${fnCell(e.info)}<span class="badge">×${e.n}</span><div class="chips">${ownerChips(e.info, e.owners, e.via, 2)}</div></div>`).join('') || '<div class="hint">No stack captured.</div>';
+  const callers = [...g.sites.values()].sort((a, b) => b.n - a.n).map((e) => `<div class="caller">${fnCell(e.info, false, { copy: true })}<span class="badge">×${e.n}</span><div class="chips">${ownerChips(e.info, e.owners, e.via, 2)}</div></div>`).join('') || '<div class="hint">No stack captured.</div>';
   return `<tr class="detail" data-k="${esc(g.k)}"><td colspan="${cols}">
     <div class="cards">${cards}</div>
     <div class="egrid">
@@ -1480,11 +1857,14 @@ function renderEndpointDetail(g, cols) {
 
 function renderEndpoints() {
   const order = endpointsGrid.order(), cols = endpointsGrid.colspan();
-  const groups = buildGroups([...reqs.values()].filter(match)).sort((a, b) => a.first - b.first);
+  const natural = (a, b) => a.first - b.first;
+  let groups = buildGroups([...reqs.values()].filter(match)).sort(natural);
+  if (sorts.endpoints) groups = sortRows(groups, sorts.endpoints, endpointsGrid.byId[sorts.endpoints.id], natural);
   endpointsGrid.fit({ first: tf(groups.reduce((m, g) => Math.max(m, g.first), 0)), calls: String(groups.reduce((m, g) => Math.max(m, g.n), 0)), avg: String(groups.reduce((m, g) => Math.max(m, g.avg || 0), 0)) });
-  $('#endpoints tbody').innerHTML = groups.length
-    ? groups.map((g) => `<tr class="ep ${openEp === g.k ? 'open' : ''}" data-k="${esc(g.k)}">${order.map((c) => endpointsGrid.byId[c].cell(g)).join('')}</tr>${openEp === g.k ? renderEndpointDetail(g, cols) : ''}`).join('')
-    : `<tr><td colspan="${cols}" class="empty">${reqs.size ? 'No endpoints match these filters.' : 'Waiting for requests…'}</td></tr>`;
+  endpointsV.setItems(groups.length
+    ? groups.map((g) => ({ id: g.k, kind: 'ep', est: 36, tall: openEp === g.k, hk: `${g.k}${openEp === g.k ? '#open' : ''}`,
+      html: () => `<tr class="ep ${openEp === g.k ? 'open' : ''}" data-k="${esc(g.k)}">${order.map((c) => endpointsGrid.byId[c].cell(g)).join('')}</tr>${openEp === g.k ? renderEndpointDetail(g, cols) : ''}` }))
+    : [{ id: 'empty', kind: 'note', est: 44, hk: 'empty', html: () => `<tr><td colspan="${cols}" class="empty">${reqs.size ? 'No endpoints match these filters.' : 'Waiting for requests…'}</td></tr>` }], cols);
 }
 
 /** Client-side markdown for the Endpoints tab, including verdicts and notes. */
@@ -1515,6 +1895,8 @@ function renderBar() {
   const o = ui.owner;
   const ph = ui.phase && phases.find((p) => p.id === ui.phase);
   $('#phasePill').innerHTML = ph ? `<span class="ownerpill">Phase ${phaseChip(ph)}<button id="phaseClear" aria-label="Show all phases" title="Show all phases">×</button></span>` : '';
+  const sort = sorts[tab], sortDef = sort && grids[tab].byId[sort.id];
+  $('#sortPill').innerHTML = sort ? `<span class="ownerpill" title="${esc(phasesHidden() && tab === 'timeline' ? 'Phases are hidden while the list is sorted by a column other than # or Time' : 'Sorted by a column header. Click the header again to cycle.')}">Sorted by <b>${esc(sortDef.label)}</b> ${sort.dir === 1 ? '↑' : '↓'}<button id="sortClear" aria-label="Back to the default order" title="Back to the default order">×</button></span>` : '';
   $('#ownerPill').innerHTML = o ? `<span class="ownerpill">${o.type === 'team' ? 'Owner' : 'Package'} ${o.type === 'team' ? teamChip(o.value) : partyChip(o.value)}<button id="ownerClear" aria-label="Clear owner filter" title="Clear">×</button></span>` : '';
 }
 
@@ -1552,7 +1934,7 @@ function render() {
   computePhases(all);
   if (ui.phase && !phases.some((p) => p.id === ui.phase)) ui.phase = null; // its marker was deleted
   wfMarkers = phases.filter((p) => p.marker).map((p) => `<span class="mk" style="left:${((p.start / span) * 100).toFixed(2)}%;background:${p.color}"></span>`).join('');
-  renderBar(); renderStrip(all.filter(match)); renderMarkers();
+  renderBar(); renderStrip(all.filter(match)); renderMarkers(); renderFilters();
   $('#count').innerHTML = `${icon('network')}<b>${reqs.size}</b><span class="count-lbl">${reqs.size === 1 ? 'request' : 'requests'}</span>`;
   $('#timeline').hidden = tab !== 'timeline'; $('#endpoints').hidden = tab !== 'endpoints';
   $('#tabTimeline').classList.toggle('active', tab === 'timeline'); $('#tabEndpoints').classList.toggle('active', tab === 'endpoints');
@@ -1573,13 +1955,10 @@ function chipFilter(e) {
 }
 function openInTimeline(key) {
   const r = reqs.get(key); if (!r) return;
-  if (!match(r)) { filter = ''; $('#filter').value = ''; ui.cat = 'all'; ui.errors = false; ui.dupes = false; ui.owner = null; ui.phase = null; }
+  if (!match(r)) { filter = ''; $('#filter').value = ''; ui.cat = 'all'; ui.errors = false; ui.dupes = false; ui.owner = null; ui.phase = null; clearAdv(); }
   const ph = phaseByKey.get(key); if (ph) collapsed.delete(ph.id);
   tab = 'timeline'; open = key; render();
-  requestAnimationFrame(() => {
-    const row = document.querySelector(`tr.req[data-k="${CSS.escape(key)}"]`);
-    if (row) { row.scrollIntoView({ block: 'center', behavior: 'smooth' }); row.classList.add('flash'); }
-  });
+  requestAnimationFrame(() => { const row = timelineV.reveal(key, 'center'); if (row) row.classList.add('flash'); });
 }
 $('#endpoints').addEventListener('click', (e) => {
   if (chipFilter(e)) return;
@@ -1603,22 +1982,26 @@ $('#endpoints').addEventListener('keydown', (e) => {
 });
 $('#seg').addEventListener('click', (e) => { const b = e.target.closest('button[data-cat]'); if (b) { ui.cat = b.dataset.cat; render(); } });
 document.querySelectorAll('.tog').forEach((b) => b.addEventListener('click', () => { ui[b.dataset.flag] = !ui[b.dataset.flag]; render(); }));
+$('#sortPill').addEventListener('click', (e) => { if (e.target.closest('#sortClear')) setSort(tab, null); });
 $('#ownerPill').addEventListener('click', (e) => { if (e.target.closest('#ownerClear')) { ui.owner = null; render(); } });
 $('#phasePill').addEventListener('click', (e) => { if (e.target.closest('#phaseClear')) { ui.phase = null; render(); } else chipFilter(e); });
 $('#stripin').addEventListener('click', (e) => {
   const flag = e.target.closest('b[data-pid]');
   if (flag) { // jump to the phase header in the Timeline
-    tab = 'timeline'; collapsed.delete(flag.dataset.pid); render();
-    const row = document.querySelector(`tr.phase[data-pid="${CSS.escape(flag.dataset.pid)}"]`);
-    if (row) { row.scrollIntoView({ block: 'start', behavior: 'smooth' }); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
+    tab = 'timeline'; collapsed.delete(flag.dataset.pid);
+    if (phasesHidden()) { sorts.timeline = null; timelineGrid.markSort(); } // a flat sorted list has no phase headers to jump to
+    render();
+    const row = timelineV.reveal(`phase:${flag.dataset.pid}`, 'start');
+    if (row) { row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
     return;
   }
   const bk = e.target.closest('.bk[data-k]'); if (!bk) return;
   tab = 'timeline'; render();
-  const row = document.querySelector(`tr.req[data-k="${CSS.escape(bk.dataset.k)}"]`); if (!row) return;
-  row.scrollIntoView({ block: 'center', behavior: 'smooth' }); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
+  const row = timelineV.reveal(bk.dataset.k, 'center'); if (!row) return;
+  row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
 });
-window.addEventListener('resize', schedule);
+window.addEventListener('resize', () => { timelineV.invalidate(); endpointsV.invalidate(); schedule(); });
+{ const scroller = document.querySelector('main'); scroller.addEventListener('scroll', () => scroller.classList.toggle('scrolled', scroller.scrollTop > 0), { passive: true }); }
 
 // hamburger menu (always visible)
 const menuBtn = $('#menuBtn'), actions = $('#actions');
@@ -1753,7 +2136,7 @@ const HELP = [
       <li><b>Waterfall</b>: where the request sits on the capture and how long it took. Coloured lines are your markers.</li>
       <li><b>Started from</b>: the nearest app or <code>@metamask</code> frame further up the stack, when the call site is a library.</li>
     </ul>
-    <div class="callout"><p>Drag a column header to reorder it, drag its right edge to resize it, double-click the edge to reset. <b>Reset Columns</b> in the menu restores the defaults.</p></div>
+    <div class="callout"><p>Click a column header to sort by it: once for one direction, again for the other, a third time to go back to the default order. Sorting the Timeline by <b>#</b> or <b>Time</b> keeps the phases; any other column lists requests flat. Drag a column header to reorder it, drag its right edge to resize it, double-click the edge to reset. <b>Reset Columns</b> in the menu restores the defaults.</p></div>
     <p>${goto('filters', '🎛️ Filters & duplicates')} ${goto('markers', '🚩 Markers & phases')}</p>` },
 
   { id: 'endpoints', em: '🧭', title: 'Endpoints & Verdicts', html: () => `
@@ -1777,6 +2160,7 @@ const HELP = [
       <li><b>Failed</b>: errors, aborts and 4xx/5xx. <b>Duplicates</b>: identical requests made more than once.</li>
       <li>Click a team or package chip anywhere to filter by it. Click a phase chip to filter by phase.</li>
       <li>Type in the filter box (${kb('/')}) to match host, path, call site or team.</li>
+      <li><b>Filters</b> (${kb('F')}) opens a panel to pick several teams, statuses, methods or hosts at once, flip any of them to <i>Is not</i>, and set a minimum duration. Star your teams there, then use <b>My teams</b> to see only your requests.</li>
     </ul>
     <h3>What Counts as Identical</h3>
     ${art('dupes', 'GETs are identical by URL; POSTs only when the body matches; POSTs without a captured body are never flagged')}
@@ -1786,6 +2170,7 @@ const HELP = [
     <h2>Shortcuts</h2>
     <table class="keys">
       <tr><td>${kb('M')}</td><td>Open the markers panel</td></tr>
+      <tr><td>${kb('F')}</td><td>Open the filters panel</td></tr>
       <tr><td>${kb('/')}</td><td>Focus the filter box (${kb('Esc')} clears it)</td></tr>
       <tr><td>${kb('?')}</td><td>Open this guide</td></tr>
       <tr><td>${kb('Esc')}</td><td>Close the panel, menu or guide</td></tr>
@@ -1848,6 +2233,7 @@ async function addMarker(label) {
   renderMarkers(true);
 }
 function setMark(on, focusId) {
+  if (on) setFlt(false);
   mkpop.classList.toggle('open', on); markBtn.classList.toggle('on', on); markBtn.setAttribute('aria-expanded', String(on));
   if (!on) return;
   setMenu(false); renderMarkers(true);
@@ -1889,6 +2275,129 @@ markBtn.addEventListener('click', () => setMark(!mkpop.classList.contains('open'
 $('#mkClose').onclick = () => { setMark(false); markBtn.focus(); };
 $('#mkHelp').onclick = () => openHelp('markers');
 document.addEventListener('click', (e) => { if (!e.target.closest('#mkpop, #markBtn, tr.phase')) setMark(false); });
+
+// ============================================================================
+// filters panel: multi-select by code owner, status, method and host, plus a minimum duration
+// ============================================================================
+const fltpop = $('#fltpop'), fltBtn = $('#fltBtn');
+const TEAM_SCOPES = [['any', 'Either', 'The call site or the code that started the request'], ['site', 'Call site', 'Only the code that made the request'], ['via', 'Started from', 'Only the code that started the flow that led to it']];
+const MS_QUICK = [250, 500, 1000, 2000];
+const facetLabel = (f, v) => (f.id === 'team' ? (v === NO_TEAM ? 'No team' : v) : f.id === 'status' ? STATUS_LABEL[v] || v : f.id === 'view' ? (v === VIEW_BOOT ? 'Before navigation (app start)' : v === VIEW_UNKNOWN ? 'Not reported' : v) : v);
+const sameSet = (a, b) => a.size === b.size && [...a].every((x) => b.has(x));
+const miniSeg = (label, attr, items, cur) => `<div class="mini" role="group" aria-label="${esc(label)}">${items.map(([id, text, tip, cls]) => `<button type="button" ${attr}="${esc(id)}" aria-pressed="${cur === id}" class="${cls || ''}" title="${esc(tip || '')}">${esc(text)}</button>`).join('')}</div>`;
+
+function buildFilters() {
+  $('#fltBody').innerHTML = FACETS.map((f) => `<section class="fsec" data-f="${f.id}">
+    <div class="fsec-h"><span>${f.label}</span><span class="sp"></span>${f.id === 'team' ? miniSeg('Which owner to match', 'data-fscope', TEAM_SCOPES, adv.team.scope) : ''}${miniSeg(`${f.label}: match or exclude`, 'data-fnot', [['is', 'Is', 'Show only the picked values'], ['not', 'Is not', 'Hide the picked values', 'neg']], 'is')}</div>
+    ${f.search ? `<label class="fsearch">${icon('search')}<input type="search" data-fq="${f.id}" placeholder="${f.search}" aria-label="${f.search}" autocomplete="off" spellcheck="false" /></label>` : ''}
+    <div class="flist" data-flist="${f.id}"></div></section>`).join('')
+    + `<section class="fsec"><div class="fsec-h"><span>Slower than</span></div><div class="fmsrow"><input id="fltMs" type="number" min="0" step="50" inputmode="numeric" placeholder="0" aria-label="Minimum duration in milliseconds" /><span>ms</span>${miniSeg('Common durations', 'data-ms', MS_QUICK.map((n) => [String(n), n >= 1000 ? `${n / 1000}s` : `${n}ms`]), '')}</div></section>`;
+}
+
+function facetList(f) {
+  const s = adv[f.id], counts = new Map();
+  for (const r of reqs.values()) for (const v of FACET_VALUES[f.id](r)) counts.set(v, (counts.get(v) || 0) + 1);
+  for (const v of s.on) if (!counts.has(v)) counts.set(v, 0);
+  if (f.id === 'team') for (const v of myTeams) if (!counts.has(v)) counts.set(v, 0);
+  const q = (fq[f.id] || '').trim().toLowerCase();
+  const rank = (v) => (f.id === 'team' ? (v === NO_TEAM ? 3 : myTeams.has(v) ? 0 : s.on.has(v) ? 1 : 2) : f.id === 'host' || f.id === 'view' ? (s.on.has(v) ? 0 : 1) : 0);
+  const rows = [...counts].filter(([v, n]) => (f.id !== 'status' || n || s.on.has(v)) && (!q || facetLabel(f, v).toLowerCase().includes(q)))
+    .sort((a, b) => rank(a[0]) - rank(b[0]) || (f.id === 'status' ? STATUS_ORDER.indexOf(a[0]) - STATUS_ORDER.indexOf(b[0]) : b[1] - a[1] || facetLabel(f, a[0]).localeCompare(facetLabel(f, b[0]))));
+  if (!rows.length) return `<div class="fempty">${q ? 'Nothing matches that search.' : 'Nothing captured yet.'}</div>`;
+  return rows.map(([v, n]) => {
+    const on = s.on.has(v), label = facetLabel(f, v);
+    const dot = f.id === 'team' ? `<i class="dot" style="${v === NO_TEAM ? '' : `--c:${teamColor(v)}`}"></i>` : '';
+    const star = f.id === 'team' && v !== NO_TEAM ? `<button type="button" class="fstar icon-btn sm" data-star="${esc(v)}" aria-pressed="${myTeams.has(v)}" aria-label="${myTeams.has(v) ? 'Remove' : 'Add'} ${esc(v)} ${myTeams.has(v) ? 'from' : 'to'} My teams" title="${myTeams.has(v) ? 'In My teams (click to remove)' : 'Add to My teams'}">${icon(myTeams.has(v) ? 'star' : 'star-o')}</button>` : '';
+    return `<div class="fopt"><button type="button" class="fchk" role="checkbox" aria-checked="${on}" data-v="${esc(v)}" title="${esc(f.id === 'team' && v !== NO_TEAM ? `@MetaMask/${v}` : label)}"><span class="box">${icon('check')}</span>${dot}<span class="fl${f.mono ? ' mono' : ''}">${esc(label)}</span><span class="fn">${n}</span></button>${star}</div>`;
+  }).join('');
+}
+
+function renderAdvPills() {
+  const pill = (id, k, text, full) => `<span class="ownerpill"><span class="pk">${esc(k)}</span><span class="pv" title="${esc(full)}">${esc(text)}</span><button type="button" data-clear="${id}" aria-label="Remove the ${esc(k)} filter" title="Remove">×</button></span>`;
+  const out = FACETS.filter((f) => adv[f.id].on.size).map((f) => {
+    const s = adv[f.id], vals = [...s.on].map((v) => facetLabel(f, v));
+    const noun = f.id === 'team' ? (s.scope === 'site' ? 'Call site owner' : s.scope === 'via' ? 'Started-from owner' : 'Owner') : f.label;
+    return pill(f.id, `${noun} ${s.not ? 'is not' : 'is'}`, vals.length > 2 ? `${vals.slice(0, 2).join(', ')} +${vals.length - 2}` : vals.join(', '), vals.join(', '));
+  });
+  if (adv.minMs) out.push(pill('ms', 'Slower than', `${adv.minMs} ms`, `${adv.minMs} ms`));
+  $('#advPills').innerHTML = out.join('');
+}
+
+/** Rebuilding the lists would drop keyboard focus, so remember which control had it and put it back. */
+const fltFocusKey = () => { const a = document.activeElement; if (!a || !fltpop.contains(a)) return null; const s = a.closest('[data-f]')?.dataset.f; return a.dataset.v != null ? `[data-f="${s}"] .fchk[data-v="${CSS.escape(a.dataset.v)}"]` : a.dataset.star != null ? `[data-star="${CSS.escape(a.dataset.star)}"]` : a.dataset.preset ? `[data-preset="${a.dataset.preset}"]` : null; };
+
+function renderFilters() {
+  const n = advActive(), open = fltpop.classList.contains('open');
+  $('#fltCount').textContent = n; $('#fltCount').hidden = !n;
+  fltBtn.classList.toggle('on', n > 0 || open);
+  renderAdvPills();
+  const ms = $('#fltMs'); if (ms && document.activeElement !== ms) ms.value = adv.minMs || '';
+  if (!open) return;
+  const keep = fltFocusKey();
+  const mine = myTeams.size && !adv.team.not && sameSet(adv.team.on, myTeams);
+  const presets = [
+    { id: 'mine', label: 'My teams', ic: 'star', on: mine, off: !myTeams.size, tip: myTeams.size ? `Only requests owned by ${[...myTeams].join(', ')}` : 'Star a team in the list below to build My teams' },
+    { id: 'slow', label: 'Slow (1s+)', on: adv.minMs === 1000, tip: 'Requests that took at least a second' },
+    { id: 'srv', label: 'Server errors', on: !adv.status.not && adv.status.on.size === 1 && adv.status.on.has('5xx'), tip: 'Responses with a 5xx status' },
+  ];
+  $('#fltPresets').innerHTML = presets.map((p) => `<button type="button" data-preset="${p.id}" aria-pressed="${p.on}" ${p.off ? 'disabled' : ''} title="${esc(p.tip)}">${p.ic ? icon(p.ic) : ''}${p.label}</button>`).join('');
+  fltpop.querySelectorAll('.fsec[data-f]').forEach((sec) => {
+    const f = FACETS.find((x) => x.id === sec.dataset.f), s = adv[f.id];
+    sec.classList.toggle('neg', s.not);
+    sec.querySelectorAll('[data-fnot]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.fnot === 'not') === s.not)));
+    sec.querySelectorAll('[data-fscope]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.fscope === s.scope)));
+    sec.querySelector('.flist').innerHTML = facetList(f);
+  });
+  fltpop.querySelectorAll('[data-ms]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.ms) === adv.minMs)));
+  if (keep) fltpop.querySelector(keep)?.focus();
+}
+
+function clearAdv() {
+  for (const f of FACETS) { adv[f.id].on.clear(); adv[f.id].not = false; } adv.team.scope = 'any'; adv.minMs = 0;
+  fq.team = fq.view = fq.host = ''; fltpop.querySelectorAll('input[data-fq]').forEach((i) => { i.value = ''; });
+}
+
+function setFlt(on) {
+  fltpop.classList.toggle('open', on); fltBtn.setAttribute('aria-expanded', String(on));
+  if (on) { setMenu(false); if (mkpop.classList.contains('open')) setMark(false); }
+  renderFilters();
+  if (on) requestAnimationFrame(() => fltpop.querySelector('input[data-fq]')?.focus());
+}
+
+buildFilters();
+fltBtn.addEventListener('click', () => setFlt(!fltpop.classList.contains('open')));
+fltpop.addEventListener('click', (e) => {
+  const t = e.target, sec = t.closest('.fsec[data-f]')?.dataset.f; let b;
+  if ((b = t.closest('.fchk'))) { const s = adv[sec].on; s.has(b.dataset.v) ? s.delete(b.dataset.v) : s.add(b.dataset.v); render(); }
+  else if ((b = t.closest('.fstar'))) { myTeams.has(b.dataset.star) ? myTeams.delete(b.dataset.star) : myTeams.add(b.dataset.star); localStorage.setItem('foxy.myteams.v1', JSON.stringify([...myTeams])); renderFilters(); }
+  else if ((b = t.closest('[data-fnot]'))) { adv[sec].not = b.dataset.fnot === 'not'; render(); }
+  else if ((b = t.closest('[data-fscope]'))) { adv.team.scope = b.dataset.fscope; render(); }
+  else if ((b = t.closest('[data-ms]'))) { const n = Number(b.dataset.ms); adv.minMs = adv.minMs === n ? 0 : n; render(); }
+  else if ((b = t.closest('[data-preset]'))) {
+    const id = b.dataset.preset;
+    if (id === 'mine') { adv.team.on = b.getAttribute('aria-pressed') === 'true' ? new Set() : new Set(myTeams); adv.team.not = false; }
+    else if (id === 'slow') adv.minMs = adv.minMs === 1000 ? 0 : 1000;
+    else if (id === 'srv') { const on = b.getAttribute('aria-pressed') === 'true'; adv.status.on = on ? new Set() : new Set(['5xx']); adv.status.not = false; }
+    render();
+  }
+  else if (t.closest('#fltClear')) { clearAdv(); render(); }
+  else if (t.closest('#fltClose')) { setFlt(false); fltBtn.focus(); }
+});
+fltpop.addEventListener('input', (e) => {
+  if (e.target.dataset.fq) { fq[e.target.dataset.fq] = e.target.value; renderFilters(); }
+  else if (e.target.id === 'fltMs') { adv.minMs = Math.max(0, Number(e.target.value) || 0); render(); }
+});
+$('#advPills').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-clear]'); if (!b) return;
+  if (b.dataset.clear === 'ms') adv.minMs = 0; else { adv[b.dataset.clear].on.clear(); adv[b.dataset.clear].not = false; }
+  render();
+});
+// composedPath, because a list row is rebuilt while the click is still bubbling and would no longer sit inside the panel
+document.addEventListener('click', (e) => { if (fltpop.classList.contains('open') && !e.composedPath().some((n) => n === fltpop || n === fltBtn)) setFlt(false); });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && fltpop.classList.contains('open')) { setFlt(false); fltBtn.focus(); }
+  else if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$('#help').open) { e.preventDefault(); setFlt(!fltpop.classList.contains('open')); }
+});
 
 const withId = (x) => ({ ...x, id: x.id ?? `t${x.ts}` }); // older servers did not send ids
 function applyMessage(m, pauseId) {

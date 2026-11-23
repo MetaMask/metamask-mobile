@@ -130,6 +130,13 @@ describe('FoxyBridge', () => {
     ).toBe(false);
   });
 
+  it('tags each request with the screen it was made from', () => {
+    const first = FakeWebSocket.instances[0].sent.find((m) => m.type === 'request');
+
+    // no navigator is registered in this test, so it reads as "before navigation was ready"
+    expect(first?.view).toMatchObject({ route: null, path: [], ready: false });
+  });
+
   it('records request headers with credentials redacted', () => {
     const first = FakeWebSocket.instances[0].sent.find((m) => m.type === 'request');
 

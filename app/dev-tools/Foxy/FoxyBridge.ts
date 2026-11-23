@@ -1,5 +1,6 @@
 /* eslint-disable no-console, @typescript-eslint/no-explicit-any -- dev-only tooling that patches globals */
 import { Platform } from 'react-native';
+import { captureView, type FoxyView } from './FoxyView';
 
 /**
  * Foxy bridge (developer tooling, `__DEV__` + opt-in only).
@@ -40,6 +41,8 @@ type AuditMessage =
       method: string;
       url: string;
       initiator: string[];
+      /** The screen the app was showing when the request was made. */
+      view: FoxyView;
       headers?: Record<string, string>;
       bodyBytes?: number;
       bodyPreview?: string;
@@ -288,6 +291,7 @@ export function installFoxy(
         method,
         url,
         initiator: captureInitiator(),
+        view: captureView(),
         headers: headersToRecord(init?.headers ?? (input as Request)?.headers),
         ...(typeof init?.body === 'string'
           ? {
@@ -401,6 +405,7 @@ export function installFoxy(
           method: meta.method,
           url: String(meta.url),
           initiator: captureInitiator(),
+          view: captureView(),
           headers: headersToRecord(this.__foxyHeaders),
           ...(typeof body === 'string'
             ? {

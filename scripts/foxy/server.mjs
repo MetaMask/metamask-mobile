@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WebSocketServer } from 'ws';
 import { loadCodeowners, resolveFrameOwners } from './codeowners.mjs';
+import { createViewIndexer } from './views.mjs';
+import { createPackageLinker } from './packages.mjs';
 import {
   parseUrl,
   parseFrame,
@@ -49,6 +51,10 @@ function githubInfo() {
   return { repo, ref };
 }
 const GITHUB = githubInfo();
+/** Screen name -> where it is defined in the app source (see views.mjs). */
+const VIEWS = createViewIndexer(REPO);
+/** A frame inside node_modules -> its package's source on GitHub (see packages.mjs). */
+const PACKAGE_LINK = createPackageLinker(REPO);
 const LOG_FILE =
   process.env.FOXY_LOG_FILE || join(__dirname, 'logs', 'foxy.jsonl');
 
@@ -200,6 +206,7 @@ function ingest(msg) {
       query,
       bodyKey: bodyFingerprint(msg.bodyBytes, msg.bodyPreview),
       frames: (msg.initiator || []).map(parseFrame),
+      view: msg.view ?? null, // the screen the app was showing (older app builds do not send it)
       detail: {
         request: {
           headers: msg.headers || null,
@@ -299,6 +306,8 @@ const httpServer = createServer(async (req, res) => {
         codeowners: { repo: Boolean(repoRules), core: Boolean(coreRules) },
         github: GITHUB,
       });
+    } else if (p === '/api/view') {
+      json(res, { route: url.searchParams.get('route'), source: VIEWS.get(url.searchParams.get('route') || '') });
     } else if (p === '/api/requests') {
       const limit = Number(url.searchParams.get('limit') || 100);
       const offset = Number(url.searchParams.get('offset') || 0);
@@ -314,7 +323,7 @@ const httpServer = createServer(async (req, res) => {
         (r) => r.key === id || (r.session === latestSession && String(r.id) === id),
       );
       rec
-        ? json(res, { ...rec, frames: describeFrames(rec.frames, ownersOfInfo) })
+        ? json(res, { ...rec, frames: describeFrames(rec.frames, ownersOfInfo).map((f) => ({ ...f, link: PACKAGE_LINK(f) })) })
         : json(res, { error: 'not found' }, 404);
     } else if (p === '/api/summary') {
       json(res, { endpoints: groupEndpoints(select(url.searchParams).map(slim)) });

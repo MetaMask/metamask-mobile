@@ -97,6 +97,13 @@ class NavigationService {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
 
+    if (__DEV__ && process.env.FOXY === 'true') {
+      // Foxy (scripts/foxy) reports which screen each network request was made from.
+      import('../../dev-tools/Foxy/FoxyView').then(
+        ({ registerFoxyNavigation }) => registerFoxyNavigation(navRef),
+      );
+    }
+
     if (__DEV__) {
       import('../../dev-tools/AgenticService/AgenticService').then(
         ({ default: AgenticService }) => {
