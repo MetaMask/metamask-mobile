@@ -591,7 +591,7 @@ describe('PredictHome', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('opens the Trending Feed Screen from the Trending header and returns Home', async () => {
+    it('opens the Sports Feed Screen from the Trending header and returns Home', async () => {
       const view = renderPredictNext();
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
       messengerCall.mockClear();
@@ -599,7 +599,7 @@ describe('PredictHome', () => {
       const tabs = await openFeedScreenFrom(
         view,
         PredictHomeTestIds.HOME_TRENDING_HEADER,
-        'Trending',
+        'Sports',
         async () => {
           const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
           expect(
@@ -635,7 +635,7 @@ describe('PredictHome', () => {
         await openFeedScreenFrom(
           view,
           PredictHomeTestIds.HOME_TRENDING_HEADER,
-          'Trending',
+          'Sports',
         ),
       ).toEqual(['NFL', 'NCAAF']);
       expect(
@@ -654,6 +654,39 @@ describe('PredictHome', () => {
       ).toEqual(['Trump', 'Congress', 'Iran']);
       expect(
         view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the rows but makes no header pressable when the catalog serves no Feed Screens', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        screens: [],
+      });
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+      );
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_SPORTS_HEADER));
+      fireEvent.press(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      );
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS_CHEVRON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      ).toHaveTextContent('Politics');
+      expect(view.getByRole('header', { name: 'Politics' })).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictFeedScreenTestIds.VIEW),
       ).not.toBeOnTheScreen();
     });
 
@@ -1851,6 +1884,60 @@ describe('PredictHome', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.CATEGORIES),
       ).not.toBeOnTheScreen();
+    });
+
+    it('shows a Category added only on the server, labelled with its screen title, and opens that screen', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+          economics: 'economics-fed',
+          'economics-fed': 'economics-fed',
+        },
+        categories: [...KALSHI_STATIC_VENUE_CATALOG.categories, 'economics'],
+        screens: [
+          ...KALSHI_STATIC_VENUE_CATALOG.screens,
+          {
+            id: 'economics',
+            title: 'Economics',
+            tabs: [{ id: 'fed', title: 'Fed', feed: 'economics-fed' }],
+          },
+        ],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+        PredictHomeTestIds.categoryChip('politics'),
+        PredictHomeTestIds.categoryChip('economics'),
+      ]);
+      expect(
+        view.getByTestId(PredictHomeTestIds.categoryChip('economics')),
+      ).toHaveTextContent('Economics');
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.categoryChip('economics')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(feedScreenTabLabels(feedScreen)).toEqual(['Fed']);
+    });
+
+    it('drops the chip of a Category whose screen the server removed', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        screens: KALSHI_STATIC_VENUE_CATALOG.screens.filter(
+          ({ id }) => id !== 'politics',
+        ),
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+      ]);
     });
 
     it.each([

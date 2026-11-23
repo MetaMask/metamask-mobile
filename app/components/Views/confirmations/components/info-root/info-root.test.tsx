@@ -244,9 +244,16 @@ describe('Info', () => {
     ).toBeDefined();
   });
 
-  it('renders CustomAmountInfo for perps withdraw confirmations', () => {
+  it.each([
+    TransactionType.perpsWithdraw,
+    TransactionType.perpsLighterWithdraw,
+    TransactionType.perpsLighterDeposit,
+  ])('renders CustomAmountInfo for %s confirmations', (transactionType) => {
     const { getByTestId } = renderWithProvider(<Info />, {
-      state: getAppStateForConfirmation(perpsWithdrawConfirmation),
+      state: getAppStateForConfirmation({
+        ...perpsWithdrawConfirmation,
+        type: transactionType,
+      }),
     });
 
     expect(getByTestId('custom-amount-info')).toBeOnTheScreen();
