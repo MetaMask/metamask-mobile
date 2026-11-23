@@ -503,6 +503,24 @@ export function isOverheadTrackingActive(): boolean {
   return _tracking;
 }
 
+/**
+ * Runs `fn` without feeding its Appium commands into the active overhead
+ * accumulator. Use for harness work whose whole duration is excluded from
+ * running timers separately (see `TimerStore.excludeFromActiveTimers`), so
+ * its polls are not subtracted a second time.
+ */
+export async function withOverheadTrackingSuspended<TResult>(
+  fn: () => Promise<TResult>,
+): Promise<TResult> {
+  const wasTracking = _tracking;
+  _tracking = false;
+  try {
+    return await fn();
+  } finally {
+    _tracking = wasTracking;
+  }
+}
+
 class AppiumUtilities {
   private static isTransientIosTerminateError(error: unknown): boolean {
     const message = error instanceof Error ? error.message : String(error);

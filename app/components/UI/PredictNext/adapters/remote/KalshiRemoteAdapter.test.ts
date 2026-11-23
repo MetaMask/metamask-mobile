@@ -1,5 +1,5 @@
 import { PREDICT_MARKET_TYPES } from '../../constants';
-import { PredictErrorCode } from '../../errors';
+import { PredictError, PredictErrorCode } from '../../errors';
 import type {
   PredictAmount,
   PredictDecimal,
@@ -80,6 +80,7 @@ const createMarketHistory = (overrides = {}) => ({
 
 const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   fetchVenueStatus: jest.fn(),
+  fetchVenueCatalog: jest.fn(),
   fetchBalance: jest.fn(),
   fetchPositions: jest.fn(),
   fetchActivity: jest.fn(),
@@ -92,6 +93,9 @@ const createClient = (): jest.Mocked<PredictApiReadTransport> => ({
   commitOrder: jest.fn(),
   observeOrder: jest.fn(),
   listUnresolvedOrders: jest.fn(),
+  fetchWithdrawPreview: jest.fn(),
+  commitWithdraw: jest.fn(),
+  observeWithdraw: jest.fn(),
   startDeposit: jest.fn(),
   createDeposit: jest.fn(),
   getDeposit: jest.fn(),
@@ -115,42 +119,84 @@ describe('KalshiRemoteAdapter', () => {
     });
   });
 
-  it('serves the static Kalshi catalog without a network read', async () => {
-    const result = await adapter.marketData.fetchVenueCatalog();
-
-    expect(result).toEqual({
+  it('serves the API catalog without adding withdraw the deployment omits', async () => {
+    const catalog = {
       venueId: 'kalshi',
-      actions: ['buy', 'sell', 'deposit'],
+      actions: ['buy', 'sell'],
       feeds: {
         sports: 'sports-football-nfl-games',
         'nfl-games': 'sports-football-nfl-games',
-        'nfl-props': 'sports-football-nfl-win-totals',
-        'college-football-games': 'sports-football-ncaa-games',
-        'college-football-props': 'sports-football-ncaa-win-totals',
-        politics: 'politics-trump',
-        'politics-trump': 'politics-trump',
-        'politics-congress': 'politics-congress',
-        'politics-iran': 'politics-iran',
       },
-      categories: ['sports', 'politics'],
+      categories: ['sports'],
+      searchSupported: true,
+    };
+    client.fetchVenueCatalog.mockResolvedValue(catalog);
+
+    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual({
+      ...catalog,
+      screens: [],
+    });
+    expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', undefined);
+  });
+
+  it('keeps withdraw when the deployment advertises it', async () => {
+    client.fetchVenueCatalog.mockResolvedValue({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell', 'deposit', 'withdraw'],
+      feeds: {},
+      categories: [],
       searchSupported: true,
     });
-    expect(Object.values(client).some((fn) => fn.mock.calls.length)).toBe(
-      false,
+
+    await expect(adapter.marketData.fetchVenueCatalog()).resolves.toMatchObject(
+      { actions: ['buy', 'sell', 'deposit', 'withdraw'] },
     );
   });
 
-  it('lists only the actions its adapter structure implements', async () => {
-    const { actions } = await adapter.marketData.fetchVenueCatalog();
+  it('surfaces a catalog read failure instead of fabricating support', async () => {
+    client.fetchVenueCatalog.mockRejectedValue(new PredictHttpError(503));
 
-    // Buy and sell are served by the trading capability, deposit by the
-    // funding capability. predictConfig.kalshiDepositsEnabled gates the
-    // deposit client flow, not the catalog. There is no Claim capability.
-    expect(typeof adapter.trading.previewOrder).toBe('function');
-    expect(typeof adapter.trading.commitOrder).toBe('function');
-    expect(typeof adapter.funding.prepareDeposit).toBe('function');
-    expect(adapter).not.toHaveProperty('claims');
-    expect([...actions].sort()).toEqual(['buy', 'deposit', 'sell']);
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject({
+      code: PredictErrorCode.VENUE_UNAVAILABLE,
+    });
+  });
+
+  it('rejects a malformed catalog instead of enabling partial support', async () => {
+    client.fetchVenueCatalog.mockResolvedValue({
+      venueId: 'kalshi',
+      actions: 'buy',
+    });
+
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toMatchObject({
+      code: PredictErrorCode.INVALID_RESPONSE,
+    });
+  });
+
+  it('preserves a cancelled catalog read instead of mapping it to a failure', async () => {
+    const abortError = new Error('aborted');
+    abortError.name = 'AbortError';
+    client.fetchVenueCatalog.mockRejectedValue(abortError);
+
+    await expect(adapter.marketData.fetchVenueCatalog()).rejects.toBe(
+      abortError,
+    );
+  });
+
+  it('forwards cancellation and reads the catalog through the client', async () => {
+    client.fetchVenueCatalog.mockResolvedValue({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: {},
+      categories: [],
+      searchSupported: false,
+    });
+    const signal = new AbortController().signal;
+
+    await adapter.marketData.fetchVenueCatalog({ signal });
+
+    expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', {
+      signal,
+    });
   });
 
   it('parses canonical Events from the Predict API', async () => {
@@ -1459,8 +1505,6 @@ describe('KalshiRemoteAdapter', () => {
           status: 404,
           bodyCode: 'operation_not_found',
           phase: 'observe',
-          mutationRelay: 'not_a_mutation',
-          operationOutcome: 'unknown',
         },
       });
     });
@@ -1568,6 +1612,333 @@ describe('KalshiRemoteAdapter', () => {
       await expect(
         adapter.trading.commitOrder(receiptPayload.previewId, USER_APPROVAL),
       ).rejects.toBe(abortError);
+    });
+  });
+  describe('funding', () => {
+    const destination = {
+      address: '0xcDe7aB4E0f4a8C7c0F8aE4bD9c1D2e3F4a5B6c7D',
+      network: 'base',
+      source: 'configured_demo',
+    };
+    const withdrawPreviewId = 'b3c2a1d0-1111-4222-8333-444455556666';
+    const previewPayload = {
+      previewId: withdrawPreviewId,
+      venueId: 'kalshi',
+      currency: 'USD',
+      mode: 'fixed',
+      requestedAmount: '5.00',
+      destination,
+      expiresAt: '2026-03-01T12:00:30.000Z',
+    };
+    const receiptPayload = {
+      operationId: '0f8a1c2b-3333-4444-8555-666677778888',
+      previewId: withdrawPreviewId,
+      venueId: 'kalshi',
+      currency: 'USD',
+      mode: 'fixed',
+      status: 'processing',
+      needsManualReview: false,
+      requestedAmount: '5.00',
+      withdrawnAmount: null,
+      venueTransferId: null,
+      destination,
+      createdAt: '2026-03-01T12:00:10.000Z',
+      resolvedAt: null,
+    };
+
+    it('passes a fixed quote straight through to the transport', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue(previewPayload);
+
+      const result = await adapter.funding.previewWithdraw({
+        amount: '5.00' as PredictAmount,
+      });
+
+      expect(result.requestedAmount).toBe('5.00');
+      expect(result.destination).toEqual(destination);
+      expect(client.fetchWithdrawPreview).toHaveBeenCalledWith(
+        adapter.venueId,
+        { amount: '5.00' },
+        undefined,
+      );
+    });
+
+    it('passes a sweep intent through without inventing an amount', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        mode: 'sweep_all',
+        requestedAmount: undefined,
+      });
+
+      const result = await adapter.funding.previewWithdraw({ sweepAll: true });
+
+      expect(result.mode).toBe('sweep_all');
+      expect(result.requestedAmount).toBeUndefined();
+      expect(client.fetchWithdrawPreview).toHaveBeenCalledWith(
+        adapter.venueId,
+        { sweepAll: true },
+        undefined,
+      );
+    });
+
+    it('pins nothing locally: every quote and commit reaches the backend', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue(previewPayload);
+      client.commitWithdraw.mockResolvedValue(receiptPayload);
+
+      await adapter.funding.previewWithdraw({
+        amount: '5.00' as PredictAmount,
+      });
+      await adapter.funding.previewWithdraw({
+        amount: '5.00' as PredictAmount,
+      });
+      await adapter.funding.commitWithdraw(withdrawPreviewId);
+      await adapter.funding.commitWithdraw(withdrawPreviewId);
+
+      expect(client.fetchWithdrawPreview).toHaveBeenCalledTimes(2);
+      // Coalescing repeated Commits is the service's job, not the adapter's.
+      expect(client.commitWithdraw).toHaveBeenCalledTimes(2);
+      expect(client.commitWithdraw).toHaveBeenCalledWith(
+        adapter.venueId,
+        withdrawPreviewId,
+        undefined,
+        undefined,
+      );
+    });
+
+    it('forwards the commit dispatch notification unchanged', async () => {
+      const onDispatch = jest.fn();
+      client.commitWithdraw.mockImplementationOnce(
+        async (_venueId, _previewId, _options, notify) => {
+          notify?.();
+          return receiptPayload;
+        },
+      );
+
+      await adapter.funding.commitWithdraw(
+        withdrawPreviewId,
+        undefined,
+        onDispatch,
+      );
+
+      expect(client.commitWithdraw).toHaveBeenCalledWith(
+        adapter.venueId,
+        withdrawPreviewId,
+        undefined,
+        onDispatch,
+      );
+      expect(onDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('observes the receipt without committing again', async () => {
+      client.observeWithdraw.mockResolvedValue(receiptPayload);
+
+      const result = await adapter.funding.observeWithdraw(withdrawPreviewId);
+
+      expect(result.status).toBe('processing');
+      expect(client.observeWithdraw).toHaveBeenCalledWith(
+        adapter.venueId,
+        withdrawPreviewId,
+        undefined,
+      );
+      expect(client.commitWithdraw).not.toHaveBeenCalled();
+    });
+
+    it('carries a rejection receipt with its code', async () => {
+      client.commitWithdraw.mockResolvedValue({
+        ...receiptPayload,
+        status: 'rejected',
+        rejectionCode: 'step_up_verification_required',
+        withdrawnAmount: null,
+      });
+
+      const result = await adapter.funding.commitWithdraw(withdrawPreviewId);
+
+      expect(result).toMatchObject({
+        status: 'rejected',
+        rejectionCode: 'step_up_verification_required',
+      });
+    });
+
+    it('rejects a quote for another Venue', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        venueId: 'other-venue',
+      });
+
+      await expect(
+        adapter.funding.previewWithdraw({ sweepAll: true }),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('rejects a sweep quote for a fixed intent', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        mode: 'sweep_all',
+        requestedAmount: undefined,
+      });
+
+      await expect(
+        adapter.funding.previewWithdraw({ amount: '5.00' as PredictAmount }),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('rejects a fixed quote for a sweep intent', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue(previewPayload);
+
+      await expect(
+        adapter.funding.previewWithdraw({ sweepAll: true }),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('rejects a quote for an amount the person did not ask for', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        requestedAmount: '6.00',
+      });
+
+      await expect(
+        adapter.funding.previewWithdraw({ amount: '5.00' as PredictAmount }),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('accepts the amount echo normalized to two decimals', async () => {
+      client.fetchWithdrawPreview.mockResolvedValue({
+        ...previewPayload,
+        requestedAmount: '5',
+      });
+
+      await expect(
+        adapter.funding.previewWithdraw({ amount: '5.00' as PredictAmount }),
+      ).resolves.toMatchObject({ requestedAmount: '5' });
+    });
+
+    it('rejects a receipt bound to another preview', async () => {
+      client.commitWithdraw.mockResolvedValue({
+        ...receiptPayload,
+        previewId: 'b3c2a1d0-1111-4222-8333-444455559999',
+      });
+
+      await expect(
+        adapter.funding.commitWithdraw(withdrawPreviewId),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('rejects an observation bound to another Venue', async () => {
+      client.observeWithdraw.mockResolvedValue({
+        ...receiptPayload,
+        venueId: 'other-venue',
+      });
+
+      await expect(
+        adapter.funding.observeWithdraw(withdrawPreviewId),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('rejects a malformed receipt payload', async () => {
+      client.commitWithdraw.mockResolvedValue({
+        ...receiptPayload,
+        status: 'rejected',
+      });
+
+      await expect(
+        adapter.funding.commitWithdraw(withdrawPreviewId),
+      ).rejects.toMatchObject({ code: PredictErrorCode.INVALID_RESPONSE });
+    });
+
+    it('maps amount_below_minimum on a preview to AMOUNT_BELOW_MINIMUM', async () => {
+      client.fetchWithdrawPreview.mockRejectedValue(
+        new PredictHttpError(422, 'amount_below_minimum'),
+      );
+
+      await expect(
+        adapter.funding.previewWithdraw({ amount: '0.50' as PredictAmount }),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
+        metadata: { status: 422, phase: 'preview' },
+      });
+    });
+
+    it('maps a preview 404 to UNSUPPORTED_VENUE with the preview phase', async () => {
+      client.fetchWithdrawPreview.mockRejectedValue(
+        new PredictHttpError(404, 'venue_not_found'),
+      );
+
+      await expect(
+        adapter.funding.previewWithdraw({ sweepAll: true }),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.UNSUPPORTED_VENUE,
+        metadata: { phase: 'preview' },
+      });
+    });
+
+    it('maps a commit 503 to VENUE_UNAVAILABLE with the commit phase', async () => {
+      client.commitWithdraw.mockRejectedValue(
+        new PredictHttpError(503, 'venue_unavailable'),
+      );
+
+      await expect(
+        adapter.funding.commitWithdraw(withdrawPreviewId),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.VENUE_UNAVAILABLE,
+        metadata: {
+          phase: 'commit',
+          // No outcome in the body: the admin request may have reached Kalshi.
+          outcome: 'unknown',
+        },
+      });
+    });
+
+    it('maps a missing operation on observe to ORDER_OUTCOME_UNKNOWN', async () => {
+      client.observeWithdraw.mockRejectedValue(
+        new PredictHttpError(404, 'operation_not_found'),
+      );
+
+      await expect(
+        adapter.funding.observeWithdraw(withdrawPreviewId),
+      ).rejects.toMatchObject({
+        code: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+        metadata: { phase: 'observe', bodyCode: 'operation_not_found' },
+      });
+    });
+
+    it('forwards the observation cancellation signal', async () => {
+      client.observeWithdraw.mockResolvedValue(receiptPayload);
+      const signal = new AbortController().signal;
+
+      await adapter.funding.observeWithdraw(withdrawPreviewId, { signal });
+
+      expect(client.observeWithdraw).toHaveBeenCalledWith(
+        adapter.venueId,
+        withdrawPreviewId,
+        { signal },
+      );
+    });
+
+    it('preserves an AbortError from a cancelled observation', async () => {
+      const abortError = new Error('aborted');
+      abortError.name = 'AbortError';
+      client.observeWithdraw.mockRejectedValue(abortError);
+
+      await expect(
+        adapter.funding.observeWithdraw(withdrawPreviewId),
+      ).rejects.toBe(abortError);
+    });
+
+    it('never carries a commit outcome on a failed withdrawal observation', async () => {
+      // The GET replays the stored submission before it answers, so even a
+      // not_placed body cannot speak for that submission.
+      client.observeWithdraw.mockRejectedValue(
+        new PredictHttpError(503, 'venue_unavailable', undefined, 'not_placed'),
+      );
+
+      const error = await adapter.funding
+        .observeWithdraw(withdrawPreviewId)
+        .catch((caught: unknown) => caught);
+
+      expect(error).toMatchObject({
+        code: PredictErrorCode.VENUE_UNAVAILABLE,
+        metadata: { phase: 'observe' },
+      });
+      expect((error as PredictError).metadata).not.toHaveProperty('outcome');
     });
   });
 });

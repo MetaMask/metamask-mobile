@@ -25,7 +25,6 @@ import {
 } from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import { trackVbaEvent } from './vbaAnalytics';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
@@ -41,6 +40,11 @@ import {
 import { VBA_CUF_END_REASON } from './vbaCufTags';
 import { AVENIA_URL, MOONPAY_RISK_URL } from './constants';
 import { markVbaAccountDetailsViewed } from './vbaAccountDetailsViewedStorage';
+import {
+  playSelection,
+  fireImpact,
+  ImpactMoment,
+} from '../../../../../util/haptics';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -53,6 +57,7 @@ const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
 const mockRefreshCustomerAbilities = jest.fn();
 const mockNavigateToVbaOnboardingDestination = jest.fn();
+const mockExitVbaOnboardingToMoneyHome = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
 let mockChooseCurrency = false;
@@ -82,6 +87,15 @@ const mockMarkVbaAccountDetailsViewed = jest.mocked(
 
 jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
+}));
+
+jest.mock('../../../../../util/haptics', () => ({
+  playSelection: jest.fn(() => Promise.resolve()),
+  fireImpact: jest.fn(),
+  ImpactMoment: {
+    PrimaryCTA: 'primaryCta',
+    SecondaryCTA: 'secondaryCta',
+  },
 }));
 
 jest.mock('react-native-share', () => ({
@@ -160,6 +174,8 @@ jest.mock('./vbaDepositDebug', () => ({
 jest.mock('./hooks/useVbaOnboardingRouting', () => ({
   navigateToVbaOnboardingDestination: (...args: unknown[]) =>
     mockNavigateToVbaOnboardingDestination(...args),
+  exitVbaOnboardingToMoneyHome: (...args: unknown[]) =>
+    mockExitVbaOnboardingToMoneyHome(...args),
 }));
 
 jest.mock('../../../../../hooks/useScreenPerformance');
@@ -399,6 +415,7 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(fireImpact).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
       false,
@@ -417,6 +434,8 @@ describe('VbaDetails', () => {
     fireEvent.press(doneButton);
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledTimes(1);
+    expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
       false,
@@ -434,10 +453,11 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
 
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledWith(
+      mockNavigation,
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('returns to Money home when there is no navigation history', async () => {
@@ -450,10 +470,11 @@ describe('VbaDetails', () => {
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledTimes(1);
+    expect(mockExitVbaOnboardingToMoneyHome).toHaveBeenCalledWith(
+      mockNavigation,
+    );
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('renders cached Pix details immediately and revalidates in the background', async () => {
@@ -637,6 +658,7 @@ describe('VbaDetails', () => {
     fireEvent.press(getByLabelText('Copy Pix key'));
 
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
+    expect(playSelection).toHaveBeenCalledTimes(1);
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
       'Copied Pix key',
     );
@@ -739,6 +761,7 @@ describe('VbaDetails', () => {
       fireEvent.press(getByLabelText('Copy Routing number'));
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
+      expect(playSelection).toHaveBeenCalledTimes(1);
     });
 
     it('copies every US bank row and opens the share sheet', async () => {
@@ -770,6 +793,7 @@ describe('VbaDetails', () => {
         'Lead Bank',
       ].join('\n');
       expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
+      expect(playSelection).toHaveBeenCalledTimes(1);
       expect(Share.open).toHaveBeenCalledWith({
         message: bankDetails,
         failOnCancel: false,
@@ -993,6 +1017,7 @@ describe('VbaDetails', () => {
         'Banking Circle S.A.',
       ].join('\n');
       expect(Clipboard.setString).toHaveBeenCalledWith(bankDetails);
+      expect(playSelection).toHaveBeenCalledTimes(1);
       expect(Share.open).toHaveBeenCalledWith({
         message: bankDetails,
         failOnCancel: false,

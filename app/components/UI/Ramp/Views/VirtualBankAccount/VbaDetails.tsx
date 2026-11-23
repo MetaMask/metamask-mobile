@@ -27,12 +27,16 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../../util/haptics';
 import type { RootState } from '../../../../../reducers';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
-import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
@@ -55,7 +59,10 @@ import {
   getAccountCreateFailureLogFields,
   logAccountCreateFailure,
 } from './accountCreateError';
-import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
+import {
+  exitVbaOnboardingToMoneyHome,
+  navigateToVbaOnboardingDestination,
+} from './hooks/useVbaOnboardingRouting';
 import { useVbaEligibility } from './hooks/useVbaEligibility';
 import VbaCreatingAccount from './VbaCreatingAccount';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -752,10 +759,7 @@ const VbaDetails = () => {
   const handleDone = useCallback(() => {
     finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
     endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
-    });
+    exitVbaOnboardingToMoneyHome(navigation);
   }, [finishPixFetchTrace, navigation]);
 
   const handleBack = useCallback(() => {
@@ -769,9 +773,15 @@ const VbaDetails = () => {
     handleDone();
   }, [finishPixFetchTrace, handleDone, navigation]);
 
+  const handleDonePress = useCallback(() => {
+    fireImpact(ImpactMoment.PrimaryCTA);
+    handleBack();
+  }, [handleBack]);
+
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
       Clipboard.setString(value);
+      playSelection().catch(() => undefined);
       AccessibilityInfo.announceForAccessibility(
         strings('virtual_bank_account.vba_details.copied_label', {
           field: label,
@@ -809,6 +819,7 @@ const VbaDetails = () => {
   const handleCopyAll = useCallback(() => {
     const message = formatBankDetailsForCopy(rows);
     Clipboard.setString(message);
+    playSelection().catch(() => undefined);
     AccessibilityInfo.announceForAccessibility(
       strings('virtual_bank_account.vba_details.copied_all_label'),
     );
@@ -1086,7 +1097,7 @@ const VbaDetails = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          onPress={handleBack}
+          onPress={handleDonePress}
           testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
         >
           {strings('virtual_bank_account.vba_details.button')}

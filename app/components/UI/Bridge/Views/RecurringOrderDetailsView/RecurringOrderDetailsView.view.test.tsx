@@ -423,7 +423,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       });
       if (hasWarningIcon) {
         expect(
-          row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+          within(
+            row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+          ).getByLabelText(strings('bridge.recurring.skipped')),
         ).toBeOnTheScreen();
         expect(row.getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveStyle({
           color: lightTheme.colors.warning.default,
@@ -826,9 +828,14 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
         ),
       ).not.toBeOnTheScreen();
     });
+    expect(
+      renderResult.queryByTestId(
+        RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
   });
 
-  it('shows no footer action for a cancelled API order', async () => {
+  it('shows duplicate action for a cancelled API order', async () => {
     const renderResult = renderRecurringOrderDetailsView({
       order: MOCK_RECURRING_CANCELLED_ORDER,
     });
@@ -850,9 +857,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       ),
     ).not.toBeOnTheScreen();
     expect(
-      renderResult.queryByTestId(
+      await renderResult.findByTestId(
         RecurringOrderDetailsViewSelectorsIDs.DUPLICATE_BUTTON,
       ),
-    ).not.toBeOnTheScreen();
+    ).toBeOnTheScreen();
   });
 });

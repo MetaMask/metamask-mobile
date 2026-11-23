@@ -28,6 +28,7 @@ interface BridgeRecurringBuyFooterViewProps {
   onPreviewOrder: () => void;
   label: string;
   destinationTokenSymbol?: string;
+  isBelowMinAmount: boolean;
   isPreviewDisabled?: boolean;
 }
 
@@ -35,6 +36,7 @@ export const BridgeRecurringBuyFooterView = ({
   onPreviewOrder,
   label,
   destinationTokenSymbol,
+  isBelowMinAmount,
   isPreviewDisabled,
 }: BridgeRecurringBuyFooterViewProps) => {
   const { bottom: bottomInset } = useSafeAreaInsets();
@@ -48,7 +50,8 @@ export const BridgeRecurringBuyFooterView = ({
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
-  const isInitialQuoteLoading = isLoading && !activeQuote;
+  const isQuoteLoading = isLoading && !isBelowMinAmount;
+  const isInitialQuoteLoading = isQuoteLoading && !activeQuote;
 
   const parsedEveryValue = parsePositiveInteger(everyValue);
   const parsedRepeatCount = parsePositiveInteger(repeatCount);
@@ -70,7 +73,9 @@ export const BridgeRecurringBuyFooterView = ({
                 )}`,
           repetition: strings('bridge.recurring.repeat_summary', {
             count: parsedRepeatCount,
-          }),
+            // Keeps the "Repeats X times." sentence on one line, so a summary that
+            // wraps breaks before it instead of splitting it.
+          }).replace(/ /g, '\u00A0'),
         }
       : undefined;
 
@@ -78,7 +83,11 @@ export const BridgeRecurringBuyFooterView = ({
     return null;
   }
 
-  if (!isInitialQuoteLoading && (!activeQuote || !quotesLastFetched)) {
+  if (
+    !isBelowMinAmount &&
+    !isInitialQuoteLoading &&
+    (!activeQuote || !quotesLastFetched)
+  ) {
     return null;
   }
 
@@ -97,10 +106,10 @@ export const BridgeRecurringBuyFooterView = ({
         onPress={onPreviewOrder}
         label={label}
         testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON}
-        disabled={isPreviewDisabled}
-        loading={isLoading}
+        disabled={isBelowMinAmount || isPreviewDisabled}
+        loading={isQuoteLoading}
       />
-      {activeQuote && spendSummaryValues ? (
+      {!isBelowMinAmount && activeQuote && spendSummaryValues ? (
         <Text
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
@@ -119,7 +128,7 @@ export const BridgeRecurringBuyFooterView = ({
           <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
             {spendSummaryValues.interval}
           </Text>
-          {`. ${strings('bridge.recurring.spend_summary.repeats')} `}
+          {`. ${strings('bridge.recurring.spend_summary.repeats')}\u00A0`}
           <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
             {spendSummaryValues.repetition}
           </Text>

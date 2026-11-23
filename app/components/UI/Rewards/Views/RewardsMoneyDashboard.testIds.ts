@@ -2,6 +2,7 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   CONTAINER: 'rewards-money-dashboard',
   LOADING: 'rewards-money-dashboard-loading',
   ERROR: 'rewards-money-dashboard-error',
+  SHARE_BUTTON: 'rewards-money-dashboard-share-button',
   SETTINGS_BUTTON: 'rewards-money-dashboard-settings-button',
   TABS: 'rewards-money-dashboard-tabs',
   WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',

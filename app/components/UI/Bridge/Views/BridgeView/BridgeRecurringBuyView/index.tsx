@@ -29,7 +29,9 @@ import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import { GaslessQuickPickOptions } from '../../../components/GaslessQuickPickOptions';
 import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import PriceRangeRow from '../../../components/PriceRangeRow';
-import RecurringScheduleFields from '../../../components/RecurringScheduleFields';
+import RecurringScheduleFields, {
+  type RecurringScheduleFieldsRef,
+} from '../../../components/RecurringScheduleFields';
 import {
   HardwareWalletUnsupportedBanner,
   InsufficientNativeReserveBanner,
@@ -44,7 +46,6 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
-import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
@@ -96,6 +97,7 @@ const BridgeRecurringBuyViewContent = ({
   const navigation = useNavigation<AppNavigationProp>();
   const isScreenFocused = useIsFocused();
   const inputRef = useRef<TokenInputAreaRef>(null);
+  const scheduleFieldsRef = useRef<RecurringScheduleFieldsRef>(null);
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const {
@@ -115,6 +117,11 @@ const BridgeRecurringBuyViewContent = ({
     isDestAmountLoading,
     isFlipDisabled,
     isQuoteSponsored,
+    recurringOrderMinAmount: {
+      formattedMinAmountInSelectedCurrency,
+      hasError: hasMinAmountError,
+      isBelowMinAmount,
+    },
     sourceAmountInput,
     sourceToken,
     sourceAmount,
@@ -203,10 +210,15 @@ const BridgeRecurringBuyViewContent = ({
     keypadRef,
   } = useRecurringBuyKeypad({ sourceAmountInput });
 
-  const dismissInputAndKeypad = useCallback(() => {
+  const blurInputs = useCallback(() => {
     inputRef.current?.blur();
+    scheduleFieldsRef.current?.blur();
+  }, []);
+
+  const dismissInputAndKeypad = useCallback(() => {
+    blurInputs();
     closeKeypad();
-  }, [closeKeypad]);
+  }, [blurInputs, closeKeypad]);
 
   const handleBannersLayout = useCallback((event: LayoutChangeEvent) => {
     const nextHasVisibleBanner = event.nativeEvent.layout.height > 0;
@@ -216,14 +228,6 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const {
-    formattedMinAmountInSelectedCurrency,
-    hasError: hasMinAmountError,
-    isBelowMinAmount,
-  } = useRecurringOrderMinAmount({
-    sourceToken,
-    sourceAmount,
-  });
   const canPreviewOrder =
     Boolean(activeQuote) &&
     scheduleValidation.isValid &&
@@ -408,10 +412,19 @@ const BridgeRecurringBuyViewContent = ({
           />
 
           <Box twClassName="-mt-1">
+            <RecurringScheduleFields
+              ref={scheduleFieldsRef}
+              onEveryPress={focusEvery}
+              onRepeatPress={focusRepeat}
+              onDismissKeypad={dismissInputAndKeypad}
+              onUnitPress={handleUnitPress}
+              onRepeatInfoPress={handleRepeatInfoPress}
+            />
+
             <Box
               testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
               onLayout={handleBannersLayout}
-              twClassName={hasVisibleBanner ? 'mb-2' : undefined}
+              twClassName={hasVisibleBanner ? 'mt-2' : undefined}
               onTouchEnd={dismissInputAndKeypad}
             >
               <SwapsBanners
@@ -444,14 +457,6 @@ const BridgeRecurringBuyViewContent = ({
                 />
               </SwapsBanners>
             </Box>
-
-            <RecurringScheduleFields
-              onEveryPress={focusEvery}
-              onRepeatPress={focusRepeat}
-              onDismissKeypad={dismissInputAndKeypad}
-              onUnitPress={handleUnitPress}
-              onRepeatInfoPress={handleRepeatInfoPress}
-            />
           </Box>
 
           <PriceRangeRow
@@ -476,6 +481,7 @@ const BridgeRecurringBuyViewContent = ({
           onPreviewOrder={handlePreviewOrder}
           label={previewOrderLabel}
           destinationTokenSymbol={destToken?.symbol}
+          isBelowMinAmount={isBelowMinAmount}
           isPreviewDisabled={
             !scheduleValidation.isValid ||
             !feeTokenValidation.isValid ||
@@ -487,6 +493,7 @@ const BridgeRecurringBuyViewContent = ({
         <SwapsKeypad
           ref={keypadRef}
           onChange={handleKeypadChange}
+          onClose={blurInputs}
           {...keypadProps}
         >
           {sourceAmount && sourceAmount !== '0' ? (
@@ -495,7 +502,7 @@ const BridgeRecurringBuyViewContent = ({
               label={previewOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={!canPreviewOrder}
-              loading={isLoading}
+              loading={isLoading && !isBelowMinAmount}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions

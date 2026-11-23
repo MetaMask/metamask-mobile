@@ -5,7 +5,8 @@ import type { PredictFeedKey } from '../types';
  * renders only when the Active Venue's descriptor has its key
  * (`resolveSurfaceFeeds`); a missing key never falls back to another Feed or
  * Venue. Surfaces own their section IDs; this table owns which Feed each one
- * shows.
+ * shows. Feed Screens and their tabs are not here: the Venue catalog serves
+ * them (`screens`, PRED-1525).
  */
 export const PREDICT_SURFACE_FEED_KEYS = {
   /**
@@ -22,14 +23,9 @@ export const PREDICT_SURFACE_FEED_KEYS = {
   /** Prediction sections on the Explore (Trending) tabs (PRED-1408). */
   exploreTabs: {
     now: 'trending',
-    macro: 'politics',
     rwas: 'politics',
     crypto: 'crypto',
     sports: 'sports',
-  },
-  /** Rewards campaign rows. Predict The Pitch is a World Cup campaign. */
-  campaignRows: {
-    'predict-the-pitch': 'world-cup',
   },
   /** PredictNext Home preview sections, keyed by the Feed Screen each opens. */
   nextHomeSections: {
@@ -37,39 +33,8 @@ export const PREDICT_SURFACE_FEED_KEYS = {
     'sports-football-ncaa': 'college-football-games',
     politics: 'politics-trump',
   },
-  /** PredictNext Feed Screen tabs, by Feed Screen and tab. */
-  nextFeedScreenTabs: {
-    'sports-football-nfl': {
-      games: 'nfl-games',
-      props: 'nfl-props',
-    },
-    'sports-football-ncaa': {
-      games: 'college-football-games',
-      props: 'college-football-props',
-    },
-    sports: {
-      nfl: 'nfl-games',
-      ncaaf: 'college-football-games',
-    },
-    /**
-     * Home's Trending carousel ranks the Games of the NFL and college
-     * football Games reads, so its screen shows those Feeds. No PredictNext
-     * Venue serves a `trending` Feed yet.
-     */
-    trending: {
-      nfl: 'nfl-games',
-      ncaaf: 'college-football-games',
-    },
-    politics: {
-      trump: 'politics-trump',
-      congress: 'politics-congress',
-      iran: 'politics-iran',
-    },
-  },
 } as const satisfies {
   homepageSlots: Record<string, PredictFeedKey>;
   exploreTabs: Record<string, PredictFeedKey>;
-  campaignRows: Record<string, PredictFeedKey>;
   nextHomeSections: Record<string, PredictFeedKey>;
-  nextFeedScreenTabs: Record<string, Record<string, PredictFeedKey>>;
 };

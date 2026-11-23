@@ -71,6 +71,37 @@ describe('getTopOutcome', () => {
     });
   });
 
+  it('prices the Yes side when the Game Selection tag is on the No Outcome', () => {
+    const awayMarket = {
+      id: 'away',
+      question: 'Will Bills win?',
+      status: 'active',
+      outcomes: [
+        { id: 'away-yes', side: 'yes', label: 'Bills', askPrice: '0.34' },
+        {
+          id: 'away-no',
+          side: 'no',
+          label: 'Bills lose',
+          askPrice: '0.80',
+          gameSelection: 'away',
+        },
+      ],
+    } as unknown as PredictMarket;
+
+    expect(
+      getTopOutcome(
+        event(
+          [awayMarket, market('home', '0.66', { gameSelection: 'home' })],
+          {},
+        ),
+      ),
+    ).toEqual({
+      percent: 66,
+      label: 'Chiefs',
+      team: { name: 'Chiefs' },
+    });
+  });
+
   it("names a single Market's question", () => {
     expect(getTopOutcome(event([market('rain', '0.2')]))).toEqual({
       percent: 20,

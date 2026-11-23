@@ -99,6 +99,7 @@ describe('PredictMarketDataService', () => {
       feeds: { 'nfl-games': feedId },
       categories: [],
       searchSupported: true,
+      screens: [],
     };
     const marketData = createMarketData();
     marketData.fetchVenueCatalog.mockResolvedValue(catalog);

@@ -254,28 +254,34 @@ export const PREDICT_VENUE_ACTIONS = [
 export type PredictVenueAction = (typeof PREDICT_VENUE_ACTIONS)[number];
 
 /**
- * Stable, kebab-case product keys for discovery Feeds. A surface section or
- * tab names a key, never a concrete Feed ID; each Venue's catalog maps the
- * keys it supports to its own Feed IDs. Keys outside this list are dropped
- * when a catalog is parsed.
+ * Stable, kebab-case product key for a discovery Feed, for example
+ * `nfl-games`. The Predict API owns the vocabulary (PRED-1522), so any
+ * kebab-case key a catalog serves is accepted (PRED-1526). A surface section
+ * or tab names a key, never a concrete Feed ID; each Venue's catalog maps the
+ * keys it supports to its own Feed IDs.
  */
-export const PREDICT_FEED_KEYS = [
-  'trending',
-  'live',
-  'sports',
-  'crypto',
-  'politics',
-  'crypto-up-down-live',
-  'world-cup',
-  'nfl-games',
-  'nfl-props',
-  'college-football-games',
-  'college-football-props',
-  'politics-trump',
-  'politics-congress',
-  'politics-iran',
-] as const;
-export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
+export type PredictFeedKey = string;
+
+/** One tab of a Feed Screen: it shows the Feed its `feed` key names. */
+export interface PredictVenueFeedScreenTab {
+  /** Kebab-case, unique within its screen: deep links select a tab by it. */
+  id: string;
+  /** The server's label, shown when the app has no localized one. */
+  title: string;
+  /** A Feed key of the same catalog. */
+  feed: PredictFeedKey;
+}
+
+/** A titled screen of tabs, each on one Feed (PRED-1525). */
+export interface PredictVenueFeedScreen {
+  /** Kebab-case and unique: deep links use it, and a Category opens the
+   * screen whose `id` is its Feed key. */
+  id: string;
+  title: string;
+  subtitle?: string;
+  /** In display order; never empty. */
+  tabs: readonly PredictVenueFeedScreenTab[];
+}
 
 /** The support part of a Venue descriptor: the wire shape of the Venue
  * catalog (`GET /v1/venues/{venueId}/catalog`). */
@@ -287,6 +293,8 @@ export interface PredictVenueCatalog {
    * Every key is in `feeds`, and the Category opens on that Feed. */
   categories: readonly PredictFeedKey[];
   searchSupported: boolean;
+  /** The Venue's Feed Screens. Empty when the catalog serves none. */
+  screens: readonly PredictVenueFeedScreen[];
 }
 
 export interface PredictBalance {
@@ -513,6 +521,93 @@ export interface PredictUnresolvedOrder {
 export interface PredictUnresolvedOrdersPage {
   operations: readonly PredictUnresolvedOrder[];
   nextCursor?: string;
+}
+
+/** How a Withdraw names its amount: one fixed USD figure, or the whole
+ * withdrawable balance. */
+export type PredictWithdrawMode = 'fixed' | 'sweep_all';
+
+/** Networks a withdrawal can pay out on. */
+export type PredictWithdrawNetwork = 'base';
+
+/** Where the payout destination came from: the sandbox wallet this client
+ * registered during demo setup, or a binding the Venue itself reported. A
+ * destination is always read-only; the phone never supplies one. */
+export type PredictWithdrawDestinationSource = 'configured_demo' | 'venue';
+
+export interface PredictWithdrawDestination {
+  address: string;
+  network: PredictWithdrawNetwork;
+  source: PredictWithdrawDestinationSource;
+}
+
+/** A Withdraw intent. Exactly one of a fixed USD amount or the whole balance;
+ * the client sends no identity, destination, or idempotency key. */
+export type PredictWithdrawPreviewParams =
+  | { amount: PredictAmount }
+  | { sweepAll: true };
+
+/** A server-authoritative Withdraw Quote. The backend resolves the payout
+ * destination and the expiry; the response carries no fee. A sweep omits
+ * `requestedAmount` rather than nulling it. */
+export interface PredictWithdrawPreview {
+  /** Opaque expiring token binding the quote to the authenticated intent. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  /** Present exactly on a `fixed` quote. */
+  requestedAmount?: PredictAmount;
+  destination: PredictWithdrawDestination;
+  expiresAt: PredictTimestamp;
+}
+
+/** Status of a committed withdrawal, as projected by the backend. `pending`
+ * and `processing` are in-progress: keep observing with the receipt GET,
+ * never another POST. `settled` means the funds left; `failed` and `returned`
+ * are terminal failures, and `returned` means the funds are back in the
+ * account. `rejected` means the Venue refused the withdrawal and nothing was
+ * sent. */
+export type PredictWithdrawReceiptStatus =
+  | 'pending'
+  | 'processing'
+  | 'settled'
+  | 'failed'
+  | 'returned'
+  | 'rejected';
+
+/** Why the Venue refused a `rejected` withdrawal. */
+export type PredictWithdrawRejectionCode =
+  | 'insufficient_balance'
+  | 'amount_below_minimum'
+  | 'step_up_verification_required'
+  | 'venue_rejected';
+
+/** The canonical result of a committed withdrawal. One Withdraw produces
+ * exactly one receipt, and repeated Commits of the same `previewId` converge
+ * on it. `needsManualReview` ends automatic observation: the outcome is
+ * unknown and support resolves it. */
+export interface PredictWithdrawReceipt {
+  /** Durable backend operation identity; stable across repeated Commits. */
+  operationId: string;
+  /** The committed Withdraw Preview; the idempotency key for re-observation. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  status: PredictWithdrawReceiptStatus;
+  /** Present exactly on a `rejected` receipt, and always present there. */
+  rejectionCode?: PredictWithdrawRejectionCode;
+  needsManualReview: boolean;
+  /** Present exactly on a `fixed` receipt. */
+  requestedAmount?: PredictAmount;
+  /** The amount the Venue reports as withdrawn; null until it reports one. */
+  withdrawnAmount: PredictAmount | null;
+  /** Venue transfer identifier once the Venue has produced one. */
+  venueTransferId: string | null;
+  destination: PredictWithdrawDestination;
+  createdAt: PredictTimestamp;
+  resolvedAt: PredictTimestamp | null;
 }
 
 export interface FetchPortfolioPageParams {

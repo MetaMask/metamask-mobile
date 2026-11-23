@@ -9,13 +9,18 @@ import {
 import { applyResolvedAndroidAdbToDevice } from '../../services/providers/emulator/android/resolveAndroidAdbUdid.ts';
 import { getIosSimulatorUdid } from '../../services/appium/EmulatorHelpers.ts';
 import { createAppiumLogger } from '../../appiumLogger.ts';
-import type { CurrentDeviceDetails } from './types.ts';
+import type { CurrentDeviceDetails, WorkerLevelFixtures } from './types.ts';
 
 const logger = createAppiumLogger('currentDeviceDetails');
 
 export const currentDeviceDetailsFixture = {
   currentDeviceDetails: async (
-    {}, // eslint-disable-line no-empty-pattern
+    {
+      // Dependency only. `deviceProvider` writes this worker's pool simulator
+      // into `project.use.device.udid`; without it a fresh worker can resolve
+      // pool slot 0 and drive another worker's simulator.
+      deviceProvider: _deviceProvider,
+    }: Pick<WorkerLevelFixtures, 'deviceProvider'>,
     use: (deviceDetails: CurrentDeviceDetails) => Promise<void>,
     testInfo: TestInfo,
   ) => {

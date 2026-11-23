@@ -265,6 +265,86 @@ describe('usePerpsLivePrices', () => {
     });
   });
 
+  it('keeps other symbols when a tick carries only the changed symbol', async () => {
+    let capturedCallback: (prices: Record<string, PriceUpdate>) => void =
+      jest.fn();
+    mockSubscribeToSymbols.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({ symbols: ['BTC-PERP', 'ETH-PERP'] }),
+    );
+
+    const btcUpdate: PriceUpdate = {
+      symbol: 'BTC-PERP',
+      price: '50000',
+      timestamp: Date.now(),
+      isTradable: true,
+    };
+    const ethUpdate: PriceUpdate = {
+      symbol: 'ETH-PERP',
+      price: '3000',
+      timestamp: Date.now(),
+      isTradable: true,
+    };
+
+    act(() => {
+      capturedCallback({ 'BTC-PERP': btcUpdate, 'ETH-PERP': ethUpdate });
+    });
+    await waitFor(() => {
+      expect(Object.keys(result.current)).toHaveLength(2);
+    });
+
+    // Live WebSocket ticks deliver only the symbols that changed. BTC must
+    // survive an ETH-only tick instead of being wiped from the map.
+    const ethUpdate2: PriceUpdate = { ...ethUpdate, price: '3100' };
+    act(() => {
+      capturedCallback({ 'ETH-PERP': ethUpdate2 });
+    });
+
+    await waitFor(() => {
+      expect(result.current['ETH-PERP']).toEqual(ethUpdate2);
+      expect(result.current['BTC-PERP']).toEqual(btcUpdate);
+    });
+  });
+
+  it('clears prices on the channel cache-clear payload', async () => {
+    let capturedCallback: (prices: Record<string, PriceUpdate>) => void =
+      jest.fn();
+    mockSubscribeToSymbols.mockImplementation((params) => {
+      capturedCallback = params.callback;
+      return jest.fn();
+    });
+
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({ symbols: ['BTC-PERP'] }),
+    );
+
+    act(() => {
+      capturedCallback({
+        'BTC-PERP': {
+          symbol: 'BTC-PERP',
+          price: '50000',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+    });
+    await waitFor(() => {
+      expect(result.current['BTC-PERP']).toBeDefined();
+    });
+
+    act(() => {
+      capturedCallback({});
+    });
+
+    await waitFor(() => {
+      expect(result.current).toEqual({});
+    });
+  });
+
   it('should handle rapid symbol changes', () => {
     const unsubscribes = [jest.fn(), jest.fn(), jest.fn(), jest.fn()];
     let index = 0;

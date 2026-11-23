@@ -126,7 +126,7 @@ const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
 
-const PROFILE_TABS = ['posts', 'open', 'closed'] as const;
+const PROFILE_TABS = ['open', 'closed', 'posts'] as const;
 
 type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
@@ -172,7 +172,7 @@ const TraderProfileView = () => {
   } = useTraderPositions(traderId, {
     refetchInterval: isFocused ? 30_000 : undefined,
   });
-  const [activeTab, setActiveTab] = useState<TraderProfileTab>('posts');
+  const [activeTab, setActiveTab] = useState<TraderProfileTab>('open');
   const postsFeedRef = useRef<SocialFeedRefreshHandle>(null);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
