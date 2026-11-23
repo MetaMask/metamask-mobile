@@ -9,9 +9,20 @@ import { WalletRecoverySelectorsIDs } from './WalletRecovery.testIds';
 describe('WalletRecoveryVerify', () => {
   const onBack = jest.fn();
   const onSelectMethod = jest.fn();
+  const allMethods = {
+    showPasskey: true,
+    showPassword: true,
+    showEmail: true,
+    showTotp: true,
+  } as const;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   const renderVerify = (
@@ -74,12 +85,7 @@ describe('WalletRecoveryVerify', () => {
   });
 
   it('renders Figma verify methods when the host opts them all in', () => {
-    const { getByTestId, queryByText } = renderVerify({
-      showPasskey: true,
-      showPassword: true,
-      showEmail: true,
-      showTotp: true,
-    });
+    const { getByTestId, queryByText } = renderVerify(allMethods);
 
     expect(
       getByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON),
@@ -99,12 +105,7 @@ describe('WalletRecoveryVerify', () => {
   });
 
   it('notifies when the user picks a recovery method', () => {
-    const { getByTestId } = renderVerify({
-      showPasskey: true,
-      showPassword: true,
-      showEmail: true,
-      showTotp: true,
-    });
+    const { getByTestId } = renderVerify(allMethods);
 
     fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.USE_PASSKEY_BUTTON));
     fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.METHOD_PASSWORD));
@@ -118,10 +119,6 @@ describe('WalletRecoveryVerify', () => {
   });
 
   it('shows failure and offline copy when provided', () => {
-    const announceSpy = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
     const error = strings('wallet_recovery_mfa.method_failed');
     const { getByTestId, getByText } = renderVerify({
       error,
@@ -138,30 +135,22 @@ describe('WalletRecoveryVerify', () => {
       getByText(strings('wallet_recovery_mfa.offline_reason')),
     ).toBeOnTheScreen();
     // Prefer the verify error when both are present.
-    expect(announceSpy).toHaveBeenCalledWith(error);
-    announceSpy.mockRestore();
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      error,
+    );
   });
 
   it('announces the offline warning when there is no verify error', () => {
-    const announceSpy = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
-
     renderVerify({ isOffline: true });
 
-    expect(announceSpy).toHaveBeenCalledWith(
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
       strings('wallet_recovery_mfa.offline_reason'),
     );
-    announceSpy.mockRestore();
   });
 
   it('keeps password available offline while MFA methods are disabled', () => {
     const { getByTestId } = renderVerify({
-      showPasskey: true,
-      showPassword: true,
-      showEmail: true,
-      showTotp: true,
+      ...allMethods,
       isOffline: true,
     });
 

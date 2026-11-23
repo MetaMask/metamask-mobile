@@ -6,14 +6,7 @@ import React, {
   useContext,
   useRef,
 } from 'react';
-import {
-  Alert,
-  BackHandler,
-  InteractionManager,
-  Platform,
-  TouchableOpacity,
-} from 'react-native';
-import { authenticateAsync } from 'expo-local-authentication';
+import { Alert, BackHandler, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { colors as importedColors } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
@@ -126,6 +119,7 @@ import {
   WalletRecoveryVerify,
 } from './WalletRecovery';
 import type { WalletRecoveryMethod } from './WalletRecovery/WalletRecoveryVerify';
+import { promptPostMfaDeviceBiometrics } from './promptPostMfaDeviceBiometrics';
 
 type WalletRecoveryStep = 'loading' | 'verify' | 'password'; // existing password — only from custom picker (or no-MFA fallback)
 
@@ -632,103 +626,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     // 1) Passkey / SMS / etc. = identity MFA
     // 2) This prompt = enable device unlock biometrics
     //    Accept or reject → existing password unlock (wallet needs a password today)
-    const verifiedViaPasskey = lastVerifiedMfaMethodRef.current === 'passkey';
-    let authPreference: AuthData = {
-      currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-      oauth2Login: true,
-    };
-    let biometricsRejected = false;
     try {
-      authPreference = await componentAuthenticationType(true, false);
-      authPreference.oauth2Login = true;
-
-      const typeBeforePrompt = authPreference.currentAuthType;
-      const deviceOffersBiometrics =
-        Boolean(authPreference.availableBiometryType) ||
-        typeBeforePrompt === AUTHENTICATION_TYPE.BIOMETRIC ||
-        typeBeforePrompt === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION;
-
-      let afterPrompt = typeBeforePrompt;
-      let biometricsWereOffered = false;
-
-      if (deviceOffersBiometrics) {
-        // After passkey, wait longer so the MFA sheet fully dismisses before
-        // the device-biometrics sheet (they are intentionally two prompts).
-        await new Promise<void>((resolve) => {
-          InteractionManager.runAfterInteractions(() => {
-            setTimeout(resolve, verifiedViaPasskey ? 1000 : 400);
-          });
-        });
-
-        biometricsWereOffered = true;
-        try {
-          if (Platform.OS === 'ios') {
-            const typeToPrompt =
-              typeBeforePrompt === AUTHENTICATION_TYPE.BIOMETRIC ||
-              typeBeforePrompt === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
-                ? typeBeforePrompt
-                : AUTHENTICATION_TYPE.BIOMETRIC;
-            afterPrompt =
-              await requestBiometricsAccessControlForIOS(typeToPrompt);
-          } else {
-            const promptResult = await authenticateAsync({
-              promptMessage: strings('authentication.auth_prompt_desc'),
-              cancelLabel: strings('navigation.cancel'),
-              disableDeviceFallback: true,
-            });
-            if (promptResult.success) {
-              afterPrompt = AUTHENTICATION_TYPE.BIOMETRIC;
-            } else {
-              const promptError =
-                'error' in promptResult ? String(promptResult.error) : '';
-              if (
-                promptError === 'not_enrolled' ||
-                promptError === 'not_available' ||
-                promptError === 'passcode_not_set' ||
-                promptError === 'hardware_unavailable'
-              ) {
-                biometricsWereOffered = false;
-                afterPrompt = typeBeforePrompt;
-              } else {
-                afterPrompt = AUTHENTICATION_TYPE.PASSWORD;
-              }
-            }
-          }
-        } catch {
-          biometricsWereOffered = false;
-          afterPrompt = typeBeforePrompt;
-        }
-      }
-
-      biometricsRejected =
-        biometricsWereOffered && afterPrompt === AUTHENTICATION_TYPE.PASSWORD;
-
-      if (biometricsRejected) {
-        afterPrompt = AUTHENTICATION_TYPE.PASSWORD;
-      }
-
-      authPreference.currentAuthType = afterPrompt;
-      postMfaAuthPreferenceRef.current = authPreference;
-
-      Logger.log('OAuthRehydration: post-MFA biometrics', {
-        platform: Platform.OS,
-        verifiedViaPasskey,
-        availableBiometryType: authPreference.availableBiometryType,
-        deviceOffersBiometrics,
-        biometricsWereOffered,
-        biometricsRejected,
-        typeBeforePrompt,
-        authType: afterPrompt,
-      });
-    } catch (biometricError) {
-      Logger.log('OAuthRehydration: post-MFA biometrics failed', {
-        code: getMfaErrorCode(biometricError),
-      });
-      postMfaAuthPreferenceRef.current = {
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        oauth2Login: true,
-        availableBiometryType: authPreference.availableBiometryType,
-      };
+      postMfaAuthPreferenceRef.current = await promptPostMfaDeviceBiometrics(
+        {
+          componentAuthenticationType,
+          requestBiometricsAccessControlForIOS,
+        },
+        lastVerifiedMfaMethodRef.current === 'passkey',
+      );
     } finally {
       continueAfterVerifiedInFlightRef.current = false;
     }
@@ -1012,11 +917,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       });
       setLoading(true);
 
+      // Keep biometric preference from post-MFA, but never oauth2Login here —
+      // that would rehydrate instead of syncPasswordAndUnlockWallet for
+      // seedless-outdated unlock.
       const postMfaAuth = postMfaAuthPreferenceRef.current;
-      const authData: AuthData = postMfaAuth ?? {
-        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        oauth2Login: false,
-      };
+      const authData: AuthData = postMfaAuth
+        ? { ...postMfaAuth, oauth2Login: false }
+        : {
+            currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+            oauth2Login: false,
+          };
 
       await trace(
         {
@@ -1374,6 +1284,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         onChangePassword={handlePasswordChange}
         onSubmit={onLoginPress}
         onBack={handlePasswordBack}
+        onForgotPassword={toggleWarningModal}
       />
     );
   };

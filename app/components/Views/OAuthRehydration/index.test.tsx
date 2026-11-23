@@ -249,6 +249,43 @@ const enterPasswordAndSubmit = async (
 };
 
 describe('OAuthRehydration', () => {
+  const mockTraceDefault = () => {
+    (traceMock as jest.Mock).mockImplementation(
+      (
+        _config: unknown,
+        fn?: () => Promise<void>,
+      ): { traceId: string } | Promise<void> | undefined => {
+        if (fn) {
+          return fn();
+        }
+        return { traceId: 'mock-trace' };
+      },
+    );
+  };
+
+  /**
+   * Sync span start for Password Login Attempt returns the given context;
+   * callback form still runs `fn`.
+   */
+  const mockTraceWithPasswordAttemptCtx = (passwordAttemptCtx: {
+    traceId: string;
+  }) => {
+    (traceMock as jest.Mock).mockImplementation(
+      (
+        config: { name?: string },
+        fn?: () => Promise<void>,
+      ): typeof passwordAttemptCtx | Promise<void> | undefined => {
+        if (!fn && config?.name === TraceName.OnboardingPasswordLoginAttempt) {
+          return passwordAttemptCtx;
+        }
+        if (fn) {
+          return fn();
+        }
+        return undefined;
+      },
+    );
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockGetMarketingOptInStatus.mockResolvedValue({
@@ -295,20 +332,7 @@ describe('OAuthRehydration', () => {
     mockVerifyForSocialLogin.mockReset();
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
-    // Sync span starts must return a truthy context — production stores it in
-    // refs that gate endTrace (e.g. Password Login Attempt). Callback form
-    // returns a Promise. Union return type satisfies oxlint.
-    (traceMock as jest.Mock).mockImplementation(
-      (
-        _config: unknown,
-        fn?: () => Promise<void>,
-      ): { traceId: string } | Promise<void> | undefined => {
-        if (fn) {
-          return fn();
-        }
-        return { traceId: 'mock-trace' };
-      },
-    );
+    mockTraceDefault();
     (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
   });
 
@@ -1274,24 +1298,7 @@ describe('OAuthRehydration', () => {
           return undefined;
         },
       );
-      (traceMock as jest.Mock).mockImplementation(
-        (
-          config: { name?: string },
-          fn?: () => Promise<void>,
-        ): typeof passwordAttemptCtx | Promise<void> | undefined => {
-          // Span start is sync in production; return the context immediately.
-          if (
-            !fn &&
-            config?.name === TraceName.OnboardingPasswordLoginAttempt
-          ) {
-            return passwordAttemptCtx;
-          }
-          if (fn) {
-            return fn();
-          }
-          return undefined;
-        },
-      );
+      mockTraceWithPasswordAttemptCtx(passwordAttemptCtx);
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId);
@@ -1359,23 +1366,7 @@ describe('OAuthRehydration', () => {
           return undefined;
         },
       );
-      (traceMock as jest.Mock).mockImplementation(
-        (
-          config: { name?: string },
-          fn?: () => Promise<void>,
-        ): typeof passwordAttemptCtx | Promise<void> | undefined => {
-          if (
-            !fn &&
-            config?.name === TraceName.OnboardingPasswordLoginAttempt
-          ) {
-            return passwordAttemptCtx;
-          }
-          if (fn) {
-            return fn();
-          }
-          return undefined;
-        },
-      );
+      mockTraceWithPasswordAttemptCtx(passwordAttemptCtx);
       mockUnlockWallet.mockRejectedValue(new Error('Some login error'));
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId, 'password123');
@@ -1507,23 +1498,7 @@ describe('OAuthRehydration', () => {
           return undefined;
         },
       );
-      (traceMock as jest.Mock).mockImplementation(
-        (
-          config: { name?: string },
-          fn?: () => Promise<void>,
-        ): typeof passwordAttemptCtx | Promise<void> | undefined => {
-          if (
-            !fn &&
-            config?.name === TraceName.OnboardingPasswordLoginAttempt
-          ) {
-            return passwordAttemptCtx;
-          }
-          if (fn) {
-            return fn();
-          }
-          return undefined;
-        },
-      );
+      mockTraceWithPasswordAttemptCtx(passwordAttemptCtx);
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       await enterPasswordAndSubmit(getByTestId);
@@ -1616,9 +1591,7 @@ describe('OAuthRehydration', () => {
 
     it('shows full-page verify when the highest MFA factor is cancelled', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
-      );
+      cancelHighestFactorOnce();
       let resolveList!: (value: unknown) => void;
       mockListActiveSocialLoginMethods.mockReturnValue(
         new Promise((resolve) => {
@@ -1656,9 +1629,7 @@ describe('OAuthRehydration', () => {
 
     it('shows only enrolled methods on the custom verify picker', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
-      );
+      cancelHighestFactorOnce();
       mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
 
       const { getByTestId, queryByTestId } = renderWithProvider(
@@ -1680,11 +1651,8 @@ describe('OAuthRehydration', () => {
 
     it('continues to password after picker verify', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin
-        .mockRejectedValueOnce(
-          Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
-        )
-        .mockResolvedValueOnce({ token: 'aal2-token' });
+      cancelHighestFactorOnce();
+      mockVerifyForSocialLogin.mockResolvedValueOnce({ token: 'aal2-token' });
       mockListActiveSocialLoginMethods.mockResolvedValue(['passkey']);
 
       const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
@@ -1845,7 +1813,7 @@ describe('OAuthRehydration', () => {
       addEventListenerSpy.mockRestore();
     });
 
-    it('shows the recovery password screen without reset wallet', async () => {
+    it('shows forgot password on the recovery password screen', async () => {
       enableMfaFlags();
       mockRoute.mockReturnValue({
         params: {
@@ -1856,7 +1824,7 @@ describe('OAuthRehydration', () => {
       });
       mockListActiveSocialLoginMethods.mockResolvedValue([]);
 
-      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      const { getByTestId, getByText } = renderWithProvider(
         <OAuthRehydration />,
         {
           state: mfaState,
@@ -1871,7 +1839,15 @@ describe('OAuthRehydration', () => {
       expect(
         getByText(strings('wallet_recovery_mfa.password_description')),
       ).toBeOnTheScreen();
-      expect(queryByTestId(LoginViewSelectors.RESET_WALLET)).toBeNull();
+      expect(getByTestId(LoginViewSelectors.RESET_WALLET)).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.MODAL.DELETE_WALLET,
+        }),
+      );
     });
 
     it('skips MFA when Money MFA is off even if password is outdated', async () => {
@@ -1945,6 +1921,56 @@ describe('OAuthRehydration', () => {
         expect(mockUnlockWallet).toHaveBeenCalledWith(
           expect.objectContaining({
             password: 'wallet-password',
+          }),
+        );
+      });
+    });
+
+    it('keeps oauth2Login false after MFA when the seedless password is outdated', async () => {
+      enableMfaFlags();
+      mockRoute.mockReturnValue({
+        params: {
+          locked: false,
+          oauthLoginSuccess: true,
+          isSeedlessPasswordOutdated: true,
+        },
+      });
+      mockVerifyForSocialLogin.mockResolvedValue({
+        verifiedMethod: 'totp',
+      });
+      mockUnlockWallet.mockImplementationOnce(
+        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+          if (options.onBeforeNavigate) {
+            await options.onBeforeNavigate();
+          }
+        },
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
+        state: mfaState,
+      });
+
+      await waitFor(() => {
+        expect(
+          getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(LoginViewSelectors.PASSWORD_INPUT),
+        'wallet-password',
+      );
+      await act(async () => {
+        fireEvent.press(getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID));
+      });
+
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalledWith(
+          expect.objectContaining({
+            password: 'wallet-password',
+            authPreference: expect.objectContaining({
+              oauth2Login: false,
+            }),
           }),
         );
       });
@@ -2182,9 +2208,7 @@ describe('OAuthRehydration', () => {
 
     it('opens the password screen when listing fallback methods fails', async () => {
       enableMfaFlags();
-      mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
-      );
+      cancelHighestFactorOnce();
       mockListActiveSocialLoginMethods.mockRejectedValueOnce(
         new Error('list failed'),
       );
@@ -2208,9 +2232,7 @@ describe('OAuthRehydration', () => {
       enableMfaFlags();
       cancelHighestFactorOnce();
       mockListActiveSocialLoginMethods.mockResolvedValue(['passkey', 'totp']);
-      mockVerifyForSocialLogin.mockRejectedValueOnce(
-        Object.assign(new Error('cancelled'), { mfaCode: 'flow_cancelled' }),
-      );
+      cancelHighestFactorOnce();
 
       const { getByTestId, queryByTestId } = renderWithProvider(
         <OAuthRehydration />,
@@ -2334,21 +2356,34 @@ describe('OAuthRehydration', () => {
       });
     };
 
-    it('waits longer after a passkey before the device biometrics prompt', async () => {
-      enableMfaFlags();
+    const withPlatform = async (
+      os: typeof Platform.OS,
+      run: () => Promise<void>,
+    ) => {
       const originalOS = Platform.OS;
-      Platform.OS = 'ios';
-      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
-      mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
-        AUTHENTICATION_TYPE.BIOMETRIC,
-      );
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'passkey',
-      });
+      Platform.OS = os;
       runInteractionsImmediately();
       jest.useFakeTimers();
-
       try {
+        await run();
+      } finally {
+        jest.useRealTimers();
+        restoreInteractions();
+        Platform.OS = originalOS;
+      }
+    };
+
+    it('waits longer after a passkey before the device biometrics prompt', async () => {
+      await withPlatform('ios', async () => {
+        enableMfaFlags();
+        offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+        mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+          AUTHENTICATION_TYPE.BIOMETRIC,
+        );
+        mockVerifyForSocialLogin.mockResolvedValue({
+          verifiedMethod: 'passkey',
+        });
+
         const { getByTestId, queryByTestId } = renderWithProvider(
           <OAuthRehydration />,
           { state: mfaState },
@@ -2371,28 +2406,20 @@ describe('OAuthRehydration', () => {
         expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
           AUTHENTICATION_TYPE.BIOMETRIC,
         );
-      } finally {
-        jest.useRealTimers();
-        restoreInteractions();
-        Platform.OS = originalOS;
-      }
+      });
     });
 
     it('uses the shorter delay when arrival MFA was not a passkey', async () => {
-      enableMfaFlags();
-      const originalOS = Platform.OS;
-      Platform.OS = 'ios';
-      offerDeviceBiometrics(AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION);
-      mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'totp',
-      });
-      runInteractionsImmediately();
-      jest.useFakeTimers();
+      await withPlatform('ios', async () => {
+        enableMfaFlags();
+        offerDeviceBiometrics(AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION);
+        mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
+          AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+        );
+        mockVerifyForSocialLogin.mockResolvedValue({
+          verifiedMethod: 'totp',
+        });
 
-      try {
         const { getByTestId, queryByTestId } = renderWithProvider(
           <OAuthRehydration />,
           { state: mfaState },
@@ -2415,28 +2442,20 @@ describe('OAuthRehydration', () => {
         expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
           AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
         );
-      } finally {
-        jest.useRealTimers();
-        restoreInteractions();
-        Platform.OS = originalOS;
-      }
+      });
     });
 
     it('keeps password unlock when the iOS biometrics prompt throws', async () => {
-      enableMfaFlags();
-      const originalOS = Platform.OS;
-      Platform.OS = 'ios';
-      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
-      mockRequestBiometricsAccessControlForIOS.mockRejectedValue(
-        new Error('prompt failed'),
-      );
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'totp',
-      });
-      runInteractionsImmediately();
-      jest.useFakeTimers();
+      await withPlatform('ios', async () => {
+        enableMfaFlags();
+        offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+        mockRequestBiometricsAccessControlForIOS.mockRejectedValue(
+          new Error('prompt failed'),
+        );
+        mockVerifyForSocialLogin.mockResolvedValue({
+          verifiedMethod: 'totp',
+        });
 
-      try {
         const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
           state: mfaState,
         });
@@ -2452,11 +2471,7 @@ describe('OAuthRehydration', () => {
             authType: AUTHENTICATION_TYPE.PASSWORD,
           }),
         );
-      } finally {
-        jest.useRealTimers();
-        restoreInteractions();
-        Platform.OS = originalOS;
-      }
+      });
     });
 
     it('still reaches password when reading the auth type throws', async () => {
@@ -2484,25 +2499,21 @@ describe('OAuthRehydration', () => {
     });
 
     it('stores biometric auth when Android accepts the prompt', async () => {
-      enableMfaFlags();
-      const originalOS = Platform.OS;
-      Platform.OS = 'android';
-      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
-      jest.mocked(authenticateAsync).mockResolvedValue({ success: true });
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'totp',
-      });
-      mockUnlockWallet.mockImplementationOnce(
-        async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
-          if (options.onBeforeNavigate) {
-            await options.onBeforeNavigate();
-          }
-        },
-      );
-      runInteractionsImmediately();
-      jest.useFakeTimers();
+      await withPlatform('android', async () => {
+        enableMfaFlags();
+        offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+        jest.mocked(authenticateAsync).mockResolvedValue({ success: true });
+        mockVerifyForSocialLogin.mockResolvedValue({
+          verifiedMethod: 'totp',
+        });
+        mockUnlockWallet.mockImplementationOnce(
+          async (options: { onBeforeNavigate?: () => Promise<void> } = {}) => {
+            if (options.onBeforeNavigate) {
+              await options.onBeforeNavigate();
+            }
+          },
+        );
 
-      try {
         const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
           state: mfaState,
         });
@@ -2527,29 +2538,21 @@ describe('OAuthRehydration', () => {
             }),
           }),
         );
-      } finally {
-        jest.useRealTimers();
-        restoreInteractions();
-        Platform.OS = originalOS;
-      }
+      });
     });
 
     it('keeps password auth when Android biometrics are cancelled', async () => {
-      enableMfaFlags();
-      const originalOS = Platform.OS;
-      Platform.OS = 'android';
-      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
-      jest.mocked(authenticateAsync).mockResolvedValue({
-        success: false,
-        error: 'user_cancel',
-      });
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'totp',
-      });
-      runInteractionsImmediately();
-      jest.useFakeTimers();
+      await withPlatform('android', async () => {
+        enableMfaFlags();
+        offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+        jest.mocked(authenticateAsync).mockResolvedValue({
+          success: false,
+          error: 'user_cancel',
+        });
+        mockVerifyForSocialLogin.mockResolvedValue({
+          verifiedMethod: 'totp',
+        });
 
-      try {
         const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
           state: mfaState,
         });
@@ -2566,29 +2569,21 @@ describe('OAuthRehydration', () => {
             authType: AUTHENTICATION_TYPE.PASSWORD,
           }),
         );
-      } finally {
-        jest.useRealTimers();
-        restoreInteractions();
-        Platform.OS = originalOS;
-      }
+      });
     });
 
     it('skips the biometric offer when Android reports biometrics are unavailable', async () => {
-      enableMfaFlags();
-      const originalOS = Platform.OS;
-      Platform.OS = 'android';
-      offerDeviceBiometrics(AUTHENTICATION_TYPE.BIOMETRIC);
-      jest.mocked(authenticateAsync).mockResolvedValue({
-        success: false,
-        error: 'not_enrolled',
-      });
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'totp',
-      });
-      runInteractionsImmediately();
-      jest.useFakeTimers();
+      await withPlatform('android', async () => {
+        enableMfaFlags();
+        offerDeviceBiometrics(AUTHENTICATION_TYPE.BIOMETRIC);
+        jest.mocked(authenticateAsync).mockResolvedValue({
+          success: false,
+          error: 'not_enrolled',
+        });
+        mockVerifyForSocialLogin.mockResolvedValue({
+          verifiedMethod: 'totp',
+        });
 
-      try {
         const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
           state: mfaState,
         });
@@ -2605,26 +2600,18 @@ describe('OAuthRehydration', () => {
             authType: AUTHENTICATION_TYPE.BIOMETRIC,
           }),
         );
-      } finally {
-        jest.useRealTimers();
-        restoreInteractions();
-        Platform.OS = originalOS;
-      }
+      });
     });
 
     it('keeps the previous auth type when the Android prompt throws', async () => {
-      enableMfaFlags();
-      const originalOS = Platform.OS;
-      Platform.OS = 'android';
-      offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
-      jest.mocked(authenticateAsync).mockRejectedValue(new Error('prompt'));
-      mockVerifyForSocialLogin.mockResolvedValue({
-        verifiedMethod: 'totp',
-      });
-      runInteractionsImmediately();
-      jest.useFakeTimers();
+      await withPlatform('android', async () => {
+        enableMfaFlags();
+        offerDeviceBiometrics(AUTHENTICATION_TYPE.PASSWORD);
+        jest.mocked(authenticateAsync).mockRejectedValue(new Error('prompt'));
+        mockVerifyForSocialLogin.mockResolvedValue({
+          verifiedMethod: 'totp',
+        });
 
-      try {
         const { getByTestId } = renderWithProvider(<OAuthRehydration />, {
           state: mfaState,
         });
@@ -2640,11 +2627,7 @@ describe('OAuthRehydration', () => {
             authType: AUTHENTICATION_TYPE.PASSWORD,
           }),
         );
-      } finally {
-        jest.useRealTimers();
-        restoreInteractions();
-        Platform.OS = originalOS;
-      }
+      });
     });
   });
 });

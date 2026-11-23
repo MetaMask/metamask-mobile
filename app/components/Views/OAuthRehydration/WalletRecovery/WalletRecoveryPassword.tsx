@@ -32,6 +32,11 @@ export interface WalletRecoveryPasswordProps {
   onChangePassword: (password: string) => void;
   onSubmit: () => void;
   onBack: () => void;
+  /**
+   * Opens reset-wallet / forgot-password. When set, a tertiary CTA is shown so
+   * users who cannot unlock are not stuck after MFA.
+   */
+  onForgotPassword?: () => void;
 }
 
 /**
@@ -46,6 +51,7 @@ const WalletRecoveryPassword = ({
   onChangePassword,
   onSubmit,
   onBack,
+  onForgotPassword,
 }: WalletRecoveryPasswordProps) => {
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
@@ -158,6 +164,17 @@ const WalletRecoveryPassword = ({
                 size: ButtonSize.Lg,
                 testID: LoginViewSelectors.LOGIN_BUTTON_ID,
               }}
+              tertiaryButtonProps={
+                onForgotPassword
+                  ? {
+                      children: strings('login.forgot_password'),
+                      onPress: onForgotPassword,
+                      isDisabled: isLoading,
+                      size: ButtonSize.Lg,
+                      testID: LoginViewSelectors.RESET_WALLET,
+                    }
+                  : undefined
+              }
             />
           </Box>
         </Box>

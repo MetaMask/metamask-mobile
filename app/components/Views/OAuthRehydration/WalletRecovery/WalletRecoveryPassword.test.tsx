@@ -29,6 +29,14 @@ const renderPassword = (
 };
 
 describe('WalletRecoveryPassword', () => {
+  beforeEach(() => {
+    jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('renders the password step with expected testIDs', () => {
     const { getByTestId, getByText } = renderPassword();
 
@@ -74,10 +82,6 @@ describe('WalletRecoveryPassword', () => {
   });
 
   it('shows an error message when provided', () => {
-    const announceSpy = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
     const { getByTestId, getByText } = renderPassword({
       password: 'x',
       error: 'Recovery failed',
@@ -85,8 +89,9 @@ describe('WalletRecoveryPassword', () => {
 
     expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeOnTheScreen();
     expect(getByText('Recovery failed')).toBeOnTheScreen();
-    expect(announceSpy).toHaveBeenCalledWith('Recovery failed');
-    announceSpy.mockRestore();
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'Recovery failed',
+    );
   });
 
   it('labels the password field for accessibility', () => {
@@ -120,6 +125,23 @@ describe('WalletRecoveryPassword', () => {
     fireEvent.press(getByTestId(WalletRecoverySelectorsIDs.PASSWORD_BACK));
 
     expect(props.onBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows forgot password when onForgotPassword is provided', () => {
+    const onForgotPassword = jest.fn();
+    const { getByTestId } = renderPassword({ onForgotPassword });
+
+    fireEvent.press(getByTestId(LoginViewSelectors.RESET_WALLET));
+
+    expect(onForgotPassword).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides forgot password when onForgotPassword is omitted', () => {
+    const { queryByTestId } = renderPassword();
+
+    expect(
+      queryByTestId(LoginViewSelectors.RESET_WALLET),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps submit disabled while loading', () => {
