@@ -106,6 +106,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebatePerps: 'Perps',
   rebateSwapsVolume: 'Swaps volume',
   rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',

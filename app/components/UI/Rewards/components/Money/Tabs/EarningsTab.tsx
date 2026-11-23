@@ -275,7 +275,7 @@ function breakdownRows(
 
   const trading: BreakdownRow = {
     key: 'trading',
-    iconName: IconName.Coin,
+    iconName: IconName.SwapVertical,
     label: localizedText.breakdownTrading,
     description: localizedText.breakdownTradingDescription,
     amount: musdAmount(
@@ -291,7 +291,7 @@ function breakdownRows(
   };
   const social: BreakdownRow = {
     key: 'social',
-    iconName: IconName.Copy,
+    iconName: IconName.People,
     label: localizedText.tradingCommissionsSection,
     description: localizedText.breakdownSocialDescription,
     amount: musdAmount(earnedByOthersLifetime(summary, 'SOCIAL_FOLLOW_TRADE')),
