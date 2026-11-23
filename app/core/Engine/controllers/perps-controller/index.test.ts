@@ -277,9 +277,9 @@ function buildTestInfrastructure(): PerpsPlatformDependencies {
     diskCache: {
       // Called synchronously in the constructor (#hydrateCacheFromDiskSync).
       getItemSync: jest.fn(() => null),
-      getItem: jest.fn(() => Promise.resolve(null)),
-      setItem: jest.fn(() => Promise.resolve()),
-      removeItem: jest.fn(() => Promise.resolve()),
+      getItem: jest.fn(async () => null),
+      setItem: jest.fn(async () => undefined),
+      removeItem: jest.fn(async () => undefined),
     },
     tracer: {
       trace: jest.fn(),
@@ -288,8 +288,8 @@ function buildTestInfrastructure(): PerpsPlatformDependencies {
       addBreadcrumb: jest.fn(),
     },
     rewards: {
-      getPerpsDiscountForAccount: jest.fn(() => Promise.resolve(0)),
-      getPerpsTradingFeeGrant: jest.fn(() => Promise.resolve(null)),
+      getPerpsDiscountForAccount: jest.fn(async () => 0),
+      getPerpsTradingFeeGrant: jest.fn(async () => null),
     },
   };
 }
@@ -364,7 +364,7 @@ describe('PerpsController saved settings upgrade', () => {
   ])(
     'restores saved $symbol leverage and margin mode with multi-provider mode off',
     ({ isTestnet, symbol, leverage, marginMode }) => {
-      const { controller } = buildRealController(() => Promise.resolve(null), {
+      const { controller } = buildRealController(async () => null, {
         isTestnet,
         // Persisted snapshots can predate the current package's state type.
         tradeConfigurations:
@@ -395,7 +395,7 @@ describe('PerpsController saved settings upgrade', () => {
       testnet: {},
     };
 
-    const { controller } = buildRealController(() => Promise.resolve(null), {
+    const { controller } = buildRealController(async () => null, {
       tradeConfigurations,
     });
 
@@ -411,8 +411,8 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
 
   describe('toggleWatchlistMarket — add', () => {
     it('calls putNotificationPreferences with the new symbol in hyperliquid.mainnet', async () => {
-      const { controller, putSpy } = buildRealController(() =>
-        Promise.resolve(buildSeedPrefs()),
+      const { controller, putSpy } = buildRealController(async () =>
+        buildSeedPrefs(),
       );
 
       await controller.toggleWatchlistMarket('BTC');
@@ -432,9 +432,7 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
     });
 
     it('keeps the local watchlist state after a successful AUS write', async () => {
-      const { controller } = buildRealController(() =>
-        Promise.resolve(buildSeedPrefs()),
-      );
+      const { controller } = buildRealController(async () => buildSeedPrefs());
 
       await controller.toggleWatchlistMarket('ETH');
 
@@ -452,8 +450,8 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
         },
       });
 
-      const { controller, putSpy } = buildRealController(() =>
-        Promise.resolve(seedWithSol),
+      const { controller, putSpy } = buildRealController(
+        async () => seedWithSol,
       );
       // Seed local state with SOL first
       await controller.toggleWatchlistMarket('SOL');
@@ -477,8 +475,8 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
 
   describe('toggleWatchlistMarket — remove', () => {
     it('calls putNotificationPreferences without the removed symbol', async () => {
-      const { controller, putSpy } = buildRealController(() =>
-        Promise.resolve(buildSeedPrefs()),
+      const { controller, putSpy } = buildRealController(async () =>
+        buildSeedPrefs(),
       );
       await controller.toggleWatchlistMarket('BTC'); // add
       putSpy.mockClear();
@@ -493,8 +491,8 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
     });
 
     it('reverts local state when the AUS write fails', async () => {
-      const { controller, putSpy } = buildRealController(() =>
-        Promise.resolve(buildSeedPrefs()),
+      const { controller, putSpy } = buildRealController(async () =>
+        buildSeedPrefs(),
       );
       await controller.toggleWatchlistMarket('BTC');
       expect(controller.getWatchlistMarkets()).toContain('BTC');
@@ -508,9 +506,7 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
 
   describe('AUS write is skipped when preferences blob is not yet initialised', () => {
     it('does not call putNotificationPreferences when getNotificationPreferences returns null', async () => {
-      const { controller, putSpy } = buildRealController(() =>
-        Promise.resolve(null),
-      );
+      const { controller, putSpy } = buildRealController(async () => null);
 
       await controller.toggleWatchlistMarket('BTC');
 
@@ -518,7 +514,7 @@ describe('PerpsController watchlist ↔ AuthenticatedUserStorageService', () => 
     });
 
     it('keeps the optimistic local update even when the remote write is skipped', async () => {
-      const { controller } = buildRealController(() => Promise.resolve(null));
+      const { controller } = buildRealController(async () => null);
 
       await controller.toggleWatchlistMarket('BTC');
 
