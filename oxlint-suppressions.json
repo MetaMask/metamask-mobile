@@ -4760,9 +4760,6 @@
     }
   },
   "app/components/UI/Earn/modals/EarnStrategySelectionModal/index.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     },
@@ -5285,16 +5282,6 @@
     },
     "typescript/unbound-method": {
       "count": 2
-    }
-  },
-  "app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 5
     }
   },
   "app/components/UI/Money/Views/MoneyPotentialEarningsView/MoneyPotentialEarningsView.tsx": {

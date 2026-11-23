@@ -34,7 +34,7 @@ describe('useMoneySplashRedirect', () => {
     jest.clearAllMocks();
     mockUseMoneyAccountDeposit.mockReturnValue({
       initiateDeposit: mockInitiateDeposit,
-    } as unknown as ReturnType<typeof useMoneyAccountDeposit>);
+    });
     mockUseMoneyHomeNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
     });
