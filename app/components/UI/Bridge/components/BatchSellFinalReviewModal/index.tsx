@@ -9,7 +9,6 @@ import {
   AvatarToken,
   AvatarTokenSize,
   BottomSheet,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -49,6 +48,8 @@ import type { BridgeToken } from '../../types';
 import { BatchSellQuoteDetails } from '../BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewModal.testIds';
 import { useTrackBatchSellReviewModalSubmitted } from '../../hooks/useTrackBatchSellReviewModalSubmitted';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const MAX_VISIBLE_SOURCE_TOKEN_AVATARS = 5;
 const SOURCE_TOKEN_AVATAR_OVERLAP = 12;
@@ -290,6 +291,7 @@ function NetworkFeeRow({
 }
 
 export function BatchSellFinalReviewModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const navigation = useNavigation<AppStackNavigationProp>();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
@@ -432,7 +434,8 @@ export function BatchSellFinalReviewModal() {
       testID={BatchSellFinalReviewModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           size: ButtonIconSize.Md,
@@ -440,7 +443,7 @@ export function BatchSellFinalReviewModal() {
         }}
       >
         {strings('bridge.batch_sell_review')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <YouSellRow
         sourceTokens={finalReviewQuoteData.sourceTokens}
         isTokenDetailsExpanded={isTokenDetailsExpanded}

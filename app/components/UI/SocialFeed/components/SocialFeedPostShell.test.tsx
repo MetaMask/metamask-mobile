@@ -1144,7 +1144,11 @@ describe('SocialFeedPostShell', () => {
               source: 'trader_feed',
               useBottomSheet: true,
               stayOnCurrentScreen: true,
-              copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
+              copyTradeOrigin: {
+                commentId: 'comment-1',
+                asset: 'BTC',
+                authorId: 'v1-trader-doji',
+              },
             }),
           }),
         );
@@ -1170,7 +1174,11 @@ describe('SocialFeedPostShell', () => {
             useBottomSheet: true,
             stayOnCurrentScreen: true,
             isCopyTrade: true,
-            copyTradeOrigin: { commentId: 'comment-1', asset: 'BTC' },
+            copyTradeOrigin: {
+              commentId: 'comment-1',
+              asset: 'BTC',
+              authorId: 'v1-trader-doji',
+            },
           },
         });
       });

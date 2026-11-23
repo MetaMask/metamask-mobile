@@ -56,10 +56,14 @@ import SocialFeedGif from './SocialFeedGif';
 import { SocialFeedWindowOffsetContext } from './SocialFeedWindowOffsetContext';
 import { useSocialFeedTracking } from '../socialFeedTracking';
 import { useSocialFeedSurface } from '../SocialFeedSurface';
-import { socialFeedPostAnalytics } from '../utils/socialPositionAnalytics';
+import {
+  socialFeedPostAnalytics,
+  socialFeedPostSubject,
+} from '../utils/socialPositionAnalytics';
 import {
   SocialEvent,
   type SocialBlockedReason,
+  type SocialCopyTradeAnalyticsProperties,
   type SocialPositionAnalyticsProperties,
 } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
@@ -68,7 +72,7 @@ export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
   onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
   onCopyTradeInteraction?: (
-    position: SocialPositionAnalyticsProperties,
+    position: SocialCopyTradeAnalyticsProperties,
   ) => void;
   onReactionInteraction?: (
     action: 'added' | 'removed',
@@ -100,7 +104,7 @@ export interface SocialFeedPostShellProps {
 
 interface ShellCopyTradeTracking {
   postAnalytics: SocialPositionAnalyticsProperties;
-  notifyCopy?: (position: SocialPositionAnalyticsProperties) => void;
+  notifyCopy?: (position: SocialCopyTradeAnalyticsProperties) => void;
   notifyBlocked?: (
     position: SocialPositionAnalyticsProperties,
     reason: SocialBlockedReason,
@@ -126,10 +130,10 @@ const useShellCopyTrade = (
         notifyBlocked?.(postAnalytics, blockedReason);
         return false;
       }
-      notifyCopy?.(postAnalytics);
+      notifyCopy?.({ ...postAnalytics, ...socialFeedPostSubject(post) });
       return true;
     },
-    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, postAnalytics],
+    [getCopyTradeBlockedReason, notifyBlocked, notifyCopy, post, postAnalytics],
   );
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.

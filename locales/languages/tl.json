@@ -9986,7 +9986,6 @@
     },
     "action": {
       "add": "Idagdag",
-      "transfer": "Ipadala",
       "card": "Card",
       "details": "Mga detalye"
     },
@@ -10108,8 +10107,6 @@
       "contact_support": "Kontakin ang suporta"
     },
     "transfer_sheet": {
-      "title": "Magpadala ng mga pondo sa",
-      "between_accounts": "Iba pang account",
       "perps_account": "Perps account",
       "predictions_account": "Account sa Predictions",
       "send_external": "Panlabas na address",

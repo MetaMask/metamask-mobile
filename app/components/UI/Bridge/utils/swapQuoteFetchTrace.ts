@@ -1,5 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
+import type { Hex } from '@metamask/utils';
 import {
+  formatAddressToAssetId,
   formatChainIdToCaip,
   SwapFeatureTag,
   type GenericQuoteRequest,
@@ -20,6 +22,7 @@ import {
   YIELD_AFTER_FIRST_QUOTE_AB_KEY,
   selectFirstQuoteAbTestVariant,
 } from './firstQuoteFlushAbTestConfig';
+import { normalizeTokenAddress } from './tokenUtils';
 
 export type SwapQuoteFetchTraceResult =
   | 'success'
@@ -30,8 +33,26 @@ export type SwapQuoteFetchTraceResult =
 interface StartSwapQuoteFetchTraceParams {
   srcChainId?: GenericQuoteRequest['srcChainId'];
   destChainId?: GenericQuoteRequest['destChainId'];
+  srcTokenAddress?: GenericQuoteRequest['srcTokenAddress'];
+  destTokenAddress?: GenericQuoteRequest['destTokenAddress'];
   isRefresh: boolean;
 }
+
+const toAssetId = (
+  address?: string,
+  chainId?: GenericQuoteRequest['srcChainId'],
+): ReturnType<typeof formatAddressToAssetId> => {
+  try {
+    return address === undefined
+      ? undefined
+      : formatAddressToAssetId(
+          normalizeTokenAddress(address, chainId as Hex),
+          chainId,
+        );
+  } catch {
+    return undefined;
+  }
+};
 
 let activeTraceId: string | undefined;
 let stopWatchingQuotes: (() => void) | undefined;
@@ -108,6 +129,8 @@ export const swapQuoteFetchTrace = {
   start({
     srcChainId,
     destChainId,
+    srcTokenAddress,
+    destTokenAddress,
     isRefresh,
   }: StartSwapQuoteFetchTraceParams): string {
     if (activeTraceId) {
@@ -148,6 +171,8 @@ export const swapQuoteFetchTrace = {
     activeTraceId = id;
     try {
       const state = ReduxService.store.getState();
+      const srcToken = toAssetId(srcTokenAddress, srcChainId);
+      const destToken = toAssetId(destTokenAddress, destChainId);
       annotateTraceByRequest(
         { name: TraceName.SwapQuoteFetch, id },
         {
@@ -163,6 +188,10 @@ export const swapQuoteFetchTrace = {
             state,
             YIELD_AFTER_FIRST_QUOTE_AB_KEY,
           ),
+          ...(srcToken && { src_token: srcToken }),
+          ...(destToken && { dest_token: destToken }),
+          ...(srcToken &&
+            destToken && { token_pair: `${srcToken}>${destToken}` }),
         },
       );
     } catch {
