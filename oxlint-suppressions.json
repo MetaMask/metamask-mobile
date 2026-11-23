@@ -9570,11 +9570,6 @@
       "count": 2
     }
   },
-  "app/components/UI/PredictNext/capabilities/venueCapabilities.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/closure/PredictCrossSurface.view.test.tsx": {
     "typescript/promise-function-async": {
       "count": 1
@@ -9700,11 +9695,6 @@
     }
   },
   "app/components/UI/PredictNext/navigation/entry/usePredictEntryActions.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/PredictNext/navigation/feedScreens.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
@@ -25851,7 +25841,7 @@
   },
   "tests/flows/wallet-home-readiness.test.ts": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 1
     }
   },
   "tests/flows/wallet-home-readiness.ts": {
@@ -26773,9 +26763,6 @@
     }
   },
   "tests/page-objects/wallet/AccountListBottomSheet.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
     "typescript/promise-function-async": {
       "count": 8
     }

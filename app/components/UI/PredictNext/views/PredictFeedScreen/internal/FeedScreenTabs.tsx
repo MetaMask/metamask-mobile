@@ -8,11 +8,11 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { FeedScreenDefinition } from '../../../navigation/feedScreens';
+import type { FeedScreenTab } from '../../../navigation/feedScreens';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen.testIds';
 
 interface FeedScreenTabsProps {
-  tabs: FeedScreenDefinition['tabs'];
+  tabs: readonly Pick<FeedScreenTab, 'id' | 'label'>[];
   selectedTabId: string;
   onTabSelect: (tabId: string) => void;
 }
