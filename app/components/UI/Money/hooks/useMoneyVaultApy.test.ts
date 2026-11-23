@@ -45,9 +45,18 @@ interface VaultFixtureOptions {
   vaultAddress?: string;
 }
 
-interface BaseVaultConfigFixture {
-  boringVault?: string;
-  chainId?: string;
+interface SetupOptions {
+  remoteApyConfig?: MoneyVaultApyRemoteConfig;
+  query?: QueryState;
+  isEntitled?: boolean;
+  premiumRate?: string;
+  premiumRateLoading?: boolean;
+  premiumVaultAddress?: string;
+  baseVaultConfig?: {
+    boringVault?: string;
+    chainId?: string;
+  };
+  hasBaseVaultConfig?: boolean;
 }
 
 const DEFAULT_REMOTE_APY_CONFIG: MoneyVaultApyRemoteConfig = {
@@ -95,14 +104,14 @@ const setup = ({
   remoteApyConfig = DEFAULT_REMOTE_APY_CONFIG,
   query = DEFAULT_QUERY,
   isEntitled = false,
-  premiumRate = undefined as string | undefined,
+  premiumRate,
   premiumRateLoading = false,
-  premiumVaultAddress = undefined as string | undefined,
+  premiumVaultAddress,
   baseVaultConfig = {
     boringVault: BASE_VAULT_ADDRESS,
-  } as BaseVaultConfigFixture,
+  },
   hasBaseVaultConfig = true,
-} = {}) => {
+}: SetupOptions = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectMoneyVaultApyRemoteConfig) {
       return remoteApyConfig;
