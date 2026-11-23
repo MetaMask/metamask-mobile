@@ -117,7 +117,10 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
     isPerpsLighterConfirmationEnabled() &&
     isLighterProviderEnabled() &&
     providerFlagEnabled &&
-    hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw]);
+    hasTransactionType(transactionMeta, [
+      TransactionType.perpsWithdraw,
+      TransactionType.perpsLighterWithdraw,
+    ]);
 
   const closeSheet = useCallback(() => {
     setIsSheetVisible(false);
@@ -142,7 +145,7 @@ export const PerpsWithdrawFromRow: React.FC<PerpsWithdrawFromRowProps> = ({
 
   return (
     <>
-      <Box>
+      <Box twClassName="-mx-2">
         <KeyValueSelect
           accessibilityLabel={`${rowLabel}, ${selectedLabel}, ${selectedBalance}`}
           keyLabel={rowLabel}

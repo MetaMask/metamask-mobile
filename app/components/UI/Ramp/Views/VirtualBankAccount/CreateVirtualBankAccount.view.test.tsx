@@ -20,6 +20,9 @@ import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccount
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
 import { VbaOnboardingRoutes } from './routes';
 
+// React Query notifies this screen from setTimeout(0). Without this, those
+// updates land outside act() and every case in this file logs a warning.
+// Kept here, not in the shared renderer, so other VBA suites keep real timing.
 notifyManager.setScheduler((callback) => {
   act(callback);
 });
@@ -329,6 +332,8 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       getByTestId(CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON),
     );
 
-    expect(await findByTestId(VbaRendererTestIds.CALLER)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(getByTestId(VbaRendererTestIds.CALLER)).toBeOnTheScreen();
+    });
   });
 });

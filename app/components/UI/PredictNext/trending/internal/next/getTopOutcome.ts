@@ -1,4 +1,4 @@
-import { findGameSelectionQuote, getEventGame } from '../../../events/game';
+import { findGameTradingQuote, getEventGame } from '../../../events/game';
 import { getAskPricePercent } from '../../../events/shared/formatting';
 import { isOutcomeTradeable } from '../../../events/shared/tradeable';
 import type {
@@ -31,16 +31,18 @@ const pickHighest = (candidates: TopOutcome[]): TopOutcome | undefined =>
 /**
  * The Outcome a search row shows as "{percent} chance on {label}", like the
  * Polymarket row: the tradeable Outcome with the highest Ask Price. A Game
- * names the Team its full-game moneyline backs; a single-Market Event names
- * the Market's question; any other Event names the Yes Outcome of each
- * Market. Undefined when no Outcome has a current buy quote.
+ * names the Team from the Yes side of its full-game moneyline. The Game
+ * Selection tag may sit on the No side and is chart association only. A
+ * single-Market Event names the Market's question; any other Event names the
+ * Yes Outcome of each Market. Undefined when no Outcome has a current buy
+ * quote.
  */
 export const getTopOutcome = (event: PredictEvent): TopOutcome | undefined => {
   const game = getEventGame(event);
   if (game) {
     return pickHighest(
       GAME_SELECTIONS.flatMap((selection) => {
-        const quote = findGameSelectionQuote(event, selection);
+        const quote = findGameTradingQuote(event, selection);
         const percent = getAskPricePercent(quote?.outcome.askPrice);
         if (
           !quote ||

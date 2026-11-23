@@ -12,14 +12,13 @@ Any given component to be placed within the badge.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                              | Yes                                                     |
+| ReactNode                                           | Yes                                                     |
 
 ## Usage
 
 ```javascript
-// Change import path to relative path.
-import BadgeBase from 'app/component-library/components/Badges/foundation/BadgeBase';
-import Tag from 'app/component-library/components/Tags/Tag';
+import BadgeBase from '#app/component-library/components/Badges/Badge/foundation/BadgeBase';
+import Tag from '#app/component-library/components/Tags/Tag';
 
 <BadgeBase>
     <Tag label={'Children'} />

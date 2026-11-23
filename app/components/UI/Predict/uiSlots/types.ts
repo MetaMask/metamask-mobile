@@ -9,8 +9,12 @@ export type PredictDiscoveryListWidget = {
 };
 
 export type PredictHomepageMarketSlotReferenceItem =
-  | { type: 'event'; id: string; slug: string }
-  | { type: 'series'; seriesId: PredictHomepageSeriesId };
+  | { type: 'event'; id: string; slug: string; iconName?: string }
+  | {
+      type: 'series';
+      seriesId: PredictHomepageSeriesId;
+      iconName?: string;
+    };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictHomepageMarketSlotReference = {

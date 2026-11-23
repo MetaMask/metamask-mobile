@@ -1,8 +1,12 @@
+/**
+ * Journey across Add money, the pending screen, and the KYC retry screen
+ * after a proof-of-address retry. There is no single screen component for
+ * this path.
+ */
 import '../../../../../../tests/component-view/mocks';
 import { act, waitFor } from '@testing-library/react-native';
 import {
   getDefaultKycControllerState,
-  type KycControllerState,
   type KycDisclaimersCatalog,
   type KycProviderFlowStatus,
   type KycSessionStatus,
@@ -10,13 +14,14 @@ import {
 import type { VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot } from '@metamask/ramps-controller';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
-import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   openVbaBankAccountFromMoney,
+  publishKycSession,
   renderVbaMoneyEntry,
   restoreVbaReduxServiceStore,
 } from '../../../../../../tests/component-view/renderers/vba';
+import { VBA_KYC_VENDOR } from './constants';
 import { KycRejectedSelectorsIDs } from '../../../KYC/Views/Status/KycRejected';
 import { KycPendingSelectorsIDs } from '../../../KYC/Views/Status/KycPending';
 import { KycSumSubSelectorsIDs } from '../../../KYC/Views/SumSub/SumSubKyc';
@@ -52,7 +57,7 @@ const proofOfAddressRetry = {
 const proofOfAddressRetrySession = {
   id: 'kyc-session-poa-retry',
   externalUserId: 'external-user-poa-retry',
-  vendor: 'iron',
+  vendor: VBA_KYC_VENDOR,
   vendorStatus: 'retry',
   finalStatus: 'retry',
   kycStatus: 'retry',
@@ -83,52 +88,6 @@ const hydrateVbaOnboarding = jest.mocked(
   Engine.context.RampsController.hydrateVbaOnboarding,
 );
 
-let previousEngineState: PropertyDescriptor | undefined;
-let didAssignEngineState = false;
-
-const publishKycSession = (
-  store: ReturnType<typeof renderVbaMoneyEntry>['store'],
-  sessionStatus: KycSessionStatus,
-): void => {
-  const kycState: KycControllerState = {
-    ...getDefaultKycControllerState(),
-    email: 'ada@example.com',
-    vendor: 'iron',
-    geoCountry: 'BRA',
-    providerFlowStatus: 'submitted',
-    sessionStatus,
-  };
-  if (!didAssignEngineState) {
-    previousEngineState = Object.getOwnPropertyDescriptor(Engine, 'state');
-    didAssignEngineState = true;
-  }
-  // updateBgState copies Engine.state[key] into Redux, so other keys must
-  // keep their values. The controller instance sees the same state.
-  const currentEngineState = (
-    Engine as unknown as { state?: Record<string, unknown> }
-  ).state;
-  Object.defineProperty(Engine, 'state', {
-    configurable: true,
-    enumerable: true,
-    writable: true,
-    value: { ...currentEngineState, KycController: kycState },
-  });
-  Engine.context.KycController.state = kycState;
-  store.dispatch(updateBgState({ key: 'KycController' }));
-};
-
-const restoreEngineKycState = (): void => {
-  if (!didAssignEngineState) {
-    return;
-  }
-  didAssignEngineState = false;
-  if (previousEngineState) {
-    Object.defineProperty(Engine, 'state', previousEngineState);
-    return;
-  }
-  Reflect.deleteProperty(Engine, 'state');
-};
-
 describeForPlatforms('VBA proof-of-address retry', () => {
   const previousKycState = Engine.context.KycController.state;
 
@@ -144,23 +103,14 @@ describeForPlatforms('VBA proof-of-address retry', () => {
     Engine.context.KycController.state = {
       ...getDefaultKycControllerState(),
       email: 'ada@example.com',
-      vendor: 'iron',
+      vendor: VBA_KYC_VENDOR,
       geoCountry: 'BRA',
     };
   });
 
   afterEach(() => {
     Engine.context.KycController.state = previousKycState;
-    restoreEngineKycState();
     restoreVbaReduxServiceStore();
-    launchProviderFlow.mockReset();
-    launchProviderFlow.mockResolvedValue('abandoned');
-    hydrateVbaOnboarding.mockReset();
-    hydrateVbaOnboarding.mockResolvedValue(emptyOnboardingSnapshot);
-    fetchSessionDisclaimers.mockReset();
-    fetchSessionDisclaimers.mockResolvedValue(emptySessionCatalog);
-    recordSessionDisclaimers.mockReset();
-    recordSessionDisclaimers.mockResolvedValue(undefined);
   });
 
   it('shows the retry screen after submit, pending, and a retry status, and launches SumSub once', async () => {
@@ -180,13 +130,12 @@ describeForPlatforms('VBA proof-of-address retry', () => {
 
     await openVbaBankAccountFromMoney(findByTestId);
 
-    expect(
-      await findByTestId(
-        KycPendingSelectorsIDs.CONTAINER,
-        {},
-        { timeout: ONBOARDING_STEP_TIMEOUT_MS },
-      ),
-    ).toBeOnTheScreen();
+    await waitFor(
+      () => {
+        expect(getByTestId(KycPendingSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+      },
+      { timeout: ONBOARDING_STEP_TIMEOUT_MS },
+    );
     expect(getByText(strings('kyc.kyc_taking_longer.title'))).toBeOnTheScreen();
     expect(launchProviderFlow).toHaveBeenCalledTimes(1);
 
@@ -238,7 +187,7 @@ describeForPlatforms('VBA proof-of-address retry', () => {
             KycController: {
               ...getDefaultKycControllerState(),
               email: 'ada@example.com',
-              vendor: 'iron',
+              vendor: VBA_KYC_VENDOR,
               geoCountry: 'BRA',
               providerFlowStatus: 'submitted',
               sessionStatus: proofOfAddressRetrySession,

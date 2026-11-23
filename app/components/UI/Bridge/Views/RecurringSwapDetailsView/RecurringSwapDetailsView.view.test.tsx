@@ -3,6 +3,7 @@ import { userEvent, within } from '@testing-library/react-native';
 import NetInfo from '@react-native-community/netinfo';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import ToastService from '../../../../../core/ToastService';
 import { renderShortAddress } from '../../../../../util/address';
 import { formatTimestampToDateTime } from '../../../../../util/date';
 import {
@@ -65,11 +66,18 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
       isInternetReachable: true,
     });
     setupRecurringOrdersDataServiceMock();
+    ToastService.toastRef = {
+      current: {
+        showToast: jest.fn(),
+        closeToast: jest.fn(),
+      },
+    };
   });
 
   afterEach(() => {
     clearRecurringOrdersDataServiceMock();
     netInfoMock.__resetMockNetInfo();
+    ToastService.resetForTesting();
     jest.restoreAllMocks();
   });
 
@@ -180,11 +188,8 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
     expect(renderResult.getByText(SWAP_AGAIN_BUTTON_LABEL)).toBeOnTheScreen();
   });
 
-  it('shows skipped attempt details without transaction-only content', async () => {
+  it('shows skipped attempt details and opens Ramps for the source token', async () => {
     const { renderResult } = await openSwapDetails(2);
-    const consoleLogSpy = jest
-      .spyOn(console, 'log')
-      .mockImplementation(() => undefined);
 
     expect(
       within(
@@ -228,8 +233,24 @@ describeForPlatforms('RecurringSwapDetailsView', () => {
 
     await userEvent.press(addFundsButton);
 
-    expect(consoleLogSpy).toHaveBeenCalledWith(
-      '[RecurringSwapDetails:AddFunds] Add funds pressed',
+    const rampRouteParams = await renderResult.findByTestId(
+      `route-${Routes.RAMP.TOKEN_SELECTION}-params`,
+    );
+    expect(rampRouteParams).toHaveTextContent(
+      `"screen":"${Routes.RAMP.TOKEN_SELECTION_ROOT}"`,
+      { exact: false },
+    );
+    expect(rampRouteParams).toHaveTextContent(
+      `"screen":"${Routes.RAMP.AMOUNT_INPUT}"`,
+      { exact: false },
+    );
+    expect(rampRouteParams).toHaveTextContent(
+      `"assetId":"${MOCK_RECURRING_OPEN_ORDER.src.asset.assetId}"`,
+      { exact: false },
+    );
+    expect(rampRouteParams).not.toHaveTextContent(
+      MOCK_RECURRING_OPEN_ORDER.dest.asset.assetId,
+      { exact: false },
     );
   });
 

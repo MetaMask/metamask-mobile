@@ -360,7 +360,7 @@ describe('Active Trader Flow', () => {
     fireEvent.press(dismissButton);
 
     // ── PHASE 8: Bulk close all positions ────────────────────────────────
-    // Trader reviews close-all summary: title, description, margin, receive,
+    // Trader reviews close-all summary: title, description, receive, P&L,
     // Keep Positions and Close All buttons
     cleanup();
     renderPerpsCloseAllPositionsView({
@@ -375,10 +375,13 @@ describe('Active Trader Flow', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.margin')),
+      screen.queryByText(strings('perps.close_position.margin')),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('perps.close_position.total_receive')),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(strings('perps.close_position.you_receive')),
+      screen.getByText(strings('perps.close_position.included_pnl')),
     ).toBeOnTheScreen();
     expect(
       screen.getByText(strings('perps.close_all_modal.keep_positions')),

@@ -1,6 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { isNestedPhase } from './PhaseTimer.ts';
 
 export const DEFAULT_INPUT_DIR = 'tests/test-reports/appium-timings';
 
@@ -118,7 +119,10 @@ export function aggregateTimingSuites(
       let testPhaseSum = 0;
       for (const [phase, ms] of Object.entries(test.phases ?? {})) {
         if (typeof ms !== 'number' || !Number.isFinite(ms)) continue;
-        testPhaseSum += ms;
+        // Nested steps are already inside their parent phase.
+        if (!isNestedPhase(phase)) {
+          testPhaseSum += ms;
+        }
         const key = `${platform}::${phase}`;
         const bucket = phaseByPlatform.get(key) ?? [];
         bucket.push(ms);

@@ -4,6 +4,7 @@ import {
   define,
   literal,
   object,
+  optional,
   size,
   union,
 } from '@metamask/superstruct';
@@ -19,6 +20,7 @@ import {
 
 const MAX_PREDICT_HOMEPAGE_MARKET_SLOTS = 10;
 const MAX_PREDICT_HOMEPAGE_EVENT_IDENTIFIER_LENGTH = 512;
+const PREDICT_HOMEPAGE_ICON_NAME_PATTERN = /^[A-Za-z][A-Za-z0-9]{0,63}$/u;
 
 const eventIdentifier = define<string>(
   'non-blank Predict event identifier',
@@ -30,6 +32,13 @@ const eventIdentifier = define<string>(
 const seriesId = define<PredictHomepageSeriesId>(
   'supported Predict homepage series',
   isPredictHomepageSeriesId,
+);
+// Accepts any well-formed name so a design-system icon added after this build
+// falls back at render time instead of rejecting the whole slot.
+const iconName = define<string>(
+  'Predict homepage row icon name',
+  (value) =>
+    typeof value === 'string' && PREDICT_HOMEPAGE_ICON_NAME_PATTERN.test(value),
 );
 const discoveryListWidget = object({
   type: literal('predict-discovery-list'),
@@ -48,8 +57,13 @@ const marketSlotsReference = object({
             type: literal('event'),
             id: eventIdentifier,
             slug: eventIdentifier,
+            iconName: optional(iconName),
           }),
-          object({ type: literal('series'), seriesId }),
+          object({
+            type: literal('series'),
+            seriesId,
+            iconName: optional(iconName),
+          }),
         ]),
       ),
       1,
