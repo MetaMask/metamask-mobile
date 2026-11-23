@@ -8,6 +8,7 @@ import type { SocialV1FeedPost } from '../types';
 import {
   buildSocialPositionAnalytics,
   socialFeedPostAnalytics,
+  socialFeedPostSubject,
 } from './socialPositionAnalytics';
 
 const post = (
@@ -82,5 +83,23 @@ describe('socialFeedPostAnalytics', () => {
       trader_address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
       trader_username: 'frog.eth',
     });
+  });
+});
+
+describe('socialFeedPostSubject', () => {
+  it('returns the source post id and its author trader id', () => {
+    const feedPost = {
+      ...post(mockOpenSpotFeedItem()),
+      commentId: 'comment-1',
+    };
+    expect(socialFeedPostSubject(feedPost)).toEqual({
+      post_id: 'comment-1',
+      author_trader_id: feedPost.item.author.id,
+    });
+  });
+
+  it('omits the post id when the post has no comment id', () => {
+    const feedPost = post(mockOpenSpotFeedItem());
+    expect(socialFeedPostSubject(feedPost)).not.toHaveProperty('post_id');
   });
 });
