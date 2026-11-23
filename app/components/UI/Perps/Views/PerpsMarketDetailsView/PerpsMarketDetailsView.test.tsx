@@ -336,6 +336,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockUseScreenTransitionComplete = jest.fn(() => true);
+jest.mock('../../../../hooks/useScreenTransitionComplete', () => ({
+  __esModule: true,
+  default: () => mockUseScreenTransitionComplete(),
+  useScreenTransitionComplete: () => mockUseScreenTransitionComplete(),
+}));
+
 jest.mock('../../hooks/useHasExistingPosition', () => ({
   useHasExistingPosition: () => mockUseHasExistingPosition(),
 }));
@@ -968,6 +975,7 @@ describe('PerpsMarketDetailsView', () => {
   // Set up default mock return values before each test
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseScreenTransitionComplete.mockReturnValue(true);
     mockPerpsModeValue = 'lite';
     mockMarketContextKey = 'testnet|hyperliquid|1';
     mockMarketContextReady = true;
@@ -1479,6 +1487,23 @@ describe('PerpsMarketDetailsView', () => {
     );
 
     expect(queryByTestId(PerpsModeToggleSelectorsIDs.LITE_SEGMENT)).toBeNull();
+  });
+
+  it('holds the statistics card back until the opening transition completes', () => {
+    mockUseScreenTransitionComplete.mockReturnValue(false);
+
+    const { queryByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(
+      queryByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H),
+    ).toBeNull();
   });
 
   it('renders statistics items', () => {
