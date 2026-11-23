@@ -339,7 +339,7 @@ export function parseCatalog(markdown: string): SyncRow[] {
     if (mode === 'skip') {
       continue;
     }
-    if (!syncUrl || !/^https:\/\//u.test(syncUrl)) {
+    if (!syncUrl?.startsWith('https://')) {
       throw new Error(`Sync config "${id}" needs an https Sync URL.`);
     }
     const [file, rest = ''] = mock.split('#');

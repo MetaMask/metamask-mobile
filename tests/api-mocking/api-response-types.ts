@@ -107,7 +107,8 @@ export type TokenSuggestedOccurrenceFloorsV1Response =
 export type TokenListResponse = TokenListToken[];
 
 /**
- * `bridge.api` `GET /getTokens`. The API also sends these fields, which
+ * `bridge.api` `GET /getTokens`. This legacy endpoint returns the V1 asset
+ * (`BridgeAsset`), not `BridgeAssetV2`. The API also sends these fields, which
  * `BridgeAssetSchema` does not validate.
  */
 export type BridgeGetTokensResponse = (BridgeAsset & {

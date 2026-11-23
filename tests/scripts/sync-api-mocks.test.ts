@@ -268,7 +268,7 @@ describe('isSuspiciousRewrite', () => {
 
 describe('parseCatalog', () => {
   const header = '| ID | Mode | Sync URL | Mock | Options |\n| --- | --- | --- | --- | --- |';
-  const catalog = (rows: string[], heading = '## Sync config') =>
+  const catalog = (rows: string[], heading = '## Sync config'): string =>
     `# Catalog\n\n${heading}\n\nText.\n\n${header}\n${rows.join('\n')}\n\n## Next\n\n| not | parsed |\n`;
 
   it('parses write and report-only rows and ignores skip rows', () => {
@@ -435,7 +435,10 @@ describe('findMockResponse', () => {
 });
 
 describe('syncRow', () => {
-  const makeDeps = (mock: Json, live: Json | Error) => {
+  const makeDeps = (
+    mock: Json,
+    live: Json | Error,
+  ): { deps: SyncDeps; writeMock: jest.Mock } => {
     const writeMock = jest.fn().mockResolvedValue(undefined);
     const deps: SyncDeps = {
       loadMock: jest.fn().mockResolvedValue(mock),
