@@ -43,8 +43,14 @@ export function useWalletHomeOnboardingChecklistHomeViewed({
     if (!isFocused || visitId === 0) {
       return;
     }
+    // Wait for the balance to resolve. Firing during the shell would dedupe the
+    // post-resolution fire for the same visit and step, so the impression would
+    // never carry the A/B `active_ab_tests` metadata.
+    if (isAwaitingBalance) {
+      return;
+    }
 
-    const displayIdx = isAwaitingBalance ? 0 : stepIndex;
+    const displayIdx = stepIndex;
     if (displayIdx > steps.length - 1) {
       return;
     }
@@ -73,7 +79,7 @@ export function useWalletHomeOnboardingChecklistHomeViewed({
           section_name: sectionName,
           section_index: cappedVisual,
           total_sections_loaded: steps.length,
-          is_empty: isAwaitingBalance && cappedVisual === 0,
+          is_empty: false,
           item_count: 1,
           entry_point: entryPoint,
           app_session_id: appSessionId,

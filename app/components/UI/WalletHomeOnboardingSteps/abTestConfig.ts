@@ -48,8 +48,6 @@ export const FUND_STEP_RECEIVE_AB_TEST_EXPOSURE_OPTIONS = {
 /**
  * Only fund-step traffic is tagged: the same events fire from other surfaces
  * (other checklist steps, home action buttons, the main ramps entry points).
- * `is_empty: true` on Home Viewed is the balance-loading shell, before exposure
- * is recorded, so it is never tagged.
  */
 export const FUND_STEP_RECEIVE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping =
   {
@@ -61,9 +59,6 @@ export const FUND_STEP_RECEIVE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapping
       EVENT_NAME.ACTION_BUTTON_CLICKED,
       EVENT_NAME.ADDRESS_LIST_VIEWED,
     ],
-    excludeWhenPropertiesMatch: {
-      is_empty: true,
-    },
     eventPropertyRequirements: {
       [EVENT_NAME.HOME_VIEWED]: {
         interaction_type: WALLET_HOME_ONBOARDING_CHECKLIST_INTERACTION_TYPE,

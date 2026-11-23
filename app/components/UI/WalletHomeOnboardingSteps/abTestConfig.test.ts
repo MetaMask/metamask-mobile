@@ -44,12 +44,6 @@ describe('TMCU-1939 fund step Receive button A/B test', () => {
     });
   });
 
-  it('never tags the balance-loading Home Viewed shell', () => {
-    expect(
-      FUND_STEP_RECEIVE_AB_TEST_ANALYTICS_MAPPING.excludeWhenPropertiesMatch,
-    ).toEqual({ is_empty: true });
-  });
-
   it('is registered for shared analytics enrichment', () => {
     expect(AB_TEST_ANALYTICS_MAPPINGS).toContain(
       FUND_STEP_RECEIVE_AB_TEST_ANALYTICS_MAPPING,

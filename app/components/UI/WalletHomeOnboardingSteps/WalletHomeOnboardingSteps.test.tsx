@@ -1079,33 +1079,40 @@ describe('WalletHomeOnboardingSteps', () => {
       expect(queryByTestId(receiveTestId)).toBeNull();
     });
 
-    it('tracks exposure only when the fund step is visible and the balance has resolved', () => {
+    it('tracks exposure when the fund step is visible with the balance resolved', () => {
       renderFundStep();
+
       expect(mockUseABTest).toHaveBeenLastCalledWith(
         FUND_STEP_RECEIVE_AB_KEY,
         FUND_STEP_RECEIVE_VARIANTS,
         expect.objectContaining({ trackExposure: true }),
       );
+    });
 
-      mockUseABTest.mockClear();
+    it('does not track exposure while the balance is loading', () => {
       renderFundStep({ isAwaitingBalance: true });
+
       expect(mockUseABTest).toHaveBeenLastCalledWith(
         FUND_STEP_RECEIVE_AB_KEY,
         FUND_STEP_RECEIVE_VARIANTS,
         expect.objectContaining({ trackExposure: false }),
       );
+    });
 
-      mockUseABTest.mockClear();
+    it('does not track exposure on a later checklist step', () => {
       renderFundStep({ stepIndex: 1 });
+
       expect(mockUseABTest).toHaveBeenLastCalledWith(
         FUND_STEP_RECEIVE_AB_KEY,
         FUND_STEP_RECEIVE_VARIANTS,
         expect.objectContaining({ trackExposure: false }),
       );
+    });
 
-      mockUseABTest.mockClear();
+    it('does not track exposure when the screen is not focused', () => {
       mockUseIsFocused.mockReturnValue(false);
       renderFundStep();
+
       expect(mockUseABTest).toHaveBeenLastCalledWith(
         FUND_STEP_RECEIVE_AB_KEY,
         FUND_STEP_RECEIVE_VARIANTS,
