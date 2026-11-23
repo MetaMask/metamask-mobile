@@ -20,9 +20,7 @@ function getInitRequestMock(): jest.Mocked<
 
   return {
     ...buildMessengerClientInitRequestMock(baseMessenger),
-    controllerMessenger: getMarketingConsentSyncServiceMessenger(
-      baseMessenger as never,
-    ),
+    controllerMessenger: getMarketingConsentSyncServiceMessenger(baseMessenger),
   };
 }
 
