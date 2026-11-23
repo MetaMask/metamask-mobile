@@ -80,5 +80,5 @@ export const selectMarketingConsentDecisionMade = createSelector(
 export const selectMarketingConsent = createSelector(
   selectAnalyticsOptedInToMarketing,
   selectMarketingConsentDecisionMade,
-  (optedIn, decided) => (decided ? optedIn === true : null),
+  (optedIn, decided) => (decided ? Boolean(optedIn) : null),
 );
