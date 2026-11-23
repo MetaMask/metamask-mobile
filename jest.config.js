@@ -297,8 +297,8 @@ const config = {
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
-    // @metamask/design-system-react-native@0.56.2's CJS build assigns
-    // `exports.x = x` at the top of dist/components/Slider/Slider.utilities.cjs,
+    // @metamask/design-system-react-native 0.56.2 through 0.57.0's CJS build
+    // assigns `exports.x = x` at the top of dist/components/Slider/Slider.utilities.cjs,
     // before the `'worklet'` function declarations. The worklets Babel plugin
     // (this repo transpiles the package in jest) rewrites those declarations
     // into `var x = workletFactory(...)` at the same position, so the

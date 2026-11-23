@@ -283,8 +283,8 @@ module.exports = function (baseConfig) {
                     platform,
                   );
                 }
-                // @metamask/design-system-react-native@0.56.2's CJS build
-                // assigns `exports.x = x` at the top of
+                // @metamask/design-system-react-native 0.56.2 through 0.57.0's
+                // CJS build assigns `exports.x = x` at the top of
                 // dist/components/Slider/Slider.utilities.cjs, before the
                 // `'worklet'` function declarations. The worklets Babel plugin
                 // (babel.config.js applies it to every transformed file,
