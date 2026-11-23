@@ -147,7 +147,8 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
   useFocusEffect(
     useCallback(() => {
-      fetchCampaigns();
+      // Fire and forget: fetchCampaigns handles its own failures.
+      void fetchCampaigns();
     }, [fetchCampaigns]),
   );
 
