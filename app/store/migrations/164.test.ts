@@ -46,7 +46,7 @@ function buildValidState(
   };
 }
 
-const persistLegacyState = (state: Record<string, unknown>) => {
+const persistLegacyState = (state: Record<string, unknown>): void => {
   mockedGetItem.mockResolvedValue(JSON.stringify(state));
 };
 
@@ -76,6 +76,7 @@ describe(`Migration ${migrationVersion}: carry pending marketing consent`, () =>
 
     const result = (await migration(state)) as TestState;
 
+    expect(mockedGetItem).toHaveBeenCalledWith(LEGACY_KEY);
     expect(result.engine.backgroundState.AnalyticsController).toStrictEqual({
       analyticsId: 'analytics-id',
       optedIn: true,
