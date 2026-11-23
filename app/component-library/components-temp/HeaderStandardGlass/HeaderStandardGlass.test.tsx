@@ -5,7 +5,6 @@ import { IconName } from '@metamask/design-system-react-native';
 import { makeMutable } from 'react-native-reanimated';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import HeaderStandardGlass from './HeaderStandardGlass';
 import { useIsNativeHeader } from '../../../components/hooks/useNativeHeader';
@@ -37,21 +36,14 @@ jest.mock('./HeaderStandardNative', () => ({
 }));
 
 const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
 
-const renderInStack = (ui: React.ReactElement, navigator = 'stack') => {
+const renderInStack = (ui: React.ReactElement) => {
   const Screen = () => ui;
   return render(
     <NavigationContainer>
-      {navigator === 'stack' ? (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Screen" component={Screen} />
-        </Stack.Navigator>
-      ) : (
-        <Tab.Navigator screenOptions={{ headerShown: false }}>
-          <Tab.Screen name="Screen" component={Screen} />
-        </Tab.Navigator>
-      )}
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Screen" component={Screen} />
+      </Stack.Navigator>
     </NavigationContainer>,
   );
 };
@@ -224,6 +216,7 @@ describe('HeaderStandardGlass', () => {
         backButtonProps={{ testID: 'back' }}
         isFloating={false}
         includesTopInset
+        isNativeHeaderEnabled
       />
     );
 
@@ -234,6 +227,7 @@ describe('HeaderStandardGlass', () => {
       expect(mockNativeHeader).toHaveBeenCalledWith(
         expect.objectContaining({
           config: expect.objectContaining({ title: 'Settings' }),
+          fallback: expect.anything(),
         }),
       );
     });
@@ -247,25 +241,13 @@ describe('HeaderStandardGlass', () => {
       expect(mockNativeHeader).not.toHaveBeenCalled();
     });
 
-    it('keeps the JS header outside a stack navigator', () => {
-      const { getByTestId } = renderInStack(screenHeader, 'tab');
-
-      expect(getByTestId('back')).toBeOnTheScreen();
-      expect(mockNativeHeader).not.toHaveBeenCalled();
-    });
-
-    it('keeps the JS header outside any navigator', () => {
-      const { getByTestId } = render(screenHeader);
-
-      expect(getByTestId('back')).toBeOnTheScreen();
-    });
-
     it('keeps the JS header in a sheet, which has no top inset', () => {
       const { getByTestId } = renderInStack(
         <HeaderStandardGlass
           title="Settings"
           onBack={jest.fn()}
           backButtonProps={{ testID: 'back' }}
+          isNativeHeaderEnabled
           isFloating={false}
         />,
       );
@@ -279,6 +261,7 @@ describe('HeaderStandardGlass', () => {
           title="Settings"
           onBack={jest.fn()}
           backButtonProps={{ testID: 'back' }}
+          isNativeHeaderEnabled
           includesTopInset
         />,
       );
@@ -286,7 +269,7 @@ describe('HeaderStandardGlass', () => {
       expect(getByTestId('back')).toBeOnTheScreen();
     });
 
-    it('keeps the JS header when the caller opts out', () => {
+    it('keeps the JS header unless the screen opts in', () => {
       const { getByTestId } = renderInStack(
         <HeaderStandardGlass
           title="Settings"
@@ -294,7 +277,6 @@ describe('HeaderStandardGlass', () => {
           backButtonProps={{ testID: 'back' }}
           isFloating={false}
           includesTopInset
-          isNativeHeaderAllowed={false}
         />,
       );
 
@@ -308,6 +290,7 @@ describe('HeaderStandardGlass', () => {
           title="Settings"
           onBack={jest.fn()}
           backButtonProps={{ testID: 'back' }}
+          isNativeHeaderEnabled
           isFloating={false}
           includesTopInset
           isGlass={false}

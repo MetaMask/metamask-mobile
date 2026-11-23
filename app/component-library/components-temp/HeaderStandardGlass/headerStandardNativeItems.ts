@@ -19,26 +19,32 @@ type SfSymbolName = Extract<
   { type: 'sfSymbol' }
 >['name'];
 
-/** MMDS icons with a matching SF Symbol for native bar buttons. */
-const SF_SYMBOLS: Partial<Record<IconName, SfSymbolName>> = {
-  [IconName.ArrowLeft]: 'chevron.backward',
-  [IconName.Close]: 'xmark',
-  [IconName.Search]: 'magnifyingglass',
-  [IconName.Setting]: 'gearshape',
-  [IconName.Info]: 'info.circle',
-  [IconName.Question]: 'questionmark.circle',
-  [IconName.Scan]: 'qrcode.viewfinder',
-  [IconName.Trash]: 'trash',
-  [IconName.Activity]: 'clock',
-  [IconName.Notification]: 'bell',
-  [IconName.Menu]: 'line.3.horizontal',
-  [IconName.Add]: 'plus',
-  [IconName.MoreVertical]: 'ellipsis',
-  [IconName.MoreHorizontal]: 'ellipsis',
-  [IconName.Share]: 'square.and.arrow.up',
-  [IconName.Customize]: 'slider.horizontal.3',
-  [IconName.Edit]: 'pencil',
-  [IconName.Copy]: 'doc.on.doc',
+// Built on first use: some screen tests mock MMDS without `IconName`.
+let sfSymbols: Partial<Record<IconName, SfSymbolName>> | undefined;
+
+/** The SF Symbol matching an MMDS icon, for native bar buttons. */
+const getSfSymbol = (iconName: IconName): SfSymbolName | undefined => {
+  sfSymbols ??= {
+    [IconName.ArrowLeft]: 'chevron.backward',
+    [IconName.Close]: 'xmark',
+    [IconName.Search]: 'magnifyingglass',
+    [IconName.Setting]: 'gearshape',
+    [IconName.Info]: 'info.circle',
+    [IconName.Question]: 'questionmark.circle',
+    [IconName.Scan]: 'qrcode.viewfinder',
+    [IconName.Trash]: 'trash',
+    [IconName.Activity]: 'clock',
+    [IconName.Notification]: 'bell',
+    [IconName.Menu]: 'line.3.horizontal',
+    [IconName.Add]: 'plus',
+    [IconName.MoreVertical]: 'ellipsis',
+    [IconName.MoreHorizontal]: 'ellipsis',
+    [IconName.Share]: 'square.and.arrow.up',
+    [IconName.Customize]: 'slider.horizontal.3',
+    [IconName.Edit]: 'pencil',
+    [IconName.Copy]: 'doc.on.doc',
+  };
+  return sfSymbols[iconName];
 };
 
 export interface NativeHeaderButton {
@@ -63,7 +69,7 @@ const toButton = (
   identifier: string,
   handlers: Record<string, () => void>,
 ): NativeHeaderButton | undefined => {
-  const symbol = SF_SYMBOLS[props.iconName];
+  const symbol = getSfSymbol(props.iconName);
   if (!symbol) {
     return undefined;
   }
@@ -87,11 +93,18 @@ const CLOSE_LABEL_KEY = 'navigation.close';
  * The header as a native bar config, or `undefined` when the header has
  * content the native bar cannot draw (a subtitle, custom accessories, a
  * non-text title or an icon with no SF Symbol). Those keep the JS header.
+ * A header with no title gets an empty native title.
  */
 export const getNativeHeaderConfig = (
   props: HeaderStandardGlassProps,
 ): NativeHeaderConfig | undefined => {
-  const { title, subtitle, children, startAccessory, endAccessory } = props;
+  const {
+    title = '',
+    subtitle,
+    children,
+    startAccessory,
+    endAccessory,
+  } = props;
   if (
     typeof title !== 'string' ||
     subtitle ||

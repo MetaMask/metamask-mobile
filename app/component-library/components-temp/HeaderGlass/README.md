@@ -55,9 +55,15 @@ const { inset, onLayout } = useHeaderGlassInset(isBrandRefresh, insets.top);
 </Box>;
 ```
 
+### Content that doesn't scroll under the header
+
+Pass `isFloating={false}` instead. The header stays in the layout with no backdrop, so it can't cover the first row. Without blur, the backdrop fades out up to 40px below a floating header, and `useHeaderGlassInset` doesn't pad for that tail.
+
 ## Native header (iOS 26)
 
-`useNativeHeader` gives the screen UIKit's Liquid Glass bar. Add the same backdrop under it:
+`HeaderStandardGlass` can hand an in-flow screen header (`isFloating={false}` with `includesTopInset`) to the native bar itself. Pass `isNativeHeaderEnabled`. It's behind `glassHeaders`, and the screen must not set `headerShown` on its own, or UIKit hides the bar.
+
+For a custom bar, `useNativeHeader` gives the screen UIKit's Liquid Glass bar. Add the same backdrop under it:
 
 1. Pass `hidesScrollEdgeEffect: true`, so UIKit's own scroll edge effect doesn't stack on top of the backdrop.
 2. Measure the scroll with `useNativeHeaderScroll`. Under the native bar the content rests at a negative offset, and this hook accounts for that. It also returns the raw `scrollY`, which you can pass to `HeaderStandardAnimated`.

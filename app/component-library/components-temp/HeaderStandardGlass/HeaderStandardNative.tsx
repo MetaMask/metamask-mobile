@@ -1,5 +1,7 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useContext, useMemo, useRef } from 'react';
 import type { LayoutChangeEvent, StyleProp, ViewStyle } from 'react-native';
+import { useSelector } from 'react-redux';
+import { NavigationContext } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { isEqual } from 'lodash';
 import { Box } from '@metamask/design-system-react-native';
@@ -9,12 +11,13 @@ import {
   NATIVE_HEADER_BAR_HEIGHT,
   useNativeHeader,
 } from '../../../components/hooks/useNativeHeader';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 import {
   toNativeHeaderItems,
   type NativeHeaderConfig,
 } from './headerStandardNativeItems';
 
-export interface HeaderStandardNativeProps {
+interface NativeBarProps {
   config: NativeHeaderConfig;
   twClassName?: string;
   style?: StyleProp<ViewStyle>;
@@ -22,19 +25,22 @@ export interface HeaderStandardNativeProps {
   onLayout?: (event: LayoutChangeEvent) => void;
 }
 
+export interface HeaderStandardNativeProps extends NativeBarProps {
+  /** The JS header, shown when the native bar can't be used. */
+  fallback: React.ReactElement;
+}
+
 /**
- * Hands the header to the screen's native iOS 26 bar, so glass buttons morph
- * between screens on push and pop. In the JS header's place it leaves a spacer
- * as tall as the bar, so the screen's layout (and keyboard avoidance) is
- * unchanged under the transparent bar.
+ * Leaves a spacer as tall as the native bar in the JS header's place, so the
+ * screen's layout (and keyboard avoidance) is unchanged under the bar.
  */
-const HeaderStandardNative = ({
+const NativeBar = ({
   config,
   twClassName,
   style,
   testID,
   onLayout,
-}: HeaderStandardNativeProps) => {
+}: NativeBarProps) => {
   const tw = useTailwind();
   const { top } = useSafeAreaInsets();
   const { handlers, ...look } = config;
@@ -90,6 +96,25 @@ const HeaderStandardNative = ({
       onLayout={onLayout}
     />
   );
+};
+
+/**
+ * Hands the header to the screen's native iOS 26 bar, so glass buttons morph
+ * between screens on push and pop. Behind the `glassHeaders` flag, and only
+ * inside a stack navigator, which owns the bar; otherwise shows `fallback`.
+ */
+const HeaderStandardNative = ({
+  fallback,
+  ...props
+}: HeaderStandardNativeProps) => {
+  const isEnabled = useSelector(selectGlassHeadersEnabled);
+  const navigation = useContext(NavigationContext);
+
+  if (!isEnabled || navigation?.getState()?.type !== 'stack') {
+    return fallback;
+  }
+
+  return <NativeBar {...props} />;
 };
 
 export default HeaderStandardNative;

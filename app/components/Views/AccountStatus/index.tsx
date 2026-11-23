@@ -1,9 +1,6 @@
 import React, { useEffect, useCallback, useMemo, type FC } from 'react';
 import { Image, ScrollView, Platform, useWindowDimensions } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import type { SvgProps } from 'react-native-svg';
 import { Dispatch } from 'redux';
 import { connect } from 'react-redux';
@@ -68,7 +65,6 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 // Images are exported at 3x and rendered at ~90% of their natural size.
@@ -191,11 +187,6 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
   const tw = useTailwind();
   const { themeAppearance } = useTheme();
   const isDark = themeAppearance === AppThemeKey.dark;
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const navigation = useNavigation<AppNavigationProp>();
   const { width: windowWidth } = useWindowDimensions();
   const route =
@@ -370,12 +361,12 @@ const AccountStatus = ({ saveOnboardingEvent }: AccountStatusProps) => {
       }
     >
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
       />
       <ScrollView
-        style={[tw.style('flex-1'), { marginTop: headerInset }]}
+        style={tw.style('flex-1')}
         contentContainerStyle={tw.style('grow px-4')}
       >
         <TitleStandard

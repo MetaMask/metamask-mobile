@@ -7,10 +7,7 @@ import React, {
   useMemo,
 } from 'react';
 import { AccessibilityInfo, Platform, Keyboard, TextInput } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -31,7 +28,6 @@ import {
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -235,11 +231,6 @@ async function reimportPrivateKeyAccounts(
 const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -936,8 +927,8 @@ const ChoosePassword = () => {
         style={tw.style('flex-1 bg-background-default')}
       >
         <HeaderStandardGlass
-          backdrop="static"
-          onLayout={onHeaderLayout}
+          isFloating={false}
+          isNativeHeaderEnabled
           includesTopInset
           onBack={() => navigation.goBack()}
           backButtonProps={{
@@ -945,7 +936,6 @@ const ChoosePassword = () => {
           }}
         />
         <KeyboardAwareScrollView
-          style={{ marginTop: headerInset }}
           contentContainerStyle={tw.style('flex-1 px-4')}
           keyboardShouldPersistTaps="handled"
           // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard

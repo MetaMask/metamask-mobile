@@ -1,6 +1,5 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import type { SharedValue } from 'react-native-reanimated';
-import { NavigationContext } from '@react-navigation/native';
 import {
   HeaderStandard,
   type HeaderStandardProps,
@@ -21,10 +20,12 @@ export type HeaderStandardGlassProps = HeaderStandardProps &
     /** The content's scroll offset; fades the `animated` backdrop in. */
     scrollY?: SharedValue<number>;
     /**
-     * Set false when the header renders through a navigator's `header`
-     * option, which keeps UIKit's bar hidden. Defaults to true.
+     * Opts a screen's top header into the native iOS 26 bar. The screen must
+     * not set `headerShown` itself, or UIKit's bar is hidden.
+     *
+     * @default false
      */
-    isNativeHeaderAllowed?: boolean;
+    isNativeHeaderEnabled?: boolean;
   };
 
 /**
@@ -33,9 +34,9 @@ export type HeaderStandardGlassProps = HeaderStandardProps &
  * accessories pass through, so wrap them in `CapsuleGlass`.
  * Pair `onLayout` with `useHeaderGlassInset` to inset the content.
  *
- * On iOS 26 a screen's top header (`includesTopInset`, not floating) with a
- * text title and mappable icons moves into the native bar instead, so its
- * buttons morph between screens. Sheets never pass `includesTopInset`.
+ * With `isNativeHeaderEnabled` on iOS 26, a screen's top header
+ * (`includesTopInset`, not floating) with mappable icons moves into the native
+ * bar instead, so its buttons morph between screens. Behind `glassHeaders`.
  * Native bar buttons have no `testID`; they carry an accessibility label.
  */
 const HeaderStandardGlass = ({
@@ -46,33 +47,19 @@ const HeaderStandardGlass = ({
   scrollY,
   onLayout,
   twClassName,
-  isNativeHeaderAllowed = true,
+  isNativeHeaderEnabled = false,
   ...props
 }: HeaderStandardGlassProps) => {
   const headerClassName = glassHeaderTwClassName(twClassName);
-  const navigation = useContext(NavigationContext);
   const isNativeSupported = useIsNativeHeader();
   const nativeConfig =
     isGlass &&
-    isNativeHeaderAllowed &&
+    isNativeHeaderEnabled &&
     isNativeSupported &&
     isFloating === false &&
-    props.includesTopInset &&
-    navigation?.getState()?.type === 'stack'
+    props.includesTopInset
       ? getNativeHeaderConfig(props)
       : undefined;
-
-  if (nativeConfig) {
-    return (
-      <HeaderStandardNative
-        config={nativeConfig}
-        twClassName={twClassName}
-        style={props.style}
-        testID={props.testID}
-        onLayout={onLayout}
-      />
-    );
-  }
 
   if (!isGlass) {
     return (
@@ -84,7 +71,7 @@ const HeaderStandardGlass = ({
     );
   }
 
-  return (
+  const glassHeader = (
     <HeaderGlass
       onLayout={onLayout}
       backdrop={backdrop}
@@ -100,6 +87,21 @@ const HeaderStandardGlass = ({
       />
     </HeaderGlass>
   );
+
+  if (nativeConfig) {
+    return (
+      <HeaderStandardNative
+        config={nativeConfig}
+        fallback={glassHeader}
+        twClassName={twClassName}
+        style={props.style}
+        testID={props.testID}
+        onLayout={onLayout}
+      />
+    );
+  }
+
+  return glassHeader;
 };
 
 HeaderStandardGlass.displayName = 'HeaderStandardGlass';

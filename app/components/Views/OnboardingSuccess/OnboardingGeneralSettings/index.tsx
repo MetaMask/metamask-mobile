@@ -1,9 +1,6 @@
 import React from 'react';
 import { ScrollView } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
@@ -19,16 +16,10 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
-import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import { selectIsSocialLoginBasicFunctionalityLocked } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
 const GeneralSettings = () => {
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isBasicFunctionalityEnabled = useSelector(
@@ -75,15 +66,13 @@ const GeneralSettings = () => {
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={tw.style('flex-1')}>
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
         title={strings('default_settings.drawer_general_title')}
         onBack={() => navigation.goBack()}
       />
-      <ScrollView
-        style={[tw.style('flex-1 pt-4 px-4'), { marginTop: headerInset }]}
-      >
+      <ScrollView style={tw.style('flex-1 pt-4 px-4')}>
         <BasicFunctionalityComponent
           disabled={isSocialLoginBasicFunctionalityLocked}
           handleSwitchToggle={handleSwitchToggle}

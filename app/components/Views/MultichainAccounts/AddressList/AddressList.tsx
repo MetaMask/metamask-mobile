@@ -159,7 +159,6 @@ export const AddressList = () => {
             onBack={() => navigation.goBack()}
             backButtonProps={{ testID: AddressListIds.GO_BACK }}
             includesTopInset
-            isNativeHeaderAllowed={false}
           />
         ),
         headerShown: true,

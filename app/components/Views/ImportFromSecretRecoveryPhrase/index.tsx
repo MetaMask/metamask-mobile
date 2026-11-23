@@ -6,10 +6,7 @@ import React, {
   useMemo,
 } from 'react';
 import { Alert, Animated, Dimensions, Keyboard, TextInput } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   KeyboardAwareScrollView,
@@ -53,7 +50,6 @@ import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
-import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -236,11 +232,6 @@ const ImportFromSecretRecoveryPhrase = () => {
   );
   const { themeAppearance } = useTheme();
   const tw = useTailwind();
-  const { top: safeAreaTop } = useSafeAreaInsets();
-  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
-    true,
-    safeAreaTop,
-  );
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
@@ -438,15 +429,6 @@ const ImportFromSecretRecoveryPhrase = () => {
       animateToStep(currentStep - 1);
     }
   };
-
-  // The header is rendered in-screen via HeaderStandardGlass, so hide the native one.
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions({ headerShown: false });
-  }, [navigation]);
-
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar, currentStep]);
 
   useEffect(() => {
     let cancelled = false;
@@ -736,8 +718,8 @@ const ImportFromSecretRecoveryPhrase = () => {
   return (
     <Box twClassName="flex-1 bg-default">
       <HeaderStandardGlass
-        backdrop="static"
-        onLayout={onHeaderLayout}
+        isFloating={false}
+        isNativeHeaderEnabled
         includesTopInset
         backButtonProps={{
           accessibilityLabel: strings('navigation.back'),
@@ -757,7 +739,6 @@ const ImportFromSecretRecoveryPhrase = () => {
         }
       />
       <KeyboardAwareScrollView
-        style={{ marginTop: headerInset }}
         contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"

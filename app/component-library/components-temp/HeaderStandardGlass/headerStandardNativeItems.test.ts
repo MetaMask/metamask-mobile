@@ -1,3 +1,5 @@
+import React from 'react';
+import { Text } from 'react-native';
 import { IconName } from '@metamask/design-system-react-native';
 
 import {
@@ -100,8 +102,21 @@ describe('getNativeHeaderConfig', () => {
     expect(getNativeHeaderConfig({ title: 'Title', ...props })).toBeUndefined();
   });
 
-  it('keeps the JS header without a text title', () => {
-    expect(getNativeHeaderConfig({ onBack: jest.fn() })).toBeUndefined();
+  it('maps a header with no title to an empty native title', () => {
+    expect(getNativeHeaderConfig({ onBack: jest.fn() })).toEqual(
+      expect.objectContaining({
+        title: '',
+        left: [expect.objectContaining({ identifier: 'header-back' })],
+      }),
+    );
+  });
+
+  it('keeps the JS header for a non-text title', () => {
+    expect(
+      getNativeHeaderConfig({
+        title: React.createElement(Text, null, 'Custom'),
+      }),
+    ).toBeUndefined();
   });
 
   it('keeps the JS header for an icon with no SF Symbol', () => {

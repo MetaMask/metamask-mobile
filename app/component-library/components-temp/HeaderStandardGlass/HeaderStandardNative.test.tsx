@@ -1,5 +1,10 @@
-import React from 'react';
+import React, { createContext, useContext } from 'react';
+import { Text } from 'react-native';
+import { useSelector } from 'react-redux';
 import { render } from '@testing-library/react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import HeaderStandardNative from './HeaderStandardNative';
 import type { NativeHeaderConfig } from './headerStandardNativeItems';
@@ -8,14 +13,43 @@ import {
   useNativeHeader,
 } from '../../../components/hooks/useNativeHeader';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
 jest.mock('../../../components/hooks/useNativeHeader', () => ({
   NATIVE_HEADER_BAR_HEIGHT: 44,
   useNativeHeader: jest.fn(() => true),
 }));
 
 jest.mock('react-native-safe-area-context', () => ({
+  ...jest.requireActual('react-native-safe-area-context'),
   useSafeAreaInsets: () => ({ top: 62, bottom: 0, left: 0, right: 0 }),
 }));
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Lets `rerender` swap the screen's content without remounting the navigator.
+const ContentContext = createContext<React.ReactNode>(null);
+const Screen = () => <>{useContext(ContentContext)}</>;
+
+const inNavigator = (ui: React.ReactNode, navigator: 'stack' | 'tab') => (
+  <ContentContext.Provider value={ui}>
+    <NavigationContainer>
+      {navigator === 'stack' ? (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Screen" component={Screen} />
+        </Stack.Navigator>
+      ) : (
+        <Tab.Navigator screenOptions={{ headerShown: false }}>
+          <Tab.Screen name="Screen" component={Screen} />
+        </Tab.Navigator>
+      )}
+    </NavigationContainer>
+  </ContentContext.Provider>
+);
 
 const buildConfig = (onBack: () => void): NativeHeaderConfig => ({
   title: 'Settings',
@@ -31,6 +65,12 @@ const buildConfig = (onBack: () => void): NativeHeaderConfig => ({
   handlers: { 'header-back': onBack },
 });
 
+const fallback = <Text>JS header</Text>;
+
+const nativeHeader = (config: NativeHeaderConfig, testID?: string) => (
+  <HeaderStandardNative config={config} fallback={fallback} testID={testID} />
+);
+
 const lastHeaderConfig = () => {
   const calls = jest.mocked(useNativeHeader).mock.calls;
   return calls[calls.length - 1][0];
@@ -39,11 +79,12 @@ const lastHeaderConfig = () => {
 describe('HeaderStandardNative', () => {
   beforeEach(() => {
     jest.mocked(useNativeHeader).mockClear();
+    jest.mocked(useSelector).mockReturnValue(true);
   });
 
   it('leaves a spacer as tall as the native bar in the header slot', () => {
     const { getByTestId } = render(
-      <HeaderStandardNative config={buildConfig(jest.fn())} testID="header" />,
+      inNavigator(nativeHeader(buildConfig(jest.fn()), 'header'), 'stack'),
     );
 
     expect(getByTestId('header')).toHaveStyle({
@@ -51,9 +92,37 @@ describe('HeaderStandardNative', () => {
     });
   });
 
+  it('shows the JS header and leaves the native bar alone while glassHeaders is off', () => {
+    jest.mocked(useSelector).mockReturnValue(false);
+
+    const { getByText, queryByTestId } = render(
+      inNavigator(nativeHeader(buildConfig(jest.fn()), 'header'), 'stack'),
+    );
+
+    expect(getByText('JS header')).toBeOnTheScreen();
+    expect(queryByTestId('header')).toBeNull();
+    expect(useNativeHeader).not.toHaveBeenCalled();
+  });
+
+  it('shows the JS header outside a stack navigator', () => {
+    const { getByText } = render(
+      inNavigator(nativeHeader(buildConfig(jest.fn())), 'tab'),
+    );
+
+    expect(getByText('JS header')).toBeOnTheScreen();
+    expect(useNativeHeader).not.toHaveBeenCalled();
+  });
+
+  it('shows the JS header outside any navigator', () => {
+    const { getByText } = render(nativeHeader(buildConfig(jest.fn())));
+
+    expect(getByText('JS header')).toBeOnTheScreen();
+    expect(useNativeHeader).not.toHaveBeenCalled();
+  });
+
   it('hands the title and buttons to the native bar', () => {
     const onBack = jest.fn();
-    render(<HeaderStandardNative config={buildConfig(onBack)} />);
+    render(inNavigator(nativeHeader(buildConfig(onBack)), 'stack'));
 
     const config = lastHeaderConfig();
     const [backItem] = config?.leftItems?.() ?? [];
@@ -72,11 +141,11 @@ describe('HeaderStandardNative', () => {
 
   it('keeps the items stable across renders with an unchanged look', () => {
     const { rerender } = render(
-      <HeaderStandardNative config={buildConfig(jest.fn())} />,
+      inNavigator(nativeHeader(buildConfig(jest.fn())), 'stack'),
     );
     const firstItems = lastHeaderConfig()?.leftItems;
 
-    rerender(<HeaderStandardNative config={buildConfig(jest.fn())} />);
+    rerender(inNavigator(nativeHeader(buildConfig(jest.fn())), 'stack'));
 
     expect(lastHeaderConfig()?.leftItems).toBe(firstItems);
   });
@@ -85,9 +154,9 @@ describe('HeaderStandardNative', () => {
     const firstOnBack = jest.fn();
     const nextOnBack = jest.fn();
     const { rerender } = render(
-      <HeaderStandardNative config={buildConfig(firstOnBack)} />,
+      inNavigator(nativeHeader(buildConfig(firstOnBack)), 'stack'),
     );
-    rerender(<HeaderStandardNative config={buildConfig(nextOnBack)} />);
+    rerender(inNavigator(nativeHeader(buildConfig(nextOnBack)), 'stack'));
 
     const [backItem] = lastHeaderConfig()?.leftItems?.() ?? [];
     if (backItem?.type === 'button') {
