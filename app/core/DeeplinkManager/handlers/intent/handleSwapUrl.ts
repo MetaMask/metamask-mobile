@@ -32,7 +32,6 @@ import Engine from '../../../Engine';
 import { resetSwapSessionBeforeDeeplink } from '../../utils/resetSwapSessionBeforeDeeplink';
 import ReduxService from '../../../redux/ReduxService';
 import { setDestToken, setSourceToken } from '../../../redux/slices/bridge';
-import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isHex } from 'viem';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import {
@@ -423,13 +422,7 @@ export const createSwapDeeplinkIntent = async ({
       resetSwapSessionBeforeDeeplink();
       const { dispatch } = ReduxService.store;
       if (sourceToken) {
-        dispatch(
-          setSourceToken(
-            sourceToken.address === ethers.constants.AddressZero
-              ? getNativeSourceToken(sourceToken.chainId)
-              : sourceToken,
-          ),
-        );
+        dispatch(setSourceToken(sourceToken));
       }
       if (destToken) {
         dispatch(setDestToken(destToken));

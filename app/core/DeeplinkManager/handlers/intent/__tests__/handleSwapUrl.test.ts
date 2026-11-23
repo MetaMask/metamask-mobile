@@ -8,8 +8,6 @@ import {
   setDestToken,
   setSourceToken,
 } from '../../../../redux/slices/bridge';
-import { getNativeSourceToken } from '../../../../../components/UI/Bridge/utils/tokenUtils';
-import { ethers } from 'ethers';
 import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
 import { BridgeTabKey } from '../../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
 import { SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES } from '../../../../../components/UI/Bridge/constants/limitOrders';
@@ -971,7 +969,6 @@ describe('handleSwapUrl', () => {
     });
 
     expect(mockStartTrace).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
 
     await intent.prepare?.();
 
@@ -981,10 +978,7 @@ describe('handleSwapUrl', () => {
       [setDestToken(expectedDestToken)],
     ]);
     expect(mockStartTrace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sourceToken: expectedSourceToken,
-        destToken: expectedDestToken,
-      }),
+      expect.objectContaining({ sourceToken: expectedSourceToken }),
       { appStartType: 'cold' },
     );
     expect(mockStartTrace.mock.invocationCallOrder[0]).toBeGreaterThan(
@@ -994,26 +988,5 @@ describe('handleSwapUrl', () => {
       screen: 'BridgeView',
       params: expect.objectContaining({ swapViewTraceId: 'trace-id' }),
     });
-  });
-
-  it('seeds the native source token in the shape Bridge uses', async () => {
-    mockFetchAssetMetadata.mockResolvedValueOnce({
-      address: ethers.constants.AddressZero,
-      chainId: '0x1',
-      symbol: 'ETH',
-      name: 'Ethereum',
-      decimals: 18,
-      image: '',
-      assetId: 'eip155:1/slip44:60',
-    });
-
-    const intent = await createSwapDeeplinkIntent({
-      swapPath: 'from=eip155:1/slip44:60',
-    });
-    await intent.prepare?.();
-
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(getNativeSourceToken('0x1')),
-    );
   });
 });
