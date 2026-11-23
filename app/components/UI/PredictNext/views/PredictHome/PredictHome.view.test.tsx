@@ -2066,6 +2066,10 @@ describe('PredictHome', () => {
 
     it('shows Deposit under review with full supportReference and lets the user copy it', async () => {
       configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
       const view = renderPredictNext();
 
       expect(
@@ -2074,12 +2078,20 @@ describe('PredictHome', () => {
         `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
       );
 
-      fireEvent.press(
-        view.getByTestId(`${PredictHomeTestIds.DEPOSIT_STATUS}-copy`),
+      const copyButton = view.getByTestId(
+        `${PredictHomeTestIds.DEPOSIT_STATUS}-copy`,
       );
+      expect(copyButton).toHaveProp('hitSlop', {
+        top: 11,
+        bottom: 11,
+        left: 16,
+        right: 16,
+      });
+      fireEvent.press(copyButton);
       expect(Clipboard.setString).toHaveBeenCalledWith(
         needsReviewDeposit.next.supportReference,
       );
+      expect(announce).toHaveBeenCalledWith('Support reference copied');
     });
 
     it.each([

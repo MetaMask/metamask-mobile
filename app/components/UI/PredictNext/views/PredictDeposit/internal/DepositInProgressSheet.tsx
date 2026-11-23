@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import {
-  AccessibilityInfo,
-  Modal,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { AccessibilityInfo, Modal, StyleSheet, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
@@ -15,12 +9,12 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -31,6 +25,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { PredictDepositOperation } from '../../../types';
 import { formatUsd } from '../../../utils/formatUsd';
 import { PredictDepositScreenTestIds } from '../PredictDepositScreen.testIds';
+
+// ButtonIconSize.Xs is 20pt; 12pt on each side makes a 44pt target.
+const COPY_BUTTON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
 const styles = StyleSheet.create({
   gestureRoot: {
@@ -50,6 +47,13 @@ const getSupportReference = (deposit: PredictDepositOperation): string =>
   deposit.next?.kind === 'review'
     ? deposit.next.supportReference
     : deposit.operationId;
+
+const copySupportReference = (reference: string): void => {
+  Clipboard.setString(reference);
+  AccessibilityInfo.announceForAccessibility(
+    strings('predict_next.deposit.status.reference_copied'),
+  );
+};
 
 const describeDeposit = (
   deposit: PredictDepositOperation | null,
@@ -180,22 +184,20 @@ export const DepositInProgressSheet = ({
                         {reviewReference}
                       </Text>
                     </Text>
-                    <TouchableOpacity
+                    <ButtonIcon
+                      iconName={IconName.Copy}
+                      size={ButtonIconSize.Xs}
+                      iconProps={{ color: IconColor.IconAlternative }}
+                      hitSlop={COPY_BUTTON_HIT_SLOP}
                       accessibilityRole="button"
                       accessibilityLabel={strings(
                         'predict_next.deposit.status.copy_reference',
                       )}
-                      onPress={() => Clipboard.setString(reviewReference)}
+                      onPress={() => copySupportReference(reviewReference)}
                       testID={
                         PredictDepositScreenTestIds.IN_PROGRESS_COPY_REFERENCE
                       }
-                    >
-                      <Icon
-                        name={IconName.Copy}
-                        size={IconSize.Sm}
-                        color={IconColor.IconAlternative}
-                      />
-                    </TouchableOpacity>
+                    />
                   </Box>
                 ) : (
                   <Text

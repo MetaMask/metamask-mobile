@@ -33,6 +33,8 @@ const ADDRESS_POLL_INTERVAL_MS = 2_000;
 
 // A BodySm line is 22pt tall; 11pt above and below makes a 44pt target.
 const STATUS_LINE_HIT_SLOP = { top: 11, bottom: 11 };
+// The copy icon is 12pt wide; 16pt on each side makes a 44pt target.
+const COPY_ICON_HIT_SLOP = { ...STATUS_LINE_HIT_SLOP, left: 16, right: 16 };
 
 const styles = StyleSheet.create({
   referenceText: {
@@ -44,6 +46,13 @@ const getSupportReference = (deposit: PredictDepositOperation): string =>
   deposit.next?.kind === 'review'
     ? deposit.next.supportReference
     : deposit.operationId;
+
+const copySupportReference = (reference: string): void => {
+  Clipboard.setString(reference);
+  AccessibilityInfo.announceForAccessibility(
+    strings('predict_next.deposit.status.reference_copied'),
+  );
+};
 
 interface DepositStatusLineProps {
   venueId: PredictVenueId;
@@ -291,8 +300,8 @@ export const DepositStatusLine = ({
               </Text>
             </Text>
             <TouchableOpacity
-              onPress={() => Clipboard.setString(copy.supportReference ?? '')}
-              hitSlop={STATUS_LINE_HIT_SLOP}
+              onPress={() => copySupportReference(copy.supportReference ?? '')}
+              hitSlop={COPY_ICON_HIT_SLOP}
               accessibilityRole="button"
               accessibilityLabel={strings(
                 'predict_next.deposit.status.copy_reference',

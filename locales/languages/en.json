@@ -4188,6 +4188,7 @@
         "under_review": "Deposit under review · Ref {{reference}}",
         "under_review_label": "Deposit under review · Ref",
         "copy_reference": "Copy support reference",
+        "reference_copied": "Support reference copied",
         "failed": "Deposit failed",
         "cancelled": "Deposit cancelled"
       },
