@@ -327,24 +327,19 @@ module.exports = {
         '@typescript-eslint/no-unused-vars': 'off',
         '@typescript-eslint/no-wrapper-object-types': 'off',
         '@typescript-eslint/prefer-enum-initializers': 'off',
-        // Slow type checks. The shared ESLint config turns these on, but they
-        // need type information, so they stay off through the ESLint 9
-        // upgrade. Turn them on in Oxlint and park existing hits in
-        // oxlint-suppressions.json.
+        // Slow type checks. The shared config turns these on and they need type
+        // information. Oxlint owns them, as errors, for TypeScript files, with
+        // the shared config's options. Existing hits are in
+        // oxlint-suppressions.json. unbound-method is off in *.test and *.spec
+        // files, where asserting on a method reference is the usual pattern.
         '@typescript-eslint/await-thenable': 'off',
         '@typescript-eslint/consistent-type-exports': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
         '@typescript-eslint/no-base-to-string': 'off',
-        '@typescript-eslint/no-duplicate-type-constituents': 'off',
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-implied-eval': 'off',
         '@typescript-eslint/no-misused-promises': 'off',
-        '@typescript-eslint/no-redundant-type-constituents': 'off',
-        '@typescript-eslint/no-throw-literal': 'off',
         '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
         '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         '@typescript-eslint/only-throw-error': 'off',
         '@typescript-eslint/prefer-includes': 'off',
         '@typescript-eslint/prefer-nullish-coalescing': 'off',
@@ -358,6 +353,13 @@ module.exports = {
         '@typescript-eslint/restrict-template-expressions': 'off',
         '@typescript-eslint/switch-exhaustiveness-check': 'off',
         '@typescript-eslint/unbound-method': 'off',
+        // The shared config leaves these off, so they are off in Oxlint too.
+        '@typescript-eslint/consistent-type-imports': 'off',
+        '@typescript-eslint/no-duplicate-type-constituents': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
+        '@typescript-eslint/no-throw-literal': 'off',
+        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
+        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
         'no-restricted-syntax': [
           'error',
           {
@@ -548,8 +550,24 @@ module.exports = {
         tailwindcss: {
           callees: ['twClassName', 'tw'],
           config: './tailwind.config.js',
+          // React Native has no CSS files. Without this, no-custom-classname
+          // searches the whole repo for *.css every 5 seconds.
+          cssFiles: [],
           tags: ['tw'], // Enable template literal support for tw`classnames`
         },
+      },
+    },
+    {
+      // The React Compiler does not run under Jest (see
+      // scripts/react-compiler.js), so it never compiles these files.
+      files: [
+        '**/*.test.{js,jsx,ts,tsx}',
+        '**/__mocks__/**',
+        '**/*.mock.{js,ts,tsx}',
+        'tests/**',
+      ],
+      rules: {
+        'react-compiler/react-compiler': 'off',
       },
     },
     {

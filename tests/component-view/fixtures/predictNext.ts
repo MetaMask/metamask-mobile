@@ -24,7 +24,7 @@ import { getPredictFundingServiceMessenger } from '../../../app/core/Engine/mess
 import { PredictFundingService } from '../../../app/components/UI/PredictNext/services/PredictFundingService';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
   PredictGameLive,
   PredictQuote,

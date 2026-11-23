@@ -770,7 +770,6 @@
     "cardHomeDataError": null,
     "cardHomeDataFetchedThisSession": false,
     "isAuthenticated": false,
-    "cardholderAccounts": [],
     "providerData": {},
     "moneyAccountCardLinkInProgress": false,
     "lastUnauthenticatedReason": null,
@@ -778,7 +777,6 @@
     "signInLink": null,
     "cardLinks": null,
     "cardLinksFetchedAt": null,
-    "cardLinksSeeded": false,
     "cardLinkApiBlocked": false,
     "accountLookupCache": {}
   },
@@ -981,6 +979,7 @@
       "error": null
     },
     "providerAutoSelected": false,
+    "userSelectedProviderId": null,
     "providers": {
       "data": [],
       "selected": null,

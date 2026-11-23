@@ -122,21 +122,26 @@ export const selectGasIncludedQuoteParams = createSelector(
       return { gasIncluded: true, gasIncluded7702: false };
     }
 
+    const gasIncludedWith7702Enabled =
+      (Boolean(isSwap) || gasIncluded7702BridgeEnabled) &&
+      gasIncluded7702Support;
+
+    // Keep 7702 when available unless STX covers gas.
     if (
       nativeGasIncludedSupport &&
       sourceToken?.address &&
       isNativeAddress(sourceToken.address)
     ) {
-      return { gasIncluded: true, gasIncluded7702: false };
+      return {
+        gasIncluded: true,
+        gasIncluded7702:
+          !gasIncludedSTXSendBundleSupport && gasIncludedWith7702Enabled,
+      };
     }
 
     if (gasIncludedSTXSendBundleSupport) {
       return { gasIncluded: true, gasIncluded7702: false };
     }
-
-    const gasIncludedWith7702Enabled =
-      (Boolean(isSwap) || gasIncluded7702BridgeEnabled) &&
-      gasIncluded7702Support;
 
     return {
       gasIncluded: gasIncludedWith7702Enabled,
