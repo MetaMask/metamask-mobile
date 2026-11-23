@@ -7,6 +7,7 @@ import {
   generateEIP7702BatchTransaction,
   updateEIP7702BatchData,
 } from '@metamask/transaction-controller';
+import type { TransactionConfig } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 
@@ -41,7 +42,17 @@ export interface PerpsTransactionOptions {
 export interface PerpsTransactionRequest {
   params: TransactionParams;
   options: PerpsTransactionOptions;
+  /** Set on the new confirmation's pay config once it is added. */
+  paymentProvider?: typeof LIGHTER_PAYMENT_PROVIDER;
 }
+
+/**
+ * Value of `paymentProvider` that makes Pay quote into the Lighter balance.
+ *
+ * TODO: use `PaymentProvider.Lighter` from `@metamask/transaction-pay-controller`
+ * once this app depends on a release with MetaMask/core#11705.
+ */
+export const LIGHTER_PAYMENT_PROVIDER = 'lighter';
 
 /** The Hyperliquid confirmation to recreate when the user switches back. */
 export interface HyperliquidConfirmationSnapshot {
@@ -113,6 +124,48 @@ export function buildLighterDepositRequest({
       skipInitialGasEstimate: true,
       type,
     },
+  };
+}
+
+/**
+ * Mainnet USDC deposit into an existing Lighter account, as a new
+ * confirmation. It has no calldata. Pay quotes the required mainnet USDC into
+ * Lighter because `paymentProvider` is set once the confirmation is added.
+ *
+ * @param request - Deposit to build.
+ * @param request.amount - USDC amount in base units.
+ * @param request.from - Logged-in user credited by the deposit.
+ * @param request.mainnetNetworkClientId - Ethereum mainnet client.
+ * @param request.origin - Origin of the confirmation being replaced.
+ * @param request.type - Lighter deposit type to create.
+ * @returns The transaction to add.
+ */
+export function buildLighterExistingAccountDepositRequest({
+  amount,
+  from,
+  mainnetNetworkClientId,
+  origin,
+  type,
+}: {
+  amount: bigint;
+  from: Hex;
+  mainnetNetworkClientId: string;
+  origin: string | undefined;
+  type: TransactionType;
+}): PerpsTransactionRequest {
+  const { requiredAsset } = buildLighterUsdcDepositTransaction(from, amount);
+
+  return {
+    params: { from, to: from, value: '0x0' },
+    options: {
+      networkClientId: mainnetNetworkClientId,
+      origin,
+      requiredAssets: [requiredAsset],
+      requireApproval: true,
+      skipInitialGasEstimate: true,
+      type,
+    },
+    paymentProvider: LIGHTER_PAYMENT_PROVIDER,
   };
 }
 
@@ -224,11 +277,33 @@ export async function replacePerpsTransaction(
   request: PerpsTransactionRequest,
   previousTransactionId: string,
 ): Promise<void> {
-  await addTransaction(request.params, request.options);
+  const { transactionMeta } = await addTransaction(
+    request.params,
+    request.options,
+  );
+
+  if (request.paymentProvider) {
+    setPaymentProvider(transactionMeta.id, request.paymentProvider);
+  }
 
   Engine.context.ApprovalController.rejectRequest(
     previousTransactionId,
     providerErrors.userRejectedRequest(),
+  );
+}
+
+function setPaymentProvider(
+  transactionId: string,
+  paymentProvider: typeof LIGHTER_PAYMENT_PROVIDER,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config: TransactionConfig & { paymentProvider?: string }) => {
+      config.paymentProvider = paymentProvider;
+      // The pay token can be the required mainnet USDC itself, which Pay would
+      // otherwise skip as a same-token no-op.
+      config.isQuoteRequired = true;
+    },
   );
 }
 

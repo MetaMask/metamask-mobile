@@ -11,6 +11,7 @@ import { parseStandardTokenTransactionData } from '../utils/transaction';
 import {
   buildHyperliquidRestoreRequest,
   buildLighterDepositRequest,
+  buildLighterExistingAccountDepositRequest,
   buildRetypedRequest,
   readEnteredUsdcAmount,
   replacePerpsTransaction,
@@ -20,7 +21,10 @@ import {
 jest.mock('../../../../core/Engine', () => ({
   context: {
     ApprovalController: { rejectRequest: jest.fn() },
-    TransactionPayController: { state: { transactionData: {} } },
+    TransactionPayController: {
+      state: { transactionData: {} },
+      setTransactionConfig: jest.fn(),
+    },
   },
 }));
 
@@ -117,6 +121,35 @@ describe('buildLighterDepositRequest', () => {
     );
     expect(options.nestedTransactions).toHaveLength(2);
     expect(options.requiredAssets?.[0].amount).toBe('0x4c4b40');
+  });
+});
+
+describe('buildLighterExistingAccountDepositRequest', () => {
+  it('builds a mainnet deposit without calldata that sets the payment provider', () => {
+    const request = buildLighterExistingAccountDepositRequest({
+      amount: 5_000_000n,
+      from: USER,
+      mainnetNetworkClientId: 'mainnet',
+      origin: 'metamask',
+      type: TransactionType.perpsLighterDeposit,
+    });
+
+    expect(request.params).toStrictEqual({
+      from: USER,
+      to: USER,
+      value: '0x0',
+    });
+    expect(request.options).toStrictEqual({
+      networkClientId: 'mainnet',
+      origin: 'metamask',
+      requiredAssets: [
+        expect.objectContaining({ amount: '0x4c4b40', standard: 'erc20' }),
+      ],
+      requireApproval: true,
+      skipInitialGasEstimate: true,
+      type: TransactionType.perpsLighterDeposit,
+    });
+    expect(request.paymentProvider).toBe('lighter');
   });
 });
 
@@ -269,6 +302,50 @@ describe('replacePerpsTransaction', () => {
       jest.mocked(Engine.context.ApprovalController.rejectRequest).mock
         .invocationCallOrder[0],
     );
+  });
+
+  it('sets the payment provider on the new transaction before rejecting the previous approval', async () => {
+    jest
+      .mocked(addTransaction)
+      .mockResolvedValue({ transactionMeta: { id: 'tx-2' } } as never);
+    const request = buildLighterExistingAccountDepositRequest({
+      amount: 1_000_000n,
+      from: USER,
+      mainnetNetworkClientId: 'mainnet',
+      origin: undefined,
+      type: TransactionType.perpsLighterDeposit,
+    });
+
+    await replacePerpsTransaction(request, 'tx-1');
+
+    const setTransactionConfig = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+    expect(setTransactionConfig).toHaveBeenCalledWith(
+      'tx-2',
+      expect.any(Function),
+    );
+    expect(setTransactionConfig.mock.invocationCallOrder[0]).toBeLessThan(
+      jest.mocked(Engine.context.ApprovalController.rejectRequest).mock
+        .invocationCallOrder[0],
+    );
+  });
+
+  it('does not set a payment provider when the request has none', async () => {
+    jest.mocked(addTransaction).mockResolvedValue({} as never);
+    const request = buildRetypedRequest(
+      {
+        networkClientId: 'arbitrum',
+        txParams: { from: USER },
+      } as TransactionMeta,
+      TransactionType.perpsLighterWithdraw,
+    );
+
+    await replacePerpsTransaction(request, 'tx-1');
+
+    expect(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    ).not.toHaveBeenCalled();
   });
 
   it('keeps the previous approval when adding the transaction fails', async () => {

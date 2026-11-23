@@ -14,6 +14,7 @@ import { userHasLighterAccount } from '../../temp-lighter/lighter-usdc-deposit';
 import {
   buildHyperliquidRestoreRequest,
   buildLighterDepositRequest,
+  buildLighterExistingAccountDepositRequest,
   buildRetypedRequest,
   readEnteredUsdcAmount,
   replacePerpsTransaction,
@@ -194,19 +195,24 @@ function logLighterAccountUnlessDepositOwnsIt({
 
 /**
  * Replaces the Hyperliquid deposit with a mainnet USDC deposit into Lighter.
+ * The first deposit creates the account with an approve and deposit call. A
+ * deposit into an existing account has no calldata and sets `paymentProvider`.
  *
  * @param options - Deposit request for the open confirmation.
+ * @param options.accountExists - Whether the address already has a Lighter account.
  * @param options.from - Address credited by the deposit.
  * @param options.nextType - Lighter deposit type to create.
  * @param options.snapshotRef - Where to save the Hyperliquid confirmation.
  * @param options.transactionMeta - Hyperliquid confirmation being replaced.
  */
 async function replaceWithLighterDeposit({
+  accountExists,
   from,
   nextType,
   snapshotRef,
   transactionMeta,
 }: {
+  accountExists: boolean;
   from: Hex;
   nextType: TransactionType;
   snapshotRef: RefObject<HyperliquidConfirmationSnapshot | undefined>;
@@ -222,7 +228,10 @@ async function replaceWithLighterDeposit({
     );
   }
 
-  const request = buildLighterDepositRequest({
+  const buildRequest = accountExists
+    ? buildLighterExistingAccountDepositRequest
+    : buildLighterDepositRequest;
+  const request = buildRequest({
     amount: readEnteredUsdcAmount(transactionMeta.id),
     from,
     mainnetNetworkClientId,
@@ -236,9 +245,8 @@ async function replaceWithLighterDeposit({
 }
 
 /**
- * Looks the address up and replaces the deposit when it has no Lighter
- * account yet. This only handles the first deposit. An existing account keeps
- * the Hyperliquid confirmation.
+ * Looks the address up and replaces the deposit with a Lighter one. Without an
+ * account the deposit creates it. With one it deposits straight into it.
  *
  * @param options - Deposit request for the open confirmation.
  * @param options.appliedKeyRef - Key of the request already started.
@@ -249,7 +257,7 @@ async function replaceWithLighterDeposit({
  * @param options.snapshotRef - Where to save the Hyperliquid confirmation.
  * @param options.transactionMeta - Confirmation before the replacement.
  */
-function depositMainnetUsdcWhenUnregistered({
+function depositMainnetUsdcToLighter({
   appliedKeyRef,
   generation,
   lookupGenerationRef,
@@ -282,17 +290,8 @@ function depositMainnetUsdcWhenUnregistered({
       return undefined;
     }
 
-    if (exists) {
-      LighterLookupState.setSuccess(transactionMeta.id);
-      return undefined;
-    }
-
-    // Double-check generation before attempting replacement
-    if (lookupGenerationRef.current !== generation) {
-      return undefined;
-    }
-
     return await replaceWithLighterDeposit({
+      accountExists: exists,
       from,
       nextType,
       snapshotRef,
@@ -464,7 +463,7 @@ export function useSyncPerpsLighterTransactionType({
     const generation = ++lookupGenerationRef.current;
 
     if (isLighterPerpsDeposit(nextType)) {
-      depositMainnetUsdcWhenUnregistered({
+      depositMainnetUsdcToLighter({
         appliedKeyRef,
         generation,
         lookupGenerationRef,

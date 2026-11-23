@@ -23,6 +23,7 @@ jest.mock('../../../../../core/Engine', () => ({
     },
     TransactionPayController: {
       state: { transactionData: {} },
+      setTransactionConfig: jest.fn(),
     },
   },
 }));
@@ -159,12 +160,15 @@ describe('useSyncPerpsLighterTransactionType', () => {
     );
   });
 
-  it('keeps the Hyperliquid confirmation when the address already has a Lighter account', async () => {
+  it('creates a Lighter deposit without calldata and sets the payment provider when the address already has a Lighter account', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
       status: 200,
       json: async () => ({ code: 200, sub_accounts: [{}] }),
     });
+    mockAddTransaction.mockResolvedValue({
+      transactionMeta: { id: 'tx-2' },
+    } as never);
     mockUseTransactionMetadataRequest.mockReturnValue(
       hyperliquidDeposit as never,
     );
@@ -172,14 +176,43 @@ describe('useSyncPerpsLighterTransactionType', () => {
     renderSync({ destination: 'lighter', source: 'hyperliquid' });
 
     await waitFor(() => {
-      expect(Logger.log).toHaveBeenCalledWith('Lighter account lookup', {
-        address: USER,
-        exists: true,
-      });
+      expect(mockRejectRequest).toHaveBeenCalledWith('tx-1', expect.anything());
     });
 
-    expect(mockAddTransaction).not.toHaveBeenCalled();
-    expect(mockRejectRequest).not.toHaveBeenCalled();
+    const [params, options] = mockAddTransaction.mock.calls[0];
+    expect(params).toStrictEqual({ from: USER, to: USER, value: '0x0' });
+    expect(options.nestedTransactions).toBeUndefined();
+    expect(options).toStrictEqual(
+      expect.objectContaining({
+        networkClientId: 'mainnet',
+        requireApproval: true,
+        type: TransactionType.perpsLighterDeposit,
+      }),
+    );
+    expect(options.requiredAssets?.[0]).toStrictEqual(
+      expect.objectContaining({
+        address: usdcContract,
+        amount: '0x1e8480',
+        standard: 'erc20',
+      }),
+    );
+
+    const setTransactionConfig = jest.mocked(
+      Engine.context.TransactionPayController.setTransactionConfig,
+    );
+    expect(setTransactionConfig).toHaveBeenCalledWith(
+      'tx-2',
+      expect.any(Function),
+    );
+    const config: Record<string, unknown> = {};
+    setTransactionConfig.mock.calls[0][1](config);
+    expect(config).toStrictEqual({
+      isQuoteRequired: true,
+      paymentProvider: 'lighter',
+    });
+    expect(mockAddTransaction.mock.invocationCallOrder[0]).toBeLessThan(
+      mockRejectRequest.mock.invocationCallOrder[0],
+    );
   });
 
   it('logs whether the address has a Lighter account', async () => {
