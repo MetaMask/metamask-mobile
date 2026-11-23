@@ -41,6 +41,7 @@ import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -1409,7 +1410,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderId && prompt?.kind === 'post_to_feed_toast'
               ? {
                   ...confirmedToast,
-                  linkButtonOptions: {
+                  // Link variant renders in the toast's trailing slot, on the right.
+                  closeButtonOptions: {
+                    variant: ButtonVariants.Link,
                     label: strings(
                       'social_leaderboard.post_trade_share.post_to_feed',
                     ),
