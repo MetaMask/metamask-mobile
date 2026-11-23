@@ -16,16 +16,14 @@ import type {
   PredictVenueId,
 } from '../../../types';
 
-type HomeSectionKeys = typeof PREDICT_SURFACE_FEED_KEYS.nextHomeSections;
-
 /**
  * Home's sections in display order: every row of the surface table, whether
- * or not the Venue supports it. Each section opens the Feed Screen of the same
- * ID, so a row without a Feed Screen does not compile.
+ * or not the Venue supports it. Each section opens the Venue catalog's Feed
+ * Screen of the same ID, while the catalog has it.
  */
 export const HOME_SECTION_IDS: readonly FeedScreenId[] = Object.keys(
   PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
-) as (keyof HomeSectionKeys)[];
+);
 
 /**
  * How many Events each section's read asks for. The Trending and Sports rows

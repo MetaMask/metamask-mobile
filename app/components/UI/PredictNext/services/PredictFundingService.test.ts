@@ -430,10 +430,12 @@ describe('PredictFundingService withdrawal flow', () => {
       await Promise.resolve();
 
       service.stopObserving();
-      const firstRejection = first.then(
-        () => undefined,
-        (error: unknown) => error,
-      );
+      // Captured, not awaited: only the request below makes it reject. The
+      // autofix for `jest/valid-expect` would await it here and deadlock.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const firstRejection = expect(first).rejects.toMatchObject({
+        name: 'AbortError',
+      });
 
       // The person confirms again while the aborted promise is still pending,
       // which is where the lock window used to hand them that rejection.
@@ -441,7 +443,7 @@ describe('PredictFundingService withdrawal flow', () => {
       await expect(
         service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1'),
       ).resolves.toMatchObject({ status: 'processing' });
-      expect(await firstRejection).toMatchObject({ name: 'AbortError' });
+      await firstRejection;
       expect(commitWithdraw).toHaveBeenCalledTimes(2);
     });
 
@@ -531,14 +533,15 @@ describe('PredictFundingService withdrawal flow', () => {
           signal: caller.signal,
         },
       );
-      const secondOutcome = second.then(
-        () => undefined,
-        (error: unknown) => error,
-      );
+      // Captured, not awaited: `caller.abort()` below is what rejects it.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const cancelled = expect(second).rejects.toMatchObject({
+        name: 'AbortError',
+      });
       await Promise.resolve();
       caller.abort();
 
-      expect(await secondOutcome).toMatchObject({ name: 'AbortError' });
+      await cancelled;
       expect(commitWithdraw).toHaveBeenCalledTimes(1);
       expect(commitWithdraw.mock.calls[0][1]?.signal?.aborted).toBe(false);
       gate.resolve(canonical);
@@ -560,7 +563,7 @@ describe('PredictFundingService withdrawal flow', () => {
           ),
         ).rejects.toMatchObject({
           code: PredictErrorCode.UNAUTHENTICATED,
-          metadata: { mutationRelay: 'not_relayed_this_invocation' },
+          metadata: { phase: 'commit', requestSent: false },
         });
         expect(commitWithdraw).not.toHaveBeenCalled();
       },
@@ -626,7 +629,7 @@ describe('PredictFundingService withdrawal flow', () => {
         code: PredictErrorCode.PREVIEW_EXPIRED,
         metadata: {
           phase: 'commit',
-          mutationRelay: 'not_relayed_this_invocation',
+          requestSent: false,
         },
       });
       expect(commitWithdraw).not.toHaveBeenCalled();
@@ -719,10 +722,11 @@ describe('PredictFundingService withdrawal flow', () => {
         KALSHI_VENUE_ID,
         'preview-1',
       );
-      const abandoned = oldCommit.then(
-        () => undefined,
-        (error: unknown) => error,
-      );
+      // Captured, not awaited: `changeIdentity()` below is what rejects it.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const abandoned = expect(oldCommit).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
       await Promise.resolve();
       service.changeIdentity();
       await service.requestWithdrawPreview(KALSHI_VENUE_ID, {
@@ -733,9 +737,7 @@ describe('PredictFundingService withdrawal flow', () => {
         'preview-1',
       );
       oldGate.resolve(receipt('processing'));
-      expect(await abandoned).toMatchObject({
-        code: PredictErrorCode.UNAUTHENTICATED,
-      });
+      await abandoned;
 
       expect(service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1')).toBe(
         newCommit,
@@ -765,12 +767,13 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(signal?.aborted).toBe(false);
 
       caller.abort();
-      const pendingOutcome = pending.then(
-        () => undefined,
-        (error: unknown) => error,
-      );
+      // Captured, not awaited: the shared commit keeps running past it.
+      // eslint-disable-next-line jest/valid-expect -- awaited below
+      const cancelled = expect(pending).rejects.toMatchObject({
+        name: 'AbortError',
+      });
       expect(signal?.aborted).toBe(false);
-      expect(await pendingOutcome).toMatchObject({ name: 'AbortError' });
+      await cancelled;
       gate.resolve(receipt('processing'));
       await service.commitWithdrawPreview(KALSHI_VENUE_ID, 'preview-1');
       expect(commitWithdraw).toHaveBeenCalledTimes(1);
@@ -964,6 +967,48 @@ describe('PredictFundingService withdrawal flow', () => {
       expect(commitWithdraw).toHaveBeenCalledTimes(1);
       expect(observeWithdraw).toHaveBeenCalledTimes(1);
     });
+
+    it('resolves a commit the API refused with not_placed without a read', async () => {
+      const service = await quotedServiceWith();
+      const refused = PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
+        metadata: {
+          phase: 'commit',
+          bodyCode: 'venue_unavailable',
+          outcome: 'not_placed',
+        },
+      });
+      commitWithdraw.mockRejectedValueOnce(refused);
+
+      await expect(
+        service.reconcileWithdrawCommit(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toEqual({ outcome: 'not_placed', error: refused });
+      expect(observeWithdraw).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['an unknown outcome', { outcome: 'unknown' }],
+      ['no outcome', {}],
+    ])(
+      'reads the operation after a commit failure with %s, whatever its code',
+      async (_name, body) => {
+        const service = await quotedServiceWith();
+        const failed = PredictError.from(PredictErrorCode.VENUE_UNAVAILABLE, {
+          metadata: {
+            phase: 'commit',
+            bodyCode: 'insufficient_balance',
+            requestSent: true,
+            ...body,
+          },
+        });
+        commitWithdraw.mockRejectedValueOnce(failed);
+        observeWithdraw.mockRejectedValueOnce(new TypeError('Still offline'));
+
+        await expect(
+          service.reconcileWithdrawCommit(KALSHI_VENUE_ID, 'preview-1'),
+        ).resolves.toMatchObject({ outcome: 'unknown' });
+        expect(observeWithdraw).toHaveBeenCalledTimes(1);
+      },
+    );
 
     it('keeps a lost commit unknown when the recovery read also fails', async () => {
       const service = await quotedServiceWith();
@@ -1351,7 +1396,7 @@ describe('PredictFundingService deposit flow', () => {
         service.prepareDeposit(venueId, PARAMS),
       ).rejects.toMatchObject({
         code: PredictErrorCode.VENUE_SIGNING_REFUSED,
-        metadata: { mutationRelay: 'not_relayed_this_invocation' },
+        metadata: { phase: 'commit', requestSent: false },
       });
       expect(funding.prepareDeposit).not.toHaveBeenCalled();
     });
