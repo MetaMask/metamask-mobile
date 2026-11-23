@@ -5,6 +5,7 @@ import NetInfo from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
+import { PredictError, PredictErrorCode } from '../../errors';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import {
   configurePredictNextCatalog,
@@ -244,6 +245,32 @@ describe('PredictHome layout from the Venue catalog', () => {
         [NFL_GAMES_FEED_ID, { limit: 4 }],
       ]),
     );
+  });
+
+  it('keeps the read sizes of the first resolved network tier when the tier changes', async () => {
+    // A failed catalog read holds the reads; its retry re-renders Home after
+    // the tier has changed.
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    configurePredictNextCatalog(
+      PredictError.from(PredictErrorCode.SERVICE_DEGRADED),
+    );
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.SECTIONS_ERROR);
+
+    netInfoMock.__setMockNetInfo({
+      type: 'cellular',
+      isInternetReachable: true,
+      details: { cellularGeneration: '3g' },
+    });
+    configurePredictNextCatalog(KALSHI_STATIC_VENUE_CATALOG);
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.SECTIONS_RETRY));
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+    expect(feedCalls()).toEqual([
+      [POLITICS_TRUMP_FEED_ID, { limit: 2 }],
+      [NCAA_GAMES_FEED_ID, { limit: 4 }],
+      [NFL_GAMES_FEED_ID, { limit: 6 }],
+    ]);
   });
 
   describe('Feed preview states', () => {

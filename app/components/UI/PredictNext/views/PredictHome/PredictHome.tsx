@@ -21,7 +21,7 @@ import ButtonIconGlass from '../../../../../component-library/components-temp/Bu
 import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
-import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { useNetworkTierState } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useBalance } from '../../hooks/useBalance';
 import {
@@ -460,14 +460,30 @@ export const PredictHome = () => {
   const capabilities = useVenueCapabilities(venueId);
   // Synchronous and uncached, so read once per mount.
   const [hardwareTier] = useState(getHardwareTier);
-  const networkTier = useNetworkTier();
-  const isConstrained = isHomeReadConstrained(hardwareTier, networkTier);
+  const networkTier = useNetworkTierState();
+  // A read's size is part of its query key, so a change would refetch every
+  // section and drop its cards. The size is decided once per mount, as soon
+  // as NetInfo resolves or the catalog is ready, whichever comes first.
+  // Nothing is read before the catalog is ready, so no read waits on this; a
+  // tier NetInfo has not resolved by then keeps the product default.
+  const [isConstrained, setIsConstrained] = useState<boolean>();
+  if (
+    isConstrained === undefined &&
+    (networkTier.isResolved || capabilities.status === 'ready')
+  ) {
+    setIsConstrained(
+      isHomeReadConstrained(
+        hardwareTier,
+        networkTier.isResolved ? networkTier.tier : null,
+      ),
+    );
+  }
   const sections =
     capabilities.status === 'ready'
       ? (capabilities.descriptor.home?.sections ?? NO_SECTIONS)
       : NO_SECTIONS;
   const plan = useMemo<readonly HomeFeedReadPlan[]>(
-    () => planHomeFeedReads(sections, capabilities, isConstrained),
+    () => planHomeFeedReads(sections, capabilities, isConstrained ?? false),
     [sections, capabilities, isConstrained],
   );
 
