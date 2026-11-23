@@ -15,6 +15,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
+import { getCryptoSymbol, isMetalSymbol } from '../../utils/cryptoUpDown';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
 const MIN_BOTTOM_PADDING_PX = 64;
@@ -46,6 +47,32 @@ export const CRYPTO_UP_DOWN_FORMAT_VALUE =
   "const sign = v < 0 ? '-' : ''; " +
   'const whole = String(Math.round(Math.abs(v))); ' +
   "return sign + '$' + whole.replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',')";
+
+/**
+ * USD cents formatter body for metals, e.g. `4030.355` -> `"$4,030.36"`.
+ * A 15-minute gold window can move under a dollar ($4,029.91 -> $4,030.36),
+ * so whole dollars would label every gridline "$4,030", and silver trades
+ * near $51. Same bridge constraint and regression test as
+ * `CRYPTO_UP_DOWN_FORMAT_VALUE`.
+ */
+export const METAL_UP_DOWN_FORMAT_VALUE =
+  "const sign = v < 0 ? '-' : ''; " +
+  "const parts = Math.abs(v).toFixed(2).split('.'); " +
+  "return sign + '$' + parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',') + '.' + parts[1]";
+
+/**
+ * Picks the value formatter body for a market's symbol: cents for metals,
+ * whole dollars for crypto.
+ *
+ * @param symbol - Market symbol, such as `BTC` or `XAU`.
+ * @returns A serialised formatter body for `LivelineChart`.
+ */
+export const getCryptoUpDownFormatValue = (
+  symbol: string | undefined,
+): string =>
+  isMetalSymbol(symbol)
+    ? METAL_UP_DOWN_FORMAT_VALUE
+    : CRYPTO_UP_DOWN_FORMAT_VALUE;
 
 /**
  * 12-hour `h:mm:ss` time formatter body for `LivelineChart` time-axis
@@ -152,7 +179,7 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
              * instead of resampling a persistent book.
              * orderbook={orderbook ?? undefined}
              */
-            formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
+            formatValue={getCryptoUpDownFormatValue(getCryptoSymbol(market))}
             formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
           />
         ))}

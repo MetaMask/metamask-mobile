@@ -1,4 +1,8 @@
 import { DEFAULT_PREDICT_HOME_CATEGORIES_FLAG } from './flags';
+import {
+  GOLD_UP_DOWN_15M_SERIES_ID,
+  SILVER_UP_DOWN_15M_SERIES_ID,
+} from './liveNowCryptoSeries';
 import type { PredictHomeCategoriesConfig } from '../types/flags';
 import {
   PREDICT_FEED_IDS,
@@ -830,5 +834,47 @@ describe('feedConfig home category feeds (PRED-1226)', () => {
     DEFAULT_PREDICT_HOME_CATEGORIES_FLAG.categories.forEach((category) => {
       expect(resolvePredictFeedConfig(category.id)?.id).toBe(category.id);
     });
+  });
+
+  it('adds the 15m metals chip after all on the finance feed only', () => {
+    const finance = resolvePredictFeedConfig('finance');
+    const staticFilters = finance?.tabs[0].filters.static;
+
+    expect(staticFilters?.map((filter) => filter.id)).toEqual(['all', '15m']);
+    expect(staticFilters?.[1]).toEqual({
+      id: '15m',
+      label: '15m',
+      params: {
+        series: [GOLD_UP_DOWN_15M_SERIES_ID, SILVER_UP_DOWN_15M_SERIES_ID],
+        status: 'open',
+        order: 'ending_soon',
+      },
+    });
+
+    const remoteFinance = resolvePredictFeedConfig('finance', undefined, {
+      enabled: true,
+      minimumVersion: '',
+      categories: [{ id: 'finance', tagSlug: 'finance', label: 'Finance' }],
+    });
+    expect(
+      remoteFinance?.tabs[0].filters.static.map((filter) => filter.id),
+    ).toEqual(['all', '15m']);
+    expect(remoteFinance?.tabs[0].filters.static[1]).toEqual(
+      staticFilters?.[1],
+    );
+
+    (['politics', 'crypto', 'esports', 'culture', 'tech'] as const).forEach(
+      (feedId) => {
+        expect(
+          resolvePredictFeedConfig(feedId)?.tabs[0].filters.static.map(
+            (filter) => filter.id,
+          ),
+        ).toEqual(['all']);
+      },
+    );
+    expect(
+      resolvePredictFeedConfig('weather', undefined, remoteCategories)?.tabs[0]
+        .filters.static.map((filter) => filter.id),
+    ).toEqual(['all']);
   });
 });
