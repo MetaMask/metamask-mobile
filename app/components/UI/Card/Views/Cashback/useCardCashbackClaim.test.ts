@@ -9,7 +9,10 @@ import {
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
 import Engine from '../../../../../core/Engine';
 import { isHardwareAccount } from '../../../../../util/address';
-import { runEarningsClaim } from '../../../Rewards/utils/claimEarnings';
+import {
+  runEarningsClaim,
+  submitClaimVoucher,
+} from '../../../Rewards/utils/claimEarnings';
 import { useCardCashbackClaim } from './useCardCashbackClaim';
 
 jest.mock('react-redux', () => ({
@@ -50,6 +53,7 @@ jest.mock('../../../Rewards/utils/claimEarnings', () => {
   return {
     ...actual,
     runEarningsClaim: jest.fn(),
+    submitClaimVoucher: jest.fn(),
   };
 });
 
@@ -80,9 +84,28 @@ function givenAccount({
     .mockReturnValue(() => sponsored);
 }
 
+async function startedClaim() {
+  givenAccount();
+  let captured: Parameters<typeof runEarningsClaim>[0] | undefined;
+  jest.mocked(runEarningsClaim).mockImplementation(async (input) => {
+    captured = input;
+    return [{ route: 'card-cashback', submitted: true, opened: true }];
+  });
+  const { result } = renderHook(() => useCardCashbackClaim());
+  await act(async () => {
+    await result.current.claim();
+  });
+  if (!captured) {
+    throw new Error('claim did not start');
+  }
+  return captured;
+}
+
 describe('useCardCashbackClaim', () => {
   beforeEach(() => {
     jest.mocked(runEarningsClaim).mockReset();
+    jest.mocked(submitClaimVoucher).mockReset();
+    jest.mocked(isHardwareAccount).mockReturnValue(false);
   });
 
   it('does not offer a claim without a vault config', () => {
@@ -177,9 +200,10 @@ describe('useCardCashbackClaim', () => {
 
   it('does not offer a claim for an account that cannot sign', async () => {
     jest.mocked(selectPrimaryMoneyAccount).mockReturnValue({
+      ...moneyAccount,
       address: '0x3333333333333333333333333333333333333333',
-      options: { entropy: { type: 'privateKey' } },
-    } as MoneyAccount);
+      options: { entropy: { type: 'mpc' }, exportable: false },
+    });
     jest.mocked(selectMoneyAccountVaultConfig).mockReturnValue(vaultConfig);
     jest.mocked(getGasFeesSponsoredNetworkEnabled).mockReturnValue(() => true);
 
@@ -196,47 +220,64 @@ describe('useCardCashbackClaim', () => {
     expect(runEarningsClaim).not.toHaveBeenCalled();
   });
 
-  it('signs and submits the card-cashback route', async () => {
-    givenAccount();
-    const initiateClaim = Engine.context.RewardsMoneyController
-      .initiateClaim as jest.Mock;
-    const signPersonalMessage = Engine.context.KeyringController
-      .signPersonalMessage as jest.Mock;
-    initiateClaim.mockResolvedValue({ voucher: {} });
-    signPersonalMessage.mockResolvedValue('0xsig');
-    jest.mocked(runEarningsClaim).mockImplementation(async (input) => {
-      await input.initiateClaim('card-cashback', {
-        money_account_address: moneyAccount.address,
-      });
-      expect(
-        input.canSignEarningAddress(`eip155:${moneyAccount.address}`),
-      ).toBe(true);
-      jest.mocked(isHardwareAccount).mockReturnValueOnce(true);
-      expect(
-        input.canSignEarningAddress(`eip155:${moneyAccount.address}`),
-      ).toBe(false);
-      expect(input.canSignEarningAddress('not-evm')).toBe(false);
-      await expect(
-        input.signMessage('hello', `eip155:${moneyAccount.address}`),
-      ).resolves.toBe('0xsig');
-      await expect(input.signMessage('hello', 'not-evm')).rejects.toThrow(
-        'SIGN_FAILED',
-      );
-      signPersonalMessage.mockRejectedValueOnce(new Error('declined'));
-      await expect(
-        input.signMessage('hello', `eip155:${moneyAccount.address}`),
-      ).rejects.toThrow('SIGN_FAILED');
-      await expect(input.submitVoucher({} as never)).rejects.toThrow();
-      return [{ route: 'card-cashback', submitted: true, opened: true }];
-    });
-    const { result } = renderHook(() => useCardCashbackClaim());
-    let outcome = '';
+  it('starts the claim through RewardsMoneyController.initiateClaim', async () => {
+    const input = await startedClaim();
 
-    await act(async () => {
-      outcome = await result.current.claim();
+    await input.initiateClaim('card-cashback', {
+      money_account_address: moneyAccount.address,
     });
 
-    expect(initiateClaim).toHaveBeenCalledTimes(1);
-    expect(outcome).toBe('submitted');
+    expect(
+      Engine.context.RewardsMoneyController.initiateClaim,
+    ).toHaveBeenCalledWith('card-cashback', {
+      money_account_address: moneyAccount.address,
+    });
+  });
+
+  it('accepts the Money account earning address', async () => {
+    const input = await startedClaim();
+
+    expect(input.canSignEarningAddress(`eip155:${moneyAccount.address}`)).toBe(
+      true,
+    );
+  });
+
+  it('refuses a hardware earning address', async () => {
+    const input = await startedClaim();
+    jest.mocked(isHardwareAccount).mockReturnValueOnce(true);
+
+    expect(input.canSignEarningAddress(`eip155:${moneyAccount.address}`)).toBe(
+      false,
+    );
+  });
+
+  it('refuses an earning address that is not EVM', async () => {
+    const input = await startedClaim();
+
+    expect(input.canSignEarningAddress('not-evm')).toBe(false);
+  });
+
+  it('returns SIGN_FAILED when the signature is declined', async () => {
+    const input = await startedClaim();
+    jest
+      .mocked(Engine.context.KeyringController.signPersonalMessage)
+      .mockRejectedValueOnce(new Error('declined'));
+
+    await expect(
+      input.signMessage('hello', `eip155:${moneyAccount.address}`),
+    ).rejects.toThrow('SIGN_FAILED');
+  });
+
+  it('submits the voucher for this Money account', async () => {
+    const input = await startedClaim();
+    const voucher = { id: 'voucher-1' } as never;
+
+    await input.submitVoucher(voucher);
+
+    expect(submitClaimVoucher).toHaveBeenCalledWith({
+      voucher,
+      vaultConfig,
+      moneyAccountAddress: moneyAccount.address,
+    });
   });
 });

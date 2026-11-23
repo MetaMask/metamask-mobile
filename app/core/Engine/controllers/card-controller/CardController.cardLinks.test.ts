@@ -71,6 +71,7 @@ interface Setup {
   getBearerToken?: jest.Mock;
   signPersonalMessage?: jest.Mock;
   keyrings?: { type: string; accounts: string[] }[];
+  accounts?: string[];
   provider?: Partial<ICardProvider>;
   remoteFeatureFlags?: Record<string, unknown>;
 }
@@ -82,6 +83,7 @@ function setup({
   getBearerToken = jest.fn().mockResolvedValue('token-1'),
   signPersonalMessage = jest.fn().mockResolvedValue(undefined),
   keyrings = [{ type: 'HD Key Tree', accounts: [SELECTED_ADDRESS] }],
+  accounts = [SELECTED_ADDRESS],
   provider = {},
   remoteFeatureFlags = {},
 }: Setup = {}) {
@@ -116,14 +118,17 @@ function setup({
         case 'AccountsController:getState':
           return {
             internalAccounts: {
-              accounts: {
-                'id-1': {
-                  id: 'id-1',
-                  address: SELECTED_ADDRESS,
-                  type: 'eip155:eoa',
-                  scopes: ['eip155:0'],
-                },
-              },
+              accounts: Object.fromEntries(
+                accounts.map((address, index) => [
+                  `id-${index + 1}`,
+                  {
+                    id: `id-${index + 1}`,
+                    address,
+                    type: 'eip155:eoa',
+                    scopes: ['eip155:0'],
+                  },
+                ]),
+              ),
               selectedAccount: 'id-1',
             },
           };
@@ -1322,6 +1327,62 @@ describe('CardController card links', () => {
       ).mock.calls.filter((call) => call[1]?.walletProof);
       expect(proofWrites).toHaveLength(1);
       expect(proofWrites[0][0]).toBe('immersve');
+    });
+
+    it('asks for the proof with the account the unverified link already names', async () => {
+      const signature = `0x${'cd'.repeat(65)}`;
+      const profileId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+      const bearer = `e30.${Buffer.from(JSON.stringify({ sub: profileId })).toString('base64url')}.sig`;
+      const signPersonalMessage = jest.fn().mockResolvedValue(signature);
+      const { controller, cardService } = setup({
+        accounts: [SELECTED_ADDRESS, CARDHOLDER_ADDRESS],
+        getBearerToken: jest.fn().mockResolvedValue(bearer),
+        signPersonalMessage,
+      });
+      cardService.getCardLinks.mockResolvedValue([
+        link({
+          provider: 'immersve',
+          status: 'active',
+          linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+          cardholderVerified: false,
+        }),
+      ]);
+
+      await controller.fetchCardLinks();
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalledWith(
+        'immersve',
+        expect.objectContaining({
+          linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+          walletProof: expect.objectContaining({ signature }),
+        }),
+        bearer,
+      );
+      expect(signPersonalMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ from: CARDHOLDER_ADDRESS }),
+      );
+    });
+
+    it('does not ask for a proof when the named account is not on this phone', async () => {
+      const signPersonalMessage = jest.fn();
+      const { controller, cardService } = setup({
+        signPersonalMessage,
+      });
+      cardService.getCardLinks.mockResolvedValue([
+        link({
+          provider: 'immersve',
+          status: 'active',
+          linkedAccountRef: refFor(CARDHOLDER_ADDRESS),
+          cardholderVerified: false,
+        }),
+      ]);
+
+      await controller.fetchCardLinks();
+      await flush();
+
+      expect(cardService.putCardLink).not.toHaveBeenCalled();
+      expect(signPersonalMessage).not.toHaveBeenCalled();
     });
 
     it('writes an active Baanx link after a verified external session', async () => {

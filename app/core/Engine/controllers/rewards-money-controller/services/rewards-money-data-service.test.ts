@@ -208,44 +208,68 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
-    it('omits the cursor when a card page is the first page', async () => {
+    it('omits the cursor on the first ledger page', async () => {
       mockFetch.mockResolvedValue(
         okJson({ results: [], has_more: false, cursor: null }),
       );
 
       await service.getCardLedger();
-      await service.getCardClaimHistory();
 
-      const urls = mockFetch.mock.calls.map((call) => String(call[0]));
-      expect(urls[0]).toContain('/earnings/card/ledger?');
-      expect(urls[0]).not.toContain('cursor=');
-      expect(urls[1]).toContain('/earnings/card/claim/me?');
-      expect(urls[1]).not.toContain('cursor=');
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('/earnings/card/ledger?');
+      expect(url).not.toContain('cursor=');
     });
 
-    it('sends the claim-history cursor and throws when a card read fails', async () => {
+    it('omits the cursor on the first claim-history page', async () => {
       mockFetch.mockResolvedValue(
         okJson({ results: [], has_more: false, cursor: null }),
       );
+
+      await service.getCardClaimHistory();
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('/earnings/card/claim/me?');
+      expect(url).not.toContain('cursor=');
+    });
+
+    it('sends the claim-history cursor', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({ results: [], has_more: false, cursor: null }),
+      );
+
       await service.getCardClaimHistory('cursor-2');
+
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('cursor=cursor-2'),
         expect.any(Object),
       );
+    });
 
-      mockFetch.mockResolvedValue(notOk(500));
-      await expect(service.getCardSummary()).rejects.toThrow(
+    it.each([
+      [
+        'card summary',
+        async () => service.getCardSummary(),
         'Get card summary failed: 500',
-      );
-      await expect(service.getCardLedger()).rejects.toThrow(
+      ],
+      [
+        'card ledger',
+        async () => service.getCardLedger(),
         'Get card ledger failed: 500',
-      );
-      await expect(service.getCardClaimHistory()).rejects.toThrow(
+      ],
+      [
+        'card claim history',
+        async () => service.getCardClaimHistory(),
         'Get card claim history failed: 500',
-      );
-      await expect(service.getCardClaim('claim/1')).rejects.toThrow(
+      ],
+      [
+        'card claim',
+        async () => service.getCardClaim('claim/1'),
         'Get card claim failed: 500',
-      );
+      ],
+    ])('throws when the %s read fails', async (_label, read, message) => {
+      mockFetch.mockResolvedValue(notOk(500));
+
+      await expect(read()).rejects.toThrow(message);
     });
   });
 

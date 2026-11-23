@@ -123,8 +123,8 @@ jest.mock('../../../../../selectors/cardController', () => ({
 }));
 
 jest.mock('./CardCashback', () => {
-  const React = require('react');
-  const { Text } = require('react-native');
+  const React = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () =>

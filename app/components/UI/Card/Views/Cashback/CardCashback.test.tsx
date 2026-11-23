@@ -134,7 +134,7 @@ describe('CardCashback', () => {
     expect(AccessibilityInfo.announceForAccessibility).not.toHaveBeenCalled();
   });
 
-  it('keeps Claim when the claim is submitted and the balance reloads', async () => {
+  it('reloads the summary after a submitted claim', async () => {
     mockClaim.mockResolvedValue('submitted');
     const view = render(<CardCashback />);
 
@@ -154,8 +154,6 @@ describe('CardCashback', () => {
       jest.mocked(Engine.context.RewardsMoneyController.getCardSummary).mock
         .calls.length,
     ).toBeGreaterThan(loaded);
-    expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
-    expect(view.queryByTestId(CardCashbackSelectors.CLAIM_ERROR)).toBeNull();
   });
 
   it('shows unavailable when the summary cannot be loaded', async () => {

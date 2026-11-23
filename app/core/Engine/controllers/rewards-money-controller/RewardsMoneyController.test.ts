@@ -687,50 +687,42 @@ describe('RewardsMoneyController', () => {
       expect(referralCalls()).toHaveLength(2);
     });
 
-    it('reads the card summary, ledger, and claims', async () => {
-      const summary = { claimable: '30000' };
-      const ledger = { results: [] };
-      const history = { results: [], cursor: null };
-      const claim = { id: 'claim-1' };
-      mockMessenger.call.mockImplementation((action): any => {
-        if (action === 'RewardsMoneyDataService:getCardSummary') {
-          return summary;
-        }
-        if (action === 'RewardsMoneyDataService:getCardLedger') {
-          return ledger;
-        }
-        if (action === 'RewardsMoneyDataService:getCardClaimHistory') {
-          return history;
-        }
-        if (action === 'RewardsMoneyDataService:getCardClaim') {
-          return claim;
-        }
-        return undefined;
-      });
-
-      await expect(controller.getCardSummary()).resolves.toBe(summary);
-      await expect(controller.getCardLedger('cursor-1', 10)).resolves.toBe(
-        ledger,
-      );
-      await expect(controller.getCardClaimHistory(null, 5)).resolves.toBe(
-        history,
-      );
-      await expect(controller.getCardClaim('claim-1')).resolves.toEqual(claim);
-      expect(mockMessenger.call).toHaveBeenCalledWith(
+    it.each([
+      [
+        'RewardsMoneyDataService:getCardSummary',
+        async () => controller.getCardSummary(),
+        [],
+        { claimable: '30000' },
+      ],
+      [
         'RewardsMoneyDataService:getCardLedger',
-        'cursor-1',
-        10,
-      );
-      expect(mockMessenger.call).toHaveBeenCalledWith(
+        async () => controller.getCardLedger('cursor-1', 10),
+        ['cursor-1', 10],
+        { results: [] },
+      ],
+      [
         'RewardsMoneyDataService:getCardClaimHistory',
-        null,
-        5,
-      );
-      expect(mockMessenger.call).toHaveBeenCalledWith(
+        async () => controller.getCardClaimHistory(null, 5),
+        [null, 5],
+        { results: [], cursor: null },
+      ],
+      [
         'RewardsMoneyDataService:getCardClaim',
-        'claim-1',
-      );
-    });
+        async () => controller.getCardClaim('claim-1'),
+        ['claim-1'],
+        { id: 'claim-1' },
+      ],
+    ])(
+      'forwards %s to the data service',
+      async (action, read, args, result) => {
+        mockMessenger.call.mockImplementation((called, ..._args): any =>
+          called === action ? result : undefined,
+        );
+
+        await expect(read()).resolves.toEqual(result);
+        expect(mockMessenger.call).toHaveBeenCalledWith(action, ...args);
+      },
+    );
 
     it('caches earnings summary by origin-type scope', async () => {
       withProfileAndData(

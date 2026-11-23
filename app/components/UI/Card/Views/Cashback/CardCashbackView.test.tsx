@@ -115,6 +115,19 @@ describe('CardCashbackView', () => {
           claimable: '1000',
           minimum_musd_base_units: '10000',
         }}
+        canClaim
+      />,
+    );
+
+    expect(view.getByText(/below_minimum:0\.01/)).toBeOnTheScreen();
+    expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
+  });
+
+  it('shows the ledger entry id when the amount is missing', () => {
+    const view = render(
+      <CardCashbackView
+        status="ready"
+        summary={summary}
         ledger={[
           {
             type: 'earning',
@@ -122,22 +135,34 @@ describe('CardCashbackView', () => {
             musd_amount: '',
           },
         ]}
-        canClaim
       />,
     );
 
-    expect(view.getByText(/below_minimum:0\.01/)).toBeOnTheScreen();
     expect(view.getByText('fact-2')).toBeOnTheScreen();
-    expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
   });
 
-  it('shows a blocking reason and the pairing message', () => {
+  it('shows a blocking reason', () => {
     const view = render(
       <CardCashbackView
         status="ready"
         summary={{
           ...summary,
           blocking_reason: 'held',
+        }}
+        canClaim
+      />,
+    );
+
+    expect(view.getByText('held')).toBeOnTheScreen();
+    expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
+  });
+
+  it('shows the pairing message', () => {
+    const view = render(
+      <CardCashbackView
+        status="ready"
+        summary={{
+          ...summary,
           pairing_pending: true,
           claimable: '',
           minimum_musd_base_units: '',
@@ -146,8 +171,6 @@ describe('CardCashbackView', () => {
       />,
     );
 
-    expect(view.getByText('held')).toBeOnTheScreen();
     expect(view.getByTestId(CardCashbackSelectors.PAIRING)).toBeOnTheScreen();
-    expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
   });
 });

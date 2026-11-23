@@ -1001,7 +1001,14 @@ export class CardController extends BaseController<
     if (!this.#isCardLinkApiEnabled()) return null;
     const ref = pickRoutableCardLink(this.state.cardLinks)?.linkedAccountRef;
     if (!ref) return null;
+    return this.#accountForLinkedRef(ref, addresses);
+  }
 
+  /** The account on this phone whose hash matches `ref`. */
+  async #accountForLinkedRef(
+    ref: string,
+    addresses?: string[],
+  ): Promise<string | null> {
     const candidates =
       addresses ??
       Object.values(
@@ -1151,7 +1158,8 @@ export class CardController extends BaseController<
   /**
    * An Immersve link written without a proof (no address at card creation,
    * a hardware or MPC account, or a declined signature) stays unverified.
-   * Ask once more this session when the server says so and an account is selected.
+   * The proof is signed by the account the link already names, or by the
+   * selected account when it names none.
    */
   #reaskUnverifiedImmersveLink(): void {
     if (this.#cardLinkProofPrompted.has(CardProviderIds.Immersve)) return;
@@ -1167,15 +1175,7 @@ export class CardController extends BaseController<
     ) {
       return;
     }
-    const address = this.#getSelectedEvmAddress();
-    if (!address) return;
-    this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
-    this.#writeCardLink(
-      CardProviderIds.Immersve,
-      link.status,
-      { address, promptWalletProof: true },
-      'reaskUnverifiedCardLink',
-    ).catch((error) =>
+    this.#promptUnverifiedImmersveProof(link).catch((error) =>
       Logger.error(error as Error, {
         tags: { feature: 'card', provider: CardProviderIds.Immersve },
         context: {
@@ -1183,6 +1183,22 @@ export class CardController extends BaseController<
           data: { method: 'reaskUnverifiedCardLink' },
         },
       }),
+    );
+  }
+
+  async #promptUnverifiedImmersveProof(link: CardLink): Promise<void> {
+    if (link.status === 'closed') return;
+    const address = link.linkedAccountRef
+      ? await this.#accountForLinkedRef(link.linkedAccountRef)
+      : this.#getSelectedEvmAddress();
+    if (!address) return;
+    if (this.#cardLinkProofPrompted.has(CardProviderIds.Immersve)) return;
+    this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
+    await this.#writeCardLink(
+      CardProviderIds.Immersve,
+      link.status,
+      { address, promptWalletProof: true },
+      'reaskUnverifiedCardLink',
     );
   }
 

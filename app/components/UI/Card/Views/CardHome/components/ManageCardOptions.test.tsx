@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
 import ManageCardOptions from './ManageCardOptions';
 import { CardHomeSelectors } from '../CardHome.testIds';
 import { CardType } from '../../../types';
@@ -597,17 +598,24 @@ describe('ManageCardOptions transaction history gating', () => {
     expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
   });
 
-  it('shows 1% for a verified virtual card and 3% for metal', () => {
-    const virtual = renderComponent(
+  it('shows 1% for a verified virtual card', () => {
+    const { getByTestId } = renderComponent(
       buildCapabilities({
         supportsCashback: true,
         supportsFundingLimits: false,
       }),
       { providerId: 'baanx', account: { verificationStatus: 'VERIFIED' } },
     );
-    expect(virtual.getByText('1% mUSD Back')).toBeOnTheScreen();
 
-    const metal = renderComponent(
+    expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toHaveTextContent(
+      strings('card.card_home.manage_card_options.cashback', {
+        cashbackPercentage: '1',
+      }),
+    );
+  });
+
+  it('shows 3% for a metal card', () => {
+    const { getByTestId } = renderComponent(
       buildCapabilities({
         supportsCashback: true,
         supportsFundingLimits: false,
@@ -618,17 +626,23 @@ describe('ManageCardOptions transaction history gating', () => {
         account: { verificationStatus: 'VERIFIED' },
       },
     );
-    expect(metal.getByText('3% mUSD Back')).toBeOnTheScreen();
 
-    const unverified = renderComponent(
+    expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toHaveTextContent(
+      strings('card.card_home.manage_card_options.cashback', {
+        cashbackPercentage: '3',
+      }),
+    );
+  });
+
+  it('hides cashback for an unverified Baanx account', () => {
+    const { queryByTestId } = renderComponent(
       buildCapabilities({
         supportsCashback: true,
         supportsFundingLimits: false,
       }),
       { providerId: 'baanx', account: { verificationStatus: null } },
     );
-    expect(
-      unverified.queryByTestId(CardHomeSelectors.CASHBACK_ITEM),
-    ).toBeNull();
+
+    expect(queryByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeNull();
   });
 });
