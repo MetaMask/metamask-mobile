@@ -13,7 +13,7 @@ describe('createCubistSessionTokenProvider', () => {
     const exchangeSocialAccessToken = jest.fn(async () => SESSION);
     const provider = createCubistSessionTokenProvider({
       isUnlocked: () => false,
-      refreshCanonicalProfileId: jest.fn(),
+      getCanonicalProfileId: jest.fn(),
       getBearerToken: jest.fn(),
       exchangeSocialAccessToken,
       now: () => 1_000,
@@ -31,7 +31,7 @@ describe('createCubistSessionTokenProvider', () => {
     const exchangeSocialAccessToken = jest.fn();
     const provider = createCubistSessionTokenProvider({
       isUnlocked: () => true,
-      refreshCanonicalProfileId: jest.fn(async () => 'srp-profile'),
+      getCanonicalProfileId: jest.fn(async () => 'srp-profile'),
       getBearerToken: jest.fn(async () => 'srp-token'),
       exchangeSocialAccessToken,
     });
@@ -55,7 +55,7 @@ describe('createCubistSessionTokenProvider', () => {
     let now = 1_000;
     const provider = createCubistSessionTokenProvider({
       isUnlocked: () => false,
-      refreshCanonicalProfileId: jest.fn(),
+      getCanonicalProfileId: jest.fn(),
       getBearerToken: jest.fn(),
       exchangeSocialAccessToken,
       now: () => now,

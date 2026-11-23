@@ -125,9 +125,22 @@ describe('mfaRecoveryControllerInit', () => {
       'KeyringController:getState',
     );
 
-    initMessenger.call.mockResolvedValueOnce('profile-id');
-    await expect(options.refreshCanonicalProfileId()).resolves.toBe(
-      'profile-id',
+    initMessenger.call.mockResolvedValueOnce({
+      canonicalProfileId: 'profile-id',
+    });
+    await expect(options.getCanonicalProfileId()).resolves.toBe('profile-id');
+    expect(initMessenger.call).toHaveBeenCalledWith(
+      'AuthenticationController:getSessionProfile',
+    );
+
+    initMessenger.call
+      .mockResolvedValueOnce({ canonicalProfileId: '' })
+      .mockResolvedValueOnce('refreshed-profile-id');
+    await expect(options.getCanonicalProfileId()).resolves.toBe(
+      'refreshed-profile-id',
+    );
+    expect(initMessenger.call).toHaveBeenCalledWith(
+      'AuthenticationController:refreshCanonicalProfileId',
     );
 
     initMessenger.call.mockResolvedValueOnce('bearer');

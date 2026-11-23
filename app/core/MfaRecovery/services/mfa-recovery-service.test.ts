@@ -927,6 +927,48 @@ describe('MfaRecoveryService', () => {
       );
       expect(seedless.migrateToEnvelope).not.toHaveBeenCalled();
     });
+
+    describe('setUpWithCandidates', () => {
+      it('registers SIWE, social, and approved passkeys with a single getIdentifiers read', async () => {
+        const { service, controller } = createSetUpService();
+
+        await expect(service.setUpWithCandidates()).resolves.toBe('enabled');
+
+        expect(controller.getIdentifiers).toHaveBeenCalledTimes(1);
+        expect(controller.register).toHaveBeenCalledWith(
+          expect.any(Uint8Array),
+          [SIWE, AUTH_SOCIAL, AUTH_PASSKEY],
+        );
+      });
+
+      it('registers SIWE and social when Auth has no passkey', async () => {
+        const { service, controller } = createSetUpService({
+          authIdentifiers: [AUTH_SOCIAL],
+        });
+
+        await expect(service.setUpWithCandidates()).resolves.toBe('enabled');
+
+        expect(controller.getIdentifiers).toHaveBeenCalledTimes(1);
+        expect(controller.register).toHaveBeenCalledWith(
+          expect.any(Uint8Array),
+          [SIWE, AUTH_SOCIAL],
+        );
+      });
+
+      it('returns already_enabled without verifying when the vault is sealed', async () => {
+        const seedless = createSeedless();
+        seedless.state.envelope = { v: 1, vaultAuthPubKey: 'pk' };
+        const { service, controller, verifyMfa } = createSetUpService({
+          seedless,
+        });
+
+        await expect(service.setUpWithCandidates()).resolves.toBe(
+          'already_enabled',
+        );
+        expect(verifyMfa).not.toHaveBeenCalled();
+        expect(controller.getIdentifiers).not.toHaveBeenCalled();
+      });
+    });
   });
 
   describe('getCandidateIdentifiers', () => {

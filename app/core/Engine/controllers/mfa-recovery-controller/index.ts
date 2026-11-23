@@ -54,10 +54,17 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
     isEnabled,
     isUnlocked: () =>
       initMessenger.call('KeyringController:getState').isUnlocked,
-    refreshCanonicalProfileId: async () =>
-      await initMessenger.call(
+    getCanonicalProfileId: async () => {
+      const { canonicalProfileId } = await initMessenger.call(
+        'AuthenticationController:getSessionProfile',
+      );
+      if (canonicalProfileId) {
+        return canonicalProfileId;
+      }
+      return await initMessenger.call(
         'AuthenticationController:refreshCanonicalProfileId',
-      ),
+      );
+    },
     getBearerToken: async () =>
       await initMessenger.call('AuthenticationController:getBearerToken'),
     exchangeSocialAccessToken: async () =>

@@ -9,7 +9,7 @@ export interface SocialProfileSession {
 export interface SessionTokenProviderOptions {
   isUnlocked: () => boolean;
   /** Unlocked wallets: the SRP profile's canonical ID. */
-  refreshCanonicalProfileId: () => Promise<string>;
+  getCanonicalProfileId: () => Promise<string>;
   /** Unlocked wallets: the SRP profile's access token. */
   getBearerToken: () => Promise<string>;
   /** Locked wallets: exchanges the seedless social token for a profile session. */
@@ -28,7 +28,7 @@ const EXPIRY_SKEW_MS = 60_000;
  */
 export function createCubistSessionTokenProvider({
   isUnlocked,
-  refreshCanonicalProfileId,
+  getCanonicalProfileId,
   getBearerToken,
   exchangeSocialAccessToken,
   now = Date.now,
@@ -51,7 +51,7 @@ export function createCubistSessionTokenProvider({
     getAuthenticatedProfileId: async () => {
       if (isUnlocked()) {
         cached = undefined;
-        return await refreshCanonicalProfileId();
+        return await getCanonicalProfileId();
       }
       return (await getSocialSession()).profile.canonicalProfileId;
     },

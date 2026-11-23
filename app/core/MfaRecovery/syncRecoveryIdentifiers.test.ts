@@ -14,16 +14,6 @@ const PASSKEY: Identifier = {
   namespace: 'auth.example',
   value: 'credential',
 };
-const SIWE: Identifier = {
-  type: 'siwe',
-  namespace: 'eip155',
-  value: '0xabc',
-};
-const SOCIAL: Identifier = {
-  type: 'social',
-  namespace: 'google',
-  value: 'user',
-};
 
 const verifyMfa = jest.fn();
 
@@ -35,19 +25,17 @@ const NEW_PASSKEY: Identifier = {
 function createService({
   status = 'Enabled',
   unenrolledPasskeys = [] as Identifier[],
-  candidates = [] as Identifier[],
   enrolledPasskey = PASSKEY,
 }: {
   status?: 'Enabled' | 'NotEnabled';
   unenrolledPasskeys?: Identifier[];
-  candidates?: Identifier[];
   /** `null` when Cubist does not have the passkey being removed. */
   enrolledPasskey?: Identifier | null;
 } = {}) {
   const service = {
     getStatus: jest.fn().mockReturnValue(status),
-    getCandidateIdentifiers: jest.fn().mockResolvedValue(candidates),
     setUp: jest.fn().mockResolvedValue('enabled'),
+    setUpWithCandidates: jest.fn().mockResolvedValue('enabled'),
     addIdentifier: jest.fn().mockResolvedValue({}),
     getUnenrolledPasskeyIdentifiers: jest
       .fn()
@@ -69,7 +57,7 @@ describe('syncRecoveryAfterEnroll', () => {
   });
 
   it('gives the service the social link email prompt for setup', async () => {
-    createService({ status: 'NotEnabled', candidates: [SIWE] });
+    createService({ status: 'NotEnabled' });
     const getSocialLinkEmail = jest.fn();
 
     await syncRecoveryAfterEnroll('totp', { verifyMfa, getSocialLinkEmail });
@@ -109,14 +97,11 @@ describe('syncRecoveryAfterEnroll', () => {
   });
 
   it('sets recovery up with the candidate identifiers on first enrollment', async () => {
-    const service = createService({
-      status: 'NotEnabled',
-      candidates: [SIWE, SOCIAL, PASSKEY],
-    });
+    const service = createService({ status: 'NotEnabled' });
 
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
-    expect(service.setUp).toHaveBeenCalledWith([SIWE, SOCIAL, PASSKEY]);
+    expect(service.setUpWithCandidates).toHaveBeenCalledTimes(1);
     expect(service.addIdentifier).not.toHaveBeenCalled();
   });
 
@@ -126,7 +111,7 @@ describe('syncRecoveryAfterEnroll', () => {
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
     expect(service.addIdentifier).toHaveBeenCalledWith(NEW_PASSKEY);
-    expect(service.setUp).not.toHaveBeenCalled();
+    expect(service.setUpWithCandidates).not.toHaveBeenCalled();
   });
 
   it('adds each passkey Cubist does not have, one at a time', async () => {
@@ -147,7 +132,7 @@ describe('syncRecoveryAfterEnroll', () => {
     await syncRecoveryAfterEnroll('passkey', { verifyMfa });
 
     expect(service.addIdentifier).not.toHaveBeenCalled();
-    expect(service.setUp).not.toHaveBeenCalled();
+    expect(service.setUpWithCandidates).not.toHaveBeenCalled();
   });
 
   it('does nothing for a non-passkey method once recovery is set up', async () => {
@@ -157,7 +142,7 @@ describe('syncRecoveryAfterEnroll', () => {
 
     expect(service.getUnenrolledPasskeyIdentifiers).not.toHaveBeenCalled();
     expect(service.addIdentifier).not.toHaveBeenCalled();
-    expect(service.setUp).not.toHaveBeenCalled();
+    expect(service.setUpWithCandidates).not.toHaveBeenCalled();
   });
 
   it('propagates add failures to the caller', async () => {
@@ -170,11 +155,8 @@ describe('syncRecoveryAfterEnroll', () => {
   });
 
   it('propagates setup failures to the caller', async () => {
-    const service = createService({
-      status: 'NotEnabled',
-      candidates: [SIWE],
-    });
-    service.setUp.mockRejectedValue(new Error('setup failed'));
+    const service = createService({ status: 'NotEnabled' });
+    service.setUpWithCandidates.mockRejectedValue(new Error('setup failed'));
 
     await expect(
       syncRecoveryAfterEnroll('totp', { verifyMfa }),

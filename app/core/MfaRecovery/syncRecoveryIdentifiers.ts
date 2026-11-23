@@ -36,7 +36,7 @@ export async function syncRecoveryAfterEnroll(
   });
 
   if (service.getStatus() === 'NotEnabled') {
-    await service.setUp(await service.getCandidateIdentifiers());
+    await service.setUpWithCandidates();
     return;
   }
 

@@ -360,6 +360,22 @@ export class MfaRecoveryService {
   }
 
   /**
+   * Prepares the unlocked social wallet for passwordless recovery using the
+   * identifiers Auth already approved (SIWE, social, and any passkeys),
+   * avoiding an extra `getIdentifiers` round-trip before setup.
+   */
+  async setUpWithCandidates(): Promise<MfaRecoverySetupResult> {
+    if (this.#seedlessState().envelope) {
+      return 'already_enabled';
+    }
+    const { authIdentifiers } = await this.#prepare();
+    const passkeys = authIdentifiers.filter(
+      (identifier) => identifier.type === 'passkey',
+    );
+    return await this.setUp(passkeys);
+  }
+
+  /**
    * Prepares the unlocked social wallet for passwordless recovery: registers
    * one Recovery Secret for SIWE, Auth's social identifier, and `identifiers`,
    * then seals the vault with it. An existing Cubist registration is read with
