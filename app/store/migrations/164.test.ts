@@ -173,11 +173,19 @@ describe(`Migration ${migrationVersion}: carry pending marketing consent`, () =>
     expect(mockedCaptureException).toHaveBeenCalledTimes(1);
   });
 
-  it('propagates a read failure so the handoff is retried', async () => {
+  it('leaves state unchanged and reports a read failure', async () => {
     mockedGetItem.mockRejectedValue(new Error('disk error'));
-    const state = buildValidState();
+    const state = buildValidState({
+      AnalyticsController: {
+        optedInToMarketing: false,
+        marketingConsentDecisionMade: true,
+      },
+    });
+    const snapshot = JSON.stringify(state);
 
-    await expect(migration(state)).rejects.toThrow('disk error');
+    const result = await migration(state);
+
+    expect(JSON.stringify(result)).toBe(snapshot);
     expect(mockedCaptureException).toHaveBeenCalledTimes(1);
   });
 
