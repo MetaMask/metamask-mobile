@@ -37,6 +37,14 @@ import {
 } from './SocialLivePriceStore';
 import type { SocialLivePriceKey } from './types';
 
+/**
+ * TEMP A/B for TSA-1807 Live memory: skip Perps + OHLCV subscribe / publish so
+ * cards keep API snapshot labels (no price store ticks). Prior flags stay on
+ * (`FORCE_STATIC_LIVE_CARD_HEADERS`, `DISABLE_SOCIAL_FEED_REALTIME_LISTENER`).
+ * Mutable so unit tests can flip it. Set `disable` to `false` after measure.
+ */
+export const livePriceStreamAb = { disable: true };
+
 /** Freshest candle, so `close` tracks the last trade. */
 const OHLCV_INTERVAL = '1m';
 /** Social cards quote USD. */
@@ -117,7 +125,11 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   const spotChannelCap = isLowHardware
     ? LOW_SPOT_CHANNEL_CAP
     : SPOT_CHANNEL_CAP;
-  const isLive = isFocused && isAppActive && networkTier !== 'NONE';
+  const isLive =
+    !livePriceStreamAb.disable &&
+    isFocused &&
+    isAppActive &&
+    networkTier !== 'NONE';
 
   const isLiveRef = useRef(isLive);
   isLiveRef.current = isLive;
@@ -402,10 +414,13 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
  */
 const SocialLivePricesProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
-}) => (
-  <PerpsStreamProvider>
-    <SocialLivePricesHost>{children}</SocialLivePricesHost>
-  </PerpsStreamProvider>
-);
+}) =>
+  livePriceStreamAb.disable ? (
+    <>{children}</>
+  ) : (
+    <PerpsStreamProvider>
+      <SocialLivePricesHost>{children}</SocialLivePricesHost>
+    </PerpsStreamProvider>
+  );
 
 export default SocialLivePricesProvider;

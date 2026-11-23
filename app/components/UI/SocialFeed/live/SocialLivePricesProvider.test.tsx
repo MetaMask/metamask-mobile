@@ -3,6 +3,7 @@ import { act, render } from '@testing-library/react-native';
 import { AppState, type View } from 'react-native';
 import type { NetworkTier } from '../../../../hooks/useNetworkTier';
 import SocialLivePricesProvider, {
+  livePriceStreamAb,
   SLOW_NETWORK_THROTTLE_MS,
 } from './SocialLivePricesProvider';
 import {
@@ -126,6 +127,7 @@ const barListener = () =>
 
 describe('SocialLivePricesProvider', () => {
   beforeEach(() => {
+    livePriceStreamAb.disable = false;
     jest.useFakeTimers();
     jest.clearAllMocks();
     mockCall.mockResolvedValue(undefined);
@@ -141,6 +143,7 @@ describe('SocialLivePricesProvider', () => {
   });
 
   afterEach(() => {
+    livePriceStreamAb.disable = true;
     jest.useRealTimers();
   });
 
