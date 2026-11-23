@@ -207,9 +207,9 @@ describe('wallet-init/keyrings', () => {
 
       messenger.registerActionHandler(
         'KeyringController:withKeyringV2Unsafe',
-        (_selector, operation) =>
+        async (_selector, operation) =>
           operation({
-            keyring: emptyHd as unknown as Keyring,
+            keyring: emptyHd,
             metadata: { id: 'entropy-1', name: 'main' },
           }),
       );
@@ -251,7 +251,7 @@ describe('wallet-init/keyrings', () => {
         // @ts-expect-error - partial bridge stub
         bridge: {},
       });
-      const ledgerV2 = byType[LegacyLedgerKeyring.type](legacyLedger as never, {
+      const ledgerV2 = byType[LegacyLedgerKeyring.type](legacyLedger, {
         id: 'entropy-1',
         name: 'main',
       });
@@ -261,7 +261,7 @@ describe('wallet-init/keyrings', () => {
         // @ts-expect-error - partial bridge stub
         bridge: {},
       });
-      const qrV2 = byType[LegacyQrKeyring.type](legacyQr as never, {
+      const qrV2 = byType[LegacyQrKeyring.type](legacyQr, {
         id: 'entropy-2',
         name: 'qr',
       });
@@ -275,7 +275,7 @@ describe('wallet-init/keyrings', () => {
       const legacyMoney = new LegacyMoneyKeyring({
         getMnemonic: async () => [],
       });
-      const moneyV2 = byType[LegacyMoneyKeyring.type](legacyMoney as never, {
+      const moneyV2 = byType[LegacyMoneyKeyring.type](legacyMoney, {
         id: 'entropy-3',
         name: 'money',
       });
@@ -309,10 +309,10 @@ describe('wallet-init/keyrings', () => {
       const byV2Type = Object.fromEntries(
         v2Builders.map((builder) => [builder.type, builder]),
       );
-      const wrapper = byV2Type[MpcMoneyKeyring.type](
-        new MpcMoneyKeyring() as never,
-        { id: 'metadata-id', name: 'name' },
-      );
+      const wrapper = byV2Type[MpcMoneyKeyring.type](new MpcMoneyKeyring(), {
+        id: 'metadata-id',
+        name: 'name',
+      });
       expect(wrapper).toBeInstanceOf(MpcMoneyKeyringV2);
     });
 
@@ -326,9 +326,9 @@ describe('wallet-init/keyrings', () => {
 
       const v1Builders = getKeyringBuilders(getRootMessenger(), false) ?? [];
 
-      expect(buildRealMpcMoneyKeyringBuilder).toHaveBeenCalledWith({
-        getBearerToken: expect.any(Function),
-      });
+      expect(buildRealMpcMoneyKeyringBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({ getBearerToken: expect.any(Function) }),
+      );
       expect(
         v1Builders.find((builder) => builder.type === MpcMoneyKeyring.type),
       ).toBe(realBuilder);

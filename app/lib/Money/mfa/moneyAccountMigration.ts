@@ -38,7 +38,7 @@ const isAnyMoneyAccountMigrating = () =>
     Engine.context.MoneyAccountLifecycleController.state.moneyAccounts,
   ).some((lifecycle) => lifecycle.type === 'migrating');
 
-const wait = (ms: number) =>
+const wait =  async (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const waitForMigrationToFinish = async (startedIn: number) => {

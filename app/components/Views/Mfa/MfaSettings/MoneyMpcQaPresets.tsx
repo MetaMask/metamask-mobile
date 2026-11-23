@@ -86,14 +86,14 @@ const MoneyMpcQaPresets = () => {
     }
   };
 
-  const create = () =>
+  const create =  async () =>
     run('Create MPC Money account', async () => {
       moneyAccountMigration.reset();
       await moneyAccountMigration.start();
       return getMpcMoneyAddress() ?? '';
     });
 
-  const sign = (label: string, provider?: () => Promise<string>) =>
+  const sign =  async (label: string, provider?: () => Promise<string>) =>
     run(label, async () => {
       setMpcTwoFactorTokenProvider(provider);
       try {
@@ -107,11 +107,11 @@ const MoneyMpcQaPresets = () => {
     { label: 'Create MPC Money account', onPress: create },
     {
       label: 'Sign test message',
-      onPress: () => sign('Sign test message'),
+      onPress:  async () => sign('Sign test message'),
     },
     {
       label: 'Sign with 2FA (passkey or authenticator app)',
-      onPress: () =>
+      onPress:  async () =>
         sign(
           'Sign with 2FA (passkey or authenticator app)',
           verifyWith(mfa, MONEY_MFA_METHODS),
@@ -119,7 +119,7 @@ const MoneyMpcQaPresets = () => {
     },
     {
       label: 'Sign with 2FA (authenticator app)',
-      onPress: () =>
+      onPress:  async () =>
         sign('Sign with 2FA (authenticator app)', verifyWith(mfa, ['totp'])),
     },
   ];
@@ -136,7 +136,9 @@ const MoneyMpcQaPresets = () => {
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Md}
           isFullWidth
-          onPress={onPress}
+          onPress={() => {
+            void onPress();
+          }}
         >
           {label}
         </Button>

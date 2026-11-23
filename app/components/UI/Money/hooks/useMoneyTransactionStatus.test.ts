@@ -957,7 +957,7 @@ describe('useMoneyTransactionStatus', () => {
             message:
               'Gas Station 7702: Keyring Controller signTypedMessage: User rejected the request.',
           },
-        } as TransactionMeta,
+        },
       });
       jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
 
@@ -1188,7 +1188,7 @@ describe('useMoneyTransactionStatus', () => {
       jest
         .mocked(selectAccountToGroupMap)
         .mockReturnValueOnce(
-          {} as unknown as ReturnType<typeof selectAccountToGroupMap>,
+          {},
         );
 
       const { confirmedHandler } = renderAndGetHandlers();

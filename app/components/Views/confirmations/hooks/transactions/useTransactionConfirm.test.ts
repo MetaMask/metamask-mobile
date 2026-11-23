@@ -289,7 +289,7 @@ describe('useTransactionConfirm', () => {
 
   it('sets waitForResult true when not smart tx, no quotes, no fee token', async () => {
     useSelectedGasFeeTokenMock.mockReturnValue(
-      undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+      undefined,
     );
     const { result } = renderHook();
 
@@ -308,7 +308,7 @@ describe('useTransactionConfirm', () => {
   describe('Money MPC account signer', () => {
     beforeEach(() => {
       useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+        undefined,
       );
       isMpcMoneyAccountMock.mockReturnValue(true);
     });
@@ -348,7 +348,7 @@ describe('useTransactionConfirm', () => {
       const { result } = renderHook();
 
       act(() => {
-        result.current.onConfirm();
+        void result.current.onConfirm();
       });
       await act(async () => {
         await Promise.resolve();
@@ -367,7 +367,7 @@ describe('useTransactionConfirm', () => {
       const { result } = renderHook();
 
       act(() => {
-        result.current.onConfirm();
+        void result.current.onConfirm();
       });
       await act(async () => {
         await Promise.resolve();
@@ -924,7 +924,7 @@ describe('useTransactionConfirm', () => {
       });
 
       useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+        undefined,
       );
 
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -992,7 +992,7 @@ describe('useTransactionConfirm', () => {
 
     it('does nothing if selectedGasFeeToken missing', async () => {
       useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+        undefined,
       );
 
       const { result } = renderHook();
@@ -1099,7 +1099,7 @@ describe('useTransactionConfirm', () => {
 
     it('does nothing if selectedGasFeeToken is missing', async () => {
       useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined as unknown as ReturnType<typeof useSelectedGasFeeToken>,
+        undefined,
       );
 
       const { result } = renderHook();

@@ -5621,11 +5621,6 @@
       "count": 2
     }
   },
-  "app/components/UI/Money/hooks/useMoneyTransactionStatus.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/Money/hooks/useMoneyTransactionStatus.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -20089,11 +20084,6 @@
       "count": 2
     }
   },
-  "app/components/Views/confirmations/hooks/transactions/useTransactionConfirm.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    }
-  },
   "app/components/Views/confirmations/hooks/transactions/useTransactionConfirm.ts": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
@@ -22130,9 +22120,6 @@
     }
   },
   "app/core/Engine/wallet-init/keyrings.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 5
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
