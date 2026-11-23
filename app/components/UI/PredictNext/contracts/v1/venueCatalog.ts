@@ -349,9 +349,9 @@ const fitHomeFeedReads = (
  * catalog. A section is dropped and logged when it is malformed, of an
  * unknown kind, reads a Feed key missing from `feeds`, repeats an earlier
  * section's ID (or is a second Trending or Categories), comes after the
- * eighth, or would take Home past eight distinct Feed reads (a Trending keeps
- * the sources that fit). A Trending source missing from `feeds`, or repeated,
- * is dropped and logged and the section kept. A `screen` is kept even when
+ * eighth kept section, or would take Home past eight distinct Feed reads (a
+ * Trending keeps the sources that fit). A Trending source missing from
+ * `feeds`, or repeated, is dropped and logged and the section kept. A `screen` is kept even when
  * `screens` lacks it: the header looks it up and opens nothing without it.
  * A missing field is a catalog from before PRED-1527 and means no Home
  * sections; so does a `home` that is not an object with a `sections` array,

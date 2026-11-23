@@ -204,7 +204,10 @@ const sectionKey = (section: PredictHomeSection): string =>
  * Trending and the games rows wait for their own reads and for those of every
  * games section above them, so a row never paints Games a row above it is
  * about to take; until then they show skeletons and claim no Events. A
- * preview waits for its own read only.
+ * preview waits for its own read only, so a slow games read never holds it.
+ * The trade-off: a preview below a games row whose Feed overlaps the row's
+ * (a broad sports Feed under `nfl-games`) can paint Games the row takes once
+ * it loads, and then reflows. Kalshi's layout has no such overlap.
  */
 export const selectHomeSections = <TRead extends HomeFeedReadEvents>(
   sections: readonly PredictHomeSection[],
@@ -269,27 +272,77 @@ export const selectHomeSections = <TRead extends HomeFeedReadEvents>(
 };
 
 /**
- * The app's translated copy for the Home section IDs it knows, so Kalshi's
- * Home reads as before in every locale. Any other section shows the server's
- * title, so a section added on the server reads sensibly without a release.
+ * The app's translated copy for the Home sections it knows, by section ID,
+ * with the English title the server serves for them. A known section whose
+ * server title is that English title reads in the app's locale, so Kalshi's
+ * Home reads as before. Any other title is the server's, so the server can
+ * retitle a known section, or add one, without a release.
  */
-const KNOWN_SECTION_TITLE_KEYS: Readonly<Record<string, string>> = {
-  sports: 'predict_next.home_feed.sports',
-  politics: 'predict_next.home_categories.politics',
+const KNOWN_SECTION_TITLES: Readonly<
+  Record<string, { key: string; english: string }>
+> = {
+  sports: { key: 'predict_next.home_feed.sports', english: 'Sports' },
+  politics: {
+    key: 'predict_next.home_categories.politics',
+    english: 'Politics',
+  },
 };
 
 export const getHomeSectionTitle = (
   sectionId: string,
   serverTitle: string,
 ): string => {
-  const key = Object.prototype.hasOwnProperty.call(
-    KNOWN_SECTION_TITLE_KEYS,
+  const known = Object.prototype.hasOwnProperty.call(
+    KNOWN_SECTION_TITLES,
     sectionId,
   )
-    ? KNOWN_SECTION_TITLE_KEYS[sectionId]
+    ? KNOWN_SECTION_TITLES[sectionId]
     : undefined;
-  const value: unknown = key
-    ? strings(key, { defaultValue: serverTitle })
-    : serverTitle;
+  const value: unknown =
+    known?.english === serverTitle
+      ? strings(known.key, { defaultValue: serverTitle })
+      : serverTitle;
   return typeof value === 'string' ? value : serverTitle;
+};
+
+const isSameRead = (
+  a: HomeFeedReadPlan | undefined,
+  b: HomeFeedReadPlan | undefined,
+): boolean =>
+  a === b ||
+  (a !== undefined &&
+    b !== undefined &&
+    a.feedKey === b.feedKey &&
+    a.feedId === b.feedId &&
+    a.limit === b.limit);
+
+/**
+ * Places `plan`'s reads in `slotCount` fixed slots, keeping each Feed in the
+ * slot it had in `previous` and filling free slots in plan order. A read
+ * whose slot changes reads its Feed again, so this keeps a reordered,
+ * trimmed or extended layout from re-reading the Feeds it already holds.
+ * Returns `previous` itself when nothing changes, so it can be stored and
+ * compared.
+ */
+export const assignHomeReadSlots = (
+  previous: readonly (HomeFeedReadPlan | undefined)[],
+  plan: readonly HomeFeedReadPlan[],
+  slotCount: number,
+): readonly (HomeFeedReadPlan | undefined)[] => {
+  const slots: (HomeFeedReadPlan | undefined)[] = Array.from(
+    { length: slotCount },
+    (_, index) =>
+      plan.find((read) => read.feedKey === previous[index]?.feedKey),
+  );
+  for (const read of plan) {
+    if (!slots.includes(read)) {
+      const free = slots.indexOf(undefined);
+      if (free !== -1) {
+        slots[free] = read;
+      }
+    }
+  }
+  return slots.every((read, index) => isSameRead(read, previous[index]))
+    ? previous
+    : slots;
 };

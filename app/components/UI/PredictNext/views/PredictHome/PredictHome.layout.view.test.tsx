@@ -1,7 +1,11 @@
+import { useEffect, useState } from 'react';
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { createComponentViewQueryClient } from '../../../../../../tests/component-view/render';
 import NetInfo from '@react-native-community/netinfo';
+// eslint-disable-next-line import-x/no-namespace -- spy on the named `useNetInfo` export
+import * as NetInfoModule from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
@@ -81,6 +85,7 @@ describe('PredictHome layout from the Venue catalog', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     netInfoMock.__resetMockNetInfo();
   });
 
@@ -271,6 +276,121 @@ describe('PredictHome layout from the Venue catalog', () => {
       [NCAA_GAMES_FEED_ID, { limit: 4 }],
       [NFL_GAMES_FEED_ID, { limit: 6 }],
     ]);
+  });
+
+  it('waits for NetInfo to report before sizing the reads, with the catalog already cached', async () => {
+    // Real NetInfo reports `unknown` on its first render and the known state
+    // from an effect after commit; the catalog is cached from an earlier
+    // Predict screen.
+    const queryClient = createComponentViewQueryClient();
+    await queryClient.prefetchQuery({
+      queryKey: ['PredictMarketDataService:getVenueCatalog', 'kalshi'],
+    });
+    messengerCall.mockClear();
+    // Like the real hook: `unknown` on the first render, then the known
+    // state from its subscribe effect.
+    jest.spyOn(NetInfoModule, 'useNetInfo').mockImplementation(() => {
+      const [state, setState] = useState<object>({ type: 'unknown' });
+      useEffect(
+        () =>
+          setState({
+            type: 'cellular',
+            isInternetReachable: true,
+            details: { cellularGeneration: '3g' },
+          }),
+        [],
+      );
+      return state as ReturnType<typeof NetInfoModule.useNetInfo>;
+    });
+
+    const view = renderPredictNext(false, { queryClient });
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+    expect(feedCalls()).toEqual([
+      [POLITICS_TRUMP_FEED_ID, { limit: 1 }],
+      [NCAA_GAMES_FEED_ID, { limit: 2 }],
+      [NFL_GAMES_FEED_ID, { limit: 4 }],
+    ]);
+  });
+
+  it('follows a catalog the server reorders while Home is open, without reading any Feed again', async () => {
+    const queryClient = createComponentViewQueryClient();
+    const view = renderPredictNext(false, { queryClient });
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+    const readsBefore = feedCalls();
+
+    configureHome([POLITICS, TRENDING, SPORTS_ROW, CATEGORIES]);
+    await act(async () => {
+      await queryClient.refetchQueries({
+        queryKey: ['PredictMarketDataService:getVenueCatalog', 'kalshi'],
+        exact: true,
+      });
+    });
+
+    await waitFor(() =>
+      expect(sectionOrder(view)).toEqual([
+        PredictHomeTestIds.section('politics'),
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.HOME_SPORTS,
+        PredictHomeTestIds.CATEGORIES,
+      ]),
+    );
+    expect(feedCalls()).toEqual(readsBefore);
+    expect(
+      within(view.getByTestId(PredictHomeTestIds.HOME_SPORTS)).getByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-4'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the unavailable state when no section has anything to show', async () => {
+    // Out of season, with no Categories: the sections render nothing.
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      categories: [],
+      home: { sections: [TRENDING, SPORTS_ROW, CATEGORIES] },
+    });
+    configurePredictNextFeeds({ nfl: [], ncaa: [] });
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      categories: [],
+      home: { sections: [TRENDING, SPORTS_ROW, CATEGORIES] },
+    });
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+  });
+
+  it('reads all eight Feeds of a full layout, and renders the eighth', async () => {
+    const keys = Array.from({ length: 8 }, (_, index) => `league-${index + 1}`);
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      feeds: Object.fromEntries(keys.map((key) => [key, `${key}-games`])),
+      categories: [],
+      home: {
+        sections: keys.map((key) => ({
+          kind: 'games-row',
+          id: key,
+          title: key,
+          feed: key,
+        })),
+      },
+    });
+    const view = renderPredictNext();
+
+    // Every Feed the fixture does not know serves the NCAAF Games, so each
+    // row after the first finds them taken; the eighth read is what counts.
+    await waitFor(() => expect(feedCalls()).toHaveLength(8));
+    expect(feedCalls().map(([feedId]) => feedId)).toEqual(
+      keys.map((key) => `${key}-games`).sort(),
+    );
+    expect(
+      await view.findByTestId(PredictHomeTestIds.gamesRow('league-1').ROW),
+    ).toBeOnTheScreen();
   });
 
   describe('Feed preview states', () => {

@@ -121,9 +121,12 @@ export const renderPredictNext = (
   {
     venueId = DEFAULT_VENUE_ID,
     remoteFeatureFlags = {},
+    queryClient,
   }: {
     venueId?: PredictVenueId;
     remoteFeatureFlags?: Record<string, unknown>;
+    /** A caller-owned client, for tests that warm or refetch the cache. */
+    queryClient?: QueryClient;
   } = {},
 ) =>
   renderScreenWithRoutes(
@@ -144,6 +147,8 @@ export const renderPredictNext = (
         .withRemoteFeatureFlags(remoteFeatureFlags)
         .build(),
     },
+    undefined,
+    queryClient,
   );
 
 export const renderPredictSearchScreen = (

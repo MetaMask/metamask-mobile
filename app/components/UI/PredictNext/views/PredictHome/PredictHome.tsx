@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { type LayoutChangeEvent } from 'react-native';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -333,6 +333,19 @@ const PredictHomeView = ({
         return null;
     }
   };
+  // Whether any section renders something. Trending, a games row and
+  // Categories render nothing when empty, so a layout of only those, out of
+  // season, would otherwise leave Home blank below the actions.
+  const hasVisibleSection = liveSections.some((section) => {
+    switch (section.kind) {
+      case 'feed-preview':
+        return section.read !== undefined;
+      case 'categories':
+        return categories.length > 0;
+      default:
+        return section.isLoading || section.events.length > 0;
+    }
+  });
   // The games error sits under the last section that reads Games, where the
   // Trending and Sports rows it stands for would be.
   const gamesErrorAfter = liveSections.reduce(
@@ -433,7 +446,7 @@ const PredictHomeView = ({
           />
           <HomeSectionsStatus
             capabilities={capabilities}
-            hasSections={sections.length > 0}
+            hasSections={hasVisibleSection}
           />
           {liveSections.map((section, index) => (
             <React.Fragment key={section.key}>
@@ -462,14 +475,19 @@ export const PredictHome = () => {
   const [hardwareTier] = useState(getHardwareTier);
   const networkTier = useNetworkTierState();
   // A read's size is part of its query key, so a change would refetch every
-  // section and drop its cards. The size is decided once per mount, as soon
-  // as NetInfo resolves or the catalog is ready, whichever comes first.
-  // Nothing is read before the catalog is ready, so no read waits on this; a
-  // tier NetInfo has not resolved by then keeps the product default.
+  // section and drop its cards. The size is decided once per mount: from the
+  // first resolved network tier, or with the product default once the catalog
+  // is ready and NetInfo still has not resolved a commit after mount.
+  // `useNetInfo` reports `unknown` on its first render and the known state
+  // from its subscribe effect, which runs before the one below, so a cached
+  // catalog still waits for that state. Until the size is decided the reads
+  // are held and shown as loading.
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => setHasMounted(true), []);
   const [isConstrained, setIsConstrained] = useState<boolean>();
   if (
     isConstrained === undefined &&
-    (networkTier.isResolved || capabilities.status === 'ready')
+    (networkTier.isResolved || (hasMounted && capabilities.status === 'ready'))
   ) {
     setIsConstrained(
       isHomeReadConstrained(
@@ -488,7 +506,11 @@ export const PredictHome = () => {
   );
 
   return (
-    <HomeFeedReads venueId={venueId} plan={plan}>
+    <HomeFeedReads
+      venueId={venueId}
+      plan={plan}
+      isHeld={isConstrained === undefined}
+    >
       {(reads) => (
         <PredictHomeView
           venueId={venueId}

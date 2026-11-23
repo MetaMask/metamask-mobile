@@ -1,4 +1,4 @@
-import React, { useMemo, type ReactElement } from 'react';
+import React, { useMemo, useState, type ReactElement } from 'react';
 import { useFeed } from '../../../hooks/useFeed';
 import { MAX_HOME_FEED_READS } from '../../../contracts/v1/venueCatalog';
 import type {
@@ -7,7 +7,7 @@ import type {
   PredictFeedKey,
   PredictVenueId,
 } from '../../../types';
-import type { HomeFeedReadPlan } from './homeSections';
+import { assignHomeReadSlots, type HomeFeedReadPlan } from './homeSections';
 
 /**
  * How many read steps the chain always renders: the most Feeds the catalog
@@ -35,11 +35,17 @@ interface HomeFeedReadsProps {
   venueId: PredictVenueId;
   /** The Feeds to read, in order; at most {@link HOME_FEED_READ_DEPTH}. */
   plan: readonly HomeFeedReadPlan[];
-  /** Receives one read per plan entry, in plan order. */
+  /** Holds every read, shown as loading, until the plan's sizes are final. */
+  isHeld?: boolean;
+  /** Receives one read per plan entry, in slot order (see
+   * {@link assignHomeReadSlots}); consumers find a read by its Feed key. */
   children: (reads: readonly HomeFeedRead[]) => ReactElement;
 }
 
-interface HomeFeedReadStepProps extends Omit<HomeFeedReadsProps, 'children'> {
+interface HomeFeedReadStepProps
+  extends Omit<HomeFeedReadsProps, 'children' | 'plan'> {
+  /** The read of each step, by step index; undefined reads nothing. */
+  slots: readonly (HomeFeedReadPlan | undefined)[];
   index: number;
   reads: readonly HomeFeedRead[];
   render: HomeFeedReadsProps['children'];
@@ -54,22 +60,26 @@ interface HomeFeedReadStepProps extends Omit<HomeFeedReadsProps, 'children'> {
  */
 const HomeFeedReadStep = ({
   venueId,
-  plan,
+  slots,
+  isHeld = false,
   index,
   reads,
   render,
 }: HomeFeedReadStepProps) => {
-  const planned = plan[index];
+  const planned = slots[index];
   const limit = planned?.limit;
   const params = useMemo(
     () => (limit === undefined ? NO_PARAMS : { limit }),
     [limit],
   );
-  const { data, isLoading, isError, refetch } = useFeed(
-    venueId,
-    planned?.feedId,
-    params,
-  );
+  const query = useFeed(venueId, planned?.feedId, params, {
+    enabled: !isHeld,
+  });
+  const { data, isError, refetch } = query;
+  // A held read sends nothing; it shows as loading only while it has a Feed
+  // to read, so a step past the plan or a key the Venue lacks never holds.
+  const isLoading =
+    query.isLoading || (isHeld && planned?.feedId !== undefined);
   const events = useMemo(
     () =>
       limit === undefined
@@ -100,7 +110,8 @@ const HomeFeedReadStep = ({
   return index + 1 < HOME_FEED_READ_DEPTH ? (
     <HomeFeedReadStep
       venueId={venueId}
-      plan={plan}
+      slots={slots}
+      isHeld={isHeld}
       index={index + 1}
       reads={nextReads}
       render={render}
@@ -119,13 +130,28 @@ const HomeFeedReadStep = ({
 export const HomeFeedReads = ({
   venueId,
   plan,
+  isHeld,
   children,
-}: HomeFeedReadsProps) => (
-  <HomeFeedReadStep
-    venueId={venueId}
-    plan={plan}
-    index={0}
-    reads={NO_READS}
-    render={children}
-  />
-);
+}: HomeFeedReadsProps) => {
+  // Each Feed keeps its step while the plan changes, so a layout the server
+  // reorders or extends switches no step to another Feed and reads nothing
+  // again. Derived state, updated during render.
+  const [slots, setSlots] = useState(() =>
+    assignHomeReadSlots([], plan, HOME_FEED_READ_DEPTH),
+  );
+  const nextSlots = assignHomeReadSlots(slots, plan, HOME_FEED_READ_DEPTH);
+  if (nextSlots !== slots) {
+    setSlots(nextSlots);
+  }
+
+  return (
+    <HomeFeedReadStep
+      venueId={venueId}
+      slots={nextSlots}
+      isHeld={isHeld}
+      index={0}
+      reads={NO_READS}
+      render={children}
+    />
+  );
+};

@@ -10,6 +10,7 @@ import type {
   PredictHomeSection,
 } from '../../../types';
 import {
+  assignHomeReadSlots,
   getHomeSectionTitle,
   isHomeReadConstrained,
   planHomeFeedReads,
@@ -514,12 +515,72 @@ describe('isHomeReadConstrained', () => {
 });
 
 describe('getHomeSectionTitle', () => {
-  it('uses the app copy for a section ID it knows', () => {
-    expect(getHomeSectionTitle('sports', 'Sport')).toBe('Sports');
-    expect(getHomeSectionTitle('politics', 'Politik')).toBe('Politics');
+  it("uses the app's translated copy for a known section the server titles as usual", () => {
+    expect(getHomeSectionTitle('sports', 'Sports')).toBe('Sports');
+    expect(getHomeSectionTitle('politics', 'Politics')).toBe('Politics');
+  });
+
+  it("uses the server's title when it retitles a known section", () => {
+    expect(getHomeSectionTitle('sports', 'Basketball')).toBe('Basketball');
   });
 
   it("uses the server's title for any other section", () => {
     expect(getHomeSectionTitle('basketball', 'NBA')).toBe('NBA');
+  });
+});
+
+describe('assignHomeReadSlots', () => {
+  const plan = (...entries: [string, number][]) =>
+    entries.map(([feedKey, limit]) => ({
+      feedKey,
+      feedId: `${feedKey}-id` as PredictFeedId,
+      limit,
+    }));
+  const keys = (slots: readonly ({ feedKey: string } | undefined)[]) =>
+    slots.map((read) => read?.feedKey);
+
+  it('fills the slots in plan order, then leaves the rest empty', () => {
+    expect(keys(assignHomeReadSlots([], plan(['a', 6], ['b', 4]), 4))).toEqual([
+      'a',
+      'b',
+      undefined,
+      undefined,
+    ]);
+  });
+
+  it('keeps each Feed in its slot when the plan is reordered', () => {
+    const first = assignHomeReadSlots([], plan(['a', 6], ['b', 4]), 3);
+
+    expect(
+      keys(assignHomeReadSlots(first, plan(['b', 4], ['a', 6]), 3)),
+    ).toEqual(['a', 'b', undefined]);
+  });
+
+  it('puts an added Feed in a free slot and frees a removed one', () => {
+    const first = assignHomeReadSlots(
+      [],
+      plan(['a', 6], ['b', 4], ['c', 2]),
+      3,
+    );
+    const removed = assignHomeReadSlots(first, plan(['a', 6], ['c', 2]), 3);
+
+    expect(keys(removed)).toEqual(['a', undefined, 'c']);
+    expect(
+      keys(assignHomeReadSlots(removed, plan(['d', 6], ['a', 6], ['c', 2]), 3)),
+    ).toEqual(['a', 'd', 'c']);
+  });
+
+  it('keeps a Feed in its slot when its size changes', () => {
+    const first = assignHomeReadSlots([], plan(['a', 4], ['b', 4]), 2);
+
+    const resized = assignHomeReadSlots(first, plan(['a', 4], ['b', 6]), 2);
+
+    expect(resized[1]).toEqual({ feedKey: 'b', feedId: 'b-id', limit: 6 });
+  });
+
+  it('returns the previous slots when nothing changed', () => {
+    const first = assignHomeReadSlots([], plan(['a', 6], ['b', 4]), 3);
+
+    expect(assignHomeReadSlots(first, plan(['b', 4], ['a', 6]), 3)).toBe(first);
   });
 });
