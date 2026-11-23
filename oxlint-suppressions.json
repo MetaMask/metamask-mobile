@@ -20014,9 +20014,6 @@
     }
   },
   "app/components/Views/confirmations/hooks/transactions/usePerpsSubAccounts.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }

@@ -192,7 +192,7 @@ describe('usePayWithPerpsSection', () => {
     expect(result.current?.rows[0].isSelected).toBe(false);
   });
 
-  it('treats a missing spendable balance as zero', () => {
+  it('renders the placeholder for a missing spendable balance, not zero', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPerpsAccountState) {
         return null;
@@ -202,7 +202,7 @@ describe('usePayWithPerpsSection', () => {
 
     const { result } = renderHook(() => usePayWithPerpsSection());
 
-    expect(result.current?.rows[0].subtitle).toBe('$0.00 available');
+    expect(result.current?.rows[0].subtitle).toBe('$--- available');
   });
 
   it('selects perps balance as payment token and dismisses the sheet when the row is pressed', () => {

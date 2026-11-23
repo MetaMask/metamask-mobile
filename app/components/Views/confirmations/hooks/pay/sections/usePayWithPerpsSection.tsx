@@ -7,6 +7,7 @@ import {
   hasTransactionType,
 } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
+import { PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
 import {
   Button,
@@ -63,9 +64,13 @@ export function usePayWithPerpsSection(): PayWithSectionConfig | null {
     TransactionType.perpsDepositAndOrder,
   ]);
 
+  const spendableBalance = perpsAccount?.spendableBalance;
   const balance = useMemo(
-    () => formatFiat(new BigNumber(perpsAccount?.spendableBalance ?? '0')),
-    [formatFiat, perpsAccount?.spendableBalance],
+    () =>
+      spendableBalance === undefined
+        ? PERPS_CONSTANTS.FallbackPriceDisplay
+        : formatFiat(new BigNumber(spendableBalance)),
+    [formatFiat, spendableBalance],
   );
 
   const clearPaymentOverride = useClearPaymentOverride();
