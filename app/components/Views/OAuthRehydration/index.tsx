@@ -21,7 +21,7 @@ import {
   OnboardingActionTypes,
   saveOnboardingEvent as saveEvent,
 } from '../../../actions/onboarding';
-import { connect, useDispatch, useSelector } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -107,10 +107,6 @@ import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectMfaUiKitEnabled } from '../../../selectors/featureFlagController/mfaUiKit';
 import { selectMoneyEnableMfaFlag } from '../../UI/Money/selectors/featureFlags';
-import { getSocialAccountType } from '../../../constants/onboarding';
-import { setDataCollectionForMarketing } from '../../../actions/security';
-import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { analytics } from '../../../util/analytics/analytics';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
@@ -142,7 +138,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
   const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
-  const dispatch = useDispatch();
   const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
   const isMoneyMfaEnabledFlag = useSelector(selectMoneyEnableMfaFlag);
   const route =
