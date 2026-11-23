@@ -3,14 +3,12 @@ import { Pressable, View } from 'react-native';
 import {
   ButtonIcon,
   ButtonIconSize,
+  Icon,
+  IconColor,
   IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { useReorderableDrag } from 'react-native-reorderable-list';
-import Icon, {
-  IconColor,
-  IconName as LocalIconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../../component-library/hooks';
 import TrendingTokenRowItem from '../../../../Trending/components/TrendingTokenRowItem/TrendingTokenRowItem';
 import { TokenDetailsSource } from '../../../../TokenDetails/constants/constants';
@@ -35,7 +33,7 @@ const WatchlistEditableRow = ({
   position,
   isEditMode,
   onRemoveFromDraft,
-}: WatchlistEditableRowProps) => {
+}: WatchlistEditableRowProps): React.JSX.Element => {
   const { styles } = useStyles(styleSheet, {});
   const drag = useReorderableDrag();
 
@@ -50,9 +48,9 @@ const WatchlistEditableRow = ({
         pointerEvents="none"
       >
         <Icon
-          name={LocalIconName.DragGrid}
+          name={IconName.Menu}
           size={IconSize.Md}
-          color={IconColor.Muted}
+          color={IconColor.IconMuted}
         />
       </View>
 

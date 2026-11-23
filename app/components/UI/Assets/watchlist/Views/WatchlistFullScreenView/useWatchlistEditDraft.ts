@@ -207,7 +207,7 @@ export const useWatchlistEditDraft = ({
   );
 
   const handleDonePress = useCallback(
-    () => commitPendingChanges(),
+    async () => commitPendingChanges(),
     [commitPendingChanges],
   );
 

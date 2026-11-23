@@ -177,7 +177,7 @@ const MixedPerpsRow = ({
 };
 
 const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
@@ -249,7 +249,9 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
       const doneButton = (
         <ButtonBase
           size={ButtonBaseSize.Md}
-          onPress={handleDonePress}
+          onPress={() => {
+            handleDonePress().catch(() => undefined);
+          }}
           testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
           accessibilityLabel={strings('token_watchlist.done')}
           twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
@@ -411,7 +413,7 @@ const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
 };
 
 const MixedWatchlistFullScreenView = (): React.JSX.Element => {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled);
   const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -458,7 +460,7 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const visibleItems = draftItems ?? items;
 
   const hasItems = visibleItems.length > 0;
-  const hasError = Boolean(tokens.error || perps.error);
+  const hasError = Boolean(tokens.error ?? perps.error);
   const isEmpty = !isInitialLoading && !hasItems && !hasError;
 
   useEffect(() => {
@@ -658,7 +660,9 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
       const doneButton = (
         <ButtonBase
           size={ButtonBaseSize.Md}
-          onPress={handleDonePress}
+          onPress={() => {
+            handleDonePress().catch(() => undefined);
+          }}
           testID={WatchlistFullScreenViewSelectorsIDs.DONE_BUTTON}
           accessibilityLabel={strings('token_watchlist.done')}
           twClassName={isGlassHeader ? HEADER_ICON_BUTTON_CLASS : undefined}
@@ -737,7 +741,17 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
     }
 
     if (hasError && !hasItems && !commitError) {
-      return <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />;
+      return (
+        <WatchlistErrorRow
+          onRetry={
+            canRefresh
+              ? (): void => {
+                  refresh().catch(() => undefined);
+                }
+              : undefined
+          }
+        />
+      );
     }
 
     if (!hasItems && !isEditMode && !commitError) {
@@ -758,7 +772,9 @@ const MixedWatchlistFullScreenView = (): React.JSX.Element => {
         {commitError ? (
           <WatchlistErrorRow
             message={strings('token_watchlist.save_error')}
-            onRetry={handleDonePress}
+            onRetry={(): void => {
+              handleDonePress().catch(() => undefined);
+            }}
           />
         ) : null}
         <ReorderableList

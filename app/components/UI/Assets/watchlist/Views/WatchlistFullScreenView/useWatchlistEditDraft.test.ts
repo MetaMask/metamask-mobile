@@ -12,7 +12,10 @@ const mockCreateEventBuilder = jest
   .mockReturnValue({ addProperties: mockAddProperties });
 
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+  useAnalytics: (): {
+    trackEvent: typeof mockTrackEvent;
+    createEventBuilder: typeof mockCreateEventBuilder;
+  } => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -34,7 +37,7 @@ describe('useWatchlistEditDraft', () => {
     jest.clearAllMocks();
   });
 
-  it('fires WATCHLIST_TOKEN_REMOVED for each removed token on successful Done commit', () => {
+  it('fires WATCHLIST_TOKEN_REMOVED for each removed token on successful Done commit', async () => {
     const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
     const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
     const queryTokens = [btc, eth];
@@ -56,8 +59,8 @@ describe('useWatchlistEditDraft', () => {
     act(() => {
       result.current.onRemoveFromDraft(String(btc.assetId));
     });
-    act(() => {
-      result.current.handleDonePress();
+    await act(async () => {
+      await result.current.handleDonePress();
     });
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
@@ -72,7 +75,7 @@ describe('useWatchlistEditDraft', () => {
     });
   });
 
-  it('preserves the original (non-lowercased) asset_id casing on removal', () => {
+  it('preserves the original (non-lowercased) asset_id casing on removal', async () => {
     const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
     const checksummed = createToken(
       'eip155:1/erc20:0xAbCdEf1234567890ABCDEF1234567890aBcDeF12',
@@ -97,8 +100,8 @@ describe('useWatchlistEditDraft', () => {
     act(() => {
       result.current.onRemoveFromDraft(String(checksummed.assetId));
     });
-    act(() => {
-      result.current.handleDonePress();
+    await act(async () => {
+      await result.current.handleDonePress();
     });
 
     expect(mockAddProperties).toHaveBeenCalledWith({
@@ -142,7 +145,7 @@ describe('useWatchlistEditDraft', () => {
     );
   });
 
-  it('does not fire removal events when only reordering', () => {
+  it('does not fire removal events when only reordering', async () => {
     const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
     const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
     const queryTokens = [btc, eth];
@@ -164,8 +167,8 @@ describe('useWatchlistEditDraft', () => {
     act(() => {
       result.current.handleReorder({ from: 0, to: 1 });
     });
-    act(() => {
-      result.current.handleDonePress();
+    await act(async () => {
+      await result.current.handleDonePress();
     });
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
@@ -265,7 +268,7 @@ describe('useWatchlistEditDraft', () => {
     expect(mockMutate).not.toHaveBeenCalledWith([], expect.any(Object));
   });
 
-  it('commits draft order when Done is pressed with stale empty query', () => {
+  it('commits draft order when Done is pressed with stale empty query', async () => {
     const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
     const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
     const queryTokens = [btc, eth];
@@ -292,8 +295,8 @@ describe('useWatchlistEditDraft', () => {
 
     rerender({ tokens: [] });
 
-    act(() => {
-      result.current.handleDonePress();
+    await act(async () => {
+      await result.current.handleDonePress();
     });
 
     expect(mockMutate).toHaveBeenCalledTimes(1);
@@ -339,7 +342,7 @@ describe('useWatchlistEditDraft', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
 
-  it('does not wipe watchlist when query no longer contains draft items', () => {
+  it('does not wipe watchlist when query no longer contains draft items', async () => {
     const eth = createToken('eip155:8453/slip44:60', 'Ethereum');
     const btc = createToken('eip155:1/erc20:0xbtc', 'Bitcoin');
     const queryTokens = [btc, eth];
@@ -365,8 +368,8 @@ describe('useWatchlistEditDraft', () => {
     const unrelated = createToken('eip155:1/erc20:0xother', 'Other');
     rerender({ tokens: [unrelated] });
 
-    act(() => {
-      result.current.handleDonePress();
+    await act(async () => {
+      await result.current.handleDonePress();
     });
 
     expect(mockMutate).not.toHaveBeenCalled();
