@@ -303,10 +303,14 @@ describe('OAuthRehydration', () => {
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
     (traceMock as jest.Mock).mockImplementation(
-      async (_config: unknown, fn?: () => Promise<void>) => {
+      (
+        _config: unknown,
+        fn?: () => Promise<void>,
+      ): Promise<void> | undefined => {
         if (fn) {
-          await fn();
+          return fn();
         }
+        return undefined;
       },
     );
     (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
@@ -1275,13 +1279,19 @@ describe('OAuthRehydration', () => {
         },
       );
       (traceMock as jest.Mock).mockImplementation(
-        async (config: { name?: string }, fn?: () => Promise<void>) => {
-          if (fn) {
-            await fn();
-            return undefined;
-          }
-          if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
+        (
+          config: { name?: string },
+          fn?: () => Promise<void>,
+        ): typeof passwordAttemptCtx | Promise<void> | undefined => {
+          // Span start is sync in production; return the context immediately.
+          if (
+            !fn &&
+            config?.name === TraceName.OnboardingPasswordLoginAttempt
+          ) {
             return passwordAttemptCtx;
+          }
+          if (fn) {
+            return fn();
           }
           return undefined;
         },
@@ -1354,13 +1364,18 @@ describe('OAuthRehydration', () => {
         },
       );
       (traceMock as jest.Mock).mockImplementation(
-        async (config: { name?: string }, fn?: () => Promise<void>) => {
-          if (fn) {
-            await fn();
-            return undefined;
-          }
-          if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
+        (
+          config: { name?: string },
+          fn?: () => Promise<void>,
+        ): typeof passwordAttemptCtx | Promise<void> | undefined => {
+          if (
+            !fn &&
+            config?.name === TraceName.OnboardingPasswordLoginAttempt
+          ) {
             return passwordAttemptCtx;
+          }
+          if (fn) {
+            return fn();
           }
           return undefined;
         },
@@ -1497,13 +1512,18 @@ describe('OAuthRehydration', () => {
         },
       );
       (traceMock as jest.Mock).mockImplementation(
-        async (config: { name?: string }, fn?: () => Promise<void>) => {
-          if (fn) {
-            await fn();
-            return undefined;
-          }
-          if (config?.name === TraceName.OnboardingPasswordLoginAttempt) {
+        (
+          config: { name?: string },
+          fn?: () => Promise<void>,
+        ): typeof passwordAttemptCtx | Promise<void> | undefined => {
+          if (
+            !fn &&
+            config?.name === TraceName.OnboardingPasswordLoginAttempt
+          ) {
             return passwordAttemptCtx;
+          }
+          if (fn) {
+            return fn();
           }
           return undefined;
         },
@@ -2294,10 +2314,7 @@ describe('OAuthRehydration', () => {
           const handle: ReturnType<
             typeof InteractionManager.runAfterInteractions
           > = {
-            then: async (
-              onFulfilled?: () => void,
-              onRejected?: () => void,
-            ) => {
+            then: async (onFulfilled?: () => void, onRejected?: () => void) => {
               await Promise.resolve().then(onFulfilled, onRejected);
             },
             done: () => undefined,
