@@ -302,15 +302,18 @@ describe('OAuthRehydration', () => {
     mockVerifyForSocialLogin.mockReset();
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
+    // Sync span starts must return a truthy context — production stores it in
+    // refs that gate endTrace (e.g. Password Login Attempt). Callback form
+    // returns a Promise. Union return type satisfies oxlint.
     (traceMock as jest.Mock).mockImplementation(
       (
         _config: unknown,
         fn?: () => Promise<void>,
-      ): Promise<void> | undefined => {
+      ): { traceId: string } | Promise<void> | undefined => {
         if (fn) {
           return fn();
         }
-        return undefined;
+        return { traceId: 'mock-trace' };
       },
     );
     (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
