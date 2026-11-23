@@ -59,6 +59,7 @@
     "start:android:flask": "./scripts/build.sh android flask dev --local",
     "start:api-logging-server": "node -r @babel/register scripts/start-api-logging-server.js",
     "ramps:debug-dashboard": "bash scripts/money-movement/debug-dashboard/run.sh",
+    "foxy": "bash scripts/foxy/run.sh",
     "install:ios:dev": "./scripts/install-ios-dev-app.sh",
     "install:ios:dev:device": "./scripts/install-ios-dev-app.sh --device",
     "install:android:dev": "./scripts/install-android-dev-app.sh",

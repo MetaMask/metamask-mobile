@@ -1,0 +1,1954 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Foxy</title>
+<script>try{var t=localStorage.getItem('foxy.theme.v1');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦊%3C/text%3E%3C/svg%3E" />
+<style>
+  /* Tokens: @metamask/design-tokens v13, dark theme (names kept so they are easy to cross-check). */
+  :root {
+    color-scheme: dark;
+    --brand-colors-black: #000000;
+    --brand-colors-grey-grey000: #ffffff;
+    --brand-colors-grey-grey300: #a3a4a7;
+    --brand-colors-grey-grey500: #66676a;
+    --brand-colors-blue-blue200: #adb6fe;
+    --brand-colors-blue-blue300: #8b99ff;
+    --brand-colors-red-red300: #ff7584;
+    --brand-colors-yellow-yellow200: #f0b034;
+    --brand-colors-lime-lime100: #b9f302;
+    --brand-colors-orange-orange300: #ff7940;
+
+    --color-background-default: var(--brand-colors-black);
+    --color-background-section: #18181b;
+    --color-background-alternative: #0d0d0f;
+    --color-background-hover: #e2e2ff1b;
+    --color-text-default: var(--brand-colors-grey-grey000);
+    --color-text-alternative: var(--brand-colors-grey-grey300);
+    --color-text-muted: var(--brand-colors-grey-grey500);
+    --color-border-default: var(--brand-colors-grey-grey500);
+    --color-border-muted: #e2e2ff26;
+    --color-primary-default: var(--brand-colors-blue-blue300);
+    --color-primary-alternative: var(--brand-colors-blue-blue200);
+    --color-primary-muted: #8b99ff26;
+    --color-error-default: var(--brand-colors-red-red300);
+    --color-error-muted: #ff758426;
+    --color-warning-default: var(--brand-colors-yellow-yellow200);
+    --color-warning-muted: #f0b03426;
+    --color-success-default: var(--brand-colors-lime-lime100);
+    --color-success-muted: #b9f30226;
+
+    --font-family-default: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', system-ui, 'Helvetica Neue', Arial, sans-serif;
+    --r-ctl: 999px; /* every control is a full pill, icon-only ones a circle */
+    --r-box: 18px; /* every container shares this one radius */
+    --font-family-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+    /* frame kinds */
+    --kind-app: var(--brand-colors-blue-blue300);
+    --kind-controller: var(--brand-colors-lime-lime100);
+    --kind-package: var(--brand-colors-grey-grey500);
+    --kind-project: var(--brand-colors-orange-orange300);
+    --kind-unsym: var(--brand-colors-yellow-yellow200);
+
+    /* ownership categories (filters, waterfall, activity strip) */
+    --cat-ours: var(--brand-colors-blue-blue300);
+    --cat-third: #c66ef5;
+    --cat-unowned: var(--brand-colors-yellow-yellow200);
+    --cat-err: var(--brand-colors-red-red300);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; font: 13px/1.45 var(--font-family-default); background: var(--color-background-default); color: var(--color-text-default); display: flex; flex-direction: column; }
+  header { position: relative; z-index: 10; display: flex; gap: 8px; align-items: center; padding: 10px 16px; background: var(--color-background-alternative); border-bottom: 1px solid var(--color-border-muted); flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 8px; margin-right: 8px; user-select: none; }
+  .logo { display: inline-grid; place-items: center; font-size: 24px; line-height: 1; }
+  .logo canvas { display: none; } .logo.fox-on canvas { display: block; } .logo.fox-on .emo { display: none; }
+  .wordmark { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+  button, input { background: var(--color-background-section); color: inherit; border: 1px solid var(--color-border-muted); border-radius: var(--r-ctl); padding: 6px 12px; font: inherit; }
+  input::placeholder { color: var(--color-text-muted); }
+  input:focus-visible, button:focus-visible { outline: 2px solid var(--color-primary-default); outline-offset: 1px; }
+  button { cursor: pointer; } button:hover { background: var(--color-background-hover); }
+  .tabs { display: inline-flex; padding: 2px; gap: 2px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-ctl); }
+  .tabs button { border: 0; background: transparent; border-radius: var(--r-ctl); color: var(--color-text-alternative); }
+  .tabs button.active { background: var(--color-primary-muted); color: var(--color-primary-default); font-weight: 600; }
+  .field input { width: 100%; min-width: 0; }
+  .field.search { flex: 1 1 260px; min-width: 0; max-width: 440px; }
+  .field.marker { width: 220px; }
+  .spacer { flex: 1; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--r-box); background: var(--color-background-section); border: 1px solid var(--color-border-muted); color: var(--color-text-alternative); font-size: 12px; }
+  .pill.ok { color: var(--color-success-default); background: var(--color-success-muted); border-color: transparent; }
+  .pill.wait { color: var(--color-warning-default); background: var(--color-warning-muted); border-color: transparent; }
+
+  main { flex: 1; overflow: auto; }
+  table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+  main > table { min-width: 1100px; } /* narrower windows scroll instead of crushing columns */
+  table[hidden] { display: none; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--color-border-muted); vertical-align: middle; }
+  td { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  th { position: sticky; top: 0; z-index: 3; background: var(--color-background-alternative); color: var(--color-text-alternative); font-weight: 600; font-size: 12px; white-space: nowrap; user-select: none; padding: 0; }
+  th .lbl { display: block; padding: 8px 14px 8px 10px; cursor: grab; overflow: hidden; text-overflow: ellipsis; }
+  th .lbl:hover { color: var(--color-text-default); background: var(--color-background-hover); }
+  th .lbl:active { cursor: grabbing; }
+  th.dragging { opacity: .4; }
+  th.drop-left { box-shadow: inset 3px 0 0 var(--color-primary-default); }
+  th.drop-right { box-shadow: inset -3px 0 0 var(--color-primary-default); }
+  .grip { position: absolute; top: 0; right: 0; width: 10px; height: 100%; cursor: col-resize; z-index: 2; }
+  .grip::after { content: ''; position: absolute; right: 4px; top: 22%; height: 56%; width: 2px; border-radius: var(--r-ctl); background: var(--color-border-muted); transition: background .15s; }
+  th:hover .grip::after { background: var(--color-border-default); }
+  .grip:hover::after, .grip.active::after { background: var(--color-primary-default); }
+  body.resizing { cursor: col-resize; }
+  body.resizing * { user-select: none !important; }
+  tr.req { cursor: pointer; } tr.req:hover td, tr.req.open td { background: var(--color-background-hover); }
+  tr.marker td { background: var(--color-warning-muted); color: var(--color-warning-default); font-weight: 600; white-space: normal; }
+  .mono { font-family: var(--font-family-mono); font-size: 12px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .dim { color: var(--color-text-muted); } .alt { color: var(--color-text-alternative); }
+  .host { color: var(--color-primary-default); }
+  .dupe { color: var(--color-warning-default); }
+
+  /* status pill */
+  .st { display: inline-block; min-width: 38px; text-align: center; padding: 1px 8px; border-radius: var(--r-box); font-weight: 600; font-size: 12px; font-family: var(--font-family-mono); }
+  .st.s2 { color: var(--color-success-default); background: var(--color-success-muted); }
+  .st.s3, .st.pending { color: var(--color-warning-default); background: var(--color-warning-muted); }
+  .st.s4, .st.s5, .st.err { color: var(--color-error-default); background: var(--color-error-muted); }
+
+  /* call site: method() on top, file tail below */
+  .fn { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
+  .bar { flex: none; width: 3px; border-radius: var(--r-ctl); background: var(--kind-package); }
+  .bar.app { background: var(--kind-app); } .bar.controller { background: var(--kind-controller); } .bar.package { background: var(--kind-package); }
+  .bar.project { background: var(--kind-project); } .bar.unsym { background: var(--kind-unsym); }
+  .fn-text { min-width: 0; }
+  .fn-name { font-family: var(--font-family-mono); font-size: 13px; font-weight: 600; color: var(--color-text-default); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fn-name .paren { color: var(--color-text-muted); font-weight: 400; }
+  .fn-file { font-family: var(--font-family-mono); font-size: 11px; color: var(--color-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fn-file .loc { color: var(--color-text-alternative); }
+  .fn.sub .fn-name { font-size: 12px; font-weight: 500; color: var(--color-text-alternative); }
+
+  /* chips: teams get a stable color from the design-system palette */
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; padding: 2px 0; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 1px 9px 1px 7px; border-radius: var(--r-box); font-size: 11.5px; font-weight: 600; line-height: 1.5; color: var(--c, var(--color-text-alternative)); background: color-mix(in srgb, var(--c, #888) 15%, transparent); border: 1px solid color-mix(in srgb, var(--c, #888) 34%, transparent); }
+  .chip::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--c, #888); }
+  .chip .t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chip.via { background: color-mix(in srgb, var(--c, #888) 11%, transparent); font-weight: 500; }
+  .chip.via::after { content: 'via'; font-size: 9.5px; text-transform: uppercase; letter-spacing: .04em; opacity: .7; }
+  .chip.party { --c: var(--color-text-alternative); background: var(--color-background-section); border: 1px solid var(--color-border-muted); font-weight: 500; }
+  .chip.party::before { content: '📦'; width: auto; height: auto; background: none; font-size: 10px; }
+  .chip.party .scope { color: var(--color-text-muted); }
+  .chip.mm { --c: var(--brand-colors-orange-orange300); background: color-mix(in srgb, var(--c) 20%, transparent); font-weight: 500; }
+  .chip.mm::before { content: '🦊'; width: auto; height: auto; background: none; font-size: 10px; }
+  .chip.warn { --c: var(--color-warning-default); background: var(--color-warning-muted); border-color: transparent; }
+  .chip.warn::before { content: '⚠'; width: auto; height: auto; background: none; font-size: 10px; }
+  .chip.none { --c: var(--color-text-muted); background: transparent; border-color: var(--color-border-muted); font-weight: 500; }
+
+  /* detail panel */
+  tr.detail > td { background: var(--color-background-section); white-space: normal; padding: 14px 16px 18px; }
+  .dgrid { display: grid; grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.4fr); gap: 16px; align-items: start; }
+  @media (max-width: 1000px) { .dgrid { grid-template-columns: 1fr; } }
+  .panel { overflow-wrap: anywhere; background: var(--color-background-alternative); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); padding: 12px 14px; min-width: 0; }
+  .panel h3 { display: flex; align-items: center; margin: 0 0 10px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); font-weight: 600; }
+  .summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; }
+  .meth { padding: 2px 8px; border-radius: var(--r-ctl); background: var(--color-primary-muted); color: var(--color-primary-default); font-weight: 700; font-size: 12px; font-family: var(--font-family-mono); }
+  .url { font-family: var(--font-family-mono); font-size: 12px; color: var(--color-text-alternative); word-break: break-all; flex: 1 1 320px; }
+  .url b { color: var(--color-text-default); font-weight: 600; }
+  .stat { color: var(--color-text-alternative); font-size: 12px; } .stat b { color: var(--color-text-default); font-weight: 600; }
+  details.sec { border-top: 1px solid var(--color-border-muted); padding: 8px 0; }
+  details.sec:first-of-type { border-top: 0; }
+  details.sec > summary { cursor: pointer; font-weight: 600; font-size: 12.5px; color: var(--color-text-default); list-style: none; display: flex; gap: 8px; align-items: center; }
+  details.sec > summary::before { content: '▸'; color: var(--color-text-muted); transition: transform .12s; }
+  details.sec[open] > summary::before { transform: rotate(90deg); }
+  details.sec > summary .n { color: var(--color-text-muted); font-weight: 400; }
+  details.sub { margin: 8px 0 0 14px; }
+  details.sub > summary { cursor: pointer; font-weight: 500; color: var(--color-text-alternative); list-style: none; display: flex; align-items: center; gap: 8px; }
+  details.sub > summary::before { content: '▸'; color: var(--color-text-muted); transition: transform .12s; }
+  details.sub[open] > summary::before { transform: rotate(90deg); }
+  details.sub > summary .n { color: var(--color-text-muted); font-weight: 400; }
+  .kv { display: grid; grid-template-columns: minmax(90px, 28%) minmax(0, 1fr); column-gap: 14px; row-gap: 3px; margin-top: 6px; font-family: var(--font-family-mono); font-size: 12px; }
+  .kv .r { display: contents; }
+  .kv .k { color: var(--color-text-alternative); overflow-wrap: anywhere; word-break: break-all; }
+  .kv .v { min-width: 0; overflow-wrap: anywhere; word-break: break-all; }
+  .kv .v.redacted { color: var(--color-text-muted); font-style: italic; }
+  pre.body { max-width: 100%; margin: 6px 0 0; padding: 10px; background: var(--color-background-default); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); max-height: 260px; overflow: auto; font-family: var(--font-family-mono); font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  .hint { color: var(--color-text-muted); font-size: 12px; margin: 6px 0 0; }
+  .hint code { background: var(--color-background-section); padding: 1px 5px; border-radius: var(--r-ctl); }
+
+  /* call chain */
+  .chain-note { color: var(--color-text-muted); font-size: 11.5px; margin: 0 0 10px; }
+  .node { display: grid; grid-template-columns: 16px 1fr; gap: 8px; position: relative; padding-bottom: 12px; }
+  .node:last-child { padding-bottom: 0; }
+  .node .rail { position: relative; }
+  .node .rail::before { content: ''; position: absolute; left: 7px; top: 14px; bottom: -4px; width: 2px; background: var(--color-border-muted); }
+  .node:last-child .rail::before { display: none; }
+  .node .dot { position: absolute; left: 2px; top: 5px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--k, var(--kind-package)); background: var(--color-background-alternative); }
+  .node.callsite .dot { background: var(--k); box-shadow: 0 0 0 4px color-mix(in srgb, var(--k) 25%, transparent); }
+  .node.net .dot { --k: var(--color-success-default); background: var(--color-success-default); }
+  .node .role { margin-left: 8px; font-family: var(--font-family-default); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 1px 6px; border-radius: var(--r-ctl); background: var(--color-primary-muted); color: var(--color-primary-default); vertical-align: 1px; }
+  .node .role.cs { background: color-mix(in srgb, var(--k) 20%, transparent); color: var(--k); }
+  .node .nfile { font-family: var(--font-family-mono); font-size: 11.5px; color: var(--color-text-muted); word-break: break-all; }
+  .node .nfile .loc { color: var(--color-text-alternative); }
+  .node .chips { margin-top: 4px; max-height: none; }
+  .node.k-app { --k: var(--kind-app); } .node.k-controller { --k: var(--kind-controller); } .node.k-package { --k: var(--kind-package); }
+  .node.k-project { --k: var(--kind-project); } .node.k-unsymbolicated { --k: var(--kind-unsym); }
+  .wrappers { margin-top: 12px; border-top: 1px dashed var(--color-border-muted); padding-top: 8px; }
+  .wrappers summary { cursor: pointer; color: var(--color-text-muted); font-size: 11.5px; }
+  .wrappers div { font-family: var(--font-family-mono); font-size: 11px; color: var(--color-text-muted); margin-top: 3px; word-break: break-all; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 12px; color: var(--color-text-muted); font-size: 11px; }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+
+  .chip[data-team], .chip[data-pkg] { cursor: pointer; transition: filter .12s; }
+  .chip[data-team]:hover, .chip[data-pkg]:hover { filter: brightness(1.25); }
+
+  /* filter bar */
+  .subbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 16px; background: var(--color-background-alternative); border-bottom: 1px solid var(--color-border-muted); }
+  .seg { display: inline-flex; padding: 2px; gap: 2px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-ctl); }
+  .seg button { border: 0; background: transparent; border-radius: var(--r-ctl); color: var(--color-text-alternative); display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; }
+  .seg button.active { background: var(--color-primary-muted); color: var(--color-text-default); font-weight: 600; }
+  .tog { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text-alternative); border-radius: var(--r-box); padding: 5px 12px; }
+  .tog.active { color: var(--color-text-default); font-weight: 600; background: var(--color-primary-muted); border-color: var(--color-primary-default); }
+  .n { font-size: 11px; font-weight: 600; padding: 0 6px; border-radius: var(--r-box); background: var(--color-background-hover); color: var(--color-text-alternative); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-text-muted); display: inline-block; }
+  .dot.ours { background: var(--cat-ours); } .dot.third { background: var(--cat-third); } .dot.unowned { background: var(--cat-unowned); }
+  .dot.err { background: var(--cat-err); } .dot.dup { background: var(--brand-colors-orange-orange300); }
+  .ownerpill { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border-radius: var(--r-box); background: var(--color-background-section); border: 1px solid var(--color-border-muted); font-size: 12px; color: var(--color-text-alternative); }
+  .ownerpill button { border: 0; padding: 0 6px; border-radius: var(--r-box); background: transparent; color: var(--color-text-muted); font-size: 14px; line-height: 1.2; }
+  .ownerpill button:hover { color: var(--color-text-default); }
+  .tip { color: var(--color-text-muted); font-size: 11.5px; }
+
+  /* activity strip: requests over time, stacked by ownership, with your markers as flags */
+  .strip { padding: 16px 16px 4px; background: var(--color-background-alternative); border-bottom: 1px solid var(--color-border-muted); }
+  .stripin { position: relative; height: 40px; }
+  .bars { display: flex; align-items: flex-end; gap: 2px; height: 100%; }
+  .bk { flex: 1; height: 100%; display: flex; flex-direction: column-reverse; cursor: pointer; border-radius: var(--r-ctl); }
+  .bk:hover { background: var(--color-background-hover); }
+  .bk span { display: block; min-height: 3px; border-radius: var(--r-ctl); margin-top: 1px; }
+  .bk .ours { background: var(--cat-ours); } .bk .third { background: var(--cat-third); } .bk .unowned { background: var(--cat-unowned); }
+  .axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--color-text-muted); padding-top: 3px; font-family: var(--font-family-mono); }
+  .stripin .mk { position: absolute; top: -6px; bottom: 0; width: 1px; background: var(--brand-colors-orange-orange300); pointer-events: none; }
+  .stripin .mk b { position: absolute; top: -9px; left: 3px; font-size: 9.5px; font-weight: 600; white-space: nowrap; color: var(--brand-colors-orange-orange300); background: var(--color-background-alternative); padding: 0 4px; border-radius: var(--r-ctl); }
+
+  /* waterfall column */
+  .wf { position: relative; height: 22px; border-radius: var(--r-ctl); background: var(--color-background-section); overflow: hidden; }
+  .wf .mk { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--brand-colors-orange-orange300); opacity: .45; }
+  .wf-bar { position: absolute; top: 7px; height: 8px; min-width: 4px; border-radius: var(--r-ctl); background: var(--cat); box-shadow: 0 0 8px color-mix(in srgb, var(--cat) 55%, transparent); }
+  .wf-bar.pending { animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .c-ours { --cat: var(--cat-ours); } .c-third { --cat: var(--cat-third); } .c-unowned { --cat: var(--cat-unowned); } .c-err { --cat: var(--cat-err); }
+  tr.flash td { animation: flash 1.4s ease-out; }
+  @keyframes flash { from { background: var(--color-primary-muted); } to { background: transparent; } }
+  .empty { padding: 48px; text-align: center; color: var(--color-text-muted); white-space: normal; }
+
+  /* copy buttons */
+  td.hv, .bodywrap { position: relative; }
+  .fn { position: relative; }
+  .cp { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 22px; height: 22px; padding: 0 5px; margin-left: 4px; border: 0; border-radius: var(--r-ctl); background: transparent; color: var(--color-text-muted); font: inherit; font-size: 11px; font-weight: 600; vertical-align: middle; cursor: pointer; flex: none; text-transform: none; letter-spacing: 0; }
+  .cp:hover { color: var(--color-text-default); background: var(--color-background-hover); }
+  .cp.lab { height: 24px; padding: 0 10px; border: 1px solid var(--color-border-muted); border-radius: var(--r-box); background: var(--color-background-section); color: var(--color-text-alternative); }
+  .cp.right { margin-left: auto; }
+  .cp.abs { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); background: var(--color-background-section); border: 1px solid var(--color-border-muted); }
+  .cp.abs.tr { top: 10px; right: 8px; transform: none; }
+  .cp.ho { opacity: 0; transition: opacity .12s; }
+  .hv:hover .cp.ho, .cp.ho:focus-visible { opacity: 1; }
+  .cp.copied { color: var(--color-success-default); opacity: 1; }
+
+  /* toolbar iconography */
+  .ic { width: 16px; height: 16px; flex: none; fill: currentColor; stroke: none; }
+  .tabs button { display: inline-flex; align-items: center; gap: 7px; }
+  .tabs button:not(.active) .ic { color: var(--color-text-muted); }
+  .btn { display: inline-flex; align-items: center; gap: 7px; color: var(--color-text-alternative); }
+  .btn:hover { color: var(--color-text-default); }
+  .btn.danger:hover { color: var(--color-error-default); border-color: var(--color-error-default); background: var(--color-error-muted); }
+  .btn.ok { color: var(--color-success-default); border-color: var(--color-success-default); }
+  .field { position: relative; display: inline-flex; align-items: center; }
+  .field .ic { position: absolute; left: 10px; color: var(--color-text-muted); pointer-events: none; }
+  .field input { padding-left: 32px; }
+  .field:focus-within .ic { color: var(--color-primary-default); }
+  .field kbd { position: absolute; right: 8px; font: 600 10.5px var(--font-family-mono); color: var(--color-text-muted); border: 1px solid var(--color-border-muted); border-bottom-width: 2px; border-radius: var(--r-ctl); padding: 0 5px; pointer-events: none; }
+  .field:focus-within kbd { display: none; }
+  .sdot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; }
+  .pill.ok .sdot { animation: pulse 1.6s ease-in-out infinite; box-shadow: 0 0 6px currentColor; }
+  .pill .ic { color: var(--color-text-muted); }
+
+  /* ---------------- responsive ---------------- */
+  .pill b { font-weight: 600; color: var(--color-text-default); }
+  .seg { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .seg::-webkit-scrollbar { display: none; }
+
+  /* the hamburger is always visible; secondary actions live in its dropdown at every width */
+  .menu-btn { display: inline-flex; padding: 6px 10px; }
+  .actions { display: none; position: absolute; top: calc(100% + 6px); right: 12px; z-index: 30; flex-direction: column; align-items: stretch; gap: 4px; width: min(300px, calc(100vw - 24px)); padding: 8px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); box-shadow: 0 16px 40px rgba(0, 0, 0, .65); }
+  .actions.open { display: flex; }
+  .actions .field.marker { width: 100%; margin-bottom: 4px; }
+  .actions .btn { justify-content: flex-start; border-color: transparent; background: transparent; padding: 8px 10px; }
+  .actions .btn:hover { background: var(--color-background-hover); }
+  .actions .btn.danger:hover { background: var(--color-error-muted); }
+  .menu-row { padding: 6px 8px 8px; }
+  .mr-l { display: block; margin-bottom: 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); }
+  .tfmt { display: flex; gap: 2px; padding: 2px; border-radius: var(--r-ctl); background: var(--color-background-default); border: 1px solid var(--color-border-muted); }
+  .tfmt button { flex: 1; padding: 5px 4px; border: 0; background: transparent; border-radius: var(--r-ctl); color: var(--color-text-alternative); font: 12px var(--font-family-mono); white-space: nowrap; }
+  .tfmt button[aria-pressed="true"] { background: var(--color-primary-muted); color: var(--color-primary-default); font-weight: 700; }
+  .actions .sep { display: block; height: 1px; background: var(--color-border-muted); margin: 4px 0; }
+  @media (max-width: 900px) { .tip { display: none; } }
+  @media (max-width: 860px) { .count-lbl { display: none; } }
+  @media (max-width: 720px) {
+    header { padding: 8px 12px; }
+    .spacer { display: none; }
+    .menu-btn { margin-left: auto; }
+    .field.search { order: 20; flex: 1 1 100%; max-width: none; }
+    .tabs button { padding: 6px 10px; }
+    .tl { display: none; }
+    .subbar { padding: 8px 12px; }
+    .strip { padding: 14px 12px 4px; }
+  }
+  @media (max-width: 480px) { .wordmark { display: none; } #count { padding: 3px 8px; } header { gap: 6px; } .seg button { padding: 5px 8px; } .tog { padding: 5px 10px; } }
+  @media (max-height: 640px) { .strip { display: none; } }
+  @media (pointer: coarse) { button, input { min-height: 40px; } .cp { min-height: 0; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
+
+  /* ---------------- endpoints view ---------------- */
+  tr.ep { cursor: pointer; } tr.ep:hover td, tr.ep.open td { background: var(--color-background-hover); }
+  .dupe-pill { display: inline-block; padding: 1px 9px; border-radius: var(--r-box); font: 700 12px var(--font-family-mono); }
+  .dupe-pill.l1 { color: var(--color-warning-default); background: var(--color-warning-muted); }
+  .dupe-pill.l2 { color: var(--brand-colors-orange-orange300); background: #ff794033; }
+  .dupe-pill.l3 { color: var(--color-error-default); background: var(--color-error-muted); }
+  .st.mini { min-width: 0; padding: 0 7px; font-size: 11px; }
+  .mult { color: var(--color-text-muted); font-size: 11px; margin: 0 7px 0 3px; }
+  .lane { position: relative; height: 22px; border-radius: var(--r-ctl); background: var(--color-background-section); overflow: hidden; }
+  .lane .mk { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--brand-colors-orange-orange300); opacity: .45; }
+  .lane.big { height: 38px; }
+  .tick { position: absolute; top: 4px; width: 3px; height: 14px; border-radius: var(--r-ctl); transform: translateX(-1px); background: var(--color-text-muted); }
+  .lane.big .tick { top: 6px; width: 4px; height: 26px; }
+  .tick.ok { background: var(--color-success-default); } .tick.bad { background: var(--color-error-default); } .tick.wait { background: var(--color-warning-default); }
+  .tick.dup { box-shadow: 0 0 0 1.5px var(--brand-colors-orange-orange300); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .card { background: var(--color-background-alternative); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); padding: 10px 14px; min-width: 0; }
+  .card .cl { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); font-weight: 600; }
+  .card .cv { font-size: 22px; font-weight: 700; line-height: 1.25; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .card .cs { font-size: 11.5px; color: var(--color-text-alternative); margin-top: 1px; }
+  .card.warn .cv { color: var(--color-warning-default); } .card.bad .cv { color: var(--color-error-default); } .card.good .cv { color: var(--color-success-default); }
+  .egrid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, .8fr); gap: 16px; align-items: start; }
+  @media (max-width: 1100px) { .egrid { grid-template-columns: minmax(0, 1fr); } }
+  .estack { display: grid; gap: 16px; min-width: 0; }
+  .axis.flush { padding: 3px 2px 0; }
+  .calls { overflow-x: auto; margin-top: 12px; }
+  .calls-in { min-width: 940px; }
+  .call { display: grid; grid-template-columns: 18px 48px 118px 92px 60px 64px 68px minmax(170px, 1.3fr) minmax(120px, 1fr) minmax(86px, auto); gap: 10px; align-items: center; padding: 6px 8px; border-radius: var(--r-ctl); cursor: pointer; }
+  .call:hover, .call:focus-visible { background: var(--color-background-hover); outline: 0; }
+  .call.head { cursor: default; color: var(--color-text-muted); font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; padding-bottom: 2px; }
+  .call.head:hover { background: transparent; }
+  .call .rail { position: relative; align-self: stretch; }
+  .call .rail::before { content: ''; position: absolute; left: 8px; top: -8px; bottom: -8px; width: 2px; background: var(--color-border-muted); }
+  .call.head + .call .rail::before { top: 50%; } .call:last-child .rail::before { bottom: 50%; }
+  .rdot { position: absolute; left: 3px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--color-background-alternative); border: 2px solid var(--color-text-muted); z-index: 1; }
+  .rdot.ok { border-color: var(--color-success-default); } .rdot.bad { border-color: var(--color-error-default); background: var(--color-error-default); } .rdot.wait { border-color: var(--color-warning-default); }
+  .call.dup .rdot { box-shadow: 0 0 0 3px #ff794040; }
+  .c-id, .c-ms, .c-size { color: var(--color-text-alternative); font-family: var(--font-family-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .c-time b { display: block; font-family: var(--font-family-mono); font-size: 12.5px; font-weight: 600; }
+  .c-time small { display: block; color: var(--color-text-muted); font-family: var(--font-family-mono); font-size: 10.5px; }
+  .c-site, .c-own { min-width: 0; }
+  .gap { font-family: var(--font-family-mono); font-size: 12px; color: var(--color-text-alternative); }
+  .gap.burst { color: var(--brand-colors-orange-orange300); } .gap.long { color: var(--color-text-muted); }
+  .badge { display: inline-block; padding: 0 8px; border-radius: var(--r-box); font-size: 10.5px; font-weight: 700; background: var(--color-background-hover); color: var(--color-text-alternative); white-space: nowrap; }
+  .badge.dup { color: var(--brand-colors-orange-orange300); background: #ff794026; } .badge.first { color: var(--color-warning-default); background: var(--color-warning-muted); }
+  .caller { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-top: 1px solid var(--color-border-muted); }
+  .caller:first-of-type { border-top: 0; } .caller .fn { flex: 1; min-width: 0; }
+  .pchips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .pchip { max-width: 100%; padding: 0 8px; border-radius: var(--r-ctl); background: var(--color-background-section); border: 1px solid var(--color-border-muted); font: 11.5px var(--font-family-mono); color: var(--color-text-alternative); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .vseg { display: flex; margin-bottom: 10px; }
+  .vseg button { flex: 1; justify-content: center; }
+  .vseg button.active { background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c); }
+  textarea.note { width: 100%; resize: vertical; min-height: 72px; background: var(--color-background-section); color: inherit; border: 1px solid var(--color-border-muted); border-radius: var(--r-box); padding: 8px 10px; font: 12.5px/1.5 var(--font-family-default); }
+  textarea.note:focus-visible { outline: 2px solid var(--color-primary-default); outline-offset: 1px; }
+  .sub-h { margin: 12px 0 4px; font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+
+  /* ---------------- markers & phases ---------------- */
+  .btn .badge-n { min-width: 18px; padding: 0 5px; border-radius: var(--r-box); background: var(--color-primary-muted); color: var(--color-primary-default); font-size: 11px; font-weight: 700; text-align: center; line-height: 18px; }
+  .btn.on { color: var(--color-primary-default); border-color: var(--color-primary-default); background: var(--color-primary-muted); }
+  .hbtn { padding: 6px 9px; }
+  .ph-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--pc, var(--color-text-muted)); box-shadow: 0 0 8px color-mix(in srgb, var(--pc, #888) 60%, transparent); }
+
+  /* phase header row in the Timeline */
+  tr.phase td { padding: 0; white-space: normal; overflow: visible; cursor: pointer; background: color-mix(in srgb, var(--pc) 9%, var(--color-background-default)); border-top: 1px solid color-mix(in srgb, var(--pc) 40%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--pc) 28%, transparent); }
+  tr.phase:hover td { background: color-mix(in srgb, var(--pc) 15%, var(--color-background-default)); }
+  .ph { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; padding: 8px 12px 8px 10px; box-shadow: inset 4px 0 0 var(--pc); position: sticky; left: 0; width: 100vw; max-width: 100%; }
+  .ph-tgl { display: inline-flex; border: 0; background: transparent; padding: 3px; border-radius: var(--r-ctl); color: var(--pc); }
+  .ph-tgl .ic { transition: transform .15s; } .ph-tgl[aria-expanded="true"] .ic { transform: rotate(90deg); }
+  .ph-label { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--pc); }
+  .ph-time { font: 12px var(--font-family-mono); color: var(--color-text-alternative); }
+  .ph-mix { display: inline-flex; width: 84px; height: 6px; border-radius: var(--r-ctl); overflow: hidden; background: var(--color-background-section); }
+  .ph-mix i { display: block; height: 100%; } .ph-mix .ours { background: var(--cat-ours); } .ph-mix .third { background: var(--cat-third); } .ph-mix .unowned { background: var(--cat-unowned); }
+  .ph-pills { display: inline-flex; flex-wrap: wrap; gap: 5px; }
+  .ph-pill { display: inline-flex; align-items: center; gap: 4px; padding: 0 9px; border-radius: var(--r-box); font-size: 11.5px; font-weight: 600; line-height: 1.6; color: var(--color-text-alternative); background: var(--color-background-section); border: 1px solid var(--color-border-muted); }
+  .ph-pill.new { color: var(--color-primary-default); } .ph-pill.dup { color: var(--brand-colors-orange-orange300); } .ph-pill.bad { color: var(--color-error-default); }
+  .ph-pill.quiet { color: var(--color-success-default); background: var(--color-success-muted); border-color: transparent; }
+  .ph-actions { margin-left: auto; display: inline-flex; gap: 4px; }
+  .ph-actions button { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-color: transparent; background: transparent; color: var(--color-text-alternative); font-size: 12px; }
+  .ph-actions button:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  .ph-actions button[aria-pressed="true"] { color: var(--pc); border-color: var(--pc); background: color-mix(in srgb, var(--pc) 14%, transparent); }
+  tr.phase-empty td { padding: 14px; font-size: 12.5px; }
+  @media (max-width: 720px) { .ph-actions button span { display: none; } .ph-mix { display: none; } }
+
+  /* phase bands + flags on the activity strip */
+  .stripin .band { position: absolute; top: 0; bottom: 0; pointer-events: none; border-radius: var(--r-ctl); background: color-mix(in srgb, var(--pc) 9%, transparent); border-left: 1px solid color-mix(in srgb, var(--pc) 55%, transparent); }
+  .stripin .band.on { background: color-mix(in srgb, var(--pc) 22%, transparent); }
+  .stripin .bars { position: relative; z-index: 1; }
+  .strip.has-mk { padding-top: 34px; }
+  .stripin .mk { background: var(--pc, var(--brand-colors-orange-orange300)); z-index: 2; }
+  .stripin .mk b { color: var(--pc, var(--brand-colors-orange-orange300)); pointer-events: auto; cursor: pointer; border: 1px solid color-mix(in srgb, var(--pc, #ff7940) 40%, transparent); }
+  .stripin .mk b:hover { background: color-mix(in srgb, var(--pc) 20%, var(--color-background-alternative)); }
+  .stripin .mk.alt { top: -22px; } .stripin .mk.alt b { top: -2px; }
+
+  /* marker popover */
+  .mkpop { display: none; position: absolute; top: calc(100% + 6px); right: 12px; z-index: 31; width: min(460px, calc(100vw - 24px)); max-height: min(660px, calc(100vh - 90px)); overflow: auto; padding: 12px 14px 14px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); box-shadow: 0 16px 40px rgba(0, 0, 0, .65); }
+  .mkpop.open { display: block; }
+  .mkpop h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 14px; }
+  .mkpop h2 .sp { flex: 1; }
+  .mkpop h2 button { padding: 3px 8px; border-color: transparent; background: transparent; color: var(--color-text-alternative); display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+  .mkpop h2 button:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  .mkadd { display: flex; gap: 6px; align-items: center; }
+  .mkadd .field { flex: 1; min-width: 0; }
+  .mkadd select { background: var(--color-background-default); color: inherit; border: 1px solid var(--color-border-muted); border-radius: var(--r-ctl); padding: 6px 8px; font: inherit; }
+  .mkadd .go { display: inline-flex; align-items: center; justify-content: center; padding: 6px 10px; color: var(--color-primary-default); border-color: var(--color-primary-default); background: var(--color-primary-muted); }
+  .mk-h { margin: 12px 0 6px; font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; }
+  .presets button { padding: 2px 11px; border-radius: var(--r-box); font-size: 12px; color: var(--color-text-alternative); background: var(--color-background-default); }
+  .presets button:hover { color: var(--color-text-default); border-color: var(--color-primary-default); }
+  .mkrow { display: grid; grid-template-columns: 10px 84px minmax(0, 1fr) auto auto auto; gap: 8px; align-items: center; padding: 3px 0; }
+  .mkrow .mk-t { font: 12px var(--font-family-mono); color: var(--color-text-alternative); }
+  .mkrow input { padding: 3px 8px; min-width: 0; background: var(--color-background-default); }
+  .mkrow .mk-n { font-size: 11.5px; color: var(--color-text-muted); white-space: nowrap; }
+  .mkrow button { padding: 3px 6px; border-color: transparent; background: transparent; color: var(--color-text-muted); display: inline-flex; }
+  .mkrow button:hover { color: var(--color-text-default); background: var(--color-background-hover); }
+  .mkrow button.del:hover { color: var(--color-error-default); background: var(--color-error-muted); }
+  .mkrow button[aria-pressed="true"] { color: var(--pc); background: color-mix(in srgb, var(--pc) 16%, transparent); }
+  .mk-empty { padding: 10px 2px 2px; color: var(--color-text-alternative); font-size: 12.5px; line-height: 1.5; }
+  .mk-foot { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--color-border-muted); color: var(--color-text-muted); font-size: 11.5px; }
+  kbd.k { font: 600 11px var(--font-family-mono); color: var(--color-text-alternative); border: 1px solid var(--color-border-muted); border-bottom-width: 2px; border-radius: var(--r-ctl); padding: 0 5px; background: var(--color-background-default); }
+
+  /* help window */
+  dialog#help { width: min(960px, calc(100vw - 24px)); height: min(740px, calc(100vh - 24px)); max-width: none; max-height: none; padding: 0; border: 1px solid var(--color-border-muted); border-radius: var(--r-box); background: var(--color-background-default); color: var(--color-text-default); box-shadow: 0 24px 80px rgba(0, 0, 0, .8); overflow: hidden; }
+  dialog#help[open] { display: flex; flex-direction: column; }
+  dialog#help::backdrop { background: rgba(0, 0, 0, .6); backdrop-filter: blur(3px); }
+  .hfoot { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 10px 16px; border-top: 1px solid var(--color-border-muted); background: var(--color-background-alternative); }
+  .hfoot .sp { flex: 1; } .hfoot .hint2 { display: inline-flex; align-items: center; gap: 6px; color: var(--color-text-muted); font-size: 12px; }
+  .chk { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--color-text-alternative); font-size: 13px; }
+  .chk input { width: 16px; height: 16px; padding: 0; accent-color: var(--color-primary-default); cursor: pointer; }
+  .btn.primary { color: var(--color-primary-default); border-color: var(--color-primary-default); background: var(--color-primary-muted); font-weight: 600; }
+  @media (max-width: 720px) { .hfoot .hint2 { display: none; } }
+  .hbody { flex: 1; min-height: 0; display: grid; grid-template-columns: 210px minmax(0, 1fr); }
+  .hnav { display: flex; flex-direction: column; gap: 2px; padding: 10px; overflow: auto; border-right: 1px solid var(--color-border-muted); background: var(--color-background-alternative); }
+  .hnav button { display: flex; align-items: center; gap: 10px; text-align: left; border-color: transparent; background: transparent; color: var(--color-text-alternative); padding: 8px 10px; }
+  .hnav button:hover { background: var(--color-background-hover); color: var(--color-text-default); }
+  .hnav button.active { background: var(--color-primary-muted); color: var(--color-primary-default); font-weight: 600; }
+  .hnav .em { font-size: 16px; width: 22px; text-align: center; flex: none; }
+  .hcontent { overflow: auto; padding: 20px 28px 32px; scroll-behavior: smooth; }
+  .hcontent:focus-visible { outline: none; }
+  .hcontent h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -.01em; }
+  .hcontent .lede { margin: 0 0 8px; color: var(--color-text-alternative); font-size: 14px; line-height: 1.55; max-width: 70ch; }
+  .hcontent h3 { margin: 26px 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .09em; color: var(--color-text-muted); }
+  .hcontent p, .hcontent li { color: var(--color-text-alternative); line-height: 1.55; max-width: 70ch; }
+  .hcontent li { margin: 3px 0; } .hcontent ul { padding-left: 20px; }
+  .hcontent b, .hcontent strong { color: var(--color-text-default); }
+  .hcontent code { font: 12px var(--font-family-mono); background: var(--color-background-section); padding: 1px 6px; border-radius: var(--r-ctl); color: var(--color-text-default); }
+  .step { display: flex; gap: 14px; margin: 22px 0; }
+  .step .sb { flex: 1; min-width: 0; }
+  .step .no { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; color: var(--color-primary-default); background: var(--color-primary-muted); border: 1px solid color-mix(in srgb, var(--color-primary-default) 40%, transparent); }
+  .step h4 { margin: 3px 0 2px; font-size: 15px; } .step p { margin: 0 0 4px; }
+  pre.art { margin: 8px 0 4px; padding: 12px 16px; overflow-x: auto; background: #08080a; border: 1px solid var(--color-border-muted); border-radius: var(--r-box); font: 11.5px/1.45 var(--font-family-mono); color: var(--color-text-alternative); white-space: pre; tab-size: 4; }
+  pre.art .o { color: var(--art-o); } pre.art .b { color: var(--art-b); } pre.art .l { color: var(--art-l); } pre.art .p { color: var(--art-p); }
+  pre.art .y { color: var(--art-y); } pre.art .r { color: var(--art-r); } pre.art .m { color: var(--color-text-muted); } pre.art .w { color: var(--color-text-default); font-weight: 700; }
+  .callout { margin: 14px 0; padding: 10px 14px; border-radius: 0 10px 10px 0; border-left: 3px solid var(--color-warning-default); background: var(--color-warning-muted); max-width: 72ch; }
+  .callout.tip { border-left-color: var(--color-success-default); background: var(--color-success-muted); }
+  .callout p { margin: 0; color: var(--color-text-default); }
+  .legend2 { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; color: var(--color-text-alternative); font-size: 12.5px; }
+  .live { margin-top: 10px; padding: 10px 14px; border: 1px dashed var(--color-border-muted); border-radius: var(--r-box); }
+  table.keys { border-collapse: collapse; width: 100%; max-width: 560px; table-layout: auto; }
+  table.keys td { padding: 6px 4px; border-bottom: 1px solid var(--color-border-muted); white-space: normal; overflow: visible; color: var(--color-text-alternative); }
+  table.keys td:first-child { width: 150px; white-space: nowrap; }
+  @media (max-width: 900px) {
+    .hbody { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+    .hnav { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--color-border-muted); }
+    .hnav button { flex: none; white-space: nowrap; }
+    .hcontent { padding: 16px 18px 28px; }
+  }
+  @media (max-width: 720px) { .btn .lbl { display: none; } .step { gap: 10px; } }
+
+  /* ---------------- shape & type pass: pills and circles, one box radius, system (SF) type scale ---------------- */
+  body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; text-rendering: optimizeLegibility; font-feature-settings: 'kern', 'calt'; letter-spacing: -.006em; }
+  button, input, select, textarea { letter-spacing: inherit; }
+  button, select { font-weight: 500; }
+  select { border-radius: var(--r-ctl); }
+  input { padding-left: 14px; }
+  .field input { padding-left: 34px; }
+  /* filter row: the request count sits before the ownership picker, and every control in the row shares one height */
+  .subbar > .stat, .subbar > .seg, .subbar > .tog { height: 35px; box-sizing: border-box; align-items: center; }
+  .subbar > .tog { padding-top: 0; padding-bottom: 0; }
+  .stat { display: inline-flex; align-items: center; gap: 7px; padding: 0 14px 0 11px; border-radius: var(--r-ctl); background: var(--fill-1); color: var(--color-text-alternative); font-size: 13px; white-space: nowrap; }
+  .stat .ic { width: 16px; height: 16px; color: var(--color-text-muted); }
+  .stat b { font-weight: 600; color: var(--color-text-default); }
+  @media (max-width: 860px) { .stat { padding: 0 11px; } }
+  @media (max-width: 1400px) { .subbar .tip { display: none; } } /* the tip only shows when it fits on the row instead of wrapping under it */
+  /* the wordmark: MetaMask's Grotzec Condensed Bold, all caps, tight tracking. Served from app/fonts so there's one copy */
+  @font-face { font-family: 'Grotzec Cond'; src: url('/font/grotzec-cond-bold.otf') format('opentype'); font-weight: 700; font-style: normal; font-display: block; }
+  .wordmark { font-family: 'Grotzec Cond', var(--font-family, 'Inter', sans-serif); font-size: 24px; font-weight: 700; text-transform: uppercase; letter-spacing: -.012em; line-height: 1; }
+
+  /* icon-only buttons are true circles */
+  button.icon-btn, .mkpop h2 button.icon-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 34px; height: 34px; padding: 0; border-radius: 50%; }
+  button.icon-btn.sm, .mkpop h2 button.icon-btn.sm { width: 26px; height: 26px; }
+  .ph-tgl { width: 26px; height: 26px; padding: 0; align-items: center; justify-content: center; border-radius: 50%; }
+  .cp:not(.lab) { width: 26px; height: 26px; min-width: 26px; padding: 0; border-radius: 50%; }
+  .ownerpill button { width: 20px; height: 20px; padding: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; }
+  .hnav button, .hfoot .btn, .presets button { border-radius: var(--r-ctl); }
+  kbd.k, .field kbd { display: inline-block; min-width: 20px; padding: 0 7px; line-height: 17px; text-align: center; border-radius: var(--r-ctl); }
+  @media (pointer: coarse) { button.icon-btn { width: 40px; height: 40px; } button.icon-btn.sm { width: 32px; height: 32px; } }
+
+  /* section and column labels: sentence case, semibold, no tiny uppercase */
+  .panel h3, .card .cl, .sub-h, .mr-l, .mk-h { text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; color: var(--color-text-alternative); }
+  .call.head { text-transform: none; letter-spacing: 0; font-size: 11.5px; }
+  .card .cv { font-size: 26px; font-weight: 600; letter-spacing: -.024em; }
+  .card .cs { font-size: 12px; }
+  .mkpop h2 { font-size: 16px; font-weight: 650; letter-spacing: -.014em; }
+  .ph-label { font-size: 15px; font-weight: 650; letter-spacing: -.014em; }
+  .hint, .stat, .tip { font-size: 12px; }
+  .chip { font-weight: 600; letter-spacing: 0; }
+
+  /* the guide */
+  dialog#help { border-radius: 22px; }
+  .hnav { padding: 12px; gap: 3px; }
+  .hnav button { padding: 9px 14px; font-size: 13.5px; }
+  .hcontent { padding: 28px 40px 44px; }
+  .hcontent h2 { margin: 0 0 8px; font-size: 32px; line-height: 1.12; font-weight: 700; letter-spacing: -.034em; }
+  .hcontent .lede { margin: 0; padding-bottom: 22px; border-bottom: 1px solid var(--color-border-muted); font-size: 16.5px; line-height: 1.5; letter-spacing: -.012em; max-width: 62ch; }
+  .hcontent h3 { margin: 40px 0 10px; padding-top: 26px; border-top: 1px solid var(--color-border-muted); font-size: 20px; line-height: 1.2; font-weight: 650; letter-spacing: -.022em; text-transform: none; color: var(--color-text-default); }
+  .hcontent p, .hcontent li { font-size: 14px; line-height: 1.6; letter-spacing: -.008em; }
+  .step { margin: 0; padding: 24px 0; gap: 16px; }
+  .step + .step, .lede + .step, pre.art + .step { border-top: 1px solid var(--color-border-muted); }
+  .lede + .step, pre.art + .step { margin-top: 0; }
+  .step .no { width: 30px; height: 30px; font-size: 14px; font-weight: 650; }
+  .step h4 { margin: 4px 0 6px; font-size: 17px; font-weight: 650; letter-spacing: -.018em; }
+  pre.art { margin: 14px 0 8px; padding: 14px 18px; }
+  .callout { margin: 22px 0; padding: 14px 18px; border-radius: var(--r-box); border: 1px solid color-mix(in srgb, var(--color-warning-default) 35%, transparent); }
+  .callout.tip { border-color: color-mix(in srgb, var(--color-success-default) 35%, transparent); }
+  .live { margin-top: 26px; padding: 14px 18px; }
+  .hfoot { padding: 12px 20px; }
+  table.keys td { padding: 11px 6px; font-size: 14px; }
+  @media (max-width: 900px) { .hcontent { padding: 20px 20px 32px; } .hcontent h2 { font-size: 28px; } .hcontent .lede { font-size: 15.5px; } }
+
+  /* markers panel: roomier, grouped by dividers */
+  .mkpop { width: min(520px, calc(100vw - 24px)); padding: 6px 22px 18px; border-radius: 22px; }
+  .mkpop h2 { margin: 0; padding: 14px 0 14px; border-bottom: 1px solid var(--color-border-muted); gap: 10px; }
+  .mkpop h2 > .ic { width: 18px; height: 18px; }
+  .mkpop h2 button#mkHelp { padding: 6px 12px; border-radius: var(--r-ctl); font-size: 13px; }
+  .mkadd { gap: 10px; margin: 20px 0 22px; }
+  .mkadd input { height: 42px; padding: 0 16px 0 38px; font-size: 14px; }
+  .mkadd .field .ic { left: 14px; }
+  .mkadd select { height: 42px; padding: 0 14px; font-size: 14px; }
+  .mkadd .go.icon-btn { width: 42px; height: 42px; }
+  .mk-h { margin: 0 0 12px; padding-top: 20px; border-top: 1px solid var(--color-border-muted); font-size: 12.5px; }
+  .presets { gap: 8px; margin-bottom: 22px; }
+  .presets button { padding: 7px 14px; font-size: 13px; }
+  #mkList { margin-bottom: 4px; }
+  .mkrow { grid-template-columns: 10px 88px minmax(0, 1fr) auto auto auto; gap: 12px; padding: 10px 0; }
+  .mkrow .mk-t { white-space: nowrap; }
+  .mkrow + .mkrow { border-top: 1px solid var(--color-border-muted); }
+  .mkrow .mk-t { font-size: 12.5px; }
+  .mkrow input { height: 32px; padding: 0 12px; font-size: 13.5px; }
+  .mkrow .mk-n { font-size: 12px; }
+  .mk-empty { padding: 4px 2px 8px; font-size: 13.5px; line-height: 1.55; }
+  .mk-foot { margin-top: 18px; padding-top: 16px; font-size: 12px; line-height: 1.9; }
+
+  /* borderless tiles: soft angled gradient surfaces instead of outlines */
+  :root { --tile-grad: linear-gradient(135deg, rgba(var(--fx),.085) 0%, rgba(var(--fx),.03) 48%, rgba(var(--fx),.012) 100%); --tile-edge: inset 0 1px 0 rgba(var(--fx),.05); }
+  pre.art, .card, .live { border: 0; background: var(--tile-grad), var(--tile-base); box-shadow: var(--tile-edge); }
+  .live { background: var(--tile-grad), var(--tile-base); }
+  .callout { border: 0; box-shadow: var(--tile-edge); background: linear-gradient(135deg, color-mix(in srgb, var(--color-warning-default) 22%, transparent) 0%, color-mix(in srgb, var(--color-warning-default) 7%, transparent) 60%, color-mix(in srgb, var(--color-warning-default) 3%, transparent) 100%), var(--tile-base); }
+  .callout.tip { background: linear-gradient(135deg, color-mix(in srgb, var(--color-success-default) 22%, transparent) 0%, color-mix(in srgb, var(--color-success-default) 7%, transparent) 60%, color-mix(in srgb, var(--color-success-default) 3%, transparent) 100%), var(--tile-base); }
+  .card { padding: 14px 18px; }
+
+  /* solid shapes, no strokes (Linear-style): tonal fills carry the hierarchy, dividers do the separating */
+  :root { --fill-1: rgba(var(--fx),.065); --fill-2: rgba(var(--fx),.11); --fill-3: rgba(var(--fx),.16); }
+  button, input, select, textarea, .tabs, .pill, .chip, .chip.party, .chip.none, .panel, pre.body, .seg, .ownerpill, .cp.lab, .cp.abs, .tfmt, .pchip, textarea.note, .ph-pill, .stripin .mk b, .mkpop, .actions, kbd, kbd.k, .field kbd, dialog#help, .step .no, .mkadd select, .presets button { border-color: transparent !important; }
+  kbd, kbd.k, .field kbd { border-bottom-width: 1px; }
+  button, input, select, textarea.note, .pill, .ownerpill, .pchip, .ph-pill, .cp.lab, .cp.abs, .chip.party, .chip.none, .presets button { background: var(--fill-1); }
+  button:hover:not(:disabled), .presets button:hover, .cp.lab:hover { background: var(--fill-2); }
+  input:focus, select:focus, textarea.note:focus { background: var(--fill-2); }
+  .tabs, .seg, .tfmt { background: var(--fill-1); }
+  .tabs button, .seg button, .tfmt button { background: transparent; }
+  .tabs button:hover:not(.active), .seg button:hover:not(.active), .tfmt button:hover:not(.active) { background: var(--fill-1); }
+  .tabs button.active, .seg button.active, .tfmt button.active, .tabs [aria-selected="true"] { background: var(--fill-3); color: var(--color-text-default); }
+  .chip { background: color-mix(in srgb, var(--c, #888) 20%, transparent); }
+  .chip.none { color: var(--color-text-muted); }
+  .panel { background: var(--surface-1); }
+  pre.body { background: rgba(var(--bx),.35); }
+  .mkpop, .actions { background: var(--surface-2); box-shadow: 0 20px 56px rgba(0,0,0,.7), inset 0 1px 0 rgba(var(--fx),.05); }
+  dialog#help { background: var(--surface-1); box-shadow: 0 28px 90px rgba(0,0,0,.85), inset 0 1px 0 rgba(var(--fx),.05); }
+  .hnav { background: rgba(var(--fx),.025); }
+  .mkpop input, .mkpop select, .actions button, .actions .tfmt { background: var(--fill-1); }
+  .actions .tfmt { background: rgba(var(--fx),.05); }
+  .mkpop h2 button, .mkrow button, .ph-actions button:not([aria-pressed="true"]), .ownerpill button, button.icon-btn.sm, .ph-tgl { background: transparent; }
+  .mkpop h2 button:hover, .mkrow button:hover, .ph-actions button:hover, .ownerpill button:hover, button.icon-btn.sm:hover, .ph-tgl:hover { background: var(--fill-2); }
+  button.icon-btn { background: var(--fill-1); }
+  button.icon-btn:hover { background: var(--fill-2); }
+  .btn.primary, .mkadd .go { background: var(--color-primary-default); color: var(--on-primary); font-weight: 600; }
+  .btn.primary:hover:not(:disabled), .mkadd .go:hover { background: color-mix(in srgb, var(--color-primary-default) 86%, #fff); }
+  .btn.danger { color: var(--color-error-default); background: color-mix(in srgb, var(--color-error-default) 14%, transparent); }
+  .btn.danger:hover { background: color-mix(in srgb, var(--color-error-default) 24%, transparent); }
+  .step .no { background: color-mix(in srgb, var(--color-primary-default) 22%, transparent); }
+  button.active, button[aria-pressed="true"], button[aria-expanded="true"] { background: var(--fill-3); }
+  .btn.primary[aria-pressed="true"] { background: var(--color-primary-default); }
+
+  /* ---------------- themes ---------------- */
+  :root { --fx: 255,255,255; --bx: 0,0,0; --surface-1: #0f0f12; --surface-2: #151519; --tile-base: #0b0b0d; --on-primary: #0b0b0d;
+    --art-o: #ff7940; --art-b: #8b99ff; --art-l: #b9f302; --art-p: #c66ef5; --art-y: #f0b034; --art-r: #ff7584; }
+
+  html[data-theme="light"] { color-scheme: light; --fx: 0,0,0; --bx: 255,255,255;
+    --brand-colors-blue-blue300: #4459ff; --brand-colors-blue-blue200: #2f43d6; --brand-colors-red-red300: #d1293d; --brand-colors-yellow-yellow200: #a86c00; --brand-colors-lime-lime100: #3b8a14; --brand-colors-orange-orange300: #e0561a;
+    --color-background-default: #f1f1f4; --color-background-alternative: #ffffff; --color-background-section: #e8e8ed; --color-background-hover: #0000000f;
+    --color-text-default: #121316; --color-text-alternative: #54565d; --color-text-muted: #878a92;
+    --color-border-muted: #0000001a; --color-border-default: #00000040;
+    --color-primary-muted: #4459ff1f; --color-error-muted: #d1293d1f; --color-warning-muted: #a86c0024; --color-success-muted: #3b8a1424;
+    --cat-third: #9b3fd1; --surface-1: #ffffff; --surface-2: #ffffff; --tile-base: #fafafc; --on-primary: #ffffff;
+    --art-o: #d4500f; --art-b: #3348e6; --art-l: #3b8a14; --art-p: #9b3fd1; --art-y: #a86c00; --art-r: #d1293d; }
+  html[data-theme="light"] .chip { color: color-mix(in srgb, var(--c, #555) 58%, #000); }
+  html[data-theme="light"] .chip.party, html[data-theme="light"] .chip.none { color: var(--color-text-alternative); }
+  html[data-theme="light"] .mkpop, html[data-theme="light"] .actions { box-shadow: 0 18px 48px rgba(20,20,40,.18), 0 2px 8px rgba(20,20,40,.08); }
+  html[data-theme="light"] dialog#help { box-shadow: 0 28px 80px rgba(20,20,40,.28); }
+  html[data-theme="light"] dialog#help::backdrop { background: rgba(240,240,246,.6); }
+  html[data-theme="light"] .panel { background: #ffffff; }
+  html[data-theme="light"] .ph-label, html[data-theme="light"] .ph-tgl, html[data-theme="light"] .stripin .mk b, html[data-theme="light"] .mkrow button[aria-pressed="true"], html[data-theme="light"] .ph-actions button[aria-pressed="true"] { color: color-mix(in srgb, var(--pc, #555) 50%, #000); }
+  html[data-theme="light"] tr.phase td { background: color-mix(in srgb, var(--pc) 13%, #fff); }
+  html[data-theme="light"] tr.phase:hover td { background: color-mix(in srgb, var(--pc) 20%, #fff); }
+
+  html[data-theme="navy"] { color-scheme: dark;
+    --color-background-default: #0a1020; --color-background-alternative: #0e172b; --color-background-section: #18243f; --color-background-hover: #9db4ff1c;
+    --color-text-default: #f2f5ff; --color-text-alternative: #a9b4d0; --color-text-muted: #6a7694;
+    --color-border-muted: #9db4ff26; --color-border-default: #6a7694;
+    --surface-1: #101a31; --surface-2: #16223f; --tile-base: #0c152b; --art-b: #8fa8ff; }
+  html[data-theme="navy"] dialog#help::backdrop { background: rgba(4,8,20,.66); }
+
+  html[data-theme="orange"] { color-scheme: dark; --fx: 255,238,220;
+    --color-background-default: #130c07; --color-background-alternative: #1a110a; --color-background-section: #2a1a0f; --color-background-hover: #ffb46a1c;
+    --color-text-default: #fff4ea; --color-text-alternative: #d6b99f; --color-text-muted: #8f7459;
+    --color-border-muted: #ffb46a26; --color-border-default: #8f7459;
+    --color-primary-default: #f6851b; --color-primary-alternative: #ffa75a; --color-primary-muted: #f6851b2e;
+    --surface-1: #1b120b; --surface-2: #24170d; --tile-base: #170f09; --on-primary: #1a0d02; }
+  html[data-theme="orange"] dialog#help::backdrop { background: rgba(14,6,0,.68); }
+
+  /* theme picker in the menu */
+  .themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .theme-opt { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 4px 10px; border-radius: var(--r-box); background: transparent; color: var(--color-text-alternative); font-size: 12px; font-weight: 500; letter-spacing: 0; }
+  .theme-opt .sw { position: relative; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--sw-bg) 0 50%, var(--sw-ac) 50% 100%); box-shadow: inset 0 0 0 1px rgba(128,128,128,.3); }
+  .theme-opt .sw .ic { display: none; width: 18px; height: 18px; color: #fff; filter: drop-shadow(0 0 3px rgba(0,0,0,.7)); }
+  .theme-opt[aria-checked="true"] { background: var(--fill-3); color: var(--color-text-default); font-weight: 600; }
+  .theme-opt[aria-checked="true"] .sw .ic { display: block; }
+
+  /* guide: spacing and tonal tiles carry the structure, no rules between items */
+  .hcontent .lede { border-bottom: 0; padding-bottom: 6px; }
+  .hcontent h3 { margin: 36px 0 10px; padding-top: 0; border-top: 0; }
+  .step + .step, .lede + .step, pre.art + .step { border-top: 0; }
+  .step { padding: 16px 0; }
+  table.keys { border-collapse: separate; border-spacing: 0 4px; }
+  table.keys td { border-bottom: 0; padding: 10px 14px; background: var(--fill-1); }
+  table.keys td:first-child { border-radius: var(--r-ctl) 0 0 var(--r-ctl); }
+  table.keys td:last-child { border-radius: 0 var(--r-ctl) var(--r-ctl) 0; }
+
+  /* detail stat cards: plain solid tiles, no gradient */
+  .card { background: var(--fill-1); box-shadow: none; }
+
+  /* one active style for every segmented control and tile group: a tonal "thumb" on a tonal track */
+  :root { --fill-active: rgba(var(--fx), .21);
+    --json-key: #9db4ff; --json-str: #a6e39f; --json-num: #ffb27a; --json-bool: #d99bff; --json-null: #8f9095; --json-punct: var(--color-text-muted); }
+  html[data-theme="light"] { --json-key: #3348e6; --json-str: #2b7a1f; --json-num: #c2570c; --json-bool: #8a35c4; --json-null: #7c7f87; }
+  html[data-theme="orange"] { --json-key: #ffb26b; --json-num: #8fb8ff; }
+  .tabs button.active, .seg button.active, .tfmt button.active, .tabs [aria-selected="true"] { background: var(--fill-active); color: var(--color-text-default); font-weight: 600; }
+  .seg button.active .n { background: rgba(var(--bx), .32); color: var(--color-text-default); }
+  .seg button:not(.active) .n { background: rgba(var(--fx), .1); color: var(--color-text-alternative); }
+  .actions .tfmt { padding: 3px; background: var(--fill-1); }
+  .actions .tfmt button { background: transparent; color: var(--color-text-alternative); font-weight: 500; }
+  .actions .tfmt button:hover:not([aria-pressed="true"]) { background: var(--fill-1); }
+  .actions .tfmt button[aria-pressed="true"], .actions .tfmt button[aria-pressed="true"]:hover { background: var(--fill-active); color: var(--color-text-default); font-weight: 600; }
+  .themes { padding: 3px; gap: 3px; background: var(--fill-1); border-radius: var(--r-box); }
+  .actions .theme-opt { background: transparent; }
+  .actions .theme-opt:hover:not([aria-checked="true"]) { background: var(--fill-1); }
+  .actions .theme-opt[aria-checked="true"], .actions .theme-opt[aria-checked="true"]:hover { background: var(--fill-active); color: var(--color-text-default); font-weight: 600; }
+  /* focus rings sit inside grouped controls so a scrolling or rounded track never clips them */
+  .seg button:focus-visible, .tabs button:focus-visible, .tfmt button:focus-visible, .theme-opt:focus-visible, .presets button:focus-visible, .hnav button:focus-visible { outline-offset: -2px; }
+
+  /* JSON in request and response bodies */
+  pre.body .jk { color: var(--json-key); } pre.body .js { color: var(--json-str); } pre.body .jnum { color: var(--json-num); }
+  pre.body .jb { color: var(--json-bool); } pre.body .jn { color: var(--json-null); font-style: italic; } pre.body .jp { color: var(--json-punct); }
+
+  /* the guide has no title bar: a small close control floats in the corner and the content keeps clear of it */
+  dialog#help .help-x { position: absolute; top: 14px; right: 14px; z-index: 2; width: 30px; height: 30px; }
+  dialog#help .hcontent { padding-right: 64px; }
+  @media (max-width: 900px) { dialog#help .hnav { margin-right: 52px; } }
+
+  /* the time dropdown: custom chevron with real room on the right instead of the native arrow crowding the edge */
+  .mkadd select { -webkit-appearance: none; appearance: none; padding: 0 40px 0 18px; min-width: 128px; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a3a4a7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 16px 16px; }
+  .mkadd select:focus-visible { outline: 2px solid var(--color-primary-default); outline-offset: 1px; }
+
+  /* call-site paths that open the exact line on GitHub */
+  .nfile a.gh { color: inherit; text-decoration: none; border-radius: 4px; cursor: pointer; }
+  .nfile a.gh .ic { width: 12px; height: 12px; margin-left: 5px; vertical-align: -1px; opacity: .4; transition: opacity .12s; }
+  .nfile a.gh:hover, .nfile a.gh:focus-visible { color: var(--color-primary-default); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+  .nfile a.gh:hover .loc, .nfile a.gh:focus-visible .loc { color: inherit; }
+  .nfile a.gh:hover .ic, .nfile a.gh:focus-visible .ic { opacity: 1; }
+  /* the line that marks where requests held during a pause begin */
+  tr.held-divider td { padding: 0 !important; background: transparent !important; border-bottom: 0; }
+  .hd { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--color-warning-default); font-size: 12px; font-weight: 600; }
+  .hd-line { flex: 1; height: 1px; background: color-mix(in srgb, var(--color-warning-default) 38%, transparent); }
+  .hd-label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .hd-label .ic, .hd-pill .ic { width: 14px; height: 14px; color: inherit; }
+  .hd-pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 11px 3px 8px; border-radius: var(--r-ctl); background: var(--color-warning-muted); white-space: nowrap; }
+  .hd-pill .ic { transform: rotate(-90deg); }
+  html[data-theme="light"] .hd { color: color-mix(in srgb, var(--color-warning-default) 58%, #000); }
+  /* play / pause: a plain circle like Help and Menu. Live = green icon, paused = the amber tint chips use, count badge when updates are held */
+  #conn.conn-btn { position: relative; cursor: pointer; }
+  #conn.conn-btn .ic { width: 16px; height: 16px; }
+  #conn.conn-btn.running { color: var(--color-success-default); }
+  #conn.conn-btn.paused { color: var(--color-warning-default); background: var(--color-warning-muted); }
+  #conn.conn-btn.paused:hover:not(:disabled) { background: color-mix(in srgb, var(--color-warning-default) 26%, transparent); }
+  #conn.conn-btn:disabled { cursor: default; opacity: .45; color: var(--color-text-muted); }
+  #conn .conn-n { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: var(--r-ctl); background: var(--color-primary-default); color: var(--on-primary); font-size: 10px; font-weight: 700; line-height: 16px; text-align: center; pointer-events: none; }
+  html[data-theme="light"] #conn.conn-btn.running { color: color-mix(in srgb, var(--color-success-default) 58%, #000); }
+  html[data-theme="light"] #conn.conn-btn.paused { color: color-mix(in srgb, var(--color-warning-default) 58%, #000); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-timeline" viewBox="0 0 24 24"><rect x="3" y="4.5" width="11" height="4" rx="2"/><rect x="8" y="10" width="13" height="4" rx="2"/><rect x="5" y="15.5" width="9" height="4" rx="2"/></symbol>
+  <symbol id="i-endpoints" viewBox="0 0 24 24"><circle cx="4.5" cy="6" r="2"/><circle cx="4.5" cy="12" r="2"/><circle cx="4.5" cy="18" r="2"/><rect x="9" y="4.5" width="12" height="3" rx="1.5"/><rect x="9" y="10.5" width="12" height="3" rx="1.5"/><rect x="9" y="16.5" width="12" height="3" rx="1.5"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10.5 3a7.5 7.5 0 1 0 4.55 13.46l4.24 4.25a1 1 0 0 0 1.42-1.42l-4.25-4.24A7.5 7.5 0 0 0 10.5 3zm0 2.5a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M14.4 6 14 4H5v17h2v-7h5.6l.4 2h7V6z"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M17.65 6.35A7.96 7.96 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></symbol>
+  <symbol id="i-clipboard" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M9 2h6a1.5 1.5 0 0 1 1.5 1.5V4H18a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1.5v-.5A1.5 1.5 0 0 1 9 2zM8 11v1.6h8V11H8zm0 4v1.6h5.5V15H8z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+  <symbol id="i-network" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M11 7.6l-5 8.2 1.7 1 5-8.2zM13 7.6l5 8.2-1.7 1-5-8.2zM8.1 17.3h7.8v1.9H8.1z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="2.4" rx="1.2"/><rect x="3" y="10.8" width="18" height="2.4" rx="1.2"/><rect x="3" y="16.6" width="18" height="2.4" rx="1.2"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="M9 5.5v13l8-6.5z"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 4a6 6 0 1 1 0 12 6 6 0 0 1 0-12z"/><circle cx="12" cy="12" r="2.8"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4.2" height="14" rx="1.4"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.2 5.4v13.2c0 .8.9 1.3 1.6.9l10.2-6.6c.6-.4.6-1.3 0-1.7L9.8 4.5c-.7-.4-1.6.1-1.6.9z"/></symbol>
+  <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
+</svg>
+<header>
+  <div class="brand"><span class="logo" data-fox="34" aria-hidden="true"><span class="emo">🦊</span></span><span class="wordmark">Foxy</span></div>
+  <button id="conn" class="btn icon-btn conn-btn" type="button" aria-pressed="false" aria-label="Pause: hold live updates" title="Connecting…" disabled><svg class="ic"><use href="#i-pause"/></svg></button>
+  <div class="tabs" role="tablist" aria-label="View">
+    <button id="tabTimeline" class="active" role="tab" aria-selected="true" title="Timeline"><svg class="ic"><use href="#i-timeline"/></svg><span class="tl">Timeline</span></button>
+    <button id="tabEndpoints" role="tab" aria-selected="false" title="Endpoints"><svg class="ic"><use href="#i-endpoints"/></svg><span class="tl">Endpoints</span></button>
+  </div>
+  <label class="field search"><svg class="ic"><use href="#i-search"/></svg><input id="filter" aria-label="Filter requests" placeholder="Filter host, path, call site, team…" /><kbd aria-hidden="true">/</kbd></label>
+  <span class="spacer"></span>
+  <button id="markBtn" class="btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="mkpop" title="Markers: label moments in the app to split the capture into phases (M)"><svg class="ic"><use href="#i-flag"/></svg><span class="lbl">Markers</span><b class="badge-n" id="markCount" hidden>0</b></button>
+  <div class="mkpop" id="mkpop" role="dialog" aria-label="Markers">
+    <h2><svg class="ic"><use href="#i-flag"/></svg>Markers<span class="sp"></span><button id="mkHelp" title="How markers work"><svg class="ic"><use href="#i-help"/></svg>How It Works</button><button id="mkClose" class="icon-btn sm" aria-label="Close markers"><svg class="ic"><use href="#i-close"/></svg></button></h2>
+    <div class="mkadd">
+      <label class="field"><svg class="ic"><use href="#i-flag"/></svg><input id="marker" aria-label="Marker label" maxlength="120" autocomplete="off" placeholder="What just happened? Press Enter" /></label>
+      <select id="mkWhen" aria-label="When it happened" title="When did it happen? Backdate it if you noticed late.">
+        <option value="0">Now</option><option value="5000">5s ago</option><option value="10000">10s ago</option><option value="30000">30s ago</option><option value="60000">1m ago</option>
+      </select>
+      <button id="mkAdd" class="go icon-btn" aria-label="Add marker" title="Add marker"><svg class="ic"><use href="#i-plus"/></svg></button>
+    </div>
+    <div class="mk-h">Quick Add</div>
+    <div class="presets" id="mkPresets"></div>
+    <div class="mk-h">This Capture</div>
+    <div id="mkList"></div>
+    <div class="mk-foot"><kbd class="k">M</kbd> opens this panel anywhere · <kbd class="k">Enter</kbd> adds · <kbd class="k">Esc</kbd> closes</div>
+  </div>
+  <button id="helpBtn" class="btn icon-btn" aria-haspopup="dialog" aria-label="Help" title="Guide: how Foxy and markers work (?)"><svg class="ic"><use href="#i-help"/></svg></button>
+  <div class="actions" id="actions" role="group" aria-label="Actions">
+    <div class="menu-row"><span class="mr-l" id="tfLabel">Time Format</span><div class="tfmt" id="timeSeg" role="group" aria-labelledby="tfLabel"></div></div>
+    <div class="sep" role="separator"></div>
+    <div class="menu-row"><span class="mr-l" id="themeLabel">Theme</span><div class="themes" id="themeGrid" role="radiogroup" aria-labelledby="themeLabel"></div></div>
+    <div class="sep" role="separator"></div>
+    <button id="reset" class="btn" title="Restore default column order and widths"><svg class="ic"><use href="#i-reset"/></svg><span>Reset Columns</span></button>
+    <button id="export" class="btn" title="Copy the recommendation table as markdown"><svg class="ic"><use href="#i-clipboard"/></svg><span>Copy Markdown</span></button>
+    <div class="sep" role="separator"></div>
+    <button id="clear" class="btn danger" title="Clear all captured requests"><svg class="ic"><use href="#i-trash"/></svg><span>Clear</span></button>
+  </div>
+  <button id="menuBtn" class="btn menu-btn icon-btn" aria-label="Menu" aria-haspopup="true" aria-expanded="false" aria-controls="actions" title="Menu"><svg class="ic"><use href="#i-menu"/></svg></button>
+</header>
+<div class="subbar">
+  <span id="count" class="stat" title="Requests captured in this session"><svg class="ic"><use href="#i-network"/></svg><b>0</b><span class="count-lbl">requests</span></span>
+  <div class="seg" id="seg" role="group" aria-label="Filter by ownership">
+    <button data-cat="all" title="Every request">All <span class="n"></span></button>
+    <button data-cat="ours" title="Call site is in code with a CODEOWNERS team (app or core)"><i class="dot ours"></i>We Own <span class="n"></span></button>
+    <button data-cat="third" title="Call site is inside a third-party package"><i class="dot third"></i>Third-party <span class="n"></span></button>
+    <button data-cat="unowned" title="No CODEOWNERS team and not a third-party package (for example @metamask packages from other repos)"><i class="dot unowned"></i>Unowned <span class="n"></span></button>
+  </div>
+  <button class="tog" data-flag="errors" title="Errors, aborts and 4xx/5xx responses"><i class="dot err"></i>Failed <span class="n"></span></button>
+  <button class="tog" data-flag="dupes" title="Identical request made more than once: same method, URL and (for POST/PUT/PATCH) body"><i class="dot dup"></i>Duplicates <span class="n"></span></button>
+  <span id="ownerPill"></span>
+  <span id="phasePill"></span>
+  <span class="spacer"></span>
+  <span class="tip">Tip: click any team or package chip to filter by it</span>
+</div>
+<div class="strip" aria-label="Requests over time"><div class="stripin" id="stripin"></div><div class="axis" id="axis"></div></div>
+<main>
+  <table id="timeline"><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table>
+  <table id="endpoints" hidden><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table>
+</main>
+<dialog id="help" aria-label="Foxy Guide">
+  <button id="helpClose" class="btn icon-btn help-x" aria-label="Close guide" title="Close (Esc)"><svg class="ic"><use href="#i-close"/></svg></button>
+  <div class="hbody"><nav class="hnav" id="helpNav" aria-label="Help topics"></nav><div class="hcontent" id="helpBody" tabindex="-1"></div></div>
+  <div class="hfoot"><label class="chk"><input type="checkbox" id="helpHide" /> Don't show this guide when Foxy opens</label><span class="sp"></span><span class="hint2">Reopen any time with the <svg class="ic"><use href="#i-help"/></svg> button or <kbd class="k">?</kbd></span><button id="helpDone" class="btn primary">Got It</button></div>
+</dialog>
+<script>
+// ============================================================================
+// helpers
+// ============================================================================
+const reqs = new Map(); let markers = []; let tab = 'timeline'; let filter = ''; let open = null;
+const ui = { cat: 'all', errors: false, dupes: false, owner: null, phase: null };
+let dupeCounts = new Map(); let span = 1; let wfMarkers = '';
+let openEp = null; let pendingEp = false;
+const detailCache = new Map();
+const $ = (s) => document.querySelector(s);
+const icon = (name) => `<svg class="ic"><use href="#i-${name}"/></svg>`;
+// Pause holds incoming updates in a queue here; the app is still captured by the server, so nothing is lost.
+let connected = false, paused = false;
+const pending = [];
+// Requests that arrive while paused are tagged with the pause they came from, so the timeline can draw a divider at that boundary.
+const heldKeys = new Map(); // request key -> pause id
+const pauses = new Map();   // pause id -> { id, at, endedAt }
+let pauseSeq = 0, currentPause = null;
+/** New requests waiting in the queue (not every message: responses and the hello do not count). */
+const heldCount = () => {
+  const keys = new Set();
+  for (const m of pending) if (m.type === 'request' && !reqs.has(m.request.key)) keys.add(m.request.key);
+  return keys.size;
+};
+function renderConn() {
+  const c = $('#conn');
+  let state, ic, title, badge = '';
+  if (!connected) { state = 'off'; ic = 'play'; title = 'Disconnected: waiting for the Foxy server'; }
+  else if (paused) {
+    state = 'paused'; ic = 'play';
+    const n = heldCount();
+    title = n ? `Play: show ${n} request${n === 1 ? '' : 's'} that arrived while paused` : 'Play: resume live updates';
+    if (n) badge = `<span class="conn-n">${n > 99 ? '99+' : n}</span>`;
+  } else { state = 'running'; ic = 'pause'; title = 'Pause: hold the view (Foxy keeps recording)'; }
+  c.className = `btn icon-btn conn-btn ${state}`;
+  c.disabled = !connected;
+  c.setAttribute('aria-pressed', String(paused));
+  c.setAttribute('aria-label', paused ? 'Play: resume live updates' : 'Pause: hold live updates');
+  c.title = title;
+  c.innerHTML = `${icon(ic)}${badge}`;
+}
+function setPaused(on) {
+  if (on) currentPause = { id: ++pauseSeq, at: Date.now(), endedAt: null };
+  paused = on;
+  if (!on) {
+    const p = currentPause; currentPause = null;
+    const batch = pending.splice(0);
+    if (p) { p.endedAt = Date.now(); if (batch.length) pauses.set(p.id, p); }
+    batch.forEach((m) => applyMessage(m, p?.id));
+    schedule();
+  }
+  renderConn();
+}
+$('#conn').addEventListener('click', () => setPaused(!paused));
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const sec = (ms) => (ms / 1000).toFixed(2); // plain seconds, used for markdown and clipboard text
+// Time display, switchable from the menu. 'min' = 1m 23.4s, 'clock' = 01:23.40, 'sec' = 83.40s
+const TIME_MODES = [{ id: 'min', ex: '1m 23.4s', tip: 'Minutes and seconds' }, { id: 'clock', ex: '01:23.40', tip: 'Clock style' }, { id: 'sec', ex: '83.40s', tip: 'Plain seconds' }];
+let timeMode = localStorage.getItem('foxy.time.v1'); if (!TIME_MODES.some((m) => m.id === timeMode)) timeMode = 'min';
+/** A point on the capture timeline (time since the app connected). dec = decimals on the seconds. */
+function tf(ms, dec) {
+  const d = dec ?? (timeMode === 'min' ? 1 : 2), k = 10 ** d;
+  const total = Math.round((Math.max(0, ms) / 1000) * k) / k; // rounded once so 59.96s carries into the minute
+  if (timeMode === 'sec') return `${total.toFixed(d)}s`;
+  const m = Math.floor(total / 60), h = Math.floor(m / 60), mm = m % 60, rem = total - m * 60;
+  const p2 = (n) => String(n).padStart(2, '0');
+  if (timeMode === 'clock') {
+    const ss = d ? rem.toFixed(d).padStart(3 + d, '0') : p2(Math.round(rem));
+    return h ? `${h}:${p2(mm)}:${ss}` : `${p2(m)}:${ss}`;
+  }
+  if (!m) return `${rem.toFixed(d)}s`;
+  return h ? `${h}h ${p2(mm)}m ${p2(Math.round(rem))}s` : `${m}m ${rem.toFixed(d)}s`;
+}
+const axisLabels = () => [0, 1, 2, 3, 4].map((k) => `<span>${tf((span * k) / 4, span < 20000 ? 1 : 0)}</span>`).join('');
+const TIME_FIT = { min: () => tf(0), max: () => tf(99 * 60000 + 59900) }; // auto-fit bounds for time columns
+/** A length of time (gaps, phase lengths): short ones stay in seconds with 2 decimals. */
+const dur = (ms) => (timeMode === 'sec' || ms < 60000 ? `${(ms / 1000).toFixed(2)}s` : tf(ms));
+const team = (o) => String(o).replace(/^@MetaMask\//i, '');
+const bytes = (n) => (n == null ? '' : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
+/** Copy buttons: text lives in a registry (reset every render) so large bodies never go into attributes. */
+const clip = [];
+const ICON = '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><rect x="1.5" y="1.5" width="9" height="9" rx="2.2" opacity=".5"/><rect x="5.5" y="5.5" width="9" height="9" rx="2.2"/></svg>';
+const CHECK = '<svg viewBox="0 0 16 16" width="13" height="13" fill="currentColor" aria-hidden="true"><path d="M6.2 12.5 2.2 8.5l1.45-1.45 2.55 2.55 6.15-6.15 1.45 1.45z"/></svg>';
+function cp(text, title, o = {}) {
+  clip.push(String(text));
+  const cls = ['cp', o.ho && 'ho', o.right && 'right', o.label && 'lab', o.abs && 'abs', o.abs === 'tr' && 'tr'].filter(Boolean).join(' ');
+  return `<button type="button" class="${cls}" data-cp="${clip.length - 1}" data-label="${esc(o.label || '')}" title="${esc(title)}" aria-label="${esc(title)}">${ICON}${o.label ? `<span>${esc(o.label)}</span>` : ''}</button>`;
+}
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return; } catch {}
+  const t = document.createElement('textarea'); t.value = text; t.style.position = 'fixed'; t.style.opacity = '0';
+  document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove();
+}
+// capture phase so a copy click never toggles the row / <details> underneath it
+document.addEventListener('click', async (e) => {
+  const b = e.target.closest('.cp'); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  await copyText(clip[Number(b.dataset.cp)] ?? '');
+  const before = b.innerHTML; b.classList.add('copied'); b.innerHTML = CHECK + (b.dataset.label ? '<span>Copied</span>' : '');
+  setTimeout(() => { if (b.isConnected) { b.classList.remove('copied'); b.innerHTML = before; } }, 1200);
+}, true);
+const IDEMPOTENT = new Set(['GET', 'HEAD', 'OPTIONS']);
+/** Same rule as lib.mjs: GET-like requests are identical by URL; POST-like only when the body fingerprint matches (never when unknown). */
+const dupeKey = (r) => (IDEMPOTENT.has(r.method) ? `${r.method} ${r.url}` : r.bodyKey ? `${r.method} ${r.url} ${r.bodyKey}` : `unique:${r.key}`);
+const reqKey = dupeKey;
+const isFailed = (r) => Boolean(r.error) || r.status >= 400;
+/** ours = a CODEOWNERS team owns the call site, third = inside a third-party package, unowned = neither. */
+const category = (r) => ((r.codeOwners || []).length ? 'ours' : r.callSiteInfo?.kind === 'package' ? 'third' : 'unowned');
+const stClass = (r) => (r.error ? 'err' : r.status ? 's' + String(r.status)[0] : 'pending');
+
+// Stable per-team colors from the MetaMask design-system palette.
+const PALETTE = ['#8b99ff', '#c66ef5', '#ff7940', '#f0b034', '#b9f302', '#ff7584', '#4cb564', '#6f7eff', '#e1a9ff', '#ffc0a5', '#80cb91', '#ffd957'];
+const hash = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+const teamColor = (t) => PALETTE[hash(team(t)) % PALETTE.length];
+
+const teamChip = (o, via) => `<span class="chip ${via ? 'via' : ''}" data-team="${esc(o)}" style="--c:${teamColor(o)}" title="${esc(o)}${via ? ' (owns the code that started this)' : ''}"><span class="t">${esc(team(o))}</span></span>`;
+function partyChip(pkg) {
+  const m = String(pkg).match(/^(@[^/]+\/)?(.+)$/);
+  return `<span class="chip party" data-pkg="${esc(pkg)}" title="Third-party package: ${esc(pkg)}"><span class="t">${m[1] ? `<span class="scope">${esc(m[1])}</span>` : ''}${esc(m[2])}</span></span>`;
+}
+const extChip = (pkg) => `<span class="chip mm" data-pkg="${esc(pkg)}" title="${esc(pkg)}: no CODEOWNERS entry found (maintained outside core?)"><span class="t">${esc(String(pkg).replace(/^@metamask\//, ''))}</span></span>`;
+const warnChip = (text, title) => `<span class="chip warn" title="${esc(title)}"><span class="t">${esc(text)}</span></span>`;
+const noneChip = (text, title) => `<span class="chip none" title="${esc(title || '')}"><span class="t">${esc(text)}</span></span>`;
+
+/** Chips for a frame: teams, else the package it came from (+ teams of the code that started it). `max` caps the count with a +N chip. */
+function ownerChips(info, owners, viaOwners, max) {
+  const out = [];
+  const add = (html, name) => out.push({ html, name });
+  if (owners && owners.length) owners.forEach((o) => add(teamChip(o, false), team(o)));
+  else if (info) {
+    if (info.kind === 'package') add(partyChip(info.pkg), info.pkg);
+    else if (info.kind === 'controller') add(extChip(info.pkg), info.pkg);
+    else if (info.kind === 'app' || info.kind === 'project') add(warnChip('unowned', `${info.file} has no CODEOWNERS entry`), 'unowned');
+    else if (info.unsymbolicated) add(noneChip('unsymbolicated', 'Metro could not symbolicate this frame'), 'unsymbolicated');
+    (viaOwners || []).forEach((o) => add(teamChip(o, true), `${team(o)} (via)`));
+  }
+  if (max && out.length > max) {
+    const rest = out.slice(max);
+    return out.slice(0, max).map((x) => x.html).join('') + noneChip(`+${rest.length}`, rest.map((x) => x.name).join(', '));
+  }
+  return out.map((x) => x.html).join('');
+}
+const rowChips = (r) => `<div class="chips">${ownerChips(r.callSiteInfo, r.codeOwners, r.ownerCodeOwners, 3) || noneChip('—')}</div>`;
+
+/** GitHub status from the server: { repo, ref }. Call-site links need it, so they simply stay plain text until it loads. */
+let gh = null;
+fetch('/api/status').then((r) => r.json()).then((s) => { gh = s.github || null; schedule(); }).catch(() => {});
+/** Link to the exact line on GitHub. Only the project's own files (app/..., index.js, ...) live there; packages and bundles do not. */
+function ghUrl(info) {
+  if (!gh || !info || !info.file || (info.kind !== 'app' && info.kind !== 'project')) return null;
+  if (/^(\/|https?:|\.\.)/.test(info.file) || info.file.includes('node_modules/')) return null;
+  const path = info.file.split('/').map(encodeURIComponent).join('/');
+  return `https://github.com/${gh.repo}/blob/${gh.ref}/${path}${info.line ? `#L${info.line}` : ''}`;
+}
+
+/** Last two path segments + :line:col, e.g. `providers/Foo.ts:55:23`. */
+function fileTail(info) {
+  const parts = String(info.file || '').split('/');
+  const tail = parts.slice(-2).join('/');
+  return { tail, loc: info.line ? `:${info.line}:${info.col}` : '' };
+}
+function fnCell(info, sub) {
+  if (!info) return '<span class="dim">(no stack)</span>';
+  const t = fileTail(info);
+  const kind = info.unsymbolicated ? 'unsym' : info.kind;
+  const where = `${info.file}:${info.line}:${info.col}`;
+  return `<div class="fn hv${sub ? ' sub' : ''}"><span class="bar ${esc(kind)}"></span><div class="fn-text"><div class="fn-name">${fnLabel(info.method)}</div><div class="fn-file">${esc(t.tail)}<span class="loc">${esc(t.loc)}</span></div></div>${cp(where, 'Copy file:line:col', { ho: true, abs: true })}</div>`;
+}
+const fnLabel = (name) => `${esc(name)}${String(name).startsWith('<') ? '' : '<span class="paren">()</span>'}`;
+const fnTitle = (info) => (info ? `${info.method}()  ${info.file}:${info.line}:${info.col}` : '');
+
+const haystack = (r) => [r.host, r.path, r.method, r.callSite, r.owner, r.callSiteInfo?.pkg, r.callSiteInfo?.method, ...(r.codeOwners || []), ...(r.ownerCodeOwners || [])].join(' ').toLowerCase();
+const ownerMatch = (r) => {
+  const o = ui.owner; if (!o) return true;
+  if (o.type === 'team') return [...(r.codeOwners || []), ...(r.ownerCodeOwners || [])].some((x) => team(x) === o.value);
+  return r.callSiteInfo?.pkg === o.value;
+};
+const match = (r) => (!filter || haystack(r).includes(filter))
+  && (ui.cat === 'all' || category(r) === ui.cat)
+  && (!ui.errors || isFailed(r))
+  && (!ui.dupes || dupeCounts.get(reqKey(r)) > 1)
+  && (!ui.phase || phaseByKey.get(r.key)?.id === ui.phase)
+  && ownerMatch(r);
+
+// ============================================================================
+// markers & phases: each marker starts a phase that lasts until the next marker
+// (mirrors computePhases in lib.mjs, which feeds the markdown export)
+// ============================================================================
+const PHASE_COLORS = ['#ff7940', '#8b99ff', '#b9f302', '#c66ef5', '#f0b034', '#ff7584', '#4cb564', '#e1a9ff'];
+let phases = []; let phaseByKey = new Map();
+const collapsed = new Set();
+function computePhases(all) {
+  phases = []; phaseByKey = new Map();
+  if (!markers.length) return;
+  const mk = (id, label, start, color, marker) => ({ id, label, start, end: Infinity, color, marker, n: 0, ours: 0, third: 0, unowned: 0, failed: 0, dupes: 0, newEps: 0, bytes: 0 });
+  const sorted = [...markers].sort((a, b) => a.relMs - b.relMs);
+  const list = [mk('pre', 'Before first marker', 0, '#66676a', null), ...sorted.map((m, i) => mk(m.id, m.label, m.relMs, PHASE_COLORS[i % PHASE_COLORS.length], m))];
+  list.forEach((p, i) => { if (list[i + 1]) p.end = list[i + 1].start; });
+  const seenEp = new Set(), seenReq = new Set();
+  for (const r of [...all].sort((a, b) => a.relMs - b.relMs)) {
+    let ph = list[0]; for (const p of list) if (p.start <= r.relMs) ph = p;
+    phaseByKey.set(r.key, ph);
+    ph.n++; ph[category(r)]++; ph.bytes += r.sizeBytes || 0; if (isFailed(r)) ph.failed++;
+    const ep = `${r.method} ${r.host}${r.path}`;
+    if (!seenEp.has(ep)) { seenEp.add(ep); ph.newEps++; }
+    const k = dupeKey(r); if (seenReq.has(k)) ph.dupes++; else seenReq.add(k);
+  }
+  phases = list[0].n === 0 ? list.slice(1) : list; // the leading phase only matters if something ran before the first marker
+}
+const phaseChip = (p) => `<span class="chip" data-phase="${esc(p.id)}" style="--c:${p.color}" title="Phase: ${esc(p.label)} (click to show only this phase)"><span class="t">${esc(p.label)}</span></span>`;
+
+// ============================================================================
+// column grid: drag header labels to reorder, drag the grips to resize
+// ============================================================================
+function createGrid(id, defs) {
+  const el = $('#' + id), key = `foxy.layout.v6.${id}`;
+  const byId = Object.fromEntries(defs.map((d) => [d.id, d]));
+  const isAuto = (c) => Boolean(byId[c].fit); // auto columns size themselves to their content
+  const defaults = () => ({ order: defs.map((d) => d.id), widths: Object.fromEntries(defs.map((d) => [d.id, d.w])) });
+  let st = defaults();
+  try {
+    const saved = JSON.parse(localStorage.getItem(key));
+    if (saved && saved.order && saved.order.length === defs.length && saved.order.every((c) => byId[c])) st = { order: saved.order, widths: { ...st.widths, ...saved.widths } };
+  } catch {}
+  const flex = () => st.order.filter((c) => !isAuto(c));
+  const nextFlex = (i) => st.order.slice(i + 1).find((c) => !isAuto(c));
+  // the shares of the resizable columns always add up to 1; they split whatever the auto columns leave over
+  const normalize = () => { const f = flex(), sum = f.reduce((a, c) => a + st.widths[c], 0) || 1; f.forEach((c) => (st.widths[c] /= sum)); };
+  const save = () => localStorage.setItem(key, JSON.stringify(st));
+
+  // ---- auto-fit: measure the widest value a column holds, within a realistic range ----
+  let fitPx = {};
+  const ctx = document.createElement('canvas').getContext('2d');
+  const fam = () => getComputedStyle(document.body).fontFamily;
+  const mono = () => getComputedStyle(document.documentElement).getPropertyValue('--font-family-mono');
+  const measure = (text, font) => { ctx.font = font; return ctx.measureText(String(text).replace(/\d/g, '0')).width; }; // 0 is the widest digit
+  const val = (x) => (typeof x === 'function' ? x() : x);
+  const tableW = () => Math.max(1100, $('main').clientWidth); // main > table has min-width: 1100px
+  const autoPx = () => st.order.reduce((a, c) => a + (isAuto(c) ? fitPx[c] ?? 60 : 0), 0);
+  const restPx = () => Math.max(260, tableW() - autoPx());
+  function applyWidths() {
+    const total = tableW(), rest = restPx();
+    el.querySelectorAll('col').forEach((c) => {
+      const w = isAuto(c.dataset.id) ? (fitPx[c.dataset.id] ?? 60) / total : (st.widths[c.dataset.id] * rest) / total;
+      c.style.width = (w * 100).toFixed(3) + '%';
+    });
+  }
+  /** samples: { columnId: widest text currently in that column }. Cheap enough to call on every render. */
+  function fit(samples) {
+    const body = `13px ${fam()}`, small = `12px ${mono()}`;
+    for (const d of defs) {
+      if (!d.fit) continue;
+      const font = d.mono ? small : body;
+      const lo = measure(val(d.fit.min) ?? '', font), hi = d.fit.max ? measure(val(d.fit.max), font) : Infinity;
+      const w = Math.min(hi, Math.max(lo, measure(samples[d.id] ?? '', font)));
+      const label = measure(d.label, `600 12px ${fam()}`) + 26; // header label + its padding
+      fitPx[d.id] = Math.ceil(Math.max(w + 24, label, d.fit.minPx || 0));
+    }
+    applyWidths();
+  }
+
+  function buildHead(onChange) {
+    normalize();
+    el.querySelector('colgroup').innerHTML = st.order.map((c) => `<col data-id="${c}">`).join('');
+    const tr = el.querySelector('thead tr');
+    tr.innerHTML = st.order.map((c, i) => `<th data-id="${c}"><span class="lbl" draggable="true" title="Drag to reorder">${esc(byId[c].label)}</span>${isAuto(c) || !nextFlex(i) ? '' : `<span class="grip" role="separator" tabindex="0" aria-orientation="vertical" aria-label="Resize ${esc(byId[c].label)} column" title="Drag to resize, double-click to reset"></span>`}</th>`).join('');
+    applyWidths();
+
+    tr.querySelectorAll('th').forEach((th, i) => {
+      const colId = th.dataset.id, lbl = th.querySelector('.lbl'), grip = th.querySelector('.grip');
+      // reorder
+      lbl.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', colId); e.dataTransfer.effectAllowed = 'move'; th.classList.add('dragging'); });
+      lbl.addEventListener('dragend', () => tr.querySelectorAll('th').forEach((t) => t.classList.remove('dragging', 'drop-left', 'drop-right')));
+      th.addEventListener('dragover', (e) => { e.preventDefault(); const r = th.getBoundingClientRect(); const left = e.clientX < r.left + r.width / 2; th.classList.toggle('drop-left', left); th.classList.toggle('drop-right', !left); });
+      th.addEventListener('dragleave', () => th.classList.remove('drop-left', 'drop-right'));
+      th.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const from = e.dataTransfer.getData('text/plain'); if (!from || from === colId) return;
+        const r = th.getBoundingClientRect(); const left = e.clientX < r.left + r.width / 2;
+        st.order = st.order.filter((c) => c !== from);
+        const at = st.order.indexOf(colId) + (left ? 0 : 1);
+        st.order.splice(at, 0, from);
+        save(); buildHead(onChange); onChange();
+      });
+      // resize (auto columns have no grip; a resizable column trades width with the next resizable one)
+      if (!grip) return;
+      const nextId = nextFlex(i), MIN = 0.04;
+      grip.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        e.preventDefault();
+        const a0 = st.widths[colId], b0 = st.widths[nextId];
+        const a = Math.max(MIN, Math.min(a0 + (e.key === 'ArrowRight' ? 0.02 : -0.02), a0 + b0 - MIN));
+        st.widths[colId] = a; st.widths[nextId] = a0 + b0 - a; applyWidths(); save();
+      });
+      grip.addEventListener('dblclick', () => { const d = defaults(); st.widths[colId] = d.widths[colId]; normalize(); applyWidths(); save(); });
+      grip.addEventListener('mousedown', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        const startX = e.clientX, a0 = st.widths[colId], b0 = st.widths[nextId], rest = restPx();
+        grip.classList.add('active'); document.body.classList.add('resizing');
+        const move = (ev) => {
+          const a = Math.max(MIN, Math.min(a0 + (ev.clientX - startX) / rest, a0 + b0 - MIN)); // neighbour absorbs the change
+          st.widths[colId] = a; st.widths[nextId] = a0 + b0 - a; applyWidths();
+        };
+        const up = () => { grip.classList.remove('active'); document.body.classList.remove('resizing'); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); save(); };
+        document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+      });
+    });
+  }
+  return {
+    byId, el, fit,
+    order: () => st.order,
+    colspan: () => st.order.length,
+    init: (onChange) => buildHead(onChange),
+    reset: (onChange) => { st = defaults(); save(); buildHead(onChange); onChange(); },
+  };
+}
+
+const td = (inner, { cls = '', title = '' } = {}) => `<td class="${cls}" title="${esc(title)}">${inner}</td>`;
+
+const waterfallCell = (r) => {
+  const left = Math.min(99, (r.relMs / span) * 100);
+  const width = r.durationMs != null ? Math.max(0.5, (r.durationMs / span) * 100) : 0.8;
+  const cat = r.error ? 'err' : category(r);
+  return td(`<div class="wf c-${cat}">${wfMarkers}<span class="wf-bar ${r.durationMs == null && !r.error ? 'pending' : ''}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%"></span></div>`,
+    { title: `+${tf(r.relMs)}${r.durationMs != null ? `, took ${r.durationMs} ms` : ', in flight'}` });
+};
+
+const TIMELINE_COLS = [
+  { id: 'id', label: '#', w: 0.03, fit: { min: '000', max: '000000' }, cell: (r) => td(r.id, { cls: 'dim num' }) },
+  { id: 't', label: 'Time', w: 0.045, fit: TIME_FIT, cell: (r) => td(tf(r.relMs), { cls: 'alt num' }) },
+  { id: 'owners', label: 'Code Owners', w: 0.15, cell: (r) => td(rowChips(r), { title: [...(r.codeOwners || []), ...(r.ownerCodeOwners || []).map((o) => o + ' (via)')].join(', ') || r.callSiteInfo?.pkg || '' }) },
+  { id: 'site', label: 'Call Site', w: 0.2, cell: (r) => td(fnCell(r.callSiteInfo), { title: fnTitle(r.callSiteInfo) }) },
+  { id: 'from', label: 'Started From', w: 0.13, cell: (r) => td(r.ownerInfo ? fnCell(r.ownerInfo, true) : '', { title: fnTitle(r.ownerInfo) }) },
+  { id: 'method', label: 'Method', w: 0.045, mono: true, fit: { min: 'GET', max: 'OPTIONS' }, cell: (r) => td(esc(r.method), { cls: 'alt mono' }) },
+  { id: 'host', label: 'Host', w: 0.105, cell: (r) => td(esc(r.host), { cls: 'host', title: r.host }) },
+  { id: 'path', label: 'Path', w: 0.11, cell: (r) => td(esc(r.path) + (r.query ? '<span class="dim">?…</span>' : '') + cp(r.url, 'Copy full URL', { ho: true, abs: true }), { cls: 'mono hv', title: r.path + (r.query ? '?' + r.query : '') }) },
+  { id: 'status', label: 'Status', w: 0.05, fit: { min: '', minPx: 74 }, cell: (r) => td(`<span class="st ${stClass(r)}">${esc(r.error ? 'err' : r.status ?? '…')}</span>`, { title: r.error || '' }) },
+  { id: 'ms', label: 'ms', w: 0.04, fit: { min: '000', max: '000000' }, cell: (r) => td(r.durationMs ?? '', { cls: 'alt num' }) },
+  { id: 'wf', label: 'Waterfall', w: 0.12, cell: waterfallCell },
+];
+
+// ---- verdicts (per endpoint, saved in this browser, exported with the Endpoints markdown) ----
+const VERDICTS = [
+  { id: 'keep', label: 'Keep', c: '#b9f302', tip: 'Needed at this point in the flow' },
+  { id: 'defer', label: 'Defer', c: '#f0b034', tip: 'Not needed yet: fetch later (for example after unlock or first use)' },
+  { id: 'move', label: 'Move', c: '#8b99ff', tip: 'Needed, but should happen somewhere else in the flow' },
+  { id: 'drop', label: 'Drop', c: '#ff7584', tip: 'Not needed: remove it' },
+];
+let verdicts = {}; try { verdicts = JSON.parse(localStorage.getItem('foxy.verdicts.v1')) || {}; } catch {}
+const saveVerdicts = () => localStorage.setItem('foxy.verdicts.v1', JSON.stringify(verdicts));
+const verdictOf = (k) => verdicts[k] || {};
+const verdictChip = (k) => {
+  const v = VERDICTS.find((x) => x.id === verdictOf(k).v);
+  return v ? `<span class="chip" style="--c:${v.c}" title="${esc(v.tip)}"><span class="t">${v.label}</span></span>` : '<span class="dim">—</span>';
+};
+
+const clock = (ts) => { const d = new Date(ts); return d.toLocaleTimeString([], { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0'); };
+const pct = (arr, p) => { if (!arr.length) return null; const a = [...arr].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.ceil(p * a.length) - 1)]; };
+const tickCls = (r) => (r.error || r.status >= 400 ? 'bad' : r.status ? 'ok' : 'wait');
+const stCls = (s) => (s === 'error' ? 'err' : /^\d/.test(s) ? 's' + s[0] : 'pending');
+const statusPills = (st) => Object.entries(st).map(([s, n]) => `<span class="st mini ${stCls(s)}">${esc(s)}</span>${n > 1 ? `<span class="mult">×${n}</span>` : '<span class="mult"></span>'}`).join('');
+
+/** Every call as a tick on the shared time axis; calls that repeat an earlier identical request get an orange ring. */
+function lane(g, big) {
+  const ticks = g.list.map((r) => `<i class="tick ${tickCls(r)} ${g.dupeIds.has(r.key) ? 'dup' : ''}" style="left:${Math.min(99.5, (r.relMs / span) * 100).toFixed(2)}%" title="${esc(`#${r.id} +${tf(r.relMs)} ${r.error ? 'error' : r.status ?? 'pending'}${r.durationMs != null ? ' ' + r.durationMs + ' ms' : ''}`)}"></i>`).join('');
+  return `<div class="lane ${big ? 'big' : ''}">${wfMarkers}${ticks}</div>`;
+}
+
+function buildGroups(list) {
+  const groups = new Map();
+  for (const r of list) {
+    const k = `${r.method} ${r.host}${r.path}`;
+    const g = groups.get(k) || { k, method: r.method, host: r.host, path: r.path, list: [] };
+    g.list.push(r); groups.set(k, g);
+  }
+  return [...groups.values()].map((g) => {
+    g.list.sort((a, b) => a.relMs - b.relMs);
+    g.n = g.list.length; g.first = g.list[0].relMs; g.last = g.list[g.n - 1].relMs;
+    g.st = {}; g.sites = new Map(); g.byQuery = new Map(); g.dupeIds = new Set();
+    g.teams = new Set(); g.pkgs = new Set(); g.via = new Set();
+    g.wastedMs = 0; g.wastedBytes = 0; g.bytesTotal = 0; g.failed = 0;
+    const durs = [];
+    for (const r of g.list) {
+      const s = r.error ? 'error' : r.status ?? '…'; g.st[s] = (g.st[s] || 0) + 1;
+      if (isFailed(r)) g.failed++;
+      if (r.durationMs != null) durs.push(r.durationMs);
+      g.bytesTotal += r.sizeBytes || 0;
+      const qk = dupeKey(r);
+      if (g.byQuery.has(qk)) { g.dupeIds.add(r.key); g.wastedMs += r.durationMs || 0; g.wastedBytes += r.sizeBytes || 0; g.byQuery.get(qk).push(r); } else g.byQuery.set(qk, [r]);
+      if (r.callSiteInfo) { const t = fnTitle(r.callSiteInfo); const e = g.sites.get(t) || { info: r.callSiteInfo, n: 0, owners: r.codeOwners, via: r.ownerCodeOwners }; e.n++; g.sites.set(t, e); }
+      (r.codeOwners || []).forEach((o) => g.teams.add(o));
+      if (!(r.codeOwners || []).length && r.callSiteInfo?.pkg) g.pkgs.add(r.callSiteInfo.kind + '|' + r.callSiteInfo.pkg);
+      if (!(r.codeOwners || []).length) (r.ownerCodeOwners || []).forEach((o) => g.via.add(o));
+    }
+    g.dupes = g.dupeIds.size;
+    g.avg = durs.length ? Math.round(durs.reduce((a, b) => a + b, 0) / durs.length) : null;
+    g.p95 = pct(durs, 0.95); g.max = durs.length ? Math.max(...durs) : null;
+    const t = g.list.map((r) => r.relMs); let best = 1, j = 0;
+    for (let i = 0; i < t.length; i++) { while (t[i] - t[j] > 1000) j++; best = Math.max(best, i - j + 1); }
+    g.burst = best;
+    g.chips = [...g.teams].map((o) => teamChip(o)).join('')
+      + [...g.pkgs].map((x) => { const [kind, pkg] = x.split('|'); return kind === 'controller' ? extChip(pkg) : partyChip(pkg); }).join('')
+      + [...g.via].map((o) => teamChip(o, true)).join('');
+    g.ownerText = [...g.teams].map(team).join(', ') || [...g.pkgs].map((x) => x.split('|')[1]).join(', ') || 'unowned';
+    return g;
+  });
+}
+
+const ENDPOINT_COLS = [
+  { id: 'phase', label: 'Phase', w: 0.11, cell: (g) => { const p = phaseByKey.get(g.list[0].key); return td(p ? `<div class="chips">${phaseChip(p)}</div>` : '<span class="dim">—</span>', { title: p ? `First called during "${p.label}"` : 'Add markers to see which phase each endpoint first appears in' }); } },
+  { id: 'first', label: 'First', w: 0.05, fit: TIME_FIT, cell: (g) => td(tf(g.first), { cls: 'alt num', title: `first call at ${clock(g.list[0].ts)}` }) },
+  { id: 'owners', label: 'Code Owners', w: 0.13, cell: (g) => td(`<div class="chips">${g.chips || noneChip('—')}</div>`) },
+  { id: 'sites', label: 'Call Sites', w: 0.14, cell: (g) => td(`${[...g.sites.values()].slice(0, 1).map((e) => fnCell(e.info)).join('')}${g.sites.size > 1 ? `<span class="dim">+${g.sites.size - 1} more call sites</span>` : ''}`, { title: [...g.sites.values()].map((e) => fnTitle(e.info)).join('\n') }) },
+  { id: 'endpoint', label: 'Endpoint', w: 0.19, cell: (g) => td(`<span class="host">${esc(g.k)}</span>${cp(g.k, 'Copy endpoint', { ho: true, abs: true })}`, { cls: 'mono hv', title: g.k }) },
+  { id: 'calls', label: 'Calls', w: 0.045, fit: { min: '00', max: '000000' }, cell: (g) => td(g.n, { cls: 'num' }) },
+  { id: 'dupes', label: 'Identical Dupes', w: 0.1, cell: (g) => td(g.dupes ? `<span class="dupe-pill l${g.dupes > 5 ? 3 : g.dupes > 2 ? 2 : 1}" title="${g.dupes} repeat${g.dupes > 1 ? 's' : ''} of an identical request (${g.wastedMs} ms, ${bytes(g.wastedBytes) || '0 B'} redundant)">+${g.dupes}</span>` : '<span class="dim">—</span>') },
+  { id: 'statuses', label: 'Statuses', w: 0.085, cell: (g) => td(statusPills(g.st)) },
+  { id: 'avg', label: 'Avg ms', w: 0.055, fit: { min: '000', max: '000000' }, cell: (g) => td(g.avg ?? '', { cls: 'alt num', title: g.avg == null ? '' : `p95 ${g.p95} ms, max ${g.max} ms` }) },
+  { id: 'activity', label: 'Activity', w: 0.12, cell: (g) => td(lane(g, false), { title: 'Every call on the capture timeline (ringed = repeat of an identical request)' }) },
+  { id: 'verdict', label: 'Verdict', w: 0.095, cell: (g) => td(verdictChip(g.k)) },
+];
+
+const timelineGrid = createGrid('timeline', TIMELINE_COLS);
+const endpointsGrid = createGrid('endpoints', ENDPOINT_COLS);
+
+// ============================================================================
+// detail panel: call chain + request / response
+// ============================================================================
+function fetchDetail(key) {
+  const r = reqs.get(key); if (!r) return null;
+  const stamp = `${r.status}|${r.durationMs}|${r.error}|${r.callSite}`;
+  const cached = detailCache.get(key);
+  if (cached && cached.stamp === stamp) return cached.data;
+  if (!cached || !cached.loading) {
+    detailCache.set(key, { stamp, data: cached?.data ?? null, loading: true });
+    fetch('/api/requests/' + encodeURIComponent(key)).then((res) => res.ok ? res.json() : null).then((data) => {
+      detailCache.set(key, { stamp, data, loading: false }); schedule();
+    });
+  }
+  return cached?.data ?? null;
+}
+
+const kvTable = (obj) => {
+  const rows = Object.entries(obj || {});
+  if (!rows.length) return '';
+  return `<div class="kv">${rows.map(([k, v]) => {
+    const red = v === '[redacted]';
+    return `<div class="r hv"><div class="k">${esc(k)}</div><div class="v ${red ? 'redacted' : ''}">${esc(v)}${red || v === '' ? '' : cp(v, `Copy ${k}`, { ho: true })}</div></div>`;
+  }).join('')}</div>`;
+};
+const kvLines = (obj, sep) => Object.entries(obj || {}).map(([k, v]) => `${k}${sep}${v}`).join('\n');
+function toCurl(r, req) {
+  const q = (x) => `'${String(x).replace(/'/g, `'\\''`)}'`;
+  const lines = [`curl -X ${r.method} ${q(r.url)}`];
+  for (const [k, v] of Object.entries(req?.headers || {})) lines.push(`  -H ${q(`${k}: ${v}`)}`);
+  if (req?.bodyPreview != null) lines.push(`  --data-raw ${q(req.bodyPreview)}`);
+  return lines.join(' \\\n');
+}
+function prettyBody(text) {
+  if (text == null) return null;
+  try { return JSON.stringify(JSON.parse(text), null, 2); } catch { return text; }
+}
+// JSON syntax highlighting: tolerant of truncated previews (an unterminated string still colours), plain text passes through untouched
+const JSON_TOKEN = /("(?:\\.|[^"\\\n])*"?)(\s*:)?|\b(?:true|false)\b|\bnull\b|-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b|[{}\[\],]/g;
+function highlightJson(text) {
+  let out = '', last = 0, m;
+  JSON_TOKEN.lastIndex = 0;
+  while ((m = JSON_TOKEN.exec(text))) {
+    out += esc(text.slice(last, m.index)); last = JSON_TOKEN.lastIndex;
+    const t = m[0];
+    if (m[1] !== undefined) out += `<span class="${m[2] ? 'jk' : 'js'}">${esc(m[1])}</span>${m[2] ? `<span class="jp">${esc(m[2])}</span>` : ''}`;
+    else out += `<span class="${t === 'true' || t === 'false' ? 'jb' : t === 'null' ? 'jn' : /^-?\d/.test(t) ? 'jnum' : 'jp'}">${esc(t)}</span>`;
+  }
+  return out + esc(text.slice(last));
+}
+const bodyBlock = (text, label) => { if (text == null) return ''; const pb = prettyBody(text); return `<div class="bodywrap hv"><pre class="body" aria-label="${esc(label)}">${/^\s*[\[{]/.test(pb) ? highlightJson(pb) : esc(pb)}</pre>${cp(pb, `Copy ${label}`, { abs: 'tr', ho: true })}</div>`; };
+
+function queryParams(url) {
+  try { return Object.fromEntries([...new URL(url).searchParams.entries()]); } catch { return {}; }
+}
+
+/** The path and :line:col of a stack frame, linked to that line on GitHub when the file is ours. */
+function fileLink(f) {
+  const text = `${esc(f.file)}<span class="loc">${esc(f.line ? ':' + f.line + ':' + f.col : '')}</span>`;
+  const url = ghUrl(f);
+  return url ? `<a class="gh" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="Open ${esc(f.file)}${f.line ? ' at line ' + f.line : ''} on GitHub">${text}${icon('external')}</a>` : text;
+}
+
+function renderChain(r, d) {
+  if (!d) return '<div class="dim">Loading…</div>';
+  const real = d.frames.filter((f) => f.kind !== 'infra');
+  const infra = d.frames.filter((f) => f.kind === 'infra');
+  if (!real.length) return '<div class="dim">No JavaScript frames survived (the call crossed an async boundary before reaching fetch).</div>';
+  const callSite = real[0];
+  const starter = real.slice(1).find((f) => f.kind === 'app' || f.kind === 'controller');
+  const nodes = real.slice().reverse().map((f) => {
+    const isCall = f === callSite, isStarter = f === starter;
+    const kind = f.unsymbolicated ? 'unsymbolicated' : f.kind;
+    const role = isCall ? '<span class="role cs">call site</span>' : isStarter ? '<span class="role">started from</span>' : '';
+    const chips = ownerChips(f, f.owners, null);
+    return `<div class="node k-${esc(kind)} ${isCall ? 'callsite' : ''}"><div class="rail"><span class="dot"></span></div><div class="hv">
+      <div class="fn-name">${fnLabel(f.method)}${role}</div>
+      <div class="nfile" title="${esc(f.file)}">${fileLink(f)}${cp(`${f.file}${f.line ? ':' + f.line + ':' + f.col : ''}`, 'Copy file:line:col', { ho: true })}</div>
+      ${chips ? `<div class="chips">${chips}</div>` : ''}</div></div>`;
+  }).join('');
+  const net = `<div class="node net"><div class="rail"><span class="dot"></span></div><div><div class="fn-name">${esc(r.transport === 'xhr' ? 'XMLHttpRequest' : 'fetch')}<span class="paren">()</span><span class="role" style="background:var(--color-success-muted);color:var(--color-success-default)">network</span></div><div class="nfile">${esc(r.method)} ${esc(r.host + r.path)}</div></div></div>`;
+  const wrappers = infra.length ? `<details class="wrappers"><summary>${infra.length} wrapper / native / promise frames hidden</summary>${infra.map((f) => `<div>${esc(f.display || f.raw || '')}</div>`).join('')}</details>` : '';
+  const legend = `<div class="legend"><span><i style="background:var(--kind-app)"></i>app</span><span><i style="background:var(--kind-controller)"></i>@metamask package</span><span><i style="background:var(--kind-package)"></i>third-party</span><span><i style="background:var(--kind-project)"></i>project file</span></div>`;
+  return `<div class="chain-note">Oldest caller first. The stack ends where an <code>await</code> hid earlier callers.</div>${nodes}${net}${wrappers}${legend}`;
+}
+
+function renderIO(r, d) {
+  const req = d?.detail?.request, res = d?.detail?.response;
+  const qp = queryParams(r.url), qn = Object.keys(qp).length;
+  const hdrReq = req?.headers, hdrRes = res?.headers;
+  const bodyOff = '<div class="hint">Body capture is off. Set <code>FOXY_BODIES="true"</code> in <code>.js.env</code> to record request and response previews.</div>';
+  const summary = `<div class="summary"><span class="meth">${esc(r.method)}</span><span class="url"><b>${esc(r.host)}</b>${esc(r.path)}</span>
+    <span class="st ${stClass(r)}">${esc(r.error ? 'error' : r.status ?? '…')}</span>
+    <span class="stat">started <b>+${tf(r.relMs)}</b></span>${r.durationMs != null ? `<span class="stat">took <b>${r.durationMs} ms</b></span>` : ''}${r.sizeBytes != null ? `<span class="stat">size <b>${bytes(r.sizeBytes)}</b></span>` : ''}<span class="stat">via <b>${esc(r.transport || 'fetch')}</b></span><span style="display:flex;gap:6px;margin-left:auto">${cp(r.url, 'Copy full URL', { label: 'Copy URL' })}${cp(toCurl(r, req), 'Copy as cURL (header values already redacted)', { label: 'Copy cURL' })}</span></div>`;
+  const request = `<details class="sec" open><summary>Request</summary>
+      <details class="sub" open><summary>Query Parameters<span class="n">${qn}</span>${qn ? cp(kvLines(qp, '='), 'Copy all query parameters', { right: true }) : ''}</summary>${qn ? kvTable(qp) : '<div class="hint">None</div>'}</details>
+      <details class="sub"><summary>Headers<span class="n">${hdrReq ? Object.keys(hdrReq).length : 0}</span>${hdrReq && Object.keys(hdrReq).length ? cp(kvLines(hdrReq, ': '), 'Copy request headers', { right: true }) : ''}</summary>${hdrReq && Object.keys(hdrReq).length ? kvTable(hdrReq) : '<div class="hint">None captured</div>'}</details>
+      <details class="sub" ${req?.bodyPreview != null ? 'open' : ''}><summary>Body<span class="n">${req?.bodyBytes != null ? bytes(req.bodyBytes) : 'none'}</span></summary>${req?.bodyPreview != null ? bodyBlock(req.bodyPreview, 'request body') : req?.bodyBytes ? bodyOff : '<div class="hint">No request body</div>'}</details>
+    </details>`;
+  const response = `<details class="sec" open><summary>Response</summary>
+      ${r.error ? `<div class="hint" style="color:var(--color-error-default)">${esc(r.error)}</div>` : ''}
+      <details class="sub" open><summary>Status</summary>${kvTable({ status: r.status != null ? `${r.status} ${res?.statusText ?? ''}`.trim() : r.error ? 'failed (no response)' : 'pending', duration: r.durationMs != null ? `${r.durationMs} ms` : '', size: r.sizeBytes != null ? bytes(r.sizeBytes) : 'unknown' })}</details>
+      <details class="sub"><summary>Headers<span class="n">${hdrRes ? Object.keys(hdrRes).length : 0}</span>${hdrRes && Object.keys(hdrRes).length ? cp(kvLines(hdrRes, ': '), 'Copy response headers', { right: true }) : ''}</summary>${hdrRes && Object.keys(hdrRes).length ? kvTable(hdrRes) : '<div class="hint">None captured</div>'}</details>
+      <details class="sub" ${res?.bodyPreview != null ? 'open' : ''}><summary>Body</summary>${res?.bodyPreview != null ? bodyBlock(res.bodyPreview, 'response body') : bodyOff}</details>
+    </details>`;
+  return summary + request + response;
+}
+
+/** Readable stack, innermost first, wrappers omitted. */
+function stackText(r, d) {
+  const real = d.frames.filter((f) => f.kind !== 'infra');
+  return [`${r.method} ${r.url}`, ...real.map((f) => `  at ${f.method}() (${f.file}:${f.line}:${f.col})`)].join('\n');
+}
+
+function renderDetailRow(r, cols) {
+  const d = fetchDetail(r.key);
+  return `<tr class="detail"><td colspan="${cols}"><div class="dgrid">
+    <section class="panel"><h3>Call Chain${d ? cp(stackText(r, d), 'Copy stack trace', { right: true, label: 'Copy Stack' }) : ''}</h3>${renderChain(r, d)}</section>
+    <section class="panel"><h3>Request &amp; Response</h3>${renderIO(r, d)}</section></div></td></tr>`;
+}
+
+// ============================================================================
+// rendering
+// ============================================================================
+/** One header row per phase: name, time range, ownership mix, and what happened in it. */
+function phaseHeader(p, cols) {
+  const isOpen = !collapsed.has(p.id), only = ui.phase === p.id;
+  const end = p.end === Infinity ? span : p.end;
+  const tot = p.n || 1, w = (k) => ((p[k] / tot) * 100).toFixed(1);
+  const mix = p.n ? `<span class="ph-mix" title="${p.ours} owned · ${p.third} third-party · ${p.unowned} unowned"><i class="ours" style="width:${w('ours')}%"></i><i class="third" style="width:${w('third')}%"></i><i class="unowned" style="width:${w('unowned')}%"></i></span>` : '';
+  const pill = (cls, text, tip) => `<span class="ph-pill ${cls}" title="${esc(tip)}">${text}</span>`;
+  const pills = !p.n ? pill('quiet', '🌙 quiet · no requests', 'Nothing was requested during this phase')
+    : [pill('', `${p.n} request${p.n > 1 ? 's' : ''}`, 'Requests made during this phase'),
+      p.newEps ? pill('new', `${p.newEps} new endpoint${p.newEps > 1 ? 's' : ''}`, 'Endpoints first seen in this phase') : '',
+      p.dupes ? pill('dup', `${p.dupes} identical dupe${p.dupes > 1 ? 's' : ''}`, 'Repeats of a request already made earlier in the capture') : '',
+      p.failed ? pill('bad', `${p.failed} failed`, 'Errors, aborts and 4xx/5xx responses') : ''].join('');
+  const range = `+${tf(p.start)} → ${p.end === Infinity ? 'now' : '+' + tf(p.end)} · ${dur(end - p.start)}`;
+  return `<tr class="phase" data-pid="${esc(p.id)}" style="--pc:${p.color}"><td colspan="${cols}"><div class="ph">
+    <button class="ph-tgl" data-act="toggle" aria-expanded="${isOpen}" aria-label="${isOpen ? 'Collapse' : 'Expand'} phase ${esc(p.label)}">${icon('chevron')}</button>
+    <span class="ph-label">${icon('flag')}${esc(p.label)}</span><span class="ph-time">${range}</span>${mix}<span class="ph-pills">${pills}</span>
+    <span class="ph-actions"><button data-act="focus" aria-pressed="${only}" title="${only ? 'Show every phase again' : 'Show only this phase (also filters Endpoints)'}">${icon('target')}<span>${only ? 'Showing Only This' : 'Only This'}</span></button>${p.marker ? `<button class="icon-btn sm" data-act="edit" title="Rename or delete this marker" aria-label="Edit marker">${icon('edit')}</button>` : ''}</span></div></td></tr>`;
+}
+
+/** Marks where the requests that arrived during a pause start. The list is newest first, so they sit above this line. */
+function heldDivider(id, cols) {
+  const p = pauses.get(id); let n = 0;
+  for (const g of heldKeys.values()) if (g === id) n++;
+  const clock = new Date(p.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+  return `<tr class="held-divider"><td colspan="${cols}"><div class="hd"><span class="hd-line"></span><span class="hd-label">${icon('pause')}Paused at ${clock} for ${dur(p.endedAt - p.at)}</span><span class="hd-pill">${icon('chevron')}${n} request${n === 1 ? '' : 's'} arrived while paused</span><span class="hd-line"></span></div></td></tr>`;
+}
+
+function renderTimeline() {
+  const order = timelineGrid.order(), cols = timelineGrid.colspan();
+  const every = [...reqs.values()];
+  timelineGrid.fit({ // number columns grow with the widest value in the whole capture, not just what the filters show
+    id: String(every.reduce((m, r) => Math.max(m, r.id || 0), 0)), t: tf(every.reduce((m, r) => Math.max(m, r.relMs), 0)),
+    method: every.reduce((m, r) => (r.method.length > m.length ? r.method : m), 'GET'), status: '', ms: String(every.reduce((m, r) => Math.max(m, r.durationMs || 0), 0)),
+  });
+  const matched = [...reqs.values()].filter(match);
+  // each pause's divider goes right after its oldest visible request
+  const oldestHeld = new Map();
+  for (const r of matched) {
+    const g = heldKeys.get(r.key); if (g == null || !pauses.has(g)) continue;
+    const cur = oldestHeld.get(g); if (!cur || r.relMs < cur.relMs) oldestHeld.set(g, r);
+  }
+  const dividerAt = new Map([...oldestHeld].map(([g, r]) => [r.key, g]));
+  const rowHtml = (r) => `<tr class="req ${open === r.key ? 'open' : ''}" data-k="${esc(r.key)}">${order.map((c) => timelineGrid.byId[c].cell(r)).join('')}</tr>${open === r.key ? renderDetailRow(r, cols) : ''}${dividerAt.has(r.key) ? heldDivider(dividerAt.get(r.key), cols) : ''}`;
+  // keep <details> open/closed state while re-rendering the detail row
+  const openState = [...document.querySelectorAll('tr.detail details')].map((d) => d.open);
+  let html = '';
+  if (phases.length) {
+    for (const p of [...phases].reverse()) { // newest phase first, newest request first inside it
+      if (ui.phase && ui.phase !== p.id) continue;
+      html += phaseHeader(p, cols);
+      if (collapsed.has(p.id)) continue;
+      const inPhase = matched.filter((r) => phaseByKey.get(r.key) === p).sort((a, b) => b.relMs - a.relMs);
+      html += inPhase.length ? inPhase.map(rowHtml).join('') : `<tr class="phase-empty"><td colspan="${cols}" class="empty">${p.n ? 'No requests in this phase match the filters.' : 'Nothing was requested in this phase.'}</td></tr>`;
+    }
+  } else {
+    html = matched.sort((a, b) => b.relMs - a.relMs).map(rowHtml).join(''); // newest first
+  }
+  if (!matched.length && !phases.length) html = `<tr><td colspan="${cols}" class="empty">${reqs.size ? 'No requests match these filters.' : 'Waiting for requests… launch the app with FOXY="true".'}</td></tr>`;
+  $('#timeline tbody').innerHTML = html;
+  const now = document.querySelectorAll('tr.detail details');
+  if (now.length === openState.length) now.forEach((d, i) => { d.open = openState[i]; });
+}
+
+const card = (label, value, sub, tone) => `<div class="card ${tone || ''}"><div class="cl">${label}</div><div class="cv">${value}</div><div class="cs">${sub || '&nbsp;'}</div></div>`;
+
+function paramsPanel(g) {
+  const params = new Map();
+  for (const r of g.list) for (const [k, v] of new URLSearchParams(r.query || '')) { const m = params.get(k) || new Map(); m.set(v, (m.get(v) || 0) + 1); params.set(k, m); }
+  if (!params.size) return '<div class="hint">No query parameters.</div>';
+  const short = (v) => (v.length > 34 ? v.slice(0, 33) + '…' : v);
+  const rows = [...params.entries()].sort((a, b) => b[1].size - a[1].size);
+  const varying = rows.filter(([, m]) => m.size > 1), constant = rows.filter(([, m]) => m.size === 1);
+  const vrow = ([k, m]) => `<div class="r"><div class="k">${esc(k)}<br><span class="dim">${m.size} values</span></div><div class="v"><div class="pchips">${[...m.entries()].slice(0, 4).map(([v, n]) => `<span class="pchip" title="${esc(v)}">${esc(short(v))}${n > 1 ? ` ×${n}` : ''}</span>`).join('')}${m.size > 4 ? `<span class="dim">+${m.size - 4} more</span>` : ''}</div></div></div>`;
+  const crow = ([k, m]) => { const v = [...m.keys()][0]; return `<div class="r"><div class="k">${esc(k)}</div><div class="v alt" title="${esc(v)}">${esc(short(v))}</div></div>`; };
+  return `${varying.length ? `<div class="kv">${varying.map(vrow).join('')}</div>` : '<div class="hint">Nothing changes between calls: every call asks for the same thing.</div>'}${constant.length ? `<div class="sub-h">Same in Every Call</div><div class="kv">${constant.slice(0, 8).map(crow).join('')}</div>${constant.length > 8 ? `<div class="hint">+${constant.length - 8} more</div>` : ''}` : ''}`;
+}
+
+function renderEndpointDetail(g, cols) {
+  const v = verdictOf(g.k);
+  const cards = [
+    card('Calls', g.n, `${g.byQuery.size} unique request${g.byQuery.size > 1 ? 's' : ''}`),
+    card('Identical Dupes', g.dupes ? `+${g.dupes}` : '0', g.dupes ? `${g.wastedMs} ms · ${bytes(g.wastedBytes) || '0 B'} redundant` : 'no repeats', g.dupes ? 'warn' : 'good'),
+    card('Latency', g.avg != null ? `${g.avg} ms` : '—', g.avg != null ? `p95 ${g.p95} · max ${g.max}` : 'no responses'),
+    card('Burst', `${g.burst}×`, 'most calls within 1 second', g.burst > 2 ? 'warn' : ''),
+    card('First → Last', `+${tf(g.first)}`, g.n > 1 ? `last +${tf(g.last)} · span ${dur(g.last - g.first)}` : 'single call'),
+    card('Payload', bytes(g.bytesTotal) || '0 B', g.failed ? `${g.failed} failed` : 'none failed', g.failed ? 'bad' : ''),
+  ].join('');
+  const gapHtml = (idx) => {
+    if (!idx) return '<span class="gap long">first</span>';
+    const d = g.list[idx].relMs - g.list[idx - 1].relMs;
+    return d < 50 ? '<span class="gap burst" title="Fired at essentially the same moment as the previous call">⚡ same time</span>' : `<span class="gap ${d > 5000 ? 'long' : ''}">+${dur(d)}</span>`;
+  };
+  const rows = g.list.map((r, idx) => {
+    const group = g.byQuery.get(dupeKey(r)), dup = g.dupeIds.has(r.key), firstOf = group[0];
+    const badge = dup ? `<span class="badge dup" title="Identical request (same method, URL, query and body) to #${firstOf.id}">↻ same as #${firstOf.id}</span>` : group.length > 1 ? '<span class="badge first" title="Later calls repeat this exact request">first of repeats</span>' : '';
+    return `<div class="call ${dup ? 'dup' : ''}" data-open="${esc(r.key)}" tabindex="0" role="button" title="Open in Timeline">
+      <span class="rail"><i class="rdot ${tickCls(r)}"></i></span>
+      <span class="c-id">#${r.id}</span>
+      <span class="c-time"><b>+${tf(r.relMs)}</b><small>${clock(r.ts)}</small></span>
+      <span>${gapHtml(idx)}</span>
+      <span><span class="st mini ${stClass(r)}">${esc(r.error ? 'err' : r.status ?? '…')}</span></span>
+      <span class="c-ms">${r.durationMs != null ? r.durationMs + ' ms' : ''}</span>
+      <span class="c-size">${bytes(r.sizeBytes)}</span>
+      <span class="c-site">${fnCell(r.callSiteInfo, true)}</span>
+      <span class="c-own"><div class="chips">${ownerChips(r.callSiteInfo, r.codeOwners, r.ownerCodeOwners, 2) || noneChip('—')}</div></span>
+      <span>${badge}</span></div>`;
+  }).reverse().join(''); // newest first, like the Timeline
+  const callers = [...g.sites.values()].sort((a, b) => b.n - a.n).map((e) => `<div class="caller">${fnCell(e.info)}<span class="badge">×${e.n}</span><div class="chips">${ownerChips(e.info, e.owners, e.via, 2)}</div></div>`).join('') || '<div class="hint">No stack captured.</div>';
+  return `<tr class="detail" data-k="${esc(g.k)}"><td colspan="${cols}">
+    <div class="cards">${cards}</div>
+    <div class="egrid">
+      <section class="panel"><h3>Every Call<span class="n" style="margin-left:8px">${g.n}</span>${cp(g.list.map((r) => `#${r.id}\t+${sec(r.relMs)}s\t${clock(r.ts)}\t${r.error ? 'error' : r.status ?? ''}\t${r.durationMs ?? ''}ms\t${r.url}`).join('\n'), 'Copy call list', { right: true, label: 'Copy Calls' })}</h3>
+        ${lane(g, true)}<div class="axis flush">${axisLabels()}</div>
+        <div class="calls"><div class="calls-in">
+          <div class="call head"><span></span><span>#</span><span>When</span><span>After prev</span><span>Status</span><span>Time</span><span>Size</span><span>Call site</span><span>Owner</span><span></span></div>
+          ${rows}</div></div>
+      </section>
+      <div class="estack">
+        <section class="panel"><h3>Verdict</h3>
+          <div class="seg vseg" role="group" aria-label="Verdict">${VERDICTS.map((x) => `<button data-verdict="${x.id}" class="${v.v === x.id ? 'active' : ''}" aria-pressed="${v.v === x.id}" style="--c:${x.c}" title="${esc(x.tip)}"><i class="dot" style="background:${x.c}"></i>${x.label}</button>`).join('')}</div>
+          <textarea class="note" data-note="${esc(g.k)}" rows="3" aria-label="Reason for the verdict" placeholder="Why? For example: only needed once the user opens Swap, so fetch it then.">${esc(v.note || '')}</textarea>
+          <div class="hint">Saved in this browser and included when you <b>Copy Markdown</b> on this tab.</div></section>
+        <section class="panel"><h3>What Changes Between Calls</h3>${paramsPanel(g)}</section>
+        <section class="panel"><h3>Who Calls It</h3>${callers}</section>
+      </div>
+    </div></td></tr>`;
+}
+
+function renderEndpoints() {
+  const order = endpointsGrid.order(), cols = endpointsGrid.colspan();
+  const groups = buildGroups([...reqs.values()].filter(match)).sort((a, b) => a.first - b.first);
+  endpointsGrid.fit({ first: tf(groups.reduce((m, g) => Math.max(m, g.first), 0)), calls: String(groups.reduce((m, g) => Math.max(m, g.n), 0)), avg: String(groups.reduce((m, g) => Math.max(m, g.avg || 0), 0)) });
+  $('#endpoints tbody').innerHTML = groups.length
+    ? groups.map((g) => `<tr class="ep ${openEp === g.k ? 'open' : ''}" data-k="${esc(g.k)}">${order.map((c) => endpointsGrid.byId[c].cell(g)).join('')}</tr>${openEp === g.k ? renderEndpointDetail(g, cols) : ''}`).join('')
+    : `<tr><td colspan="${cols}" class="empty">${reqs.size ? 'No endpoints match these filters.' : 'Waiting for requests…'}</td></tr>`;
+}
+
+/** Client-side markdown for the Endpoints tab, including verdicts and notes. */
+function endpointsMarkdown() {
+  const c = (x) => String(x ?? '').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+  const groups = buildGroups([...reqs.values()].filter(match)).sort((a, b) => a.first - b.first);
+  const head = '| First +s | Phase | Endpoint | Code owner | Calls | Identical dupes | Statuses | Avg ms | Call site | Verdict | Notes |\n|---|---|---|---|---|---|---|---|---|---|---|';
+  const phaseTable = phases.length
+    ? `Phases (each marker starts a phase that lasts until the next one):\n\n| Phase | Starts (+s) | Requests | New endpoints | Identical dupes | Failed |\n|---|---|---|---|---|---|\n${phases.map((p) => `| ${c(p.label)} | ${sec(p.start)} | ${p.n} | ${p.newEps} | ${p.dupes} | ${p.failed} |`).join('\n')}\n\n`
+    : '';
+  const rows = groups.map((g) => {
+    const site = [...g.sites.values()][0]?.info, v = verdictOf(g.k);
+    return `| ${sec(g.first)} | ${c(phaseByKey.get(g.list[0].key)?.label || '')} | ${c(g.k)} | ${c(g.ownerText)} | ${g.n} | ${g.dupes} | ${c(Object.entries(g.st).map(([s, n]) => `${s}×${n}`).join(' '))} | ${g.avg ?? ''} | ${site ? c(`${site.method}() ${site.file}:${site.line}`) : ''} | ${c(VERDICTS.find((x) => x.id === v.v)?.label || '')} | ${c(v.note || '')} |`;
+  });
+  return `${phaseTable}${head}\n${rows.join('\n')}\n`;
+}
+
+function renderBar() {
+  const all = [...reqs.values()];
+  const cnt = { all: all.length, ours: 0, third: 0, unowned: 0, errors: 0, dupes: 0 };
+  all.forEach((r) => { cnt[category(r)]++; if (isFailed(r)) cnt.errors++; if (dupeCounts.get(reqKey(r)) > 1) cnt.dupes++; });
+  document.querySelectorAll('#seg button').forEach((b) => {
+    const on = ui.cat === b.dataset.cat; b.classList.toggle('active', on); b.setAttribute('aria-pressed', String(on)); b.querySelector('.n').textContent = cnt[b.dataset.cat];
+  });
+  document.querySelectorAll('.tog').forEach((b) => {
+    const f = b.dataset.flag; b.classList.toggle('active', ui[f]); b.setAttribute('aria-pressed', String(ui[f])); b.querySelector('.n').textContent = cnt[f];
+  });
+  const o = ui.owner;
+  const ph = ui.phase && phases.find((p) => p.id === ui.phase);
+  $('#phasePill').innerHTML = ph ? `<span class="ownerpill">Phase ${phaseChip(ph)}<button id="phaseClear" aria-label="Show all phases" title="Show all phases">×</button></span>` : '';
+  $('#ownerPill').innerHTML = o ? `<span class="ownerpill">${o.type === 'team' ? 'Owner' : 'Package'} ${o.type === 'team' ? teamChip(o.value) : partyChip(o.value)}<button id="ownerClear" aria-label="Clear owner filter" title="Clear">×</button></span>` : '';
+}
+
+function renderStrip(list) {
+  const el = $('#stripin');
+  const N = Math.max(24, Math.min(120, Math.floor(el.clientWidth / 9) || 60));
+  const b = Array.from({ length: N }, () => ({ ours: 0, third: 0, unowned: 0, first: null }));
+  for (const r of list) {
+    const i = Math.min(N - 1, Math.floor((r.relMs / span) * N));
+    b[i][category(r)]++;
+    if (!b[i].first || r.relMs < b[i].first.relMs) b[i].first = r;
+  }
+  const max = Math.max(1, ...b.map((x) => x.ours + x.third + x.unowned));
+  const seg = (x, c) => (x[c] ? `<span class="${c}" style="height:${((x[c] / max) * 100).toFixed(1)}%"></span>` : '');
+  const bars = b.map((x, i) => {
+    const total = x.ours + x.third + x.unowned;
+    const t0 = ((i / N) * span) / 1000, t1 = (((i + 1) / N) * span) / 1000;
+    const title = total ? `+${tf(t0 * 1000)} to +${tf(t1 * 1000)}: ${total} request${total > 1 ? 's' : ''} (${x.ours} owned, ${x.third} third-party, ${x.unowned} unowned)` : '';
+    return `<div class="bk" ${x.first ? `data-k="${esc(x.first.key)}"` : ''} title="${esc(title)}">${seg(x, 'ours')}${seg(x, 'third')}${seg(x, 'unowned')}</div>`;
+  }).join('');
+  const real = phases.filter((p) => p.marker);
+  const bands = phases.map((p) => `<span class="band ${ui.phase === p.id ? 'on' : ''}" style="--pc:${p.color};left:${((p.start / span) * 100).toFixed(2)}%;width:${(((Math.min(p.end, span) - p.start) / span) * 100).toFixed(2)}%"></span>`).join('');
+  const flags = real.map((p, i) => `<span class="mk ${i % 2 ? 'alt' : ''}" style="--pc:${p.color};left:${((p.start / span) * 100).toFixed(2)}%"><b data-pid="${esc(p.id)}" title="${esc(p.label)} · +${tf(p.start)} · ${p.n} request${p.n === 1 ? '' : 's'} (click to jump to it)">${esc(p.label)}</b></span>`).join('');
+  $('.strip').classList.toggle('has-mk', real.length > 0);
+  el.innerHTML = `${bands}<div class="bars">${bars}</div>${flags}`;
+  $('#axis').innerHTML = axisLabels();
+}
+
+function render() {
+  clip.length = 0;
+  const all = [...reqs.values()];
+  dupeCounts = new Map();
+  all.forEach((r) => dupeCounts.set(reqKey(r), (dupeCounts.get(reqKey(r)) || 0) + 1));
+  span = Math.max(1, all.reduce((m, r) => Math.max(m, r.relMs + (r.durationMs || 0)), 0), markers.reduce((m, x) => Math.max(m, x.relMs), 0));
+  computePhases(all);
+  if (ui.phase && !phases.some((p) => p.id === ui.phase)) ui.phase = null; // its marker was deleted
+  wfMarkers = phases.filter((p) => p.marker).map((p) => `<span class="mk" style="left:${((p.start / span) * 100).toFixed(2)}%;background:${p.color}"></span>`).join('');
+  renderBar(); renderStrip(all.filter(match)); renderMarkers();
+  $('#count').innerHTML = `${icon('network')}<b>${reqs.size}</b><span class="count-lbl">${reqs.size === 1 ? 'request' : 'requests'}</span>`;
+  $('#timeline').hidden = tab !== 'timeline'; $('#endpoints').hidden = tab !== 'endpoints';
+  $('#tabTimeline').classList.toggle('active', tab === 'timeline'); $('#tabEndpoints').classList.toggle('active', tab === 'endpoints');
+  $('#tabTimeline').setAttribute('aria-selected', String(tab === 'timeline')); $('#tabEndpoints').setAttribute('aria-selected', String(tab === 'endpoints'));
+  if (tab === 'timeline') renderTimeline();
+  else if (document.activeElement?.matches?.('textarea.note')) pendingEp = true; // don't clobber a note being typed
+  else renderEndpoints();
+}
+let raf = 0; const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(render); };
+
+/** Clicking a team or package chip anywhere filters by it (click again to clear). */
+function chipFilter(e) {
+  const c = e.target.closest('.chip[data-team], .chip[data-pkg], .chip[data-phase]'); if (!c) return false;
+  if (c.dataset.phase) { ui.phase = ui.phase === c.dataset.phase ? null : c.dataset.phase; render(); return true; }
+  const next = c.dataset.team ? { type: 'team', value: team(c.dataset.team) } : { type: 'pkg', value: c.dataset.pkg };
+  ui.owner = ui.owner && ui.owner.type === next.type && ui.owner.value === next.value ? null : next;
+  render(); return true;
+}
+function openInTimeline(key) {
+  const r = reqs.get(key); if (!r) return;
+  if (!match(r)) { filter = ''; $('#filter').value = ''; ui.cat = 'all'; ui.errors = false; ui.dupes = false; ui.owner = null; ui.phase = null; }
+  const ph = phaseByKey.get(key); if (ph) collapsed.delete(ph.id);
+  tab = 'timeline'; open = key; render();
+  requestAnimationFrame(() => {
+    const row = document.querySelector(`tr.req[data-k="${CSS.escape(key)}"]`);
+    if (row) { row.scrollIntoView({ block: 'center', behavior: 'smooth' }); row.classList.add('flash'); }
+  });
+}
+$('#endpoints').addEventListener('click', (e) => {
+  if (chipFilter(e)) return;
+  const vb = e.target.closest('button[data-verdict]');
+  if (vb) {
+    const k = vb.closest('tr.detail').dataset.k, cur = verdictOf(k);
+    verdicts[k] = { ...cur, v: cur.v === vb.dataset.verdict ? null : vb.dataset.verdict }; saveVerdicts(); render(); return;
+  }
+  const call = e.target.closest('[data-open]'); if (call) { openInTimeline(call.dataset.open); return; }
+  if (e.target.closest('tr.detail')) return;
+  const tr = e.target.closest('tr.ep'); if (!tr) return;
+  openEp = openEp === tr.dataset.k ? null : tr.dataset.k; render();
+});
+$('#endpoints').addEventListener('input', (e) => {
+  const t = e.target.closest('textarea[data-note]'); if (!t) return;
+  verdicts[t.dataset.note] = { ...verdictOf(t.dataset.note), note: t.value }; saveVerdicts();
+});
+$('#endpoints').addEventListener('focusout', (e) => { if (e.target.matches('textarea.note') && pendingEp) { pendingEp = false; render(); } });
+$('#endpoints').addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.call')) { e.preventDefault(); openInTimeline(e.target.dataset.open); }
+});
+$('#seg').addEventListener('click', (e) => { const b = e.target.closest('button[data-cat]'); if (b) { ui.cat = b.dataset.cat; render(); } });
+document.querySelectorAll('.tog').forEach((b) => b.addEventListener('click', () => { ui[b.dataset.flag] = !ui[b.dataset.flag]; render(); }));
+$('#ownerPill').addEventListener('click', (e) => { if (e.target.closest('#ownerClear')) { ui.owner = null; render(); } });
+$('#phasePill').addEventListener('click', (e) => { if (e.target.closest('#phaseClear')) { ui.phase = null; render(); } else chipFilter(e); });
+$('#stripin').addEventListener('click', (e) => {
+  const flag = e.target.closest('b[data-pid]');
+  if (flag) { // jump to the phase header in the Timeline
+    tab = 'timeline'; collapsed.delete(flag.dataset.pid); render();
+    const row = document.querySelector(`tr.phase[data-pid="${CSS.escape(flag.dataset.pid)}"]`);
+    if (row) { row.scrollIntoView({ block: 'start', behavior: 'smooth' }); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
+    return;
+  }
+  const bk = e.target.closest('.bk[data-k]'); if (!bk) return;
+  tab = 'timeline'; render();
+  const row = document.querySelector(`tr.req[data-k="${CSS.escape(bk.dataset.k)}"]`); if (!row) return;
+  row.scrollIntoView({ block: 'center', behavior: 'smooth' }); row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
+});
+window.addEventListener('resize', schedule);
+
+// hamburger menu (always visible)
+const menuBtn = $('#menuBtn'), actions = $('#actions');
+function setMenu(on) {
+  actions.classList.toggle('open', on);
+  menuBtn.setAttribute('aria-expanded', String(on));
+  menuBtn.querySelector('use').setAttribute('href', on ? '#i-close' : '#i-menu');
+}
+const THEMES = [
+  { id: 'dark', label: 'Dark', bg: '#050506', ac: '#8b99ff' },
+  { id: 'light', label: 'Light', bg: '#f1f1f4', ac: '#4459ff' },
+  { id: 'navy', label: 'Navy', bg: '#0a1020', ac: '#6e8bff' },
+  { id: 'orange', label: 'Orange', bg: '#1a0f07', ac: '#f6851b' },
+];
+let theme = localStorage.getItem('foxy.theme.v1'); if (!THEMES.some((t) => t.id === theme)) theme = 'dark';
+function renderThemes() {
+  const grid = $('#themeGrid');
+  if (grid.children.length) { grid.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.themeId === theme))); return; } // update in place so the menu stays open
+  grid.innerHTML = THEMES.map((t) => `<button type="button" role="radio" class="theme-opt" data-theme-id="${t.id}" aria-checked="${t.id === theme}" title="${t.label} theme"><span class="sw" style="--sw-bg:${t.bg};--sw-ac:${t.ac}">${icon('check')}</span>${t.label}</button>`).join('');
+}
+function applyTheme(id) { theme = id; document.documentElement.dataset.theme = id; localStorage.setItem('foxy.theme.v1', id); renderThemes(); }
+$('#themeGrid').addEventListener('click', (e) => { const b = e.target.closest('button[data-theme-id]'); if (b) applyTheme(b.dataset.themeId); });
+applyTheme(theme);
+function renderTimeSeg() {
+  $('#timeSeg').innerHTML = TIME_MODES.map((m) => `<button type="button" data-mode="${m.id}" aria-pressed="${m.id === timeMode}" title="${m.tip}">${m.ex}</button>`).join('');
+}
+$('#timeSeg').addEventListener('click', (e) => {
+  const b = e.target.closest('button[data-mode]'); if (!b) return;
+  timeMode = b.dataset.mode; localStorage.setItem('foxy.time.v1', timeMode); renderTimeSeg(); renderMarkers(true); render();
+});
+menuBtn.addEventListener('click', () => { const on = !actions.classList.contains('open'); setMenu(on); if (on) actions.querySelector('input, button')?.focus(); });
+document.addEventListener('click', (e) => { if (!e.target.closest('#actions, #menuBtn')) setMenu(false); });
+actions.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.closest('#timeSeg, #themeGrid')) setTimeout(() => setMenu(false), b.id === 'export' ? 900 : 0); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && actions.classList.contains('open')) { setMenu(false); menuBtn.focus(); } });
+// "/" focuses the filter, Esc clears it
+document.addEventListener('keydown', (e) => {
+  if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('#filter').focus(); }
+  else if (e.key === 'Escape' && document.activeElement === $('#filter')) { $('#filter').value = ''; filter = ''; $('#filter').blur(); render(); }
+  else if (e.key === 'Escape' && mkpop.classList.contains('open')) { setMark(false); markBtn.focus(); }
+  else if (!e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$('#help').open) {
+    if (e.key === 'm' || e.key === 'M') { e.preventDefault(); setMark(true); }
+    else if (e.key === '?') { e.preventDefault(); openHelp(); }
+  }
+});
+
+$('#timeline').addEventListener('click', (e) => {
+  if (chipFilter(e)) return;
+  const phRow = e.target.closest('tr.phase');
+  if (phRow) { // header click collapses; its buttons do their own thing
+    const id = phRow.dataset.pid, act = e.target.closest('[data-act]')?.dataset.act || 'toggle';
+    if (act === 'toggle') { collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id); render(); }
+    else if (act === 'focus') { ui.phase = ui.phase === id ? null : id; render(); }
+    else if (act === 'edit') setMark(true, id);
+    return;
+  }
+  if (e.target.closest('tr.detail')) return;
+  const tr = e.target.closest('tr.req'); if (!tr) return;
+  open = open === tr.dataset.k ? null : tr.dataset.k; render();
+});
+$('#tabTimeline').onclick = () => { tab = 'timeline'; render(); };
+$('#tabEndpoints').onclick = () => { tab = 'endpoints'; render(); };
+$('#filter').oninput = (e) => { filter = e.target.value.toLowerCase(); render(); };
+$('#clear').onclick = async () => { await fetch('/api/clear', { method: 'POST' }); };
+$('#reset').onclick = () => { timelineGrid.reset(render); endpointsGrid.reset(render); };
+$('#export').onclick = async () => {
+  const t = tab === 'endpoints' ? endpointsMarkdown() : await (await fetch('/api/export')).text(); await copyText(t);
+  const b = $('#export'), label = b.querySelector('span'), ic = b.querySelector('use');
+  b.classList.add('ok'); label.textContent = 'Copied!'; ic.setAttribute('href', '#i-check');
+  setTimeout(() => { b.classList.remove('ok'); label.textContent = 'Copy Markdown'; ic.setAttribute('href', '#i-clipboard'); }, 1400);
+};
+/*ART-START*/
+const ART = {
+  "concept": " time <span class=\"m\">───────────────────────────────────────────────────────────────</span><span class=\"m\">▶</span>\n\n  <span class=\"o\">◆ App launched</span>        <span class=\"b\">◆ Onboarding visible</span>      <span class=\"l\">◆ Wallet created</span>\n  <span class=\"o\">│</span>                     <span class=\"b\">│</span>                         <span class=\"l\">│</span>\n  <span class=\"o\">│</span><span class=\"o\">◀───── phase 1 ─────▶</span><span class=\"b\">│</span><span class=\"b\">◀─────── phase 2 ───────▶</span><span class=\"l\">│</span><span class=\"l\">◀─── phase 3 ────▶</span>\n  <span class=\"o\">│</span><span class=\"o\"> ▃▇█▅▂▁▁▁</span>            <span class=\"b\">│</span><span class=\"b\"> ▁▁▂▁▁▁▁▁▁▁▁▁</span>            <span class=\"l\">│</span><span class=\"l\"> ▂▅█▇▄▂▁▁</span>\n  <span class=\"o\">│</span><span class=\"m\"> busy boot</span>           <span class=\"b\">│</span><span class=\"m\"> quiet = good</span>            <span class=\"l\">│</span><span class=\"m\"> post-onboarding</span>",
+  "popover": "┌─ Markers ──────────────── How it works ─ ✕ ──────────────┐\n│                                                          │\n│  <span class=\"m\">▸</span> What just happened?▏                <span class=\"m\">[ Now ▾ ]</span> <span class=\"b\">[ + ]</span>   │\n│                                                          │\n│  <span class=\"m\">QUICK ADD</span>                                               │\n│  (<span class=\"w\">App launched</span>) (<span class=\"w\">Onboarding visible</span>) (<span class=\"w\">Wallet ready</span>)      │\n│                                                          │\n│  <span class=\"m\">THIS CAPTURE</span>                                            │\n│  <span class=\"l\">●</span> +41.2s  Wallet created              6 req    <span class=\"m\">◎ ✕</span>      │\n│  <span class=\"b\">●</span> +12.4s  Onboarding visible          14 req    <span class=\"m\">◎ ✕</span>     │\n│  <span class=\"o\">●</span> +0.0s   App launched                 9 req    <span class=\"m\">◎ ✕</span>     │\n│                                                          │\n└──────────────────────────────────────────────────────────┘",
+  "timeline": "┌─ Timeline · newest phase first ────────────────────────────────────────────────────┐\n│<span class=\"l\">▼ ⚑ Wallet created</span>  +41.2s → now   <span class=\"m\">███░░</span>  <span class=\"w\">6 req</span> · <span class=\"b\">2 new</span> · <span class=\"o\">1 dupe</span>   <span class=\"m\">[◎ Only this]</span>    │\n│    #31  +45.80  <span class=\"b\">core-platform</span>  fetchBalances()  GET accounts…/balances  <span class=\"l\">200</span>        │\n│    #30  +44.10  <span class=\"o\">earn</span>           getEarnTokens()  GET earn-api…/tokens    <span class=\"l\">200</span>        │\n│<span class=\"b\">▼ ⚑ Onboarding visible</span>  +12.4s → +41.2s   <span class=\"m\">████░</span>  <span class=\"w\">14 req</span> · <span class=\"b\">9 new</span> · <span class=\"o\">3 dupes</span> · <span class=\"r\">1 failed</span>│\n│    #17  +30.02  <span class=\"p\">@segment</span>       uploadEvents()   POST api.segment.io/b   <span class=\"l\">200</span>        │\n│    <span class=\"m\">…</span>                                                                               │\n│<span class=\"o\">▶ ⚑ App launched</span>  +0.0s → +12.4s   <span class=\"m\">█████</span>  <span class=\"w\">9 req</span> · <span class=\"b\">7 new</span>  <span class=\"m\">← folded: click a header</span>   │\n└────────────────────────────────────────────────────────────────────────────────────┘",
+  "strip": " <span class=\"o\">◆ App launched</span>        <span class=\"b\">◆ Onboarding visible</span>         <span class=\"l\">◆ Wallet created</span>\n<span class=\"o\">┆░░░░░░░░░░░░░░░░░░░░░</span><span class=\"b\">┆▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒</span><span class=\"l\">┆▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</span>\n<span class=\"o\">┆ ▂ ▅ █ ▃ ▁ ▁ ▁ ▁ ▁ ▁ </span><span class=\"b\">┆ ▁   ▁ ▂   ▁           ▁   ▁</span><span class=\"l\">┆ ▂ ▅ █ ▇ ▄ ▂ ▁ ▁ ▁ </span>\n<span class=\"m\"> 0s</span>                    <span class=\"m\">+12s</span>                         <span class=\"m\">+41s</span>           <span class=\"m\">now</span>",
+  "recipe": "┌─ Fresh-install recipe (TRAM-4463) ─────────────────────────────────────┐\n│                                                                        │\n│  <span class=\"w\">1</span>  Wipe the app · start Foxy · launch the app                         │\n│  <span class=\"o\">2</span>  <span class=\"o\">◆</span> <span class=\"w\">App launched</span>            <span class=\"m\">as soon as the first screen shows</span>        │\n│  <span class=\"b\">3</span>  <span class=\"b\">◆</span> <span class=\"w\">Onboarding visible</span>      <span class=\"m\">first onboarding screen is on screen</span>     │\n│  <span class=\"m\">·</span>  <span class=\"m\">…leave it alone for 30 s…</span>   <span class=\"m\">anything fetched now is idle traffic</span>   │\n│  <span class=\"l\">4</span>  <span class=\"l\">◆</span> <span class=\"w\">Tapped Create wallet</span>    <span class=\"m\">the moment you tap it</span>                    │\n│  <span class=\"p\">5</span>  <span class=\"p\">◆</span> <span class=\"w\">Wallet ready</span>            <span class=\"m\">the home screen appears</span>                  │\n│  <span class=\"w\">6</span>  Open <span class=\"w\">Endpoints</span>: expand rows, pick <span class=\"l\">Keep</span> <span class=\"y\">Defer</span> <span class=\"b\">Move</span> <span class=\"r\">Drop</span>             │\n│  <span class=\"w\">7</span>  <span class=\"w\">Copy markdown</span> for the ticket: phases table + verdicts              │\n│                                                                        │\n└────────────────────────────────────────────────────────────────────────┘",
+  "flow": " 📱 <span class=\"w\">app</span>  <span class=\"m\">fetch / XHR</span>  <span class=\"m\">──── ws ────▶</span>  🦊 <span class=\"w\">Foxy</span>  <span class=\"m\">──▶</span>  <span class=\"b\">Timeline</span> · <span class=\"p\">Endpoints</span> · <span class=\"o\">Markers</span>\n    <span class=\"m\">call site + stack</span>                      <span class=\"m\">owners via CODEOWNERS</span>",
+  "anatomy": " <span class=\"b\">▌</span><span class=\"w\">fetchBalances()</span>                      <span class=\"m\">← the method that called fetch</span>\n <span class=\"b\">▌</span><span class=\"m\">providers/AccountsApi.ts</span><span class=\"m\">:55:23</span>      <span class=\"m\">← file : line : column</span>\n <span class=\"m\">└ bar colour</span>  <span class=\"b\">▌ app</span>  <span class=\"l\">▌ @metamask package</span>  <span class=\"m\">▌ third-party</span>  <span class=\"o\">▌ project</span>  <span class=\"y\">▌ unsymbolicated</span>\n\n <span class=\"b\">● core-platform</span>  <span class=\"o\">● earn</span>  <span class=\"l\">● metamask-assets</span>     <span class=\"m\">← owners from CODEOWNERS, click to filter</span>\n <span class=\"p\">@segment/analytics-react-native</span>           <span class=\"m\">← third-party package</span>\n <span class=\"m\">┄┄ via ┄┄</span>  <span class=\"m\">dashed chip = owns the code that started it, not the call site</span>",
+  "rail": " <span class=\"w\">When      After prev     Status   Time    Badge</span>\n <span class=\"r\">●</span>  #92  +11.77s    +0.59s        <span class=\"r\">404</span>      212 ms  <span class=\"o\">↻ same as #87</span>\n <span class=\"r\">●</span>  #90  +11.18s    <span class=\"o\">⚡ same time</span>   <span class=\"r\">404</span>      240 ms  <span class=\"o\">↻ same as #87</span>\n <span class=\"m\">│</span>\n <span class=\"r\">●</span>  #87  +0.00s     first         <span class=\"r\">404</span>      198 ms  <span class=\"y\">first of repeats</span>",
+  "dupes": " <span class=\"w\">GET</span>   api/prices?ids=eth   3 calls   <span class=\"o\">+2 identical</span>   <span class=\"m\">← same method and URL</span>\n <span class=\"w\">POST</span>  api.segment.io/b     5 calls   <span class=\"l\">0 identical</span>    <span class=\"m\">← bodies differ: not a dupe</span>\n <span class=\"w\">POST</span>  rpc.example/         2 calls   <span class=\"m\">? unknown</span>      <span class=\"m\">← no body captured: never flagged</span>"
+};
+/*ART-END*/
+
+// ============================================================================
+// help window. Add a topic to HELP and it shows up in the nav; openHelp('id') deep-links to it
+// from anywhere (the marker panel does this). Illustrations are the ART strings above.
+// ============================================================================
+const art = (name, label) => `<pre class="art" role="img" aria-label="${esc(label)}">${ART[name]}</pre>`;
+const step = (n, title, body) => `<div class="step"><span class="no">${n}</span><div class="sb"><h4>${title}</h4>${body}</div></div>`;
+const kb = (x) => `<kbd class="k">${x}</kbd>`;
+const goto = (id, label) => `<button type="button" class="btn" data-topic="${id}">${label}</button>`;
+const HELP = [
+  { id: 'start', em: '🚀', title: 'Start Here', html: () => `
+    <h2>Welcome to Foxy</h2>
+    <p class="lede">Foxy shows every network request the app makes, which line of code made it, and which team owns that code. It is built to answer one question: <b>what is the app doing on the network, and does it need to?</b></p>
+    ${art('flow', 'The app sends its requests to Foxy, which shows them in the Timeline, Endpoints and Markers views')}
+    ${step(1, 'Run the App Against Foxy', '<p>Start Foxy with <code>yarn foxy</code>, set <code>FOXY="true"</code> in <code>.js.env</code>, restart Metro and launch the app. Requests stream in live.</p>')}
+    ${step(2, 'Label What You Are Doing', `<p>Drop <b>markers</b> as you use the app (${kb('M')}). They split the capture into phases such as <i>Onboarding visible</i> and <i>Wallet ready</i>.</p><p>${goto('markers', '🚩 How Markers Work')}</p>`)}
+    ${step(3, 'Find the Waste', `<p>Look for identical duplicates, failures, third-party chatter and anything requested before it is needed. The <b>Endpoints</b> view groups calls by URL so repeats are obvious.</p><p>${goto('timeline', '📜 Reading the Timeline')} ${goto('endpoints', '🧭 Endpoints & Verdicts')}</p>`)}
+    ${step(4, 'Decide and Share', '<p>Give each endpoint a verdict (Keep, Defer, Move, Drop) and a reason, then <b>Copy Markdown</b> from the menu to paste the table into the ticket.</p>')}` },
+
+  { id: 'markers', em: '🚩', title: 'Markers & Phases', html: () => `
+    <h2>Markers &amp; Phases</h2>
+    <p class="lede">A marker is a flag you drop while you use the app. Everything captured after it belongs to that <b>phase</b>, until the next marker. That is how you answer <i>“which requests happen on Onboarding?”</i> instead of scrolling through hundreds of rows.</p>
+    ${art('concept', 'Three markers split the timeline into three phases, each with its own request activity')}
+    ${step(1, 'Drop a Marker When Something Happens', `<p>Press ${kb('M')} anywhere or click <b>Markers</b> in the toolbar. Type what just happened and press ${kb('Enter')}, or tap a quick-add chip. Your own labels are remembered as chips too.</p><p>Noticed late? Choose <b>5s ago</b>, <b>30s ago</b>… in the dropdown and the marker is placed in the past.</p>${art('popover', 'The markers panel with a label field, a time dropdown, quick-add chips and the list of markers')}`)}
+    ${step(2, 'See the Phases', `<p>Every phase gets a colour. The <b>activity strip</b> shades each phase and labels its flag (click a flag to jump to it). The <b>waterfall</b> column draws a line at each marker.</p>${art('strip', 'The activity strip with three coloured phase bands and flags')}<p>In the <b>Timeline</b>, each phase has a header with its time range, ownership mix and a summary. Click the header to fold the phase away.</p>${art('timeline', 'Timeline with a collapsible header per phase showing request counts, new endpoints, duplicates and failures')}`)}
+    ${step(3, 'Zoom Into One Phase', `<p>Click <b>◎ Only This</b> on a header (or the target icon in the markers panel) and Foxy shows just that phase, in the Timeline <i>and</i> in Endpoints. A pill appears under the toolbar; click <b>×</b> to bring everything back.</p><p>The <b>Phase</b> column in Endpoints shows where each endpoint <i>first</i> appeared. Click a phase chip to filter by it.</p>`)}
+    ${step(4, 'Tidy Up', '<p>Rename a marker by editing its name in the panel. Delete it with ✕ and the two phases around it merge. Nothing in the app needs to change.</p>')}
+    ${step(5, 'Take It With You', `<p><b>Copy Markdown</b> adds a phases table (requests, new endpoints, identical dupes, failures per phase) and a Phase column to the Endpoints table.</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
+    <h3>What the Numbers in a Phase Mean</h3>
+    <ul>
+      <li><b>requests</b>: calls made while the phase was active.</li>
+      <li><b>new endpoints</b>: URLs (method + host + path) seen for the first time in the whole capture. A high number early on tells you what the app needs to boot.</li>
+      <li><b>identical dupes</b>: requests identical to one made <i>earlier</i>, even in a previous phase. These are the clearest candidates to cache or remove.</li>
+      <li><b>🌙 quiet</b>: nothing was requested. That is good news for a phase where you were just looking at a screen.</li>
+    </ul>
+    <h3>A Good First Run</h3>
+    ${art('recipe', 'Step-by-step recipe for a fresh-install capture with the markers to drop at each moment')}
+    <div class="callout tip"><p><b>Tip:</b> the 30 second idle gap is the most revealing part. Whatever fires there is not waiting on the user, so it is a prime candidate to defer.</p></div>
+    ${markers.length ? `<div class="live"><b>Right now:</b> ${phases.map((p) => `<span class="chip" style="--c:${p.color};margin:2px 4px 2px 0"><span class="t">${esc(p.label)} · ${p.n} req</span></span>`).join('')}</div>` : ''}` },
+
+  { id: 'timeline', em: '📜', title: 'Reading the Timeline', html: () => `
+    <h2>Reading the Timeline</h2>
+    <p class="lede">One row per request, newest first. Click a row for the full call chain and the request and response.</p>
+    ${art('anatomy', 'How to read the call site cell and the owner chips')}
+    <h3>Columns</h3>
+    <ul>
+      <li><b>Code Owners</b>: the CODEOWNERS team for the file that called <code>fetch</code>. Third-party packages show their package name instead. Click any chip to filter by it.</li>
+      <li><b>Call site</b>: the method, file, line and column that made the request.</li>
+      <li><b>Waterfall</b>: where the request sits on the capture and how long it took. Coloured lines are your markers.</li>
+      <li><b>Started from</b>: the nearest app or <code>@metamask</code> frame further up the stack, when the call site is a library.</li>
+    </ul>
+    <div class="callout"><p>Drag a column header to reorder it, drag its right edge to resize it, double-click the edge to reset. <b>Reset Columns</b> in the menu restores the defaults.</p></div>
+    <p>${goto('filters', '🎛️ Filters & duplicates')} ${goto('markers', '🚩 Markers & phases')}</p>` },
+
+  { id: 'endpoints', em: '🧭', title: 'Endpoints & Verdicts', html: () => `
+    <h2>Endpoints &amp; Verdicts</h2>
+    <p class="lede">Requests grouped by <code>METHOD host/path</code>. This is the view that becomes your recommendation table.</p>
+    ${art('rail', 'The call list of an endpoint: each call on a rail with its time, gap since the previous call, status and a repeat badge')}
+    <h3>Open a Row</h3>
+    <ul>
+      <li><b>Cards</b>: calls, identical dupes with the time and bytes wasted, latency, the biggest burst within one second and the payload.</li>
+      <li><b>Every call</b>: when it happened, the gap since the previous call (<b>⚡ same time</b> means a burst), and a badge when it repeats an earlier identical request. Click a call to open it in the Timeline.</li>
+      <li><b>What changes between calls</b>: the query parameters that vary and the ones that never do.</li>
+    </ul>
+    <h3>Verdicts</h3>
+    <p><b style="color:#b9f302">Keep</b> it is needed now · <b style="color:#f0b034">Defer</b> fetch it later (after unlock, on first use) · <b style="color:#8b99ff">Move</b> needed, but elsewhere in the flow · <b style="color:#ff7584">Drop</b> not needed. Add a reason; verdicts are saved in this browser and included in <b>Copy Markdown</b>.</p>` },
+
+  { id: 'filters', em: '🎛️', title: 'Filters & Duplicates', html: () => `
+    <h2>Filters &amp; Duplicates</h2>
+    <p class="lede">Use the bar under the toolbar to narrow things down. Everything combines, and it all applies to the strip, Timeline and Endpoints.</p>
+    <ul>
+      <li><b>We Own</b>: the call site is code with a CODEOWNERS team. <b>Third-party</b>: it is inside a package such as Segment or Sentry. <b>Unowned</b>: neither.</li>
+      <li><b>Failed</b>: errors, aborts and 4xx/5xx. <b>Duplicates</b>: identical requests made more than once.</li>
+      <li>Click a team or package chip anywhere to filter by it. Click a phase chip to filter by phase.</li>
+      <li>Type in the filter box (${kb('/')}) to match host, path, call site or team.</li>
+    </ul>
+    <h3>What Counts as Identical</h3>
+    ${art('dupes', 'GETs are identical by URL; POSTs only when the body matches; POSTs without a captured body are never flagged')}
+    <p>Turn on <code>FOXY_BODIES="true"</code> for the most accurate POST detection.</p>` },
+
+  { id: 'keys', em: '⌨️', title: 'Shortcuts', html: () => `
+    <h2>Shortcuts</h2>
+    <table class="keys">
+      <tr><td>${kb('M')}</td><td>Open the markers panel</td></tr>
+      <tr><td>${kb('/')}</td><td>Focus the filter box (${kb('Esc')} clears it)</td></tr>
+      <tr><td>${kb('?')}</td><td>Open this guide</td></tr>
+      <tr><td>${kb('Esc')}</td><td>Close the panel, menu or guide</td></tr>
+      <tr><td>${kb('←')} ${kb('→')}</td><td>On a column edge: resize it</td></tr>
+      <tr><td>${kb('Enter')}</td><td>On a call in Endpoints: open it in the Timeline</td></tr>
+    </table>` },
+];
+const help = $('#help');
+function openHelp(id) {
+  if (id) helpTopic = id;
+  setMark(false); setMenu(false);
+  if (!help.open) help.showModal();
+  renderHelp();
+}
+let helpTopic = 'start';
+function renderHelp() {
+  const t = HELP.find((x) => x.id === helpTopic) || HELP[0];
+  $('#helpNav').innerHTML = HELP.map((x) => `<button type="button" data-topic="${x.id}" class="${x.id === t.id ? 'active' : ''}" ${x.id === t.id ? 'aria-current="true"' : ''}><span class="em" aria-hidden="true">${x.em}</span>${esc(x.title)}</button>`).join('');
+  const body = $('#helpBody'); body.innerHTML = t.html(); body.scrollTop = 0;
+  fitArt();
+}
+/** Shrinks each illustration's font just enough to fit the window, so nothing is clipped (it scrolls only at extreme widths). */
+function fitArt() {
+  if (!help.open) return;
+  document.querySelectorAll('#helpBody pre.art').forEach((pre) => {
+    pre.style.fontSize = '';
+    const base = parseFloat(getComputedStyle(pre).fontSize), pad = 32;
+    const avail = pre.clientWidth - pad; // width the text can use (padding excluded, border excluded)
+    pre.style.width = 'max-content'; pre.style.maxWidth = 'none';
+    const need = pre.scrollWidth - pad;
+    pre.style.width = ''; pre.style.maxWidth = '';
+    if (need > avail && avail > 0) pre.style.fontSize = Math.max(8, (base * avail * 0.985) / need).toFixed(2) + 'px';
+  });
+}
+window.addEventListener('resize', fitArt);
+help.addEventListener('click', (e) => {
+  if (e.target === help) { help.close(); return; } // backdrop
+  const b = e.target.closest('[data-topic]'); if (b) { helpTopic = b.dataset.topic; renderHelp(); $('#helpBody').focus({ preventScroll: true }); }
+});
+$('#helpClose').onclick = () => help.close();
+$('#helpDone').onclick = () => help.close();
+$('#helpHide').checked = localStorage.getItem('foxy.help.hide') === '1';
+$('#helpHide').addEventListener('change', (e) => localStorage.setItem('foxy.help.hide', e.target.checked ? '1' : '0'));
+$('#helpBtn').onclick = () => openHelp(mkpop.classList.contains('open') ? 'markers' : undefined);
+
+// ============================================================================
+// marker panel: add, backdate, rename, delete, jump
+// ============================================================================
+const PRESETS = ['App launched', 'Onboarding visible', 'Tapped Create wallet', 'Password created', 'Wallet ready', 'Home visible'];
+let recent = []; try { recent = JSON.parse(localStorage.getItem('foxy.markers.recent')) || []; } catch {}
+const mkpop = $('#mkpop'), markBtn = $('#markBtn');
+const api = (path, method, body) => fetch(path, { method, headers: { 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+
+async function addMarker(label) {
+  label = String(label || '').trim(); if (!label) return;
+  const ago = Number($('#mkWhen').value) || 0;
+  await api('/api/marker', 'POST', { label, agoMs: ago });
+  recent = [label, ...recent.filter((x) => x !== label)].slice(0, 8); localStorage.setItem('foxy.markers.recent', JSON.stringify(recent));
+  $('#marker').value = ''; $('#mkWhen').value = '0';
+  renderMarkers(true);
+}
+function setMark(on, focusId) {
+  mkpop.classList.toggle('open', on); markBtn.classList.toggle('on', on); markBtn.setAttribute('aria-expanded', String(on));
+  if (!on) return;
+  setMenu(false); renderMarkers(true);
+  requestAnimationFrame(() => {
+    const el = focusId ? mkpop.querySelector(`input.mk-name[data-id="${CSS.escape(focusId)}"]`) : $('#marker');
+    el?.focus(); if (focusId) el?.select();
+  });
+}
+/** Refreshes the count badge and (unless you are typing in it) the panel contents. */
+function renderMarkers(force) {
+  $('#markCount').textContent = markers.length;
+  $('#markCount').hidden = !markers.length;
+  if (!mkpop.classList.contains('open')) return;
+  const used = new Set();
+  $('#mkPresets').innerHTML = [...PRESETS, ...recent.filter((x) => !PRESETS.includes(x)).slice(0, 4)].filter((x) => !used.has(x) && used.add(x))
+    .map((x) => `<button type="button" data-preset="${esc(x)}" title="Add &quot;${esc(x)}&quot; at the time chosen above">${esc(x)}</button>`).join('');
+  const list = $('#mkList');
+  if (!force && list.contains(document.activeElement)) return; // don't clobber a name being edited
+  const real = phases.filter((p) => p.marker).reverse();
+  list.innerHTML = real.length ? real.map((p) => `<div class="mkrow" style="--pc:${p.color}"><i class="ph-dot"></i><span class="mk-t">+${tf(p.start)}</span>
+    <input class="mk-name" data-id="${esc(p.id)}" value="${esc(p.label)}" maxlength="120" aria-label="Marker name" />
+    <span class="mk-n" title="Requests made in the phase this marker starts">${p.n} req</span>
+    <button class="icon-btn sm" data-act="only" data-id="${esc(p.id)}" aria-pressed="${ui.phase === p.id}" title="Show only this phase" aria-label="Show only phase ${esc(p.label)}">${icon('target')}</button>
+    <button class="del icon-btn sm" data-act="del" data-id="${esc(p.id)}" title="Delete this marker (the phases around it merge)" aria-label="Delete marker ${esc(p.label)}">${icon('trash')}</button></div>`).join('')
+    : `<div class="mk-empty">No markers yet. Drop one whenever something happens in the app (a screen appears, you tap a button) and everything captured after it is grouped into that phase.<br><br><button type="button" id="mkLearn" class="btn">${icon('help')}<span>Show Me How It Works</span></button></div>`;
+}
+$('#mkAdd').onclick = () => addMarker($('#marker').value);
+$('#marker').onkeydown = (e) => { if (e.key === 'Enter') addMarker(e.target.value); };
+$('#mkPresets').addEventListener('click', (e) => { const b = e.target.closest('button[data-preset]'); if (b) addMarker(b.dataset.preset); });
+$('#mkList').addEventListener('click', (e) => {
+  if (e.target.closest('#mkLearn')) { openHelp('markers'); return; }
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  if (b.dataset.act === 'del') api('/api/marker/' + encodeURIComponent(b.dataset.id), 'DELETE');
+  else { ui.phase = ui.phase === b.dataset.id ? null : b.dataset.id; tab = 'timeline'; render(); }
+});
+$('#mkList').addEventListener('change', (e) => { const i = e.target.closest('input.mk-name'); if (i && i.value.trim()) api('/api/marker/' + encodeURIComponent(i.dataset.id), 'PATCH', { label: i.value }); });
+$('#mkList').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('input.mk-name')) e.target.blur(); });
+markBtn.addEventListener('click', () => setMark(!mkpop.classList.contains('open')));
+$('#mkClose').onclick = () => { setMark(false); markBtn.focus(); };
+$('#mkHelp').onclick = () => openHelp('markers');
+document.addEventListener('click', (e) => { if (!e.target.closest('#mkpop, #markBtn, tr.phase')) setMark(false); });
+
+const withId = (x) => ({ ...x, id: x.id ?? `t${x.ts}` }); // older servers did not send ids
+function applyMessage(m, pauseId) {
+  if (m.type === 'snapshot') { reqs.clear(); heldKeys.clear(); pauses.clear(); m.requests.forEach((r) => reqs.set(r.key, r)); markers = m.markers.map(withId); }
+  else if (m.type === 'request') {
+    if (pauseId != null && !reqs.has(m.request.key)) heldKeys.set(m.request.key, pauseId); // first seen while paused
+    reqs.set(m.request.key, m.request);
+  }
+  else if (m.type === 'marker') markers.push(withId(m.marker));
+  else if (m.type === 'markers') markers = m.markers.map(withId);
+  else if (m.type === 'session') { reqs.clear(); heldKeys.clear(); pauses.clear(); markers = []; detailCache.clear(); }
+  else if (m.type === 'cleared') { reqs.clear(); heldKeys.clear(); pauses.clear(); markers = []; open = null; detailCache.clear(); }
+}
+function connect() {
+  const ws = new WebSocket(`ws://${location.host}/ui`);
+  ws.onopen = () => { connected = true; renderConn(); };
+  ws.onclose = () => { connected = false; renderConn(); setTimeout(connect, 1500); };
+  ws.onmessage = (ev) => {
+    const m = JSON.parse(ev.data);
+    if (paused) { pending.push(m); renderConn(); return; }
+    applyMessage(m);
+    schedule();
+  };
+}
+
+timelineGrid.init(render);
+endpointsGrid.init(render);
+renderTimeSeg();
+renderConn();
+connect(); render();
+if (localStorage.getItem('foxy.help.hide') !== '1') openHelp('start'); // shown on every launch until you tick the box
+
+// ---- animated logo (Rive). The emoji stays as the fallback if the runtime or the file cannot load. ----
+(function foxLogo() {
+  const holders = [...document.querySelectorAll('.logo[data-fox]')];
+  const tag = document.createElement('script');
+  tag.src = '/vendor/rive.js';
+  tag.onerror = () => {};
+  tag.onload = () => {
+    try {
+      window.rive.RuntimeLoader.setWasmUrl('/vendor/rive.wasm');
+      window.__fox = [];
+      holders.forEach((h) => {
+        // the artboard has padding around the fox, so draw it larger than its slot and pull the margins back in
+        const size = Number(h.dataset.fox), box = Math.round(size * 1.5), pad = Math.round((box - size) / 2), dpr = Math.min(3, window.devicePixelRatio || 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = Math.round(box * dpr); canvas.style.cssText = `width:${box}px;height:${box}px;margin:-${pad}px`;
+        h.appendChild(canvas);
+        const r = new window.rive.Rive({
+          src: '/vendor/foxy-loading.riv', canvas, autoplay: true,
+          layout: new window.rive.Layout({ fit: window.rive.Fit.Contain }),
+          onLoad: () => { h.classList.add('fox-on'); if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) r.pause(); },
+          onLoadError: () => canvas.remove(),
+        });
+        window.__fox.push(r);
+      });
+    } catch {}
+  };
+  document.head.appendChild(tag);
+})();
+</script>
+</body>
+</html>

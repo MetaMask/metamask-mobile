@@ -5,6 +5,10 @@ import './shim.js';
 import './app/core/NitroFetchSetup';
 import './app/core/NitroWebSocketSetup';
 
+// Dev-only Foxy (no-op unless FOXY=true). Must come after the
+// Nitro fetch setup and before anything that can make a request.
+import './app/dev-tools/Foxy/install';
+
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
 import 'react-native-gesture-handler';
