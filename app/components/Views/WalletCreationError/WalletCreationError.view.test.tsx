@@ -15,19 +15,12 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { AccountType } from '../../../constants/onboarding';
 
-// TEMP (MMQA-2638 CI evidence): order-leak probe, reverted in the next commit.
-// The flakiness-detection job shuffles test order with --randomize, so this
-// fails when it runs before the test below; the fixed-order gate never sees it.
-let orderProbe = 0;
-
 describeForPlatforms('WalletCreationError — social login error sheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('shows the social login error sheet and navigates to onboarding root on Try again', async () => {
-    expect(orderProbe).toBe(0);
-
     jest.spyOn(Authentication, 'deleteWallet').mockResolvedValue(undefined);
 
     const { findByTestId, findByText } = renderSocialLoginWalletCreationError({
@@ -47,9 +40,5 @@ describeForPlatforms('WalletCreationError — social login error sheet', () => {
     );
 
     await findByTestId(`route-${Routes.ONBOARDING.ROOT_NAV}`);
-  });
-
-  it('order-leak probe for flakiness-detection demo', () => {
-    orderProbe += 1;
   });
 });
