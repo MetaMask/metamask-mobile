@@ -7,6 +7,7 @@ const mockAggregatedSubscribe = jest.fn();
 const mockAggregatedClose = jest.fn();
 
 jest.mock('../../services/aggregatedOrderBookConnection', () => ({
+  ...jest.requireActual('../../services/aggregatedOrderBookConnection'),
   getAggregatedOrderBookConnection: () => ({
     subscribe: mockAggregatedSubscribe,
     close: mockAggregatedClose,

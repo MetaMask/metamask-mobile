@@ -77,6 +77,7 @@ import {
   getPerpsOrderBookSizeOnClickPreference,
   setPerpsOrderBookSizeOnClickPreference,
 } from '../../../utils/perpsOrderBookSizeOnClickStorage';
+import { isServerAggregatedOrderBookRoute } from '../../../services/aggregatedOrderBookConnection';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import styles from './PerpsProOrderBookPanel.styles';
 
@@ -623,7 +624,9 @@ const PerpsProOrderBookPanel = ({
       aggregatedOrderBook
         ? groupOrderBook(
             aggregatedOrderBook,
-            providerId && providerId !== 'hyperliquid' ? currentGrouping : null,
+            isServerAggregatedOrderBookRoute(providerId)
+              ? null
+              : currentGrouping,
             ORDER_BOOK_AGGREGATED_LEVELS,
           )
         : null,

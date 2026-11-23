@@ -6,7 +6,10 @@ import {
   type PerpsProviderType,
   type OrderBookConnectionStatus,
 } from '@metamask/perps-controller';
-import { getAggregatedOrderBookConnection } from '../../services/aggregatedOrderBookConnection';
+import {
+  getAggregatedOrderBookConnection,
+  isServerAggregatedOrderBookRoute,
+} from '../../services/aggregatedOrderBookConnection';
 
 // Re-export types from controllers/types for backwards compatibility
 export {
@@ -104,7 +107,7 @@ export function usePerpsLiveOrderBook(
 
   const isAggregated =
     channel === 'orderBookAggregated' &&
-    (providerId === undefined || providerId === 'hyperliquid');
+    isServerAggregatedOrderBookRoute(providerId);
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [dataRoute, setDataRoute] = useState<string>();
   const route = JSON.stringify([symbol, providerId, resetKey]);
