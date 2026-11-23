@@ -82,6 +82,8 @@ export function PackTile({ pack }: Props) {
         </Text>
         <Pressable
           {...buySheetLink}
+          role="button"
+          accessibilityRole="button"
           className="self-start"
           pressedClassName="opacity-70"
           accessibilityHint={strings('collectibles.buy_sheet.open_hint', {
