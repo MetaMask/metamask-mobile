@@ -42,7 +42,7 @@ describe('neobankActivity', () => {
   });
 
   describe('neobankActivityDisplayInfo', () => {
-    it('labels pending deposits as Depositing with pending status', () => {
+    it('labels pending deposits as Adding funds with pending status', () => {
       const display = neobankActivityDisplayInfo(
         mapAutorampTransactionToNeobankActivity({
           id: 'p1',
@@ -53,7 +53,7 @@ describe('neobankActivity', () => {
         }),
       );
 
-      expect(display.label).toBe('Depositing');
+      expect(display.label).toBe('Adding funds');
       expect(display.description).toBe('Bank transfer');
       expect(display.status).toBe('pending');
       expect(display.isIncoming).toBe(true);
@@ -75,7 +75,7 @@ describe('neobankActivity', () => {
         }),
       );
 
-      expect(display.label).toBe('Depositing');
+      expect(display.label).toBe('Adding funds');
       expect(display.status).toBe('pending');
       expect(display.isIncoming).toBe(true);
       expect(display.fiatAmount).toBe('+$15.00');
@@ -93,7 +93,7 @@ describe('neobankActivity', () => {
         }),
       );
 
-      expect(display.label).toBe('Deposit failed');
+      expect(display.label).toBe('Failed to add funds');
       expect(display.status).toBe('failed');
       expect(display.isIncoming).toBe(true);
       expect(display.fiatAmount).toBe('+$0.00');
