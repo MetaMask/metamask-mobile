@@ -2481,7 +2481,7 @@ describe('MoneyHomeView', () => {
       });
       mockUseVbaHomeCard.mockReturnValue({
         type: 'get_started',
-      } as VbaHomeCard);
+      });
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

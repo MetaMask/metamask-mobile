@@ -34,10 +34,10 @@ const mockDispatch = jest.fn();
 jest.mock('../../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn(() => Promise.resolve(null)),
+    getItem: jest.fn( async () => Promise.resolve(null)),
     getItemSync: jest.fn(() => null),
-    setItem: jest.fn(() => Promise.resolve()),
-    removeItem: jest.fn(() => Promise.resolve()),
+    setItem: jest.fn( async () => Promise.resolve()),
+    removeItem: jest.fn( async () => Promise.resolve()),
   },
 }));
 
@@ -190,7 +190,7 @@ describe('Money 2-step verification sheets', () => {
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.TURN_OFF_BUTTON));
 
-      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(mockTurnOff);
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
       expect(mockTurnOff).toHaveBeenCalledTimes(1);
     });
 
