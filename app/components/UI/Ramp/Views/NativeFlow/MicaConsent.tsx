@@ -14,7 +14,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  Box,
   Checkbox,
+  FontWeight,
   TextButton,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
@@ -341,7 +343,7 @@ const MicaConsent = (): React.JSX.Element => {
               <Text variant={TextVariant.HeadingSm} style={styles.sectionTitle}>
                 {strings('deposit.mica.reviewYourInformation')}
               </Text>
-              <View style={styles.userDataBox}>
+              <Box style={styles.userDataBox} twClassName="rounded-lg">
                 {userDetails ? (
                   <>
                     <Text
@@ -350,7 +352,7 @@ const MicaConsent = (): React.JSX.Element => {
                     >
                       <Text
                         variant={TextVariant.BodyMd}
-                        style={styles.boldText}
+                        fontWeight={FontWeight.Bold}
                       >
                         {strings('deposit.mica.name')}:{' '}
                       </Text>
@@ -362,7 +364,7 @@ const MicaConsent = (): React.JSX.Element => {
                     >
                       <Text
                         variant={TextVariant.BodyMd}
-                        style={styles.boldText}
+                        fontWeight={FontWeight.Bold}
                       >
                         {strings('deposit.mica.dob')}:{' '}
                       </Text>
@@ -377,7 +379,7 @@ const MicaConsent = (): React.JSX.Element => {
                     >
                       <Text
                         variant={TextVariant.BodyMd}
-                        style={styles.boldText}
+                        fontWeight={FontWeight.Bold}
                       >
                         {strings('deposit.mica_consent.address_label')}:{' '}
                       </Text>
@@ -390,7 +392,7 @@ const MicaConsent = (): React.JSX.Element => {
                     >
                       <Text
                         variant={TextVariant.BodyMd}
-                        style={styles.boldText}
+                        fontWeight={FontWeight.Bold}
                       >
                         {strings('deposit.mica_consent.mobile_number_label')}
                         :{' '}
@@ -404,7 +406,7 @@ const MicaConsent = (): React.JSX.Element => {
                     {strings('deposit.mica.loadingDetails')}
                   </Text>
                 )}
-              </View>
+              </Box>
               <Text variant={TextVariant.BodySm} style={styles.supportNotice}>
                 {strings('deposit.mica_consent.support_notice_prefix')}{' '}
                 <Text

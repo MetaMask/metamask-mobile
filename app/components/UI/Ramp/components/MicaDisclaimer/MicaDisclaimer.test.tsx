@@ -28,6 +28,8 @@ jest.mock('../../../../../util/Logger', () => ({
   default: { error: jest.fn(), log: jest.fn() },
 }));
 
+const customStyle = { marginTop: 40 };
+
 const renderDisclaimer = (termsIds?: string[]) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
@@ -78,6 +80,29 @@ describe('MicaDisclaimer', () => {
 
     expect(getByText(/Buy risk:/)).toBeOnTheScreen();
     expect(getByText(/Sell risk:/)).toBeOnTheScreen();
+  });
+
+  it('renders each disclaimer inside a banner with the disclaimer text', () => {
+    const { getByTestId, getByText } = renderDisclaimer([
+      'MICA_EEA_BUY',
+      'MICA_EEA_SELL',
+    ]);
+
+    expect(getByTestId('mica-disclaimer-MICA_EEA_BUY')).toBeOnTheScreen();
+    expect(getByTestId('mica-disclaimer-MICA_EEA_SELL')).toBeOnTheScreen();
+    expect(getByText(/Buy risk:/)).toBeOnTheScreen();
+  });
+
+  it('applies a custom style to the banner', () => {
+    const { getByTestId } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <MicaDisclaimer termsIds={['MICA_EEA_BUY']} style={customStyle} />
+      </ThemeContext.Provider>,
+    );
+
+    expect(getByTestId('mica-disclaimer-MICA_EEA_BUY')).toHaveStyle({
+      marginTop: 40,
+    });
   });
 
   it('opens the FMA link when pressed', () => {

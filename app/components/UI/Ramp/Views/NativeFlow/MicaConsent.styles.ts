@@ -27,14 +27,10 @@ const styleSheet = (params: { theme: Theme }) => {
     userDataBox: {
       backgroundColor: colors.background.alternative,
       padding: 12,
-      borderRadius: 8,
       marginBottom: 12,
     },
     userDataRow: {
       marginBottom: 8,
-    },
-    boldText: {
-      fontWeight: '600',
     },
     supportNotice: {
       color: colors.text.alternative,

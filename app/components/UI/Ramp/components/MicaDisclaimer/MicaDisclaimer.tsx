@@ -4,9 +4,14 @@
  */
 
 import React from 'react';
-import { View, StyleSheet, Linking } from 'react-native';
+import { StyleSheet, Linking } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
-import { Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  BannerAlert,
+  BannerAlertSeverity,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { Theme } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
@@ -21,17 +26,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
-    container: {
-      backgroundColor: colors.warning.muted,
-      borderLeftWidth: 4,
-      borderLeftColor: colors.warning.default,
-      padding: 12,
-      marginVertical: 12,
-      borderRadius: 4,
-    },
-    text: {
-      color: colors.text.default,
-    },
     link: {
       color: colors.primary.default,
       textDecorationLine: 'underline',
@@ -74,8 +68,14 @@ const MicaDisclaimer: React.FC<MicaDisclaimerProps> = ({ termsIds, style }) => {
         const euLink = strings('deposit.mica.euLink');
 
         return (
-          <View key={termId} style={[styles.container, style]}>
-            <Text variant={TextVariant.BodySm} style={styles.text}>
+          <BannerAlert
+            key={termId}
+            testID={`mica-disclaimer-${termId}`}
+            severity={BannerAlertSeverity.Warning}
+            twClassName="my-3"
+            style={style}
+          >
+            <Text variant={TextVariant.BodySm}>
               {disclaimerText.split(fmaLink)[0]}
               <Text
                 variant={TextVariant.BodySm}
@@ -94,7 +94,7 @@ const MicaDisclaimer: React.FC<MicaDisclaimerProps> = ({ termsIds, style }) => {
               </Text>
               {disclaimerText.split(euLink)[1]}
             </Text>
-          </View>
+          </BannerAlert>
         );
       })}
     </>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, StyleSheet } from 'react-native';
 import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import MicaConsent, {
   formatConsentAddress,
@@ -213,6 +213,30 @@ describe('MicaConsent', () => {
 
     fireEvent.press(getByTestId('mica-consent-terms-checkbox'));
     expect(button().props.accessibilityState?.disabled).toBe(false);
+  });
+
+  it('renders the user data labels in a bold weight and the values in regular', async () => {
+    const { getByText } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <MicaConsent />
+      </ThemeContext.Provider>,
+    );
+    await waitFor(() => {
+      expect(getByText(/John Doe/)).toBeOnTheScreen();
+    });
+
+    const fontFamily = (node: ReturnType<typeof getByText>) =>
+      StyleSheet.flatten(node.props.style)?.fontFamily;
+
+    [
+      /deposit\.mica\.name/,
+      /deposit\.mica\.dob/,
+      /deposit\.mica_consent\.address_label/,
+      /deposit\.mica_consent\.mobile_number_label/,
+    ].forEach((label) => {
+      expect(fontFamily(getByText(label))).toBe('Inter-SemiBold');
+    });
+    expect(fontFamily(getByText(/John Doe/))).toBe('Inter-Regular');
   });
 
   it('exposes accessible labels and checked state on the checkboxes', async () => {

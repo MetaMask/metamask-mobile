@@ -13,12 +13,13 @@ import {
   Label,
   SelectButton,
   SelectButtonSize,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../hooks/useStyles';
-import Text from '../../../../../component-library/components/Texts/Text';
-import { Theme } from '../../../../../util/theme/models';
 import { createOptionSelectorModalNavigationDetails } from '../../Views/Modals/OptionSelectorModal';
 
 interface DepositSelectFieldProps {
@@ -32,20 +33,15 @@ interface DepositSelectFieldProps {
   testID?: string;
 }
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     label: {
       marginBottom: 8,
     },
     error: {
-      color: theme.colors.error.default,
-      fontSize: 12,
       marginTop: 4,
     },
   });
-};
 
 const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
   label,
@@ -86,7 +82,15 @@ const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
         accessibilityLabel={label}
         testID={testID}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? (
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.ErrorDefault}
+          style={styles.error}
+        >
+          {error}
+        </Text>
+      ) : null}
     </View>
   );
 };
