@@ -9,6 +9,7 @@ import {
   getSocialReactionType,
   SocialEvent,
   type SocialBlockedReason,
+  type SocialCopyTradeAnalyticsProperties,
   type SocialPositionAnalyticsProperties,
   type SocialScreenName,
   type SocialScreenViewedProperties,
@@ -141,7 +142,7 @@ export const useSocialFeedInteractions = (
   const track = useSocialInteraction(screenName, context, enabled);
   return useMemo(
     () => ({
-      onCopyTradeInteraction: (position: SocialPositionAnalyticsProperties) =>
+      onCopyTradeInteraction: (position: SocialCopyTradeAnalyticsProperties) =>
         track(Interaction.COPY_TRADE_TAPPED, position),
       onCopyTradeBlocked: (
         position: SocialPositionAnalyticsProperties,
