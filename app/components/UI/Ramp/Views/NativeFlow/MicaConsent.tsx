@@ -15,6 +15,7 @@ import {
   ButtonVariant,
   ButtonSize,
   Checkbox,
+  TextButton,
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -447,9 +448,8 @@ const MicaConsent = (): React.JSX.Element => {
                 label={
                   <Text variant={TextVariant.BodyMd} twClassName="ml-3 flex-1">
                     {strings('deposit.mica_consent.terms_consent_prefix')}{' '}
-                    <Text
+                    <TextButton
                       variant={TextVariant.BodyMd}
-                      style={styles.linkText}
                       onPress={() => {
                         Linking.openURL(
                           'https://transak.com/terms-of-service',
@@ -462,11 +462,10 @@ const MicaConsent = (): React.JSX.Element => {
                       }}
                     >
                       {strings('deposit.mica_consent.terms_link_text')}
-                    </Text>{' '}
+                    </TextButton>{' '}
                     {strings('deposit.mica_consent.terms_consent_middle')}{' '}
-                    <Text
+                    <TextButton
                       variant={TextVariant.BodyMd}
-                      style={styles.linkText}
                       onPress={() => {
                         Linking.openURL(
                           'https://transak.com/privacy-policy',
@@ -479,7 +478,7 @@ const MicaConsent = (): React.JSX.Element => {
                       }}
                     >
                       {strings('deposit.mica_consent.privacy_link_text')}
-                    </Text>
+                    </TextButton>
                     .
                   </Text>
                 }

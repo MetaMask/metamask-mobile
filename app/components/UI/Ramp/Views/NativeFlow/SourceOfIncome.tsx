@@ -261,7 +261,7 @@ const SourceOfIncome = (): React.JSX.Element => {
               />
             )}
 
-            {hasFieldsMissing && !error && (
+            {hasFieldsMissing && (
               <BannerAlert
                 severity={BannerAlertSeverity.Error}
                 title={strings('deposit.source_of_income.fields_missing_title')}

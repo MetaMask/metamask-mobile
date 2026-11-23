@@ -261,6 +261,25 @@ describe('SourceOfIncome', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('keeps the retry action available after a failed retry', async () => {
+    mockUseParamsReturn.metadata = {
+      ...mockMetadata,
+      sourceOfFundsTypeOptions: [],
+    };
+    mockGetAdditionalRequirements.mockRejectedValue(new Error('network down'));
+
+    const { getByText, findByText } = renderScreen();
+    fireEvent.press(getByText('deposit.source_of_income.retry_button'));
+    await findByText('deposit.mica.errorTitle');
+
+    mockGetAdditionalRequirements.mockClear();
+    fireEvent.press(getByText('deposit.source_of_income.retry_button'));
+
+    await waitFor(() => {
+      expect(mockGetAdditionalRequirements).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('routes back to the headless host when a headless session is active', () => {
     mockUseParamsReturn.headlessSessionId = 'headless-1';
 

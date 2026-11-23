@@ -467,6 +467,25 @@ describe('MicaConsent', () => {
       );
     });
 
+    it('does not toggle the terms consent when a consent link is pressed', async () => {
+      const utils = renderScreen();
+      await waitFor(() => {
+        expect(utils.getByText(/John Doe/)).toBeOnTheScreen();
+      });
+      const checkbox = utils.getByTestId('mica-consent-terms-checkbox');
+      expect(checkbox.props.accessibilityState.checked).toBe(false);
+
+      fireEvent.press(utils.getByText('deposit.mica_consent.terms_link_text'));
+      fireEvent.press(
+        utils.getByText('deposit.mica_consent.privacy_link_text'),
+      );
+
+      expect(
+        utils.getByTestId('mica-consent-terms-checkbox').props
+          .accessibilityState.checked,
+      ).toBe(false);
+    });
+
     it('opens the Transak privacy policy from the consent label', async () => {
       const utils = renderScreen();
       await waitFor(() => {
