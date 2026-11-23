@@ -3995,7 +3995,10 @@
       "trending": "Trending",
       "sports": "Sports",
       "games_error": "Games couldn’t be loaded.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "preview_error": "Markets couldn’t be loaded.",
+      "preview_empty": "No markets available.",
+      "open_section": "View {{title}}"
     },
     "get_started_banner": {
       "title": "Get started in a few steps",
