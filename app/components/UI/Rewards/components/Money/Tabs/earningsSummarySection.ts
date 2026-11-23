@@ -6,6 +6,12 @@ import { formatMusdBaseUnits } from '../../../utils/formatUtils';
 export const musdAmount = (baseUnits: string | null | undefined): string =>
   formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 2 }) ?? '—';
 
+/** The claim minimum as a whole-dollar amount, or undefined when it is unknown. */
+export const musdMinimumAmount = (
+  baseUnits: string | null | undefined,
+): string | undefined =>
+  formatMusdBaseUnits(baseUnits, { maximumFractionDigits: 0 }) ?? undefined;
+
 export interface SummarySectionState {
   data: EarningsSummaryDto | null;
   loading: boolean;

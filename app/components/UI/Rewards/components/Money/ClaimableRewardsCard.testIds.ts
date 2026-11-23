@@ -8,4 +8,5 @@ export const CLAIMABLE_REWARDS_CARD_TEST_IDS = {
   PAUSED_BUTTON: 'claimable-rewards-card-paused-button',
   CLAIMED_BUTTON: 'claimable-rewards-card-claimed-button',
   SKELETON: 'claimable-rewards-card-skeleton',
+  SUBTEXT: 'claimable-rewards-card-subtext',
 } as const;

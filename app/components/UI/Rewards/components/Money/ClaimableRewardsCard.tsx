@@ -28,8 +28,23 @@ export type ClaimButtonState = 'claim' | 'paused' | 'claimed' | 'hidden';
 
 export type ClaimHeadline = 'available' | 'held' | 'pending' | 'balance';
 
-function amountHeading(label: string, currency: string): string {
-  return `${label} \u2022 ${currency}`;
+/**
+ * The line under the amount. `{minimum}` takes the formatted claim minimum.
+ * With no minimum to show, the word "minimum" fills it instead, so the raw
+ * token never reaches the screen.
+ */
+function subtextFor(
+  headline: ClaimHeadline,
+  localizedText: ReferralLocalizedText,
+  minimumAmount: string | undefined,
+): string {
+  const template = {
+    available: localizedText.availableToClaimSubtext,
+    held: localizedText.heldSubtext,
+    pending: localizedText.pendingSubtext,
+    balance: localizedText.balanceSubtext,
+  }[headline];
+  return template.replaceAll('{minimum}', minimumAmount ?? 'minimum');
 }
 
 interface ClaimCardStateInput {
@@ -110,6 +125,8 @@ export interface ClaimableRewardsCardProps {
   pending?: string;
   /** Formatted adjusted pending balance. */
   pendingAmount?: string;
+  /** Formatted claim minimum. Fills `{minimum}` in the subtext under the amount. */
+  minimumAmount?: string;
   /**
    * A referrer shows the claimable amount row while Social V1 is enabled.
    */
@@ -175,7 +192,7 @@ const ClaimableRewardsCardSkeleton: React.FC<{
     >
       <Box>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {amountHeading(localizedText.availableToClaim, localizedText.mUSD)}
+          {localizedText.availableToClaim}
         </Text>
         <Skeleton style={tw.style('mt-1 h-8 w-28 rounded-md')} />
       </Box>
@@ -196,6 +213,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   claimableAmount,
   pending,
   pendingAmount,
+  minimumAmount,
   isReferrer = false,
   held,
   heldAmount,
@@ -247,7 +265,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     pending: localizedText.pending,
     balance: localizedText.balance,
   }[headline];
-  const heading = amountHeading(headingLabel, localizedText.mUSD);
+  const subtext = subtextFor(headline, localizedText, minimumAmount);
   const amount = {
     available: claimableAmount,
     held: heldAmount ?? claimableAmount,
@@ -296,7 +314,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
       <Box twClassName="p-4">
         <Box>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {heading}
+            {headingLabel}
           </Text>
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -324,6 +342,13 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
               />
             ) : null}
           </Box>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT}
+          >
+            {subtext}
+          </Text>
         </Box>
         {button === 'hidden' ? null : (
           <Box twClassName="mt-3">

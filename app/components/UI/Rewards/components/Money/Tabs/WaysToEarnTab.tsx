@@ -67,7 +67,11 @@ import { EarningsHistoryRow } from '../EarningsHistoryRows';
 import RewardsPausedBanner from '../RewardsPausedBanner';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 
-import { deriveSummarySection, musdAmount } from './earningsSummarySection';
+import {
+  deriveSummarySection,
+  musdAmount,
+  musdMinimumAmount,
+} from './earningsSummarySection';
 import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
 
 /** Rows shown under History before "see all". */
@@ -496,6 +500,9 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
               blocked={summary.data?.blocked}
               claimableAmount={musdAmount(display.claimable)}
               pendingAmount={musdAmount(display.pending)}
+              minimumAmount={musdMinimumAmount(
+                summary.data?.minimum_musd_base_units,
+              )}
               heldAmount={musdAmount(summary.data?.held)}
               isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}

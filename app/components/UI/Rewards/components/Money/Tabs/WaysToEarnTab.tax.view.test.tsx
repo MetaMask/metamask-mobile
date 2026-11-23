@@ -851,9 +851,7 @@ describe('WaysToEarnTab tax documentation', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
-    expect(
-      await findByText(`${COPY.balance} \u2022 ${COPY.mUSD}`),
-    ).toBeOnTheScreen();
+    expect(await findByText(COPY.balance)).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$58.50');

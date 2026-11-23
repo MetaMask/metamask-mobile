@@ -284,11 +284,7 @@ describe('WaysToEarnTab', () => {
       initiateClaim: 'hang',
     });
 
-    expect(
-      await findByText(
-        `${REFERRAL_LOCALIZED_TEXT.balance} \u2022 ${REFERRAL_LOCALIZED_TEXT.mUSD}`,
-      ),
-    ).toBeOnTheScreen();
+    expect(await findByText(REFERRAL_LOCALIZED_TEXT.balance)).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$58.50');
@@ -565,11 +561,7 @@ describe('WaysToEarnTab', () => {
       }),
     });
 
-    expect(
-      await findByText(
-        `${REFERRAL_LOCALIZED_TEXT.pending} \u2022 ${REFERRAL_LOCALIZED_TEXT.mUSD}`,
-      ),
-    ).toBeOnTheScreen();
+    expect(await findByText(REFERRAL_LOCALIZED_TEXT.pending)).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$0.50');
@@ -618,11 +610,7 @@ describe('WaysToEarnTab', () => {
       summary: PAUSED_EARNINGS_SUMMARY,
     });
 
-    expect(
-      await findByText(
-        `${REFERRAL_LOCALIZED_TEXT.balance} \u2022 ${REFERRAL_LOCALIZED_TEXT.mUSD}`,
-      ),
-    ).toBeOnTheScreen();
+    expect(await findByText(REFERRAL_LOCALIZED_TEXT.balance)).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$112.50');

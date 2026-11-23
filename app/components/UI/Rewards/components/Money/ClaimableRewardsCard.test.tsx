@@ -12,9 +12,15 @@ jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
+  availableToClaimSubtext: 'mUSD paid into your Money account',
   balance: 'Balance',
+  balanceSubtext: 'mUSD in total earnings',
   held: 'Held',
+  heldSubtext:
+    'mUSD available to claim once tax determination is clear and hold is removed',
   pending: 'Pending',
+  pendingSubtext:
+    'mUSD available to claim once pending is clear and {minimum} is met',
   mUSD: 'mUSD',
   claim: 'Claim',
   paused: 'Paused',
@@ -226,7 +232,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
     expect(getByText('Claim')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
@@ -260,7 +266,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
     expect(getByText('Claim')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
@@ -292,7 +298,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).not.toBeDisabled();
@@ -306,7 +312,7 @@ describe('ClaimableRewardsCard', () => {
   it('renders a disabled Claimed button when only claimed is positive', () => {
     const { getByTestId, getByText, queryByTestId } = renderCard('0', '50');
 
-    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(getByText('Balance')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$4.00');
@@ -332,7 +338,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Pending • mUSD')).toBeOnTheScreen();
+    expect(getByText('Pending')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$0.40');
@@ -360,7 +366,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Pending • mUSD')).toBeOnTheScreen();
+    expect(getByText('Pending')).toBeOnTheScreen();
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
     ).toBeNull();
@@ -388,7 +394,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');
@@ -429,7 +435,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(getByText('Balance')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$132.00');
@@ -464,7 +470,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$2.00');
@@ -500,7 +506,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Held • mUSD')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$0.12');
@@ -527,7 +533,7 @@ describe('ClaimableRewardsCard', () => {
       />,
     );
 
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$1.00');
@@ -586,7 +592,7 @@ describe('ClaimableRewardsCard', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
-    expect(queryByText('Available to claim • mUSD')).toBeNull();
+    expect(queryByText('Available to claim')).toBeNull();
   });
 
   it('shows the claimable amount row for a referrer while Social V1 is on', () => {
@@ -607,7 +613,7 @@ describe('ClaimableRewardsCard', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$1.00');
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeOnTheScreen();
@@ -626,7 +632,7 @@ describe('ClaimableRewardsCard', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
     ).toBeOnTheScreen();
-    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(getByText('Available to claim')).toBeOnTheScreen();
     expect(queryByText('Last 7 days')).toBeNull();
     expect(queryByText('Total earnings')).toBeNull();
   });
@@ -636,5 +642,107 @@ describe('ClaimableRewardsCard', () => {
 
     expect(queryByText('Last 7 days')).toBeNull();
     expect(queryByText('Total earnings')).toBeNull();
+  });
+});
+
+describe('ClaimableRewardsCard subtext', () => {
+  const baseProps = {
+    localizedText: LOCALIZED_TEXT,
+    claimableAmount: '$0.00',
+    recordedAmount: '$4.00',
+    isSummaryLoading: false,
+  };
+
+  it('renders the label as the heading with no currency suffix', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        claimable="1000000"
+        canClaim
+        claimableAmount="$1.00"
+      />,
+    );
+
+    expect(getByText('Available to claim')).toBeOnTheScreen();
+    expect(queryByText('Available to claim \u2022 mUSD')).toBeNull();
+  });
+
+  it('shows the available subtext under the amount', () => {
+    const { getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        claimable="1000000"
+        canClaim
+        claimableAmount="$1.00"
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent('mUSD paid into your Money account');
+  });
+
+  it('shows the held subtext when the headline is held', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        held="100000000"
+        heldAmount="$100.00"
+        taxHeld
+      />,
+    );
+
+    expect(getByText('Held')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent(
+      'mUSD available to claim once tax determination is clear and hold is removed',
+    );
+  });
+
+  it('fills the pending minimum with the formatted claim minimum', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        pending="400000"
+        pendingAmount="$0.40"
+        minimumAmount="$1.00"
+      />,
+    );
+
+    expect(getByText('Pending')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent(
+      'mUSD available to claim once pending is clear and $1.00 is met',
+    );
+  });
+
+  it('fills the pending minimum with the word minimum when it is unknown', () => {
+    const { getByTestId, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        {...baseProps}
+        pending="400000"
+        pendingAmount="$0.40"
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent(
+      'mUSD available to claim once pending is clear and minimum is met',
+    );
+    expect(queryByText(/\{minimum\}/)).toBeNull();
+  });
+
+  it('shows the balance subtext when the headline is balance', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard {...baseProps} />,
+    );
+
+    expect(getByText('Balance')).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SUBTEXT),
+    ).toHaveTextContent('mUSD in total earnings');
   });
 });
