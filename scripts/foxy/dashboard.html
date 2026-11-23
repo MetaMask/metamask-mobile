@@ -64,7 +64,9 @@
   header { position: relative; z-index: 10; display: flex; gap: 8px; align-items: center; padding: 10px 16px; background: var(--color-background-alternative); border-bottom: 1px solid var(--color-border-muted); flex-wrap: wrap; }
   .brand { display: flex; align-items: center; gap: 8px; margin-right: 8px; user-select: none; }
   .logo { display: inline-grid; place-items: center; font-size: 24px; line-height: 1; }
-  .logo canvas { display: none; } .logo.fox-on canvas { display: block; } .logo.fox-on .emo { display: none; }
+  .logo canvas { display: none; } .logo.fox-on canvas.loop { display: block; } .logo.fox-on .emo { display: none; }
+  /* paused: swap the looping fox for a still copy that faces straight ahead (the loop cannot be scrubbed to that pose) */
+  .logo.fox-on.fox-still.still-ok canvas.loop { display: none; } .logo.fox-on.fox-still.still-ok canvas.still { display: block; }
   .wordmark { font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
   button, input { background: var(--color-background-section); color: inherit; border: 1px solid var(--color-border-muted); border-radius: var(--r-ctl); padding: 6px 12px; font: inherit; }
   input::placeholder { color: var(--color-text-muted); }
@@ -996,11 +998,12 @@ function renderConn() {
   c.title = title;
   c.innerHTML = `${icon(ic)}${badge}`;
 }
-/** The logo fox freezes on whatever frame he is on while the view is paused and looks around again on play. */
+/** While the view is paused the logo fox stops and faces straight ahead; on play he starts looking around again. */
 const fox = {
   list: [], // Rive instances, filled in by foxLogo() once the runtime has loaded
   reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches, // those users never get the looping animation
   set(playing) {
+    document.querySelectorAll('.logo[data-fox]').forEach((h) => h.classList.toggle('fox-still', !playing));
     for (const r of fox.list) {
       try { if (!playing) r.pause(); else if (!fox.reduced) r.play(); } catch { /* the logo is decoration: never let it break pausing */ }
     }
@@ -2557,14 +2560,24 @@ if (localStorage.getItem('foxy.help.hide') !== '1') openHelp('start'); // shown 
         const size = Number(h.dataset.fox), box = Math.round(size * 1.5), pad = Math.round((box - size) / 2), dpr = Math.min(3, window.devicePixelRatio || 1);
         const canvas = document.createElement('canvas');
         canvas.width = canvas.height = Math.round(box * dpr); canvas.style.cssText = `width:${box}px;height:${box}px;margin:-${pad}px`;
+        canvas.className = 'loop';
         h.appendChild(canvas);
         const r = new window.rive.Rive({
           src: '/vendor/foxy-loading.riv', canvas, autoplay: true,
           layout: new window.rive.Layout({ fit: window.rive.Fit.Contain }),
-          onLoad: () => { h.classList.add('fox-on'); if (fox.reduced || paused) r.pause(); },
+          onLoad: () => { h.classList.add('fox-on'); fox.set(!(fox.reduced || paused)); },
           onLoadError: () => canvas.remove(),
         });
         window.__fox.push(r);
+        // the straight-ahead pose is the artboard before any animation has run, so this copy is loaded and never played
+        const still = canvas.cloneNode(false); still.className = 'still'; still.width = canvas.width; still.height = canvas.height;
+        h.appendChild(still);
+        new window.rive.Rive({
+          src: '/vendor/foxy-loading.riv', canvas: still, autoplay: false, stateMachines: 'State Machine 1',
+          layout: new window.rive.Layout({ fit: window.rive.Fit.Contain }),
+          onLoad: () => h.classList.add('still-ok'),
+          onLoadError: () => still.remove(),
+        });
       });
     } catch {}
   };
