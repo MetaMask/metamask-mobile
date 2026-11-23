@@ -20,6 +20,7 @@ import NotificationService, {
 } from './NotificationService';
 import { markPushNotificationOsPromptRequested } from '../../../actions/onboarding';
 import { store } from '../../../store';
+import Logger from '../../../util/Logger';
 import { PressActionId } from '../types';
 
 jest.mock('@notifee/react-native', () => ({
@@ -433,10 +434,29 @@ describe('NotificationService - alertPrompt buttons', () => {
   });
 });
 
+describe('NotificationService - badge updates', () => {
+  it.each([
+    'incrementBadgeCount',
+    'decrementBadgeCount',
+    'setBadgeCount',
+  ] as const)('propagates a rejected %s update', async (method) => {
+    const error = new Error('Badge update failed');
+    jest.mocked(notifee[method]).mockRejectedValueOnce(error);
+
+    const update = NotificationService[method](1);
+
+    await expect(update).rejects.toBe(error);
+  });
+});
+
 describe('NotificationService - openSystemSettings', () => {
   const arrangeMocks = () => {
-    const mockLinkingSettings = jest.spyOn(Linking, 'openSettings');
-    const mockNotifeeSettings = jest.spyOn(notifee, 'openNotificationSettings');
+    const mockLinkingSettings = jest
+      .spyOn(Linking, 'openSettings')
+      .mockResolvedValue();
+    const mockNotifeeSettings = jest
+      .spyOn(notifee, 'openNotificationSettings')
+      .mockResolvedValue();
     return {
       mockLinkingSettings,
       mockNotifeeSettings,
@@ -461,6 +481,27 @@ describe('NotificationService - openSystemSettings', () => {
     expect(mocks.mockLinkingSettings).not.toHaveBeenCalled();
     expect(mocks.mockNotifeeSettings).toHaveBeenCalled();
   });
+
+  it.each(['ios', 'android'] as const)(
+    'logs rejected %s settings requests',
+    async (platform) => {
+      Platform.OS = platform;
+      const mocks = arrangeMocks();
+      const error = new Error('Settings unavailable');
+      const logError = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      (platform === 'ios'
+        ? mocks.mockLinkingSettings
+        : mocks.mockNotifeeSettings
+      ).mockRejectedValueOnce(error);
+
+      NotificationService.openSystemSettings();
+      await Promise.resolve();
+
+      expect(logError).toHaveBeenCalledWith(error);
+    },
+  );
 });
 
 describe('NotificationService - handleNotificationPress', () => {

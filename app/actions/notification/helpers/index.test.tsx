@@ -22,7 +22,10 @@ jest.mock('../../../util/notifications', () => ({
 
 jest.mock('../../../core/Engine', () => ({
   context: {
+    KeyringController: { state: { isUnlocked: true } },
+    AuthenticationController: { state: { isSignedIn: true } },
     NotificationServicesController: {
+      state: { isUpdatingMetamaskNotifications: false },
       enableMetamaskNotifications: jest.fn(),
       disableNotificationServices: jest.fn(),
       checkAccountsPresence: jest.fn(),
@@ -70,6 +73,68 @@ describe('helpers - enableNotificationServices()', () => {
     expect(
       Engine.context.NotificationServicesController.enableMetamaskNotifications,
     ).toHaveBeenCalled();
+  });
+
+  it('serializes simultaneous enables before awaiting Braze persistence', async () => {
+    let release: () => void = () => undefined;
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const enable = jest.mocked(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    );
+    enable.mockImplementationOnce(() => blocked);
+
+    const first = enableNotifications({ registerPushNotifications: false });
+    const second = enableNotifications({ hasMarketingConsent: true });
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(enable).toHaveBeenCalledTimes(1);
+    release();
+    await Promise.all([first, second]);
+
+    expect(enable).toHaveBeenCalledTimes(2);
+    expect(enable).toHaveBeenLastCalledWith({ hasMarketingConsent: true });
+  });
+
+  it('rechecks readiness after awaiting push registration intent', async () => {
+    jest
+      .mocked(markBrazePushRegistrationDesired)
+      .mockImplementationOnce(async () => {
+        Engine.context.KeyringController.state.isUnlocked = false;
+      });
+
+    await expect(enableNotifications(undefined, true)).rejects.toThrow(
+      'not ready',
+    );
+
+    expect(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    ).not.toHaveBeenCalled();
+    Engine.context.KeyringController.state.isUnlocked = true;
+  });
+
+  it('allows retry after a failed enable', async () => {
+    const enable = jest.mocked(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    );
+    enable.mockRejectedValueOnce(new Error('setup failed'));
+
+    await expect(enableNotifications()).rejects.toThrow('setup failed');
+    await enableNotifications();
+
+    expect(enable).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects an enable while the controller is updating externally', async () => {
+    Engine.context.NotificationServicesController.state.isUpdatingMetamaskNotifications = true;
+
+    await expect(enableNotifications()).rejects.toThrow('already updating');
+
+    expect(
+      Engine.context.NotificationServicesController.enableMetamaskNotifications,
+    ).not.toHaveBeenCalled();
+    Engine.context.NotificationServicesController.state.isUpdatingMetamaskNotifications = false;
   });
 
   it('passes marketing consent to notification services method', async () => {

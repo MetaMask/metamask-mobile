@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { hasPushPrePromptBeenAnswered } from '../../../../util/notifications/constants/notification-storage-keys';
 import { useSelector } from 'react-redux';
 import { usePushPrePromptVariant } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
 import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
@@ -30,6 +31,7 @@ const PushNotificationPermissionFallback = () => {
     // Only push_permission involves an OS prompt; marketing_consent needs none.
     if (
       variant !== 'push_permission' ||
+      hasPushPrePromptBeenAnswered() ||
       isWalletHomeOnboardingChecklistActive ||
       handledRef.current
     ) {
