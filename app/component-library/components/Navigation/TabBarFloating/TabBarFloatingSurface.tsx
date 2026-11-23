@@ -12,7 +12,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { UseBlurMaterialResult } from '../../../hooks/useBlurMaterial';
 import { TAB_BAR_FLOATING_BLUR_INTENSITY } from './TabBarFloating.constants';
 
-export interface TabBarFloatingSurfaceProps
+interface TabBarFloatingSurfaceProps
   extends Pick<UseBlurMaterialResult, 'isBlurAvailable' | 'colorScheme'> {
   children?: React.ReactNode;
   twClassName?: string;

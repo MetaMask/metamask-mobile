@@ -8,7 +8,7 @@ import {
 import HeaderGlass, { type HeaderGlassOptions } from '../HeaderGlass';
 import { resolveEndAccessoryGlass } from '../HeaderGlass/headerGlassAccessories';
 
-export type HeaderRootGlassProps = HeaderRootProps &
+type HeaderRootGlassProps = HeaderRootProps &
   HeaderGlassOptions & {
     /** The content's scroll offset; fades the `animated` backdrop in. */
     scrollY?: SharedValue<number>;

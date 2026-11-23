@@ -19,7 +19,7 @@ import ButtonIconGlass from '../ButtonIconGlass';
 import CapsuleGlass from '../CapsuleGlass';
 import HeaderGlass, { type HeaderGlassOptions } from '../HeaderGlass';
 
-export type HeaderSearchGlassProps = HeaderSearchProps &
+type HeaderSearchGlassProps = HeaderSearchProps &
   HeaderGlassOptions & {
     /** The content's scroll offset; fades the `animated` backdrop in. */
     scrollY?: SharedValue<number>;

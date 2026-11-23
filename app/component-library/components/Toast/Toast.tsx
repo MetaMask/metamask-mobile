@@ -821,5 +821,5 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   );
 });
 
-export { shouldTopAlignToastContent, hasTrailingTextButton };
+export { shouldTopAlignToastContent };
 export default Toast;

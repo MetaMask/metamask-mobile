@@ -18,7 +18,7 @@ import { useTheme } from '../../../util/theme';
 import { colorWithOpacity } from '../../../util/colors/colorWithOpacity';
 import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 
-export interface HeaderGlassBackdropProps {
+interface HeaderGlassBackdropProps {
   /** How far the content has scrolled from its resting top; omit to keep the effect on. */
   scrollDistance?: SharedValue<number>;
   /** Scroll distance over which the effect fades in. */
@@ -34,7 +34,7 @@ export interface HeaderGlassBackdropProps {
   testID?: string;
 }
 
-export const DEFAULT_FADE_IN_DISTANCE = 128;
+const DEFAULT_FADE_IN_DISTANCE = 128;
 
 // iOS: blur that fades out below the header, darkened toward the top.
 const BLUR_TAIL_HEIGHT = 24;

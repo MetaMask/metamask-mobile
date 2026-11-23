@@ -33,7 +33,7 @@ const ROTATION_DURATION = 150;
 const ACTIVE_SCALE = 1.04;
 const ACTIVE_SCALE_DURATION = 120;
 
-export interface TabBarFloatingTradeButtonProps {
+interface TabBarFloatingTradeButtonProps {
   testID?: string;
 }
 

@@ -7,7 +7,7 @@ import { Theme } from '../../../../util/theme/models';
 /**
  * Style sheet input parameters.
  */
-export interface ButtonPillStyleSheetVars {
+interface ButtonPillStyleSheetVars {
   isDisabled: boolean;
   isPressed: boolean;
 }

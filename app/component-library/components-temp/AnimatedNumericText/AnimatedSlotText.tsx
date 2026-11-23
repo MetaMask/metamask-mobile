@@ -12,7 +12,7 @@ import { Laminar } from 'react-native-laminar';
 
 import { splitNumericString } from './splitNumericString';
 
-export interface AnimatedSlotTextProps {
+interface AnimatedSlotTextProps {
   /** Already-formatted value, for example `$1,234.56` or `+$3K`. */
   value: string;
   /**

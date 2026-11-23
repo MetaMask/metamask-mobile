@@ -32,8 +32,6 @@ export const LABEL_BY_TAB_BAR_ICON_KEY = {
   [TabBarIconKey.Social]: 'bottom_nav.social',
 } as const;
 
-export const TAB_BAR_HEIGHT = 54; // 22px text line height + 20px icon height + 12px padding top
-
 /** `name` sent on the Navigation Drawer event for each bottom nav item. */
 export const BOTTOM_NAV_NAME_BY_TAB_BAR_ICON_KEY: Record<
   TabBarIconKey,

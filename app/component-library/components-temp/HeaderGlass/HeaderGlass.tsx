@@ -14,7 +14,7 @@ import HeaderGlassBackdrop from './HeaderGlassBackdrop';
  * `animated` fades the backdrop in as the content scrolls under the header,
  * `static` keeps it on, and `none` leaves the header over the bare content.
  */
-export type HeaderGlassBackdropMode = 'animated' | 'static' | 'none';
+type HeaderGlassBackdropMode = 'animated' | 'static' | 'none';
 
 /** What the `Header…Glass` components add to their MMDS header's props. */
 export interface HeaderGlassOptions {

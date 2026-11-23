@@ -12,7 +12,7 @@ import {
   resolveStartAccessoryGlass,
 } from '../HeaderGlass/headerGlassAccessories';
 
-export type HeaderSubpageGlassProps = HeaderSubpageProps &
+type HeaderSubpageGlassProps = HeaderSubpageProps &
   HeaderGlassOptions & {
     /** The content's scroll offset; fades the `animated` backdrop in. */
     scrollY?: SharedValue<number>;

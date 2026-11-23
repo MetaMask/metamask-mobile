@@ -3,7 +3,7 @@ export interface BodyWebViewUri {
   uri: string;
 }
 
-export interface BodyWebViewHtml {
+interface BodyWebViewHtml {
   source: 'WebView';
   html: string;
 }

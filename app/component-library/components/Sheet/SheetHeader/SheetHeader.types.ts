@@ -3,7 +3,7 @@ import { ViewProps } from 'react-native';
 /**
  * Options for displaying the action button on the right of the title.
  */
-export interface SheetHeaderActionButtonOptions {
+interface SheetHeaderActionButtonOptions {
   label: string;
   onPress: () => void;
 }

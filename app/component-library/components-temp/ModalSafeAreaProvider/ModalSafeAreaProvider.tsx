@@ -3,7 +3,7 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-export interface ModalSafeAreaProviderProps {
+interface ModalSafeAreaProviderProps {
   children: React.ReactNode;
   testID?: string;
 }

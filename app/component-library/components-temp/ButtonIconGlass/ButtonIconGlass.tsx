@@ -7,7 +7,7 @@ import {
 
 import CapsuleGlass from '../CapsuleGlass';
 
-export type ButtonIconGlassProps = ButtonIconProps & {
+type ButtonIconGlassProps = ButtonIconProps & {
   /** Seats the icon in a header capsule: glass, blur or flat by platform. */
   isCapsule?: boolean;
   capsuleTestID?: string;

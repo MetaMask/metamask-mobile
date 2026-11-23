@@ -39,7 +39,7 @@ import { getTabBarFloatingBottomPadding } from './TabBarFloating.utils';
 /** What the circular button beside the pill does. */
 export type TabBarFloatingTrailingAction = 'search' | 'trade';
 
-export interface TabBarFloatingProps extends TabBarProps {
+interface TabBarFloatingProps extends TabBarProps {
   /**
    * Measured height of the bar, so the navigator can pad tab scenes by the
    * amount the bar overlays. Reports 0 on unmount, which is how the hidden-bar

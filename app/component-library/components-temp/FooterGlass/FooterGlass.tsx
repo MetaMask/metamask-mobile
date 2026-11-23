@@ -13,7 +13,7 @@ import ButtonGlass, {
 
 export type FooterGlassButtonProps = Omit<ButtonGlassProps, 'variant'>;
 
-export interface FooterGlassProps {
+interface FooterGlassProps {
   /**
    * Top button. Rendered as `ButtonVariant.Primary`.
    */

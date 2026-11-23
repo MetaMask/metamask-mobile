@@ -34,7 +34,7 @@ const AnimatedText = Animated.createAnimatedComponent(DesignSystemText);
  * Props for text that animates numeric glyph changes without numeric
  * conversion, preserving formatted and high-precision strings.
  */
-export interface AnimatedNumericTextProps {
+interface AnimatedNumericTextProps {
   accessible?: boolean;
   animated?: boolean;
   /**

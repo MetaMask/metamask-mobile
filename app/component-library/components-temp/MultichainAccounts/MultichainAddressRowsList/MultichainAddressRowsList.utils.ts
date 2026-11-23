@@ -1,11 +1,9 @@
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope, BtcScope, TrxScope, XlmScope } from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import { TEST_NETWORK_IDS } from '../../../../constants/network';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getHexEvmChainId } from '../../../../util/networks';
-import { toFormattedAddress } from '../../../../util/address';
 
 export interface NetworkAddressItem {
   chainId: CaipChainId;
@@ -80,70 +78,3 @@ export const sortNetworkAddressItems = (
       ? a.networkName.localeCompare(b.networkName)
       : priorityDiff;
   });
-
-/**
- * Creates a NetworkAddressItem from chain ID, network config, and address
- * Ensures addresses are properly formatted: checksummed for EVM, raw for non-EVM
- *
- * @param chainId - Chain ID
- * @param network - Network configuration
- * @param network.name - Network name
- * @param network.chainId - Network chain ID
- * @param address - Address to associate with the network
- * @returns NetworkAddressItem object with properly formatted address
- */
-const createNetworkAddressItem = (
-  chainId: CaipChainId,
-  network: { name: string; chainId: CaipChainId },
-  address: string,
-): NetworkAddressItem => ({
-  chainId,
-  networkName: network.name,
-  address: toFormattedAddress(address),
-});
-
-/**
- * Gets compatible networks for an InternalAccount based on its scopes
- *
- * @param account - InternalAccount object to get compatible networks for
- * @param allNetworks - Record of all network configurations
- * @returns Array of NetworkAddressItem objects
- */
-export const getCompatibleNetworksForAccount = (
-  account: InternalAccount,
-  allNetworks: Record<CaipChainId, { name: string; chainId: CaipChainId }>,
-): NetworkAddressItem[] => {
-  if (!account.scopes?.length) {
-    return [];
-  }
-
-  const compatibleItems: NetworkAddressItem[] = [];
-
-  account.scopes.forEach((scope: CaipChainId) => {
-    if (scope.includes(':*') || scope.endsWith(':0')) {
-      // Wildcard scope - add all networks for this namespace
-      const namespace = scope.split(':')[0];
-      Object.entries(allNetworks).forEach(([chainId, network]) => {
-        if (chainId.split(':')[0] === namespace) {
-          compatibleItems.push(
-            createNetworkAddressItem(
-              chainId as CaipChainId,
-              network,
-              account.address,
-            ),
-          );
-        }
-      });
-    } else {
-      // Specific network scope
-      const network = allNetworks[scope];
-      if (network) {
-        compatibleItems.push(
-          createNetworkAddressItem(scope, network, account.address),
-        );
-      }
-    }
-  });
-
-  return compatibleItems;
-};

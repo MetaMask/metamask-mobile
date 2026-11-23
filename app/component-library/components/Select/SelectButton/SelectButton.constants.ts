@@ -1,6 +1,5 @@
 /* eslint-disable import-x/prefer-default-export */
 // External dependencies.
-import { TextVariant, TextColor } from '../../Texts/Text';
 import { IconName, IconColor, IconSize } from '../../Icons/Icon';
 import { VerticalAlignment } from '../../List/ListItem';
 import { AvatarSize } from '../../Avatars/Avatar';
@@ -18,10 +17,6 @@ import {
 export const DEFAULT_SELECTBUTTON_GAP = 8;
 export const DEFAULT_SELECTBUTTON_VERTICALALIGNMENT = VerticalAlignment.Center;
 export const DEFAULT_SELECTBUTTON_SIZE = SelectButtonSize.Md;
-export const DEFAULT_SELECTBUTTON_TITLE_TEXTVARIANT = TextVariant.BodyMD;
-export const DEFAULT_SELECTBUTTON_TITLE_TEXTCOLOR = TextColor.Default;
-export const DEFAULT_SELECTBUTTON_DESCRIPTION_TEXTVARIANT = TextVariant.BodySM;
-export const DEFAULT_SELECTBUTTON_DESCRIPTION_TEXTCOLOR = TextColor.Alternative;
 export const DEFAULT_SELECTBUTTON_CARETICON_ICONNAME = IconName.ArrowDown;
 export const DEFAULT_SELECTBUTTON_CARETICON_ICONCOLOR = IconColor.Default;
 

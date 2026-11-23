@@ -22,7 +22,7 @@ import {
   TAB_BAR_FLOATING_LABEL_LINE_HEIGHT,
 } from './TabBarFloating.constants';
 
-export interface TabBarFloatingItemProps {
+interface TabBarFloatingItemProps {
   iconName: IconName;
   label: string;
   isActive: boolean;

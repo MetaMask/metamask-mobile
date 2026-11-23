@@ -61,7 +61,7 @@ const screenHeight = Dimensions.get('window').height;
 
 const getHiddenTranslateY = (height: number) => -height;
 
-export const getIcon = (status: BaseNotificationStatus | undefined) => {
+const getIcon = (status: BaseNotificationStatus | undefined) => {
   switch (status) {
     case 'pending':
     case 'pending_withdrawal':
