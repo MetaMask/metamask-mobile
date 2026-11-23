@@ -183,10 +183,6 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.BATCH_INCOMPLETE]: 'perps.errors.batchIncomplete',
   [PERPS_ERROR_CODES.ORDERS_FAILED]: 'perps.errors.ordersFailed',
   [PERPS_ERROR_CODES.ORDER_NO_LONGER_OPEN]: 'perps.errors.orderNoLongerOpen',
-  [PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT]:
-    'perps.errors.orderScaleExposureExceedsIntent',
-  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED]:
-    'perps.errors.orderScaleSizeConservationFailed',
   [PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE]:
     'perps.errors.liquidationPriceUnavailable',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
@@ -300,6 +296,11 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.scaleNotionalTooSmall',
   [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
     'perps.errors.orderValidation.scalePreviewStale',
+  // Internal scale-order failures; not caused by user input
+  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED]:
+    'perps.errors.orderValidation.scaleSizeConservationFailed',
+  [PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT]:
+    'perps.errors.orderValidation.scaleExposureExceedsIntent',
   [PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID]:
     'perps.errors.orderValidation.chaseIntervalInvalid',
   [PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID]:
@@ -746,7 +747,7 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
       case PERPS_ERROR_CODES.PROVIDER_NOT_FOUND:
       case PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED:
         errorParams.providerId =
-          context?.providerId || normalizedError.providerId || 'Unknown';
+          context?.providerId || (normalizedError.providerId ?? 'Unknown');
         break;
       // Add other error codes that need parameters as they arise
       default:
