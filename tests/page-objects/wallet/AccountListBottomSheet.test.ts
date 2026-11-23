@@ -2,6 +2,7 @@ jest.mock('../../framework/Gestures', () => ({
   __esModule: true,
   default: {
     scrollIntoView: jest.fn(),
+    scrollIntoViewFullyVisible: jest.fn(),
     waitAndTap: jest.fn(),
     swipe: jest.fn(),
     longPress: jest.fn(),
@@ -160,14 +161,17 @@ describe('AccountListBottomSheet account creation visibility', () => {
   });
 
   describe('tapAddAccountButtonV2', () => {
-    it('scrolls the Add account control into view before tapping', async () => {
-      const tapTarget = createCell();
-      const scrollIntoView = jest.mocked(Gestures.scrollIntoView);
+    it('scrolls Add account fully clear of the tab bar, then re-queries before tap', async () => {
+      const preScrollTarget = createCell();
+      const postScrollTarget = createCell();
+      const scrollIntoViewFullyVisible = jest.mocked(
+        Gestures.scrollIntoViewFullyVisible,
+      );
       const waitAndTap = jest.mocked(Gestures.waitAndTap);
       jest
         .spyOn(AccountListBottomSheet, 'waitForAccountSyncToComplete')
         .mockResolvedValue();
-      jest
+      const getAddAccountButtonTapTarget = jest
         .spyOn(
           AccountListBottomSheet as unknown as {
             getAddAccountButtonTapTarget: (
@@ -176,27 +180,32 @@ describe('AccountListBottomSheet account creation visibility', () => {
           },
           'getAddAccountButtonTapTarget',
         )
-        .mockResolvedValue(tapTarget);
-      scrollIntoView.mockResolvedValue();
+        .mockResolvedValueOnce(preScrollTarget)
+        .mockResolvedValueOnce(postScrollTarget);
+      scrollIntoViewFullyVisible.mockResolvedValue();
       waitAndTap.mockResolvedValue();
 
       await AccountListBottomSheet.tapAddAccountButtonV2({
         syncTimeoutMs: 25_000,
       });
 
-      expect(scrollIntoView).toHaveBeenCalledWith(expect.any(Promise), {
-        direction: 'down',
-        maxScrolls: 10,
-      });
+      expect(scrollIntoViewFullyVisible).toHaveBeenCalledWith(
+        expect.any(Promise),
+        {
+          direction: 'down',
+          maxScrolls: 10,
+        },
+      );
+      expect(getAddAccountButtonTapTarget).toHaveBeenCalledTimes(2);
       expect(waitAndTap).toHaveBeenCalledWith(
         expect.any(Promise),
         expect.objectContaining({
           elemDescription: 'Add Account button in V2 multichain accounts',
         }),
       );
-      expect(scrollIntoView.mock.invocationCallOrder[0]).toBeLessThan(
-        waitAndTap.mock.invocationCallOrder[0],
-      );
+      expect(
+        scrollIntoViewFullyVisible.mock.invocationCallOrder[0],
+      ).toBeLessThan(waitAndTap.mock.invocationCallOrder[0]);
     });
   });
 
