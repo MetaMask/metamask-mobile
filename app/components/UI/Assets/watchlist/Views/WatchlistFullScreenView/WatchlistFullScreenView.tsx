@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition } from 'react-native-reanimated';
 import ReorderableList, {
@@ -17,8 +23,10 @@ import {
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
+  Icon,
   IconColor,
   IconName,
+  IconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -56,6 +64,7 @@ import WatchlistErrorRow from '../../../../Watchlist/WatchlistErrorRow';
 import PerpsMarketRowItem from '../../../../Perps/components/PerpsMarketRowItem/PerpsMarketRowItem';
 import { usePerpsNavigation } from '../../../../Perps/hooks/usePerpsNavigation';
 import { usePerpsWatchlistActions } from '../../../../Perps/hooks/usePerpsWatchlistActions';
+import { selectSelectedAccountGroupId } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   PERPS_EVENT_VALUE,
   type PerpsMarketData,
@@ -64,12 +73,6 @@ import {
   PerpsStreamProvider,
   type PerpsStreamManager,
 } from '../../../../Perps/providers/PerpsStreamManager';
-import Icon, {
-  IconColor as LegacyIconColor,
-  IconName as LegacyIconName,
-  IconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-
 const SKELETON_COUNT = 5;
 const ANIMATION_DURATION = 250;
 
@@ -111,7 +114,7 @@ const MixedPerpsRow = ({
   canUseLivePerpsPrices,
   onPress,
   onRemove,
-}: MixedPerpsRowProps) => {
+}: MixedPerpsRowProps): React.JSX.Element => {
   const { styles } = useStyles(styleSheet, {});
   const drag = useReorderableDrag();
   const rowClassName = isEditMode ? 'px-0' : '-mx-4 w-auto px-4';
@@ -151,9 +154,9 @@ const MixedPerpsRow = ({
       >
         <View style={styles.dragHandle} pointerEvents="none">
           <Icon
-            name={LegacyIconName.DragGrid}
+            name={IconName.Menu}
             size={IconSize.Md}
-            color={LegacyIconColor.Muted}
+            color={IconColor.IconMuted}
           />
         </View>
         <View style={styles.editableRowContent} pointerEvents="none">
@@ -173,7 +176,7 @@ const MixedPerpsRow = ({
   );
 };
 
-const LegacyWatchlistFullScreenView = () => {
+const LegacyWatchlistFullScreenView = (): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
@@ -407,8 +410,9 @@ const LegacyWatchlistFullScreenView = () => {
   );
 };
 
-const MixedWatchlistFullScreenView = () => {
+const MixedWatchlistFullScreenView = (): React.JSX.Element => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute();
@@ -422,7 +426,6 @@ const MixedWatchlistFullScreenView = () => {
     tokenCount,
     isInitialLoading,
     isOrderReady,
-    orderError,
     persistOrder,
     refresh,
   } = useUnifiedWatchlist();
@@ -437,7 +440,9 @@ const MixedWatchlistFullScreenView = () => {
     null,
   );
   const baselineItemsRef = useRef<UnifiedWatchlistItem[]>([]);
+  const draftAccountGroupIdRef = useRef<string | null | undefined>(undefined);
   const isCommittingRef = useRef(false);
+  const [commitError, setCommitError] = useState(false);
   const isEditMode = draftItems !== null;
   const {
     handleEditPress: handleTokenEditPress,
@@ -453,8 +458,19 @@ const MixedWatchlistFullScreenView = () => {
   const visibleItems = draftItems ?? items;
 
   const hasItems = visibleItems.length > 0;
-  const hasError = Boolean(tokens.error || perps.error || orderError);
+  const hasError = Boolean(tokens.error || perps.error);
   const isEmpty = !isInitialLoading && !hasItems && !hasError;
+
+  useEffect(() => {
+    if (!isEditMode || draftAccountGroupIdRef.current === accountGroupId) {
+      return;
+    }
+
+    baselineItemsRef.current = [];
+    draftAccountGroupIdRef.current = undefined;
+    setDraftItems(null);
+    setCommitError(false);
+  }, [accountGroupId, isEditMode]);
 
   useTrackWatchlistPageViewed({
     tokenCount,
@@ -480,13 +496,21 @@ const MixedWatchlistFullScreenView = () => {
   );
 
   const handleEditPress = useCallback(() => {
-    if (!isOrderReady) {
+    if (!isOrderReady || isInitialLoading) {
       return;
     }
     baselineItemsRef.current = visibleItems;
+    draftAccountGroupIdRef.current = accountGroupId;
+    setCommitError(false);
     setDraftItems(visibleItems);
     handleTokenEditPress();
-  }, [handleTokenEditPress, isOrderReady, visibleItems]);
+  }, [
+    accountGroupId,
+    handleTokenEditPress,
+    isInitialLoading,
+    isOrderReady,
+    visibleItems,
+  ]);
 
   const handleDonePress = useCallback(async () => {
     if (draftItems === null || isCommittingRef.current) {
@@ -494,6 +518,7 @@ const MixedWatchlistFullScreenView = () => {
     }
 
     isCommittingRef.current = true;
+    const draftAccountGroupId = draftAccountGroupIdRef.current;
     const baselineItems = baselineItemsRef.current;
     const draftKeys = draftItems.map((item) => item.key);
     const draftKeySet = new Set(draftKeys);
@@ -529,14 +554,23 @@ const MixedWatchlistFullScreenView = () => {
         restoredKeys,
       );
 
+      if (draftAccountGroupIdRef.current !== draftAccountGroupId) {
+        return;
+      }
+
       if (isOrderReady) {
         await persistOrder(finalOrder);
       }
+      setCommitError(false);
+      baselineItemsRef.current = [];
+      draftAccountGroupIdRef.current = undefined;
+      setDraftItems(null);
     } catch {
       // Membership hooks already restore their own state on failure.
+      if (draftAccountGroupIdRef.current === draftAccountGroupId) {
+        setCommitError(true);
+      }
     } finally {
-      baselineItemsRef.current = [];
-      setDraftItems(null);
       isCommittingRef.current = false;
     }
   }, [
@@ -652,7 +686,7 @@ const MixedWatchlistFullScreenView = () => {
       />
     );
     const editButton =
-      hasItems && isOrderReady ? (
+      hasItems && isOrderReady && !isInitialLoading ? (
         <ButtonIcon
           iconProps={{ color: IconColor.IconDefault }}
           iconName={IconName.Edit}
@@ -685,6 +719,7 @@ const MixedWatchlistFullScreenView = () => {
     hasItems,
     isEditMode,
     isGlassHeader,
+    isInitialLoading,
     isOrderReady,
   ]);
 
@@ -701,11 +736,11 @@ const MixedWatchlistFullScreenView = () => {
       );
     }
 
-    if (hasError && !hasItems) {
+    if (hasError && !hasItems && !commitError) {
       return <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />;
     }
 
-    if (!hasItems && !isEditMode) {
+    if (!hasItems && !isEditMode && !commitError) {
       return (
         <View style={styles.emptyContentContainer}>
           <WatchlistEmptyCTA source="watchlist_fullscreen_empty_cta" />
@@ -720,8 +755,11 @@ const MixedWatchlistFullScreenView = () => {
           isEditMode && styles.listContainerEditMode,
         ]}
       >
-        {hasError ? (
-          <WatchlistErrorRow onRetry={canRefresh ? refresh : undefined} />
+        {commitError ? (
+          <WatchlistErrorRow
+            message={strings('token_watchlist.save_error')}
+            onRetry={handleDonePress}
+          />
         ) : null}
         <ReorderableList
           data={visibleItems}
@@ -737,8 +775,10 @@ const MixedWatchlistFullScreenView = () => {
     );
   }, [
     canRefresh,
+    commitError,
     hasError,
     hasItems,
+    handleDonePress,
     handleReorder,
     isInitialLoading,
     isEditMode,
@@ -801,7 +841,7 @@ interface WatchlistFullScreenViewProps {
 
 const WatchlistFullScreenView = ({
   testStreamManager,
-}: WatchlistFullScreenViewProps = {}) => {
+}: WatchlistFullScreenViewProps = {}): React.JSX.Element => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
   const isUnifiedWatchlistEnabled =
     useSelector(selectUnifiedWatchlistEnabled) ||

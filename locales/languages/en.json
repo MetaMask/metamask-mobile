@@ -13934,6 +13934,7 @@
     "fullscreen_title": "Watchlist",
     "tokens_tab": "Tokens",
     "load_error": "Unable to load watchlist items",
+    "save_error": "Unable to save watchlist order",
     "retry": "Try again",
     "edit": "Edit",
     "done": "Done",

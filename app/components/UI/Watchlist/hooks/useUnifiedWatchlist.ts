@@ -47,6 +47,7 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     useSelector(selectPerpsWatchlistMarkets) ?? EMPTY_SYMBOLS;
   const networkTier = useNetworkTier();
   const [hardwareTier] = useState(() => getHardwareTier());
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const isPerpsEnabled =
     isTokenWatchlistEnabled && isUnifiedEnabled && isPerpsFeatureEnabled;
@@ -135,12 +136,6 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     () => buildWatchlistItems(tokens, perps),
     [perps, tokens],
   );
-  const isMixedOrderHydrationReady =
-    isPerpsEnabled &&
-    isTokenMetadataComplete &&
-    isPerpsMetadataTerminal &&
-    !isTokenMembershipLoading &&
-    !isPerpsLoading;
   const {
     orderedItems: items,
     isLoading: isOrderLoading,
@@ -148,9 +143,9 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     error: orderError,
     retry: retryOrder,
     persistOrder,
+    appendOrderKey,
   } = useWatchlistOrder(availableItems, {
     enabled: isPerpsEnabled,
-    isReady: isMixedOrderHydrationReady,
   });
 
   const suggestedPerps = useMemo(() => {
@@ -166,20 +161,25 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   }, [isOffline, isPerpsEnabled, markets, watchlistSymbols]);
 
   const refresh = useCallback(async () => {
+    setIsRefreshing(true);
     const refreshes: Promise<unknown>[] = [];
-    if (isTokenWatchlistEnabled) {
-      refreshes.push(refetchTokenMembership());
+    try {
+      if (isTokenWatchlistEnabled) {
+        refreshes.push(refetchTokenMembership());
+      }
+      if (!isOffline) {
+        refreshes.push(refetchTokens());
+      }
+      if (isPerpsEnabled && !isOffline) {
+        refreshes.push(refreshPerps());
+      }
+      if (isPerpsEnabled && orderError) {
+        refreshes.push(retryOrder());
+      }
+      await Promise.allSettled(refreshes);
+    } finally {
+      setIsRefreshing(false);
     }
-    if (!isOffline) {
-      refreshes.push(refetchTokens());
-    }
-    if (isPerpsEnabled && !isOffline) {
-      refreshes.push(refreshPerps());
-    }
-    if (isPerpsEnabled && orderError) {
-      refreshes.push(retryOrder());
-    }
-    await Promise.allSettled(refreshes);
   }, [
     isOffline,
     isPerpsEnabled,
@@ -220,11 +220,13 @@ export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
     tokenCount: isTokenWatchlistEnabled ? tokenMembershipAssetIds.length : 0,
     perpsCount: isPerpsEnabled ? watchlistSymbols.length : 0,
     isInitialLoading:
+      isRefreshing ||
       (isTokenWatchlistEnabled &&
         (isTokenMembershipLoading || (!isOffline && isTokenLoading))) ||
       (isPerpsEnabled && isPerpsLoading && !isOffline) ||
       isOrderLoading,
     persistOrder,
+    appendOrderKey,
     refresh,
   };
 };

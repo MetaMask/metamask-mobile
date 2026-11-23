@@ -32,7 +32,15 @@ const parseOrder = (value: string | null | undefined): string[] => {
     return [];
   }
 
-  const parsed: unknown = JSON.parse(value);
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    // Presentation order is recoverable state. A malformed payload must not
+    // block the watchlist; the next successful write replaces it.
+    return [];
+  }
+
   if (Array.isArray(parsed)) {
     return normalizeOrder(parsed);
   }
@@ -44,10 +52,10 @@ const parseOrder = (value: string | null | undefined): string[] => {
     parsed.version === WATCHLIST_ORDER_STORAGE_VERSION &&
     'keys' in parsed
   ) {
-    return normalizeOrder(parsed.keys);
+    return Array.isArray(parsed.keys) ? normalizeOrder(parsed.keys) : [];
   }
 
-  throw new Error('Unsupported watchlist order payload');
+  return [];
 };
 
 export const readWatchlistOrder = async (

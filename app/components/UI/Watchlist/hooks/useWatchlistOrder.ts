@@ -43,11 +43,13 @@ interface UseWatchlistOrderResult {
   error: string | null;
   retry: () => Promise<void>;
   persistOrder: (keys: string[]) => Promise<void>;
+  appendOrderKey: (key: string) => Promise<void>;
 }
 
 interface UseWatchlistOrderOptions {
   enabled: boolean;
-  isReady: boolean;
+  /** Kept for callers while mixed hydration readiness is tracked separately. */
+  isReady?: boolean;
 }
 
 const areOrdersEqual = (
@@ -60,11 +62,15 @@ const areOrdersEqual = (
 
 export const useWatchlistOrder = (
   availableItems: readonly UnifiedWatchlistItem[],
-  { enabled, isReady }: UseWatchlistOrderOptions,
+  { enabled }: UseWatchlistOrderOptions,
 ): UseWatchlistOrderResult => {
   const accountGroupId = useSelector(selectSelectedAccountGroupId);
   const queueKey = getOrderQueueKey(accountGroupId);
   const initializedPersistedOrderKeyRef = useRef<string | null>(null);
+  const fallbackOrderRef = useRef<{
+    queueKey: string;
+    keys: string[];
+  }>({ queueKey, keys: [] });
   const queryClient = useQueryClient();
   const queryKey = useMemo(
     () => [WATCHLIST_ORDER_QUERY_KEY, accountGroupId ?? 'default'],
@@ -78,7 +84,7 @@ export const useWatchlistOrder = (
     retry: WATCHLIST_ORDER_READ_RETRY_COUNT,
     retryDelay: 0,
   });
-  const canPersistOrder = enabled && isReady && orderQuery.isSuccess;
+  const canPersistOrder = enabled && orderQuery.isSuccess;
   useEffect(() => {
     if (
       orderQuery.isSuccess &&
@@ -100,15 +106,20 @@ export const useWatchlistOrder = (
       }
 
       const nextOrder = Array.from(new Set(keys));
-      queryClient.setQueryData(queryKey, nextOrder);
+      const availableKeys = new Set(availableItems.map((item) => item.key));
+      const preservedHydrationKeys = (orderQuery.data ?? []).filter(
+        (key) => !availableKeys.has(key) && !nextOrder.includes(key),
+      );
+      const orderToPersist = [...nextOrder, ...preservedHydrationKeys];
+      queryClient.setQueryData(queryKey, orderToPersist);
       try {
         await enqueueOrderWrite(accountGroupId, () =>
-          writeWatchlistOrder(accountGroupId, nextOrder),
+          writeWatchlistOrder(accountGroupId, orderToPersist),
         );
-        lastPersistedOrders.set(queueKey, nextOrder);
+        lastPersistedOrders.set(queueKey, orderToPersist);
       } catch (error) {
         const currentOrder = queryClient.getQueryData<string[]>(queryKey);
-        if (areOrdersEqual(currentOrder, nextOrder)) {
+        if (areOrdersEqual(currentOrder, orderToPersist)) {
           const persistedOrder = lastPersistedOrders.get(queueKey);
           if (persistedOrder === undefined) {
             queryClient.removeQueries({ queryKey });
@@ -119,15 +130,42 @@ export const useWatchlistOrder = (
         throw error;
       }
     },
-    [accountGroupId, canPersistOrder, queryClient, queryKey, queueKey],
+    [
+      accountGroupId,
+      availableItems,
+      canPersistOrder,
+      orderQuery.data,
+      queryClient,
+      queryKey,
+      queueKey,
+    ],
+  );
+  const appendOrderKey = useCallback(
+    async (key: string) => {
+      const currentOrder =
+        queryClient.getQueryData<string[]>(queryKey) ??
+        reconcileWatchlistItemOrder(orderQuery.data ?? [], availableItems);
+      await persistOrder([
+        ...currentOrder.filter((currentKey) => currentKey !== key),
+        key,
+      ]);
+    },
+    [availableItems, orderQuery.data, persistOrder, queryClient, queryKey],
   );
 
   const orderedKeys = useMemo(() => {
     if (!enabled || orderQuery.data === undefined) {
-      return availableItems.map((item) => item.key);
+      if (fallbackOrderRef.current.queueKey !== queueKey) {
+        fallbackOrderRef.current = { queueKey, keys: [] };
+      }
+      fallbackOrderRef.current.keys = reconcileWatchlistItemOrder(
+        fallbackOrderRef.current.keys,
+        availableItems,
+      );
+      return fallbackOrderRef.current.keys;
     }
     return reconcileWatchlistItemOrder(orderQuery.data, availableItems);
-  }, [availableItems, enabled, orderQuery.data]);
+  }, [availableItems, enabled, orderQuery.data, queueKey]);
   const itemsByKey = useMemo(
     () => new Map(availableItems.map((item) => [item.key, item])),
     [availableItems],
@@ -147,5 +185,6 @@ export const useWatchlistOrder = (
     error: orderQuery.error?.message ?? null,
     retry,
     persistOrder,
+    appendOrderKey,
   };
 };

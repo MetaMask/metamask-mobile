@@ -45,7 +45,8 @@ let mockChannelMarketsSnapshot: PerpsMarketData[] | null | undefined;
 const mockMarketData = {
   subscribe: mockSubscribe,
   refresh: mockRefresh,
-  getSnapshot: () => mockChannelMarketsSnapshot,
+  getSnapshot: (): PerpsMarketData[] | null | undefined =>
+    mockChannelMarketsSnapshot,
   getLastDeliveredAt: jest.fn((): number | null => Date.now()),
 };
 
@@ -314,6 +315,32 @@ describe('usePerpsMarkets', () => {
       expect(result.current.markets).toEqual([]);
       expect(result.current.error).toBeNull();
       expect(result.current.hasResolvedInitialData).toBe(true);
+    });
+
+    it('clears a previous error when an empty market update succeeds', async () => {
+      let emitMarkets: ((marketData: PerpsMarketData[]) => void) | undefined;
+      let emitError: ((error: Error) => void) | undefined;
+      mockSubscribe.mockImplementation(({ callback, onError }) => {
+        emitMarkets = callback;
+        emitError = onError;
+        return mockUnsubscribe;
+      });
+
+      const { result } = renderHook(() => usePerpsMarkets());
+
+      await waitFor(() => expect(mockSubscribe).toHaveBeenCalled());
+
+      act(() => {
+        emitError?.(new Error('Market stream failed'));
+      });
+      expect(result.current.error).toBe('Market stream failed');
+
+      act(() => {
+        emitMarkets?.([]);
+      });
+
+      expect(result.current.error).toBeNull();
+      expect(result.current.markets).toEqual([]);
     });
 
     it('returns to unresolved when the current market channel is cleared', async () => {

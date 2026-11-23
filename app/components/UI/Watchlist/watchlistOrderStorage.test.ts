@@ -39,16 +39,14 @@ describe('watchlistOrderStorage', () => {
     ]);
   });
 
-  it('rejects storage and corrupt-payload failures', async () => {
+  it('rejects storage failures and recovers from corrupt payloads', async () => {
     const storageError = new Error('storage unavailable');
     mockGetItem
       .mockRejectedValueOnce(storageError)
       .mockResolvedValueOnce('{not-json');
 
     await expect(readWatchlistOrder('group-1')).rejects.toBe(storageError);
-    await expect(readWatchlistOrder('group-1')).rejects.toBeInstanceOf(
-      SyntaxError,
-    );
+    await expect(readWatchlistOrder('group-1')).resolves.toEqual([]);
   });
 
   it('writes a deduplicated versioned payload', async () => {

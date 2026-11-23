@@ -1,6 +1,11 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
-import { render, screen, waitFor } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react-native';
 import WatchlistErrorRow from './WatchlistErrorRow';
 
 describe('WatchlistErrorRow', () => {
@@ -32,5 +37,14 @@ describe('WatchlistErrorRow', () => {
     render(<WatchlistErrorRow onRetry={jest.fn()} />);
 
     expect(screen.getByText('Try again')).toBeOnTheScreen();
+  });
+
+  it('calls retry when pressed', () => {
+    const onRetry = jest.fn();
+    render(<WatchlistErrorRow onRetry={onRetry} />);
+
+    fireEvent.press(screen.getByText('Try again'));
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 });

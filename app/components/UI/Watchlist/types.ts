@@ -50,5 +50,6 @@ export interface UnifiedWatchlistResult {
   perpsCount: number;
   isInitialLoading: boolean;
   persistOrder: (keys: string[]) => Promise<void>;
+  appendOrderKey: (key: string) => Promise<void>;
   refresh: () => Promise<void>;
 }

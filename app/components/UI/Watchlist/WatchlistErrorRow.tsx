@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import {
   Box,
@@ -14,10 +14,16 @@ import { strings } from '../../../../locales/i18n';
 
 interface WatchlistErrorRowProps {
   onRetry?: () => void;
+  message?: string;
 }
 
-const WatchlistErrorRow = ({ onRetry }: WatchlistErrorRowProps) => {
-  const message = strings('token_watchlist.load_error');
+const WatchlistErrorRow = ({
+  onRetry,
+  message = strings('token_watchlist.load_error'),
+}: WatchlistErrorRowProps): React.JSX.Element => {
+  const handleRetry = useCallback((): void => {
+    onRetry?.();
+  }, [onRetry]);
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(message);
@@ -27,7 +33,7 @@ const WatchlistErrorRow = ({ onRetry }: WatchlistErrorRowProps) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="justify-between px-4 py-3"
+      twClassName="justify-between py-3"
       testID="watchlist-error-row"
     >
       <Text
@@ -38,7 +44,7 @@ const WatchlistErrorRow = ({ onRetry }: WatchlistErrorRowProps) => {
         {message}
       </Text>
       {onRetry ? (
-        <ButtonBase size={ButtonBaseSize.Sm} onPress={onRetry}>
+        <ButtonBase size={ButtonBaseSize.Sm} onPress={handleRetry}>
           {strings('token_watchlist.retry')}
         </ButtonBase>
       ) : null}

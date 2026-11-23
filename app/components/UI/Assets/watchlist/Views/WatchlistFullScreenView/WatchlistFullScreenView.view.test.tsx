@@ -47,7 +47,7 @@ import Engine from '../../../../../../core/Engine';
 const NEWEST_FIRST_ASSET_IDS = [...mockWatchlistAssetIds].reverse();
 const SEARCH_TOKEN = mockTrendingTokensData[1];
 
-const getRowTestId = (assetId: string) =>
+const getRowTestId = (assetId: string): string =>
   getTrendingTokenRowItemTestId(assetId);
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
@@ -182,6 +182,9 @@ describeForPlatforms('WatchlistFullScreenView', () => {
     ).toBeOnTheScreen();
     expect(
       queryByTestId(getUnavailablePerpRowTestId('ETH')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(WatchlistFullScreenViewSelectorsIDs.EDIT_BUTTON),
     ).not.toBeOnTheScreen();
   });
 

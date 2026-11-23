@@ -36,14 +36,23 @@ const createToken = (key: string): UnifiedWatchlistToken => ({
   token: {} as TrendingAsset,
 });
 
-const createWrapper = () => {
+interface TestWrapperResult {
+  wrapper: ({ children }: { children: React.ReactNode }) => React.JSX.Element;
+  queryClient: QueryClient;
+}
+
+const createWrapper = (): TestWrapperResult => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity } },
   });
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  const wrapper = ({
+    children,
+  }: {
+    children: React.ReactNode;
+  }): React.JSX.Element => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
-  return { Wrapper, queryClient };
+  return { wrapper, queryClient };
 };
 
 describe('useWatchlistOrder', () => {
@@ -57,21 +66,83 @@ describe('useWatchlistOrder', () => {
     const tokenA = createToken('token:a');
     const tokenB = createToken('token:b');
     mockedReadWatchlistOrder.mockResolvedValue([tokenB.key, tokenA.key]);
-    const { Wrapper } = createWrapper();
+    const { wrapper } = createWrapper();
     const { result } = renderHook(
       () =>
         useWatchlistOrder([tokenA, tokenB], {
           enabled: true,
           isReady: false,
         }),
-      { wrapper: Wrapper },
+      { wrapper },
     );
 
     await waitFor(() =>
       expect(result.current.orderedItems).toEqual([tokenB, tokenA]),
     );
-    expect(result.current.isReady).toBe(false);
+    expect(result.current.isReady).toBe(true);
     expect(mockedWriteWatchlistOrder).not.toHaveBeenCalled();
+  });
+
+  it('preserves persisted rows that are not hydrated during an early edit', async () => {
+    const tokenA = createToken('token:a');
+    const unavailablePerpKey = 'perp:btc';
+    mockedReadWatchlistOrder.mockResolvedValue([
+      unavailablePerpKey,
+      tokenA.key,
+    ]);
+    const { wrapper } = createWrapper();
+    const { result } = renderHook(
+      () =>
+        useWatchlistOrder([tokenA], {
+          enabled: true,
+          isReady: false,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    await act(async () => {
+      await result.current.persistOrder([tokenA.key]);
+    });
+
+    expect(mockedWriteWatchlistOrder).toHaveBeenCalledWith('group-1', [
+      tokenA.key,
+      unavailablePerpKey,
+    ]);
+  });
+
+  it('keeps new items at the end while persisted order is loading', async () => {
+    const tokenA = createToken('token:a');
+    const tokenB = createToken('token:b');
+    let resolveRead: ((order: string[]) => void) | undefined;
+    mockedReadWatchlistOrder.mockImplementation(
+      () =>
+        new Promise<string[]>((resolve) => {
+          resolveRead = resolve;
+        }),
+    );
+    const { wrapper } = createWrapper();
+    const { result, rerender } = renderHook(
+      ({ items }: { items: UnifiedWatchlistToken[] }) =>
+        useWatchlistOrder(items, { enabled: true }),
+      {
+        initialProps: { items: [tokenA] },
+        wrapper,
+      },
+    );
+
+    await waitFor(() => expect(resolveRead).toBeDefined());
+    rerender({ items: [tokenB, tokenA] });
+
+    expect(result.current.orderedItems).toEqual([tokenA, tokenB]);
+
+    await act(async () => {
+      resolveRead?.([tokenA.key]);
+    });
+    await waitFor(() =>
+      expect(result.current.orderedItems).toEqual([tokenA, tokenB]),
+    );
   });
 
   it('serializes overlapping writes and persists the newest order last', async () => {
@@ -92,14 +163,14 @@ describe('useWatchlistOrder', () => {
         resolveSecondWrite = resolve;
       });
     });
-    const { Wrapper, queryClient } = createWrapper();
+    const { wrapper, queryClient } = createWrapper();
     const { result } = renderHook(
       () =>
         useWatchlistOrder([tokenA, tokenB], {
           enabled: true,
           isReady: true,
         }),
-      { wrapper: Wrapper },
+      { wrapper },
     );
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
@@ -140,14 +211,14 @@ describe('useWatchlistOrder', () => {
     const tokenB = createToken('token:b');
     mockedReadWatchlistOrder.mockResolvedValue([tokenA.key, tokenB.key]);
     mockedWriteWatchlistOrder.mockRejectedValue(new Error('write failed'));
-    const { Wrapper, queryClient } = createWrapper();
+    const { wrapper, queryClient } = createWrapper();
     const { result } = renderHook(
       () =>
         useWatchlistOrder([tokenA, tokenB], {
           enabled: true,
           isReady: true,
         }),
-      { wrapper: Wrapper },
+      { wrapper },
     );
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
@@ -167,6 +238,36 @@ describe('useWatchlistOrder', () => {
     ]);
   });
 
+  it('appends keys from the latest cached order', async () => {
+    const tokenA = createToken('token:a');
+    const tokenB = createToken('token:b');
+    mockedReadWatchlistOrder.mockResolvedValue([tokenA.key, tokenB.key]);
+    const { wrapper, queryClient } = createWrapper();
+    const { result } = renderHook(
+      () =>
+        useWatchlistOrder([tokenA, tokenB], {
+          enabled: true,
+          isReady: true,
+        }),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.isReady).toBe(true));
+
+    await act(async () => {
+      await Promise.all([
+        result.current.appendOrderKey('token:c'),
+        result.current.appendOrderKey('token:d'),
+      ]);
+    });
+
+    expect(queryClient.getQueryData(['watchlist-order', 'group-1'])).toEqual([
+      tokenA.key,
+      tokenB.key,
+      'token:c',
+      'token:d',
+    ]);
+  });
+
   it('rolls back overlapping failed writes to the durable order', async () => {
     const tokenA = createToken('token:a');
     const tokenB = createToken('token:b');
@@ -174,14 +275,14 @@ describe('useWatchlistOrder', () => {
     const durableOrder = [tokenA.key, tokenB.key, tokenC.key];
     mockedReadWatchlistOrder.mockResolvedValue(durableOrder);
     mockedWriteWatchlistOrder.mockRejectedValue(new Error('write failed'));
-    const { Wrapper, queryClient } = createWrapper();
+    const { wrapper, queryClient } = createWrapper();
     const { result } = renderHook(
       () =>
         useWatchlistOrder([tokenA, tokenB, tokenC], {
           enabled: true,
           isReady: true,
         }),
-      { wrapper: Wrapper },
+      { wrapper },
     );
     await waitFor(() => expect(result.current.isReady).toBe(true));
 
