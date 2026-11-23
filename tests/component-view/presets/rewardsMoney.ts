@@ -1,4 +1,5 @@
 import type {
+  AddressTotalsDto,
   ClaimDto,
   CommissionEntryView,
   EarningsSummaryDto,
@@ -222,6 +223,24 @@ function totals(
     pending: '0',
     claimed: '0',
     ...overrides,
+  };
+}
+
+/**
+ * One `by_address` row of a claim family. `address` is the full
+ * `namespace:address` form the backend returns, such as `eip155:0x…`.
+ */
+export function byAddressRowFixture(
+  address: string,
+  claimable = '1000000',
+): AddressTotalsDto {
+  return {
+    address,
+    lifetime: claimable,
+    claimable,
+    pending: '0',
+    claimed: '0',
+    voided: '0',
   };
 }
 

@@ -13,6 +13,7 @@ import { TAX_FORM_QUESTION_SHEET_TEST_IDS } from '../TaxFormQuestionSheet.testId
 import { getRouteParamsProbeTestId } from '../../../../../../../tests/component-view/render';
 import { renderEarningsTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
 import {
+  byAddressRowFixture,
   CLAIMED_EARNINGS_SUMMARY,
   earningsSummaryFixture,
   EXACT_DOLLAR_EARNINGS_SUMMARY,
@@ -88,17 +89,6 @@ const ONE_DOLLAR = '1000000';
 const EARNED_ELSEWHERE_COPY =
   'Some earnings belong to accounts not on this device. Import the wallet to claim.';
 
-function addressRow(address: string) {
-  return {
-    address: `eip155:${address}`,
-    lifetime: ONE_DOLLAR,
-    claimable: ONE_DOLLAR,
-    pending: '0',
-    claimed: '0',
-    voided: '0',
-  };
-}
-
 function installDeviceKeyring(address: string) {
   const keyrings = Engine.context.KeyringController.state.keyrings as {
     type: string;
@@ -109,18 +99,6 @@ function installDeviceKeyring(address: string) {
     keyrings.length = 0;
   };
 }
-async function authorizedClaim() {
-  return {
-    kind: 'authorized',
-    body: {
-      claim: { id: 'claim-1' },
-      voucher: null,
-      excluded: [],
-      status: 'OPENED',
-    },
-  };
-}
-
 /** Proof asks for both addresses. The narrowed retry is accepted without signing. */
 async function mixedAddressClaim(route: unknown, body: unknown) {
   const request = (body ?? {}) as Record<string, unknown>;
@@ -129,7 +107,7 @@ async function mixedAddressClaim(route: unknown, body: unknown) {
     request.earning_addresses ||
     request.proofs
   ) {
-    return authorizedClaim();
+    return openedClaim();
   }
   return {
     kind: 'proof_required',
@@ -162,8 +140,8 @@ function mixedSignSummary() {
     followTradeClaimable: ONE_DOLLAR,
   });
   summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address = [
-    addressRow(ELSEWHERE),
-    addressRow(ON_DEVICE),
+    byAddressRowFixture(`eip155:${ELSEWHERE}`),
+    byAddressRowFixture(`eip155:${ON_DEVICE}`),
   ];
   summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE.claimable =
     ONE_DOLLAR;
@@ -172,7 +150,10 @@ function mixedSignSummary() {
   if (!followTrade) {
     throw new Error('follow-trade family missing from the fixture');
   }
-  followTrade.by_address = [addressRow(ELSEWHERE), addressRow(ON_DEVICE)];
+  followTrade.by_address = [
+    byAddressRowFixture(`eip155:${ELSEWHERE}`),
+    byAddressRowFixture(`eip155:${ON_DEVICE}`),
+  ];
   return summary;
 }
 
@@ -734,7 +715,7 @@ describe('EarningsTab', () => {
       cashbackClaimable: ONE_DOLLAR,
     });
     summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-      [addressRow(ELSEWHERE)];
+      [byAddressRowFixture(`eip155:${ELSEWHERE}`)];
 
     const { findByText, getByTestId, queryByTestId, engine } =
       renderEarningsTab({
@@ -767,7 +748,10 @@ describe('EarningsTab', () => {
         cashbackClaimable: ONE_DOLLAR,
       });
       summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-        [addressRow(ELSEWHERE), addressRow(ON_DEVICE)];
+        [
+          byAddressRowFixture(`eip155:${ELSEWHERE}`),
+          byAddressRowFixture(`eip155:${ON_DEVICE}`),
+        ];
 
       const { findByTestId, findByText, getByTestId, engine } =
         renderEarningsTab({
@@ -945,7 +929,7 @@ describe('EarningsTab', () => {
     if (!followTrade) {
       throw new Error('follow-trade family missing from the fixture');
     }
-    followTrade.by_address = [addressRow(ELSEWHERE)];
+    followTrade.by_address = [byAddressRowFixture(`eip155:${ELSEWHERE}`)];
 
     const { findByText, getByTestId, queryByTestId } = renderEarningsTab({
       persona: 'referrer',
@@ -976,7 +960,7 @@ describe('EarningsTab', () => {
       revShareLifetime: ONE_DOLLAR,
     });
     summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-      [addressRow(ELSEWHERE)];
+      [byAddressRowFixture(`eip155:${ELSEWHERE}`)];
     summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE.claimable =
       ONE_DOLLAR;
 
@@ -1031,7 +1015,7 @@ describe('EarningsTab', () => {
       revShareLifetime: ONE_DOLLAR,
     });
     summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-      [addressRow(ELSEWHERE)];
+      [byAddressRowFixture(`eip155:${ELSEWHERE}`)];
     summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE = {
       ...summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE,
       claimable: '0',
@@ -1084,7 +1068,7 @@ describe('EarningsTab', () => {
       revShareLifetime: ONE_DOLLAR,
     });
     summary.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-      [addressRow(ELSEWHERE)];
+      [byAddressRowFixture(`eip155:${ELSEWHERE}`)];
     summary.earned_by_others.by_claim_family.REFERRAL_REV_SHARE.claimable =
       ONE_DOLLAR;
 

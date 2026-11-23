@@ -17,6 +17,7 @@ import type {
   LedgerEarningEntryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import Engine from '../../../../core/Engine';
+import { byAddressRowFixture } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { isMonadMainnetChainId } from '../../../../util/networks';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
@@ -347,17 +348,6 @@ describe('selectClaimRoutes', () => {
 const ON_DEVICE = 'eip155:0x1111111111111111111111111111111111111111';
 const ELSEWHERE = 'eip155:0x3333333333333333333333333333333333333333';
 
-function addressRow(address: string, claimable: string) {
-  return {
-    address,
-    lifetime: claimable,
-    claimable,
-    pending: '0',
-    claimed: '0',
-    voided: '0',
-  };
-}
-
 describe('claimWaitCaption', () => {
   const text = {
     claimFailureWaitMinutesToast: 'Try again in {minutes} minutes.',
@@ -411,14 +401,14 @@ describe('routesSignableOnDevice', () => {
       cashback: ONE_DOLLAR,
     });
     cashback.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-      [addressRow(ELSEWHERE, ONE_DOLLAR)];
+      [byAddressRowFixture(ELSEWHERE, ONE_DOLLAR)];
     const follow = summary({
       claimable: ONE_DOLLAR,
       followTrade: ONE_DOLLAR,
       cashback: '0',
     });
     follow.earned_by_others.by_claim_family.SOCIAL_FOLLOW_TRADE.by_address = [
-      addressRow(ELSEWHERE, ONE_DOLLAR),
+      byAddressRowFixture(ELSEWHERE, ONE_DOLLAR),
     ];
 
     expect(
@@ -447,7 +437,10 @@ describe('routesSignableOnDevice', () => {
       cashback: ONE_DOLLAR,
     });
     cashback.self_earned.by_claim_family.REFERRAL_TRADE_FEE_CASHBACK.by_address =
-      [addressRow(ELSEWHERE, ONE_DOLLAR), addressRow(ON_DEVICE, ONE_DOLLAR)];
+      [
+        byAddressRowFixture(ELSEWHERE, ONE_DOLLAR),
+        byAddressRowFixture(ON_DEVICE, ONE_DOLLAR),
+      ];
 
     expect(
       routesSignableOnDevice(
