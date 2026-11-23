@@ -627,7 +627,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   hasPaymentOption && (
                     <>
                       <PayWithRow isResultReady />
-                      <DepositToRow />
+                      <DepositToRow isResultReady />
                     </>
                   )
                 ))}

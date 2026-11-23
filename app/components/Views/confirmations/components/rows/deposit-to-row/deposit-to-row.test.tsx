@@ -12,8 +12,10 @@ import {
   isPerpsLighterConfirmationEnabled,
 } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { POLYGON_PUSD } from '../../../constants/predict';
+import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 import { useIsMoneyAccountPaymentOverride } from '../../../hooks/pay/useIsMoneyAccountPaymentOverride';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { PayWithOption } from '../../confirm/confirm-component';
 import { TokenIconProps } from '../../token-icon';
@@ -24,8 +26,10 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
+jest.mock('../../../hooks/pay/useIsMoneyAccountFlagDefault');
 jest.mock('../../../hooks/pay/useIsMoneyAccountPaymentOverride');
 jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
+jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsLighterProviderEnabledFlag: jest.fn(),
 }));
@@ -46,12 +50,16 @@ const useParamsMock = jest.mocked(useParams);
 const useTransactionMetadataRequestMock = jest.mocked(
   useTransactionMetadataRequest,
 );
+const useIsMoneyAccountFlagDefaultMock = jest.mocked(
+  useIsMoneyAccountFlagDefault,
+);
 const useIsMoneyAccountPaymentOverrideMock = jest.mocked(
   useIsMoneyAccountPaymentOverride,
 );
 const useTransactionPaySelectedFiatPaymentMethodMock = jest.mocked(
   useTransactionPaySelectedFiatPaymentMethod,
 );
+const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
 const selectPerpsLighterProviderEnabledFlagMock = jest.mocked(
   selectPerpsLighterProviderEnabledFlag,
 );
@@ -60,8 +68,8 @@ const isPerpsLighterConfirmationEnabledMock = jest.mocked(
   isPerpsLighterConfirmationEnabled,
 );
 
-function renderRow() {
-  return renderWithProvider(<DepositToRow />, {
+function renderRow(props?: { isResultReady?: boolean }) {
+  return renderWithProvider(<DepositToRow {...props} />, {
     state: { engine: { backgroundState } },
   });
 }
@@ -70,8 +78,12 @@ describe('DepositToRow', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     useParamsMock.mockReturnValue({});
+    useIsMoneyAccountFlagDefaultMock.mockReturnValue(false);
     useIsMoneyAccountPaymentOverrideMock.mockReturnValue(false);
     useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
     selectPerpsLighterProviderEnabledFlagMock.mockReturnValue(false);
     isLighterProviderEnabledMock.mockReturnValue(false);
     isPerpsLighterConfirmationEnabledMock.mockReturnValue(false);
@@ -155,6 +167,45 @@ describe('DepositToRow', () => {
       expect(queryByTestId(DepositToRowIDs.ROW)).toBeNull();
     },
   );
+
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'returns null for %s when MoneyAccount flag default is active before a token or result loads',
+    (type) => {
+      useIsMoneyAccountFlagDefaultMock.mockReturnValue(true);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type,
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { queryByTestId } = renderRow();
+
+      expect(queryByTestId(DepositToRowIDs.ROW)).toBeNull();
+    },
+  );
+
+  it('renders when MoneyAccount flag default is active once payToken is selected', () => {
+    useIsMoneyAccountFlagDefaultMock.mockReturnValue(true);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: { symbol: 'USDC' },
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByTestId } = renderRow();
+
+    expect(getByTestId(DepositToRowIDs.ROW)).toBeOnTheScreen();
+  });
+
+  it('renders when MoneyAccount flag default is active once isResultReady is true', () => {
+    useIsMoneyAccountFlagDefaultMock.mockReturnValue(true);
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.perpsDeposit,
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { getByTestId } = renderRow({ isResultReady: true });
+
+    expect(getByTestId(DepositToRowIDs.ROW)).toBeOnTheScreen();
+  });
 
   it('returns null when a fiat payment method is selected', () => {
     useTransactionMetadataRequestMock.mockReturnValue({

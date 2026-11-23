@@ -27,8 +27,10 @@ import {
 } from '../../../../../UI/Perps/utils/lighterFeatureFlags';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
 import { POLYGON_PUSD } from '../../../constants/predict';
+import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccountFlagDefault';
 import { useIsMoneyAccountPaymentOverride } from '../../../hooks/pay/useIsMoneyAccountPaymentOverride';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   ConfirmationParams,
@@ -43,11 +45,15 @@ export const DepositToRowIDs = {
   VALUE: 'deposit-to-value',
 } as const;
 
-function DepositToRowComponent() {
+function DepositToRowComponent({
+  isResultReady,
+}: { isResultReady?: boolean } = {}) {
   const tw = useTailwind();
   const transactionMeta = useTransactionMetadataRequest();
   const { payWithOption } = useParams<ConfirmationParams>({});
+  const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
   const isMoneyAccountOverride = useIsMoneyAccountPaymentOverride();
+  const { payToken } = useTransactionPayToken();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
   const lighterProviderFlagEnabled = useSelector(
@@ -68,7 +74,8 @@ function DepositToRowComponent() {
   if (
     payWithOption === PayWithOption.MoneyAccount ||
     isMoneyAccountOverride ||
-    selectedFiatPaymentMethod
+    selectedFiatPaymentMethod ||
+    (isDefaultMoneyAccount && !payToken && !isResultReady)
   ) {
     return null;
   }
