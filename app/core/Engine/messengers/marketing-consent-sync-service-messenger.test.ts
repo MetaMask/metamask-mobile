@@ -6,9 +6,7 @@ describe('getMarketingConsentSyncServiceMessenger', () => {
     const rootMessenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
-    const messenger = getMarketingConsentSyncServiceMessenger(
-      rootMessenger as never,
-    );
+    const messenger = getMarketingConsentSyncServiceMessenger(rootMessenger);
 
     expect(messenger).toBeInstanceOf(Messenger);
     expect(delegateSpy).toHaveBeenCalledWith({

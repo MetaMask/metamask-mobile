@@ -19,7 +19,7 @@ import Logger from '../../util/Logger';
 import { selectMarketingConsent } from '../../selectors/analyticsController';
 import { selectAttributionRecord } from '../../selectors/attribution';
 
-const saveMarketingConsent = (enabled: boolean) =>
+const saveMarketingConsent = async (enabled: boolean) =>
   Engine.controllerMessenger.call(
     'MarketingConsentSyncService:setMarketingConsent',
     enabled,
