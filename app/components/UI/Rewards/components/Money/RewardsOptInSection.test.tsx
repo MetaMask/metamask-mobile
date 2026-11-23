@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import type { RootState } from '../../../../../reducers';
+import { strings } from '../../../../../../locales/i18n';
 import RewardsOptInSection, {
   REWARDS_OPT_IN_SECTION_TEST_IDS,
 } from './RewardsOptInSection';
@@ -121,6 +122,37 @@ describe('RewardsOptInSection', () => {
       getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
         .accessibilityState?.disabled,
     ).toBe(true);
+  });
+
+  it('shows the campaign legal line when no legal copy is served', () => {
+    const { getByText } = render(
+      <RewardsOptInSection
+        localizedText={{ ...LOCALIZED_TEXT, invitedOptInLegal: undefined }}
+      />,
+    );
+
+    expect(
+      getByText(strings('rewards.campaign.opt_in_section_legal')),
+    ).toBeOnTheScreen();
+  });
+
+  it('falls back to the campaign copy when the served description and action are missing', () => {
+    const { getByTestId, getByText } = render(
+      <RewardsOptInSection
+        localizedText={{
+          invitedOptInDescription: undefined,
+          invitedOptInAction: undefined,
+        }}
+      />,
+    );
+
+    expect(
+      getByText(strings('rewards.campaign.opt_in_section_description')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
+        .accessibilityLabel,
+    ).toBe(strings('rewards.campaign.opt_in_cta'));
   });
 
   it('disables the CTA and explains when the region is unsupported', () => {
