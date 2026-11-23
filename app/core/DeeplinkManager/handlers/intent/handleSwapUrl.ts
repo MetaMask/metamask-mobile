@@ -413,8 +413,8 @@ export const createSwapDeeplinkIntent = async ({
   const routeParams = await resolveSwapRouteParams(swapPath);
   const intent: DeeplinkIntent = {
     target: bridgeTarget(routeParams),
-    // Intent executors read `target` after `prepare`, so the Swap View Loaded
-    // trace starts here, immediately before navigation, rather than at resolve.
+    // Executors read `target` after `prepare`, so the trace starts just before
+    // navigation instead of at resolve.
     prepare: () => {
       resetSwapSessionBeforeDeeplink();
       intent.target = bridgeTarget(
@@ -427,16 +427,7 @@ export const createSwapDeeplinkIntent = async ({
   return intent;
 };
 
-let isSwapDeeplinkInFlight = false;
-
 export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
-  // Repeated in-app deeplink deliveries would otherwise each open a Bridge
-  // view and start an overlapping Swap View Loaded trace.
-  if (isSwapDeeplinkInFlight) {
-    return;
-  }
-  isSwapDeeplinkInFlight = true;
-
   const initialRouteParams = getInitialRouteParams(getSwapUrlParams(swapPath));
 
   try {
@@ -458,7 +449,5 @@ export const handleSwapUrl = async ({ swapPath }: HandleSwapUrlParams) => {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params,
     });
-  } finally {
-    isSwapDeeplinkInFlight = false;
   }
 };

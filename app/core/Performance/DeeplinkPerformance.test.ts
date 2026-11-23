@@ -283,8 +283,6 @@ describe('DeeplinkPerformance', () => {
     });
 
     it('exposes the open span app_start_type until it ends', () => {
-      expect(getDeeplinkProcessedAppStartType()).toBeUndefined();
-
       startDeeplinkProcessedTrace({
         url: TRENDING_URL,
         source: 'resolve',

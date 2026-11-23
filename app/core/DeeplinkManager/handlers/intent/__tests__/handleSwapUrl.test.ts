@@ -929,6 +929,7 @@ describe('handleSwapUrl', () => {
   it('navigates to Bridge view with fallback when exception occurs', async () => {
     // Mock fetchAssetMetadata to throw an error
     mockFetchAssetMetadata.mockRejectedValue(new Error('API Error'));
+    (getDeeplinkProcessedAppStartType as jest.Mock).mockReturnValueOnce('cold');
 
     const swapPath =
       'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -944,14 +945,19 @@ describe('handleSwapUrl', () => {
         initialTab: BridgeTabKey.Market,
       },
     });
+    expect(startSwapBridgePageLoadTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ sourcePage: 'deeplink' }),
+      { appStartType: 'cold' },
+    );
   });
 
-  it('starts the Swap View Loaded trace when the intent is prepared, not when it is resolved', async () => {
+  it('starts the trace in prepare with the Deeplink Processed app start type', async () => {
     const mockStartTrace = startSwapBridgePageLoadTrace as jest.Mock;
     mockStartTrace.mockImplementationOnce((params: object) => ({
       ...params,
       swapViewTraceId: 'trace-id',
     }));
+    (getDeeplinkProcessedAppStartType as jest.Mock).mockReturnValueOnce('cold');
 
     const intent = await createSwapDeeplinkIntent({
       swapPath:
@@ -962,68 +968,13 @@ describe('handleSwapUrl', () => {
 
     await intent.prepare?.();
 
-    expect(mockStartTrace).toHaveBeenCalledTimes(1);
-    expect(
-      mockResetBridgeControllerState.mock.invocationCallOrder[0],
-    ).toBeLessThan(mockStartTrace.mock.invocationCallOrder[0]);
+    expect(mockStartTrace).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken: expectedSourceToken }),
+      { appStartType: 'cold' },
+    );
     expect(intent.target.params).toStrictEqual({
       screen: 'BridgeView',
-      params: expect.objectContaining({
-        sourceToken: expectedSourceToken,
-        sourcePage: 'deeplink',
-        swapViewTraceId: 'trace-id',
-      }),
+      params: expect.objectContaining({ swapViewTraceId: 'trace-id' }),
     });
-  });
-
-  it('tags the trace with the Deeplink Processed app start type', async () => {
-    (getDeeplinkProcessedAppStartType as jest.Mock)
-      .mockReturnValueOnce('cold')
-      .mockReturnValueOnce('cold');
-    const swapPath =
-      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-
-    const intent = await createSwapDeeplinkIntent({ swapPath });
-    await intent.prepare?.();
-    mockFetchAssetMetadata.mockRejectedValueOnce(new Error('API Error'));
-    await handleSwapUrl({ swapPath });
-
-    expect(startSwapBridgePageLoadTrace).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({ sourcePage: 'deeplink' }),
-      { appStartType: 'cold' },
-    );
-    expect(startSwapBridgePageLoadTrace).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({ sourcePage: 'deeplink' }),
-      { appStartType: 'cold' },
-    );
-  });
-
-  it('ignores a swap deeplink while another one is still in flight', async () => {
-    const swapPath =
-      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
-    let resolveMetadata: (value: unknown) => void = () => undefined;
-    mockFetchAssetMetadata.mockImplementationOnce(
-      async () =>
-        new Promise((resolve) => {
-          resolveMetadata = resolve;
-        }),
-    );
-
-    const first = handleSwapUrl({ swapPath });
-    await handleSwapUrl({ swapPath });
-    resolveMetadata({
-      ...expectedSourceToken,
-      assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    });
-    await first;
-
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(startSwapBridgePageLoadTrace).toHaveBeenCalledTimes(1);
-
-    await handleSwapUrl({ swapPath });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
   });
 });

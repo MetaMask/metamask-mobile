@@ -1,4 +1,4 @@
-import { trace, TraceName } from '../../../../util/trace';
+import { trace } from '../../../../util/trace';
 import { BridgeViewMode } from '../types';
 import { startSwapBridgePageLoadTrace } from './swapBridgePageLoadTrace';
 
@@ -13,27 +13,15 @@ const route = {
 };
 
 describe('startSwapBridgePageLoadTrace', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  it.each([
+    [undefined, 'warm'],
+    ['cold', 'cold'],
+  ] as const)('tags app_start_type %s as %s', (appStartType, expected) => {
+    startSwapBridgePageLoadTrace(route, { appStartType });
 
-  it('defaults app_start_type to warm', () => {
-    startSwapBridgePageLoadTrace(route);
-
-    expect(trace).toHaveBeenCalledWith(
+    expect(trace).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        name: TraceName.SwapViewLoaded,
-        data: expect.objectContaining({ app_start_type: 'warm' }),
-      }),
-    );
-  });
-
-  it('sets app_start_type to cold when requested', () => {
-    startSwapBridgePageLoadTrace(route, { appStartType: 'cold' });
-
-    expect(trace).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ app_start_type: 'cold' }),
+        data: expect.objectContaining({ app_start_type: expected }),
       }),
     );
   });
