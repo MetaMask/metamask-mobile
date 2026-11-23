@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import {
+  buildOutcome,
   loadPriorIndex,
   queueDeferredDaysAsGaps,
   renderBuildSummary,
@@ -178,5 +179,31 @@ describe('queueDeferredDaysAsGaps', () => {
       '2026-09-21',
       '2026-09-22',
     ]);
+  });
+});
+
+describe('buildOutcome', () => {
+  it('is fine when at least one walked day finished', () => {
+    expect(
+      buildOutcome({ attemptedDays: 3, gapDays: 2, runsScanned: 400 }),
+    ).toBe('ok');
+  });
+
+  it('is fine when nothing needed walking', () => {
+    expect(
+      buildOutcome({ attemptedDays: 0, gapDays: 0, runsScanned: 0 }),
+    ).toBe('ok');
+  });
+
+  it('publishes with a warning when every day was incomplete but runs were read', () => {
+    expect(
+      buildOutcome({ attemptedDays: 3, gapDays: 3, runsScanned: 474 }),
+    ).toBe('warn');
+  });
+
+  it('fails when every day was incomplete and no run could be read', () => {
+    expect(
+      buildOutcome({ attemptedDays: 3, gapDays: 3, runsScanned: 0 }),
+    ).toBe('fail');
   });
 });

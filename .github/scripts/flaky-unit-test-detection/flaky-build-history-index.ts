@@ -289,14 +289,42 @@ async function main(): Promise<void> {
   core.setOutput('gap_days', String(gapDays.length));
   core.setOutput('tests_tracked', String(Object.keys(index.entries).length));
 
-  // A build that walked nothing it was asked to walk has not moved the index
-  // forward, and a silent nightly is how an index rots unnoticed. Deferred
-  // days were not walked, so they do not count as either success or failure.
-  if (attempted.length > 0 && gapDays.length === attempted.length) {
-    core.setFailed(
-      `Every one of the ${attempted.length} day(s) this build walked was left incomplete.`,
+  // A silent nightly is how an index rots unnoticed, so a build that learned
+  // nothing at all fails. A build that read runs but could not finish a day has
+  // still moved the index forward — it advanced the newest day, kept the hits it
+  // found and queued the day for a re-walk — and publishing that is what lets a
+  // backlog drain instead of failing every night until the API is healthy.
+  const outcome = buildOutcome({
+    attemptedDays: attempted.length,
+    gapDays: gapDays.length,
+    runsScanned,
+  });
+  if (outcome === 'warn') {
+    core.warning(
+      `Every one of the ${attempted.length} day(s) this build walked was left incomplete; the index was still extended and the days stay queued as gaps.`,
     );
   }
+  if (outcome === 'fail') {
+    core.setFailed(
+      `Every one of the ${attempted.length} day(s) this build walked was left incomplete and no run could be read.`,
+    );
+  }
+}
+
+export function buildOutcome({
+  attemptedDays,
+  gapDays,
+  runsScanned,
+}: {
+  attemptedDays: number;
+  gapDays: number;
+  runsScanned: number;
+}): 'ok' | 'warn' | 'fail' {
+  // Deferred days were not walked, so they count as neither success nor failure.
+  if (attemptedDays === 0 || gapDays < attemptedDays) {
+    return 'ok';
+  }
+  return runsScanned > 0 ? 'warn' : 'fail';
 }
 
 if (require.main === module) {

@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import {
   HEAVY_DAY_REST_REQUESTS,
   MAX_REST_REQUESTS_PER_DAY,
+  MAX_UNREADABLE_RUNS_PER_DAY,
   newWalkBudget,
   orderDaysForWalk,
   requestShareForDay,
@@ -257,6 +258,136 @@ describe('walkDay', () => {
     } finally {
       jest.restoreAllMocks();
     }
+  });
+
+  it('lists job pages for several runs at once but folds them in a stable order', async () => {
+    const octokit = fakeOctokit();
+    const runs = Array.from({ length: 12 }, (_, index) => ({
+      ...SAME_RUN_RERUN,
+      id: 5000 + index,
+      head_sha: `sha-${index}`,
+      run_attempt: 2,
+      created_at: `2026-11-11T16:${String(10 + index)}:00Z`,
+    }));
+    octokit.rest.actions.listWorkflowRuns.mockResolvedValue({
+      data: { total_count: runs.length, workflow_runs: runs },
+    });
+    let inFlight = 0;
+    let peak = 0;
+    octokit.rest.actions.listJobsForWorkflowRun.mockImplementation(
+      async (params: JobsRequest) => {
+        inFlight += 1;
+        peak = Math.max(peak, inFlight);
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        inFlight -= 1;
+        return jobsResponse(params);
+      },
+    );
+
+    const result = await walkDay({
+      octokit: octokit as never,
+      owner: 'MetaMask',
+      repo: 'metamask-mobile',
+      day: '2026-11-11',
+      budget: newWalkBudget(),
+    });
+
+    expect(peak).toBeGreaterThan(1);
+    expect(peak).toBeLessThanOrEqual(6);
+    expect(result.complete).toBe(true);
+    expect(result.hits).toHaveLength(12);
+  });
+
+  describe('runs whose job list keeps failing', () => {
+    beforeEach(() => {
+      // The single retry waits two real seconds; the delay is not under test.
+      jest.spyOn(global, 'setTimeout').mockImplementation(((
+        callback: () => void,
+      ) => {
+        callback();
+        return 0;
+      }) as never);
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    function withRuns(count: number, unreadable: number) {
+      const octokit = fakeOctokit();
+      const runs = Array.from({ length: count }, (_, index) => ({
+        ...SAME_RUN_RERUN,
+        id: 7000 + index,
+        head_sha: `sha-${index}`,
+        run_attempt: 2,
+        created_at: `2026-11-11T16:${String(10 + index)}:00Z`,
+      }));
+      octokit.rest.actions.listWorkflowRuns.mockResolvedValue({
+        data: { total_count: runs.length, workflow_runs: runs },
+      });
+      const error = Object.assign(new Error('Server Error'), { status: 500 });
+      octokit.rest.actions.listJobsForWorkflowRun.mockImplementation(
+        async (params: JobsRequest) => {
+          if (Number(params.run_id) - 7000 < unreadable) {
+            throw error;
+          }
+          return jobsResponse(params);
+        },
+      );
+      return octokit;
+    }
+
+    const walk = (octokit: ReturnType<typeof fakeOctokit>) =>
+      walkDay({
+        octokit: octokit as never,
+        owner: 'MetaMask',
+        repo: 'metamask-mobile',
+        day: '2026-11-11',
+        budget: newWalkBudget(),
+        maxRequestsForDay: 1000,
+      });
+
+    it('reads a page that only fails at full size in smaller pages', async () => {
+      const octokit = fakeOctokit();
+      const error = Object.assign(new Error('Server Error'), { status: 500 });
+      octokit.rest.actions.listJobsForWorkflowRun.mockImplementation(
+        async (params: JobsRequest) => {
+          if (params.per_page === 100 && params.page === 2) {
+            throw error;
+          }
+          return jobsResponse(params);
+        },
+      );
+
+      const result = await walkDay({
+        octokit: octokit as never,
+        owner: 'MetaMask',
+        repo: 'metamask-mobile',
+        day: '2026-11-11',
+        budget: newWalkBudget(),
+        maxRequestsForDay: 100,
+      });
+
+      expect(result.complete).toBe(true);
+      expect(result.hits).toEqual([
+        { path: FILE, runId: SAME_RUN_RERUN.id, jobId: FAILED_JOB_ID },
+      ]);
+    });
+
+    it('skips a few of them and still finishes the day', async () => {
+      const result = await walk(withRuns(12, 3));
+
+      expect(result.complete).toBe(true);
+      expect(result.hits).toHaveLength(9);
+    });
+
+    it('leaves the day queued once the failures look like an outage', async () => {
+      const result = await walk(
+        withRuns(40, MAX_UNREADABLE_RUNS_PER_DAY + 8),
+      );
+
+      expect(result.complete).toBe(false);
+    });
   });
 
   it('does not send a retry when the request budget is spent', async () => {

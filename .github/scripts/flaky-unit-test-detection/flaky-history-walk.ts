@@ -22,7 +22,6 @@ import {
   allHitsFromConfirmedLogs,
   attemptJobFromApi,
   candidateShaGroupsNewestFirst,
-  classifyBatchFailure,
   classifyLoglessJob,
   confirmedFailThenPassFromAttemptJobs,
   groupRunsByHeadSha,
@@ -46,6 +45,24 @@ const MAX_RUNS_PER_DAY = 1000;
 const RUNS_PAGE_SIZE = 100;
 const JOBS_PAGE_SIZE = 100;
 const DOWNLOAD_CONCURRENCY = 8;
+
+/**
+ * Job lists for a ci.yml run take seconds each (a run carries well over a
+ * hundred jobs), so walking them one at a time spent the whole nightly on a
+ * single weekday. They are independent reads, and the REST request budget is
+ * counted per call, so running several at once changes the time, not the cost.
+ */
+const JOB_LIST_CONCURRENCY = 6;
+
+/**
+ * Some ci.yml runs answer their job list with a 5xx every time, on every
+ * night, and nothing a re-walk does will read them. Treating each as an
+ * incomplete day kept the same days queued forever, so a handful per day are
+ * skipped and named in the log instead. Past this many the failures look like
+ * an outage rather than a few bad runs, and the walk stops with the day left
+ * queued.
+ */
+export const MAX_UNREADABLE_RUNS_PER_DAY = 10;
 
 export const HEAVY_DAY_REST_REQUESTS = 350;
 
@@ -136,7 +153,7 @@ export type WalkDayResult = {
 async function mapWithConcurrency<T, R>(
   items: T[],
   limit: number,
-  worker: (item: T) => Promise<R>,
+  worker: (item: T, index: number) => Promise<R>,
 ): Promise<R[]> {
   const results: R[] = new Array(items.length);
   let next = 0;
@@ -145,7 +162,7 @@ async function mapWithConcurrency<T, R>(
       while (next < items.length) {
         const index = next;
         next += 1;
-        results[index] = await worker(items[index]);
+        results[index] = await worker(items[index], index);
       }
     })(),
   );
@@ -232,10 +249,91 @@ async function listRunsForDay(
   };
 }
 
+/**
+ * GitHub answers the second 100-job page of some ci.yml runs with a 500 on
+ * every attempt, while the same jobs read fine in smaller pages. Those runs
+ * were the reason most recent days could never be walked to the end.
+ */
+const JOBS_FALLBACK_PAGE_SIZE = 25;
+
+class RequestBudgetSpent extends Error {}
+
+type JobsPage = {
+  total: number | null;
+  jobs: Parameters<typeof attemptJobFromApi>[0][];
+};
+
+async function fetchJobsPage({
+  octokit,
+  owner,
+  repo,
+  runId,
+  page,
+  spend,
+}: {
+  octokit: Octokit;
+  owner: string;
+  repo: string;
+  runId: number;
+  page: number;
+  spend: () => boolean;
+}): Promise<JobsPage> {
+  const read = async (perPage: number, pageNumber: number) => {
+    const response = await withRetryOnce(
+      () =>
+        octokit.rest.actions.listJobsForWorkflowRun({
+          owner,
+          repo,
+          run_id: runId,
+          filter: 'all',
+          per_page: perPage,
+          page: pageNumber,
+        }),
+      undefined,
+      spend,
+    );
+    return {
+      total:
+        typeof response.data.total_count === 'number'
+          ? response.data.total_count
+          : null,
+      jobs: response.data.jobs ?? [],
+    };
+  };
+
+  try {
+    return await read(JOBS_PAGE_SIZE, page);
+  } catch (error) {
+    const status = githubErrorStatus(error);
+    if (status === undefined || status < 500) {
+      throw error;
+    }
+  }
+
+  const perWindow = JOBS_PAGE_SIZE / JOBS_FALLBACK_PAGE_SIZE;
+  const firstSubPage = (page - 1) * perWindow + 1;
+  const jobs: JobsPage['jobs'] = [];
+  let total: number | null = null;
+  for (let offset = 0; offset < perWindow; offset += 1) {
+    if (!spend()) {
+      throw new RequestBudgetSpent();
+    }
+    const sub = await read(JOBS_FALLBACK_PAGE_SIZE, firstSubPage + offset);
+    total = sub.total;
+    jobs.push(...sub.jobs);
+    if (sub.jobs.length < JOBS_FALLBACK_PAGE_SIZE) {
+      break;
+    }
+  }
+  return { total, jobs };
+}
+
 type JobListResult = {
   jobs: AttemptJob[];
   complete: boolean;
   stopWalk: boolean;
+  /** The run's job list kept failing with a server error; it was skipped. */
+  unreadable?: boolean;
 };
 
 async function listAttemptJobs(
@@ -254,36 +352,39 @@ async function listAttemptJobs(
       return { jobs, complete: false, stopWalk: false };
     }
     let totalCount: number | null = null;
-    let pageJobs: Parameters<typeof attemptJobFromApi>[0][] = [];
+    let pageJobs: JobsPage['jobs'] = [];
     try {
-      const response = await withRetryOnce(
-        () =>
-          octokit.rest.actions.listJobsForWorkflowRun({
-            owner,
-            repo,
-            run_id: runId,
-            filter: 'all',
-            per_page: JOBS_PAGE_SIZE,
-            page,
-          }),
-        undefined,
+      const fetched = await fetchJobsPage({
+        octokit,
+        owner,
+        repo,
+        runId,
+        page,
         spend,
-      );
-      totalCount =
-        typeof response.data.total_count === 'number'
-          ? response.data.total_count
-          : null;
-      pageJobs = response.data.jobs ?? [];
-    } catch (error) {
-      failedLists.count += 1;
-      const action = classifyBatchFailure({
-        status: githubErrorStatus(error),
-        failedBatches: failedLists.count,
       });
+      totalCount = fetched.total;
+      pageJobs = fetched.jobs;
+    } catch (error) {
+      if (error instanceof RequestBudgetSpent) {
+        return { jobs, complete: false, stopWalk: false };
+      }
+      failedLists.count += 1;
+      const status = githubErrorStatus(error);
+      const action =
+        status === 403 ||
+        status === 429 ||
+        failedLists.count > MAX_UNREADABLE_RUNS_PER_DAY
+          ? 'stop'
+          : 'skip';
       core.warning(
         `listJobsForWorkflowRun ${runId} on ${day} ${action === 'stop' ? 'stopping the walk' : 'skipping this run'}: ${(error as Error).message}`,
       );
-      return { jobs, complete: false, stopWalk: action === 'stop' };
+      return {
+        jobs,
+        complete: false,
+        stopWalk: action === 'stop',
+        unreadable: action === 'skip',
+      };
     }
 
     for (const job of pageJobs) {
@@ -536,16 +637,30 @@ export async function walkDay({
     !listed.capped && !listed.budgetExhausted && !listed.listingFailed;
   let stop = false;
 
+  const queue: { headSha: string; run: ListedWorkflowRun }[] = [];
   for (const candidate of candidates) {
-    if (stop) {
-      break;
-    }
     for (const run of candidate.runs) {
-      if (seenRunIds.has(run.id)) {
-        continue;
+      if (!seenRunIds.has(run.id)) {
+        seenRunIds.add(run.id);
+        queue.push({ headSha: candidate.headSha, run });
       }
-      seenRunIds.add(run.id);
-      const listedJobs = await listAttemptJobs(
+    }
+  }
+
+  const listedByTask = await mapWithConcurrency(
+    queue,
+    JOB_LIST_CONCURRENCY,
+    async ({ run }): Promise<JobListResult | null> => {
+      if (
+        stop ||
+        budget.restRequests >= MAX_REST_REQUESTS_PER_BUILD ||
+        requestsForDay >= maxRequestsForDay ||
+        pastDeadline()
+      ) {
+        // A later candidate was not inspected. The day stays queued.
+        return null;
+      }
+      const result = await listAttemptJobs(
         octokit,
         owner,
         repo,
@@ -554,32 +669,35 @@ export async function walkDay({
         spend,
         failedLists,
       );
-      const forSha = jobsBySha.get(candidate.headSha) ?? [];
-      forSha.push(...listedJobs.jobs);
-      jobsBySha.set(candidate.headSha, forSha);
-      if (!listedJobs.complete) {
-        complete = false;
-      }
-      if (listedJobs.stopWalk) {
+      if (result.stopWalk) {
         stop = true;
-        break;
       }
-      if (
-        budget.restRequests >= MAX_REST_REQUESTS_PER_BUILD ||
-        requestsForDay >= maxRequestsForDay ||
-        pastDeadline()
-      ) {
-        // A later candidate was not inspected. The day stays queued.
-        const moreRuns = candidates.some((other) =>
-          other.runs.some((otherRun) => !seenRunIds.has(otherRun.id)),
-        );
-        if (moreRuns) {
-          core.warning(`REST budget exhausted before finishing ${day}`);
-          complete = false;
-          stop = true;
-          break;
-        }
-      }
+      return result;
+    },
+  );
+
+  // Folded in queue order, so the outcome does not depend on which request
+  // happened to answer first.
+  let skippedRuns = 0;
+  for (const [position, task] of queue.entries()) {
+    const result = listedByTask[position];
+    if (result === null) {
+      skippedRuns += 1;
+      continue;
+    }
+    const forSha = jobsBySha.get(task.headSha) ?? [];
+    forSha.push(...result.jobs);
+    jobsBySha.set(task.headSha, forSha);
+    if (!result.complete && !result.unreadable) {
+      complete = false;
+    }
+  }
+  if (skippedRuns > 0) {
+    complete = false;
+    if (!stop) {
+      core.warning(
+        `REST budget or walk deadline reached before finishing ${day}`,
+      );
     }
   }
 
