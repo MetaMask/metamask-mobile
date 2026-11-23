@@ -217,6 +217,18 @@ describeForPlatforms('MoneySplashView', () => {
     });
   });
 
+  it('hides the CTA and FAQ in info mode and does not mark the splash as seen', () => {
+    const { store, getByTestId, queryByTestId } = renderMoneySplashView({
+      params: { infoMode: true },
+    });
+
+    expect(getByTestId(MoneySplashViewTestIds.HERO)).toBeOnTheScreen();
+    expect(getByTestId(MoneySplashViewTestIds.CLOSE_BUTTON)).toBeOnTheScreen();
+    expect(queryByTestId(MoneySplashViewTestIds.CTA)).toBeNull();
+    expect(queryByTestId(MoneySplashViewTestIds.FAQ_TITLE)).toBeNull();
+    expect(store.getState().user.moneySplashSeen).toBe(false);
+  });
+
   it('expands a FAQ answer', async () => {
     const { getByText, findByText } = renderMoneySplashView();
 

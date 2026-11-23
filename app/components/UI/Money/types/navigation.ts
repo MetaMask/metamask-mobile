@@ -51,7 +51,10 @@ export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: MoneyPostOnboardingRedirect;
 }
 
-export type MoneySplashParams = MoneyOnboardingParams;
+export interface MoneySplashParams extends MoneyOnboardingParams {
+  /** Opens the splash as a read-only explainer: no CTA, no FAQ, and it does not mark the splash as seen. */
+  infoMode?: boolean;
+}
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
   /**
