@@ -59,7 +59,7 @@ import { useBridgeSession } from '../../hooks/useBridgeSession';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
-import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
+import { PriceToleranceTooltip } from '../PriceToleranceTooltip';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -451,7 +451,7 @@ const RecurringConfirmOrderSheet = ({
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
           label={
-            <LimitOrderCostToleranceTooltip
+            <PriceToleranceTooltip
               testID={
                 RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE_TOOLTIP
               }

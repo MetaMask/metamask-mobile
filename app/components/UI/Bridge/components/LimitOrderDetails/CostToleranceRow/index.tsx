@@ -15,7 +15,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import { LimitOrderCostToleranceTooltip } from '../../LimitOrderCostToleranceTooltip';
+import { PriceToleranceTooltip } from '../../PriceToleranceTooltip';
 import { CostToleranceRowSelectorsIDs } from './testIds';
 import type { CostToleranceRowProps } from './types';
 
@@ -27,9 +27,7 @@ const CostToleranceRow: React.FC<CostToleranceRowProps> = ({
   <KeyValueRow
     variant={KeyValueRowVariant.Summary}
     keyLabel={
-      <LimitOrderCostToleranceTooltip
-        testID={CostToleranceRowSelectorsIDs.TOOLTIP}
-      />
+      <PriceToleranceTooltip testID={CostToleranceRowSelectorsIDs.TOOLTIP} />
     }
     value={
       <TouchableOpacity
