@@ -181,6 +181,7 @@ export type ReferralLocalizedTextKey =
   | 'last7Days'
   | 'totalEarningsLabel'
   | 'breakdown'
+  | 'yourEarnings'
   | 'breakdownTrading'
   | 'breakdownTradingDescription'
   | 'breakdownReferralsDescription'

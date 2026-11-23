@@ -1,7 +1,6 @@
 import '../mocks';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
-import { useSelector } from 'react-redux';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
   useIsFocused,
@@ -16,14 +15,7 @@ import TaxFormQuestionSheet from '../../../app/components/UI/Rewards/components/
 import TaxFormOpenFormSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormOpenFormSheet';
 import TaxFormContactUsSheet from '../../../app/components/UI/Rewards/components/Money/TaxFormContactUsSheet';
 import RewardsInfoSheetModal from '../../../app/components/UI/Rewards/components/RewardsInfoSheetModal';
-import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
 import WaysToEarnTab from '../../../app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab';
-import RewardsTabSkeleton from '../../../app/components/UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
-import { useRewardsMoneyTabRouting } from '../../../app/components/UI/Rewards/hooks/useRewardsMoneyTabRouting';
-import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard.testIds';
-import type { RootState } from '../../../app/reducers';
-import { selectReferralMeEntry } from '../../../app/reducers/rewardsMoney/selectors';
-import { selectSessionProfileId } from '../../../app/selectors/identity';
 import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
@@ -430,25 +422,6 @@ export function renderEarningsTab(options: RenderRewardsMoneyOptions = {}) {
   return renderMoneyScreen(Screen, 'EarningsTab', { ...options, persona });
 }
 
-export function renderPerformanceTab(
-  options: RenderRewardsMoneyOptions & { active?: boolean } = {},
-) {
-  const persona = options.persona ?? 'referee';
-  const active = options.active ?? true;
-
-  function Screen() {
-    return (
-      <PerformanceTab
-        profileId={REWARDS_MONEY_PROFILE_ID}
-        persona={persona}
-        active={active}
-      />
-    );
-  }
-
-  return renderMoneyScreen(Screen, 'PerformanceTab', { ...options, persona });
-}
-
 let restoreRewardsDashboardReduxStore: (() => void) | undefined;
 
 /**
@@ -557,34 +530,16 @@ export function renderRewardsSettingsView(
   };
 }
 
-function WaysToEarnAfterReferralLoad() {
-  const { moneyReferralResolved, moneyPersona } = useRewardsMoneyTabRouting();
-  const profileId = useSelector(selectSessionProfileId);
-  const referralMe = useSelector(
-    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
-  );
-  const personaReady =
-    moneyPersona === 'referee' || moneyPersona === 'referrer';
+export function renderWaysToEarnTab(options: RenderRewardsMoneyOptions = {}) {
+  const persona = options.persona ?? 'referee';
 
-  if (!moneyReferralResolved || !profileId || !referralMe || !personaReady) {
+  function Screen() {
     return (
-      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
+      <WaysToEarnTab profileId={REWARDS_MONEY_PROFILE_ID} persona={persona} />
     );
   }
 
-  return <WaysToEarnTab profileId={profileId} referralMe={referralMe} />;
-}
-
-export function renderWaysToEarnTab(referralMe: ReferralMeDto) {
-  return renderMoneyScreen(WaysToEarnAfterReferralLoad, 'WaysToEarnTab', {
-    seedReferralMe: false,
-    moneyControllerEnabled: true,
-    handlers: {
-      'AuthenticationController:getSessionProfile': () =>
-        Promise.resolve({ profileId: REWARDS_MONEY_PROFILE_ID }),
-      'RewardsMoneyController:getReferralMe': () => Promise.resolve(referralMe),
-    },
-  });
+  return renderMoneyScreen(Screen, 'WaysToEarnTab', { ...options, persona });
 }
 
 export function renderEarningsHistory(options: RenderRewardsMoneyOptions = {}) {

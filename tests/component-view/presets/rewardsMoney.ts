@@ -39,7 +39,7 @@ export { MONAD_MAINNET_CHAIN_ID };
 export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   waysToEarn: 'Ways to earn',
   overviewTab: 'Overview',
-  earningsTab: 'Earnings',
+  earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
   yourReferralCode: 'Your referral code',
@@ -72,6 +72,7 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   last7Days: 'Last 7 days',
   totalEarningsLabel: 'Total earnings',
   breakdown: 'Breakdown',
+  yourEarnings: 'Your earnings',
   breakdownTrading: 'Trading',
   breakdownTradingDescription: 'Trading description',
   breakdownReferralsDescription: 'Referrals description',

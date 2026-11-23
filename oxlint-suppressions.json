@@ -12151,12 +12151,12 @@
       "count": 2
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tax.view.test.tsx": {
+  "app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.tax.view.test.tsx": {
     "typescript/promise-function-async": {
       "count": 47
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.test.tsx": {
+  "app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -12164,20 +12164,7 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.tsx": {
-    "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.test.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
+  "app/components/UI/Rewards/components/Money/Tabs/WaysToEarnTab.tsx": {
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -12737,11 +12724,6 @@
   "app/components/UI/Rewards/hooks/useInFlightClaims.test.ts": {
     "typescript/promise-function-async": {
       "count": 5
-    }
-  },
-  "app/components/UI/Rewards/hooks/useLast7DaysEarnings.test.ts": {
-    "typescript/promise-function-async": {
-      "count": 1
     }
   },
   "app/components/UI/Rewards/hooks/useLineaSeasonOneTokenReward.ts": {
@@ -25675,7 +25657,7 @@
       "count": 9
     },
     "typescript/promise-function-async": {
-      "count": 20
+      "count": 18
     },
     "typescript/unbound-method": {
       "count": 1

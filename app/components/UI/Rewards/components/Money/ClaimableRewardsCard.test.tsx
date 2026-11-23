@@ -19,8 +19,6 @@ const LOCALIZED_TEXT = {
   claim: 'Claim',
   paused: 'Paused',
   claimed: 'Claimed',
-  last7Days: 'Last 7 days',
-  totalEarningsLabel: 'Total earnings',
 } as unknown as ReferralLocalizedText;
 
 const renderCard = (
@@ -34,9 +32,7 @@ const renderCard = (
       claimed={claimed}
       claimableAmount="$1.00"
       recordedAmount="$4.00"
-      last7Amount="$0.25"
       isSummaryLoading={false}
-      isLast7Loading={false}
     />,
   );
 
@@ -106,9 +102,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
       />,
     );
@@ -129,9 +123,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         isClaiming
       />,
@@ -150,9 +142,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         isClaimWaiting
       />,
@@ -174,9 +164,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         isClaimWaiting
         claimWaitCaption="You can't claim just yet. Try again in 12 minutes."
@@ -200,9 +188,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         isClaimWaiting
         claimWaitCaption="You can't claim just yet. Try again in 12 minutes."
@@ -233,9 +219,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
         onClaim={onClaim}
@@ -268,9 +252,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         claimBlockedOnDevice
         earnedElsewhereCaption="Some earnings belong to accounts not on this device. Import the wallet to claim."
@@ -301,9 +283,7 @@ describe('ClaimableRewardsCard', () => {
         heldAmount="$1.00"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         taxHeld
         claimBlockedOnDevice
@@ -348,9 +328,7 @@ describe('ClaimableRewardsCard', () => {
         claimableAmount="$0.00"
         pendingAmount="$0.40"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
       />,
     );
 
@@ -378,9 +356,7 @@ describe('ClaimableRewardsCard', () => {
         claimableAmount="$0.00"
         pendingAmount="$0.40"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
       />,
     );
 
@@ -407,9 +383,7 @@ describe('ClaimableRewardsCard', () => {
         claimableAmount="$0.00"
         pendingAmount="$0.40"
         recordedAmount="$2.40"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onClaim={onClaim}
       />,
     );
@@ -450,9 +424,7 @@ describe('ClaimableRewardsCard', () => {
         held="100000000"
         claimableAmount="$0.00"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onPaused={onPaused}
       />,
     );
@@ -487,9 +459,7 @@ describe('ClaimableRewardsCard', () => {
         taxHeld
         claimableAmount="$0.00"
         recordedAmount="$2.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onClaim={onClaim}
       />,
     );
@@ -525,9 +495,7 @@ describe('ClaimableRewardsCard', () => {
         taxHeld
         claimableAmount="$0.00"
         recordedAmount="$0.25"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onClaim={onClaim}
       />,
     );
@@ -555,9 +523,7 @@ describe('ClaimableRewardsCard', () => {
         canClaim
         claimableAmount="$1.00"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
       />,
     );
 
@@ -589,9 +555,7 @@ describe('ClaimableRewardsCard', () => {
         canClaim
         claimableAmount="$1.00"
         recordedAmount="$132.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         onBalanceBreakdown={onBalanceBreakdown}
       />,
     );
@@ -602,37 +566,27 @@ describe('ClaimableRewardsCard', () => {
     expect(onBalanceBreakdown).toHaveBeenCalledTimes(1);
   });
 
-  it('hides the claimable amount row for a referrer while Social V1 is off', () => {
+  it('renders nothing for a referrer while Social V1 is off', () => {
     jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
-    const { getByTestId, getByText, queryByTestId, queryByText } =
-      renderWithProvider(
-        <ClaimableRewardsCard
-          localizedText={LOCALIZED_TEXT}
-          claimable="1000000"
-          claimed="0"
-          claimableAmount="$1.00"
-          recordedAmount="$4.00"
-          last7Amount="$0.25"
-          isSummaryLoading={false}
-          isLast7Loading={false}
-          canClaim
-          isReferrer
-        />,
-      );
+    const { queryByTestId, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        isSummaryLoading={false}
+        canClaim
+        isReferrer
+      />,
+    );
 
+    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER)).toBeNull();
     expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
-    expect(queryByText('Available to claim • mUSD')).toBeNull();
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeNull();
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
-    ).toHaveTextContent('$0.25');
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
-    ).toHaveTextContent('$4.00');
-    expect(getByText('Last 7 days')).toBeOnTheScreen();
-    expect(getByText('Total earnings')).toBeOnTheScreen();
+    expect(queryByText('Available to claim • mUSD')).toBeNull();
   });
 
   it('shows the claimable amount row for a referrer while Social V1 is on', () => {
@@ -644,9 +598,7 @@ describe('ClaimableRewardsCard', () => {
         claimed="0"
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount="$0.25"
         isSummaryLoading={false}
-        isLast7Loading={false}
         canClaim
         isReferrer
       />,
@@ -661,24 +613,28 @@ describe('ClaimableRewardsCard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('hides the claimable amount row in the referrer skeleton', () => {
+  it('renders only the claimable skeleton while the summary loads', () => {
     const { getByTestId, getByText, queryByText } = renderWithProvider(
       <ClaimableRewardsCard
         localizedText={LOCALIZED_TEXT}
         claimableAmount="$1.00"
         recordedAmount="$4.00"
-        last7Amount={null}
         isSummaryLoading
-        isLast7Loading
-        isReferrer
       />,
     );
 
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
     ).toBeOnTheScreen();
-    expect(queryByText('Available to claim • mUSD')).toBeNull();
-    expect(getByText('Last 7 days')).toBeOnTheScreen();
-    expect(getByText('Total earnings')).toBeOnTheScreen();
+    expect(getByText('Available to claim • mUSD')).toBeOnTheScreen();
+    expect(queryByText('Last 7 days')).toBeNull();
+    expect(queryByText('Total earnings')).toBeNull();
+  });
+
+  it('does not show the last 7 days or total earnings row', () => {
+    const { queryByText } = renderCard('1000000', '0');
+
+    expect(queryByText('Last 7 days')).toBeNull();
+    expect(queryByText('Total earnings')).toBeNull();
   });
 });

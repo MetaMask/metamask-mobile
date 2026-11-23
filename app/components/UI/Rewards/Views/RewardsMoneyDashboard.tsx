@@ -60,7 +60,6 @@ import RewardsOptInSection from '../components/Money/RewardsOptInSection';
 import BenefitsTab from '../components/Money/Tabs/BenefitsTab';
 import CampaignsTab from '../components/Money/Tabs/CampaignsTab';
 import EarningsTab from '../components/Money/Tabs/EarningsTab';
-import PerformanceTab from '../components/Money/Tabs/PerformanceTab';
 import ShareCodeSheet from '../components/Money/ShareCodeSheet';
 import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
@@ -79,13 +78,7 @@ import {
 import { rewardsMoneyScrollClipSpacer } from './rewardsMoneyScrollClipSpacer';
 import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
-const TAB_ORDER = [
-  'waysToEarn',
-  'earnings',
-  'performance',
-  'campaigns',
-  'benefits',
-] as const;
+const TAB_ORDER = ['waysToEarn', 'earnings', 'campaigns', 'benefits'] as const;
 
 type RewardsMoneyTab = (typeof TAB_ORDER)[number];
 
@@ -235,7 +228,7 @@ const RewardsMoneyDashboard: React.FC = () => {
   const { followTradeClaimOpen, revShareClaimOpen } =
     useClaimMechanisms(profileId);
   const localizedText = referralMe?.localized_text;
-  const showEarningsDot = showEarningsIndicator(
+  const showClaimDot = showEarningsIndicator(
     earningsSummaryEntry?.data,
     claimRouteOptions(
       localizedText?.taxFormUrl,
@@ -244,8 +237,8 @@ const RewardsMoneyDashboard: React.FC = () => {
     ),
   );
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
-  // Every panel shares this scroller. A tab press returns to the top so a
-  // long Campaigns page cannot leave Performance opened mid-list. Pressing
+  // The panels share this scroller. A tab press returns to the top so a
+  // long Campaigns page cannot leave Earnings opened mid-list. Pressing
   // the tab that is already selected leaves the offset alone. scrollY is reset
   // with the list because a programmatic scroll does not always emit onScroll,
   // and the collapsing title reads that shared value.
@@ -300,27 +293,22 @@ const RewardsMoneyDashboard: React.FC = () => {
         label: localizedText?.overviewTab ?? '',
         content: null,
         testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB,
+        // The claim card lives on this tab, so the dot marks it.
+        endAccessory: showClaimDot ? (
+          // Absolute so the dot drops out of the tab layout and does not
+          // widen the underline. top-1 cancels the tab's py-1 so it sits on
+          // the label's top-right corner.
+          <Box
+            testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB_DOT}
+            twClassName="absolute top-1 -right-1 h-1.5 w-1.5 flex-none rounded-full bg-success-default"
+          />
+        ) : undefined,
       },
       {
         key: 'earnings',
         label: localizedText?.earningsTab ?? '',
         content: null,
         testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB,
-        endAccessory: showEarningsDot ? (
-          // Absolute so the dot drops out of the tab layout and does not
-          // widen the underline. top-1 cancels the tab's py-1 so it sits on
-          // the label's top-right corner.
-          <Box
-            testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT}
-            twClassName="absolute top-1 -right-1 h-1.5 w-1.5 flex-none rounded-full bg-success-default"
-          />
-        ) : undefined,
-      },
-      {
-        key: 'performance',
-        label: localizedText?.performanceTitle ?? '',
-        content: null,
-        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB,
       },
       {
         key: 'campaigns',
@@ -335,7 +323,7 @@ const RewardsMoneyDashboard: React.FC = () => {
         testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB,
       },
     ],
-    [localizedText, showEarningsDot],
+    [localizedText, showClaimDot],
   );
 
   // Anyone with their own active, non-empty code can share it, referee or referrer.
@@ -546,7 +534,7 @@ const RewardsMoneyDashboard: React.FC = () => {
                   >
                     <WaysToEarnTab
                       profileId={profileId}
-                      referralMe={referralMe}
+                      persona={moneyDashboardPersona(referralMe)}
                     />
                   </Box>
                 ) : null}
@@ -555,18 +543,6 @@ const RewardsMoneyDashboard: React.FC = () => {
                     <EarningsTab
                       profileId={profileId}
                       persona={moneyDashboardPersona(referralMe)}
-                      onViewPerformance={() => setActiveTab('performance')}
-                    />
-                  </Box>
-                ) : null}
-                {activeTab === 'performance' ? (
-                  <Box
-                    testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}
-                  >
-                    <PerformanceTab
-                      profileId={profileId}
-                      persona={moneyDashboardPersona(referralMe)}
-                      active
                     />
                   </Box>
                 ) : null}

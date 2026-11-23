@@ -9,10 +9,10 @@ import {
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   IconColor,
   IconName,
   IconSize,
-  FontWeight,
   Skeleton,
   Text,
   TextColor,
@@ -127,12 +127,9 @@ export interface ClaimableRewardsCardProps {
    * Balance and Paused.
    */
   blocked?: string;
-  /** Formatted lifetime total. */
+  /** Formatted lifetime total. Shown as the balance when nothing is claimable or pending. */
   recordedAmount: string;
-  /** Formatted last-7-days total, or null while that figure is unknown. */
-  last7Amount: string | null;
   isSummaryLoading: boolean;
-  isLast7Loading: boolean;
   /** The cashback family reaches the summary minimum, so the press can call a claim route. */
   canClaim?: boolean;
   /**
@@ -168,50 +165,21 @@ export interface ClaimableRewardsCardProps {
 
 const ClaimableRewardsCardSkeleton: React.FC<{
   localizedText: ReferralLocalizedText;
-  showClaimableAmount: boolean;
-}> = ({ localizedText, showClaimableAmount }) => {
+}> = ({ localizedText }) => {
   const tw = useTailwind();
 
   return (
     <Box
-      twClassName="overflow-hidden rounded-2xl bg-muted"
+      twClassName="overflow-hidden rounded-2xl bg-muted p-4"
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON}
     >
-      {showClaimableAmount ? (
-        <Box twClassName="p-4">
-          <Box>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {amountHeading(
-                localizedText.availableToClaim,
-                localizedText.mUSD,
-              )}
-            </Text>
-            <Skeleton style={tw.style('mt-1 h-8 w-28 rounded-md')} />
-          </Box>
-          <Skeleton style={tw.style('mt-3 h-12 w-full rounded-full')} />
-        </Box>
-      ) : null}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName={showClaimableAmount ? 'border-t border-muted' : undefined}
-      >
-        <Box twClassName="flex-1 p-4">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {localizedText.last7Days}
-          </Text>
-          <Skeleton style={tw.style('mt-1 h-5 w-16 rounded-md')} />
-        </Box>
-        <Box twClassName="my-3 w-px bg-border-muted" />
-        <Box twClassName="flex-1 p-4">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {localizedText.totalEarningsLabel}
-          </Text>
-          <Skeleton style={tw.style('mt-1 h-5 w-16 rounded-md')} />
-        </Box>
+      <Box>
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          {amountHeading(localizedText.availableToClaim, localizedText.mUSD)}
+        </Text>
+        <Skeleton style={tw.style('mt-1 h-8 w-28 rounded-md')} />
       </Box>
+      <Skeleton style={tw.style('mt-3 h-12 w-full rounded-full')} />
     </Box>
   );
 };
@@ -233,9 +201,7 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   heldAmount,
   blocked,
   recordedAmount,
-  last7Amount,
   isSummaryLoading,
-  isLast7Loading,
   canClaim = false,
   taxHeld = false,
   isClaiming = false,
@@ -247,17 +213,16 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   onPaused,
   onBalanceBreakdown,
 }) => {
-  const tw = useTailwind();
   const showReferrerClaimableAmount = useSelector(selectIsSocialV1Enabled);
   const showClaimableAmount = !isReferrer || showReferrerClaimableAmount;
 
+  // A referrer with Social V1 off has no amount row, so the card has nothing to show.
+  if (!showClaimableAmount) {
+    return null;
+  }
+
   if (isSummaryLoading) {
-    return (
-      <ClaimableRewardsCardSkeleton
-        localizedText={localizedText}
-        showClaimableAmount={showClaimableAmount}
-      />
-    );
+    return <ClaimableRewardsCardSkeleton localizedText={localizedText} />;
   }
 
   const button = claimButtonState(
@@ -276,7 +241,6 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     canClaim,
     taxHeld,
   });
-  const showLast7Skeleton = isLast7Loading && last7Amount === null;
   const headingLabel = {
     available: localizedText.availableToClaim,
     held: localizedText.held,
@@ -329,109 +293,71 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
       twClassName="overflow-hidden rounded-2xl bg-muted"
       testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER}
     >
-      {showClaimableAmount ? (
-        <Box twClassName="p-4">
-          <Box>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {heading}
-            </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              <Text
-                variant={TextVariant.HeadingLg}
-                testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT}
-              >
-                {amount}
-              </Text>
-              {onBalanceBreakdown ? (
-                <ButtonIcon
-                  iconName={IconName.Info}
-                  size={ButtonIconSize.Md}
-                  iconProps={{
-                    color: IconColor.IconAlternative,
-                    size: IconSize.Md,
-                  }}
-                  twClassName="-mr-1.5"
-                  onPress={onBalanceBreakdown}
-                  accessibilityLabel={localizedText.breakdown}
-                  testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN}
-                />
-              ) : null}
-            </Box>
-          </Box>
-          {button === 'hidden' ? null : (
-            <Box twClassName="mt-3">
-              <Button
-                variant={ButtonVariant.Primary}
-                size={ButtonSize.Lg}
-                twClassName="w-full"
-                isDisabled={
-                  button === 'claimed' || claimCoolingDown || claimBlocked
-                }
-                isLoading={claimInProgress}
-                onPress={
-                  button === 'claim' && !claimBlocked
-                    ? onClaim
-                    : button === 'paused'
-                      ? onPaused
-                      : undefined
-                }
-                testID={buttonTestId}
-              >
-                {buttonLabel}
-              </Button>
-              {caption ? (
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  twClassName="mt-2 text-center"
-                  testID={caption.testID}
-                >
-                  {caption.text}
-                </Text>
-              ) : null}
-            </Box>
-          )}
-        </Box>
-      ) : null}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        twClassName={showClaimableAmount ? 'border-t border-muted' : undefined}
-      >
-        <Box twClassName="flex-1 p-4">
+      <Box twClassName="p-4">
+        <Box>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {localizedText.last7Days}
+            {heading}
           </Text>
-          {showLast7Skeleton ? (
-            <Skeleton style={tw.style('mt-1 h-5 w-16 rounded-md')} />
-          ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS}
-            >
-              {last7Amount ?? '—'}
-            </Text>
-          )}
-        </Box>
-        <Box twClassName="my-3 w-px bg-border-muted" />
-        <Box twClassName="flex-1 p-4">
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {localizedText.totalEarningsLabel}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
           >
-            {recordedAmount}
-          </Text>
+            <Text
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Hero}
+              testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT}
+            >
+              {amount}
+            </Text>
+            {onBalanceBreakdown ? (
+              <ButtonIcon
+                iconName={IconName.Info}
+                size={ButtonIconSize.Md}
+                iconProps={{
+                  color: IconColor.IconAlternative,
+                  size: IconSize.Md,
+                }}
+                twClassName="-mr-1.5"
+                onPress={onBalanceBreakdown}
+                accessibilityLabel={localizedText.breakdown}
+                testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN}
+              />
+            ) : null}
+          </Box>
         </Box>
+        {button === 'hidden' ? null : (
+          <Box twClassName="mt-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              twClassName="w-full"
+              isDisabled={
+                button === 'claimed' || claimCoolingDown || claimBlocked
+              }
+              isLoading={claimInProgress}
+              onPress={
+                button === 'claim' && !claimBlocked
+                  ? onClaim
+                  : button === 'paused'
+                    ? onPaused
+                    : undefined
+              }
+              testID={buttonTestId}
+            >
+              {buttonLabel}
+            </Button>
+            {caption ? (
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+                twClassName="mt-2 text-center"
+                testID={caption.testID}
+              >
+                {caption.text}
+              </Text>
+            ) : null}
+          </Box>
+        )}
       </Box>
     </Box>
   );

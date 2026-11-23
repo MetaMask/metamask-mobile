@@ -19,12 +19,11 @@ import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testId
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../components/Money/ClaimableRewardsCard.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
-import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard.testIds';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
-import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
 import { SHARE_CODE_SHEET_TEST_IDS } from '../components/Money/ShareCodeSheet';
 import { BENEFITS_TAB_TEST_IDS } from '../components/Money/Tabs/BenefitsTab.testIds';
 import { EARNINGS_TAB_TEST_IDS } from '../components/Money/Tabs/EarningsTab.testIds';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
 import { getRouteProbeTestId } from '../../../../../tests/component-view/render';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { renderRewardsMoneyDashboard } from '../../../../../tests/component-view/renderers/rewardsMoney';
@@ -34,8 +33,6 @@ import {
   referralMeFixture,
   REFERRAL_LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
-import { formatMusdBaseUnits } from '../utils/formatUtils';
-import { selfEarnedLifetime } from '../utils/earningsSummaryTotals';
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
   return engine.mock.calls.filter((call) => call[0] === action);
@@ -49,13 +46,10 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB_DOT),
     ).toBeOnTheScreen();
-
-    fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB));
-
     expect(
-      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+      await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
@@ -80,11 +74,6 @@ describe('RewardsMoneyDashboard', () => {
         summaryCalls.some((call) => !(call[1] as { from?: string })?.from),
       ).toBe(true);
       expect(
-        summaryCalls.some((call) =>
-          Boolean((call[1] as { from?: string })?.from),
-        ),
-      ).toBe(true);
-      expect(
         callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
       ).toEqual(
         expect.arrayContaining([
@@ -96,7 +85,7 @@ describe('RewardsMoneyDashboard', () => {
       );
     });
 
-    fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_HEADER));
+    fireEvent.press(getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.HISTORY_HEADER));
 
     expect(
       await findByTestId(
@@ -107,17 +96,8 @@ describe('RewardsMoneyDashboard', () => {
 
   it('refetches the earnings summary once when Retry is pressed after a 503 (E4, RWDS-1674)', async () => {
     let rejectSummary = true;
-    const refereeRebateTotal = formatMusdBaseUnits(
-      selfEarnedLifetime(
-        CLAIMABLE_EARNINGS_SUMMARY,
-        'REFERRAL_TRADE_FEE_CASHBACK',
-      ),
-    );
-    if (!refereeRebateTotal) {
-      throw new Error('Referee rebate total missing from the summary fixture');
-    }
-    const { findByTestId, findByText, queryByTestId, engine } =
-      renderRewardsMoneyDashboard({
+    const { findByTestId, queryByTestId, engine } = renderRewardsMoneyDashboard(
+      {
         persona: 'referee',
         summary: null,
         handlers: {
@@ -133,11 +113,12 @@ describe('RewardsMoneyDashboard', () => {
             return CLAIMABLE_EARNINGS_SUMMARY;
           },
         },
-      });
+      },
+    );
 
     // The rejected earnings summary renders the error banner.
     const banner = await findByTestId(
-      REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR,
+      WAYS_TO_EARN_TAB_TEST_IDS.SUMMARY_ERROR,
       {},
       { timeout: 3000 },
     );
@@ -159,8 +140,12 @@ describe('RewardsMoneyDashboard', () => {
 
     // The retried earnings summary replaces the error banner.
     expect(
-      await findByText(refereeRebateTotal, {}, { timeout: 3000 }),
-    ).toBeOnTheScreen();
+      await findByTestId(
+        CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT,
+        {},
+        { timeout: 3000 },
+      ),
+    ).toHaveTextContent('$5.00');
     await waitFor(() => {
       expect(
         callsFor(engine, 'RewardsMoneyController:getEarningsSummary'),
@@ -170,7 +155,7 @@ describe('RewardsMoneyDashboard', () => {
       callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
     ).toHaveLength(ledgerCallsBeforeRetry);
     expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
+      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.SUMMARY_ERROR),
     ).not.toBeOnTheScreen();
   });
 });
@@ -190,24 +175,17 @@ describe('RewardsMoneyDashboard share code', () => {
   }
 
   it('opens the share code sheet from the header for an active referrer code', async () => {
-    const { findByTestId, findByText, getByTestId, queryByTestId } =
-      renderRewardsMoneyDashboard({
-        persona: 'referrer',
-        moneyControllerEnabled: true,
-        subscriptionId: 'sub-1',
-      });
+    const { findByTestId, getByTestId } = renderRewardsMoneyDashboard({
+      persona: 'referrer',
+      moneyControllerEnabled: true,
+      subscriptionId: 'sub-1',
+    });
 
     expect(
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      await findByText(REFERRAL_LOCALIZED_TEXT.shareCode),
-    ).toBeOnTheScreen();
-    expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON));
@@ -218,18 +196,14 @@ describe('RewardsMoneyDashboard share code', () => {
   });
 
   it('opens the share code sheet from the header for a referee with an active code', async () => {
-    const { findByTestId, getByTestId, queryByTestId } =
-      renderRewardsMoneyDashboard({
-        persona: 'referee',
-        moneyControllerEnabled: true,
-        referralMe: activeRefereeReferral(),
-      });
+    const { findByTestId, getByTestId } = renderRewardsMoneyDashboard({
+      persona: 'referee',
+      moneyControllerEnabled: true,
+      referralMe: activeRefereeReferral(),
+    });
 
     expect(
       await findByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON));
@@ -375,7 +349,7 @@ describe('RewardsMoneyDashboard settings', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps Ways to earn, Earnings, and Performance visible in an excluded region (A4)', async () => {
+  it('keeps Ways to earn and Earnings visible in an excluded region (A4)', async () => {
     const { getByTestId, queryByTestId } = await openDashboard({
       geoLocation: 'GB',
       referralMe: {
@@ -392,9 +366,6 @@ describe('RewardsMoneyDashboard settings', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
     ).toBeOnTheScreen();
   });
 
@@ -516,7 +487,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
       ).getAllByText(REFERRAL_LOCALIZED_TEXT.overviewTab),
     ).not.toHaveLength(0);
     expect(
-      await findByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
+      await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
@@ -837,7 +808,7 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
       });
 
     expect(
-      await findByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
+      await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
