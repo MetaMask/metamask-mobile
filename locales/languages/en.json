@@ -11148,6 +11148,7 @@
       "failed": "Failed",
       "filled": "Filled",
       "skipped": "Skipped",
+      "swap_issue_warning": "Some swaps were skipped or failed",
       "reason": "Reason",
       "swap_details_title": "Swapped {{source}} to {{dest}}",
       "order_not_found": "Order not found",

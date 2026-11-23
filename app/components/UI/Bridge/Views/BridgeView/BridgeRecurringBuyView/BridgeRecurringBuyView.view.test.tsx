@@ -1422,8 +1422,8 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       renderResult: ReturnType<typeof renderBridgeView>,
       rowTestId: string,
     ) {
-      return within(renderResult.getByTestId(rowTestId)).queryByTestId(
-        OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY,
+      return within(renderResult.getByTestId(rowTestId)).queryByLabelText(
+        strings('bridge.recurring.swap_issue_warning'),
       );
     }
 
@@ -1444,7 +1444,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       });
     });
 
-    it('shows a warning icon on Open orders rows with a skipped or failed sub-swap', async () => {
+    it('shows a labelled warning icon on Open orders rows with a skipped or failed sub-swap', async () => {
       const renderResult = renderBridgeView();
       await openRecurringTab(renderResult);
 
@@ -1480,7 +1480,7 @@ describeForPlatforms('BridgeRecurringBuyView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('keeps the warning icon on History rows once a sub-swap was skipped', async () => {
+    it('keeps the labelled warning icon on History rows once a sub-swap was skipped', async () => {
       const renderResult = renderBridgeView();
       await openRecurringTab(renderResult);
       await userEvent.press(

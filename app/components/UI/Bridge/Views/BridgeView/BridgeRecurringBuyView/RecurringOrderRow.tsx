@@ -64,6 +64,7 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
             name={IconName.Warning}
             color={IconColor.WarningDefault}
             size={IconSize.Sm}
+            accessibilityLabel={strings('bridge.recurring.swap_issue_warning')}
           />
         ) : undefined
       }
