@@ -304,6 +304,17 @@ describe('BridgeRecurringBuyFooterView', () => {
     ).toHaveTextContent('Swapping 120 USDC for ETH every hour. Repeats once.');
   });
 
+  it('joins the repeat sentence with non-breaking spaces so it wraps as one unit', () => {
+    const { getByTestId } = renderFooter(buildActiveQuoteState());
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.RECURRING_SPEND_SUMMARY),
+    ).toHaveTextContent(
+      'Swapping 120 USDC for ETH every hour. Repeats\u00A010\u00A0times.',
+      { normalizer: (text) => text },
+    );
+  });
+
   it('renders copy in muted grey with user values in white at the same weight', () => {
     const { getByTestId, getByText } = renderFooter(buildActiveQuoteState());
 

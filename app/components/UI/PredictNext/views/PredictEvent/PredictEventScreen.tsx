@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -52,6 +58,7 @@ import RulesBottomSheet from './internal/RulesBottomSheet';
 import { EventMarketList } from './internal/EventMarketList';
 import {
   createMarketGroupProjection,
+  refreshMarketGroupProjection,
   type MarketGroupProjection,
 } from './internal/createMarketGroupProjection';
 import { PredictEventScreenTestIds } from './PredictEventScreen.testIds';
@@ -64,6 +71,7 @@ type RulesTarget =
 type WinnerQuotes = NonNullable<ReturnType<typeof findWinnerMarketQuotes>>;
 
 const NO_MARKET_IDS: readonly PredictMarket['id'][] = [];
+const NO_MARKETS: readonly PredictMarket[] = [];
 
 /**
  * The single Market the header charts when there is neither a Game chart nor
@@ -115,7 +123,7 @@ const EventScreenChrome = ({
 }: {
   children: React.ReactNode;
   header: React.ReactNode;
-}) => (
+}): React.ReactElement => (
   <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
     {header}
     {children}
@@ -130,7 +138,7 @@ const EventScreenLayout = ({
   children: React.ReactNode;
   onBack: () => void;
   title?: string;
-}) => {
+}): React.ReactElement => {
   const tw = useTailwind();
 
   return (
@@ -154,10 +162,10 @@ const EventLoadedHeader = ({
   winnerQuotes?: WinnerQuotes;
   historyMarket?: PredictMarket;
   topChartMarkets: readonly PredictMarket[];
-}) => {
+}): React.ReactElement => {
   const game = getEventGame(event);
 
-  const renderMarketHistory = () => {
+  const renderMarketHistory = (): React.ReactNode => {
     if (game && winnerQuotes) {
       return (
         <PredictGameMarketHistory
@@ -227,7 +235,7 @@ const orderOutcomeLabel = (
     : outcome.label;
 };
 
-export const PredictEventScreen = () => {
+export const PredictEventScreen = (): React.ReactElement => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const { venueId, eventId, titleSnapshot } =
@@ -285,10 +293,22 @@ export const PredictEventScreen = () => {
     () => (liveEvent ? findWinnerMarketQuotes(liveEvent) : undefined),
     [liveEvent],
   );
-  const marketProjection = useMemo(
-    () => createMarketGroupProjection(liveEvent?.markets ?? []),
-    [liveEvent?.markets],
-  );
+  const marketGroupCache = useRef<{
+    markets: readonly PredictMarket[];
+    projection: readonly MarketGroupProjection[];
+  } | null>(null);
+  const liveMarkets = liveEvent?.markets;
+  // The header only needs which Market to chart. Reuse the grouping across
+  // quotes and swap in the quoted Market instead of regrouping the Event.
+  const marketProjection = useMemo(() => {
+    const markets = liveMarkets ?? NO_MARKETS;
+    const cached = marketGroupCache.current;
+    const projection = cached
+      ? refreshMarketGroupProjection(cached.markets, cached.projection, markets)
+      : createMarketGroupProjection(markets);
+    marketGroupCache.current = { markets, projection };
+    return projection;
+  }, [liveMarkets]);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
     conditions: [!query.isLoading],

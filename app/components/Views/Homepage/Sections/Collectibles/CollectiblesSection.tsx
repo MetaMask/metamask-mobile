@@ -1,13 +1,15 @@
-import React, { useImperativeHandle, useRef, type Ref } from 'react';
-import type { View as RNView } from 'react-native';
+import React, {
+  ComponentRef,
+  useImperativeHandle,
+  useRef,
+  type Ref,
+} from 'react';
+import { useLinkProps } from '@react-navigation/native';
 import {
   SectionDivider,
   SectionHeader,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import { View } from '../../../../UI/primitives/View';
-import { Text } from '../../../../UI/primitives/Text';
 import { strings } from '../../../../../../locales/i18n';
 import type { SectionRefreshHandle } from '../../types';
 import useHomeViewedEvent, {
@@ -16,6 +18,10 @@ import useHomeViewedEvent, {
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { useHomePacks } from '../../../../UI/Collectibles/hooks/useHomePacks';
+import {
+  collectiblesRoutes,
+  type CollectiblesParamList,
+} from '../../../../UI/Collectibles/routeNames';
 import {
   CollectiblesCarousel,
   CollectiblesCarouselSkeleton,
@@ -37,8 +43,11 @@ export function CollectiblesSection({
   sectionIndex,
   totalSectionsLoaded,
 }: Props) {
-  const sectionViewRef = useRef<RNView>(null);
+  const sectionViewRef = useRef<ComponentRef<typeof View>>(null);
   const { data: packs, isPending, refetch } = useHomePacks();
+  const collectiblesLink = useLinkProps<CollectiblesParamList>({
+    screen: collectiblesRoutes.root,
+  });
   // A failed refetch keeps cached packs, so only hide when there's nothing to show.
   const isEmpty = !packs?.length;
   const isHidden = !isPending && isEmpty;
@@ -75,30 +84,22 @@ export function CollectiblesSection({
   return (
     <View
       ref={sectionViewRef}
-      onLayout={onLayout}
       className="pb-3"
       testID={collectiblesTestIds.homeSection}
+      onLayout={onLayout}
     >
       <SectionDivider />
-      {/* TODO: make the header open Collectibles once it has routes */}
       <SectionHeader
         title={strings('collectibles.title')}
+        isInteractive
+        {...collectiblesLink}
         testID={homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES)}
       />
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        className="px-4"
-      >
-        {strings('collectibles.home_section.description')}
-      </Text>
-      <View className="pt-3">
-        {isPending || !packs ? (
-          <CollectiblesCarouselSkeleton />
-        ) : (
-          <CollectiblesCarousel packs={packs} />
-        )}
-      </View>
+      {packs ? (
+        <CollectiblesCarousel packs={packs} />
+      ) : (
+        <CollectiblesCarouselSkeleton />
+      )}
     </View>
   );
 }
