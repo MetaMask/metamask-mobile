@@ -25,6 +25,9 @@ import type { RootState } from '../../../app/reducers';
 import { selectReferralMeEntry } from '../../../app/reducers/rewardsMoney/selectors';
 import { selectSessionProfileId } from '../../../app/selectors/identity';
 import AcceptInviteSheet from '../../../app/components/UI/Rewards/components/Money/AcceptInviteSheet';
+import RewardsMoneyClaimsPausedModal, {
+  type RewardsMoneyClaimsPausedModalParams,
+} from '../../../app/components/UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsMoneyDashboard from '../../../app/components/UI/Rewards/Views/RewardsMoneyDashboard';
 import RewardsDashboard from '../../../app/components/UI/Rewards/Views/RewardsDashboard';
 import ReduxService from '../../../app/core/redux/ReduxService';
@@ -684,6 +687,55 @@ export function renderRewardsMoneyInviteSheet(
     ),
     engine,
   };
+}
+
+export const CLAIMS_PAUSED_JOURNEY_TEST_IDS = {
+  HOST: 'claims-paused-host',
+} as const;
+
+function ClaimsPausedJourneyHost() {
+  const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
+
+  React.useEffect(() => {
+    navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL);
+  }, [navigation]);
+
+  return isFocused ? (
+    <Text testID={CLAIMS_PAUSED_JOURNEY_TEST_IDS.HOST}>Earnings</Text>
+  ) : null;
+}
+
+/**
+ * Claims paused sheet, or the balance breakdown, pushed over a host screen with
+ * the in-app browser registered as a params probe. The sheet reads the terms
+ * copy from the referral-me entry in Redux. Closing it returns to the host.
+ */
+export function renderRewardsMoneyClaimsPausedModal(
+  params: RewardsMoneyClaimsPausedModalParams,
+  options: RenderRewardsMoneyOptions = {},
+) {
+  const state = rewardsMoneyViewState(options);
+
+  function ClaimsPausedScreen() {
+    return <RewardsMoneyClaimsPausedModal route={{ params }} />;
+  }
+
+  return renderScreenWithRoutes(
+    ClaimsPausedJourneyHost,
+    { name: 'ClaimsPausedHost' },
+    [
+      {
+        name: Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        Component: ClaimsPausedScreen,
+      },
+      {
+        name: Routes.BROWSER.HOME,
+        Component: createRouteParamsProbe(Routes.BROWSER.HOME),
+      },
+    ],
+    { state },
+  );
 }
 
 function ReferralSplashJourneyDestination() {
