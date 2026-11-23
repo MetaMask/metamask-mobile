@@ -998,9 +998,7 @@ const toPositivePrice = (raw: unknown): number | undefined => {
  * (`/events`, `/events/keyset`) also return `priceToBeat`. Both carry the same
  * value, so either is a valid source.
  */
-const parseEventPriceToBeat = (
-  event: PolymarketApiEvent,
-): number | undefined =>
+const parseEventPriceToBeat = (event: PolymarketApiEvent): number | undefined =>
   toPositivePrice(event.eventMetadata?.priceToBeat) ??
   toPositivePrice(event.eventMetadata?.pendingPriceToBeat);
 

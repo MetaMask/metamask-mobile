@@ -874,8 +874,11 @@ describe('feedConfig home category feeds (PRED-1226)', () => {
       },
     );
     expect(
-      resolvePredictFeedConfig('weather', undefined, remoteCategories)?.tabs[0]
-        .filters.static.map((filter) => filter.id),
+      resolvePredictFeedConfig(
+        'weather',
+        undefined,
+        remoteCategories,
+      )?.tabs[0].filters.static.map((filter) => filter.id),
     ).toEqual(['all']);
   });
 });

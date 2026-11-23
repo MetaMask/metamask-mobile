@@ -419,7 +419,7 @@ describe('PredictFeedView (component view)', () => {
               },
             },
           },
-        } as never,
+        },
       });
 
     const chip = await findByText('15 Min');
@@ -543,7 +543,7 @@ describe('PredictFeedView (component view)', () => {
               },
             },
           },
-        } as never,
+        },
       });
 
     fireEvent.press(await findByText('15 Min'));
