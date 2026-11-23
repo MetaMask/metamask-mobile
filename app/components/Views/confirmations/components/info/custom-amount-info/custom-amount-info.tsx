@@ -64,17 +64,17 @@ import PayAccountSelector from '../../PayAccountSelector';
 import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import {
-  DEFAULT_PERPS_RECEIVE_DESTINATION,
   PerpsReceiveToRow,
   type PerpsReceiveDestination,
 } from '../../rows/perps-receive-to-row';
 import {
-  DEFAULT_PERPS_WITHDRAW_SOURCE,
   PerpsWithdrawFromRow,
   type PerpsWithdrawSource,
 } from '../../rows/perps-withdraw-from-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
+import { useSyncPerpsLighterTransactionType } from '../../../hooks/transactions/useSyncPerpsLighterTransactionType';
+import { perpsProviderSelectionForType } from '../../../utils/perps-lighter-transaction-type';
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import {
   MM_PAY_AMOUNT_INPUT_TYPE_MANUAL_SNAPPED_MAX,
@@ -223,10 +223,15 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         ? CustomAmountStage.NoQuote
         : amountStage;
 
+    const perpsProvider = perpsProviderSelectionForType(transactionMeta?.type);
     const [perpsReceiveDestination, setPerpsReceiveDestination] =
-      useState<PerpsReceiveDestination>(DEFAULT_PERPS_RECEIVE_DESTINATION);
+      useState<PerpsReceiveDestination>(perpsProvider);
     const [perpsWithdrawSource, setPerpsWithdrawSource] =
-      useState<PerpsWithdrawSource>(DEFAULT_PERPS_WITHDRAW_SOURCE);
+      useState<PerpsWithdrawSource>(perpsProvider);
+    useSyncPerpsLighterTransactionType({
+      destination: perpsReceiveDestination,
+      source: perpsWithdrawSource,
+    });
 
     // React batches rapid presses before the state update rerenders, so keep a
     // synchronous guard separate from the render state.

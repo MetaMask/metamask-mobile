@@ -370,7 +370,25 @@ describe('BenefitsPreview', () => {
       expect(getByTestId('benefit-card-2').props.disabled).toBe(false);
     });
 
-    it('limits preview to the first three benefits', () => {
+    it('renders a card for every available benefit', () => {
+      mockBenefits = [
+        { id: 1, longTitle: 'B1', shortDescription: 'a' },
+        { id: 2, longTitle: 'B2', shortDescription: 'b' },
+        { id: 3, longTitle: 'B3', shortDescription: 'c' },
+        { id: 4, longTitle: 'B4', shortDescription: 'd' },
+        { id: 5, longTitle: 'B5', shortDescription: 'e' },
+      ];
+
+      const { getByText } = render(<BenefitsPreview />);
+
+      expect(getByText('B1')).toBeOnTheScreen();
+      expect(getByText('B2')).toBeOnTheScreen();
+      expect(getByText('B3')).toBeOnTheScreen();
+      expect(getByText('B4')).toBeOnTheScreen();
+      expect(getByText('B5')).toBeOnTheScreen();
+    });
+
+    it('snaps every tile when more than three benefits are rendered', () => {
       mockBenefits = [
         { id: 1, longTitle: 'B1', shortDescription: 'a' },
         { id: 2, longTitle: 'B2', shortDescription: 'b' },
@@ -378,12 +396,13 @@ describe('BenefitsPreview', () => {
         { id: 4, longTitle: 'B4', shortDescription: 'd' },
       ];
 
-      const { getByText, queryByText } = render(<BenefitsPreview />);
+      const { getByTestId } = render(<BenefitsPreview />);
 
-      expect(getByText('B1')).toBeOnTheScreen();
-      expect(getByText('B2')).toBeOnTheScreen();
-      expect(getByText('B3')).toBeOnTheScreen();
-      expect(queryByText('B4')).toBeNull();
+      const carousel = getByTestId(REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS);
+
+      // Four 210pt tiles, three 12pt gaps and 32pt of padding are 908pt wide,
+      // so a 390pt viewport scrolls 518 and the last tile snaps there.
+      expect(carousel.props.snapToOffsets).toEqual([0, 222, 444, 518]);
     });
 
     it('navigates to the full benefits view when the header row is pressed', () => {
