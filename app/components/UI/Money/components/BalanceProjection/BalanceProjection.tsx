@@ -161,7 +161,6 @@ export function BalanceProjection({
       <Pressable
         onPress={handleApyInfoPress}
         accessibilityRole="button"
-        accessibilityLabel={strings('money.apy_info_label')}
         hitSlop={8}
         style={({ pressed }) => tw.style('pb-px', pressed && 'opacity-50')}
         testID="balance-projection-apy-pitch-pressable"
