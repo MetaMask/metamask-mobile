@@ -94,7 +94,7 @@ describe('MoneyMpcQaPresets', () => {
     await press(getByText, 'Create MPC Money account');
 
     expect(moneyAccountMigration.reset).toHaveBeenCalled();
-    expect(moneyAccountMigration.start).toHaveBeenCalled();
+    expect(moneyAccountMigration.start).toHaveBeenCalledWith('qa');
     expect(
       getByTestId(MfaSettingsSelectorsIDs.MONEY_MPC_QA_RESULT),
     ).toHaveTextContent(new RegExp(MPC_ADDRESS, 'u'));

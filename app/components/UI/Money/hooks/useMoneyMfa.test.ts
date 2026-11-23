@@ -245,7 +245,7 @@ describe('useMoneyMfa', () => {
       const { result } = arrange();
 
       expect(result.current.status).toBe('setting_up');
-      expect(mockStart).toHaveBeenCalledTimes(1);
+      expect(mockStart).toHaveBeenCalledWith('resume');
       await act(async () => {
         finish(true);
       });
@@ -303,7 +303,7 @@ describe('useMoneyMfa', () => {
         await result.current.turnOn();
       });
 
-      expect(mockStart).toHaveBeenCalledTimes(1);
+      expect(mockStart).toHaveBeenCalledWith('turn_on');
       expect(result.current.status).toBe('enabled');
       expect(moneyMfaStore.getState().isMoneyAccountMfaEnabled).toBe(true);
       expectConfirmationPending();
@@ -513,7 +513,7 @@ describe('useMoneyMfa', () => {
         await result.current.retry();
       });
 
-      expect(mockStart).toHaveBeenCalledTimes(1);
+      expect(mockStart).toHaveBeenCalledWith('retry');
       expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
       expect(result.current.status).toBe('enabled');
       expectConfirmationPending();

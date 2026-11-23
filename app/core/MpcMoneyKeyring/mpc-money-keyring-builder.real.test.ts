@@ -1,5 +1,6 @@
 import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
 import { getMfaRequirement } from '@metamask/money-account-mfa-whitelist';
+import { trackMoneyMpcSigningRequested } from '../../util/analytics/moneyMfaTracking';
 import { sha256 } from '@noble/hashes/sha2';
 import {
   buildRealMpcMoneyKeyringBuilder,
@@ -16,6 +17,10 @@ jest.mock('@metamask/eth-money-mpc-keyring', () => ({
 
 jest.mock('@metamask/money-account-mfa-whitelist', () => ({
   getMfaRequirement: jest.fn(),
+}));
+
+jest.mock('../../util/analytics/moneyMfaTracking', () => ({
+  trackMoneyMpcSigningRequested: jest.fn(),
 }));
 
 jest.mock('@metamask/mpc-react-native', () => ({
@@ -200,6 +205,20 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
         hash: '0x2',
       }),
     ).toBe(false);
+  });
+
+  it('tracks each signing request with its 2-step verification requirement', async () => {
+    const requirement = { mfaRequired: false, rule: 'chomp-authentication' };
+    jest.mocked(getMfaRequirement).mockReturnValue(requirement as never);
+    const { options } = buildKeyring();
+    const request = { method: 'signPersonalMessage' } as never;
+
+    await options.isMfaRequired?.(request, { address: '0x1', hash: '0x2' });
+
+    expect(trackMoneyMpcSigningRequested).toHaveBeenCalledWith(
+      request,
+      requirement,
+    );
   });
 
   it('derives a 32-byte backup key from the profile id', async () => {

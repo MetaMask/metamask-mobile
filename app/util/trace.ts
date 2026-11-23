@@ -336,6 +336,10 @@ export enum TraceName {
   // Money Home Data Fetches
   MoneyActivityFetch = 'Money Activity Fetch',
   MoneyActivityVaultShareValuationsFetch = 'Money Activity Vault Share Valuations Fetch',
+  // Money 2-step verification setup
+  MoneyMfaSetup = 'Money MFA Setup',
+  MoneyMfaMigrationStart = 'Money MFA Migration Start',
+  MoneyMfaMigrationTransfer = 'Money MFA Migration Transfer',
   CardHomeDataFetch = 'Card Home Data Fetch',
   CardRedeemWithdraw = 'Card Redeem Withdraw',
   // Rewards
@@ -423,6 +427,7 @@ export enum TraceOperation {
   // Money Home Performance
   MoneyHomePerformance = 'money.home.performance',
   MoneyAccountDataFetch = 'money.account.data_fetch',
+  MoneyMfaSetup = 'money.mfa.setup',
   // Rewards
   RewardsPerformance = 'rewards.performance',
   // Notifications & Braze Performance

@@ -89,7 +89,7 @@ const MoneyMpcQaPresets = () => {
   const create = async () =>
     run('Create MPC Money account', async () => {
       moneyAccountMigration.reset();
-      await moneyAccountMigration.start();
+      await moneyAccountMigration.start('qa');
       return getMpcMoneyAddress() ?? '';
     });
 

@@ -28,6 +28,7 @@ import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlag
 import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
+import type { MoneyMfaSetupTrigger } from '../../../../util/analytics/moneyMfaTracking';
 
 export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'totp'];
 
@@ -56,14 +57,14 @@ const getTurnOffReason = (): MfaReason => ({
 let activeMigration: Promise<void> | undefined;
 
 // The flow can outlive the screen that started it, so the result goes through the app-wide navigator.
-const migrate = async (): Promise<void> => {
+const migrate = async (trigger: MoneyMfaSetupTrigger): Promise<void> => {
   // A wallet reset clears `migrating`, so a run from the previous wallet is not reused.
   if (activeMigration && moneyAccountMigration.getStatus() === 'migrating') {
     return activeMigration;
   }
   const run: Promise<void> = (async () => {
     try {
-      await moneyAccountMigration.start();
+      await moneyAccountMigration.start(trigger);
     } catch {
       return;
     }
@@ -129,7 +130,7 @@ export const useMoneyMfa = () => {
 
   useEffect(() => {
     if (status === 'setting_up' && !activeMigration) {
-      void migrate();
+      void migrate('resume');
     }
   }, [status]);
 
@@ -168,7 +169,7 @@ export const useMoneyMfa = () => {
         return;
       }
       moneyMfaStore.setState({ isMigrationBannerDismissed: false });
-      await migrate();
+      await migrate('turn_on');
     },
     [verifyOrEnroll, showToast],
   );
@@ -206,7 +207,7 @@ export const useMoneyMfa = () => {
 
   const retry = useCallback(async () => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });
-    return migrate();
+    return migrate('retry');
   }, []);
 
   const dismissSettingUpBanner = useCallback(() => {

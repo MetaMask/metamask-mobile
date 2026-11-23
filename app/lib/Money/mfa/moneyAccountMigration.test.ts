@@ -6,6 +6,9 @@ import {
   MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
   moneyAccountMigration,
 } from './moneyAccountMigration';
+import Logger from '../../../util/Logger';
+import { trackMoneyMfaSetupStatus } from '../../../util/analytics/moneyMfaTracking';
+import { endTrace, TraceName } from '../../../util/trace';
 
 jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
@@ -33,6 +36,31 @@ jest.mock('../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));
+
+jest.mock('../../../util/analytics/moneyMfaTracking', () => ({
+  ...jest.requireActual('../../../util/analytics/moneyMfaTracking'),
+  trackMoneyMfaSetupStatus: jest.fn(),
+}));
+
+jest.mock('../../../util/trace', () => ({
+  ...jest.requireActual('../../../util/trace'),
+  trace: jest.fn((_request: unknown, fn?: () => unknown) =>
+    fn ? fn() : { name: 'parent' },
+  ),
+  endTrace: jest.fn(),
+}));
+
+const mockTrackStatus = jest.mocked(trackMoneyMfaSetupStatus);
+const mockEndTrace = jest.mocked(endTrace);
+const mockLoggerError = jest.mocked(Logger.error);
+
+const upgradeStepError = (step: string, terminal = false) =>
+  Object.assign(new Error(`Money Account upgrade failed at step "${step}"`), {
+    name: 'MoneyAccountUpgradeStepError',
+    step,
+    terminal,
+    cause: Object.assign(new Error('unauthorized'), { name: 'HttpError' }),
+  });
 
 const mockSetItem = jest.mocked(StorageWrapper.setItem);
 const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
@@ -205,5 +233,140 @@ describe('moneyAccountMigration', () => {
 
     expect(moneyAccountMigration.getStatus()).toBe('failed');
     jest.useRealTimers();
+  });
+
+  describe('tracking', () => {
+    it('tracks started and completed with the trigger and attempt', async () => {
+      await moneyAccountMigration.start('retry');
+
+      expect(mockTrackStatus).toHaveBeenNthCalledWith(1, {
+        status: 'started',
+        trigger: 'retry',
+        attempt: 1,
+      });
+      expect(mockTrackStatus).toHaveBeenNthCalledWith(2, {
+        status: 'completed',
+        trigger: 'retry',
+        attempt: 1,
+        duration_ms: expect.any(Number),
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MoneyMfaSetup,
+        status: 'ok',
+      });
+    });
+
+    it('tracks the upgrade step that failed and counts the next attempt', async () => {
+      mockStartMigration.mockRejectedValueOnce(
+        upgradeStepError('associate-address'),
+      );
+
+      await moneyAccountMigration.start().catch(() => undefined);
+      await moneyAccountMigration.start('retry');
+
+      expect(mockTrackStatus).toHaveBeenCalledWith({
+        status: 'failed',
+        trigger: 'turn_on',
+        attempt: 1,
+        duration_ms: expect.any(Number),
+        failed_step: 'associate_address',
+        error_name: 'HttpError',
+        is_terminal: false,
+      });
+      expect(mockTrackStatus).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: 'completed', attempt: 2 }),
+      );
+    });
+
+    it('reports the failed step and trigger to Sentry', async () => {
+      mockStartMigration.mockRejectedValueOnce(
+        upgradeStepError('register-intents', true),
+      );
+
+      await moneyAccountMigration.start().catch(() => undefined);
+
+      expect(mockLoggerError).toHaveBeenCalledWith(expect.any(Error), {
+        tags: {
+          feature: 'money-mfa',
+          money_mfa_failed_step: 'register_intents',
+          money_mfa_trigger: 'turn_on',
+        },
+        context: {
+          name: 'money_mfa_setup',
+          data: expect.objectContaining({
+            attempt: 1,
+            is_terminal: true,
+            error_name: 'HttpError',
+          }),
+        },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.MoneyMfaSetup,
+        status: 'error',
+        data: { failed_step: 'register_intents' },
+      });
+    });
+
+    it('tracks start_migration when the failure names no upgrade step', async () => {
+      mockStartMigration.mockRejectedValueOnce(new Error('boom'));
+
+      await moneyAccountMigration.start().catch(() => undefined);
+
+      expect(mockTrackStatus).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          failed_step: 'start_migration',
+          error_name: 'Error',
+        }),
+      );
+    });
+
+    it('tracks funds_transfer_status when refreshing the migration fails', async () => {
+      mockRefresh.mockRejectedValueOnce(new Error('network'));
+
+      await moneyAccountMigration.start().catch(() => undefined);
+
+      expect(mockTrackStatus).toHaveBeenLastCalledWith(
+        expect.objectContaining({ failed_step: 'funds_transfer_status' }),
+      );
+    });
+
+    it('tracks funds_transfer_timeout when the transfer outlives the timeout', async () => {
+      jest.useFakeTimers();
+      setMoneyAccountType('migrating');
+
+      const run = moneyAccountMigration.start().catch(() => undefined);
+      await jest.advanceTimersByTimeAsync(
+        MIGRATION_POLL_TIMEOUT_MS + MIGRATION_POLL_INTERVAL_MS,
+      );
+      await run;
+
+      expect(mockTrackStatus).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          failed_step: 'funds_transfer_timeout',
+          error_name: 'MigrationTimeoutError',
+        }),
+      );
+      jest.useRealTimers();
+    });
+
+    it('tracks no result when a reset cancels the migration', async () => {
+      let finish: () => void = () => undefined;
+      mockStartMigration.mockReturnValueOnce(
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+      );
+
+      const run = moneyAccountMigration.start().catch(() => undefined);
+      moneyAccountMigration.reset();
+      finish();
+      await run;
+
+      expect(mockTrackStatus).toHaveBeenCalledTimes(1);
+      expect(mockTrackStatus).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'started' }),
+      );
+    });
   });
 });

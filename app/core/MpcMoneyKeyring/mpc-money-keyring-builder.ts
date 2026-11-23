@@ -13,6 +13,7 @@ import {
 } from '@metamask/money-account-mfa-whitelist';
 import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
+import { trackMoneyMpcSigningRequested } from '../../util/analytics/moneyMfaTracking';
 
 const envOrDefault = (value: string | undefined, fallback: string): string =>
   value === undefined || value === '' ? fallback : value;
@@ -169,12 +170,15 @@ export function buildRealMpcMoneyKeyringBuilder({
             `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
           ),
         ),
-      isMfaRequired: async (request, { address, hash }) =>
-        getMfaRequirement(request, {
+      isMfaRequired: async (request, { address, hash }) => {
+        const requirement = getMfaRequirement(request, {
           address,
           hash,
           config: MPC_MFA_WHITELIST_CONFIG,
-        }).mfaRequired,
+        });
+        trackMoneyMpcSigningRequested(request, requirement);
+        return requirement.mfaRequired;
+      },
       webSocket: WebSocket,
     });
   };
