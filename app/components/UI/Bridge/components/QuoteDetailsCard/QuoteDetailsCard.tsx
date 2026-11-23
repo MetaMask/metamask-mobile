@@ -171,6 +171,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const shouldShowPriceImpactRow =
     activeQuote?.quote.priceData?.priceImpact?.amount != null;
 
+  // Hide recipient row to prevent changing the recipient money account
+  const shouldShowRecipientRow = !destToken?.isMoneyToken;
+
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -464,7 +467,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        <QuoteDetailsRecipientKeyValueRow />
+        {shouldShowRecipientRow && <QuoteDetailsRecipientKeyValueRow />}
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (
