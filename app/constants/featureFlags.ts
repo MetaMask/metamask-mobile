@@ -56,7 +56,6 @@ export enum FeatureFlagNames {
   exploreBrandRefresh = 'exploreBrandRefresh',
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
-  mfaRecovery = 'mfaRecovery',
   slowNetworkBanner = 'slowNetworkBanner',
 }
 
