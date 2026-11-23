@@ -1,17 +1,22 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
 import { isMnemonicMoneyAccount } from '../../../../../lib/Money/money-accounts';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
+import { isMonadMainnetChainId } from '../../../../../util/networks';
+import { isHardwareAccount } from '../../../../../util/address';
 import {
   evmAddressFromEarningAddress,
+  isClaimSubmittable,
   runEarningsClaim,
   submitClaimVoucher,
 } from '../../../Rewards/utils/claimEarnings';
-import { isHardwareAccount } from '../../../../../util/address';
 import type { ClaimVoucherDto } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
+
+export type CardCashbackClaimResult = 'submitted' | 'failed' | 'skipped';
 
 /**
  * Card cashback claim. Reuses the Rewards claim stack and only the
@@ -20,19 +25,38 @@ import type { ClaimVoucherDto } from '../../../../../core/Engine/controllers/rew
 export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
+  const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);
+  const isClaimingRef = useRef(false);
   const softwareAccount =
     moneyAccount !== undefined && isMnemonicMoneyAccount(moneyAccount);
-  const moneyAccountAddress = softwareAccount ? moneyAccount.address : undefined;
+  const moneyAccountAddress = softwareAccount
+    ? moneyAccount.address
+    : undefined;
+  const chainId = vaultConfig?.chainId;
+  const submittable = isClaimSubmittable({
+    moneyAccountAddress,
+    chainId,
+    isMonadMainnet: Boolean(chainId && isMonadMainnetChainId(chainId)),
+    isSponsored: Boolean(chainId && isSponsorshipEnabled(chainId)),
+  });
 
-  const claim = useCallback(async () => {
-    if (!moneyAccountAddress || !vaultConfig || isClaiming) return;
+  const claim = useCallback(async (): Promise<CardCashbackClaimResult> => {
+    if (
+      !moneyAccountAddress ||
+      !vaultConfig ||
+      !submittable ||
+      isClaimingRef.current
+    ) {
+      return 'skipped';
+    }
+    isClaimingRef.current = true;
     setIsClaiming(true);
     try {
       const outcomes = await runEarningsClaim({
         moneyAccountAddress,
         routes: ['card-cashback'],
-        initiateClaim: (route, body) =>
+        initiateClaim: async (route, body) =>
           Engine.context.RewardsMoneyController.initiateClaim(route, body),
         canSignEarningAddress: (earningAddress) => {
           const from = evmAddressFromEarningAddress(earningAddress);
@@ -46,7 +70,7 @@ export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
           try {
             return await Engine.context.KeyringController.signPersonalMessage({
               data,
-              from: from as Hex,
+              from,
             });
           } catch {
             throw new Error('SIGN_FAILED');
@@ -62,16 +86,19 @@ export function useCardCashbackClaim(onSubmitted?: () => Promise<void>) {
       });
       if (outcomes.some((outcome) => outcome.submitted)) {
         await onSubmitted?.();
+        return 'submitted';
       }
+      return 'failed';
     } finally {
+      isClaimingRef.current = false;
       setIsClaiming(false);
     }
-  }, [isClaiming, moneyAccountAddress, onSubmitted, vaultConfig]);
+  }, [moneyAccountAddress, onSubmitted, submittable, vaultConfig]);
 
   return {
     claim,
     isClaiming,
-    canClaim: Boolean(moneyAccountAddress),
+    canClaim: Boolean(vaultConfig) && submittable,
     mpcAccount: moneyAccount !== undefined && !softwareAccount,
   };
 }

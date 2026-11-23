@@ -77,6 +77,22 @@ describe('CardCashbackView', () => {
     );
 
     expect(view.queryByTestId(CardCashbackSelectors.CLAIM)).toBeNull();
-    expect(view.getByTestId(CardCashbackSelectors.MPC)).toBeTruthy();
+    expect(view.getByTestId(CardCashbackSelectors.MPC)).toBeOnTheScreen();
+  });
+
+  it('keeps the claim button when a claim fails', () => {
+    const view = render(
+      <CardCashbackView
+        status="ready"
+        summary={summary}
+        canClaim
+        claimFailed
+      />,
+    );
+
+    expect(
+      view.getByTestId(CardCashbackSelectors.CLAIM_ERROR),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
   });
 });

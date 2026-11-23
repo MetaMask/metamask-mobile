@@ -16,6 +16,7 @@ export const CardCashbackSelectors = {
   UNAVAILABLE: 'card-cashback-unavailable',
   CLAIMABLE: 'card-cashback-claimable',
   CLAIM: 'card-cashback-claim',
+  CLAIM_ERROR: 'card-cashback-claim-error',
   MPC: 'card-cashback-mpc',
   PAIRING: 'card-cashback-pairing',
   LEDGER: 'card-cashback-ledger',
@@ -34,8 +35,7 @@ export function formatMusdBaseUnits(value: string): string {
 export function cardCashbackRateLabel(
   ledger: CardLedgerEntry[],
 ): string | null {
-  const rate = ledger.find((entry) => entry.card_source)?.card_source
-    ?.rate_bps;
+  const rate = ledger.find((entry) => entry.card_source)?.card_source?.rate_bps;
   if (rate === undefined || !Number.isInteger(rate) || rate < 0) return null;
   return strings('card.card_home.cashback_screen.rate', {
     rate: String(rate / 100),
@@ -49,6 +49,7 @@ interface CardCashbackViewProps {
   canClaim?: boolean;
   mpcAccount?: boolean;
   isClaiming?: boolean;
+  claimFailed?: boolean;
   onClaim?: () => void;
 }
 
@@ -59,6 +60,7 @@ const CardCashbackView: React.FC<CardCashbackViewProps> = ({
   canClaim = false,
   mpcAccount = false,
   isClaiming = false,
+  claimFailed = false,
   onClaim,
 }) => {
   if (status === 'loading') {
@@ -115,6 +117,11 @@ const CardCashbackView: React.FC<CardCashbackViewProps> = ({
       {mpcAccount ? (
         <Text testID={CardCashbackSelectors.MPC}>
           {strings('card.card_home.cashback_screen.mpc_unavailable')}
+        </Text>
+      ) : null}
+      {claimFailed ? (
+        <Text testID={CardCashbackSelectors.CLAIM_ERROR}>
+          {strings('card.card_home.cashback_screen.claim_failed')}
         </Text>
       ) : null}
       {showClaim ? (

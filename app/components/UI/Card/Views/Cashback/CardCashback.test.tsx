@@ -53,25 +53,47 @@ jest.mock('../../../../../core/Engine', () => ({
 describe('CardCashback', () => {
   beforeEach(() => {
     mockClaim.mockReset();
-    jest.spyOn(AccessibilityInfo, 'announceForAccessibility').mockImplementation(
-      () => undefined,
+    jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+  });
+
+  it('announces a failed claim and keeps the summary on screen', async () => {
+    mockClaim.mockResolvedValue('failed');
+    const view = render(<CardCashback />);
+
+    await waitFor(() => {
+      expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
+    });
+    fireEvent.press(view.getByTestId(CardCashbackSelectors.CLAIM));
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId(CardCashbackSelectors.CLAIM_ERROR),
+      ).toBeOnTheScreen();
+    });
+    expect(view.getByTestId(CardCashbackSelectors.CLAIMABLE)).toBeOnTheScreen();
+    expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
+    expect(view.queryByTestId(CardCashbackSelectors.UNAVAILABLE)).toBeNull();
+    expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
+      'card.card_home.cashback_screen.claim_failed',
     );
   });
 
-  it('announces the unavailable message when a claim fails', async () => {
+  it('announces when a claim rejects', async () => {
     mockClaim.mockRejectedValue(new Error('claim failed'));
     const view = render(<CardCashback />);
 
     await waitFor(() => {
-      expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeTruthy();
+      expect(view.getByTestId(CardCashbackSelectors.CLAIM)).toBeOnTheScreen();
     });
     fireEvent.press(view.getByTestId(CardCashbackSelectors.CLAIM));
 
     await waitFor(() => {
       expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-        'card.card_home.cashback_screen.unavailable',
+        'card.card_home.cashback_screen.claim_failed',
       );
     });
-    expect(view.getByTestId(CardCashbackSelectors.UNAVAILABLE)).toBeTruthy();
+    expect(view.queryByTestId(CardCashbackSelectors.UNAVAILABLE)).toBeNull();
   });
 });

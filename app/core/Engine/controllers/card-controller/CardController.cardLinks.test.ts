@@ -1232,6 +1232,69 @@ describe('CardController card links', () => {
       );
     });
 
+    it('asks again after an Immersve login that had no address to prove', async () => {
+      const signature = `0x${'ef'.repeat(65)}`;
+      const profileId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+      const bearer = `e30.${Buffer.from(JSON.stringify({ sub: profileId })).toString('base64url')}.sig`;
+      const submitCredentials = jest.fn().mockResolvedValue({
+        done: true,
+        tokenSet: {
+          accessToken: 'at',
+          accessTokenExpiresAt: Date.now() + 60_000,
+          location: 'international',
+        },
+      });
+      const signPersonalMessage = jest.fn().mockResolvedValue(signature);
+      const { controller, cardService } = setup({
+        provider: { submitCredentials },
+        getBearerToken: jest.fn().mockResolvedValue(bearer),
+        signPersonalMessage,
+        state: {
+          activeProviderId: 'immersve',
+          cardLinks: null,
+          cardLinksFetchedAt: null,
+        },
+      });
+      jest.spyOn(CardTokenStore, 'set').mockResolvedValue(true);
+      (controller as unknown as { currentSession: unknown }).currentSession = {
+        id: 's',
+        currentStep: { type: 'email_password' },
+        _metadata: {},
+      };
+
+      await controller.submitCredentials({
+        type: 'email_password',
+        email: 'e',
+        password: '',
+        otpCode: '123456',
+      });
+      await flush();
+
+      expect(cardService.putCardLink).toHaveBeenCalled();
+      expect(signPersonalMessage).not.toHaveBeenCalled();
+      for (const [, body] of cardService.putCardLink.mock.calls) {
+        expect(body).not.toHaveProperty('walletProof');
+      }
+
+      cardService.getCardLinks.mockResolvedValue([
+        link({
+          provider: 'immersve',
+          status: 'active',
+          cardholderVerified: false,
+        }),
+      ]);
+
+      await controller.fetchCardLinks();
+      await flush();
+
+      const proofWrites = (
+        cardService.putCardLink as jest.Mock
+      ).mock.calls.filter((call) => call[1]?.walletProof);
+      expect(proofWrites).toHaveLength(1);
+      expect(proofWrites[0][0]).toBe('immersve');
+      expect(signPersonalMessage).toHaveBeenCalledTimes(1);
+    });
+
     it('asks again when an Immersve link is unverified, and only once', async () => {
       const signature = `0x${'cd'.repeat(65)}`;
       const profileId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';

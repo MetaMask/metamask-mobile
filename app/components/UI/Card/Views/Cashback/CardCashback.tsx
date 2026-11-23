@@ -16,6 +16,7 @@ const CardCashback: React.FC = () => {
   const [summary, setSummary] = useState<CardSummaryResponse | null>(null);
   const [ledger, setLedger] = useState<CardLedgerEntry[]>([]);
   const [failed, setFailed] = useState(false);
+  const [claimFailed, setClaimFailed] = useState(false);
 
   const load = useCallback(async () => {
     const [nextSummary, page] = await Promise.all([
@@ -29,9 +30,20 @@ const CardCashback: React.FC = () => {
 
   const { claim, isClaiming, canClaim, mpcAccount } = useCardCashbackClaim(
     async () => {
-      await load();
+      try {
+        await load();
+      } catch {
+        // The claim already went through. Keep the summary on screen.
+      }
     },
   );
+
+  const reportClaimFailure = () => {
+    setClaimFailed(true);
+    AccessibilityInfo.announceForAccessibility(
+      strings('card.card_home.cashback_screen.claim_failed'),
+    );
+  };
 
   useEffect(() => {
     if (!enabled) return undefined;
@@ -58,13 +70,17 @@ const CardCashback: React.FC = () => {
       canClaim={canClaim}
       mpcAccount={mpcAccount}
       isClaiming={isClaiming}
+      claimFailed={claimFailed}
       onClaim={() => {
-        claim().catch(() => {
-          setFailed(true);
-          AccessibilityInfo.announceForAccessibility(
-            strings('card.card_home.cashback_screen.unavailable'),
-          );
-        });
+        claim()
+          .then((result) => {
+            if (result === 'failed') {
+              reportClaimFailure();
+            } else if (result === 'submitted') {
+              setClaimFailed(false);
+            }
+          })
+          .catch(reportClaimFailure);
       }}
     />
   );

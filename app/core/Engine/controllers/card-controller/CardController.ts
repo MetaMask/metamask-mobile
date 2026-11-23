@@ -383,7 +383,7 @@ export class CardController extends BaseController<
   /** Providers whose backfill was rejected this session. A failure stays out, so the next trigger retries. */
   #cardLinkBackfillAttempted = new Set<CardProviderId>();
   /** One wallet-proof prompt per provider for this process. Logout clears it. */
-  #cardLinkProofPrompted = new Set<CardProviderId>();
+  readonly #cardLinkProofPrompted = new Set<CardProviderId>();
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
   #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
@@ -1118,16 +1118,20 @@ export class CardController extends BaseController<
   }
 
   #recordImmersveLoginWithProof(phase: CardLinkWriteStatus): void {
-    this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
     this.#writeCardLink(
       CardProviderIds.Immersve,
       phase,
-      () => ({
-        address:
-          this.#loginAccountForLinkedRef(CardProviderIds.Immersve) ??
-          undefined,
-        promptWalletProof: true,
-      }),
+      () => {
+        const address =
+          this.#loginAccountForLinkedRef(CardProviderIds.Immersve) ?? undefined;
+        const prompt =
+          address !== undefined &&
+          !this.#cardLinkProofPrompted.has(CardProviderIds.Immersve);
+        if (prompt) {
+          this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
+        }
+        return { address, promptWalletProof: prompt };
+      },
       'recordProviderLogin',
     ).catch((error) =>
       Logger.error(error as Error, {
@@ -1152,7 +1156,11 @@ export class CardController extends BaseController<
         (item) => item.provider === CardProviderIds.Immersve,
       ),
     );
-    if (!link || link.status === 'closed' || link.cardholderVerified !== false) {
+    if (
+      !link ||
+      link.status === 'closed' ||
+      link.cardholderVerified !== false
+    ) {
       return;
     }
     const address = this.#getSelectedEvmAddress();

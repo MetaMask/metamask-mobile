@@ -12286,6 +12286,7 @@
         "pairing_pending": "Finish pairing your Money account before this can be claimed.",
         "below_minimum": "This is below the minimum claim.",
         "claim": "Claim",
+        "claim_failed": "Claim failed. Try again.",
         "mpc_unavailable": "Claims aren't available for an MPC Money account yet.",
         "unavailable": "mUSD Back isn't available yet.",
         "loading": "Loading mUSD Back",
