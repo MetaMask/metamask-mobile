@@ -37,7 +37,7 @@ const StandardCards = ({
   markets: readonly PredictMarket[];
   onOrder: EventMarketLayoutCardProps['onOrder'];
   onRulesPress: EventMarketLayoutCardProps['onRulesPress'];
-}): JSX.Element => (
+}): React.ReactElement => (
   <>
     {markets.map((market) => (
       <MarketStandardCard
@@ -59,7 +59,7 @@ const UnknownLineCards = ({
   markets: readonly PredictMarket[];
   onOrder: EventMarketLayoutCardProps['onOrder'];
   onRulesPress: EventMarketLayoutCardProps['onRulesPress'];
-}): JSX.Element => {
+}): React.ReactElement => {
   useEffect(() => {
     DevLogger.log(
       `[PredictNext] No card for marketType "${marketType}"; showing its lines as standard cards`,
@@ -117,7 +117,7 @@ const LabelledChoiceCard = ({
   title?: string;
   game?: PredictGame;
   onOrder: EventMarketLayoutCardProps['onOrder'];
-}): JSX.Element => {
+}): React.ReactElement => {
   const { colors } = useTheme();
   const teamColors = useGameTeamColors(game);
   const describeRow = useCallback(
@@ -183,7 +183,7 @@ export const EventMarketLayoutCard = React.memo(
     onSelectMarket,
     onOrder,
     onRulesPress,
-  }: EventMarketLayoutCardProps): JSX.Element => {
+  }: EventMarketLayoutCardProps): React.ReactElement => {
     if (card.type === 'standard') {
       return (
         <MarketStandardCard

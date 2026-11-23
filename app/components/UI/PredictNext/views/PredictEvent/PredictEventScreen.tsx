@@ -123,7 +123,7 @@ const EventScreenChrome = ({
 }: {
   children: React.ReactNode;
   header: React.ReactNode;
-}): JSX.Element => (
+}): React.ReactElement => (
   <Box testID={PredictEventScreenTestIds.VIEW} twClassName="flex-1 bg-default">
     {header}
     {children}
@@ -138,7 +138,7 @@ const EventScreenLayout = ({
   children: React.ReactNode;
   onBack: () => void;
   title?: string;
-}): JSX.Element => {
+}): React.ReactElement => {
   const tw = useTailwind();
 
   return (
@@ -162,7 +162,7 @@ const EventLoadedHeader = ({
   winnerQuotes?: WinnerQuotes;
   historyMarket?: PredictMarket;
   topChartMarkets: readonly PredictMarket[];
-}): JSX.Element => {
+}): React.ReactElement => {
   const game = getEventGame(event);
 
   const renderMarketHistory = (): React.ReactNode => {
@@ -235,7 +235,7 @@ const orderOutcomeLabel = (
     : outcome.label;
 };
 
-export const PredictEventScreen = (): JSX.Element => {
+export const PredictEventScreen = (): React.ReactElement => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const { venueId, eventId, titleSnapshot } =

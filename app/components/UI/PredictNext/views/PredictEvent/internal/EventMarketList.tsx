@@ -489,7 +489,7 @@ const EventMarketListContent = ({
   onVisibleMarketIdsChange,
   children,
   testID = EventMarketListTestIds.ROOT,
-}: EventMarketListProps): JSX.Element => {
+}: EventMarketListProps): React.ReactElement => {
   const tw = useTailwind();
   const networkTier = useNetworkTier();
   // Unknown transport keeps the default window, including on LOW hardware.
@@ -857,7 +857,7 @@ const EventMarketListContent = ({
 };
 
 /** Owns Event content while leaving charts, navigation, and workflows outside. */
-export const EventMarketList = (props: EventMarketListProps): JSX.Element => (
+export const EventMarketList = (props: EventMarketListProps): React.ReactElement => (
   <EventMarketListContent
     key={JSON.stringify([props.event.venueId, props.event.id])}
     {...props}
