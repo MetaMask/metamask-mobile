@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -73,6 +74,10 @@ describe('WalletRecoveryPassword', () => {
   });
 
   it('shows an error message when provided', () => {
+    const announceSpy = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
     const { getByTestId, getByText } = renderPassword({
       password: 'x',
       error: 'Recovery failed',
@@ -80,6 +85,17 @@ describe('WalletRecoveryPassword', () => {
 
     expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeOnTheScreen();
     expect(getByText('Recovery failed')).toBeOnTheScreen();
+    expect(announceSpy).toHaveBeenCalledWith('Recovery failed');
+    announceSpy.mockRestore();
+  });
+
+  it('labels the password field for accessibility', () => {
+    const { getByTestId } = renderPassword();
+
+    expect(getByTestId(LoginViewSelectors.PASSWORD_INPUT)).toHaveProp(
+      'accessibilityLabel',
+      strings('login.password_placeholder'),
+    );
   });
 
   it('toggles password visibility', () => {

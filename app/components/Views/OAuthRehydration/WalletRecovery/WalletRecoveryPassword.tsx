@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -58,6 +59,14 @@ const WalletRecoveryPassword = ({
   const ctaLabel = strings('login.unlock_button');
   const placeholder = strings('login.password_placeholder');
 
+  // HelpText alone is not announced reliably (esp. iOS); speak errors explicitly.
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(error);
+  }, [error]);
+
   return (
     <Box twClassName="flex-1 bg-default" testID={LoginViewSelectors.CONTAINER}>
       <HeaderStandard
@@ -115,7 +124,7 @@ const WalletRecoveryPassword = ({
               }
               inputProps={{
                 testID: LoginViewSelectors.PASSWORD_INPUT,
-                accessibilityLabel: LoginViewSelectors.PASSWORD_INPUT,
+                accessibilityLabel: placeholder,
                 returnKeyType: 'done',
                 autoCapitalize: 'none',
                 secureTextEntry: !isPasswordVisible,
@@ -127,6 +136,7 @@ const WalletRecoveryPassword = ({
               <HelpText
                 severity={HelpTextSeverity.Danger}
                 testID={LoginViewSelectors.PASSWORD_ERROR}
+                accessibilityLiveRegion="polite"
               >
                 {error}
               </HelpText>

@@ -1,5 +1,5 @@
-import React, { useCallback } from 'react';
-import { Pressable } from 'react-native';
+import React, { useCallback, useEffect } from 'react';
+import { AccessibilityInfo, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Box,
@@ -124,10 +124,22 @@ const WalletRecoveryVerify = ({
   const mfaDisabled = isBusy || isOffline;
   const passwordDisabled = isBusy;
   const hasSecondaryMethods = showPassword || showEmail || showTotp;
+  const offlineMessage = isOffline
+    ? strings('wallet_recovery_mfa.offline_reason')
+    : null;
 
   const onPasskey = useCallback(() => {
     onSelectMethod('passkey');
   }, [onSelectMethod]);
+
+  // HelpText alone is not announced reliably (esp. iOS); speak status explicitly.
+  useEffect(() => {
+    const announcement = error ?? offlineMessage;
+    if (!announcement) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(announcement);
+  }, [error, offlineMessage]);
 
   return (
     <Box
@@ -154,13 +166,14 @@ const WalletRecoveryVerify = ({
           {strings('wallet_recovery_mfa.verify_description')}
         </Text>
 
-        {isOffline ? (
+        {offlineMessage ? (
           <HelpText
             severity={HelpTextSeverity.Warning}
             twClassName="mt-3"
             testID={WalletRecoverySelectorsIDs.VERIFY_OFFLINE}
+            accessibilityLiveRegion="polite"
           >
-            {strings('wallet_recovery_mfa.offline_reason')}
+            {offlineMessage}
           </HelpText>
         ) : null}
 
@@ -169,6 +182,7 @@ const WalletRecoveryVerify = ({
             severity={HelpTextSeverity.Danger}
             twClassName="mt-3"
             testID={WalletRecoverySelectorsIDs.VERIFY_ERROR}
+            accessibilityLiveRegion="polite"
           >
             {error}
           </HelpText>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../locales/i18n';
@@ -117,8 +118,13 @@ describe('WalletRecoveryVerify', () => {
   });
 
   it('shows failure and offline copy when provided', () => {
+    const announceSpy = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
+    const error = strings('wallet_recovery_mfa.method_failed');
     const { getByTestId, getByText } = renderVerify({
-      error: strings('wallet_recovery_mfa.method_failed'),
+      error,
       isOffline: true,
     });
 
@@ -131,6 +137,23 @@ describe('WalletRecoveryVerify', () => {
     expect(
       getByText(strings('wallet_recovery_mfa.offline_reason')),
     ).toBeOnTheScreen();
+    // Prefer the verify error when both are present.
+    expect(announceSpy).toHaveBeenCalledWith(error);
+    announceSpy.mockRestore();
+  });
+
+  it('announces the offline warning when there is no verify error', () => {
+    const announceSpy = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
+
+    renderVerify({ isOffline: true });
+
+    expect(announceSpy).toHaveBeenCalledWith(
+      strings('wallet_recovery_mfa.offline_reason'),
+    );
+    announceSpy.mockRestore();
   });
 
   it('keeps password available offline while MFA methods are disabled', () => {
