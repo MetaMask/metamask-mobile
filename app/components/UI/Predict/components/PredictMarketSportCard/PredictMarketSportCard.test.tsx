@@ -15,11 +15,13 @@ import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictGame } from '../../hooks/usePredictGame';
 
 const mockNavigate = jest.fn();
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useIsFocused: () => mockIsFocused,
 }));
 
 const mockIsFromTrending = jest.fn();
@@ -202,6 +204,7 @@ const stateWithSportCardLivePricesEnabled = (enabled: boolean) => ({
 describe('PredictMarketSportCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsFocused = true;
     mockIsFromTrending.mockReturnValue(false);
     mockGetLivePrice.mockReturnValue(undefined);
     mockUsePredictGame.mockImplementation((market) => ({
@@ -478,7 +481,36 @@ describe('PredictMarketSportCard', () => {
     expect(queryByText('SPA 99¢')).not.toBeOnTheScreen();
     expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
       ['token-home', 'token-draw', 'token-away'],
-      { enabled: false },
+      { enabled: false, retainPricesWhenDisabled: false },
+    );
+  });
+
+  it('pauses live subscriptions while the screen is blurred', () => {
+    mockIsFocused = false;
+
+    renderWithProvider(<PredictMarketSportCard market={mockMarket} />, {
+      state: initialState,
+    });
+
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['token-home', 'token-draw', 'token-away'],
+      { enabled: false, retainPricesWhenDisabled: false },
+    );
+  });
+
+  it('resumes live subscriptions when the screen regains focus', () => {
+    mockIsFocused = false;
+    const { rerender } = renderWithProvider(
+      <PredictMarketSportCard market={mockMarket} />,
+      { state: initialState },
+    );
+
+    mockIsFocused = true;
+    rerender(<PredictMarketSportCard market={mockMarket} />);
+
+    expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+      ['token-home', 'token-draw', 'token-away'],
+      { enabled: true, retainPricesWhenDisabled: false },
     );
   });
 

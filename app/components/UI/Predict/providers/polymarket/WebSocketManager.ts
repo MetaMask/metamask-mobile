@@ -1354,6 +1354,10 @@ export class WebSocketManager {
   }
 
   private sendMarketUnsubscribe(tokenIds: string[]): void {
+    // Nobody listens to these tokens any more, so their cached quote stops
+    // updating. Drop it so a later subscriber is not replayed a stale price.
+    tokenIds.forEach((tokenId) => this.marketPriceCache.delete(tokenId));
+
     if (this.marketWs?.readyState !== WebSocket.OPEN) {
       return;
     }

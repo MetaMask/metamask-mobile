@@ -24,11 +24,13 @@ import { useCryptoTargetPrice } from '../../hooks/useCryptoTargetPrice';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 const mockNavigate = jest.fn();
+let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
   }),
+  useIsFocused: () => mockIsFocused,
 }));
 
 jest.mock('../../hooks/usePredictSeries', () => ({
@@ -290,6 +292,7 @@ describe('PredictCryptoUpDownMarketCard', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2024-06-01T12:00:00.000Z'));
     jest.clearAllMocks();
+    mockIsFocused = true;
     __resetCardClockForTest();
     const liveMarket = createMarket();
 
@@ -818,6 +821,42 @@ describe('PredictCryptoUpDownMarketCard', () => {
           enabled: true,
           pollingInterval: 2000,
         }),
+      );
+    });
+  });
+
+  describe('screen focus', () => {
+    it('pauses live quotes and REST polling while the screen is blurred', () => {
+      mockUseLiveMarketPrices.mockReturnValue({
+        getPrice: () => undefined,
+        isConnected: false,
+      });
+      mockIsFocused = false;
+
+      renderCard();
+
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+        ['up-token', 'down-token'],
+        { enabled: false, retainPricesWhenDisabled: false },
+      );
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: false, pollingInterval: undefined }),
+      );
+    });
+
+    it('resumes live quotes and REST prices when the screen regains focus', () => {
+      mockIsFocused = false;
+      const { rerender } = renderCard();
+
+      mockIsFocused = true;
+      rerender(<PredictCryptoUpDownMarketCard market={createMarket()} />);
+
+      expect(mockUseLiveMarketPrices).toHaveBeenLastCalledWith(
+        ['up-token', 'down-token'],
+        { enabled: true, retainPricesWhenDisabled: false },
+      );
+      expect(mockUsePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ enabled: true }),
       );
     });
   });

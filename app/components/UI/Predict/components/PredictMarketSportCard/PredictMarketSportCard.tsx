@@ -13,7 +13,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
@@ -239,8 +239,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     () => buttonItems.map((item) => item.token.id),
     [buttonItems],
   );
+  // Pause the live quotes while another screen covers this one (PRED-1535).
+  const isScreenFocused = useIsFocused();
   const { getPrice } = useLiveMarketPrices(tokenIds, {
-    enabled: showBuyButtons && livePricesEnabled,
+    enabled: isScreenFocused && showBuyButtons && livePricesEnabled,
+    retainPricesWhenDisabled: false,
   });
 
   const getDisplayPrice = useCallback(
