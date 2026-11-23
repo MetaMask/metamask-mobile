@@ -12,7 +12,6 @@ import { IMetaMetricsEvent, MetaMetricsEvents } from '../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearHistory } from '../../../actions/browser';
 import CookieManager from '@react-native-cookies/cookies';
-import { RootState } from '../../../reducers';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
