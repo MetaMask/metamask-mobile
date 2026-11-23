@@ -1483,9 +1483,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.commitWithdraw(venueId, previewId);
-        const rejected = await expect(pending).rejects.toMatchObject({
-          name: 'AbortError',
-        });
+        const rejected = pending.catch((error: unknown): unknown => error);
         await jest.advanceTimersByTimeAsync(0);
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -1494,7 +1492,7 @@ describe('PredictApiReadClient', () => {
         await jest.advanceTimersByTimeAsync(30_000);
 
         expect(requestSignal?.aborted).toBe(true);
-        await rejected;
+        await expect(rejected).resolves.toMatchObject({ name: 'AbortError' });
       } finally {
         jest.useRealTimers();
       }
@@ -1512,9 +1510,7 @@ describe('PredictApiReadClient', () => {
         );
 
         const pending = client.observeWithdraw(venueId, previewId);
-        const rejected = await expect(pending).rejects.toMatchObject({
-          name: 'AbortError',
-        });
+        const rejected = pending.catch((error: unknown): unknown => error);
         await jest.advanceTimersByTimeAsync(0);
 
         expect(requestSignal?.aborted).toBe(false);
@@ -1522,7 +1518,7 @@ describe('PredictApiReadClient', () => {
         await jest.advanceTimersByTimeAsync(15_000);
 
         expect(requestSignal?.aborted).toBe(true);
-        await rejected;
+        await expect(rejected).resolves.toMatchObject({ name: 'AbortError' });
       } finally {
         jest.useRealTimers();
       }
