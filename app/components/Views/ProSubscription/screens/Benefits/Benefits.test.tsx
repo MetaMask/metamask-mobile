@@ -150,6 +150,7 @@ describe('Benefits', () => {
     mockPricingState();
     mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
       isEligibleForTrial: false,
+      isLoading: false,
     });
     mockStartSubscriptionState();
   });
@@ -322,6 +323,7 @@ describe('Benefits', () => {
     it('shows trial copy when the controller reports the user is eligible', () => {
       mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
         isEligibleForTrial: true,
+        isLoading: false,
       });
       mockPricingState({ plusPricing: trialPricing });
 
@@ -343,6 +345,25 @@ describe('Benefits', () => {
       expect(
         getByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION),
       ).toHaveTextContent(strings('pro_subscription.free_trial_description'));
+    });
+
+    it('keeps the plan cards hidden until the trial check has loaded', () => {
+      mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
+        isEligibleForTrial: true,
+        isLoading: true,
+      });
+      mockPricingState({ plusPricing: trialPricing });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_LOADING)).toBeOnTheScreen();
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).toBeNull();
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.pricing.loading'),
+      );
+      expect(queryByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION)).toBeNull();
     });
 
     it('hides trial copy when the controller reports the user is not eligible', () => {
@@ -493,6 +514,7 @@ describe('Benefits', () => {
     it('passes isTrial true when the selected plan offers a free trial', async () => {
       mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
         isEligibleForTrial: true,
+        isLoading: false,
       });
       mockPricingState({
         plusPricing: {
