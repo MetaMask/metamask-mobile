@@ -113,7 +113,7 @@ const V2KycProcessing = () => {
           );
         }
       };
-      fetchKycForms();
+      void fetchKycForms();
     }, [getAdditionalRequirements, quoteId]),
   );
 
@@ -142,9 +142,9 @@ const V2KycProcessing = () => {
 
   const startPolling = useCallback(() => {
     stopPolling();
-    fetchUserDetailsCallback();
+    void fetchUserDetailsCallback();
     pollingRef.current = setInterval(() => {
-      fetchUserDetailsCallback();
+      void fetchUserDetailsCallback();
     }, 10000);
   }, [fetchUserDetailsCallback, stopPolling]);
 

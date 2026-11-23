@@ -10921,9 +10921,6 @@
     }
   },
   "app/components/UI/Ramp/Views/NativeFlow/KycProcessing.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 3
-    },
     "typescript/no-misused-promises": {
       "count": 2
     },
@@ -10964,9 +10961,6 @@
     }
   },
   "app/components/UI/Ramp/Views/NativeFlow/OtpCode.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 2
-    },
     "typescript/no-misused-promises": {
       "count": 3
     },

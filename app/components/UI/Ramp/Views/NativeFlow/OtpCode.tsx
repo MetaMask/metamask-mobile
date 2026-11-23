@@ -263,7 +263,9 @@ const V2OtpCode = () => {
   ]);
 
   const handleContactSupport = useCallback(() => {
-    Linking.openURL(TRANSAK_SUPPORT_URL);
+    Linking.openURL(TRANSAK_SUPPORT_URL).catch((err) =>
+      Logger.error(err as Error, 'Failed to open Transak support URL'),
+    );
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -409,7 +411,7 @@ const V2OtpCode = () => {
   useEffect(() => {
     if (value.length === CELL_COUNT && latestValueSubmitted !== value) {
       setLatestValueSubmitted(value);
-      handleSubmit();
+      void handleSubmit();
     }
   }, [value, handleSubmit, latestValueSubmitted]);
 
