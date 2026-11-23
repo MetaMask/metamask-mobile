@@ -50,7 +50,6 @@ import {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
-  Modal,
   PixelRatio,
   Pressable,
   StyleSheet,
@@ -73,7 +72,6 @@ import {
   type MoneyPostOnboardingRedirect,
 } from '../../types/navigation';
 import { isE2EOrPerformanceTest } from '../../../../../util/test/utils';
-import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -553,7 +551,7 @@ const MoneyOnboardingView = () => {
     [dispatch, navigateToPostOnboardingDestination],
   );
 
-  const handleModalRequestClose = useCallback(() => {
+  const handleClosePress = useCallback(() => {
     handleClose(currentStepRef.current);
   }, [handleClose]);
 
@@ -704,48 +702,33 @@ const MoneyOnboardingView = () => {
   );
 
   return (
-    <Modal
-      testID={MoneyOnboardingViewTestIds.MODAL}
-      statusBarTranslucent
-      navigationBarTranslucent
-      hardwareAccelerated
-      animationType="fade"
-      onRequestClose={handleModalRequestClose}
-      transparent
-    >
-      <ModalSafeAreaProvider>
-        <View style={styles.root}>
-          {riveFile && instance && (
-            <RiveView
-              file={riveFile}
-              hybridRef={setHybridRef}
-              artboardName={RIVE_ARTBOARD_NAME}
-              stateMachineName={RIVE_STATE_MACHINE_NAME}
-              dataBind={instance}
-              autoPlay
-              fit={Fit.Layout}
-              layoutScaleFactor={PixelRatio.get()}
-              onError={handleError}
-              style={[
-                StyleSheet.absoluteFill,
-                !isRiveReady && styles.riveHidden,
-              ]}
-              testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
-            />
-          )}
-          <MoneyOnboardingTextOverlay
-            content={stepContent[overlayStep]}
-            opacity={overlayOpacity}
-            isVisible={isRiveReady}
-          />
-          <Pressable
-            onPress={handleModalRequestClose}
-            style={styles.closeButton}
-            testID={MoneyOnboardingViewTestIds.CLOSE_BUTTON}
-          />
-        </View>
-      </ModalSafeAreaProvider>
-    </Modal>
+    <View style={styles.root} testID={MoneyOnboardingViewTestIds.SCREEN}>
+      {riveFile && instance && (
+        <RiveView
+          file={riveFile}
+          hybridRef={setHybridRef}
+          artboardName={RIVE_ARTBOARD_NAME}
+          stateMachineName={RIVE_STATE_MACHINE_NAME}
+          dataBind={instance}
+          autoPlay
+          fit={Fit.Layout}
+          layoutScaleFactor={PixelRatio.get()}
+          onError={handleError}
+          style={[StyleSheet.absoluteFill, !isRiveReady && styles.riveHidden]}
+          testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
+        />
+      )}
+      <MoneyOnboardingTextOverlay
+        content={stepContent[overlayStep]}
+        opacity={overlayOpacity}
+        isVisible={isRiveReady}
+      />
+      <Pressable
+        onPress={handleClosePress}
+        style={styles.closeButton}
+        testID={MoneyOnboardingViewTestIds.CLOSE_BUTTON}
+      />
+    </View>
   );
 };
 

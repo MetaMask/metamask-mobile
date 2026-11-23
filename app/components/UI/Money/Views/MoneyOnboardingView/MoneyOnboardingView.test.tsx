@@ -1,7 +1,8 @@
 import React from 'react';
-import { act, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import {
   Dimensions,
+  Modal,
   StyleSheet,
   type StyleProp,
   type ViewStyle,
@@ -291,19 +292,11 @@ describe('MoneyOnboardingView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders onboarding in a transparent fade modal', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
-      const modal = getByTestId(MoneyOnboardingViewTestIds.MODAL);
+    it('renders onboarding as the route screen instead of a native modal', () => {
+      const { getByTestId, UNSAFE_queryByType } = renderMoneyOnboardingView();
 
-      expect(modal.props).toEqual(
-        expect.objectContaining({
-          animationType: 'fade',
-          hardwareAccelerated: true,
-          navigationBarTranslucent: true,
-          statusBarTranslucent: true,
-          transparent: true,
-        }),
-      );
+      expect(getByTestId(MoneyOnboardingViewTestIds.SCREEN)).toBeOnTheScreen();
+      expect(UNSAFE_queryByType(Modal)).toBeNull();
     });
 
     it('renders the initial native text overlay for step 1', () => {
@@ -959,12 +952,12 @@ describe('MoneyOnboardingView', () => {
       );
     });
 
-    it('closes onboarding when the modal requests close', async () => {
+    it('closes onboarding when the close button is pressed', async () => {
       const { getByTestId } = renderMoneyOnboardingView();
       jest.clearAllMocks();
 
       await act(async () => {
-        getByTestId(MoneyOnboardingViewTestIds.MODAL).props.onRequestClose();
+        fireEvent.press(getByTestId(MoneyOnboardingViewTestIds.CLOSE_BUTTON));
       });
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(

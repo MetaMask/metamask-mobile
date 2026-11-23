@@ -92,8 +92,8 @@ export const INTERRUPTING_SCREEN_REGISTRY: readonly InterruptingScreenDefinition
       dismiss: [testID(WhatsNewModalSelectorsIDs.CLOSE_BUTTON)],
     },
     {
-      name: 'money-onboarding-modal',
-      detect: [testID(MoneyOnboardingViewTestIds.MODAL)],
+      name: 'money-onboarding-screen',
+      detect: [testID(MoneyOnboardingViewTestIds.SCREEN)],
       dismiss: [testID(MoneyOnboardingViewTestIds.CLOSE_BUTTON)],
     },
     {
