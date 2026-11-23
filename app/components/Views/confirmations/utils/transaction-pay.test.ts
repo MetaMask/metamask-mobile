@@ -279,7 +279,7 @@ describe('Transaction Pay Utils', () => {
       const result = getAvailableTokens({
         tokens: [tokenWithZeroBalance] as AssetType[],
         payToken: buildPaymentTokenMock({
-          address: TOKEN_MOCK.address as Hex,
+          address: TOKEN_MOCK.address,
           chainId: TOKEN_MOCK.chainId as Hex,
         }),
       });
@@ -377,10 +377,7 @@ describe('Transaction Pay Utils', () => {
     describe('disabled', () => {
       it('keeps token enabled when native balance is zero', () => {
         const result = getAvailableTokens({
-          tokens: [
-            ERC20_TOKEN_MOCK,
-            { ...TOKEN_MOCK, balance: '0' } as AssetType,
-          ],
+          tokens: [ERC20_TOKEN_MOCK, { ...TOKEN_MOCK, balance: '0' }],
         });
 
         expect(result).toHaveLength(1);
@@ -414,7 +411,7 @@ describe('Transaction Pay Utils', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
           payToken: buildPaymentTokenMock({
-            address: TOKEN_MOCK.address as Hex,
+            address: TOKEN_MOCK.address,
             chainId: TOKEN_MOCK.chainId as Hex,
           }),
           fiatPayment: { selectedPaymentMethodId: 'pm-card' },
@@ -428,7 +425,7 @@ describe('Transaction Pay Utils', () => {
         const result = getAvailableTokens({
           tokens: [TOKEN_MOCK],
           payToken: buildPaymentTokenMock({
-            address: TOKEN_MOCK.address as Hex,
+            address: TOKEN_MOCK.address,
             chainId: TOKEN_MOCK.chainId as Hex,
           }),
           fiatPayment: {},
@@ -532,10 +529,7 @@ describe('Transaction Pay Utils', () => {
         };
 
         const result = getAvailableTokens({
-          tokens: [
-            ERC20_TOKEN_MOCK,
-            { ...TOKEN_MOCK, balance: '0' } as AssetType,
-          ],
+          tokens: [ERC20_TOKEN_MOCK, { ...TOKEN_MOCK, balance: '0' }],
           blockedTokens,
         });
 
@@ -646,7 +640,7 @@ describe('Transaction Pay Utils', () => {
     const loggerErrorMock = jest.mocked(Logger.error);
 
     beforeEach(() => {
-      updateAtomicBatchDataMock.mockResolvedValue('0x' as Hex);
+      updateAtomicBatchDataMock.mockResolvedValue('0x');
     });
 
     it('replaces the old address word in nested transaction data', () => {
@@ -703,7 +697,7 @@ describe('Transaction Pay Utils', () => {
       replaceAccountInNestedTransactions({
         transactionId: TRANSACTION_ID,
         nestedTransactions: [
-          { data: '0xdeadbeef' as Hex },
+          { data: '0xdeadbeef' },
           { data: `${SELECTOR}${OLD_WORD}` as Hex },
           { data: undefined },
         ],
@@ -761,7 +755,7 @@ describe('Transaction Pay Utils', () => {
     it('skips nested transactions whose data does not contain the old word', () => {
       replaceAccountInNestedTransactions({
         transactionId: TRANSACTION_ID,
-        nestedTransactions: [{ data: '0xdeadbeef' as Hex }],
+        nestedTransactions: [{ data: '0xdeadbeef' }],
         oldAddress: OLD_ADDRESS,
         newAddress: NEW_ADDRESS,
       });
@@ -940,7 +934,7 @@ describe('Transaction Pay Utils', () => {
 
     function runConfigCallback(): Record<string, unknown> {
       const config: Record<string, unknown> = {};
-      setTransactionConfigMock.mock.calls[0][1](config as never);
+      setTransactionConfigMock.mock.calls[0][1](config);
       return config;
     }
 
@@ -1075,7 +1069,7 @@ describe('Transaction Pay Utils', () => {
         string,
         unknown
       >;
-      updateFiatPaymentMock.mock.calls[0][0].callback(fp as never);
+      updateFiatPaymentMock.mock.calls[0][0].callback(fp);
 
       expect(fp.selectedPaymentMethodId).toBeUndefined();
     });

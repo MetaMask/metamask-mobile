@@ -93,7 +93,7 @@ describe('useMoneyAccountDepositAndOrder', () => {
   it('mounts the money account fallback with the current pay state', () => {
     jest
       .mocked(useTransactionPayFiatPayment)
-      .mockReturnValue({ selectedPaymentMethodId: 'card' } as never);
+      .mockReturnValue({ selectedPaymentMethodId: 'card' });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: ARBITRUM_USDC_MOCK as never,
       setPayToken: setPayTokenMock,
@@ -150,7 +150,7 @@ describe('useMoneyAccountDepositAndOrder', () => {
       payToken: buildPaymentTokenMock({
         address: MUSD_TOKEN_ADDRESS.toUpperCase(),
         chainId: CHAIN_IDS.MONAD,
-      }) as never,
+      }),
       setPayToken: setPayTokenMock,
     });
 

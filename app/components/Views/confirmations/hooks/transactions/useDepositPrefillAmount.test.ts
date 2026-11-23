@@ -213,7 +213,7 @@ function setupMocks(
   } as ReturnType<typeof useTransactionPayAvailableTokens>);
   useTransactionPayFiatPaymentMock.mockReturnValue(
     overrides.fiatPaymentSelected
-      ? ({ selectedPaymentMethodId: 'fiat-method' } as never)
+      ? { selectedPaymentMethodId: 'fiat-method' }
       : undefined,
   );
 
@@ -508,9 +508,9 @@ describe('useDepositPrefillAmount', () => {
         for (const address of addresses) {
           setupMocks({
             payToken: makePayToken({
-              address: address as Hex,
+              address,
               balanceUsd: '1000',
-              chainId: chainId as Hex,
+              chainId,
             }),
           });
 
@@ -526,7 +526,7 @@ describe('useDepositPrefillAmount', () => {
     it('prefills Ethereum USDT to max when the address is checksummed', () => {
       setupMocks({
         payToken: makePayToken({
-          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7' as Hex,
+          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
           balanceUsd: '80',
         }),
       });

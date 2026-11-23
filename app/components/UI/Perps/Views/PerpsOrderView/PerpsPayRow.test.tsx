@@ -94,7 +94,7 @@ describe('PerpsPayRow', () => {
     resetPerpsPaymentTokenSelection();
     mockUseNavigation.mockReturnValue({
       navigate: navigateMock,
-    } as unknown as ReturnType<typeof useNavigation>);
+    });
     mockUseTransactionMetadataRequest.mockReturnValue({
       txParams: { from: '0x123' },
     } as ReturnType<typeof useTransactionMetadataRequest>);
@@ -105,7 +105,7 @@ describe('PerpsPayRow', () => {
         symbol: 'USDC',
       }),
       setPayToken: jest.fn(),
-    } as unknown as ReturnType<typeof useTransactionPayToken>);
+    });
     mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     mockUseTokenWithBalance.mockReturnValue({
       address: '0xusdc',
@@ -117,7 +117,7 @@ describe('PerpsPayRow', () => {
     } as unknown as ReturnType<typeof useConfirmationMetricEvents>);
     mockUsePerpsEventTracking.mockReturnValue({
       track: trackMock,
-    } as unknown as ReturnType<typeof usePerpsEventTracking>);
+    });
     mockIsHardwareAccount.mockReturnValue(false);
   });
 
@@ -151,7 +151,7 @@ describe('PerpsPayRow', () => {
         symbol: 'USDC',
       }),
       setPayToken: jest.fn(),
-    } as unknown as ReturnType<typeof useTransactionPayToken>);
+    });
 
     const { getByTestId } = renderWithProvider(<PerpsPayRow />);
 
@@ -192,7 +192,7 @@ describe('PerpsPayRow', () => {
           symbol: 'mUSD',
         }),
         setPayToken: jest.fn(),
-      } as unknown as ReturnType<typeof useTransactionPayToken>);
+      });
 
       const { getByTestId } = renderWithProvider(<PerpsPayRow />, {
         state: MONEY_ACCOUNT_STATE,
@@ -275,7 +275,7 @@ describe('PerpsPayRow', () => {
       mockUseTransactionPayToken.mockReturnValue({
         payToken: buildPaymentTokenMock(token),
         setPayToken: jest.fn(),
-      } as unknown as ReturnType<typeof useTransactionPayToken>);
+      });
 
     it('emits payment_token_selector_dismissed when the selector closes with the token unchanged', () => {
       const usdc = { address: '0xusdc', chainId: '0xa4b1', symbol: 'USDC' };

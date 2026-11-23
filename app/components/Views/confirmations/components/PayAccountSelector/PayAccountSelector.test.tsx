@@ -153,9 +153,7 @@ describe('PayAccountSelector', () => {
   });
 
   it('renders with pre-selected address from accountOverride', () => {
-    useTransactionAccountOverrideMock.mockReturnValue(
-      '0xOverrideAddress' as Hex,
-    );
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideAddress');
 
     const { getByTestId } = render();
 
@@ -217,9 +215,7 @@ describe('PayAccountSelector', () => {
       txParams: { from: '0xMoneyAccount' },
       nestedTransactions: [{ data: '0xabcd' }],
     } as never);
-    useTransactionAccountOverrideMock.mockReturnValue(
-      '0xHardwareAddress' as Hex,
-    );
+    useTransactionAccountOverrideMock.mockReturnValue('0xHardwareAddress');
     isHardwareAccountMock.mockReturnValue(true);
 
     render();
@@ -236,7 +232,7 @@ describe('PayAccountSelector', () => {
     const config = { accountOverride: '0xHardwareAddress' } as {
       accountOverride?: string;
     };
-    configCallback(config as never);
+    configCallback(config);
 
     expect(config.accountOverride).toBeUndefined();
   });
@@ -255,7 +251,7 @@ describe('PayAccountSelector', () => {
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
     const config = {} as { accountOverride?: string; isPostQuote?: boolean };
-    configCallback(config as never);
+    configCallback(config);
 
     expect(config.accountOverride).toBe(SELECTED_ACCOUNT_ID_MOCK);
   });
@@ -275,7 +271,7 @@ describe('PayAccountSelector', () => {
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
     const config = {} as { accountOverride?: string; isPostQuote?: boolean };
-    configCallback(config as never);
+    configCallback(config);
 
     expect(config.accountOverride).toBe(SELECTED_ACCOUNT_ID_MOCK);
     expect(config.isPostQuote).toBeUndefined();
@@ -290,7 +286,7 @@ describe('PayAccountSelector', () => {
 
     const configCallback = setTransactionConfigMock.mock.calls[0][1];
     const config = {} as { accountOverride?: string; isPostQuote?: boolean };
-    configCallback(config as never);
+    configCallback(config);
 
     expect(config.accountOverride).toBe(SELECTED_ACCOUNT_ID_MOCK);
     expect(config.isPostQuote).toBeUndefined();
@@ -320,9 +316,7 @@ describe('PayAccountSelector', () => {
       txParams: { from: '0xFromAddress' },
       nestedTransactions,
     } as never);
-    useTransactionAccountOverrideMock.mockReturnValue(
-      '0xOverrideAddress' as Hex,
-    );
+    useTransactionAccountOverrideMock.mockReturnValue('0xOverrideAddress');
 
     const { getByTestId } = render();
 

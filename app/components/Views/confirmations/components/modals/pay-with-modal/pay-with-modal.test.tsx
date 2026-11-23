@@ -261,7 +261,7 @@ describe('PayWithModal', () => {
         chainId: CHAIN_ID_1_MOCK,
       }),
       setPayToken: setPayTokenMock,
-    } as unknown as ReturnType<typeof useTransactionPayToken>);
+    });
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -273,11 +273,11 @@ describe('PayWithModal', () => {
         from: EMPTY_ADDRESS,
       },
       type: TransactionType.simpleSend,
-    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
 
     usePerpsPaymentTokenMock.mockReturnValue({
       onPaymentTokenChange: onPerpsPaymentTokenChangeMock,
-    } as unknown as ReturnType<typeof usePerpsPaymentToken>);
+    });
 
     usePerpsBalanceTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
@@ -288,7 +288,7 @@ describe('PayWithModal', () => {
       isPredictBalanceSelected: true,
       selectedPaymentToken: null,
       resetSelectedPaymentToken: jest.fn(),
-    } as ReturnType<typeof usePredictPaymentToken>);
+    });
 
     usePredictBalanceTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
@@ -363,7 +363,7 @@ describe('PayWithModal', () => {
         time: 0,
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.perpsDepositAndOrder,
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
 
       const { findByText } = render();
 
@@ -389,7 +389,7 @@ describe('PayWithModal', () => {
         time: 0,
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.predictDepositAndOrder,
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
 
       const { findByText } = render();
 
@@ -417,7 +417,7 @@ describe('PayWithModal', () => {
       time: 0,
       txParams: { from: EMPTY_ADDRESS },
       type: TransactionType.perpsDepositAndOrder,
-    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
 
     render();
 
@@ -436,7 +436,7 @@ describe('PayWithModal', () => {
       time: 0,
       txParams: { from: EMPTY_ADDRESS },
       type: TransactionType.predictDepositAndOrder,
-    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    });
 
     render();
 
@@ -459,7 +459,7 @@ describe('PayWithModal', () => {
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.predictWithdraw,
         nestedTransactions: [{ type: TransactionType.predictWithdraw }],
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
     });
 
     it('shows "Select a token" title for withdrawal transactions', () => {
@@ -516,7 +516,7 @@ describe('PayWithModal', () => {
         txParams: { from: EMPTY_ADDRESS },
         type: TransactionType.moneyAccountWithdraw,
         nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
 
       const withdrawToken = {
         accountType: EthAccountType.Eoa,
@@ -543,7 +543,7 @@ describe('PayWithModal', () => {
       const callOrder: string[] = [];
 
       mockEnsurePayToken.mockImplementation(
-        () =>
+        async () =>
           new Promise<void>((resolve) => {
             setTimeout(() => {
               callOrder.push('ensurePayToken');
@@ -628,7 +628,7 @@ describe('PayWithModal', () => {
         txParams: { from: EMPTY_ADDRESS },
         type,
         nestedTransactions: [{ type }],
-      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+      });
     };
 
     it('renders no-fee tags for Money Account deposits', async () => {

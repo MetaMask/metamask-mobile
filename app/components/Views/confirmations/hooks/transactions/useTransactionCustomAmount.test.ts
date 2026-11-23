@@ -231,7 +231,7 @@ describe('useTransactionCustomAmount', () => {
   const resolveABTestAssignmentMock = jest.mocked(resolveABTestAssignment);
 
   const updateTransactionPayAmountMock = jest.fn(
-    (_amountHuman: string): Promise<boolean | undefined> =>
+    async (_amountHuman: string): Promise<boolean | undefined> =>
       Promise.resolve(true),
   );
 
@@ -257,7 +257,7 @@ describe('useTransactionCustomAmount', () => {
       payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '1234.56',
-        chainId: '0x1' as Hex,
+        chainId: '0x1',
       }),
     } as ReturnType<typeof useTransactionPayToken>);
 
@@ -282,7 +282,7 @@ describe('useTransactionCustomAmount', () => {
     useRampsBuyLimitsMock.mockReturnValue({
       amountLimitError: null,
       currency: 'usd',
-    } as ReturnType<typeof useRampsBuyLimits>);
+    });
 
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
       prefilledAmount: {
@@ -424,12 +424,12 @@ describe('useTransactionCustomAmount', () => {
       } as unknown as ReturnType<typeof useMMPayFiatConfig>);
       useTransactionPayFiatPaymentMock.mockReturnValue({
         selectedPaymentMethodId: '/payments/apple-pay',
-      } as ReturnType<typeof useTransactionPayFiatPayment>);
+      });
       useRampsBuyLimitsMock.mockReturnValue({
         maxAmount,
         amountLimitError: null,
         currency: 'usd',
-      } as ReturnType<typeof useRampsBuyLimits>);
+      });
     }
 
     it('ignores input that exceeds the fiat maximum purchase', async () => {
@@ -581,9 +581,9 @@ describe('useTransactionCustomAmount', () => {
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: buildPaymentTokenMock({
-        address: '0x9876543210987654321098765432109876543210' as Hex,
+        address: '0x9876543210987654321098765432109876543210',
         balanceUsd: '1234.56',
-        chainId: '0x1' as Hex,
+        chainId: '0x1',
       }),
     } as ReturnType<typeof useTransactionPayToken>);
     await act(async () => {
@@ -884,14 +884,14 @@ describe('useTransactionCustomAmount', () => {
       payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
-        chainId: '0x1' as Hex,
+        chainId: '0x1',
       }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook({
       transactionMeta: {
         type: TransactionType.moneyAccountDeposit,
-        batchId: '0xtestbatchid' as Hex,
+        batchId: '0xtestbatchid',
       },
     });
 
@@ -919,14 +919,14 @@ describe('useTransactionCustomAmount', () => {
       payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '500',
-        chainId: '0x1' as Hex,
+        chainId: '0x1',
       }),
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result, rerender } = runHook({
       transactionMeta: {
         type: TransactionType.moneyAccountDeposit,
-        batchId: '0xtestbatchid' as Hex,
+        batchId: '0xtestbatchid',
       },
     });
 
@@ -939,7 +939,7 @@ describe('useTransactionCustomAmount', () => {
       payToken: buildPaymentTokenMock({
         address: TOKEN_ADDRESS_MOCK,
         balanceUsd: '9999',
-        chainId: '0x1' as Hex,
+        chainId: '0x1',
       }),
     } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1115,7 +1115,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1135,7 +1135,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0.004',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1179,7 +1179,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '58.841171',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1606,7 +1606,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1636,7 +1636,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '9999',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1653,7 +1653,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1709,7 +1709,7 @@ describe('useTransactionCustomAmount', () => {
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1736,7 +1736,7 @@ describe('useTransactionCustomAmount', () => {
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1764,7 +1764,7 @@ describe('useTransactionCustomAmount', () => {
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1795,7 +1795,7 @@ describe('useTransactionCustomAmount', () => {
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1821,7 +1821,7 @@ describe('useTransactionCustomAmount', () => {
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -1836,11 +1836,11 @@ describe('useTransactionCustomAmount', () => {
       // Switch to a different token
       useTransactionPayTokenMock.mockReturnValue({
         payToken: buildPaymentTokenMock({
-          address: '0xdifferent0000000000000000000000000000000' as Hex,
+          address: '0xdifferent0000000000000000000000000000000',
           balanceUsd: '2.246912',
           balanceRaw: '1123456',
           decimals: 6,
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2079,7 +2079,7 @@ describe('useTransactionCustomAmount', () => {
       const { result } = runHook({
         transactionMeta: {
           ...depositTransactionMeta,
-          chainId: '0x2' as Hex,
+          chainId: '0x2',
         },
         stateOverrides: {
           engine: {
@@ -2280,7 +2280,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2308,7 +2308,7 @@ describe('useTransactionCustomAmount', () => {
             balanceUsd: '500',
             balanceRaw: '500000000',
             decimals: 6,
-            chainId: chainId as Hex,
+            chainId,
           }),
         } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2347,7 +2347,7 @@ describe('useTransactionCustomAmount', () => {
           balanceUsd: '500',
           balanceRaw: '500000000',
           decimals: 18,
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2389,7 +2389,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: TOKEN_ADDRESS_MOCK,
           balanceUsd: '1000',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2422,7 +2422,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '200000',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2475,7 +2475,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2491,9 +2491,9 @@ describe('useTransactionCustomAmount', () => {
 
       useTransactionPayTokenMock.mockReturnValue({
         payToken: buildPaymentTokenMock({
-          address: '0xdifferent' as Hex,
+          address: '0xdifferent',
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2510,7 +2510,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2528,9 +2528,9 @@ describe('useTransactionCustomAmount', () => {
       // token's amount must not survive the switch and get quoted against it.
       useTransactionPayTokenMock.mockReturnValue({
         payToken: buildPaymentTokenMock({
-          address: '0xdifferent' as Hex,
+          address: '0xdifferent',
           balanceUsd: '0.005',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2550,7 +2550,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2568,7 +2568,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2588,7 +2588,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2606,7 +2606,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '9999',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2623,7 +2623,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2650,7 +2650,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '0',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2663,7 +2663,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2680,7 +2680,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDT_ADDRESS,
           balanceUsd: '500',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
@@ -2705,7 +2705,7 @@ describe('useTransactionCustomAmount', () => {
         payToken: buildPaymentTokenMock({
           address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
-          chainId: '0x1' as Hex,
+          chainId: '0x1',
         }),
       } as ReturnType<typeof useTransactionPayToken>);
 
