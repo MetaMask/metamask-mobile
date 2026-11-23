@@ -5,6 +5,7 @@ import {
   removePasskeyFromRecovery,
   syncRecoveryAfterEnroll,
 } from '../../../core/MfaRecovery/syncRecoveryIdentifiers';
+import { mobileMfaControllerAdapter } from '../../../util/identity/mfa/bindings';
 import { verifyOrEnroll } from '../../../util/identity/mfa/useMfa';
 import type {
   MfaFlowResult,
@@ -17,6 +18,12 @@ import useRecoverySync from './useRecoverySync';
 jest.mock('../../../core/MfaRecovery/syncRecoveryIdentifiers', () => ({
   syncRecoveryAfterEnroll: jest.fn(),
   removePasskeyFromRecovery: jest.fn(),
+}));
+
+jest.mock('../../../util/identity/mfa/bindings', () => ({
+  mobileMfaControllerAdapter: {
+    getVerificationToken: jest.fn(),
+  },
 }));
 
 jest.mock('../../../util/identity/mfa/useMfa', () => ({
@@ -44,9 +51,18 @@ type RecoverySync = ReturnType<typeof useRecoverySync>;
 
 const mockSync = jest.mocked(syncRecoveryAfterEnroll);
 const mockRemoveFromRecovery = jest.mocked(removePasskeyFromRecovery);
+const mockGetVerificationToken = jest.mocked(
+  mobileMfaControllerAdapter.getVerificationToken,
+);
 const mockVerifyOrEnroll = jest.mocked(verifyOrEnroll);
 const REASON: MfaReason = { operation: 'settings.addPasskey' };
 const FLOW_RESULT: MfaFlowResult = { credentials: [] };
+const ACTIVE_SESSION = {
+  accessToken: 'token',
+  expiresIn: 900,
+  obtainedAt: 1_000,
+  claims: { sub: 'profile', amr: ['passkey'], exp: 1_900 },
+};
 const MODAL_SETTLE_MS = 300;
 
 interface Deferred<Value> {
@@ -130,6 +146,7 @@ describe('useRecoverySync', () => {
     jest.useFakeTimers();
     mockIsMfaDevBuild.mockReturnValue(false);
     mockUseSelector.mockReturnValue(true);
+    mockGetVerificationToken.mockResolvedValue(null);
   });
 
   afterEach(() => {
@@ -144,11 +161,28 @@ describe('useRecoverySync', () => {
 
     const result = startSync();
 
+    expect(progressSheet()).toBeNull();
+    await advance(MODAL_SETTLE_MS);
     expect(progressSheet()).toBeOnTheScreen();
     await act(async () => {
       sync.resolve();
       await result;
     });
+    expect(progressSheet()).toBeNull();
+  });
+
+  it('does not show the progress sheet when the sync finishes before modals settle on iOS', async () => {
+    const sync = deferred();
+    mockSync.mockReturnValue(sync.promise);
+    const { startSync } = renderRecoverySync();
+
+    const result = startSync();
+    await act(async () => {
+      sync.resolve();
+      await result;
+    });
+    await advance(MODAL_SETTLE_MS);
+
     expect(progressSheet()).toBeNull();
   });
 
@@ -192,6 +226,26 @@ describe('useRecoverySync', () => {
     expect(progressSheet()).toBeNull();
     await advance(MODAL_SETTLE_MS);
 
+    expect(progressSheet()).toBeOnTheScreen();
+  });
+
+  it('keeps the progress sheet visible and skips verification when a session is active', async () => {
+    mockGetVerificationToken.mockResolvedValue(ACTIVE_SESSION);
+    const finish = deferred();
+    let verifyDone = false;
+    mockSync.mockImplementation(async (_method, options: SyncOptions) => {
+      await options.verifyMfa();
+      verifyDone = true;
+      await finish.promise;
+    });
+    const { startSync } = renderRecoverySync();
+
+    void startSync();
+    await flush();
+    await advance(MODAL_SETTLE_MS);
+
+    expect(verifyDone).toBe(true);
+    expect(mockVerifyOrEnroll).not.toHaveBeenCalled();
     expect(progressSheet()).toBeOnTheScreen();
   });
 
@@ -267,6 +321,7 @@ describe('useRecoverySync', () => {
       'credential',
       expect.objectContaining({ verifyMfa: expect.any(Function) }),
     );
+    await advance(MODAL_SETTLE_MS);
     expect(progressSheet()).toBeOnTheScreen();
     expect(screen.getByText('Updating recovery')).toBeOnTheScreen();
     await act(async () => {
@@ -299,6 +354,29 @@ describe('useRecoverySync', () => {
     expect(progressSheet()).toBeOnTheScreen();
   });
 
+  it('keeps the update sheet visible and skips verification when a session is active', async () => {
+    mockGetVerificationToken.mockResolvedValue(ACTIVE_SESSION);
+    const verifyMfa = jest.fn();
+    const finish = deferred();
+    let verifyDone = false;
+    mockRemoveFromRecovery.mockImplementation(
+      async (_credentialId, options: RemoveOptions) => {
+        await options.verifyMfa();
+        verifyDone = true;
+        await finish.promise;
+      },
+    );
+    const { startRemove } = renderRecoverySync();
+
+    void startRemove(verifyMfa);
+    await flush();
+    await advance(MODAL_SETTLE_MS);
+
+    expect(verifyDone).toBe(true);
+    expect(verifyMfa).not.toHaveBeenCalled();
+    expect(progressSheet()).toBeOnTheScreen();
+  });
+
   it('removes the update sheet and rejects when the removal fails', async () => {
     const removal = deferred();
     mockRemoveFromRecovery.mockReturnValue(removal.promise);
@@ -324,6 +402,7 @@ describe('useRecoverySync', () => {
     });
 
     void startSync();
+    await advance(MODAL_SETTLE_MS);
 
     expect(screen.getByText('Setting up recovery')).toBeOnTheScreen();
     await act(async () => sync.resolve());

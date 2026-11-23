@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 import { useSelector } from 'react-redux';
 import { selectMfaRecoveryEnabled } from '../../../selectors/featureFlagController/mfaRecovery';
 import { isMfaDevBuild } from '../../../util/identity/mfa';
+import { mobileMfaControllerAdapter } from '../../../util/identity/mfa/bindings';
 import { verifyOrEnroll } from '../../../util/identity/mfa/useMfa';
 import type {
   MfaMethod,
@@ -59,33 +60,60 @@ const useRecoverySync = (): RecoverySync => {
   const [progressCopy, setProgressCopy] =
     useState<RecoveryProgressCopy>('setup');
   const isMounted = useRef(true);
+  const pendingShowTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const pendingResolve = useRef<((email?: string) => void) | undefined>(
     undefined,
   );
+
+  const clearPendingShow = useCallback(() => {
+    if (pendingShowTimer.current !== undefined) {
+      clearTimeout(pendingShowTimer.current);
+      pendingShowTimer.current = undefined;
+    }
+  }, []);
 
   useEffect(() => {
     isMounted.current = true;
     return (): void => {
       isMounted.current = false;
+      clearPendingShow();
       pendingResolve.current?.(undefined);
       pendingResolve.current = undefined;
     };
-  }, []);
+  }, [clearPendingShow]);
 
-  const showPhase = useCallback((next: RecoverySyncPhase) => {
-    if (isMounted.current) {
-      setPhase(next);
-    }
-  }, []);
+  const showPhase = useCallback(
+    (next: RecoverySyncPhase) => {
+      clearPendingShow();
+      if (isMounted.current) {
+        setPhase(next);
+      }
+    },
+    [clearPendingShow],
+  );
 
   const startProgress = useCallback(
     (copy: RecoveryProgressCopy) => {
+      clearPendingShow();
       if (isMounted.current) {
         setProgressCopy(copy);
       }
-      showPhase('running');
+      if (Platform.OS === 'ios') {
+        // The MFA flow modal that just finished may still be dismissing;
+        // presenting our Modal immediately causes UIKit to drop it.
+        pendingShowTimer.current = setTimeout(() => {
+          pendingShowTimer.current = undefined;
+          if (isMounted.current) {
+            setPhase('running');
+          }
+        }, MODAL_SETTLE_MS);
+      } else {
+        showPhase('running');
+      }
     },
-    [showPhase],
+    [clearPendingShow, showPhase],
   );
 
   const stepAsideWhile = useCallback(
@@ -102,6 +130,16 @@ const useRecoverySync = (): RecoverySync => {
         }
       },
     [showPhase],
+  );
+
+  const verifyIfNeeded = useCallback(
+    (verify: () => Promise<unknown>) => async (): Promise<void> => {
+      if (await mobileMfaControllerAdapter.getVerificationToken()) {
+        return;
+      }
+      await stepAsideWhile(verify)();
+    },
+    [stepAsideWhile],
   );
 
   const askSocialLinkEmail = useCallback(async (): Promise<
@@ -129,7 +167,7 @@ const useRecoverySync = (): RecoverySync => {
       startProgress('setup');
       try {
         await syncRecoveryAfterEnroll(method, {
-          verifyMfa: stepAsideWhile(async () => {
+          verifyMfa: verifyIfNeeded(async () => {
             await verifyOrEnroll({
               methods: [method],
               verifyWith: [method],
@@ -150,6 +188,7 @@ const useRecoverySync = (): RecoverySync => {
       showPhase,
       startProgress,
       stepAsideWhile,
+      verifyIfNeeded,
     ],
   );
 
@@ -164,15 +203,13 @@ const useRecoverySync = (): RecoverySync => {
       startProgress('update');
       try {
         await removePasskeyFromRecovery(credentialId, {
-          verifyMfa: stepAsideWhile(async () => {
-            await verifyMfa();
-          }),
+          verifyMfa: verifyIfNeeded(verifyMfa),
         });
       } finally {
         showPhase('idle');
       }
     },
-    [isMfaRecoveryEnabled, showPhase, startProgress, stepAsideWhile],
+    [isMfaRecoveryEnabled, showPhase, startProgress, verifyIfNeeded],
   );
 
   let recoverySheets: ReactNode = null;

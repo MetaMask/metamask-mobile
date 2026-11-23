@@ -128,13 +128,13 @@ describe('MfaPasskeys', () => {
     mockSyncRecovery.mockImplementation(
       async () => new Promise<void>((resolve) => (finishSync = resolve)),
     );
-    const { getByTestId, queryByTestId } = renderPasskeys([]);
+    const { findByTestId, getByTestId, queryByTestId } = renderPasskeys([]);
 
     await act(async () => {
       fireEvent.press(getByTestId(MfaPasskeysSelectorsIDs.ADD_BUTTON));
     });
     expect(
-      getByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET),
+      await findByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET),
     ).toBeOnTheScreen();
     await act(async () => {
       finishSync();

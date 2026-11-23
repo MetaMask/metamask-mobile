@@ -139,13 +139,13 @@ describe('MfaSettings', () => {
     mockSyncRecovery.mockImplementation(
       async () => new Promise<void>((resolve) => (finishSync = resolve)),
     );
-    const { getByTestId, queryByTestId } = renderSettings();
+    const { findByTestId, getByTestId, queryByTestId } = renderSettings();
 
     await act(async () => {
       fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
     });
     expect(
-      getByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET),
+      await findByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET),
     ).toBeOnTheScreen();
     await act(async () => {
       finishSync();
