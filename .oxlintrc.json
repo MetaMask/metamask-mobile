@@ -346,6 +346,16 @@
       }
     },
     {
+      "files": [
+        "app/components/Views/QRScanner/index.tsx",
+        "app/components/UI/QRHardware/AnimatedQRScanner.tsx",
+        "app/components/Views/ConnectQRHardware/Instruction/index.tsx"
+      ],
+      "rules": {
+        "typescript/no-require-imports": "off"
+      }
+    },
+    {
       "files": ["**/*.{test,spec}.{js,jsx,ts,tsx}", "**/__tests__/**"],
       "rules": {
         "jest/no-disabled-tests": "warn",

@@ -1,5 +1,5 @@
 /* eslint @typescript-eslint/no-var-requires: "off" */
-/* eslint-disable @typescript-eslint/no-require-imports */
+/* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
