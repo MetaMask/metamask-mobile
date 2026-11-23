@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { act, render } from '@testing-library/react-native';
-import { AppState, Dimensions, type View } from 'react-native';
+import { AppState, type View } from 'react-native';
 import type { NetworkTier } from '../../../../hooks/useNetworkTier';
 import SocialLivePricesProvider, {
   SLOW_NETWORK_THROTTLE_MS,
@@ -314,62 +314,6 @@ describe('SocialLivePricesProvider', () => {
     expect(spotSubscribeCalls()).toHaveLength(0);
   });
 
-  it('animates on-screen cards only, while buffer cards stay subscribed', async () => {
-    const { height } = Dimensions.get('window');
-    renderProvider([
-      { id: 'a', key: `spot:${ETH_ASSET}`, y: 100 },
-      { id: 'b', key: 'perp:BTC', y: height + 100 },
-    ]);
-
-    await settle();
-
-    expect(context?.motion.has('a')).toBe(true);
-    expect(context?.motion.has('b')).toBe(false);
-    expect(spotSubscribeCalls()).toHaveLength(1);
-    expect(mockSubscribeToSymbols).toHaveBeenCalled();
-  });
-
-  it('stops every animation while scrolling and resumes once settled', async () => {
-    renderProvider([{ id: 'a', key: `spot:${ETH_ASSET}`, y: 100 }]);
-    await settle();
-
-    act(() => context?.setScrolling(true));
-    expect(context?.motion.has('a')).toBe(false);
-
-    await settle();
-    expect(context?.motion.has('a')).toBe(false);
-
-    act(() => context?.setScrolling(false));
-    await settle();
-    expect(context?.motion.has('a')).toBe(true);
-  });
-
-  it('never animates on LOW hardware', async () => {
-    mockNetworkTier = 'WIFI';
-    mockGetHardwareTier.mockReturnValue('LOW');
-    renderProvider([{ id: 'a', key: `spot:${ETH_ASSET}`, y: 100 }]);
-
-    await settle();
-
-    expect(context?.motion.has('a')).toBe(false);
-  });
-
-  it('stops animating when the screen blurs', async () => {
-    const cards: ProbeCard[] = [{ id: 'a', key: `spot:${ETH_ASSET}`, y: 100 }];
-    const { rerender } = renderProvider(cards);
-    await settle();
-    expect(context?.motion.has('a')).toBe(true);
-
-    mockIsFocused = false;
-    rerender(
-      <SocialLivePricesProvider>
-        <Probe cards={cards} />
-      </SocialLivePricesProvider>,
-    );
-
-    expect(context?.motion.has('a')).toBe(false);
-  });
-
   it('slows the tick rate on a slow cellular network', async () => {
     mockNetworkTier = 'SLOW_CELLULAR';
     renderProvider([{ id: 'a', key: 'perp:BTC', y: 100 }]);
@@ -387,46 +331,6 @@ describe('SocialLivePricesProvider', () => {
     });
 
     expect(context?.store.get('perp:BTC')?.price).toBe(101);
-  });
-
-  it('reduces motion on LOW hardware only', () => {
-    mockNetworkTier = 'WIFI';
-    mockGetHardwareTier.mockReturnValue(null);
-    const { unmount } = renderProvider([]);
-    expect(context?.reduceMotion).toBe(false);
-    unmount();
-
-    mockGetHardwareTier.mockReturnValue('LOW');
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(true);
-  });
-
-  it('keeps motion on LOW hardware while the network tier is unknown', () => {
-    mockGetHardwareTier.mockReturnValue('LOW');
-    mockNetworkTier = null;
-
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(false);
-  });
-
-  it('keeps a null hardware tier off reduced motion over slow cellular', () => {
-    mockGetHardwareTier.mockReturnValue(null);
-    mockNetworkTier = 'SLOW_CELLULAR';
-
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(false);
-  });
-
-  it('keeps full motion on HIGH hardware over slow cellular', () => {
-    mockGetHardwareTier.mockReturnValue('HIGH');
-    mockNetworkTier = 'SLOW_CELLULAR';
-
-    renderProvider([]);
-
-    expect(context?.reduceMotion).toBe(false);
   });
 
   it('polls visible cards at the rare interval on LOW hardware over slow cellular', () => {

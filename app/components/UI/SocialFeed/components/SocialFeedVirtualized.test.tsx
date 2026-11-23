@@ -909,21 +909,19 @@ describe('SocialFeedVirtualized', () => {
     expect(screen.getByText('2 held, paused')).toBeOnTheScreen();
   });
 
-  it('reports scroll start and settle to the live prices host', () => {
-    const setScrolling = jest.fn();
+  it('checks live price visibility once scrolling settles', () => {
+    const requestVisibilityCheck = jest.fn();
     mockUseSocialLivePrices.mockReturnValue({
-      setScrolling,
+      requestVisibilityCheck,
     } as unknown as ReturnType<typeof useSocialLivePrices>);
     renderFeed();
 
     act(() => {
-      getList().props.onScrollBeginDrag();
-      getList().props.onScrollEndDrag();
-      getList().props.onMomentumScrollBegin();
       getList().props.onMomentumScrollEnd();
+      getList().props.onScrollEndDrag();
     });
 
-    expect(setScrolling.mock.calls).toEqual([[true], [false], [true], [false]]);
+    expect(requestVisibilityCheck).toHaveBeenCalledTimes(2);
   });
 
   it('offers a retry after a failed page while posts stay visible', () => {

@@ -1,6 +1,5 @@
 import { createContext, useContext, type RefObject } from 'react';
 import type { View } from 'react-native';
-import type { SocialLiveMotionGate } from './SocialLiveMotionGate';
 import type { SocialLivePriceStore } from './SocialLivePriceStore';
 import type { SocialLivePriceKey } from './types';
 
@@ -21,15 +20,6 @@ export interface SocialLivePricesContextValue {
    * first.
    */
   requestVisibilityCheck: (delayMs?: number) => void;
-  /**
-   * Call with `true` when a list starts dragging or flinging and `false` once
-   * it comes to rest. Cards roll their figures only while the list is at rest.
-   */
-  setScrolling: (isScrolling: boolean) => void;
-  /** Cards allowed to roll their figures: on screen, list at rest. */
-  motion: SocialLiveMotionGate;
-  /** Low-end hardware: swap figures without the digit roll. */
-  reduceMotion: boolean;
 }
 
 export const SocialLivePricesContext =

@@ -435,13 +435,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     wasPausedRef.current = paused;
   }, [handleRevealPending, paused]);
 
-  // A drag release that flings fires onMomentumScrollBegin right after
-  // onScrollEndDrag, before the debounced settle check measures.
-  const handleScrollStart = useCallback(() => {
-    livePrices?.setScrolling(true);
-  }, [livePrices]);
   const handleScrollSettled = useCallback(() => {
-    livePrices?.setScrolling(false);
+    livePrices?.requestVisibilityCheck();
   }, [livePrices]);
 
   // Read at tap time so the row callback stays stable across socket updates.
@@ -594,8 +589,6 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
               maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
               onScroll={scrollHandler}
               scrollEventThrottle={16}
-              onScrollBeginDrag={handleScrollStart}
-              onMomentumScrollBegin={handleScrollStart}
               onMomentumScrollEnd={handleScrollSettled}
               onScrollEndDrag={handleScrollSettled}
               onEndReached={enabled ? loadMore : undefined}

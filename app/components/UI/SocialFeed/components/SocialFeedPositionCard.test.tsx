@@ -35,11 +35,7 @@ import {
 import { HOUR, MINUTE } from '../../../../constants/time';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
-import { SocialLiveMotionGate } from '../live/SocialLiveMotionGate';
-import {
-  SocialLivePricesContext,
-  type SocialLivePricesContextValue,
-} from '../live/SocialLivePricesContext';
+import { SocialLivePricesContext } from '../live/SocialLivePricesContext';
 import { SocialLivePriceStore } from '../live/SocialLivePriceStore';
 import type { SocialLivePriceSource } from '../live/types';
 
@@ -1035,23 +1031,6 @@ describe('SocialFeedPositionCard', () => {
   });
 
   describe('live prices', () => {
-    const liveContext = (
-      store: SocialLivePriceStore,
-      animatedIds: string[],
-      reduceMotion = true,
-    ): SocialLivePricesContextValue => {
-      const motion = new SocialLiveMotionGate();
-      motion.set(animatedIds);
-      return {
-        store,
-        register: () => () => undefined,
-        requestVisibilityCheck: () => undefined,
-        setScrolling: () => undefined,
-        motion,
-        reduceMotion,
-      };
-    };
-
     const liveSource: SocialLivePriceSource = {
       key: 'perp:BTC',
       kind: 'perp',
@@ -1071,7 +1050,13 @@ describe('SocialFeedPositionCard', () => {
         live: liveSource,
       });
       renderWithProvider(
-        <SocialLivePricesContext.Provider value={liveContext(store, [item.id])}>
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+          }}
+        >
           <SocialFeedPositionCard item={item} />
         </SocialLivePricesContext.Provider>,
       );
@@ -1107,7 +1092,13 @@ describe('SocialFeedPositionCard', () => {
         showCopyTrade: false,
       };
       renderWithProvider(
-        <SocialLivePricesContext.Provider value={liveContext(store, [item.id])}>
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+          }}
+        >
           <SocialFeedPositionCard item={item} />
         </SocialLivePricesContext.Provider>,
       );
@@ -1116,7 +1107,7 @@ describe('SocialFeedPositionCard', () => {
         store.publish(spotKey, 3_300);
       });
 
-      expect(screen.getByLabelText('$3,300')).toBeOnTheScreen();
+      expect(screen.getByText('$3,300')).toBeOnTheScreen();
     });
 
     it('moves the wash with the live P&L sign', () => {
@@ -1127,7 +1118,13 @@ describe('SocialFeedPositionCard', () => {
         live: liveSource,
       });
       const utils = renderWithProvider(
-        <SocialLivePricesContext.Provider value={liveContext(store, [item.id])}>
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+          }}
+        >
           <PositionCardBody item={item} />
         </SocialLivePricesContext.Provider>,
         {
@@ -1163,61 +1160,9 @@ describe('SocialFeedPositionCard', () => {
       });
 
       // 1,000 + 2 * (101,000 - 100,000) on a 10,000 basis.
-      expect(screen.getByLabelText('$101,000')).toBeOnTheScreen();
-      expect(screen.getByLabelText('+$3K')).toBeOnTheScreen();
-      expect(screen.getByLabelText('+30.00%')).toBeOnTheScreen();
-    });
-
-    it('swaps the figures as plain text while the card is not animated', () => {
-      const store = new SocialLivePriceStore(0);
-      const item = mockOpenPerpsFeedItem({
-        markPriceLabel: '$100,000',
-        live: liveSource,
-      });
-      renderWithProvider(
-        <SocialLivePricesContext.Provider value={liveContext(store, [], false)}>
-          <SocialFeedPositionCard item={item} />
-        </SocialLivePricesContext.Provider>,
-      );
-
-      act(() => {
-        store.publish('perp:BTC', 101_000);
-      });
-
       expect(screen.getByText('$101,000')).toBeOnTheScreen();
       expect(screen.getByText('+$3K')).toBeOnTheScreen();
       expect(screen.getByText('+30.00%')).toBeOnTheScreen();
-    });
-
-    it('lays out the live P&L by glyph so trailing units follow the digits', () => {
-      const store = new SocialLivePriceStore(0);
-      const item = mockOpenPerpsFeedItem({
-        markPriceLabel: '$100,000',
-        live: liveSource,
-      });
-      renderWithProvider(
-        <SocialLivePricesContext.Provider
-          value={liveContext(store, [item.id], false)}
-        >
-          <SocialFeedPositionCard item={item} />
-        </SocialLivePricesContext.Provider>,
-      );
-
-      act(() => {
-        store.publish('perp:BTC', 101_000);
-      });
-
-      const pnlValue = within(screen.getByLabelText('+$3K')).getByText('K');
-      const pnlPercent = within(screen.getByLabelText('+30.00%')).getByText(
-        '3',
-      );
-
-      expect(pnlValue).toBeOnTheScreen();
-      expect(pnlPercent).toBeOnTheScreen();
-      // The glyph row defaults to the condensed hero face. These numbers stay
-      // on Inter so a live card matches the static one.
-      expect(pnlValue).toHaveStyle({ fontFamily: 'Inter-Medium' });
-      expect(pnlPercent).toHaveStyle({ fontFamily: 'Inter-Medium' });
     });
   });
 

@@ -259,7 +259,6 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
             pnlLabel={header.pnlLabel}
             pnlValueLabel={header.pnlValueLabel}
             isPnlPositive={header.isPnlPositive}
-            live={header.live}
           />
         </View>
         {mode === 'open' ? (

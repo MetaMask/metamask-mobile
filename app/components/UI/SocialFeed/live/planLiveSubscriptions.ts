@@ -45,27 +45,6 @@ export interface MeasuredCard {
   height: number;
 }
 
-type Rect = Pick<MeasuredCard, 'x' | 'y' | 'width' | 'height'>;
-
-/**
- * True when the card overlaps the window, extended by `bufferPx` above and
- * below. Cards on other pager pages sit outside the window horizontally.
- */
-export function isCardInWindow(
-  card: Rect,
-  viewport: { width: number; height: number },
-  bufferPx: number,
-): boolean {
-  return (
-    card.width > 0 &&
-    card.height > 0 &&
-    card.x + card.width > 0 &&
-    card.x < viewport.width &&
-    card.y + card.height > -bufferPx &&
-    card.y < viewport.height + bufferPx
-  );
-}
-
 /**
  * Keys of the cards inside the window, plus `bufferPx` above and below, in
  * top-to-bottom order. Cards on other pager pages sit outside the window
@@ -80,7 +59,15 @@ export function selectVisibleKeys(
   const seen = new Set<SocialLivePriceKey>();
 
   [...cards]
-    .filter((card) => isCardInWindow(card, viewport, bufferPx))
+    .filter(
+      (card) =>
+        card.width > 0 &&
+        card.height > 0 &&
+        card.x + card.width > 0 &&
+        card.x < viewport.width &&
+        card.y + card.height > -bufferPx &&
+        card.y < viewport.height + bufferPx,
+    )
     .sort((a, b) => a.y - b.y)
     .forEach((card) => {
       if (!seen.has(card.key)) {
