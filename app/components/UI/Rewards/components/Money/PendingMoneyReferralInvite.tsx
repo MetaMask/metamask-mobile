@@ -3,12 +3,12 @@ import { useDispatch, useSelector, useStore } from 'react-redux';
 import type { RootState } from '../../../../../reducers';
 import { clearPendingReferralCode } from '../../../../../reducers/rewardsMoney';
 import {
-  canAcceptMoneyReferralInvite,
   selectAnsweredMoneyReferralCode,
   selectIsReferralLinkPending,
-  selectMoneyReferralAllowedForGeo,
   selectPendingMoneyReferralCode,
   selectReferralMeEntry,
+  canAcceptMoneyReferralInvite,
+  selectMoneyReferralAllowedForGeo,
 } from '../../../../../reducers/rewardsMoney/selectors';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { selectRewardsMoneyControllerEnabled } from '../../../../../selectors/featureFlagController/rewardsMoneyController';
@@ -20,16 +20,17 @@ import { runAfterInteractions } from '../../utils/runAfterInteractions';
 import { usePendingSocialPreviewTarget } from '../../../../Views/SocialLeaderboard/TraderPreviewSheet/pendingSocialPreviewTarget';
 
 /**
- * How long the referral me read may take before the code is dropped. The push
- * pre-prompt waits on the code, so a slow read must not hold it all session.
+ * How long the deeplink invite presenter and Social trader preview wait for
+ * referral-me before proceeding. The push pre-prompt waits on the code, so a
+ * slow read must not hold it all session.
  */
 export const MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS = 5000;
 
 /**
- * Branch can hang. Cap app-installation detection so it cannot consume the
- * referral load budget and drop an eligible invite. On timeout, assume the
- * app was installed, matching `detectAppInstallation`'s error default; a slow
- * Branch response can then only affect the analytics entry type.
+ * Branch can hang. Bound app-installation detection so it cannot delay the
+ * invite. On timeout, assume the app was installed, matching the detection
+ * function's error default. A slow Branch response can then only affect the
+ * analytics entry type.
  */
 export const MONEY_REFERRAL_APP_INSTALLATION_TIMEOUT_MS = 500;
 
@@ -56,11 +57,10 @@ interface PresenterProps {
 
 /**
  * Reads referral me fresh, then opens the invite sheet over whatever the
- * deeplink navigated to. The sheet reads the payload from the store, so it
- * opens with its copy instead of waiting on an empty one. A first session
+ * deeplink navigated to. A first session
  * after installing from a Branch link opens it as `restored_context`. A user
- * who cannot accept an invite, a confirmed excluded region, a failed read, or
- * a read slower than the load budget drops the code without a prompt.
+ * who cannot accept an invite or a confirmed excluded region drops the code.
+ * If eligibility cannot be confirmed, the sheet owns the final outcome.
  */
 const PendingMoneyReferralInvitePresenter = ({
   referralCode,
@@ -80,23 +80,51 @@ const PendingMoneyReferralInvitePresenter = ({
       }
     };
 
+    const openInvite = (wasAppInstalled: boolean) => {
+      if (cancelled) {
+        return;
+      }
+      cancelled = true;
+      clearTimeout(budgetTimer);
+      if (
+        NavigationService.getCurrentRoute()?.name ===
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
+      ) {
+        return;
+      }
+      NavigationService.navigation.navigate(
+        Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
+        {
+          referralCode,
+          entryType: wasAppInstalled ? 'deeplink' : 'restored_context',
+        },
+      );
+    };
+
     const handle = runAfterInteractions(() => {
       if (cancelled) {
         return;
       }
-      budgetTimer = setTimeout(dropCode, MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS);
+      let wasAppInstalled = true;
+      const appInstallationPromise = detectAppInstallationWithTimeout().then(
+        (appInstalled) => {
+          wasAppInstalled = appInstalled;
+          return appInstalled;
+        },
+      );
+      budgetTimer = setTimeout(
+        () => openInvite(wasAppInstalled),
+        MONEY_REFERRAL_INVITE_LOAD_BUDGET_MS,
+      );
       Promise.all([
         fetchReferralMe({ forceFresh: true }),
-        detectAppInstallationWithTimeout(),
+        appInstallationPromise,
       ])
-        .then(([result, wasAppInstalled]) => {
+        .then(([result, appInstalled]) => {
           if (cancelled) {
             return;
           }
           clearTimeout(budgetTimer);
-          // A newer link while the sheet is open is not a second prompt. The
-          // sheet answers its own code when it closes, which runs this again
-          // for the newer one.
           if (
             NavigationService.getCurrentRoute()?.name ===
             Routes.MODAL.REWARDS_MONEY_INVITE_SHEET
@@ -104,27 +132,30 @@ const PendingMoneyReferralInvitePresenter = ({
             return;
           }
           const state = store.getState();
-          const referralMe =
+          const referralMeEntry =
             result.status === 'settled'
-              ? selectReferralMeEntry(state, result.profileId)?.data
+              ? selectReferralMeEntry(state, result.profileId)
+              : undefined;
+          const referralMe =
+            referralMeEntry && !referralMeEntry.error
+              ? referralMeEntry.data
               : null;
           if (
-            !referralMe ||
-            !canAcceptMoneyReferralInvite(referralMe) ||
-            !selectMoneyReferralAllowedForGeo(state, result.profileId)
+            referralMe &&
+            (!canAcceptMoneyReferralInvite(referralMe) ||
+              !selectMoneyReferralAllowedForGeo(state, result.profileId))
           ) {
             dropCode();
             return;
           }
-          NavigationService.navigation.navigate(
-            Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-            {
-              referralCode,
-              entryType: wasAppInstalled ? 'deeplink' : 'restored_context',
-            },
-          );
+          // A newer link while the sheet is open is not a second prompt. The
+          // sheet answers its own code when it closes, which runs this again
+          // for the newer one.
+          openInvite(appInstalled);
         })
-        .catch(dropCode);
+        .catch(() =>
+          appInstallationPromise.then(openInvite, () => openInvite(true)),
+        );
     });
 
     return () => {

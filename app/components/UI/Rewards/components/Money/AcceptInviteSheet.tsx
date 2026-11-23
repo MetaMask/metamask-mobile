@@ -74,15 +74,16 @@ const normalizeInviteCodeInput = (value: string) =>
 /**
  * Invite copy, resolved per key.
  *
- * The server owns this screen's words: it fills every `localized_text` key
- * from its own defaults, so a missing key means there is no referral-me
- * payload at all. Only keys that an existing Mobile string already says have
- * a fallback — this screen adds no locale keys.
+ * The server owns this screen's words when referral-me data is available.
+ * Local strings keep a deeplink invite readable before the user has opted in
+ * or when the eligibility read is unavailable.
  */
 function useInviteCopy(localizedText: ReferralLocalizedText | undefined) {
   return useMemo(
     () => ({
-      title: localizedText?.inviteTitle ?? '',
+      title:
+        localizedText?.inviteTitle ??
+        strings('rewards.vip.splash_accept_invite'),
       body: localizedText?.inviteMessageBody ?? '',
       termsLink: resolveInviteTermsLink(localizedText),
       codeLabel:
@@ -139,14 +140,13 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
   const acceptStartedRef = useRef(false);
 
   const profileId = useSelector(selectSessionProfileId);
-  const isProfileResolved = Boolean(profileId);
   const referralMeEntry = useSelector((state: RootState) =>
     selectReferralMeEntry(state, profileId),
   );
   const acceptAllowedForGeo = useSelector((state: RootState) =>
     selectMoneyReferralAllowedForGeo(state, profileId),
   );
-  const referralMe = referralMeEntry?.data;
+  const referralMe = referralMeEntry?.error ? undefined : referralMeEntry?.data;
 
   // A deeplink's code is answered once: whichever way this sheet closes, the
   // code it was opened for must not prompt again. A newer link that arrived
@@ -181,16 +181,14 @@ const AcceptInviteSheet: React.FC<AcceptInviteSheetProps> = ({ route }) => {
     !canAcceptMoneyReferralInvite(referralMe) &&
     !hasSeenEligibleInviteRef.current;
   const copy = useInviteCopy(referralMe?.localized_text);
-  // A resolved profile with no referral-me row is not a settled invite.
-  // `loading` is only set once the fetch starts, so a missing entry would
-  // otherwise count as on screen. If that payload then arrives already
-  // referred, the sheet closes itself and the funnel would keep a viewed
-  // event with no answer. Hold until the payload exists.
+  // Hold analytics while a lookup is in flight. A missing or failed read is
+  // still an offer, using the local copy, and later data can close an
+  // ineligible invite before it is counted as viewed.
   const isCopyPending =
-    !isProfileResolved ||
+    !profileId ||
     referralMeEntry == null ||
     referralMeEntry.loading ||
-    referralMeEntry.data == null;
+    (referralMeEntry.data == null && !referralMeEntry.error);
 
   const {
     referralCode,

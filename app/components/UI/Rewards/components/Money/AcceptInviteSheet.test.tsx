@@ -431,6 +431,20 @@ describe('AcceptInviteSheet', () => {
     expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('KOL1');
   });
 
+  it('shows a usable invite while referral-me data is unavailable', () => {
+    referralMeEntries = {};
+
+    const { getByTestId, getByText } = renderSheetSync('KOL1');
+
+    expect(getByTestId(TEST_IDS.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.CODE_INPUT).props.value).toBe('KOL1');
+    expect(
+      getByText(strings('rewards.vip.splash_accept_invite')),
+    ).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.ACCEPT)).toBeOnTheScreen();
+    expect(getByTestId(TEST_IDS.DECLINE)).toBeOnTheScreen();
+  });
+
   it('renders the invite copy of the current profile without a hero', async () => {
     const { getByTestId, queryByTestId } = await renderSheet('KOL1');
 
@@ -1062,7 +1076,7 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('tracks no offer when a missing referral-me entry settles as already referred', async () => {
+    it('does not track an offer while referral-me is pending', async () => {
       referralMeEntries = {};
 
       const { store } = await renderSheet('KOL1');
@@ -1100,18 +1114,12 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
-    it('tracks the offer once a missing referral-me entry settles as eligible', async () => {
-      referralMeEntries = {};
+    it('tracks the offer immediately when referral-me data is unavailable', async () => {
+      referralMeEntries = {
+        [PROFILE_ID]: { loading: false, error: true, data: null },
+      };
 
-      const { store } = await renderSheet('KOL1');
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-
-      await act(async () => {
-        store.dispatch(
-          setReferralMe({ profileId: PROFILE_ID, data: buildReferralMe() }),
-        );
-      });
+      await renderSheet('KOL1');
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
