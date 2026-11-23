@@ -31,6 +31,7 @@ jest.mock('../constants/eventNames', () => ({
     CLAIM_FAILURE_REASON: {
       PENDING_RESOLUTION: 'pending_resolution',
       INSUFFICIENT_GAS: 'insufficient_gas',
+      GAS_FEE_TOKEN_UNAVAILABLE: 'gas_fee_token_unavailable',
       NETWORK_ERROR: 'network_error',
       USER_REJECTED: 'user_rejected',
       MARKET_UNAVAILABLE: 'market_unavailable',
@@ -576,14 +577,44 @@ describe('parseAnalyticsProperties', () => {
       ['Tried to claim but no positions were won', 'pending_resolution'],
       ['User denied transaction signature', 'user_rejected'],
       ['User rejected the request', 'user_rejected'],
+      [
+        'Gas fee token not found and insufficient native balance',
+        'gas_fee_token_unavailable',
+      ],
       ['insufficient funds for gas', 'insufficient_gas'],
+      [
+        'insufficient funds for gas * price + value: balance 0, tx cost 21000',
+        'insufficient_gas',
+      ],
+      ['Insufficient gas for transaction', 'insufficient_gas'],
       ['out of gas', 'insufficient_gas'],
+      ['gas required exceeds allowance (30000000)', 'insufficient_gas'],
+      ['intrinsic gas too low', 'insufficient_gas'],
+      ['insufficient allowance', 'unknown'],
       ['network request failed', 'network_error'],
       ['Request timed out', 'network_error'],
       ['failed to fetch', 'network_error'],
       ['Something unexpected happened', 'unknown'],
     ])('maps "%s" to "%s"', (message, expected) => {
       expect(mapClaimFailureReason(new Error(message))).toBe(expected);
+    });
+
+    it('maps gas fee token message case-insensitively', () => {
+      const message = 'GAS FEE TOKEN NOT FOUND and insufficient native balance';
+
+      const result = mapClaimFailureReason(message);
+
+      expect(result).toBe('gas_fee_token_unavailable');
+    });
+
+    it('prioritizes user rejection over gas fee token unavailability', () => {
+      const error = new Error(
+        'User rejected the request: Gas fee token not found and insufficient native balance',
+      );
+
+      const result = mapClaimFailureReason(error);
+
+      expect(result).toBe('user_rejected');
     });
 
     it('accepts a raw string message', () => {

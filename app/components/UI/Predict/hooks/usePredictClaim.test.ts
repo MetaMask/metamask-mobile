@@ -549,7 +549,33 @@ describe('usePredictClaim', () => {
           transactionType: 'mm_predict_claim',
         },
         failureReason: 'pending_resolution',
+        errorMessage: 'No claimable positions found',
       });
+    });
+
+    it('fires a failed event with a sanitized error_message when claim throws', async () => {
+      // Arrange
+      mockClaimWinnings.mockRejectedValue(
+        new Error(
+          'Gas fee token not found for 0x1234567890abcdef1234567890abcdef12345678 at https://rpc.example.com/v3/key',
+        ),
+      );
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim();
+      });
+
+      // Assert
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'failed',
+          failureReason: 'gas_fee_token_unavailable',
+          errorMessage: 'Gas fee token not found for [redacted] at [redacted]',
+        }),
+      );
     });
 
     it('captures exception to Sentry when claim fails', async () => {

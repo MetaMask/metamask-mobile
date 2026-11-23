@@ -67,6 +67,11 @@ export function parseAnalyticsProperties(
  * Classifies a claim error into a stable `failure_reason` value for the
  * `mm_predict_claim` analytics event. Resolution-lag is the dominant failure
  * mode (PRED-963), so it is checked first.
+ *
+ * `gas_fee_token_unavailable` covers the transaction controller's
+ * "Gas fee token not found and insufficient native balance" error and is
+ * checked before `insufficient_gas`, which only matches gas-specific phrases
+ * (a bare "insufficient" no longer maps to `insufficient_gas`).
  */
 export function mapClaimFailureReason(error?: unknown): string {
   const { CLAIM_FAILURE_REASON } = PredictEventValues;
@@ -106,8 +111,13 @@ export function mapClaimFailureReason(error?: unknown): string {
     return CLAIM_FAILURE_REASON.USER_REJECTED;
   }
 
+  if (normalized.includes('gas fee token not found')) {
+    return CLAIM_FAILURE_REASON.GAS_FEE_TOKEN_UNAVAILABLE;
+  }
+
   if (
-    normalized.includes('insufficient') ||
+    normalized.includes('insufficient funds for gas') ||
+    normalized.includes('insufficient gas') ||
     normalized.includes('out of gas') ||
     normalized.includes('gas required') ||
     normalized.includes('intrinsic gas')

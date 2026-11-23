@@ -19,7 +19,10 @@ import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import { selectPredictPendingClaimByAddress } from '../selectors/predictController';
 import type { PredictTradeAnalyticsProperties } from '../types';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
-import { mapClaimFailureReason } from '../utils/analytics';
+import {
+  mapClaimFailureReason,
+  sanitizePredictFailureReason,
+} from '../utils/analytics';
 import { ensureError } from '../utils/predictErrorHandler';
 import { usePredictTrading } from './usePredictTrading';
 import { ConfirmationLoader } from '../../../Views/confirmations/components/confirm/confirm-component';
@@ -87,6 +90,7 @@ export const usePredictClaim = () => {
           status: PredictTradeStatus.FAILED,
           analyticsProperties,
           failureReason: mapClaimFailureReason(err),
+          errorMessage: sanitizePredictFailureReason(err),
         });
 
         Logger.error(ensureError(err), {

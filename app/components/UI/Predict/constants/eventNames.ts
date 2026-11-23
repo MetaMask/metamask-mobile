@@ -19,6 +19,7 @@ export const PredictEventProperties = {
   LIQUIDITY: 'liquidity',
   VOLUME: 'volume',
   FAILURE_REASON: 'failure_reason',
+  ERROR_MESSAGE: 'error_message',
   SURFACE: 'surface',
   VARIANT: 'variant',
   CTA_NAME: 'cta_name',
@@ -171,6 +172,7 @@ export const PredictEventValues = {
   CLAIM_FAILURE_REASON: {
     PENDING_RESOLUTION: 'pending_resolution',
     INSUFFICIENT_GAS: 'insufficient_gas',
+    GAS_FEE_TOKEN_UNAVAILABLE: 'gas_fee_token_unavailable',
     NETWORK_ERROR: 'network_error',
     USER_REJECTED: 'user_rejected',
     MARKET_UNAVAILABLE: 'market_unavailable',

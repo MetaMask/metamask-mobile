@@ -40,6 +40,8 @@ export interface TrackPredictOrderEventArgs {
   analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   completionDuration?: number;
   failureReason?: string;
+  /** Sanitized raw error message; only sent on failed claim events. */
+  errorMessage?: string;
   sharePrice?: number;
   pnl?: number;
   orderType?: PredictOrderType;
@@ -251,6 +253,7 @@ export class PredictAnalytics {
     analyticsProperties,
     completionDuration,
     failureReason,
+    errorMessage,
     sharePrice,
     pnl,
     orderType,
@@ -334,6 +337,9 @@ export class PredictAnalytics {
       }),
       ...(failureReason && {
         [PredictEventProperties.FAILURE_REASON]: failureReason,
+      }),
+      ...(errorMessage && {
+        [PredictEventProperties.ERROR_MESSAGE]: errorMessage,
       }),
       ...(analyticsProperties.marketSlug && {
         [PredictEventProperties.MARKET_SLUG]: analyticsProperties.marketSlug,

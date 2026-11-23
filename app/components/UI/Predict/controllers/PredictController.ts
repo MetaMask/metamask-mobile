@@ -139,6 +139,7 @@ import { PredictFeatureFlags, PredictHiddenMarketsFlag } from '../types/flags';
 import {
   classifyPredictBuyFailure,
   mapClaimFailureReason,
+  sanitizePredictFailureReason,
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
@@ -1793,7 +1794,7 @@ export class PredictController extends BaseController<
         status: isUserCancelled
           ? PredictTradeStatus.CANCELLED
           : PredictTradeStatus.FAILED,
-        failureReason: e.message,
+        failureReason: sanitizePredictFailureReason(e),
       });
 
       throw error;
@@ -2973,11 +2974,16 @@ export class PredictController extends BaseController<
         analyticsProperties,
       });
     } else {
+      const errorMessage = transactionMeta.error?.message;
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.FAILED,
         amountUsd: amount,
         analyticsProperties,
-        failureReason: mapClaimFailureReason(transactionMeta.error?.message),
+        failureReason: mapClaimFailureReason(errorMessage),
+        ...(typeof errorMessage === 'string' &&
+          errorMessage.length > 0 && {
+            errorMessage: sanitizePredictFailureReason(errorMessage),
+          }),
       });
     }
 
