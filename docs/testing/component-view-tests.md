@@ -54,6 +54,14 @@ yarn test:view:coverage:folder app/components/UI/MyFeature
 yarn eslint <path/to/test.tsx>
 ```
 
+### CI flakiness detection (PRs into main)
+
+PRs that add or modify `*.view.test.tsx` files get those files re-run 5 times by the `Component view flakiness detection` job before merge, with `TEST_OS=ios` like the component view gate. Every repetition shuffles the file order and passes `--randomize` to Jest, so order leaks surface with a reproducible seed printed in the job summary. A failure in any repetition blocks the merge and names the failing test (`file › describe › test`). Deleted paths are skipped, the file list is capped at 10, and a 60-minute budget stops further repetitions with a warning instead of failing. Label a PR `skip-cv-flakiness-detection` to opt out. Reproduce a failure locally with the seed from the summary:
+
+```bash
+yarn jest -c jest.config.view.js <file> --runInBand --silent --coverage=false --randomize --seed=<seed from the job summary>
+```
+
 ## Golden Rules (Enforced)
 
 1. **Only mock Engine and allowed native modules** — no arbitrary `jest.mock()` in `*.view.test.*` files. Allowed:
