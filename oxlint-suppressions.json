@@ -5294,7 +5294,7 @@
   },
   "app/components/UI/Money/Views/MoneyOnboardingView/MoneyOnboardingView.tsx": {
     "typescript/no-floating-promises": {
-      "count": 5
+      "count": 2
     }
   },
   "app/components/UI/Money/Views/MoneyPotentialEarningsView/MoneyPotentialEarningsView.tsx": {
