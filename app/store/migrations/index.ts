@@ -523,7 +523,7 @@ export const asyncifyMigrations = (inputMigrations: MigrationsList) => {
         (controllerName) =>
           loadedRemovedControllerNames.has(controllerName) &&
           !(controllerName in migratedBackgroundState),
-      ).map((controllerName) =>
+      ).map(async (controllerName) =>
         ControllerStorage.removeItem(`persist:${controllerName}`),
       ),
     );
