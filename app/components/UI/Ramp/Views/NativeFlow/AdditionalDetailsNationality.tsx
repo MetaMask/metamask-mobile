@@ -16,7 +16,7 @@ import type {
 import { useTransakController } from '../../hooks/useTransakController';
 import { useMicaFormRetry } from '../../hooks/useMicaFormRetry';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
+import OptionSelectField from './components/OptionSelectField';
 import { KYC_STEP } from '../../utils/kycProgress';
 import MicaKycFormLayout from './MicaKycFormLayout';
 
@@ -177,7 +177,7 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
       isSubmitDisabled={!isFormValid}
       onSubmit={handleSubmit}
     >
-      <DepositSelectField
+      <OptionSelectField
         label={strings('deposit.source_of_income.employment_status_label')}
         placeholder={strings(
           'deposit.source_of_income.employment_status_placeholder',
@@ -188,7 +188,7 @@ const AdditionalDetailsNationality = (): React.JSX.Element => {
         testID="nationality-employment-status-select"
       />
 
-      <DepositSelectField
+      <OptionSelectField
         label={strings('deposit.source_of_income.nationality_label')}
         placeholder={strings(
           'deposit.source_of_income.nationality_placeholder',

@@ -40,7 +40,7 @@ export const createOptionSelectorModalNavigationDetails =
 
 /**
  * Bottom sheet that lists a short set of options and reports the chosen value.
- * Used by the MiCA questionnaire pickers (source of funds, employment status,
+ * Used by the option select fields (e.g. source of funds, employment status,
  * nationality).
  */
 function OptionSelectorModal() {

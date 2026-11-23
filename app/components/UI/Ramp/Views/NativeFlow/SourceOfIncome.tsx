@@ -21,7 +21,7 @@ import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useMicaFormRetry } from '../../hooks/useMicaFormRetry';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
-import DepositSelectField from '../../components/DepositSelectField/DepositSelectField';
+import OptionSelectField from './components/OptionSelectField';
 import styleSheet from './SourceOfIncome.styles';
 import { KYC_STEP } from '../../utils/kycProgress';
 import MicaKycFormLayout from './MicaKycFormLayout';
@@ -216,7 +216,7 @@ const SourceOfIncome = (): React.JSX.Element => {
         />
       </View>
 
-      <DepositSelectField
+      <OptionSelectField
         label={strings('deposit.source_of_income.source_of_funds_label')}
         placeholder={strings(
           'deposit.source_of_income.source_of_funds_placeholder',

@@ -1,7 +1,7 @@
 /**
- * DepositSelectField
+ * OptionSelectField
  *
- * A labelled picker for deposit forms: a design system `SelectButton` that
+ * A labelled picker for native flow forms: a design system `SelectButton` that
  * opens the option selector bottom sheet (e.g. source of funds, employment
  * status, nationality).
  */
@@ -17,12 +17,12 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
-import { useStyles } from '../../../../hooks/useStyles';
-import { createOptionSelectorModalNavigationDetails } from '../../Views/Modals/OptionSelectorModal';
+import type { AppNavigationProp } from '../../../../../../../core/NavigationService/types';
+import { navigateWithDetails } from '../../../../../../../util/navigation/navUtils';
+import { useStyles } from '../../../../../../hooks/useStyles';
+import { createOptionSelectorModalNavigationDetails } from '../../../Modals/OptionSelectorModal';
 
-interface DepositSelectFieldProps {
+export interface OptionSelectFieldProps {
   label: string;
   placeholder?: string;
   options: { name: string; value: string }[];
@@ -43,7 +43,7 @@ const styleSheet = () =>
     },
   });
 
-const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
+const OptionSelectField: React.FC<OptionSelectFieldProps> = ({
   label,
   placeholder = 'Select an option',
   options,
@@ -95,4 +95,4 @@ const DepositSelectField: React.FC<DepositSelectFieldProps> = ({
   );
 };
 
-export default DepositSelectField;
+export default OptionSelectField;

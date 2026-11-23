@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import DepositSelectField from './DepositSelectField';
-import { ThemeContext, mockTheme } from '../../../../../util/theme';
+import OptionSelectField from './OptionSelectField';
+import { ThemeContext, mockTheme } from '../../../../../../../util/theme';
 
 const mockNavigation = { navigate: jest.fn() };
 const mockNavigateWithDetails = jest.fn();
@@ -11,12 +11,12 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
+jest.mock('../../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../../util/navigation/navUtils'),
   navigateWithDetails: (...args: unknown[]) => mockNavigateWithDetails(...args),
 }));
 
-jest.mock('../../Views/Modals/OptionSelectorModal', () => ({
+jest.mock('../../../Modals/OptionSelectorModal', () => ({
   createOptionSelectorModalNavigationDetails: (params: unknown) => [
     'OptionSelector',
     params,
@@ -29,11 +29,11 @@ const options = [
 ];
 
 const renderField = (
-  props: Partial<React.ComponentProps<typeof DepositSelectField>> = {},
+  props: Partial<React.ComponentProps<typeof OptionSelectField>> = {},
 ) =>
   render(
     <ThemeContext.Provider value={mockTheme}>
-      <DepositSelectField
+      <OptionSelectField
         label="Source of funds"
         options={options}
         selectedValue=""
@@ -44,7 +44,7 @@ const renderField = (
     </ThemeContext.Provider>,
   );
 
-describe('DepositSelectField', () => {
+describe('OptionSelectField', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
