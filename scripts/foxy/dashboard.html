@@ -742,7 +742,8 @@
   .flt-btn .ic { width: 15px; height: 15px; }
   .flt-btn.on { color: var(--color-primary-default); }
   .advpills { display: contents; }
-  .advpills .ownerpill { max-width: 360px; height: 35px; box-sizing: border-box; padding-left: 12px; }
+  .subbar .ownerpill { height: 35px; box-sizing: border-box; padding-left: 12px; } /* every pill in the bar (owner, phase, sort, filters) is as tall as the chips beside it */
+  .advpills .ownerpill { max-width: 360px; }
   .advpills .ownerpill .pv { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-default); font-weight: 600; }
   .advpills .ownerpill .pk { white-space: nowrap; }
   .fpop { width: min(540px, calc(100vw - 24px)); }
@@ -1971,6 +1972,7 @@ $('#endpoints').addEventListener('click', (e) => {
   if (e.target.closest('tr.detail')) return;
   const tr = e.target.closest('tr.ep'); if (!tr) return;
   openEp = openEp === tr.dataset.k ? null : tr.dataset.k; render();
+  if (openEp) endpointsV.reveal(openEp, 'start'); // same as the Timeline: the opened endpoint goes to the top
 });
 $('#endpoints').addEventListener('input', (e) => {
   const t = e.target.closest('textarea[data-note]'); if (!t) return;
@@ -2060,6 +2062,7 @@ $('#timeline').addEventListener('click', (e) => {
   if (e.target.closest('tr.detail')) return;
   const tr = e.target.closest('tr.req'); if (!tr) return;
   open = open === tr.dataset.k ? null : tr.dataset.k; render();
+  if (open) timelineV.reveal(open, 'start'); // a row you open goes to the top, right under the header, so its detail has the room
 });
 $('#tabTimeline').onclick = () => { tab = 'timeline'; render(); };
 $('#tabEndpoints').onclick = () => { tab = 'endpoints'; render(); };
