@@ -24757,11 +24757,6 @@
       "count": 1
     }
   },
-  "app/util/notifications/types/index.ts": {
-    "typescript/consistent-type-exports": {
-      "count": 1
-    }
-  },
   "app/util/notifications/utils/push-notification-os-permission-sync.ts": {
     "typescript/promise-function-async": {
       "count": 1
