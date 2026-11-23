@@ -109,8 +109,12 @@ export type MoneyModalsNavigationParamList = {
   MoneyTransferSheet: undefined;
   MoneyApyInfoSheet: {
     apy?: number;
-    variant?: 'default' | 'deposit';
     vaultStatus?: MoneyVaultStatus;
+  };
+  MoneyEstimatedBalanceSheet: {
+    depositAmountFiat: string;
+    projectedAmountFiat: string;
+    apy?: number;
   };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;

@@ -10214,14 +10214,30 @@
     },
     "apy_tooltip": {
       "title": "Annual Percentage Yield (APY)",
+      "subtitle": "Annual Percentage Yield",
+      "lead": "This is the rate your MetaMask Money balance is earning right now.",
       "paragraph_1": "Your Money account earns up to {{percentage}}% automatically.",
       "paragraph_1_premium": "Your Money account earns up to {{percentage}}% with MetaMask Pro Premium APY.",
       "migration_upgrading": "Your funds are moving to the Premium vault. The APY shown is for the vault your funds are in right now.",
       "migration_downgrading": "Your funds are moving to the standard vault. The APY shown is for the vault your funds are in right now.",
-      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
+      "how_it_works_title": "How it works",
+      "how_it_works_body": "Earnings are added to your balance in real time and compound, so your earnings earn too.",
+      "why_it_changes_title": "Why it changes",
+      "why_it_changes_body": "APY is variable and isn't guaranteed. It moves up and down with borrowing demand.",
+      "where_it_comes_from_title": "Where it comes from",
+      "where_it_comes_from_body": "Your funds go into a DeFi vault that lends across established markets. Veda manages the vault, and Steakhouse Financial oversees its risk.",
       "paragraph_3": "When you link your MetaMask Card, purchases will be deducted from this balance.",
-      "paragraph_4": "Money account is powered by Monad.",
-      "deposit_body": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed."
+      "paragraph_4": "Money account is powered by Monad."
+    },
+    "estimated_balance_sheet": {
+      "title": "Your {{depositAmount}} could grow to {{projectedAmount}}",
+      "subtitle": "Estimated balance after one year in MetaMask Money at {{percentage}}% APY.",
+      "subtitle_no_apy": "Estimated balance after one year in MetaMask Money.",
+      "bullet_compound_title": "Earnings compound automatically",
+      "bullet_compound_body": "Earnings are added to your balance in real time, so they start earning too.",
+      "bullet_no_lockups_title": "No lockups",
+      "bullet_no_lockups_body": "There are no notice periods or penalties to swap or send your funds.",
+      "disclaimer": "This estimate assumes {{percentage}}% APY for a full year. APY is variable and isn't guaranteed."
     },
     "earnings_tooltip": {
       "monthly": {
@@ -10877,7 +10893,7 @@
       "buy_button": "Buy crypto",
       "buy_predict": "Add funds to your wallet to use Predictions.",
       "buy_perps": "Add funds to your wallet to use Perps.",
-      "projected_balance": "Projected {{projectedYears}}-year balance:",
+      "projected_balance": "Est. {{projectedYears}}-year balance:",
       "earn_up_to_apy": "Earn {{percentage}}% APY"
     },
     "unlimited": "Unlimited",
