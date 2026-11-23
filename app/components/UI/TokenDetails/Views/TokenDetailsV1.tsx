@@ -536,7 +536,9 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           tokenName: item.asset.name ?? item.asset.symbol,
           chain,
         },
-        copyTradeOrigin: commentId ? { commentId } : undefined,
+        copyTradeOrigin: commentId
+          ? { commentId, authorId: item.author.id }
+          : undefined,
         traderAddress: item.author.address,
       });
     },

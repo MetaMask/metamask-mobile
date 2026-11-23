@@ -38,7 +38,8 @@ import {
   buildApiRequestsSection,
   buildApiRequestsFullReport,
   describeFailure,
-  describeQualityGateViolations,
+  describeReportedFailure,
+  formatFailureReason,
 } from './perf-comment-details.mjs';
 
 const SUMMARY_FILE = process.argv[2] || 'aggregated-reports/summary.json';
@@ -95,21 +96,7 @@ async function main() {
 
   /** Map raw failureReason to a human-readable label */
   function formatReason(reason) {
-    switch (reason) {
-      case 'quality_gates_exceeded':
-        return 'Quality gates exceeded';
-      case 'session_creation_failed':
-        return 'Session creation failed';
-      case 'no_performance_metrics':
-        return 'No performance metrics';
-      case 'timedOut':
-        return 'Timed out';
-      case 'test_error':
-      case 'failed':
-        return 'Test error';
-      default:
-        return reason ?? 'Unknown';
-    }
+    return formatFailureReason(reason);
   }
 
   function escapeMarkdownTable(value) {
@@ -401,16 +388,7 @@ async function main() {
               ? formatDevice(String(t.device))
               : t.platform;
 
-        const reason =
-          (t.failureReason === 'quality_gates_exceeded'
-            ? describeQualityGateViolations(t.qualityGates)
-            : null) ??
-          describeFailure(
-            formatReason(t.failureReason),
-            t.failureReason === 'quality_gates_exceeded'
-              ? null
-              : t.failureMessage,
-          );
+        const reason = describeReportedFailure(t);
         const recording = formatRecordingLinks({
           recordingLink: t.recordingLink,
         });

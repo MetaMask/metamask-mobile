@@ -46,7 +46,6 @@ import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
-import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 import { useRecurringOrdersListTrace } from '../../../hooks/useRecurringOrdersListTrace';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
@@ -118,6 +117,11 @@ const BridgeRecurringBuyViewContent = ({
     isDestAmountLoading,
     isFlipDisabled,
     isQuoteSponsored,
+    recurringOrderMinAmount: {
+      formattedMinAmountInSelectedCurrency,
+      hasError: hasMinAmountError,
+      isBelowMinAmount,
+    },
     sourceAmountInput,
     sourceToken,
     sourceAmount,
@@ -224,14 +228,6 @@ const BridgeRecurringBuyViewContent = ({
   }, []);
 
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const {
-    formattedMinAmountInSelectedCurrency,
-    hasError: hasMinAmountError,
-    isBelowMinAmount,
-  } = useRecurringOrderMinAmount({
-    sourceToken,
-    sourceAmount,
-  });
   const canPreviewOrder =
     Boolean(activeQuote) &&
     scheduleValidation.isValid &&
@@ -485,6 +481,7 @@ const BridgeRecurringBuyViewContent = ({
           onPreviewOrder={handlePreviewOrder}
           label={previewOrderLabel}
           destinationTokenSymbol={destToken?.symbol}
+          isBelowMinAmount={isBelowMinAmount}
           isPreviewDisabled={
             !scheduleValidation.isValid ||
             !feeTokenValidation.isValid ||
@@ -505,7 +502,7 @@ const BridgeRecurringBuyViewContent = ({
               label={previewOrderLabel}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
               disabled={!canPreviewOrder}
-              loading={isLoading}
+              loading={isLoading && !isBelowMinAmount}
             />
           ) : isAmountFocused ? (
             <GaslessQuickPickOptions
