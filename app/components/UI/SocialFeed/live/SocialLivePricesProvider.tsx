@@ -20,11 +20,13 @@ import {
 } from '../../Perps/providers/PerpsStreamManager';
 import { selectPerpsEnabledFlag } from '../../Perps/selectors/featureFlags';
 import {
+  isCardInWindow,
   planLiveSubscriptions,
   selectVisibleKeys,
   type MeasuredCard,
 } from './planLiveSubscriptions';
 import { selectPerpDisplayPrice } from './selectPerpDisplayPrice';
+import { SocialLiveMotionGate } from './SocialLiveMotionGate';
 import {
   SocialLivePricesContext,
   type SocialLivePricesContextValue,
@@ -71,10 +73,14 @@ const unsubscribeSpot = (assetId: string) =>
     currency: OHLCV_CURRENCY,
   });
 
-const measureCard = ({
-  key,
-  ref,
-}: Registration): Promise<MeasuredCard | null> =>
+interface MeasuredRegistration extends MeasuredCard {
+  id: string;
+}
+
+const measureCard = ([id, { key, ref }]: [
+  string,
+  Registration,
+]): Promise<MeasuredRegistration | null> =>
   new Promise((resolve) => {
     const node = ref.current;
     if (!node) {
@@ -82,7 +88,7 @@ const measureCard = ({
       return;
     }
     node.measureInWindow((x, y, width, height) =>
-      resolve({ key, x, y, width, height }),
+      resolve({ id, key, x, y, width, height }),
     );
   });
 
@@ -97,6 +103,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     AppState.currentState === 'active',
   );
   const [store] = useState(() => new SocialLivePriceStore());
+  const [motion] = useState(() => new SocialLiveMotionGate());
 
   // UX matrix (app/util/deviceCapability/README.md). The two tiers are read
   // separately. A `null` network tier is the MID-safe cell, never LOW.
@@ -112,6 +119,9 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   isLiveRef.current = isLive;
   const isPerpsEnabledRef = useRef(isPerpsEnabled);
   isPerpsEnabledRef.current = isPerpsEnabled;
+  const reduceMotionRef = useRef(reduceMotion);
+  reduceMotionRef.current = reduceMotion;
+  const isScrollingRef = useRef(false);
 
   const isMountedRef = useRef(false);
   const registrationsRef = useRef(new Map<string, Registration>());
@@ -243,15 +253,27 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   }, [syncSubscriptions]);
 
   const measureVisibleKeys = useCallback(async () => {
-    const cards = await Promise.all(
-      [...registrationsRef.current.values()].map(measureCard),
+    const measured = await Promise.all(
+      [...registrationsRef.current].map(measureCard),
     );
     if (!isMountedRef.current || !isLiveRef.current) {
       return;
     }
     const viewport = Dimensions.get('window');
+    const cards = measured.filter(
+      (card): card is MeasuredRegistration => card != null,
+    );
+    if (isScrollingRef.current || reduceMotionRef.current) {
+      motion.clear();
+    } else {
+      motion.set(
+        cards
+          .filter((card) => isCardInWindow(card, viewport, 0))
+          .map((card) => card.id),
+      );
+    }
     const keys = selectVisibleKeys(
-      cards.filter((card): card is MeasuredCard => card != null),
+      cards,
       viewport,
       viewport.height * VISIBILITY_BUFFER_SCREENS,
     );
@@ -260,7 +282,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
     }
     visibleKeysRef.current = keys;
     scheduleSync();
-  }, [scheduleSync]);
+  }, [motion, scheduleSync]);
 
   const requestVisibilityCheck = useCallback(
     (delayMs: number = VISIBILITY_DEBOUNCE_MS) => {
@@ -275,6 +297,18 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
       }, delayMs);
     },
     [measureVisibleKeys],
+  );
+
+  const setScrolling = useCallback(
+    (isScrolling: boolean) => {
+      isScrollingRef.current = isScrolling;
+      if (isScrolling) {
+        motion.clear();
+        return;
+      }
+      requestVisibilityCheck();
+    },
+    [motion, requestVisibilityCheck],
   );
 
   const register = useCallback(
@@ -319,6 +353,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (!isLive) {
       store.cancelPending();
+      motion.clear();
       syncSubscriptions();
       return undefined;
     }
@@ -332,6 +367,7 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   }, [
     isLive,
     isPerpsEnabled,
+    motion,
     requestVisibilityCheck,
     store,
     syncSubscriptions,
@@ -362,8 +398,22 @@ const SocialLivePricesHost: React.FC<{ children: React.ReactNode }> = ({
   }, [enqueueSpotOperation, store]);
 
   const value = useMemo<SocialLivePricesContextValue>(
-    () => ({ store, register, requestVisibilityCheck, reduceMotion }),
-    [store, register, requestVisibilityCheck, reduceMotion],
+    () => ({
+      store,
+      register,
+      requestVisibilityCheck,
+      setScrolling,
+      motion,
+      reduceMotion,
+    }),
+    [
+      store,
+      register,
+      requestVisibilityCheck,
+      setScrolling,
+      motion,
+      reduceMotion,
+    ],
   );
 
   return (

@@ -24,6 +24,11 @@ export interface UseSocialLivePriceResult {
   trackRef: React.RefObject<View | null>;
   /** `null` until the first streamed price, and outside the provider. */
   figures: SocialLivePositionFigures | null;
+  /**
+   * True only while the card is on screen and the list is at rest. Never true
+   * on low-end hardware.
+   */
+  animated: boolean;
   reduceMotion: boolean;
 }
 
@@ -64,6 +69,17 @@ export function useSocialLivePrice(
   );
   const streamedEntry = useSyncExternalStore(subscribe, getSnapshot);
 
+  const subscribeMotion = useCallback(
+    (listener: () => void) =>
+      context && key ? context.motion.subscribe(listener) : noopUnsubscribe,
+    [context, key],
+  );
+  const getAnimated = useCallback(
+    () => Boolean(context && key && context.motion.has(id)),
+    [context, id, key],
+  );
+  const animated = useSyncExternalStore(subscribeMotion, getAnimated);
+
   const lastEntryRef = useRef<{
     key: SocialLivePriceKey;
     entry: SocialLivePriceEntry;
@@ -86,6 +102,7 @@ export function useSocialLivePrice(
   return {
     trackRef,
     figures,
+    animated,
     reduceMotion: context?.reduceMotion ?? false,
   };
 }

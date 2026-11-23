@@ -35,7 +35,11 @@ import {
 import { HOUR, MINUTE } from '../../../../constants/time';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
-import { SocialLivePricesContext } from '../live/SocialLivePricesContext';
+import { SocialLiveMotionGate } from '../live/SocialLiveMotionGate';
+import {
+  SocialLivePricesContext,
+  type SocialLivePricesContextValue,
+} from '../live/SocialLivePricesContext';
 import { SocialLivePriceStore } from '../live/SocialLivePriceStore';
 import type { SocialLivePriceSource } from '../live/types';
 
@@ -1031,6 +1035,23 @@ describe('SocialFeedPositionCard', () => {
   });
 
   describe('live prices', () => {
+    const liveContext = (
+      store: SocialLivePriceStore,
+      animatedIds: string[],
+      reduceMotion = true,
+    ): SocialLivePricesContextValue => {
+      const motion = new SocialLiveMotionGate();
+      motion.set(animatedIds);
+      return {
+        store,
+        register: () => () => undefined,
+        requestVisibilityCheck: () => undefined,
+        setScrolling: () => undefined,
+        motion,
+        reduceMotion,
+      };
+    };
+
     const liveSource: SocialLivePriceSource = {
       key: 'perp:BTC',
       kind: 'perp',
@@ -1050,14 +1071,7 @@ describe('SocialFeedPositionCard', () => {
         live: liveSource,
       });
       renderWithProvider(
-        <SocialLivePricesContext.Provider
-          value={{
-            store,
-            register: () => () => undefined,
-            requestVisibilityCheck: () => undefined,
-            reduceMotion: true,
-          }}
-        >
+        <SocialLivePricesContext.Provider value={liveContext(store, [item.id])}>
           <SocialFeedPositionCard item={item} />
         </SocialLivePricesContext.Provider>,
       );
@@ -1093,14 +1107,7 @@ describe('SocialFeedPositionCard', () => {
         showCopyTrade: false,
       };
       renderWithProvider(
-        <SocialLivePricesContext.Provider
-          value={{
-            store,
-            register: () => () => undefined,
-            requestVisibilityCheck: () => undefined,
-            reduceMotion: true,
-          }}
-        >
+        <SocialLivePricesContext.Provider value={liveContext(store, [item.id])}>
           <SocialFeedPositionCard item={item} />
         </SocialLivePricesContext.Provider>,
       );
@@ -1120,14 +1127,7 @@ describe('SocialFeedPositionCard', () => {
         live: liveSource,
       });
       const utils = renderWithProvider(
-        <SocialLivePricesContext.Provider
-          value={{
-            store,
-            register: () => () => undefined,
-            requestVisibilityCheck: () => undefined,
-            reduceMotion: true,
-          }}
-        >
+        <SocialLivePricesContext.Provider value={liveContext(store, [item.id])}>
           <PositionCardBody item={item} />
         </SocialLivePricesContext.Provider>,
         {
@@ -1168,6 +1168,27 @@ describe('SocialFeedPositionCard', () => {
       expect(screen.getByLabelText('+30.00%')).toBeOnTheScreen();
     });
 
+    it('swaps the figures as plain text while the card is not animated', () => {
+      const store = new SocialLivePriceStore(0);
+      const item = mockOpenPerpsFeedItem({
+        markPriceLabel: '$100,000',
+        live: liveSource,
+      });
+      renderWithProvider(
+        <SocialLivePricesContext.Provider value={liveContext(store, [], false)}>
+          <SocialFeedPositionCard item={item} />
+        </SocialLivePricesContext.Provider>,
+      );
+
+      act(() => {
+        store.publish('perp:BTC', 101_000);
+      });
+
+      expect(screen.getByText('$101,000')).toBeOnTheScreen();
+      expect(screen.getByText('+$3K')).toBeOnTheScreen();
+      expect(screen.getByText('+30.00%')).toBeOnTheScreen();
+    });
+
     it('lays out the live P&L by glyph so trailing units follow the digits', () => {
       const store = new SocialLivePriceStore(0);
       const item = mockOpenPerpsFeedItem({
@@ -1176,12 +1197,7 @@ describe('SocialFeedPositionCard', () => {
       });
       renderWithProvider(
         <SocialLivePricesContext.Provider
-          value={{
-            store,
-            register: () => () => undefined,
-            requestVisibilityCheck: () => undefined,
-            reduceMotion: false,
-          }}
+          value={liveContext(store, [item.id], false)}
         >
           <SocialFeedPositionCard item={item} />
         </SocialLivePricesContext.Provider>,

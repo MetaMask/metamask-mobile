@@ -14,7 +14,11 @@ export interface LiveCardHeaderLabels {
 
 export interface UseLiveCardHeaderResult extends LiveCardHeaderLabels {
   trackRef: React.RefObject<View | null>;
-  /** Pass to `PositionCardHeader`; `undefined` until the first tick. */
+  /**
+   * Pass to `PositionCardHeader`. `undefined` until the first tick, and while
+   * the card is off screen or the list is scrolling, so those cards render
+   * plain text instead of digit reels.
+   */
   live?: PositionCardHeaderLiveState;
 }
 
@@ -28,7 +32,10 @@ export function useLiveCardHeader(
   source: SocialLivePriceSource | undefined,
   snapshot: LiveCardHeaderLabels,
 ): UseLiveCardHeaderResult {
-  const { trackRef, figures, reduceMotion } = useSocialLivePrice(id, source);
+  const { trackRef, figures, animated, reduceMotion } = useSocialLivePrice(
+    id,
+    source,
+  );
 
   if (!figures || !source) {
     return { ...snapshot, trackRef };
@@ -42,8 +49,6 @@ export function useLiveCardHeader(
     pnlLabel: labels.pnlLabel ?? snapshot.pnlLabel,
     pnlValueLabel: labels.pnlValueLabel ?? snapshot.pnlValueLabel,
     isPnlPositive: labels.isPnlPositive ?? snapshot.isPnlPositive,
-    live: {
-      reduceMotion,
-    },
+    live: animated ? { reduceMotion } : undefined,
   };
 }

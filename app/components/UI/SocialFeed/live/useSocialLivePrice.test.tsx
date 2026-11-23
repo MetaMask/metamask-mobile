@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 import React from 'react';
 import { SocialFeedPageActiveContext } from '../components/SocialFeedPageActiveContext';
+import { SocialLiveMotionGate } from './SocialLiveMotionGate';
 import {
   SocialLivePricesContext,
   type SocialLivePricesContextValue,
@@ -25,11 +26,14 @@ const live: SocialLivePriceSource = {
 const renderLivePrice = (initialPageActive: boolean) => {
   let isPageActive = initialPageActive;
   const store = new SocialLivePriceStore(0);
+  const motion = new SocialLiveMotionGate();
   const unregister = jest.fn();
   const context: SocialLivePricesContextValue = {
     store,
     register: jest.fn(() => unregister),
     requestVisibilityCheck: jest.fn(),
+    setScrolling: jest.fn(),
+    motion,
     reduceMotion: false,
   };
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -46,7 +50,7 @@ const renderLivePrice = (initialPageActive: boolean) => {
     isPageActive = active;
     hook.rerender(undefined);
   };
-  return { ...hook, store, context, unregister, setPageActive };
+  return { ...hook, store, motion, context, unregister, setPageActive };
 };
 
 describe('useSocialLivePrice', () => {
@@ -101,5 +105,24 @@ describe('useSocialLivePrice', () => {
 
     act(() => store.publish('perp:BTC', 130));
     expect(result.current.figures?.price).toBe(130);
+  });
+
+  it('animates only while the motion gate holds the card', () => {
+    const { result, motion } = renderLivePrice(true);
+    expect(result.current.animated).toBe(false);
+
+    act(() => motion.set(['card-1']));
+    expect(result.current.animated).toBe(true);
+
+    act(() => motion.set(['card-2']));
+    expect(result.current.animated).toBe(false);
+  });
+
+  it('never animates on an inactive page', () => {
+    const { result, motion } = renderLivePrice(false);
+
+    act(() => motion.set(['card-1']));
+
+    expect(result.current.animated).toBe(false);
   });
 });
