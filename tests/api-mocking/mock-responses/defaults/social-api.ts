@@ -1,4 +1,8 @@
-import type { TraderProfileResponse } from '@metamask/social-controllers';
+import type {
+  BlockedContentResponse,
+  BlockedProfilesResponse,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
 import { MockEventsObject } from '../../../framework';
 
 /**
@@ -51,6 +55,16 @@ const EMPTY_TRADER_PROFILE: TraderProfileResponse = {
 /** PositionsResponse shape (`positions` array). */
 const EMPTY_POSITIONS = { positions: [] };
 
+/**
+ * The viewer has blocked nothing. Fetched on unlock by every leaderboard and
+ * social feed, which hide what the viewer blocked.
+ */
+const NO_BLOCKED_PROFILES: BlockedProfilesResponse = {
+  items: [],
+  cursor: null,
+};
+const NO_BLOCKED_CONTENT: BlockedContentResponse = { items: [], cursor: null };
+
 export const SOCIAL_API_MOCKS: MockEventsObject = {
   GET: [
     {
@@ -90,6 +104,20 @@ export const SOCIAL_API_MOCKS: MockEventsObject = {
       ),
       responseCode: 200,
       response: EMPTY_POSITIONS,
+    },
+    {
+      urlEndpoint: new RegExp(
+        `^${SOCIAL_HOST}\\/api\\/v1\\/moderation\\/blocks\\/profiles(?:\\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: NO_BLOCKED_PROFILES,
+    },
+    {
+      urlEndpoint: new RegExp(
+        `^${SOCIAL_HOST}\\/api\\/v1\\/moderation\\/blocks\\/content(?:\\?.*)?$`,
+      ),
+      responseCode: 200,
+      response: NO_BLOCKED_CONTENT,
     },
   ],
 };

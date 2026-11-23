@@ -1,4 +1,7 @@
-import { getTransakServiceMessenger } from './transak-service-messenger';
+import {
+  getTransakServiceInitMessenger,
+  getTransakServiceMessenger,
+} from './transak-service-messenger';
 import { Messenger } from '@metamask/messenger';
 
 jest.mock('@metamask/messenger', () => ({
@@ -50,6 +53,31 @@ describe('getTransakServiceMessenger', () => {
     expect(mockRootMessenger.delegate).toHaveBeenCalledWith({
       actions: ['AuthenticationController:getBearerToken'],
       events: [],
+      messenger: result,
+    });
+  });
+});
+
+describe('getTransakServiceInitMessenger', () => {
+  it('creates a Messenger with namespace TransakServiceInit', () => {
+    const mockRootMessenger = createMockRootMessenger();
+
+    getTransakServiceInitMessenger(mockRootMessenger as never);
+
+    expect(Messenger).toHaveBeenCalledWith({
+      namespace: 'TransakServiceInit',
+      parent: mockRootMessenger,
+    });
+  });
+
+  it('delegates the remote feature flag state and its changes', () => {
+    const mockRootMessenger = createMockRootMessenger();
+
+    const result = getTransakServiceInitMessenger(mockRootMessenger as never);
+
+    expect(mockRootMessenger.delegate).toHaveBeenCalledWith({
+      actions: ['RemoteFeatureFlagController:getState'],
+      events: ['RemoteFeatureFlagController:stateChange'],
       messenger: result,
     });
   });

@@ -2,7 +2,6 @@ import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 import {
   SeasonStatusState,
   SeasonTierDto,
-  GeoRewardsMetadata,
   PointsBoostDto,
   RewardDto,
   PointsEventDto,
@@ -46,7 +45,6 @@ import {
   getOrCreateCampaignResourceCacheEntry,
   getOrCreateOndoCampaignLeaderboardCacheEntry,
 } from './campaignResourceState';
-import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
 
 // Saga action types - defined here to avoid circular dependency with saga file
@@ -251,18 +249,8 @@ export interface RewardsState {
   // Subscription Referral state (keyed by subscriptionId)
   referralDetails: Record<string, ReferralDetailsEntry>;
 
-  // Onboarding state
-  onboardingActiveStep: OnboardingStep;
-  onboardingReferralCode: string | null;
-
   // Candidate subscription state
   candidateSubscriptionId: string | 'pending' | 'error' | 'retry' | null;
-
-  // Geolocation state
-  geoLocation: string | null;
-  optinAllowedForGeo: boolean | null;
-  optinAllowedForGeoLoading: boolean;
-  optinAllowedForGeoError: boolean;
 
   // UI preferences
   hideCurrentAccountNotOptedInBanner: AccountOptInBannerInfoStatus[];
@@ -443,13 +431,7 @@ export const initialState: RewardsState = {
   seasonUserStatuses: {},
   referralDetails: {},
 
-  onboardingActiveStep: OnboardingStep.INTRO,
-  onboardingReferralCode: null,
   candidateSubscriptionId: 'pending',
-  geoLocation: null,
-  optinAllowedForGeo: null,
-  optinAllowedForGeoLoading: false,
-  optinAllowedForGeoError: false,
   hideUnlinkedAccountsBanner: false,
   hideCurrentAccountNotOptedInBanner: [],
 
@@ -802,50 +784,11 @@ const rewardsSlice = createSlice({
       state.vipTransactions = {};
     },
 
-    setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
-      state.onboardingActiveStep = action.payload;
-    },
-
-    resetOnboarding: (state) => {
-      state.onboardingActiveStep = OnboardingStep.INTRO;
-      state.onboardingReferralCode = null;
-    },
-
-    setOnboardingReferralCode: (
-      state,
-      action: PayloadAction<string | null>,
-    ) => {
-      state.onboardingReferralCode = action.payload;
-    },
-
     setCandidateSubscriptionId: (
       state,
       action: PayloadAction<string | 'pending' | 'error' | 'retry' | null>,
     ) => {
       state.candidateSubscriptionId = action.payload;
-    },
-
-    setGeoRewardsMetadata: (
-      state,
-      action: PayloadAction<GeoRewardsMetadata | null>,
-    ) => {
-      if (action.payload) {
-        state.geoLocation = action.payload.geoLocation;
-        state.optinAllowedForGeo = action.payload.optinAllowedForGeo;
-        state.optinAllowedForGeoLoading = false;
-      } else {
-        state.geoLocation = null;
-        state.optinAllowedForGeo = null;
-        state.optinAllowedForGeoLoading = false;
-      }
-    },
-
-    setGeoRewardsMetadataLoading: (state, action: PayloadAction<boolean>) => {
-      state.optinAllowedForGeoLoading = action.payload;
-    },
-
-    setGeoRewardsMetadataError: (state, action: PayloadAction<boolean>) => {
-      state.optinAllowedForGeoError = action.payload;
     },
 
     setHideUnlinkedAccountsBanner: (state, action: PayloadAction<boolean>) => {
@@ -2038,13 +1981,7 @@ export const {
   setSeasonStatusError,
   setReferralDetailsLoading,
   resetRewardsState,
-  setOnboardingActiveStep,
-  resetOnboarding,
-  setOnboardingReferralCode,
   setCandidateSubscriptionId,
-  setGeoRewardsMetadata,
-  setGeoRewardsMetadataLoading,
-  setGeoRewardsMetadataError,
   setHideUnlinkedAccountsBanner,
   setHideCurrentAccountNotOptedInBanner,
   setActiveBoosts,

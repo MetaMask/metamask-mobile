@@ -146,9 +146,14 @@ class NotificationsService {
       });
     });
 
-  async requestPushNotificationsPermission(): Promise<void> {
+  /**
+   * Shows the alert that sends the user to the system notification settings.
+   *
+   * @returns Whether the user chose to open the system settings.
+   */
+  async requestPushNotificationsPermission(): Promise<boolean> {
     try {
-      await this.asyncAlert(
+      return await this.asyncAlert(
         strings('notifications.prompt_title'),
         strings('notifications.prompt_desc'),
       );
@@ -157,6 +162,7 @@ class NotificationsService {
         e as Error,
         strings('notifications.error_checking_permission'),
       );
+      return false;
     }
   }
   openSystemSettings() {

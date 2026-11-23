@@ -53,7 +53,7 @@ export const useMoneyHeroEntries = (
       return;
     }
     if (errorSource === 'earnings') {
-      void fetchEarningsSummary({ forceFresh: true });
+      void fetchEarningsSummary({ forceFresh: true }).catch(() => undefined);
     }
   };
   const retryLoading =

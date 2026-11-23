@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
 import {
+  act,
   render,
   fireEvent,
   within,
@@ -22,6 +23,8 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
 import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlusTrialEligibility';
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { SUBSCRIPTION_ALREADY_STARTING_MESSAGE } from '../../hooks/isSubscriptionAlreadyStartingError';
+import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
 import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
 import type {
   MoneyAccountPlusPricingView,
@@ -52,7 +55,7 @@ const mockUseMoneyAccountPlusTrialEligibility = jest.mocked(
 const mockUseStartProSubscription = jest.mocked(useStartProSubscription);
 const mockRetry = jest.fn();
 const mockStartSubscription = jest.fn<
-  Promise<void>,
+  Promise<{ outcome: StartProSubscriptionOutcome }>,
   [unknown, { isTrial?: boolean }?]
 >();
 
@@ -85,6 +88,7 @@ const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
+const mockOnProcessing = jest.fn();
 const mockOnCheckoutStart = jest.fn();
 const mockOnCheckoutError = jest.fn();
 
@@ -119,12 +123,17 @@ const mockStartSubscriptionState = ({
   });
 };
 
-const renderBenefits = (initialPlan?: PlanId) =>
+const renderBenefits = (
+  initialPlan?: PlanId,
+  onPlanChange?: (planId: PlanId) => void,
+) =>
   render(
     <Benefits
       onSuccess={mockOnSuccess}
+      onProcessing={mockOnProcessing}
       onCheckoutStart={mockOnCheckoutStart}
       onCheckoutError={mockOnCheckoutError}
+      onPlanChange={onPlanChange}
       initialPlan={initialPlan}
     />,
   );
@@ -135,10 +144,13 @@ describe('Benefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsProduction.mockReturnValue(false);
-    mockStartSubscription.mockResolvedValue(undefined);
+    mockStartSubscription.mockResolvedValue({
+      outcome: StartProSubscriptionOutcome.Ready,
+    });
     mockPricingState();
     mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
       isEligibleForTrial: false,
+      isLoading: false,
     });
     mockStartSubscriptionState();
   });
@@ -311,6 +323,7 @@ describe('Benefits', () => {
     it('shows trial copy when the controller reports the user is eligible', () => {
       mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
         isEligibleForTrial: true,
+        isLoading: false,
       });
       mockPricingState({ plusPricing: trialPricing });
 
@@ -332,6 +345,25 @@ describe('Benefits', () => {
       expect(
         getByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION),
       ).toHaveTextContent(strings('pro_subscription.free_trial_description'));
+    });
+
+    it('keeps the plan cards hidden until the trial check has loaded', () => {
+      mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
+        isEligibleForTrial: true,
+        isLoading: true,
+      });
+      mockPricingState({ plusPricing: trialPricing });
+
+      const { getByTestId, queryByTestId } = renderBenefits();
+
+      expect(getByTestId(BenefitsTestIds.PRICING_LOADING)).toBeOnTheScreen();
+      expect(
+        queryByTestId(BenefitsTestIds.PLAN_CARD_TRIAL('annual')),
+      ).toBeNull();
+      expect(getByTestId(BenefitsTestIds.CTA_BUTTON)).toHaveTextContent(
+        strings('pro_subscription.pricing.loading'),
+      );
+      expect(queryByTestId(BenefitsTestIds.FREE_TRIAL_DESCRIPTION)).toBeNull();
     });
 
     it('hides trial copy when the controller reports the user is not eligible', () => {
@@ -400,6 +432,42 @@ describe('Benefits', () => {
       expect(mockOnSuccess).not.toHaveBeenCalled();
     });
 
+    it('does not treat an overlapping start as a checkout failure', async () => {
+      let resolveFirst: (value: {
+        outcome: StartProSubscriptionOutcome;
+      }) => void = () => undefined;
+      mockStartSubscription
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveFirst = resolve;
+            }),
+        )
+        .mockRejectedValueOnce(
+          new Error(SUBSCRIPTION_ALREADY_STARTING_MESSAGE),
+        );
+      const { getByTestId } = renderBenefits();
+      const cta = getByTestId(BenefitsTestIds.CTA_BUTTON);
+
+      fireEvent.press(cta);
+      fireEvent.press(cta);
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      expect(mockOnCheckoutStart).toHaveBeenCalledTimes(2);
+      expect(mockStartSubscription).toHaveBeenCalledTimes(2);
+      expect(mockOnCheckoutError).not.toHaveBeenCalled();
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveFirst({ outcome: StartProSubscriptionOutcome.Ready });
+      });
+
+      expect(mockOnSuccess).toHaveBeenCalledTimes(1);
+      expect(mockOnCheckoutError).not.toHaveBeenCalled();
+    });
+
     it('starts the subscription and calls onSuccess with the annual checkout plan by default', async () => {
       const { getByTestId } = renderBenefits();
 
@@ -408,8 +476,22 @@ describe('Benefits', () => {
       await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
       expect(mockStartSubscription).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN, {
         isTrial: false,
+        enableTestClocks: false,
       });
       expect(mockOnSuccess).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
+    });
+
+    it('calls onProcessing and skips the success screen when funding is still in progress', async () => {
+      mockStartSubscription.mockResolvedValue({
+        outcome: StartProSubscriptionOutcome.Processing,
+      });
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() => expect(mockOnProcessing).toHaveBeenCalledTimes(1));
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+      expect(mockOnCheckoutError).not.toHaveBeenCalled();
     });
 
     it('starts the subscription and calls onSuccess with the monthly checkout plan after Monthly is selected', async () => {
@@ -423,6 +505,7 @@ describe('Benefits', () => {
         MONTHLY_CHECKOUT_PLAN,
         {
           isTrial: false,
+          enableTestClocks: false,
         },
       );
       expect(mockOnSuccess).toHaveBeenCalledWith(MONTHLY_CHECKOUT_PLAN);
@@ -431,6 +514,7 @@ describe('Benefits', () => {
     it('passes isTrial true when the selected plan offers a free trial', async () => {
       mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
         isEligibleForTrial: true,
+        isLoading: false,
       });
       mockPricingState({
         plusPricing: {
@@ -449,7 +533,24 @@ describe('Benefits', () => {
             ...ANNUAL_CHECKOUT_PLAN,
             trialPeriodDays: 7,
           },
-          { isTrial: true },
+          { isTrial: true, enableTestClocks: false },
+        ),
+      );
+    });
+
+    it('passes enableTestClocks when the Stripe test clocks checkbox is selected', async () => {
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.TEST_CLOCKS_CHECKBOX));
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() =>
+        expect(mockStartSubscription).toHaveBeenCalledWith(
+          ANNUAL_CHECKOUT_PLAN,
+          {
+            isTrial: false,
+            enableTestClocks: true,
+          },
         ),
       );
     });
@@ -502,6 +603,31 @@ describe('Benefits', () => {
         'accessibilityState',
         expect.objectContaining({ busy: true, disabled: true }),
       );
+    });
+
+    it('keeps the selected plan locked while the subscription is submitting', () => {
+      mockStartSubscriptionState({ isSubmitting: true });
+      const onPlanChange = jest.fn();
+      const { getByTestId, getByText, queryByText } = renderBenefits(
+        undefined,
+        onPlanChange,
+      );
+
+      fireEvent.press(getByTestId(BenefitsTestIds.PLAN_CARD('monthly')));
+
+      expect(getByTestId(BenefitsTestIds.PLAN_CARD('annual'))).toBeChecked();
+      expect(
+        getByTestId(BenefitsTestIds.PLAN_CARD('monthly')),
+      ).not.toBeChecked();
+      expect(
+        getByText(strings('pro_subscription.benefits.atm_fees.subtitle')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByText(
+          strings('pro_subscription.benefits.atm_fees.subtitle_monthly'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(onPlanChange).not.toHaveBeenCalled();
     });
 
     it('pressing a benefit row opens the detail sheet', () => {

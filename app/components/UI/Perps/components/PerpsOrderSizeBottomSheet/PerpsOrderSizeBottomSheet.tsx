@@ -3,7 +3,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   HelpText,
@@ -26,6 +25,9 @@ import { MAX_PERPS_INPUT_DIGITS } from '../../constants/perpsConfig';
 import { useMinimumOrderAmount } from '../../hooks/useMinimumOrderAmount';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { getIncrementalMarginInsufficientBalanceError } from '../../utils/openOrderMarginValidation';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsOrderSizeBottomSheetProps {
   isVisible: boolean;
@@ -83,6 +85,7 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
   reduceOnly = false,
   isMarketDataReady = true,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const [orderSize, setOrderSize] = useState(initialOrderSize || '');
   const displaySymbol = getPerpsDisplaySymbol(asset);
   const { minimumOrderAmount } = useMinimumOrderAmount({ asset });
@@ -217,9 +220,9 @@ const PerpsOrderSizeBottomSheet: React.FC<PerpsOrderSizeBottomSheetProps> = ({
 
   return (
     <BottomSheet onClose={onClose}>
-      <BottomSheetHeader onClose={onClose}>
+      <BottomSheetHeaderGlass isGlass={isGlassHeader} onClose={onClose}>
         {strings('perps.order.size_modal.title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="gap-2 px-4">
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>

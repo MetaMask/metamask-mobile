@@ -5,6 +5,7 @@ import { REFERRAL_ME_CACHE_THRESHOLD_MS } from '../../../../core/Engine/controll
 import type { ReferralMeDto } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import { setReferralMe } from '../../../../reducers/rewardsMoney';
 import { selectRewardsMoneyControllerEnabled } from '../../../../selectors/featureFlagController/rewardsMoneyController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
 import { usePrefetchRewardsIdentity } from './usePrefetchRewardsIdentity';
 
 jest.mock('react-redux', () => ({
@@ -37,15 +38,20 @@ describe('usePrefetchRewardsIdentity', () => {
     typeof Engine.controllerMessenger.call
   >;
   let moneyEnabled = true;
+  let sessionProfileId: string | undefined = PROFILE_ID;
 
   beforeEach(() => {
     jest.clearAllMocks();
     moneyEnabled = true;
+    sessionProfileId = PROFILE_ID;
     Engine.context.RewardsMoneyController.state.referralMe = {};
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
     (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
       if (selector === selectRewardsMoneyControllerEnabled) {
         return moneyEnabled;
+      }
+      if (selector === selectSessionProfileId) {
+        return sessionProfileId;
       }
       return undefined;
     });
@@ -66,6 +72,36 @@ describe('usePrefetchRewardsIdentity', () => {
     renderHook(() => usePrefetchRewardsIdentity());
 
     expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('does nothing until a session profile id exists', () => {
+    sessionProfileId = undefined;
+
+    renderHook(() => usePrefetchRewardsIdentity());
+
+    expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('warms referral me after the session profile id appears', async () => {
+    sessionProfileId = undefined;
+
+    const { rerender } = renderHook(() => usePrefetchRewardsIdentity());
+
+    expect(mockCall).not.toHaveBeenCalled();
+
+    sessionProfileId = PROFILE_ID;
+    rerender();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(mockCall).toHaveBeenCalledWith(
+      'RewardsMoneyController:getReferralMe',
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setReferralMe({ profileId: PROFILE_ID, data: referralMe }),
+    );
   });
 
   it('copies a fresh controller cache and does not fetch', async () => {

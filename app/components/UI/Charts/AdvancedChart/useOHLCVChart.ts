@@ -6,8 +6,10 @@ import {
 } from '@tanstack/react-query';
 import type { OHLCVBar } from './AdvancedChart.types';
 import { TIME_RANGE_CONFIGS, type OHLCVTimePeriod } from './TimeRangeSelector';
+import { PRICE_API_BASE_URL } from '../../../../constants/urls';
+import { usePriceApiHost } from '../../TokenDetails/context/PriceApiHostContext';
 
-const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
+const OHLCV_CHART_PATH = '/v3/ohlcv-chart';
 const OHLCV_FETCH_TIMEOUT_MS = 3000;
 const QUERY_STALE_TIME_MS = 30_000;
 
@@ -31,6 +33,8 @@ export interface UseOHLCVChartOptions {
   timePeriod: OHLCVTimePeriod;
   interval?: string;
   vsCurrency?: string;
+  /** Price API origin. Omitted means prod. */
+  baseUrl?: string;
 }
 
 export interface UseOHLCVChartResult {
@@ -52,7 +56,11 @@ const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
 });
 
 const buildOhlcvChartUrl = (request: UseOHLCVChartOptions): string => {
-  const url = new URL(`${OHLCV_BASE_URL}/${request.assetId}`);
+  const url = new URL(
+    `${request.baseUrl ?? PRICE_API_BASE_URL}${OHLCV_CHART_PATH}/${
+      request.assetId
+    }`,
+  );
 
   if (request.timePeriod) {
     url.searchParams.set('timePeriod', request.timePeriod);
@@ -115,16 +123,25 @@ export const ohlcvChartQueryOptions = (request: UseOHLCVChartOptions) =>
       request.timePeriod,
       request.interval ?? null,
       request.vsCurrency ?? null,
+      // Keyed by host so a non-prod response never surfaces under the prod
+      // entry, or the other way round.
+      request.baseUrl ?? PRICE_API_BASE_URL,
     ],
     queryFn: ({ signal }) => fetchOHLCV(request, signal),
     retry: false,
     staleTime: QUERY_STALE_TIME_MS,
   });
 
+/**
+ * @param baseUrl - Price API origin. Passed explicitly rather than read from
+ * context because this runs outside the React tree, and it has to match what
+ * the hook will ask for or the warmed entry is never read.
+ */
 export const prefetchOhlcvChart = (
   queryClient: QueryClient,
   assetId: string | null,
   vsCurrency: string,
+  baseUrl?: string,
 ): void => {
   if (!assetId) {
     return;
@@ -137,6 +154,7 @@ export const prefetchOhlcvChart = (
         timePeriod,
         interval,
         vsCurrency,
+        baseUrl,
       }),
     )
     .catch(() => undefined);
@@ -147,9 +165,21 @@ export const useOHLCVChart = ({
   timePeriod,
   interval,
   vsCurrency,
+  baseUrl,
 }: UseOHLCVChartOptions): UseOHLCVChartResult => {
+  // Outside a `PriceApiHostProvider` this is prod, which is what keeps the
+  // Social Leaderboard trader charts and the legacy Token Details page on the
+  // host they already use without either of them passing anything.
+  const contextBaseUrl = usePriceApiHost();
+
   const query = useQuery({
-    ...ohlcvChartQueryOptions({ assetId, timePeriod, interval, vsCurrency }),
+    ...ohlcvChartQueryOptions({
+      assetId,
+      timePeriod,
+      interval,
+      vsCurrency,
+      baseUrl: baseUrl ?? contextBaseUrl,
+    }),
     enabled: Boolean(assetId),
   });
 

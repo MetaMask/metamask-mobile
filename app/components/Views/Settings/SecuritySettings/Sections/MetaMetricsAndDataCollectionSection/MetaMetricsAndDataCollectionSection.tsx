@@ -8,15 +8,11 @@ import {
   FontWeight,
   Text,
   TextColor,
+  TextButton,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
-import { TextVariant as LibraryTextVariant } from '../../../../../../component-library/components/Texts/Text';
 import { HOW_TO_MANAGE_METRAMETRICS_SETTINGS } from '../../../../../../constants/urls';
 import React, { useEffect, useState } from 'react';
 import createStyles from '../../SecuritySettings.styles';
@@ -32,6 +28,9 @@ import { UserProfileProperty } from '../../../../../../util/metrics/UserSettings
 import { RootState } from '../../../../../../reducers';
 import { useAutoSignIn } from '../../../../../../util/identity/hooks/useAuthentication';
 import { updateCachedConsent } from '../../../../../../util/trace';
+import OAuthService from '../../../../../../core/OAuthService/OAuthService';
+import Logger from '../../../../../../util/Logger';
+import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 import { selectOnboardingAccountType } from '../../../../../../selectors/onboarding';
 import { storePna25Acknowledged } from '../../../../../../actions/legalNotices';
 import { selectIsPna25Acknowledged } from '../../../../../../selectors/legalNotices';
@@ -81,6 +80,10 @@ const MetaMetricsAndDataCollectionSection: React.FC<
 
   const accountType = useSelector(selectOnboardingAccountType);
 
+  const isSeedlessOnboardingLoginFlow = useSelector(
+    selectSeedlessOnboardingLoginFlow,
+  );
+
   const isPna25Acknowledged = useSelector(selectIsPna25Acknowledged);
 
   useEffect(() => {
@@ -98,7 +101,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     autoSignIn();
     setAnalyticsEnabled(analytics.isEnabled());
     updateCachedConsent(analytics.isEnabled());
-  }, [setAnalyticsEnabled, autoSignIn, isBasicFunctionalityEnabled]);
+  }, [setAnalyticsEnabled, autoSignIn, isBasicFunctionalityEnabled, dispatch]);
 
   const toggleMetricsOptIn = async (metricsEnabled: boolean) => {
     if (metricsEnabled) {
@@ -234,6 +237,16 @@ const MetaMetricsAndDataCollectionSection: React.FC<
     }
 
     dispatch(setDataCollectionForMarketing(value));
+
+    // Social-login wallets also store marketing consent server-side so the
+    // auth service can create the HubSpot contact for email marketing and
+    // learn of opt-outs. A failed sync keeps the local decision; only reads
+    // that would overwrite the local choice are gone.
+    if (isSeedlessOnboardingLoginFlow) {
+      OAuthService.updateMarketingOptInStatus(value).catch((error) => {
+        Logger.error(error as Error);
+      });
+    }
   };
 
   const renderMetaMetricsSection = () => (
@@ -273,13 +286,12 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         style={styles.desc}
       >
         {strings('app_settings.metametrics_description')}{' '}
-        <Button
-          variant={ButtonVariants.Link}
-          size={ButtonSize.Auto}
-          labelTextVariant={LibraryTextVariant.BodySMMedium}
+        <TextButton
+          variant={TextVariant.BodySm}
           onPress={() => Linking.openURL(HOW_TO_MANAGE_METRAMETRICS_SETTINGS)}
-          label={strings('app_settings.learn_more')}
-        />
+        >
+          {strings('app_settings.learn_more')}
+        </TextButton>
       </Text>
     </View>
   );

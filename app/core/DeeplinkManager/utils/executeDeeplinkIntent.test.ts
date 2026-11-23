@@ -47,7 +47,7 @@ describe('executeDeeplinkIntent', () => {
     prepare?: DeeplinkIntent['prepare'],
   ): DeeplinkIntent => ({
     target: {
-      type: 'home-tab',
+      type: 'main-stack',
       routeName: Routes.REWARDS_VIEW,
     },
     prepare,
@@ -131,7 +131,7 @@ describe('executeDeeplinkIntent', () => {
     expect(prepare).toHaveBeenCalledTimes(1);
   });
 
-  it('resets into HomeNav with Wallet before the target tab', async () => {
+  it('resets a rewards link above the tabs with Wallet underneath', async () => {
     const prepare = jest.fn();
 
     await expect(
@@ -141,17 +141,16 @@ describe('executeDeeplinkIntent', () => {
     expect(prepare).toHaveBeenCalledTimes(1);
     expect(mockReset).toHaveBeenCalledWith(
       buildHomeNavResetState({
+        index: 1,
         routes: [
           {
             name: Routes.HOME_TABS,
             state: {
-              index: 1,
-              routes: [
-                { name: Routes.WALLET.HOME },
-                { name: Routes.REWARDS_VIEW },
-              ],
+              index: 0,
+              routes: [{ name: Routes.WALLET.HOME }],
             },
           },
+          { name: Routes.REWARDS_VIEW },
         ],
       }),
     );

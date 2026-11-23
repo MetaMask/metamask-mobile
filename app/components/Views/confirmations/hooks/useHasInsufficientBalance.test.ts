@@ -178,7 +178,7 @@ describe('useHasInsufficientBalance', () => {
     } as unknown as TransactionMeta);
     const { result } = renderHook(() => useHasInsufficientBalance());
     expect(result.current.hasInsufficientBalance).toBe(true);
-    expect(result.current.nativeCurrency).toBe('pathUSD');
+    expect(result.current.nativeCurrency).toBe('OUSD');
   });
 
   it('returns insufficient = false for Tempo if `excludeNativeTokenForFee` is unset', () => {
@@ -191,7 +191,7 @@ describe('useHasInsufficientBalance', () => {
     } as unknown as TransactionMeta);
     const { result } = renderHook(() => useHasInsufficientBalance());
     expect(result.current.hasInsufficientBalance).toBe(false);
-    expect(result.current.nativeCurrency).toBe('pathUSD');
+    expect(result.current.nativeCurrency).toBe('OUSD');
   });
 
   it('returns insufficient = true for Tempo Testnet if `excludeNativeTokenForFee` is true', () => {

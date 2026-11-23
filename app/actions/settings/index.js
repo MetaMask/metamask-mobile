@@ -297,20 +297,6 @@ export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   };
 }
 
-export function toggleDeviceNotification(deviceNotificationEnabled) {
-  return {
-    type: 'TOGGLE_DEVICE_NOTIFICATIONS',
-    deviceNotificationEnabled,
-  };
-}
-
-export function setTokenSortConfig(tokenSortConfig) {
-  return {
-    type: 'SET_TOKEN_SORT_CONFIG',
-    tokenSortConfig,
-  };
-}
-
 export function setDeepLinkModalDisabled(deepLinkModalDisabled) {
   return {
     type: 'SET_DEEP_LINK_MODAL_DISABLED',
@@ -336,6 +322,13 @@ export function setPerpsMarketListPreferences(preferences) {
   return {
     type: 'SET_PERPS_MARKET_LIST_PREFERENCES',
     preferences,
+  };
+}
+
+export function setPerpsCrossMarginConfirmed(address) {
+  return {
+    type: 'SET_PERPS_CROSS_MARGIN_CONFIRMED',
+    address,
   };
 }
 

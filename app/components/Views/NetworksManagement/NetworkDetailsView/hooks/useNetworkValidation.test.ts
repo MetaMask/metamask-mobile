@@ -30,7 +30,6 @@ const mockWithConfigs = (configs: Record<string, unknown>) => {
 
 const baseForm: NetworkFormState = {
   rpcUrl: 'https://rpc.example.com',
-  failoverRpcUrls: undefined,
   rpcName: undefined,
   rpcUrlForm: '',
   rpcNameForm: '',

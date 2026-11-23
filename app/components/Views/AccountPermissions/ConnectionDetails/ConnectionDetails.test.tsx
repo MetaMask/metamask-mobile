@@ -1,31 +1,17 @@
-import React, { ReactNode } from 'react';
+import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ConnectionDetails from './ConnectionDetails';
 import { strings } from '../../../../../locales/i18n';
 
-const mockOnCloseBottomSheet = jest.fn();
+const mockGoBack = jest.fn();
 
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-    interface MockBottomSheetRef {
-      onCloseBottomSheet: () => void;
-    }
-    return forwardRef(
-      (
-        { children }: { children: ReactNode },
-        ref: React.Ref<MockBottomSheetRef>,
-      ) => {
-        useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
-        }));
-        return <>{children}</>;
-      },
-    );
-  },
-);
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    goBack: mockGoBack,
+  }),
+}));
 
 describe('ConnectionDetails', () => {
   beforeEach(() => {
@@ -99,7 +85,7 @@ describe('ConnectionDetails', () => {
     ).toBeOnTheScreen();
   });
 
-  it('calls onCloseBottomSheet when Got It button is pressed', () => {
+  it('navigates back when Got It button is pressed', () => {
     const { getByText } = renderWithProvider(
       <ConnectionDetails
         route={{
@@ -113,6 +99,6 @@ describe('ConnectionDetails', () => {
     const gotItButton = getByText(strings('permissions.got_it'));
     fireEvent.press(gotItButton);
 
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

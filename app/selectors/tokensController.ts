@@ -7,8 +7,6 @@ import { selectSelectedInternalAccountAddress } from './accountsController';
 import {
   selectEvmChainId,
   selectEvmNetworkConfigurationsByChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
 } from './networkController';
 import { PopularList } from '../util/networks/customNetworks';
 import { ChainId } from '@metamask/controller-utils';
@@ -141,42 +139,6 @@ export const selectAllTokensFlat = createDeepEqualSelector(
       const tokensArray = Object.values(tokensByAccount).flat();
       return acc.concat(...tokensArray);
     }, []);
-  },
-);
-
-// Full selector implementation with selected address filtering
-export const selectTransformedTokens = createSelector(
-  getTokensControllerAllTokens,
-  selectSelectedInternalAccountAddress,
-  selectEvmChainId,
-  selectIsAllNetworks,
-  selectIsPopularNetwork,
-  (
-    allTokens: TokensControllerState['allTokens'],
-    selectedAddress: string | undefined,
-    networkId: Hex,
-    isAllNetworks: boolean,
-    isPopularNetwork: boolean,
-  ) => {
-    if (!isAllNetworks || !isPopularNetwork) {
-      return allTokens[networkId]?.[selectedAddress as Hex];
-    }
-
-    // Filter for the selected address and transform
-    const flatList = Object.entries(allTokens).flatMap(
-      ([chainId, addresses]) => {
-        if (selectedAddress && addresses[selectedAddress]) {
-          return addresses[selectedAddress].map((token) => ({
-            ...token,
-            chainId, // Add chainId to the token property
-            address: selectedAddress, // Add the selected address as a property
-          }));
-        }
-        return [];
-      },
-    );
-
-    return flatList;
   },
 );
 

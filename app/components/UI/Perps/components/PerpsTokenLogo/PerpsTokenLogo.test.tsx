@@ -1,13 +1,21 @@
 import React from 'react';
 import { render, act, fireEvent, screen } from '@testing-library/react-native';
 import { Image } from 'expo-image';
+import { clearFailedPerpsIconUrls } from './failedPerpsIconUrls';
 import PerpsTokenLogo from './PerpsTokenLogo';
 
-// PerpsTokenLogo now uses AvatarBase from MMDS with expo-image for image rendering
+// PerpsTokenLogo now uses AvatarBase from MMDS with expo-image for image rendering.
+// Unit, not component-view: the session cache is a narrow expo-image onError
+// contract. It is not screen or Redux state, so the CV framework cannot drive it.
+
+const HYPERLIQUID_BTC_ICON_URL = 'https://app.hyperliquid.xyz/coins/BTC.svg';
+const METAMASK_ETH_ICON_URL =
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/icons/eip155:999/ETH.svg';
 
 describe('PerpsTokenLogo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    clearFailedPerpsIconUrls();
   });
 
   it('renders loading state initially', () => {
@@ -162,5 +170,87 @@ describe('PerpsTokenLogo', () => {
     const newImage = UNSAFE_getByType(Image);
     expect(newImage.props.source.uri).toContain('contract-metadata');
     expect(newImage.props.source.uri).toContain('ETH.svg');
+  });
+
+  it('skips a URL that already failed when the logo remounts', async () => {
+    const firstRender = render(
+      <PerpsTokenLogo symbol="BTC" testID="remount-logo" />,
+    );
+    const failedPrimaryUri =
+      firstRender.UNSAFE_getByType(Image).props.source.uri;
+
+    await act(async () => {
+      fireEvent(firstRender.UNSAFE_getByType(Image), 'error');
+    });
+    firstRender.unmount();
+
+    const secondRender = render(
+      <PerpsTokenLogo symbol="BTC" testID="remount-logo" />,
+    );
+    const remountedUri = secondRender.UNSAFE_getByType(Image).props.source.uri;
+
+    expect(remountedUri).not.toBe(failedPrimaryUri);
+    expect(remountedUri).toBe(HYPERLIQUID_BTC_ICON_URL);
+  });
+
+  it('renders the monogram without an image when both URLs already failed', async () => {
+    const firstRender = render(
+      <PerpsTokenLogo symbol="FAIL" testID="missing-logo" />,
+    );
+
+    await act(async () => {
+      fireEvent(firstRender.UNSAFE_getByType(Image), 'error');
+    });
+    await act(async () => {
+      fireEvent(firstRender.UNSAFE_getByType(Image), 'error');
+    });
+    firstRender.unmount();
+
+    const secondRender = render(
+      <PerpsTokenLogo symbol="FAIL" testID="missing-logo" />,
+    );
+
+    expect(secondRender.UNSAFE_queryByType(Image)).toBeNull();
+    expect(secondRender.getByTestId('missing-logo-fallback')).toBeOnTheScreen();
+    expect(secondRender.getByTestId('missing-logo-fallback')).toHaveTextContent(
+      'FA',
+    );
+  });
+
+  it('moves other mounted logos off a URL as soon as one load fails', async () => {
+    const view = render(
+      <>
+        <PerpsTokenLogo symbol="BTC" testID="first-logo" />
+        <PerpsTokenLogo symbol="BTC" testID="second-logo" />
+      </>,
+    );
+
+    await act(async () => {
+      fireEvent(view.UNSAFE_getAllByType(Image)[0], 'error');
+    });
+
+    const uris = view
+      .UNSAFE_getAllByType(Image)
+      .map((image) => image.props.source.uri);
+
+    expect(uris).toEqual([HYPERLIQUID_BTC_ICON_URL, HYPERLIQUID_BTC_ICON_URL]);
+  });
+
+  it('requests the primary URL for a symbol whose icon has not failed', async () => {
+    const failedSymbol = render(
+      <PerpsTokenLogo symbol="BTC" testID="failed-symbol" />,
+    );
+
+    await act(async () => {
+      fireEvent(failedSymbol.UNSAFE_getByType(Image), 'error');
+    });
+
+    const intactSymbol = render(
+      <PerpsTokenLogo symbol="ETH" testID="intact-symbol" />,
+    );
+
+    expect(intactSymbol.UNSAFE_getByType(Image).props.source.uri).toBe(
+      METAMASK_ETH_ICON_URL,
+    );
   });
 });

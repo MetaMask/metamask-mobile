@@ -1,9 +1,19 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useEffect, useMemo, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { Platform, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import {
+  FontFamily,
+  Text as DesignText,
+  TextColor as DesignTextColor,
+  TextVariant as DesignTextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import {
+  AnimatedAmountDisplay,
+  getFontSizeForInputLength,
+} from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 import {
@@ -23,19 +33,11 @@ import useEarnTokens from '../../hooks/useEarnTokens';
 import { selectStablecoinLendingEnabledFlag } from '../../selectors/featureFlags';
 import CurrencyToggle from '../CurrencySwitch';
 import FadeInView from '../FadeInView';
+import { INPUT_DISPLAY_TEST_IDS } from './InputDisplay.testIds';
 
-export const INPUT_DISPLAY_TEST_IDS = {
-  LENDING_MAX_SAFE_WITHDRAWAL_TOOLTIP_ICON:
-    'LendingMaxSafeWithdrawalTooltipIcon',
-};
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
 
 export interface InputDisplayProps {
-  isOverMaximum: {
-    isOverMaximumEth: boolean;
-    isOverMaximumToken: boolean;
-  };
-  balanceText: string;
-  balanceValue: string;
   asset: TokenI;
   isFiat: boolean;
   amountToken: string;
@@ -44,16 +46,12 @@ export interface InputDisplayProps {
   handleCurrencySwitch: () => void;
   currencyToggleValue: string;
   maxWithdrawalAmount?: string;
-  error?: string;
   onPressAmount?: () => void;
 }
-
-const { View: AnimatedView } = Animated;
 
 const createStyles = (
   colors: Colors,
   params: {
-    isStablecoinLendingEnabled: boolean;
     shouldShowLendingMaxSafeWithdrawalMessage: boolean;
   },
 ) =>
@@ -70,23 +68,6 @@ const createStyles = (
       alignItems: 'center',
       flexDirection: 'row',
       gap: 4,
-    },
-    amountText: params?.isStablecoinLendingEnabled
-      ? {
-          fontSize: 40,
-          lineHeight: 50,
-          letterSpacing: 0,
-          fontWeight: '500',
-        }
-      : {},
-    amountCursor: {
-      width: 1,
-      height: 32,
-      marginTop: 2,
-      marginLeft: 5,
-      marginRight: 5,
-      opacity: 1,
-      backgroundColor: colors.border.default,
     },
     maxWithdrawalContainer: {
       flexDirection: 'row',
@@ -105,9 +86,6 @@ const createStyles = (
   });
 
 const InputDisplay = ({
-  isOverMaximum,
-  balanceText,
-  balanceValue,
   isFiat,
   asset,
   amountToken,
@@ -116,7 +94,6 @@ const InputDisplay = ({
   handleCurrencySwitch,
   currencyToggleValue,
   maxWithdrawalAmount,
-  error,
   onPressAmount,
 }: InputDisplayProps) => {
   const { colors } = useTheme();
@@ -141,55 +118,20 @@ const InputDisplay = ({
   }, [maxWithdrawalAmount, outputToken]);
 
   const styles = createStyles(colors, {
-    isStablecoinLendingEnabled,
     shouldShowLendingMaxSafeWithdrawalMessage,
   });
-  const cursorOpacity = useRef(new Animated.Value(0.6)).current;
-
   const ticker = asset.ticker ?? asset.symbol;
-
-  useEffect(() => {
-    const blinkAnimation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(cursorOpacity, {
-          toValue: 0,
-          duration: 800,
-          easing: () => Easing.bounce(1),
-          useNativeDriver: true,
-        }),
-        Animated.timing(cursorOpacity, {
-          toValue: 1,
-          easing: () => Easing.bounce(1),
-          duration: 800,
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-
-    blinkAnimation.start();
-  }, [cursorOpacity]);
-
-  const balanceInfo = useMemo(() => {
-    if (error) return error;
-
-    if (isOverMaximum.isOverMaximumToken) {
-      return strings('stake.not_enough_token', { ticker });
-    }
-    if (isOverMaximum.isOverMaximumEth) {
-      return strings('stake.not_enough_eth');
-    }
-
-    if (isStablecoinLendingEnabled) return '\u00A0';
-    return `${balanceText}: ${balanceValue}`;
-  }, [
-    balanceText,
-    balanceValue,
-    error,
-    isOverMaximum.isOverMaximumEth,
-    isOverMaximum.isOverMaximumToken,
-    isStablecoinLendingEnabled,
-    ticker,
-  ]);
+  const amountValue = isFiat ? amountFiatNumber : amountToken;
+  const amountSuffix = isFiat ? currentCurrency.toUpperCase() : ticker;
+  const amountFontSize = getFontSizeForInputLength(
+    amountValue.length +
+      amountSuffix.length +
+      INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+  );
+  const amountTextStyle = {
+    fontSize: amountFontSize,
+    lineHeight: amountFontSize,
+  };
 
   const onNavigateToLendingMaxWithdrawModal = () => {
     navigation.navigate(Routes.EARN.MODALS.ROOT, {
@@ -221,44 +163,51 @@ const InputDisplay = ({
             />
           </View>
         </FadeInView>
-
-        <Text
-          variant={TextVariant.BodySM}
-          color={
-            isOverMaximum.isOverMaximumToken ||
-            isOverMaximum.isOverMaximumEth ||
-            error
-              ? TextColor.Error
-              : undefined
-          }
-        >
-          {balanceInfo}
-        </Text>
       </View>
       <View style={styles.amountRow}>
-        <Pressable onPress={onPressAmount}>
-          <View style={styles.amountRow}>
-            <Text
-              style={styles.amountText}
-              color={TextColor.Default}
-              variant={TextVariant.DisplayMD}
+        <AnimatedAmountDisplay
+          accessibilityLabel={`${amountValue} ${amountSuffix}`}
+          animated
+          color={DesignTextColor.TextDefault}
+          containerStyle={styles.amountRow}
+          cursor={
+            isStablecoinLendingEnabled
+              ? {
+                  animated: true,
+                  style: {
+                    width: 1,
+                    height: Math.round(amountFontSize * 0.95),
+                    backgroundColor: colors.text.muted,
+                    // Android renders glyphs lower than iOS in a line box equal to fontSize.
+                    transform: [
+                      {
+                        translateY: Math.round(
+                          amountFontSize *
+                            (Platform.OS === 'android' ? 0.02 : -0.04),
+                        ),
+                      },
+                    ],
+                  },
+                  testID: INPUT_DISPLAY_TEST_IDS.AMOUNT_CURSOR,
+                }
+              : false
+          }
+          onPress={onPressAmount}
+          style={amountTextStyle}
+          suffix={
+            <DesignText
+              color={DesignTextColor.TextMuted}
+              fontFamily={FontFamily.Hero}
+              style={amountTextStyle}
+              testID={INPUT_DISPLAY_TEST_IDS.AMOUNT_SUFFIX}
+              variant={DesignTextVariant.DisplayLg}
             >
-              {isFiat ? amountFiatNumber : amountToken}
-            </Text>
-            {isStablecoinLendingEnabled ? (
-              <AnimatedView
-                style={[styles.amountCursor, { opacity: cursorOpacity }]}
-              />
-            ) : null}
-            <Text
-              style={styles.amountText}
-              color={TextColor.Muted}
-              variant={TextVariant.DisplayMD}
-            >
-              {isFiat ? currentCurrency.toUpperCase() : ticker}
-            </Text>
-          </View>
-        </Pressable>
+              {amountSuffix}
+            </DesignText>
+          }
+          value={amountValue}
+          variant={DesignTextVariant.DisplayLg}
+        />
       </View>
       <View>
         <CurrencyToggle

@@ -9,6 +9,7 @@ import { PortfolioEmptyState } from './PortfolioEmptyState';
 import { PortfolioPanelError } from './PortfolioPanelError';
 import { PortfolioPanelSkeleton } from './PortfolioPanelSkeleton';
 import { PortfolioPositionRow } from './PortfolioPositionRow';
+import { dedupeLatestPositions, positionKey } from '../../../utils/positions';
 
 interface PortfolioPositionsPanelProps {
   query: ReturnType<typeof usePositions>;
@@ -19,7 +20,8 @@ interface PortfolioPositionsPanelProps {
   onCashOut: (position: PredictPosition) => void;
 }
 
-/** Renders the independently cached open Positions list for one Venue. */
+/** Renders the independently cached Positions list for one Venue, open
+ * Positions first, in the backend's order. */
 export const PortfolioPositionsPanel = ({
   query,
   isPrivacyMode,
@@ -37,7 +39,7 @@ export const PortfolioPositionsPanel = ({
     refetch,
   } = query;
   const positions = useMemo(
-    () => data?.pages.flatMap((page) => page.positions) ?? [],
+    () => dedupeLatestPositions(data?.pages ?? []),
     [data],
   );
   const hasInitialError = isError && positions.length === 0;
@@ -104,7 +106,7 @@ export const PortfolioPositionsPanel = ({
         testID={PredictPortfolioScreenTestIds.POSITIONS_LIST}
         data={positions}
         renderItem={renderItem}
-        keyExtractor={(position) => `${position.marketId}-${position.side}`}
+        keyExtractor={positionKey}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
         showsVerticalScrollIndicator={false}

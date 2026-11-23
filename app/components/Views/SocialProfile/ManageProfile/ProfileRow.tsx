@@ -29,6 +29,11 @@ interface ProfileRowProps {
   showDivider?: boolean;
   /** Omit to render a read-only row that cannot be pressed. */
   onPress?: () => void;
+  /**
+   * Greys the row out and drops the chevron to signal the value cannot be
+   * changed. Takes precedence over `onPress`, so the row is never pressable.
+   */
+  disabled?: boolean;
   testID?: string;
 }
 
@@ -43,6 +48,7 @@ const ProfileRow = ({
   valueMaxWidth,
   showDivider = false,
   onPress,
+  disabled = false,
   testID,
 }: ProfileRowProps) => {
   const { width } = useWindowDimensions();
@@ -52,15 +58,18 @@ const ProfileRow = ({
   const contentProps = {
     variant: ContentVariant.OneLine,
     title,
-    titleProps: { numberOfLines: 1 },
+    titleProps: {
+      numberOfLines: 1,
+      ...(disabled ? { color: TextColor.TextMuted } : {}),
+    },
     value,
     valueProps: {
-      color: TextColor.TextAlternative,
+      color: disabled ? TextColor.TextMuted : TextColor.TextAlternative,
       numberOfLines: 1,
       style: { maxWidth: resolvedValueMaxWidth },
     },
     valueStartAccessory,
-    endAccessory: (
+    endAccessory: disabled ? undefined : (
       <Icon
         name={IconName.ArrowRight}
         size={IconSize.Sm}
@@ -71,11 +80,12 @@ const ProfileRow = ({
     twClassName: showDivider ? 'border-t border-muted' : undefined,
     testID,
     accessibilityLabel: `${title}, ${value}`,
+    ...(disabled ? { accessibilityState: { disabled: true } } : {}),
   };
 
   // Without `isInteractive` the root is a Box, so the row takes no touches and
   // is not announced as a button.
-  return onPress ? (
+  return onPress && !disabled ? (
     <ListItem isInteractive onPress={onPress} {...contentProps} />
   ) : (
     <ListItem {...contentProps} />

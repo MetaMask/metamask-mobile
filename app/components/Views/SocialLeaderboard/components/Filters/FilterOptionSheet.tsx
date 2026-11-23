@@ -1,9 +1,8 @@
 import {
-  ActionListItem,
   BottomSheetDialog,
-  BottomSheetHeader,
   Box,
-  RadioButton,
+  ListItemSelect,
+  ListItemVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
 import { Modal, Pressable, StyleSheet } from 'react-native';
@@ -12,6 +11,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { playSelection } from '../../../../../util/haptics';
 import { useTheme } from '../../../../../util/theme';
 import { FilterOptionSheetSelectorsIDs } from './Filters.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const styles = StyleSheet.create({
   root: {
@@ -52,6 +54,7 @@ function FilterOptionSheetInner<T extends string>({
   backdropTestID,
   getOptionTestID,
 }: FilterOptionSheetInnerProps<T>) {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
 
   const handleSelect = useCallback(
@@ -101,28 +104,26 @@ function FilterOptionSheetInner<T extends string>({
             />
 
             <BottomSheetDialog onClose={onClose} testID={sheetTestID}>
-              <BottomSheetHeader
+              <BottomSheetHeaderGlass
+                isGlass={isGlassHeader}
                 onClose={onClose}
                 closeButtonProps={{
                   testID: FilterOptionSheetSelectorsIDs.CLOSE_BUTTON,
                 }}
               >
                 {title}
-              </BottomSheetHeader>
+              </BottomSheetHeaderGlass>
               <Box twClassName="pb-4">
                 {options.map((option) => {
                   const isSelected = option === value;
                   return (
-                    <ActionListItem
+                    <ListItemSelect
                       key={option}
-                      label={getLabel(option)}
+                      title={getLabel(option)}
+                      variant={ListItemVariant.OneLine}
+                      isSelected={isSelected}
+                      showSelectedIcon
                       onPress={() => handleSelect(option)}
-                      endAccessory={
-                        <RadioButton
-                          isChecked={isSelected}
-                          onPress={() => handleSelect(option)}
-                        />
-                      }
                       accessibilityState={{ selected: isSelected }}
                       testID={getOptionTestID(option)}
                     />

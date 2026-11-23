@@ -1,7 +1,10 @@
 import { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import { useQueryClient } from '@tanstack/react-query';
+import {
+  useQueryClient,
+  type QueryObserverResult,
+} from '@tanstack/react-query';
 import type {
   AuthenticatedUserStorageServiceGetNotificationPreferencesAction,
   NotificationPreferences as NotificationPreferencesType,
@@ -67,7 +70,9 @@ export interface UseNotificationStoragePreferencesResult {
     type: PreferenceType,
     sectionUpdate: NotificationPreferenceSectionUpdate<PreferenceType>,
   ) => Promise<void>;
-  refetch: () => Promise<unknown>;
+  refetch: () => Promise<
+    QueryObserverResult<NotificationPreferencesQueryData, Error>
+  >;
 }
 
 const QUERY_KEY: [typeof GET_ACTION] = [GET_ACTION];

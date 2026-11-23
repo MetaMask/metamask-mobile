@@ -15,8 +15,54 @@ import {
   withImplicitWait,
 } from './AppiumUtilities.ts';
 import { createAppiumLogger } from './appiumLogger.ts';
+import { interruptingScreenGuard } from './interrupting-screens/InterruptingScreenGuard.ts';
 
 const logger = createAppiumLogger('AppiumAssertions');
+
+export const matchesAccessibilityLabel = (
+  actualLabel: string,
+  expectedLabel: string,
+  exact = false,
+): boolean => {
+  const normalize = (value: string): string =>
+    value
+      .replace(/[\s,]+/g, ' ')
+      .trim()
+      .toLowerCase();
+
+  const normalizedActual = normalize(actualLabel);
+  const normalizedExpected = normalize(expectedLabel);
+  if (exact) {
+    // An empty accessibility or visible label is not an amount match.
+    if (!normalizedActual || !normalizedExpected) {
+      return false;
+    }
+
+    if (normalizedActual === normalizedExpected) {
+      return true;
+    }
+
+    // Appium joins the accessibility label and visible text with ", ".
+    // Split only on that separator so a thousands comma stays inside "1,000".
+    const parts = actualLabel
+      .split(/,\s+/)
+      .map((part) => normalize(part))
+      .filter((part) => part.length > 0);
+
+    return (
+      parts.length > 0 && parts.every((part) => part === normalizedExpected)
+    );
+  }
+
+  if (normalizedActual.includes(normalizedExpected)) {
+    return true;
+  }
+
+  return expectedLabel
+    .split(',')
+    .map((part) => normalize(part))
+    .every((part) => part.length > 0 && normalizedActual.includes(part));
+};
 
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
@@ -167,13 +213,40 @@ export default class AppiumAssertions {
     targetElement: AppiumElement | Promise<AppiumElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
+    const el = await this.resolveTrackedElement(targetElement);
+    logger.debug('Waiting for element to be visible');
+    const timeout = this.getTimeout(options);
+    await interruptingScreenGuard.retryAfterInterruption(
+      () => this.pollUntilVisible(el, timeout),
+      {
+        intent: options.description ?? 'wait for element to be visible',
+        trigger: 'wait-failure',
+      },
+    );
+  }
+
+  /**
+   * Same wait as {@link expectElementToBeVisible} without interrupting-screen
+   * recovery. Use for presence probes where absence is an expected outcome
+   * (`Utilities.isElementVisible`, ready-state polling).
+   */
+  static async probeElementToBeVisible(
+    targetElement: AppiumElement | Promise<AppiumElement>,
+    options: AssertionOptions = {},
+  ): Promise<void> {
+    const el = await this.resolveTrackedElement(targetElement);
+    await this.pollUntilVisible(el, this.getTimeout(options));
+  }
+
+  private static async resolveTrackedElement(
+    targetElement: AppiumElement | Promise<AppiumElement>,
+  ): Promise<AppiumElement> {
     const t0 = Date.now();
     const el = await targetElement;
     if (isOverheadTrackingActive()) {
       addOverhead(Date.now() - t0);
     }
-    logger.debug('Waiting for element to be visible');
-    await this.pollUntilVisible(el, this.getTimeout(options));
+    return el;
   }
 
   /**
@@ -453,31 +526,16 @@ export default class AppiumAssertions {
   static async expectElementToHaveLabel(
     targetElement: AppiumElement | Promise<AppiumElement>,
     expectedLabel: string,
-    options: AssertionOptions = {},
+    options: AssertionOptions & { exact?: boolean } = {},
   ): Promise<void> {
     const timeout = this.getTimeout(options);
     const interval = 300;
     const start = Date.now();
     const el = await targetElement;
+    const { exact = false } = options;
 
-    const normalize = (value: string): string =>
-      value
-        .replace(/[\s,]+/g, ' ')
-        .trim()
-        .toLowerCase();
-
-    const matchesLabel = (actual: string): boolean => {
-      const normalizedActual = normalize(actual);
-      const normalizedExpected = normalize(expectedLabel);
-      if (normalizedActual.includes(normalizedExpected)) {
-        return true;
-      }
-
-      return expectedLabel
-        .split(',')
-        .map((part) => normalize(part))
-        .every((part) => part.length > 0 && normalizedActual.includes(part));
-    };
+    const matchesLabel = (actual: string): boolean =>
+      matchesAccessibilityLabel(actual, expectedLabel, exact);
 
     while (Date.now() - start < timeout) {
       const label = await this.getElementAccessibilityLabel(el);

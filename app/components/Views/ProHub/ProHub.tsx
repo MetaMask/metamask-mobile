@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -10,10 +10,10 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonIcon,
   ButtonSize,
   ButtonVariant,
-  HeaderBase,
+  FontFamily,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -22,7 +22,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -33,13 +32,22 @@ import AlsoIncludedRow from './components/AlsoIncludedRow';
 import MembershipBanner from './components/MembershipBanner';
 import { MembershipAlertAction } from './components/MembershipBanner/MembershipBanner.utils';
 import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
+import { useResumeMembership } from './hooks/useResumeMembership';
+import { useHasProMembership } from '../../../hooks/useHasProMembership';
 import {
-  MoneyAccountPlusAccess,
-  useMoneyAccountPlusAccess,
+  MoneyAccountPlusEntry,
+  resolveMoneyAccountPlusEntry,
+  useMoneyAccountPlusAccessState,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
+import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
+import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
+import { formatCombinedSinceInceptionInterest } from '../../UI/Money/utils/formatCombinedSinceInceptionInterest';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
+import HeaderBaseGlass from '../../../component-library/components-temp/HeaderBaseGlass';
 
 const formatPercent = (value: number): string => `${value}%`;
 
@@ -108,31 +116,98 @@ const StatRow = ({
 const ProHub = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { model: membershipBanner } = useMembershipBannerModel();
-  const proAccess = useMoneyAccountPlusAccess();
+  const {
+    resumeMembership,
+    isResuming,
+    errorMessage: resumeErrorMessage,
+  } = useResumeMembership();
+  const { access: proAccess, isSubscriptionsSettled } =
+    useMoneyAccountPlusAccessState();
+  const hasMembership = useHasProMembership();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
-  const showHubContent = proAccess === MoneyAccountPlusAccess.Subscriber;
+  const { sinceInceptionQuery: premiumSinceInceptionQuery } =
+    useMoneyPremiumAccountInterest();
+  const baseSinceInceptionQuery = useMoneyAccountSinceInceptionInterest();
+  const { ratePercentFormatted } = useMoneyPremiumVaultRate();
+  const totalInterest = useMemo(
+    () =>
+      formatCombinedSinceInceptionInterest({
+        premium: {
+          usd: premiumSinceInceptionQuery.data?.interest_earned_usd,
+          failed: premiumSinceInceptionQuery.isError,
+        },
+        base: {
+          usd: baseSinceInceptionQuery.data?.interest_earned_usd,
+          failed: baseSinceInceptionQuery.isError,
+        },
+      }),
+    [
+      baseSinceInceptionQuery.data?.interest_earned_usd,
+      baseSinceInceptionQuery.isError,
+      premiumSinceInceptionQuery.data?.interest_earned_usd,
+      premiumSinceInceptionQuery.isError,
+    ],
+  );
+  const moneyBalanceApy = ratePercentFormatted ?? '—';
+  // Same settled flag as the Orange row. Access can already be Subscriber
+  // from a leftover entitlement while the subscriptions refetch is in flight.
+  const entry = resolveMoneyAccountPlusEntry({
+    access: proAccess,
+    hasMembership,
+    isSubscriptionsSettled,
+  });
+  // A cached membership is enough to render the hub. Access stays Unknown
+  // for past-due, awaiting-funds, and unpaid plans until the subscriptions
+  // query settles, and a failed refresh would otherwise leave only the header.
+  const showHubContent = entry === MoneyAccountPlusEntry.Hub;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  // Subscriber access stays, including a paused plan. Unknown access waits for
-  // the first fetch. A cached last plan does not keep an eligible user here.
+  // Statuses the hub banner can show stay, including in a blocked country,
+  // so a member can still cancel. Unknown access waits for the first fetch.
+  // A canceled, incomplete, or missing plan leaves.
   useEffect(() => {
-    if (proAccess === MoneyAccountPlusAccess.Unknown || showHubContent) {
+    if (
+      entry === MoneyAccountPlusEntry.Hub ||
+      entry === MoneyAccountPlusEntry.Pending
+    ) {
       return;
     }
     navigation.goBack();
-  }, [navigation, proAccess, showHubContent]);
+  }, [entry, navigation]);
 
   const handleManageMembership = useCallback(() => {
     navigation.navigate(Routes.PRO_HUB.MEMBERSHIP);
   }, [navigation]);
 
+  // Card is inside Home. Naming it here keeps the accounts menu, which is
+  // still the Home screen under Pro Hub, from appearing before the card.
   const handleGetCard = useCallback(() => {
-    navigation.navigate(Routes.CARD.ROOT);
+    navigation.navigate(Routes.ONBOARDING.HOME_NAV, {
+      screen: Routes.CARD.ROOT,
+    });
   }, [navigation]);
+
+  // Live regions miss users whose focus stays on the banner action.
+  useEffect(() => {
+    if (!isResuming) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(
+      strings('pro_hub.membership.resume_in_progress'),
+    );
+  }, [isResuming]);
+
+  useEffect(() => {
+    if (!resumeErrorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(resumeErrorMessage);
+  }, [resumeErrorMessage]);
 
   const handleMembershipAlertAction = useCallback(
     (action: MembershipAlertAction) => {
@@ -145,13 +220,18 @@ const ProHub = () => {
         case MembershipAlertAction.Renew:
           navigation.navigate(Routes.PRO_SUBSCRIPTION.ROOT);
           return;
+        case MembershipAlertAction.Resume:
+          // A period-end cancel is still a membership, so the subscription
+          // screen would send the user straight back. Uncancel here instead.
+          void resumeMembership();
+          return;
         default: {
           const unexpectedAction: never = action;
           return unexpectedAction;
         }
       }
     },
-    [navigation],
+    [navigation, resumeMembership],
   );
 
   return (
@@ -160,28 +240,28 @@ const ProHub = () => {
       edges={['top', 'bottom']}
       testID={ProHubTestIds.CONTAINER}
     >
-      <HeaderBase
+      <HeaderBaseGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID={ProHubTestIds.HEADER_ROOT}
         twClassName="px-4"
-        startAccessory={
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            onPress={handleBack}
-            accessibilityLabel={strings('navigation.back')}
-            testID={ProHubTestIds.BACK_BUTTON}
-          />
-        }
-        endAccessory={
-          <ButtonIcon
-            iconName={IconName.Setting}
-            onPress={handleManageMembership}
-            accessibilityLabel={strings('pro_hub.manage')}
-            testID={ProHubTestIds.MANAGE_PLANS_BUTTON}
-          />
-        }
+        startButtonIconProps={{
+          iconName: IconName.ArrowLeft,
+          onPress: handleBack,
+          accessibilityLabel: strings('navigation.back'),
+          testID: ProHubTestIds.BACK_BUTTON,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Setting,
+            onPress: handleManageMembership,
+            accessibilityLabel: strings('pro_hub.manage'),
+            testID: ProHubTestIds.MANAGE_PLANS_BUTTON,
+          },
+        ]}
       >
         {strings('pro_hub.title')}
-      </HeaderBase>
+      </HeaderBaseGlass>
 
       {showHubContent && (
         <ScrollView
@@ -193,6 +273,8 @@ const ProHub = () => {
               testID={ProHubTestIds.MEMBERSHIP_BANNER}
               model={membershipBanner}
               onAction={handleMembershipAlertAction}
+              isActionBusy={isResuming}
+              actionErrorMessage={resumeErrorMessage}
             />
 
             <Box
@@ -208,10 +290,11 @@ const ProHub = () => {
                   {strings('pro_hub.lifetime_earnings')}
                 </Text>
                 <Text
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+                  {totalInterest}
                 </Text>
               </Box>
 
@@ -219,9 +302,9 @@ const ProHub = () => {
                 <StatRow
                   iconName={IconName.TrendUp}
                   label={strings('pro_hub.money_balance', {
-                    apy: formatPercent(MOCK_PRO_HUB_STATS.moneyBalanceApy),
+                    apy: moneyBalanceApy,
                   })}
-                  value={MOCK_PRO_HUB_STATS.moneyBalance}
+                  value={totalInterest}
                   testID={ProHubTestIds.MONEY_BALANCE_ROW}
                 />
                 <StatRow

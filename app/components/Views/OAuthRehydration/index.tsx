@@ -98,7 +98,6 @@ import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 import { selectAnalyticsId } from '../../../selectors/analyticsController';
 import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
@@ -114,9 +113,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 }) => {
   const { isEnabled: isMetricsEnabled } = useAnalytics();
   const accountType = useSelector(selectOnboardingAccountType) ?? 'social';
-  const dispatch = useDispatch();
-  const authConnection =
-    useSelector(selectSeedlessOnboardingAuthConnection) ?? '';
   const analyticsId = useSelector(selectAnalyticsId);
   const tw = useTailwind();
   const { colors, themeAppearance } = useContext(ThemeContext);

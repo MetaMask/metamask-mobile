@@ -50,6 +50,10 @@ import {
   getTypeFilterOptionTestId,
 } from '../components/Filters';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../terms/socialTermsAcceptance';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -110,6 +114,14 @@ const renderTopTradersViewAsViewer = (viewer: {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
+
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 describeForPlatforms('TopTradersView', () => {
   beforeEach(() => {

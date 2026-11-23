@@ -161,6 +161,18 @@ export interface PredictHomeCategoriesConfig extends VersionGatedFeatureFlag {
   categories: PredictHomeCategoryConfig[];
 }
 
+/**
+ * Remote flag `predictCryptoPriceFeed`: settings for the PolyBolt crypto price
+ * socket.
+ */
+export interface PredictCryptoPriceFeedFlag extends VersionGatedFeatureFlag {
+  /**
+   * Chainlink API key PolyBolt needs for Chainlink-served prices, TWAP
+   * included. Never log it.
+   */
+  chainlinkApiKey?: string;
+}
+
 export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
@@ -179,6 +191,19 @@ export interface PredictFeatureFlags {
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
   isMembershipFeeWaiverEnabled: boolean;
+  /**
+   * Kill switch for Polymarket Protocol V2 markets (LaunchDarkly
+   * `predict-disable-polymarket-v2-markets`). When true, v2 markets are hidden
+   * from listings, and buy, cash out, and claim on v2 are blocked. Never
+   * affects non-v2 markets.
+   */
+  disablePolymarketV2Markets: boolean;
+  /**
+   * Chainlink API key for the PolyBolt crypto price socket, from
+   * `predictCryptoPriceFeed`. Undefined when the flag is missing, disabled,
+   * below its minimum version or has no key. Never log it.
+   */
+  chainlinkApiKey?: string;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

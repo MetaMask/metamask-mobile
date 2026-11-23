@@ -157,8 +157,28 @@ describe('useHomepageSearchPaste', () => {
     });
 
     expect(onPaste).toHaveBeenCalledWith('0xabc', undefined);
-    expect(trackHomepageSearchPaste).toHaveBeenCalledWith();
+    expect(trackHomepageSearchPaste).toHaveBeenCalledWith(undefined);
     expect(result.current.showPastePill).toBe(false);
+  });
+
+  it('tracks the paste with the current search session id when one is provided', async () => {
+    const { result } = renderHook(() =>
+      useHomepageSearchPaste({
+        enabled: true,
+        onPaste: jest.fn(),
+        getSearchSessionId: () => 'search-session-id',
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.showPastePill).toBe(true);
+    });
+
+    await act(async () => {
+      await result.current.handlePastePress();
+    });
+
+    expect(trackHomepageSearchPaste).toHaveBeenCalledWith('search-session-id');
   });
 
   it('hides Paste when reading clipboard content fails', async () => {

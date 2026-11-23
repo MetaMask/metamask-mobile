@@ -1,5 +1,6 @@
 import { act } from '@testing-library/react-native';
 
+import OAuthService from '../../../core/OAuthService/OAuthService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountType } from '../../../constants/onboarding';
 import { UserProfileProperty } from '../../metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -17,12 +18,21 @@ jest.mock('../../analytics/analytics', () => ({
   },
 }));
 
+jest.mock('../../../core/OAuthService/OAuthService', () => ({
+  __esModule: true,
+  default: {
+    updateMarketingOptInStatus: jest.fn(),
+  },
+}));
+
 const renderUseEnableMarketingConsent = ({
   accountType = AccountType.MetamaskGoogle,
   hasMarketingConsent = false,
+  isSeedlessOnboardingLoginFlow = false,
 }: {
   accountType?: AccountType;
   hasMarketingConsent?: boolean;
+  isSeedlessOnboardingLoginFlow?: boolean;
 } = {}) =>
   renderHookWithProvider(
     () =>
@@ -35,6 +45,9 @@ const renderUseEnableMarketingConsent = ({
           backgroundState: {
             AnalyticsController:
               analyticsControllerWithMarketingConsent(hasMarketingConsent),
+            SeedlessOnboardingController: {
+              vault: isSeedlessOnboardingLoginFlow ? 'vault' : undefined,
+            },
           },
         },
         onboarding: {
@@ -49,9 +62,12 @@ describe('useEnableMarketingConsent', () => {
     jest.clearAllMocks();
     jest.mocked(analytics.isEnabled).mockReturnValue(false);
     jest.mocked(analytics.optIn).mockResolvedValue(undefined);
+    jest
+      .mocked(OAuthService.updateMarketingOptInStatus)
+      .mockResolvedValue(undefined);
   });
 
-  it('records marketing consent when MetaMetrics is off, without turning MetaMetrics on', async () => {
+  it('records marketing consent when MetaMetrics is off, without turning MetaMetrics on and without sending signals', async () => {
     // analytics.isEnabled returns false (set in beforeEach)
     const { result, store } = renderUseEnableMarketingConsent();
 
@@ -61,6 +77,8 @@ describe('useEnableMarketingConsent', () => {
 
     expect(analytics.optIn).not.toHaveBeenCalled();
     expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+    expect(analytics.identify).not.toHaveBeenCalled();
+    expect(analytics.trackEvent).not.toHaveBeenCalled();
   });
 
   it('dispatches and identifies marketing consent when MetaMetrics is already enabled', async () => {
@@ -115,5 +133,42 @@ describe('useEnableMarketingConsent', () => {
 
     expect(analytics.identify).not.toHaveBeenCalled();
     expect(analytics.trackEvent).not.toHaveBeenCalled();
+    expect(OAuthService.updateMarketingOptInStatus).not.toHaveBeenCalled();
+  });
+
+  it('stores marketing consent locally and posts it to the OAuth backend for seedless users', async () => {
+    jest.mocked(analytics.isEnabled).mockReturnValue(true);
+    const { result, store } = renderUseEnableMarketingConsent({
+      isSeedlessOnboardingLoginFlow: true,
+    });
+
+    await act(async () => {
+      await result.current.enableMarketingConsent();
+    });
+
+    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+    expect(analytics.identify).toHaveBeenCalledWith({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+    });
+    expect(OAuthService.updateMarketingOptInStatus).toHaveBeenCalledWith(true);
+  });
+
+  it('keeps the local marketing consent when the OAuth backend sync fails', async () => {
+    jest.mocked(analytics.isEnabled).mockReturnValue(true);
+    jest
+      .mocked(OAuthService.updateMarketingOptInStatus)
+      .mockRejectedValue(new Error('sync failed'));
+    const { result, store } = renderUseEnableMarketingConsent({
+      isSeedlessOnboardingLoginFlow: true,
+    });
+
+    await act(async () => {
+      await result.current.enableMarketingConsent();
+    });
+
+    expect(store.getState().security.dataCollectionForMarketing).toBe(true);
+    expect(analytics.identify).toHaveBeenCalledWith({
+      [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+    });
   });
 });

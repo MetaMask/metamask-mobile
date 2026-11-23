@@ -38,7 +38,7 @@ tests/component-view/
 ### API mocking (external HTTP) {#api-mocking}
 
 - **Directory:** [api-mocking/](api-mocking/)
-- **Role:** Intercept external HTTP APIs used by views (e.g. trending tokens) via [nock](https://github.com/nock/nock). No `jest.mock` of service modules; network-level interception is allowed. One file per feature (e.g. `trending.ts`); shared helpers in `nockHelpers.ts`.
+- **Role:** Intercept external HTTP APIs used by views (e.g. trending tokens) via [nock](https://github.com/nock/nock). No `jest.mock` of service modules; network-level interception is allowed. One file per feature (e.g. `trending.ts`); shared helpers in `nockHelpers.ts`. When the client uses global `fetch`, register that same response with `stubFetchPath` in `fetchStub.ts` instead of a per-feature fetch spy.
 - **Usage:** In view tests that need an API mock, import `setupXxxApiMock` and `clearXxxApiMocks` from `tests/component-view/api-mocking/<feature>`, call setup in `beforeEach` and clear in `afterEach`. To add a new API mock, copy the pattern from `api-mocking/trending.ts` and use `nockHelpers.ts`; see also navigation-mocking.md (External Service / API Mocking).
 
 ### Mocks {#framework-mocks}
@@ -111,5 +111,5 @@ For run-by-name, watch mode, or other options, see [docs/testing/component-view-
 
 ## Before working
 
-- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime`); use `waitFor` or real delays. Follow [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md). Only mock Engine and allowed native modules; drive behavior through Redux state; reuse presets and renderers.
+- **component view tests** — No fake timers (`jest.useFakeTimers` / `advanceTimersByTime` and the rest of the fake-timer API) and no real sleeps; await the observable outcome with `waitFor` / `findBy*`, and move timer behaviour to a unit test (Golden Rule 4). Follow [docs/testing/component-view-tests.md](../../docs/testing/component-view-tests.md). Only mock Engine and allowed native modules; drive behavior through Redux state; reuse presets and renderers.
 - **Dedup** — Before adding scenarios, check sibling `ComponentName.view.test.tsx` **and** `ComponentName.test.tsx`. Prefer CV for screen behavior; see [unit-vs-component-view-overlap.md](../../docs/testing/unit-vs-component-view-overlap.md).

@@ -7,7 +7,6 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   ButtonSize,
   Text,
   TextVariant,
@@ -15,8 +14,12 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteExpiredModal.styles';
 import { DEPOSIT_CONFIG } from '@metamask/perps-controller';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const PerpsQuoteExpiredModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const navigation = useNavigation<AppNavigationProp>();
   const { styles } = useStyles(createStyles, {});
   const refreshRate = DEPOSIT_CONFIG.RefreshRate / 1000; // Convert to seconds
@@ -29,11 +32,14 @@ const PerpsQuoteExpiredModal = () => {
 
   return (
     <BottomSheet goBack={navigation.goBack}>
-      <BottomSheetHeader onClose={navigation.goBack}>
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
+        onClose={navigation.goBack}
+      >
         <Text variant={TextVariant.HeadingMd}>
           {strings('perps.deposit.quote_expired_modal.title')}
         </Text>
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <View style={styles.container}>
         <Text variant={TextVariant.BodyMd}>
           {strings('perps.deposit.quote_expired_modal.description', {

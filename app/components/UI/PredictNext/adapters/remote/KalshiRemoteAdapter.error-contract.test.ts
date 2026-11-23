@@ -1,0 +1,332 @@
+import contract from '../../contracts/v1/fixtures/api-errors.v1.json';
+import signRequest from '../../contracts/v1/fixtures/funding-contract/sign-request.json';
+import transferReported from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
+import { PredictErrorCode } from '../../errors';
+import type { PredictErrorPhase } from '../../errors/commitOutcome';
+import type { PredictAmount, PredictEntityId, PredictHex } from '../../types';
+import { KalshiRemoteAdapter } from './KalshiRemoteAdapter';
+import {
+  PredictHttpError,
+  PredictReadBudgetExhaustedError,
+  PredictRequestNotSentError,
+  PredictSigningError,
+  type PredictApiReadTransport,
+} from './PredictApiReadClient';
+import {
+  VenueReadBudgetExhaustedError,
+  VenueSigningUnavailableError,
+} from './signedVenueCall';
+
+// Deliberate consumer decisions, not a second emitted-code inventory: the API
+// artifact supplies every case, and an unrecognized addition fails this table.
+const PRODUCT_CODE_BY_API_CODE: Record<string, PredictErrorCode | undefined> = {
+  market_not_found: PredictErrorCode.MARKET_NOT_FOUND,
+  market_not_tradeable: PredictErrorCode.MARKET_NOT_TRADEABLE,
+  quote_unavailable: PredictErrorCode.QUOTE_UNAVAILABLE,
+  balance_unavailable: PredictErrorCode.BALANCE_UNAVAILABLE,
+  position_unavailable: PredictErrorCode.POSITION_UNAVAILABLE,
+  insufficient_liquidity: PredictErrorCode.INSUFFICIENT_LIQUIDITY,
+  insufficient_balance: PredictErrorCode.INSUFFICIENT_BALANCE,
+  insufficient_position: PredictErrorCode.INSUFFICIENT_POSITION,
+  preview_not_found: PredictErrorCode.ORDER_NOT_FOUND,
+  preview_expired: PredictErrorCode.PREVIEW_EXPIRED,
+  amount_below_minimum: PredictErrorCode.AMOUNT_BELOW_MINIMUM,
+  venue_unavailable: PredictErrorCode.VENUE_UNAVAILABLE,
+  venue_preview_mismatch: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
+  client_order_id_conflict: PredictErrorCode.ORDER_PREVIEW_MISMATCH,
+  operation_not_found: PredictErrorCode.ORDER_OUTCOME_UNKNOWN,
+  venue_authorization_malformed: PredictErrorCode.VENUE_SIGNING_REFUSED,
+  venue_authorization_required: PredictErrorCode.UNAUTHENTICATED,
+  venue_authorization_invalid: PredictErrorCode.UNAUTHENTICATED,
+  venue_signature_expired: PredictErrorCode.VENUE_SIGNING_REFUSED,
+  venue_step_changed: PredictErrorCode.VENUE_SIGNING_REFUSED,
+  venue_account_not_enabled: PredictErrorCode.VENUE_ACCOUNT_NOT_ENABLED,
+  venue_auth_rejected: PredictErrorCode.UNAUTHENTICATED,
+  venue_profile_update_required: PredictErrorCode.APP_UPDATE_REQUIRED,
+  invalid_request: PredictErrorCode.INVALID_RESPONSE,
+  unauthorized: PredictErrorCode.UNAUTHENTICATED,
+  venue_not_found: PredictErrorCode.UNSUPPORTED_VENUE,
+  rate_limited: PredictErrorCode.RATE_LIMITED,
+  venue_profile_not_ready: PredictErrorCode.VENUE_UNAVAILABLE,
+  client_operation_id_conflict: PredictErrorCode.DEPOSIT_MISMATCH,
+  deposit_in_progress: PredictErrorCode.DEPOSIT_IN_PROGRESS,
+  deposit_not_cancellable: PredictErrorCode.DEPOSIT_NOT_CANCELLABLE,
+  amount_rejected: PredictErrorCode.DEPOSIT_AMOUNT_REJECTED,
+  deposit_rejected: PredictErrorCode.DEPOSIT_FAILED,
+  deposit_address_invalid: PredictErrorCode.DEPOSIT_FAILED,
+  address_request_lost: PredictErrorCode.DEPOSIT_FAILED,
+  transfer_chain_mismatch: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_hash_invalid: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_hash_mismatch: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_hash_reused: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+  transfer_not_expected: PredictErrorCode.DEPOSIT_TRANSFER_MISMATCH,
+};
+
+/** Where the deposit routes read a code differently from the Order routes. */
+const DEPOSIT_PRODUCT_CODE_BY_API_CODE: Record<
+  string,
+  PredictErrorCode | undefined
+> = {
+  operation_not_found: PredictErrorCode.DEPOSIT_NOT_FOUND,
+};
+
+type DepositCall = 'createDeposit' | 'reportDepositTransfer' | 'cancelDeposit';
+
+/** Commit codes the deposit routes answer, exercised through every deposit
+ * route that answers them. Every other commit code goes through the Order
+ * commit. */
+const DEPOSIT_CALLS_BY_API_CODE: Record<
+  string,
+  readonly DepositCall[] | undefined
+> = {
+  client_operation_id_conflict: ['createDeposit'],
+  deposit_in_progress: ['createDeposit'],
+  amount_rejected: ['createDeposit'],
+  deposit_rejected: ['createDeposit'],
+  deposit_address_invalid: ['createDeposit'],
+  address_request_lost: ['createDeposit'],
+  deposit_not_cancellable: ['cancelDeposit'],
+  operation_not_found: ['reportDepositTransfer', 'cancelDeposit'],
+  transfer_chain_mismatch: ['reportDepositTransfer'],
+  transfer_hash_invalid: ['reportDepositTransfer'],
+  transfer_hash_mismatch: ['reportDepositTransfer'],
+  transfer_hash_reused: ['reportDepositTransfer'],
+  transfer_not_expected: ['reportDepositTransfer'],
+};
+
+const OPERATION_ID = '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f';
+
+const invokeDeposit = async (
+  call: DepositCall,
+  error: PredictHttpError,
+): Promise<unknown> => {
+  const client = {
+    startDeposit: jest.fn().mockResolvedValue(signRequest),
+    createDeposit: jest.fn().mockRejectedValue(error),
+    reportDepositTransfer: jest.fn().mockRejectedValue(error),
+    cancelDeposit: jest.fn().mockRejectedValue(error),
+  } as unknown as PredictApiReadTransport;
+  const adapter = new KalshiRemoteAdapter(client, {
+    getApprovalGeneration: () => 0,
+  });
+  if (call === 'cancelDeposit') {
+    return adapter.funding.cancelDeposit(OPERATION_ID);
+  }
+  if (call === 'reportDepositTransfer') {
+    return adapter.funding.reportDepositTransfer(OPERATION_ID, {
+      txHash: transferReported.txHash as PredictHex,
+      chainId: transferReported.chainId,
+    });
+  }
+  return adapter.funding.prepareDeposit(
+    {
+      amount: '25.50' as PredictAmount,
+      clientOperationId: signRequest.next.clientOperationId,
+    },
+    { kind: 'user-approved' },
+  );
+};
+
+const invoke = async (phase: PredictErrorPhase, error: PredictHttpError) => {
+  const params = {
+    marketId: 'market-1' as PredictEntityId,
+    side: 'yes' as const,
+    action: 'buy' as const,
+    amount: '1.00' as PredictAmount,
+    idempotencyKey: '0195dbde-a21b-4000-8000-000000000001',
+  };
+  const reject = jest.fn().mockRejectedValue(error);
+  const client = {
+    fetchOrderPreview:
+      phase === 'commit'
+        ? jest.fn().mockResolvedValue({
+            previewId: 'preview-1',
+            venueId: 'kalshi',
+            marketId: params.marketId,
+            side: params.side,
+            action: params.action,
+            requestedAmount: params.amount,
+            orderAmount: '0.50',
+            estimatedContracts: 1,
+            averagePrice: '0.5000',
+            limitPrice: '0.5000',
+            fee: '0',
+            feeBreakdown: [{ source: 'venue', amount: '0' }],
+            totalDebit: '0.50',
+            potentialPayout: '1.00',
+            potentialProfit: '0.50',
+            expiresAt: '2099-01-01T00:00:00.000Z',
+          })
+        : reject,
+    commitOrder: reject,
+    observeOrder: reject,
+    fetchBalance: reject,
+  } as unknown as PredictApiReadTransport;
+  const adapter = new KalshiRemoteAdapter(client, {
+    getApprovalGeneration: () => 0,
+    previewOperation: async () => ({
+      maxCost: '1.00',
+      contracts: '1.00',
+      payout: '1.00',
+      minProceeds: '0',
+    }),
+  });
+  switch (phase) {
+    case 'preview':
+      return adapter.trading.previewOrder(params);
+    case 'commit':
+      await adapter.trading.previewOrder(params);
+      await adapter.trading.reviewOrder('preview-1');
+      return adapter.trading.commitOrder('preview-1', {
+        kind: 'user-approved',
+      });
+    case 'observe':
+      return adapter.trading.observeOrder('preview-1');
+    case 'signed_read':
+      return adapter.portfolio.fetchBalance();
+  }
+};
+
+const cases = Object.entries(contract.codes).flatMap(([code, definition]) =>
+  definition.phases.flatMap((phase) => {
+    const depositCalls =
+      phase === 'commit' ? DEPOSIT_CALLS_BY_API_CODE[code] : undefined;
+    return (depositCalls ?? [undefined]).map((depositCall) => ({
+      code,
+      phase,
+      definition,
+      depositCall,
+      route: depositCall ?? 'the Order and read routes',
+    }));
+  }),
+);
+
+describe('API emitted error contract at the mobile adapter boundary', () => {
+  it.each(cases)(
+    '$phase maps $code on $route',
+    async ({ code, phase, definition, depositCall }) => {
+      const expected =
+        (depositCall && DEPOSIT_PRODUCT_CODE_BY_API_CODE[code]) ??
+        PRODUCT_CODE_BY_API_CODE[code];
+      expect(expected).toBeDefined();
+      const error = new PredictHttpError(definition.status, code);
+      await expect(
+        depositCall
+          ? invokeDeposit(depositCall, error)
+          : invoke(phase as PredictErrorPhase, error),
+      ).rejects.toMatchObject({
+        code: expected,
+        metadata: { status: definition.status, bodyCode: code, phase },
+      });
+    },
+  );
+
+  // The code never decides whether a commit changed anything: the same code
+  // is kept or forgotten only by what the API said about this call.
+  it.each(cases.filter(({ phase }) => phase === 'commit'))(
+    'carries the API outcome, not the code, on a commit $code on $route',
+    async ({ code, definition, depositCall }) => {
+      for (const outcome of ['not_placed', 'unknown'] as const) {
+        const error = new PredictHttpError(
+          definition.status,
+          code,
+          undefined,
+          outcome,
+        );
+        await expect(
+          depositCall
+            ? invokeDeposit(depositCall, error)
+            : invoke('commit', error),
+        ).rejects.toMatchObject({ metadata: { phase: 'commit', outcome } });
+      }
+    },
+  );
+
+  it.each([
+    [403, 'venue_preview_mismatch', PredictErrorCode.ORDER_PREVIEW_MISMATCH],
+    [403, 'venue_authorization_invalid', PredictErrorCode.UNAUTHENTICATED],
+    [403, 'venue_auth_rejected', PredictErrorCode.UNAUTHENTICATED],
+    [403, 'geo_blocked', PredictErrorCode.GEO_BLOCKED],
+    [451, undefined, PredictErrorCode.GEO_BLOCKED],
+    [403, 'unrecognized_future_error', PredictErrorCode.INVALID_RESPONSE],
+    [403, undefined, PredictErrorCode.INVALID_RESPONSE],
+    [
+      503,
+      'venue_profile_update_required',
+      PredictErrorCode.APP_UPDATE_REQUIRED,
+    ],
+    [409, 'venue_profile_not_ready', PredictErrorCode.VENUE_UNAVAILABLE],
+  ])(
+    'maps status %s code %s without inventing geography',
+    async (status, code, expected) => {
+      await expect(
+        invoke(
+          'commit',
+          new PredictHttpError(status as number, code as string | undefined),
+        ),
+      ).rejects.toMatchObject({ code: expected });
+    },
+  );
+
+  it.each([
+    ['venue_signing_unavailable', PredictErrorCode.UNAUTHENTICATED],
+    ['venue_signing_refused', PredictErrorCode.VENUE_SIGNING_REFUSED],
+  ])('keeps local %s marked as never sent', async (code, expected) => {
+    for (const phase of ['commit', 'observe'] as const) {
+      await expect(
+        invoke(phase, new PredictRequestNotSentError(code)),
+      ).rejects.toMatchObject({
+        code: expected,
+        metadata: { requestSent: false, phase },
+      });
+    }
+  });
+
+  it.each(contract.uncodedStatuses)(
+    'leaves an uncoded HTTP %s unknown on a commit and outcome-free on a read',
+    async (status) => {
+      await expect(
+        invoke('commit', new PredictHttpError(status)),
+      ).rejects.toMatchObject({
+        metadata: { phase: 'commit', outcome: 'unknown' },
+      });
+      const read = await invoke('observe', new PredictHttpError(status)).catch(
+        (error: unknown) => error,
+      );
+      expect(read).toMatchObject({ metadata: { phase: 'observe' } });
+      expect((read as { metadata: object }).metadata).not.toHaveProperty(
+        'outcome',
+      );
+    },
+  );
+
+  it('never copies a not_placed outcome onto a read', async () => {
+    const read = await invoke(
+      'observe',
+      new PredictHttpError(404, 'operation_not_found', undefined, 'not_placed'),
+    ).catch((error: unknown) => error);
+
+    expect((read as { metadata: object }).metadata).not.toHaveProperty(
+      'outcome',
+    );
+  });
+
+  it.each([
+    [
+      new PredictSigningError(new VenueSigningUnavailableError(true)),
+      PredictErrorCode.UNAUTHENTICATED,
+    ],
+    [
+      new PredictReadBudgetExhaustedError(new VenueReadBudgetExhaustedError()),
+      PredictErrorCode.VENUE_UNAVAILABLE,
+    ],
+  ] as const)(
+    'preserves sentness after a read already dispatched: %s',
+    async (error, code) => {
+      await expect(invoke('observe', error)).rejects.toMatchObject({
+        code,
+        metadata: { requestSent: true, phase: 'observe' },
+      });
+    },
+  );
+});

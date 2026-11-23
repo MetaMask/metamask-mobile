@@ -78,6 +78,14 @@ on:
         required: false
         type: boolean
         default: false
+      cache_mode:
+        description: >-
+          The caller's effective `cache-mode` (none, read, write or write-only). Namespace runners
+          do not expose ACTIONS_CACHE_MODE, so callers that may use caches must pass it. The
+          default, `none`, skips the Namespace cache.
+        required: false
+        type: string
+        default: 'none'
     outputs:
       artifact-name:
         description: 'The actual artifact name used'
@@ -141,11 +149,26 @@ jobs:
           fetch-depth: ${{ inputs.fetch-depth }}
           submodules: ${{ inputs.checkout-submodules && 'recursive' || false }}
 
+      # The Namespace cache is not governed by the caller's `cache-mode` and always both restores
+      # and commits, so it only runs when the mode is `write`.
+      - name: Resolve cache mode
+        id: cache-mode
+        env:
+          CACHE_MODE_INPUT: ${{ inputs.cache_mode }}
+        run: |
+          mode="${ACTIONS_CACHE_MODE:-${CACHE_MODE_INPUT:-none}}"
+          case "$mode" in
+            none|read|write|write-only) ;;
+            *) echo "::error::Unknown cache mode '${mode}'"; exit 1 ;;
+          esac
+          echo "Cache mode: ${mode}"
+          echo "mode=${mode}" >> "$GITHUB_OUTPUT"
+
       # node_modules must not be cached here: nscloud-cache-action mounts cached paths as
       # symlinks into /Volumes/cache, and the cache/tarball this workflow produces would
       # then hold that symlink instead of the real tree.
       - name: Configure Namespace cache
-        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && steps.cache-mode.outputs.mode == 'write' }}
         uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
         with:
           path: |

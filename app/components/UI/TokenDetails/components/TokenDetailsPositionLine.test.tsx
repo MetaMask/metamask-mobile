@@ -85,7 +85,7 @@ describe('TokenDetailsPositionLine', () => {
 
     expect(getByText('Your position')).toBeTruthy();
     expect(getByText('$50.00')).toBeTruthy();
-    expect(queryByText('Unrealised PNL')).toBeNull();
+    expect(queryByText('Unrealised P&L')).toBeNull();
   });
 
   it('does not announce a button when there is no position to expand', () => {
@@ -123,7 +123,7 @@ describe('TokenDetailsPositionLine', () => {
       <TokenDetailsPositionLine positionId="pos-1" balanceFiatUsd={50} />,
     );
 
-    expect(getByText('Unrealised PNL')).toBeTruthy();
+    expect(getByText('Unrealised P&L')).toBeTruthy();
     expect(getByText('+$50.00 (+50.00%)')).toBeTruthy();
     const row = getByTestId('token-details-position-line');
     expect(row.props.accessibilityRole).toBe('button');

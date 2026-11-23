@@ -5,6 +5,7 @@ import {
   getClient,
   getGlobalScope,
   init as sentryInit,
+  reactNativeTracingIntegration,
   reactNavigationIntegration,
   setTag as sentrySetTag,
 } from '@sentry/react-native';
@@ -27,13 +28,18 @@ import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { TraceName } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
+import { resetOutgoingRequestAnnotationForTesting } from './outgoingRequestContext';
 import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
 import Device from '../device';
+import { Platform } from 'react-native';
 import { getTraceTags } from './tags';
 import { AvatarAccountType } from '../../component-library/components/Avatars/Avatar';
 import { OTA_VERSION } from '../../constants/ota';
+import type { Json } from '@metamask/utils';
+import { getInvalidMockedFeatureFlag } from '../../selectors/featureFlagController/mocks';
 const mockedCaptureFeedback = jest.mocked(captureFeedback);
 const mockedGetClient = jest.mocked(getClient);
 const mockedGetGlobalScope = jest.mocked(getGlobalScope);
@@ -68,8 +74,14 @@ jest.mock('./tags', () => ({
 
 jest.mock('../trace', () => ({
   hasMetricsConsent: jest.fn().mockResolvedValue(true),
-  // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
-  TraceName: { UIStartup: 'UIStartup' },
+  TraceName: {
+    UIStartup: 'UIStartup',
+    SwapQuoteFetch: 'Swap Quote Fetch',
+  },
+}));
+
+jest.mock('./navigationInitializationAppStart', () => ({
+  beginNavigationInitializationAppStart: jest.fn(),
 }));
 
 jest.mock('../../constants/ota', () => ({
@@ -255,6 +267,12 @@ describe('excludeEvents', () => {
     const event = { transaction: 'Login' };
     const eventExcluded = excludeEvents(event);
     expect(eventExcluded).toBe(event);
+  });
+
+  it('drops the NavigationChildren wrapper transaction', async () => {
+    const event = { transaction: 'NavigationChildren' };
+    const eventExcluded = excludeEvents(event);
+    expect(eventExcluded).toBeNull();
   });
 
   it('returns performance event null if empty', async () => {
@@ -1429,11 +1447,13 @@ describe('setupSentry', () => {
   beforeEach(() => {
     mockedInit.mockClear();
     mockedSetTag.mockClear();
+    jest.mocked(beginNavigationInitializationAppStart).mockClear();
     process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
   });
 
   afterEach(() => {
     process.env.MM_SENTRY_DSN = originalDsn;
+    resetOutgoingRequestAnnotationForTesting();
   });
 
   it('initialises Sentry with navIntegration (ReactNavigation) in the explicit integrations list', async () => {
@@ -1448,11 +1468,11 @@ describe('setupSentry', () => {
 
     // ReactNavigation (navIntegration) is the explicit addition in this PR.
     expect(integrationNames).toContain('ReactNavigation');
-
-    // ReactNativeTracing is NOT added explicitly — getDefaultIntegrations() pushes it
-    // automatically when tracesSampleRate is set and enableAutoPerformanceTracing is true.
-    // Adding it explicitly here would be a no-op after the SDK's name-deduplication pass.
-    expect(integrationNames).not.toContain('ReactNativeTracing');
+    // Replaces the default tracing integration so nitro-fetch is instrumented.
+    expect(integrationNames).toContain('ReactNativeTracing');
+    expect(reactNativeTracingIntegration).toHaveBeenCalledWith({
+      traceFetch: true,
+    });
   });
 
   it('stamps perf_fix tag on transactions via beforeSendTransaction, not as a global tag', async () => {
@@ -1494,5 +1514,143 @@ describe('setupSentry', () => {
       tags: {},
     });
     expect(result).toBeNull();
+  });
+
+  it('registers outgoing request annotation when a Sentry client exists', async () => {
+    const on = jest.fn();
+    mockedGetClient.mockReturnValue({
+      on,
+    } as unknown as ReturnType<typeof getClient>);
+
+    await setupSentry();
+
+    expect(on).toHaveBeenCalledWith(
+      'beforeOutgoingRequestSpan',
+      expect.any(Function),
+    );
+    mockedGetClient.mockReset();
+  });
+
+  it('enables standalone app start tracing so app start survives the dropped wrapper transaction', async () => {
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      _experiments?: { enableStandaloneAppStartTracing?: boolean };
+    };
+
+    expect(initOptions._experiments?.enableStandaloneAppStartTracing).toBe(
+      true,
+    );
+    expect(beginNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
+  });
+
+  describe('tracesSampler', () => {
+    let replacedOS: jest.ReplaceProperty<typeof Platform.OS> | undefined;
+    const setPlatformOS = (os: typeof Platform.OS) => {
+      replacedOS?.restore();
+      replacedOS = jest.replaceProperty(Platform, 'OS', os);
+    };
+    const globalWithDev = global as typeof global & { __DEV__: boolean };
+    const mockGetState = jest.mocked(store.getState);
+    const setRemoteRates = (transactionSampleRates: Json) =>
+      mockGetState.mockReturnValue({
+        settings: { basicFunctionalityEnabled: true },
+        ...getInvalidMockedFeatureFlag({ sentry: { transactionSampleRates } }),
+      } as unknown as RootState);
+
+    const future = '2999-01-01T00:00:00Z';
+
+    const getInitOptions = async () => {
+      await setupSentry();
+      const initOptions = mockedInit.mock.calls[0][0] as {
+        tracesSampleRate: number;
+        tracesSampler: (context: {
+          name: string;
+          parentSampled?: boolean;
+        }) => number | boolean;
+      };
+      return initOptions;
+    };
+
+    beforeEach(() => {
+      mockGetState.mockReturnValue(undefined as unknown as RootState);
+    });
+
+    afterEach(() => {
+      replacedOS?.restore();
+      globalWithDev.__DEV__ = false;
+    });
+
+    it('inherits the parent decision, else uses tracesSampleRate, without a remote rate', async () => {
+      setPlatformOS('android');
+      const { tracesSampler, tracesSampleRate } = await getInitOptions();
+
+      expect(tracesSampleRate).toBe(0.03);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: true }),
+      ).toBe(true);
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(false);
+    });
+
+    it('uses the remote rate for the current platform ahead of the parent decision', async () => {
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt: future },
+      });
+
+      setPlatformOS('android');
+      const { tracesSampler } = await getInitOptions();
+      expect(
+        tracesSampler({ name: TraceName.SwapQuoteFetch, parentSampled: false }),
+      ).toBe(0.25);
+
+      setPlatformOS('ios');
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+    });
+
+    it('ignores an expired remote rate', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest
+        .spyOn(Date, 'now')
+        .mockReturnValue(Date.parse(expiresAt) + 1);
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
+    it('stops using a remote rate once it expires mid-session', async () => {
+      const expiresAt = '2026-12-01T00:00:00Z';
+      const dateNow = jest.spyOn(Date, 'now');
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.25, expiresAt },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      dateNow.mockReturnValue(Date.parse(expiresAt) - 1);
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.25);
+
+      dateNow.mockReturnValue(Date.parse(expiresAt));
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(0.03);
+      dateNow.mockRestore();
+    });
+
+    it('keeps full sampling in dev builds even with a remote rate', async () => {
+      globalWithDev.__DEV__ = true;
+      setPlatformOS('android');
+      setRemoteRates({
+        [TraceName.SwapQuoteFetch]: { android: 0.5, expiresAt: future },
+      });
+      const { tracesSampler } = await getInitOptions();
+
+      expect(tracesSampler({ name: TraceName.SwapQuoteFetch })).toBe(1);
+    });
   });
 });

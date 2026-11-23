@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  render,
-  userEvent,
-  fireEvent,
-  act,
-} from '@testing-library/react-native';
+import { render, userEvent, fireEvent } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';

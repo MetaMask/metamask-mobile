@@ -8,9 +8,7 @@ import { TokenI } from '../../../Tokens/types';
 import EarnLendingBalance from '../EarnLendingBalance';
 import EarnMaintenanceBanner from '../EarnMaintenanceBanner';
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
-///: BEGIN:ONLY_INCLUDE_IF(tron)
 import { selectTrxStakingEnabled } from '../../../../../selectors/featureFlagController/trxStakingEnabled';
-///: END:ONLY_INCLUDE_IF
 import { useMusdConversionTokens } from '../../hooks/useMusdConversionTokens';
 import { useMusdConversionEligibility } from '../../hooks/useMusdConversionEligibility';
 import {
@@ -20,10 +18,12 @@ import {
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 export interface EarnBalanceProps {
   asset: TokenI;
+  /** Draws the stake buttons on brand refresh glass. */
+  isGlass?: boolean;
 }
 
 // Single entry-point for all Earn asset balances
-const EarnBalance = ({ asset }: EarnBalanceProps) => {
+const EarnBalance = ({ asset, isGlass = false }: EarnBalanceProps) => {
   const isLendingToken = useSelector((state: RootState) =>
     earnSelectors.selectEarnToken(state, asset),
   );
@@ -44,14 +44,12 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   const { isConversionToken } = useMusdConversionTokens();
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const isTrxStakingEnabled = useSelector(selectTrxStakingEnabled);
   const isTron = asset?.chainId?.startsWith('tron:');
 
   if (isTron && isTrxStakingEnabled) {
     return null;
   }
-  ///: END:ONLY_INCLUDE_IF
 
   const isConvertibleStablecoin =
     isMusdConversionFlowEnabled && isConversionToken(asset) && isGeoEligible;
@@ -63,7 +61,7 @@ const EarnBalance = ({ asset }: EarnBalanceProps) => {
   if (isStakeableToken && !asset.isStaked) {
     return (
       <Box twClassName="px-4">
-        <StakingBalance asset={asset} />
+        <StakingBalance asset={asset} isGlass={isGlass} />
       </Box>
     );
   }

@@ -10,7 +10,10 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
-import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import {
+  findUsableVbaAutoramp,
+  selectSelectedVbaWalletAddress,
+} from '../../../../../../selectors/rampsController';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -18,14 +21,32 @@ import {
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
+import { recordVbaOnboardingSnapshot } from '../vbaAnalytics';
 import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
-import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
-import { applyVbaDevOverrides } from '../vbaDevOverrides';
+import {
+  VBA_DEFAULT_CALLER_ROUTE,
+  VbaOnboardingRoutes,
+  type VbaOnboardingParamList,
+} from '../routes';
+import {
+  accountCreateErrorVariantForDestination,
+  isAccountCreateErrorDestination,
+  type AccountCreateFailureFields,
+} from '../accountCreateError';
+import {
+  applyVbaDevOverrides,
+  getVbaKycStatusOverride,
+} from '../vbaDevOverrides';
+import { findUsableAutoramp } from '../ensureMusdAutoramp';
+import { startVbaKycSession } from '../vbaKycSession';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
+import { TraceName } from '../../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -38,30 +59,105 @@ interface StackController {
   getState: () => NavigationState | undefined;
 }
 
-const DEFAULT_CALLER_ROUTE = {
-  name: Routes.HOME_TABS,
-  params: {
-    screen: Routes.MONEY.ROOT,
-    params: { screen: Routes.MONEY.HOME },
-  },
+/**
+ * Leaves onboarding for the Money home already on the main stack.
+ * KYC screens, the account-create error, and VBA details Done all use this.
+ *
+ * React Navigation 7 pushes another Home when `navigate` omits `{ pop: true }`.
+ * The next entry then keeps that Home and can copy the onboarding route key.
+ *
+ * @param navigation - Navigation from the screen that is leaving.
+ */
+export const exitVbaOnboardingToMoneyHome = (
+  navigation: AppNavigationProp,
+): void => {
+  navigation.navigate(
+    Routes.HOME_TABS,
+    {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    },
+    { pop: true },
+  );
 };
 
-const getCallerRoute = (state: NavigationState) => {
-  const activeRoute = state.routes[state.index];
-  if (activeRoute?.name !== Routes.RAMP.VBA_ONBOARDING) {
-    return activeRoute ?? DEFAULT_CALLER_ROUTE;
+type ResetRoute = PartialState<NavigationState>['routes'][number];
+
+const isVbaRootRoute = (name: string | undefined): boolean =>
+  name === Routes.RAMP.VBA_ONBOARDING || name === Routes.RAMP.VBA_DETAILS;
+
+/**
+ * Screens that stay under the VBA destination: everything from the bottom of
+ * the stack up to and including the screen that opened it.
+ *
+ * Keeping only that one screen drops whatever it was opened from. Card home
+ * sits on wallet home, so bank details would then be the only screen left
+ * after one back, and Card home's back button and swipe would do nothing.
+ * Falls back to Money home when the stack holds only VBA routes.
+ */
+const getRoutesUnderDestination = (state: NavigationState): ResetRoute[] => {
+  let callerIndex = -1;
+  for (let index = state.index; index >= 0; index -= 1) {
+    const route = state.routes[index];
+    if (route && !isVbaRootRoute(route.name)) {
+      callerIndex = index;
+      break;
+    }
   }
 
-  return state.routes[state.index - 1] ?? DEFAULT_CALLER_ROUTE;
+  if (callerIndex < 0) {
+    return [VBA_DEFAULT_CALLER_ROUTE];
+  }
+
+  // A live route has `stale: false`, which PartialState will not accept.
+  return state.routes.slice(0, callerIndex + 1) as ResetRoute[];
 };
 
 /**
- * Keeps exactly two root routes: the screen that opened onboarding and the
- * current onboarding destination. Back then always returns to the caller.
+ * Keys of screens this reset keeps. A key in this set is still on the stack
+ * after the reset, so it cannot also be copied onto the onboarding route.
+ */
+const collectKeptRouteKeys = (routes: readonly ResetRoute[]): Set<string> => {
+  const keptKeys = new Set<string>();
+  for (const keptRoute of routes) {
+    if (keptRoute.key) {
+      keptKeys.add(keptRoute.key);
+    }
+  }
+  return keptKeys;
+};
+
+/**
+ * Key of the onboarding route this reset removes, searched from the top of
+ * the stack. Reusing that key keeps the native screen mounted. A key that
+ * stays under the caller is left alone so it is not on two routes.
+ */
+const findReusableOnboardingRouteKey = (
+  routes: NavigationState['routes'],
+  keptKeys: ReadonlySet<string>,
+): string | undefined => {
+  for (let index = routes.length - 1; index >= 0; index -= 1) {
+    const candidate = routes[index];
+    if (
+      candidate?.name === Routes.RAMP.VBA_ONBOARDING &&
+      candidate.key &&
+      !keptKeys.has(candidate.key)
+    ) {
+      return candidate.key;
+    }
+  }
+  return undefined;
+};
+
+/**
+ * Keeps every screen up to and including the one that opened onboarding, then
+ * the current onboarding destination. Back returns to the caller, and the
+ * caller's own back still has its previous screen.
  *
  * A step change that is already inside onboarding resets that stack in place.
  * Resetting the root route without its existing key destroys the native screen,
- * and the splash shows through that gap.
+ * and the splash shows through that gap. The reused key is one this reset
+ * removes. Copying a key that stays under the caller puts it on two routes.
  */
 export const openAsOnlyOnboardingRoute = (
   navigation: AppNavigationProp,
@@ -86,21 +182,18 @@ export const openAsOnlyOnboardingRoute = (
     }
 
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      const existingOnboardingRoute = state.routes.find(
-        (candidate) => candidate.name === Routes.RAMP.VBA_ONBOARDING,
+      const routesUnderDestination = getRoutesUnderDestination(state);
+      const onboardingRouteKey = findReusableOnboardingRouteKey(
+        state.routes,
+        collectKeptRouteKeys(routesUnderDestination),
       );
       current.dispatch(
         CommonActions.reset({
-          index: 1,
+          index: routesUnderDestination.length,
           routes: [
-            // A live route has `stale: false`, which PartialState will not accept.
-            getCallerRoute(
-              state,
-            ) as PartialState<NavigationState>['routes'][number],
+            ...routesUnderDestination,
             {
-              ...(existingOnboardingRoute?.key
-                ? { key: existingOnboardingRoute.key }
-                : {}),
+              ...(onboardingRouteKey ? { key: onboardingRouteKey } : {}),
               name: Routes.RAMP.VBA_ONBOARDING,
               state: { index: 0, routes: [route] },
             },
@@ -119,17 +212,15 @@ export const openAsOnlyOnboardingRoute = (
 };
 
 /**
- * Keeps the original caller under the completed account and removes onboarding
- * from the root stack. Header and native-gesture back actions then return
- * directly to the caller instead of revealing the onboarding loader.
+ * Keeps every screen up to the caller under the completed account and removes
+ * onboarding from the root stack. Header and native-gesture back actions then
+ * return directly to the caller instead of revealing the onboarding loader,
+ * and the caller can still go back to the screen it came from.
  *
  * @param navigation - Navigation from any screen inside or beside onboarding.
- * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
- * IP country's currency.
  */
 export const openCompletedVbaAccount = (
   navigation: AppNavigationProp,
-  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
@@ -137,19 +228,13 @@ export const openCompletedVbaAccount = (
   while (current) {
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
+      const routesUnderDestination = getRoutesUnderDestination(state);
       current.dispatch(
         CommonActions.reset({
-          index: 1,
+          index: routesUnderDestination.length,
           routes: [
-            getCallerRoute(
-              state,
-            ) as PartialState<NavigationState>['routes'][number],
-            sourceCurrency
-              ? {
-                  name: Routes.RAMP.VBA_DETAILS,
-                  params: { sourceCurrency },
-                }
-              : { name: Routes.RAMP.VBA_DETAILS },
+            ...routesUnderDestination,
+            { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),
       );
@@ -164,10 +249,104 @@ export const openCompletedVbaAccount = (
   }
 };
 
+/**
+ * Opens the step after Identity verified: Choose Currency when
+ * `moneyMovementNeobank.chooseCurrency` is on and the location has no resolved
+ * market, otherwise account details, which creates the account. A resolved
+ * market has exactly one currency, so there is nothing to choose and the
+ * picker is skipped. Shared by the Identity verified screen's Continue and the
+ * Money home `identity_verified` card, which skips that screen.
+ *
+ * Inside onboarding (Identity verified), Choose Currency is pushed so Back
+ * returns there. From outside it opens as the only onboarding route, so
+ * Back returns to the caller.
+ *
+ * @param navigation - Navigation from Identity verified or an entry surface.
+ * @param isChooseCurrencyEnabled - `moneyMovementNeobank.chooseCurrency`.
+ * @param sourceCurrency - Currency of the open market serving the user, when
+ * one resolved. Its presence means there is nothing to pick.
+ */
+export const openVbaAccountSetup = (
+  navigation: AppNavigationProp,
+  isChooseCurrencyEnabled: boolean,
+  sourceCurrency?: VbaSourceCurrency,
+): void => {
+  if (!isChooseCurrencyEnabled || sourceCurrency) {
+    openCompletedVbaAccount(navigation);
+    return;
+  }
+  const isInsideOnboarding = Boolean(
+    navigation
+      .getState?.()
+      ?.routeNames?.includes(VbaOnboardingRoutes.CHOOSE_CURRENCY),
+  );
+  if (isInsideOnboarding) {
+    navigation.dispatch(StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY));
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.CHOOSE_CURRENCY);
+};
+
+const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
+  const autoramps = Engine.context.RampsController.state?.autoramps ?? [];
+  return findUsableAutoramp(autoramps, walletAddress)?.status === 'Approved';
+};
+
+/**
+ * True when account details can open from persisted state, with no loading
+ * route. Matches the fast path inside {@link openVbaEntry}.
+ */
+export const canOpenPersistedVbaDetails = (): boolean => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!walletAddress || getVbaKycStatusOverride() !== null) {
+    return false;
+  }
+  return hasPersistedApprovedAutoramp(walletAddress);
+};
+
+/**
+ * Cold entry from Money surfaces. An account whose autoramp is already
+ * Approved on this device opens its details directly, and onboarding facts
+ * refresh in the background. Everyone else gets the loading screen, which
+ * hydrates before picking a destination. Dev KYC overrides always take the
+ * loading screen so the override still applies.
+ *
+ * @param navigation - Navigation from the entry surface.
+ * @param params - Loading screen params, used when the fast path does not apply.
+ */
+export const openVbaEntry = (
+  navigation: AppNavigationProp,
+  params?: NonNullable<VbaOnboardingParamList['VbaOnboardingLoading']>,
+): void => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  if (walletAddress && canOpenPersistedVbaDetails()) {
+    openCompletedVbaAccount(navigation);
+    Engine.context.RampsController.hydrateVbaOnboarding({
+      walletAddress,
+      refreshKyc: true,
+      refreshAutoramps: true,
+    }).catch((error: unknown) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
+      });
+    });
+    return;
+  }
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, params);
+};
+
 export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
   destinationId: VbaOnboardingDestinationId,
   snapshot?: VbaOnboardingSnapshot,
+  failure?: AccountCreateFailureFields,
+  sourceCurrency?: VbaSourceCurrency,
+  retryable?: boolean,
 ): void => {
   if (destinationId === 'complete') {
     openCompletedVbaAccount(navigation);
@@ -187,6 +366,19 @@ export const navigateToVbaOnboardingDestination = (
     openAsOnlyOnboardingRoute(
       navigation,
       VbaOnboardingRoutes.IDENTITY_VERIFIED,
+    );
+    return;
+  }
+  if (isAccountCreateErrorDestination(destinationId)) {
+    openAsOnlyOnboardingRoute(
+      navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      {
+        variant: accountCreateErrorVariantForDestination(destinationId),
+        ...(failure ? { failure } : {}),
+        ...(sourceCurrency ? { sourceCurrency } : {}),
+        ...(retryable ? { retryable } : {}),
+      },
     );
     return;
   }
@@ -210,28 +402,51 @@ const openRecoverableError = (navigation: AppNavigationProp): void => {
 export interface OpenVbaOnboardingRequest {
   source?: string;
   /**
-   * Re-enter identity verification when hydrate still reports a rejected KYC
-   * session. Without this, Try again on the failure page routes back to itself.
-   * The retry pushes a new identity screen so SumSub mounts again instead of
+   * Re-enter identity verification when hydrate still reports a KYC session
+   * whose status is `retry`. A rejected session stays on the failure page:
+   * rejection is terminal and must not request another SumSub token. The
+   * retry pushes a new identity screen so SumSub mounts again instead of
    * revealing the previous one.
    */
   retryRejectedKyc?: boolean;
 }
 
+const isMissingAal2TokenError = (error: unknown): boolean =>
+  error instanceof Error && error.message.includes('aal2Token is required');
+
 /**
  * Re-submits capability authorization for a KYC session that already exists.
  * First-time creation stays on the email screen, which also has the signed-in
  * token `startSession` needs when no session exists.
+ *
+ * Reinstall deletes the persisted session. Hydrate only reads that local
+ * session and otherwise returns an empty funnel, so an approved account is
+ * shown the create-account screen. The latest vendor session is reattached
+ * here, without an AAL2 token, before that read. A missing latest session is
+ * a first-time user and must not fail onboarding.
  */
 const resumePersistedKycSession = async (): Promise<void> => {
   const kycController = Engine.context.KycController;
   if (!kycController.readSessionStatus()) {
-    return;
+    const existingSession =
+      await kycController.getSessionStatusForVendor(VBA_KYC_VENDOR);
+    if (!existingSession) {
+      return;
+    }
   }
 
-  await kycController.startSession({
-    vendor: VBA_KYC_VENDOR,
-  });
+  try {
+    await startVbaKycSession({
+      vendor: VBA_KYC_VENDOR,
+    });
+  } catch (error) {
+    // The latest session can disappear between the lookup and start. Creating
+    // one still belongs on the email screen.
+    if (!kycController.readSessionStatus() && isMissingAal2TokenError(error)) {
+      return;
+    }
+    throw error;
+  }
 };
 
 const resolveOpenRequest = (
@@ -267,11 +482,13 @@ export type ResolvedVbaOnboarding =
 export const resolveVbaOnboarding = async (
   source: string,
 ): Promise<ResolvedVbaOnboarding> => {
+  const hydrateTraceId = startVbaCufChildTrace(TraceName.VbaHydrate);
   try {
     const walletAddress = selectSelectedVbaWalletAddress(
       ReduxService.store.getState() as RootState,
     );
     if (!walletAddress) {
+      endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
       return { status: 'error' };
     }
 
@@ -312,12 +529,27 @@ export const resolveVbaOnboarding = async (
         accountSnapshot.vendorDisclaimersComplete ||
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
+    recordVbaOnboardingSnapshot(snapshot);
+    endVbaCufChildTrace(hydrateTraceId, true);
+    const funnelDestination = getVbaDestinationForSnapshot(snapshot);
+    // An existing autoramp opens the account only when the funnel would send
+    // the user back to vendor terms or email, as it does with no KYC session.
+    const hasExistingAccount =
+      (funnelDestination === 'vendorTerms' || funnelDestination === 'email') &&
+      getVbaKycStatusOverride() === null &&
+      Boolean(
+        findUsableVbaAutoramp(
+          Engine.context.RampsController.state?.autoramps ?? [],
+          walletAddress,
+        ),
+      );
     return {
       status: 'ready',
-      destinationId: getVbaDestinationForSnapshot(snapshot),
+      destinationId: hasExistingAccount ? 'complete' : funnelDestination,
       snapshot,
     };
   } catch (error) {
+    endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
     Logger.error(error as Error, {
       tags: { feature: 'vba-onboarding' },
       context: {
@@ -335,7 +567,9 @@ export const resolveVbaOnboarding = async (
  * first and calls {@link resolveVbaOnboarding} there.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
- * @returns An async callback. Pass a source string, or `{ retryRejectedKyc: true }` from the KYC failure page.
+ * @returns An async callback. Pass a source string, or
+ * `{ retryRejectedKyc: true }` to re-enter SumSub when the hydrated KYC
+ * status is `retry`.
  */
 export const useOpenVbaOnboarding = (
   defaultSource = 'unspecified',
@@ -355,8 +589,10 @@ export const useOpenVbaOnboarding = (
       }
 
       try {
+        const canReenterSumSub =
+          retryRejectedKyc && resolved.snapshot.kycStatus === 'retry';
         const destinationId =
-          retryRejectedKyc && resolved.destinationId === 'kycRejected'
+          canReenterSumSub && resolved.destinationId === 'kycRejected'
             ? 'identityVerification'
             : resolved.destinationId;
         Logger.log('[vba-onboarding] resume', {
@@ -364,7 +600,7 @@ export const useOpenVbaOnboarding = (
           snapshot: resolved.snapshot,
           destinationId,
         });
-        if (retryRejectedKyc && destinationId === 'identityVerification') {
+        if (canReenterSumSub && destinationId === 'identityVerification') {
           navigation.dispatch(
             StackActions.push(VbaOnboardingRoutes.IDENTITY_VERIFICATION, {
               snapshot: resolved.snapshot,

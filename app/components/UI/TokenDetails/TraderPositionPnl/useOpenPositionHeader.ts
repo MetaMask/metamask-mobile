@@ -27,6 +27,8 @@ import { useUsdToFiatRate } from './useUsdToFiatRate';
 export interface OpenPositionHeaderResult extends OpenPositionHeaderModel {
   /** Open-position row to attach when sharing to the feed. */
   sharePosition: TraderPosition | null;
+  /** True while the open-position request has not settled. */
+  isPositionLoading: boolean;
 }
 
 export const useOpenPositionHeader = (
@@ -46,7 +48,7 @@ export const useOpenPositionHeader = (
     [scope, scopedAccount, selectedAccount],
   );
 
-  const { position, earliestTradeAt, isLoading } = useOpenPositionForAsset(
+  const { position, isLoading: isPositionLoading } = useOpenPositionForAsset(
     walletAddress,
     assetId ?? undefined,
     walletAddress,
@@ -54,22 +56,19 @@ export const useOpenPositionHeader = (
   const { fiatBalance } = useTokenBalance(token);
   const conversion = useUsdToFiatRate();
   const sharePosition = useMemo(
-    () =>
-      position
-        ? toSharePosition(token, assetId, position, earliestTradeAt)
-        : null,
-    [assetId, earliestTradeAt, position, token],
+    () => (position ? toSharePosition(token, assetId, position) : null),
+    [assetId, position, token],
   );
   const header = toOpenPositionHeader({
     position,
-    isLoading,
+    isLoading: isPositionLoading,
     walletFiatBalance: fiatBalance,
     conversion,
-    earliestTradeAt,
   });
 
   return {
     ...header,
     sharePosition: sharePosition ?? null,
+    isPositionLoading,
   };
 };

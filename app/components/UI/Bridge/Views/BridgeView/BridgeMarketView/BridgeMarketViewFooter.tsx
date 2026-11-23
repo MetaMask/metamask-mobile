@@ -23,6 +23,8 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxFlexWrap,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -32,18 +34,23 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../util/transa
 import MembershipVipBadge from '../../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
-import SwapsRebateBanner from '../../../components/SwapsRebateBanner';
+import RebateBanner from '../../../../shared/RebateBanner';
+import { SWAPS_REBATE_BANNER_TEST_ID } from '../../../components/SwapsRebateBanner';
+import { useTheme } from '../../../../../../util/theme/index.ts';
 
 interface Props {
   location: MetaMetricsSwapsEventSource;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  rebatePercent?: number | null;
 }
 
 export const BridgeMarketViewFooter = ({
   location,
   transactionActiveAbTests,
+  rebatePercent,
 }: Props) => {
   const { styles } = useStyles(createStyles);
+  const { colors } = useTheme();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -56,6 +63,8 @@ export const BridgeMarketViewFooter = ({
   const isRewardsTierBadge =
     discountBadge?.type === DiscountType.VIP ||
     discountBadge?.type === DiscountType.SUBSCRIPTION;
+
+  const isFreeBadge = discountBadge?.type === 'free';
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -87,7 +96,12 @@ export const BridgeMarketViewFooter = ({
       <Box style={footerContainerStyle}>
         <HardwareWalletSolanaSignUnsupportedBanner />
         <BlockaidErrorBanner />
-        <SwapsRebateBanner quote={activeQuote.quote} />
+        {rebatePercent ? (
+          <RebateBanner
+            rebatePercent={rebatePercent}
+            testID={SWAPS_REBATE_BANNER_TEST_ID}
+          />
+        ) : null}
         <SwapsMarketOrderConfirmButton
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}
@@ -100,7 +114,7 @@ export const BridgeMarketViewFooter = ({
             gap={2}
             testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
           >
-            {discountBadge ? (
+            {discountBadge && !isFreeBadge ? (
               isRewardsTierBadge ? (
                 <MembershipVipBadge
                   hasProEntitlement={
@@ -117,6 +131,7 @@ export const BridgeMarketViewFooter = ({
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}
+                  twClassName={isFreeBadge ? 'line-through' : ''}
                 >
                   {infoText}
                 </Text>
@@ -140,6 +155,15 @@ export const BridgeMarketViewFooter = ({
                   {infoSuffix}
                 </Text>
               )}
+
+              {discountBadge && isFreeBadge ? (
+                <Tag
+                  severity={TagSeverity.Success}
+                  testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER_FREE_BADGE}
+                >
+                  {discountBadge.label}
+                </Tag>
+              ) : null}
             </Box>
           </Box>
         </Box>

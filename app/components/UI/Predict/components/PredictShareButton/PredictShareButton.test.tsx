@@ -21,6 +21,19 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
+
 // Create mock toast ref
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -38,10 +51,18 @@ const ToastWrapper = ({ children }: { children: React.ReactNode }) =>
     children,
   );
 
-const renderShareButton = (marketId?: string, marketSlug?: string) =>
+const renderShareButton = (
+  marketId?: string,
+  marketSlug?: string,
+  isCapsule?: boolean,
+) =>
   renderWithProvider(
     <ToastWrapper>
-      <PredictShareButton marketId={marketId} marketSlug={marketSlug} />
+      <PredictShareButton
+        marketId={marketId}
+        marketSlug={marketSlug}
+        isCapsule={isCapsule}
+      />
     </ToastWrapper>,
   );
 
@@ -75,6 +96,33 @@ describe('PredictShareButton', () => {
       expect(button.props.accessibilityRole).toBe('button');
       expect(button.props.accessible).toBe(true);
       expect(strings).toHaveBeenCalledWith('predict.buttons.share');
+    });
+
+    it('renders without a glass capsule by default', () => {
+      renderShareButton('market-123');
+
+      expect(screen.queryByTestId('capsule')).toBeNull();
+    });
+
+    it('renders in a glass capsule and shares when isCapsule is set', async () => {
+      jest.spyOn(Share, 'share').mockResolvedValue({
+        action: Share.dismissedAction,
+      });
+      renderShareButton('market-123', undefined, true);
+
+      await act(async () => {
+        await fireEvent.press(
+          screen.getByTestId(PredictMarketDetailsSelectorsIDs.SHARE_BUTTON),
+        );
+      });
+
+      expect(screen.getByTestId('capsule')).toBeOnTheScreen();
+      expect(Share.share).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: 'https://link.metamask.io/predict?market=market-123&utm_source=user_shared',
+        }),
+        {},
+      );
     });
   });
 

@@ -66,10 +66,8 @@ export const cancelLimitOrder = async ({
 };
 
 /**
- * Refetches every limit orders list, open and history alike, in the UI and in
- * `LimitOrdersDataService`, whose own cache would otherwise keep serving the
- * lists as they were for up to an hour. The lists being shown are refetched
- * right away; the others as soon as they are shown.
+ * Refetches every limit orders list, open and history alike. The lists being
+ * shown are refetched right away; the others as soon as they are shown.
  *
  * @param queryClient - The UI query client.
  */

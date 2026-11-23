@@ -3,6 +3,20 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 
 export type PhaseName = string;
 
+/**
+ * Elapsed steps recorded inside a parent phase. Their time is already in the
+ * parent span, so shard totals must not add them again.
+ */
+export const NESTED_PHASE_PREFIX = 'nested:';
+
+export function isNestedPhase(phase: string): boolean {
+  return phase.startsWith(NESTED_PHASE_PREFIX);
+}
+
+function nestedPhaseName(phase: PhaseName): string {
+  return isNestedPhase(phase) ? phase : `${NESTED_PHASE_PREFIX}${phase}`;
+}
+
 export interface PhaseTimerMeta {
   platform?: 'android' | 'ios' | string;
   suite?: string;
@@ -149,6 +163,46 @@ export function startPhase(phase: PhaseName): void {
 
 export function recordPhase(phase: PhaseName, ms: number): void {
   getPhaseTimer()?.record(phase, ms);
+}
+
+/**
+ * Playwright prints `error.stack` when it is set, and V8 does not rewrite that
+ * string when `error.message` changes.
+ */
+function annotateElapsedError(error: unknown, note: string): Error {
+  if (error instanceof Error) {
+    const original = error.message;
+    error.message = `${original} (${note})`;
+    if (error.stack) {
+      error.stack = error.stack.replace(original, error.message);
+    }
+    return error;
+  }
+  return new Error(`${note}: ${String(error)}`);
+}
+
+/**
+ * Time `run` and add it as a nested step without stopping the current phase.
+ * The stored name is prefixed so shard totals do not add it on top of the parent.
+ * A thrown error keeps its message, with the phase name and elapsed ms appended
+ * on both `message` and `stack`. Arguments to `run` are not written onto the error.
+ */
+export async function recordElapsedPhase<T>(
+  phase: PhaseName,
+  run: () => Promise<T>,
+  now: () => number = Date.now,
+): Promise<T> {
+  const startedAt = now();
+  const storedPhase = nestedPhaseName(phase);
+  try {
+    const value = await run();
+    recordPhase(storedPhase, now() - startedAt);
+    return value;
+  } catch (error) {
+    const elapsedMs = now() - startedAt;
+    recordPhase(storedPhase, elapsedMs);
+    throw annotateElapsedError(error, `${phase} after ${elapsedMs}ms`);
+  }
 }
 
 export function stopPhase(): void {

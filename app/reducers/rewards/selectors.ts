@@ -1,7 +1,12 @@
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { createSelector } from 'reselect';
 import type { RootState } from '..';
+import {
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../selectors/geolocationController';
 import { initialState } from '.';
-import { RewardsTab, OnboardingStep } from './types';
+import { RewardsTab } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 import { selectRewardsSubscriptionId } from '../../selectors/rewards';
 import {
@@ -113,16 +118,6 @@ export const selectBalanceTotal = createSelector(
   (entry) => entry?.balanceTotal ?? null,
 );
 
-export const selectReferralCount = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.refereeCount ?? 0,
-);
-
-export const selectReferredByCode = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.referredByCode ?? null,
-);
-
 export const selectIsVipReferee = createSelector(
   [selectCurrentReferralDetails],
   (entry) => entry?.isVipReferee ?? false,
@@ -186,32 +181,38 @@ export const selectSeasonWaysToEarn = (
 ): RootState['rewards']['seasonWaysToEarn'] =>
   state.rewards.seasonWaysToEarn ?? initialState.seasonWaysToEarn;
 
-export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
-  state.rewards.onboardingActiveStep;
+/**
+ * Regions where Rewards opt-in is blocked. A prefix matches subregions, so
+ * `UK` blocks `UK-ENG`.
+ */
+export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'] as const;
 
-export const selectOnboardingReferralCode = (state: RootState) =>
-  state.rewards.onboardingReferralCode;
-
-export const selectGeoLocation = (state: RootState) =>
-  state.rewards.geoLocation;
-
-export const selectOptinAllowedForGeo = (state: RootState) =>
-  state.rewards.optinAllowedForGeo;
-
-export const selectOptinAllowedForGeoLoading = (state: RootState) =>
-  state.rewards.optinAllowedForGeoLoading;
-
-export const selectOptinAllowedForGeoError = (state: RootState) =>
-  state.rewards.optinAllowedForGeoError;
-
-export const selectReferralDetailsLoading = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.loading ?? false,
-);
-
-export const selectReferralDetailsError = createSelector(
-  [selectCurrentReferralDetails],
-  (entry) => entry?.error ?? false,
+/**
+ * Whether Rewards opt-in is allowed for the live GeolocationController location.
+ *
+ * `null` only when there is no known location and the lookup has not finished,
+ * so the CTA stays held. A known location stays in force during a refresh and
+ * after a failed refresh, because the controller keeps the previous location
+ * and only sets `status: 'error'`. That location is blocked when it starts
+ * with UK, GB, or GI. `true` when the lookup errored or resolved to UNKNOWN
+ * with no usable location.
+ */
+export const selectOptinAllowedForGeo = createSelector(
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+  (location, status): boolean | null => {
+    if (!location || location === UNKNOWN_LOCATION) {
+      if (!status || status === 'idle' || status === 'loading') {
+        return null;
+      }
+      return true;
+    }
+    const normalized = location.toUpperCase();
+    const blocked = DEFAULT_BLOCKED_REGIONS.some((region) =>
+      normalized.startsWith(region),
+    );
+    return !blocked;
+  },
 );
 
 export const selectCandidateSubscriptionId = (state: RootState) =>

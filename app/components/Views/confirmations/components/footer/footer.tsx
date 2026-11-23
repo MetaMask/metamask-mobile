@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +24,6 @@ import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
-import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
@@ -80,7 +79,6 @@ export function Footer() {
 
 function FooterInternal() {
   const {
-    alerts,
     fieldAlerts,
     hasBlockingAlerts,
     hasDangerAlerts,
@@ -90,7 +88,6 @@ function FooterInternal() {
   const { needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
@@ -166,10 +163,6 @@ function FooterInternal() {
     onConfirm,
     showConfirmAlertModal,
   ]);
-
-  useEffect(() => {
-    trackAlertMetrics();
-  }, [alerts, trackAlertMetrics]);
 
   const { styles } = useStyles(styleSheet, {
     isStakingConfirmationBool,

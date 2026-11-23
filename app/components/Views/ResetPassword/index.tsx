@@ -17,7 +17,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -83,6 +82,8 @@ import {
 } from '../../../constants/urls';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { hasTestOverrides } from '../../../util/test/utils';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
 enum ViewState {
@@ -117,6 +118,7 @@ interface ResetPasswordProps {
  * View where users can reset their password
  */
 const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const dispatch = useDispatch();
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
@@ -839,7 +841,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         testID="header"
         title={strings('password_reset.change_password')}
         onBack={() => navigation.goBack()}

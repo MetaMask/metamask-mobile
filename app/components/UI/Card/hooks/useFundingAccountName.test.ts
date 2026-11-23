@@ -15,6 +15,10 @@ jest.mock('../../../../selectors/cardController', () => ({
   selectCardPrimaryToken: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(() => null),
+}));
+
 jest.mock('../../../../selectors/accountsController', () => ({
   getMemoizedInternalAccountByAddress: jest.fn(),
   selectSelectedInternalAccount: jest.fn(),
@@ -151,5 +155,36 @@ describe('useFundingAccountName', () => {
     const { result } = renderHook(() => useFundingAccountName());
 
     expect(result.current).toBe('');
+  });
+
+  it('returns Money account when the funding token is the Money account entry', () => {
+    mockUseAccountGroupName.mockReturnValue('Selected Group');
+    const { selectCardPrimaryToken } = jest.requireMock(
+      '../../../../selectors/cardController',
+    );
+    const { selectPrimaryMoneyAccount } = jest.requireMock(
+      '../../../../selectors/moneyAccountController',
+    );
+    const {
+      getMemoizedInternalAccountByAddress,
+      selectSelectedInternalAccount,
+    } = jest.requireMock('../../../../selectors/accountsController');
+    const { selectAccountToGroupMap } = jest.requireMock(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    );
+
+    selectCardPrimaryToken.mockReturnValue({
+      walletAddress: FUNDING.address,
+      isMoneyAccountEntry: true,
+    });
+    selectPrimaryMoneyAccount.mockReturnValue({ address: FUNDING.address });
+    getMemoizedInternalAccountByAddress.mockReturnValue(undefined);
+    selectAccountToGroupMap.mockReturnValue({});
+    selectSelectedInternalAccount.mockReturnValue(SELECTED);
+    mockUseSelector.mockImplementation((selector) => selector({} as never));
+
+    const { result } = renderHook(() => useFundingAccountName());
+
+    expect(result.current).toBe('Money account');
   });
 });

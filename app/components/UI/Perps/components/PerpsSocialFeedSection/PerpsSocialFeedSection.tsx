@@ -2,6 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FilterButton,
   FilterButtonGroup,
   IconName,
@@ -11,21 +14,52 @@ import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
 import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import type { SocialShellTab } from '../../../../Views/SocialLeaderboard/shell/types';
+import {
+  SocialLeaderboard,
+  type SocialLeaderboardSource,
+} from '../../../SocialLeaderboard';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsLiveTradesAbTest } from '../../hooks/usePerpsLiveTradesAbTest';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
+import PerpsLiveTrades from '../PerpsLiveTrades';
 import PerpsSocialTrending from './PerpsSocialTrending';
-import PerpsSocialTopTraders from './PerpsSocialTopTraders';
 
-type SocialFeedTab = 'trending' | 'top_traders';
+type SocialFeedTab = 'live_trades' | 'trending' | 'top_traders';
 
-const PerpsSocialFeedSectionInner: React.FC = () => {
+const TOP_TRADERS_LIMIT = 5;
+const TOP_TRADERS_SOURCE: SocialLeaderboardSource = {
+  kind: 'all',
+  assetClass: 'perps',
+};
+
+const SOCIAL_TAB_BY_FEED_TAB: Record<SocialFeedTab, SocialShellTab> = {
+  live_trades: 'live',
+  trending: 'trending',
+  top_traders: 'leaderboard',
+};
+
+interface PerpsSocialFeedSectionProps {
+  /** Whether the section is on screen or close to it. */
+  isNearViewport?: boolean;
+}
+
+const PerpsSocialFeedSectionInner: React.FC<
+  Required<PerpsSocialFeedSectionProps>
+> = ({ isNearViewport }) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const [tab, setTab] = useState<SocialFeedTab>('trending');
+  const { showLiveTrades } = usePerpsLiveTradesAbTest();
+  const [selectedTab, setSelectedTab] = useState<SocialFeedTab | null>(null);
+  const defaultTab: SocialFeedTab = showLiveTrades ? 'live_trades' : 'trending';
+  const tab =
+    selectedTab === 'live_trades' && !showLiveTrades
+      ? defaultTab
+      : (selectedTab ?? defaultTab);
 
   const handleOpenSocial = useCallback(() => {
     navigateToSocialLeaderboard(navigation.navigate, {
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
-      initialTab: tab === 'top_traders' ? 'leaderboard' : 'trending',
+      initialTab: SOCIAL_TAB_BY_FEED_TAB[tab],
     });
   }, [navigation, tab]);
 
@@ -43,9 +77,19 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
       <Box twClassName="px-4 mt-1 mb-3">
         <FilterButtonGroup
           value={tab}
-          onChange={(value) => setTab(value as SocialFeedTab)}
+          onChange={(value) => setSelectedTab(value as SocialFeedTab)}
           twClassName="gap-2"
         >
+          {showLiveTrades ? (
+            <FilterButton
+              value="live_trades"
+              startIconName={IconName.Fire}
+              twClassName={tab !== 'live_trades' ? 'bg-muted' : undefined}
+              testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_LIVE_TRADES_PILL}
+            >
+              {strings('perps.home.live_trades')}
+            </FilterButton>
+          ) : null}
           <FilterButton
             value="trending"
             startIconName={IconName.Trophy}
@@ -64,21 +108,42 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
           </FilterButton>
         </FilterButtonGroup>
       </Box>
-      {tab === 'trending' ? (
-        <PerpsSocialTrending />
-      ) : (
-        <PerpsSocialTopTraders onSeeMorePress={handleOpenSocial} />
-      )}
+      {tab === 'live_trades' ? (
+        <PerpsLiveTrades isNearViewport={isNearViewport} />
+      ) : null}
+      {tab === 'trending' ? <PerpsSocialTrending /> : null}
+      {tab === 'top_traders' ? (
+        <>
+          <SocialLeaderboard
+            source={TOP_TRADERS_SOURCE}
+            location="perps_home"
+            limit={TOP_TRADERS_LIMIT}
+          />
+          <Box twClassName="px-4 pt-3">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              isFullWidth
+              onPress={handleOpenSocial}
+              testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SEE_MORE}
+            >
+              {strings('perps.home.see_more')}
+            </Button>
+          </Box>
+        </>
+      ) : null}
     </Box>
   );
 };
 
-const PerpsSocialFeedSection: React.FC = () => {
+const PerpsSocialFeedSection: React.FC<PerpsSocialFeedSectionProps> = ({
+  isNearViewport = false,
+}) => {
   const isEnabled = usePerpsSocialEnabled();
   if (!isEnabled) {
     return null;
   }
-  return <PerpsSocialFeedSectionInner />;
+  return <PerpsSocialFeedSectionInner isNearViewport={isNearViewport} />;
 };
 
 export default PerpsSocialFeedSection;

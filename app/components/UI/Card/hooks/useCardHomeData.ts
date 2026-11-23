@@ -8,7 +8,6 @@ import {
   selectCardAvailableTokens,
   selectCardFundingTokens,
   selectIsCardAuthenticated,
-  selectIsCardholder,
   selectCardHomeDataFetchedThisSession,
 } from '../../../../selectors/cardController';
 import { getAssetBalanceKey } from '../util/getAssetBalanceKey';
@@ -23,30 +22,27 @@ export const useCardHomeData = () => {
   const primaryTokenRaw = useSelector(selectCardPrimaryToken);
   const availableTokensRaw = useSelector(selectCardAvailableTokens);
   const fundingTokensRaw = useSelector(selectCardFundingTokens);
-  const isCardholder = useSelector(selectIsCardholder);
   const isCardAuthenticated = useSelector(selectIsCardAuthenticated);
   const fetchedThisSession = useSelector(selectCardHomeDataFetchedThisSession);
   const { ensureNetworkExists } = useEnsureCardNetworkExists();
 
-  // Money Home mounts this for every visitor, but a user with no card has
-  // nothing to fetch — `MoneyMetaMaskCard` only reads it in 'manage' mode.
-  const hasCard = isCardholder || isCardAuthenticated;
-
-  // A cold start restores 'success' and would otherwise never refetch;
-  // `fetchedThisSession` is not persisted, so it flags data that came off disk.
+  // Logged-out cardholders no longer have a dashboard, so there is nothing
+  // to fetch until a provider session exists.
   useEffect(() => {
     if (
-      hasCard &&
+      isCardAuthenticated &&
       (status === 'idle' || status === 'error' || !fetchedThisSession)
     ) {
       Engine.context.CardController.fetchCardHomeData();
     }
-  }, [hasCard, status, fetchedThisSession]);
+  }, [isCardAuthenticated, status, fetchedThisSession]);
 
-  const refetch = useCallback(
-    () => Engine.context.CardController.fetchCardHomeData({ force: true }),
-    [],
-  );
+  const refetch = useCallback(() => {
+    if (!isCardAuthenticated) {
+      return Promise.resolve();
+    }
+    return Engine.context.CardController.fetchCardHomeData({ force: true });
+  }, [isCardAuthenticated]);
 
   // One useAssetBalances call covering all known card tokens, deduplicated by key.
   const tokensForBalanceLookup = useMemo(() => {
@@ -83,6 +79,7 @@ export const useCardHomeData = () => {
       balanceFormatted: info?.balanceFormatted,
       rawFiatNumber: info?.rawFiatNumber,
       rawTokenBalance: info?.rawTokenBalance,
+      isUnavailable: info?.isUnavailable,
     };
   }, [primaryTokenRaw, balanceMap]);
 
@@ -97,6 +94,7 @@ export const useCardHomeData = () => {
           balanceFormatted: info?.balanceFormatted,
           rawFiatNumber: info?.rawFiatNumber,
           rawTokenBalance: info?.rawTokenBalance,
+          isUnavailable: info?.isUnavailable,
         };
       }),
     [availableTokensRaw, balanceMap],
@@ -113,6 +111,7 @@ export const useCardHomeData = () => {
           balanceFormatted: info?.balanceFormatted,
           rawFiatNumber: info?.rawFiatNumber,
           rawTokenBalance: info?.rawTokenBalance,
+          isUnavailable: info?.isUnavailable,
         };
       }),
     [fundingTokensRaw, balanceMap],
@@ -120,9 +119,16 @@ export const useCardHomeData = () => {
 
   const hasData = data !== null;
 
+  // Idle with no session never starts a fetch. Treating it as loading left
+  // the signed-out identity-review layout on a skeleton instead of the card.
+  const isAwaitingHomeData =
+    isCardAuthenticated &&
+    !hasData &&
+    (status === 'loading' || status === 'idle');
+
   return {
     data,
-    isLoading: !hasData && (status === 'loading' || status === 'idle'),
+    isLoading: isAwaitingHomeData,
     isRefreshing: hasData && status === 'loading',
     isError: !hasData && status === 'error',
     refetch,

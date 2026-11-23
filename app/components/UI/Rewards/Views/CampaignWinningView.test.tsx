@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
-  tw.style = (..._args: unknown[]) => ({});
+  tw.style = jest.fn((..._args: unknown[]) => ({}));
   return { useTailwind: () => tw };
 });
 
@@ -75,7 +75,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../components/ReferralDetails/CopyableField', () => {
+jest.mock('../components/CopyableField', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
   return {
@@ -200,6 +200,23 @@ describe('CampaignWinningView', () => {
     );
     expect(getByText('3rd')).toBeTruthy();
     expect(getByText('+12.34%')).toBeTruthy();
+  });
+
+  it('renders the rank in Grotzec Hero', () => {
+    const { useTailwind } = jest.requireMock(
+      '@metamask/design-system-twrnc-preset',
+    );
+    const { getByTestId } = render(
+      <CampaignWinningView {...defaultProps} rankDisplay="3rd" />,
+    );
+
+    expect(getByTestId('test-winning-view-rank')).toBeTruthy();
+    expect(useTailwind().style).toHaveBeenCalledWith(
+      'text-amount-display-lg',
+      'font-hero-bold',
+      'text-default',
+      'text-center',
+    );
   });
 
   it('calls goBack when Skip for now is pressed', () => {

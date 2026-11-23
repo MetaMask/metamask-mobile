@@ -8,6 +8,9 @@ export const EARN_TEST_IDS = {
       'musd-conversion-asset-overview-cta-close-button',
     CONVERSION_EDUCATION_VIEW: {
       CONTAINER: 'musd-conversion-education-view-container',
+      TITLE: 'musd-conversion-education-view-title',
+      DESCRIPTION: 'musd-conversion-education-view-description',
+      CHECKLIST: 'musd-conversion-education-view-checklist',
       BACKGROUND_IMAGE: 'musd-conversion-education-view-background-image',
       PRIMARY_BUTTON: 'musd-conversion-education-view-primary-button',
       SECONDARY_BUTTON: 'musd-conversion-education-view-secondary-button',

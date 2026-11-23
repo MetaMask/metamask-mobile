@@ -52,6 +52,8 @@ import SearchFeedRow, {
 } from '../../search/SearchFeedRow';
 import {
   getExploreSearchResultCount,
+  getExploreSearchSessionId,
+  renewEndedExploreSearchSession,
   trackExploreSearchAbandoned,
   trackExploreSearchEvent,
   trackExploreSearchOpened,
@@ -79,6 +81,7 @@ import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEna
 import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import {
+  getSearchQueryFromRouteParams,
   getTrimmedInitialQuery,
   type ExploreSearchRouteParams,
 } from './ExploreSearchScreen.types';
@@ -293,6 +296,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
 interface ExploreSearchContentProps {
   searchQuery: string;
   redactSearchQuery: boolean;
+  entryPoint?: ExploreSearchRouteParams['entryPoint'];
 }
 
 /**
@@ -306,6 +310,7 @@ interface ExploreSearchContentProps {
 const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   searchQuery,
   redactSearchQuery,
+  entryPoint,
 }) => {
   const [activePill, setActivePill] = useState<ActivePill>(ALL_PILL_KEY);
   const activePillRef = useRef(activePill);
@@ -313,13 +318,36 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
   const searchQueryRef = useRef(searchQuery);
   searchQueryRef.current = searchQuery;
 
-  const { sections } = useExploreSearch(searchQuery, {
+  const navigation = useNavigation();
+  const [focusCount, setFocusCount] = useState(0);
+  const isFocused = navigation.isFocused();
+  const { sections, performanceLifecycle } = useExploreSearch(searchQuery, {
     exposePagination: true,
+    entryPoint,
+    isFocused,
+    focusCount,
   });
   const sectionsRef = useRef(sections);
   sectionsRef.current = sections;
 
   const isLoading = sections.some((s) => s.isLoading);
+
+  // A focus counter, not useIsFocused: frozen screens never render the blurred value.
+  useEffect(() => {
+    const unsubscribeFocus = navigation.addListener('focus', () => {
+      setFocusCount((count) => count + 1);
+      performanceLifecycle.onFocus();
+    });
+    const unsubscribeBlur = navigation.addListener(
+      'blur',
+      performanceLifecycle.onBlur,
+    );
+
+    return () => {
+      unsubscribeFocus();
+      unsubscribeBlur();
+    };
+  }, [navigation, performanceLifecycle]);
 
   const pills = useMemo<PillOption[]>(
     () => [
@@ -344,6 +372,7 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
     searchQuery,
     redactSearchQuery,
     isLoading,
+    focusCount,
     getPill: getActivePill,
     getSections,
   });
@@ -552,7 +581,7 @@ const ExploreSearchHeader = ({
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="h-12 px-4"
+        twClassName="h-12 px-4 pb-3"
       >
         <Box twClassName="flex-1">{exploreSearchBar}</Box>
       </Box>
@@ -652,6 +681,7 @@ const ExploreSearchScreen: React.FC = () => {
     enabled: isHomepageSearch,
     initiallyAvailable: routeParams?.pastePillVisible,
     onPaste: handleHomepagePaste,
+    getSearchSessionId: getExploreSearchSessionId,
   });
   // Gates the keyboard, which iOS paints dark grey mid-push, and the results
   // subtree, whose mount blocks the JS thread while the screen slides in.
@@ -676,6 +706,7 @@ const ExploreSearchScreen: React.FC = () => {
     // leaving it mounted, e.g. switching away from the nav-bar Search tab.
     const unsubscribeFocus = navigation.addListener('focus', () => {
       isCancelPressedRef.current = false;
+      renewEndedExploreSearchSession();
     });
     const unsubscribeBeforeRemove = navigation.addListener(
       'beforeRemove',
@@ -710,9 +741,20 @@ const ExploreSearchScreen: React.FC = () => {
       return;
     }
 
-    setSearchQuery(getTrimmedInitialQuery(routeParams.initialQuery));
-    setIsClipboardQuery(routeParams.initialQuerySource === 'clipboard');
-    trackExploreSearchOpened(routeParams.entryPoint);
+    const routeSearchQuery = getSearchQueryFromRouteParams(routeParams);
+    if (routeSearchQuery !== undefined) {
+      setSearchQuery(routeSearchQuery);
+      setIsClipboardQuery(routeParams.initialQuerySource === 'clipboard');
+    }
+
+    // In-app tap handlers emit opened before navigation. Route params cover
+    // opens without a tap handler, such as deeplinks and homepage pastes.
+    if (
+      routeParams.entryPoint === 'deeplink' ||
+      routeParams.initialQuerySource === 'clipboard'
+    ) {
+      trackExploreSearchOpened(routeParams.entryPoint);
+    }
   }, [routeParams]);
 
   const handleSearchCancel = useCallback(() => {
@@ -803,6 +845,7 @@ const ExploreSearchScreen: React.FC = () => {
               <ExploreSearchContent
                 searchQuery={searchQuery}
                 redactSearchQuery={isClipboardQuery}
+                entryPoint={routeParams?.entryPoint}
               />
             ) : (
               <ExploreSearchLoadingContent />

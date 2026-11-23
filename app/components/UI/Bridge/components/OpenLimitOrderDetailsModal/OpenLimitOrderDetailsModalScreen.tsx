@@ -32,9 +32,11 @@ export const OpenLimitOrderDetailsModalScreen = () => {
     <OpenLimitOrderDetailsModal
       sourceToken={sourceToken}
       destToken={destinationToken}
-      // The sheet is opened from the open orders tab, where every order, being
-      // executed or not, is still in progress.
-      status={strings('bridge.limit.in_progress')}
+      status={
+        order.isCancellable
+          ? strings('bridge.limit.open')
+          : strings('bridge.limit.in_progress')
+      }
       submittedAmount={strings('bridge.limit.quote_unit', {
         amount: formatLimitOrderAmount(
           order.src.amount,

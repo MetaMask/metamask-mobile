@@ -1,5 +1,6 @@
 import React, { type ReactNode } from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { StyleSheet, View as RNView, type ViewStyle } from 'react-native';
 import type { UR } from '@ngraveio/bc-ur';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import {
@@ -437,6 +438,34 @@ describe('QRSigningDetails', () => {
       }),
       undefined,
     );
+  });
+
+  it('insets the account card by 16 in the default and tightened layouts', () => {
+    const flattened = (style: ViewStyle | ViewStyle[] | undefined) =>
+      StyleSheet.flatten(style);
+
+    const accountCardPadding = (
+      views: { props: { style?: ViewStyle | ViewStyle[] } }[],
+    ) => {
+      const card = views.find(
+        (node) => flattened(node.props.style)?.paddingBottom === 12,
+      );
+      return flattened(card?.props.style)?.paddingHorizontal;
+    };
+
+    const { UNSAFE_getAllByType, unmount } = render(
+      <QRSigningDetails {...defaultProps} />,
+    );
+    expect(accountCardPadding(UNSAFE_getAllByType(RNView))).toBe(16);
+    unmount();
+
+    const tightened = render(<QRSigningDetails {...defaultProps} tighten />);
+    expect(accountCardPadding(tightened.UNSAFE_getAllByType(RNView))).toBe(16);
+    expect(
+      tightened
+        .UNSAFE_getAllByType(RNView)
+        .some((node) => flattened(node.props.style)?.paddingHorizontal === 8),
+    ).toBe(true);
   });
 
   it('renders compact content when hints are hidden with tightened layout', () => {

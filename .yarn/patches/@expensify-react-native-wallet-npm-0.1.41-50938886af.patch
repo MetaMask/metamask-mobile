@@ -1,11 +1,15 @@
 diff --git a/android/src/main/java/com/expensify/wallet/WalletModule.kt b/android/src/main/java/com/expensify/wallet/WalletModule.kt
-index dfa1a398e96174020d3b406472e0b10a4e57f9cc..f27b57c452e3ee18a59770a9375ac89ebc56aced 100644
+index dfa1a398e96174020d3b406472e0b10a4e57f9cc..79417410669a2a47ece99c703440a022566d3294 100644
 --- a/android/src/main/java/com/expensify/wallet/WalletModule.kt
 +++ b/android/src/main/java/com/expensify/wallet/WalletModule.kt
-@@ -365,6 +365,22 @@ class WalletModule internal constructor(context: ReactApplicationContext) :
+@@ -365,6 +365,26 @@ class WalletModule internal constructor(context: ReactApplicationContext) :
      // no-op
    }
  
++  override fun IOSFailAddPaymentPass(promise: Promise) {
++    promise.resolve(null)
++  }
++
 +  override fun canAddCardToAppleWallet(primaryAccountIdentifier: String, promise: Promise) {
 +    // no-op
 +  }
@@ -26,7 +30,7 @@ index dfa1a398e96174020d3b406472e0b10a4e57f9cc..f27b57c452e3ee18a59770a9375ac89e
      // no-op
    }
 diff --git a/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java b/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
-index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..e13c2778d5a9b947ec2df23a842396a1cc851b06 100644
+index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..084ee4f9209d76abfa9cac2ab6d19dfccb18a5f9 100644
 --- a/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
 +++ b/android/src/paper/java/com/expensify/wallet/NativeWalletSpec.java
 @@ -65,6 +65,14 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
@@ -44,10 +48,14 @@ index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..e13c2778d5a9b947ec2df23a842396a1
    @ReactMethod
    @DoNotStrip
    public abstract void IOSPresentAddPaymentPassView(ReadableMap cardData, Promise promise);
-@@ -73,6 +81,14 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
+@@ -73,6 +81,18 @@ public abstract class NativeWalletSpec extends ReactContextBaseJavaModule implem
    @DoNotStrip
    public abstract void IOSHandleAddPaymentPassResponse(ReadableMap payload, Promise promise);
  
++  @ReactMethod
++  @DoNotStrip
++  public abstract void IOSFailAddPaymentPass(Promise promise);
++
 +  @ReactMethod
 +  @DoNotStrip
 +  public abstract void canAddCardToAppleWallet(String primaryAccountIdentifier, Promise promise);
@@ -60,7 +68,7 @@ index 999f0cb8c384de8ca57f984d2eabe07c95483fe1..e13c2778d5a9b947ec2df23a842396a1
    @DoNotStrip
    public abstract void addListener(String eventType);
 diff --git a/ios/RNWallet.mm b/ios/RNWallet.mm
-index 4981b78a40b3b0918a07b5287e775f41e35d0d53..c4f6f18390a342e8ae45e1fbc8b5f4b697d187c8 100644
+index 4981b78a40b3b0918a07b5287e775f41e35d0d53..114c682b38f266dbcbc813396e135a62f668a8de 100644
 --- a/ios/RNWallet.mm
 +++ b/ios/RNWallet.mm
 @@ -42,24 +42,32 @@ - (instancetype)init {
@@ -101,7 +109,24 @@ index 4981b78a40b3b0918a07b5287e775f41e35d0d53..c4f6f18390a342e8ae45e1fbc8b5f4b6
      dispatch_async(dispatch_get_main_queue(), ^{
        [self->walletManager IOSPresentAddPaymentPassViewWithCardData:cardDataDict completion:^(OperationResult result, NSDictionary* data) {
          [self handleWalletResponse:result data:data completedBlock:resolve errorPrefix:@"present_payment_pass_view_failed" defaultErrorMessage:@"Failed to present the payment pass view" rejecter:reject];
-@@ -123,6 +131,69 @@ - (instancetype)init {
+@@ -106,6 +114,16 @@ - (instancetype)init {
+   }
+ }
+ 
++RCT_REMAP_METHOD(IOSFailAddPaymentPass,
++                 IOSFailAddPaymentPass:(RCTPromiseResolveBlock)resolve
++                 reject:(RCTPromiseRejectBlock)reject)
++{
++  dispatch_async(dispatch_get_main_queue(), ^{
++    [self->walletManager IOSFailAddPaymentPass];
++    resolve(nil);
++  });
++}
++
+ RCT_REMAP_METHOD(getCardStatusBySuffix,
+                  getCardStatusBySuffix:(NSString *)last4Digits
+                  resolve:(RCTPromiseResolveBlock)resolve
+@@ -123,6 +141,69 @@ - (instancetype)init {
    resolve([walletManager getCardStatusByIdentifierWithIdentifier:identifier]);
  }
  
@@ -171,7 +196,7 @@ index 4981b78a40b3b0918a07b5287e775f41e35d0d53..c4f6f18390a342e8ae45e1fbc8b5f4b6
  - (void)addCardToGoogleWallet:
  #ifdef RCT_NEW_ARCH_ENABLED
    (JS::NativeWallet::AndroidCardData &)cardData
-@@ -175,6 +246,20 @@ - (void)handleWalletResponse:(OperationResult)result
+@@ -175,6 +256,20 @@ - (void)handleWalletResponse:(OperationResult)result
    }
  }
  
@@ -193,7 +218,7 @@ index 4981b78a40b3b0918a07b5287e775f41e35d0d53..c4f6f18390a342e8ae45e1fbc8b5f4b6
    return value ?: @"";
  }
 diff --git a/ios/WalletManager.swift b/ios/WalletManager.swift
-index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..fff965e5e9aa13c76ccb65b9f71856332b0d3a83 100644
+index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..b3b6caf7aed3023420e80e42bc15b2d795ab41db 100644
 --- a/ios/WalletManager.swift
 +++ b/ios/WalletManager.swift
 @@ -21,6 +21,8 @@ open class WalletManager: UIViewController {
@@ -246,7 +271,24 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..fff965e5e9aa13c76ccb65b9f7185633
        presentingViewController.present(enrollViewController, animated: true, completion: nil)
      }
    }
-@@ -212,10 +229,228 @@ open class WalletManager: UIViewController {
+@@ -184,6 +201,16 @@ open class WalletManager: UIViewController {
+     self.addPassHandler?(addPaymentPassRequest)
+     self.addPassHandler = nil
+   }
++
++  /// Closes the Add Payment Pass sheet when the issuer encrypt call fails.
++  /// The PassKit completion handler is dropped: there is no payload to give it.
++  @objc
++  public func IOSFailAddPaymentPass() {
++    self.addPassHandler = nil
++    self.addPaymentPassCompletionHandler = nil
++    self.addPassTargetDevice = nil
++    hideModal()
++  }
+   
+   private func getPassActivationState(matching condition: (PKSecureElementPass) -> Bool) -> NSNumber {
+     let paymentPasses = passLibrary.passes(of: .payment)
+@@ -212,10 +239,228 @@ open class WalletManager: UIViewController {
        return pass.primaryAccountIdentifier == identifier as String
      }
    }
@@ -475,7 +517,7 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..fff965e5e9aa13c76ccb65b9f7185633
    
    private func hideModal() {
      guard let enrollVC = addPassViewController else {
-@@ -261,7 +496,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+@@ -261,7 +506,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
        let stringCertificates = certificates.map {
          $0.base64EncodedString() as NSString
        }
@@ -484,7 +526,7 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..fff965e5e9aa13c76ccb65b9f7185633
        self.addPassHandler = handler
        
        // Retry the JS issuer callback if the user tries again to add a payment pass
-@@ -293,6 +528,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+@@ -293,6 +538,7 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
        presentAddPaymentPassCompletionHandler = nil
        addPaymentPassCompletionHandler = nil
        addPassHandler = nil
@@ -492,6 +534,38 @@ index 6b3e4c3551fb02172e83ba2a47daa3dea45b35a4..fff965e5e9aa13c76ccb65b9f7185633
  
        let errorMessage = error?.localizedDescription ?? ""
  
+@@ -309,10 +555,28 @@ extension WalletManager: PKAddPaymentPassViewControllerDelegate {
+         handler(.canceled, response.toNSDictionary())
+       }
+       
+-      // If the pass is returned complete the IOSHandleAddPaymentPassResponse function
++      // If the pass is returned complete the IOSHandleAddPaymentPassResponse function.
++      // A resolved dictionary (result < .error) carries the outcome. Rejecting
++      // would hide whether Wallet already showed its own message.
+       if let addPaymentPassHandler = addPaymentPassHandler {
+-        if pass != nil {
+-          addPaymentPassHandler(.completed, nil)
++        if let pass = pass {
++          let activationState = (pass.secureElementPass?.passActivationState ?? pass.passActivationState).rawValue
++          addPaymentPassHandler(.completed, [
++            "status": NSNumber(value: 0),
++            "activationState": NSNumber(value: activationState),
++          ])
++        } else if let nsError = error as NSError?,
++                  nsError.domain == PKPassKitErrorDomain,
++                  nsError.code == PKAddPaymentPassError.userCancelled.rawValue {
++          addPaymentPassHandler(.canceled, [
++            "status": NSNumber(value: 1),
++          ])
++        } else if let nsError = error as NSError? {
++          addPaymentPassHandler(.completed, [
++            "status": NSNumber(value: -1),
++            "errorDomain": nsError.domain,
++            "errorCode": NSNumber(value: nsError.code),
++          ])
+         } else {
+           addPaymentPassHandler(.error, [
+             "errorMessage": "Could not add card. \(errorMessage)."
 diff --git a/ios/stucts/AddPassResponse.swift b/ios/stucts/AddPassResponse.swift
 index 1df45b4bc3462842a907f77d2466b7073be4dc53..327afea83271ebbb0b23333cdf8c7c9040b723c2 100644
 --- a/ios/stucts/AddPassResponse.swift
@@ -567,7 +641,7 @@ index c02a3c7c802da3c511a8971112bf65fb9c198540..13499153195d2882c6367b56a32ea644
  
    private static func getNetwork(from identifier: String) -> PKPaymentNetwork? {
 diff --git a/lib/commonjs/index.js b/lib/commonjs/index.js
-index a960e515032c8d7146695fd610f006f2f73f6ffb..0a8b20fd7e9c19bf3ee951b1ea94eb2152fed54a 100644
+index a960e515032c8d7146695fd610f006f2f73f6ffb..3105a7784ee0adfe6f9d6ef6f710f4df74f493cd 100644
 --- a/lib/commonjs/index.js
 +++ b/lib/commonjs/index.js
 @@ -9,13 +9,17 @@ Object.defineProperty(exports, "AddToWalletButton", {
@@ -588,10 +662,11 @@ index a960e515032c8d7146695fd610f006f2f73f6ffb..0a8b20fd7e9c19bf3ee951b1ea94eb21
  exports.listTokens = listTokens;
  exports.removeListener = removeListener;
  exports.resumeAddCardToGoogleWallet = resumeAddCardToGoogleWallet;
-@@ -126,6 +130,40 @@ async function listTokens() {
+@@ -126,7 +130,41 @@ async function listTokens() {
    }
    return _NativeWallet.default.listTokens();
  }
+-async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
 +function toIOSDeviceType(deviceType) {
 +  switch (deviceType) {
 +    case 'phone':
@@ -626,19 +701,50 @@ index a960e515032c8d7146695fd610f006f2f73f6ffb..0a8b20fd7e9c19bf3ee951b1ea94eb21
 +    activationState: (0, _utils.getCardState)(pass.activationState)
 +  }));
 +}
- async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
++async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback, onAddFinished) {
    if (_reactNative.Platform.OS === 'android') {
      throw new Error('addCardToAppleWallet is not available on Android');
-@@ -139,7 +177,7 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+   }
+@@ -139,16 +177,57 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
      return (0, _utils.getTokenizationStatus)((passData === null || passData === void 0 ? void 0 : passData.status) || -1);
    }
    async function addPaymentPassToWallet(paymentPassData) {
 -    const responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates);
-+    const responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates, toIOSDeviceType(paymentPassData.deviceType));
++    let responseData;
++    try {
++      responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates, toIOSDeviceType(paymentPassData.deviceType));
++    } catch (error) {
++      try {
++        await wallet.IOSFailAddPaymentPass();
++      } catch {
++        // Closing the sheet is best-effort. The issuer error is what the user sees.
++      }
++      throw error;
++    }
      const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
-     // Response is null when a pass is successfully added to the wallet or the user cancels the process
-     // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
-@@ -151,4 +189,22 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+-    // Response is null when a pass is successfully added to the wallet or the user cancels the process
+-    // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
+-    if (response) {
++    // Try again returns a new nonce. A finished add has no nonce: status 1 is a
++    // user cancel, status -1 is an error Wallet already showed, otherwise success.
++    if (response !== null && response !== void 0 && response.nonce) {
+       return addPaymentPassToWallet(response);
+     }
++    if ((response === null || response === void 0 ? void 0 : response.status) === 1) {
++      return 1;
++    }
++    if ((response === null || response === void 0 ? void 0 : response.status) === -1) {
++      onAddFinished === null || onAddFinished === void 0 ? void 0 : onAddFinished({
++        errorDomain: response.errorDomain,
++        errorCode: response.errorCode
++      });
++      return -1;
++    }
++    onAddFinished === null || onAddFinished === void 0 ? void 0 : onAddFinished(typeof (response === null || response === void 0 ? void 0 : response.activationState) === 'number' ? {
++      activationState: (0, _utils.getCardState)(response.activationState)
++    } : {});
+     return 0;
+   }
    const status = await addPaymentPassToWallet(passData);
    return (0, _utils.getTokenizationStatus)(status);
  }
@@ -663,13 +769,14 @@ index a960e515032c8d7146695fd610f006f2f73f6ffb..0a8b20fd7e9c19bf3ee951b1ea94eb21
  //# sourceMappingURL=index.js.map
 \ No newline at end of file
 diff --git a/lib/module/index.js b/lib/module/index.js
-index 52d87604832b3d806b84522c4196233a55c0df88..7b0204f6526b4d8d32c58807859fd54f44619256 100644
+index 52d87604832b3d806b84522c4196233a55c0df88..8348943187c7a119eff0cb2cf1b91b20bbd46214 100644
 --- a/lib/module/index.js
 +++ b/lib/module/index.js
-@@ -102,6 +102,40 @@ async function listTokens() {
+@@ -102,7 +102,41 @@ async function listTokens() {
    }
    return Wallet.listTokens();
  }
+-async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
 +function toIOSDeviceType(deviceType) {
 +  switch (deviceType) {
 +    case 'phone':
@@ -704,19 +811,50 @@ index 52d87604832b3d806b84522c4196233a55c0df88..7b0204f6526b4d8d32c58807859fd54f
 +    activationState: getCardState(pass.activationState)
 +  }));
 +}
- async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
++async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback, onAddFinished) {
    if (Platform.OS === 'android') {
      throw new Error('addCardToAppleWallet is not available on Android');
-@@ -115,7 +149,7 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+   }
+@@ -115,17 +149,58 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
      return getTokenizationStatus((passData === null || passData === void 0 ? void 0 : passData.status) || -1);
    }
    async function addPaymentPassToWallet(paymentPassData) {
 -    const responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates);
-+    const responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates, toIOSDeviceType(paymentPassData.deviceType));
++    let responseData;
++    try {
++      responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates, toIOSDeviceType(paymentPassData.deviceType));
++    } catch (error) {
++      try {
++        await wallet.IOSFailAddPaymentPass();
++      } catch {
++        // Closing the sheet is best-effort. The issuer error is what the user sees.
++      }
++      throw error;
++    }
      const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
-     // Response is null when a pass is successfully added to the wallet or the user cancels the process
-     // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
-@@ -127,5 +161,23 @@ async function addCardToAppleWallet(cardData, issuerEncryptPayloadCallback) {
+-    // Response is null when a pass is successfully added to the wallet or the user cancels the process
+-    // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
+-    if (response) {
++    // Try again returns a new nonce. A finished add has no nonce: status 1 is a
++    // user cancel, status -1 is an error Wallet already showed, otherwise success.
++    if (response?.nonce) {
+       return addPaymentPassToWallet(response);
+     }
++    if (response?.status === 1) {
++      return 1;
++    }
++    if (response?.status === -1) {
++      onAddFinished?.({
++        errorDomain: response.errorDomain,
++        errorCode: response.errorCode
++      });
++      return -1;
++    }
++    onAddFinished?.(typeof response?.activationState === 'number' ? {
++      activationState: getCardState(response.activationState)
++    } : {});
+     return 0;
+   }
    const status = await addPaymentPassToWallet(passData);
    return getTokenizationStatus(status);
  }
@@ -743,7 +881,7 @@ index 52d87604832b3d806b84522c4196233a55c0df88..7b0204f6526b4d8d32c58807859fd54f
  //# sourceMappingURL=index.js.map
 \ No newline at end of file
 diff --git a/lib/typescript/src/NativeWallet.d.ts b/lib/typescript/src/NativeWallet.d.ts
-index e204212a4121a70ba90e2ff29af9344645541c26..143a3f75781f52747120555fbf715a88b16b4a2a 100644
+index e204212a4121a70ba90e2ff29af9344645541c26..867cae64f97444302bd7fcc6a7a25f979fd0055d 100644
 --- a/lib/typescript/src/NativeWallet.d.ts
 +++ b/lib/typescript/src/NativeWallet.d.ts
 @@ -33,6 +33,7 @@ type IOSCardData = {
@@ -783,20 +921,21 @@ index e204212a4121a70ba90e2ff29af9344645541c26..143a3f75781f52747120555fbf715a88
  type TokenizationStatus = 'canceled' | 'success' | 'error';
  type TokenInfo = {
      identifier: string;
-@@ -64,8 +81,12 @@ export interface Spec extends TurboModule {
+@@ -64,8 +81,13 @@ export interface Spec extends TurboModule {
      addCardToGoogleWallet(cardData: AndroidCardData): Promise<number>;
      resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<number>;
      listTokens(): Promise<TokenInfo[]>;
 +    listAppleWalletPasses(): Promise<IOSWalletPassNative[]>;
      IOSPresentAddPaymentPassView(cardData: IOSCardData): Promise<IOSAddPaymentPassData>;
      IOSHandleAddPaymentPassResponse(payload: IOSEncryptPayload): Promise<IOSAddPaymentPassData | null>;
++    IOSFailAddPaymentPass(): Promise<void>;
 +    canAddCardToAppleWallet(primaryAccountIdentifier: string): Promise<boolean>;
 +    presentAppleWalletPass(lastDigits: string): Promise<boolean>;
 +    activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean>;
      addListener: (eventType: string) => void;
      removeListeners: (count: number) => void;
  }
-@@ -73,5 +94,5 @@ declare const PACKAGE_NAME = "@expensify/react-native-wallet";
+@@ -73,5 +95,5 @@ declare const PACKAGE_NAME = "@expensify/react-native-wallet";
  declare let Wallet: Spec | undefined;
  export default Wallet;
  export { PACKAGE_NAME };
@@ -805,7 +944,7 @@ index e204212a4121a70ba90e2ff29af9344645541c26..143a3f75781f52747120555fbf715a88
  //# sourceMappingURL=NativeWallet.d.ts.map
 \ No newline at end of file
 diff --git a/lib/typescript/src/index.d.ts b/lib/typescript/src/index.d.ts
-index cba33e5607d1f726b1d32294406e04ad489929ff..fd48eda8db18654bd63eaa7925983d70d59a9b9f 100644
+index cba33e5607d1f726b1d32294406e04ad489929ff..4f3a9a434fcbb8a12ff19d395a882e71ce80403a 100644
 --- a/lib/typescript/src/index.d.ts
 +++ b/lib/typescript/src/index.d.ts
 @@ -1,5 +1,13 @@
@@ -823,7 +962,7 @@ index cba33e5607d1f726b1d32294406e04ad489929ff..fd48eda8db18654bd63eaa7925983d70
  import AddToWalletButton from './AddToWalletButton';
  declare function addListener(event: string, callback: (data: onCardActivatedPayload) => void): EmitterSubscription;
  declare function removeListener(subscription: EmitterSubscription): void;
-@@ -16,7 +24,11 @@ declare function getCardStatusByIdentifier(identifier: string, tsp: string): Pro
+@@ -16,7 +24,16 @@ declare function getCardStatusByIdentifier(identifier: string, tsp: string): Pro
  declare function addCardToGoogleWallet(cardData: AndroidCardData): Promise<TokenizationStatus>;
  declare function resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<TokenizationStatus>;
  declare function listTokens(): Promise<TokenInfo[]>;
@@ -833,14 +972,19 @@ index cba33e5607d1f726b1d32294406e04ad489929ff..fd48eda8db18654bd63eaa7925983d70
 +declare function canAddCardToAppleWallet(primaryAccountIdentifier: string): Promise<boolean>;
 +declare function listAppleWalletPasses(): Promise<IOSWalletPass[]>;
 +declare function presentAppleWalletPass(lastDigits: string): Promise<boolean>;
-+declare function addCardToAppleWallet(cardData: IOSCardData, issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[], deviceType: IOSDeviceType) => Promise<IOSEncryptPayload>): Promise<TokenizationStatus>;
++type AppleWalletAddResult = {
++    activationState?: CardStatus;
++    errorDomain?: string;
++    errorCode?: number;
++};
++declare function addCardToAppleWallet(cardData: IOSCardData, issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[], deviceType: IOSDeviceType) => Promise<IOSEncryptPayload>, onAddFinished?: (result: AppleWalletAddResult) => void): Promise<TokenizationStatus>;
 +declare function activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean>;
 +export type { AndroidCardData, AndroidWalletData, CardStatus, IOSEncryptPayload, IOSCardData, IOSAddPaymentPassData, IOSDeviceType, IOSPassActivationData, IOSWalletPass, onCardActivatedPayload, TokenizationStatus, TokenInfo };
 +export { AddToWalletButton, checkWalletAvailability, getSecureWalletInfo, getCardStatusBySuffix, getCardStatusByIdentifier, addCardToGoogleWallet, resumeAddCardToGoogleWallet, listTokens, canAddCardToAppleWallet, listAppleWalletPasses, presentAppleWalletPass, addCardToAppleWallet, activateAppleWalletPass, addListener, removeListener, };
  //# sourceMappingURL=index.d.ts.map
 \ No newline at end of file
 diff --git a/src/NativeWallet.ts b/src/NativeWallet.ts
-index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..8ec45d2a8238e2b225a81561baa25082e12b8511 100644
+index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..25e8c59d92f6635d291edc8047f178345a722ba4 100644
 --- a/src/NativeWallet.ts
 +++ b/src/NativeWallet.ts
 @@ -41,6 +41,7 @@ type IOSCardData = {
@@ -885,20 +1029,21 @@ index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..8ec45d2a8238e2b225a81561baa25082
  type TokenizationStatus = 'canceled' | 'success' | 'error';
  
  type TokenInfo = {
-@@ -78,8 +98,12 @@ export interface Spec extends TurboModule {
+@@ -78,8 +98,13 @@ export interface Spec extends TurboModule {
    addCardToGoogleWallet(cardData: AndroidCardData): Promise<number>;
    resumeAddCardToGoogleWallet(cardData: AndroidResumeCardData): Promise<number>;
    listTokens(): Promise<TokenInfo[]>;
 +  listAppleWalletPasses(): Promise<IOSWalletPassNative[]>;
    IOSPresentAddPaymentPassView(cardData: IOSCardData): Promise<IOSAddPaymentPassData>;
    IOSHandleAddPaymentPassResponse(payload: IOSEncryptPayload): Promise<IOSAddPaymentPassData | null>;
++  IOSFailAddPaymentPass(): Promise<void>;
 +  canAddCardToAppleWallet(primaryAccountIdentifier: string): Promise<boolean>;
 +  presentAppleWalletPass(lastDigits: string): Promise<boolean>;
 +  activateAppleWalletPass(passData: IOSPassActivationData): Promise<boolean>;
    addListener: (eventType: string) => void;
    removeListeners: (count: number) => void;
  }
-@@ -109,7 +133,10 @@ export type {
+@@ -109,7 +134,10 @@ export type {
    onCardActivatedPayload,
    Platform,
    IOSAddPaymentPassData,
@@ -910,10 +1055,10 @@ index f15df6e91d2ff7033f463f92eb8bf64429ef3b91..8ec45d2a8238e2b225a81561baa25082
    TokenInfo,
  };
 diff --git a/src/index.tsx b/src/index.tsx
-index d1801ffc288e7ac9c707b118ff9b80602bc31440..ed9dda0d2f90a261fa451fc153cdbc7a7b3bc702 100644
+index d1801ffc288e7ac9c707b118ff9b80602bc31440..46ec6ce90452b0b71232104202542d8df6fc25be 100644
 --- a/src/index.tsx
 +++ b/src/index.tsx
-@@ -12,11 +12,23 @@ import type {
+@@ -12,11 +12,36 @@ import type {
    AndroidWalletData,
    onCardActivatedPayload,
    IOSAddPaymentPassData,
@@ -934,10 +1079,23 @@ index d1801ffc288e7ac9c707b118ff9b80602bc31440..ed9dda0d2f90a261fa451fc153cdbc7a
 +  isRemote: boolean;
 +};
 +
++type AppleWalletAddResult = {
++  activationState?: CardStatus;
++  errorDomain?: string;
++  errorCode?: number;
++};
++
++/** Result of IOSHandleAddPaymentPassResponse: a retry nonce, or a finished add. */
++type AddPaymentPassResult = IOSAddPaymentPassData & {
++  activationState?: number;
++  errorDomain?: string;
++  errorCode?: number;
++};
++
  function getModuleLinkingRejection() {
    return Promise.reject(new Error(`Failed to load Wallet module, make sure to link ${PACKAGE_NAME} correctly`));
  }
-@@ -131,9 +143,50 @@ async function listTokens(): Promise<TokenInfo[]> {
+@@ -131,9 +156,51 @@ async function listTokens(): Promise<TokenInfo[]> {
    return Wallet.listTokens();
  }
  
@@ -986,19 +1144,56 @@ index d1801ffc288e7ac9c707b118ff9b80602bc31440..ed9dda0d2f90a261fa451fc153cdbc7a
    cardData: IOSCardData,
 -  issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[]) => Promise<IOSEncryptPayload>,
 +  issuerEncryptPayloadCallback: (nonce: string, nonceSignature: string, certificate: string[], deviceType: IOSDeviceType) => Promise<IOSEncryptPayload>,
++  onAddFinished?: (result: AppleWalletAddResult) => void,
  ): Promise<TokenizationStatus> {
    if (Platform.OS === 'android') {
      throw new Error('addCardToAppleWallet is not available on Android');
-@@ -151,7 +204,7 @@ async function addCardToAppleWallet(
+@@ -151,20 +218,84 @@ async function addCardToAppleWallet(
    }
  
    async function addPaymentPassToWallet(paymentPassData: IOSAddPaymentPassData): Promise<number> {
 -    const responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates);
-+    const responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates, toIOSDeviceType(paymentPassData.deviceType));
-     const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
-     // Response is null when a pass is successfully added to the wallet or the user cancels the process
-     // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
-@@ -164,7 +217,44 @@ async function addCardToAppleWallet(
+-    const response = await wallet.IOSHandleAddPaymentPassResponse(responseData);
+-    // Response is null when a pass is successfully added to the wallet or the user cancels the process
+-    // In case the user presses the `Try again` option, new pass data is returned, and it should reenter the function
+-    if (response) {
++    let responseData: IOSEncryptPayload;
++    try {
++      responseData = await issuerEncryptPayloadCallback(paymentPassData.nonce, paymentPassData.nonceSignature, paymentPassData.certificates, toIOSDeviceType(paymentPassData.deviceType));
++    } catch (error) {
++      try {
++        await wallet.IOSFailAddPaymentPass();
++      } catch {
++        // Closing the sheet is best-effort. The issuer error is what the user sees.
++      }
++      throw error;
++    }
++    const response = (await wallet.IOSHandleAddPaymentPassResponse(
++      responseData,
++    )) as AddPaymentPassResult | null;
++    // Try again returns a new nonce. A finished add has no nonce: status 1 is a
++    // user cancel, status -1 is an error Wallet already showed, otherwise success.
++    if (response?.nonce) {
+       return addPaymentPassToWallet(response);
+     }
++    if (response?.status === 1) {
++      return 1;
++    }
++    if (response?.status === -1) {
++      onAddFinished?.({
++        errorDomain: response.errorDomain,
++        errorCode: response.errorCode,
++      });
++      return -1;
++    }
++    onAddFinished?.(
++      typeof response?.activationState === 'number'
++        ? {activationState: getCardState(response.activationState)}
++        : {},
++    );
+     return 0;
+   }
+   const status = await addPaymentPassToWallet(passData);
    return getTokenizationStatus(status);
  }
  
@@ -1044,7 +1239,7 @@ index d1801ffc288e7ac9c707b118ff9b80602bc31440..ed9dda0d2f90a261fa451fc153cdbc7a
  export {
    AddToWalletButton,
    checkWalletAvailability,
-@@ -174,7 +264,11 @@ export {
+@@ -174,7 +305,11 @@ export {
    addCardToGoogleWallet,
    resumeAddCardToGoogleWallet,
    listTokens,

@@ -1,5 +1,7 @@
 import type { PaymentMethod } from '@metamask/ramps-controller';
 import { renderHook } from '@testing-library/react-native';
+import { strings } from '../../../../../../../locales/i18n';
+import type { VbaMarket } from '../../../../../../util/region/getVbaSourceCurrency';
 import { getVbaArrivalTimeframe, useVbaArrivalTime } from './useVbaArrivalTime';
 import { useVbaEligibility } from './useVbaEligibility';
 import { useMoneyAccountDepositAssetId } from '../../../../Money/hooks/useMoneyAccountDepositAssetId';
@@ -117,6 +119,24 @@ describe('getVbaArrivalTimeframe', () => {
 
 describe('useVbaArrivalTime', () => {
   const DEPOSIT_ASSET_ID = 'eip155:133/erc20:0xmusd' as const;
+  const PIX_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_pix',
+  );
+  const EUR_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_eur',
+  );
+  const CATALOG_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+    { timeframe: '2 - 3 business days' },
+  );
+  const FALLBACK_TITLE = strings(
+    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
+  );
+  const markets: VbaMarket[] = [
+    { currency: 'BRL', regions: ['BR'] },
+    { currency: 'USD', regions: ['US'] },
+    { currency: 'EUR', regions: ['DE'] },
+  ];
 
   const setup = ({
     eligibility,
@@ -131,9 +151,18 @@ describe('useVbaArrivalTime', () => {
     };
     paymentMethods?: PaymentMethod[];
   } = {}) => {
+    // Mirror useVbaEligibility: the market follows the effective location.
+    const resolvedLocation =
+      eligibility && 'location' in eligibility ? eligibility.location : 'US';
+    const market = resolvedLocation
+      ? markets.find((candidate) =>
+          candidate.regions.includes(resolvedLocation.split('-')[0]),
+        )
+      : undefined;
     mockUseVbaEligibility.mockReturnValue({
-      location: 'BR',
+      location: resolvedLocation,
       isRegionEligible: true,
+      market,
       ...eligibility,
     } as ReturnType<typeof useVbaEligibility>);
     mockUseMoneyAccountDepositAssetId.mockReturnValue(
@@ -149,31 +178,21 @@ describe('useVbaArrivalTime', () => {
     setup();
   });
 
-  it('queries the catalog for the VBA region and returns the formatted timeframe', () => {
+  it('queries the catalog for the VBA region and returns the timeframe title', () => {
     const { result } = renderHook(() => useVbaArrivalTime());
 
     expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith({
-      regionCode: 'br',
+      regionCode: 'us',
       assetId: DEPOSIT_ASSET_ID,
       autoSelectProvider: true,
       restrictToKnownOrNativeProviders: true,
       updateState: false,
     });
-    expect(result.current.arrivalTimeframe).toBe('2 - 3 business days');
+    expect(result.current.arrivalTitle).toBe(CATALOG_TITLE);
   });
 
   it('derives the country-level region code from a country-state geolocation', () => {
-    setup({ eligibility: { location: 'BR-SP' } });
-
-    renderHook(() => useVbaArrivalTime());
-
-    expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
-      expect.objectContaining({ regionCode: 'br' }),
-    );
-  });
-
-  it('queries the catalog with a US country code when that country is allowed', () => {
-    setup({ eligibility: { location: 'US-NY', isRegionEligible: true } });
+    setup({ eligibility: { location: 'US-NY' } });
 
     renderHook(() => useVbaArrivalTime());
 
@@ -181,6 +200,34 @@ describe('useVbaArrivalTime', () => {
       expect.objectContaining({ regionCode: 'us' }),
     );
   });
+
+  it.each(['BR', 'BR-SP'])(
+    'returns the Pix title and disables the query for %s',
+    (location) => {
+      setup({ eligibility: { location } });
+
+      const { result } = renderHook(() => useVbaArrivalTime());
+
+      expect(result.current.arrivalTitle).toBe(PIX_TITLE);
+      expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+        expect.objectContaining({ regionCode: '' }),
+      );
+    },
+  );
+
+  it.each(['DE', 'DE-BE'])(
+    'returns the EUR title and disables the query for %s',
+    (location) => {
+      setup({ eligibility: { location }, paymentMethods: [] });
+
+      const { result } = renderHook(() => useVbaArrivalTime());
+
+      expect(result.current.arrivalTitle).toBe(EUR_TITLE);
+      expect(mockUseRampsPaymentMethodsForContext).toHaveBeenCalledWith(
+        expect.objectContaining({ regionCode: '' }),
+      );
+    },
+  );
 
   it('disables the query when the IP geolocation is not an allowed VBA region', () => {
     setup({ eligibility: { location: 'PT', isRegionEligible: false } });
@@ -202,11 +249,11 @@ describe('useVbaArrivalTime', () => {
     );
   });
 
-  it('is undefined while the catalog has no delay data', () => {
+  it('returns the static title while the catalog has no delay data', () => {
     setup({ paymentMethods: [] });
 
     const { result } = renderHook(() => useVbaArrivalTime());
 
-    expect(result.current.arrivalTimeframe).toBeUndefined();
+    expect(result.current.arrivalTitle).toBe(FALLBACK_TITLE);
   });
 });

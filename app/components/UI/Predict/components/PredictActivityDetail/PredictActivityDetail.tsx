@@ -12,6 +12,8 @@ import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectPredictBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/predictBrandRefresh';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { PredictNavigationParamList } from '../../types/navigation';
@@ -28,7 +30,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
   Text as DesignSystemText,
   TextColor as DesignSystemTextColor,
   TextVariant as DesignSystemTextVariant,
@@ -45,6 +46,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
   const { activity } = route.params || {};
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
+  const isBrandRefresh = useSelector(selectPredictBrandRefreshEnabled) === true;
 
   // Determine activity type for analytics
   const activityType = useMemo(() => {
@@ -517,7 +519,9 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isBrandRefresh}
+          isFloating={false}
           title={
             activityDetails?.headerTitle ??
             strings('predict.transactions.activity_details')

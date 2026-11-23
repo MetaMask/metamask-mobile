@@ -126,6 +126,13 @@ let mockBatchSellSourceTokenAmounts: Partial<
   Record<CaipAssetType, string | undefined>
 > = {};
 
+jest.mock(
+  '../../../../../selectors/featureFlagController/glassHeaders',
+  () => ({
+    selectGlassHeadersEnabled: () => false,
+  }),
+);
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: jest.fn(),

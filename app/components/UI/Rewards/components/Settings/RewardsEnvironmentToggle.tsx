@@ -7,12 +7,12 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import AppConstants from '../../../../../core/AppConstants';
@@ -27,6 +27,8 @@ import {
   setCandidateSubscriptionId,
 } from '../../../../../reducers/rewards';
 import { resetRewardsMoneyState } from '../../../../../reducers/rewardsMoney';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
 
 const REWARDS_ENV_OPTIONS: string[] = [
   AppConstants.REWARDS_API_URL.DEV,
@@ -63,12 +65,18 @@ interface EnvironmentUrlFieldProps {
   closeButtonTestID: string;
   currentEnv: string | null;
   defaultEnv: string | null;
+  /**
+   * Shows the host without opening the selector. Used when the build is
+   * not local.
+   */
+  isDisabled?: boolean;
   options: string[];
   isSheetOpen: boolean;
   onOpen: () => void;
   onClose: () => void;
   onSelect: (env: string) => void;
   sheetRef: React.RefObject<BottomSheetRef | null>;
+  isGlassHeader: boolean;
 }
 
 const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
@@ -78,12 +86,14 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
   closeButtonTestID,
   currentEnv,
   defaultEnv,
+  isDisabled = false,
   options,
   isSheetOpen,
   onOpen,
   onClose,
   onSelect,
   sheetRef,
+  isGlassHeader,
 }) => (
   <Box twClassName="gap-2">
     <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -94,6 +104,7 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Md}
       isFullWidth
+      isDisabled={isDisabled}
       onPress={onOpen}
       accessibilityLabel={`${label}: ${currentEnv ?? '...'}`}
     >
@@ -101,7 +112,9 @@ const EnvironmentUrlField: React.FC<EnvironmentUrlFieldProps> = ({
     </Button>
     {isSheetOpen ? (
       <BottomSheet shouldNavigateBack={false} ref={sheetRef} onClose={onClose}>
-        <HeaderStandard
+        <HeaderStandardGlass
+          isFloating={false}
+          isGlass={isGlassHeader}
           title={label}
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
           closeButtonProps={{ testID: closeButtonTestID }}
@@ -157,6 +170,7 @@ const RewardsEnvironmentToggle: React.FC = () => {
   const [openSheet, setOpenSheet] = useState<OpenSheet>(null);
 
   const dispatch = useDispatch();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const rewardsSheetRef = useRef<BottomSheetRef>(null);
   const moneySheetRef = useRef<BottomSheetRef>(null);
 
@@ -182,12 +196,11 @@ const RewardsEnvironmentToggle: React.FC = () => {
         'RewardsMoneyController:canChangeRewardsMoneyEnvUrl',
       ) === true;
     setCanChangeMoney(moneyAllowed);
+    const moneyHost = Engine.controllerMessenger.call(
+      'RewardsMoneyController:getRewardsMoneyEnvUrl',
+    );
+    setCurrentMoneyEnv(typeof moneyHost === 'string' ? moneyHost : null);
     if (moneyAllowed) {
-      setCurrentMoneyEnv(
-        Engine.controllerMessenger.call(
-          'RewardsMoneyController:getRewardsMoneyEnvUrl',
-        ),
-      );
       setDefaultMoneyEnv(
         Engine.controllerMessenger.call(
           'RewardsMoneyController:getDefaultRewardsMoneyEnvUrl',
@@ -235,18 +248,20 @@ const RewardsEnvironmentToggle: React.FC = () => {
     return null;
   }
 
+  // Production closes the Rewards selector too. A disabled Money host stays
+  // off that build; other non-local builds show it beside the Rewards field.
   if (!canChangeRewards && !canChangeMoney) {
     return null;
   }
 
   return (
     <>
-      <Box twClassName="my-4 border-b border-border-muted" />
+      <SectionDivider marginVertical={8} />
       <Box
         testID="rewards-environment-toggle"
         twClassName="gap-4 flex-col px-4"
       >
-        <Text variant={TextVariant.HeadingMd} twClassName="mt-2">
+        <Text variant={TextVariant.HeadingMd}>
           {strings('rewards.settings.environment_selector')}
         </Text>
         {canChangeRewards ? (
@@ -263,9 +278,10 @@ const RewardsEnvironmentToggle: React.FC = () => {
             onClose={() => setOpenSheet(null)}
             onSelect={handleRewardsEnvSelect}
             sheetRef={rewardsSheetRef}
+            isGlassHeader={isGlassHeader}
           />
         ) : null}
-        {canChangeMoney ? (
+        {currentMoneyEnv ? (
           <EnvironmentUrlField
             label={strings('bottom_nav.money')}
             triggerTestID="rewards-money-environment-toggle-trigger"
@@ -273,12 +289,14 @@ const RewardsEnvironmentToggle: React.FC = () => {
             closeButtonTestID="money-environment-sheet-close-button"
             currentEnv={currentMoneyEnv}
             defaultEnv={defaultMoneyEnv}
+            isDisabled={canChangeMoney !== true}
             options={MONEY_ENV_OPTIONS}
             isSheetOpen={openSheet === 'money'}
             onOpen={() => setOpenSheet('money')}
             onClose={() => setOpenSheet(null)}
             onSelect={handleMoneyEnvSelect}
             sheetRef={moneySheetRef}
+            isGlassHeader={isGlassHeader}
           />
         ) : null}
       </Box>
