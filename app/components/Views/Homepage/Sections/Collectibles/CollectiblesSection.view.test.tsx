@@ -1,71 +1,66 @@
 import '../../../../../../tests/component-view/mocks';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   createCollectiblesFlagHarness,
-  renderCollectiblesSectionWithRoutes,
+  renderHomepageWithCollectibles,
 } from '../../../../../../tests/component-view/renderers/collectibles';
 import { CollectiblesHomeTestIds } from '../../../../UI/Collectibles';
 import { homepageSectionTitleTestId } from '../../Homepage.testIds';
 import { HomeSectionNames } from '../../hooks/useHomeViewedEvent';
-import { CollectiblesSectionTestIds } from './CollectiblesSection.testIds';
+import { collectiblesTestIds } from '../../../../UI/Collectibles/Collectibles.testIds';
 
-describeForPlatforms('CollectiblesSection', () => {
-  it.each([
-    {
-      entry: 'title',
-      testID: homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES),
-    },
-    { entry: 'button', testID: CollectiblesSectionTestIds.CTA },
-  ])(
-    'opens Collectibles from the $entry and returns to the section',
-    async ({ testID }) => {
-      renderCollectiblesSectionWithRoutes();
+describeForPlatforms('Collectibles on the wallet homepage', () => {
+  const netInfo = NetInfo as unknown as typeof NetInfoMock;
+  beforeEach(() => {
+    netInfo.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+  });
+  afterEach(() => netInfo.__resetMockNetInfo());
 
-      await screen.findByText(
-        strings('collectibles.home_section.open_collectibles'),
-      );
-      fireEvent.press(screen.getByTestId(testID));
+  it('opens Collectibles from the homepage title and returns to the carousel', async () => {
+    renderHomepageWithCollectibles();
 
-      await waitFor(() => {
-        expect(
-          screen.getByTestId(CollectiblesHomeTestIds.CONTAINER),
-        ).toBeOnTheScreen();
-      });
-      expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
-      expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
+    const title = homepageSectionTitleTestId(HomeSectionNames.COLLECTIBLES);
+    await screen.findByTestId(title);
+    fireEvent.press(screen.getByTestId(title));
 
-      fireEvent.press(screen.getByTestId(CollectiblesHomeTestIds.BACK_BUTTON));
-
-      await waitFor(() => {
-        expect(
-          screen.getByTestId(CollectiblesSectionTestIds.CONTAINER),
-        ).toBeOnTheScreen();
-      });
+    await waitFor(() => {
       expect(
-        screen.getByText(strings('collectibles.home_section.description')),
+        screen.getByTestId(CollectiblesHomeTestIds.CONTAINER),
       ).toBeOnTheScreen();
+    });
+    expect(screen.getByText(strings('collectibles.title'))).toBeOnTheScreen();
+    expect(screen.queryByRole('tab')).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(CollectiblesHomeTestIds.BACK_BUTTON));
+
+    await waitFor(() => {
       expect(
-        screen.queryByTestId(CollectiblesHomeTestIds.CONTAINER),
-      ).not.toBeOnTheScreen();
-    },
-  );
+        screen.getByTestId(collectiblesTestIds.homeSection),
+      ).toBeOnTheScreen();
+    });
+    expect(
+      screen.queryByTestId(CollectiblesHomeTestIds.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
 
   // Unlike the unit flag gate, this checks a live kill switch after the section
   // is visible, without remounting the homepage.
   it('removes the visible section when the remote flag is disabled while the homepage is open', async () => {
-    const { store } = renderCollectiblesSectionWithRoutes();
+    const { store } = renderHomepageWithCollectibles();
     const { setEnabled, cleanup } = createCollectiblesFlagHarness(store);
 
     try {
-      await screen.findByTestId(CollectiblesSectionTestIds.CONTAINER);
+      await screen.findByTestId(collectiblesTestIds.homeSection);
 
       act(() => setEnabled(false));
 
       await waitFor(() => {
         expect(
-          screen.queryByTestId(CollectiblesSectionTestIds.CONTAINER),
+          screen.queryByTestId(collectiblesTestIds.homeSection),
         ).not.toBeOnTheScreen();
       });
     } finally {

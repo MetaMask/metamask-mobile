@@ -2,8 +2,7 @@
 
 This branch introduces the Collectibles module, registers `CollectiblesController`
 in Engine and exposes one empty `CollectiblesHome` screen from the wallet homepage.
-Both the section title and its button open that screen; the header returns to the
-wallet. There are no tabs or bottom menu.
+Tapping the carousel section title opens that screen. Its back button returns to the wallet.
 
 ## Naming convention
 
@@ -22,11 +21,11 @@ compatibility layer.
 
 ## Feature flag
 
-The homepage section and navigator registration use `selectCollectiblesEnabledFlag`.
+The homepage section, Trade menu and navigator registration use `selectCollectiblesEnabled`.
 The version-gated remote flag `collectiblesEnabled` takes priority:
 
 ```json
-{ "enabled": true, "minimumVersion": "8.15.0" }
+{ "enabled": true, "minimumVersion": "8.23.0" }
 ```
 
 The shared validator checks the installed native app version. A valid disabled
@@ -92,7 +91,7 @@ artwork, signing, purchases and sales belong to subsequent PRs.
 
 Unit tests cover the controller, persisted-state forwarding, messenger, flag,
 Engine integration, standard storage discovery and state-log exclusion.
-Component-view tests exercise both homepage entry points and back navigation
+Component-view tests exercise navigation from the homepage title, back navigation and the live kill switch
 with real Redux state and navigation on iOS and Android.
 
 ```sh
@@ -108,7 +107,7 @@ and [component-view conventions](../../../../docs/testing/component-view-tests.m
 Apply these rules to Collectibles tests, including its homepage entry outside
 the module directory:
 
-- **Translated copy:** use `strings('collectibles.home_section.open_collectibles')`
+- **Translated copy:** use `strings('collectibles.title')`
   from `locales/i18n` when querying localized text, rather than repeating the
   English copy. This keeps tests aligned with translation keys when copy changes.
   Use exported test-ID constants for structural queries.

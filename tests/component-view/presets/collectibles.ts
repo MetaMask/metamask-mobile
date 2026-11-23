@@ -1,9 +1,7 @@
-import { createStateFixture } from '../stateFixture';
+import { initialStateWallet } from './wallet';
 
 /** Provider-free state for the Collectibles module entry points. */
 export const initialStateCollectibles = () =>
-  createStateFixture()
-    .withMinimalAnalyticsController()
-    .withRemoteFeatureFlags({
-      collectiblesEnabled: { enabled: true, minimumVersion: '0.0.1' },
-    });
+  initialStateWallet().withRemoteFeatureFlags({
+    collectiblesEnabled: { enabled: true, minimumVersion: '0.0.1' },
+  });

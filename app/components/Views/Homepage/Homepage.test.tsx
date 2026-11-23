@@ -222,14 +222,18 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   })),
 }));
 
-jest.mock('../../UI/Collectibles', () => ({
-  selectCollectiblesEnabledFlag: jest.fn(() => false),
+jest.mock('../../UI/Collectibles/hooks/useHomePacks', () => ({
+  useHomePacks: () => ({ isPending: true, refetch: jest.fn() }),
+}));
+
+jest.mock('../../UI/Collectibles/selectors/featureFlags', () => ({
+  selectCollectiblesEnabled: jest.fn(() => false),
 }));
 
 const mockCollectiblesSection = (enabled: boolean) => {
   jest
-    .requireMock('../../UI/Collectibles')
-    .selectCollectiblesEnabledFlag.mockReturnValue(enabled);
+    .requireMock('../../UI/Collectibles/selectors/featureFlags')
+    .selectCollectiblesEnabled.mockReturnValue(enabled);
 };
 
 jest.mock('../../UI/UiSlots/UiSlotRenderer', () => ({

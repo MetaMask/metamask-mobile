@@ -131,7 +131,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
 
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
-const mockSelectCollectiblesEnabledFlag = jest.fn();
+const mockSelectCollectiblesEnabled = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
 const mockSelectMarketInsightsPerpsEnabled = jest.fn();
 
@@ -176,8 +176,8 @@ jest.mock(
 
 jest.mock('../../UI/Collectibles', () => ({
   CollectiblesScreenStack: () => 'CollectiblesScreenStack',
-  selectCollectiblesEnabledFlag: (state: unknown) =>
-    mockSelectCollectiblesEnabledFlag(state),
+  selectCollectiblesEnabled: (state: unknown) =>
+    mockSelectCollectiblesEnabled(state),
 }));
 
 jest.mock('../../UI/Trending/contexts', () => {
@@ -1246,7 +1246,7 @@ describe('MainNavigator', () => {
     beforeEach(() => {
       mockSelectPerpsEnabledFlag.mockReturnValue(false);
       mockSelectPredictEnabledFlag.mockReturnValue(false);
-      mockSelectCollectiblesEnabledFlag.mockReturnValue(false);
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
     });
 
@@ -1349,7 +1349,7 @@ describe('MainNavigator', () => {
     });
 
     it('includes the Collectibles route when its feature flag is enabled', () => {
-      mockSelectCollectiblesEnabledFlag.mockReturnValue(true);
+      mockSelectCollectiblesEnabled.mockReturnValue(true);
 
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
@@ -1362,7 +1362,7 @@ describe('MainNavigator', () => {
     });
 
     it('excludes the Collectibles route when its feature flag is disabled', () => {
-      mockSelectCollectiblesEnabledFlag.mockReturnValue(false);
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
 
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,

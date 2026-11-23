@@ -13,11 +13,11 @@ export function createEngineStateHarness<Key extends keyof EngineState>(
   const previousState = mockEngine.state;
 
   return {
-    publish(state: EngineState[Key]) {
+    publish: (state: EngineState[Key]): void => {
       mockEngine.state = { ...mockEngine.state, [key]: state };
       store.dispatch(updateBgState({ key }));
     },
-    cleanup() {
+    cleanup: (): void => {
       mockEngine.state = previousState;
     },
   };
