@@ -109,9 +109,9 @@ const extractRequestFromEvent = (...args) => {
     if (typeof host === 'string' && typeof candidate.path === 'string') {
       return {
         method: String(candidate.method || 'GET').toUpperCase(),
-        scheme: String(candidate.proto ?? candidate.protocol ?? 'https:')
-          .replace(/:$/, '')
-          .replace(/^https$/, 'https'),
+        scheme: String(
+          candidate.proto ?? candidate.protocol ?? 'https:',
+        ).replace(/:$/, ''),
         host,
         path: candidate.path,
       };
