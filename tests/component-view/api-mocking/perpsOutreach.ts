@@ -8,6 +8,7 @@ import nock from 'nock';
 import { getTerminalOutreachUrl } from '../../../app/components/UI/Perps/constants/terminalApi';
 import type { PerpsOutreachBanner } from '../../../app/components/UI/Perps/services/perpsOutreachApi';
 import { restoreFetchPath, stubFetchPath } from './fetchStub';
+import { installDefaultApiMocks } from './defaults';
 import {
   clearAllNockMocks,
   disableNetConnect,
@@ -62,6 +63,8 @@ export function setupPerpsOutreachApiMock(
       .query(true)
       .reply(200, () => body);
   }
+
+  installDefaultApiMocks();
 
   return scope;
 }
