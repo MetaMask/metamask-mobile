@@ -28,7 +28,11 @@ import {
   useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import {
   TabsBar,
   type TabItem,
@@ -189,6 +193,23 @@ const RewardsMoneyDashboard: React.FC = () => {
     return {
       bottom: -maxShift,
       transform: [{ translateY: -shift }],
+    };
+  });
+  // The glass backdrop is translucent, so the title sliding under it would
+  // show through, blurred, beside the compact title. Fade it out over the
+  // same distance it collapses, so it is gone when the compact title appears.
+  const titleFadeStyle = useAnimatedStyle(() => {
+    const maxShift = titleSectionHeightSv.value;
+    if (!isGlassHeader || maxShift <= 0) {
+      return { opacity: 1 };
+    }
+    return {
+      opacity: interpolate(
+        scrollY.value,
+        [0, maxShift],
+        [1, 0],
+        Extrapolation.CLAMP,
+      ),
     };
   });
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -448,19 +469,21 @@ const RewardsMoneyDashboard: React.FC = () => {
               collapsingBlockStyle,
             ]}
           >
-            <TitleStandard
-              title={strings('rewards.main_title')}
-              twClassName="px-4 pt-2 pb-4"
-              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION}
-              onLayout={(event) => {
-                const height = event.nativeEvent.layout.height;
-                setTitleSectionHeight(height);
-                setMeasuredTitleSectionHeight((current) =>
-                  stableLayoutHeight(current, height),
-                );
-              }}
-              titleProps={{ accessibilityRole: 'header' }}
-            />
+            <Animated.View style={titleFadeStyle}>
+              <TitleStandard
+                title={strings('rewards.main_title')}
+                twClassName="px-4 pt-2 pb-4"
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION}
+                onLayout={(event) => {
+                  const height = event.nativeEvent.layout.height;
+                  setTitleSectionHeight(height);
+                  setMeasuredTitleSectionHeight((current) =>
+                    stableLayoutHeight(current, height),
+                  );
+                }}
+                titleProps={{ accessibilityRole: 'header' }}
+              />
+            </Animated.View>
             <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TABS}>
               <TabsBar
                 tabs={tabs}
