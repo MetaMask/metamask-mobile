@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
 import '../../../../../../tests/component-view/mocks';
+import { useEffect, useState } from 'react';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { createComponentViewQueryClient } from '../../../../../../tests/component-view/render';
-import NetInfo from '@react-native-community/netinfo';
 // eslint-disable-next-line import-x/no-namespace -- spy on the named `useNetInfo` export
 import * as NetInfoModule from '@react-native-community/netinfo';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
@@ -22,7 +21,7 @@ import {
   PREDICT_NEXT_FEED_IDS,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
-const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+const netInfoMock = NetInfoModule.default as unknown as typeof NetInfoMock;
 
 const {
   nflGames: NFL_GAMES_FEED_ID,
@@ -278,38 +277,68 @@ describe('PredictHome layout from the Venue catalog', () => {
     ]);
   });
 
-  it('waits for NetInfo to report before sizing the reads, with the catalog already cached', async () => {
-    // Real NetInfo reports `unknown` on its first render and the known state
-    // from an effect after commit; the catalog is cached from an earlier
-    // Predict screen.
+  /** Has `useNetInfo` report `unknown` until `answerAfterMs`, like the real
+   * hook waiting on the native module; never answers when undefined. */
+  const answerNetInfoAfter = (answerAfterMs: number | undefined) =>
+    jest.spyOn(NetInfoModule, 'useNetInfo').mockImplementation(() => {
+      const [state, setState] = useState<object>({ type: 'unknown' });
+      useEffect(() => {
+        if (answerAfterMs === undefined) {
+          return undefined;
+        }
+        const timer = setTimeout(
+          () =>
+            setState({
+              type: 'cellular',
+              isInternetReachable: true,
+              details: { cellularGeneration: '3g' },
+            }),
+          answerAfterMs,
+        );
+        return () => clearTimeout(timer);
+      }, []);
+      return state as ReturnType<typeof NetInfoModule.useNetInfo>;
+    });
+  /** A query client whose cache holds the catalog, as after an earlier
+   * Predict screen. */
+  const withCachedCatalog = async () => {
     const queryClient = createComponentViewQueryClient();
-    await queryClient.prefetchQuery({
+    await queryClient.fetchQuery({
       queryKey: ['PredictMarketDataService:getVenueCatalog', 'kalshi'],
     });
     messengerCall.mockClear();
-    // Like the real hook: `unknown` on the first render, then the known
-    // state from its subscribe effect.
-    jest.spyOn(NetInfoModule, 'useNetInfo').mockImplementation(() => {
-      const [state, setState] = useState<object>({ type: 'unknown' });
-      useEffect(
-        () =>
-          setState({
-            type: 'cellular',
-            isInternetReachable: true,
-            details: { cellularGeneration: '3g' },
-          }),
-        [],
-      );
-      return state as ReturnType<typeof NetInfoModule.useNetInfo>;
-    });
+    return queryClient;
+  };
+
+  it('waits for NetInfo to answer before sizing the reads, with the catalog already cached', async () => {
+    const queryClient = await withCachedCatalog();
+    answerNetInfoAfter(100);
 
     const view = renderPredictNext(false, { queryClient });
-    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
 
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1')),
+    ).toBeOnTheScreen();
     expect(feedCalls()).toEqual([
       [POLITICS_TRUMP_FEED_ID, { limit: 1 }],
       [NCAA_GAMES_FEED_ID, { limit: 2 }],
       [NFL_GAMES_FEED_ID, { limit: 4 }],
+    ]);
+  });
+
+  it('reads the default sizes when NetInfo never answers', async () => {
+    const queryClient = await withCachedCatalog();
+    answerNetInfoAfter(undefined);
+
+    const view = renderPredictNext(false, { queryClient });
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1')),
+    ).toBeOnTheScreen();
+    expect(feedCalls()).toEqual([
+      [POLITICS_TRUMP_FEED_ID, { limit: 2 }],
+      [NCAA_GAMES_FEED_ID, { limit: 4 }],
+      [NFL_GAMES_FEED_ID, { limit: 6 }],
     ]);
   });
 

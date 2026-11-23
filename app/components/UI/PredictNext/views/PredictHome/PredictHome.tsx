@@ -75,6 +75,9 @@ import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
 const NO_SECTIONS: readonly PredictHomeSection[] = [];
+/** How long Home waits for NetInfo's first answer before sizing its reads
+ * with the product default. */
+const NETWORK_TIER_GRACE_MS = 500;
 
 interface PredictHomeViewProps {
   venueId: PredictVenueId;
@@ -475,20 +478,25 @@ export const PredictHome = () => {
   const [hardwareTier] = useState(getHardwareTier);
   const networkTier = useNetworkTierState();
   // A read's size is part of its query key, so a change would refetch every
-  // section and drop its cards. The size is decided once per mount: from the
-  // first resolved network tier, or with the product default once the catalog
-  // is ready and NetInfo still has not resolved a commit after mount.
-  // `useNetInfo` reports `unknown` on its first render and the known state
-  // from its subscribe effect, which runs before the one below, so a cached
-  // catalog still waits for that state. Until the size is decided the reads
-  // are held and shown as loading.
-  const [hasMounted, setHasMounted] = useState(false);
-  useEffect(() => setHasMounted(true), []);
+  // section and drop its cards. The size is decided once per mount, from the
+  // first resolved network tier. `useNetInfo` reports `unknown` until NetInfo
+  // answers, which is at once when the app already knows the state and after
+  // a native round trip on a cold start. If NetInfo has not answered
+  // {@link NETWORK_TIER_GRACE_MS} after the catalog is ready, the product
+  // default applies. Until the size is decided the reads are held and shown
+  // as loading.
+  const [isGraceOver, setIsGraceOver] = useState(false);
   const [isConstrained, setIsConstrained] = useState<boolean>();
-  if (
-    isConstrained === undefined &&
-    (networkTier.isResolved || (hasMounted && capabilities.status === 'ready'))
-  ) {
+  const isWaitingForTier =
+    isConstrained === undefined && capabilities.status === 'ready';
+  useEffect(() => {
+    if (!isWaitingForTier) {
+      return undefined;
+    }
+    const timer = setTimeout(() => setIsGraceOver(true), NETWORK_TIER_GRACE_MS);
+    return () => clearTimeout(timer);
+  }, [isWaitingForTier]);
+  if (isConstrained === undefined && (networkTier.isResolved || isGraceOver)) {
     setIsConstrained(
       isHomeReadConstrained(
         hardwareTier,
