@@ -7,24 +7,28 @@ export const mockHomePacks: HomePack[] = [
     name: 'Lorem ipsum',
     subtitle: 'Dolor sit amet',
     counterLabel: '12,345',
+    priceLabel: '$25',
   },
   {
     code: 'lorem-2',
     name: 'Consectetur adipiscing',
     subtitle: 'Sed do eiusmod',
     counterLabel: '6,789',
+    priceLabel: '$10',
   },
   {
     code: 'lorem-3',
     name: 'Tempor incididunt',
     subtitle: 'Ut labore et dolore',
     counterLabel: '1,234',
+    priceLabel: '$50',
   },
   {
     code: 'lorem-4',
     name: 'Magna aliqua',
     subtitle: 'Ut enim ad minim',
     counterLabel: '567',
+    priceLabel: '$100',
   },
 ];
 
