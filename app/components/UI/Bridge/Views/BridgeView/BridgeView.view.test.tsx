@@ -210,7 +210,7 @@ describeForPlatforms('BridgeView', () => {
       ).toHaveDisplayValue('2');
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.EVERY_UNIT_BUTTON),
-      ).toHaveTextContent(strings('bridge.recurring.unit.week'));
+      ).toHaveTextContent(strings('bridge.recurring.unit_plural.week'));
       expect(
         getByTestId(RecurringScheduleFieldsSelectorsIDs.REPEAT_INPUT),
       ).toHaveDisplayValue('8');

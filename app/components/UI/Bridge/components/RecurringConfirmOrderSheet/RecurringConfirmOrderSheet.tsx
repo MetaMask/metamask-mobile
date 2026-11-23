@@ -108,6 +108,7 @@ function TokenAvatar({
         name={token.symbol}
         src={tokenImageSource}
         size={size}
+        twClassName={tokenImageSource ? 'bg-elevated1' : undefined}
         testID={testID}
       />
     </BadgeWrapper>
@@ -227,6 +228,10 @@ const RecurringConfirmOrderSheet = ({
   const hasInsufficientGas = !hasSufficientGas;
   const isDelegationFeeReady =
     delegationFee.status === 'ready' || delegationFee.status === 'not-required';
+  const showDelegationFee =
+    delegationFee.status === 'loading' ||
+    delegationFee.status === 'ready' ||
+    delegationFee.status === 'error';
   const isConfirmDisabled =
     hasInsufficientBalance ||
     hasInsufficientGas ||
@@ -367,7 +372,11 @@ const RecurringConfirmOrderSheet = ({
           testID={RecurringConfirmOrderSheetSelectorsIDs.RECEIVING}
           trailing={
             destToken ? (
-              <TokenAvatar token={destToken} size={AvatarTokenSize.Sm} />
+              <TokenAvatar
+                token={destToken}
+                size={AvatarTokenSize.Sm}
+                testID={RecurringConfirmOrderSheetSelectorsIDs.RECEIVING_TOKEN}
+              />
             ) : undefined
           }
         />
@@ -438,11 +447,14 @@ const RecurringConfirmOrderSheet = ({
                 name={nativeToken.symbol}
                 src={nativeTokenImageSource}
                 size={AvatarTokenSize.Xs}
+                twClassName={
+                  nativeTokenImageSource ? 'bg-elevated1' : undefined
+                }
               />
             ) : undefined
           }
         />
-        {delegationFee.status !== 'not-required' ? (
+        {showDelegationFee ? (
           <>
             <Box twClassName="mx-4 my-2 h-px bg-muted" />
             <ConfirmOrderRow
@@ -477,6 +489,9 @@ const RecurringConfirmOrderSheet = ({
                     name={nativeToken.symbol}
                     src={nativeTokenImageSource}
                     size={AvatarTokenSize.Xs}
+                    twClassName={
+                      nativeTokenImageSource ? 'bg-elevated1' : undefined
+                    }
                     testID={
                       RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN
                     }

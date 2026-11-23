@@ -423,7 +423,9 @@ describeForPlatforms('RecurringOrderDetailsView', () => {
       });
       if (hasWarningIcon) {
         expect(
-          row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+          within(
+            row.getByTestId(OpenOrderRowSelectorsIDs.TITLE_END_ACCESSORY),
+          ).getByLabelText(strings('bridge.recurring.skipped')),
         ).toBeOnTheScreen();
         expect(row.getByTestId(OpenOrderRowSelectorsIDs.SUBTITLE)).toHaveStyle({
           color: lightTheme.colors.warning.default,

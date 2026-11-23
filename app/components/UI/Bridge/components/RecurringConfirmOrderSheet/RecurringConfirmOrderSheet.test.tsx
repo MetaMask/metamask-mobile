@@ -1,5 +1,8 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import { ThemeProvider, Theme } from '@metamask/design-system-twrnc-preset';
+import { brandColor, darkTheme } from '@metamask/design-tokens';
 import { BigNumber } from 'ethers';
 import renderWithProvider, {
   DeepPartial,
@@ -118,6 +121,7 @@ function renderSheet({
   onDelegationFeeInfoPress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
+  theme = Theme.Light,
 }: {
   currentCurrency?: string;
   delegationFee?: EIP7702UpgradeFee;
@@ -131,6 +135,7 @@ function renderSheet({
   latestSourceBalance?:
     | { displayBalance: string; atomicBalance: BigNumber }
     | undefined;
+  theme?: Theme;
 } = {}) {
   jest.mocked(useBridgeSession).mockReturnValue({
     selectedTab: BridgeTabKey.Recurring,
@@ -142,20 +147,25 @@ function renderSheet({
     setQuoteParams: jest.fn(),
   });
   return renderWithProvider(
-    <RecurringConfirmOrderSheet
-      currentCurrency={currentCurrency}
-      delegationFee={delegationFee}
-      fiatToUsdRate={fiatToUsdRate}
-      isPriceRangeConversionReady
-      isSubmitting={isSubmitting}
-      onConfirm={onConfirm}
-      onEditSlippagePress={onEditSlippagePress}
-      onDelegationFeeInfoPress={onDelegationFeeInfoPress}
-      goBack={goBack}
-    />,
+    <ThemeProvider theme={theme}>
+      <RecurringConfirmOrderSheet
+        currentCurrency={currentCurrency}
+        delegationFee={delegationFee}
+        fiatToUsdRate={fiatToUsdRate}
+        isPriceRangeConversionReady
+        isSubmitting={isSubmitting}
+        onConfirm={onConfirm}
+        onEditSlippagePress={onEditSlippagePress}
+        onDelegationFeeInfoPress={onDelegationFeeInfoPress}
+        goBack={goBack}
+      />
+    </ThemeProvider>,
     { state },
   );
 }
+
+const flattenStyle = (node: { props: Record<string, unknown> }) =>
+  StyleSheet.flatten(node.props.style as StyleProp<ViewStyle>);
 
 describe('RecurringConfirmOrderSheet', () => {
   beforeEach(() => {
@@ -194,6 +204,25 @@ describe('RecurringConfirmOrderSheet', () => {
     expect(
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
+  });
+
+  it('paints token avatars with the sheet surface instead of white in dark mode', () => {
+    const { getByTestId } = renderSheet({ theme: Theme.Dark });
+
+    const receivingTokenStyle = flattenStyle(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING_TOKEN),
+    );
+    const delegationFeeTokenStyle = flattenStyle(
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE_TOKEN),
+    );
+
+    expect(receivingTokenStyle.backgroundColor).toBe(
+      darkTheme.colors.background.elevated1,
+    );
+    expect(receivingTokenStyle.backgroundColor).not.toBe(brandColor.white);
+    expect(delegationFeeTokenStyle.backgroundColor).toBe(
+      darkTheme.colors.background.elevated1,
+    );
   });
 
   it('shows the stored currency range with its selected token', () => {
@@ -721,6 +750,25 @@ describe('RecurringConfirmOrderSheet', () => {
       additionalGasFeeInHex: '0x123',
       quote: mockUseBridgeQuoteData.activeQuote,
     });
+  });
+
+  it('hides the delegation fee row and disables Confirm while checking whether an upgrade is required', () => {
+    const onConfirm = jest.fn();
+    const { getByTestId, queryByTestId } = renderSheet({
+      delegationFee: { status: 'checking', retry: jest.fn() },
+      onConfirm,
+    });
+
+    expect(
+      queryByTestId(RecurringConfirmOrderSheetSelectorsIDs.DELEGATION_FEE),
+    ).not.toBeOnTheScreen();
+    const confirmButton = getByTestId(
+      RecurringConfirmOrderSheetSelectorsIDs.CONFIRM_BUTTON,
+    );
+
+    expect(confirmButton.props.accessibilityState?.disabled).toBe(true);
+    fireEvent.press(confirmButton);
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 
   it('shows a skeleton and disables Confirm while estimating delegation fee', () => {
