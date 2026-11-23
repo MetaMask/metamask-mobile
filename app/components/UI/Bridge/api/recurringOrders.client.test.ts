@@ -42,7 +42,7 @@ const CREATE_REQUEST: CreateRecurringOrderRequest = {
   dest: {
     assetId: PREPARE_QUERY.destAssetId,
   },
-  slippage: 0.5,
+  priceTolerance: 0.5,
   schedule: {
     every: PREPARE_QUERY.every,
     unit: PREPARE_QUERY.unit,

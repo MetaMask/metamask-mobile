@@ -118,7 +118,6 @@ function renderSheet({
   isPriceRangeConversionReady = true,
   isSubmitting = false,
   onConfirm = jest.fn(),
-  onEditSlippagePress = jest.fn(),
   onDelegationFeeInfoPress = jest.fn(),
   state = buildState(),
   latestSourceBalance = SUFFICIENT_SOURCE_BALANCE,
@@ -131,7 +130,6 @@ function renderSheet({
   isPriceRangeConversionReady?: boolean;
   isSubmitting?: boolean;
   onConfirm?: () => void;
-  onEditSlippagePress?: () => void;
   onDelegationFeeInfoPress?: () => void;
   state?: DeepPartial<RootState>;
   latestSourceBalance?:
@@ -157,7 +155,6 @@ function renderSheet({
         isPriceRangeConversionReady={isPriceRangeConversionReady}
         isSubmitting={isSubmitting}
         onConfirm={onConfirm}
-        onEditSlippagePress={onEditSlippagePress}
         onDelegationFeeInfoPress={onDelegationFeeInfoPress}
         goBack={goBack}
       />
@@ -502,26 +499,24 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('shows slippage as Auto when unset', () => {
+  it('shows the default recurring price tolerance when unset', () => {
     const { getByTestId } = renderSheet();
 
     expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE),
-    ).toHaveTextContent(
-      `${strings('bridge.recurring.slippage_all_orders')}Auto`,
-    );
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE),
+    ).toHaveTextContent(`${strings('bridge.cost_tolerance')}3%`);
   });
 
-  it('shows the shared slippage percent when set', () => {
+  it('shows the recurring price tolerance override when set', () => {
     const { getByTestId } = renderSheet({
       state: buildState({
-        slippage: '2',
+        recurringPriceTolerance: '2',
       }),
     });
 
     expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE),
-    ).toHaveTextContent(`${strings('bridge.recurring.slippage_all_orders')}2%`);
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE),
+    ).toHaveTextContent(`${strings('bridge.cost_tolerance')}2%`);
   });
 
   it('shows the per-order network fee from the quote', () => {
@@ -585,7 +580,7 @@ describe('RecurringConfirmOrderSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps paying, receiving, and slippage populated while a quote is loading', () => {
+  it('keeps paying, receiving, and price tolerance populated while a quote is loading', () => {
     jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
       ...mockUseBridgeQuoteData,
       isLoading: true,
@@ -594,7 +589,7 @@ describe('RecurringConfirmOrderSheet', () => {
     }));
 
     const { getByTestId } = renderSheet({
-      state: buildState({ slippage: '2' }),
+      state: buildState({ recurringPriceTolerance: '2' }),
     });
 
     expect(
@@ -611,8 +606,8 @@ describe('RecurringConfirmOrderSheet', () => {
       getByTestId(RecurringConfirmOrderSheetSelectorsIDs.RECEIVING),
     ).toHaveTextContent(`${strings('bridge.recurring.receiving')}USDC`);
     expect(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE),
-    ).toHaveTextContent(`${strings('bridge.recurring.slippage_all_orders')}2%`);
+      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE),
+    ).toHaveTextContent(`${strings('bridge.cost_tolerance')}2%`);
   });
 
   it('omits the global expiry limit while a quote is loading', () => {
@@ -822,17 +817,6 @@ describe('RecurringConfirmOrderSheet', () => {
     ).toHaveTextContent(
       strings('bridge.no_mm_fee_disclaimer', { destTokenSymbol: 'mUSD' }),
     );
-  });
-
-  it('calls the slippage edit handler from the edit control', () => {
-    const onEditSlippagePress = jest.fn();
-    const { getByTestId } = renderSheet({ onEditSlippagePress });
-
-    fireEvent.press(
-      getByTestId(RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE_EDIT),
-    );
-
-    expect(onEditSlippagePress).toHaveBeenCalledTimes(1);
   });
 
   it('shows the estimated one-time delegation fee and native token', () => {

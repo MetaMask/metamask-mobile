@@ -194,7 +194,7 @@ function createMockRecurringOrder({
       repeatCount: REPEAT_COUNT,
     },
     priceRange,
-    slippage: 0.5,
+    priceTolerance: 0.5,
     timingData: {
       createdAt,
       startsAt: createdAt,

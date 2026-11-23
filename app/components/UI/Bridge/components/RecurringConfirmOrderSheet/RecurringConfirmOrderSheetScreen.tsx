@@ -8,11 +8,10 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import {
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
-  selectIsSlippageUserOverride,
   selectRecurring,
   selectDestToken,
   selectRecurringPriceRange,
-  selectSlippage,
+  selectRecurringPriceTolerance,
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -49,6 +48,7 @@ import {
   type RecurringOrderCreateFailurePhase,
   startRecurringOrderCreateTrace,
 } from '../../utils/recurringOrderTrace';
+import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -59,8 +59,11 @@ export const RecurringConfirmOrderSheetScreen = () => {
   const sourceAmount = useSelector(selectSourceAmount);
   const recurring = useSelector(selectRecurring);
   const priceRange = useSelector(selectRecurringPriceRange);
-  const slippage = useSelector(selectSlippage);
-  const isSlippageUserOverride = useSelector(selectIsSlippageUserOverride);
+  const recurringPriceTolerance = useSelector(selectRecurringPriceTolerance);
+  const defaultPriceTolerance = useSelector(
+    selectBridgeRecurringBuyDefaultPriceTolerance,
+  );
+  const priceTolerance = recurringPriceTolerance ?? defaultPriceTolerance;
   const getSelectedAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -90,8 +93,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
       recurring.everyUnit,
       recurring.repeatCount,
       priceRange,
-      slippage,
-      isSlippageUserOverride,
+      priceTolerance,
     ],
   );
   const canConvertStoredCurrency =
@@ -156,11 +158,6 @@ export const RecurringConfirmOrderSheetScreen = () => {
       const signedDelegations = await signLimitOrderDelegations(
         preparedDelegations.delegations,
       );
-      const customSlippage =
-        isSlippageUserOverride && slippage !== undefined
-          ? Number(slippage)
-          : undefined;
-
       failurePhase = 'create';
       await createRecurringOrder({
         accountAddress: delegationParams.accountAddress,
@@ -172,7 +169,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
         dest: {
           assetId: delegationParams.destAssetId,
         },
-        ...(customSlippage !== undefined ? { slippage: customSlippage } : {}),
+        priceTolerance: Number(priceTolerance),
         schedule: {
           every: delegationParams.every,
           unit: delegationParams.unit,
@@ -225,10 +222,9 @@ export const RecurringConfirmOrderSheetScreen = () => {
     createRecurringOrder,
     destToken,
     getSelectedAccountByScope,
-    isSlippageUserOverride,
     priceRange,
+    priceTolerance,
     recurring,
-    slippage,
     sourceAmount,
     sourceToken,
     trackEvent,
@@ -238,16 +234,6 @@ export const RecurringConfirmOrderSheetScreen = () => {
     sharedAdvancedOrderProperties,
     usdPriceRange,
   ]);
-
-  const handleEditSlippagePress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: sourceToken?.chainId,
-        destChainId: destToken?.chainId,
-      },
-    });
-  }, [destToken?.chainId, navigation, sourceToken?.chainId]);
 
   const handleDelegationFeeInfoPress = useCallback(() => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
@@ -263,7 +249,6 @@ export const RecurringConfirmOrderSheetScreen = () => {
       isPriceRangeConversionReady={isPriceRangeConversionReady}
       isSubmitting={isSubmitting}
       onConfirm={handleConfirm}
-      onEditSlippagePress={handleEditSlippagePress}
       onDelegationFeeInfoPress={handleDelegationFeeInfoPress}
       goBack={navigation.goBack}
     />

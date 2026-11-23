@@ -158,7 +158,6 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     isPriceRangeConversionReady,
     isSubmitting,
     onConfirm,
-    onEditSlippagePress,
     onDelegationFeeInfoPress,
     goBack,
   }: {
@@ -166,7 +165,6 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
     isPriceRangeConversionReady: boolean;
     isSubmitting: boolean;
     onConfirm: () => void;
-    onEditSlippagePress: () => void;
     onDelegationFeeInfoPress: () => void;
     goBack: () => void;
   }) => {
@@ -197,11 +195,6 @@ jest.mock('./RecurringConfirmOrderSheet', () => ({
           null,
           isSubmitting ? 'Submitting' : 'Confirm',
         ),
-      ),
-      ReactModule.createElement(
-        Pressable,
-        { testID: 'edit-slippage', onPress: onEditSlippagePress },
-        ReactModule.createElement(Text, null, 'Edit slippage'),
       ),
       ReactModule.createElement(
         Pressable,
@@ -346,20 +339,6 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     });
   });
 
-  it('opens the shared slippage modal above the confirmation modal', () => {
-    const { getByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId('edit-slippage'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.SWAP_DEFAULT_SLIPPAGE_MODAL,
-      params: {
-        sourceChainId: sourceToken.chainId,
-        destChainId: destToken.chainId,
-      },
-    });
-  });
-
   it('opens the delegation fee info modal above the confirmation modal', () => {
     const { getByTestId } = renderScreen();
 
@@ -446,6 +425,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       dest: {
         assetId: MOCK_RECURRING_PREPARE_QUERY.destAssetId,
       },
+      priceTolerance: 3,
       schedule: {
         every: MOCK_RECURRING_PREPARE_QUERY.every,
         unit: MOCK_RECURRING_PREPARE_QUERY.unit,
@@ -480,19 +460,18 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     );
   });
 
-  it('includes only a user-overridden slippage value', async () => {
+  it('includes the recurring price tolerance override', async () => {
     const { getByTestId } = renderScreen({
       recurring: configuredRecurringState,
       sourceAmount: '1',
-      slippage: '0.75',
-      isSlippageUserOverride: true,
+      recurringPriceTolerance: '0.75',
     });
 
     fireEvent.press(getByTestId('confirm-order'));
 
     await waitFor(() => {
       expect(mockCreateRecurringOrder).toHaveBeenCalledWith(
-        expect.objectContaining({ slippage: 0.75 }),
+        expect.objectContaining({ priceTolerance: 0.75 }),
       );
     });
   });

@@ -139,7 +139,7 @@ export const CreateRecurringOrderRequestSchema = type({
   dest: type({
     assetId: CaipAssetIdSchema,
   }),
-  slippage: optional(number()),
+  priceTolerance: number(),
   schedule: RecurringScheduleSchema,
   priceRange: optional(RecurringOrderPriceRangeSchema),
   delegations: array(PreparedLimitOrderDelegationSchema),
@@ -199,7 +199,7 @@ export const RecurringOrderSchema = type({
   totalAmount: AtomicStringSchema,
   schedule: RecurringScheduleSchema,
   priceRange: optional(RecurringOrderPriceRangeSchema),
-  slippage: optional(number()),
+  priceTolerance: number(),
   fillData: type({
     src: type({
       amount: AtomicStringSchema,

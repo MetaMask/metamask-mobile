@@ -30,7 +30,7 @@ import {
   selectDestToken,
   selectRecurringPriceRange,
   selectRecurringRepeatCount,
-  selectSlippage,
+  selectRecurringPriceTolerance,
   selectSourceAmount,
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -51,7 +51,6 @@ import {
 } from '../../utils/priceRange';
 import { parsePositiveInteger } from '../../utils/recurringSchedule';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
-import { getSlippageDisplayValue } from '../SlippageModal/utils';
 import MembershipVipBadge from '../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { RecurringConfirmOrderSheetSelectorsIDs } from './RecurringConfirmOrderSheet.testIds';
@@ -59,6 +58,8 @@ import type { RecurringConfirmOrderSheetProps } from './RecurringConfirmOrderShe
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
 import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
+import { selectBridgeRecurringBuyDefaultPriceTolerance } from '../../../../../selectors/bridge/featureFlags';
+import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
 
 const QUOTE_VALUE_SKELETON_WIDTH = 72;
 const QUOTE_VALUE_SKELETON_HEIGHT = 20;
@@ -124,7 +125,7 @@ function ConfirmOrderRow({
   isLoading,
   skeletonTestID,
 }: {
-  label: string;
+  label: ReactNode;
   value: string;
   testID: string;
   trailing?: ReactNode;
@@ -148,9 +149,13 @@ function ConfirmOrderRow({
         gap={2}
         twClassName="shrink"
       >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {label}
-        </Text>
+        {typeof label === 'string' ? (
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {label}
+          </Text>
+        ) : (
+          label
+        )}
         {labelAccessory}
       </Box>
       <Box
@@ -198,7 +203,6 @@ const RecurringConfirmOrderSheet = ({
   isPriceRangeConversionReady,
   isSubmitting,
   onConfirm,
-  onEditSlippagePress,
   onDelegationFeeInfoPress,
   goBack,
 }: RecurringConfirmOrderSheetProps) => {
@@ -209,7 +213,10 @@ const RecurringConfirmOrderSheet = ({
   const destToken = useSelector(selectDestToken);
   const priceRange = useSelector(selectRecurringPriceRange);
   const repeatCount = useSelector(selectRecurringRepeatCount);
-  const slippage = useSelector(selectSlippage);
+  const recurringPriceTolerance = useSelector(selectRecurringPriceTolerance);
+  const defaultPriceTolerance = useSelector(
+    selectBridgeRecurringBuyDefaultPriceTolerance,
+  );
   const { activeQuote, destTokenAmount, formattedQuoteData, isLoading } =
     useBridgeQuoteDataContext();
   const { latestSourceBalance } = useBridgeSession();
@@ -443,17 +450,15 @@ const RecurringConfirmOrderSheet = ({
         />
         <Box twClassName="mx-4 my-2 h-px bg-muted" />
         <ConfirmOrderRow
-          label={strings('bridge.recurring.slippage_all_orders')}
-          value={getSlippageDisplayValue(slippage)}
-          testID={RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE}
-          trailing={
-            <ButtonIcon
-              iconName={IconName.Edit}
-              size={ButtonIconSize.Sm}
-              onPress={onEditSlippagePress}
-              testID={RecurringConfirmOrderSheetSelectorsIDs.SLIPPAGE_EDIT}
+          label={
+            <LimitOrderCostToleranceTooltip
+              testID={
+                RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE_TOOLTIP
+              }
             />
           }
+          value={`${recurringPriceTolerance ?? defaultPriceTolerance}%`}
+          testID={RecurringConfirmOrderSheetSelectorsIDs.PRICE_TOLERANCE}
         />
         <ConfirmOrderRow
           label={strings('bridge.recurring.est_network_fee_per_order')}

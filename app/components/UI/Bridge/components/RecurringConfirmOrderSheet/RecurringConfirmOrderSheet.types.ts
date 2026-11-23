@@ -19,7 +19,6 @@ export interface RecurringConfirmOrderSheetProps {
   isPriceRangeConversionReady: boolean;
   isSubmitting: boolean;
   onConfirm: () => void;
-  onEditSlippagePress: () => void;
   onDelegationFeeInfoPress: () => void;
   goBack: () => void;
 }

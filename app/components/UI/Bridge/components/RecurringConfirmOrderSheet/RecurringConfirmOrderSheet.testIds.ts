@@ -19,8 +19,8 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
     'recurring-confirm-est-receiving-all-orders-token',
   EST_RECEIVING_ALL_ORDERS_SKELETON:
     'recurring-confirm-est-receiving-all-orders-skeleton',
-  SLIPPAGE: 'recurring-confirm-slippage',
-  SLIPPAGE_EDIT: 'recurring-confirm-slippage-edit',
+  PRICE_TOLERANCE: 'recurring-confirm-price-tolerance',
+  PRICE_TOLERANCE_TOOLTIP: 'recurring-confirm-price-tolerance-tooltip',
   NETWORK_FEE: 'recurring-confirm-network-fee',
   NETWORK_FEE_SKELETON: 'recurring-confirm-network-fee-skeleton',
   DELEGATION_FEE: 'recurring-confirm-delegation-fee',
