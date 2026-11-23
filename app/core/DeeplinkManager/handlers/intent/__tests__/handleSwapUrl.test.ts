@@ -8,7 +8,10 @@ import {
   setDestToken,
   setSourceToken,
 } from '../../../../redux/slices/bridge';
-import { BridgeViewMode } from '../../../../../components/UI/Bridge/types';
+import {
+  BridgeToken,
+  BridgeViewMode,
+} from '../../../../../components/UI/Bridge/types';
 import { BridgeTabKey } from '../../../../../components/UI/Bridge/Views/BridgeView/BridgeView.constants';
 import { SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES } from '../../../../../components/UI/Bridge/constants/limitOrders';
 import { fetchAssetMetadata } from '../../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
@@ -113,7 +116,7 @@ const availableNetworkConfig = {
 };
 
 describe('handleSwapUrl', () => {
-  const expectedSourceToken = {
+  const expectedSourceToken: BridgeToken = {
     address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
     chainId: '0x1',
     decimals: 6,
@@ -121,7 +124,7 @@ describe('handleSwapUrl', () => {
     symbol: 'USDC',
     image: 'https://example.com/usdc.png',
   };
-  const expectedDestToken = {
+  const expectedDestToken: BridgeToken = {
     address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
     chainId: '0x1',
     decimals: 6,
