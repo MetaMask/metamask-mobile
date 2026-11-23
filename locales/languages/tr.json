@@ -5482,19 +5482,6 @@
     "accounts": "hesap",
     "show_accounts": "Göster",
     "hide_accounts": "Gizle",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Test Ağı Hesabı",
-      "bitcoin_account_name": "Bitcoin Hesabı",
-      "bitcoin_signet_account_name": "Bitcoin Signet Hesabı",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest Hesabı",
-      "solana_devnet_account_name": "Solana Devnet Hesabı",
-      "solana_testnet_account_name": "Solana Test Ağı Hesabı",
-      "solana_account_name": "Solana Hesabı",
-      "tron_account_name": "Tron Hesabı",
-      "tron_nile_account_name": "Tron Nile Hesabı",
-      "tron_shasta_account_name": "Tron Shasta Hesabı",
-      "stellar_account_name": "Stellar Hesabı"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} hesabı oluşturulamadı"
     },

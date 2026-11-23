@@ -5482,19 +5482,6 @@
     "accounts": "账户",
     "show_accounts": "显示",
     "hide_accounts": "隐藏",
-    "labels": {
-      "bitcoin_testnet_account_name": "比特币测试网账户",
-      "bitcoin_account_name": "比特币账户",
-      "bitcoin_signet_account_name": "比特币 Signet 账户",
-      "bitcoin_regtest_account_name": "比特币 Regtest 账户",
-      "solana_devnet_account_name": "Solana 开发网账户",
-      "solana_testnet_account_name": "Solana 测试网账户",
-      "solana_account_name": "Solana 账户",
-      "tron_account_name": "Tron 账户",
-      "tron_nile_account_name": "Tron Nile 账户",
-      "tron_shasta_account_name": "Tron Shasta 账户",
-      "stellar_account_name": "Stellar 账户"
-    },
     "error_messages": {
       "failed_to_create_account": "创建 {{clientType}} 账户失败"
     },

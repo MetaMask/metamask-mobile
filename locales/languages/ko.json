@@ -5482,19 +5482,6 @@
     "accounts": "계정",
     "show_accounts": "보이기",
     "hide_accounts": "숨기기",
-    "labels": {
-      "bitcoin_testnet_account_name": "비트코인 테스트넷 계정",
-      "bitcoin_account_name": "비트코인 계정",
-      "bitcoin_signet_account_name": "비트코인 Signet 계정",
-      "bitcoin_regtest_account_name": "비트코인 Regtest 계정",
-      "solana_devnet_account_name": "솔라나 데브넷 계정",
-      "solana_testnet_account_name": "솔라나 테스트넷 계정",
-      "solana_account_name": "솔라나 계정",
-      "tron_account_name": "Tron 계정",
-      "tron_nile_account_name": "Tron Nile 계정",
-      "tron_shasta_account_name": "Tron Shasta 계정",
-      "stellar_account_name": "Stellar 계정"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} 계정 생성 실패"
     },

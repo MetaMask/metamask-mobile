@@ -5482,19 +5482,6 @@
     "accounts": "アカウント",
     "show_accounts": "表示",
     "hide_accounts": "非表示",
-    "labels": {
-      "bitcoin_testnet_account_name": "ビットコインテストネットアカウント",
-      "bitcoin_account_name": "ビットコインアカウント",
-      "bitcoin_signet_account_name": "ビットコインSignetアカウント",
-      "bitcoin_regtest_account_name": "ビットコインRegtestアカウント",
-      "solana_devnet_account_name": "Solana Devnetアカウント",
-      "solana_testnet_account_name": "Solanaテストネットアカウント",
-      "solana_account_name": "Solanaアカウント",
-      "tron_account_name": "Tronアカウント",
-      "tron_nile_account_name": "Tron Nileアカウント",
-      "tron_shasta_account_name": "Tron Shastaアカウント",
-      "stellar_account_name": "Stellarアカウント"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}}アカウントを作成できませんでした"
     },

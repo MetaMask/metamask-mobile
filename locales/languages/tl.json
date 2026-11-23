@@ -5482,19 +5482,6 @@
     "accounts": "mga account",
     "show_accounts": "Ipakita",
     "hide_accounts": "Itago",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin Testnet Account",
-      "bitcoin_account_name": "Bitcoin Account",
-      "bitcoin_signet_account_name": "Bitcoin Signet Account",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
-      "solana_devnet_account_name": "Solana Devnet Account",
-      "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account",
-      "tron_account_name": "Account sa Tron",
-      "tron_nile_account_name": "Account sa Tron Nile",
-      "tron_shasta_account_name": "Account sa Tron Shasta",
-      "stellar_account_name": "Stellar Account"
-    },
     "error_messages": {
       "failed_to_create_account": "Nabigo na gumawa ng {{clientType}} account"
     },

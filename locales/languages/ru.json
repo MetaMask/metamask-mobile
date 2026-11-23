@@ -5482,19 +5482,6 @@
     "accounts": "счета",
     "show_accounts": "Показать",
     "hide_accounts": "Скрыть",
-    "labels": {
-      "bitcoin_testnet_account_name": "Счет тестнета Биткойн",
-      "bitcoin_account_name": "Счет Биткойн",
-      "bitcoin_signet_account_name": "Счет Bitcoin Signet",
-      "bitcoin_regtest_account_name": "Счет Bitcoin Regtest",
-      "solana_devnet_account_name": "Счет девнета Solana",
-      "solana_testnet_account_name": "Счет тестнета Solana",
-      "solana_account_name": "Счет Solana",
-      "tron_account_name": "Счет Tron",
-      "tron_nile_account_name": "Счет Tron Nile",
-      "tron_shasta_account_name": "Счет Tron Shasta",
-      "stellar_account_name": "Счет Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Не удалось создать счет {{clientType}}"
     },

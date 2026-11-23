@@ -5482,19 +5482,6 @@
     "accounts": "cuentas",
     "show_accounts": "Mostrar",
     "hide_accounts": "Ocultar",
-    "labels": {
-      "bitcoin_testnet_account_name": "Cuenta de red de prueba de Bitcoin",
-      "bitcoin_account_name": "Cuenta de Bitcoin",
-      "bitcoin_signet_account_name": "Cuenta Signet de Bitcoin",
-      "bitcoin_regtest_account_name": "Cuenta Regtest de Bitcoin",
-      "solana_devnet_account_name": "Cuenta DevNet de Solana",
-      "solana_testnet_account_name": "Cuenta de red de pruebas de Solana",
-      "solana_account_name": "Cuenta de Solana",
-      "tron_account_name": "Cuenta de Tron",
-      "tron_nile_account_name": "Cuenta de Tron Nile",
-      "tron_shasta_account_name": "Cuenta de Tron Shasta",
-      "stellar_account_name": "Cuenta de Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "No se pudo crear la cuenta de {{clientType}}"
     },

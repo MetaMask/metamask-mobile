@@ -5482,19 +5482,6 @@
     "accounts": "tài khoản",
     "show_accounts": "Hiển thị",
     "hide_accounts": "Ẩn",
-    "labels": {
-      "bitcoin_testnet_account_name": "Tài khoản Mạng thử nghiệm Bitcoin",
-      "bitcoin_account_name": "Tài khoản Bitcoin",
-      "bitcoin_signet_account_name": "Tài khoản Bitcoin Signet",
-      "bitcoin_regtest_account_name": "Tài khoản Bitcoin Regtest",
-      "solana_devnet_account_name": "Tài khoản Solana Devnet",
-      "solana_testnet_account_name": "Tài khoản Mạng thử nghiệm Solana",
-      "solana_account_name": "Tài khoản Solana",
-      "tron_account_name": "Tài khoản Tron",
-      "tron_nile_account_name": "Tài khoản Tron Nile",
-      "tron_shasta_account_name": "Tài khoản Tron Shasta",
-      "stellar_account_name": "Tài khoản Stellar"
-    },
     "error_messages": {
       "failed_to_create_account": "Tạo tài khoản {{clientType}} thất bại"
     },

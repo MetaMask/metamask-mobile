@@ -5482,19 +5482,6 @@
     "accounts": "एकाउंट्स",
     "show_accounts": "दिखाएं",
     "hide_accounts": "छुपाएं",
-    "labels": {
-      "bitcoin_testnet_account_name": "Bitcoin टैस्टनेट (testnet) अकाउंट",
-      "bitcoin_account_name": "Bitcoin अकाउंट",
-      "bitcoin_signet_account_name": "Bitcoin Signet अकाउंट",
-      "bitcoin_regtest_account_name": "Bitcoin Regtest अकाउंट",
-      "solana_devnet_account_name": "Solana Devnet अकाउंट",
-      "solana_testnet_account_name": "Solana टैस्टनेट (testnet) अकाउंट",
-      "solana_account_name": "Solana अकाउंट",
-      "tron_account_name": "Tron अकाउंट",
-      "tron_nile_account_name": "Tron Nile अकाउंट",
-      "tron_shasta_account_name": "Tron Shasta अकाउंट",
-      "stellar_account_name": "स्टेलर अकाउंट"
-    },
     "error_messages": {
       "failed_to_create_account": "{{clientType}} अकाउंट बनाने में विफल रहे"
     },
