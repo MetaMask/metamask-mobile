@@ -227,16 +227,19 @@
   .tip { color: var(--color-text-muted); font-size: 11.5px; }
 
   /* activity strip: requests over time, stacked by ownership, with your markers as flags */
-  .strip { padding: 16px 16px 4px; background: var(--color-background-alternative); border-bottom: 1px solid var(--color-border-muted); }
+  .strip { overflow: hidden; padding: 16px 16px 4px; background: var(--color-background-alternative); border-bottom: 1px solid var(--color-border-muted); }
   .stripin { position: relative; height: 40px; }
   .bars { display: flex; align-items: flex-end; gap: 2px; height: 100%; }
   .bk { flex: 1; height: 100%; display: flex; flex-direction: column-reverse; cursor: pointer; border-radius: var(--r-ctl); }
   .bk:hover { background: var(--color-background-hover); }
   .bk span { display: block; min-height: 3px; border-radius: var(--r-ctl); margin-top: 1px; }
   .bk .ours { background: var(--cat-ours); } .bk .third { background: var(--cat-third); } .bk .unowned { background: var(--cat-unowned); }
-  .axis { display: flex; justify-content: space-between; font-size: 10px; color: var(--color-text-muted); padding-top: 3px; font-family: var(--font-family-mono); }
-  .stripin .mk { position: absolute; top: -6px; bottom: 0; width: 1px; background: var(--brand-colors-orange-orange300); pointer-events: none; }
-  .stripin .mk b { position: absolute; top: -9px; left: 3px; font-size: 9.5px; font-weight: 600; white-space: nowrap; color: var(--brand-colors-orange-orange300); background: var(--color-background-alternative); padding: 0 4px; border-radius: var(--r-ctl); }
+  .axis { position: relative; height: 16px; font-size: 10px; color: var(--color-text-muted); padding-top: 3px; font-family: var(--font-family-mono); }
+  .axis > span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+  .axis > span.l { transform: none; } .axis > span.r { transform: translateX(-100%); }
+  .axis > .brk-l { font-style: italic; color: var(--color-text-alternative); }
+  .stripin .mk { position: absolute; top: calc(-6px - var(--ln, 0) * 17px); bottom: 0; width: 1px; background: var(--brand-colors-orange-orange300); pointer-events: none; }
+  .stripin .mk b { position: absolute; top: -9px; left: 3px; max-width: 190px; overflow: hidden; text-overflow: ellipsis; font-size: 9.5px; font-weight: 600; white-space: nowrap; color: var(--brand-colors-orange-orange300); background: var(--color-background-alternative); padding: 0 4px; border-radius: var(--r-ctl); }
 
   /* waterfall column */
   .wf { position: relative; height: 22px; border-radius: var(--r-ctl); background: var(--color-background-section); overflow: hidden; }
@@ -323,6 +326,8 @@
   .dupe-pill.l2 { color: var(--brand-colors-orange-orange300); background: #ff794033; }
   .dupe-pill.l3 { color: var(--color-error-default); background: var(--color-error-muted); }
   .st.mini { min-width: 0; padding: 0 7px; font-size: 11px; }
+  .st[data-status] { cursor: pointer; transition: filter .12s; }
+  .st[data-status]:hover { filter: brightness(1.25); }
   .mult { color: var(--color-text-muted); font-size: 11px; margin: 0 7px 0 3px; }
   .lane { position: relative; height: 22px; border-radius: var(--r-ctl); background: var(--color-background-section); overflow: hidden; }
   .lane .mk { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--brand-colors-orange-orange300); opacity: .45; }
@@ -403,11 +408,14 @@
   .stripin .band { position: absolute; top: 0; bottom: 0; pointer-events: none; border-radius: var(--r-ctl); background: color-mix(in srgb, var(--pc) 9%, transparent); border-left: 1px solid color-mix(in srgb, var(--pc) 55%, transparent); }
   .stripin .band.on { background: color-mix(in srgb, var(--pc) 22%, transparent); }
   .stripin .bars { position: relative; z-index: 1; }
-  .strip.has-mk { padding-top: 34px; }
+  .strip.has-mk { padding-top: calc(16px + var(--rows, 2) * 17px); }
   .stripin .mk { background: var(--pc, var(--brand-colors-orange-orange300)); z-index: 2; }
   .stripin .mk b { color: var(--pc, var(--brand-colors-orange-orange300)); pointer-events: auto; cursor: pointer; border: 1px solid color-mix(in srgb, var(--pc, #ff7940) 40%, transparent); }
   .stripin .mk b:hover { background: color-mix(in srgb, var(--pc) 20%, var(--color-background-alternative)); }
-  .stripin .mk.alt { top: -22px; } .stripin .mk.alt b { top: -2px; }
+  .stripin .mk.flip b { left: auto; right: 3px; } /* near the right edge the label sits to the left of its line */
+  .stripin .mk.dot b { width: 7px; height: 7px; padding: 0; top: -3px; left: -3px; border: 0; border-radius: 50%; background: var(--pc); }
+  /* a stretch of idle time that was shortened: hatched, on the strip, the Waterfall column and the call lanes */
+  .stripin .brk, .wf .brk, .lane .brk { position: absolute; top: 0; bottom: 0; pointer-events: none; border-left: 1px dashed var(--color-border-muted); border-right: 1px dashed var(--color-border-muted); background: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--color-text-muted) 22%, transparent) 4px 5px); }
 
   /* marker popover */
   .mkpop { display: none; position: absolute; top: calc(100% + 6px); right: 12px; z-index: 31; width: min(460px, calc(100vw - 24px)); max-height: min(660px, calc(100vh - 90px)); overflow: auto; padding: 12px 14px 14px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); box-shadow: 0 16px 40px rgba(0, 0, 0, .65); }
@@ -842,22 +850,6 @@
   </div>
   <label class="field search"><svg class="ic"><use href="#i-search"/></svg><input id="filter" aria-label="Filter requests" placeholder="Filter host, path, call site, team…" /><kbd aria-hidden="true">/</kbd></label>
   <span class="spacer"></span>
-  <button id="markBtn" class="btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="mkpop" title="Markers: label moments in the app to split the capture into phases (M)"><svg class="ic"><use href="#i-flag"/></svg><span class="lbl">Markers</span><b class="badge-n" id="markCount" hidden>0</b></button>
-  <div class="mkpop" id="mkpop" role="dialog" aria-label="Markers">
-    <h2><svg class="ic"><use href="#i-flag"/></svg>Markers<span class="sp"></span><button id="mkHelp" title="How markers work"><svg class="ic"><use href="#i-help"/></svg>How It Works</button><button id="mkClose" class="icon-btn sm" aria-label="Close markers"><svg class="ic"><use href="#i-close"/></svg></button></h2>
-    <div class="mkadd">
-      <label class="field"><svg class="ic"><use href="#i-flag"/></svg><input id="marker" aria-label="Marker label" maxlength="120" autocomplete="off" placeholder="What just happened? Press Enter" /></label>
-      <select id="mkWhen" aria-label="When it happened" title="When did it happen? Backdate it if you noticed late.">
-        <option value="0">Now</option><option value="5000">5s ago</option><option value="10000">10s ago</option><option value="30000">30s ago</option><option value="60000">1m ago</option>
-      </select>
-      <button id="mkAdd" class="go icon-btn" aria-label="Add marker" title="Add marker"><svg class="ic"><use href="#i-plus"/></svg></button>
-    </div>
-    <div class="mk-h">Quick Add</div>
-    <div class="presets" id="mkPresets"></div>
-    <div class="mk-h">This Capture</div>
-    <div id="mkList"></div>
-    <div class="mk-foot"><kbd class="k">M</kbd> opens this panel anywhere · <kbd class="k">Enter</kbd> adds · <kbd class="k">Esc</kbd> closes</div>
-  </div>
   <button id="helpBtn" class="btn icon-btn" aria-haspopup="dialog" aria-label="Help" title="Guide: how Foxy and markers work (?)"><svg class="ic"><use href="#i-help"/></svg></button>
   <div class="actions" id="actions" role="group" aria-label="Actions">
     <div class="menu-row"><span class="mr-l" id="tfLabel">Time Format</span><div class="tfmt" id="timeSeg" role="group" aria-labelledby="tfLabel"></div></div>
@@ -883,9 +875,24 @@
   <button class="tog" data-flag="dupes" title="Identical request made more than once: same method, URL and (for POST/PUT/PATCH) body"><i class="dot dup"></i>Duplicates <span class="n"></span></button>
   <span id="ownerPill"></span>
   <span id="phasePill"></span>
-  <span id="sortPill"></span>
   <span id="advPills" class="advpills"></span>
   <span class="spacer"></span>
+  <button id="markBtn" class="btn flt-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="mkpop" title="Markers: label moments in the app to split the capture into phases (M)"><svg class="ic"><use href="#i-flag"/></svg><span class="lbl">Markers</span><b class="badge-n" id="markCount" hidden>0</b></button>
+  <div class="mkpop" id="mkpop" role="dialog" aria-label="Markers">
+    <h2><svg class="ic"><use href="#i-flag"/></svg>Markers<span class="sp"></span><button id="mkHelp" title="How markers work"><svg class="ic"><use href="#i-help"/></svg>How It Works</button><button id="mkClose" class="icon-btn sm" aria-label="Close markers"><svg class="ic"><use href="#i-close"/></svg></button></h2>
+    <div class="mkadd">
+      <label class="field"><svg class="ic"><use href="#i-flag"/></svg><input id="marker" aria-label="Marker label" maxlength="120" autocomplete="off" placeholder="What just happened? Press Enter" /></label>
+      <select id="mkWhen" aria-label="When it happened" title="When did it happen? Backdate it if you noticed late.">
+        <option value="0">Now</option><option value="5000">5s ago</option><option value="10000">10s ago</option><option value="30000">30s ago</option><option value="60000">1m ago</option>
+      </select>
+      <button id="mkAdd" class="go icon-btn" aria-label="Add marker" title="Add marker"><svg class="ic"><use href="#i-plus"/></svg></button>
+    </div>
+    <div class="mk-h">Quick Add</div>
+    <div class="presets" id="mkPresets"></div>
+    <div class="mk-h">This Capture</div>
+    <div id="mkList"></div>
+    <div class="mk-foot"><kbd class="k">M</kbd> opens this panel anywhere · <kbd class="k">Enter</kbd> adds · <kbd class="k">Esc</kbd> closes</div>
+  </div>
   <button id="fltBtn" class="btn flt-btn" type="button" aria-haspopup="dialog" aria-expanded="false" aria-controls="fltpop" title="Filters: narrow the capture by code owner, status, method, host or speed (F)"><svg class="ic"><use href="#i-filter"/></svg><span class="lbl">Filters</span><b class="badge-n" id="fltCount" hidden>0</b></button>
   <div class="mkpop fpop" id="fltpop" role="dialog" aria-label="Filters">
     <h2><svg class="ic"><use href="#i-filter"/></svg>Filters<span class="sp"></span><button id="fltClear" type="button" title="Remove every filter in this panel">Clear All</button><button id="fltClose" class="icon-btn sm" type="button" aria-label="Close filters"><svg class="ic"><use href="#i-close"/></svg></button></h2>
@@ -911,13 +918,11 @@
 // ============================================================================
 const reqs = new Map(); let markers = []; let tab = 'timeline'; let filter = ''; let open = null;
 const ui = { cat: 'all', errors: false, dupes: false, owner: null, phase: null };
-// Column sorting, per tab. null is the tab's natural order: the Timeline is newest first (grouped into phases), Endpoints is first call first.
+// Column sorting, per tab. null is the tab's natural order: the Timeline is newest first (grouped into phases, and still grouped when sorted), Endpoints is first call first.
 // A sort is { id: column, dir: 1 (ascending) | -1 (descending) }.
 const sorts = { timeline: null, endpoints: null };
 const NATURAL_SORT = { timeline: { id: 't', dir: -1 }, endpoints: { id: 'first', dir: 1 } };
 const sortOf = (which) => sorts[which] ?? { ...NATURAL_SORT[which], implicit: true };
-/** The Timeline keeps its phases while sorted by time (# or Time, either way round); any other column lists requests flat. */
-const phasesHidden = () => Boolean(sorts.timeline) && sorts.timeline.id !== 'id' && sorts.timeline.id !== 't';
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 /** Sorts rows by a column's `sort` key. Rows with no value sit last in either direction; ties fall back to `tie`. */
 function sortRows(rows, sort, def, tie) {
@@ -956,7 +961,7 @@ const adv = {
 };
 const fq = { team: '', view: '', host: '' }; // search text inside the long lists
 let myTeams = new Set(); try { myTeams = new Set(JSON.parse(localStorage.getItem('foxy.myteams.v1')) || []); } catch {}
-let dupeCounts = new Map(); let span = 1; let wfMarkers = '';
+let dupeCounts = new Map(); let span = 1; let wfMarkers = ''; let axis = null; // axis: see buildAxis()
 let openEp = null; let pendingEp = false;
 const detailCache = new Map();
 const $ = (s) => document.querySelector(s);
@@ -991,9 +996,20 @@ function renderConn() {
   c.title = title;
   c.innerHTML = `${icon(ic)}${badge}`;
 }
+/** The logo fox freezes on whatever frame he is on while the view is paused and looks around again on play. */
+const fox = {
+  list: [], // Rive instances, filled in by foxLogo() once the runtime has loaded
+  reduced: window.matchMedia('(prefers-reduced-motion: reduce)').matches, // those users never get the looping animation
+  set(playing) {
+    for (const r of fox.list) {
+      try { if (!playing) r.pause(); else if (!fox.reduced) r.play(); } catch { /* the logo is decoration: never let it break pausing */ }
+    }
+  },
+};
 function setPaused(on) {
   if (on) currentPause = { id: ++pauseSeq, at: Date.now(), endedAt: null };
   paused = on;
+  fox.set(!on);
   if (!on) {
     const p = currentPause; currentPause = null;
     const batch = pending.splice(0);
@@ -1023,10 +1039,76 @@ function tf(ms, dec) {
   if (!m) return `${rem.toFixed(d)}s`;
   return h ? `${h}h ${p2(mm)}m ${p2(Math.round(rem))}s` : `${m}m ${rem.toFixed(d)}s`;
 }
-const axisLabels = () => [0, 1, 2, 3, 4].map((k) => `<span>${tf((span * k) / 4, span < 20000 ? 1 : 0)}</span>`).join('');
+/**
+ * The shared time axis. Maps capture time (ms) to a position (0 to 100 %) on the activity strip, the Waterfall column and the call lanes.
+ * It is linear, except that a long stretch with no request running is shrunk to a short break, so activity that is bunched up in a long
+ * capture still gets the whole width. That only happens when it frees up a lot of room (a quarter of the width or more), so an ordinary
+ * capture is drawn exactly to scale. `busy` is a list of [start, end] spans in ms; `from` and `to` are the range being shown: the whole
+ * capture, or just one phase when it is filtered to.
+ */
+function buildAxis(busy, from, to) {
+  to = Math.max(to, from + 1);
+  const len = to - from, idle = Math.max(15000, len * 0.05); // a gap longer than this counts as idle time
+  const clamp = (t) => Math.min(to, Math.max(from, t));
+  const spans = busy.map(([a, b]) => [clamp(a), clamp(Math.max(a, b))]);
+  spans.push([from, from], [to, to]);
+  spans.sort((p, q) => p[0] - q[0]);
+  const clusters = []; // stretches of activity: anything closer together than `idle` is one stretch
+  for (const [a, b] of spans) {
+    const last = clusters[clusters.length - 1];
+    if (last && a - last[1] <= idle) last[1] = Math.max(last[1], b); else clusters.push([a, b]);
+  }
+  const active = clusters.reduce((sum, [a, b]) => sum + (b - a), 0);
+  const brk = Math.min(30000, Math.max(800, active * 0.04)); // how much room a break takes, in the same units as time
+  let saved = 0; for (let i = 1; i < clusters.length; i++) saved += clusters[i][0] - clusters[i - 1][1] - brk;
+  if (clusters.length < 2 || saved < len * 0.25) {
+    return { from, to, breaks: [], x: (t) => ((clamp(t) - from) / len) * 100, inv: (p) => from + (p / 100) * len };
+  }
+  const segs = []; let v = 0;
+  clusters.forEach(([a, b], i) => {
+    if (i) { segs.push({ idle: true, a: clusters[i - 1][1], b: a, v0: v, w: brk }); v += brk; }
+    const w = Math.max(b - a, 1); segs.push({ idle: false, a, b, v0: v, w }); v += w;
+  });
+  const total = v;
+  const at = (t) => { let g = segs[0]; for (const c of segs) { if (c.a <= t) g = c; else break; } return g; };
+  return {
+    from, to,
+    breaks: segs.filter((g) => g.idle).map((g) => ({ x0: (g.v0 / total) * 100, x1: ((g.v0 + g.w) / total) * 100, from: g.a, to: g.b })),
+    x: (t) => { t = clamp(t); const g = at(t); return ((g.v0 + (g.idle ? ((t - g.a) / (g.b - g.a)) * g.w : t - g.a)) / total) * 100; },
+    inv: (p) => { const q = (p / 100) * total; let g = segs[0]; for (const c of segs) { if (c.v0 <= q) g = c; else break; } return g.idle ? g.b : Math.min(g.b, g.a + (q - g.v0)); },
+  };
+}
+/**
+ * Time labels under the strip: five ticks across it, plus a "⋯ 1h 12m" label on each break. The end ticks and the breaks are placed first;
+ * a label that would touch one already placed is dropped (a break that is too narrow for its text shows just "⋯", its hatching has the tooltip).
+ */
+function axisLabels(W = $('#stripin')?.clientWidth || 600) {
+  const dec = axis.to - axis.from < 20000 ? 1 : 0, taken = [];
+  const textW = (text) => text.length * 6.4 + 8, side = (p) => (p < 4 ? 'l' : p > 96 ? 'r' : '');
+  const fit = (p, w) => { // the span this label would cover, in px, or null when it overlaps one already placed
+    const x = (p / 100) * W, left = side(p) === 'l' ? x : side(p) === 'r' ? x - w : x - w / 2, right = left + w;
+    if (taken.some(([l, r]) => left < r + 6 && right > l - 6)) return null;
+    taken.push([left, right]); return true;
+  };
+  const out = [];
+  const tick = (p) => { const t = axis.inv(p), x = axis.x(t), text = tf(t, dec); if (fit(x, textW(text))) out.push({ x, html: `<span class="${side(x)}" style="left:${x.toFixed(2)}%">${text}</span>` }); };
+  tick(0); tick(100);
+  for (const g of axis.breaks) {
+    const p = (g.x0 + g.x1) / 2, long = tf(g.to - g.from, 0), tip = esc(`${long} with nothing requested, shown shortened (${tf(g.from, 0)} to ${tf(g.to, 0)})`);
+    for (const text of [`⋯ ${long}`, '⋯']) if (fit(p, textW(text))) { out.push({ x: p, html: `<span class="brk-l ${side(p)}" style="left:${p.toFixed(2)}%" title="${tip}">${text}</span>` }); break; }
+  }
+  [25, 50, 75].forEach(tick);
+  return out.map((o) => o.html).join('');
+}
 const TIME_FIT = { min: () => tf(0), max: () => tf(99 * 60000 + 59900) }; // auto-fit bounds for time columns
 /** A length of time (gaps, phase lengths): short ones stay in seconds with 2 decimals. */
 const dur = (ms) => (timeMode === 'sec' || ms < 60000 ? `${(ms / 1000).toFixed(2)}s` : tf(ms));
+/** How long a request took, with its unit: "212 ms", then "1.24 s" from a second up. */
+const fmtMs = (ms) => (ms == null ? '' : ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(ms < 10000 ? 2 : 1)} s`);
+/** Status bucket (the Filters panel's Status values) for a status as shown: 200, 'error' or '…'. */
+const stBucket = (s) => (s === 'error' || s === 'err' ? 'error' : s === '…' || s == null ? 'pending' : `${String(s)[0]}xx`);
+/** A clickable status pill: click it to show only that kind of status (click again to clear), like the owner chips. */
+const stPill = (cls, label, bucket, extra = '') => `<span class="st ${cls}" data-status="${bucket}" title="${esc(`${extra ? extra + '. ' : ''}Click to show only ${STATUS_LABEL[bucket]}`)}">${esc(label)}</span>`;
 const team = (o) => String(o).replace(/^@MetaMask\//i, '');
 const bytes = (n) => (n == null ? '' : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`);
 /** Copy buttons: text lives in a registry (reset every render) so large bodies never go into attributes. */
@@ -1322,15 +1404,15 @@ function createGrid(id, defs, { getSort, onSort } = {}) {
 const td = (inner, { cls = '', title = '' } = {}) => `<td class="${cls}" title="${esc(title)}">${inner}</td>`;
 
 const waterfallCell = (r) => {
-  const left = Math.min(99, (r.relMs / span) * 100);
-  const width = r.durationMs != null ? Math.max(0.5, (r.durationMs / span) * 100) : 0.8;
+  const x0 = axis.x(r.relMs), left = Math.min(99, x0);
+  const width = r.durationMs != null ? Math.max(0.5, axis.x(r.relMs + r.durationMs) - x0) : 0.8;
   const cat = r.error ? 'err' : category(r);
   return td(`<div class="wf c-${cat}">${wfMarkers}<span class="wf-bar ${r.durationMs == null && !r.error ? 'pending' : ''}" style="left:${left.toFixed(2)}%;width:${width.toFixed(2)}%"></span></div>`,
     { title: `+${tf(r.relMs)}${r.durationMs != null ? `, took ${r.durationMs} ms` : ', in flight'}` });
 };
 
 const TIMELINE_COLS = [
-  { id: 'id', label: '#', w: 0.03, fit: { min: '000', max: '000000' }, sort: (r) => r.id, cell: (r) => td(r.id, { cls: 'dim num' }) },
+  { id: 'id', label: 'ID', w: 0.03, fit: { min: '000', max: '000000' }, sort: (r) => r.id, cell: (r) => td(r.id, { cls: 'dim num' }) },
   { id: 't', label: 'Time', w: 0.045, fit: TIME_FIT, sort: (r) => r.relMs, cell: (r) => td(tf(r.relMs), { cls: 'alt num' }) },
   { id: 'owners', label: 'Code Owners', w: 0.15, sort: (r) => (r.codeOwners || []).map(team).join(', ') || r.callSiteInfo?.pkg || '', cell: (r) => td(rowChips(r), { title: [...(r.codeOwners || []), ...(r.ownerCodeOwners || []).map((o) => o + ' (via)')].join(', ') || r.callSiteInfo?.pkg || '' }) },
   { id: 'site', label: 'Call Site', w: 0.2, sort: (r) => (r.callSiteInfo ? `${r.callSiteInfo.method} ${r.callSiteInfo.file}` : ''), cell: (r) => td(fnCell(r.callSiteInfo), { title: fnTitle(r.callSiteInfo) }) },
@@ -1338,8 +1420,8 @@ const TIMELINE_COLS = [
   { id: 'method', label: 'Method', w: 0.045, mono: true, fit: { min: 'GET', max: 'OPTIONS' }, sort: (r) => r.method, cell: (r) => td(esc(r.method), { cls: 'alt mono' }) },
   { id: 'host', label: 'Host', w: 0.105, sort: (r) => r.host, cell: (r) => td(esc(r.host), { cls: 'host', title: r.host }) },
   { id: 'path', label: 'Path', w: 0.11, sort: (r) => r.path, cell: (r) => td(esc(r.path) + (r.query ? '<span class="dim">?…</span>' : '') + '', { cls: 'mono', title: r.path + (r.query ? '?' + r.query : '') }) },
-  { id: 'status', label: 'Status', w: 0.05, fit: { min: '', minPx: 74 }, sort: (r) => (r.error ? -1 : r.status), cell: (r) => td(`<span class="st ${stClass(r)}">${esc(r.error ? 'err' : r.status ?? '…')}</span>`, { title: r.error || '' }) },
-  { id: 'ms', label: 'ms', w: 0.04, fit: { min: '000', max: '000000' }, sort: (r) => r.durationMs, sortFirst: 'desc', cell: (r) => td(r.durationMs ?? '', { cls: 'alt num' }) },
+  { id: 'status', label: 'Status', w: 0.05, fit: { min: '', minPx: 74 }, sort: (r) => (r.error ? -1 : r.status), cell: (r) => td(stPill(stClass(r), r.error ? 'err' : r.status ?? '…', stBucket(r.error ? 'error' : r.status), r.error || ''), {}) },
+  { id: 'ms', label: 'Duration', w: 0.04, fit: { min: '000 ms', max: '000.0 s' }, sort: (r) => r.durationMs, sortFirst: 'desc', cell: (r) => td(fmtMs(r.durationMs), { cls: 'alt num' }) },
   { id: 'wf', label: 'Waterfall', w: 0.12, cell: waterfallCell },
 ];
 
@@ -1362,11 +1444,11 @@ const clock = (ts) => { const d = new Date(ts); return d.toLocaleTimeString([], 
 const pct = (arr, p) => { if (!arr.length) return null; const a = [...arr].sort((x, y) => x - y); return a[Math.min(a.length - 1, Math.ceil(p * a.length) - 1)]; };
 const tickCls = (r) => (r.error || r.status >= 400 ? 'bad' : r.status ? 'ok' : 'wait');
 const stCls = (s) => (s === 'error' ? 'err' : /^\d/.test(s) ? 's' + s[0] : 'pending');
-const statusPills = (st) => Object.entries(st).map(([s, n]) => `<span class="st mini ${stCls(s)}">${esc(s)}</span>${n > 1 ? `<span class="mult">×${n}</span>` : '<span class="mult"></span>'}`).join('');
+const statusPills = (st) => Object.entries(st).map(([s, n]) => `${stPill(`mini ${stCls(s)}`, s, stBucket(s))}${n > 1 ? `<span class="mult">×${n}</span>` : '<span class="mult"></span>'}`).join('');
 
 /** Every call as a tick on the shared time axis; calls that repeat an earlier identical request get an orange ring. */
 function lane(g, big) {
-  const ticks = g.list.map((r) => `<i class="tick ${tickCls(r)} ${g.dupeIds.has(r.key) ? 'dup' : ''}" style="left:${Math.min(99.5, (r.relMs / span) * 100).toFixed(2)}%" title="${esc(`#${r.id} +${tf(r.relMs)} ${r.error ? 'error' : r.status ?? 'pending'}${r.durationMs != null ? ' ' + r.durationMs + ' ms' : ''}`)}"></i>`).join('');
+  const ticks = g.list.map((r) => `<i class="tick ${tickCls(r)} ${g.dupeIds.has(r.key) ? 'dup' : ''}" style="left:${Math.min(99.5, axis.x(r.relMs)).toFixed(2)}%" title="${esc(`#${r.id} +${tf(r.relMs)} ${r.error ? 'error' : r.status ?? 'pending'}${r.durationMs != null ? ' ' + r.durationMs + ' ms' : ''}`)}"></i>`).join('');
   return `<div class="lane ${big ? 'big' : ''}">${wfMarkers}${ticks}</div>`;
 }
 
@@ -1419,7 +1501,7 @@ const ENDPOINT_COLS = [
   { id: 'calls', label: 'Calls', w: 0.045, fit: { min: '00', max: '000000' }, sort: (g) => g.n, sortFirst: 'desc', cell: (g) => td(g.n, { cls: 'num' }) },
   { id: 'dupes', label: 'Identical Dupes', w: 0.1, sort: (g) => g.dupes, sortFirst: 'desc', cell: (g) => td(g.dupes ? `<span class="dupe-pill l${g.dupes > 5 ? 3 : g.dupes > 2 ? 2 : 1}" title="${g.dupes} repeat${g.dupes > 1 ? 's' : ''} of an identical request (${g.wastedMs} ms, ${bytes(g.wastedBytes) || '0 B'} redundant)">+${g.dupes}</span>` : '<span class="dim">—</span>') },
   { id: 'statuses', label: 'Statuses', w: 0.085, sort: (g) => g.failed, sortFirst: 'desc', cell: (g) => td(statusPills(g.st)) },
-  { id: 'avg', label: 'Avg ms', w: 0.055, fit: { min: '000', max: '000000' }, sort: (g) => g.avg, sortFirst: 'desc', cell: (g) => td(g.avg ?? '', { cls: 'alt num', title: g.avg == null ? '' : `p95 ${g.p95} ms, max ${g.max} ms` }) },
+  { id: 'avg', label: 'Avg Duration', w: 0.055, fit: { min: '000 ms', max: '000.0 s' }, sort: (g) => g.avg, sortFirst: 'desc', cell: (g) => td(fmtMs(g.avg), { cls: 'alt num', title: g.avg == null ? '' : `p95 ${fmtMs(g.p95)}, max ${fmtMs(g.max)}` }) },
   { id: 'activity', label: 'Activity', w: 0.12, cell: (g) => td(lane(g, false), { title: 'Every call on the capture timeline (ringed = repeat of an identical request)' }) },
   { id: 'verdict', label: 'Verdict', w: 0.095, sort: (g) => { const i = VERDICTS.findIndex((x) => x.id === verdictOf(g.k).v); return i < 0 ? null : i; }, cell: (g) => td(verdictChip(g.k)) },
 ];
@@ -1523,7 +1605,7 @@ function renderIO(r, d) {
   const hdrReq = req?.headers, hdrRes = res?.headers;
   const bodyOff = '<div class="hint">Body capture is off. Set <code>FOXY_BODIES="true"</code> in <code>.js.env</code> to record request and response previews.</div>';
   const summary = `<div class="summary"><span class="meth">${esc(r.method)}</span><span class="url"><b>${esc(r.host)}</b>${esc(r.path)}</span>
-    <span class="st ${stClass(r)}">${esc(r.error ? 'error' : r.status ?? '…')}</span>
+    ${stPill(stClass(r), r.error ? 'error' : r.status ?? '…', stBucket(r.error ? 'error' : r.status))}
     <span class="stat">started <b>+${tf(r.relMs)}</b></span>${r.durationMs != null ? `<span class="stat">took <b>${r.durationMs} ms</b></span>` : ''}${r.sizeBytes != null ? `<span class="stat">size <b>${bytes(r.sizeBytes)}</b></span>` : ''}<span class="stat">via <b>${esc(r.transport || 'fetch')}</b></span><span style="display:flex;gap:6px;margin-left:auto">${cp(r.url, 'Copy full URL', { label: 'Copy URL' })}${cp(toCurl(r, req), 'Copy as cURL (header values already redacted)', { label: 'Copy cURL' })}</span></div>`;
   const request = `<details class="sec" open><summary>Request</summary>
       <details class="sub" open><summary>Query Parameters<span class="n">${qn}</span>${qn ? cp(kvLines(qp, '='), 'Copy all query parameters', { right: true }) : ''}</summary>${qn ? kvTable(qp) : '<div class="hint">None</div>'}</details>
@@ -1746,13 +1828,15 @@ function renderTimeline() {
   const every = [...reqs.values()];
   timelineGrid.fit({ // number columns grow with the widest value in the whole capture, not just what the filters show
     id: String(every.reduce((m, r) => Math.max(m, r.id || 0), 0)), t: tf(every.reduce((m, r) => Math.max(m, r.relMs), 0)),
-    method: every.reduce((m, r) => (r.method.length > m.length ? r.method : m), 'GET'), status: '', ms: String(every.reduce((m, r) => Math.max(m, r.durationMs || 0), 0)),
+    method: every.reduce((m, r) => (r.method.length > m.length ? r.method : m), 'GET'), status: '', ms: fmtMs(every.reduce((m, r) => Math.max(m, r.durationMs || 0), 0)),
   });
   const matched = [...reqs.values()].filter(match);
-  const sort = sorts.timeline, flat = phasesHidden(), oldestFirst = Boolean(sort) && !flat && sort.dir === 1;
-  // each pause's divider goes right next to its oldest visible request (a flat sorted list has no pauses to show)
+  // The Timeline always keeps its phases. ID and Time sort by time, so their direction picks which end comes first; any other column
+  // orders the requests inside each phase (phases stay newest first).
+  const sort = sorts.timeline, byColumn = Boolean(sort) && sort.id !== 'id' && sort.id !== 't', oldestFirst = Boolean(sort) && !byColumn && sort.dir === 1;
+  // each pause's divider goes right next to its oldest visible request (a list sorted by another column has no pauses to show)
   const oldestHeld = new Map();
-  if (!flat) for (const r of matched) {
+  if (!byColumn) for (const r of matched) {
     const g = heldKeys.get(r.key); if (g == null || !pauses.has(g)) continue;
     const cur = oldestHeld.get(g); if (!cur || r.relMs < cur.relMs) oldestHeld.set(g, r);
   }
@@ -1767,10 +1851,9 @@ function renderTimeline() {
   // The list is a flat array of items (phase headers and requests); the virtual body only turns the ones near the viewport into HTML.
   const reqItem = (r) => ({ id: r.key, kind: 'req', est: 36, tall: open === r.key, hk: `${r.key}${open === r.key ? '#open' : ''}${dividerAt.has(r.key) ? '#div' : ''}`, html: () => rowHtml(r) });
   const noteItem = (id, text, cls) => ({ id, kind: 'note', est: 44, hk: id, html: () => `<tr${cls ? ` class="${cls}"` : ''}><td colspan="${cols}" class="empty">${text}</td></tr>` });
-  // Any column but # and Time lists requests flat in that order; # and Time keep the phases and just choose which end comes first.
-  const rows = flat ? sortRows(matched, sort, timelineGrid.byId[sort.id], (a, b) => b.relMs - a.relMs) : matched.sort((a, b) => (oldestFirst ? a.relMs - b.relMs : b.relMs - a.relMs));
+  const rows = byColumn ? sortRows(matched, sort, timelineGrid.byId[sort.id], (a, b) => b.relMs - a.relMs) : matched.sort((a, b) => (oldestFirst ? a.relMs - b.relMs : b.relMs - a.relMs));
   const items = [];
-  if (phases.length && !flat) {
+  if (phases.length) {
     const byPhase = new Map();
     for (const r of rows) { const p = phaseByKey.get(r.key); if (!byPhase.has(p)) byPhase.set(p, []); byPhase.get(p).push(r); }
     for (const p of oldestFirst ? phases : [...phases].reverse()) { // newest phase first by default, requests in the same direction inside it
@@ -1828,7 +1911,7 @@ function renderEndpointDetail(g, cols) {
       <span class="c-id">#${r.id}</span>
       <span class="c-time"><b>+${tf(r.relMs)}</b><small>${clock(r.ts)}</small></span>
       <span>${gapHtml(idx)}</span>
-      <span><span class="st mini ${stClass(r)}">${esc(r.error ? 'err' : r.status ?? '…')}</span></span>
+      <span>${stPill(`mini ${stClass(r)}`, r.error ? 'err' : r.status ?? '…', stBucket(r.error ? 'error' : r.status))}</span>
       <span class="c-ms">${r.durationMs != null ? r.durationMs + ' ms' : ''}</span>
       <span class="c-size">${bytes(r.sizeBytes)}</span>
       <span class="c-site">${fnCell(r.callSiteInfo, true)}</span>
@@ -1861,7 +1944,7 @@ function renderEndpoints() {
   const natural = (a, b) => a.first - b.first;
   let groups = buildGroups([...reqs.values()].filter(match)).sort(natural);
   if (sorts.endpoints) groups = sortRows(groups, sorts.endpoints, endpointsGrid.byId[sorts.endpoints.id], natural);
-  endpointsGrid.fit({ first: tf(groups.reduce((m, g) => Math.max(m, g.first), 0)), calls: String(groups.reduce((m, g) => Math.max(m, g.n), 0)), avg: String(groups.reduce((m, g) => Math.max(m, g.avg || 0), 0)) });
+  endpointsGrid.fit({ first: tf(groups.reduce((m, g) => Math.max(m, g.first), 0)), calls: String(groups.reduce((m, g) => Math.max(m, g.n), 0)), avg: fmtMs(groups.reduce((m, g) => Math.max(m, g.avg || 0), 0)) });
   endpointsV.setItems(groups.length
     ? groups.map((g) => ({ id: g.k, kind: 'ep', est: 36, tall: openEp === g.k, hk: `${g.k}${openEp === g.k ? '#open' : ''}`,
       html: () => `<tr class="ep ${openEp === g.k ? 'open' : ''}" data-k="${esc(g.k)}">${order.map((c) => endpointsGrid.byId[c].cell(g)).join('')}</tr>${openEp === g.k ? renderEndpointDetail(g, cols) : ''}` }))
@@ -1896,33 +1979,48 @@ function renderBar() {
   const o = ui.owner;
   const ph = ui.phase && phases.find((p) => p.id === ui.phase);
   $('#phasePill').innerHTML = ph ? `<span class="ownerpill">Phase ${phaseChip(ph)}<button id="phaseClear" aria-label="Show all phases" title="Show all phases">×</button></span>` : '';
-  const sort = sorts[tab], sortDef = sort && grids[tab].byId[sort.id];
-  $('#sortPill').innerHTML = sort ? `<span class="ownerpill" title="${esc(phasesHidden() && tab === 'timeline' ? 'Phases are hidden while the list is sorted by a column other than # or Time' : 'Sorted by a column header. Click the header again to cycle.')}">Sorted by <b>${esc(sortDef.label)}</b> ${sort.dir === 1 ? '↑' : '↓'}<button id="sortClear" aria-label="Back to the default order" title="Back to the default order">×</button></span>` : '';
   $('#ownerPill').innerHTML = o ? `<span class="ownerpill">${o.type === 'team' ? 'Owner' : 'Package'} ${o.type === 'team' ? teamChip(o.value) : partyChip(o.value)}<button id="ownerClear" aria-label="Clear owner filter" title="Clear">×</button></span>` : '';
 }
 
 function renderStrip(list) {
-  const el = $('#stripin');
-  const N = Math.max(24, Math.min(120, Math.floor(el.clientWidth / 9) || 60));
-  const b = Array.from({ length: N }, () => ({ ours: 0, third: 0, unowned: 0, first: null }));
+  const el = $('#stripin'), W = el.clientWidth || 600;
+  const N = Math.max(24, Math.min(120, Math.floor(W / 9) || 60));
+  const buckets = Array.from({ length: N }, () => ({ ours: 0, third: 0, unowned: 0, first: null }));
   for (const r of list) {
-    const i = Math.min(N - 1, Math.floor((r.relMs / span) * N));
-    b[i][category(r)]++;
-    if (!b[i].first || r.relMs < b[i].first.relMs) b[i].first = r;
+    if (r.relMs < axis.from || r.relMs > axis.to) continue;
+    const i = Math.min(N - 1, Math.floor((axis.x(r.relMs) / 100) * N));
+    buckets[i][category(r)]++;
+    if (!buckets[i].first || r.relMs < buckets[i].first.relMs) buckets[i].first = r;
   }
-  const max = Math.max(1, ...b.map((x) => x.ours + x.third + x.unowned));
+  const max = Math.max(1, ...buckets.map((x) => x.ours + x.third + x.unowned));
   const seg = (x, c) => (x[c] ? `<span class="${c}" style="height:${((x[c] / max) * 100).toFixed(1)}%"></span>` : '');
-  const bars = b.map((x, i) => {
+  const bars = buckets.map((x, i) => {
     const total = x.ours + x.third + x.unowned;
-    const t0 = ((i / N) * span) / 1000, t1 = (((i + 1) / N) * span) / 1000;
-    const title = total ? `+${tf(t0 * 1000)} to +${tf(t1 * 1000)}: ${total} request${total > 1 ? 's' : ''} (${x.ours} owned, ${x.third} third-party, ${x.unowned} unowned)` : '';
+    const t0 = axis.inv((i / N) * 100), t1 = axis.inv(((i + 1) / N) * 100);
+    const title = total ? `+${tf(t0)} to +${tf(t1)}: ${total} request${total > 1 ? 's' : ''} (${x.ours} owned, ${x.third} third-party, ${x.unowned} unowned)` : '';
     return `<div class="bk" ${x.first ? `data-k="${esc(x.first.key)}"` : ''} title="${esc(title)}">${seg(x, 'ours')}${seg(x, 'third')}${seg(x, 'unowned')}</div>`;
   }).join('');
-  const real = phases.filter((p) => p.marker);
-  const bands = phases.map((p) => `<span class="band ${ui.phase === p.id ? 'on' : ''}" style="--pc:${p.color};left:${((p.start / span) * 100).toFixed(2)}%;width:${(((Math.min(p.end, span) - p.start) / span) * 100).toFixed(2)}%"></span>`).join('');
-  const flags = real.map((p, i) => `<span class="mk ${i % 2 ? 'alt' : ''}" style="--pc:${p.color};left:${((p.start / span) * 100).toFixed(2)}%"><b data-pid="${esc(p.id)}" title="${esc(p.label)} · +${tf(p.start)} · ${p.n} request${p.n === 1 ? '' : 's'} (click to jump to it)">${esc(p.label)}</b></span>`).join('');
-  $('.strip').classList.toggle('has-mk', real.length > 0);
-  el.innerHTML = `${bands}<div class="bars">${bars}</div>${flags}`;
+  const bands = phases.filter((p) => p.start <= axis.to && Math.min(p.end, span) >= axis.from).map((p) => {
+    const l = axis.x(Math.max(p.start, axis.from)), r = axis.x(Math.min(p.end === Infinity ? span : p.end, axis.to));
+    return `<span class="band ${ui.phase === p.id ? 'on' : ''}" style="--pc:${p.color};left:${l.toFixed(2)}%;width:${Math.max(0, r - l).toFixed(2)}%"></span>`;
+  }).join('');
+  // Marker flags. Each label goes in the first row it fits without touching another, up to three rows. Near the right edge it sits on
+  // the left of its line so it can never run off the window; a flag with no room left keeps its line and becomes a dot (hover for the name).
+  const flags = phases.filter((p) => p.marker && p.start >= axis.from && p.start <= axis.to).map((p) => {
+    const x = (axis.x(p.start) / 100) * W, w = Math.min(190, 14 + p.label.length * 5.8), flip = x + 3 + w > W - 2;
+    return { p, x, w, flip, left: flip ? x - 3 - w : x + 3, lane: -1 };
+  });
+  const rowEnd = [-1e9, -1e9, -1e9]; let rows = 0;
+  for (const f of [...flags].sort((p, q) => p.x - q.x)) {
+    const k = rowEnd.findIndex((end) => f.left >= end + 4);
+    if (k >= 0) { f.lane = k; rowEnd[k] = f.left + f.w; rows = Math.max(rows, k + 1); }
+  }
+  const flagHtml = flags.map((f) => `<span class="mk ${f.flip ? 'flip' : ''} ${f.lane < 0 ? 'dot' : ''}" style="--pc:${f.p.color};left:${axis.x(f.p.start).toFixed(2)}%;--ln:${Math.max(f.lane, 0)}"><b data-pid="${esc(f.p.id)}" title="${esc(f.p.label)} · +${tf(f.p.start)} · ${f.p.n} request${f.p.n === 1 ? '' : 's'} (click to jump to it)">${f.lane < 0 ? '' : esc(f.p.label)}</b></span>`).join('');
+  const brks = axis.breaks.map((g) => `<span class="brk" style="left:${g.x0.toFixed(2)}%;width:${(g.x1 - g.x0).toFixed(2)}%" title="${esc(`${tf(g.to - g.from, 0)} with nothing requested, shown shortened`)}"></span>`).join('');
+  const strip = $('.strip');
+  strip.classList.toggle('has-mk', flags.length > 0);
+  strip.style.setProperty('--rows', Math.max(1, rows));
+  el.innerHTML = `${bands}${brks}<div class="bars">${bars}</div>${flagHtml}`;
   $('#axis').innerHTML = axisLabels();
 }
 
@@ -1934,7 +2032,12 @@ function render() {
   span = Math.max(1, all.reduce((m, r) => Math.max(m, r.relMs + (r.durationMs || 0)), 0), markers.reduce((m, x) => Math.max(m, x.relMs), 0));
   computePhases(all);
   if (ui.phase && !phases.some((p) => p.id === ui.phase)) ui.phase = null; // its marker was deleted
-  wfMarkers = phases.filter((p) => p.marker).map((p) => `<span class="mk" style="left:${((p.start / span) * 100).toFixed(2)}%;background:${p.color}"></span>`).join('');
+  // the axis covers the whole capture, or just the phase being filtered to; breaks are decided from every request so filters never move it
+  const zoom = ui.phase && phases.find((p) => p.id === ui.phase);
+  axis = buildAxis([...all.map((r) => [r.relMs, r.relMs + (r.durationMs || 0)]), ...markers.map((m) => [m.relMs, m.relMs])],
+    zoom ? zoom.start : 0, zoom ? (zoom.end === Infinity ? span : zoom.end) : span);
+  wfMarkers = phases.filter((p) => p.marker && p.start >= axis.from && p.start <= axis.to).map((p) => `<span class="mk" style="left:${axis.x(p.start).toFixed(2)}%;background:${p.color}"></span>`).join('')
+    + axis.breaks.map((g) => `<span class="brk" style="left:${g.x0.toFixed(2)}%;width:${(g.x1 - g.x0).toFixed(2)}%"></span>`).join('');
   renderBar(); renderStrip(all.filter(match)); renderMarkers(); renderFilters();
   $('#count').innerHTML = `${icon('network')}<b>${reqs.size}</b><span class="count-lbl">${reqs.size === 1 ? 'request' : 'requests'}</span>`;
   $('#timeline').hidden = tab !== 'timeline'; $('#endpoints').hidden = tab !== 'endpoints';
@@ -1948,6 +2051,11 @@ let raf = 0; const schedule = () => { cancelAnimationFrame(raf); raf = requestAn
 
 /** Clicking a team or package chip anywhere filters by it (click again to clear). */
 function chipFilter(e) {
+  const st = e.target.closest('.st[data-status]');
+  if (st) { // a status pill filters by its kind of status (2xx, 4xx, Failed…) through the Filters panel's Status section
+    const v = st.dataset.status, s = adv.status, only = s.on.size === 1 && s.on.has(v) && !s.not;
+    s.on = only ? new Set() : new Set([v]); s.not = false; render(); return true;
+  }
   const c = e.target.closest('.chip[data-team], .chip[data-pkg], .chip[data-phase]'); if (!c) return false;
   if (c.dataset.phase) { ui.phase = ui.phase === c.dataset.phase ? null : c.dataset.phase; render(); return true; }
   const next = c.dataset.team ? { type: 'team', value: team(c.dataset.team) } : { type: 'pkg', value: c.dataset.pkg };
@@ -1984,14 +2092,12 @@ $('#endpoints').addEventListener('keydown', (e) => {
 });
 $('#seg').addEventListener('click', (e) => { const b = e.target.closest('button[data-cat]'); if (b) { ui.cat = b.dataset.cat; render(); } });
 document.querySelectorAll('.tog').forEach((b) => b.addEventListener('click', () => { ui[b.dataset.flag] = !ui[b.dataset.flag]; render(); }));
-$('#sortPill').addEventListener('click', (e) => { if (e.target.closest('#sortClear')) setSort(tab, null); });
 $('#ownerPill').addEventListener('click', (e) => { if (e.target.closest('#ownerClear')) { ui.owner = null; render(); } });
 $('#phasePill').addEventListener('click', (e) => { if (e.target.closest('#phaseClear')) { ui.phase = null; render(); } else chipFilter(e); });
 $('#stripin').addEventListener('click', (e) => {
   const flag = e.target.closest('b[data-pid]');
   if (flag) { // jump to the phase header in the Timeline
     tab = 'timeline'; collapsed.delete(flag.dataset.pid);
-    if (phasesHidden()) { sorts.timeline = null; timelineGrid.markSort(); } // a flat sorted list has no phase headers to jump to
     render();
     const row = timelineV.reveal(`phase:${flag.dataset.pid}`, 'start');
     if (row) { row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash'); }
@@ -2112,7 +2218,7 @@ const HELP = [
     <p class="lede">A marker is a flag you drop while you use the app. Everything captured after it belongs to that <b>phase</b>, until the next marker. That is how you answer <i>“which requests happen on Onboarding?”</i> instead of scrolling through hundreds of rows.</p>
     ${art('concept', 'Three markers split the timeline into three phases, each with its own request activity')}
     ${step(1, 'Drop a Marker When Something Happens', `<p>Press ${kb('M')} anywhere or click <b>Markers</b> in the toolbar. Type what just happened and press ${kb('Enter')}, or tap a quick-add chip. Your own labels are remembered as chips too.</p><p>Noticed late? Choose <b>5s ago</b>, <b>30s ago</b>… in the dropdown and the marker is placed in the past.</p>${art('popover', 'The markers panel with a label field, a time dropdown, quick-add chips and the list of markers')}`)}
-    ${step(2, 'See the Phases', `<p>Every phase gets a colour. The <b>activity strip</b> shades each phase and labels its flag (click a flag to jump to it). The <b>waterfall</b> column draws a line at each marker.</p>${art('strip', 'The activity strip with three coloured phase bands and flags')}<p>In the <b>Timeline</b>, each phase has a header with its time range, ownership mix and a summary. Click the header to fold the phase away.</p>${art('timeline', 'Timeline with a collapsible header per phase showing request counts, new endpoints, duplicates and failures')}`)}
+    ${step(2, 'See the Phases', `<p>Every phase gets a colour. The <b>activity strip</b> shades each phase and labels its flag (click a flag to jump to it). The <b>waterfall</b> column draws a line at each marker. Long idle stretches are shortened to a hatched <b>⋯</b> break so activity gets the room, and choosing <b>Only This</b> on a phase zooms the strip to it.</p>${art('strip', 'The activity strip with three coloured phase bands and flags')}<p>In the <b>Timeline</b>, each phase has a header with its time range, ownership mix and a summary. Click the header to fold the phase away.</p>${art('timeline', 'Timeline with a collapsible header per phase showing request counts, new endpoints, duplicates and failures')}`)}
     ${step(3, 'Zoom Into One Phase', `<p>Click <b>◎ Only This</b> on a header (or the target icon in the markers panel) and Foxy shows just that phase, in the Timeline <i>and</i> in Endpoints. A pill appears under the toolbar; click <b>×</b> to bring everything back.</p><p>The <b>Phase</b> column in Endpoints shows where each endpoint <i>first</i> appeared. Click a phase chip to filter by it.</p>`)}
     ${step(4, 'Tidy Up', '<p>Rename a marker by editing its name in the panel. Delete it with ✕ and the two phases around it merge. Nothing in the app needs to change.</p>')}
     ${step(5, 'Take It With You', `<p><b>Copy Markdown</b> adds a phases table (requests, new endpoints, identical dupes, failures per phase) and a Phase column to the Endpoints table.</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
@@ -2139,7 +2245,7 @@ const HELP = [
       <li><b>Waterfall</b>: where the request sits on the capture and how long it took. Coloured lines are your markers.</li>
       <li><b>Started from</b>: the nearest app or <code>@metamask</code> frame further up the stack, when the call site is a library.</li>
     </ul>
-    <div class="callout"><p>Click a column header to sort by it: once for one direction, again for the other, a third time to go back to the default order. Sorting the Timeline by <b>#</b> or <b>Time</b> keeps the phases; any other column lists requests flat. Drag a column header to reorder it, drag its right edge to resize it, double-click the edge to reset. <b>Reset Columns</b> in the menu restores the defaults.</p></div>
+    <div class="callout"><p>Click a column header to sort by it: once for one direction, again for the other, a third time to go back to the default order. The Timeline keeps its phases while sorted: <b>ID</b> and <b>Time</b> choose which end comes first, any other column orders the requests inside each phase. Drag a column header to reorder it, drag its right edge to resize it, double-click the edge to reset. <b>Reset Columns</b> in the menu restores the defaults.</p></div>
     <p>${goto('filters', '🎛️ Filters & duplicates')} ${goto('markers', '🚩 Markers & phases')}</p>` },
 
   { id: 'endpoints', em: '🧭', title: 'Endpoints & Verdicts', html: () => `
@@ -2412,7 +2518,10 @@ function applyMessage(m, pauseId) {
   else if (m.type === 'marker') markers.push(withId(m.marker));
   else if (m.type === 'markers') markers = m.markers.map(withId);
   else if (m.type === 'session') { reqs.clear(); heldKeys.clear(); pauses.clear(); markers = []; detailCache.clear(); }
-  else if (m.type === 'cleared') { reqs.clear(); heldKeys.clear(); pauses.clear(); markers = []; open = null; detailCache.clear(); }
+  else if (m.type === 'cleared') { // a fresh capture: no rows, no open detail, no collapsed phases, back at the top
+    reqs.clear(); heldKeys.clear(); pauses.clear(); markers = []; open = null; openEp = null; collapsed.clear(); detailCache.clear();
+    document.querySelector('main').scrollTop = 0;
+  }
 }
 function connect() {
   const ws = new WebSocket(`ws://${location.host}/ui`);
@@ -2442,7 +2551,7 @@ if (localStorage.getItem('foxy.help.hide') !== '1') openHelp('start'); // shown 
   tag.onload = () => {
     try {
       window.rive.RuntimeLoader.setWasmUrl('/vendor/rive.wasm');
-      window.__fox = [];
+      window.__fox = fox.list;
       holders.forEach((h) => {
         // the artboard has padding around the fox, so draw it larger than its slot and pull the margins back in
         const size = Number(h.dataset.fox), box = Math.round(size * 1.5), pad = Math.round((box - size) / 2), dpr = Math.min(3, window.devicePixelRatio || 1);
@@ -2452,7 +2561,7 @@ if (localStorage.getItem('foxy.help.hide') !== '1') openHelp('start'); // shown 
         const r = new window.rive.Rive({
           src: '/vendor/foxy-loading.riv', canvas, autoplay: true,
           layout: new window.rive.Layout({ fit: window.rive.Fit.Contain }),
-          onLoad: () => { h.classList.add('fox-on'); if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) r.pause(); },
+          onLoad: () => { h.classList.add('fox-on'); if (fox.reduced || paused) r.pause(); },
           onLoadError: () => canvas.remove(),
         });
         window.__fox.push(r);

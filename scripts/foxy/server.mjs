@@ -177,9 +177,11 @@ function ingest(msg) {
     // The app re-sends `hello` on every WebSocket reconnect; only a new session id
     // is a new app launch (and resets the dashboard).
     const isNew = !sessions.has(msg.s);
+    const previous = sessions.get(msg.s); // a reconnect must keep what Clear reset (time zero and the id offset)
     sessions.set(msg.s, {
+      ...previous,
       id: msg.s,
-      startedAt: msg.startedAt,
+      startedAt: previous?.startedAt ?? msg.startedAt,
       platform: msg.platform,
       connectedAt: Date.now(),
     });
@@ -194,11 +196,18 @@ function ingest(msg) {
   const key = `${msg.s}:${msg.id}`;
   if (msg.type === 'request') {
     const started = session?.startedAt ?? msg.ts;
+    if (session) {
+      // remembered so Clear can start the numbering and the clock over (see /api/clear)
+      session.lastId = Math.max(session.lastId || 0, Number(msg.id) || 0);
+      // this machine's clock minus the app's (about 0 on a simulator). The smallest value seen is the best
+      // estimate: a message that was held up on the way only ever makes the difference look bigger.
+      session.skew = Math.min(session.skew ?? Infinity, Date.now() - msg.ts);
+    }
     const { host, path, query } = parseUrl(msg.url);
     const rec = {
       key,
       session: msg.s,
-      id: msg.id,
+      id: Number.isFinite(Number(msg.id)) ? Number(msg.id) - (session?.idBase || 0) : msg.id, // the request number: starts again at 1 after Clear
       ts: msg.ts,
       relMs: msg.ts - started,
       transport: msg.transport,
@@ -344,7 +353,8 @@ const httpServer = createServer(async (req, res) => {
     } else if (p === '/api/marker' && req.method === 'POST') {
       // `agoMs` backdates the marker ("this happened 5 s ago") for when you only notice afterwards
       const { label, agoMs } = await readBody(req);
-      const started = sessions.get(latestSession)?.startedAt ?? Date.now();
+      const latest = sessions.get(latestSession);
+      const started = latest?.startedAt ?? Date.now();
       const ago = Math.max(0, Number(agoMs) || 0);
       const ts = Date.now() - ago;
       const m = {
@@ -352,7 +362,7 @@ const httpServer = createServer(async (req, res) => {
         ts,
         label: String(label || 'marker').slice(0, 120),
         session: latestSession,
-        relMs: Math.max(0, ts - started),
+        relMs: Math.max(0, ts - (latest?.skew || 0) - started),
       };
       markers.push(m);
       broadcast({ type: 'marker', marker: m });
@@ -374,6 +384,11 @@ const httpServer = createServer(async (req, res) => {
     } else if (p === '/api/clear' && req.method === 'POST') {
       records.clear();
       markers.length = 0;
+      // A cleared capture starts over: the next request is #1 and the clock is at +0s from now.
+      for (const s of sessions.values()) {
+        s.idBase = s.lastId || 0;
+        s.startedAt = Date.now() - (s.skew || 0);
+      }
       broadcast({ type: 'cleared' });
       json(res, { ok: true });
     } else {
