@@ -136,6 +136,25 @@ describe('RewardsOptInSection', () => {
     ).toBeOnTheScreen();
   });
 
+  it('falls back to the campaign copy when the served description and action are missing', () => {
+    const { getByTestId, getByText } = render(
+      <RewardsOptInSection
+        localizedText={{
+          invitedOptInDescription: undefined,
+          invitedOptInAction: undefined,
+        }}
+      />,
+    );
+
+    expect(
+      getByText(strings('rewards.campaign.opt_in_descrption')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
+        .accessibilityLabel,
+    ).toBe(strings('rewards.campaign.opt_in_cta'));
+  });
+
   it('disables the CTA and explains when the region is unsupported', () => {
     mockGeoLocation = 'GB';
     mockGeoStatus = 'complete';

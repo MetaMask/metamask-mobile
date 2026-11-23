@@ -28,8 +28,8 @@ export const REWARDS_OPT_IN_SECTION_TEST_IDS = {
 } as const;
 
 export interface RewardsOptInCopy {
-  invitedOptInDescription: string;
-  invitedOptInAction: string;
+  invitedOptInDescription?: string;
+  invitedOptInAction?: string;
   invitedOptInLegal?: string;
 }
 
@@ -106,6 +106,11 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
     clearOptinError();
   }, [optinError, showToast, RewardsToastOptions, clearOptinError]);
 
+  const description =
+    localizedText.invitedOptInDescription ??
+    strings('rewards.campaign.opt_in_descrption');
+  const actionLabel =
+    localizedText.invitedOptInAction ?? strings('rewards.campaign.opt_in_cta');
   const footnote =
     disabledReason ??
     localizedText.invitedOptInLegal ??
@@ -139,7 +144,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            {localizedText.invitedOptInDescription}
+            {description}
           </Text>
         </Box>
       </Box>
@@ -151,7 +156,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
           isFullWidth
           isLoading={optinLoading || geoNotResolved}
           isDisabled={optinLoading || geoNotResolved || Boolean(disabledReason)}
-          accessibilityLabel={localizedText.invitedOptInAction}
+          accessibilityLabel={actionLabel}
           onPress={() => {
             if (!geoAllowsOptIn || disabledReason || optinLoading) {
               return;
@@ -160,7 +165,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
           }}
           testID={REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION}
         >
-          {localizedText.invitedOptInAction}
+          {actionLabel}
         </Button>
       </Box>
       {footnote ? (
