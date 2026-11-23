@@ -75,12 +75,16 @@ const renderComponent = (
     hasAlertOnlyState?: boolean;
     isAuthenticated?: boolean;
     showHowToUseApplePay?: boolean;
+    providerId?: string;
+    account?: { verificationStatus: string | null };
   } = {},
 ) =>
   render(
     <ManageCardOptions
       card={overrides.card === undefined ? CARD : overrides.card}
-      account={{ verificationStatus: 'VERIFIED' } as never}
+      account={
+        (overrides.account ?? { verificationStatus: 'VERIFIED' }) as never
+      }
       capabilities={capabilities}
       isMetalCardCheckoutEnabled={false}
       isAuthenticated={overrides.isAuthenticated ?? true}
@@ -112,6 +116,7 @@ const renderComponent = (
       onChangeAsset={jest.fn()}
       hasPriorityTokenBalance={overrides.hasPriorityTokenBalance ?? true}
       onCashback={jest.fn()}
+      providerId={overrides.providerId}
       onTravel={jest.fn()}
       onTransactionHistory={overrides.onTransactionHistory}
       showTransactionHistoryDuringSetup={
@@ -575,5 +580,20 @@ describe('ManageCardOptions transaction history gating', () => {
     expect(
       queryByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
     ).toBeNull();
+  });
+
+  it('shows mUSD Back for Immersve without a Baanx verified status', () => {
+    const { getByTestId } = renderComponent(
+      buildCapabilities({
+        supportsCashback: false,
+        supportsFundingLimits: false,
+      }),
+      {
+        providerId: 'immersve',
+        account: { verificationStatus: null },
+      },
+    );
+
+    expect(getByTestId(CardHomeSelectors.CASHBACK_ITEM)).toBeOnTheScreen();
   });
 });

@@ -58,6 +58,7 @@ interface ManageCardOptionsProps {
   onChangeAsset: () => void;
   hasPriorityTokenBalance: boolean;
   onCashback: () => void;
+  providerId?: string | null;
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
@@ -98,6 +99,7 @@ const ManageCardOptions = ({
   onChangeAsset,
   hasPriorityTokenBalance,
   onCashback,
+  providerId,
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
@@ -190,11 +192,17 @@ const ManageCardOptions = ({
           )}
         {isFullySetUp &&
           !hideManageOptions &&
-          capabilities?.supportsCashback &&
-          account?.verificationStatus === 'VERIFIED' && (
+          (providerId === 'immersve' ||
+            (capabilities?.supportsCashback &&
+              account?.verificationStatus === 'VERIFIED')) && (
             <ManageCardListItem
               title={strings('card.card_home.manage_card_options.cashback', {
-                cashbackPercentage: card?.type === CardType.METAL ? '3' : '1',
+                cashbackPercentage:
+                  providerId === 'immersve'
+                    ? '3'
+                    : card?.type === CardType.METAL
+                      ? '3'
+                      : '1',
               })}
               description={strings(
                 'card.card_home.manage_card_options.cashback_description',

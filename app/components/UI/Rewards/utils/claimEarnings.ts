@@ -793,6 +793,8 @@ export function claimTypeForRoute(route: ClaimRouteSlug): string {
       return 'rev_share';
     case 'social-follow-trade':
       return 'follow_trade';
+    case 'card-cashback':
+      return 'card_cashback';
     default: {
       const unhandled: never = route;
       return unhandled;

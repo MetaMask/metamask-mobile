@@ -687,7 +687,39 @@ export type ClaimHistoryPageDto = {
 export type ClaimRouteSlug =
   | 'referral-trade-fee-cashback'
   | 'referral-rev-share'
-  | 'social-follow-trade';
+  | 'social-follow-trade'
+  | 'card-cashback';
+
+/** `GET /earnings/card/summary`. Amounts are mUSD base units (6 decimals). */
+export interface CardSummaryResponse {
+  lifetime_total: string;
+  claimable: string;
+  held: string;
+  blocked: string;
+  voided: string;
+  pending: string;
+  claimed: string;
+  minimum_musd_base_units: string;
+  blocking_reason: string | null;
+  pairing_pending: boolean;
+}
+
+export interface CardLedgerEntry {
+  type: 'earning' | 'claim';
+  id: string;
+  musd_amount?: string;
+  card_source?: {
+    spend_usd: string;
+    rate_bps: number;
+    occurred_at: string;
+  };
+}
+
+export interface CardLedgerPage {
+  results: CardLedgerEntry[];
+  has_more: boolean;
+  cursor: string | null;
+}
 
 export interface ClaimVoucherDto {
   claim_id: string;

@@ -12275,6 +12275,22 @@
         "contact_details_description": "Update your email and phone number",
         "add_to_digital_wallet": "Add to digital wallet",
         "add_to_digital_wallet_description": "Set up Apple Pay or Google Pay"
+      },
+      "cashback_screen": {
+        "title": "mUSD Back",
+        "claimable": "Ready to claim",
+        "pending": "Pending",
+        "held": "Held",
+        "blocked": "Blocked",
+        "claimed": "Claimed",
+        "pairing_pending": "Finish pairing your Money account before this can be claimed.",
+        "below_minimum": "This is below the minimum claim.",
+        "claim": "Claim",
+        "mpc_unavailable": "Claims aren't available for an MPC Money account yet.",
+        "unavailable": "mUSD Back isn't available yet.",
+        "loading": "Loading mUSD Back",
+        "empty_ledger": "No cashback yet.",
+        "rate": "{{rate}}% back"
       }
     },
     "contact_details": {

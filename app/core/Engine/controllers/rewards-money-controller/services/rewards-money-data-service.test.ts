@@ -138,6 +138,10 @@ describe('RewardsMoneyDataService', () => {
         'registerReferee',
         'getEarningsSummary',
         'getEarningsLedger',
+        'getCardSummary',
+        'getCardLedger',
+        'getCardClaimHistory',
+        'getCardClaim',
         'getClaimHistory',
         'getCommissions',
         'getClaimById',
@@ -158,6 +162,50 @@ describe('RewardsMoneyDataService', () => {
           expect.any(Function),
         );
       }
+    });
+  });
+
+  describe('card cashback reads', () => {
+    it('reads the card summary, ledger and claim from the card routes', async () => {
+      const summary = {
+        lifetime_total: '1000000',
+        claimable: '30000',
+        held: '0',
+        blocked: '0',
+        voided: '0',
+        pending: '0',
+        claimed: '0',
+        minimum_musd_base_units: '10000',
+        blocking_reason: null,
+        pairing_pending: false,
+      };
+      mockFetch.mockResolvedValue(okJson(summary));
+
+      await expect(service.getCardSummary()).resolves.toEqual(summary);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/earnings/card/summary'),
+        expect.any(Object),
+      );
+
+      mockFetch.mockResolvedValue(
+        okJson({ results: [], has_more: false, cursor: null }),
+      );
+      await service.getCardLedger('cursor-1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/earnings/card/ledger?'),
+        expect.any(Object),
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('cursor=cursor-1'),
+        expect.any(Object),
+      );
+
+      mockFetch.mockResolvedValue(okJson({ id: 'claim-1' }));
+      await service.getCardClaim('claim-1');
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/earnings/card/claim/claim-1'),
+        expect.any(Object),
+      );
     });
   });
 

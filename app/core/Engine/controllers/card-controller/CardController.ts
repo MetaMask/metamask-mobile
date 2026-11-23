@@ -382,6 +382,8 @@ export class CardController extends BaseController<
   #cardLinkBackfillPromise: Promise<void> | null = null;
   /** Providers whose backfill was rejected this session. A failure stays out, so the next trigger retries. */
   #cardLinkBackfillAttempted = new Set<CardProviderId>();
+  /** One wallet-proof prompt per provider for this process. Logout clears it. */
+  #cardLinkProofPrompted = new Set<CardProviderId>();
   #cardLinksGeneration = 0;
   #cardLinksWriteRevision = 0;
   #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
@@ -757,6 +759,7 @@ export class CardController extends BaseController<
       Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
     if (isFresh && !force) {
       await this.#backfillSessionCardLink();
+      this.#reaskUnverifiedImmersveLink();
       return;
     }
 
@@ -776,6 +779,7 @@ export class CardController extends BaseController<
       this.#cardLinksFetchPromise = read;
     }
     await this.#cardLinksFetchPromise;
+    this.#reaskUnverifiedImmersveLink();
   }
 
   async #doFetchCardLinks(attempt = 0): Promise<void> {
@@ -809,6 +813,7 @@ export class CardController extends BaseController<
 
   #clearCardLinkBackfill(): void {
     this.#cardLinkBackfillAttempted.clear();
+    this.#cardLinkProofPrompted.clear();
     this.#cardLinkBackfillPromise = null;
   }
 
@@ -1109,6 +1114,63 @@ export class CardController extends BaseController<
       phase,
       { address: address ?? undefined },
       'recordProviderLogin',
+    );
+  }
+
+  #recordImmersveLoginWithProof(phase: CardLinkWriteStatus): void {
+    this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
+    this.#writeCardLink(
+      CardProviderIds.Immersve,
+      phase,
+      () => ({
+        address:
+          this.#loginAccountForLinkedRef(CardProviderIds.Immersve) ??
+          undefined,
+        promptWalletProof: true,
+      }),
+      'recordProviderLogin',
+    ).catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: CardProviderIds.Immersve },
+        context: {
+          name: 'CardController',
+          data: { method: 'recordProviderLogin' },
+        },
+      }),
+    );
+  }
+
+  /**
+   * An Immersve link written without a proof (no address at card creation,
+   * a hardware or MPC account, or a declined signature) stays unverified.
+   * Ask once more this session when the server says so and an account is selected.
+   */
+  #reaskUnverifiedImmersveLink(): void {
+    if (this.#cardLinkProofPrompted.has(CardProviderIds.Immersve)) return;
+    const link = latestByUpdatedAt(
+      (this.state.cardLinks ?? []).filter(
+        (item) => item.provider === CardProviderIds.Immersve,
+      ),
+    );
+    if (!link || link.status === 'closed' || link.cardholderVerified !== false) {
+      return;
+    }
+    const address = this.#getSelectedEvmAddress();
+    if (!address) return;
+    this.#cardLinkProofPrompted.add(CardProviderIds.Immersve);
+    this.#writeCardLink(
+      CardProviderIds.Immersve,
+      link.status,
+      { address, promptWalletProof: true },
+      'reaskUnverifiedCardLink',
+    ).catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: CardProviderIds.Immersve },
+        context: {
+          name: 'CardController',
+          data: { method: 'reaskUnverifiedCardLink' },
+        },
+      }),
     );
   }
 
@@ -2252,12 +2314,16 @@ export class CardController extends BaseController<
       }
       if (pid === CardProviderIds.Baanx) {
         this.#recordProviderLoginWithLogging(pid, 'active');
+      } else if (pid === CardProviderIds.Immersve) {
+        this.#recordImmersveLoginWithProof('active');
       }
 
       this.invalidateFetch();
       this.#fetchCardHomeDataWithLogging('submitCredentials/fetchCardHomeData');
     } else if (result.onboardingRequired && pid === CardProviderIds.Baanx) {
       this.#recordProviderLoginWithLogging(pid, 'onboarding');
+    } else if (result.onboardingRequired && pid === CardProviderIds.Immersve) {
+      this.#recordImmersveLoginWithProof('onboarding');
     }
 
     return result;

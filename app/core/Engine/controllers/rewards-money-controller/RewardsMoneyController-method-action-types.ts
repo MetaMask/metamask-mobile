@@ -122,6 +122,26 @@ export type RewardsMoneyControllerGetEarningsSummaryAction = {
   handler: RewardsMoneyController['getEarningsSummary'];
 };
 
+export type RewardsMoneyControllerGetCardSummaryAction = {
+  type: `RewardsMoneyController:getCardSummary`;
+  handler: RewardsMoneyController['getCardSummary'];
+};
+
+export type RewardsMoneyControllerGetCardLedgerAction = {
+  type: `RewardsMoneyController:getCardLedger`;
+  handler: RewardsMoneyController['getCardLedger'];
+};
+
+export type RewardsMoneyControllerGetCardClaimHistoryAction = {
+  type: `RewardsMoneyController:getCardClaimHistory`;
+  handler: RewardsMoneyController['getCardClaimHistory'];
+};
+
+export type RewardsMoneyControllerGetCardClaimAction = {
+  type: `RewardsMoneyController:getCardClaim`;
+  handler: RewardsMoneyController['getCardClaim'];
+};
+
 export type RewardsMoneyControllerGetEarningsLedgerAction = {
   type: `RewardsMoneyController:getEarningsLedger`;
   handler: RewardsMoneyController['getEarningsLedger'];
@@ -222,6 +242,10 @@ export type RewardsMoneyControllerMethodActions =
   | RewardsMoneyControllerGetPerpsRebateQuoteAction
   | RewardsMoneyControllerRegisterRefereeAction
   | RewardsMoneyControllerGetEarningsSummaryAction
+  | RewardsMoneyControllerGetCardSummaryAction
+  | RewardsMoneyControllerGetCardLedgerAction
+  | RewardsMoneyControllerGetCardClaimHistoryAction
+  | RewardsMoneyControllerGetCardClaimAction
   | RewardsMoneyControllerGetEarningsLedgerAction
   | RewardsMoneyControllerGetClaimHistoryAction
   | RewardsMoneyControllerGetCommissionsAction
