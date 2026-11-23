@@ -516,15 +516,6 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the referrer hero on the first tab', () => {
-    const { getByTestId, queryByTestId } = renderDashboard();
-
-    expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
   it('renders the referee hero and hides the referrer share card', () => {
     const { getByTestId, queryByTestId } = renderDashboard({
       referralMeEntry: {

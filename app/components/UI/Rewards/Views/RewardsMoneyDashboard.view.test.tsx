@@ -560,6 +560,9 @@ describe('RewardsMoneyDashboard campaigns and benefits tabs (RWDS-1725)', () => 
     expect(
       queryByText(strings('rewards.campaigns_view.empty_state')),
     ).not.toBeOnTheScreen();
+    expect(
+      queryByText(strings('rewards.campaigns_view.error_title')),
+    ).not.toBeOnTheScreen();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB));
 

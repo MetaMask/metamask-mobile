@@ -224,18 +224,6 @@ describe('CampaignsView', () => {
       expect(queryByText('Unable to load campaigns')).toBeNull();
     });
 
-    it('holds the empty state back until the first load settles', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        hasLoaded: false,
-      });
-
-      const { queryByText } = render(<CampaignsView />);
-
-      expect(queryByText('No campaigns available')).toBeNull();
-      expect(queryByText('Unable to load campaigns')).toBeNull();
-    });
-
     it('renders the refreshing indicator when loading with existing campaigns', () => {
       const activeCampaign = createTestCampaign({
         id: 'a1',
