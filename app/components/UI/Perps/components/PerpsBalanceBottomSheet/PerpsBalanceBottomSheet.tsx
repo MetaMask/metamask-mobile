@@ -101,6 +101,15 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
     bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
 
+  // Every dismissal (close button, swipe, backdrop, hardware back, and the
+  // Withdraw / Add funds actions) ends here. Pro market keeps this component
+  // mounted, so clear the explanation or the next open would show it instead
+  // of the account summary.
+  const handleSheetClose = useCallback(() => {
+    setActiveTooltip(null);
+    onClose();
+  }, [onClose]);
+
   // Withdraw always navigates away (to the withdraw screen or into a
   // confirmation flow), so close the sheet first instead of leaving it
   // mounted underneath the next screen.
@@ -130,7 +139,11 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
 
   return (
     <>
-      <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={handleSheetClose}
+        testID={testID}
+      >
         {activeTooltip ? (
           <PerpsInlineInfoScreen
             contentKey={activeTooltip}

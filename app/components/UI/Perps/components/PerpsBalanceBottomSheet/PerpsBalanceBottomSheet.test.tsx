@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import PerpsBalanceBottomSheet from './PerpsBalanceBottomSheet';
 import {
   getPerpsCrossMarginSummaryLabelSelector,
@@ -315,6 +316,42 @@ describe('PerpsBalanceBottomSheet', () => {
       ).toBeOnTheScreen();
       expect(
         getByTestId(getPerpsCrossMarginSummaryLabelSelector('account_ratio')),
+      ).toBeOnTheScreen();
+    } finally {
+      Object.assign(mockCrossMarginSummary, {
+        hasCrossExposure: previousExposure,
+      });
+    }
+  });
+
+  it('shows the account summary again after the sheet is dismissed from the explanation', () => {
+    const previousExposure = mockCrossMarginSummary.hasCrossExposure;
+    Object.assign(mockCrossMarginSummary, { hasCrossExposure: true });
+
+    try {
+      const onClose = jest.fn();
+      const { getByTestId, queryByTestId, UNSAFE_getByType } = renderSheet({
+        onClose,
+      });
+
+      fireEvent.press(
+        getByTestId(getPerpsCrossMarginSummaryLabelSelector('account_ratio')),
+      );
+      expect(
+        getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).toBeOnTheScreen();
+
+      // Swipe, backdrop and hardware back all reach the sheet's onClose.
+      act(() => {
+        UNSAFE_getByType(BottomSheet).props.onClose();
+      });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+      expect(
+        queryByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
       ).toBeOnTheScreen();
     } finally {
       Object.assign(mockCrossMarginSummary, {
