@@ -55,7 +55,7 @@ export function usePerpsPortfolioBalance() {
           'accountValue1dAgo' in providerBalance
         ) {
           const balance1dAgoUsd = new BigNumber(
-            providerBalance.accountValue1dAgo ?? '0',
+            providerBalance.accountValue1dAgo || '0',
           );
           historical1dAgoBalance += balance1dAgoUsd
             .multipliedBy(conversionRate)

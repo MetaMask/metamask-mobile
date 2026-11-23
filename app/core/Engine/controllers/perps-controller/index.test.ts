@@ -19,6 +19,7 @@ import { perpsControllerInit } from '.';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { getPerpsControllerMessenger } from '../../messengers/perps-controller-messenger';
 import type { NotificationPreferences } from '@metamask/authenticated-user-storage';
+import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 
 // Mock mobile-specific modules that ./index.ts imports to avoid pulling in
 // Engine and React Native dependencies in the test environment
@@ -255,7 +256,9 @@ function buildSeedPrefs(
   };
 }
 
-function buildTestInfrastructure(): PerpsPlatformDependencies {
+function buildTestInfrastructure(
+  versionGatedFlagsPass = false,
+): PerpsPlatformDependencies {
   return {
     logger: { error: jest.fn() },
     debugLogger: { log: jest.fn() },
@@ -266,7 +269,9 @@ function buildTestInfrastructure(): PerpsPlatformDependencies {
       resumeChannel: jest.fn(),
       clearAllChannels: jest.fn(),
     },
-    featureFlags: { validateVersionGated: jest.fn(() => false) },
+    featureFlags: {
+      validateVersionGated: jest.fn(() => versionGatedFlagsPass),
+    },
     marketDataFormatters: {
       formatVolume: jest.fn(() => ''),
       formatPerpsFiat: jest.fn(() => ''),
@@ -304,9 +309,19 @@ interface PutNotificationPreferencesAction {
   handler: (prefs: NotificationPreferences) => Promise<void>;
 }
 
+interface BuildRealControllerOptions {
+  /**
+   * Registers the version-gated `perpsMultiProviderModeEnabled` flag as this
+   * value. Left undefined, no flag state is registered, so the controller
+   * treats the flag as unknown rather than off.
+   */
+  multiProviderModeEnabled?: boolean;
+}
+
 function buildRealController(
   getNotificationPreferencesImpl: () => Promise<NotificationPreferences | null>,
   persistedState: Partial<PerpsControllerState> = {},
+  { multiProviderModeEnabled }: BuildRealControllerOptions = {},
 ) {
   // Use the real PerpsController from the preview build — the top-level
   // jest.mock replaces it with jest.fn() for the init tests above, so we
@@ -321,7 +336,9 @@ function buildRealController(
 
   const baseMessenger = new ExtendedMessenger<
     MockAnyNamespace,
-    GetNotificationPreferencesAction | PutNotificationPreferencesAction
+    | GetNotificationPreferencesAction
+    | PutNotificationPreferencesAction
+    | RemoteFeatureFlagControllerGetStateAction
   >({
     namespace: MOCK_ANY_NAMESPACE,
   });
@@ -338,12 +355,27 @@ function buildRealController(
     putSpy,
   );
 
+  if (multiProviderModeEnabled !== undefined) {
+    baseMessenger.registerActionHandler(
+      'RemoteFeatureFlagController:getState',
+      () => ({
+        cacheTimestamp: 0,
+        remoteFeatureFlags: {
+          perpsMultiProviderModeEnabled: {
+            enabled: multiProviderModeEnabled,
+            minimumVersion: '0.0.0',
+          },
+        },
+      }),
+    );
+  }
+
   const controllerMessenger = getPerpsControllerMessenger(baseMessenger);
 
   const controller = new RealPerpsController({
     messenger: controllerMessenger,
     state: { ...getDefaultPerpsControllerState(), ...persistedState },
-    infrastructure: buildTestInfrastructure(),
+    infrastructure: buildTestInfrastructure(multiProviderModeEnabled === true),
     clientConfig: {},
   });
 
@@ -353,10 +385,14 @@ function buildRealController(
 describe('PerpsController saved settings upgrade', () => {
   // Keep this fixture in the pre-upgrade [network][symbol] shape. The
   // controller, not Mobile's persistence layer, owns the migration.
+  type LegacyTradeConfigurations = Record<
+    'mainnet' | 'testnet',
+    Record<string, { leverage: number; marginMode: 'isolated' | 'cross' }>
+  >;
   const legacyTradeConfigurations = {
     mainnet: { BTC: { leverage: 7, marginMode: 'isolated' } },
     testnet: { ETH: { leverage: 3, marginMode: 'cross' } },
-  };
+  } satisfies LegacyTradeConfigurations;
 
   it.each([
     { isTestnet: false, symbol: 'BTC', leverage: 7, marginMode: 'isolated' },
@@ -364,12 +400,16 @@ describe('PerpsController saved settings upgrade', () => {
   ])(
     'restores saved $symbol leverage and margin mode with multi-provider mode off',
     ({ isTestnet, symbol, leverage, marginMode }) => {
-      const { controller } = buildRealController(async () => null, {
-        isTestnet,
-        // Persisted snapshots can predate the current package's state type.
-        tradeConfigurations:
-          legacyTradeConfigurations as unknown as PerpsControllerState['tradeConfigurations'],
-      });
+      const { controller } = buildRealController(
+        async () => null,
+        {
+          isTestnet,
+          // Persisted snapshots can predate the current package's state type.
+          tradeConfigurations:
+            legacyTradeConfigurations as unknown as PerpsControllerState['tradeConfigurations'],
+        },
+        { multiProviderModeEnabled: false },
+      );
 
       const savedConfiguration = controller.getTradeConfiguration(symbol);
       const savedMarginMode = controller.getMarginMode(symbol);
@@ -386,6 +426,23 @@ describe('PerpsController saved settings upgrade', () => {
       });
     },
   );
+
+  it('keeps saved settings under the default exchange when multi-provider mode is on', () => {
+    const { controller } = buildRealController(
+      async () => null,
+      {
+        isTestnet: false,
+        // Persisted snapshots can predate the current package's state type.
+        tradeConfigurations:
+          legacyTradeConfigurations as unknown as PerpsControllerState['tradeConfigurations'],
+      },
+      { multiProviderModeEnabled: true },
+    );
+
+    expect(controller.state.activeProvider).toBe('aggregated');
+    expect(controller.state.defaultProvider).toBe('hyperliquid');
+    expect(controller.getTradeConfiguration('BTC')).toEqual({ leverage: 7 });
+  });
 
   it('keeps migrated settings unchanged when the controller is restored again', () => {
     const tradeConfigurations: PerpsControllerState['tradeConfigurations'] = {

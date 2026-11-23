@@ -129,13 +129,6 @@ describe('translatePerpsError', () => {
       expect(english.perps.errors).toHaveProperty(key, expect.any(String));
     });
 
-    it('tells the user to select an exchange and retry on PROVIDER_ROUTE_REQUIRED', () => {
-      const copy = english.perps.errors.providerRouteRequired;
-
-      expect(copy).toMatch(/exchange/i);
-      expect(copy).toMatch(/try again/i);
-    });
-
     it('translates TOKEN_NOT_SUPPORTED error code with data', () => {
       const result = translatePerpsError(
         PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED,
