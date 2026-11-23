@@ -857,7 +857,9 @@ const EventMarketListContent = ({
 };
 
 /** Owns Event content while leaving charts, navigation, and workflows outside. */
-export const EventMarketList = (props: EventMarketListProps): React.ReactElement => (
+export const EventMarketList = (
+  props: EventMarketListProps,
+): React.ReactElement => (
   <EventMarketListContent
     key={JSON.stringify([props.event.venueId, props.event.id])}
     {...props}
