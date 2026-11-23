@@ -9,16 +9,12 @@ import { useInitPerpsPaymentToken } from './useInitPerpsPaymentToken';
 import {
   buildPaymentTokenMock,
   evmAssetId,
+  mockUseSelectorWithEvmAssetIdEncoder,
 } from '../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(
-    () =>
-      jest.requireActual(
-        '../../../../Views/confirmations/__mocks__/pay-token.mock',
-      ).encodeEvmAssetIdMock,
-  ),
+  useSelector: jest.fn(),
 }));
 jest.mock('../../../../Views/confirmations/hooks/pay/useTransactionPayToken');
 jest.mock(
@@ -90,6 +86,7 @@ function setupDefaults({
 describe('useInitPerpsPaymentToken', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorWithEvmAssetIdEncoder();
     setupDefaults();
   });
 

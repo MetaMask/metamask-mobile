@@ -7,9 +7,8 @@ import { replaceMusdConversionTransactionForPayToken } from '../utils/musdConver
 import { useMusdPaymentToken } from './useMusdPaymentToken';
 import {
   evmAssetId,
-  encodeEvmAssetIdMock,
+  mockUseSelectorWithEvmAssetIdEncoder,
 } from '../../../Views/confirmations/__mocks__/pay-token.mock';
-import { useSelector } from 'react-redux';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -74,7 +73,7 @@ describe('useMusdPaymentToken', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useSelector).mockReturnValue(encodeEvmAssetIdMock);
+    mockUseSelectorWithEvmAssetIdEncoder();
 
     mockUseTransactionPayToken.mockReturnValue({
       setPayToken: mockSetPayToken,

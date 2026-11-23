@@ -1,5 +1,6 @@
 import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import type { CaipAssetType, Hex } from '@metamask/utils';
+import { useSelector } from 'react-redux';
 import {
   buildAssetIdIndex,
   encodeEvmAssetId,
@@ -36,6 +37,16 @@ export const encodeEvmAssetIdMock = ({
   address: string;
   chainId: string;
 }): CaipAssetType => evmAssetId(address, chainId);
+
+/**
+ * Make the mocked `useSelector` return `encodeEvmAssetIdMock`, for tests of
+ * hooks whose only selector is `selectEvmAssetIdEncoder`. The test file must
+ * mock `react-redux` with `useSelector: jest.fn()`, and call this in
+ * `beforeEach` after any `jest.resetAllMocks()`.
+ */
+export function mockUseSelectorWithEvmAssetIdEncoder(): void {
+  jest.mocked(useSelector).mockReturnValue(encodeEvmAssetIdMock);
+}
 
 /**
  * Build a payment token for an EVM test token.

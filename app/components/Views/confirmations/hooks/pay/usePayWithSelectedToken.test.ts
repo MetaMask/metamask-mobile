@@ -1,13 +1,12 @@
 import { renderHook } from '@testing-library/react-hooks';
 import type { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
-import { useSelector } from 'react-redux';
 import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
 import { usePayWithSelectedToken } from './usePayWithSelectedToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import {
   evmAssetId,
-  encodeEvmAssetIdMock,
+  mockUseSelectorWithEvmAssetIdEncoder,
 } from '../../__mocks__/pay-token.mock';
 
 jest.mock('react-redux', () => ({
@@ -65,7 +64,7 @@ describe('usePayWithSelectedToken', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    jest.mocked(useSelector).mockReturnValue(encodeEvmAssetIdMock);
+    mockUseSelectorWithEvmAssetIdEncoder();
     useAutomaticTransactionPayTokenMock.mockReturnValue(AUTOMATIC_TOKEN_MOCK);
 
     useTransactionPayTokenMock.mockReturnValue({

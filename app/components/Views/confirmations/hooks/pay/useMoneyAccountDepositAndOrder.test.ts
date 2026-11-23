@@ -11,14 +11,12 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import {
   buildPaymentTokenMock,
   evmAssetId,
+  mockUseSelectorWithEvmAssetIdEncoder,
 } from '../../__mocks__/pay-token.mock';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(
-    () =>
-      jest.requireActual('../../__mocks__/pay-token.mock').encodeEvmAssetIdMock,
-  ),
+  useSelector: jest.fn(),
 }));
 jest.mock('./useAutomaticMoneyAccountPayToken');
 jest.mock('./useDefaultPaySelectedSection');
@@ -44,6 +42,7 @@ describe('useMoneyAccountDepositAndOrder', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorWithEvmAssetIdEncoder();
 
     useIsMoneyAccountPaymentOverrideMock.mockReturnValue(false);
     useAutomaticMoneyAccountPayTokenMock.mockReturnValue({

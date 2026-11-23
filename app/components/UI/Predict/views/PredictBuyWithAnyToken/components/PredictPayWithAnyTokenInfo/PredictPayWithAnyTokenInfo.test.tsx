@@ -2,7 +2,10 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import PredictPayWithAnyTokenInfo from './PredictPayWithAnyTokenInfo';
 import { OrderPreview, Side } from '../../../../types';
-import { evmAssetId } from '../../../../../../Views/confirmations/__mocks__/pay-token.mock';
+import {
+  evmAssetId,
+  mockUseSelectorWithEvmAssetIdEncoder,
+} from '../../../../../../Views/confirmations/__mocks__/pay-token.mock';
 
 let mockIsPredictBalanceSelected = false;
 let mockUpdatePendingAmount = jest.fn();
@@ -22,12 +25,7 @@ let mockIsMoneyAccountSelected = false;
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(
-    () =>
-      jest.requireActual(
-        '../../../../../../Views/confirmations/__mocks__/pay-token.mock',
-      ).encodeEvmAssetIdMock,
-  ),
+  useSelector: jest.fn(),
 }));
 jest.mock('../../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -129,6 +127,7 @@ const defaultPreview = createMockPreview();
 describe('PredictPayWithAnyTokenInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorWithEvmAssetIdEncoder();
     mockIsPredictBalanceSelected = false;
     mockUpdatePendingAmount = jest.fn();
     mockAmountHuman = '';
