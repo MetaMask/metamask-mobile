@@ -152,13 +152,11 @@ export function buildRealMpcMoneyKeyringBuilder({
           ),
         ),
       isMfaRequired: async (request, { address, hash }) =>
-        Promise.resolve(
-          getMfaRequirement(request, {
-            address,
-            hash,
-            config: MPC_MFA_WHITELIST_CONFIG,
-          }).mfaRequired,
-        ),
+        getMfaRequirement(request, {
+          address,
+          hash,
+          config: MPC_MFA_WHITELIST_CONFIG,
+        }).mfaRequired,
       webSocket: WebSocket,
     });
   };
