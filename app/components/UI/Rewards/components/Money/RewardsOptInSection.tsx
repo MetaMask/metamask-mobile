@@ -108,7 +108,7 @@ const RewardsOptInSection: React.FC<RewardsOptInSectionProps> = ({
 
   const description =
     localizedText.invitedOptInDescription ??
-    strings('rewards.campaign.opt_in_descrption');
+    strings('rewards.campaign.opt_in_section_description');
   const actionLabel =
     localizedText.invitedOptInAction ?? strings('rewards.campaign.opt_in_cta');
   const footnote =

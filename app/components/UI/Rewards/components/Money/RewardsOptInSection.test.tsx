@@ -147,7 +147,7 @@ describe('RewardsOptInSection', () => {
     );
 
     expect(
-      getByText(strings('rewards.campaign.opt_in_descrption')),
+      getByText(strings('rewards.campaign.opt_in_section_description')),
     ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.ACTION).props
