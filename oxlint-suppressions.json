@@ -1274,9 +1274,6 @@
     }
   },
   "app/components/UI/Bridge/Views/BridgeView/BridgeRecurringBuyView/BridgeRecurringBuyView.view.test.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 6
-    },
     "typescript/promise-function-async": {
       "count": 1
     }
@@ -2057,7 +2054,7 @@
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/index.ts": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 3
     }
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/useLatestBalance.evmNonEvmDependency.test.tsx": {
@@ -2067,7 +2064,7 @@
   },
   "app/components/UI/Bridge/hooks/useLatestBalance/useLatestBalance.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
-      "count": 38
+      "count": 39
     }
   },
   "app/components/UI/Bridge/hooks/useLegacySwapsBlockExplorer/index.ts": {
@@ -5330,11 +5327,6 @@
   },
   "app/components/UI/Money/components/MoneyAddMoneySheet/MoneyAddMoneySheet.view.test.tsx": {
     "typescript/promise-function-async": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Money/components/MoneyApyInfoSheet/MoneyApyInfoSheet.tsx": {
-    "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
   },
@@ -11682,9 +11674,6 @@
     }
   },
   "app/components/UI/Rewards/Views/CampaignsView.tsx": {
-    "typescript/no-misused-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-boolean-literal-compare": {
       "count": 1
     }
@@ -11835,11 +11824,6 @@
       "count": 1
     },
     "typescript/unbound-method": {
-      "count": 1
-    }
-  },
-  "app/components/UI/Rewards/Views/RewardsMoneyDashboard.view.test.tsx": {
-    "typescript/promise-function-async": {
       "count": 1
     }
   },
@@ -12200,11 +12184,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Rewards/components/Money/Tabs/EarningsTab.view.test.tsx": {
-    "typescript/promise-function-async": {
-      "count": 3
-    }
-  },
   "app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -12471,9 +12450,6 @@
     }
   },
   "app/components/UI/Rewards/hooks/useBenefits.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     }
@@ -13002,9 +12978,6 @@
     }
   },
   "app/components/UI/Rewards/hooks/useRewardCampaigns.ts": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-misused-promises": {
       "count": 1
     }
@@ -14933,11 +14906,6 @@
   "app/components/Views/ActivityDetails/templates/TemplateLoader.test.tsx": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 18
-    }
-  },
-  "app/components/Views/ActivityDetails/templates/rampDetailsUtils.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "app/components/Views/ActivityList/ActivityList.test.tsx": {

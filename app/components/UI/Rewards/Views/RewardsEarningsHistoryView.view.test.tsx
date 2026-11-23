@@ -39,7 +39,7 @@ describe('RewardsEarningsHistoryView', () => {
       within(pendingRow).getByText(REFERRAL_LOCALIZED_TEXT.historyClaimed),
     ).toBeOnTheScreen();
     expect(
-      within(settledRow).getByText(REFERRAL_LOCALIZED_TEXT.historyRebate),
+      within(settledRow).getByText(REFERRAL_LOCALIZED_TEXT.rebateSwaps),
     ).toBeOnTheScreen();
     expect(within(settledRow).getByText('+$1.00')).toBeOnTheScreen();
     expect(

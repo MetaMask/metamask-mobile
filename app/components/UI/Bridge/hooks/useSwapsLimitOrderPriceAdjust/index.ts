@@ -4,12 +4,12 @@ import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { useLiveTokenFiatRateState } from '../useLiveTokenFiatRate';
 import type { BridgeToken } from '../../types';
+import { getFiatPriceDecimals } from '../../utils/currencyUtils';
 import { formatTokenInputAmountFromFiat } from '../../utils/sourceAmountInputMode';
 import {
   LIMIT_ORDER_PRICE_DECIMALS,
   formatLimitOrderFiatInputPriceFromTokenAmount,
   formatLimitOrderFiatPriceFromTokenAmount,
-  getLimitOrderFiatPriceDecimals,
   roundLimitOrderMarketFiatToInput,
 } from '../../utils/limitOrders/formatLimitOrderFiatPrice';
 import {
@@ -93,7 +93,7 @@ export const useSwapsLimitOrderPriceAdjust = ({
   // keypad and the market comparison. A fiat price follows the market price so
   // that a cheap quoted token is not rounded to cents; a counter-token price
   // is a rate, so it is not bound by the counter token's decimals.
-  const fiatPriceDecimals = getLimitOrderFiatPriceDecimals(quotedFiatRate);
+  const fiatPriceDecimals = getFiatPriceDecimals(quotedFiatRate);
   const limitPriceDecimals = isLimitFiatMode
     ? fiatPriceDecimals
     : LIMIT_ORDER_PRICE_DECIMALS;

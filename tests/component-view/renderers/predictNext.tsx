@@ -137,6 +137,7 @@ export const renderPredictNext = (
   }: {
     venueId?: PredictVenueId;
     remoteFeatureFlags?: Record<string, unknown>;
+    /** A caller-owned client, for tests that warm or refetch the cache. */
     queryClient?: QueryClient;
   } = {},
 ) =>

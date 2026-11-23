@@ -3,9 +3,10 @@ import type { PredictFeedId } from '../types';
 import { strings } from '../../../../../locales/i18n';
 
 /**
- * Screen IDs Home's hardcoded sections open (PRED-1528 moves them to the
- * catalog). The screens themselves, their tabs and their order come from the
- * Venue catalog's `screens` (PRED-1525); these are only names.
+ * Kalshi's Feed Screen IDs, for tests and fixtures. No surface opens a screen
+ * by a hardcoded ID: Home's headers name theirs in the catalog's `home`
+ * (PRED-1527), and the screens, their tabs and their order come from its
+ * `screens` (PRED-1525).
  */
 export const NFL_FEED_SCREEN_ID = 'sports-football-nfl';
 export const NCAA_FEED_SCREEN_ID = 'sports-football-ncaa';
@@ -45,11 +46,6 @@ const localized = (key: string, fallback: string): string => {
 /** The app's title for a Feed Screen ID it knows, else an empty string. */
 export const getKnownFeedScreenTitle = (feedScreenId: FeedScreenId): string =>
   localized(`titles.${feedScreenId}`, '');
-
-/** The app's subtitle for a Feed Screen ID it knows, else its title, else an
- * empty string. */
-export const getKnownFeedScreenLabel = (feedScreenId: FeedScreenId): string =>
-  localized(`subtitles.${feedScreenId}`, getKnownFeedScreenTitle(feedScreenId));
 
 /**
  * The Venue's Feed Screen `feedScreenId`, labelled, with the tabs whose Feed

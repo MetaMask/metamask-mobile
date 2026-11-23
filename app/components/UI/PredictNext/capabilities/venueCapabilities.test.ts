@@ -309,7 +309,7 @@ describe('resolveSurfaceFeeds', () => {
     expect(result).toEqual([]);
   });
 
-  it('shows Kalshi V1 its football sections, Politics, and the Sports and RWAs tabs', () => {
+  it('shows Kalshi V1 its football slots and the Sports and RWAs tabs', () => {
     const kalshi = resolveVenueCapabilities(
       KALSHI,
       read({ data: KALSHI_STATIC_VENUE_CATALOG }),
@@ -330,22 +330,6 @@ describe('resolveSurfaceFeeds', () => {
       'rwas',
       'sports',
     ]);
-    expect(sectionIds(PREDICT_SURFACE_FEED_KEYS.nextHomeSections)).toEqual([
-      'sports-football-nfl',
-      'sports-football-ncaa',
-      'politics',
-    ]);
-  });
-
-  it('shows Polymarket no Politics topic Feed, so no Politics section', () => {
-    const polymarket = resolveVenueCapabilities(POLYMARKET, read());
-
-    expect(
-      resolveSurfaceFeeds(
-        polymarket,
-        PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
-      ).map(({ sectionId }) => sectionId),
-    ).toEqual([]);
   });
 
   it('keeps every surface Polymarket shows today', () => {

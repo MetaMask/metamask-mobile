@@ -212,7 +212,7 @@ describe('RampDetails', () => {
     expect(getByText('Fees')).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('€61.88')).toBeOnTheScreen();
-    expect(getByText('€3')).toBeOnTheScreen();
+    expect(getByText('€3.00')).toBeOnTheScreen();
     expect(getByText('€58.88')).toBeOnTheScreen();
   });
 

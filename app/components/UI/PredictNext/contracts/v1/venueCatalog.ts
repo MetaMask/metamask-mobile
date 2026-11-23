@@ -3,6 +3,7 @@ import {
   boolean,
   enums,
   is,
+  literal,
   optional,
   record,
   refine,
@@ -17,10 +18,12 @@ import {
   PREDICT_VENUE_ENVIRONMENTS,
   type PredictFeedId,
   type PredictFeedKey,
+  type PredictHomeSection,
   type PredictVenueAction,
   type PredictVenueCatalog,
   type PredictVenueFeedScreen,
   type PredictVenueFeedScreenTab,
+  type PredictVenueHome,
   type PredictVenueId,
 } from '../../types';
 
@@ -41,7 +44,7 @@ const venueEnvironmentSchema = enums(PREDICT_VENUE_ENVIRONMENTS);
 // Unknown fields are ignored, and unknown actions are dropped below, so the
 // schema accepts any string there. A known field with the wrong shape still
 // rejects the catalog, except the ones that drive single entries: `feeds`
-// entries, `categories` and `screens` drop what they can't use instead.
+// entries, `categories`, `screens` and `home` drop what they can't use instead.
 const venueCatalogSchema = type({
   venueId: nonEmptyString,
   environment: optional(venueEnvironmentSchema),
@@ -50,6 +53,7 @@ const venueCatalogSchema = type({
   categories: optional(unknown()),
   searchSupported: boolean(),
   screens: optional(unknown()),
+  home: optional(unknown()),
 });
 
 const feedScreenTabSchema = type({
@@ -64,6 +68,37 @@ const feedScreenSchema = type({
   subtitle: optional(unknown()),
   tabs: array(unknown()),
 });
+
+const homeSchema = type({ sections: array(unknown()) });
+
+const trendingSectionSchema = type({
+  kind: literal('trending'),
+  sources: array(unknown()),
+  screen: optional(kebabCase),
+});
+
+const gamesRowSectionSchema = type({
+  kind: literal('games-row'),
+  id: kebabCase,
+  title: nonEmptyString,
+  feed: string(),
+  screen: optional(kebabCase),
+});
+
+const categoriesSectionSchema = type({ kind: literal('categories') });
+
+const feedPreviewSectionSchema = type({
+  kind: literal('feed-preview'),
+  id: kebabCase,
+  title: nonEmptyString,
+  feed: string(),
+  screen: kebabCase,
+});
+
+/** Most Home sections mobile shows, and most Feeds they read together: Home
+ * reads its Feeds through a chain of this fixed depth (`HomeFeedReads`). */
+export const MAX_HOME_SECTIONS = 8;
+export const MAX_HOME_FEED_READS = 8;
 
 const KNOWN_ACTIONS: ReadonlySet<string> = new Set(PREDICT_VENUE_ACTIONS);
 
@@ -216,9 +251,168 @@ const parseFeedScreens = (
 };
 
 /**
+ * One Home section as mobile can use it, or undefined when it is malformed,
+ * of an unknown kind, or reads a Feed key missing from `feeds`. Trending
+ * keeps its sources in `feeds`, without repeats, and pushes the others to
+ * `dropped`; it is unusable without one.
+ */
+const parseHomeSection = (
+  entry: unknown,
+  feeds: Partial<Record<PredictFeedKey, PredictFeedId>>,
+  dropped: unknown[],
+): PredictHomeSection | undefined => {
+  const withScreen = (screen: string | undefined): { screen?: string } =>
+    screen === undefined ? {} : { screen };
+  if (is(entry, trendingSectionSchema)) {
+    const sources: PredictFeedKey[] = [];
+    for (const source of entry.sources) {
+      if (
+        typeof source === 'string' &&
+        hasOwn(feeds, source) &&
+        !sources.includes(source)
+      ) {
+        sources.push(source);
+      } else {
+        dropped.push(source);
+      }
+    }
+    return sources.length > 0
+      ? { kind: 'trending', sources, ...withScreen(entry.screen) }
+      : undefined;
+  }
+  if (is(entry, gamesRowSectionSchema) && hasOwn(feeds, entry.feed)) {
+    const { id, title, feed, screen } = entry;
+    return { kind: 'games-row', id, title, feed, ...withScreen(screen) };
+  }
+  if (is(entry, categoriesSectionSchema)) {
+    return { kind: 'categories' };
+  }
+  if (is(entry, feedPreviewSectionSchema) && hasOwn(feeds, entry.feed)) {
+    const { id, title, feed, screen } = entry;
+    return { kind: 'feed-preview', id, title, feed, screen };
+  }
+  return undefined;
+};
+
+/** The Feed keys a Home section reads, in read order. */
+export const getHomeSectionFeedKeys = (
+  section: PredictHomeSection,
+): readonly PredictFeedKey[] => {
+  switch (section.kind) {
+    case 'trending':
+      return section.sources;
+    case 'games-row':
+    case 'feed-preview':
+      return [section.feed];
+    default:
+      return [];
+  }
+};
+
+/** Whether `section` repeats an earlier section's ID, or is a second
+ * Trending or Categories, which have no ID. */
+const repeatsEarlierSection = (
+  section: PredictHomeSection,
+  earlier: readonly PredictHomeSection[],
+): boolean =>
+  earlier.some((other) =>
+    'id' in section
+      ? 'id' in other && other.id === section.id
+      : other.kind === section.kind,
+  );
+
+/**
+ * `section` trimmed to the Feed reads Home has room for, or undefined when
+ * it does not fit. Home reads at most {@link MAX_HOME_FEED_READS} distinct
+ * Feeds; a key an earlier section reads costs nothing. Trending keeps the
+ * sources that fit, in order; any other section fits whole or not at all.
+ */
+const fitHomeFeedReads = (
+  section: PredictHomeSection,
+  readKeys: ReadonlySet<PredictFeedKey>,
+): PredictHomeSection | undefined => {
+  const room = MAX_HOME_FEED_READS - readKeys.size;
+  const newKeys = getHomeSectionFeedKeys(section).filter(
+    (key) => !readKeys.has(key),
+  );
+  if (newKeys.length <= room) {
+    return section;
+  }
+  if (section.kind !== 'trending') {
+    return undefined;
+  }
+  const fits = new Set(newKeys.slice(0, room));
+  const sources = section.sources.filter(
+    (key) => readKeys.has(key) || fits.has(key),
+  );
+  return sources.length > 0 ? { ...section, sources } : undefined;
+};
+
+/**
+ * PredictNext Home's sections in catalog order (PRED-1527). The API adds
+ * section kinds and fields after a build ships, so nothing here rejects the
+ * catalog. A section is dropped and logged when it is malformed, of an
+ * unknown kind, reads a Feed key missing from `feeds`, repeats an earlier
+ * section's ID (or is a second Trending or Categories), comes after the
+ * eighth kept section, or would take Home past eight distinct Feed reads (a
+ * Trending keeps the sources that fit). A Trending source missing from
+ * `feeds`, or repeated, is dropped and logged and the section kept. A `screen` is kept even when
+ * `screens` lacks it: the header looks it up and opens nothing without it.
+ * A missing field is a catalog from before PRED-1527 and means no Home
+ * sections; so does a `home` that is not an object with a `sections` array,
+ * which is logged.
+ */
+const parseHome = (
+  value: unknown,
+  feeds: Partial<Record<PredictFeedKey, PredictFeedId>>,
+  venueId: PredictVenueId,
+): PredictVenueHome | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!is(value, homeSchema)) {
+    logDropped(venueId, [value], ['Home', 'Homes']);
+    return undefined;
+  }
+  const sections: PredictHomeSection[] = [];
+  const droppedSections: unknown[] = [];
+  const droppedSources: unknown[] = [];
+  const readKeys = new Set<PredictFeedKey>();
+  for (const entry of value.sections) {
+    const parsed = parseHomeSection(entry, feeds, droppedSources);
+    const section =
+      parsed &&
+      sections.length < MAX_HOME_SECTIONS &&
+      !repeatsEarlierSection(parsed, sections)
+        ? fitHomeFeedReads(parsed, readKeys)
+        : undefined;
+    if (!section) {
+      droppedSections.push(entry);
+      continue;
+    }
+    if (parsed && section !== parsed && section.kind === 'trending') {
+      droppedSources.push(
+        ...getHomeSectionFeedKeys(parsed).filter(
+          (key) => !section.sources.includes(key),
+        ),
+      );
+    }
+    getHomeSectionFeedKeys(section).forEach((key) => readKeys.add(key));
+    sections.push(section);
+  }
+  logDropped(venueId, droppedSources, ['Trending source', 'Trending sources']);
+  logDropped(venueId, droppedSections, ['Home section', 'Home sections']);
+  return { sections };
+};
+
+const optionalHome = (
+  home: PredictVenueHome | undefined,
+): { home?: PredictVenueHome } => (home ? { home } : {});
+
+/**
  * Parses a Venue catalog for `expectedVenueId`. Unknown actions are dropped.
- * Feed entries, Categories and Feed Screens are checked one by one, and a bad
- * one is dropped and logged (see their parsers). Anything else structurally
+ * Feed entries, Categories, Feed Screens and Home sections are checked one by
+ * one, and a bad one is dropped and logged (see their parsers). Anything else structurally
  * wrong, or a catalog for another Venue, throws `INVALID_RESPONSE`, so a
  * caller that fails closed enables nothing.
  */
@@ -249,5 +443,6 @@ export const parsePredictVenueCatalog = (
     categories: parseCategories(value.categories, feeds, expectedVenueId),
     searchSupported: value.searchSupported,
     screens: parseFeedScreens(value.screens, feeds, expectedVenueId),
+    ...optionalHome(parseHome(value.home, feeds, expectedVenueId)),
   };
 };
