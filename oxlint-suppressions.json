@@ -9583,11 +9583,6 @@
       "count": 2
     }
   },
-  "app/components/UI/PredictNext/capabilities/venueCapabilities.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/closure/PredictCrossSurface.view.test.tsx": {
     "typescript/promise-function-async": {
       "count": 1
@@ -9713,11 +9708,6 @@
     }
   },
   "app/components/UI/PredictNext/navigation/entry/usePredictEntryActions.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/PredictNext/navigation/feedScreens.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }

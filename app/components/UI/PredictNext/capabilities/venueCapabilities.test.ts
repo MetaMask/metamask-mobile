@@ -1,7 +1,6 @@
 import { POLYMARKET_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import {
-  PREDICT_FEED_KEYS,
   PREDICT_VENUE_ACTIONS,
   type PredictFeedId,
   type PredictVenueId,
@@ -62,6 +61,7 @@ describe('resolveVenueCapabilities', () => {
           },
           categories: [],
           searchSupported: true,
+          screens: [],
         },
       });
     });
@@ -221,7 +221,9 @@ describe('capability selectors', () => {
         ),
       ).toBe(false);
       expect(
-        PREDICT_FEED_KEYS.some((key) => getVenueFeedId(capabilities, key)),
+        Object.keys(KALSHI_STATIC_VENUE_CATALOG.feeds).some((key) =>
+          getVenueFeedId(capabilities, key),
+        ),
       ).toBe(false);
       expect(isVenueSearchSupported(capabilities)).toBe(false);
     },
@@ -240,6 +242,7 @@ describe('resolveSurfaceFeeds', () => {
       feeds: feeds as Record<string, PredictFeedId>,
       categories: [],
       searchSupported: false,
+      screens: [],
     },
   });
 

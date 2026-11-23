@@ -14,6 +14,13 @@ const { configure } = require('@testing-library/react-native');
 const nodeCrypto = require('crypto');
 const { installTimerLeakGuard } = require('./timerLeakGuard');
 const { installSocketLeakGuard } = require('./socketLeakGuard');
+const {
+  installNetConnectGuard,
+  installWebSocketTripwire,
+} = require('./netConnectGuard');
+const {
+  installDefaultApiMocks,
+} = require('../../../tests/component-view/api-mocking/defaults');
 
 // CV tests render real views behind nock/HTTP mocks on loaded CI shards, so
 // the 1s default is too short; per-test `{ timeout }` bumps are no longer needed.
@@ -21,6 +28,14 @@ configure({ asyncUtilTimeout: 5000 });
 
 installTimerLeakGuard();
 installSocketLeakGuard();
+// Fails any test whose app code makes an HTTP request no view-test mock
+// answers, even when the app code swallows the rejection; nock's interceptors
+// never see Node's built-in WebSocket, so that is tripped the same way.
+installNetConnectGuard();
+installWebSocketTripwire();
+// Neutral answers for the secondary requests views fire that tests do not
+// assert on. Feature mocks registered later keep precedence over them.
+installDefaultApiMocks();
 
 // Secure random helper to avoid duplication
 const getRandomValuesCompat = (arr) =>
