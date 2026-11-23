@@ -353,7 +353,6 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
         selectedCountry: null,
         activeProviderId: 'baanx',
         isAuthenticated: false,
-        cardholderAccounts: [],
         providerData: {},
         cardHomeData: null,
         cardHomeDataStatus: 'idle',

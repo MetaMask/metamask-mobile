@@ -220,8 +220,10 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
     () => mapPlusBenefitsToTradeAllowances(benefitsForDisplay),
     [benefitsForDisplay],
   );
+  // Allowances reset when the next period starts, so show that charge day.
   const resetsOn = formatSubscriptionPeriodEnd(
     plusSubscription?.currentPeriodEnd,
+    { exclusivePeriodEnd: false },
   );
 
   // No stored plan yet: wait for subscriptions unless an entitlement already

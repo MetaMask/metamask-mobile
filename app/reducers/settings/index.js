@@ -27,6 +27,9 @@ const initialState = {
     marketTypeFilter: 'all',
     showFavoritesOnly: false,
   },
+  // Lowercase EVM addresses of accounts that already acknowledged the
+  // first-time cross margin risks (acknowledged once per account, not market).
+  perpsCrossMarginConfirmedAccounts: {},
 };
 
 const settingsReducer = (state = initialState, action) => {
@@ -108,6 +111,8 @@ const settingsReducer = (state = initialState, action) => {
           initialState.basicFunctionalityMigrationNotification,
         basicFunctionalityMigrationNotificationDismissed:
           initialState.basicFunctionalityMigrationNotificationDismissed,
+        perpsCrossMarginConfirmedAccounts:
+          initialState.perpsCrossMarginConfirmedAccounts,
       };
     case 'TOGGLE_DEVICE_NOTIFICATIONS':
       return {
@@ -150,6 +155,19 @@ const settingsReducer = (state = initialState, action) => {
             typeof next.showFavoritesOnly === 'boolean'
               ? next.showFavoritesOnly
               : (state.perpsMarketListPreferences?.showFavoritesOnly ?? false),
+        },
+      };
+    }
+    case 'SET_PERPS_CROSS_MARGIN_CONFIRMED': {
+      const address = action.address?.toLowerCase();
+      if (!address) {
+        return state;
+      }
+      return {
+        ...state,
+        perpsCrossMarginConfirmedAccounts: {
+          ...state.perpsCrossMarginConfirmedAccounts,
+          [address]: true,
         },
       };
     }
