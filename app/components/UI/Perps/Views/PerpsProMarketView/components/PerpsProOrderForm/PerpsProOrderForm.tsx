@@ -30,6 +30,7 @@ import {
 import React, { useCallback, useRef } from 'react';
 import {
   Pressable,
+  StyleSheet,
   type KeyboardTypeOptions,
   type TextInput,
   type View,
@@ -64,6 +65,9 @@ import type {
 } from './PerpsProOrderForm.types';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const styles = StyleSheet.create({
+  marginModeButtonWithTag: { flexGrow: 2 },
+});
 const formatScalePrice = (price: string) =>
   formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL });
 
@@ -795,7 +799,15 @@ const PerpsProOrderForm = ({
               size={ButtonBaseSize.Md}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="flex-1 rounded-xl bg-muted"
+              // The ratio tag is not shrinkable, so with it present the button
+              // takes a larger share of the row (and tighter padding) instead of
+              // letting the tag cover the "Cross" label.
+              twClassName={
+                marginModeTag
+                  ? 'flex-1 rounded-xl bg-muted pl-3 pr-2'
+                  : 'flex-1 rounded-xl bg-muted'
+              }
+              style={marginModeTag ? styles.marginModeButtonWithTag : undefined}
               textProps={{ variant: TextVariant.BodySm }}
               endAccessory={
                 <Box

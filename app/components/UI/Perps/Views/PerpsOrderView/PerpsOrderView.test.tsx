@@ -12,6 +12,7 @@ import { Text } from '@metamask/design-system-react-native';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button';
 import Engine from '../../../../../core/Engine';
 import ToastService from '../../../../../core/ToastService';
 import {
@@ -8066,11 +8067,12 @@ describe('PerpsOrderView', () => {
       await fill();
 
       const toast = showToast.mock.calls.at(-1)?.[0];
-      expect(toast.linkButtonOptions.label).toBe(
+      expect(toast.closeButtonOptions.variant).toBe(ButtonVariants.Link);
+      expect(toast.closeButtonOptions.label).toBe(
         'social_leaderboard.post_trade_share.post_to_feed',
       );
 
-      toast.linkButtonOptions.onPress();
+      toast.closeButtonOptions.onPress();
 
       expect(openPostTradeComposer).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -8149,7 +8151,7 @@ describe('PerpsOrderView', () => {
 
       expect(showToast).toHaveBeenCalled();
       expect(
-        showToast.mock.calls.at(-1)?.[0]?.linkButtonOptions,
+        showToast.mock.calls.at(-1)?.[0]?.closeButtonOptions,
       ).toBeUndefined();
     });
   });

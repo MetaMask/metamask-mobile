@@ -42,6 +42,7 @@ const log = createProjectLogger('transaction-confirm');
 export const GO_BACK_TYPES = [
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictClaim,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
@@ -128,9 +129,15 @@ export function useTransactionConfirm() {
     }
 
     // Perps deposit-and-order: caller handles navigation (e.g. order flow)
-    if (type === TransactionType.perpsDepositAndOrder) {
+    if (
+      type === TransactionType.perpsDepositAndOrder ||
+      type === TransactionType.perpsLighterDepositAndOrder
+    ) {
       return;
-    } else if (type === TransactionType.perpsDeposit) {
+    } else if (
+      type === TransactionType.perpsDeposit ||
+      type === TransactionType.perpsLighterDeposit
+    ) {
       if (payWithOption === PayWithOption.MoneyAccount) {
         navigation.navigate(
           Routes.HOME_TABS,

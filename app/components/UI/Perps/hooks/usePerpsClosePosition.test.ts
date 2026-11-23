@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 import {
@@ -1853,13 +1854,14 @@ describe('usePerpsClosePosition', () => {
       expect(successToast).toEqual(
         expect.objectContaining({
           label: 'closed',
-          linkButtonOptions: expect.objectContaining({
+          closeButtonOptions: expect.objectContaining({
+            variant: ButtonVariants.Link,
             label: 'social_leaderboard.post_trade_share.post_to_feed',
           }),
         }),
       );
 
-      successToast.linkButtonOptions.onPress();
+      successToast.closeButtonOptions.onPress();
 
       expect(openPostTradeComposer).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -1874,6 +1876,43 @@ describe('usePerpsClosePosition', () => {
         }),
       );
       expect(incrementShareSheetCount).not.toHaveBeenCalled();
+    });
+
+    it('replaces the Share PnL button with post to feed after the sheet limit', async () => {
+      closeFullPositionSuccess.mockReturnValueOnce({
+        label: 'closed',
+        closeButtonOptions: {
+          variant: ButtonVariants.Link,
+          label: 'perps.pnl_hero_card.share_button',
+          onPress: jest.fn(),
+        },
+      });
+
+      await close({ kind: 'post_to_feed_toast' });
+
+      const successToast = mockShowToast.mock.calls.at(-1)?.[0];
+      expect(successToast.closeButtonOptions.label).toBe(
+        'social_leaderboard.post_trade_share.post_to_feed',
+      );
+      expect(successToast).not.toHaveProperty('linkButtonOptions');
+    });
+
+    it('keeps the Share PnL button when the post to feed CTA does not apply', async () => {
+      const shareButton = {
+        variant: ButtonVariants.Link,
+        label: 'perps.pnl_hero_card.share_button',
+        onPress: jest.fn(),
+      };
+      closeFullPositionSuccess.mockReturnValueOnce({
+        label: 'closed',
+        closeButtonOptions: shareButton,
+      });
+
+      await close({ kind: 'none' });
+
+      const successToast = mockShowToast.mock.calls.at(-1)?.[0];
+      expect(successToast.closeButtonOptions).toBe(shareButton);
+      expect(successToast).not.toHaveProperty('linkButtonOptions');
     });
 
     it('marks the share sheet failed and skips the failure toast', async () => {

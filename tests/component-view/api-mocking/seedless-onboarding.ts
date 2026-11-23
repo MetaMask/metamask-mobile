@@ -16,6 +16,7 @@ import {
   disableNetConnect,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 
 /** Auth server origins used across dev / UAT / prod OAuth config. */
 export const SEEDLESS_AUTH_SERVER_ORIGINS = [
@@ -96,6 +97,8 @@ export function setupSeedlessAuthServerMocks(
       onRequest: recordAuthServerRequest,
     });
   }
+
+  installDefaultApiMocks();
 }
 
 export function clearSeedlessAuthServerMocks(): void {

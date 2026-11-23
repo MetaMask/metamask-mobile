@@ -9528,11 +9528,6 @@
       "count": 2
     }
   },
-  "app/components/UI/PredictNext/capabilities/venueCapabilities.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/closure/PredictCrossSurface.view.test.tsx": {
     "typescript/promise-function-async": {
       "count": 1
@@ -9574,11 +9569,6 @@
     }
   },
   "app/components/UI/PredictNext/funding/deposit/checkDepositPlan.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
-  "app/components/UI/PredictNext/funding/deposit/reconcileDepositTransfer.test.ts": {
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
@@ -9662,11 +9652,6 @@
       "count": 1
     }
   },
-  "app/components/UI/PredictNext/navigation/feedScreens.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    }
-  },
   "app/components/UI/PredictNext/notifications/PredictOrderNotifications.view.test.tsx": {
     "typescript/promise-function-async": {
       "count": 3
@@ -9743,7 +9728,7 @@
       "count": 1
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 6
     }
   },
   "app/components/UI/PredictNext/services/PredictFundingService.withdraw-cancellation.integration.test.ts": {
@@ -22002,11 +21987,6 @@
       "count": 1
     }
   },
-  "app/core/Engine/messengers/predict-funding-service-messenger.test.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 3
-    }
-  },
   "app/core/Engine/messengers/predict-venue-controller-messenger.test.ts": {
     "typescript/promise-function-async": {
       "count": 1
@@ -25455,7 +25435,7 @@
       "count": 5
     },
     "typescript/promise-function-async": {
-      "count": 7
+      "count": 6
     },
     "typescript/unbound-method": {
       "count": 1
@@ -25804,7 +25784,7 @@
   },
   "tests/flows/wallet-home-readiness.test.ts": {
     "typescript/promise-function-async": {
-      "count": 2
+      "count": 1
     }
   },
   "tests/flows/wallet-home-readiness.ts": {
@@ -26726,9 +26706,6 @@
     }
   },
   "tests/page-objects/wallet/AccountListBottomSheet.ts": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 4
-    },
     "typescript/promise-function-async": {
       "count": 8
     }
