@@ -44,7 +44,7 @@ export function useClearPaymentOverride() {
     if (
       transactionId &&
       paymentOverride &&
-      (paymentOverride as string) !== LIGHTER_PAYMENT_OVERRIDE
+      paymentOverride !== LIGHTER_PAYMENT_OVERRIDE
     ) {
       Engine.context.TransactionPayController.setTransactionConfig(
         transactionId,
