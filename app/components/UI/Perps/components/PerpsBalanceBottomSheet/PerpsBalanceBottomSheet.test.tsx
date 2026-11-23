@@ -2,6 +2,7 @@ import React from 'react';
 import { act, fireEvent } from '@testing-library/react-native';
 import { BottomSheet } from '@metamask/design-system-react-native';
 import PerpsBalanceBottomSheet from './PerpsBalanceBottomSheet';
+import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import {
   getPerpsCrossMarginSummaryLabelSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
@@ -297,9 +298,13 @@ describe('PerpsBalanceBottomSheet', () => {
       expect(
         getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
       ).toBeOnTheScreen();
+      // The explanation is the sheet's own content. The standalone tooltip
+      // sheet, which used to stack on top, is never asked to show it.
       expect(
-        queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP),
-      ).not.toBeOnTheScreen();
+        jest
+          .mocked(PerpsBottomSheetTooltip)
+          .mock.calls.some(([props]) => props.contentKey === 'account_ratio'),
+      ).toBe(false);
       expect(
         queryByTestId(PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON),
       ).not.toBeOnTheScreen();
