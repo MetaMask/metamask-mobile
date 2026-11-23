@@ -40,7 +40,6 @@ jest.mock('../../../../component-library/hooks', () => {
       itemWrapper: {},
       balance: {},
       skeleton: {},
-      secondaryBalance: {},
       badgeWrapper: {},
       noFeeBadge: {},
       selectedItemWrapperReset: {},
