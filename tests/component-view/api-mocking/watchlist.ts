@@ -8,7 +8,7 @@
  */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock, { type Scope } from 'nock';
+import nock from 'nock';
 import {
   EMPTY_BLOB,
   type WatchlistBlob,
@@ -115,14 +115,14 @@ const filterWatchlistResponse = (
  */
 export function setupWatchlistTokenApiMock(
   tokens: typeof mockWatchlistTokensResponse = mockWatchlistTokensResponse,
-): Scope {
+): nock.Scope {
   disableNetConnect();
 
   return nock(TOKEN_API_BASE_URL)
     .get('/assets')
     .query(true)
-    .reply(200, (uri: string) => {
-      const url = new URL(uri, TOKEN_API_BASE_URL);
+    .reply(200, (request: Request) => {
+      const url = new URL(request.url);
       const assetIds = url.searchParams.get('assetIds') ?? undefined;
       return filterWatchlistResponse(assetIds, tokens);
     })
