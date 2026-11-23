@@ -26,6 +26,10 @@ describe('resolvePredictDepositEnvironment', () => {
     );
   });
 
+  it('returns undefined when catalog environment is omitted', () => {
+    expect(resolvePredictDepositEnvironment(undefined)).toBeUndefined();
+  });
+
   it('returns stable environment references across calls', () => {
     expect(resolvePredictDepositEnvironment('sandbox')).toBe(
       resolvePredictDepositEnvironment('sandbox'),

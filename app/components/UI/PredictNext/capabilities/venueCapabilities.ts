@@ -99,7 +99,8 @@ export const canPerformVenueAction = (
   action: PredictVenueAction,
 ): boolean =>
   capabilities.status === 'ready' &&
-  capabilities.descriptor.actions.includes(action);
+  capabilities.descriptor.actions.includes(action) &&
+  (action !== 'deposit' || capabilities.descriptor.environment !== undefined);
 
 export const getVenueFeedId = (
   capabilities: PredictVenueCapabilities,

@@ -225,6 +225,28 @@ describe('capability selectors', () => {
     expect(getVenueEnvironment(sandbox)).toBe('sandbox');
   });
 
+  it('keeps browsing, trading, and withdrawals available while disabling deposit when environment is omitted', () => {
+    const { environment: _omitted, ...legacyCatalog } =
+      KALSHI_STATIC_VENUE_CATALOG;
+    const legacy = resolveVenueCapabilities(
+      KALSHI,
+      read({ data: legacyCatalog }),
+    );
+
+    expect(legacy.status).toBe('ready');
+    expect(getVenueEnvironment(legacy)).toBeUndefined();
+    expect(canPerformVenueAction(legacy, 'deposit')).toBe(false);
+    expect(
+      PREDICT_VENUE_ACTIONS.filter((action) =>
+        canPerformVenueAction(legacy, action),
+      ),
+    ).toEqual(['buy', 'sell', 'withdraw']);
+    expect(getVenueFeedId(legacy, 'nfl-games')).toBe(
+      'sports-football-nfl-games',
+    );
+    expect(isVenueSearchSupported(legacy)).toBe(true);
+  });
+
   it.each(NOT_READY)(
     'enables no action, Feed, search, or environment while $status ($reason)',
     (capabilities) => {

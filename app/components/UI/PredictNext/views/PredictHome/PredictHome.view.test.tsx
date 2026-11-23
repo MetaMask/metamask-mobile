@@ -316,6 +316,26 @@ describe('PredictHome', () => {
     expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
   });
 
+  it('keeps browsing, search, and trading available while hiding Add funds for a legacy catalog omitting environment', async () => {
+    const { environment: _omitted, ...legacyCatalog } =
+      KALSHI_STATIC_VENUE_CATALOG;
+    configurePredictNextCatalog(legacyCatalog);
+    const view = renderPredictNext();
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', nflEvents[0].id),
+      ),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
   it('opens the Withdraw screen from the Withdraw action', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
@@ -2273,11 +2293,21 @@ describe('PredictHome', () => {
     });
 
     it.each([
-      ['loading', 'pending' as const],
-      ['unavailable', new Error('catalog failed')],
+      [
+        'loading',
+        'pending' as const,
+        PredictDepositScreenTestIds.IN_PROGRESS_LOADING,
+        strings('predict_next.deposit.in_progress.checking_availability'),
+      ],
+      [
+        'unavailable',
+        new Error('catalog failed'),
+        PredictDepositScreenTestIds.IN_PROGRESS_ALERT,
+        strings('predict_next.deposit.unavailable_error'),
+      ],
     ])(
-      'disables Continue while keeping Cancel enabled on the open sheet when catalog is %s',
-      async (_label, catalogState) => {
+      'shows %s reason and disables Continue while keeping Cancel enabled on the open sheet',
+      async (_label, catalogState, statusTestId, expectedCopy) => {
         configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
         configurePredictNextCatalog(catalogState);
         const baseImplementation = messengerCall.getMockImplementation();
@@ -2308,6 +2338,7 @@ describe('PredictHome', () => {
         );
         expect(continueButton).toBeDisabled();
         expect(cancelButton).toBeEnabled();
+        expect(view.getByTestId(statusTestId)).toHaveTextContent(expectedCopy);
 
         await act(async () => {
           fireEvent.press(cancelButton);
@@ -2321,12 +2352,15 @@ describe('PredictHome', () => {
       },
     );
 
-    it('hides Cancel and shows processing copy for a recorded session transfer when catalog is unavailable', async () => {
+    it('hides Cancel, explains the read failure, and lets the user retry the catalog to enable Continue', async () => {
       recordSessionDepositTransfer(
         {
           venueId: 'kalshi' as PredictVenueId,
           operationId: awaitingTransferDeposit.operationId,
-          from: '0x0000000000000000000000000000000000000001',
+          from: '0x00000000000000000000000000000001'.replace(
+            '00000000000000000000000000000001',
+            '0000000000000000000000000000000000000001',
+          ) as PredictHex,
           plan: {
             chainId: awaitingTransferDeposit.next.chainId,
             tokenContract: awaitingTransferDeposit.next
@@ -2368,6 +2402,31 @@ describe('PredictHome', () => {
           }),
         ),
       ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+      ).toHaveTextContent(strings('predict_next.deposit.unavailable_error'));
+
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'production',
+      });
+      await act(async () => {
+        fireEvent.press(
+          view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+        );
+      });
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+        ).toBeEnabled(),
+      );
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+      ).not.toBeOnTheScreen();
     });
 
     it('keeps two failed notices separate across visits without acknowledging the second on the first visit', async () => {

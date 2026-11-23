@@ -111,7 +111,7 @@ PredictNext/
     PredictDeviceAuthBootstrap.tsx
 
   capabilities/
-    index.ts                   # Venue descriptors, capability hooks and selectors
+    index.ts                   # Venue descriptors, capability hooks and selectors (requires explicit catalog environment for deposit)
     surfaceFeedKeys.ts         # The surface section/tab to Feed key table
 
   contracts/                   # Runtime API contracts

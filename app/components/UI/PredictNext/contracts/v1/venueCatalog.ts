@@ -241,7 +241,9 @@ export const parsePredictVenueCatalog = (
 
   return {
     venueId: expectedVenueId,
-    environment: value.environment ?? 'production',
+    ...(value.environment !== undefined
+      ? { environment: value.environment }
+      : {}),
     actions,
     feeds,
     categories: parseCategories(value.categories, feeds, expectedVenueId),

@@ -278,7 +278,7 @@ export const payDeposit = async (
     walletAddresses: deps.walletAddresses,
     now: deps.now(),
   });
-  if (!check.ok && check.reason !== 'expiry') {
+  if (!check.ok && check.reason === 'no_plan') {
     await cancelQuietly(deps, deposit);
     return { kind: 'plan_mismatch', reason: check.reason };
   }

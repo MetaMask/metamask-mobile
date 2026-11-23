@@ -250,6 +250,16 @@ describe('PredictPortfolioScreen', () => {
     ).not.toBeOnTheScreen();
     off.unmount();
 
+    const { environment: _omitted, ...legacyCatalog } =
+      KALSHI_STATIC_VENUE_CATALOG;
+    configurePredictNextCatalog(legacyCatalog);
+    const legacy = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+    await legacy.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
+    expect(
+      legacy.queryByTestId(PredictPortfolioScreenTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    legacy.unmount();
+
     resetPredictNextCatalog();
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
     await view.findByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE);
@@ -2006,8 +2016,8 @@ describe('PredictPortfolioScreen', () => {
       ['loading', 'pending' as const],
       ['unavailable', new Error('catalog failed')],
     ])(
-      'disables Continue while keeping Cancel enabled on the open sheet when catalog is %s',
-      async (_label, catalogState) => {
+      'disables Continue while explaining the %s state and keeping Cancel enabled on the open sheet',
+      async (label, catalogState) => {
         configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
         configurePredictNextCatalog(catalogState);
         const baseImplementation = messengerCall.getMockImplementation();
@@ -2038,6 +2048,25 @@ describe('PredictPortfolioScreen', () => {
         );
         expect(continueButton).toBeDisabled();
         expect(cancelButton).toBeEnabled();
+        if (label === 'loading') {
+          expect(
+            view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_LOADING),
+          ).toHaveTextContent(
+            strings('predict_next.deposit.in_progress.checking_availability'),
+          );
+          expect(
+            view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+          ).not.toBeOnTheScreen();
+        } else {
+          expect(
+            view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+          ).toHaveTextContent(
+            strings('predict_next.deposit.unavailable_error'),
+          );
+          expect(
+            view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+          ).toBeOnTheScreen();
+        }
 
         await act(async () => {
           fireEvent.press(cancelButton);
@@ -2051,7 +2080,7 @@ describe('PredictPortfolioScreen', () => {
       },
     );
 
-    it('hides Cancel and shows processing copy for a recorded session transfer when catalog is unavailable', async () => {
+    it('hides Cancel, shows unavailable error with Retry for a recorded session transfer when catalog fails, and recovers on Retry', async () => {
       recordSessionDepositTransfer(
         {
           venueId: KALSHI_VENUE_ID,
@@ -2098,6 +2127,31 @@ describe('PredictPortfolioScreen', () => {
           }),
         ),
       ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+      ).toHaveTextContent(strings('predict_next.deposit.unavailable_error'));
+
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        environment: 'production',
+      });
+      await act(async () => {
+        fireEvent.press(
+          view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+        );
+      });
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+        ).toBeEnabled(),
+      );
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+      ).not.toBeOnTheScreen();
     });
   });
 });

@@ -25,6 +25,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { PredictDepositOperation } from '../../../types';
 import { formatUsd } from '../../../utils/formatUsd';
 import { PredictDepositScreenTestIds } from '../PredictDepositScreen.testIds';
+import type { DepositEnvironmentResolution } from './DepositEnvironment';
 
 // ButtonIconSize.Xs is 20pt; 12pt on each side makes a 44pt target.
 const COPY_BUTTON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -92,6 +93,8 @@ interface DepositInProgressSheetProps {
   deposit: PredictDepositOperation | null;
   /** Whether a transfer for this deposit already went out and only needs reporting. */
   hasSubmittedTransfer?: boolean;
+  /** Resolved catalog deposit environment (drives availability copy and retry). */
+  environmentResolution: DepositEnvironmentResolution;
   /** Whether Continue is allowed (disabled while deposit environment is loading/unavailable). */
   canContinue?: boolean;
   /** Whether Cancel is allowed (disabled when the sent-or-not state cannot be checked). */
@@ -115,6 +118,7 @@ interface DepositInProgressSheetProps {
 export const DepositInProgressSheet = ({
   deposit,
   hasSubmittedTransfer = false,
+  environmentResolution,
   canContinue = true,
   canCancel = true,
   isVisible = true,
@@ -136,6 +140,13 @@ export const DepositInProgressSheet = ({
   const cancelFailedText = cancelFailed
     ? strings('predict_next.deposit.in_progress.cancel_failed')
     : undefined;
+  let unavailableText: string | undefined;
+  if (payable && environmentResolution.status === 'unavailable') {
+    unavailableText =
+      environmentResolution.reason === 'error'
+        ? strings('predict_next.deposit.unavailable_error')
+        : strings('predict_next.deposit.unavailable');
+  }
 
   // VoiceOver ignores RN live regions on iOS, so announce the failure when it
   // appears after Cancel.
@@ -144,6 +155,12 @@ export const DepositInProgressSheet = ({
       AccessibilityInfo.announceForAccessibility(cancelFailedText);
     }
   }, [cancelFailedText]);
+
+  useEffect(() => {
+    if (isVisible && unavailableText) {
+      AccessibilityInfo.announceForAccessibility(unavailableText);
+    }
+  }, [isVisible, unavailableText]);
 
   return (
     <View pointerEvents="box-none" style={styles.modalHost}>
@@ -222,6 +239,27 @@ export const DepositInProgressSheet = ({
                     {cancelFailedText}
                   </Text>
                 ) : null}
+                {payable && environmentResolution.status === 'loading' ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    testID={PredictDepositScreenTestIds.IN_PROGRESS_LOADING}
+                  >
+                    {strings(
+                      'predict_next.deposit.in_progress.checking_availability',
+                    )}
+                  </Text>
+                ) : null}
+                {unavailableText ? (
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                    accessibilityRole="alert"
+                    testID={PredictDepositScreenTestIds.IN_PROGRESS_ALERT}
+                  >
+                    {unavailableText}
+                  </Text>
+                ) : null}
                 {payable ? (
                   <Box twClassName="gap-3">
                     <Button
@@ -234,6 +272,19 @@ export const DepositInProgressSheet = ({
                     >
                       {strings('predict_next.deposit.in_progress.continue')}
                     </Button>
+                    {environmentResolution.status === 'unavailable' &&
+                    environmentResolution.reason === 'error' ? (
+                      <Button
+                        variant={ButtonVariant.Secondary}
+                        size={ButtonSize.Lg}
+                        isFullWidth
+                        isDisabled={isCancelling}
+                        onPress={environmentResolution.retry}
+                        testID={PredictDepositScreenTestIds.IN_PROGRESS_RETRY}
+                      >
+                        {strings('predict_next.deposit.retry')}
+                      </Button>
+                    ) : null}
                     {hasSubmittedTransfer || !canCancel ? null : (
                       <Button
                         variant={ButtonVariant.Secondary}

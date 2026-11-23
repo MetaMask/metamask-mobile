@@ -4212,6 +4212,7 @@
         "under_review": "Your deposit of {{amount}} is under review. Support reference: {{reference}}",
         "under_review_label": "Your deposit of {{amount}} is under review. Support reference:",
         "unknown": "A deposit is already in progress. Try again in a moment.",
+        "checking_availability": "Checking deposit availability...",
         "continue": "Continue",
         "cancel": "Cancel deposit",
         "close": "Got it",

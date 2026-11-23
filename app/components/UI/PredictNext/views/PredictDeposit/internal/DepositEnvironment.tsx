@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   getVenueEnvironment,
   useVenueCapabilities,
@@ -10,31 +10,23 @@ import {
 } from '../../../config/depositEnvironment';
 import type { PredictVenueId } from '../../../types';
 
+export type DepositEnvironmentUnavailableReason =
+  | Exclude<PredictVenueCapabilitiesUnavailableReason, 'error'>
+  | 'missing_environment';
+
 export type DepositEnvironmentResolution =
   | { status: 'loading' }
   | { status: 'ready'; environment: PredictDepositEnvironment }
   | {
       status: 'unavailable';
-      reason: Exclude<PredictVenueCapabilitiesUnavailableReason, 'error'>;
+      reason: DepositEnvironmentUnavailableReason;
     }
   | { status: 'unavailable'; reason: 'error'; retry: () => void };
-
-const DepositEnvironmentContext = createContext<
-  PredictDepositEnvironment | undefined
->(undefined);
-
-/**
- * Overrides the Venue's deposit environment for the screen below it.
- * Component-view tests only: no production code renders it, so a running app
- * always uses the Venue catalog's `environment`.
- */
-export const DepositEnvironmentOverride = DepositEnvironmentContext.Provider;
 
 /** The Venue's deposit chain, USDC and transfer mode from its catalog. */
 export const useDepositEnvironment = (
   venueId: PredictVenueId,
 ): DepositEnvironmentResolution => {
-  const override = useContext(DepositEnvironmentContext);
   const capabilities = useVenueCapabilities(venueId);
   const venueEnvironment = getVenueEnvironment(capabilities);
   const capabilitiesStatus = capabilities.status;
@@ -46,17 +38,15 @@ export const useDepositEnvironment = (
       : undefined;
 
   return useMemo(() => {
-    if (override) {
-      return { status: 'ready', environment: override };
-    }
-    if (venueEnvironment) {
-      return {
-        status: 'ready',
-        environment: resolvePredictDepositEnvironment(venueEnvironment),
-      };
+    const environment = resolvePredictDepositEnvironment(venueEnvironment);
+    if (environment) {
+      return { status: 'ready', environment };
     }
     if (capabilitiesStatus === 'loading') {
       return { status: 'loading' };
+    }
+    if (capabilitiesStatus === 'ready') {
+      return { status: 'unavailable', reason: 'missing_environment' };
     }
     if (unavailableReason === 'error' && retry) {
       return { status: 'unavailable', reason: 'error', retry };
@@ -68,11 +58,5 @@ export const useDepositEnvironment = (
           ? unavailableReason
           : 'invalid_catalog',
     };
-  }, [
-    override,
-    venueEnvironment,
-    capabilitiesStatus,
-    unavailableReason,
-    retry,
-  ]);
+  }, [venueEnvironment, capabilitiesStatus, unavailableReason, retry]);
 };

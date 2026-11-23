@@ -168,6 +168,24 @@ describe('resolvePredictFunding', () => {
       });
     });
 
+    it('offers no deposit when a ready descriptor omits environment even if actions list deposit', () => {
+      const legacy = descriptor('kalshi', ['buy', 'sell', 'deposit']);
+      if (legacy.status === 'ready') {
+        delete legacy.descriptor.environment;
+      }
+
+      expect(
+        resolvePredictFunding('deposit', {
+          available: true,
+          activeVenue: active('kalshi'),
+          getCapabilities: () => legacy,
+        }),
+      ).toStrictEqual({
+        status: 'unavailable',
+        reason: 'unsupported',
+      });
+    });
+
     it('runs Withdraw on the next implementation when the descriptor lists it', () => {
       const result = resolvePredictFunding('withdraw', {
         available: true,

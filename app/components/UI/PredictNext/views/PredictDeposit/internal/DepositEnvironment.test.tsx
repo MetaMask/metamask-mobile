@@ -1,17 +1,12 @@
-import React, { type ReactNode } from 'react';
 import { renderHook } from '@testing-library/react-native';
 import { useVenueCapabilities } from '../../../capabilities';
 import type { PredictVenueCapabilities } from '../../../capabilities/types';
 import {
   BASE_DEPOSIT_NETWORK,
   BASE_SEPOLIA_DEPOSIT_NETWORK,
-  type PredictDepositEnvironment,
 } from '../../../config/depositEnvironment';
 import type { PredictVenueEnvironment, PredictVenueId } from '../../../types';
-import {
-  DepositEnvironmentOverride,
-  useDepositEnvironment,
-} from './DepositEnvironment';
+import { useDepositEnvironment } from './DepositEnvironment';
 
 jest.mock('../../../capabilities', () => ({
   ...jest.requireActual('../../../capabilities'),
@@ -21,13 +16,13 @@ jest.mock('../../../capabilities', () => ({
 const KALSHI_ID = 'kalshi' as PredictVenueId;
 
 const readyCapabilities = (
-  environment: PredictVenueEnvironment,
+  environment?: PredictVenueEnvironment,
 ): PredictVenueCapabilities => ({
   status: 'ready',
   descriptor: {
     venueId: KALSHI_ID,
     displayName: 'Kalshi',
-    environment,
+    ...(environment !== undefined ? { environment } : {}),
     actions: ['deposit'],
     feeds: {},
     categories: [],
@@ -36,45 +31,14 @@ const readyCapabilities = (
   },
 });
 
-const renderEnvironmentHook = (
-  capabilities: PredictVenueCapabilities,
-  override?: PredictDepositEnvironment,
-) => {
+const renderEnvironmentHook = (capabilities: PredictVenueCapabilities) => {
   jest.mocked(useVenueCapabilities).mockReturnValue(capabilities);
-  const wrapper = ({ children }: { children: ReactNode }) =>
-    override ? (
-      <DepositEnvironmentOverride value={override}>
-        {children}
-      </DepositEnvironmentOverride>
-    ) : (
-      <>{children}</>
-    );
-
-  return renderHook(() => useDepositEnvironment(KALSHI_ID), { wrapper });
+  return renderHook(() => useDepositEnvironment(KALSHI_ID));
 };
 
 describe('useDepositEnvironment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('gives DepositEnvironmentOverride priority over catalog capabilities', () => {
-    const override: PredictDepositEnvironment = {
-      network: BASE_DEPOSIT_NETWORK,
-      transferMode: 'simulated',
-    };
-
-    for (const capabilities of [
-      { status: 'loading' },
-      { status: 'unavailable', reason: 'invalid_catalog' },
-      readyCapabilities('sandbox'),
-    ] as PredictVenueCapabilities[]) {
-      const { result } = renderEnvironmentHook(capabilities, override);
-      expect(result.current).toStrictEqual({
-        status: 'ready',
-        environment: override,
-      });
-    }
   });
 
   it('resolves sandbox and production environments from capabilities', () => {
@@ -94,6 +58,15 @@ describe('useDepositEnvironment', () => {
         network: BASE_DEPOSIT_NETWORK,
         transferMode: 'wallet',
       },
+    });
+  });
+
+  it('resolves a legacy catalog omitting environment as unavailable without guessing wallet mode', () => {
+    expect(
+      renderEnvironmentHook(readyCapabilities(undefined)).result.current,
+    ).toStrictEqual({
+      status: 'unavailable',
+      reason: 'missing_environment',
     });
   });
 

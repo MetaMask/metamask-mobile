@@ -210,6 +210,7 @@ const DepositStatusSheetHost = ({
     <DepositInProgressSheet
       deposit={deposit}
       hasSubmittedTransfer={flow.hasSubmittedTransfer(deposit)}
+      environmentResolution={environmentResolution}
       canContinue={isEnvironmentReady}
       canCancel={Boolean(fundingWallet)}
       isVisible={isVisible}

@@ -67,10 +67,23 @@ const PRODUCTION_DEPOSIT_ENVIRONMENT: PredictDepositEnvironment = {
  * `catalog.environment` in every build (`production`, `beta`, `rc`, `dev`,
  * `uat`). `'sandbox'` expects Base Sepolia plans and simulates the transfer;
  * `'production'` expects Base mainnet plans and sends a real wallet transfer.
+ * Returns `undefined` when `catalog.environment` is absent so legacy catalogs
+ * never guess wallet mode.
  */
-export const resolvePredictDepositEnvironment = (
+export function resolvePredictDepositEnvironment(
   venueEnvironment: PredictVenueEnvironment,
-): PredictDepositEnvironment =>
-  venueEnvironment === 'sandbox'
-    ? SANDBOX_DEPOSIT_ENVIRONMENT
-    : PRODUCTION_DEPOSIT_ENVIRONMENT;
+): PredictDepositEnvironment;
+export function resolvePredictDepositEnvironment(
+  venueEnvironment: PredictVenueEnvironment | undefined,
+): PredictDepositEnvironment | undefined;
+export function resolvePredictDepositEnvironment(
+  venueEnvironment: PredictVenueEnvironment | undefined,
+): PredictDepositEnvironment | undefined {
+  if (venueEnvironment === 'sandbox') {
+    return SANDBOX_DEPOSIT_ENVIRONMENT;
+  }
+  if (venueEnvironment === 'production') {
+    return PRODUCTION_DEPOSIT_ENVIRONMENT;
+  }
+  return undefined;
+}

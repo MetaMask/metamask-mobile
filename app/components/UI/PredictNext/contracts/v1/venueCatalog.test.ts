@@ -37,12 +37,11 @@ describe('parsePredictVenueCatalog', () => {
     jest.mocked(Logger.log).mockClear();
   });
 
-  it('parses a valid catalog and defaults environment to production when omitted', () => {
+  it('parses a valid legacy catalog when environment is omitted without defaulting to production', () => {
     const result = parsePredictVenueCatalog(createCatalog(), venueId);
 
     expect(result).toEqual({
       venueId: 'kalshi',
-      environment: 'production',
       actions: ['buy', 'sell'],
       feeds: {
         'nfl-games': 'sports-football-nfl-games',
@@ -52,6 +51,7 @@ describe('parsePredictVenueCatalog', () => {
       searchSupported: true,
       screens: [],
     });
+    expect(result.environment).toBeUndefined();
   });
 
   it.each(['sandbox', 'production'] as const)(
@@ -116,7 +116,6 @@ describe('parsePredictVenueCatalog', () => {
 
     expect(result).toEqual({
       venueId: 'kalshi',
-      environment: 'production',
       actions: ['buy', 'sell'],
       feeds: {
         'nfl-games': 'sports-football-nfl-games',
@@ -221,7 +220,6 @@ describe('parsePredictVenueCatalog', () => {
 
     expect(result).toEqual({
       venueId: 'kalshi',
-      environment: 'production',
       actions: [],
       feeds: {},
       categories: [],

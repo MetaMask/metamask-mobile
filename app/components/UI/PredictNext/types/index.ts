@@ -293,7 +293,8 @@ export interface PredictVenueFeedScreen {
  * catalog (`GET /v1/venues/{venueId}/catalog`). */
 export interface PredictVenueCatalog {
   venueId: PredictVenueId;
-  environment: PredictVenueEnvironment;
+  /** Optional on legacy catalogs; required to enable deposits. */
+  environment?: PredictVenueEnvironment;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
   /** The Venue's Categories in display order, each named by its Feed key.

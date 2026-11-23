@@ -134,7 +134,6 @@ describe('KalshiRemoteAdapter', () => {
 
     await expect(adapter.marketData.fetchVenueCatalog()).resolves.toEqual({
       ...catalog,
-      environment: 'production',
       screens: [],
     });
     expect(client.fetchVenueCatalog).toHaveBeenCalledWith('kalshi', undefined);

@@ -217,69 +217,57 @@ export const useDepositFlow = ({
         plan,
         createdAt,
       }): ExistingDepositTransfer | undefined => {
-        if (resolvedEnvironment.transferMode === 'wallet') {
-          const transactions =
-            Engine.context.TransactionController.state.transactions ?? [];
-          const matched = findMatchingDepositTransaction({
-            transactions,
-            from: sender,
-            plan,
-            createdAt,
-            operationId,
-          });
-          if (matched?.kind === 'submitted') {
-            return matched;
-          }
-          if (matched?.kind === 'pending') {
-            return {
-              kind: 'pending',
-              status: matched.transactionMeta.status,
-              wait: () =>
-                waitForPendingDepositTransaction({
-                  txId: matched.transactionMeta.id,
-                  fallbackChainId: plan.chainId,
-                  shouldPresentConfirmation:
-                    matched.transactionMeta.status ===
-                    TransactionStatus.unapproved,
-                  presentConfirmation: () =>
-                    navigateToConfirmation({ forceBottomSheet: true }),
-                  getTransaction: (id) =>
-                    Engine.context.TransactionController.state.transactions.find(
-                      (transaction) => transaction.id === id,
-                    ),
-                  messenger:
-                    Engine.controllerMessenger as unknown as DepositTransactionMessenger,
-                }),
-              cancel:
-                matched.transactionMeta.status === TransactionStatus.unapproved
-                  ? () =>
-                      rejectUnapprovedTransaction(matched.transactionMeta.id)
-                  : undefined,
-            };
-          }
-          const sessionTransfer = getSessionDepositTransfer({
-            venueId,
-            operationId,
-            from: sender,
-            plan,
-          });
-          if (
-            sessionTransfer &&
-            !isKnownFailedDepositHash(transactions, sessionTransfer.txHash)
-          ) {
-            return { kind: 'submitted', transfer: sessionTransfer };
-          }
-          return undefined;
+        const transactions =
+          Engine.context.TransactionController.state.transactions ?? [];
+        const matched = findMatchingDepositTransaction({
+          transactions,
+          from: sender,
+          plan,
+          createdAt,
+          operationId,
+        });
+        if (matched?.kind === 'submitted') {
+          return matched;
         }
-        const simulatedTransfer = getSessionDepositTransfer({
+        if (matched?.kind === 'pending') {
+          return {
+            kind: 'pending',
+            status: matched.transactionMeta.status,
+            wait: () =>
+              waitForPendingDepositTransaction({
+                txId: matched.transactionMeta.id,
+                fallbackChainId: plan.chainId,
+                shouldPresentConfirmation:
+                  matched.transactionMeta.status ===
+                  TransactionStatus.unapproved,
+                presentConfirmation: () =>
+                  navigateToConfirmation({ forceBottomSheet: true }),
+                getTransaction: (id) =>
+                  Engine.context.TransactionController.state.transactions.find(
+                    (transaction) => transaction.id === id,
+                  ),
+                messenger:
+                  Engine.controllerMessenger as unknown as DepositTransactionMessenger,
+              }),
+            cancel:
+              matched.transactionMeta.status === TransactionStatus.unapproved
+                ? () => rejectUnapprovedTransaction(matched.transactionMeta.id)
+                : undefined,
+          };
+        }
+        const sessionTransfer = getSessionDepositTransfer({
           venueId,
           operationId,
           from: sender,
           plan,
         });
-        return simulatedTransfer
-          ? { kind: 'submitted', transfer: simulatedTransfer }
-          : undefined;
+        if (
+          sessionTransfer &&
+          !isKnownFailedDepositHash(transactions, sessionTransfer.txHash)
+        ) {
+          return { kind: 'submitted', transfer: sessionTransfer };
+        }
+        return undefined;
       },
       onTransferSubmitted: ({ operationId, from: sender, plan, transfer }) => {
         recordSessionDepositTransfer(
@@ -371,22 +359,16 @@ export const useDepositFlow = ({
             from: fundingWallet,
             operationId: deposit.operationId,
           });
-          // Fail closed when `environment` is unknown: reject any matching
-          // unapproved wallet transaction so it cannot confirm after cancel
-          // (unlike transfer-status checks, which never assume unsent while
-          // environment is unknown).
-          if (environment?.transferMode !== 'simulated') {
-            const transactions =
-              Engine.context.TransactionController.state.transactions ?? [];
-            for (const tx of findMatchingUnapprovedDepositTransactions({
-              transactions,
-              from: fundingWallet,
-              operationId: deposit.operationId,
-              createdAt: deposit.createdAt,
-              plan: extractPlanFromDeposit(deposit),
-            })) {
-              rejectUnapprovedTransaction(tx.id);
-            }
+          const transactions =
+            Engine.context.TransactionController.state.transactions ?? [];
+          for (const tx of findMatchingUnapprovedDepositTransactions({
+            transactions,
+            from: fundingWallet,
+            operationId: deposit.operationId,
+            createdAt: deposit.createdAt,
+            plan: extractPlanFromDeposit(deposit),
+          })) {
+            rejectUnapprovedTransaction(tx.id);
           }
         }
         return true;
@@ -395,7 +377,7 @@ export const useDepositFlow = ({
         return false;
       }
     },
-    [environment?.transferMode, fundingWallet, venueId],
+    [fundingWallet, venueId],
   );
 
   /** Whether an open deposit already has a submitted transfer waiting only for its report. */
@@ -411,16 +393,6 @@ export const useDepositFlow = ({
       const plan = extractPlanFromDeposit(deposit);
       if (!plan) {
         return false;
-      }
-      if (environment?.transferMode === 'simulated') {
-        return Boolean(
-          getSessionDepositTransfer({
-            venueId,
-            operationId: deposit.operationId,
-            from: fundingWallet,
-            plan,
-          }),
-        );
       }
       const transactions =
         Engine.context.TransactionController.state.transactions ?? [];
@@ -445,7 +417,7 @@ export const useDepositFlow = ({
           !isKnownFailedDepositHash(transactions, sessionTransfer.txHash),
       );
     },
-    [environment?.transferMode, fundingWallet, venueId],
+    [fundingWallet, venueId],
   );
 
   return {
