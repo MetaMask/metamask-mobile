@@ -16,6 +16,7 @@ import {
   type EarningsRange,
 } from './earningsHistory';
 import { hasInvalidInterestHistoryResponse } from './earningsHistoryValidation';
+import Logger from '../../../../../util/Logger';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
@@ -71,10 +72,16 @@ const EarningsTab = (): React.ReactElement => {
     Number.isFinite(selectedRangeTotalUsd) &&
     chartPoints.some(isAvailableBucket);
 
-  const handleRetry = useCallback(
-    () => refetchHistoricalEarnings(),
-    [refetchHistoricalEarnings],
-  );
+  const handleRetry = useCallback((): void => {
+    refetchHistoricalEarnings({ throwOnError: true }).catch(
+      (error: unknown) => {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          '[EarningsTab] Failed to refetch historical earnings',
+        );
+      },
+    );
+  }, [refetchHistoricalEarnings]);
 
   const handleRangeChange = useCallback((range: EarningsRange): void => {
     setActivePointIndex(null);

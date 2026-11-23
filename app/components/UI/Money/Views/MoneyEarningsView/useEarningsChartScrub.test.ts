@@ -72,10 +72,6 @@ const createGestureEvent = (
 };
 
 describe('useEarningsChartScrub', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
   it('selects an available point on press and clears it on release', () => {
     const { result } = renderHook(() =>
       useEarningsChartScrub({

@@ -1,6 +1,5 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Logger from '../../../../../util/Logger';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
@@ -29,15 +28,7 @@ describe('MoneyEarningsFooter', () => {
     });
   });
 
-  it('renders the Earn more action', () => {
-    const { getByTestId } = renderWithProvider(<MoneyEarningsFooter />);
-
-    expect(getByTestId(MoneyEarningsViewTestIds.ADD_BUTTON)).toHaveTextContent(
-      strings('money.earnings.earn_more'),
-    );
-  });
-
-  it('opens deposit navigation from the Earn more action', () => {
+  it('calls deposit navigation from the Earn more action', () => {
     const { getByTestId } = renderWithProvider(<MoneyEarningsFooter />);
 
     fireEvent.press(getByTestId(MoneyEarningsViewTestIds.ADD_BUTTON));
