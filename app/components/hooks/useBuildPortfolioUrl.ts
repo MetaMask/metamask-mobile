@@ -3,7 +3,6 @@ import { selectMarketingConsent } from '../../selectors/analyticsController';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from './useAnalytics/useAnalytics';
 import { buildPortfolioUrl } from '../../util/browser';
-import type { RootState } from '../../reducers';
 
 /**
  * Hook to build Portfolio URLs with metrics parameters
