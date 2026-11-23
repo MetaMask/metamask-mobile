@@ -244,11 +244,18 @@ export class MockSeedlessOnboardingController extends BaseController<
   }
 
   /**
+   * Mock restoreVaultWithPassword - returns the stored seed phrase
+   */
+  async restoreVaultWithPassword(_params: {
+    password: string;
+  }): Promise<{ data: Uint8Array; type: string }[]> {
+    return this.fetchAllSecretData();
+  }
+
+  /**
    * Mock fetchAllSecretData - returns the stored seed phrase
    */
-  async fetchAllSecretData(
-    _password?: string,
-  ): Promise<{ data: Uint8Array; type: string }[]> {
+  async fetchAllSecretData(): Promise<{ data: Uint8Array; type: string }[]> {
     console.log('[E2E Mock] fetchAllSecretData called');
 
     if (mockState.seedPhrase) {

@@ -57,6 +57,7 @@ export enum FeatureFlagNames {
   glassHeaders = 'glassHeaders',
   mfaUiKit = 'mfaUiKit',
   slowNetworkBanner = 'slowNetworkBanner',
+  mfaRecovery = 'mfaRecovery',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

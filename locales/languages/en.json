@@ -9236,7 +9236,13 @@
       "email_removed": "Email verification removed",
       "totp_added": "Authenticator app added",
       "totp_removed": "Authenticator app removed",
-      "remove_failed": "Couldn’t remove this method. Try again later."
+      "remove_failed": "Couldn’t remove this method. Try again later.",
+      "social_link_email_title": "Email for social linking",
+      "social_link_email_placeholder": "Email",
+      "social_link_email_confirm": "Link",
+      "recovery_setup_in_progress_title": "Setting up recovery",
+      "recovery_update_in_progress_title": "Updating recovery",
+      "recovery_setup_in_progress_description": "This can take a few seconds. Keep the app open until it finishes."
     }
   },
   "media_player": {

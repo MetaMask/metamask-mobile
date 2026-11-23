@@ -9,6 +9,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
+import { removePasskeyFromRecovery } from '../../../../core/MfaRecovery/syncRecoveryIdentifiers';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { MfaMethodDetailsSelectorsIDs } from '../Mfa.testIds';
 import MfaMethodDetails from './MfaMethodDetails';
@@ -82,8 +83,14 @@ jest.mock('../../../../util/identity/mfa/removeMfaCredential', () => ({
   removeMfaCredential: jest.fn(),
 }));
 
+jest.mock('../../../../core/MfaRecovery/syncRecoveryIdentifiers', () => ({
+  syncRecoveryAfterEnroll: jest.fn(),
+  removePasskeyFromRecovery: jest.fn(),
+}));
+
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const mockRemove = jest.mocked(removeMfaCredential);
+const mockRemoveFromRecovery = jest.mocked(removePasskeyFromRecovery);
 const mockShowToast = jest.fn();
 
 const token = {
@@ -157,6 +164,7 @@ describe('MfaMethodDetails', () => {
     jest.clearAllMocks();
     mockStartMfaFlow.mockResolvedValue({ credentials: [], token });
     mockRemove.mockResolvedValue();
+    mockRemoveFromRecovery.mockResolvedValue();
     mockGlassHeadersEnabled = false;
   });
 
@@ -420,6 +428,57 @@ describe('MfaMethodDetails', () => {
         labelOptions: [{ label: 'Passkey removed' }],
       }),
     );
+  });
+
+  it('removes the passkey from recovery before removing it from Auth', async () => {
+    const { getByTestId } = renderDetails({ method: 'passkey', index: 0 }, [
+      passkey,
+      email,
+    ]);
+
+    await confirmRemoval(getByTestId);
+
+    expect(mockRemoveFromRecovery).toHaveBeenCalledWith(
+      'passkey-id',
+      expect.objectContaining({ verifyMfa: expect.any(Function) }),
+    );
+    expect(mockRemoveFromRecovery.mock.invocationCallOrder[0]).toBeLessThan(
+      mockRemove.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('keeps the passkey when removing it from recovery fails', async () => {
+    mockRemoveFromRecovery.mockRejectedValue(new Error('escrow failed'));
+    const { getByTestId } = renderDetails({ method: 'passkey', index: 0 }, [
+      passkey,
+      email,
+    ]);
+
+    await confirmRemoval(getByTestId);
+
+    expect(mockRemove).not.toHaveBeenCalled();
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          { label: 'Couldn’t remove this method. Try again later.' },
+        ],
+      }),
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not touch recovery when removing another method', async () => {
+    const { getByTestId } = renderDetails({ method: 'email_otp', index: 0 }, [
+      email,
+      passkey,
+    ]);
+
+    await confirmRemoval(getByTestId);
+
+    expect(mockRemoveFromRecovery).not.toHaveBeenCalled();
+    expect(mockRemove).toHaveBeenCalledWith(email, {
+      operation: 'settings.removeEmail',
+    });
   });
 
   it('stays quiet when the verification is cancelled', async () => {

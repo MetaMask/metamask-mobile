@@ -1042,5 +1042,8 @@
   "MoneyAccountLifecycleController": {
     "moneyAccounts": {},
     "addressRegistrations": {}
+  },
+  "MfaRecoveryController": {
+    "pendingOperation": null
   }
 }

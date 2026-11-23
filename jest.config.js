@@ -154,6 +154,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/design-system-react-native',
   '@metamask/messenger',
   '@metamask/native-utils',
+  '@metamask/mfa-recovery-controller',
   '@metamask/perps-controller',
   '@metamask/json-rpc-engine',
   '@metamask/permission-controller',
@@ -195,6 +196,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/earn-controller',
   '@metamask/multichain-transactions-controller',
   '@metamask/react-data-query',
+  '@cubist-labs/cubesigner-sdk',
 ];
 
 const config = {

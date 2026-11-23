@@ -2198,7 +2198,7 @@ describe('Authentication', () => {
       jest.spyOn(analytics, 'isEnabled').mockReturnValue(true);
 
       Engine.context.SeedlessOnboardingController = {
-        fetchAllSecretData: jest.fn(),
+        restoreVaultWithPassword: jest.fn(),
         updateBackupMetadataState: jest.fn(),
         storeKeyringEncryptionKey: jest.fn(),
         loadKeyringEncryptionKey: jest.fn(),
@@ -2246,7 +2246,7 @@ describe('Authentication', () => {
     it('rehydrate with a single seed phrase', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2266,8 +2266,8 @@ describe('Authentication', () => {
       });
 
       expect(
-        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
-      ).toHaveBeenCalledWith(mockPassword);
+        Engine.context.SeedlessOnboardingController.restoreVaultWithPassword,
+      ).toHaveBeenCalledWith({ password: mockPassword });
       expect(mockUint8ArrayToMnemonic).toHaveBeenCalledWith(
         mockSeedPhrase1,
         expect.any(Object),
@@ -2324,7 +2324,7 @@ describe('Authentication', () => {
       } as unknown as TraceContext;
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2351,7 +2351,7 @@ describe('Authentication', () => {
     it('starts OnboardingFetchSrps without a parent context when called with one argument', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2378,7 +2378,7 @@ describe('Authentication', () => {
     it('rehydrate with multiple seed phrases', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2424,8 +2424,8 @@ describe('Authentication', () => {
       });
 
       expect(
-        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
-      ).toHaveBeenCalledWith(mockPassword);
+        Engine.context.SeedlessOnboardingController.restoreVaultWithPassword,
+      ).toHaveBeenCalledWith({ password: mockPassword });
       expect(mockUint8ArrayToMnemonic).toHaveBeenCalledWith(
         mockSeedPhrase1,
         expect.any(Object),
@@ -2455,7 +2455,7 @@ describe('Authentication', () => {
     it('rehydrate with seed phrase and private key', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2484,8 +2484,8 @@ describe('Authentication', () => {
       });
 
       expect(
-        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
-      ).toHaveBeenCalledWith(mockPassword);
+        Engine.context.SeedlessOnboardingController.restoreVaultWithPassword,
+      ).toHaveBeenCalledWith({ password: mockPassword });
       expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
@@ -2505,7 +2505,7 @@ describe('Authentication', () => {
     it('handle unknown secret type and log error', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2539,7 +2539,7 @@ describe('Authentication', () => {
     it('handle importAccountFromPrivateKey failure and continue', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2582,7 +2582,7 @@ describe('Authentication', () => {
     it('throw an error if no seed phrases are found', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([]);
       await expect(
         Authentication.unlockWallet({
@@ -2595,10 +2595,10 @@ describe('Authentication', () => {
       expect(mockCaptureExceptionForced).not.toHaveBeenCalled();
     });
 
-    it('force-captures incident_1745 when fetchAllSecretData finds no secrets', async () => {
+    it('force-captures incident_1745 when restoreVaultWithPassword finds no secrets', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockRejectedValueOnce(
         new Error(SeedlessOnboardingControllerErrorMessage.NoSecretDataFound),
       );
@@ -2628,7 +2628,7 @@ describe('Authentication', () => {
     it('force-captures incident_1745 when primary secret data type is invalid', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockRejectedValueOnce(
         new InvalidPrimarySecretDataTypeError([
           EncAccountDataType.ImportedPrivateKey,
@@ -2660,7 +2660,7 @@ describe('Authentication', () => {
     it('does not force-capture incident_1745 for incorrect password', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockRejectedValueOnce(
         new Error(SeedlessOnboardingControllerErrorMessage.IncorrectPassword),
       );
@@ -2680,7 +2680,7 @@ describe('Authentication', () => {
       const error = new Error('Fetch failed');
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockRejectedValueOnce(error);
       await expect(
         Authentication.unlockWallet({
@@ -2693,7 +2693,7 @@ describe('Authentication', () => {
     it('handle errors when adding new keyrings and continue', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: mockSeedPhrase1,
@@ -2760,7 +2760,7 @@ describe('Authentication', () => {
     it('throws error when first seed phrase is falsy', async () => {
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         {
           data: null,
@@ -2784,14 +2784,14 @@ describe('Authentication', () => {
       ).rejects.toThrow('No seed phrase found');
     });
 
-    it('does not trace OnboardingFetchSrpsError when fetchAllSecretData throws wrapped incorrect password error', async () => {
+    it('does not trace OnboardingFetchSrpsError when restoreVaultWithPassword throws wrapped incorrect password error', async () => {
       // Arrange
       const incorrectPasswordError = new Error(
         `SeedlessOnboardingController- ${SeedlessOnboardingControllerErrorMessage.IncorrectPassword}`,
       );
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockRejectedValueOnce(incorrectPasswordError);
 
       // Act
@@ -2813,12 +2813,12 @@ describe('Authentication', () => {
       );
     });
 
-    it('traces OnboardingFetchSrpsError when fetchAllSecretData throws a non-password error', async () => {
+    it('traces OnboardingFetchSrpsError when restoreVaultWithPassword throws a non-password error', async () => {
       // Arrange
       const networkError = new Error('Network request failed');
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockRejectedValueOnce(networkError);
 
       // Act
@@ -2840,13 +2840,13 @@ describe('Authentication', () => {
       });
     });
 
-    it('wraps a non-Error string from fetchAllSecretData into a proper Error instance', async () => {
+    it('wraps a non-Error string from restoreVaultWithPassword into a proper Error instance', async () => {
       // Simulate an SDK rejecting with a plain string (not an Error instance).
       // null cannot be used here because containsErrorMessage calls .toString() on the value
       // before ensureError runs, which would itself throw for null.
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockRejectedValueOnce('sdk fetch failure');
 
       const thrown = await Authentication.unlockWallet({
@@ -2861,10 +2861,10 @@ describe('Authentication', () => {
     });
 
     it('wraps a non-Error thrown after fetchSRPs into a proper Error with Rehydrate seed phrase failed context', async () => {
-      // fetchAllSecretData resolves normally so fetchSRPs succeeds.
+      // restoreVaultWithPassword resolves normally so fetchSRPs succeeds.
       (
         Engine.context.SeedlessOnboardingController
-          .fetchAllSecretData as jest.Mock
+          .restoreVaultWithPassword as jest.Mock
       ).mockResolvedValueOnce([
         { data: mockSeedPhrase1, type: SecretType.Mnemonic },
       ]);

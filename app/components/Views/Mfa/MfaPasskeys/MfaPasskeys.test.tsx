@@ -6,6 +6,8 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
+import { syncRecoveryAfterEnroll } from '../../../../core/MfaRecovery/syncRecoveryIdentifiers';
+import { RECOVERY_SETUP_PROGRESS_TEST_IDS } from '../../shared/RecoverySetupProgressBottomSheet';
 import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
 import MfaPasskeys from './MfaPasskeys';
 
@@ -19,6 +21,12 @@ jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
   startMfaFlow: jest.fn(),
 }));
 
+jest.mock('../../../../core/MfaRecovery/syncRecoveryIdentifiers', () => ({
+  syncRecoveryAfterEnroll: jest.fn(),
+  removePasskeyFromRecovery: jest.fn(),
+}));
+
+const mockSyncRecovery = jest.mocked(syncRecoveryAfterEnroll);
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const mockShowToast = jest.fn();
 
@@ -52,6 +60,7 @@ describe('MfaPasskeys', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStartMfaFlow.mockResolvedValue({ credentials: [] });
+    mockSyncRecovery.mockResolvedValue(undefined);
   });
 
   it('lists the active passkeys and opens one', () => {
@@ -103,6 +112,45 @@ describe('MfaPasskeys', () => {
         reason: { operation: 'settings.addPasskey' },
       }),
     );
+    expect(mockSyncRecovery).toHaveBeenCalledWith(
+      'passkey',
+      expect.objectContaining({ verifyMfa: expect.any(Function) }),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Passkey added' }],
+      }),
+    );
+  });
+
+  it('shows the recovery progress sheet while the recovery sync is pending', async () => {
+    let finishSync: () => void = () => undefined;
+    mockSyncRecovery.mockImplementation(
+      async () => new Promise<void>((resolve) => (finishSync = resolve)),
+    );
+    const { getByTestId, queryByTestId } = renderPasskeys([]);
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaPasskeysSelectorsIDs.ADD_BUTTON));
+    });
+    expect(
+      getByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET),
+    ).toBeOnTheScreen();
+    await act(async () => {
+      finishSync();
+    });
+
+    expect(queryByTestId(RECOVERY_SETUP_PROGRESS_TEST_IDS.SHEET)).toBeNull();
+  });
+
+  it('still confirms the passkey when the recovery sync fails', async () => {
+    mockSyncRecovery.mockRejectedValue(new Error('sync failed'));
+    const { getByTestId } = renderPasskeys([]);
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaPasskeysSelectorsIDs.ADD_BUTTON));
+    });
+
     expect(mockShowToast).toHaveBeenCalledWith(
       expect.objectContaining({
         labelOptions: [{ label: 'Passkey added' }],
@@ -119,5 +167,7 @@ describe('MfaPasskeys', () => {
     });
 
     expect(getByTestId(MfaPasskeysSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(mockSyncRecovery).not.toHaveBeenCalled();
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 });
