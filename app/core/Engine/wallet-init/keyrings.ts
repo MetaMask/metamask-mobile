@@ -199,7 +199,7 @@ export function getKeyringBuilders(
               messenger.call('AuthenticationController:getBearerToken'),
             getTwoFactorApproval: isMpcTwoFactorApprovalBuildEnabled()
               ? createMpcTwoFactorApproval({
-                  requestMfaApproval:  async (request) =>
+                  requestMfaApproval: async (request) =>
                     messenger.call(
                       'AuthenticationController:requestMfaApproval',
                       request,
@@ -210,7 +210,7 @@ export function getKeyringBuilders(
                   },
                 })
               : undefined,
-            getTwoFactorToken:  async () =>
+            getTwoFactorToken: async () =>
               verifyMoneyMpc(
                 'money.mpcRestore',
                 MONEY_MPC_RESTORE_MAX_SESSION_AGE_MS,

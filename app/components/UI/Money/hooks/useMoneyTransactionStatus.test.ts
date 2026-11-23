@@ -1185,11 +1185,7 @@ describe('useMoneyTransactionStatus', () => {
         id: 'acc-1',
         metadata: { name: 'Account 1' },
       } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
-      jest
-        .mocked(selectAccountToGroupMap)
-        .mockReturnValueOnce(
-          {},
-        );
+      jest.mocked(selectAccountToGroupMap).mockReturnValueOnce({});
 
       const { confirmedHandler } = renderAndGetHandlers();
 

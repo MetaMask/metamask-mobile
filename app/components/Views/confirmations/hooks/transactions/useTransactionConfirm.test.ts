@@ -288,9 +288,7 @@ describe('useTransactionConfirm', () => {
   });
 
   it('sets waitForResult true when not smart tx, no quotes, no fee token', async () => {
-    useSelectedGasFeeTokenMock.mockReturnValue(
-      undefined,
-    );
+    useSelectedGasFeeTokenMock.mockReturnValue(undefined);
     const { result } = renderHook();
 
     await act(async () => {
@@ -307,9 +305,7 @@ describe('useTransactionConfirm', () => {
 
   describe('Money MPC account signer', () => {
     beforeEach(() => {
-      useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined,
-      );
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
       isMpcMoneyAccountMock.mockReturnValue(true);
     });
 
@@ -923,9 +919,7 @@ describe('useTransactionConfirm', () => {
         pending: false,
       });
 
-      useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined,
-      );
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
 
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
@@ -991,9 +985,7 @@ describe('useTransactionConfirm', () => {
     });
 
     it('does nothing if selectedGasFeeToken missing', async () => {
-      useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined,
-      );
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
 
       const { result } = renderHook();
 
@@ -1098,9 +1090,7 @@ describe('useTransactionConfirm', () => {
     });
 
     it('does nothing if selectedGasFeeToken is missing', async () => {
-      useSelectedGasFeeTokenMock.mockReturnValue(
-        undefined,
-      );
+      useSelectedGasFeeTokenMock.mockReturnValue(undefined);
 
       const { result } = renderHook();
 

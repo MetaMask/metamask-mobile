@@ -56,7 +56,7 @@ const getTurnOffReason = (): MfaReason => ({
 let activeMigration: Promise<void> | undefined;
 
 // The flow can outlive the screen that started it, so the result goes through the app-wide navigator.
-const migrate =  async (): Promise<void> => {
+const migrate = async (): Promise<void> => {
   // A wallet reset clears `migrating`, so a run from the previous wallet is not reused.
   if (activeMigration && moneyAccountMigration.getStatus() === 'migrating') {
     return activeMigration;
@@ -204,7 +204,7 @@ export const useMoneyMfa = () => {
     showToast('money.mfa.toast_off');
   }, [verifyOrEnroll, showToast]);
 
-  const retry = useCallback( async () => {
+  const retry = useCallback(async () => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });
     return migrate();
   }, []);

@@ -10,10 +10,10 @@ import {
 jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
-    getItem: jest.fn( async () => Promise.resolve(null)),
+    getItem: jest.fn(async () => Promise.resolve(null)),
     getItemSync: jest.fn(() => null),
-    setItem: jest.fn( async () => Promise.resolve()),
-    removeItem: jest.fn( async () => Promise.resolve()),
+    setItem: jest.fn(async () => Promise.resolve()),
+    removeItem: jest.fn(async () => Promise.resolve()),
   },
 }));
 
@@ -22,8 +22,8 @@ jest.mock('../../../core/Engine', () => ({
   default: {
     context: {
       MoneyAccountLifecycleController: {
-        startMigration: jest.fn( async () => Promise.resolve()),
-        refresh: jest.fn( async () => Promise.resolve()),
+        startMigration: jest.fn(async () => Promise.resolve()),
+        refresh: jest.fn(async () => Promise.resolve()),
         state: { moneyAccounts: {} },
       },
     },
