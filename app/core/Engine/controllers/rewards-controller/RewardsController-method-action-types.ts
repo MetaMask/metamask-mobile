@@ -372,15 +372,6 @@ export type RewardsControllerLogoutAction = {
 };
 
 /**
- * Get geo rewards metadata including location and support status
- * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
- */
-export type RewardsControllerGetGeoRewardsMetadataAction = {
-  type: `RewardsController:getGeoRewardsMetadata`;
-  handler: RewardsController['getGeoRewardsMetadata'];
-};
-
-/**
  * Validate a bonus code
  * @param code - The bonus code to validate
  * @param subscriptionId - The subscription ID for authentication
@@ -965,7 +956,6 @@ export type RewardsControllerMethodActions =
   | RewardsControllerOptInAction
   | RewardsControllerResetAllAction
   | RewardsControllerLogoutAction
-  | RewardsControllerGetGeoRewardsMetadataAction
   | RewardsControllerValidateBonusCodeAction
   | RewardsControllerGetCandidateSubscriptionIdAction
   | RewardsControllerLinkAccountToSubscriptionCandidateAction

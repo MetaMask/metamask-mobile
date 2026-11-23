@@ -18,7 +18,7 @@ Label within the tag.
 
 ```javascript
 // Replace import with relative path.
-import Tag from 'app/component-library/components/Tags/Tag';
+import Tag from '#app/component-library/components/Tags/Tag';
 
 <Tag label={TAG_LABEL} />;
 ```

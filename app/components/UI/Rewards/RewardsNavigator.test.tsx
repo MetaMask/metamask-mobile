@@ -270,11 +270,6 @@ jest.mock('./hooks/useRewardCampaigns', () => ({
   useRewardCampaigns: jest.fn(),
 }));
 
-// Mock useGeoRewardsMetadata hook
-jest.mock('./hooks/useGeoRewardsMetadata', () => ({
-  useGeoRewardsMetadata: jest.fn(),
-}));
-
 // Mock useReferralDetails hook
 jest.mock('./hooks/useReferralDetails', () => ({
   useReferralDetails: jest.fn().mockReturnValue({
@@ -344,7 +339,6 @@ import {
   selectIsRewardsVersionBlocked,
   selectPendingDeeplink,
 } from '../../../reducers/rewards/selectors';
-import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
 import { useRewardsNotificationsNudge } from './hooks/useRewardsNotificationsNudge';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
@@ -363,9 +357,6 @@ const mockSelectPendingDeeplink = selectPendingDeeplink as jest.MockedFunction<
   typeof selectPendingDeeplink
 >;
 
-const mockUseGeoRewardsMetadata = useGeoRewardsMetadata as jest.MockedFunction<
-  typeof useGeoRewardsMetadata
->;
 const mockUseCandidateSubscriptionId =
   useCandidateSubscriptionId as jest.MockedFunction<
     typeof useCandidateSubscriptionId
@@ -390,9 +381,6 @@ describe('RewardsNavigator', () => {
     mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
     mockCanGoBack.mockReturnValue(true);
     mockSelectPendingDeeplink.mockReturnValue(null);
-    mockUseGeoRewardsMetadata.mockReturnValue({
-      fetchGeoRewardsMetadata: jest.fn(),
-    });
     mockUseRewardsVersionGuard.mockReturnValue({
       fetchVersionRequirements: jest.fn(),
     });
@@ -695,16 +683,6 @@ describe('RewardsNavigator', () => {
       // Assert - Just verify it renders the first sub-page screen
       expect(getByTestId('rewards-settings-view')).toBeDefined();
     });
-
-    it('does not call useGeoRewardsMetadata hook (owned by the dashboard)', () => {
-      mockUseGeoRewardsMetadata.mockClear();
-
-      // Act
-      renderWithNavigation(<RewardsNavigator />);
-
-      // Assert
-      expect(mockUseGeoRewardsMetadata).not.toHaveBeenCalled();
-    });
   });
 
   describe('Version guard', () => {
@@ -749,9 +727,6 @@ describe('RewardsNavigator', () => {
       mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
       mockSelectPendingDeeplink.mockReturnValue(null);
       mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
-      mockUseGeoRewardsMetadata.mockReturnValue({
-        fetchGeoRewardsMetadata: jest.fn(),
-      });
     });
 
     it('does not show nudge when canPromptToEnableNotifications is false', async () => {

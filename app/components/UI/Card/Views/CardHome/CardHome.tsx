@@ -42,6 +42,7 @@ import Engine from '../../../../../core/Engine';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
+  selectHasCard,
   selectCardLastUnauthenticatedReason,
   selectCardUserLocation,
   selectCardHomeDataStatus,
@@ -72,6 +73,7 @@ import {
 } from '../../../../../selectors/featureFlagController/card';
 import { useIsSwapEnabledForPriorityToken } from '../../hooks/useIsSwapEnabledForPriorityToken';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
+import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardCapabilities } from '../../hooks/useCardCapabilities';
 import { useCardTransactionHistoryDestination } from '../../hooks/useCardTransactionHistoryDestination';
 import { useMoneyAccountCardLinkage } from '../../hooks/useMoneyAccountCardLinkage';
@@ -152,6 +154,8 @@ const CardHome = () => {
   const capabilities = useCardCapabilities();
   const transactionHistoryDestination = useCardTransactionHistoryDestination();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const hasCard = useSelector(selectHasCard);
+  const postAuthRedirect = useCardPostAuthRedirect();
   const lastUnauthenticatedReason = useSelector(
     selectCardLastUnauthenticatedReason,
   );
@@ -367,33 +371,48 @@ const CardHome = () => {
   // --- Refetch card data when the screen regains focus (e.g. after a swap) ---
   useFocusEffect(
     useCallback(() => {
+      if (!isAuthenticated) {
+        return;
+      }
       Engine.context.CardController.fetchCardHomeData();
-    }, []),
+    }, [isAuthenticated]),
   );
 
-  // --- Auth state transition: navigate to auth screen on logout ---
-  // Defer the redirect until Card Home is focused. A provider switch during
-  // UK migration marks the user signed out while SignUp is on top; replacing
-  // the focused route from this background screen unmounts that flow.
-  const wasAuthenticated = useRef(isAuthenticated);
-  const pendingAuthRedirect = useRef(false);
+  // Logged-out visitors never see the dashboard. Defer until this screen is
+  // focused: a provider switch during UK migration marks the user signed out
+  // while SignUp is on top, and replacing from this background screen would
+  // unmount that flow. The onboarding-token revocation path shows its own toast.
   useEffect(() => {
     if (
-      wasAuthenticated.current &&
-      !isAuthenticated &&
-      lastUnauthenticatedReason !== 'onboarding_token_revoked'
+      !isFocused ||
+      isAuthenticated ||
+      isSignedOutKycPending ||
+      lastUnauthenticatedReason === 'onboarding_token_revoked'
     ) {
-      pendingAuthRedirect.current = true;
+      return;
     }
-    if (isAuthenticated) {
-      pendingAuthRedirect.current = false;
+
+    if (hasCard) {
+      navigation.dispatch(
+        postAuthRedirect
+          ? StackActions.replace(Routes.CARD.AUTHENTICATION, {
+              postAuthRedirect,
+            })
+          : StackActions.replace(Routes.CARD.AUTHENTICATION),
+      );
+      return;
     }
-    wasAuthenticated.current = isAuthenticated;
-    if (pendingAuthRedirect.current && isFocused) {
-      pendingAuthRedirect.current = false;
-      navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
-    }
-  }, [isAuthenticated, isFocused, lastUnauthenticatedReason, navigation]);
+
+    navigation.dispatch(StackActions.replace(Routes.CARD.WELCOME));
+  }, [
+    hasCard,
+    isAuthenticated,
+    isFocused,
+    isSignedOutKycPending,
+    lastUnauthenticatedReason,
+    navigation,
+    postAuthRedirect,
+  ]);
 
   const hasHandledOnboardingTokenRevocation = useRef(false);
   useEffect(() => {
@@ -667,6 +686,12 @@ const CardHome = () => {
       Boolean(actions.cardDetailsImageUrl),
   });
 
+  // Callers that open Card Home directly still leave when logged out.
+  // Signed-out KYC review is the only layout this screen renders without a session.
+  if (!isAuthenticated && !isSignedOutKycPending) {
+    return null;
+  }
+
   // --- Error state ---
   if (isError) {
     return (
@@ -757,7 +782,7 @@ const CardHome = () => {
           />
         </Box>
 
-        {showUkMigrationSoftBanner && (
+        {isAuthenticated && showUkMigrationSoftBanner && (
           <Box
             twClassName="mx-4 mt-2"
             testID={CardHomeSelectors.UK_MIGRATION_SOFT_BANNER}
@@ -775,7 +800,7 @@ const CardHome = () => {
           </Box>
         )}
 
-        {isUkMigrationForced && (
+        {isAuthenticated && isUkMigrationForced && (
           <Box
             twClassName="mx-4 mt-2"
             testID={CardHomeSelectors.UK_MIGRATION_REQUIRED_BANNER}
@@ -787,13 +812,14 @@ const CardHome = () => {
           </Box>
         )}
 
-        {isBlocked && (
+        {isAuthenticated && isBlocked && (
           <Box twClassName="mx-4 mt-2">
             <CardMessageBox messageType={CardMessageBoxType.Blocked} />
           </Box>
         )}
 
-        {!isLoading &&
+        {isAuthenticated &&
+          !isLoading &&
           pendingDevicesLabel.length > 0 &&
           !isUkMigrationForced && (
             <Box
@@ -846,7 +872,7 @@ const CardHome = () => {
             </Box>
           </Animated.View>
 
-          {!hasSetupActions && !hasAlertOnlyState && (
+          {isAuthenticated && !hasSetupActions && !hasAlertOnlyState && (
             <CardBalanceDisplay
               isLoading={isLoading}
               balanceAmount={balanceAmount}
@@ -884,7 +910,8 @@ const CardHome = () => {
               />
             )}
 
-          {!isUkMigrationForced &&
+          {isAuthenticated &&
+            !isUkMigrationForced &&
             (effectiveActions.length > 0 || isLoading) && (
               <Box twClassName="w-full mt-4">
                 <CardActionsButtons
@@ -902,7 +929,8 @@ const CardHome = () => {
             )}
         </Box>
 
-        {credit.hasCredit &&
+        {isAuthenticated &&
+          credit.hasCredit &&
           !hasSetupActions &&
           !hasAlertOnlyState &&
           !isUkMigrationForced && (
@@ -922,37 +950,40 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
-          <Box twClassName="w-full px-4 pt-4 items-center justify-center">
-            {isProvisioning ? (
-              <Box twClassName="py-3">
-                <Spinner
-                  testID="push-provisioning-spinner"
-                  spinnerIconProps={{ size: IconSize.Xl }}
+        {isAuthenticated &&
+          !isLoading &&
+          walletEntry === 'push' &&
+          !isUkMigrationForced && (
+            <Box twClassName="w-full px-4 pt-4 items-center justify-center">
+              {isProvisioning ? (
+                <Box twClassName="py-3">
+                  <Spinner
+                    testID="push-provisioning-spinner"
+                    spinnerIconProps={{ size: IconSize.Xl }}
+                  />
+                </Box>
+              ) : (
+                <AddToWalletButton
+                  onPress={isProvisioning ? undefined : initiateProvisioning}
+                  buttonStyle="blackOutline"
+                  buttonType="basic"
+                  borderRadius={4}
                 />
-              </Box>
-            ) : (
-              <AddToWalletButton
-                onPress={isProvisioning ? undefined : initiateProvisioning}
-                buttonStyle="blackOutline"
-                buttonType="basic"
-                borderRadius={4}
-              />
-            )}
-            {Platform.OS === 'ios' && !isCardInWallet && (
-              <TextButton
-                variant={TextVariant.BodySm}
-                twClassName="mt-2"
-                onPress={handleLearnMoreAboutApplePay}
-                testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
-              >
-                {strings('card.apple_pay_usage.learn_more')}
-              </TextButton>
-            )}
-          </Box>
-        )}
+              )}
+              {Platform.OS === 'ios' && !isCardInWallet && (
+                <TextButton
+                  variant={TextVariant.BodySm}
+                  twClassName="mt-2"
+                  onPress={handleLearnMoreAboutApplePay}
+                  testID={CardHomeSelectors.APPLE_PAY_LEARN_MORE_BUTTON}
+                >
+                  {strings('card.apple_pay_usage.learn_more')}
+                </TextButton>
+              )}
+            </Box>
+          )}
 
-        {showLinkMoneyAccountCta && (
+        {isAuthenticated && showLinkMoneyAccountCta && (
           <>
             <Box twClassName="mb-6 mt-7">
               <MoneyMetaMaskCard
@@ -979,7 +1010,7 @@ const CardHome = () => {
           </>
         )}
 
-        {!isBlocked && !isUkMigrationForced && (
+        {isAuthenticated && !isBlocked && !isUkMigrationForced && (
           <ManageCardOptions
             card={data?.card}
             account={data?.account}
@@ -1038,30 +1069,32 @@ const CardHome = () => {
           />
         )}
 
-        <CardHomeFooter
-          isLoading={isLoading}
-          hasAlerts={hasAlertOnlyState}
-          hasSetupActions={hasSetupActions}
-          supportEmail={supportEmail}
-          onContactSupport={handleContactIntercomSupport}
-          legalDocuments={
-            isImmersve && immersveLegalDocuments.length > 0
-              ? immersveLegalDocuments
-              : undefined
-          }
-          hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
-          showLegalDocumentsError={immersveLegalDocsUnavailable}
-          onRetryLegalDocuments={
-            immersveLegalDocsUnavailable
-              ? () => {
-                  refetchImmersveLegalDocs().catch(() => {
-                    // Error surfaces via hook state / footer retry UI.
-                  });
-                }
-              : undefined
-          }
-          onNavigateToCardTos={actions.navigateToCardTosPage}
-        />
+        {isAuthenticated && (
+          <CardHomeFooter
+            isLoading={isLoading}
+            hasAlerts={hasAlertOnlyState}
+            hasSetupActions={hasSetupActions}
+            supportEmail={supportEmail}
+            onContactSupport={handleContactIntercomSupport}
+            legalDocuments={
+              isImmersve && immersveLegalDocuments.length > 0
+                ? immersveLegalDocuments
+                : undefined
+            }
+            hideLegalDocuments={isImmersve && isImmersveLegalDocsLoading}
+            showLegalDocumentsError={immersveLegalDocsUnavailable}
+            onRetryLegalDocuments={
+              immersveLegalDocsUnavailable
+                ? () => {
+                    refetchImmersveLegalDocs().catch(() => {
+                      // Error surfaces via hook state / footer retry UI.
+                    });
+                  }
+                : undefined
+            }
+            onNavigateToCardTos={actions.navigateToCardTosPage}
+          />
+        )}
 
         <CardScreenshotDeterrent
           enabled={

@@ -4,13 +4,12 @@ import { selectPredictAvailability } from '../availability/selectPredictAvailabi
 import { useVenueCapabilities } from '../capabilities/useVenueCapabilities';
 import { useActiveVenue } from '../implementation/activeVenue';
 import { useNextVenueId } from '../implementation/NextVenueContext';
-import { selectPredictConfig } from '../selectors/predictConfig';
 import { resolvePredictFunding } from './resolvePredictFunding';
 import type { PredictFundingResolution } from './types';
 
 /**
  * Whether the Active Venue may offer its Withdraw flow. Both halves must
- * hold: the Venue's descriptor lists `withdraw` for this deployment, and
+ * hold: the Venue catalog's `actions` list `withdraw` for this deployment, and
  * this client implements the flow for the
  * Venue's implementation. Anything else resolves unavailable, and the
  * surface renders no entry point at all.
@@ -24,7 +23,6 @@ export const usePredictWithdrawAvailable = (): PredictFundingResolution => {
   const activeVenue = useActiveVenue();
   const venueId = useNextVenueId();
   const capabilities = useVenueCapabilities(venueId);
-  const config = useSelector(selectPredictConfig);
 
   return useMemo(
     () =>
@@ -32,18 +30,10 @@ export const usePredictWithdrawAvailable = (): PredictFundingResolution => {
         available,
         activeVenue,
         // The branch's Venue and the Active Venue are the same inside
-        // `PredictImplementationSwitch`, so this descriptor is the one
+        // `PredictImplementationSwitch`, so these capabilities are the ones
         // `resolvePredictFunding` asks for by name.
         getCapabilities: () => capabilities,
-        kalshiDepositsEnabled: config.kalshiDepositsEnabled === true,
-        kalshiWithdrawalsEnabled: config.kalshiWithdrawalsEnabled === true,
       }),
-    [
-      activeVenue,
-      available,
-      capabilities,
-      config.kalshiDepositsEnabled,
-      config.kalshiWithdrawalsEnabled,
-    ],
+    [activeVenue, available, capabilities],
   );
 };
