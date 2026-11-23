@@ -242,10 +242,6 @@
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
         },
-        "MoneyAccountLifecycleController": {
-          "moneyAccounts": {},
-          "addressRegistrations": {}
-        },
         "MultichainNetworkController": {
           "isEvmSelected": true,
           "multichainNetworkConfigurationsByChainId": {
