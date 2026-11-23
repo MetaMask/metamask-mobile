@@ -970,6 +970,29 @@ describe('handleSwapUrl', () => {
     });
   });
 
+  it('tags the trace with the app start type of the deeplink path', async () => {
+    const swapPath =
+      'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
+
+    const coldIntent = await createSwapDeeplinkIntent({
+      swapPath,
+      appStartType: 'cold',
+    });
+    await coldIntent.prepare?.();
+    await handleSwapUrl({ swapPath });
+
+    expect(startSwapBridgePageLoadTrace).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ sourcePage: 'deeplink' }),
+      { appStartType: 'cold' },
+    );
+    expect(startSwapBridgePageLoadTrace).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ sourcePage: 'deeplink' }),
+      { appStartType: 'warm' },
+    );
+  });
+
   it('ignores a swap deeplink while another one is still in flight', async () => {
     const swapPath =
       'from=eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';

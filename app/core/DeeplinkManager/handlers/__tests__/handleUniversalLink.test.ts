@@ -21,7 +21,10 @@ import { handleSocialLeaderboardUrl } from '../legacy/handleSocialLeaderboardUrl
 import { handleSocialTraderUrl } from '../legacy/handleSocialTraderUrl';
 import { handleSocialTraderPositionUrl } from '../legacy/handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../legacy/handleWhatsHappeningUrl';
-import { handleSwapUrl } from '../intent/handleSwapUrl';
+import {
+  createSwapDeeplinkIntent,
+  handleSwapUrl,
+} from '../intent/handleSwapUrl';
 import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
@@ -877,6 +880,36 @@ describe('handleUniversalLink', () => {
           swapPath: swapQueryParams,
         });
         expect(handled).toHaveBeenCalled();
+      });
+
+      it('resolves a cold-start swap intent in resolve mode', async () => {
+        const swapQueryParams = '?amount=1000000';
+        const swapUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SWAP}${swapQueryParams}`;
+        const intent: DeeplinkIntent = {
+          target: { type: 'main-stack', routeName: 'Bridge' },
+        };
+        (
+          createSwapDeeplinkIntent as jest.MockedFunction<
+            typeof createSwapDeeplinkIntent
+          >
+        ).mockResolvedValueOnce(intent);
+
+        const result = await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: { ...urlObj, href: swapUrl, pathname: `/${ACTIONS.SWAP}` },
+          browserCallBack: mockBrowserCallBack,
+          url: swapUrl,
+          source: 'test-source',
+          mode: 'resolve',
+        });
+
+        expect(result).toBe(intent);
+        expect(createSwapDeeplinkIntent).toHaveBeenCalledWith({
+          swapPath: swapQueryParams,
+          appStartType: 'cold',
+        });
+        expect(handleSwapUrl).not.toHaveBeenCalled();
       });
     });
 

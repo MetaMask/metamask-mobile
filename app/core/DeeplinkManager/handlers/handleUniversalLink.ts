@@ -318,7 +318,10 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
     execute: ({ actionBasedRampPath }) =>
       handleSwapUrl({ swapPath: actionBasedRampPath }),
     resolve: ({ actionBasedRampPath }) =>
-      createSwapDeeplinkIntent({ swapPath: actionBasedRampPath }),
+      createSwapDeeplinkIntent({
+        swapPath: actionBasedRampPath,
+        appStartType: 'cold',
+      }),
   },
   [SUPPORTED_ACTIONS.PREDICT]: {
     execute: ({ actionBasedRampPath, source }) =>

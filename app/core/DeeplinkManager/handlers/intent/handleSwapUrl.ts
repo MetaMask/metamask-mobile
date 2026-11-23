@@ -38,6 +38,7 @@ import {
 } from '../../../../util/networks/networkToastSuppression';
 
 import { HandleSwapUrlParams } from '../../types/deepLink.types';
+import type { DeeplinkPerfAppStartType } from '../../../Performance/DeeplinkPerformance';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 import {
@@ -408,7 +409,10 @@ const resolveSwapRouteParams = async (
 
 export const createSwapDeeplinkIntent = async ({
   swapPath,
-}: HandleSwapUrlParams): Promise<DeeplinkIntent> => {
+  appStartType = 'warm',
+}: HandleSwapUrlParams & {
+  appStartType?: DeeplinkPerfAppStartType;
+}): Promise<DeeplinkIntent> => {
   const routeParams = await resolveSwapRouteParams(swapPath);
   const intent: DeeplinkIntent = {
     target: bridgeTarget(routeParams),
@@ -416,7 +420,9 @@ export const createSwapDeeplinkIntent = async ({
     // trace starts here, immediately before navigation, rather than at resolve.
     prepare: () => {
       resetSwapSessionBeforeDeeplink();
-      intent.target = bridgeTarget(startSwapBridgePageLoadTrace(routeParams));
+      intent.target = bridgeTarget(
+        startSwapBridgePageLoadTrace(routeParams, { appStartType }),
+      );
     },
   };
   return intent;
