@@ -180,7 +180,7 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
                 encodes the setup link itself, as the server's image has a
                 wide margin built in. */}
             <Box
-              twClassName="mb-4 rounded-2xl p-4"
+              twClassName="mb-4 rounded-2xl border border-muted p-4"
               style={tw.style({ backgroundColor: brandColors.white })}
             >
               <QRCode

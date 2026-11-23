@@ -9,7 +9,7 @@ This component extends `BottomTabBarProps<BottomTabBarOptions>` from React Navig
 ## Usage
 
 ```javascript
-import TabBar from 'app/component-library/components/Navigation/TabBar';
+import TabBar from '#app/component-library/components/Navigation/TabBar';
 
 <TabBar {...TAB_BAR_OPTIONS_FROM_REACT_NAVIGATION_V5}>
 ```

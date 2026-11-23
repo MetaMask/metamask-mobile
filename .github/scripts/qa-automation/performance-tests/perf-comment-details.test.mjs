@@ -7,6 +7,7 @@ import {
   buildApiRequestsFullReport,
   describeFailure,
   describeQualityGateViolations,
+  describeReportedFailure,
 } from './perf-comment-details.mjs';
 
 const profiling = {
@@ -232,6 +233,27 @@ test('describeQualityGateViolations names each timer with its time and maximum',
   assert.equal(
     result,
     'Quality gates exceeded: "time the asset view takes to load" took 6500 ms > max of 4000 ms<br>Total duration was 12000 ms > max of 10000 ms',
+  );
+});
+
+test('describeReportedFailure matches the PR comment for a quality-gate failure', () => {
+  assert.equal(
+    describeReportedFailure({
+      failureReason: 'quality_gates_exceeded',
+      failureMessage: null,
+      qualityGates: {
+        violations: [
+          {
+            type: 'step',
+            stepName:
+              'Apple: Final onboarding action → wallet main screen visible',
+            actual: 6817,
+            threshold: 5750,
+          },
+        ],
+      },
+    }),
+    'Quality gates exceeded: "Apple: Final onboarding action → wallet main screen visible" took 6817 ms > max of 5750 ms',
   );
 });
 

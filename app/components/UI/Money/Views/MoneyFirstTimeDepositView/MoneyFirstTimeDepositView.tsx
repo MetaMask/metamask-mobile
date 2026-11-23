@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { BackHandler, PixelRatio, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -28,6 +28,7 @@ import { MoneyFirstTimeDepositViewTestIds } from './MoneyFirstTimeDepositView.te
 import useMountEffect from '../../hooks/useMountEffect';
 import MoneyAccountFirstTimeDepositAnimationV4 from '../../../../../animations/money_account_first_time_deposit_v4.riv';
 import Routes from '../../../../../constants/navigation/Routes';
+import { playSuccessNotification } from '../../../../../util/haptics';
 
 const log = createProjectLogger('money-first-time-deposit');
 
@@ -96,6 +97,17 @@ const MoneyFirstTimeDepositView = () => {
   }, [navigation]);
 
   useMountEffect(trackScreenViewed);
+
+  // The success toast (and its haptic) is skipped for this screen, so the
+  // tap plays once the deposit animation is actually on screen.
+  const hasPlayedDepositHaptic = useRef(false);
+  useEffect(() => {
+    if (!instance || hasPlayedDepositHaptic.current) {
+      return;
+    }
+    hasPlayedDepositHaptic.current = true;
+    playSuccessNotification().catch(() => undefined);
+  }, [instance]);
 
   // Intercept Android hardware-back so it behaves like tapping "Done".
   useEffect(() => {

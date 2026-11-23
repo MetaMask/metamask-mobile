@@ -90,6 +90,7 @@ import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePrice
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
 import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import { useScreenTransitionComplete } from '../../../hooks/useScreenTransitionComplete';
 import Routes from '../../../../constants/navigation/Routes';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
@@ -220,6 +221,15 @@ const SocialV1ViewContent: React.FC = () => {
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
+
+  // Hold the tab pages out of the opening transition: the landing page is the
+  // whole cost of this screen's first commit. The header and tab bar stay
+  // eager so the screen paints its chrome immediately.
+  const isPushedScreen = route.name !== Routes.SOCIAL.TAB;
+  const isTransitionComplete = useScreenTransitionComplete();
+  // A tab has no entering transition to protect, so it never waits.
+  const isDeferredReady = !isPushedScreen || isTransitionComplete;
+
   const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
   const accountAddress = useSelector(
@@ -518,7 +528,7 @@ const SocialV1ViewContent: React.FC = () => {
 
       openQuickBuy(
         target,
-        commentId ? { commentId } : undefined,
+        commentId ? { commentId, authorId: item.author.id } : undefined,
         'buy',
         source,
         item.author.address,
@@ -889,7 +899,9 @@ const SocialV1ViewContent: React.FC = () => {
           rotatesTraderStats={isFocused && isPageActive}
           windowOffsetY={pagerTopInset}
         >
-          {renderPage(tab, isPageActive, pageRefs[tab])}
+          {isDeferredReady
+            ? renderPage(tab, isPageActive, pageRefs[tab])
+            : null}
         </SocialFeedPageProviders>
       </View>
     );

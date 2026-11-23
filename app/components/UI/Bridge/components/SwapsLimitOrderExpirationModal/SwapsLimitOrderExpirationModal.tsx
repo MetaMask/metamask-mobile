@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   ListItemSelect,
   type BottomSheetRef,
@@ -15,6 +14,9 @@ import {
 } from '../../constants/limitOrders';
 import { SwapsLimitOrderExpirationModalSelectorsIDs } from './testIds';
 import type { SwapsLimitOrderExpirationModalProps } from './types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const SwapsLimitOrderExpirationModal: React.FC<
   SwapsLimitOrderExpirationModalProps
@@ -25,6 +27,7 @@ const SwapsLimitOrderExpirationModal: React.FC<
   goBack,
   testID = SwapsLimitOrderExpirationModalSelectorsIDs.SHEET,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
 
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -64,14 +67,15 @@ const SwapsLimitOrderExpirationModal: React.FC<
       goBack={goBack}
       onClose={onClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: SwapsLimitOrderExpirationModalSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.limit.expiration')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingBottom={2}>
         {SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES.map((minutes) => (
           <ListItemSelect
