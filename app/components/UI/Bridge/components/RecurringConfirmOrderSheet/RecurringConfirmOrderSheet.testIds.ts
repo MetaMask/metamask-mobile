@@ -14,7 +14,6 @@ export const RecurringConfirmOrderSheetSelectorsIDs = {
   EST_RECEIVING_ALL_ORDERS: 'recurring-confirm-est-receiving-all-orders',
   EST_RECEIVING_ALL_ORDERS_SKELETON:
     'recurring-confirm-est-receiving-all-orders-skeleton',
-  EXPIRES_AFTER: 'recurring-confirm-expires-after',
   SLIPPAGE: 'recurring-confirm-slippage',
   SLIPPAGE_EDIT: 'recurring-confirm-slippage-edit',
   NETWORK_FEE: 'recurring-confirm-network-fee',
