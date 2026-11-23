@@ -17,9 +17,9 @@ interface MockTabsBarProps {
 }
 
 jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual(
-    '@react-navigation/native',
-  ) as typeof import('@react-navigation/native');
+  const actualReactNavigation = jest.requireActual<
+    typeof import('@react-navigation/native')
+  >('@react-navigation/native');
   return {
     ...actualReactNavigation,
     useNavigation: (): { goBack: typeof mockGoBack } => ({
@@ -41,13 +41,13 @@ jest.mock(
   '../../../../../component-library/components-temp/Tabs/TabsBar',
   () => ({
     __esModule: true,
-    default: (props: MockTabsBarProps) => mockTabsBarProps(props) || null,
+    default: (props: MockTabsBarProps) => mockTabsBarProps(props) ?? null,
   }),
 );
 
 jest.mock('./MoneyEarningsFooter', () => ({
   __esModule: true,
-  default: () => mockMoneyEarningsFooter() || null,
+  default: () => mockMoneyEarningsFooter() ?? null,
 }));
 
 let mockIsMoneyBrandRefresh = false;

@@ -38,9 +38,7 @@ const EarningsTab = (): React.ReactElement => {
     data !== undefined &&
     (!isRecord(data) || hasInvalidInterestHistoryResponse(data));
   const historicalEarningsResponse: InterestHistoryResponse | undefined =
-    !hasMalformedHistory && isRecord(data)
-      ? (data as InterestHistoryResponse)
-      : undefined;
+    !hasMalformedHistory && isRecord(data) ? data : undefined;
 
   const selectedRangeData = useMemo(
     () => getSelectedRange(historicalEarningsResponse, selectedRange),
@@ -84,8 +82,8 @@ const EarningsTab = (): React.ReactElement => {
     Number.isFinite(selectedRangeTotalUsd) &&
     chartPoints.some(isAvailableBucket);
 
-  const handleRetry = useCallback(async () => {
-    await refetchHistoricalEarnings();
+  const handleRetry = useCallback(() => {
+    void refetchHistoricalEarnings();
   }, [refetchHistoricalEarnings]);
 
   return (

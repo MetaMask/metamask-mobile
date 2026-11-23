@@ -35,7 +35,7 @@ const isEnabledTab = (
 
 const MoneyEarningsView = (): React.ReactElement => {
   const navigation = useNavigation<AppNavigationProp>();
-  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled) === true;
+  const isGlassHeader = useSelector(selectMoneyBrandRefreshEnabled);
   const { params } = useRoute<MoneyEarningsRoute>();
   const initialActiveTab = getInitialActiveTab(params?.activeTab);
   const [activeTab, setActiveTab] =

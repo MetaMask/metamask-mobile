@@ -190,7 +190,7 @@ describe('fetchMoneyInterestHistory', () => {
         ok: true,
         json: async () => MOCK_RESPONSE,
       });
-      global.fetch = mockFetch as unknown as typeof fetch;
+      global.fetch = mockFetch;
 
       await fetchMoneyInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID);
 
@@ -205,7 +205,7 @@ describe('fetchMoneyInterestHistory', () => {
       ok: true,
       json: async () => MOCK_RESPONSE,
     });
-    global.fetch = mockFetch as unknown as typeof fetch;
+    global.fetch = mockFetch;
 
     await expect(
       fetchMoneyInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID),
@@ -217,7 +217,7 @@ describe('fetchMoneyInterestHistory', () => {
       ok: false,
       status: 500,
     });
-    global.fetch = mockFetch as unknown as typeof fetch;
+    global.fetch = mockFetch;
 
     await expect(
       fetchMoneyInterestHistory(MOCK_ADDRESS, MOCK_CHAIN_ID),
