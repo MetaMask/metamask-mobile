@@ -76,7 +76,9 @@ describe('PostTradeShareBottomSheet', () => {
 
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.post_trade_share.swap_in_progress');
+    ).toHaveTextContent(
+      'social_leaderboard.post_trade_share.trade_in_progress',
+    );
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE),
     ).toHaveTextContent(

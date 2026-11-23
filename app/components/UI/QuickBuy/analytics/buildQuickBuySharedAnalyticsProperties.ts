@@ -27,6 +27,16 @@ export function buildQuickBuySharedAnalyticsProperties(
     props[QuickBuyEventProperties.ORIGINAL_ENTRY_POINT] =
       analyticsContext.originalEntryPoint;
   }
+  // The source post of a copy trade, so every Quick Buy event in the copy
+  // session (buy and sell) joins to the post it came from.
+  if (analyticsContext?.copyTradeOrigin) {
+    props[QuickBuyEventProperties.POST_ID] =
+      analyticsContext.copyTradeOrigin.commentId;
+    if (analyticsContext.copyTradeOrigin.authorId) {
+      props[QuickBuyEventProperties.AUTHOR_TRADER_ID] =
+        analyticsContext.copyTradeOrigin.authorId;
+    }
+  }
   if (typeof analyticsContext?.marketCap === 'number') {
     props[QuickBuyEventProperties.MARKET_CAP] = analyticsContext.marketCap;
   }
