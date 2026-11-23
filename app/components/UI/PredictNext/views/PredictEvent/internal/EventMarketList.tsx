@@ -96,7 +96,16 @@ const LIVE_ROW_BUFFER = 10;
 /** A row counts as viewable once a tenth of it is on screen, as on the Feed. */
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
 
-const positionCardTestIds = ({ marketId, side }: PredictPosition) => ({
+const positionCardTestIds = (
+  { marketId, side }: PredictPosition,
+): {
+  root: string;
+  value: string;
+  pnl: string;
+  chance: string;
+  buy: string;
+  cashOut: string;
+} => ({
   root: EventMarketListTestIds.positionRow(marketId, side),
   value: EventMarketListTestIds.positionValue(marketId, side),
   pnl: EventMarketListTestIds.positionPnl(marketId, side),
@@ -195,8 +204,10 @@ const countMarkets = (cards: readonly MarketLayoutCard[]): number =>
  * Section rows space themselves: headers bring their divider and cards their
  * gap, so only the rows around them get the list gap.
  */
-const isSeparated = (leadingRow: ContentRow, trailingRow: ContentRow) =>
-  !(isSectionRow(leadingRow) && isSectionRow(trailingRow));
+const isSeparated = (
+  leadingRow: ContentRow,
+  trailingRow: ContentRow,
+): boolean => !(isSectionRow(leadingRow) && isSectionRow(trailingRow));
 
 interface MarketTab {
   key: string;
@@ -394,13 +405,13 @@ const useMarketTabs = (event: PredictEvent): MarketTab[] => {
               projection.remainingMarkets,
             );
     const isGame = Boolean(getEventGame(event));
-    const tabs =
-      cached &&
-      cached.projection === projection &&
-      cached.flatRows === flatRows &&
-      cached.isGame === isGame
-        ? cached.tabs
-        : toMarketTabs(event, projection, flatRows);
+    const reuseTabs =
+      cached?.projection === projection &&
+      cached?.flatRows === flatRows &&
+      cached?.isGame === isGame;
+    const tabs = reuseTabs && cached
+      ? cached.tabs
+      : toMarketTabs(event, projection, flatRows);
     cacheRef.current = {
       markets: event.markets,
       projection,
@@ -476,7 +487,7 @@ const EventMarketListContent = ({
   onVisibleMarketIdsChange,
   children,
   testID = EventMarketListTestIds.ROOT,
-}: EventMarketListProps) => {
+}: EventMarketListProps): JSX.Element => {
   const tw = useTailwind();
   const networkTier = useNetworkTier();
   // Unknown transport keeps the default window, including on LOW hardware.
@@ -634,32 +645,35 @@ const EventMarketListContent = ({
   );
   const handleGroupMarketSelectRef = useRef(handleGroupMarketSelect);
   handleGroupMarketSelectRef.current = handleGroupMarketSelect;
-  const onSelectMarketInGroup = useCallback((groupKey: string) => {
-    const existing = selectMarketByGroupRef.current.get(groupKey);
-    if (existing) {
-      return existing;
-    }
-    const selectMarket = (marketId: PredictMarket['id']) => {
-      handleGroupMarketSelectRef.current(groupKey, marketId);
-    };
-    selectMarketByGroupRef.current.set(groupKey, selectMarket);
-    return selectMarket;
-  }, []);
-  const handleSectionToggle = useCallback((stateKey: string, open: boolean) => {
+  const onSelectMarketInGroup = useCallback(
+    (groupKey: string): ((marketId: PredictMarket['id']) => void) => {
+      const existing = selectMarketByGroupRef.current.get(groupKey);
+      if (existing) {
+        return existing;
+      }
+      const selectMarket = (marketId: PredictMarket['id']): void => {
+        handleGroupMarketSelectRef.current(groupKey, marketId);
+      };
+      selectMarketByGroupRef.current.set(groupKey, selectMarket);
+      return selectMarket;
+    },
+    [],
+  );
+  const handleSectionToggle = useCallback((stateKey: string, open: boolean): void => {
     setOpenSections((current) => ({ ...current, [stateKey]: open }));
     // Closing a section folds it back to its first cards.
     if (!open) {
       setExpandedSections(({ [stateKey]: _closed, ...rest }) => rest);
     }
   }, []);
-  const handleViewAll = useCallback((stateKey: string, periodKey: string) => {
+  const handleViewAll = useCallback((stateKey: string, periodKey: string): void => {
     setExpandedSections((current) => ({
       ...current,
       [stateKey]: [...(current[stateKey] ?? []), periodKey],
     }));
   }, []);
   const handlePeriodSelect = useCallback(
-    (stateKey: string, periodKey: string) => {
+    (stateKey: string, periodKey: string): void => {
       setSelectedPeriods((current) => ({ ...current, [stateKey]: periodKey }));
     },
     [],
@@ -835,7 +849,7 @@ const EventMarketListContent = ({
 };
 
 /** Owns Event content while leaving charts, navigation, and workflows outside. */
-export const EventMarketList = (props: EventMarketListProps) => (
+export const EventMarketList = (props: EventMarketListProps): JSX.Element => (
   <EventMarketListContent
     key={JSON.stringify([props.event.venueId, props.event.id])}
     {...props}

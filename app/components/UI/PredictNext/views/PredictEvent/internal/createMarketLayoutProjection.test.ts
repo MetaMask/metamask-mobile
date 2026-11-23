@@ -74,7 +74,13 @@ const line = (
   displayOrder,
 });
 
-const describeCard = (card: MarketLayoutCard) =>
+type DescribedCard = {
+  type: string;
+  key: string;
+  markets: string[];
+} & Partial<{ marketType: string }>;
+
+const describeCard = (card: MarketLayoutCard): DescribedCard =>
   card.type === 'standard'
     ? { type: card.type, key: card.key, markets: [card.market.id] }
     : {
@@ -87,10 +93,25 @@ const describeCard = (card: MarketLayoutCard) =>
       };
 
 /** The projection as keys and Market IDs, so trees read at a glance. */
+interface DescribedProjection {
+  tabs: {
+    key: string;
+    sections: {
+      key: string;
+      volume?: string;
+      periods: {
+        key: string | undefined;
+        cards: DescribedCard[];
+      }[];
+    }[];
+  }[];
+  remainingMarkets: string[];
+}
+
 const describeProjection = ({
   tabs,
   remainingMarkets,
-}: MarketLayoutProjection) => ({
+}: MarketLayoutProjection): DescribedProjection => ({
   tabs: tabs.map((tab) => ({
     key: tab.key,
     sections: tab.sections.map((section) => ({
@@ -105,7 +126,9 @@ const describeProjection = ({
   remainingMarkets: remainingMarkets.map(({ id }) => id),
 });
 
-const sectionsOf = (markets: readonly PredictMarket[]) =>
+const sectionsOf = (
+  markets: readonly PredictMarket[],
+): DescribedProjection['tabs'][number]['sections'] | undefined =>
   describeProjection(createMarketLayoutProjection(markets)).tabs[0]?.sections;
 
 describe('createMarketLayoutProjection', () => {
@@ -235,7 +258,7 @@ describe('createMarketLayoutProjection', () => {
       team: string,
       value: number,
       order: number,
-    ) =>
+    ): PredictMarket =>
       createMarket(id, {
         group: line(`game:team_total:${team}`, 'team_total', value, order),
         layout: layoutOf('team_total', 3, FULL_GAME),
@@ -358,11 +381,18 @@ describe('createMarketLayoutProjection', () => {
       { id: 'yes', side: 'yes', label: 'Over' },
       { id: 'no', side: 'no', label: 'Under' },
     ];
-    const totalLine = (id: string, option: unknown, displayOrder: number) => ({
-      id,
+    const totalLine = (
+      id: string,
+      option: unknown,
+      displayOrder: number,
+    ): PredictMarket => ({
+      id: id as PredictEntityId,
       question: id,
       status: 'active',
-      outcomes,
+      outcomes: outcomes.map((o) => ({
+        ...o,
+        id: o.id as PredictEntityId,
+      })) as PredictMarket['outcomes'],
       layout,
       group: {
         key: 'totals',
@@ -498,7 +528,7 @@ describe('createMarketLayoutProjection', () => {
       tab: [string, number],
       section: [string, number],
       subgroup?: [string, number],
-    ) =>
+    ): PredictMarket =>
       createMarket(id, {
         layout: {
           tab: { key: tab[0], order: tab[1] },
