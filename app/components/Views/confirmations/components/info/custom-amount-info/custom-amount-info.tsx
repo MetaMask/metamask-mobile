@@ -478,11 +478,17 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       Boolean(accountOverride) &&
       (hasAccountNoFunds || stage === CustomAmountStage.Loading);
 
+    // A skipped prefill means nothing can fund the deposit, so a Predict
+    // deposit falls back to Buy instead of an empty page (PRED-1533).
+    const isPredictDepositWithoutPrefill =
+      skipDepositPrefill &&
+      hasTransactionType(transactionMeta, [TransactionType.predictDeposit]);
+
     const showBuyButton =
       (!hasPaymentOption || hasAccountNoFunds) &&
       !hideBuyForNoFunds &&
       !isPayAccountLoading &&
-      !isDepositPrefillEnabled;
+      (!isDepositPrefillEnabled || isPredictDepositWithoutPrefill);
 
     const alertMessage =
       alertMessageBase ??
