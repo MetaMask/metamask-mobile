@@ -11,7 +11,7 @@ import {
 } from '../../../../UI/Money/utils/moneyAccountTransactions';
 import { UpdateTransactionPayAmountCall } from '../../types/transactions';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
-import { getLighterUsdcDepositAmountCalls } from '../../temp/lighter-usdc-deposit';
+import { getLighterUsdcDepositAmountCalls } from '../../temp-lighter/lighter-usdc-deposit';
 
 const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';

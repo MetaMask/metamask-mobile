@@ -10,7 +10,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import type { PerpsReceiveDestination } from '../../components/rows/perps-receive-to-row';
 import type { PerpsWithdrawSource } from '../../components/rows/perps-withdraw-from-row';
-import { userHasLighterAccount } from '../../temp/lighter-usdc-deposit';
+import { userHasLighterAccount } from '../../temp-lighter/lighter-usdc-deposit';
 import {
   buildHyperliquidRestoreRequest,
   buildLighterDepositRequest,
@@ -19,7 +19,7 @@ import {
   replacePerpsTransaction,
   snapshotHyperliquidConfirmation,
   type HyperliquidConfirmationSnapshot,
-} from '../../temp/perps-lighter-transactions';
+} from '../../temp-lighter/perps-lighter-transactions';
 import { perpsTransactionTypeForSelection } from '../../utils/perps-lighter-transaction-type';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
