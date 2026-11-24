@@ -123,6 +123,8 @@ import CardHomeActionButtonRow, {
 } from './components/CardHomeActionButtonRow';
 import CardHomeMoreSheet from './components/CardHomeMoreSheet';
 import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { selectMoneyBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/moneyBrandRefresh';
 import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
@@ -797,11 +799,19 @@ const CardHome = () => {
     cardType: data?.card?.type,
     isRevealingCardDetails,
   });
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  // Offline: no Rive, on every hardware tier. A low-end phone on a slow
+  // cell connection skips it too. An unknown network keeps the animation.
+  const allowCardRive =
+    networkTier !== 'NONE' &&
+    !(hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR');
 
   // The freeze file only contains the virtual face. Metal and physical cards,
   // a blocked card (which dims), and the one-shot arrival reveal keep their
   // own art. Setup reconciliation keeps the image skeleton.
   const showFreezeCardArt =
+    allowCardRive &&
     !arrival.usesRiveCard &&
     !isSetupReconciling &&
     data?.card?.type === CardType.VIRTUAL &&
@@ -1128,7 +1138,7 @@ const CardHome = () => {
                         </Box>
                       )}
                     </Box>
-                  ) : arrival.usesRiveCard ? (
+                  ) : arrival.usesRiveCard && allowCardRive ? (
                     <MoneyCardTiltAnimation
                       key={arrival.revealKey}
                       isMetalCard={hasMetalCard}

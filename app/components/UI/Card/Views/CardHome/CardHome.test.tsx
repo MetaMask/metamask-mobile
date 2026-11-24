@@ -359,6 +359,19 @@ let mockProvisioningView:
   | 'kyc_under_review'
   | 'provisioning' = 'provisioning';
 let mockIsSignedOutKycPending = false;
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = null;
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = null;
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
 jest.mock('./hooks/useSignedOutKycPending', () => ({
   __esModule: true,
   default: () => mockIsSignedOutKycPending,
@@ -1506,6 +1519,8 @@ describe('CardHome Component', () => {
     mockCanEnableCard = false;
     mockIsEnableCardPending = false;
     mockIsSignedOutKycPending = false;
+    mockNetworkTier = null;
+    mockHardwareTier = null;
     mockProvisioningView = 'provisioning';
     mockEnableCard.mockClear();
     mockUseCardRecentTransactions.mockReturnValue({
@@ -4449,6 +4464,55 @@ describe('CardHome Component', () => {
       ).toBe(true);
     });
 
+    it('shows the static card face instead of Rive while offline', () => {
+      mockNetworkTier = 'NONE';
+      mockHardwareTier = null;
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+      expect(screen.getByTestId(CardHomeSelectors.CARD_ART)).toBeOnTheScreen();
+    });
+
+    it('shows the static card face on a low-end phone with a slow connection', () => {
+      mockNetworkTier = 'SLOW_CELLULAR';
+      mockHardwareTier = 'LOW';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+    });
+
+    it('keeps the freeze animation on a low-end phone with a fast connection', () => {
+      mockNetworkTier = 'WIFI';
+      mockHardwareTier = 'LOW';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeOnTheScreen();
+    });
+
     it('plays the arrival reveal instead of the freeze animation', () => {
       mockArrivalOverride = { usesRiveCard: true, playReveal: true };
       setupMockSelectors({ isAuthenticated: true });
@@ -4462,6 +4526,25 @@ describe('CardHome Component', () => {
       expect(
         screen.getByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
       ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
+      ).toBeNull();
+    });
+
+    it('shows the static card face instead of the arrival reveal while offline', () => {
+      mockArrivalOverride = { usesRiveCard: true, playReveal: true };
+      mockNetworkTier = 'NONE';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.CARD_ARRIVAL_RIVE),
+      ).toBeNull();
       expect(
         screen.queryByTestId(CardHomeSelectors.CARD_FREEZE_RIVE),
       ).toBeNull();
