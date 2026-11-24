@@ -271,8 +271,12 @@ function pendingNote(exception) {
   return `${pending.length} over ${exception.meta.thresholdRatio}× once, awaiting confirmation by the next scheduled run: ${names}`;
 }
 
+function trackedIssueLabel(issue) {
+  return issue.jiraKey || `#${issue.number}`;
+}
+
 /**
- * Issue outcome recorded by the GitHub sync. Absent when the sync did not
+ * Ticket outcome recorded by the Jira sync. Absent when the sync did not
  * run (branch run, manual re-analysis, or the flag was off).
  */
 function issueSlackSuffix(issue) {
@@ -280,9 +284,9 @@ function issueSlackSuffix(issue) {
     return '';
   }
   if (issue.error) {
-    return ` · GitHub issue not created (${issue.error})`;
+    return ` · Jira ticket not created (${issue.error})`;
   }
-  return ` · <${issue.url}|#${issue.number}> ${issue.created ? 'opened' : 'already open, referenced'}`;
+  return ` · <${issue.url}|${trackedIssueLabel(issue)}> ${issue.created ? 'opened' : 'already open, referenced'}`;
 }
 
 function issueMarkdownSuffix(issue) {
@@ -290,9 +294,10 @@ function issueMarkdownSuffix(issue) {
     return '';
   }
   if (issue.error) {
-    return ` — GitHub issue not created (${issue.error})`;
+    return ` — Jira ticket not created (${issue.error})`;
   }
-  return ` — [#${issue.number}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
+  const label = trackedIssueLabel(issue);
+  return ` — [${label}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
 }
 
 /**
@@ -315,7 +320,7 @@ function openedBugs(exception) {
 
 /**
  * A finding is tracked only after issue sync stored a URL. The digest is
- * also built when `--github-issues` is off or a create/comment failed, so
+ * also built when `--jira-issues` is off or a create/comment failed, so
  * the headline must not claim a bug that was never opened.
  */
 function everyFindingHasBug(findings) {
@@ -375,7 +380,7 @@ export function buildPerformanceChannelSlack(exception) {
     );
     for (const finding of opened) {
       lines.push(
-        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|${trackedIssueLabel(finding.issue)}>`,
       );
     }
   } else {
@@ -387,7 +392,7 @@ export function buildPerformanceChannelSlack(exception) {
       '',
       `• JS work: ${findingComparison(finding)}`,
       `• Owner: ${slackOwnerMention(finding.scenario)}`,
-      `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+      `• Bug: <${finding.issue.url}|${trackedIssueLabel(finding.issue)}>`,
     );
   }
   const others = findingsWithoutNewBug(exception);
@@ -402,7 +407,7 @@ export function buildPerformanceChannelSlack(exception) {
   lines.push(
     '',
     `_Performance run:_ <${meta.runUrl}|${meta.runId}>`,
-    "_Jira:_ each new GitHub issue is synced to the owning team's Jira project and keeps its team label.",
+    "_Jira:_ each new bug is filed in the owning team's Jira project.",
     '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
   );
   return lines.join('\n');
@@ -493,7 +498,7 @@ export function buildScheduledExceptionMarkdown(exception) {
  * #metamask-performance body for a scheduled finding.
  *
  * A newly opened bug uses the short review, which mentions the owning Slack
- * group and links the GitHub issue. Other findings in that same run are
+ * group and links the Jira ticket. Other findings in that same run are
  * listed under it, including an issue that was already open. A run with no
  * new bug keeps the digest. An all-clear returns an empty string so nothing
  * is sent.

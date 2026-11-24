@@ -35,6 +35,7 @@ import type {
   PredictPortfolioTab,
 } from '../../navigation/types';
 import { PortfolioActivityPanel } from './internal/PortfolioActivityPanel';
+import { DepositStatusLine } from '../../components/DepositStatusLine';
 import { PortfolioPositionsPanel } from './internal/PortfolioPositionsPanel';
 import { PortfolioSummaryCard } from './internal/PortfolioSummaryCard';
 import { PortfolioRecoveryPanel } from './internal/PortfolioRecoveryPanel';
@@ -158,6 +159,12 @@ export const PredictPortfolioScreen = () => {
           onRetry={() => summaryQuery.refetch()}
           onWithdrawPress={
             withdrawResolution.status === 'ready' ? openWithdraw : undefined
+          }
+          depositStatus={
+            <DepositStatusLine
+              venueId={venueId}
+              testID={PredictPortfolioScreenTestIds.DEPOSIT_STATUS}
+            />
           }
         />
         {canDeposit ? (
