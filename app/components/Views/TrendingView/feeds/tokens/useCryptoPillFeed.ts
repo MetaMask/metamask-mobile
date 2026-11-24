@@ -205,7 +205,7 @@ export const useCryptoPillFeed = ({
         descriptor.chainIds.join(','),
         vsCurrency,
       ),
-      queryFn: ({
+      queryFn: async ({
         signal,
       }: {
         signal?: AbortSignal;

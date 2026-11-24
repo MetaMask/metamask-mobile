@@ -214,7 +214,7 @@ const renderBlock = (
   arrange(results);
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
-  } as never);
+  });
   return render(
     <CryptoPillBlockHarness
       blockProps={props}

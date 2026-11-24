@@ -159,7 +159,7 @@ const arrangeMocks = ({
 
   mockUseNavigation.mockReturnValue({
     navigate: mockNavigate,
-  } as never);
+  });
 
   mockUseABTest.mockReturnValue({
     variant: { showQuickTradeButton: quickTradeEnabled },
@@ -172,7 +172,7 @@ const arrangeMocks = ({
       return earnSectionVisible;
     }
     // Other selectors, such as Predict's Active Venue, read the default state.
-    return (selector as (state: unknown) => unknown)({
+    return selector({
       engine: { backgroundState },
     });
   });
@@ -181,7 +181,7 @@ const arrangeMocks = ({
     data: [],
     isLoading: false,
     refetch: jest.fn(),
-  } as never);
+  });
   mockUsePerpsFeed.mockReturnValue({
     data: [{ market: { symbol: 'BTC' } }],
     isLoading: false,
@@ -197,7 +197,7 @@ const arrangeMocks = ({
         isError: false,
       },
     },
-  } as never);
+  });
 };
 
 const getSectionOrder = (tree: ReturnType<typeof render>['root']): string[] => {
@@ -353,7 +353,7 @@ describe('CryptoTab — tokens pill block', () => {
         trending: { data: [], isLoading: false, isError: false },
         gainers: { data: undefined, isLoading: false, isError: true },
       },
-    } as never);
+    });
 
     render(<CryptoTab {...defaultTabProps} />);
 
@@ -405,7 +405,7 @@ describe('CryptoTab — tokens pill block', () => {
           isError: false,
         },
       },
-    } as never);
+    });
 
     render(<CryptoTab {...defaultTabProps} />);
 
@@ -429,7 +429,7 @@ describe('CryptoTab — tokens pill block', () => {
           isError: false,
         },
       },
-    } as never);
+    });
 
     render(<CryptoTab {...defaultTabProps} />);
 
