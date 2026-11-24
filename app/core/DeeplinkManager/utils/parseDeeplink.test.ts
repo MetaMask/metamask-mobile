@@ -246,6 +246,35 @@ describe('parseDeeplink', () => {
     });
   });
 
+  it.each([
+    'https://link.metamask.io/social?share=1',
+    'metamask://social?share=1',
+  ])(
+    'sends %s through the universal-link handler as an unsigned social link',
+    async (url) => {
+      const expectedMappedUrl = 'https://link.metamask.io/social?share=1';
+      const { urlObj } = extractURLParams(expectedMappedUrl);
+
+      await parseDeeplink({
+        deeplinkManager: instance,
+        url,
+        origin: 'testOrigin',
+        browserCallBack: mockBrowserCallBack,
+        onHandled: mockOnHandled,
+      });
+
+      expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
+        instance,
+        handled: expect.any(Function),
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: expectedMappedUrl,
+        source: 'testOrigin',
+        mode: 'execute',
+      });
+    },
+  );
+
   it('maps the custom Money deposit scheme to the universal-link handler', async () => {
     const url = 'metamask://money-account-deposit';
     const expectedMappedUrl = 'https://link.metamask.io/money-account-deposit';

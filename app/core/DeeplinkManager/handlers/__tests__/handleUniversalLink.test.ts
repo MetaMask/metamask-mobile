@@ -1872,6 +1872,8 @@ describe('handleUniversalLink', () => {
   describe('ACTIONS.SOCIAL', () => {
     it.each([
       ['?tab=following', handleSocialLeaderboardUrl],
+      ['?share=1', handleSocialLeaderboardUrl],
+      ['?tab=trending&share=1', handleSocialLeaderboardUrl],
       ['/profile?traderId=trader-1', handleSocialTraderUrl],
       [
         '/profile/position?positionId=position-1&traderId=trader-1',

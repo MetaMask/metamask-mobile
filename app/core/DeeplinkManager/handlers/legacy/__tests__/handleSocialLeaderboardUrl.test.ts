@@ -67,6 +67,24 @@ describe('handleSocialLeaderboardUrl', () => {
     );
   });
 
+  it('ignores the extension share marker and leaves the default tab', () => {
+    handleSocialLeaderboardUrl({ actionPath: '?share=1' });
+
+    expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(
+      NavigationService.navigation.navigate,
+      { source: 'deep_link' },
+    );
+  });
+
+  it('keeps an explicit tab when the share marker is also present', () => {
+    handleSocialLeaderboardUrl({ actionPath: '?share=1&tab=following' });
+
+    expect(navigateToSocialLeaderboard).toHaveBeenCalledWith(
+      NavigationService.navigation.navigate,
+      { source: 'deep_link', initialTab: 'following' },
+    );
+  });
+
   it('falls back to Social home when parsing throws', () => {
     (navigateToSocialLeaderboard as jest.Mock).mockImplementationOnce(() => {
       throw new Error('Navigation failed');

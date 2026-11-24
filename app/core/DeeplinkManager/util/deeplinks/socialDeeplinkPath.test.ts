@@ -4,6 +4,9 @@ describe('resolveSocialDeeplinkTarget', () => {
   it.each([
     ['/social', 'home'],
     ['?tab=following', 'home'],
+    ['?share=1', 'home'],
+    ['/social?share=1', 'home'],
+    ['/social?tab=trending&share=1', 'home'],
     ['/social/profile?traderId=trader-1', 'trader'],
     ['/profile?traderId=trader-1', 'trader'],
     ['/profile/position?positionId=position-1&traderId=trader-1', 'position'],
