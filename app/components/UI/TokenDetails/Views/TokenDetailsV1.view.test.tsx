@@ -1,6 +1,8 @@
 import '../../../../../tests/component-view/mocks';
 import type { QuoteTokensResponse } from '@metamask/social-controllers';
 import type { CaipAssetType } from '@metamask/utils';
+// eslint-disable-next-line import-x/no-extraneous-dependencies
+import nock from 'nock';
 import { Linking } from 'react-native';
 import {
   __resetMockNetInfo,
@@ -15,6 +17,8 @@ import {
 } from '@testing-library/react-native';
 
 import { renderTokenDetailsV1View } from '../../../../../tests/component-view/renderers/tokenDetailsV1';
+import { installDefaultApiMocks } from '../../../../../tests/component-view/api-mocking/defaults';
+import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 import { createStateFixture } from '../../../../../tests/component-view/stateFixture';
 import {
   clearQuickBuyApiMocks,
@@ -668,7 +672,31 @@ describeForPlatforms('TokenDetailsV1', () => {
     const securityReady = new Promise<void>((resolve) => {
       releaseSecurity = resolve;
     });
-    setupTokenDetailsV1ApiMocks({ launchpad: false, securityReady });
+    setupTokenDetailsV1ApiMocks({ launchpad: false });
+    const assetsInterceptor = {
+      proto: 'https',
+      host: new URL(TOKEN_API_BASE_URL).host,
+      method: 'GET',
+      path: '/assets',
+    };
+    // Nock matches in registration order. Replace the feature's security and
+    // fallback replies, then move the shared defaults behind the replacement.
+    nock.removeInterceptor({ ...assetsInterceptor });
+    nock.removeInterceptor({ ...assetsInterceptor });
+    nock(TOKEN_API_BASE_URL)
+      .persist()
+      .get('/assets')
+      .query((query) => query.includeTokenSecurityData === 'true')
+      .reply(200, async () => {
+        await securityReady;
+        return [
+          {
+            assetId: TOKEN_DETAILS_V1_ASSET_ID,
+            securityData: tokenDetailsV1SecurityData,
+          },
+        ];
+      });
+    installDefaultApiMocks();
     let resolveQuoteTokens: (value: QuoteTokensResponse) => void = () =>
       undefined;
     serveQuoteTokens(

@@ -132,8 +132,6 @@ export interface TokenDetailsV1ApiMockOptions {
   launchpad?: boolean;
   /** `false` returns no Blockaid payload for the asset. */
   security?: boolean;
-  /** Hold the security response until the test releases it. */
-  securityReady?: Promise<void>;
   /** `populated` returns two open holders and one closed position. */
   holders?: 'populated' | 'empty';
 }
@@ -199,12 +197,7 @@ export const buildTokenDetailsV1RouteParams = (): TokenDetailsRouteParams => ({
 export function setupTokenDetailsV1ApiMocks(
   options: TokenDetailsV1ApiMockOptions = {},
 ): void {
-  const {
-    launchpad = true,
-    security = true,
-    securityReady,
-    holders = 'empty',
-  } = options;
+  const { launchpad = true, security = true, holders = 'empty' } = options;
 
   clearAllNockMocks();
   disableNetConnect();
@@ -217,17 +210,17 @@ export function setupTokenDetailsV1ApiMocks(
   tokenApi
     .get('/assets')
     .query((query) => query.includeTokenSecurityData === 'true')
-    .reply(200, async () => {
-      await securityReady;
-      return security
+    .reply(
+      200,
+      security
         ? [
             {
               assetId: TOKEN_DETAILS_V1_ASSET_ID,
               securityData: tokenDetailsV1SecurityData,
             },
           ]
-        : [];
-    });
+        : [],
+    );
   tokenApi.get('/assets').query(true).reply(200, []);
 
   const priceApi = nock(PRICE_API_BASE_URL).persist();
