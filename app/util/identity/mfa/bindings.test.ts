@@ -1,4 +1,5 @@
 import Engine from '../../../core/Engine';
+import { withPasskeyRecoveryTrust } from '../../../core/MfaRecovery/passkeyTrust';
 import {
   createSocialLoginControllerAdapter,
   mobileMfaControllerAdapter,
@@ -20,6 +21,12 @@ jest.mock('../../../core/Engine', () => ({
       completeSocialLoginVerification: jest.fn(),
     },
   },
+}));
+
+jest.mock('../../../core/MfaRecovery/passkeyTrust', () => ({
+  withPasskeyRecoveryTrust: jest.fn(
+    async (_request, complete: () => Promise<unknown>) => await complete(),
+  ),
 }));
 
 const controller = jest.mocked(Engine.context.AuthenticationController);
@@ -49,6 +56,10 @@ describe('mobileMfaControllerAdapter', () => {
     };
     await mobileMfaControllerAdapter.completeCredentialEnrollment(request);
 
+    expect(withPasskeyRecoveryTrust).toHaveBeenCalledWith(
+      request,
+      expect.any(Function),
+    );
     expect(controller.completeCredentialEnrollment).toHaveBeenCalledWith(
       request,
     );
