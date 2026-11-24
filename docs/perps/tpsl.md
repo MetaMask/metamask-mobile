@@ -57,15 +57,6 @@ The branch a user hits depends on whether a position exists and whether the orde
 
 Code: `app/components/UI/Perps/Views/PerpsSelectModifyActionView/PerpsSelectModifyActionView.tsx`; `app/components/UI/Perps/hooks/usePerpsOrderForm.ts`; `app/components/UI/Perps/hooks/usePerpsClosePosition.ts`; `app/components/UI/Perps/Views/PerpsOrderBookView/PerpsOrderBookView.tsx`
 
-## Known bug
-
-`translatePerpsError.ts` defines `NO_POSITION_FOUND_PATTERN = /No position found/i`. Controller 22.3.0, the version Mobile pins, throws the bare code `POSITION_NOT_FOUND`, which never matches.
-
-- The "position already closed" branch of `isNoPositionFoundError` is dead in `usePerpsTPSLUpdate` and `usePerpsClosePosition`. Users get the generic `position_not_found` toast instead.
-- `usePerpsTPSLUpdate.test.ts` still asserts the old "No position found for ETH" prose, so CI stays green.
-
-Code: `app/components/UI/Perps/utils/translatePerpsError.ts` `NO_POSITION_FOUND_PATTERN`, `isNoPositionFoundError`; `app/components/UI/Perps/hooks/usePerpsTPSLUpdate.ts`; `app/components/UI/Perps/hooks/usePerpsClosePosition.ts`
-
 ## Rules for Mobile code
 
 1. Do not call `updatePositionTPSL` in the same tick as `placeOrder`. If you must defer, wait for the position on the `PerpsStreamManager` positions channel, which `PerpsController.subscribeToPositions` feeds. The 1 s wait in `usePerpsOrderExecution` is not enough.
