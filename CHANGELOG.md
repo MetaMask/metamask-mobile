@@ -17,12 +17,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added a banner on the home screen that lets users know when their connection is slow (#39743)
-- Enabled opening a trader's Social profile from a token's holders list (#39844)
-- Added Social early access so enrolled profiles get the new Social experience (#39714)
-- Added specific error messages for profile and X account failures instead of the generic connection error (#39472)
-- Added a trader preview when opening a Social profile or position link before joining Social, which opens the linked trader after onboarding (#39697)
-- Added a link to the referral invite terms on the invite sheet and in Rewards settings (#39613)
 - Added display name validation during Social onboarding and profile editing, with errors for rejected names or failed checks (#39583)
 - Included the user's referral code in Social share links and preview cards when available (#39568)
 - Enabled tapping the active Social tab or Social in the bottom navigation to scroll the feed to the top (#39495)
@@ -60,13 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Updated Money splash feature flag metadata to match its version-gated configuration (#40063)
-- Updated social profile avatars to the final fox set (#39969)
-- Updated social profile avatars to a new set of fox avatars (#39940)
-- Redesigned the Social trader preview and added a link to the referral terms (#39921)
-- Hid the Copy trade button in blocked countries and regions, and while location is unresolved (#39824)
-- Updated the onboarding account sheet and profile-edit linked account list to use the homepage account layout, show only entropy wallets, and hide account menus, search, and add-account and add-wallet controls (#39665)
-- Sped up returning to Posts on a profile by keeping the posts feed mounted (#39696)
 - Reduced the delay between triggered in-app messages so a banner-triggered full-screen message can appear after a recent message (#39676)
 - Polished the Social leaderboard, Trending, position sheets, onboarding, and caption translations (#39562)
 - Grouped the Settings root screen with section headings that match the extension layout (#39527)
@@ -156,22 +143,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed dark corners on the Money onboarding card illustration in light theme (#40117)
-- Fixed the Money home card so an identity check that needs another document offers Continue instead of a final rejection (#39777)
-- Fixed Explore and Watchlist token searches to return all matching tokens, including those flagged Warning, Spam, or Malicious, while keeping default suggestions filtered (#40057)
-- Fixed Immersve's logo, progress dots, and Close button showing under the MetaMask header during identity verification on Android (#40030)
-- Fixed social profile account pickers to show only accounts from the primary wallet's SRP and SRPs paired with it (#39890)
-- Fixed hidden tokens with no balance not reappearing after being unhidden or re-imported (#39962)
-- Aligned the Foxicon avatar artwork so every fox sits at the same size and position (#39978)
-- Fixed the idOS Terms and Conditions link on the identity verification partners page, which did nothing when tapped (#39938)
-- Fixed KYC notification links so they open the Money account (#39853)
-- Fixed Homepage Perps placement for active traders after late network resolution (#39813)
-- Fixed the Rewards opt-in button showing a missing translation when referral copy has no action (#39869)
-- Fixed a bug where the Perps order amount reset to $0 after typing it on the keypad and tapping Done (#39700)
-- Fixed missing market icon on HIP-3 perps posts in the composer (#39683)
-- Fixed the Explore Perps Top Traders row to rank perps traders (Hyperliquid) instead of the general spot leaderboard (#39709)
-- Fixed Social feed and Leaderboard staying broken after a slow network until the app restarts (#39687)
-- Fixed Wallet Home onboarding remaining on the Fund step after a completed Buy flow (#38996)
 - Moved the Rewards "Social rewards" info icon next to its label (#39592)
 - Capitalized "Recorded earnings" on the Rewards earnings cards (#39596)
 - Fixed USD amounts showing US$ instead of $ in the Token Details P&L footer and parts of the Quick Buy sheet on non-US English locales (#39161)
@@ -267,27 +238,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed trader names, avatars, and trade cards on the token page Feed tab so they open the trader's profile or trade details (#39017)
 - Fixed the swap fee rebate banner being hidden while the amount numpad is open (#38997)
 - Fixed shared position links showing a position under a trader who doesn't own it (#39616)
-
-### Security
-
-- Hid tokens with a Warning, Spam, or Malicious security verdict from Trending lists by default (#39958)
-
-## [8.20.2]
-
-### Fixed
-
-- Fixed the price to beat on 1h and daily crypto Up or Down markets settled on Chainlink, which showed the Binance open price (#39918)
-
-## [8.20.1]
-
-### Added
-
-- Added a Security settings control to delete encrypted identity verification data (#39037)
-
-### Fixed
-
-- Fixed identity verification reopening on every app restart when it kept reopening itself (#39682)
-- Fixed an issue where a rejected proof of address reopened the upload screen without an explanation (#39497)
 
 ## [8.20.0]
 
@@ -15430,9 +15380,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.1...HEAD
 [8.21.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.21.0...v8.21.1
-[8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.2...v8.21.0
-[8.20.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.1...v8.20.2
-[8.20.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.0...v8.20.1
+[8.21.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.20.0...v8.21.0
 [8.20.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.19.0...v8.20.0
 [8.19.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.1...v8.19.0
 [8.18.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.0...v8.18.1
