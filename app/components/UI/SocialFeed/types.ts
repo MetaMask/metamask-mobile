@@ -53,6 +53,8 @@ export interface SocialV1FeedAuthor {
    * Absent or null hides the trust mark.
    */
   xHandle?: string | null;
+  /** Profile API verified this trader. Absent or false hides the badge. */
+  verified?: boolean;
 }
 
 interface SocialV1FeedItemBase {

@@ -46,6 +46,8 @@ export interface TopTrader {
    * Absent or null hides the trust mark.
    */
   xHandle?: string | null;
+  /** Profile API verified this trader. Absent or false hides the badge. */
+  verified?: boolean;
 }
 
 /**

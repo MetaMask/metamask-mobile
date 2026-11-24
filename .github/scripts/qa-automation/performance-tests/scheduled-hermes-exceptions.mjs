@@ -123,10 +123,25 @@ function cleanBaseline(observations) {
   };
 }
 
+/**
+ * What one run contributes for one scenario: the first attempt's JS work, so
+ * a retry never stands in for the run. A report written before first-attempt
+ * measurements existed has none, which makes the observation incomplete.
+ */
+function observationOf(report, scenario) {
+  const measurement = scenario.firstAttempt;
+  return {
+    jsWorkMs: measurement?.measured ? measurement.jsWorkMs : 0,
+    segmentCount: measurement?.segmentCount,
+    headSha: report.meta?.headSha ?? null,
+  };
+}
+
 function observationFor(report, key) {
-  return (report?.scenarios || []).find(
-    (scenario) => scenarioKey(scenario) === key,
+  const scenario = (report?.scenarios || []).find(
+    (candidate) => scenarioKey(candidate) === key,
   );
+  return scenario ? observationOf(report, scenario) : undefined;
 }
 
 /**
@@ -148,14 +163,12 @@ export function buildScheduledException(
     for (const scenario of report.scenarios || []) {
       const key = scenarioKey(scenario);
       const observations = baselineByScenario.get(key) || [];
-      observations.push({
-        jsWorkMs: scenario.jsWorkMs,
-        segmentCount: scenario.segmentCount,
-      });
+      observations.push(observationOf(report, scenario));
       baselineByScenario.set(key, observations);
     }
   }
 
+  const currentSha = currentReport.meta?.headSha || null;
   const scenarios = currentReport.scenarios || [];
   const cleaned = new Map();
   let excludedIncompleteCount = 0;
@@ -168,21 +181,38 @@ export function buildScheduledException(
     excludedSpikeCount += result.spikeCount;
   }
 
-  // A scenario with too little clean history is not "clean"; it is unchecked.
-  // The all-clear says so instead of implying the whole run was compared.
+  // Every baseline run built the same commit as this run, so a change here is
+  // run-to-run variance on identical code, not a regression.
+  const isSameCommitOnly = (key) => {
+    const observations = cleaned.get(key)?.clean || [];
+    return (
+      Boolean(currentSha) &&
+      observations.length > 0 &&
+      observations.every((observation) => observation.headSha === currentSha)
+    );
+  };
+
+  // A scenario with too little clean history, an unmeasured first attempt, or
+  // only same-commit history is not "clean"; it is unchecked. The all-clear
+  // says so instead of implying the whole run was compared.
   const comparedScenarios = scenarios.filter(
-    (scenario) =>
-      cleaned.get(scenarioKey(scenario)).clean.length >= MIN_BASELINE_RUNS,
+    (scenario) => {
+      const key = scenarioKey(scenario);
+      return (
+        scenario.firstAttempt?.measured === true &&
+        !isSameCommitOnly(key) &&
+        cleaned.get(key).clean.length >= MIN_BASELINE_RUNS
+      );
+    },
   );
 
   const overThreshold = comparedScenarios
     .map((scenario) => {
       const key = scenarioKey(scenario);
       const { clean, reference, expectedSegmentCount } = cleaned.get(key);
+      const jsWorkMs = scenario.firstAttempt.jsWorkMs;
       const ratio =
-        reference > 0
-          ? Number((scenario.jsWorkMs / reference).toFixed(2))
-          : 0;
+        reference > 0 ? Number((jsWorkMs / reference).toFixed(2)) : 0;
       if (ratio < REGRESSION_RATIO) {
         return null;
       }
@@ -195,7 +225,7 @@ export function buildScheduledException(
         confirmed,
         projectName: scenario.projectName,
         scenario: scenario.scenario,
-        jsWorkMs: scenario.jsWorkMs,
+        jsWorkMs,
         // The filtered baseline average. The key keeps its original name so
         // issue markers written before the filter still parse.
         baselineMedianJsWorkMs: Number(reference.toFixed(2)),
@@ -271,8 +301,12 @@ function pendingNote(exception) {
   return `${pending.length} over ${exception.meta.thresholdRatio}× once, awaiting confirmation by the next scheduled run: ${names}`;
 }
 
+function trackedIssueLabel(issue) {
+  return issue.jiraKey || `#${issue.number}`;
+}
+
 /**
- * Issue outcome recorded by the GitHub sync. Absent when the sync did not
+ * Ticket outcome recorded by the Jira sync. Absent when the sync did not
  * run (branch run, manual re-analysis, or the flag was off).
  */
 function issueSlackSuffix(issue) {
@@ -280,9 +314,9 @@ function issueSlackSuffix(issue) {
     return '';
   }
   if (issue.error) {
-    return ` · GitHub issue not created (${issue.error})`;
+    return ` · Jira ticket not created (${issue.error})`;
   }
-  return ` · <${issue.url}|#${issue.number}> ${issue.created ? 'opened' : 'already open, referenced'}`;
+  return ` · <${issue.url}|${trackedIssueLabel(issue)}> ${issue.created ? 'opened' : 'already open, referenced'}`;
 }
 
 function issueMarkdownSuffix(issue) {
@@ -290,9 +324,10 @@ function issueMarkdownSuffix(issue) {
     return '';
   }
   if (issue.error) {
-    return ` — GitHub issue not created (${issue.error})`;
+    return ` — Jira ticket not created (${issue.error})`;
   }
-  return ` — [#${issue.number}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
+  const label = trackedIssueLabel(issue);
+  return ` — [${label}](${issue.url}) ${issue.created ? 'opened' : 'already open, referenced'}`;
 }
 
 /**
@@ -315,7 +350,7 @@ function openedBugs(exception) {
 
 /**
  * A finding is tracked only after issue sync stored a URL. The digest is
- * also built when `--github-issues` is off or a create/comment failed, so
+ * also built when `--jira-issues` is off or a create/comment failed, so
  * the headline must not claim a bug that was never opened.
  */
 function everyFindingHasBug(findings) {
@@ -375,7 +410,7 @@ export function buildPerformanceChannelSlack(exception) {
     );
     for (const finding of opened) {
       lines.push(
-        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+        `• *${displayName(finding.scenario)}* — JS work ${findingComparison(finding)} · ${slackOwnerMention(finding.scenario)} · Bug: <${finding.issue.url}|${trackedIssueLabel(finding.issue)}>`,
       );
     }
   } else {
@@ -387,7 +422,7 @@ export function buildPerformanceChannelSlack(exception) {
       '',
       `• JS work: ${findingComparison(finding)}`,
       `• Owner: ${slackOwnerMention(finding.scenario)}`,
-      `• Bug: <${finding.issue.url}|#${finding.issue.number}>`,
+      `• Bug: <${finding.issue.url}|${trackedIssueLabel(finding.issue)}>`,
     );
   }
   const others = findingsWithoutNewBug(exception);
@@ -402,7 +437,7 @@ export function buildPerformanceChannelSlack(exception) {
   lines.push(
     '',
     `_Performance run:_ <${meta.runUrl}|${meta.runId}>`,
-    "_Jira:_ each new GitHub issue is synced to the owning team's Jira project and keeps its team label.",
+    "_Jira:_ each new bug is filed in the owning team's Jira project.",
     '_Source:_ Hermes CPU sampling only. JS work is sampled JS self time, not test duration.',
   );
   return lines.join('\n');
@@ -493,7 +528,7 @@ export function buildScheduledExceptionMarkdown(exception) {
  * #metamask-performance body for a scheduled finding.
  *
  * A newly opened bug uses the short review, which mentions the owning Slack
- * group and links the GitHub issue. Other findings in that same run are
+ * group and links the Jira ticket. Other findings in that same run are
  * listed under it, including an issue that was already open. A run with no
  * new bug keeps the digest. An all-clear returns an empty string so nothing
  * is sent.

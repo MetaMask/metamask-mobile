@@ -80,7 +80,7 @@ describe('TraderRow', () => {
       .UNSAFE_getAllByType(Image)
       .find((image) => image.props.recyclingKey === baseTrader.id);
 
-    expect(avatar?.props.cachePolicy).toBe('memory-disk');
+    expect(avatar?.props.cachePolicy).toBe('disk');
     expect(avatar?.props.recyclingKey).toBe(baseTrader.id);
   });
 

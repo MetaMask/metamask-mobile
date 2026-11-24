@@ -174,6 +174,11 @@ const processedTags = (state: ProcessedState) => ({
 export const getDeeplinkProcessedTraceContext = (): TraceContext =>
   processed?.phase === 'awaiting_continue' ? undefined : processed?.spanContext;
 
+/** `app_start_type` of the open Processed span, for spans started inside it. */
+export const getDeeplinkProcessedAppStartType = ():
+  | DeeplinkPerfAppStartType
+  | undefined => processed?.appStartType;
+
 /**
  * Starts the Processed span at `DeeplinkManager.parse`/`.resolve` entry. The
  * in-flight guard makes the recursive `parse` calls (send, wc) no-ops instead
