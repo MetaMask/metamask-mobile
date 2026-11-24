@@ -5455,6 +5455,18 @@
     "title": "Collectibles",
     "trade_menu": {
       "description": "Explore packs and cards"
+    },
+    "home": {
+      "empty": "No packs available",
+      "empty_description": "Check back soon or browse other packs.",
+      "opens": {
+        "one": "{{formattedCount}} open",
+        "other": "{{formattedCount}} opens"
+      },
+      "opens_trending": {
+        "one": "{{formattedCount}} open, trending",
+        "other": "{{formattedCount}} opens, trending"
+      }
     }
   },
   "collectible": {
