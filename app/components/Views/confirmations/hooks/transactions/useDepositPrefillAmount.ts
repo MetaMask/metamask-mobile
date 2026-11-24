@@ -139,13 +139,17 @@ export function useDepositPrefillAmount({
       return prefilledAmountConfig.enabled;
     }
 
+    // Full-balance intents own their 100% prefill in useTransactionCustomAmount.
+    if (isFullBalanceDepositIntent(depositIntent)) {
+      return false;
+    }
+
     // Explicit amounts use the same quote preparation flow without opting into
-    // balance-based prefill or changing card/add-mUSD funding behavior.
+    // balance-based prefill or changing card funding behavior.
     if (amount !== undefined) {
       const explicitAmount = new BigNumber(amount);
       return (
         depositIntent !== 'card' &&
-        !isFullBalanceDepositIntent(depositIntent) &&
         explicitAmount.isFinite() &&
         explicitAmount.gt(0)
       );

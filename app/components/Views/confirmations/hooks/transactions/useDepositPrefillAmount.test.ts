@@ -299,6 +299,23 @@ describe('useDepositPrefillAmount', () => {
       },
     );
 
+    it.each(['addMusd', 'addUsdc', 'addUsdt'] as const)(
+      'does not enable A/B amount prefill for %s without an explicit amount',
+      (depositIntent) => {
+        mockDepositPrefillAbVariant(
+          MoneyAccountDepositPrefillVariant.Treatment,
+        );
+        setupMocks({
+          depositIntent,
+          prefilledAmountOverrides: { moneyAccountDeposit: { enabled: true } },
+        });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      },
+    );
+
     it('returns disabled for card intent even when treatment and flag enabled', () => {
       setupMocks({ depositIntent: 'card' });
 
