@@ -1944,7 +1944,7 @@ describe('PredictPortfolioScreen', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('shows Deposit under review with full supportReference and lets the user copy it', async () => {
+    it('shows Deposit under review with full supportReference, no retry button, and lets the user copy it', async () => {
       configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
       const announce = jest.spyOn(
         AccessibilityInfo,
@@ -1952,11 +1952,27 @@ describe('PredictPortfolioScreen', () => {
       );
       const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
-      expect(
-        await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
-      ).toHaveTextContent(
+      const statusLine = await view.findByTestId(
+        PredictPortfolioScreenTestIds.DEPOSIT_STATUS,
+      );
+      expect(statusLine).toHaveTextContent(
         `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
       );
+      expect(view.queryByText(/retry|try again/iu)).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.RETRY),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(statusLine);
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).not.toBeOnTheScreen();
 
       const copyButton = view.getByTestId(
         `${PredictPortfolioScreenTestIds.DEPOSIT_STATUS}-copy`,

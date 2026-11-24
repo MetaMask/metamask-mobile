@@ -1869,6 +1869,55 @@ describe('PredictFundingService deposit flow', () => {
       );
     });
 
+    it('coalesces resumeDeposits racing an in-flight reportDepositTransfer into one report and returns current state on a second report', async () => {
+      const reportGate = deferred<PredictDepositOperation>();
+      funding.listOpenDeposits.mockResolvedValueOnce([
+        deposit(awaitingTransfer),
+      ]);
+      funding.reportDepositTransfer
+        .mockReturnValueOnce(reportGate.promise)
+        .mockResolvedValueOnce(deposit(transferReported));
+      const { service: resumable } = createResumableService({
+        transactions: [makeTx({ status: TransactionStatus.submitted })],
+      });
+
+      const directReport = resumable.reportDepositTransfer(
+        venueId,
+        OPERATION_ID,
+        {
+          txHash: HASH,
+          chainId: awaitingTransfer.chainId,
+        },
+      );
+      const resumePass = resumable.resumeDeposits();
+      await flushMicrotasks();
+
+      expect(funding.reportDepositTransfer).toHaveBeenCalledTimes(1);
+
+      reportGate.resolve(deposit(transferReported));
+      const [directResult] = await Promise.all([directReport, resumePass]);
+
+      expect(directResult).toStrictEqual(transferReported);
+      expect(funding.reportDepositTransfer).toHaveBeenCalledTimes(1);
+      expect(resumable.getDepositStatus(venueId)).toStrictEqual(
+        transferReported,
+      );
+
+      // A subsequent second report returns the current state idempotently.
+      const secondReport = await resumable.reportDepositTransfer(
+        venueId,
+        OPERATION_ID,
+        {
+          txHash: HASH,
+          chainId: awaitingTransfer.chainId,
+        },
+      );
+      expect(secondReport).toStrictEqual(transferReported);
+      expect(resumable.getDepositStatus(venueId)).toStrictEqual(
+        transferReported,
+      );
+    });
+
     it('cancels an awaiting_transfer deposit when its wallet transaction was rejected or failed', async () => {
       funding.listOpenDeposits.mockResolvedValueOnce([
         deposit(awaitingTransfer),

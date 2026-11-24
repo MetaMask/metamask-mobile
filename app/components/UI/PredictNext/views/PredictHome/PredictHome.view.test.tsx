@@ -1,12 +1,16 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  createComponentViewQueryClient,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import { AccessibilityInfo } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { formatGameStartShort } from '../../events/game';
 import { KalshiDebugTestIds } from '../../onboarding/KalshiDebugPanel';
 import { PredictHomeTestIds } from './PredictHome.testIds';
@@ -21,6 +25,7 @@ import { PredictDepositScreenTestIds } from '../PredictDeposit/PredictDepositScr
 import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
 import awaitingTransferDeposit from '../../contracts/v1/fixtures/funding-contract/awaiting-transfer.json';
 import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cancelled.json';
+import creditedDeposit from '../../contracts/v1/fixtures/funding-contract/credited.json';
 import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
 import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
 import { makeFailedDeposit } from '../../funding/deposit/testUtils';
@@ -48,12 +53,16 @@ import {
   POLITICS_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import {
+  composePredictNextFundingService,
+  composePredictNextPortfolioTrading,
   configurePredictNextCatalog,
   configurePredictNextFeeds,
   expectPredictNextGameCard,
   expectPredictNextSmallGameCard,
   feedScreenTabLabels,
   makePredictNextGameEvent,
+  makePredictNextSummary,
+  makePredictNextTrade,
   messengerCall,
   mockPredictNextMessenger,
   ncaaEvents,
@@ -62,6 +71,7 @@ import {
   PREDICT_NEXT_FEED_IDS,
   publishPredictNextDepositStatus,
   publishPredictNextGameLiveUpdate,
+  routePredictPortfolioServicesTo,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
 const {
@@ -2183,7 +2193,7 @@ describe('PredictHome', () => {
       ).toHaveTextContent('$123.13');
     });
 
-    it('shows Deposit under review with full supportReference and lets the user copy it', async () => {
+    it('shows Deposit under review with full supportReference, no retry button, and lets the user copy it', async () => {
       configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
       const announce = jest.spyOn(
         AccessibilityInfo,
@@ -2191,11 +2201,27 @@ describe('PredictHome', () => {
       );
       const view = renderPredictNext();
 
-      expect(
-        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
-      ).toHaveTextContent(
+      const statusLine = await view.findByTestId(
+        PredictHomeTestIds.DEPOSIT_STATUS,
+      );
+      expect(statusLine).toHaveTextContent(
         `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
       );
+      expect(view.queryByText(/retry|try again/iu)).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.RETRY),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(statusLine);
+      expect(
+        view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).not.toBeOnTheScreen();
 
       const copyButton = view.getByTestId(
         `${PredictHomeTestIds.DEPOSIT_STATUS}-copy`,
@@ -2211,6 +2237,203 @@ describe('PredictHome', () => {
         needsReviewDeposit.next.supportReference,
       );
       expect(announce).toHaveBeenCalledWith('Support reference copied');
+    });
+
+    it('refreshes Balance and Summary without refetching or changing Activity when a deposit completes', async () => {
+      const originalFetch = globalThis.fetch;
+      let balance = '10.00';
+      let depositState: unknown = transferReportedDeposit;
+      let activityFetchCount = 0;
+      const existingTrade = makePredictNextTrade({
+        id: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e99',
+        amount: '15.00',
+      });
+
+      globalThis.fetch = jest.fn(async (input) => {
+        const requestUrl =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : input.url;
+        const pathname = new URL(requestUrl).pathname;
+        let body: unknown = {};
+        if (pathname === '/v1/venues/kalshi/balance') {
+          body = { venueId: 'kalshi', currency: 'USD', available: balance };
+        } else if (pathname === '/v1/venues/kalshi/portfolio/summary') {
+          body = makePredictNextSummary({
+            availableBalance: balance,
+            positionsValue: '0.00',
+            totalValue: balance,
+            unrealizedPnl: '0.00',
+            unrealizedPnlPercent: '0.00',
+          });
+        } else if (pathname === '/v1/venues/kalshi/positions') {
+          body = { venueId: 'kalshi', positions: [] };
+        } else if (pathname === '/v1/venues/kalshi/activity') {
+          activityFetchCount += 1;
+          body = { venueId: 'kalshi', activity: [existingTrade] };
+        } else if (pathname === '/v1/venues/kalshi/deposits') {
+          body = {
+            deposits:
+              depositState === transferReportedDeposit ? [depositState] : [],
+          };
+        } else if (
+          pathname ===
+          `/v1/venues/kalshi/deposits/${transferReportedDeposit.operationId}`
+        ) {
+          body = depositState;
+        }
+        const response = {
+          ok: true,
+          status: 200,
+          json: async () => body,
+          clone: () => response,
+        } as Response;
+        return response;
+      }) as typeof fetch;
+
+      const trading = composePredictNextPortfolioTrading();
+      const fundingService = composePredictNextFundingService(
+        trading.rootMessenger,
+      );
+      const restorePortfolio = routePredictPortfolioServicesTo(
+        trading.rootMessenger,
+      );
+      const controllerMessenger = Engine.controllerMessenger as unknown as {
+        call: (action: string, ...params: unknown[]) => unknown;
+        subscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
+        unsubscribe: (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void;
+      };
+      const prevCall = controllerMessenger.call;
+      const prevSubscribe = controllerMessenger.subscribe;
+      const prevUnsubscribe = controllerMessenger.unsubscribe;
+      controllerMessenger.call = (action: string, ...params: unknown[]) => {
+        if (action.startsWith('PredictFundingService:')) {
+          return (
+            trading.rootMessenger.call as unknown as (
+              name: string,
+              ...args: unknown[]
+            ) => unknown
+          )(action, ...params);
+        }
+        return prevCall(action, ...params);
+      };
+      controllerMessenger.subscribe = (event, callback) => {
+        if (event.startsWith('PredictFundingService:')) {
+          (
+            trading.rootMessenger.subscribe as unknown as (
+              name: string,
+              cb: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+          return;
+        }
+        prevSubscribe(event, callback);
+      };
+      controllerMessenger.unsubscribe = (event, callback) => {
+        if (event.startsWith('PredictFundingService:')) {
+          (
+            trading.rootMessenger.unsubscribe as unknown as (
+              name: string,
+              cb: (...args: unknown[]) => void,
+            ) => void
+          )(event, callback);
+          return;
+        }
+        prevUnsubscribe(event, callback);
+      };
+
+      const queryClient = createComponentViewQueryClient();
+      try {
+        await fundingService.listOpenDeposits(KALSHI_VENUE_ID);
+        const view = renderPredictNext(false, { queryClient });
+
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+          ).toHaveTextContent('$10.00'),
+        );
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+
+        fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+          ).toHaveTextContent('$10.00'),
+        );
+        expect(
+          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+        ).toHaveTextContent('$10.00');
+        expect(
+          view.getByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+
+        fireEvent.press(
+          view.getByTestId(PredictPortfolioScreenTestIds.ACTIVITY_TAB),
+        );
+        expect(
+          await view.findAllByTestId(
+            PredictPortfolioScreenTestIds.ACTIVITY_ROW,
+          ),
+        ).toHaveLength(1);
+        expect(activityFetchCount).toBe(1);
+
+        // Backend credits the deposit (+25.50 -> 35.50).
+        balance = '35.50';
+        depositState = creditedDeposit;
+        await act(async () => {
+          await fundingService.getDeposit(
+            KALSHI_VENUE_ID,
+            transferReportedDeposit.operationId,
+          );
+        });
+
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictPortfolioScreenTestIds.TOTAL_VALUE),
+          ).toHaveTextContent('$35.50'),
+        );
+        expect(
+          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+        ).toHaveTextContent('$35.50');
+        expect(
+          view.queryByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+        ).not.toBeOnTheScreen();
+        // Activity was not invalidated or changed: still 1 fetch and 1 trade row.
+        expect(activityFetchCount).toBe(1);
+        expect(
+          view.getAllByTestId(PredictPortfolioScreenTestIds.ACTIVITY_ROW),
+        ).toHaveLength(1);
+
+        // Returning to Home shows the refreshed Balance as well.
+        fireEvent.press(view.getByTestId(PredictPortfolioScreenTestIds.BACK));
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+          ).toHaveTextContent('$35.50'),
+        );
+        expect(
+          view.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).not.toBeOnTheScreen();
+      } finally {
+        queryClient.clear();
+        controllerMessenger.call = prevCall;
+        controllerMessenger.subscribe = prevSubscribe;
+        controllerMessenger.unsubscribe = prevUnsubscribe;
+        restorePortfolio();
+        fundingService.destroy();
+        trading.destroy();
+        globalThis.fetch = originalFetch;
+      }
     });
 
     it.each([
