@@ -596,7 +596,6 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
                 summary.data?.minimum_musd_base_units,
               )}
               heldAmount={musdAmount(summary.data?.held)}
-              isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               isSummaryLoading={summary.loading}
               canClaim={claimEnabled}

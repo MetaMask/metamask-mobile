@@ -228,43 +228,23 @@ describe('WaysToEarnTab', () => {
     });
   });
 
-  it('does not offer Claim to a referrer who has exactly $1 of cashback', async () => {
-    // Social V1 off: a referrer's claimable amount row stays hidden, and the
-    // card has nothing else left to show.
-    const { findByTestId, queryByTestId, engine } = renderWaysToEarnTab({
+  it('shows the claim card to a referrer while Social V1 is off', async () => {
+    const { findByTestId, getByTestId } = renderWaysToEarnTab({
       persona: 'referrer',
       summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
       claimReady: true,
-      initiateClaim: 'hang',
       socialV1: false,
     });
 
     expect(
-      await findByTestId(WAYS_TO_EARN_TAB_TEST_IDS.HISTORY),
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
-    await waitFor(() => {
-      expect(
-        callsFor(engine, 'RewardsMoneyController:getEarningsSummary').length,
-      ).toBeGreaterThan(0);
-    });
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER),
-    ).not.toBeOnTheScreen();
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toHaveTextContent('$1.00');
     expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.PAUSED_BUTTON),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).not.toBeOnTheScreen();
-    expect(
-      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
-    ).toHaveLength(0);
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('does not offer Claim when the only balance is closed revenue share', async () => {

@@ -1,5 +1,4 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -21,7 +20,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { isPositiveBaseUnits } from '../../utils/formatUtils';
-import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
 
 export type ClaimButtonState = 'claim' | 'paused' | 'claimed' | 'hidden';
@@ -133,10 +131,6 @@ export interface ClaimableRewardsCardProps {
   /** Formatted claim minimum. Fills `{minimum}` in the subtext under the amount. */
   minimumAmount?: string;
   /**
-   * A referrer shows the claimable amount row while Social V1 is enabled.
-   */
-  isReferrer?: boolean;
-  /**
    * Base units in `held`. Tax documentation shows this under Held and stays
    * Claim. Any other positive held or blocked balance shows Balance and
    * Paused, after Pending.
@@ -219,7 +213,6 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   pending,
   pendingAmount,
   minimumAmount,
-  isReferrer = false,
   held,
   heldAmount,
   blocked,
@@ -236,14 +229,6 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   onPaused,
   onBalanceBreakdown,
 }) => {
-  const showReferrerClaimableAmount = useSelector(selectIsSocialV1Enabled);
-  const showClaimableAmount = !isReferrer || showReferrerClaimableAmount;
-
-  // A referrer with Social V1 off has no amount row, so the card has nothing to show.
-  if (!showClaimableAmount) {
-    return null;
-  }
-
   if (isSummaryLoading) {
     return <ClaimableRewardsCardSkeleton localizedText={localizedText} />;
   }

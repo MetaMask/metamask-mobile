@@ -2,13 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { selectIsSocialV1Enabled } from '../../../../../selectors/featureFlagController/socialV1';
 import ClaimableRewardsCard, { claimButtonState } from './ClaimableRewardsCard';
 import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
-
-jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
-  selectIsSocialV1Enabled: jest.fn(() => false),
-}));
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
@@ -96,10 +91,6 @@ describe('claimButtonState', () => {
 });
 
 describe('ClaimableRewardsCard', () => {
-  beforeEach(() => {
-    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
-  });
-
   it('renders Claim when a route clears $1', () => {
     const { getByTestId, queryByTestId } = renderWithProvider(
       <ClaimableRewardsCard
@@ -570,53 +561,6 @@ describe('ClaimableRewardsCard', () => {
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
     );
     expect(onBalanceBreakdown).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders nothing for a referrer while Social V1 is off', () => {
-    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(false);
-    const { queryByTestId, queryByText } = renderWithProvider(
-      <ClaimableRewardsCard
-        localizedText={LOCALIZED_TEXT}
-        claimable="1000000"
-        claimed="0"
-        claimableAmount="$1.00"
-        recordedAmount="$4.00"
-        isSummaryLoading={false}
-        canClaim
-        isReferrer
-      />,
-    );
-
-    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CONTAINER)).toBeNull();
-    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeNull();
-    expect(queryByText('Available to claim')).toBeNull();
-  });
-
-  it('shows the claimable amount row for a referrer while Social V1 is on', () => {
-    jest.mocked(selectIsSocialV1Enabled).mockReturnValue(true);
-    const { getByTestId, getByText } = renderWithProvider(
-      <ClaimableRewardsCard
-        localizedText={LOCALIZED_TEXT}
-        claimable="1000000"
-        claimed="0"
-        claimableAmount="$1.00"
-        recordedAmount="$4.00"
-        isSummaryLoading={false}
-        canClaim
-        isReferrer
-      />,
-    );
-
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
-    ).toHaveTextContent('$1.00');
-    expect(getByText('Available to claim')).toBeOnTheScreen();
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeOnTheScreen();
   });
 
   it('renders only the claimable skeleton while the summary loads', () => {
