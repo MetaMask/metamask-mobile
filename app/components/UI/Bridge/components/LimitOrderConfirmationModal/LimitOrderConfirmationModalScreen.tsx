@@ -410,7 +410,10 @@ export const LimitOrderConfirmationModalScreen = () => {
         onPress: handleConfirm,
         label:
           error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
-        isLoading: delegationFee.status === 'loading' || isCreatingOrder,
+        isLoading:
+          delegationFee.status === 'checking' ||
+          delegationFee.status === 'loading' ||
+          isCreatingOrder,
         isDisabled:
           !feeTokenValidation.isValid ||
           confirmError === LimitOrderConfirmError.GeoRestricted,

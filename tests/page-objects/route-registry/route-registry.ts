@@ -27,7 +27,6 @@ import type ManualBackupStep1View from '../Onboarding/ManualBackupStep1View';
 import type MarketInsightsView from '../wallet/MarketInsightsView';
 import type MoneyAddMoneySheet from '../Money/MoneyAddMoneySheet';
 import type MoneyHomeView from '../Money/MoneyHomeView';
-import type MoneyOnboardingView from '../Money/MoneyOnboardingView';
 import type MoneyTransferSheet from '../Money/MoneyTransferSheet';
 import type NetworkListModal from '../Network/NetworkListModal';
 import type NetworkManager from '../wallet/NetworkManager';
@@ -81,7 +80,6 @@ interface PageObjectModules {
   MarketInsightsView: typeof MarketInsightsView;
   MoneyAddMoneySheet: typeof MoneyAddMoneySheet;
   MoneyHomeView: typeof MoneyHomeView;
-  MoneyOnboardingView: typeof MoneyOnboardingView;
   MoneyTransferSheet: typeof MoneyTransferSheet;
   NetworkListModal: typeof NetworkListModal;
   NetworkManager: typeof NetworkManager;
@@ -145,7 +143,6 @@ const PAGE_OBJECT_ROUTES: Record<string, PageObject> = {
   MarketInsightsView: 'MarketInsightsView',
   MoneyAddMoneySheet: 'MoneyAddMoneySheet',
   MoneyHome: 'MoneyHomeView',
-  MoneyOnboarding: 'MoneyOnboardingView',
   MoneyTransferSheet: 'MoneyTransferSheet',
   NetworkListModal: 'NetworkListModal',
   NetworkManager: 'NetworkManager',
@@ -207,7 +204,7 @@ const NO_PAGE_OBJECT_ROUTES =
   ManageProfileView ManageProfileXAccount ManualBackupStep2 ManualBackupStep3 MAPicker MarketClosedModal MaxBrowserTabsModal MaxInput
   MfaFlow MfaMethodDetails MfaPasskeys MfaSettings MissingPriceModal ModalConfirmation ModalMandatory MoneyAccountStatus
   MoneyActivity MoneyApyInfoSheet MoneyBalanceInfoSheet MoneyCardTransactionDetails MoneyConfirmations MoneyDeeplinkModal MoneyDepositDeeplink MoneyEarnCryptoInfoSheet
-  MoneyEarningsInfoSheet MoneyFirstTimeDeposit MoneyGeoBlockSheet MoneyHowItWorks MoneyLinkCardSheet MoneyMoreSheet MoneyMusdRescueRecipient MoneyMusdRescueSend
+  MoneyEarningsInfoSheet MoneyEstimatedBalanceSheet MoneyFirstTimeDeposit MoneyGeoBlockSheet MoneyHowItWorks MoneyLinkCardSheet MoneyMoreSheet MoneyMusdRescueRecipient MoneyMusdRescueSend
   MoneyPotentialEarnings MoneySplash MoneyTransactionDetails MoreTokenActionsMenu MultichainAccountActions MultichainAccountDetailActions MultichainAccountDetails MultichainAccountGroupDetails
   MultichainAccountsExplorerWebview MultichainAccountsIntroModal MultichainAccountsLearnMoreBottomSheet MultichainAddressList MultichainPrivateKeyList MultichainTransactionDetails MultichainWalletDetails MultiRPcMigrationModal
   MyProfileView NetworkDetails NetworkSelector NetworksManagement NFTAutoDetectionModal NftDetails NftFullView NoHeaderConfirmations
