@@ -64,6 +64,8 @@ import TokenDetailsV1TabBar, {
   useTokenDetailsV1Tabs,
 } from '../components/TokenDetailsV1TabBar';
 import SecurityTab from '../components/V1/SecurityTab/SecurityTab';
+import { useQuoteTokensQuery } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery';
+import { isTokenDetailsQuoteAsset } from '../utils/isTokenDetailsQuoteAsset';
 import TokenDetailsFeedTab from '../components/tabs/FeedTab';
 import TokenSecurityHoldersTab from '../components/tabs/TokenSecurityHoldersTab';
 import { TokenStatKey } from '../constants/tokenStats';
@@ -509,9 +511,10 @@ const TokenDetails: React.FC<{
   const socialEnabled = useSelector(selectIsSocialV1Enabled);
   const feedEnabled = useSelector(selectSocialLeaderboardEnabled);
   const feedAsset = caip19AssetId && parseCaipAssetType(caip19AssetId);
-  const showFeedTab =
+  const canCheckFeedEligibility =
     socialEnabled &&
     feedEnabled &&
+    tabConfigOrder.includes('feed') &&
     !token.isNative &&
     !token.isETH &&
     Boolean(
@@ -523,6 +526,12 @@ const TokenDetails: React.FC<{
           (feedAsset.chain.namespace === 'solana' &&
             feedAsset.assetNamespace === 'token')),
     );
+  const quoteTokens = useQuoteTokensQuery(canCheckFeedEligibility);
+  const showFeedTab =
+    canCheckFeedEligibility &&
+    caip19AssetId !== null &&
+    quoteTokens.isSuccess &&
+    !isTokenDetailsQuoteAsset(caip19AssetId, quoteTokens.data);
   const topHolders = securityData?.financialStats?.topHolders;
   const showHoldersTab = socialEnabled && Boolean(topHolders?.length);
   const tabs = useMemo<TokenDetailsV1TabKey[]>(() => {

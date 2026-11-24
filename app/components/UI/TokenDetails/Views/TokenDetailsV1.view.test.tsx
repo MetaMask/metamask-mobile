@@ -1,10 +1,13 @@
 import '../../../../../tests/component-view/mocks';
+import type { QuoteTokensResponse } from '@metamask/social-controllers';
+import type { CaipAssetType } from '@metamask/utils';
 import { Linking } from 'react-native';
 import {
   __resetMockNetInfo,
   __setMockNetInfo,
 } from '../../../../__mocks__/@react-native-community/netinfo';
 import {
+  act,
   fireEvent,
   userEvent,
   waitFor,
@@ -50,6 +53,27 @@ import {
   formatPercent,
 } from '../../SocialFeed/utils/formatters';
 import { formatAddress, toChecksumAddress } from '../../../../util/address';
+
+const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const USDC = 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+const WETH = 'eip155:1/erc20:0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2';
+const QUOTE_TOKENS: QuoteTokensResponse = {
+  natives: ['eip155:1/slip44:60', WETH, `${SOLANA_MAINNET}/slip44:501`],
+  stablecoins: [USDC],
+};
+
+const serveQuoteTokens = (
+  response: Promise<QuoteTokensResponse>,
+): jest.SpyInstance => {
+  const messenger = setupLeaderboardApiMock();
+  const delegate = messenger.getMockImplementation();
+  messenger.mockImplementation((action: string, ...args: unknown[]) =>
+    action === 'SocialService:fetchQuoteTokens'
+      ? response
+      : delegate?.(action, ...args),
+  );
+  return messenger;
+};
 
 const FIND_TIMEOUT = { timeout: 15000 };
 const OVERVIEW_TAB_DESCRIPTION_TEST_ID = TokenDetailsIds.overview.description;
@@ -107,6 +131,7 @@ describeForPlatforms('TokenDetailsV1', () => {
   afterEach(() => {
     clipboardSpy.mockRestore();
     openUrlSpy.mockRestore();
+    clearLeaderboardApiMock();
     clearTokenDetailsV1ApiMocks();
   });
 
@@ -537,7 +562,7 @@ describeForPlatforms('TokenDetailsV1', () => {
   it('queries Feed on first activation and keeps its empty state without showing Holders', async () => {
     setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
     __setMockNetInfo({ type: 'wifi', isInternetReachable: true });
-    const messenger = setupLeaderboardApiMock();
+    const messenger = serveQuoteTokens(Promise.resolve(QUOTE_TOKENS));
 
     try {
       const { findByTestId, getByTestId, queryByTestId } =
@@ -545,13 +570,13 @@ describeForPlatforms('TokenDetailsV1', () => {
           socialEnabled: true,
           tabConfigOrder: ['overview', 'feed', 'holders'],
         });
-      const feed = await findByTestId(TokenDetailsIds.tab('feed'));
+      await findByTestId(TokenDetailsIds.tab('feed'));
       expect(messenger).not.toHaveBeenCalledWith(
         'SocialService:fetchFeed',
         expect.anything(),
       );
 
-      await userEvent.press(feed);
+      fireEvent.press(getByTestId(TokenDetailsIds.tab('feed')));
 
       expect(await findByTestId(TokenDetailsIds.feed.empty)).toBeOnTheScreen();
       expect(messenger).toHaveBeenCalledWith(
@@ -567,9 +592,115 @@ describeForPlatforms('TokenDetailsV1', () => {
       ).not.toBeOnTheScreen();
       expect(getByTestId(TokenDetailsIds.tab('security'))).toBeOnTheScreen();
     } finally {
-      clearLeaderboardApiMock();
       __resetMockNetInfo();
     }
+  });
+
+  it.each([
+    ['USDC', 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'],
+    ['WETH', WETH],
+    [
+      'wrapped SOL',
+      `${SOLANA_MAINNET}/token:So11111111111111111111111111111111111111112`,
+    ],
+  ] as const)(
+    'hides Feed but keeps Holders for %s',
+    async (symbol, caipAssetId) => {
+      setupTokenDetailsV1ApiMocks({ launchpad: false });
+      const messenger = serveQuoteTokens(Promise.resolve(QUOTE_TOKENS));
+      const { findByTestId, getByTestId, queryByTestId } =
+        renderTokenDetailsV1View({
+          socialEnabled: true,
+          tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
+          token: {
+            ...buildTokenDetailsV1RouteParams(),
+            caipAssetId,
+            symbol,
+            securityData: tokenDetailsV1SecurityData,
+          },
+        });
+
+      await findByTestId(TokenDetailsIds.securityHolders.topTen);
+      await userEvent.press(getByTestId(TokenDetailsIds.tab('security')));
+
+      expect(messenger).toHaveBeenCalledWith('SocialService:fetchQuoteTokens');
+      expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+      expect(getByTestId(TokenDetailsIds.tab('holders'))).toBeOnTheScreen();
+      expect(getByTestId(SecurityTabSelectors.TAB)).toBeOnTheScreen();
+    },
+  );
+
+  it.each<[string, CaipAssetType]>([
+    [
+      'JUP',
+      `${SOLANA_MAINNET}/token:JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN`,
+    ],
+    [
+      'TSLAx',
+      `${SOLANA_MAINNET}/token:XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB`,
+    ],
+  ])(
+    'reveals Feed for %s only after the quote-token list loads',
+    async (symbol, caipAssetId) => {
+      setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+      let resolveQuoteTokens: (value: QuoteTokensResponse) => void = () =>
+        undefined;
+      serveQuoteTokens(
+        new Promise((resolve) => {
+          resolveQuoteTokens = resolve;
+        }),
+      );
+      const { findByTestId, getByTestId, queryByTestId } =
+        renderTokenDetailsV1View({
+          socialEnabled: true,
+          tabConfigOrder: ['feed', 'overview', 'security'],
+          token: {
+            ...buildTokenDetailsV1RouteParams(),
+            address: caipAssetId,
+            chainId: SOLANA_MAINNET,
+            caipAssetId,
+            symbol,
+          },
+        });
+      expect(
+        await findByTestId(TokenDetailsIds.tabPage('overview')),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+
+      await act(async () => {
+        resolveQuoteTokens(QUOTE_TOKENS);
+      });
+
+      expect(
+        await findByTestId(TokenDetailsIds.tabPage('feed')),
+      ).toBeOnTheScreen();
+      expect(getByTestId(TokenDetailsIds.tab('security'))).toBeOnTheScreen();
+    },
+  );
+
+  it('keeps Feed hidden when the quote-token list fails', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    let rejectQuoteTokens: (error: Error) => void = () => undefined;
+    const messenger = serveQuoteTokens(
+      new Promise((_resolve, reject) => {
+        rejectQuoteTokens = reject;
+      }),
+    );
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        socialEnabled: true,
+        tabConfigOrder: ['feed', 'overview', 'security'],
+      });
+
+    await findByTestId(TokenDetailsIds.tabPage('overview'));
+    await act(async () => {
+      rejectQuoteTokens(new Error('Quote tokens unavailable'));
+    });
+    await userEvent.press(getByTestId(TokenDetailsIds.tab('security')));
+
+    expect(messenger).toHaveBeenCalledWith('SocialService:fetchQuoteTokens');
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+    expect(getByTestId(SecurityTabSelectors.TAB)).toBeOnTheScreen();
   });
 
   it('omits Feed and Holders for native ETH without supported social data', async () => {
