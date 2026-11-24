@@ -2797,6 +2797,41 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
+  describe('when card history lives in Money activity', () => {
+    beforeEach(() => {
+      mockTransactionHistoryDestination = 'money';
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.ACTIVE },
+      });
+    });
+
+    it('hides the Activity and Manage tabs', () => {
+      render();
+
+      expect(
+        screen.queryByTestId(CardHomeSelectors.HOME_SEGMENTS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not fetch provider transactions', () => {
+      render();
+
+      expect(mockUseCardRecentTransactions).not.toHaveBeenCalledWith({
+        enabled: true,
+      });
+    });
+
+    it('keeps the transaction history row in the management list', () => {
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.TRANSACTION_HISTORY_ITEM),
+      ).toBeOnTheScreen();
+    });
+  });
+
   it('shows the Immersve privacy policy and contact support before a card exists', () => {
     setupMockSelectors({
       isAuthenticated: true,

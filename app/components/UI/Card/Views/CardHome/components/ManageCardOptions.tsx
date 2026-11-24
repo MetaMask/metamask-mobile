@@ -68,6 +68,11 @@ interface ManageCardOptionsProps {
   onTravel: () => void;
   onTransactionHistory?: () => void;
   showTransactionHistoryDuringSetup?: boolean;
+  /**
+   * Keeps the history row for a fully set-up card whose history has no
+   * Activity panel on Card home (history lives in Money activity).
+   */
+  showTransactionHistoryRow?: boolean;
 }
 
 const ManageCardOptions = ({
@@ -109,6 +114,7 @@ const ManageCardOptions = ({
   onTravel,
   onTransactionHistory,
   showTransactionHistoryDuringSetup = false,
+  showTransactionHistoryRow = false,
 }: ManageCardOptionsProps) => {
   const tw = useTailwind();
 
@@ -151,8 +157,8 @@ const ManageCardOptions = ({
     isAuthenticated &&
     Boolean(card) &&
     !hideManageOptions &&
-    showTransactionHistoryDuringSetup &&
-    !isFullySetUp;
+    ((showTransactionHistoryDuringSetup && !isFullySetUp) ||
+      (showTransactionHistoryRow && isFullySetUp));
 
   return (
     <>
