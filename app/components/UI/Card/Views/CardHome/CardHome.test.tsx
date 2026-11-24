@@ -4800,6 +4800,32 @@ describe('CardHome Component', () => {
       }
       expect(cardArtWrapper).not.toBeNull();
     });
+
+    it('keeps every card art wrapper unclipped so the drips can reach the buttons on Android', () => {
+      setupMockSelectors({ isAuthenticated: true });
+      setupLoadCardDataMock({ isAuthenticated: true });
+
+      render();
+
+      // Android clips overflow by default, so each view from the card art up
+      // to the z-20 wrapper must be overflow-visible.
+      let node: ReactTestInstance | null = screen.getByTestId(
+        CardHomeSelectors.CARD_ART,
+      );
+      const clipped: unknown[] = [];
+      while (node) {
+        const style = StyleSheet.flatten([node.props.style]);
+        if (typeof node.type === 'string' && style?.overflow !== 'visible') {
+          clipped.push(style);
+        }
+        if (style?.zIndex === 20) {
+          break;
+        }
+        node = node.parent;
+      }
+      expect(node).not.toBeNull();
+      expect(clipped).toEqual([]);
+    });
   });
 
   describe('KYC Status Verification', () => {
