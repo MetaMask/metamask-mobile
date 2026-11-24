@@ -162,6 +162,8 @@ export const useBridgeQuoteRequest = (
         ),
       };
 
+      // TODO CTA should be enabled for withdraw, as long as srcAmount > withdrawableMoneyAccountBalance. Because we will refetch quote using the transfered amount
+
       const shouldTrace = isValidQuoteRequest(params);
 
       if (traceId && !shouldTrace) {
