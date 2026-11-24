@@ -1,6 +1,11 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Modal, Pressable } from 'react-native';
+// Gesture-handler ScrollView cooperates with the sheet's drag-to-dismiss pan;
+// the plain RN ScrollView loses vertical drags to it and can't scroll.
+import {
+  GestureHandlerRootView,
+  ScrollView,
+} from 'react-native-gesture-handler';
 import {
   Box,
   BoxAlignItems,
@@ -293,7 +298,10 @@ const SocialMarkersBottomSheet: React.FC<SocialMarkersBottomSheetProps> = ({
             </Box>
           )}
 
-          <ScrollView style={{ maxHeight: MAX_LIST_HEIGHT }}>
+          <ScrollView
+            style={{ maxHeight: MAX_LIST_HEIGHT }}
+            nestedScrollEnabled
+          >
             {visibleEntries.map((entry, index) => (
               <React.Fragment
                 key={`${entry.actor.profileId}-${entry.trade.transactionHash}-${entry.trade.timestamp}`}

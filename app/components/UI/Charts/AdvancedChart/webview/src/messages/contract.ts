@@ -185,6 +185,12 @@ export interface SetAvatarMarkersMessage {
 export interface SetAvatarMarkersPayload {
   /** Full marker set; null or empty clears. */
   markers: AvatarMarker[] | null;
+  /**
+   * Avatar image table: marker `avatarUrl` (used as a key) -> resolved `data:`
+   * URI. Sent once per update so markers sharing a trader don't each repeat the
+   * image. Markers whose key is missing render the initials fallback.
+   */
+  avatars?: Record<string, string> | null;
 }
 
 export interface PulseTradeMarkerMessage {

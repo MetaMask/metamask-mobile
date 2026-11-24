@@ -231,8 +231,11 @@ export const PriceChartSection = ({
 
   // Follower avatar markers for the candlestick chart (ASSETS-4102).
   // Flag-gated inside the hook; returns [] when disabled / logged out / empty.
-  const { markers: candleAvatarMarkers, byId: avatarMarkerLookup } =
-    useFollowingTokenCandleAvatarMarkers(assetId);
+  const {
+    markers: candleAvatarMarkers,
+    avatars: candleAvatarImages,
+    byId: avatarMarkerLookup,
+  } = useFollowingTokenCandleAvatarMarkers(assetId);
 
   // Marker ids of the avatar group the user last tapped — drives the bottom
   // sheet. A lone avatar yields one id; a cluster yields all its members.
@@ -340,6 +343,7 @@ export const PriceChartSection = ({
             volumeOverlay
             chartType={chartType}
             avatarMarkers={candleAvatarMarkers}
+            avatarImages={candleAvatarImages}
             onAvatarMarkerPress={handleAvatarMarkerPress}
             indicators={showChartIndicators ? indicatorsArray : []}
             selectedMAs={showChartIndicators ? selectedMAs : []}

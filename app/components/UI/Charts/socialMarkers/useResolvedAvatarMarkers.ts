@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import Logger from '../../../../util/Logger';
+import { useEffect, useMemo } from 'react';
 import type { AvatarMarker } from '../AdvancedChart/AdvancedChart.types';
+import { ensureAvatarDataUris, useAvatarDataUris } from './avatarDataUriStore';
 
 /**
  * Resolves each marker's remote `avatarUrl` to a `data:` URI on the RN side so
@@ -8,93 +8,52 @@ import type { AvatarMarker } from '../AdvancedChart/AdvancedChart.types';
  * WebView CSP tight (`img-src 'self' data:` — no external avatar host needed)
  * and lets avatars load even when the WebView itself can't reach the CDN.
  *
- * Fetched blobs are cached module-wide by URL (avatars repeat across a trader's
- * trades and across tokens), so each unique image is downloaded at most once
- * per session. While a URL is still resolving — or if it fails — the marker's
- * `avatarUrl` is cleared so the overlay shows the initials fallback until (and
- * unless) the data URI arrives.
+ * Downloads and caching live in the session-wide `avatarDataUriStore`, which
+ * this hook reads via `useSyncExternalStore`: a remounted TDP gets cached
+ * avatars on its first render, and a download that outlives its screen still
+ * lands for the next mount. Resolved images are returned once in an `avatars`
+ * table keyed by URL (markers keep `avatarUrl` as the key), so hundreds of
+ * markers from the same few traders don't each carry a copy of the data URI
+ * over the bridge. While a URL is still resolving — or if it fails — it has no
+ * table entry and the overlay shows the initials fallback.
  */
-
-/** Session cache: remote URL → resolved `data:` URI. */
-const dataUriCache = new Map<string, string>();
-
-/** Map of remote URL → resolved `data:` URI. */
-type ResolvedMap = Record<string, string>;
 
 const isHttpUrl = (url: string | undefined): url is string =>
   typeof url === 'string' && /^https?:\/\//i.test(url);
 
-const fetchAsDataUri = async (url: string): Promise<string | null> => {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return await new Promise<string | null>((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = (): void =>
-        resolve(typeof reader.result === 'string' ? reader.result : null);
-      reader.onerror = (): void => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch (error) {
-    Logger.log('[social-markers] avatar fetch failed', url, error);
-    return null;
-  }
-};
+/** Markers (avatarUrl kept as a lookup key) + the url -> data URI table. */
+export interface ResolvedAvatarMarkers {
+  markers: AvatarMarker[];
+  /** Only resolved entries; a missing key renders the initials fallback. */
+  avatars: Record<string, string>;
+}
 
 export const useResolvedAvatarMarkers = (
   markers: AvatarMarker[],
-): AvatarMarker[] => {
-  // Resolved data URIs held in state so the mapping memo below recomputes when
-  // new avatars land. The module cache is the cross-mount source of truth; this
-  // state mirrors it to trigger re-renders.
-  const [resolved, setResolved] = useState<ResolvedMap>({});
-
+): ResolvedAvatarMarkers => {
   const remoteUrls = useMemo(
     () =>
       Array.from(new Set(markers.map((m) => m.avatarUrl).filter(isHttpUrl))),
     [markers],
   );
 
+  const cache = useAvatarDataUris();
+
   useEffect(() => {
-    let cancelled = false;
-    const pending = remoteUrls.filter((url) => !dataUriCache.has(url));
-    if (pending.length === 0) return undefined;
-
-    Promise.all(
-      pending.map(async (url): Promise<void> => {
-        const dataUri = await fetchAsDataUri(url);
-        if (dataUri) dataUriCache.set(url, dataUri);
-      }),
-    ).then((): void => {
-      if (cancelled) return;
-      // Snapshot the cache into state so the mapping memo recomputes.
-      setResolved((prev): ResolvedMap => {
-        const next: ResolvedMap = { ...prev };
-        for (const url of remoteUrls) {
-          const dataUri = dataUriCache.get(url);
-          if (dataUri) next[url] = dataUri;
-        }
-        return next;
-      });
-    });
-
-    return (): void => {
-      cancelled = true;
-    };
+    ensureAvatarDataUris(remoteUrls);
   }, [remoteUrls]);
 
-  return useMemo(
-    () =>
-      markers.map((marker) => {
-        if (!isHttpUrl(marker.avatarUrl)) return marker;
-        const dataUri = resolved[marker.avatarUrl];
-        // Clear the URL until resolved so the WebView shows initials (and never
-        // fetches the remote host itself); swap in the data URI once ready.
-        return { ...marker, avatarUrl: dataUri };
-      }),
-    [markers, resolved],
-  );
+  // Only URLs referenced by the current markers are sent to the WebView.
+  const avatars = useMemo(() => {
+    const table: Record<string, string> = {};
+    for (const url of remoteUrls) {
+      const dataUri = cache[url];
+      if (dataUri) table[url] = dataUri;
+    }
+    return table;
+  }, [remoteUrls, cache]);
+
+  return useMemo(() => ({ markers, avatars }), [markers, avatars]);
 };
 
 export default useResolvedAvatarMarkers;

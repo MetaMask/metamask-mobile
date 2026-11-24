@@ -3,26 +3,32 @@
 import type { AvatarMarker } from '../../messages/contract';
 
 /**
- * One atomic avatar marker to render: a single trader's avatar + its buy/sell
- * badge, anchored to its own candle. Markers are never merged into a combined
- * element — close markers are fanned into an overlapping group on screen (see
- * positionAvatarMarkers) with a single count disc for a group of 2+. Tap
- * grouping (surfacing every overlapping trade in the sheet) is handled
- * separately in index.ts (`tapGroupByMarkerId`), not by this structure.
+ * One drawn face of a marker group: a single trader's avatar + its buy/sell
+ * badge. Markers are grouped per candle (merged further when groups overlap on
+ * screen) and each group draws at most MAX_FACES faces — see grouping.ts. Tap
+ * membership (all n group members) is tracked separately in index.ts
+ * (`tapGroupByMarkerId`), not by this structure.
  */
 export interface AvatarCluster {
-  /** Stable per-marker identity, `m:<markerId>`. */
+  /** Stable per-face identity, `g:<groupKey>:<slot>`. */
   key: string;
-  /** The single avatar to draw. */
+  /** The marker whose avatar this face draws. */
   marker: AvatarMarker;
-  /** Last rendered center X in overlay px (null when not currently visible). */
+  /** Center X in overlay px (null when not currently visible). */
   x: number | null;
-  /** Last rendered avatar center Y in overlay px (null when not visible). */
+  /**
+   * Anchor PRICE (the group's topmost candle high) until positioning converts
+   * it to a pixel Y; null when unknown.
+   */
   y: number | null;
 }
 
+/** Avatar url key -> resolved `data:` URI, sent once by RN per update. */
+export type AvatarImageTable = Record<string, string>;
+
 let markers: AvatarMarker[] | null = null;
-/** Cluster key -> its DOM wrapper element currently in the overlay container. */
+let avatarImages: AvatarImageTable = {};
+/** Face key -> its DOM wrapper element currently in the overlay container. */
 const elementsByClusterKey = new Map<string, HTMLDivElement>();
 
 export function getAvatarMarkers(): AvatarMarker[] | null {
@@ -31,6 +37,14 @@ export function getAvatarMarkers(): AvatarMarker[] | null {
 
 export function setAvatarMarkers(next: AvatarMarker[] | null): void {
   markers = next;
+}
+
+export function getAvatarImages(): AvatarImageTable {
+  return avatarImages;
+}
+
+export function setAvatarImages(next: AvatarImageTable | null): void {
+  avatarImages = next ?? {};
 }
 
 export function getAvatarElements(): Map<string, HTMLDivElement> {
@@ -51,5 +65,6 @@ export function clearAvatarElements(): void {
 /** Test-only reset. */
 export function __resetAvatarMarkerStateForTests(): void {
   markers = null;
+  avatarImages = {};
   elementsByClusterKey.clear();
 }

@@ -57,26 +57,6 @@ type FirstDataCallback = () => void;
 let firstDataCallback: FirstDataCallback | null = null;
 let firstDataDelivered = false;
 
-// [ASSETS-4400] TEMP diagnostics — remove before merge. Routes through the
-// benign DEBUG outbound channel (NOT the ERROR channel, which would trigger the
-// RN-side Lightweight fallback). AdvancedChart.tsx re-logs every DEBUG message
-// so these surface in Android logcat as `ReactNativeJS` under the `[ASSETS-4400]`
-// tag. Lets us observe, on a mobile interval switch, whether the deferred
-// `chart.onDataLoaded()` callback actually re-fires.
-function logA4400(message: string, extra?: Record<string, unknown>): void {
-  // The RN-side parseWebViewMessage keeps only DEBUG `message`, so serialize
-  // any structured fields into the string itself.
-  let suffix = '';
-  if (extra) {
-    try {
-      suffix = ` ${JSON.stringify(extra)}`;
-    } catch {
-      suffix = '';
-    }
-  }
-  postToRN('DEBUG', { message: `[ASSETS-4400][core] ${message}${suffix}` });
-}
-
 /**
  * When active indicators exist, defers the CHART_LAYOUT_SETTLED signal to the
  * legend module so it fires after the first successful legend render — not on
@@ -136,23 +116,7 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
   setCurrentResolution(newResolution);
 
   const widget = getWidget();
-  const chartReady = isChartReady();
-  const sameResolution = previousResolution === newResolution;
-  // [ASSETS-4400] TEMP — which branch handleSetOHLCVData takes on this
-  // SET_OHLCV_DATA. On an interval switch we expect `branch: 'setResolution'`.
-  logA4400('handleSetOHLCVData', {
-    previousResolution,
-    newResolution,
-    hasWidget: Boolean(widget),
-    isChartReady: chartReady,
-    branch:
-      widget && chartReady
-        ? sameResolution
-          ? 'resetData(sameResolution)'
-          : 'setResolution(differentResolution)'
-        : 'deferredFirstData',
-  });
-  if (widget && chartReady) {
+  if (widget && isChartReady()) {
     try {
       const chart = widget.activeChart();
       if (previousResolution === newResolution) {
@@ -228,16 +192,6 @@ function applyVisibleRange(
   }
 
   const fromMs = getVisibleFromMs();
-  // [ASSETS-4400] TEMP — applyVisibleRange entry. `willSubscribeOnDataLoaded`
-  // true means we take the deferred `chart.onDataLoaded()` path (the crux we
-  // want to observe); `willSetRightOffset` true means fromMs was null and we
-  // bail with a right-offset instead.
-  logA4400('applyVisibleRange entry', {
-    visibleFromMs: fromMs,
-    dataAlreadyLoaded: Boolean(options?.dataAlreadyLoaded),
-    willSetRightOffset: fromMs == null,
-    willSubscribeOnDataLoaded: fromMs != null,
-  });
   if (fromMs == null) {
     try {
       chart.getTimeScale().setRightOffset(2);
@@ -254,16 +208,7 @@ function applyVisibleRange(
   const subscription = chart.onDataLoaded();
   const onLoaded = (): void => {
     subscription.unsubscribe(null, onLoaded);
-    // [ASSETS-4400] TEMP — THE CRUX. If this line appears after an interval
-    // switch, the deferred `chart.onDataLoaded()` callback DID re-fire on
-    // mobile. If it never appears (while `applyVisibleRange entry` logged
-    // `willSubscribeOnDataLoaded: true`), the deferred path silently never ran.
-    logA4400('onDataLoaded fired');
     if (capturedGeneration !== getOhlcvGeneration()) {
-      logA4400('onDataLoaded stale generation — skipping setVisibleRange', {
-        capturedGeneration,
-        currentGeneration: getOhlcvGeneration(),
-      });
       return;
     }
     const data = getOhlcvData();
@@ -272,12 +217,11 @@ function applyVisibleRange(
       ? Math.ceil(lastBar.time / 1000)
       : Math.ceil(Date.now() / 1000);
     const barPadSec = getApproxBarDurationSec(data) * 2;
-    const from = Math.floor(fromMs / 1000);
-    const to = toSec + barPadSec;
-    // [ASSETS-4400] TEMP — immediately before the deferred setVisibleRange runs.
-    logA4400('setVisibleRange (deferred)', { from, to });
     try {
-      chart.setVisibleRange({ from, to }, { percentRightMargin: 0 });
+      chart.setVisibleRange(
+        { from: Math.floor(fromMs / 1000), to: toSec + barPadSec },
+        { percentRightMargin: 0 },
+      );
     } catch (error) {
       reportErrorToRN(error);
     }

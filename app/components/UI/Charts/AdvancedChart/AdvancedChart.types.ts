@@ -322,6 +322,11 @@ export interface SetTradeMarkersPayload {
 export interface SetAvatarMarkersPayload {
   /** Avatar markers to render. Empty array (or null) clears all. */
   markers: AvatarMarker[] | null;
+  /**
+   * Avatar image table: marker `avatarUrl` (used as a key) -> resolved `data:`
+   * URI. Each image is sent once, however many markers share it.
+   */
+  avatars?: Record<string, string> | null;
 }
 
 export interface RealtimeUpdatePayload {
@@ -723,6 +728,12 @@ export interface AdvancedChartProps {
    * empty array to clear. Synced declaratively via useEffect.
    */
   avatarMarkers?: AvatarMarker[];
+  /**
+   * Avatar image table for `avatarMarkers`: each marker's `avatarUrl` (used as
+   * a key) -> resolved `data:` URI. Sent alongside the markers so a shared
+   * image is transferred once. Memoize alongside `avatarMarkers`.
+   */
+  avatarImages?: Record<string, string>;
   /** Colors for the position overlay lines, supplied by the consumer's theme. */
   positionLineColors?: PositionLineColors;
 

@@ -90,6 +90,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       positionLines,
       tradeMarkers,
       avatarMarkers,
+      avatarImages,
       positionLineColors,
       chartType,
       showVolume = false,
@@ -161,6 +162,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const prevPositionLinesRef = useRef(positionLines);
     const prevTradeMarkersRef = useRef(tradeMarkers);
     const prevAvatarMarkersRef = useRef(avatarMarkers);
+    const prevAvatarImagesRef = useRef(avatarImages);
     const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
@@ -589,18 +591,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
           }
 
-          case 'DEBUG':
-            // [ASSETS-4400] TEMP diagnostics — remove before merge. Re-logs
-            // webview-core DEBUG breadcrumbs (which already carry the
-            // `[ASSETS-4400][core]` tag) so they appear in Android logcat as
-            // `ReactNativeJS`. Only forwards our tagged messages to avoid noise
-            // from the benign `modular-bootstrap-ready` breadcrumb.
-            if (message.payload.message.includes('[ASSETS-4400]')) {
-              // eslint-disable-next-line no-console
-              console.log(message.payload.message);
-            }
-            break;
-
           case 'ERROR':
             if (!isChartReady) {
               if (onInitFailed) {
@@ -617,24 +607,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           case 'FETCH_OLDER_BARS_REQUEST': {
             const handler = onFetchOlderBarsRequestRef.current;
             const req = message.payload;
-            // [ASSETS-4400] TEMP diagnostics — remove before merge. Shows every
-            // older-bars request the TV library makes so we can see whether it
-            // back-fills the whole history (like the extension does) or stops
-            // quickly. `countBack` is what the library is trying to satisfy;
-            // many sequential requests with a large countBack = storm.
-            // eslint-disable-next-line no-console
-            console.log('[ASSETS-4400] FETCH_OLDER_BARS_REQUEST', {
-              requestId: req.requestId,
-              resolution: req.resolution,
-              countBack: req.countBack,
-              oldestLoadedTimeMs: req.oldestLoadedTimeMs,
-              oldestLoadedIso:
-                req.oldestLoadedTimeMs == null
-                  ? undefined
-                  : new Date(req.oldestLoadedTimeMs).toISOString(),
-              fromSec: req.fromSec,
-              toSec: req.toSec,
-            });
             const respond = (response: FetchOlderBarsResponse) => {
               postMessage({
                 type: 'FETCH_OLDER_BARS_RESPONSE',
@@ -1026,14 +998,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // compared like tradeMarkers, so parents should memoize the array.
     useEffect(() => {
       if (chartReadyCount === 0) return;
-      if (avatarMarkers === prevAvatarMarkersRef.current) return;
+      if (
+        avatarMarkers === prevAvatarMarkersRef.current &&
+        avatarImages === prevAvatarImagesRef.current
+      ) {
+        return;
+      }
       prevAvatarMarkersRef.current = avatarMarkers;
+      prevAvatarImagesRef.current = avatarImages;
 
       postMessage({
         type: 'SET_AVATAR_MARKERS',
-        payload: { markers: avatarMarkers ?? null },
+        payload: {
+          markers: avatarMarkers ?? null,
+          avatars: avatarImages ?? null,
+        },
       });
-    }, [avatarMarkers, chartReadyCount, postMessage]);
+    }, [avatarMarkers, avatarImages, chartReadyCount, postMessage]);
 
     // Sync chartType prop
     useEffect(() => {

@@ -11,13 +11,15 @@
 // animation frame while the user is actively dragging the chart (TV exposes no
 // per-frame pan hook).
 //
-// Grouping: each marker always renders as its own atomic avatar (+ buy/sell
-// badge) — avatars are never merged into one element. When markers fall within
-// one avatar width on screen they are fanned into an overlapping group centered
-// on the candle (each face stays partly visible), and a single count disc is
-// added below the group. Grouping is pixel-based, so groups split apart live as
-// the user zooms in (barSpacing grows -> pixel gaps grow). The same grouping
-// also scopes a tap to every overlapping trade (`tapGroupByMarkerId`).
+// Grouping (see grouping.ts): markers are first bucketed per candle — one
+// candle is the smallest group and never splits, however far the user zooms.
+// Every group draws at a fixed width: at most MAX_FACES (3) overlapping faces
+// (distinct traders, most recent), each with its own buy/sell badge, plus a
+// total-count disc when the group holds more trades than faces. Groups whose
+// drawn footprints would overlap are merged left to right, so zoomed out
+// (narrow bars) neighbouring candles collapse together and zooming in splits
+// them again. Only the visible faces get DOM elements; hidden members are
+// reachable by tapping, which posts every member id (`tapGroupByMarkerId`).
 
 import { postToRN, reportErrorToRN } from '../../core/bridge';
 import { onDataLifecycle } from '../../core/dataLifecycle';
@@ -42,39 +44,31 @@ import { getPlotWidth, getVisibleTimeRangeSec, priceToY } from './coordinates';
 import {
   clearAvatarElements,
   getAvatarElements,
+  getAvatarImages,
   getAvatarMarkers,
+  setAvatarImages,
   setAvatarMarkers,
   type AvatarCluster,
 } from './state';
+import {
+  AVATAR_SIZE,
+  bucketByCandle,
+  mergeOverlappingGroups,
+  planGroupRender,
+  type MarkerLayout,
+} from './grouping';
 
 const OVERLAY_ID = 'avatar-marker-overlay';
-/** Avatar circle diameter (px). */
-const AVATAR_SIZE = 28;
 /** Buy(+)/sell(−) badge diameter (px), shown on every marker. */
 const BADGE_SIZE = 14;
 /** Group-count disc diameter (px). Rendered as a standalone circle centered at
  * the bottom of an overlapping bunch, slightly smaller than a face so it reads
  * as a distinct counter beneath the group. */
 const COUNT_BADGE_SIZE = AVATAR_SIZE - 4;
-/**
- * Markers whose on-screen X centers fall within this many px of a group's
- * leading member are treated as one overlapping group. Grouping drives three
- * things: fanning the members into an overlapping cluster, adding one count
- * disc, and scoping a tap to the whole group (`tapGroupByMarkerId`). Each marker
- * still renders as its own atomic avatar; grouping never merges them into one
- * element. Complete-linkage grouping keeps a group bounded to ~one avatar wide.
- */
-const CLUSTER_MERGE_PX = AVATAR_SIZE;
 /** Debounce for re-positioning after a settled pan/zoom/pagination. */
 const REFRESH_DEBOUNCE_MS = 120;
 /** Gap (px) between the candle's high and the bottom edge of the avatar. */
 const MARKER_GAP_PX = 10;
-/**
- * Horizontal spacing (px) between adjacent avatars in an overlapping group. The
- * members are fanned evenly around the group centroid by this amount so they
- * overlap (~40%) but each face stays partly visible, rather than fully stacking.
- */
-const AVATAR_FAN_PX = Math.round(AVATAR_SIZE * 0.6);
 /**
  * How long (ms) to keep the per-frame reposition loop alive after the last
  * pan/zoom signal. Pinch-zoom and inertial pan don't reliably bracket with
@@ -89,6 +83,8 @@ let interacting = false;
 let activeUntilMs = 0;
 /** Grouping signature of the clusters currently in the DOM. */
 let lastSignature = '';
+/** Group keys rendered last frame — drives merge hysteresis (no flicker). */
+let prevGroupKeys: Set<string> = new Set();
 
 function initialOf(name: string | undefined): string {
   const ch = name?.trim()?.[0];
@@ -103,6 +99,21 @@ function initialOf(name: string | undefined): string {
  */
 function isRenderableImageSrc(url: string | undefined): url is string {
   return typeof url === 'string' && /^(https?:\/\/|data:image\/)/i.test(url);
+}
+
+/**
+ * Resolves a marker's `avatarUrl` to an <img> src. RN sends each avatar image
+ * once in the `avatars` table (url -> data URI) and markers carry the url as a
+ * key, so hundreds of markers don't each repeat the same data URI. An inline
+ * `data:` value is still accepted. A remote url with no table entry (not yet
+ * resolved, or failed) yields null -> initials, so the WebView never fetches a
+ * remote host itself.
+ */
+function resolveAvatarSrc(url: string | undefined): string | null {
+  if (!url) return null;
+  const fromTable = getAvatarImages()[url];
+  if (isRenderableImageSrc(fromTable)) return fromTable;
+  return /^data:image\//i.test(url) ? url : null;
 }
 
 function getContainer(): HTMLElement | null {
@@ -146,9 +157,10 @@ function buildAvatarCircle(
     avatar.appendChild(initials);
   };
 
-  if (isRenderableImageSrc(marker.avatarUrl)) {
+  const src = resolveAvatarSrc(marker.avatarUrl);
+  if (src) {
     const img = document.createElement('img');
-    img.src = marker.avatarUrl;
+    img.src = src;
     img.referrerPolicy = 'no-referrer';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
     // Degrade to initials if the avatar fails to load (dead URL, CSP, offline)
@@ -175,21 +187,20 @@ function buildAvatarCircle(
 const circleCache = new Map<string, HTMLDivElement>();
 
 /**
- * markerId -> ids of every marker in its current on-screen proximity group,
- * refreshed each positioning pass. A tap on any marker opens the sheet scoped
- * to that whole overlapping group, so avatars hidden under the top one are
- * still reachable. Read live at tap time (not baked into the element) because
- * group membership changes as markers overlap/separate on zoom.
+ * markerId -> ids of every marker in its current group (all n members, not just
+ * the drawn faces), refreshed each positioning pass. A tap on any face opens the
+ * sheet scoped to that whole group, so trades without a visible face are still
+ * reachable. Read live at tap time (not baked into the element) because group
+ * membership changes as groups merge/split on zoom.
  */
 const tapGroupByMarkerId = new Map<string, string[]>();
 
 /**
- * markerId -> the group-count disc element currently attached to that marker's
- * avatar. Only the representative marker of an overlapping group of 2+ carries a
- * disc; refreshed every positioning pass so the count follows groups as they
- * form/split on zoom without rebuilding the avatar elements.
+ * Face key -> the group-count disc element currently attached to that face.
+ * Only the middle face of a group holding more trades than faces carries one;
+ * refreshed every positioning pass so counts follow merges/splits on zoom.
  */
-const countBadgeByMarkerId = new Map<string, HTMLDivElement>();
+const countBadgeByFaceKey = new Map<string, HTMLDivElement>();
 
 function getOrBuildAvatarCircle(
   marker: AvatarMarker,
@@ -228,14 +239,14 @@ function buildIntentBadge(
 }
 
 /**
- * Group-count disc: the number of markers in an overlapping group (e.g. "3").
- * Rendered as a standalone circle centered at the BOTTOM of the group (just
- * below the fanned faces, overlapping them slightly), so the faces sit above
- * it — matching the design. Count only — no +/− (direction is on each face).
+ * Group-count disc: the total number of trades in a group (e.g. "100", capped
+ * at "99+"). Rendered as a standalone circle centered at the BOTTOM of the group
+ * (just below the fanned faces, overlapping them slightly), so the faces sit
+ * above it — matching the design. Count only — no +/− (direction is on each face).
  */
-function buildCountBadge(count: number, theme: ChartTheme): HTMLDivElement {
+function buildCountBadge(label: string, theme: ChartTheme): HTMLDivElement {
   const badge = document.createElement('div');
-  badge.textContent = count > 99 ? '99+' : String(count);
+  badge.textContent = label;
   badge.style.cssText =
     // pointer-events:none so the disc never steals taps from the avatars beneath
     // it (it sits over the lower half of the bunch); only faces are tap targets.
@@ -251,10 +262,9 @@ function buildCountBadge(count: number, theme: ChartTheme): HTMLDivElement {
 }
 
 /**
- * One atomic marker: a single avatar + its own buy(+)/sell(−) badge. Markers
- * are never merged into one element — when they sit close they collapse into a
- * bunch and overlap (the top one shows), with a count disc added separately;
- * the occluded ones stay reachable via the shared tap group (`tapGroupByMarkerId`).
+ * One drawn face: a single trader's avatar + its own buy(+)/sell(−) badge. A
+ * group draws at most MAX_FACES of these; hidden members get no element and are
+ * reachable via the shared tap group (`tapGroupByMarkerId`).
  */
 function buildIndividualElement(
   cluster: AvatarCluster,
@@ -308,8 +318,9 @@ export function clearAvatarMarkers(): void {
   clearAvatarElements();
   circleCache.clear();
   tapGroupByMarkerId.clear();
-  countBadgeByMarkerId.clear();
+  countBadgeByFaceKey.clear();
   lastSignature = '';
+  prevGroupKeys = new Set();
 }
 
 /** Index of the bar nearest `tMs` (ms) via binary search, or -1 when no data. */
@@ -369,15 +380,6 @@ function barCenterX(
   return plotWidth - barsFromRightBorder * spacing;
 }
 
-/** Per-marker on-screen layout, resolved once per positioning pass. */
-interface MarkerLayout {
-  marker: AvatarMarker;
-  /** Center X of the marker's candle, in overlay px. */
-  x: number;
-  /** Y anchor price (candle high), or null when unavailable. */
-  anchorPrice: number | null;
-}
-
 interface PlacementContext {
   chart: TVActiveChart;
   plotWidth: number;
@@ -412,107 +414,50 @@ function computeMarkerLayouts(
         : marker.price != null && Number.isFinite(marker.price)
           ? marker.price
           : null;
-    layouts.push({ marker, x, anchorPrice });
+    layouts.push({ marker, barIdx, x, anchorPrice });
   }
   return layouts;
 }
 
-/**
- * Groups X-sorted layouts with complete-linkage (bounded width): a marker joins
- * the current group only while its gap to the group's FIRST member is within
- * `mergePx`, so a cluster never spans more than ~one avatar on screen. This
- * avoids single-linkage chains (a long smear collapsing into one wide cluster)
- * and makes grouping precise: markers cluster only when their avatars genuinely
- * overlap (zoomed out) and split as soon as candles become distinguishable.
- * Pure (chart-independent) so it can be unit-tested directly.
- */
-export function groupByProximity(
-  layouts: MarkerLayout[],
-  mergePx: number,
-): MarkerLayout[][] {
-  const sorted = layouts.slice().sort((a, b) => a.x - b.x);
-  const groups: MarkerLayout[][] = [];
-  let current: MarkerLayout[] = [];
-  let anchorX = -Infinity;
-  for (const layout of sorted) {
-    if (current.length && layout.x - anchorX > mergePx) {
-      groups.push(current);
-      current = [];
-    }
-    if (current.length === 0) anchorX = layout.x;
-    current.push(layout);
-  }
-  if (current.length) groups.push(current);
-  return groups;
-}
-
-/** Individual renderable for a single marker, anchored to its own candle. */
-function individualFromLayout(layout: MarkerLayout): AvatarCluster {
-  const id = String(layout.marker.id);
-  return {
-    key: `m:${id}`,
-    marker: layout.marker,
-    x: layout.x,
-    // `y` holds the anchor *price* here; positionClusters converts it to a
-    // pixel Y (it needs the chart) and overwrites this field with the result.
-    y: layout.anchorPrice,
-  };
-}
-
-/**
- * Flattens proximity groups into one atomic renderable PER marker (avatars are
- * never merged into one element). Close markers overlap on screen; the shared
- * tap group is tracked separately in `tapGroupByMarkerId`. Pure
- * (chart-independent) so it can be unit-tested directly.
- */
-export function buildRenderables(groups: MarkerLayout[][]): AvatarCluster[] {
-  const renderables: AvatarCluster[] = [];
-  for (const group of groups) {
-    for (const layout of group) renderables.push(individualFromLayout(layout));
-  }
-  return renderables;
-}
-
-/** Create/remove DOM elements so they match the current cluster key set. */
+/** Create/remove face elements so they match the current face key set. */
 function syncElements(
-  clusters: readonly AvatarCluster[],
+  faces: readonly AvatarCluster[],
   theme: ChartTheme,
 ): void {
   const overlay = ensureOverlayElement();
   if (!overlay) return;
   const elements = getAvatarElements();
-  const wanted = new Set(clusters.map((c) => c.key));
+  const wanted = new Set(faces.map((c) => c.key));
 
   for (const [key, el] of elements) {
     if (!wanted.has(key)) {
       el.remove();
       elements.delete(key);
-      // key is `m:<markerId>`; drop any stale count-badge ref for it (the badge
-      // node was a child of `el`, so it's already detached with the element).
-      countBadgeByMarkerId.delete(key.slice(2));
+      // The count disc (if any) was a child of `el`, so it's already detached.
+      countBadgeByFaceKey.delete(key);
     }
   }
 
-  for (const cluster of clusters) {
-    if (elements.has(cluster.key)) continue;
-    const el = buildIndividualElement(cluster, theme);
-    attachClusterTap(el, String(cluster.marker.id));
+  for (const face of faces) {
+    if (elements.has(face.key)) continue;
+    const el = buildIndividualElement(face, theme);
+    attachClusterTap(el, String(face.marker.id));
     overlay.appendChild(el);
-    elements.set(cluster.key, el);
+    elements.set(face.key, el);
   }
 }
 
-/** Positions each cluster element at its current pixel X/Y for this frame. */
+/** Positions each face element at its current pixel X/Y for this frame. */
 function positionClusters(
-  clusters: AvatarCluster[],
+  faces: readonly AvatarCluster[],
   chart: TVActiveChart,
 ): void {
   const elements = getAvatarElements();
-  for (const cluster of clusters) {
-    const el = elements.get(cluster.key);
+  for (const face of faces) {
+    const el = elements.get(face.key);
     if (!el) continue;
-    const centerX = cluster.x;
-    const anchorPrice = cluster.y; // anchor price (see individualFromLayout)
+    const centerX = face.x;
+    const anchorPrice = face.y; // anchor price (see planGroupRender)
     if (
       centerX == null ||
       anchorPrice == null ||
@@ -530,43 +475,41 @@ function positionClusters(
     const centerY = anchorY - MARKER_GAP_PX - AVATAR_SIZE / 2;
     el.style.transform = `translate(calc(${centerX}px - 50%),calc(${centerY}px - 50%))`;
     el.style.display = 'block';
-    // Reset stacking each frame; the representative of a group is lifted above
-    // its overlapping neighbours in updateGroupCountBadges (runs right after).
+    // Reset stacking each frame; the badged face of a group is lifted above its
+    // overlapping neighbours in updateGroupCountBadges (runs right after).
     el.style.zIndex = '0';
   }
 }
 
 /**
- * Keeps exactly one group-count disc per overlapping bunch in sync. `repCounts`
- * maps each 2+ group's representative markerId to its member count. Discs are
- * added/updated on those reps and removed from any marker no longer representing
- * a group — so counts track groups as they form/split on zoom without rebuilding
- * the avatar elements.
+ * Keeps exactly one count disc per group that holds more trades than faces.
+ * `badgeByFaceKey` maps the group's middle face key to its label (total n).
+ * Discs are added/updated on those faces and removed everywhere else.
  */
 function updateGroupCountBadges(
-  repCounts: Map<string, number>,
+  badgeByFaceKey: ReadonlyMap<string, string>,
   theme: ChartTheme,
 ): void {
   const elements = getAvatarElements();
-  for (const [markerId, badge] of countBadgeByMarkerId) {
-    if (!repCounts.has(markerId)) {
+  for (const [faceKey, badge] of countBadgeByFaceKey) {
+    if (!badgeByFaceKey.has(faceKey)) {
       badge.remove();
-      countBadgeByMarkerId.delete(markerId);
+      countBadgeByFaceKey.delete(faceKey);
     }
   }
-  for (const [markerId, count] of repCounts) {
-    const el = elements.get(`m:${markerId}`);
+  for (const [faceKey, label] of badgeByFaceKey) {
+    const el = elements.get(faceKey);
     if (!el) continue;
-    // Lift the badged avatar above the rest of its bunch so its bottom-centered
-    // count disc sits cleanly on top, never occluded by the piled faces.
+    // Lift the badged face above the rest of its group so its bottom-centered
+    // count disc sits cleanly on top, never occluded by the other faces.
     el.style.zIndex = '5';
-    const existing = countBadgeByMarkerId.get(markerId);
+    const existing = countBadgeByFaceKey.get(faceKey);
     if (existing) {
-      existing.textContent = count > 99 ? '99+' : String(count);
+      existing.textContent = label;
     } else {
-      const badge = buildCountBadge(count, theme);
+      const badge = buildCountBadge(label, theme);
       el.appendChild(badge);
-      countBadgeByMarkerId.set(markerId, badge);
+      countBadgeByFaceKey.set(faceKey, badge);
     }
   }
 }
@@ -600,65 +543,30 @@ export function positionAvatarMarkers(): void {
 
   const ctx: PlacementContext = { chart, plotWidth, data, firstIdx, lastIdx };
   const layouts = computeMarkerLayouts(markers, ctx);
-  const groups = groupByProximity(layouts, CLUSTER_MERGE_PX);
-  const clusters = buildRenderables(groups);
+  // One group per candle, then merge groups whose fixed-width footprints would
+  // overlap (hysteresis against last frame's groups keeps zoom flicker-free).
+  const groups = mergeOverlappingGroups(
+    bucketByCandle(layouts),
+    undefined,
+    prevGroupKeys,
+  );
+  const plan = planGroupRender(groups, plotWidth);
+  prevGroupKeys = plan.groupKeys;
 
-  // Lay every 2+ group out as an overlapping fan: a common Y (the group's
-  // topmost candle high) so the faces share one baseline, and X fanned evenly
-  // around the group centroid by AVATAR_FAN_PX so each face stays partly visible
-  // (not fully stacked). The count disc drops centered under the fan.
-  const groupPriceByMarkerId = new Map<string, number>();
-  const groupXByMarkerId = new Map<string, number>();
-  for (const group of groups) {
-    if (group.length < 2) continue;
-    let top = -Infinity;
-    let sumX = 0;
-    for (const l of group) {
-      if (l.anchorPrice != null && l.anchorPrice > top) top = l.anchorPrice;
-      sumX += l.x;
-    }
-    const cx = sumX / group.length;
-    // group is sorted ascending X (groupByProximity); fan symmetrically about cx.
-    const mid = (group.length - 1) / 2;
-    group.forEach((l, i) => {
-      const id = String(l.marker.id);
-      if (Number.isFinite(top)) groupPriceByMarkerId.set(id, top);
-      groupXByMarkerId.set(id, cx + (i - mid) * AVATAR_FAN_PX);
-    });
-  }
-  for (const c of clusters) {
-    const id = String(c.marker.id);
-    const p = groupPriceByMarkerId.get(id);
-    if (p != null) c.y = p;
-    const x = groupXByMarkerId.get(id);
-    if (x != null) c.x = x;
-  }
-
-  // Refresh the tap-group map (tapping any marker surfaces its whole overlapping
-  // group) and the per-group count (one disc on the representative of a 2+ bunch).
+  // Tapping any face reports its whole group (all n members, not just faces).
   tapGroupByMarkerId.clear();
-  const repCounts = new Map<string, number>();
-  for (const group of groups) {
-    const ids = group.map((l) => String(l.marker.id)).sort();
-    for (const l of group) tapGroupByMarkerId.set(String(l.marker.id), ids);
-    if (group.length > 1) {
-      // Representative carries the count disc: the middle member of the fan, so
-      // the disc (centered under that avatar) lands under the fan's center.
-      const repId = String(group[Math.floor((group.length - 1) / 2)].marker.id);
-      repCounts.set(repId, group.length);
-    }
-  }
+  for (const [id, ids] of plan.tapIdsByMarkerId)
+    tapGroupByMarkerId.set(id, ids);
 
-  // Rebuild DOM only when the visible marker set changed; keys are per-marker,
-  // so overlap regrouping on zoom never forces a rebuild (the maps above carry
-  // the live grouping instead).
-  const signature = clusters.map((c) => c.key).join(';');
+  // Rebuild DOM only when the drawn face set changed (merge/split/new data);
+  // pure pan/zoom frames just reposition the existing elements.
+  const signature = plan.faces.map((c) => c.key).join(';');
   if (signature !== lastSignature) {
-    syncElements(clusters, theme);
+    syncElements(plan.faces, theme);
     lastSignature = signature;
   }
-  positionClusters(clusters, chart);
-  updateGroupCountBadges(repCounts, theme);
+  positionClusters(plan.faces, chart);
+  updateGroupCountBadges(plan.badgeByFaceKey, theme);
 }
 
 export function renderAvatarMarkers(): void {
@@ -674,6 +582,7 @@ export function renderAvatarMarkers(): void {
 
 export function handleSetAvatarMarkers(payload: SetAvatarMarkersPayload): void {
   setAvatarMarkers(payload?.markers?.length ? payload.markers : null);
+  setAvatarImages(payload?.avatars ?? null);
   if (getAvatarMarkers() === null) {
     clearAvatarMarkers();
     return;
@@ -792,4 +701,5 @@ export function __resetAvatarMarkerRefreshForTests(): void {
   interacting = false;
   activeUntilMs = 0;
   lastSignature = '';
+  prevGroupKeys = new Set();
 }

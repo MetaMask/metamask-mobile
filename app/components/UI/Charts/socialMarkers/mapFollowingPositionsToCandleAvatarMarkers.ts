@@ -6,10 +6,6 @@ import type {
   FollowingPositionItem,
   FollowingTokenPositionsResponse,
 } from './types';
-import {
-  DEFAULT_MAX_AVATAR_MARKERS,
-  type MapFollowingPositionsOptions,
-} from './mapFollowingPositionsToAvatarMarkers';
 
 /**
  * The trade behind one {@link AvatarMarker}, kept so a marker tap can render the
@@ -42,26 +38,25 @@ export interface CandleAvatarMarkersResult {
  * out-of-window filtering happens in the WebView (off-screen markers are
  * hidden) rather than being dropped up front.
  *
- * The avatar comes from `actor.imageUrl` (per-trader); when more than
- * `maxMarkers` survive, the most recent win.
+ * The avatar comes from `actor.imageUrl` (per-trader). Every trade is kept —
+ * there is no global cap: the WebView groups markers per candle and draws at
+ * most 3 faces per group (plus a total count), so density is handled at render
+ * time and the count/bottom sheet always reflect every trade.
  */
 export function mapFollowingPositionsToCandleAvatarMarkers(
   response: FollowingTokenPositionsResponse | undefined | null,
-  options?: MapFollowingPositionsOptions,
 ): AvatarMarker[] {
-  return mapFollowingPositionsToCandleAvatarMarkersWithLookup(response, options)
-    .markers;
+  return mapFollowingPositionsToCandleAvatarMarkersWithLookup(response).markers;
 }
 
 /**
  * Same mapping as {@link mapFollowingPositionsToCandleAvatarMarkers}, but also
  * returns a `byId` lookup from marker id to its originating trade/actor so a
  * marker (or cluster) tap can render those fills in a bottom sheet. The lookup
- * only holds the markers that survive the `maxMarkers` cap.
+ * holds every marker.
  */
 export function mapFollowingPositionsToCandleAvatarMarkersWithLookup(
   response: FollowingTokenPositionsResponse | undefined | null,
-  options?: MapFollowingPositionsOptions,
 ): CandleAvatarMarkersResult {
   if (!response?.items?.length) return { markers: [], byId: {} };
 
@@ -87,21 +82,7 @@ export function mapFollowingPositionsToCandleAvatarMarkersWithLookup(
     });
   }
 
-  const maxMarkers = options?.maxMarkers ?? DEFAULT_MAX_AVATAR_MARKERS;
-  const kept =
-    markers.length <= maxMarkers
-      ? markers
-      : // Keep the most recent markers, then restore chronological order.
-        markers
-          .slice()
-          .sort((a, b) => b.time - a.time)
-          .slice(0, maxMarkers)
-          .sort((a, b) => a.time - b.time);
-
-  if (kept === markers) return { markers, byId };
-
-  // Trim the lookup to the kept markers so it never references dropped trades.
-  const keptById: CandleAvatarMarkerLookup = {};
-  for (const marker of kept) keptById[marker.id] = byId[marker.id];
-  return { markers: kept, byId: keptById };
+  // Chronological order (the WebView groups per candle; order is cosmetic).
+  markers.sort((a, b) => a.time - b.time);
+  return { markers, byId };
 }
