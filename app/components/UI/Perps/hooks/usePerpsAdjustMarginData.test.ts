@@ -121,6 +121,28 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.hasValidPositionData).toBe(true);
     });
 
+    it('uses the position on the requested venue', () => {
+      mockUsePerpsLivePositions.mockReturnValue({
+        positions: [
+          { ...mockPosition, providerId: 'hyperliquid', marginUsed: '111' },
+          { ...mockPosition, providerId: 'lighter', marginUsed: '222' },
+        ],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: mockPosition.symbol,
+          providerId: 'lighter',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.position?.providerId).toBe('lighter');
+      expect(result.current.position?.marginUsed).toBe('222');
+    });
+
     it('returns null when position is not found', () => {
       const { result } = renderHook(() =>
         usePerpsAdjustMarginData({

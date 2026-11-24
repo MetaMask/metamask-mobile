@@ -164,9 +164,10 @@ export function usePerpsOrderForm(
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
-  const { marketData } = usePerpsMarketData(
-    initialSzDecimals == null ? initialAsset : '',
-  );
+  const { marketData } = usePerpsMarketData({
+    asset: initialSzDecimals == null ? initialAsset : '',
+    providerId: params.providerId,
+  });
   const assetSzDecimals =
     initialSzDecimals ??
     marketData?.szDecimals ??
@@ -175,8 +176,15 @@ export function usePerpsOrderForm(
   // Get existing position leverage for this asset (protocol constraint)
   // Positions load asynchronously via WebSocket, so this may be undefined initially
   const existingPositionLeverage = useMemo(
-    () => positions.find((p) => p.symbol === initialAsset)?.leverage?.value,
-    [positions, initialAsset],
+    () =>
+      positions.find(
+        (p) =>
+          p.symbol === initialAsset &&
+          (!p.providerId ||
+            !params.providerId ||
+            p.providerId === params.providerId),
+      )?.leverage?.value,
+    [positions, initialAsset, params.providerId],
   );
 
   // Get saved trade configuration for this asset (user preference for new positions)

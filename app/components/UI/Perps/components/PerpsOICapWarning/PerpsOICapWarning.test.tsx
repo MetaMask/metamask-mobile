@@ -121,7 +121,7 @@ describe('PerpsOICapWarning', () => {
       const { getByTestId } = render(<PerpsOICapWarning symbol="BTC" />);
 
       expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
-      expect(usePerpsOICap).toHaveBeenCalledWith('BTC');
+      expect(usePerpsOICap).toHaveBeenCalledWith('BTC', undefined);
     });
 
     it('should work with HIP-3 symbols', () => {
@@ -133,7 +133,18 @@ describe('PerpsOICapWarning', () => {
       const { getByTestId } = render(<PerpsOICapWarning symbol="xyz:TSLA" />);
 
       expect(getByTestId('perps-oi-cap-warning')).toBeOnTheScreen();
-      expect(usePerpsOICap).toHaveBeenCalledWith('xyz:TSLA');
+      expect(usePerpsOICap).toHaveBeenCalledWith('xyz:TSLA', undefined);
+    });
+
+    it('checks the cap on the requested venue', () => {
+      (usePerpsOICap as jest.Mock).mockReturnValue({
+        isAtCap: true,
+        isLoading: false,
+      });
+
+      render(<PerpsOICapWarning symbol="BTC" providerId="lighter" />);
+
+      expect(usePerpsOICap).toHaveBeenCalledWith('BTC', 'lighter');
     });
   });
 });

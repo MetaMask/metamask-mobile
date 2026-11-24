@@ -699,7 +699,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
   usePerpsConnection();
 
   // Check if market is at open interest cap
-  const { isAtCap: isAtOICap } = usePerpsOICap(market?.symbol);
+  const { isAtCap: isAtOICap } = usePerpsOICap(
+    market?.symbol,
+    market?.providerId,
+  );
 
   // Check if trading is halted due to price deviation
   const {

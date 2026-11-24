@@ -963,6 +963,44 @@ describe('usePerpsLiveOrderBook', () => {
   });
 
   describe('orderBookAggregated channel', () => {
+    it('routes a non-Hyperliquid venue through its own controller book', () => {
+      mockSubscribeToOrderBook.mockReturnValue(jest.fn());
+
+      renderHook(() =>
+        usePerpsLiveOrderBook({
+          symbol: 'BTC',
+          providerId: 'lighter',
+          channel: 'orderBookAggregated',
+          nSigFigs: 4,
+          levels: 20,
+        }),
+      );
+
+      expect(mockAggregatedSubscribe).not.toHaveBeenCalled();
+      expect(mockSubscribeToOrderBook).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC', providerId: 'lighter' }),
+      );
+    });
+
+    it('keeps Hyperliquid on the aggregated socket', () => {
+      mockAggregatedSubscribe.mockReturnValue(jest.fn());
+
+      renderHook(() =>
+        usePerpsLiveOrderBook({
+          symbol: 'BTC',
+          providerId: 'hyperliquid',
+          channel: 'orderBookAggregated',
+          nSigFigs: 4,
+          levels: 20,
+        }),
+      );
+
+      expect(mockAggregatedSubscribe).toHaveBeenCalledWith(
+        expect.objectContaining({ symbol: 'BTC' }),
+      );
+      expect(mockSubscribeToOrderBook).not.toHaveBeenCalled();
+    });
+
     it('subscribes via AggregatedOrderBookConnection when channel is aggregated', () => {
       const mockUnsubscribe = jest.fn();
       mockAggregatedSubscribe.mockReturnValue(mockUnsubscribe);

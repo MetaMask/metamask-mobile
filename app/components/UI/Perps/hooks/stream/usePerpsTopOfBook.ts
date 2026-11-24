@@ -60,6 +60,9 @@ export function usePerpsTopOfBook(
   );
 
   useEffect(() => {
+    // Drop the previous market's quote so fees never price off another
+    // symbol or venue while the new subscription warms up.
+    setTopOfBook(undefined);
     if (!symbol) return;
 
     const unsubscribe = stream.topOfBook.subscribeToSymbol({

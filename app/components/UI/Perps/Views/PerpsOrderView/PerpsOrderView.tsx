@@ -724,7 +724,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   });
 
   // Check if market is at OI cap (zero network overhead - uses existing webData2 subscription)
-  const { isAtCap: isAtOICap } = usePerpsOICap(orderForm.asset);
+  const { isAtCap: isAtOICap } = usePerpsOICap(
+    orderForm.asset,
+    route.params?.providerId ?? orderProvider ?? undefined,
+  );
 
   // Markets data for navigation
   const { markets } = usePerpsMarkets();
@@ -2962,6 +2965,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <PerpsTradeScreen
                 asset={getPerpsDisplaySymbol(orderForm.asset)}
                 oiCapSymbol={orderForm.asset}
+                oiCapProviderId={
+                  route.params?.providerId ?? orderProvider ?? undefined
+                }
                 direction={orderForm.direction}
                 leverage={orderForm.leverage}
                 maxLeverage={maxLeverage}

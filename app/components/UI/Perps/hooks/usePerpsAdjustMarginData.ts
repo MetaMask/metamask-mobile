@@ -12,12 +12,15 @@ import {
 import { calculateLiquidationDistance } from '../utils/liquidationDistance';
 import {
   MARGIN_ADJUSTMENT_CONFIG,
+  type PerpsProviderType,
   type Position,
 } from '@metamask/perps-controller';
 
 export interface UsePerpsAdjustMarginDataParams {
   /** Symbol from route params to identify the position */
   symbol: string;
+  /** Venue of the route position; the same symbol can be open on two venues. */
+  providerId?: PerpsProviderType;
   /** Mode: 'add' or 'remove' */
   mode: 'add' | 'remove';
   /** Current user input amount */
@@ -102,7 +105,7 @@ const parseMaxLeverage = (
 export function usePerpsAdjustMarginData(
   params: UsePerpsAdjustMarginDataParams,
 ): UsePerpsAdjustMarginDataReturn {
-  const { symbol, mode, inputAmount } = params;
+  const { symbol, providerId, mode, inputAmount } = params;
   const isAddMode = mode === 'add';
 
   // Live data subscriptions
@@ -112,8 +115,13 @@ export function usePerpsAdjustMarginData(
 
   // Find live position for this symbol
   const position = useMemo(
-    () => positions?.find((p) => p.symbol === symbol) || null,
-    [positions, symbol],
+    () =>
+      positions?.find(
+        (p) =>
+          p.symbol === symbol &&
+          (!p.providerId || !providerId || p.providerId === providerId),
+      ) || null,
+    [positions, symbol, providerId],
   );
 
   const livePrices = usePerpsLivePrices({
@@ -123,8 +131,17 @@ export function usePerpsAdjustMarginData(
   });
   // Get market info for max leverage fallback
   const marketInfo = useMemo(
-    () => (symbol ? markets.find((m) => m.symbol === symbol) : null),
-    [symbol, markets],
+    () =>
+      symbol
+        ? markets.find(
+            (m) =>
+              m.symbol === symbol &&
+              (!m.providerId ||
+                !position?.providerId ||
+                m.providerId === position.providerId),
+          )
+        : null,
+    [symbol, markets, position?.providerId],
   );
   const parsedMaxLeverage = parseMaxLeverage(
     marketInfo?.maxLeverage,

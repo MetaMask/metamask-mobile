@@ -364,8 +364,15 @@ export function usePerpsClosePositionForm(
       throttleMs: 1000,
     });
   const matchingLivePosition = useMemo(
-    () => livePositions.find((p) => p.symbol === position.symbol),
-    [livePositions, position.symbol],
+    () =>
+      livePositions.find(
+        (p) =>
+          p.symbol === position.symbol &&
+          (!p.providerId ||
+            !position.providerId ||
+            p.providerId === position.providerId),
+      ),
+    [livePositions, position.symbol, position.providerId],
   );
   // Keep the route snapshot only for layout until we dismiss a gone position.
   const livePosition = matchingLivePosition ?? position;
