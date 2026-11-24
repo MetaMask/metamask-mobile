@@ -130,29 +130,45 @@ describe('CardHomeMoreSheet', () => {
     expect(Linking.openURL).toHaveBeenCalledWith('https://example.com/privacy');
   });
 
-  it('hides legal links while Immersve docs are loading without falling back to TOS', () => {
-    const { queryByTestId, getByTestId } = renderSheet({
-      hideLegalDocuments: true,
-    });
+  it('hides the TOS fallback while Immersve docs are loading', () => {
+    const { queryByTestId } = renderSheet({ hideLegalDocuments: true });
 
-    expect(queryByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeNull();
+    expect(
+      queryByTestId(CardHomeSelectors.CARD_TOS_ITEM),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps contact support while Immersve docs are loading', () => {
+    const { getByTestId } = renderSheet({ hideLegalDocuments: true });
+
     expect(
       getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
     ).toBeOnTheScreen();
   });
 
-  it('shows error and retry for Immersve instead of TOS fallback when docs unavailable', () => {
-    const onRetryLegalDocuments = jest.fn();
+  it('shows the legal docs error instead of the TOS fallback', () => {
     const { getByTestId, queryByTestId } = renderSheet({
+      showLegalDocumentsError: true,
+      onRetryLegalDocuments: jest.fn(),
+    });
+
+    expect(
+      queryByTestId(CardHomeSelectors.CARD_TOS_ITEM),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-error`),
+    ).toBeOnTheScreen();
+  });
+
+  it('retries loading the legal docs when retry is pressed', () => {
+    const onRetryLegalDocuments = jest.fn();
+    const { getByTestId } = renderSheet({
       showLegalDocumentsError: true,
       onRetryLegalDocuments,
     });
 
-    expect(queryByTestId(CardHomeSelectors.CARD_TOS_ITEM)).toBeNull();
-    expect(
-      getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-error`),
-    ).toBeOnTheScreen();
     fireEvent.press(getByTestId(`${CardHomeSelectors.CARD_TOS_ITEM}-retry`));
+
     expect(onRetryLegalDocuments).toHaveBeenCalledTimes(1);
   });
 
@@ -193,11 +209,8 @@ describe('CardHomeMoreSheet', () => {
   });
 
   it('never shows log out; that action stays in Experimental settings', () => {
-    const { queryByTestId, getByTestId } = renderSheet();
+    const { queryByTestId } = renderSheet();
 
-    expect(
-      getByTestId(CardHomeSelectors.CONTACT_SUPPORT_ITEM),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(CardHomeSelectors.LOGOUT_ITEM)).toBeNull();
+    expect(queryByTestId(CardHomeSelectors.LOGOUT_ITEM)).not.toBeOnTheScreen();
   });
 });
