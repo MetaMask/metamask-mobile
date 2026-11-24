@@ -106,7 +106,6 @@ import { ThemeContext } from '../../../util/theme';
 import Device from '../../../util/device';
 import OnboardingLoginCanvas from '../../UI/OnboardingAnimation/OnboardingLoginCanvas';
 import { getMfaErrorCode } from '@metamask/profile-sync-controller/sdk';
-import { useMfa } from '../../../util/identity/mfa';
 import type {
   MfaMethod,
   MfaReason,
@@ -118,6 +117,10 @@ import {
   WalletRecoveryVerify,
 } from './WalletRecovery';
 import type { WalletRecoveryMethod } from './WalletRecovery/WalletRecoveryVerify';
+import {
+  listActiveSocialLoginMethods,
+  verifyForSocialLogin,
+} from './util/lockedSocialMfa';
 import { promptPostMfaDeviceBiometrics } from './promptPostMfaDeviceBiometrics';
 
 type WalletRecoveryStep = 'loading' | 'verify' | 'password'; // existing password — only from custom picker (or no-MFA fallback)
@@ -593,7 +596,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const continueAfterVerifiedInFlightRef = useRef(false);
   /** Arrival verify (OS sheet) is in flight. Hardware back must not leave it. */
   const lockedVerifyInFlightRef = useRef(false);
-  const { listActiveSocialLoginMethods, verifyForSocialLogin } = useMfa();
 
   const lockedMfaReason = useMemo(
     (): MfaReason => ({
@@ -643,7 +645,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [componentAuthenticationType, requestBiometricsAccessControlForIOS]);
 
   /**
-   * Pre-password locked social MFA via Account kit `verifyForSocialLogin`.
+   * Pre-password locked social MFA via host `lockedSocialMfa` helpers
+   * (kit primitives only — no Accounts `useMfa` / `flow.ts` changes).
    * Arrival tries passkey then totp. Email is included only for Telegram,
    * where that inbox is not the sign-in factor. Social pairing runs inside
    * `verifyForSocialLogin`.
@@ -675,8 +678,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       await continueAfterVerified();
     } catch (error) {
       const code = getMfaErrorCode(error);
-      // OS passkey cancel, or back from the in-app passkey retry screen →
-      // full-page methods list. Passkey failures stay on retry until then.
+      // OS passkey cancel (host watcher → kit cancel) or back from kit
+      // passkey retry → full-page methods list.
       if (code === 'flow_cancelled') {
         Logger.log('OAuthRehydration: locked social MFA', {
           status: 'fallback_verify',
@@ -712,8 +715,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     canOfferSocialMfaVerify,
     authConnection,
     lockedMfaReason,
-    verifyForSocialLogin,
-    listActiveSocialLoginMethods,
     continueAfterVerified,
   ]);
 
@@ -764,12 +765,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         setVerifyBusy(false);
       }
     },
-    [
-      authConnection,
-      lockedMfaReason,
-      verifyForSocialLogin,
-      continueAfterVerified,
-    ],
+    [authConnection, lockedMfaReason, continueAfterVerified],
   );
 
   const onRehydrateLogin = useCallback(async () => {

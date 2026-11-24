@@ -214,16 +214,11 @@ jest.mock('../../UI/Money/selectors/featureFlags', () => {
 
 const mockVerifyForSocialLogin = jest.fn();
 const mockListActiveSocialLoginMethods = jest.fn();
-jest.mock('../../../util/identity/mfa', () => ({
-  useMfa: () => ({
-    credentials: [],
-    verifyOrEnroll: jest.fn(),
-    enroll: jest.fn(),
-    listActiveSocialLoginMethods: (...args: unknown[]) =>
-      mockListActiveSocialLoginMethods(...args),
-    verifyForSocialLogin: (...args: unknown[]) =>
-      mockVerifyForSocialLogin(...args),
-  }),
+jest.mock('./util/lockedSocialMfa', () => ({
+  listActiveSocialLoginMethods: (...args: unknown[]) =>
+    mockListActiveSocialLoginMethods(...args),
+  verifyForSocialLogin: (...args: unknown[]) =>
+    mockVerifyForSocialLogin(...args),
 }));
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -332,6 +327,7 @@ describe('OAuthRehydration', () => {
     mockVerifyForSocialLogin.mockReset();
     mockListActiveSocialLoginMethods.mockReset();
     mockListActiveSocialLoginMethods.mockResolvedValue([]);
+    mockVerifyForSocialLogin.mockResolvedValue({});
     mockTraceDefault();
     (getTraceContextMock as jest.Mock).mockReturnValue(undefined);
   });

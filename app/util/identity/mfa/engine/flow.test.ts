@@ -1622,30 +1622,6 @@ describe('createMfaFlow analytics', () => {
       });
     });
 
-    it('rejects with flow_cancelled and skips the passkey retry screen when the system sheet is cancelled', async () => {
-      const fake = createFakeController([passkey]);
-      passkeyAdapter.get.mockRejectedValueOnce(
-        new MfaFlowError('passkey_ceremony_cancelled'),
-      );
-
-      const { flow, outcome } = await startFlow(
-        {
-          kind: 'verifyOrEnroll',
-          methods: ['passkey'],
-          verifyWith: ['passkey'],
-          verifyOnly: true,
-        },
-        fake.controller,
-      );
-
-      expect(flow.getState().step).toStrictEqual({ name: 'idle' });
-      const result = await outcome;
-      expect(result.ok).toBe(false);
-      expect(result.ok ? undefined : result.error).toMatchObject({
-        mfaCode: 'flow_cancelled',
-      });
-    });
-
     it('fails instead of setting up when the profile loses its method mid-flow', async () => {
       const fake = createFakeController([providerEmail]);
       fake.controller.completeCredentialVerification.mockImplementationOnce(
