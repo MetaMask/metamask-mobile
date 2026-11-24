@@ -112,6 +112,9 @@ export function useImmersveCardProvisioning(
   const retryDroppedOfflineRef = useRef(false);
   const createCardStartedRef = useRef(false);
   const [recheckCount, setRecheckCount] = useState(0);
+  // A review self-check in flight. Pauses the self-check timer without
+  // touching hasResolvedStatus, so the review banner and card art stay put.
+  const [isSelfCheckRunning, setIsSelfCheckRunning] = useState(false);
   const [pendingAction, setPendingAction] = useState<ImmersveNextAction | null>(
     null,
   );
@@ -163,6 +166,7 @@ export function useImmersveCardProvisioning(
       setHasResolvedStatus(false);
       setPendingAction(null);
       handled.current = false;
+      setIsSelfCheckRunning(false);
       quietRecheckAttemptRef.current = 0;
       errorRetryCountRef.current = 0;
       lastRoutedActionTypeRef.current = null;
@@ -326,17 +330,18 @@ export function useImmersveCardProvisioning(
       !isProvisioning ||
       !isFocused ||
       isReconciling ||
+      isSelfCheckRunning ||
       pendingAction?.type !== 'pending'
     ) {
       return undefined;
     }
     // A review rechecks every 15s on every network, the same cadence as Card
-    // home's own review poll. A slower provisioning interval still wins.
-    // Same as the other recheck paths: drop the resolved flag first so the
-    // check reads as reconciling, which also pauses this timer until it lands.
+    // home's own review poll. A slower provisioning interval still wins. The
+    // check runs quietly: the screen keeps the review state, and the timer
+    // pauses until the check lands instead of cancelling it.
     const interval = setInterval(
       () => {
-        setHasResolvedStatus(false);
+        setIsSelfCheckRunning(true);
         setRecheckCount((count) => count + 1);
       },
       Math.max(pollIntervalMs, CARD_SETUP_PENDING_POLL_MS),
@@ -348,6 +353,7 @@ export function useImmersveCardProvisioning(
     isProvisioning,
     isFocused,
     isReconciling,
+    isSelfCheckRunning,
     pendingAction?.type,
   ]);
 
@@ -613,6 +619,7 @@ export function useImmersveCardProvisioning(
       } finally {
         if (!cancelled) {
           setHasResolvedStatus(true);
+          setIsSelfCheckRunning(false);
         }
       }
     })();
