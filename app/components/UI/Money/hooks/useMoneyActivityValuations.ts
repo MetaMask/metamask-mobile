@@ -421,6 +421,7 @@ export function useMoneyActivityValuations({
           MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_SHARE_VALUATIONS,
           moneyAddress.toLowerCase(),
           group.params,
+          group.targets.map(getTargetIdentity).sort(compareStrings),
         ],
         enabled: enabled && moneyAddress !== '' && canFetch,
         initialData: group.cached,

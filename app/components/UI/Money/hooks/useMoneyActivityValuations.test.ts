@@ -199,8 +199,8 @@ describe('useMoneyActivityValuations', () => {
     const [query] = getQueryOptions(0);
     await query.queryFn?.();
 
-    expect(JSON.stringify(query.queryKey)).toContain(TX_HASH_2);
-    expect(JSON.stringify(query.queryKey)).not.toContain(TX_HASH);
+    expect(JSON.stringify(query.queryKey[2])).toContain(TX_HASH_2);
+    expect(JSON.stringify(query.queryKey[2])).not.toContain(TX_HASH);
     expect(mockEngineCall).toHaveBeenCalledWith(
       'MoneyAccountApiDataService:fetchVaultShareValuations',
       ACCOUNT,

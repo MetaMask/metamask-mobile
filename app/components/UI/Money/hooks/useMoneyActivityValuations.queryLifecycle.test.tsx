@@ -9,6 +9,7 @@ import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import {
   MONEY_ACCOUNT_ADDRESS as ACCOUNT,
+  OTHER_TX_HASH,
   PREMIUM_VAULT,
   VAULT_SHARE_TOKENS,
   cardActivity,
@@ -110,7 +111,7 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     client.clear();
   });
 
-  it('changes the valuation query identity when a later page adds a vault target', async () => {
+  it('changes valuation query identity for a new hash and vault target pair', async () => {
     const premiumActivity = {
       ...activity,
       token: {
@@ -119,8 +120,19 @@ describe('useMoneyActivityValuations query lifecycle', () => {
         symbol: 'pvmUSD',
       },
     };
+    const existingPremiumActivity = {
+      ...premiumActivity,
+      hash: OTHER_TX_HASH,
+    };
     const valuationResponse = vaultShareValuationResponse(
-      [cardValuation(), cardValuation('968399998', PREMIUM_VAULT)],
+      [
+        cardValuation(),
+        {
+          ...cardValuation('968399997', PREMIUM_VAULT),
+          hash: OTHER_TX_HASH,
+        },
+        cardValuation('968399998', PREMIUM_VAULT),
+      ],
       ACCOUNT,
     );
     mockEngineCall.mockImplementation(async (action: string) => {
@@ -142,7 +154,7 @@ describe('useMoneyActivityValuations query lifecycle', () => {
           enabled: true,
         }),
       {
-        initialProps: { pages: [[activity]] },
+        initialProps: { pages: [[activity, existingPremiumActivity]] },
         wrapper: ({ children }) => (
           <QueryWrapper client={client}>{children}</QueryWrapper>
         ),
@@ -169,7 +181,9 @@ describe('useMoneyActivityValuations query lifecycle', () => {
     );
     const initialQueryKey = JSON.stringify(getValuationQueries()[0].queryKey);
 
-    rerender({ pages: [[activity], [premiumActivity]] });
+    rerender({
+      pages: [[activity, existingPremiumActivity], [premiumActivity]],
+    });
 
     await waitFor(() =>
       expect(
@@ -189,12 +203,14 @@ describe('useMoneyActivityValuations query lifecycle', () => {
 
     const valuationQueries = getValuationQueries();
     expect(valuationQueries).toHaveLength(2);
+    expect(valuationQueries[1].queryKey[2]).toEqual(
+      valuationQueries[0].queryKey[2],
+    );
     expect(JSON.stringify(valuationQueries[1].queryKey)).not.toBe(
       initialQueryKey,
     );
-    expect(JSON.stringify(valuationQueries[1].queryKey)).toContain(
-      PREMIUM_VAULT.toLowerCase(),
-    );
+    expect(valuationQueries[0].queryKey[3]).toHaveLength(2);
+    expect(valuationQueries[1].queryKey[3]).toHaveLength(3);
 
     unmount();
     client.clear();
