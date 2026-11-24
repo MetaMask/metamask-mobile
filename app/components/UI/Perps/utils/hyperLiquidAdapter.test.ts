@@ -994,6 +994,7 @@ describe('hyperLiquidAdapter', () => {
         szDecimals: 5,
         maxLeverage: 50,
         marginTableId: 1,
+        marginTiers: [{ lowerBound: 0, maxLeverage: 50 }],
         onlyIsolated: true,
         isDelisted: true,
       });
@@ -1014,6 +1015,7 @@ describe('hyperLiquidAdapter', () => {
         szDecimals: 4,
         maxLeverage: 25,
         marginTableId: 2,
+        marginTiers: [{ lowerBound: 0, maxLeverage: 25 }],
         onlyIsolated: undefined,
         isDelisted: undefined,
       });
