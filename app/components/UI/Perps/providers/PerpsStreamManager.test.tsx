@@ -2001,6 +2001,41 @@ describe('PerpsStreamManager', () => {
       );
     });
 
+    it('routes prewarmed shared and Lighter-only symbols to the requested venue', async () => {
+      let deliver: ((updates: PriceUpdate[]) => void) | undefined;
+      mockSubscribeToPrices.mockImplementation(({ callback }) => {
+        deliver = callback;
+        return jest.fn();
+      });
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+      });
+      const listener = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC', 'kPEPE'],
+        providerId: 'lighter',
+        throttleMs: 0,
+        callback: listener,
+      });
+      const tick = { timestamp: 123, isTradable: true };
+      act(() =>
+        deliver?.([
+          { ...tick, symbol: 'BTC', providerId: 'lighter', price: '101' },
+          { ...tick, symbol: 'BTC', providerId: 'hyperliquid', price: '100' },
+          { ...tick, symbol: 'kPEPE', providerId: 'lighter', price: '2' },
+        ]),
+      );
+      expect(listener).toHaveBeenLastCalledWith({
+        BTC: expect.objectContaining({ price: '101' }),
+        kPEPE: expect.objectContaining({ price: '2' }),
+      });
+      expect(
+        testStreamManager.prices.getSnapshotForSymbol('BTC', 'hyperliquid')
+          ?.price,
+      ).toBe('100');
+    });
+
     it('keeps the first live price update immediate after cached prewarm data', async () => {
       let prewarmCallback: ((updates: PriceUpdate[]) => void) | undefined;
       const makePrice = (price: string): PriceUpdate => ({

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import {
   type PriceUpdate,
@@ -64,56 +64,31 @@ export function usePerpsLiveFocusedPrice(
   const stream = usePerpsStream();
   const { key: marketContextKey, isReady: isMarketContextReady } =
     usePerpsMarketContext();
-  const [priceState, setPriceState] = useState<
-    { contextKey: string; symbol: string; update: PriceUpdate } | undefined
-  >(undefined);
-
-  // Track the symbol that produced the current cached value so we can clear
-  // stale data only when the symbol changes, not on every effect re-run
-  // (stream is a singleton in production but tests may return a new object
-  // reference each render, which would otherwise trigger spurious resets).
-  const activeSymbolRef = useRef<string | null>(null);
-
+  const identity = JSON.stringify([marketContextKey, providerId, symbol]);
+  const [priceState, setPriceState] = useState<{
+    identity: string;
+    update: PriceUpdate;
+  }>();
   useEffect(() => {
     if (!symbol || !enabled || !isMarketContextReady) {
-      activeSymbolRef.current = null;
       setPriceState(undefined);
       return;
     }
-
-    // Clear stale data only when switching to a different symbol
-    if (
-      activeSymbolRef.current !== null &&
-      activeSymbolRef.current !== symbol
-    ) {
-      setPriceState(undefined);
-    }
-    activeSymbolRef.current = symbol;
-
+    setPriceState((prev) => (prev?.identity === identity ? prev : undefined));
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
       providerId,
       callback: (update) => {
-        setPriceState(
-          update ? { contextKey: marketContextKey, symbol, update } : undefined,
-        );
+        setPriceState(update ? { identity, update } : undefined);
       },
     });
 
     return () => {
       unsubscribe();
     };
-  }, [
-    stream,
-    symbol,
-    enabled,
-    isMarketContextReady,
-    marketContextKey,
-    providerId,
-  ]);
+  }, [identity, stream, symbol, enabled, isMarketContextReady, providerId]);
 
-  return priceState?.symbol === symbol &&
-    priceState.contextKey === marketContextKey
+  return enabled && isMarketContextReady && priceState?.identity === identity
     ? priceState.update
     : undefined;
 }

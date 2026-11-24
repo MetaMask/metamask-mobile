@@ -5,24 +5,15 @@ import {
   type PerpsProviderAccountStateEntry,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
+import { useSelector } from 'react-redux';
+import { selectPerpsProvider } from '../../selectors/perpsController';
 import Engine from '../../../../../core/Engine';
 import { usePerpsLiveAccount } from './usePerpsLiveAccount';
 import { usePerpsConnection } from '../usePerpsConnection';
 import { hasPreloadedData } from './hasCachedPerpsData';
 
 /** Per-venue balance view for one enabled venue (TAT-4407). */
-export interface PerpsVenueBalance {
-  providerId: PerpsProviderType;
-  /**
-   * Stream status for the venue: `available` carries the venue's own
-   * account state, `pending` means it has not reported yet, and
-   * `unavailable` means its read failed. A venue that is pending or
-   * unavailable is never shown as zero.
-   */
-  status: PerpsProviderAccountStateEntry['status'];
-  /** The venue's own account snapshot when available. */
-  state?: AccountState;
-}
+export type PerpsVenueBalance = PerpsProviderAccountStateEntry;
 
 export interface UsePerpsVenueBalancesReturn {
   /** One entry per venue that has reported or is expected on the stream. */
@@ -35,7 +26,7 @@ export interface UsePerpsVenueBalancesReturn {
    * direct-mode streams, where the total is the single venue.
    */
   aggregate: AccountAggregateMetadata | null;
-  /** True once the first real account update has arrived. */
+  /** Waiting for the initial account snapshot, without a connection error. */
   isInitialLoading: boolean;
 }
 
@@ -62,33 +53,27 @@ export function usePerpsVenueBalances(
   });
   const { error: connectionError } = usePerpsConnection();
 
+  const activeProvider = useSelector(selectPerpsProvider);
+
   return useMemo(() => {
     const entries: PerpsVenueBalance[] = [];
     if (account?.providerStates && Object.keys(account.providerStates).length) {
-      Object.values(account.providerStates).forEach((entry) => {
-        entries.push({
-          providerId: entry.providerId,
-          status: entry.status,
-          ...(entry.status === 'available' ? { state: entry.state } : {}),
-        });
-      });
+      entries.push(...Object.values(account.providerStates));
     } else if (account) {
       // Direct mode: the top-level state is the single venue's entry.
-      entries.push({
-        providerId:
-          account.providerId ??
-          aggregate?.availableProviders[0] ??
-          'hyperliquid',
-        status: 'available',
-        state: account,
-      });
+      const providerId =
+        account.providerId ??
+        aggregate?.availableProviders[0] ??
+        (activeProvider !== 'aggregated' ? activeProvider : undefined);
+      if (providerId)
+        entries.push({ providerId, status: 'available', state: account });
     } else {
       // Before the stream connects, the persisted per-venue balances name the
       // venues the user has money on. Report them as unavailable, never zero.
       const persisted = Engine.context.PerpsController?.state?.perpsBalances as
         | Record<string, unknown>
         | undefined;
-      if (!isInitialLoading && persisted && connectionError) {
+      if (persisted && connectionError) {
         Object.keys(persisted).forEach((providerId) => {
           entries.push({
             providerId: providerId as PerpsProviderType,
@@ -103,8 +88,9 @@ export function usePerpsVenueBalances(
       total: account,
       aggregate: aggregate ?? null,
       isInitialLoading:
-        isInitialLoading ||
-        (!account && !hasPreloadedData('cachedAccountState')),
+        !connectionError &&
+        (isInitialLoading ||
+          (!account && !hasPreloadedData('cachedAccountState'))),
     };
-  }, [account, aggregate, isInitialLoading, connectionError]);
+  }, [account, aggregate, isInitialLoading, connectionError, activeProvider]);
 }

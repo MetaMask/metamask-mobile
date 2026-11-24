@@ -108,10 +108,6 @@ export function usePerpsAdjustMarginData(
   // Live data subscriptions
   const { positions, isInitialLoading } = usePerpsLivePositions();
   const { account } = usePerpsLiveAccount();
-  const livePrices = usePerpsLivePrices({
-    symbols: symbol ? [symbol] : [],
-    throttleMs: 1000,
-  });
   const { markets } = usePerpsMarkets();
 
   // Find live position for this symbol
@@ -120,6 +116,11 @@ export function usePerpsAdjustMarginData(
     [positions, symbol],
   );
 
+  const livePrices = usePerpsLivePrices({
+    providerId: position?.providerId,
+    symbols: symbol ? [symbol] : [],
+    throttleMs: 1000,
+  });
   // Get market info for max leverage fallback
   const marketInfo = useMemo(
     () => (symbol ? markets.find((m) => m.symbol === symbol) : null),

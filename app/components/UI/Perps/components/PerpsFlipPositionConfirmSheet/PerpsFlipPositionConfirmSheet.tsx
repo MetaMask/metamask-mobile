@@ -77,6 +77,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
 
   // Get current price
   const prices = usePerpsLivePrices({
+    providerId: position.providerId,
     symbols: [position.symbol],
     throttleMs: 1000,
   });

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef } from 'react';
 import {
+  type PerpsProviderType,
   DECIMAL_PRECISION_CONFIG,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -43,6 +44,7 @@ export interface PerpsLimitPricePresetTestIDs {
 
 export interface UsePerpsLimitPriceInputParams {
   asset: string;
+  providerId?: PerpsProviderType;
   currentPrice: number;
   /** Direction of the order being placed, i.e. the opposite of a closing position. */
   direction: 'long' | 'short';
@@ -83,6 +85,7 @@ export interface UsePerpsLimitPriceInputResult {
  */
 export function usePerpsLimitPriceInput({
   asset,
+  providerId,
   currentPrice: passedCurrentPrice,
   direction,
   limitPrice,
@@ -95,6 +98,7 @@ export function usePerpsLimitPriceInput({
   const inputMethodRef = useRef<string | null>(null);
 
   const priceData = usePerpsLivePrices({
+    providerId,
     symbols: enabled ? [asset] : [],
     throttleMs: 1000,
   });

@@ -451,9 +451,35 @@ describe('usePerpsLivePrices', () => {
     // Change to completely different symbols
     rerender({ symbols: ['SOL-PERP', 'AVAX-PERP'] });
 
-    // Prices should be reset (implementation may vary)
-    // This test assumes prices are maintained across symbol changes
-    // Update if the implementation clears prices on symbol change
-    expect(result.current['BTC-PERP']).toBeDefined();
+    expect(result.current).toEqual({});
+  });
+
+  it('keeps shared BTC prices separate and delivers a Lighter-only symbol', () => {
+    mockSubscribeToSymbols.mockReturnValue(jest.fn());
+    const { result } = renderHook(() =>
+      usePerpsLivePrices({
+        symbols: ['hyperliquid:BTC', 'lighter:BTC', 'lighter:kPEPE'],
+      }),
+    );
+    const [hyper, lighter] = mockSubscribeToSymbols.mock.calls.map(
+      ([subscription]) => subscription,
+    );
+    expect(hyper).toMatchObject({
+      providerId: 'hyperliquid',
+      symbols: ['BTC'],
+    });
+    expect(lighter).toMatchObject({
+      providerId: 'lighter',
+      symbols: ['BTC', 'kPEPE'],
+    });
+    act(() => {
+      hyper.callback({ BTC: { price: '100' } });
+      lighter.callback({ BTC: { price: '101' }, kPEPE: { price: '2' } });
+    });
+    expect(result.current).toMatchObject({
+      'hyperliquid:BTC': { price: '100' },
+      'lighter:BTC': { price: '101' },
+      'lighter:kPEPE': { price: '2' },
+    });
   });
 });

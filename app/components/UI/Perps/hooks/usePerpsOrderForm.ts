@@ -12,6 +12,7 @@ import {
   selectTradeConfiguration,
   selectPendingTradeConfiguration,
   selectSelectedOrderType,
+  type PerpsProviderType,
   type OrderFormState,
 } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
@@ -58,6 +59,7 @@ export interface PerpsOrderPriceFieldHandlers {
 }
 
 interface UsePerpsOrderFormParams {
+  providerId?: PerpsProviderType;
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
   initialAmount?: string;
@@ -157,6 +159,7 @@ export function usePerpsOrderForm(
   const { account } = usePerpsLiveAccount();
   const { positions } = usePerpsLivePositions();
   const prices = usePerpsLivePrices({
+    providerId: params.providerId,
     symbols: [initialAsset],
     throttleMs: 1000,
   });

@@ -110,6 +110,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
 
   const limitPriceInput = usePerpsLimitPriceInput({
+    providerId: position.providerId,
     asset: position.symbol,
     currentPrice,
     // Closing a long is a sell, so the presets mirror the opposite direction.
@@ -196,6 +197,7 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
       testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
     >
       <PerpsClosePositionSheetHeader
+        providerId={position.providerId}
         symbol={position.symbol}
         isLong={isLong}
         leverage={livePosition.leverage?.value}

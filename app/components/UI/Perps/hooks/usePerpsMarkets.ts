@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -68,6 +68,8 @@ export interface UsePerpsMarketsResult {
 }
 
 export interface UsePerpsMarketsOptions {
+  /** Return every venue listing, independent of browsing preferences. */
+  fullCatalog?: boolean;
   /**
    * Enable automatic polling for live updates
    * @default false
@@ -209,20 +211,24 @@ export const usePerpsMarkets = (
   const defaultProvider =
     useSelector(selectPerpsDefaultProvider) ?? 'hyperliquid';
   const initialChannelMarkets = streamManager.marketData.getSnapshot();
-  const [markets, setMarkets] = useState<PerpsMarketRow[]>(() => {
-    const cached =
+  const [catalog, setCatalog] = useState<PerpsMarketData[]>(
+    () =>
       initialChannelMarkets ??
-      getPreloadedData<PerpsMarketData[]>('cachedMarketData');
-    if (!cached) {
-      return [];
-    }
-    return toRows(cached, {
-      showZeroVolume,
-      showZeroOpenInterest,
-      selectedProviderIds,
-      defaultProvider,
-    });
-  });
+      getPreloadedData<PerpsMarketData[]>('cachedMarketData') ??
+      [],
+  );
+  const markets = options.fullCatalog
+    ? filterAndSortMarkets({
+        marketData: catalog,
+        showZeroVolume: true,
+        showZeroOpenInterest: true,
+      })
+    : toRows(catalog, {
+        showZeroVolume,
+        showZeroOpenInterest,
+        selectedProviderIds,
+        defaultProvider,
+      });
   const [isLoading, setIsLoading] = useState(() => {
     if (initialChannelMarkets !== null && initialChannelMarkets !== undefined) {
       return false;
@@ -251,22 +257,11 @@ export const usePerpsMarkets = (
       return;
     }
     previousMarketIdentityKeyRef.current = marketIdentityKey;
-    setMarkets([]);
+    setCatalog([]);
     setError(null);
     setHasResolvedInitialData(skipInitialFetch);
     setIsLoading(!skipInitialFetch);
   }, [marketIdentityKey, skipInitialFetch]);
-
-  // Helper function to filter and sort markets by volume
-  const sortMarketsByVolume = useCallback(
-    (marketData: PerpsMarketData[]) =>
-      filterAndSortMarkets({
-        marketData,
-        showZeroVolume,
-        showZeroOpenInterest,
-      }),
-    [showZeroVolume, showZeroOpenInterest],
-  );
 
   // Manual refresh function
   const refresh = useCallback(async (): Promise<void> => {
@@ -317,13 +312,7 @@ export const usePerpsMarkets = (
         const receiveTime = Date.now();
         const timeToData = receiveTime - subscriptionStartTime;
         if (marketData && marketData.length > 0) {
-          const rows = toRows(marketData, {
-            showZeroVolume,
-            showZeroOpenInterest,
-            selectedProviderIds,
-            defaultProvider,
-          });
-          setMarkets(rows);
+          setCatalog(marketData);
           setIsLoading(false);
           setError(null);
 
@@ -342,7 +331,7 @@ export const usePerpsMarkets = (
           }
         } else if (marketData) {
           // Empty array
-          setMarkets([]);
+          setCatalog([]);
           setIsLoading(false);
           if (isFirstUpdate) {
             DevLogger.log('Perps: No market data available', {
@@ -363,12 +352,7 @@ export const usePerpsMarkets = (
     isMarketSubscriptionReady,
     marketIdentityKey,
     streamManager.marketData,
-    sortMarketsByVolume,
     skipInitialFetch,
-    showZeroVolume,
-    showZeroOpenInterest,
-    selectedProviderIds,
-    defaultProvider,
   ]);
 
   // Polling effect

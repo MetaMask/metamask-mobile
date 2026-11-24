@@ -545,9 +545,22 @@ describe('Exchange (venue) filter — TAT-4407', () => {
   describe('with two venues available', () => {
     withLighterBuildEnabled();
 
-    it('shows the exchange filter trigger', async () => {
+    it.each([
+      { venues: ['hyperliquid'], label: '1 exchange' },
+      { venues: ['hyperliquid', 'lighter'], label: '2 exchanges' },
+    ] as const)('renders $label', async ({ venues, label }) => {
       const twoExchange = perpsTwoExchangeState('bothFunded');
-      renderPerpsMarketListView(twoExchange);
+      renderPerpsMarketListView({
+        ...twoExchange,
+        overrides: {
+          ...twoExchange.overrides,
+          settings: {
+            ...twoExchange.overrides.settings,
+            perpsMarketListPreferences: { selectedProviderIds: [...venues] },
+          },
+        },
+      });
+      expect(await screen.findAllByText(label)).not.toHaveLength(0);
 
       const sortFiltersId = PerpsMarketListViewSelectorsIDs.SORT_FILTERS;
       expect(

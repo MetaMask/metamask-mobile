@@ -1015,6 +1015,17 @@ describe('usePerpsMarkets › grouped market rows (TAT-4407)', () => {
     expect(new Set(rowIds).size).toBe(rowIds.length);
   });
 
+  it('retains both venue listings for enrichment even when one is hidden in the list', () => {
+    configureVenueSelectors(['hyperliquid'], 'hyperliquid');
+    mockChannelMarketsSnapshot = groupableRows('hyperliquid');
+    const { result } = renderHook(() => usePerpsMarkets({ fullCatalog: true }));
+    expect(
+      result.current.markets
+        .filter((m) => m.symbol === 'BTC')
+        .map((m) => m.providerId)
+        .sort(),
+    ).toEqual(['hyperliquid', 'lighter']);
+  });
   it('shows the other provider data when the default provider is filtered out', async () => {
     configureVenueSelectors(['lighter'], 'hyperliquid');
     mockChannelMarketsSnapshot = groupableRows('hyperliquid');

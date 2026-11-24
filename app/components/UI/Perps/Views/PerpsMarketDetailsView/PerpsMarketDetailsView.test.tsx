@@ -1698,6 +1698,7 @@ describe('PerpsMarketDetailsView', () => {
     );
 
     expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith({
+      fullCatalog: true,
       skipInitialFetch: false,
     });
     expect(getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL)).toBeOnTheScreen();

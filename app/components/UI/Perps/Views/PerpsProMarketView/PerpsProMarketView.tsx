@@ -309,6 +309,7 @@ const PerpsProMarketView = ({
     error: marketsError,
     hasResolvedInitialData: haveMarketsResolved = false,
   } = usePerpsMarkets({
+    fullCatalog: true,
     skipInitialFetch: hasFormattedMaxLeverage,
   });
   const enrichedMarket = useMemo(
@@ -749,6 +750,7 @@ const PerpsProMarketView = ({
             layout={LinearTransition.duration(AnimationDuration.Fast)}
           >
             <PerpsProMarketStatsBar
+              providerId={market?.providerId}
               symbol={market.symbol}
               nextFundingTime={market.nextFundingTime}
               fundingIntervalHours={market.fundingIntervalHours}
@@ -759,6 +761,7 @@ const PerpsProMarketView = ({
                 context (TAT-3643). Keyed by symbol so form state resets when the
                 market changes. */}
             <PerpsOrderProvider
+              providerId={market.providerId}
               key={currentMarketIdentityKey}
               initialAsset={market.symbol}
               initialDirection={initialDirection}

@@ -155,6 +155,14 @@ const PerpsMarketListView = ({
     showZeroVolume: __DEV__,
   });
 
+  const count = exchangeFilterState?.selectedProviderIds.length ?? 1;
+  const exchangeFilterLabel = strings(
+    count > 1
+      ? 'perps.exchange_filter.trigger_plural'
+      : 'perps.exchange_filter.trigger',
+    { count },
+  );
+
   const { searchQuery, setSearchQuery } = searchState;
 
   // Destructure sort state for easier access
@@ -860,9 +868,7 @@ const PerpsMarketListView = ({
                 ? () => setIsExchangeFilterSheetVisible(true)
                 : undefined
             }
-            exchangeFilterLabel={strings('perps.exchange_filter.trigger', {
-              count: exchangeFilterState?.selectedProviderIds.length ?? 1,
-            })}
+            exchangeFilterLabel={exchangeFilterLabel}
             testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
           />
           <PerpsWatchlistMarkets
@@ -962,9 +968,7 @@ const PerpsMarketListView = ({
             ? () => setIsExchangeFilterSheetVisible(true)
             : undefined
         }
-        exchangeFilterLabel={strings('perps.exchange_filter.trigger', {
-          count: exchangeFilterState?.selectedProviderIds.length ?? 1,
-        })}
+        exchangeFilterLabel={exchangeFilterLabel}
         testID={`${PerpsMarketListViewSelectorsIDs.SORT_FILTERS}-secondary`}
       />
     );

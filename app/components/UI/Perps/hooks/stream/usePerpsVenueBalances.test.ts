@@ -8,6 +8,18 @@ import { usePerpsVenueBalances } from './usePerpsVenueBalances';
 import { usePerpsLiveAccount } from './usePerpsLiveAccount';
 import { usePerpsConnection } from '../usePerpsConnection';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (
+    selector: typeof import('../../selectors/perpsController').selectPerpsProvider,
+  ) =>
+    selector({
+      engine: {
+        backgroundState: { PerpsController: { activeProvider: 'lighter' } },
+      },
+    } as Parameters<typeof selector>[0]),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -110,9 +122,9 @@ describe('usePerpsVenueBalances (TAT-4407)', () => {
       (v) => v.providerId === 'lighter',
     );
     expect(hyper).toMatchObject({ status: 'available' });
-    expect(hyper?.state?.totalBalance).toBe('100');
+    expect(hyper).toMatchObject({ state: { totalBalance: '100' } });
     expect(lighter).toMatchObject({ status: 'available' });
-    expect(lighter?.state?.totalBalance).toBe('50');
+    expect(lighter).toMatchObject({ state: { totalBalance: '50' } });
     // The combined total is the aggregated top level.
     expect(result.current.total?.totalBalance).toBe('150');
     expect(result.current.aggregate?.status).toBe('complete');
@@ -131,7 +143,10 @@ describe('usePerpsVenueBalances (TAT-4407)', () => {
     expect(result.current.venues[0]).toMatchObject({
       status: 'available',
     });
-    expect(result.current.venues[0].state?.totalBalance).toBe('100');
+    expect(result.current.venues[0]).toMatchObject({
+      providerId: 'lighter',
+      state: { totalBalance: '100' },
+    });
     expect(result.current.total?.totalBalance).toBe('100');
     expect(result.current.aggregate).toBeNull();
   });
@@ -162,7 +177,7 @@ describe('usePerpsVenueBalances (TAT-4407)', () => {
       (v) => v.providerId === 'lighter',
     );
     expect(lighter?.status).toBe('pending');
-    expect(lighter?.state).toBeUndefined();
+    expect(lighter).not.toHaveProperty('state');
     expect(result.current.aggregate?.status).toBe('partial');
   });
 
@@ -175,7 +190,7 @@ describe('usePerpsVenueBalances (TAT-4407)', () => {
     };
     mockUsePerpsLiveAccount.mockReturnValue({
       account: null,
-      isInitialLoading: false,
+      isInitialLoading: true,
       aggregate: null,
     });
     mockUsePerpsConnection.mockReturnValue({
@@ -194,5 +209,6 @@ describe('usePerpsVenueBalances (TAT-4407)', () => {
       true,
     );
     expect(result.current.total).toBeNull();
+    expect(result.current.isInitialLoading).toBe(false);
   });
 });

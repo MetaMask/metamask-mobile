@@ -847,12 +847,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
 
   // Fast focused price via activeAssetCtx projection (~0.5 s)
   const focusedPriceUpdate = usePerpsLiveFocusedPrice({
+    providerId: route.params?.providerId ?? orderProvider ?? undefined,
     symbol: isDataReady ? orderForm.asset : '',
     enabled: isDataReady,
   });
 
   // allMids baseline as first-render fallback (~2 s)
   const prices = usePerpsLivePrices({
+    providerId: route.params?.providerId ?? orderProvider ?? undefined,
     symbols: isDataReady ? [orderForm.asset] : [],
     throttleMs: !isDataReady ? 0 : 1000,
   });
@@ -2816,7 +2818,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ? cachedChart
             : null,
         focusedPrice: stream.focusedPrice.getSnapshot() ?? null,
-        cachedPrice: stream.prices.getSnapshotForSymbol(orderForm.asset),
+        cachedPrice: stream.prices.getSnapshotForSymbol(
+          orderForm.asset,
+          route.params?.providerId ?? orderProvider ?? undefined,
+        ),
       });
     }
     const tradeSheetHeaderPrice = hasLiveHeaderPrice
@@ -3037,6 +3042,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             ),
             leverage: (
               <PerpsTradeLeverageScreen
+                providerId={
+                  route.params?.providerId ?? orderProvider ?? undefined
+                }
                 onConfirm={handleLeverageConfirm}
                 leverage={orderForm.leverage}
                 minLeverage={1}
@@ -3085,6 +3093,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     <SafeAreaView style={styles.container} edges={['bottom']}>
       {/* Header */}
       <PerpsOrderHeader
+        providerId={route.params?.providerId ?? orderProvider ?? undefined}
         asset={orderForm.asset}
         price={assetData.price}
         orderType={orderForm.type}
@@ -3547,6 +3556,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Leverage Selector */}
       {isLeverageVisible && (
         <PerpsLeverageBottomSheet
+          providerId={route.params?.providerId ?? orderProvider ?? undefined}
           isVisible={isLeverageVisible}
           onClose={() => setIsLeverageVisible(false)}
           onConfirm={(leverage, inputMethod) => {
@@ -3612,6 +3622,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       {/* Limit Price Bottom Sheet */}
       {isLimitPriceVisible && (
         <PerpsLimitPriceBottomSheet
+          providerId={route.params?.providerId ?? orderProvider ?? undefined}
           isVisible={isLimitPriceVisible}
           onClose={() => {
             setIsLimitPriceVisible(false);
@@ -3749,6 +3760,7 @@ const PerpsOrderViewForm: React.FC<{ openStartTime?: number }> = ({
 
   return (
     <PerpsOrderProvider
+      providerId={route.params?.providerId}
       initialAsset={asset}
       initialDirection={direction}
       initialAmount={paramAmount}

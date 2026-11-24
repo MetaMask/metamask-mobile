@@ -338,6 +338,7 @@ export function usePerpsClosePositionForm(
 
   // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
+    providerId: position.providerId,
     symbols: [position.symbol],
     throttleMs: 1000,
   });

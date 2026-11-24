@@ -962,6 +962,37 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     };
   }
 
+  private deliverPriceUpdates(updates: PriceUpdate[]) {
+    // Update cache and build price map. Cache and dispatch keys are
+    // composite `(providerId, symbol)` keys so updates for the same symbol
+    // from two venues no longer overwrite each other (TAT-4407). Direct
+    // mode updates carry no providerId and keep the bare-symbol key.
+    const priceMap: Record<string, PriceUpdate> = {};
+    const changedKeys = new Set<string>();
+    const defaultProvider = getRoutingDefaultProvider();
+    updates.forEach((update) => {
+      const priceUpdate = this.toPriceUpdate(update);
+      const cacheKey = buildVenueSymbolKey(update.symbol, update.providerId);
+      this.priceCache.set(cacheKey, priceUpdate);
+      priceMap[cacheKey] = priceUpdate;
+      changedKeys.add(cacheKey);
+      if (!update.providerId) {
+        changedKeys.add(buildVenueSymbolKey(update.symbol, defaultProvider));
+      }
+      // Subscribers that name no venue follow the active/default venue:
+      // they are indexed under the bare symbol, so the default venue's
+      // tick (and any direct-mode tick) also dispatches there.
+      if (!update.providerId || update.providerId === defaultProvider) {
+        changedKeys.add(update.symbol);
+      }
+    });
+
+    // Scope dispatch to subscribers registered for the symbols in this tick.
+    if (this.subscribers.size) {
+      this.notifySubscribersForSymbols(priceMap, changedKeys);
+    }
+  }
+
   protected connect() {
     if (this.wsSubscription) {
       return;
@@ -1024,32 +1055,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // Track first price data from WebSocket (only once per connection)
         this.finishFirstDataTrace();
 
-        // Update cache and build price map. Cache and dispatch keys are
-        // composite `(providerId, symbol)` keys so updates for the same symbol
-        // from two venues no longer overwrite each other (TAT-4407). Direct
-        // mode updates carry no providerId and keep the bare-symbol key.
-        const priceMap: Record<string, PriceUpdate> = {};
-        const changedKeys = new Set<string>();
-        const defaultProvider = getRoutingDefaultProvider();
-        updates.forEach((update) => {
-          const priceUpdate = this.toPriceUpdate(update);
-          const cacheKey = buildVenueSymbolKey(
-            update.symbol,
-            update.providerId,
-          );
-          this.priceCache.set(cacheKey, priceUpdate);
-          priceMap[cacheKey] = priceUpdate;
-          changedKeys.add(cacheKey);
-          // Subscribers that name no venue follow the active/default venue:
-          // they are indexed under the bare symbol, so the default venue's
-          // tick (and any direct-mode tick) also dispatches there.
-          if (!update.providerId || update.providerId === defaultProvider) {
-            changedKeys.add(update.symbol);
-          }
-        });
-
-        // Scope dispatch to subscribers registered for the symbols in this tick.
-        this.notifySubscribersForSymbols(priceMap, changedKeys);
+        this.deliverPriceUpdates(updates);
       },
     });
   }
@@ -1075,20 +1081,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
     const cached: Record<string, PriceUpdate> = {};
     params.symbols.forEach((symbol) => {
-      let price = this.priceCache.get(
-        buildVenueSymbolKey(symbol, params.providerId),
-      );
-      if (!price) {
-        // Direct-mode/legacy rows keep the bare key; an untagged subscriber in
-        // aggregated mode falls back to the default venue's row.
-        price =
-          this.priceCache.get(symbol) ??
-          (params.providerId
-            ? undefined
-            : this.priceCache.get(
-                buildVenueSymbolKey(symbol, getRoutingDefaultProvider()),
-              ));
-      }
+      const price = this.getSnapshotForSymbol(symbol, params.providerId);
       if (price) {
         // Report under the bare symbol so consumers keep their existing shape.
         cached[symbol] = price;
@@ -1122,10 +1115,12 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     if (venuePrice) {
       return venuePrice;
     }
+    if (providerId && providerId !== getRoutingDefaultProvider()) return null;
     const bare = this.priceCache.get(symbol);
     if (bare) {
       return bare;
     }
+    if (providerId) return null;
     // Aggregated mode with both venues stamped and no bare row: prefer the
     // default venue.
     return (
@@ -1199,9 +1194,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           const price =
             allPrices?.[buildVenueSymbolKey(symbol, params.providerId)] ??
             allPrices?.[symbol] ??
-            allPrices?.[
-              buildVenueSymbolKey(symbol, getRoutingDefaultProvider())
-            ];
+            (!params.providerId
+              ? allPrices?.[
+                  buildVenueSymbolKey(symbol, getRoutingDefaultProvider())
+                ]
+              : undefined);
           if (price) {
             filtered[symbol] = price;
           }
@@ -1312,17 +1309,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             // Track first price data from WebSocket (only once per prewarm)
             this.finishFirstDataTrace();
 
-            const priceMap: Record<string, PriceUpdate> = {};
-            updates.forEach((update) => {
-              const priceUpdate = this.toPriceUpdate(update);
-              this.priceCache.set(update.symbol, priceUpdate);
-              priceMap[update.symbol] = priceUpdate;
-            });
-
-            if (this.subscribers.size > 0) {
-              // Scope dispatch to subscribers registered for the symbols in this tick.
-              this.notifySubscribersForSymbols(priceMap, Object.keys(priceMap));
-            }
+            this.deliverPriceUpdates(updates);
           },
         });
 
