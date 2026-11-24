@@ -117,15 +117,29 @@ describe('mfa-recovery-controller-messenger', () => {
     );
   });
 
-  it('returns the lock provider and recovery service messengers', () => {
+  it('returns the lock provider and recovery service messengers', async () => {
     const rootMessenger = createRootMessenger();
+    const acquireLock = jest.fn().mockResolvedValue(undefined);
+    const releaseLock = jest.fn().mockResolvedValue(undefined);
+    rootMessenger.registerActionHandler(
+      'MfaRecoveryController:acquireLock',
+      acquireLock,
+    );
+    rootMessenger.registerActionHandler(
+      'MfaRecoveryController:releaseLock',
+      releaseLock,
+    );
     const initMessenger = getMfaRecoveryControllerInitMessenger(rootMessenger);
 
     expect(
       getRecoveryRegistrationLockProviderMessenger(initMessenger),
     ).toBeInstanceOf(Messenger);
-    expect(getMfaRecoveryServiceMessenger(rootMessenger)).toBeInstanceOf(
-      Messenger,
-    );
+    const serviceMessenger = getMfaRecoveryServiceMessenger(rootMessenger);
+    expect(serviceMessenger).toBeInstanceOf(Messenger);
+
+    await serviceMessenger.call('MfaRecoveryController:acquireLock');
+    await serviceMessenger.call('MfaRecoveryController:releaseLock');
+    expect(acquireLock).toHaveBeenCalledTimes(1);
+    expect(releaseLock).toHaveBeenCalledTimes(1);
   });
 });

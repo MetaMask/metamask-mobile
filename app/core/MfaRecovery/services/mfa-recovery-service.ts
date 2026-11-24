@@ -7,12 +7,14 @@ import {
   MIN_IDENTIFIERS,
   MutationRejectedError,
   type Identifier,
+  type MfaRecoveryControllerAcquireLockAction,
   type MfaRecoveryControllerActions,
   type MfaRecoveryControllerAuthenticateIdentifierAction,
   type MfaRecoveryControllerGetIdentifiersAction,
   type MfaRecoveryControllerGetPhaseAction,
   type MfaRecoveryControllerGetRecoverySecretAction,
   type MfaRecoveryControllerRegisterAction,
+  type MfaRecoveryControllerReleaseLockAction,
   type MfaRecoveryControllerResumeAction,
   type MfaRecoveryControllerUpdateIdentifiersAction,
   type RecoveryIdentifiers,
@@ -72,12 +74,14 @@ type AllowedActions =
   | AuthenticationController.AuthenticationControllerRequestMfaApprovalAction
   | KeyringControllerGetStateAction
   | KeyringControllerWithKeyringV2UnsafeAction
+  | MfaRecoveryControllerAcquireLockAction
   | MfaRecoveryControllerAuthenticateIdentifierAction
   | MfaRecoveryControllerGetIdentifiersAction
   | MfaRecoveryControllerGetPhaseAction
   | MfaRecoveryControllerGetRecoverySecretAction
   | MfaRecoveryControllerIsTrustedAction
   | MfaRecoveryControllerRegisterAction
+  | MfaRecoveryControllerReleaseLockAction
   | MfaRecoveryControllerResumeAction
   | MfaRecoveryControllerUpdateIdentifiersAction
   | SeedlessOnboardingControllerAuthenticateForRecoveryAction
@@ -352,74 +356,79 @@ export class MfaRecoveryService {
 
     const address = await this.getSiweAddress();
     await this.verifyMfa();
-    await this.#resumePendingOperation();
 
-    const initial = await this.#messenger.call(
-      'MfaRecoveryController:getIdentifiers',
-    );
-    const initialTrusted = await this.#filterTrusted(initial.authIdentifiers);
+    return await this.#withRecoveryLock(async () => {
+      await this.#resumePendingOperation();
 
-    if (
-      requirePasskey &&
-      !initialTrusted.some((identifier) => identifier.type === 'passkey')
-    ) {
-      throw new IdentifierNotApprovedError('passkey');
-    }
+      const initial = await this.#messenger.call(
+        'MfaRecoveryController:getIdentifiers',
+      );
+      const initialTrusted = await this.#filterTrusted(initial.authIdentifiers);
 
-    const { epoch, identifiers, authIdentifiers, trustedAuth } =
-      await this.#ensureSocialIdentifier(initial, initialTrusted);
-
-    // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
-    // signature, so fall back to the SRP signing key's identifier.
-    const siweIdentifier =
-      trustedAuth.find((identifier) => identifier.type === 'siwe') ??
-      createSiweIdentifier(address);
-    const passkeys = trustedAuth.filter(
-      (identifier) => identifier.type === 'passkey',
-    );
-    const registrationIdentifiers = getRegistrationIdentifiers(
-      trustedAuth,
-      siweIdentifier,
-      passkeys,
-      this.#seedlessState(),
-    );
-
-    let recoverySecret = new Uint8Array(0);
-    try {
-      if (epoch > 0) {
-        // A previous attempt already stored the secret. Registering again asks
-        // for version 1, which Cubist rejects. Reconcile any newly trusted
-        // identifiers (such as a passkey enrolled since that attempt) before
-        // sealing the vault.
-        Logger.log('MfaRecovery setUp: reading existing secret', { epoch });
-        await this.#syncMissingIdentifiers(
-          identifiers,
-          authIdentifiers,
-          registrationIdentifiers,
-          epoch,
-        );
-        ({ recoverySecret } = await this.readRecoverySecret(siweIdentifier));
-      } else {
-        recoverySecret = this.createRecoverySecret();
-        await this.#messenger.call(
-          'MfaRecoveryController:register',
-          recoverySecret,
-          registrationIdentifiers,
-        );
+      if (
+        requirePasskey &&
+        !initialTrusted.some((identifier) => identifier.type === 'passkey')
+      ) {
+        throw new IdentifierNotApprovedError('passkey');
       }
 
-      await this.openRecoverySession();
-      // migrateToEnvelope rejects vaults whose data types are not migrated yet.
-      // runMigrations is a no-op once they are.
-      await this.#messenger.call('SeedlessOnboardingController:runMigrations');
-      await this.#messenger.call(
-        'SeedlessOnboardingController:migrateToEnvelope',
-        { recoverySecret },
+      const { epoch, identifiers, authIdentifiers, trustedAuth } =
+        await this.#ensureSocialIdentifier(initial, initialTrusted);
+
+      // Auth only approves non-SIWE identifiers; SIWE is proven by the wallet
+      // signature, so fall back to the SRP signing key's identifier.
+      const siweIdentifier =
+        trustedAuth.find((identifier) => identifier.type === 'siwe') ??
+        createSiweIdentifier(address);
+      const passkeys = trustedAuth.filter(
+        (identifier) => identifier.type === 'passkey',
       );
-      return 'enabled';
-    } finally {
-      recoverySecret.fill(0);
-    }
+      const registrationIdentifiers = getRegistrationIdentifiers(
+        trustedAuth,
+        siweIdentifier,
+        passkeys,
+        this.#seedlessState(),
+      );
+
+      let recoverySecret = new Uint8Array(0);
+      try {
+        if (epoch > 0) {
+          // A previous attempt already stored the secret. Registering again asks
+          // for version 1, which Cubist rejects. Reconcile any newly trusted
+          // identifiers (such as a passkey enrolled since that attempt) before
+          // sealing the vault.
+          Logger.log('MfaRecovery setUp: reading existing secret', { epoch });
+          await this.#syncMissingIdentifiers(
+            identifiers,
+            authIdentifiers,
+            registrationIdentifiers,
+            epoch,
+          );
+          ({ recoverySecret } = await this.readRecoverySecret(siweIdentifier));
+        } else {
+          recoverySecret = this.createRecoverySecret();
+          await this.#messenger.call(
+            'MfaRecoveryController:register',
+            recoverySecret,
+            registrationIdentifiers,
+          );
+        }
+
+        await this.openRecoverySession();
+        // migrateToEnvelope rejects vaults whose data types are not migrated yet.
+        // runMigrations is a no-op once they are.
+        await this.#messenger.call(
+          'SeedlessOnboardingController:runMigrations',
+        );
+        await this.#messenger.call(
+          'SeedlessOnboardingController:migrateToEnvelope',
+          { recoverySecret },
+        );
+        return 'enabled';
+      } finally {
+        recoverySecret.fill(0);
+      }
+    });
   }
 
   /**
@@ -455,57 +464,67 @@ export class MfaRecoveryService {
   async addIdentifier(
     identifier: Identifier,
   ): Promise<CubistIdentifierChangeResult> {
-    const { identifiers, epoch, authIdentifiers } =
-      await this.#loadForMutation();
-    if (isIdentifierEnrolled(identifiers, identifier)) {
-      throw new MfaRecoveryControllerError(
-        `The ${identifier.type} identifier is already enrolled in Cubist`,
-        'identifier_already_enrolled',
-      );
-    }
+    await this.verifyMfa();
+    return await this.#withRecoveryLock(async () => {
+      const { identifiers, epoch, authIdentifiers } =
+        await this.#loadForMutation();
+      if (isIdentifierEnrolled(identifiers, identifier)) {
+        throw new MfaRecoveryControllerError(
+          `The ${identifier.type} identifier is already enrolled in Cubist`,
+          'identifier_already_enrolled',
+        );
+      }
 
-    const current = withAuthCopies(identifiers, authIdentifiers);
-    const newEpoch = await this.#writeIdentifiers(
-      pickAuthorizingIdentifier(current),
-      [...current, identifier],
-      epoch,
-    );
-    return {
-      identifierType: identifier.type,
-      change: 'added',
-      epoch: newEpoch,
-    };
+      const current = withAuthCopies(identifiers, authIdentifiers);
+      const newEpoch = await this.#writeIdentifiers(
+        pickAuthorizingIdentifier(current),
+        [...current, identifier],
+        epoch,
+      );
+      return {
+        identifierType: identifier.type,
+        change: 'added',
+        epoch: newEpoch,
+      };
+    });
   }
 
   /** Removes one enrolled identifier, keeping at least two in Cubist. */
   async removeIdentifier(
     target: Identifier,
   ): Promise<CubistIdentifierChangeResult> {
-    const { identifiers, epoch, authIdentifiers } =
-      await this.#loadForMutation();
-    const current = withAuthCopies(identifiers, authIdentifiers);
-    const remaining = current.filter(
-      (identifier) => !isSameIdentifier(identifier, target),
-    );
-    if (remaining.length === current.length) {
-      throw new MfaRecoveryControllerError(
-        `The ${target.type} identifier is not enrolled in Cubist`,
-        'identifier_not_enrolled',
+    await this.verifyMfa();
+    return await this.#withRecoveryLock(async () => {
+      const { identifiers, epoch, authIdentifiers } =
+        await this.#loadForMutation();
+      const current = withAuthCopies(identifiers, authIdentifiers);
+      const remaining = current.filter(
+        (identifier) => !isSameIdentifier(identifier, target),
       );
-    }
-    if (remaining.length < MIN_IDENTIFIERS) {
-      throw new MfaRecoveryControllerError(
-        `Cubist needs at least ${MIN_IDENTIFIERS} identifiers`,
-        'too_few_identifiers',
-      );
-    }
+      if (remaining.length === current.length) {
+        throw new MfaRecoveryControllerError(
+          `The ${target.type} identifier is not enrolled in Cubist`,
+          'identifier_not_enrolled',
+        );
+      }
+      if (remaining.length < MIN_IDENTIFIERS) {
+        throw new MfaRecoveryControllerError(
+          `Cubist needs at least ${MIN_IDENTIFIERS} identifiers`,
+          'too_few_identifiers',
+        );
+      }
 
-    const newEpoch = await this.#writeIdentifiers(
-      pickAuthorizingIdentifier(remaining),
-      remaining,
-      epoch,
-    );
-    return { identifierType: target.type, change: 'removed', epoch: newEpoch };
+      const newEpoch = await this.#writeIdentifiers(
+        pickAuthorizingIdentifier(remaining),
+        remaining,
+        epoch,
+      );
+      return {
+        identifierType: target.type,
+        change: 'removed',
+        epoch: newEpoch,
+      };
+    });
   }
 
   async #ensureSocialIdentifier(
@@ -588,8 +607,24 @@ export class MfaRecoveryService {
     }
   }
 
+  async #withRecoveryLock<Result>(
+    operation: () => Promise<Result>,
+  ): Promise<Result> {
+    await this.#messenger.call('MfaRecoveryController:acquireLock');
+    try {
+      return await operation();
+    } finally {
+      try {
+        await this.#messenger.call('MfaRecoveryController:releaseLock');
+      } catch (error) {
+        Logger.log('MfaRecovery releaseLock skipped', {
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+  }
+
   async #loadForMutation(): Promise<RecoveryIdentifiers> {
-    await this.verifyMfa();
     await this.#resumePendingOperation();
     return await this.#messenger.call('MfaRecoveryController:getIdentifiers');
   }

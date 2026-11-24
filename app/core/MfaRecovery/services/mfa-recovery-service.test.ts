@@ -97,6 +97,8 @@ function createController({
   const controller = {
     state,
     readSecrets,
+    acquireLock: jest.fn().mockResolvedValue(undefined),
+    releaseLock: jest.fn().mockResolvedValue(undefined),
     getPhase: jest.fn().mockResolvedValue(phase),
     resume: jest.fn().mockResolvedValue(undefined),
     abort: jest.fn().mockResolvedValue(undefined),
@@ -1093,6 +1095,88 @@ describe('MfaRecoveryService', () => {
       await expect(service.removeIdentifier(PASSKEY)).rejects.toMatchObject({
         code: 'identifier_not_enrolled',
       });
+    });
+  });
+
+  describe('recovery lock lifecycle', () => {
+    it('acquires the lock before reading and releases it after setUp succeeds', async () => {
+      const order: string[] = [];
+      const controller = createController({ epoch: 0 });
+      controller.acquireLock.mockImplementationOnce(async () => {
+        order.push('acquireLock');
+      });
+      controller.getIdentifiers.mockImplementationOnce(async () => {
+        order.push('getIdentifiers');
+        return {
+          identifiers: controller.state.identifiers,
+          epoch: 0,
+          authIdentifiers: controller.state.authIdentifiers,
+        };
+      });
+      controller.register.mockImplementationOnce(async () => {
+        order.push('register');
+      });
+      controller.releaseLock.mockImplementationOnce(async () => {
+        order.push('releaseLock');
+      });
+      const { service } = createService({ controller });
+
+      await expect(service.setUp()).resolves.toBe('enabled');
+
+      expect(order).toStrictEqual([
+        'acquireLock',
+        'getIdentifiers',
+        'register',
+        'releaseLock',
+      ]);
+    });
+
+    it('releases the lock when setUp fails and preserves the original error if releaseLock throws', async () => {
+      const controller = createController({ epoch: 0 });
+      const { service } = createService({ controller });
+      const registerError = new Error('register failed');
+      const releaseError = new Error('pending_mutation');
+      controller.register.mockRejectedValueOnce(registerError);
+      controller.releaseLock.mockRejectedValueOnce(releaseError);
+
+      await expect(service.setUp()).rejects.toBe(registerError);
+      expect(controller.acquireLock).toHaveBeenCalledTimes(1);
+      expect(controller.releaseLock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not release the lock if acquireLock fails', async () => {
+      const controller = createController({ epoch: 0 });
+      const { service } = createService({ controller });
+      const lockError = new Error('recovery_lock_conflict');
+      controller.acquireLock.mockRejectedValueOnce(lockError);
+
+      await expect(service.setUp()).rejects.toBe(lockError);
+      expect(controller.getIdentifiers).not.toHaveBeenCalled();
+      expect(controller.releaseLock).not.toHaveBeenCalled();
+    });
+
+    it('acquires and releases the lock around addIdentifier and removeIdentifier', async () => {
+      const controller = createController({
+        identifiers: [SIWE, SOCIAL],
+      });
+      const { service } = createService({ controller });
+
+      await service.addIdentifier(AUTH_PASSKEY);
+      expect(controller.acquireLock).toHaveBeenCalledTimes(1);
+      expect(controller.releaseLock).toHaveBeenCalledTimes(1);
+
+      controller.state.identifiers = [SIWE, PASSKEY, SOCIAL];
+      await service.removeIdentifier(SOCIAL);
+      expect(controller.acquireLock).toHaveBeenCalledTimes(2);
+      expect(controller.releaseLock).toHaveBeenCalledTimes(2);
+
+      // Even when validation rejects, the lock is still released.
+      controller.state.identifiers = [SIWE, SOCIAL];
+      await expect(service.removeIdentifier(PASSKEY)).rejects.toMatchObject({
+        code: 'identifier_not_enrolled',
+      });
+      expect(controller.acquireLock).toHaveBeenCalledTimes(3);
+      expect(controller.releaseLock).toHaveBeenCalledTimes(3);
     });
   });
 });
