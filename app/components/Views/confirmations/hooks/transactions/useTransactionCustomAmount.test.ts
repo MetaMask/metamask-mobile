@@ -2833,5 +2833,265 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe(prefilledAmount);
     });
+
+    it('resets keepAmountAfterReplacementRef so a later pay-token change re-applies the prefill', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('42');
+      });
+
+      expect(result.current.amountFiat).toBe('42');
+
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('42');
+
+      // Switch to a different token — prefill should apply now that the ref is cleared.
+      // Perps deposits prefill to 50% regardless of stablecoin status.
+      mockPayToken(ETHEREUM_USDC_ADDRESS, '800');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('400');
+    });
+
+    it('clamps a 100% Hyperliquid Max to 90% when switching into a first Lighter deposit', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // Replace with a first Lighter deposit (approve + deposit calls)
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' }, // approve
+            { data: '0x8a857083' }, // deposit
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // 100% should be clamped to 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+    });
+
+    it('keeps a normal kept amount below the first-deposit cap unchanged', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('500');
+      });
+
+      expect(result.current.amountFiat).toBe('500');
+
+      // Replace with a first Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'replacement-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' },
+            { data: '0x8a857083' },
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // 500 is below the 90% cap (900), so it should remain unchanged
+      expect(result.current.amountFiat).toBe('500');
+    });
+
+    it('clamps successive replacements into first Lighter deposits', async () => {
+      // Start with Hyperliquid deposit at 100%
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      const perpsDepositMeta = {
+        type: TransactionType.perpsDeposit,
+        id: transactionIdMock,
+        chainId: '0x1' as Hex,
+        txParams: { from: '0xabc' as Hex },
+      } as unknown as Partial<TransactionMeta>;
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositMeta,
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1000');
+
+      // First replacement with Lighter deposit
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'first-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' },
+            { data: '0x8a857083' },
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1000');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // First clamp: 100% -> 90% = 900
+      expect(result.current.amountFiat).toBe('900');
+
+      // Switch back to Hyperliquid with the clamped 900, then set to 100% again
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'back-to-hyperliquid',
+          type: TransactionType.perpsDeposit,
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Increase balance and set to 100% again
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      expect(result.current.amountFiat).toBe('1200');
+
+      // Second replacement with Lighter deposit
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        return {
+          ...current,
+          id: 'second-lighter-deposit',
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { data: '0x095ea7b3' },
+            { data: '0x8a857083' },
+          ],
+        } as TransactionMeta;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS, '1200');
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      // Second clamp: 100% of 1200 -> 90% = 1080
+      expect(result.current.amountFiat).toBe('1080');
+    });
   });
 });

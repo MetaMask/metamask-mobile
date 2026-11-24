@@ -21,6 +21,14 @@ import { UpdateTransactionPayAmountCall } from '../types/transactions';
 export const LIGHTER_USDC_DECIMALS = 6;
 
 /**
+ * First Lighter deposit cap as a percentage of balance. The first deposit
+ * creates the account with an approve plus deposit call, and the cap leaves a
+ * gas buffer so the approve-plus-deposit transaction does not consume the
+ * entire balance and revert.
+ */
+export const LIGHTER_FIRST_DEPOSIT_CAP_PERCENTAGE = 90;
+
+/**
  * USDC asset id on the Lighter L1 `deposit` call. `assetDetails` reports USDC
  * as 3 and ETH as 1. Do not use the perps package's `LIGHTER_USDC_ASSET_INDEX`
  * (1) here: it is the L2 withdraw index, and an L1 deposit for asset 1 is an

@@ -48,6 +48,10 @@ import {
 } from './useDepositPrefillAmount';
 import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
+import {
+  isLighterAccountCreationDeposit,
+  LIGHTER_FIRST_DEPOSIT_CAP_PERCENTAGE,
+} from '../../temp-lighter/lighter-usdc-deposit';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -58,6 +62,47 @@ interface DepositPrefetchQuoteRequest {
   isAmountPrepared: boolean;
   quoteBaseline: number | undefined;
   sawQuoteLoading: boolean;
+}
+
+/**
+ * Amount clamping utilities for transaction custom amounts.
+ */
+class AmountCapHelper {
+  /**
+   * Clamps an amount to the first-deposit cap when this is a Lighter account
+   * creation deposit. The cap leaves a gas buffer so approve-plus-deposit does
+   * not consume the entire balance.
+   *
+   * @param amountFiat - Fiat amount to clamp.
+   * @param balanceUsd - Current balance in USD.
+   * @param transactionMeta - Transaction metadata.
+   * @returns Clamped amount, or the original amount if no cap applies.
+   */
+  static clampToFirstDepositCap(
+    amountFiat: string,
+    balanceUsd: string | undefined,
+    transactionMeta: TransactionMeta | undefined,
+  ): string {
+    if (
+      !balanceUsd ||
+      !transactionMeta ||
+      !isLighterAccountCreationDeposit(transactionMeta)
+    ) {
+      return amountFiat;
+    }
+
+    const amount = new BigNumber(amountFiat);
+    const balance = new BigNumber(balanceUsd);
+    const cap = balance
+      .multipliedBy(LIGHTER_FIRST_DEPOSIT_CAP_PERCENTAGE)
+      .dividedBy(100);
+
+    if (amount.isGreaterThan(cap)) {
+      return cap.decimalPlaces(2, BigNumber.ROUND_DOWN).toString(10);
+    }
+
+    return amountFiat;
+  }
 }
 
 export function useTransactionCustomAmount({
@@ -146,14 +191,34 @@ export function useTransactionCustomAmount({
   const payTokenKey = payToken?.assetId.toLowerCase() ?? '';
   const payTokenAsset = decodePaymentTokenAssetId(payToken);
 
+  // A Perps provider switch replaces the confirmation with a new transaction,
+  // while this screen stays mounted. The amount on screen, entered or
+  // prefilled, must survive that, so once the transaction is replaced the
+  // prefill below no longer overwrites or clears it. Declared before the
+  // token-change effect so the ref exists when that effect reads it.
+  const previousTransactionIdRef = useRef(transactionId);
+  const keepAmountAfterReplacementRef = useRef(false);
+  const pendingClampRef = useRef(false);
+
+  const previousPayTokenKeyRef = useRef(payTokenKey);
   useEffect(() => {
-    userHasEditedRef.current = false;
-    prefetchQuoteRequestRef.current = undefined;
-    prefetchedQuoteAmountHumanRef.current = undefined;
-    prefetchedQuotePayTokenKeyRef.current = undefined;
-    setPrefetchedQuoteAmountHuman(undefined);
-    setPrefetchedQuotePayTokenKey(undefined);
-  }, [payTokenKey]);
+    // Only reset when the pay token genuinely changes to a different token.
+    // Becoming undefined (during transaction replacement) should not reset.
+    const hasToken = Boolean(payToken?.address && payToken?.chainId);
+    const isGenuineChange =
+      hasToken && previousPayTokenKeyRef.current !== payTokenKey;
+
+    if (isGenuineChange) {
+      userHasEditedRef.current = false;
+      keepAmountAfterReplacementRef.current = false;
+      prefetchQuoteRequestRef.current = undefined;
+      prefetchedQuoteAmountHumanRef.current = undefined;
+      prefetchedQuotePayTokenKeyRef.current = undefined;
+      setPrefetchedQuoteAmountHuman(undefined);
+      setPrefetchedQuotePayTokenKey(undefined);
+      previousPayTokenKeyRef.current = payTokenKey;
+    }
+  }, [payToken?.address, payToken?.chainId, payTokenKey]);
 
   const { enabled: isAmountPrefetchEnabled } = useTransactionPayPrefetch();
   const { updateTransactionPayAmount } = useUpdateTransactionPayAmount();
@@ -450,13 +515,6 @@ export function useTransactionCustomAmount({
     ],
   );
 
-  // A Perps provider switch replaces the confirmation with a new transaction,
-  // while this screen stays mounted. The amount on screen, entered or
-  // prefilled, must survive that, so once the transaction is replaced the
-  // prefill below no longer overwrites or clears it. Declared before the
-  // prefill effect so the flag is set before that effect reads it.
-  const previousTransactionIdRef = useRef(transactionId);
-  const keepAmountAfterReplacementRef = useRef(false);
   useEffect(() => {
     if (previousTransactionIdRef.current === transactionId) {
       return;
@@ -466,8 +524,33 @@ export function useTransactionCustomAmount({
 
     if (amountFiat !== '0') {
       keepAmountAfterReplacementRef.current = true;
+      pendingClampRef.current = true;
     }
   }, [amountFiat, transactionId]);
+
+  // Clamp the kept amount once per replacement, deferring until balanceUsd and
+  // the new transactionMeta are both available. Once clamped, clear both flags
+  // so prefill works again and successive replacements can clamp again.
+  useEffect(() => {
+    if (
+      pendingClampRef.current &&
+      amountFiat !== '0' &&
+      balanceUsd &&
+      transactionMeta
+    ) {
+      const clampedAmount = AmountCapHelper.clampToFirstDepositCap(
+        amountFiat,
+        balanceUsd,
+        transactionMeta,
+      );
+      if (clampedAmount !== amountFiat) {
+        setAmountFiat(clampedAmount);
+      }
+      // Clear both flags so prefill works again and next replacement can clamp
+      pendingClampRef.current = false;
+      keepAmountAfterReplacementRef.current = false;
+    }
+  }, [amountFiat, balanceUsd, transactionMeta]);
 
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;
