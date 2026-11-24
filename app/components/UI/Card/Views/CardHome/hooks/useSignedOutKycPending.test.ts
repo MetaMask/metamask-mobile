@@ -66,12 +66,12 @@ describe('useSignedOutKycPending', () => {
     expect(result.current).toBe(false);
   });
 
-  it('is false when the onboarding session exists but the user is unknown', () => {
+  it('stays pending when the onboarding session exists and the user has not loaded', () => {
     setup({ onboardingId: 'onboarding-1' });
 
     const { result } = renderHook(() => useSignedOutKycPending());
 
-    expect(result.current).toBe(false);
+    expect(result.current).toBe(true);
   });
 
   it('is false when verification is neither pending nor verified', () => {

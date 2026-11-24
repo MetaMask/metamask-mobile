@@ -18,8 +18,9 @@ import { useCardSDK } from '../../../sdk';
  * A signed-out user stays on the waiting view until they sign in: a status
  * change to VERIFIED means onboarding can resume after login, not that the
  * card home is ready. Rejected and UNVERIFIED keep today's routing and leave
- * the pending flow. An unknown user does not, unless this screen was opened
- * from the pending route.
+ * the pending flow. While the user record has not loaded, a saved onboarding
+ * session stays pending so someone in review is not sent to Welcome. Once
+ * the user is known, only PENDING and VERIFIED stay on the waiting view.
  */
 export const useSignedOutKycPending = (fromKycPending?: boolean): boolean => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
@@ -44,6 +45,12 @@ export const useSignedOutKycPending = (fromKycPending?: boolean): boolean => {
 
   if (!onboardingId) {
     return false;
+  }
+
+  // The SDK user starts null and stays null when the status request has not
+  // landed. Keep the waiting view up so its registration poll can start.
+  if (!user) {
+    return true;
   }
 
   return verificationState === 'PENDING' || verificationState === 'VERIFIED';
