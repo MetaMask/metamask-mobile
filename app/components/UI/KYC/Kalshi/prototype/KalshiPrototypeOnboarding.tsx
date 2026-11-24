@@ -52,6 +52,11 @@ import KalshiPrototypeUkycCheck from './KalshiPrototypeUkycCheck';
 import KalshiPrototypeVendorTerms from './KalshiPrototypeTerms';
 import KalshiPrototypeCodeScreen from './KalshiPrototypeCodeScreen';
 import KalshiPrototypePhoneEntry from './KalshiPrototypePhoneEntry';
+import PhoneCountrySelectorModal from '../../../Ramp/Views/Modals/PhoneCountrySelectorModal';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../../constants/navigation/clearStackNavigatorOptions';
 import KalshiPrototypeSumsubScreen from './KalshiPrototypeSumsubScreen';
 import KalshiPrototypeLoading from './KalshiPrototypeLoading';
 
@@ -468,6 +473,14 @@ const KalshiPrototypeFlowStack = () => {
       <Stack.Screen
         name={KalshiPrototypeRoutes.PHONE_ENTRY}
         component={PhoneEntryStep}
+      />
+      <Stack.Screen
+        name={KalshiPrototypeRoutes.PHONE_COUNTRY}
+        component={PhoneCountrySelectorModal}
+        options={{
+          ...transparentModalScreenOptions,
+          ...clearNativeStackNavigatorOptions,
+        }}
       />
       <Stack.Screen
         name={KalshiPrototypeRoutes.PHONE_CODE}

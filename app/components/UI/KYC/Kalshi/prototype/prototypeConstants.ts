@@ -146,6 +146,12 @@ export const PROTOTYPE_COPY = {
     title: "Enter Kalshi's verification code",
     body: 'Kalshi texted a 6-digit code to your phone.',
   },
+  /** The phone number screen, worded like the code screens. */
+  phoneEntry: {
+    title: 'Verify your phone number',
+    body: 'Kalshi will text a 6-digit code to this number.',
+    invalid: 'Enter a valid phone number.',
+  },
   useDifferentEmail: 'Use a different email',
   sumsub: {
     title: 'Sumsub (placeholder)',

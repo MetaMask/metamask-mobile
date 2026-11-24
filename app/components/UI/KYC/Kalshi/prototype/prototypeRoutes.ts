@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+import type { PhoneCountrySelectorModalParams } from '../../../Ramp/Views/Modals/PhoneCountrySelectorModal';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import {
   prototypeSessionCatalog,
@@ -16,6 +17,7 @@ export const KalshiPrototypeRoutes = {
   VENDOR_TERMS: 'KalshiPrototypeVendorTerms',
   EMAIL_CODE: 'KalshiPrototypeEmailCode',
   PHONE_ENTRY: 'KalshiPrototypePhoneEntry',
+  PHONE_COUNTRY: 'KalshiPrototypePhoneCountry',
   PHONE_CODE: 'KalshiPrototypePhoneCode',
   SUMSUB: 'KalshiPrototypeSumsub',
   DECISION: 'KalshiPrototypeDecision',
@@ -31,6 +33,8 @@ export type KalshiPrototypeParamList = {
   KalshiPrototypeVendorTerms: undefined;
   KalshiPrototypeEmailCode: undefined;
   KalshiPrototypePhoneEntry: undefined;
+  // Ramp's phone country sheet, opened from the phone field.
+  KalshiPrototypePhoneCountry: PhoneCountrySelectorModalParams;
   KalshiPrototypePhoneCode: undefined;
   KalshiPrototypeSumsub: undefined;
   KalshiPrototypeDecision: undefined;
@@ -39,7 +43,8 @@ export type KalshiPrototypeParamList = {
 /** The screens a step can open without params. */
 export type KalshiPrototypeStepRoute = Exclude<
   (typeof KalshiPrototypeRoutes)[keyof typeof KalshiPrototypeRoutes],
-  typeof KalshiPrototypeRoutes.PARTNER_TERMS
+  | typeof KalshiPrototypeRoutes.PARTNER_TERMS
+  | typeof KalshiPrototypeRoutes.PHONE_COUNTRY
 >;
 
 /**

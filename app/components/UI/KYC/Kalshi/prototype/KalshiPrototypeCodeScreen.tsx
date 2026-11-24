@@ -16,20 +16,10 @@ import {
   PROTOTYPE_COPY,
   PROTOTYPE_EMAIL,
 } from './prototypeConstants';
-import KalshiLogo from './assets/kalshi-logo.svg';
+import KalshiWordmark from './KalshiWordmark';
 
 /** Which partner code the screen enters. */
 export type KalshiPrototypeCodeChannel = 'email' | 'phone';
-
-/** The Kalshi wordmark, small and centred in the header's title slot. */
-const KalshiWordmark = () => (
-  <KalshiLogo
-    width={70}
-    height={18}
-    name="kalshi-logo"
-    accessibilityLabel="Kalshi"
-  />
-);
 
 interface KalshiPrototypeCodeScreenProps {
   /** The channel the code arrived over. */
