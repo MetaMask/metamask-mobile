@@ -358,7 +358,9 @@ describe('CryptoTab — tokens pill block', () => {
     render(<CryptoTab {...defaultTabProps} />);
 
     expect(mockCryptoTokensPillBlock).not.toHaveBeenCalled();
-    expect(screen.queryByTestId('explore-section-tokens')).toBeNull();
+    expect(
+      screen.queryByTestId('explore-section-tokens'),
+    ).not.toBeOnTheScreen();
   });
 
   it('passes the pill block the expected props', () => {

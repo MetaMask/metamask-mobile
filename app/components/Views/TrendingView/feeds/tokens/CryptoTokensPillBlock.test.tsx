@@ -233,26 +233,26 @@ describe('CryptoTokensPillBlock', () => {
   describe('rendering', () => {
     it('renders the section title', () => {
       const { getByText } = renderBlock();
-      expect(getByText('Tokens')).toBeTruthy();
+      expect(getByText('Tokens')).toBeOnTheScreen();
     });
 
     it('renders the watchlist pill first and its items by default', () => {
       const { getByTestId, queryByTestId } = renderBlock();
 
-      expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeTruthy();
-      expect(queryByTestId('token-row-WNEW')).toBeTruthy();
-      expect(queryByTestId('token-row-WOLD')).toBeTruthy();
-      expect(queryByTestId('token-row-BTC')).toBeNull();
+      expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeOnTheScreen();
+      expect(queryByTestId('token-row-WNEW')).toBeOnTheScreen();
+      expect(queryByTestId('token-row-WOLD')).toBeOnTheScreen();
+      expect(queryByTestId('token-row-BTC')).not.toBeOnTheScreen();
     });
 
     it('renders every non-empty pill except those below minItems', () => {
       const { getByTestId, queryByTestId } = renderBlock();
 
-      expect(getByTestId('crypto-tokens-pill-trending')).toBeTruthy();
-      expect(getByTestId('crypto-tokens-pill-gainers')).toBeTruthy();
-      expect(getByTestId('crypto-tokens-pill-most_traded')).toBeTruthy();
-      expect(getByTestId('crypto-tokens-pill-robinhood')).toBeTruthy();
-      expect(queryByTestId('crypto-tokens-pill-losers')).toBeNull();
+      expect(getByTestId('crypto-tokens-pill-trending')).toBeOnTheScreen();
+      expect(getByTestId('crypto-tokens-pill-gainers')).toBeOnTheScreen();
+      expect(getByTestId('crypto-tokens-pill-most_traded')).toBeOnTheScreen();
+      expect(getByTestId('crypto-tokens-pill-robinhood')).toBeOnTheScreen();
+      expect(queryByTestId('crypto-tokens-pill-losers')).not.toBeOnTheScreen();
     });
 
     it('keeps the losers pill when it has at least 3 items', () => {
@@ -265,7 +265,7 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { getByTestId } = renderBlock(results);
 
-      expect(getByTestId('crypto-tokens-pill-losers')).toBeTruthy();
+      expect(getByTestId('crypto-tokens-pill-losers')).toBeOnTheScreen();
     });
 
     it('keeps pills that have not loaded yet visible', () => {
@@ -274,7 +274,7 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { getByTestId } = renderBlock(results);
 
-      expect(getByTestId('crypto-tokens-pill-losers')).toBeTruthy();
+      expect(getByTestId('crypto-tokens-pill-losers')).toBeOnTheScreen();
     });
 
     it('hides an errored pill', () => {
@@ -283,7 +283,9 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { queryByTestId } = renderBlock(results);
 
-      expect(queryByTestId('crypto-tokens-pill-trending')).toBeNull();
+      expect(
+        queryByTestId('crypto-tokens-pill-trending'),
+      ).not.toBeOnTheScreen();
     });
 
     it('keeps a pill visible with its cached data when a background refetch fails', () => {
@@ -292,7 +294,7 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { getByTestId } = renderBlock(results);
 
-      expect(getByTestId('crypto-tokens-pill-trending')).toBeTruthy();
+      expect(getByTestId('crypto-tokens-pill-trending')).toBeOnTheScreen();
     });
 
     it('resets the parent selection when the selected pill becomes hidden', () => {
@@ -301,7 +303,7 @@ describe('CryptoTokensPillBlock', () => {
       act(() => {
         fireEvent.press(getByTestId('crypto-tokens-pill-gainers'));
       });
-      expect(getByTestId('token-row-SOL')).toBeTruthy();
+      expect(getByTestId('token-row-SOL')).toBeOnTheScreen();
 
       const errored = makeResults({
         gainers: { data: undefined, isLoading: false, isError: true },
@@ -309,8 +311,8 @@ describe('CryptoTokensPillBlock', () => {
       arrange(errored);
       rerender(<CryptoPillBlockHarness blockProps={DEFAULT_PROPS} />);
 
-      expect(queryByTestId('token-row-SOL')).toBeNull();
-      expect(getByTestId('token-row-WNEW')).toBeTruthy();
+      expect(queryByTestId('token-row-SOL')).not.toBeOnTheScreen();
+      expect(getByTestId('token-row-WNEW')).toBeOnTheScreen();
     });
 
     it('resets the selection to a pill with content, skipping an empty watchlist', () => {
@@ -323,7 +325,7 @@ describe('CryptoTokensPillBlock', () => {
       act(() => {
         fireEvent.press(getByTestId('crypto-tokens-pill-gainers'));
       });
-      expect(getByTestId('token-row-SOL')).toBeTruthy();
+      expect(getByTestId('token-row-SOL')).toBeOnTheScreen();
 
       const errored = makeResults({
         watchlist: { data: [], isLoading: false, isError: false },
@@ -332,8 +334,8 @@ describe('CryptoTokensPillBlock', () => {
       arrange(errored);
       rerender(<CryptoPillBlockHarness blockProps={DEFAULT_PROPS} />);
 
-      expect(getByTestId('token-row-BTC')).toBeTruthy();
-      expect(queryByTestId('crypto-tokens-pill-gainers')).toBeNull();
+      expect(getByTestId('token-row-BTC')).toBeOnTheScreen();
+      expect(queryByTestId('crypto-tokens-pill-gainers')).not.toBeOnTheScreen();
     });
   });
 
@@ -342,8 +344,10 @@ describe('CryptoTokensPillBlock', () => {
       mockIsWatchlistEnabled = false;
       const { queryByTestId, getByTestId } = renderBlock();
 
-      expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeNull();
-      expect(getByTestId('token-row-BTC')).toBeTruthy();
+      expect(
+        queryByTestId('crypto-tokens-pill-watchlist'),
+      ).not.toBeOnTheScreen();
+      expect(getByTestId('token-row-BTC')).toBeOnTheScreen();
     });
   });
 
@@ -355,7 +359,7 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { getByTestId } = renderBlock(results);
 
-      expect(getByTestId('token-row-SOL')).toBeTruthy();
+      expect(getByTestId('token-row-SOL')).toBeOnTheScreen();
     });
   });
 
@@ -367,8 +371,8 @@ describe('CryptoTokensPillBlock', () => {
         fireEvent.press(getByTestId('crypto-tokens-pill-gainers'));
       });
 
-      expect(getByTestId('token-row-SOL')).toBeTruthy();
-      expect(queryByTestId('token-row-WNEW')).toBeNull();
+      expect(getByTestId('token-row-SOL')).toBeOnTheScreen();
+      expect(queryByTestId('token-row-WNEW')).not.toBeOnTheScreen();
     });
   });
 
@@ -392,10 +396,10 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { getByTestId, queryByTestId } = renderBlock(results);
 
-      expect(queryByTestId('watchlist-empty-fallback')).toBeNull();
-      expect(getByTestId('crypto-tokens-list')).toBeTruthy();
-      expect(getByTestId('token-row-BTC')).toBeTruthy();
-      expect(getByTestId('crypto-tokens-pill-watchlist')).toBeTruthy();
+      expect(queryByTestId('watchlist-empty-fallback')).not.toBeOnTheScreen();
+      expect(getByTestId('crypto-tokens-list')).toBeOnTheScreen();
+      expect(getByTestId('token-row-BTC')).toBeOnTheScreen();
+      expect(getByTestId('crypto-tokens-pill-watchlist')).toBeOnTheScreen();
     });
 
     it('renders the watchlist empty fallback when the empty watchlist is user-selected', () => {
@@ -408,8 +412,8 @@ describe('CryptoTokensPillBlock', () => {
         'watchlist',
       );
 
-      expect(getByTestId('watchlist-empty-fallback')).toBeTruthy();
-      expect(queryByTestId('crypto-tokens-list')).toBeNull();
+      expect(getByTestId('watchlist-empty-fallback')).toBeOnTheScreen();
+      expect(queryByTestId('crypto-tokens-list')).not.toBeOnTheScreen();
     });
 
     it('hides the watchlist pill and falls back instead of showing the empty state on error', () => {
@@ -418,9 +422,11 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { getByTestId, queryByTestId } = renderBlock(results);
 
-      expect(queryByTestId('crypto-tokens-pill-watchlist')).toBeNull();
-      expect(queryByTestId('watchlist-empty-fallback')).toBeNull();
-      expect(getByTestId('token-row-BTC')).toBeTruthy();
+      expect(
+        queryByTestId('crypto-tokens-pill-watchlist'),
+      ).not.toBeOnTheScreen();
+      expect(queryByTestId('watchlist-empty-fallback')).not.toBeOnTheScreen();
+      expect(getByTestId('token-row-BTC')).toBeOnTheScreen();
     });
   });
 
@@ -436,7 +442,7 @@ describe('CryptoTokensPillBlock', () => {
       });
       const { queryByTestId } = renderBlock(results);
 
-      expect(queryByTestId('crypto-tokens')).toBeNull();
+      expect(queryByTestId('crypto-tokens')).not.toBeOnTheScreen();
     });
   });
 
