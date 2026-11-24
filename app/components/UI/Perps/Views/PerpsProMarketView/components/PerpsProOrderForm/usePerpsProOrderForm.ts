@@ -2219,7 +2219,13 @@ export const usePerpsProOrderForm = ({
         : undefined,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
-    enabled: isPositionModifyPreviewEnabled && !isScaleOrder && !isTwapOrder,
+    // perps-controller 26.0.0 projects held Cross positions; the before→after
+    // row stays off for them until product signs off on Cross projections.
+    enabled:
+      isPositionModifyPreviewEnabled &&
+      !isScaleOrder &&
+      !isTwapOrder &&
+      currentMarketPosition?.leverage?.type !== 'cross',
   });
 
   const existingPositionLeverageForValidation =
@@ -3345,9 +3351,7 @@ export const usePerpsProOrderForm = ({
           showToast(
             PerpsToastOptions.orderManagement.limit.creationFailed(
               orderResult.error,
-              orderResult.error
-                ? translatePerpsError(orderResult.error)
-                : undefined,
+              orderResult.error ? translatePerpsError(orderResult) : undefined,
             ),
           );
           return;
@@ -3651,7 +3655,7 @@ export const usePerpsProOrderForm = ({
         });
 
         if (!tpslResult.success) {
-          const errorMessage = translatePerpsError(tpslResult.error);
+          const errorMessage = translatePerpsError(tpslResult);
           showToast(
             PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
               errorMessage,
@@ -4386,7 +4390,11 @@ export const usePerpsProOrderForm = ({
   }, [effectiveMarginRequired, isScaleOrder, scaleLadderResult.success]);
 
   const scaleLiquidationPrice = useMemo(() => {
-    if (!canCalculateScaleLiquidation || isLiquidationCalculating) {
+    if (
+      !canCalculateScaleLiquidation ||
+      isLiquidationCalculating ||
+      liquidationPrice === undefined
+    ) {
       return PERPS_CONSTANTS.FallbackPriceDisplay;
     }
 

@@ -22,7 +22,7 @@ export const useActivity = (
   return useInfiniteQuery<GetActivityResult>({
     queryKey: descriptor.queryKey,
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+    getNextPageParam: (lastPage) => lastPage?.nextCursor || undefined,
     enabled: options?.enabled,
   });
 };
