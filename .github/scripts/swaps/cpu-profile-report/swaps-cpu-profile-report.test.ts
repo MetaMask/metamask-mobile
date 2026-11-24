@@ -26,6 +26,12 @@ const selector = {
   url: '/app/core/redux/slices/bridge/index.ts',
   line: 993,
 };
+const fn = {
+  name: 'anonymous',
+  file: selector.url,
+  line: 993,
+  commit: 'abc123',
+};
 const report = (profile: object) => ({
   scenarios: [{ scenario: key, profiles: [profile] }],
 });
@@ -185,81 +191,30 @@ describe('buildSlackMessage', () => {
     );
   });
 
-  it('compares with last week and shows only what moved notably', () => {
-    const fn = {
-      name: 'anonymous',
-      file: selector.url,
-      line: 993,
-      commit: 'abc123',
-    };
-    const summary = (calledMs: number, concurrentArea: string) =>
-      summarizeScenario([
-        used(1000, 40, {
-          widestFunction: fn,
-          nonSwapsOnPathAreas: [
-            { area: 'fast-equals (dependency)', selfMs: calledMs },
-          ],
-          nonSwapsConcurrentAreas: [{ area: concurrentArea, selfMs: 600 }],
-        }),
-      ]);
+  it('compares with last week and links the function to its line', () => {
+    const summary = (widest: number) =>
+      summarizeScenario([used(widest, 40, { widestFunction: fn })]);
     const message = buildSlackMessage(
-      [{ label: 'Cross-chain swap', summary: summary(900, '<!here> & co') }],
+      [{ label: 'Cross-chain swap', summary: summary(1000) }],
       {
         ...options,
         runsRead: 5,
         devices: ['<@U123>'],
         previous: {
-          scenarios: [
-            {
-              label: 'Cross-chain swap',
-              summary: {
-                ...summary(600, '<!here> & co'),
-                widestSpanMs: { median: 800, p90: 800 },
-              },
-            },
-          ],
+          scenarios: [{ label: 'Cross-chain swap', summary: summary(800) }],
         },
       },
     );
     expect(message).toContain(
-      '*Cross-chain swap*: widest span 1,000ms at p90, up 25% from 800ms last week; from an anonymous function in <https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993|app/core/redux/slices/bridge/index.ts:993>.\nCalled by swaps (upper bound): fast-equals (dependency) 900ms (was 600ms)\n\n',
+      '*Cross-chain swap*: widest span 1,000ms at p90, up 25% from 800ms last week; from an anonymous function in <https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993|app/core/redux/slices/bridge/index.ts:993>.\n',
     );
-    expect(message).not.toMatch(/Running alongside|Coverage|<!here>|<@U123>/);
     expect(message).toContain('(&lt;@U123&gt;)');
-
-    const renamed = buildSlackMessage(
-      [
-        {
-          label: 'Cross-chain swap',
-          summary: summary(900, 'Unknown (unsymbolicated)'),
-        },
-      ],
-      {
-        ...options,
-        previous: {
-          scenarios: [
-            {
-              label: 'Cross-chain swap',
-              summary: summary(900, '<!here> & co'),
-            },
-          ],
-        },
-      },
-    );
-    expect(renamed).toContain(
-      'Running alongside, not Swaps: Native or no source path 600ms (was 0ms)',
-    );
+    expect(message).not.toMatch(/Coverage|<@U123>/);
   });
 });
 
 describe('buildFullReport', () => {
   it('lists every number, links functions and runs, and escapes table text', () => {
-    const fn = {
-      name: 'anonymous',
-      file: selector.url,
-      line: 993,
-      commit: 'abc123',
-    };
     const summary = summarizeScenario([
       {
         status: 'used',
@@ -267,7 +222,10 @@ describe('buildFullReport', () => {
         audit: {
           ...audit(1000, 40),
           widestFunction: fn,
-          nonSwapsConcurrentAreas: [{ area: 'a|b <x>', selfMs: 600 }],
+          nonSwapsConcurrentAreas: [
+            { area: 'Unknown (unsymbolicated)', selfMs: 600 },
+            { area: 'a|b <x>', selfMs: 5 },
+          ],
         },
       },
       { status: 'failed' },
@@ -281,15 +239,14 @@ describe('buildFullReport', () => {
     const link =
       'an anonymous function in [app/core/redux/slices/bridge/index.ts:993](https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993)';
     expect(markdown).toContain(
-      'Read 2 of 3 scheduled performance runs on main (Pixel 8 Pro); 1 had no profile analysis.',
+      'Coverage: 1 of 3 runs had no profile analysis; Cross-chain swap: 1 of 2 runs failed before measuring.',
     );
-    expect(markdown).toContain('Used 1 of 2 runs; 1 failed before measuring.');
     expect(markdown).toContain(
-      '| Widest span | 1,000ms | 1,000ms | no baseline yet |',
+      `- Widest span: median 1,000ms, p90 1,000ms, no baseline yet; at p90, ${link}.`,
     );
-    expect(markdown).toContain(`Widest span at p90: ${link}.`);
-    expect(markdown).toContain('| fast-equals (dependency) | 900ms | – |');
-    expect(markdown).toContain('| a\\|b &lt;x&gt; | 600ms | – |');
+    expect(markdown).toContain('| fast-equals (dependency) | 900ms |');
+    expect(markdown).toContain('| Native or no source path | 600ms |');
+    expect(markdown).toContain('| a\\|b &lt;x&gt; | 5ms |');
     expect(markdown).toContain(
       `| [42](https://github.com/MetaMask/metamask-mobile/actions/runs/42) | 1,000ms | 40ms | ${link} |`,
     );

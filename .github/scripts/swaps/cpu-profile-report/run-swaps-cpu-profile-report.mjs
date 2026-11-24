@@ -25,19 +25,16 @@ import {
 
 const repo = process.env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile';
 const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'swaps-cpu-profile-'));
+const DAY_MS = 24 * 60 * 60 * 1000;
 const gh = (args) =>
   execFileSync('gh', args, { encoding: 'utf8', stdio: 'pipe' });
 
-function listRuns({ start, end }) {
-  // `a..b` includes `b`, so the range stops one second before the next week starts.
-  const created = `${start.toISOString()}..${new Date(end - 1000).toISOString()}`;
-  const runs = gh(
-    ['run', 'list', '-R', repo, '-w', PERFORMANCE_WORKFLOW]
-      .concat(['-e', 'schedule', '-b', 'main', '--created', created])
-      .concat(['-L', '100', '--json', 'databaseId']),
-  );
+/** IDs of the scheduled runs of a workflow, newest first. */
+const scheduledRuns = (workflow, ...flags) => {
+  const args = ['run', 'list', '-R', repo, '-w', workflow, '-e', 'schedule'];
+  const runs = gh([...args, ...flags, '--json', 'databaseId']);
   return JSON.parse(runs).map((run) => run.databaseId);
-}
+};
 
 function readArtifactJson(runId, artifact, file) {
   const target = path.join(directory, `${runId}-${artifact}`);
@@ -45,40 +42,19 @@ function readArtifactJson(runId, artifact, file) {
   return JSON.parse(fs.readFileSync(path.join(target, file), 'utf8'));
 }
 
-/** Last week's summary from this workflow's recent runs, or null on the first run or after a missed week. */
+/** Last week's summary, from the latest successful scheduled run of this workflow; null on the first run or after a missed week. */
 function previousSummary({ start }) {
-  const previousStart = new Date(start - 7 * 24 * 60 * 60 * 1000).toISOString();
   try {
-    const runs = JSON.parse(
-      gh(
-        ['run', 'list', '-R', repo, '-w', REPORT_WORKFLOW].concat([
-          '-s',
-          'success',
-          '-L',
-          '10',
-          '--json',
-          'databaseId',
-        ]),
-      ),
-    );
-    for (const { databaseId } of runs) {
-      try {
-        const summary = readArtifactJson(
-          databaseId,
-          'swaps-cpu-profile-summary',
-          'summary.json',
-        );
-        if (summary.window?.start === previousStart) {
-          return summary;
-        }
-      } catch {
-        // A run without the artifact is not a baseline.
-      }
-    }
+    const [runId] = scheduledRuns(REPORT_WORKFLOW, '-s', 'success', '-L', '1');
+    const summary =
+      runId &&
+      readArtifactJson(runId, 'swaps-cpu-profile-summary', 'summary.json');
+    const previousStart = new Date(start - 7 * DAY_MS).toISOString();
+    return summary?.window?.start === previousStart ? summary : null;
   } catch (error) {
     console.warn(`[baseline] ${error.stderr?.trim() || error.message}`);
+    return null;
   }
-  return null;
 }
 
 /** chat.postMessage reports errors as HTTP 200 with `ok: false`. */
@@ -118,7 +94,12 @@ async function main() {
   }
 
   const window = lastWeek();
-  const runIds = listRuns(window);
+  // `a..b` includes `b`, so the range stops one second before the next week starts.
+  const created = `${window.start.toISOString()}..${new Date(window.end - 1000).toISOString()}`;
+  const runIds = scheduledRuns(
+    PERFORMANCE_WORKFLOW,
+    ...['-b', 'main', '-L', '100', '--created', created],
+  );
   const samples = SCENARIOS.map(() => []);
   const deviceNames = new Set();
   let runsRead = 0;
@@ -168,11 +149,10 @@ async function main() {
     runsFound: runIds.length,
     previous: previousSummary(window),
   };
-  const report = buildFullReport(scenarios, details);
-  fs.writeFileSync(path.join(env.OUT_DIR, 'report.md'), report);
-  if (env.GITHUB_STEP_SUMMARY) {
-    fs.appendFileSync(env.GITHUB_STEP_SUMMARY, report);
-  }
+  fs.writeFileSync(
+    env.GITHUB_STEP_SUMMARY || path.join(env.OUT_DIR, 'report.md'),
+    buildFullReport(scenarios, details),
+  );
   const message = buildSlackMessage(scenarios, {
     ...details,
     runUrl: env.GITHUB_RUN_URL || '',
