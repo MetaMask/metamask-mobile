@@ -1,11 +1,24 @@
-import { CubeSignerClient, envs } from '@cubist-labs/cubesigner-sdk';
+import {
+  CubeSignerClient,
+  envs,
+  type SessionData,
+} from '@cubist-labs/cubesigner-sdk';
 import { getCubistConfig, type CubistConfig } from './config';
 import { MfaRecoveryControllerError } from './errors';
+
+/** Refresh the cached CubeSigner client this many seconds before expiry. */
+const EXPIRY_SKEW_SECONDS = 60;
 
 /** Source of the registration-service access token used to open a session. */
 export interface CubistSessionTokenProvider {
   getAccessToken: () => Promise<string>;
   getAuthenticatedProfileId: () => Promise<string>;
+  clear?: () => void;
+}
+
+export interface CubistClientGetter {
+  (): Promise<CubeSignerClient>;
+  clear: () => void;
 }
 
 interface CreateCubistClientGetterOptions {
@@ -22,19 +35,25 @@ interface OidcTokenResponse {
 
 /**
  * Returns a getter that creates a CubeSigner session only when the recovery
- * feature is used, and reuses it for the same profile until it expires.
+ * feature is used, and reuses it for the same profile until it nears expiry.
  */
 export function createCubistClientGetter({
   tokenProvider,
   isEnabled,
   getConfig = getCubistConfig,
   fetchFn = fetch,
-}: CreateCubistClientGetterOptions): () => Promise<CubeSignerClient> {
+}: CreateCubistClientGetterOptions): CubistClientGetter {
   let client: CubeSignerClient | undefined;
   let clientProfileId: string | undefined;
   let expiresAt = 0;
 
-  return async () => {
+  const clear = (): void => {
+    client = undefined;
+    clientProfileId = undefined;
+    expiresAt = 0;
+  };
+
+  const getClient = async (): Promise<CubeSignerClient> => {
     if (!isEnabled()) {
       throw new MfaRecoveryControllerError(
         'MFA recovery is disabled',
@@ -47,7 +66,7 @@ export function createCubistClientGetter({
     if (
       client &&
       clientProfileId === profileId &&
-      expiresAt > Math.floor(Date.now() / 1000)
+      expiresAt - EXPIRY_SKEW_SECONDS > Math.floor(Date.now() / 1000)
     ) {
       return client;
     }
@@ -63,11 +82,32 @@ export function createCubistClientGetter({
       oidcToken.idToken,
       config.scopes,
     );
-    client = await CubeSignerClient.create(sessionResponse.data());
+    const sessionData = sessionResponse.data();
+    client = await CubeSignerClient.create(sessionData);
     clientProfileId = profileId;
-    expiresAt = oidcToken.expiresAt;
+    expiresAt = resolveSessionExpiry(sessionData, oidcToken.expiresAt);
     return client;
   };
+
+  getClient.clear = clear;
+  return getClient;
+}
+
+function resolveSessionExpiry(
+  sessionData: Partial<SessionData> | undefined,
+  fallbackExpiresAt: number,
+): number {
+  const candidates = [
+    sessionData?.session_exp,
+    sessionData?.session_info?.refresh_token_exp,
+    sessionData?.session_info?.auth_token_exp,
+  ].filter(
+    (value): value is number =>
+      typeof value === 'number' && Number.isFinite(value),
+  );
+  return candidates.length > 0
+    ? Math.min(...candidates, fallbackExpiresAt)
+    : fallbackExpiresAt;
 }
 
 /** Requests an OIDC token authorized by the recovery registration service. */

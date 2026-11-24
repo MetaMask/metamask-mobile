@@ -84,8 +84,20 @@ export const mfaRecoveryControllerInit: MessengerClientInitFunction<
       ),
   });
 
+  const getClient = createCubistClientGetter({ tokenProvider, isEnabled });
+  const clearCaches = (): void => {
+    tokenProvider.clear();
+    getClient.clear();
+  };
+  initMessenger.subscribe('KeyringController:lock', clearCaches);
+  initMessenger.subscribe('AuthenticationController:stateChange', (state) => {
+    if (!state.isSignedIn) {
+      clearCaches();
+    }
+  });
+
   const escrow = new CubistEscrowProvider({
-    getClient: createCubistClientGetter({ tokenProvider, isEnabled }),
+    getClient,
     ...tryGetCubistEscrowConfig(),
   });
 

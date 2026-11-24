@@ -10,6 +10,7 @@ import type {
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type {
   KeyringControllerGetStateAction,
+  KeyringControllerLockEvent,
   KeyringControllerWithKeyringV2UnsafeAction,
 } from '@metamask/keyring-controller';
 import type {
@@ -66,10 +67,14 @@ type MfaRecoveryControllerInitMessengerActions =
   | UserStorageController.UserStorageControllerPerformSetStorageAction
   | UserStorageController.UserStorageControllerPerformDeleteStorageAction;
 
+type MfaRecoveryControllerInitMessengerEvents =
+  | AuthenticationController.AuthenticationControllerStateChangeEvent
+  | KeyringControllerLockEvent;
+
 export type MfaRecoveryControllerInitMessenger = Messenger<
   'MfaRecoveryControllerInitialization',
   MfaRecoveryControllerInitMessengerActions,
-  never
+  MfaRecoveryControllerInitMessengerEvents
 >;
 
 /** Returns the initialization messenger for MFA recovery dependencies. */
@@ -96,6 +101,7 @@ export function getMfaRecoveryControllerInitMessenger(
       'UserStorageController:performSetStorage',
       'UserStorageController:performDeleteStorage',
     ],
+    events: ['AuthenticationController:stateChange', 'KeyringController:lock'],
     messenger,
   });
   return messenger;

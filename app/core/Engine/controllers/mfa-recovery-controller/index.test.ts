@@ -82,12 +82,25 @@ describe('mfaRecoveryControllerInit', () => {
   const controllerMessenger = { kind: 'controller' };
   const initMessenger = {
     call: jest.fn(),
+    subscribe: jest.fn(),
   };
   const lockProviderMessenger = { kind: 'lock-provider' };
   const trustedIdentifierStoreMessenger = { kind: 'trusted-identifier-store' };
+  let tokenProviderClear: jest.Mock;
+  let clientGetterClear: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    tokenProviderClear = jest.fn();
+    clientGetterClear = jest.fn();
+    mockCreateTokenProvider.mockReturnValue({
+      getAccessToken: jest.fn(),
+      getAuthenticatedProfileId: jest.fn(),
+      clear: tokenProviderClear,
+    });
+    mockCreateClientGetter.mockReturnValue(
+      Object.assign(jest.fn(), { clear: clientGetterClear }),
+    );
     mockMfaRecoveryController.mockImplementation(() => controller as never);
     mockGetLockProviderMessenger.mockReturnValue(
       lockProviderMessenger as never,
@@ -240,6 +253,37 @@ describe('mfaRecoveryControllerInit', () => {
     await expect(options.exchangeSocialAccessToken()).resolves.toEqual({
       token: 'social',
     });
+  });
+
+  it('clears token and client caches on wallet lock and auth sign-out', () => {
+    const handlers = new Map<string, (...args: unknown[]) => void>();
+    initMessenger.subscribe.mockImplementation(
+      (event: string, handler: (...args: unknown[]) => void) => {
+        handlers.set(event, handler);
+      },
+    );
+
+    mfaRecoveryControllerInit({
+      controllerMessenger,
+      initMessenger,
+      persistedState: {},
+    } as never);
+
+    handlers.get('KeyringController:lock')?.();
+    expect(tokenProviderClear).toHaveBeenCalledTimes(1);
+    expect(clientGetterClear).toHaveBeenCalledTimes(1);
+
+    handlers.get('AuthenticationController:stateChange')?.({
+      isSignedIn: true,
+    });
+    expect(tokenProviderClear).toHaveBeenCalledTimes(1);
+    expect(clientGetterClear).toHaveBeenCalledTimes(1);
+
+    handlers.get('AuthenticationController:stateChange')?.({
+      isSignedIn: false,
+    });
+    expect(tokenProviderClear).toHaveBeenCalledTimes(2);
+    expect(clientGetterClear).toHaveBeenCalledTimes(2);
   });
 
   describe('SIWE signer', () => {

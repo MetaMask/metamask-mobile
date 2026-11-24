@@ -142,4 +142,27 @@ describe('mfa-recovery-controller-messenger', () => {
     expect(acquireLock).toHaveBeenCalledTimes(1);
     expect(releaseLock).toHaveBeenCalledTimes(1);
   });
+
+  it('delegates lock and auth stateChange events to the init messenger', () => {
+    const rootMessenger = createRootMessenger();
+    const initMessenger = getMfaRecoveryControllerInitMessenger(rootMessenger);
+    const onLock = jest.fn();
+    const onAuthStateChange = jest.fn();
+
+    initMessenger.subscribe('KeyringController:lock', onLock);
+    initMessenger.subscribe(
+      'AuthenticationController:stateChange',
+      onAuthStateChange,
+    );
+
+    rootMessenger.publish('KeyringController:lock');
+    rootMessenger.publish(
+      'AuthenticationController:stateChange',
+      { isSignedIn: false },
+      [],
+    );
+
+    expect(onLock).toHaveBeenCalledTimes(1);
+    expect(onAuthStateChange).toHaveBeenCalledTimes(1);
+  });
 });

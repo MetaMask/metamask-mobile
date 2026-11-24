@@ -263,4 +263,119 @@ describe('createCubistClientGetter', () => {
     expect(fetchFn).toHaveBeenCalledTimes(2);
     jest.useRealTimers();
   });
+
+  it('refreshes the cached client within the 60s expiry skew window', async () => {
+    jest.useFakeTimers();
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const fetchFn = jest
+      .fn()
+      .mockResolvedValueOnce(
+        createJsonResponse({
+          idToken: 'oidc-token',
+          expiresAt: nowSeconds + 120,
+        }),
+      )
+      .mockResolvedValueOnce(
+        createJsonResponse({
+          idToken: 'oidc-token-2',
+          expiresAt: nowSeconds + 3_600,
+        }),
+      );
+    const refreshedClient = {
+      id: 'client-refreshed',
+    } as unknown as CubeSignerClient;
+    mockCreate
+      .mockResolvedValueOnce(client)
+      .mockResolvedValueOnce(refreshedClient);
+
+    const getClient = createCubistClientGetter({
+      tokenProvider: {
+        getAccessToken: jest.fn().mockResolvedValue('access-token'),
+        getAuthenticatedProfileId: jest.fn().mockResolvedValue('profile-1'),
+      },
+      isEnabled: () => true,
+      getConfig: () => CONFIG as CubistConfig,
+      fetchFn,
+    });
+
+    expect(await getClient()).toBe(client);
+    // 59s remaining (< 60s skew) should trigger a refresh before actual expiry.
+    jest.setSystemTime((nowSeconds + 61) * 1000);
+    expect(await getClient()).toBe(refreshedClient);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
+  it('uses the CubeSigner session expiry when it is earlier than the OIDC token expiry', async () => {
+    jest.useFakeTimers();
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const fetchFn = jest.fn().mockResolvedValue(
+      createJsonResponse({
+        idToken: 'oidc-token',
+        expiresAt: nowSeconds + 3_600,
+      }),
+    );
+    mockCreateOidcSession
+      .mockResolvedValueOnce({
+        data: () => ({
+          session_exp: nowSeconds + 180,
+          session_info: { auth_token_exp: nowSeconds + 120 },
+        }),
+      } as never)
+      .mockResolvedValueOnce({
+        data: () => ({ session_exp: nowSeconds + 3_600 }),
+      } as never);
+    const refreshedClient = {
+      id: 'client-refreshed',
+    } as unknown as CubeSignerClient;
+    mockCreate
+      .mockResolvedValueOnce(client)
+      .mockResolvedValueOnce(refreshedClient);
+
+    const getClient = createCubistClientGetter({
+      tokenProvider: {
+        getAccessToken: jest.fn().mockResolvedValue('access-token'),
+        getAuthenticatedProfileId: jest.fn().mockResolvedValue('profile-1'),
+      },
+      isEnabled: () => true,
+      getConfig: () => CONFIG as CubistConfig,
+      fetchFn,
+    });
+
+    expect(await getClient()).toBe(client);
+    // auth_token_exp is now + 120; at +65s (55s left < 60s skew), refresh runs
+    // even though oidcToken.expiresAt is still ~1 hour away.
+    jest.setSystemTime((nowSeconds + 65) * 1000);
+    expect(await getClient()).toBe(refreshedClient);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    jest.useRealTimers();
+  });
+
+  it('invalidates the cached client when clear() is called', async () => {
+    const fetchFn = jest.fn().mockResolvedValue(
+      createJsonResponse({
+        idToken: 'oidc-token',
+        expiresAt: FUTURE_EXPIRY,
+      }),
+    );
+    const secondClient = { id: 'client-2' } as unknown as CubeSignerClient;
+    mockCreate
+      .mockResolvedValueOnce(client)
+      .mockResolvedValueOnce(secondClient);
+
+    const getClient = createCubistClientGetter({
+      tokenProvider: {
+        getAccessToken: jest.fn().mockResolvedValue('access-token'),
+        getAuthenticatedProfileId: jest.fn().mockResolvedValue('profile-1'),
+      },
+      isEnabled: () => true,
+      getConfig: () => CONFIG as CubistConfig,
+      fetchFn,
+    });
+
+    expect(await getClient()).toBe(client);
+    getClient.clear();
+    expect(await getClient()).toBe(secondClient);
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+  });
 });

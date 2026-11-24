@@ -68,4 +68,51 @@ describe('createCubistSessionTokenProvider', () => {
     expect(accessToken).toBe('refreshed');
     expect(exchangeSocialAccessToken).toHaveBeenCalledTimes(2);
   });
+
+  it('clears the cached locked session when getAccessToken is called while unlocked', async () => {
+    const exchangeSocialAccessToken = jest
+      .fn<Promise<SocialProfileSession>, []>()
+      .mockResolvedValueOnce(SESSION)
+      .mockResolvedValueOnce({
+        ...SESSION,
+        token: { ...SESSION.token, accessToken: 'fresh-after-relock' },
+      });
+    let unlocked = false;
+    const provider = createCubistSessionTokenProvider({
+      isUnlocked: () => unlocked,
+      getCanonicalProfileId: jest.fn(),
+      getBearerToken: jest.fn(async () => 'srp-token'),
+      exchangeSocialAccessToken,
+      now: () => 1_000,
+    });
+
+    expect(await provider.getAccessToken()).toBe('social-access');
+    unlocked = true;
+    expect(await provider.getAccessToken()).toBe('srp-token');
+    unlocked = false;
+    expect(await provider.getAccessToken()).toBe('fresh-after-relock');
+    expect(exchangeSocialAccessToken).toHaveBeenCalledTimes(2);
+  });
+
+  it('drops the cached locked session when clear() is called', async () => {
+    const exchangeSocialAccessToken = jest
+      .fn<Promise<SocialProfileSession>, []>()
+      .mockResolvedValueOnce(SESSION)
+      .mockResolvedValueOnce({
+        ...SESSION,
+        token: { ...SESSION.token, accessToken: 'after-clear' },
+      });
+    const provider = createCubistSessionTokenProvider({
+      isUnlocked: () => false,
+      getCanonicalProfileId: jest.fn(),
+      getBearerToken: jest.fn(),
+      exchangeSocialAccessToken,
+      now: () => 1_000,
+    });
+
+    expect(await provider.getAccessToken()).toBe('social-access');
+    provider.clear();
+    expect(await provider.getAccessToken()).toBe('after-clear');
+    expect(exchangeSocialAccessToken).toHaveBeenCalledTimes(2);
+  });
 });

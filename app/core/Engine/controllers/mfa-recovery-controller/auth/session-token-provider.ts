@@ -32,8 +32,14 @@ export function createCubistSessionTokenProvider({
   getBearerToken,
   exchangeSocialAccessToken,
   now = Date.now,
-}: SessionTokenProviderOptions): CubistSessionTokenProvider {
+}: SessionTokenProviderOptions): CubistSessionTokenProvider & {
+  clear: () => void;
+} {
   let cached: SocialProfileSession | undefined;
+
+  const clear = (): void => {
+    cached = undefined;
+  };
 
   const getSocialSession = async (): Promise<SocialProfileSession> => {
     if (
@@ -48,15 +54,17 @@ export function createCubistSessionTokenProvider({
   };
 
   return {
+    clear,
     getAuthenticatedProfileId: async () => {
       if (isUnlocked()) {
-        cached = undefined;
+        clear();
         return await getCanonicalProfileId();
       }
       return (await getSocialSession()).profile.canonicalProfileId;
     },
     getAccessToken: async () => {
       if (isUnlocked()) {
+        clear();
         return await getBearerToken();
       }
       return (await getSocialSession()).token.accessToken;
