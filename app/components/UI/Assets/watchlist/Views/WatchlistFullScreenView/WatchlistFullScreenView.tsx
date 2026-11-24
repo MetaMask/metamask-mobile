@@ -53,7 +53,6 @@ import {
   selectUnifiedWatchlistEnabled,
 } from '../../../selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../../../Perps/selectors/featureFlags';
-import { TEMPORARY_ENABLE_WATCHLIST_PERPS } from '../../../../Watchlist/watchlistFeatureOverrides';
 import { useUnifiedWatchlist } from '../../../../Watchlist/hooks/useUnifiedWatchlist';
 import type {
   UnifiedWatchlistItem,
@@ -746,11 +745,8 @@ const WatchlistFullScreenView = ({
   testStreamManager,
 }: WatchlistFullScreenViewProps = {}): React.JSX.Element => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedWatchlistEnabled =
-    useSelector(selectUnifiedWatchlistEnabled) ||
-    TEMPORARY_ENABLE_WATCHLIST_PERPS;
-  const isPerpsEnabled =
-    useSelector(selectPerpsEnabledFlag) || TEMPORARY_ENABLE_WATCHLIST_PERPS;
+  const isUnifiedWatchlistEnabled = useSelector(selectUnifiedWatchlistEnabled);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   if (
     !isTokenWatchlistEnabled ||

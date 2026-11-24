@@ -26,7 +26,6 @@ import {
   createUnifiedWatchlistToken,
   getTokenWatchlistKey,
 } from '../utils';
-import { TEMPORARY_ENABLE_WATCHLIST_PERPS } from '../watchlistFeatureOverrides';
 import { useWatchlistOrder } from './useWatchlistOrder';
 
 const EMPTY_SYMBOLS: string[] = [];
@@ -38,11 +37,8 @@ const EMPTY_ASSET_IDS: string[] = [];
  */
 export const useUnifiedWatchlist = (): UnifiedWatchlistResult => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedEnabled =
-    useSelector(selectUnifiedWatchlistEnabled) ||
-    TEMPORARY_ENABLE_WATCHLIST_PERPS;
-  const isPerpsFeatureEnabled =
-    useSelector(selectPerpsEnabledFlag) || TEMPORARY_ENABLE_WATCHLIST_PERPS;
+  const isUnifiedEnabled = useSelector(selectUnifiedWatchlistEnabled);
+  const isPerpsFeatureEnabled = useSelector(selectPerpsEnabledFlag);
   const watchlistSymbols =
     useSelector(selectPerpsWatchlistMarkets) ?? EMPTY_SYMBOLS;
   const networkTier = useNetworkTier();

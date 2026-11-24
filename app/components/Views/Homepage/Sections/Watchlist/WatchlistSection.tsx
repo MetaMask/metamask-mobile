@@ -60,7 +60,6 @@ import {
   getTokenWatchlistKey,
   selectWatchlistSuggestions,
 } from '../../../../UI/Watchlist/utils';
-import { TEMPORARY_ENABLE_WATCHLIST_PERPS } from '../../../../UI/Watchlist/watchlistFeatureOverrides';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -482,11 +481,8 @@ const WatchlistSection = forwardRef<
   WatchlistSectionProps
 >((props, ref) => {
   const isTokenWatchlistEnabled = useSelector(selectTokenWatchlistEnabled);
-  const isUnifiedWatchlistEnabled =
-    useSelector(selectUnifiedWatchlistEnabled) ||
-    TEMPORARY_ENABLE_WATCHLIST_PERPS;
-  const isPerpsEnabled =
-    useSelector(selectPerpsEnabledFlag) || TEMPORARY_ENABLE_WATCHLIST_PERPS;
+  const isUnifiedWatchlistEnabled = useSelector(selectUnifiedWatchlistEnabled);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   if (isTokenWatchlistEnabled && isUnifiedWatchlistEnabled && isPerpsEnabled) {
     return <MixedWatchlistSection {...props} ref={ref} />;
