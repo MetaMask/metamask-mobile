@@ -450,6 +450,25 @@ export function useTransactionCustomAmount({
     ],
   );
 
+  // A Perps provider switch replaces the confirmation with a new transaction,
+  // while this screen stays mounted. The amount on screen, entered or
+  // prefilled, must survive that, so once the transaction is replaced the
+  // prefill below no longer overwrites or clears it. Declared before the
+  // prefill effect so the flag is set before that effect reads it.
+  const previousTransactionIdRef = useRef(transactionId);
+  const keepAmountAfterReplacementRef = useRef(false);
+  useEffect(() => {
+    if (previousTransactionIdRef.current === transactionId) {
+      return;
+    }
+
+    previousTransactionIdRef.current = transactionId;
+
+    if (amountFiat !== '0') {
+      keepAmountAfterReplacementRef.current = true;
+    }
+  }, [amountFiat, transactionId]);
+
   const isDepositPrefilled =
     depositPrefill.status === DepositPrefillStatus.Prefilled;
   const prevHasPrefilled = useRef(isDepositPrefilled);
@@ -462,7 +481,7 @@ export function useTransactionCustomAmount({
     // Skip if the user has manually typed on the keypad — a transient
     // hasPrefilled toggle (from tokenKey changes) must not overwrite
     // their input. The ref resets when the pay token genuinely changes.
-    if (userHasEditedRef.current) {
+    if (userHasEditedRef.current || keepAmountAfterReplacementRef.current) {
       prevHasPrefilled.current = isDepositPrefilled;
       return;
     }

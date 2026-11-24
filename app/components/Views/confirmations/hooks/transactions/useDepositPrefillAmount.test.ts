@@ -450,6 +450,83 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBe('500');
     });
 
+    describe('Lighter deposit', () => {
+      const firstLighterDeposit = () =>
+        makeTransactionMeta({
+          type: TransactionType.perpsLighterDeposit,
+          nestedTransactions: [
+            { to: '0xusdc', data: '0x095ea7b3' },
+            { to: '0xlighter', data: '0x8a857083' },
+          ],
+        });
+
+      it('prefills the first deposit with 50% of the balance when the perpsDeposit override is enabled', () => {
+        setupMocks({
+          transactionMeta: firstLighterDeposit(),
+          prefilledAmountDefault: { enabled: false },
+          prefilledAmountOverrides: { perpsDeposit: { enabled: true } },
+        });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Prefilled);
+        expect(result.current.prefillAmount).toBe('500');
+        expect(result.current.percentage).toBe(50);
+        expect(result.current.isLimitCapped).toBe(false);
+      });
+
+      it('prefills the first deposit with 50% for a non-stablecoin', () => {
+        setupMocks({
+          transactionMeta: firstLighterDeposit(),
+          stablecoin: false,
+          prefilledAmountOverrides: { perpsDeposit: { enabled: true } },
+        });
+
+        const { result } = runHook();
+
+        expect(result.current.prefillAmount).toBe('500');
+        expect(result.current.percentage).toBe(50);
+      });
+
+      it('does not prefill the first deposit when the perpsDeposit override is disabled', () => {
+        setupMocks({
+          transactionMeta: firstLighterDeposit(),
+          prefilledAmountOverrides: { perpsDeposit: { enabled: false } },
+        });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      });
+
+      it('prefers an explicit perpsLighterDeposit override', () => {
+        setupMocks({
+          transactionMeta: firstLighterDeposit(),
+          prefilledAmountOverrides: {
+            perpsDeposit: { enabled: true },
+            perpsLighterDeposit: { enabled: false },
+          },
+        });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      });
+
+      it('does not prefill a deposit into an existing Lighter account', () => {
+        setupMocks({
+          transactionMeta: makeTransactionMeta({
+            type: TransactionType.perpsLighterDeposit,
+          }),
+          prefilledAmountOverrides: { perpsDeposit: { enabled: true } },
+        });
+
+        const { result } = runHook();
+
+        expect(result.current.status).toBe(DepositPrefillStatus.Disabled);
+      });
+    });
+
     it('does not apply the money-account A/B gate for non-deposit transaction types', () => {
       mockDepositPrefillAbVariant(MoneyAccountDepositPrefillVariant.Control);
       setupMocks({

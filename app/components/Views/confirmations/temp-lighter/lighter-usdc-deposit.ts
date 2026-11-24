@@ -1,4 +1,7 @@
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   LIGHTER_BRIDGE_CONFIG,
   getLighterHttpEndpoint,
@@ -139,6 +142,25 @@ export function buildLighterUsdcDepositTransaction(
       standard: 'erc20',
     },
   };
+}
+
+/**
+ * True for the first deposit into Lighter, which creates the account with an
+ * approve plus `deposit` call. A deposit into an existing account has no
+ * calldata, so it is not matched.
+ *
+ * @param transactionMeta - Open confirmation.
+ * @returns Whether this confirmation creates the Lighter account.
+ */
+export function isLighterAccountCreationDeposit(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(
+    transactionMeta?.type === TransactionType.perpsLighterDeposit &&
+      transactionMeta.nestedTransactions?.some((transaction) =>
+        transaction.data?.toLowerCase().startsWith(LIGHTER_DEPOSIT_SELECTOR),
+      ),
+  );
 }
 
 /**

@@ -48,6 +48,7 @@ import {
   buildPaymentTokenMock,
   evmAssetId,
 } from '../../__mocks__/pay-token.mock';
+import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 
 const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
   TransactionType.membershipSubscription;
@@ -69,6 +70,15 @@ jest.mock('../../../../../util/abTest', () => ({
   resolveABTestAssignment: jest.fn(),
 }));
 
+jest.mock('./useTransactionMetadataRequest', () => {
+  const actual = jest.requireActual('./useTransactionMetadataRequest');
+  return {
+    ...actual,
+    useTransactionMetadataRequest: jest.fn(
+      actual.useTransactionMetadataRequest,
+    ),
+  };
+});
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../pay/useTransactionPayPrefetch');
 jest.mock('../pay/useUpdateTransactionPayAmount');
@@ -239,6 +249,13 @@ describe('useTransactionCustomAmount', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    jest
+      .mocked(useTransactionMetadataRequest)
+      .mockImplementation(
+        jest.requireActual('./useTransactionMetadataRequest')
+          .useTransactionMetadataRequest,
+      );
 
     resolveABTestAssignmentMock.mockReturnValue({
       variantName: 'treatment',
@@ -2715,6 +2732,106 @@ describe('useTransactionCustomAmount', () => {
       });
 
       expect(result.current.amountFiat).toBe('800');
+    });
+  });
+
+  describe('perps provider switch replaces the transaction', () => {
+    const perpsDepositTransactionMeta = {
+      type: TransactionType.perpsDeposit,
+    };
+
+    beforeEach(() => {
+      (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
+        prefilledAmount: {
+          default: { enabled: false },
+          overrides: {
+            perpsDeposit: { enabled: true },
+          },
+        },
+      });
+    });
+
+    function mockPayToken(address: Hex | undefined, balanceUsd = '500') {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: address
+          ? ({
+              address,
+              balanceUsd,
+              chainId: '0x1' as Hex,
+            } as TransactionPaymentToken)
+          : undefined,
+      } as ReturnType<typeof useTransactionPayToken>);
+    }
+
+    // The replacement is a new confirmation with its own id, and its pay token
+    // is unset until automatic selection runs again.
+    async function replaceTransaction(
+      rerender: ReturnType<typeof runHook>['rerender'],
+    ) {
+      const actualHook = jest.requireActual(
+        './useTransactionMetadataRequest',
+      ).useTransactionMetadataRequest;
+      let replacement: TransactionMeta | undefined;
+
+      jest.mocked(useTransactionMetadataRequest).mockImplementation(() => {
+        const current = actualHook();
+        replacement ??= { ...current, id: 'replacement-transaction' };
+        return replacement;
+      });
+      mockPayToken(undefined);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      mockPayToken(ETHEREUM_USDT_ADDRESS);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+    }
+
+    it('keeps the amount the user entered', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS);
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmount('42');
+      });
+
+      expect(result.current.amountFiat).toBe('42');
+
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe('42');
+    });
+
+    it('keeps the prefilled amount', async () => {
+      mockPayToken(ETHEREUM_USDT_ADDRESS);
+
+      const { result, rerender } = runHook({
+        transactionMeta: perpsDepositTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      const prefilledAmount = result.current.amountFiat;
+      expect(prefilledAmount).not.toBe('0');
+
+      await replaceTransaction(rerender);
+
+      expect(result.current.amountFiat).toBe(prefilledAmount);
     });
   });
 });
