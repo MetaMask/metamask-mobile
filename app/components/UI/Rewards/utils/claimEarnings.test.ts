@@ -59,6 +59,7 @@ import {
   mergeInFlightClaims,
   runEarningsClaim,
   submitClaimVoucher,
+  type ClaimRouteOutcome,
 } from './claimEarnings';
 
 jest.mock('@metamask/eth-snap-keyring/v2', () => ({
@@ -1288,6 +1289,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => true,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher,
     });
 
@@ -1297,7 +1299,7 @@ describe('runEarningsClaim', () => {
       claim_intent_id: 'intent-1',
       proofs: [{ earning_address: 'eip155:0xabc', signature: '0xsig' }],
     });
-    expect(submitVoucher).toHaveBeenCalledWith(voucher);
+    expect(submitVoucher).toHaveBeenCalledWith(voucher, '0xmoney');
     expect(outcomes).toEqual([
       {
         route: 'referral-trade-fee-cashback',
@@ -1319,6 +1321,7 @@ describe('runEarningsClaim', () => {
       initiateClaim: async () => ({ kind: 'authorized', body: partial }),
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1394,6 +1397,7 @@ describe('runEarningsClaim', () => {
       canSignEarningAddress: (earningAddress) =>
         earningAddress === 'eip155:0xabc',
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1444,6 +1448,7 @@ describe('runEarningsClaim', () => {
       canSignEarningAddress: (earningAddress) =>
         evmAddressFromEarningAddress(earningAddress) !== null,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1491,6 +1496,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: (earningAddress) => earningAddress === bitcoin,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn().mockResolvedValue(undefined),
     });
 
@@ -1529,6 +1535,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => false,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1551,6 +1558,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage,
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1606,6 +1614,7 @@ describe('runEarningsClaim', () => {
       initiateClaim,
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1626,6 +1635,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1647,6 +1657,7 @@ describe('runEarningsClaim', () => {
       },
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: jest.fn(),
     });
 
@@ -1674,6 +1685,7 @@ describe('runEarningsClaim', () => {
       initiateClaim: async () => ({ kind: 'authorized', body: opened() }),
       canSignEarningAddress: () => true,
       signMessage: jest.fn(),
+      getMoneyAccountAddress: () => undefined,
       submitVoucher: async () => {
         throw new Error('rejected');
       },
@@ -1688,6 +1700,131 @@ describe('runEarningsClaim', () => {
       },
     ]);
     expect(claimToastKey(outcomes)).toBe('claimFailureRetryToast');
+  });
+});
+
+describe('PAYOUT_ADDRESS_MIGRATED', () => {
+  const migrated = () =>
+    new RewardsMoneyClaimRefusalError(422, 'PAYOUT_ADDRESS_MIGRATED');
+  const migratedOutcome: ClaimRouteOutcome = {
+    route: 'referral-trade-fee-cashback',
+    submitted: false,
+    opened: false,
+    reason: 'PAYOUT_ADDRESS_MIGRATED',
+  };
+
+  it('shows its own toast and reports its own failure bucket', () => {
+    expect(claimToastKey([migratedOutcome])).toBe(
+      'claimFailurePayoutMigratedToast',
+    );
+    expect(claimFailureReason('PAYOUT_ADDRESS_MIGRATED')).toBe(
+      'payout_migrated',
+    );
+  });
+
+  it('falls back to the generic sentence when the server does not send the key', () => {
+    const localizedText = {
+      claimFailureToast: 'Earnings could not be claimed.',
+    } as unknown as Parameters<typeof claimToastText>[0];
+
+    expect(claimToastText(localizedText, [migratedOutcome])).toBe(
+      'Earnings could not be claimed.',
+    );
+  });
+
+  it('retries the route once with the address the store now names', async () => {
+    const initiateClaim = jest.fn(
+      async (_route, body): Promise<InitiateClaimResult> => {
+        if (body.money_account_address === '0xold') {
+          throw migrated();
+        }
+        return { kind: 'authorized', body: opened() };
+      },
+    );
+    const submitVoucher = jest.fn().mockResolvedValue(undefined);
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(2);
+    expect(initiateClaim.mock.calls[1][1]).toEqual({
+      money_account_address: '0xnew',
+    });
+    expect(submitVoucher).toHaveBeenCalledWith(voucher, '0xnew');
+    expect(outcomes).toEqual([
+      {
+        route: 'referral-trade-fee-cashback',
+        submitted: true,
+        opened: true,
+      },
+    ]);
+  });
+
+  it('keeps the refusal when the store still names the same address', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw migrated();
+    });
+    const submitVoucher = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xOLD',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xold',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
+    expect(submitVoucher).not.toHaveBeenCalled();
+    expect(outcomes).toEqual([migratedOutcome]);
+  });
+
+  it('stops after one retry when the new address is refused too', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw migrated();
+    });
+    const submitVoucher = jest.fn();
+
+    const outcomes = await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher,
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(2);
+    expect(submitVoucher).not.toHaveBeenCalled();
+    expect(outcomes).toEqual([migratedOutcome]);
+  });
+
+  it('does not retry a route refused for another reason', async () => {
+    const initiateClaim = jest.fn(async (): Promise<InitiateClaimResult> => {
+      throw new RewardsMoneyClaimRefusalError(422, 'UNDER_REVIEW');
+    });
+
+    await runEarningsClaim({
+      moneyAccountAddress: '0xold',
+      routes: ['referral-trade-fee-cashback'],
+      initiateClaim,
+      canSignEarningAddress: () => true,
+      signMessage: jest.fn(),
+      getMoneyAccountAddress: () => '0xnew',
+      submitVoucher: jest.fn(),
+    });
+
+    expect(initiateClaim).toHaveBeenCalledTimes(1);
   });
 });
 

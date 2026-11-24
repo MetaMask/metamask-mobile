@@ -183,6 +183,7 @@ export type ReferralLocalizedTextKey =
   | 'claimFailureNoEligibleBalanceToast'
   | 'claimFailureUnavailableToast'
   | 'claimFailureContactSupportToast'
+  | 'claimFailurePayoutMigratedToast'
   | 'earnedOnOtherAccounts'
   | 'historyClaimPending'
   | 'last7Days'
