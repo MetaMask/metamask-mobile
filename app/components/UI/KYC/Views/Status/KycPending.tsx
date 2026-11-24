@@ -14,10 +14,22 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
-import KycIllustration, {
-  KycIllustrationSource,
-} from '../../components/Illustration';
 import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+import MoneyVbaHomeCardHeroAnimation from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation';
+import { MONEY_VBA_HOME_CARD_CONFIG } from '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardConfig';
+
+// VBA's verifying-identity scanner Rive (the Money home card's), scaled up to
+// this screen's 104px illustration height. The fallback art keeps its ratio.
+const VERIFYING_HERO = MONEY_VBA_HOME_CARD_CONFIG.kyc_pending;
+const VERIFYING_HERO_HEIGHT = 104;
+const VERIFYING_HERO_ART = {
+  ...VERIFYING_HERO.heroArt,
+  width: Math.round(
+    (VERIFYING_HERO.heroArt.width / VERIFYING_HERO.heroArt.height) *
+      VERIFYING_HERO_HEIGHT,
+  ),
+  height: VERIFYING_HERO_HEIGHT,
+};
 
 export const KycPendingSelectorsIDs = {
   CONTAINER: 'kyc-pending-container',
@@ -66,10 +78,19 @@ const KycPending = ({
             twClassName="mb-[24px]"
             testID={KycPendingSelectorsIDs.ILLUSTRATION}
           >
-            <KycIllustration
-              source={KycIllustrationSource.scanner}
-              twClassName="h-[104px] w-[149px]"
-            />
+            {VERIFYING_HERO.heroAnimation ? (
+              <Box
+                style={tw.style('overflow-hidden', {
+                  width: VERIFYING_HERO_ART.width,
+                  height: VERIFYING_HERO_ART.height,
+                })}
+              >
+                <MoneyVbaHomeCardHeroAnimation
+                  animation={VERIFYING_HERO.heroAnimation}
+                  fallback={VERIFYING_HERO_ART}
+                />
+              </Box>
+            ) : null}
           </Box>
           <Text variant={TextVariant.HeadingLg} twClassName="text-center">
             {title ?? strings('kyc.kyc_taking_longer.title')}

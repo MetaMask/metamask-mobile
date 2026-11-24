@@ -4,6 +4,11 @@ import KycPending from './KycPending';
 import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 
 jest.mock('../../hooks/useTrackKycResultViewed');
+// The scanner Rive needs a navigator for its replay-on-focus; this test has none.
+jest.mock(
+  '../../../Money/components/MoneyVbaHomeCard/MoneyVbaHomeCardHeroAnimation',
+  () => () => null,
+);
 
 describe('KycPending', () => {
   it('reports the pending result as viewed', () => {
