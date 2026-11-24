@@ -132,6 +132,12 @@ export const PROTOTYPE_COPY = {
     agreeAndContinue: 'Agree and continue',
   },
   lockup: 'MetaMask × Kalshi',
+  /** The Kalshi email code screen's copy; the fake address is masked where
+   * the screen renders the body. */
+  emailCode: {
+    title: "Enter Kalshi's verification code",
+    body: 'Kalshi sent a 6-digit code to {maskedEmail}.',
+  },
   useDifferentEmail: 'Use a different email',
   sumsub: {
     title: 'Sumsub (placeholder)',

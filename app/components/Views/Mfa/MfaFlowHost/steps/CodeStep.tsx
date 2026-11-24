@@ -55,7 +55,18 @@ export interface CodeStepPartnerProps {
   useDifferentEmail?: {
     label: string;
     onPress: () => void;
+    /**
+     * Renders the control as a full-width secondary button under the footer's
+     * resend button, instead of the link above the boxes. Email codes only:
+     * the resend button lives on those steps.
+     */
+    asButton?: boolean;
   };
+  /**
+   * Replaces the step's title, for a partner whose code is theirs. Omitted
+   * keeps the MFA copy.
+   */
+  title?: string;
   /**
    * Replaces the step's description, for a partner code that did not come
    * from an email. Omitted keeps the MFA copy.
@@ -222,6 +233,20 @@ const CodeStep = ({
   };
   const canResend = !isCoolingDown && !busy;
 
+  // The partner's way back to choosing the email, as the designs ask for it:
+  // a secondary button stacked under the resend button in the footer.
+  const differentEmailButton = partner?.useDifferentEmail?.asButton ? (
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Lg}
+      isFullWidth
+      onPress={partner.useDifferentEmail.onPress}
+      testID={MfaFlowSelectorsIDs.PARTNER_EMAIL_LINK}
+    >
+      {partner.useDifferentEmail.label}
+    </Button>
+  ) : null;
+
   const getDescription = () => {
     if (partner?.description) {
       return partner.description;
@@ -247,7 +272,7 @@ const CodeStep = ({
   return (
     <StepLayout
       onAction={onAction}
-      title={strings('mfa.otp.title')}
+      title={partner?.title ?? strings('mfa.otp.title')}
       description={getDescription()}
       top={partner?.lockup}
       footer={
@@ -271,30 +296,33 @@ const CodeStep = ({
               : strings('mfa.otp.retry')}
           </Button>
         ) : isTotp ? undefined : (
-          <Button
-            variant={
-              canResend ? ButtonVariant.Primary : ButtonVariant.Secondary
-            }
-            size={ButtonSize.Lg}
-            isFullWidth
-            // A complete code submits itself; the line under the boxes shows
-            // it being checked.
-            isDisabled={!canResend}
-            onPress={() => {
-              onAction({ type: 'resend' });
-            }}
-            testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
-          >
-            {needsNewCode && !isCoolingDown
-              ? strings('mfa.otp.get_new_code')
-              : getResendLabel()}
-          </Button>
+          <>
+            <Button
+              variant={
+                canResend ? ButtonVariant.Primary : ButtonVariant.Secondary
+              }
+              size={ButtonSize.Lg}
+              isFullWidth
+              // A complete code submits itself; the line under the boxes shows
+              // it being checked.
+              isDisabled={!canResend}
+              onPress={() => {
+                onAction({ type: 'resend' });
+              }}
+              testID={MfaFlowSelectorsIDs.RESEND_BUTTON}
+            >
+              {needsNewCode && !isCoolingDown
+                ? strings('mfa.otp.get_new_code')
+                : getResendLabel()}
+            </Button>
+            {differentEmailButton}
+          </>
         )
       }
     >
       {/* Keep this container and the code field at the screen's available
           width so entering digits cannot change the row's measurements. */}
-      {partner?.useDifferentEmail && (
+      {partner?.useDifferentEmail && !partner.useDifferentEmail.asButton && (
         <TextButton
           variant={TextVariant.BodyMd}
           onPress={partner.useDifferentEmail.onPress}
