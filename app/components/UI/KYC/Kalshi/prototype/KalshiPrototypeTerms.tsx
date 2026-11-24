@@ -204,6 +204,21 @@ const KalshiPrototypeVendorTermsPage = ({
     ctaLabel = copy.agreeToConsentAbove;
   }
 
+  const stepIndicator = (
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      accessibilityLabel={strings(
+        'wallet.home_onboarding_steps.progress_a11y',
+        STEP,
+      )}
+      testID={KalshiPrototypeTermsSelectorsIDs.STEP_INDICATOR}
+    >
+      {copy.stepIndicator}
+    </Text>
+  );
+
   return (
     <Box
       twClassName="flex-1 bg-default"
@@ -217,6 +232,7 @@ const KalshiPrototypeVendorTermsPage = ({
           isGlass={isGlassHeader}
           isFloating={false}
           onBack={onBack}
+          title={stepIndicator}
           backButtonProps={{
             testID: KalshiPrototypeTermsSelectorsIDs.BACK_BUTTON,
           }}
@@ -229,24 +245,10 @@ const KalshiPrototypeVendorTermsPage = ({
           onLayout={handleViewportLayout}
           testID={KalshiPrototypeTermsSelectorsIDs.CONTAINER}
         >
-          <Box twClassName="px-4 pt-2">
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              accessibilityLabel={strings(
-                'wallet.home_onboarding_steps.progress_a11y',
-                STEP,
-              )}
-              testID={KalshiPrototypeTermsSelectorsIDs.STEP_INDICATOR}
-            >
-              {copy.stepIndicator}
-            </Text>
-          </Box>
           <TitleStandard
             title={copy.title}
             bottomLabel={copy.body}
-            twClassName="px-4 pb-4"
+            twClassName="px-4 pt-2 pb-4"
           />
 
           <Text

@@ -283,6 +283,7 @@ const KycPartnerTerms = ({
           isGlass={isGlassHeader}
           isFloating={false}
           onBack={onBack}
+          title={stepIndicator}
           backButtonProps={{
             testID: KycPartnerTermsSelectorsIDs.BACK_BUTTON,
           }}
@@ -295,11 +296,10 @@ const KycPartnerTerms = ({
           onLayout={handleViewportLayout}
           testID={KycPartnerTermsSelectorsIDs.CONTAINER}
         >
-          <Box twClassName="px-4 pt-2">{stepIndicator}</Box>
           <TitleStandard
             title={strings('kyc.partner_terms.title')}
             bottomLabel={strings('kyc.partner_terms.description')}
-            twClassName="px-4 pb-4"
+            twClassName="px-4 pt-2 pb-4"
           />
 
           <Text
