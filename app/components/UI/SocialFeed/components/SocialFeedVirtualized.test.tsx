@@ -19,7 +19,6 @@ import {
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
-import { SOCIAL_LIVE_FEED_MAX_PAGES } from '../data/socialFeedQueries';
 import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
@@ -410,11 +409,13 @@ describe('SocialFeedVirtualized', () => {
       nearTop: true,
       holdNewPosts: false,
       filterPost,
-      maxPages: SOCIAL_LIVE_FEED_MAX_PAGES,
     });
   });
 
-  it('keeps every page of a profile or filtered feed', () => {
+  it('keeps every page across live, profile, and following feeds', () => {
+    renderFeed();
+    expect(lastFeedOptions()?.maxPages).toBeUndefined();
+
     renderFeed({ profileId: 'profile-1' });
     expect(lastFeedOptions()?.maxPages).toBeUndefined();
 
@@ -422,23 +423,24 @@ describe('SocialFeedVirtualized', () => {
     expect(lastFeedOptions()?.maxPages).toBeUndefined();
   });
 
-  it('keeps the scroll position and pages back up while newer pages are dropped', () => {
-    const loadPrevious = jest.fn();
-    mockUseSocialFeed.mockReturnValue(
-      feedState({
-        posts: [post('one')],
-        hasPreviousPage: true,
-        loadPrevious,
-      }),
-    );
-
+  it('keeps maintainVisibleContentPosition disabled across scroll transitions', async () => {
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
     renderFeed();
+    const nearTopWorklet = (
+      mockUseAnimatedScrollHandler.mock.calls[0][0] as {
+        onScroll: NearTopWorklet;
+      }
+    ).onScroll;
 
-    expect(getList().props.maintainVisibleContentPosition).toEqual({});
     act(() => {
-      getList().props.onStartReached();
+      nearTopWorklet({ contentOffset: { y: 120 } }, {});
     });
-    expect(loadPrevious).toHaveBeenCalledTimes(1);
+
+    await waitFor(() => expect(lastFeedOptions()?.nearTop).toBe(false));
+    expect(getList().props.maintainVisibleContentPosition).toEqual({
+      disabled: true,
+    });
+    expect(getList().props.onStartReached).toBeUndefined();
   });
 
   it('keeps the slide-in animation at the top of the newest page', () => {
