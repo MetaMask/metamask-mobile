@@ -123,10 +123,13 @@ import {
   RampsControllerEvents,
   RampsService,
   RampsServiceActions,
+  RampsServiceEvents,
   TransakService,
   TransakServiceActions,
+  TransakServiceEvents,
   NeoBankService,
   NeoBankServiceActions,
+  NeoBankServiceEvents,
 } from '@metamask/ramps-controller';
 import {
   TransactionController,
@@ -339,6 +342,12 @@ import {
   PredictControllerEvents,
 } from '../../components/UI/Predict/controllers/PredictController';
 import { CardController } from './controllers/card-controller/CardController';
+import {
+  CollectiblesController,
+  type CollectiblesControllerActions,
+  type CollectiblesControllerEvents,
+  type CollectiblesControllerState,
+} from '../../components/UI/Collectibles/controllers/CollectiblesController';
 import { UiSlotsController } from './controllers/ui-slots-controller/UiSlotsController';
 import type {
   UiSlotsControllerActions,
@@ -365,6 +374,11 @@ import {
   type PredictOrderServiceActions,
   type PredictOrderServiceEvents,
 } from '../../components/UI/PredictNext/services/PredictOrderService';
+import {
+  PredictFundingService,
+  type PredictFundingServiceActions,
+  type PredictFundingServiceEvents,
+} from '../../components/UI/PredictNext/services/PredictFundingService';
 import {
   PredictDeviceAuthService,
   type PredictDeviceAuthServiceActions,
@@ -594,6 +608,12 @@ import {
   MoneyAccountUpgradeControllerEvents,
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
+import type {
+  MoneyAccountLifecycleController,
+  MoneyAccountLifecycleControllerActions,
+  MoneyAccountLifecycleControllerEvents,
+  MoneyAccountLifecycleControllerState,
+} from '@metamask/money-account-lifecycle-controller';
 import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
@@ -718,10 +738,12 @@ export type GlobalActions =
   | GeolocationApiServiceActions
   | PerpsControllerActions
   | PredictControllerActions
+  | CollectiblesControllerActions
   | PredictMarketDataServiceActions
   | PredictLiveDataServiceActions
   | PredictPortfolioServiceActions
   | PredictOrderServiceActions
+  | PredictFundingServiceActions
   | PredictDeviceAuthServiceActions
   | PredictVenueControllerActions
   | RecurringOrdersDataServiceActions
@@ -774,6 +796,7 @@ export type GlobalActions =
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions
+  | MoneyAccountLifecycleControllerActions
   | SentinelApiServiceActions;
 
 export type GlobalEvents =
@@ -835,10 +858,12 @@ export type GlobalEvents =
   | GeolocationControllerEvents
   | PerpsControllerEvents
   | PredictControllerEvents
+  | CollectiblesControllerEvents
   | PredictMarketDataServiceEvents
   | PredictLiveDataServiceEvents
   | PredictPortfolioServiceEvents
   | PredictOrderServiceEvents
+  | PredictFundingServiceEvents
   | PredictVenueControllerEvents
   | RecurringOrdersDataServiceEvents
   | LimitOrdersDataServiceEvents
@@ -858,6 +883,9 @@ export type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | RampsControllerEvents
+  | RampsServiceEvents
+  | TransakServiceEvents
+  | NeoBankServiceEvents
   | AiDigestControllerEvents
   | SocialControllerEvents
   | SocialServiceEvents
@@ -870,6 +898,7 @@ export type GlobalEvents =
   | KycServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
+  | MoneyAccountLifecycleControllerEvents
   | SentinelApiServiceEvents;
 
 /**
@@ -896,12 +925,6 @@ export type RootMessenger<
   AllowedActions extends GlobalActions = GlobalActions,
   AllowedEvents extends GlobalEvents = GlobalEvents,
 > = Messenger<'Root', AllowedActions, AllowedEvents>;
-
-export const getRootMessenger = (): RootMessenger =>
-  new Messenger<'Root', GlobalActions, GlobalEvents>({
-    namespace: 'Root',
-    captureException,
-  });
 
 /**
  * All mobile controllers, keyed by name
@@ -986,10 +1009,12 @@ export type MessengerClients = {
   GeolocationApiService: GeolocationApiService;
   PerpsController: PerpsController;
   PredictController: PredictController;
+  CollectiblesController: CollectiblesController;
   PredictMarketDataService: PredictMarketDataService;
   PredictLiveDataService: PredictLiveDataService;
   PredictPortfolioService: PredictPortfolioService;
   PredictOrderService: PredictOrderService;
+  PredictFundingService: PredictFundingService;
   PredictDeviceAuthService: PredictDeviceAuthService;
   PredictVenueController: PredictVenueController;
   RecurringOrdersDataService: RecurringOrdersDataService;
@@ -1027,6 +1052,7 @@ export type MessengerClients = {
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
+  MoneyAccountLifecycleController: MoneyAccountLifecycleController;
 };
 
 /**
@@ -1093,6 +1119,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   PredictVenueController: PredictVenueControllerState;
+  CollectiblesController: CollectiblesControllerState;
   CardController: CardControllerState;
   UiSlotsController: UiSlotsControllerState;
   QrSyncController: QrSyncControllerState;
@@ -1112,6 +1139,7 @@ export type EngineState = {
   KycController: KycControllerState;
   VendorOnboardingController: VendorOnboardingControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
+  MoneyAccountLifecycleController: MoneyAccountLifecycleControllerState;
 };
 
 /** Messenger client names */
@@ -1181,10 +1209,12 @@ export type MessengerClientsToInitialize =
   | 'TransactionPayController'
   | 'PerpsController'
   | 'PredictController'
+  | 'CollectiblesController'
   | 'PredictMarketDataService'
   | 'PredictLiveDataService'
   | 'PredictPortfolioService'
   | 'PredictOrderService'
+  | 'PredictFundingService'
   | 'PredictDeviceAuthService'
   | 'PredictVenueController'
   | 'RecurringOrdersDataService'
@@ -1223,7 +1253,8 @@ export type MessengerClientsToInitialize =
   | 'KycController'
   | 'VendorOnboardingController'
   | 'ChompApiService'
-  | 'MoneyAccountUpgradeController';
+  | 'MoneyAccountUpgradeController'
+  | 'MoneyAccountLifecycleController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
@@ -1242,11 +1273,6 @@ type MessengerClientPersistedState = Partial<{
     (typeof STATELESS_NON_CONTROLLER_NAMES)[number]
   >]: Partial<NonNullable<MessengerClientsByName[Name]>['state']>;
 }>;
-
-/**
- * Map of messenger client messengers by name.
- */
-export type MessengerClientMessengersByName = typeof MESSENGER_FACTORIES;
 
 /**
  * Request to initialize and return a messenger client instance.

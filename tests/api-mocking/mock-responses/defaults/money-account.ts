@@ -7,11 +7,26 @@ const ARBITRUM_CHAIN_ID = '0xa4b1';
 export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
   GET: [
     {
-      urlEndpoint: /^https:\/\/api\.sevenseas\.capital\/performance\/.+\/.+$/,
+      urlEndpoint: /^https:\/\/money\.api\.cx\.metamask\.io\/v1\/vaults(\?|$)/,
       responseCode: 200,
       response: {
-        apy: 0,
-        timestamp: new Date().toISOString(),
+        vaults: [
+          {
+            chain_id: 143,
+            vault_address: '0xb4563bcD3B7764CCBf497f515585f70B6C3EA5Ae',
+            vault_key: 'standard',
+            name: 'Money Account mUSD Vault',
+            asset_symbol: 'mUSD',
+            asset_decimals: 6,
+            asset_contract_address:
+              '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+            current_apy: '0',
+            as_of_block: 0,
+            as_of_timestamp: new Date().toISOString(),
+            data_freshness: 'live',
+            indexer_lag_seconds: 0,
+          },
+        ],
       },
     },
     // CHOMP service details — called on every keyring unlock by the
@@ -40,6 +55,21 @@ export const MONEY_ACCOUNT_MOCKS: MockEventsObject = {
           },
         },
       },
+    },
+    // CHOMP derived identities — fetched on every keyring unlock by the
+    // MoneyAccountLifecycleController, followed by a registration-status
+    // lookup per Money Account address.
+    {
+      urlEndpoint:
+        /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities$/u,
+      responseCode: 200,
+      response: { identities: [] },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/chomp\.[^/]*metamask\.io\/v1\/money-account\/identities\/address\/0x[a-fA-F0-9]{40}$/u,
+      responseCode: 404,
+      response: { code: 'ADDRESS_NOT_ASSOCIATED' },
     },
     // Money Account positions are polled after unlock when the feature is
     // enabled. Tests that need a funded account override this empty fallback.

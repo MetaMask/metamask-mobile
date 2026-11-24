@@ -1,24 +1,44 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictNext } from '../../../../../../tests/component-view/renderers/predictNext';
+import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { focusManager, onlineManager } from '@tanstack/react-query';
+import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
+import { formatGameStartShort } from '../../events/game';
 import { KalshiDebugTestIds } from '../../onboarding/KalshiDebugPanel';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass/HeaderGlass';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { EventMarketListTestIds } from '../PredictEvent/internal/EventMarketList.testIds';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
+import { PredictWithdrawFlowTestIds } from '../PredictWithdrawFlow/internal/PredictWithdrawFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
+import { PredictDepositScreenTestIds } from '../PredictDeposit/PredictDepositScreen.testIds';
 import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
-import { PredictError, PredictErrorCode } from '../../errors';
+import awaitingTransferDeposit from '../../contracts/v1/fixtures/funding-contract/awaiting-transfer.json';
+import cancelledDeposit from '../../contracts/v1/fixtures/funding-contract/cancelled.json';
+import needsReviewDeposit from '../../contracts/v1/fixtures/funding-contract/needs-review.json';
+import transferReportedDeposit from '../../contracts/v1/fixtures/funding-contract/transfer-reported.json';
+import { makeFailedDeposit } from '../../funding/deposit/testUtils';
+import { encodeUsdcTransfer } from '../../funding/deposit/usdcTransfer';
 import {
-  KALSHI_STATIC_VENUE_CATALOG,
-  POLYMARKET_STATIC_VENUE_CATALOG,
-} from '../../config/venueCatalogs';
+  clearAllSessionDepositTransfers,
+  recordSessionDepositTransfer,
+} from '../../funding';
+import { strings } from '../../../../../../locales/i18n';
+import { PredictError, PredictErrorCode } from '../../errors';
+import { POLYMARKET_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../contracts/v1/fixtures/kalshiVenueCatalog';
 import type {
+  PredictAmount,
   PredictEntityId,
+  PredictEvent,
   PredictFeedId,
+  PredictHex,
   PredictTimestamp,
   PredictVenueId,
 } from '../../types';
@@ -28,17 +48,19 @@ import {
   POLITICS_FEED_SCREEN_ID,
 } from '../../navigation/feedScreens';
 import {
-  answerPredictNextCatalog,
   configurePredictNextCatalog,
   configurePredictNextFeeds,
   expectPredictNextGameCard,
-  makePredictNextEvent,
+  expectPredictNextSmallGameCard,
+  feedScreenTabLabels,
+  makePredictNextGameEvent,
   messengerCall,
   mockPredictNextMessenger,
   ncaaEvents,
   nflEvents,
   politicsEvents,
   PREDICT_NEXT_FEED_IDS,
+  publishPredictNextDepositStatus,
   publishPredictNextGameLiveUpdate,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 
@@ -48,6 +70,69 @@ const {
   politicsTrump: POLITICS_TRUMP_FEED_ID,
 } = PREDICT_NEXT_FEED_IDS;
 
+/** The pagination dots are hidden from screen readers. */
+const HIDDEN = { includeHiddenElements: true };
+
+const STARTS_AT = '2026-11-15T18:00:00Z';
+const scheduledGame = (
+  id: string,
+  away: string,
+  home: string,
+  competition: string,
+  askPrices?: { away: string; home: string },
+) =>
+  makePredictNextGameEvent(id, away, home, competition, {
+    status: 'scheduled',
+    startsAt: STARTS_AT,
+    askPrices,
+  });
+/**
+ * Scheduled NFL Games after the two live fixture Games. The NFL read keeps
+ * six, so `nfl-7` never shows.
+ */
+const MORE_NFL_EVENTS = [
+  scheduledGame('nfl-3', 'Bills', 'Rams', 'NFL'),
+  scheduledGame('nfl-4', 'Chiefs', 'Broncos', 'NFL', {
+    away: '0.55',
+    home: '0.45',
+  }),
+  scheduledGame('nfl-5', 'Bears', 'Lions', 'NFL'),
+  scheduledGame('nfl-6', 'Jets', 'Giants', 'NFL'),
+  scheduledGame('nfl-7', 'Eagles', 'Cowboys', 'NFL'),
+];
+const MORE_NCAA_EVENTS = [scheduledGame('ncaa-3', 'Clemson', 'Duke', 'NCAAF')];
+/** Enough Games for both rows: Trending takes five, Sports the next three. */
+const configureFullHomeFeeds = () =>
+  configurePredictNextFeeds({
+    nfl: [...nflEvents, ...MORE_NFL_EVENTS],
+    ncaa: [...ncaaEvents, ...MORE_NCAA_EVENTS],
+  });
+const TRENDING_EVENT_IDS = ['nfl-1', 'nfl-2', 'ncaa-1', 'ncaa-2', 'nfl-3'];
+const SPORTS_EVENT_IDS = ['nfl-4', 'nfl-5', 'nfl-6'];
+
+/** The Event ids of the cards in a row, in display order. */
+const rowEventIds = (row: Parameters<typeof within>[0]) =>
+  within(row)
+    .getAllByTestId(/^predict-next-event-kalshi-/)
+    .map((card) =>
+      String(card.props.testID).replace('predict-next-event-kalshi-', ''),
+    );
+const eventIdsOf = (events: readonly PredictEvent[]) =>
+  events.map((event) => event.id);
+/** The messenger calls to one action, in call order. */
+const callsTo = (action: string) =>
+  messengerCall.mock.calls.filter(([name]) => name === action);
+/** Every Feed read, or only the reads of one Feed. */
+const feedCalls = (feedId?: PredictFeedId) =>
+  callsTo('PredictMarketDataService:getFeed').filter(
+    ([, , id]) => feedId === undefined || id === feedId,
+  );
+/** Every Event id the live-data service was asked to watch, in call order. */
+const watchedEventIds = () =>
+  callsTo('PredictLiveDataService:watchEvents').flatMap(
+    ([, , ids]: [string, string, PredictEntityId[]]) => ids,
+  );
+
 describe('PredictHome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -55,6 +140,8 @@ describe('PredictHome', () => {
   });
 
   afterEach(() => {
+    clearAllSessionDepositTransfers();
+    Engine.context.TransactionController.state.transactions = [];
     jest.restoreAllMocks();
     onlineManager.setOnline(true);
   });
@@ -163,6 +250,8 @@ describe('PredictHome', () => {
   it('keeps the compact header title and feed mounted after scrolling past the title section', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    // Trending shows its cards once every Home read has settled.
+    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
 
     fireEvent.scroll(view.getByTestId(PredictHomeTestIds.SCROLL), {
       nativeEvent: { contentOffset: { y: 1000 } },
@@ -189,12 +278,90 @@ describe('PredictHome', () => {
     expect(await view.findByTestId(PredictHomeTestIds.HOME)).toBeOnTheScreen();
   });
 
-  it('offers no funding actions while none is implemented', async () => {
+  it('offers Add funds and Withdraw where the Venue lists them', async () => {
     const view = renderPredictNext();
     await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
 
     expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
-    expect(view.queryByText('Add Funds')).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.ADD_FUNDS)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
+  it('hides Withdraw where the Venue does not list it', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.WITHDRAW),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('hides Add funds when the Kalshi catalog omits deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'withdraw'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
+  it('keeps browsing, search, and trading available while hiding Add funds for a legacy catalog omitting environment', async () => {
+    const { environment: _omitted, ...legacyCatalog } =
+      KALSHI_STATIC_VENUE_CATALOG;
+    configurePredictNextCatalog(legacyCatalog);
+    const view = renderPredictNext();
+
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+    expect(
+      await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', nflEvents[0].id),
+      ),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.POSITIONS)).toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.ADD_FUNDS),
+    ).not.toBeOnTheScreen();
+    expect(view.getByTestId(PredictHomeTestIds.WITHDRAW)).toBeOnTheScreen();
+  });
+
+  it('opens the Withdraw screen from the Withdraw action', async () => {
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.WITHDRAW));
+
+    expect(
+      await view.findByTestId(PredictWithdrawFlowTestIds.SCREEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('opens the Kalshi deposit from Add funds when the Kalshi catalog includes deposit', async () => {
+    configurePredictNextCatalog({
+      ...KALSHI_STATIC_VENUE_CATALOG,
+      actions: ['buy', 'sell', 'deposit'],
+    });
+    const view = renderPredictNext();
+    await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+    fireEvent.press(view.getByTestId(PredictHomeTestIds.ADD_FUNDS));
+
+    expect(
+      await view.findByTestId('route-PredictNextDeposit'),
+    ).toBeOnTheScreen();
     expect(view.queryByText('Withdraw')).not.toBeOnTheScreen();
   });
 
@@ -234,8 +401,9 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictHomeTestIds.BALANCE_ERROR),
     ).toBeOnTheScreen();
     expect(view.getByText('Balance unavailable')).toBeOnTheScreen();
+    // The Feeds still load. Trending shows them once every read settles.
     expect(
-      view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
     ).toBeOnTheScreen();
 
     balanceFails = false;
@@ -325,96 +493,385 @@ describe('PredictHome', () => {
     );
   });
 
-  it('loads the first two backend-ordered Games for both previews', async () => {
-    configurePredictNextFeeds({
-      nfl: [...nflEvents, makePredictNextEvent('nfl-3', 'Hidden NFL Game')],
-      ncaa: [
-        ...ncaaEvents,
-        makePredictNextEvent('ncaa-3', 'Hidden College Game'),
-      ],
+  describe('Trending and Sports rows', () => {
+    beforeEach(() => {
+      configureFullHomeFeeds();
     });
-    const view = renderPredictNext();
 
-    await waitFor(() => {
+    /**
+     * Opens a Feed Screen from a Home header, checks its title, runs
+     * `whileOpen`, goes back to Home, and returns the Feed Screen's tab labels.
+     */
+    const openFeedScreenFrom = async (
+      view: ReturnType<typeof renderPredictNext>,
+      headerTestId: string,
+      title: string,
+      whileOpen: () => Promise<void> | void = () => undefined,
+    ): Promise<string[]> => {
+      fireEvent.press(view.getByTestId(headerTestId));
+      const header = await view.findByTestId(PredictFeedScreenTestIds.HEADER);
+      expect(within(header).getByText(title)).toBeOnTheScreen();
+      const tabs = feedScreenTabLabels(
+        view.getByTestId(PredictFeedScreenTestIds.VIEW),
+      );
+      await whileOpen();
+      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
+      await waitFor(() =>
+        expect(
+          view.queryByTestId(PredictFeedScreenTestIds.VIEW),
+        ).not.toBeOnTheScreen(),
+      );
+      return tabs;
+    };
+
+    it('reads six NFL, four NCAAF and two Politics Events', async () => {
+      renderPredictNext();
+
+      await waitFor(() => {
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictMarketDataService:getFeed',
+          'kalshi',
+          NFL_GAMES_FEED_ID,
+          { limit: 6 },
+        );
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictMarketDataService:getFeed',
+          'kalshi',
+          NCAA_GAMES_FEED_ID,
+          { limit: 4 },
+        );
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictMarketDataService:getFeed',
+          'kalshi',
+          POLITICS_TRUMP_FEED_ID,
+          { limit: 2 },
+        );
+      });
+    });
+
+    it('fills Trending with live Games first, two per read, then up to five', async () => {
+      const view = renderPredictNext();
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
+      );
+      await within(trending).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-3'),
+      );
+      expect(rowEventIds(trending)).toEqual(TRENDING_EVENT_IDS);
+      expectPredictNextGameCard(trending, 'nfl-1', {
+        away: 'Packers',
+        home: 'Steelers',
+        awayScore: '17',
+        homeScore: '21',
+        awayQuote: /^PAC\s*· 41¢$/,
+        homeQuote: /^STE\s*· 59¢$/,
+      });
+      expectPredictNextGameCard(trending, 'ncaa-2', {
+        away: 'Georgia',
+        home: 'Florida',
+        awayScore: '3',
+        homeScore: '0',
+        awayQuote: /^GEO\s*· 55¢$/,
+        homeQuote: /^FLO\s*· 45¢$/,
+      });
+      // NCAAF's third Game ranks after the five Trending shows.
+      expect(
+        view.queryByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-3')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows one pagination dot per Trending card', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-3'));
+
+      expect(
+        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_PAGINATION, HIDDEN)
+          .children,
+      ).toHaveLength(TRENDING_EVENT_IDS.length);
+      expect(
+        view.getByTestId(
+          `${PredictHomeTestIds.HOME_TRENDING_PAGINATION}-active`,
+          HIDDEN,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the other NFL Games as small cards in the Sports row', async () => {
+      const view = renderPredictNext();
+
+      const sports = await view.findByTestId(PredictHomeTestIds.HOME_SPORTS);
+      await within(sports).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-4'),
+      );
+      expect(rowEventIds(sports)).toEqual(SPORTS_EVENT_IDS);
+
+      expectPredictNextSmallGameCard(sports, 'nfl-4', {
+        competition: 'NFL',
+        start: formatGameStartShort(STARTS_AT),
+        away: { abbr: 'CHI', quote: '55¢' },
+        home: { abbr: 'BRO', quote: '45¢' },
+      });
+      // The seventh NFL Game is past the NFL read's six.
+      expect(
+        view.queryByTestId(PredictHomeTestIds.event('kalshi', 'nfl-7')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('replaces the NFL and NCAAF previews with the two rows', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the Sports Feed Screen from the Trending header and returns Home', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      messengerCall.mockClear();
+
+      const tabs = await openFeedScreenFrom(
+        view,
+        PredictHomeTestIds.HOME_TRENDING_HEADER,
+        'Sports',
+        async () => {
+          const list = await view.findByTestId(PredictFeedScreenTestIds.LIST);
+          expect(
+            await within(list).findByTestId(
+              PredictHomeTestIds.event('kalshi', 'nfl-1'),
+            ),
+          ).toBeOnTheScreen();
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictMarketDataService:getFeed',
+            'kalshi',
+            NFL_GAMES_FEED_ID,
+            { limit: 20 },
+          );
+          // Trending stays inside Predict: the app's Explore tab never opens.
+          expect(
+            view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+          ).not.toBeOnTheScreen();
+        },
+      );
+
+      expect(tabs).toEqual(['NFL', 'NCAAF']);
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens its own Feed Screen from each of the Trending, Sports and Politics headers', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(
+        await openFeedScreenFrom(
+          view,
+          PredictHomeTestIds.HOME_TRENDING_HEADER,
+          'Sports',
+        ),
+      ).toEqual(['NFL', 'NCAAF']);
+      expect(
+        await openFeedScreenFrom(
+          view,
+          PredictHomeTestIds.HOME_SPORTS_HEADER,
+          'Sports',
+        ),
+      ).toEqual(['Games', 'Props']);
+      expect(
+        await openFeedScreenFrom(
+          view,
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+          'Politics',
+        ),
+      ).toEqual(['Trump', 'Congress', 'Iran']);
+      expect(
+        view.queryByTestId(getRouteProbeTestId(Routes.TRENDING_VIEW)),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the rows but makes no header pressable when the catalog serves no Feed Screens', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        screens: [],
+      });
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.HOME_TRENDING_HEADER),
+      );
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_SPORTS_HEADER));
+      fireEvent.press(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      );
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS_CHEVRON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictHomeTestIds.sectionHeader(POLITICS_FEED_SCREEN_ID),
+        ),
+      ).toHaveTextContent('Politics');
+      expect(view.getByRole('header', { name: 'Politics' })).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictFeedScreenTestIds.VIEW),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('omits both rows on a Venue with neither Games Feed, before and after Politics loads', async () => {
+      // A Game in the Politics read stays in Politics: the rows take Games
+      // from the Games Feeds only.
+      let resolvePolitics: (value: unknown) => void = () => undefined;
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          politics: KALSHI_STATIC_VENUE_CATALOG.feeds.politics,
+          'politics-trump': KALSHI_STATIC_VENUE_CATALOG.feeds['politics-trump'],
+        },
+        categories: ['politics'],
+      });
+      mockPredictNextMessenger((action: string, _venueId: string) => {
+        if (action !== 'PredictMarketDataService:getFeed') {
+          return Promise.resolve(undefined);
+        }
+        return new Promise((resolve) => {
+          resolvePolitics = resolve;
+        });
+      });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(
+          PredictHomeTestIds.sectionLoading(POLITICS_FEED_SCREEN_ID),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+
+      await act(async () => {
+        resolvePolitics({
+          venueId: 'kalshi',
+          id: POLITICS_TRUMP_FEED_ID,
+          title: 'Trump',
+          events: [
+            makePredictNextGameEvent('politics-game', 'Owls', 'Hawks', 'NFL'),
+          ],
+        });
+      });
+
+      const politics = view.getByTestId(
+        PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
+      );
+      expect(
+        await within(politics).findByTestId(
+          PredictHomeTestIds.event('kalshi', 'politics-game'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the NFL Feed Screen from the Sports header and returns without rereading Home', async () => {
+      const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      messengerCall.mockClear();
+
+      await openFeedScreenFrom(
+        view,
+        PredictHomeTestIds.HOME_SPORTS_HEADER,
+        'Sports',
+        () => {
+          expect(view.getByText('Sports')).toBeOnTheScreen();
+          expect(view.getAllByText('NFL')[0]).toBeOnTheScreen();
+        },
+      );
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME),
+      ).toBeOnTheScreen();
       expect(messengerCall).toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
-        'sports-football-nfl-games',
-        { limit: 2 },
+        NFL_GAMES_FEED_ID,
+        { limit: 20 },
       );
-      expect(messengerCall).toHaveBeenCalledWith(
+      expect(messengerCall).not.toHaveBeenCalledWith(
         'PredictMarketDataService:getFeed',
         'kalshi',
-        'sports-football-ncaa-games',
-        { limit: 2 },
+        NFL_GAMES_FEED_ID,
+        { limit: 6 },
       );
     });
 
-    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
-    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-2'));
+    it('opens the Event screen from a Sports card', async () => {
+      const view = renderPredictNext();
+      const sports = await view.findByTestId(PredictHomeTestIds.HOME_SPORTS);
 
-    const nflSection = view.getByTestId(
-      PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
-    );
-    expectPredictNextGameCard(nflSection, 'nfl-1', {
-      away: 'Packers',
-      home: 'Steelers',
-      awayScore: '17',
-      homeScore: '21',
-      awayQuote: /^PAC\s*· 41¢$/,
-      homeQuote: /^STE\s*· 59¢$/,
-    });
-    expectPredictNextGameCard(nflSection, 'nfl-2', {
-      away: 'Panthers',
-      home: 'Cardinals',
-      awayScore: '10',
-      homeScore: '7',
-      awayQuote: /^PAN\s*· 36¢$/,
-      homeQuote: /^CAR\s*· 64¢$/,
-    });
-    expect(
-      within(nflSection).queryByText('Hidden NFL Game'),
-    ).not.toBeOnTheScreen();
-    expect(
-      within(nflSection).queryByTestId(
-        PredictHomeTestIds.event('kalshi', 'ncaa-1'),
-      ),
-    ).not.toBeOnTheScreen();
+      fireEvent.press(
+        await within(sports).findByTestId(
+          PredictHomeTestIds.eventContent('kalshi', 'nfl-4'),
+        ),
+      );
 
-    const ncaaSection = view.getByTestId(
-      PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
-    );
-    expectPredictNextGameCard(ncaaSection, 'ncaa-1', {
-      away: 'Pittsburgh',
-      home: 'Miami',
-      awayScore: '24',
-      homeScore: '31',
-      awayQuote: /^PIT\s*· 47¢$/,
-      homeQuote: /^MIA\s*· 53¢$/,
+      expect(
+        await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
+      ).toBeOnTheScreen();
+      expect(messengerCall.mock.calls).toEqual(
+        expect.arrayContaining([
+          expect.arrayContaining([
+            'PredictMarketDataService:getEvent',
+            'kalshi',
+            'nfl-4',
+          ]),
+        ]),
+      );
     });
-    expectPredictNextGameCard(ncaaSection, 'ncaa-2', {
-      away: 'Georgia',
-      home: 'Florida',
-      awayScore: '3',
-      homeScore: '0',
-      awayQuote: /^GEO\s*· 55¢$/,
-      homeQuote: /^FLO\s*· 45¢$/,
+
+    it('hides both rows when no read has a Game', async () => {
+      configurePredictNextFeeds({ nfl: [], ncaa: [] });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+      // A successfully empty read is not a failure.
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).not.toBeOnTheScreen();
     });
-    expect(
-      within(ncaaSection).queryByText('Hidden College Game'),
-    ).not.toBeOnTheScreen();
-    expect(
-      within(ncaaSection).queryByTestId(
-        PredictHomeTestIds.event('kalshi', 'nfl-1'),
-      ),
-    ).not.toBeOnTheScreen();
   });
 
   it('renders live game updates received for a Home Event', async () => {
     const view = renderPredictNext();
-    await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
-    const nflSection = await view.findByTestId(
-      PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
+    const card = await view.findByTestId(
+      PredictHomeTestIds.event('kalshi', 'nfl-1'),
     );
 
     act(() => {
@@ -430,44 +887,46 @@ describe('PredictHome', () => {
       });
     });
 
-    expect(within(nflSection).getByText('28')).toBeOnTheScreen();
-    expect(within(nflSection).getByText('24')).toBeOnTheScreen();
-    expect(within(nflSection).getByText('Q4 · 01:12')).toBeOnTheScreen();
+    // Trending shows other live Games, so read this card's own score.
+    expect(within(card).getByText('28')).toBeOnTheScreen();
+    expect(within(card).getByText('24')).toBeOnTheScreen();
+    expect(within(card).getByText('Q4 · 01:12')).toBeOnTheScreen();
   });
 
   describe('live-data subscriptions', () => {
     /** Home cards ask the live-data service for card-visible Markets only. */
     const CARD_SCOPE = { marketScope: 'card' };
+    const POLITICS_EVENT_IDS = eventIdsOf(politicsEvents);
+    /** Every Event Home shows, in display order. */
+    const SHOWN_EVENT_IDS = [
+      ...TRENDING_EVENT_IDS,
+      ...SPORTS_EVENT_IDS,
+      ...POLITICS_EVENT_IDS,
+    ];
     const liveDataCalls = () =>
       messengerCall.mock.calls.filter(([action]: [string]) =>
         action.startsWith('PredictLiveDataService:'),
       );
-    const eventIds = (events: readonly { id: PredictEntityId }[]) =>
-      events.map((event) => event.id);
 
     const layoutHome = (
       view: ReturnType<typeof renderPredictNext>,
-      { nflY, ncaaY, viewportHeight }: Record<string, number>,
+      { trendingY, sportsY, politicsY, viewportHeight }: Record<string, number>,
     ) => {
       fireEvent(view.getByTestId(PredictHomeTestIds.SCROLL), 'layout', {
         nativeEvent: { layout: { height: viewportHeight } },
       });
+      fireEvent(view.getByTestId(PredictHomeTestIds.HOME_TRENDING), 'layout', {
+        nativeEvent: { layout: { y: trendingY, height: 300 } },
+      });
+      fireEvent(view.getByTestId(PredictHomeTestIds.HOME_SPORTS), 'layout', {
+        nativeEvent: { layout: { y: sportsY, height: 180 } },
+      });
       fireEvent(
-        view.getByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+        view.getByTestId(PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID)),
         'layout',
-        { nativeEvent: { layout: { y: nflY, height: 300 } } },
-      );
-      fireEvent(
-        view.getByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
-        'layout',
-        { nativeEvent: { layout: { y: ncaaY, height: 300 } } },
+        { nativeEvent: { layout: { y: politicsY, height: 300 } } },
       );
     };
-
-    const watchedEventIds = () =>
-      liveDataCalls()
-        .filter(([action]) => action === 'PredictLiveDataService:watchEvents')
-        .flatMap(([, , ids]: [string, string, PredictEntityId[]]) => ids);
 
     // Reanimated's Jest mock runs the scroll reaction through the
     // microtask/frame queues, so let them drain before reading the result.
@@ -482,21 +941,27 @@ describe('PredictHome', () => {
         await new Promise<void>((resolve) => setTimeout(resolve, 0));
       });
 
-    it('watches every preview Event once both sections are loaded', async () => {
+    // Every row and section shows Events, so each one's watch is visible.
+    const renderLoadedHome = async () => {
       const view = renderPredictNext();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-3'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      return view;
+    };
 
-      // Each section resolves its own preview Feed, so the service may hear
-      // the two watches in either order. The ids are the contract, not the
-      // arrival order; sorting keeps extra or duplicate watches failing.
-      expect(watchedEventIds().sort()).toEqual(
-        [
-          ...eventIds(nflEvents),
-          ...eventIds(ncaaEvents),
-          ...eventIds(politicsEvents),
-        ].sort(),
-      );
+    beforeEach(() => {
+      configureFullHomeFeeds();
+    });
+
+    it('watches every Event Home shows, and only those, once the reads load', async () => {
+      await renderLoadedHome();
+
+      // Each read resolves on its own, so the service may hear the watches in
+      // any order. The ids are the contract, not the arrival order; sorting
+      // keeps extra or duplicate watches failing. The NCAAF Game Trending
+      // leaves out is read but never watched.
+      expect(watchedEventIds().sort()).toEqual([...SHOWN_EVENT_IDS].sort());
       expect(
         liveDataCalls().filter(
           ([action]) => action === 'PredictLiveDataService:unwatchEvents',
@@ -504,19 +969,22 @@ describe('PredictHome', () => {
       ).toEqual([]);
     });
 
-    it('releases a section that is fully below the viewport and rewatches it when scrolled in', async () => {
-      const view = renderPredictNext();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+    it('releases a row that is fully below the viewport and rewatches it when scrolled in', async () => {
+      const view = await renderLoadedHome();
       messengerCall.mockClear();
 
-      layoutHome(view, { nflY: 200, ncaaY: 900, viewportHeight: 800 });
+      layoutHome(view, {
+        trendingY: 200,
+        sportsY: 520,
+        politicsY: 900,
+        viewportHeight: 800,
+      });
 
       expect(liveDataCalls()).toEqual([
         [
           'PredictLiveDataService:unwatchEvents',
           'kalshi',
-          eventIds(ncaaEvents),
+          POLITICS_EVENT_IDS,
           CARD_SCOPE,
         ],
       ]);
@@ -528,34 +996,35 @@ describe('PredictHome', () => {
         [
           'PredictLiveDataService:watchEvents',
           'kalshi',
-          eventIds(ncaaEvents),
+          POLITICS_EVENT_IDS,
           CARD_SCOPE,
         ],
         [
           'PredictLiveDataService:unwatchEvents',
           'kalshi',
-          eventIds(nflEvents),
+          TRENDING_EVENT_IDS,
           CARD_SCOPE,
         ],
       ]);
     });
 
-    it('keeps a section watched while any part of it overlaps the viewport', async () => {
-      const view = renderPredictNext();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+    it('keeps a row watched while any part of it overlaps the viewport', async () => {
+      const view = await renderLoadedHome();
       messengerCall.mockClear();
 
-      layoutHome(view, { nflY: 200, ncaaY: 700, viewportHeight: 800 });
+      layoutHome(view, {
+        trendingY: 200,
+        sportsY: 520,
+        politicsY: 700,
+        viewportHeight: 800,
+      });
       await scrollHome(view, 450);
 
       expect(liveDataCalls()).toEqual([]);
     });
 
     it('releases every Home watch while an Event Screen is on top and rewatches on return', async () => {
-      const view = renderPredictNext();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      const view = await renderLoadedHome();
       messengerCall.mockClear();
 
       fireEvent.press(
@@ -566,11 +1035,7 @@ describe('PredictHome', () => {
       expect(messengerCall).toHaveBeenCalledWith(
         'PredictLiveDataService:unwatchEvents',
         'kalshi',
-        [
-          ...eventIds(nflEvents),
-          ...eventIds(ncaaEvents),
-          ...eventIds(politicsEvents),
-        ],
+        SHOWN_EVENT_IDS,
         CARD_SCOPE,
       );
 
@@ -580,73 +1045,21 @@ describe('PredictHome', () => {
         expect(messengerCall).toHaveBeenCalledWith(
           'PredictLiveDataService:watchEvents',
           'kalshi',
-          [
-            ...eventIds(nflEvents),
-            ...eventIds(ncaaEvents),
-            ...eventIds(politicsEvents),
-          ],
+          SHOWN_EVENT_IDS,
           CARD_SCOPE,
         ),
       );
     });
   });
 
-  it.each([
-    {
-      feedScreenId: NFL_FEED_SCREEN_ID,
-      feedId: NFL_GAMES_FEED_ID,
-      selectionLabel: 'NFL',
-    },
-    {
-      feedScreenId: NCAA_FEED_SCREEN_ID,
-      feedId: NCAA_GAMES_FEED_ID,
-      selectionLabel: 'NCAAF',
-    },
-  ])(
-    'opens the $selectionLabel Feed Screen and returns without refetching previews',
-    async ({ feedScreenId, feedId, selectionLabel }) => {
-      const view = renderPredictNext();
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1'));
-      messengerCall.mockClear();
-
-      fireEvent.press(
-        view.getByTestId(PredictHomeTestIds.sectionHeader(feedScreenId)),
-      );
-
-      expect(
-        await view.findByTestId(PredictFeedScreenTestIds.VIEW),
-      ).toBeOnTheScreen();
-      expect(view.getByText('Sports')).toBeOnTheScreen();
-      expect(view.getAllByText(selectionLabel)[0]).toBeOnTheScreen();
-
-      fireEvent.press(view.getByTestId(PredictFeedScreenTestIds.BACK));
-
-      expect(
-        await view.findByTestId(PredictHomeTestIds.HOME),
-      ).toBeOnTheScreen();
-      expect(messengerCall).toHaveBeenCalledWith(
-        'PredictMarketDataService:getFeed',
-        'kalshi',
-        feedId,
-        { limit: 20 },
-      );
-      expect(messengerCall).not.toHaveBeenCalledWith(
-        'PredictMarketDataService:getFeed',
-        'kalshi',
-        feedId,
-        { limit: 2 },
-      );
-    },
-  );
-
-  it('renders a successful NCAAF preview while NFL is still loading', async () => {
+  it('shows Trending and Sports skeletons until the NFL read settles', async () => {
     let resolveNfl: (value: unknown) => void = () => undefined;
     mockPredictNextMessenger(
       (action: string, _venueId: string, feedId: PredictFeedId) => {
         if (action !== 'PredictMarketDataService:getFeed') {
           return Promise.resolve(undefined);
         }
-        if (feedId === 'sports-football-nfl-games') {
+        if (feedId === NFL_GAMES_FEED_ID) {
           return new Promise((resolve) => {
             resolveNfl = resolve;
           });
@@ -661,48 +1074,67 @@ describe('PredictHome', () => {
     );
     const view = renderPredictNext();
 
+    // Politics does not wait for NFL.
     expect(
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1')),
     ).toBeOnTheScreen();
     expect(
-      view.getByTestId(PredictHomeTestIds.sectionLoading(NFL_FEED_SCREEN_ID)),
-    ).toBeOnTheScreen();
+      view.getAllByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByTestId(PredictHomeTestIds.HOME_SPORTS_SKELETON).length,
+    ).toBeGreaterThan(0);
+    // Trending ranks Games across both Games reads, so it waits for both.
+    expect(
+      view.queryByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+    ).not.toBeOnTheScreen();
 
     await act(async () => {
       resolveNfl({
         venueId: 'kalshi',
-        id: 'sports-football-nfl-games',
+        id: NFL_GAMES_FEED_ID,
         title: 'NFL Games',
-        events: nflEvents,
+        events: [...nflEvents, ...MORE_NFL_EVENTS],
       });
     });
-    expect(
-      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
-    ).toBeOnTheScreen();
-  });
-
-  it('keeps an errored NFL preview independent from a successful NCAAF preview', async () => {
-    configurePredictNextFeeds({ nfl: new Error('NFL failed') });
-    const view = renderPredictNext();
 
     expect(
-      await view.findByTestId(
-        PredictHomeTestIds.sectionError(NFL_FEED_SCREEN_ID),
-      ),
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4')),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
     ).toBeOnTheScreen();
     expect(
-      view.queryByTestId(PredictHomeTestIds.sectionError(NCAA_FEED_SCREEN_ID)),
+      view.queryByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON),
     ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.HOME_SPORTS_SKELETON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('fills Trending from the other reads while the NFL read fails, and recovers', async () => {
+    configurePredictNextFeeds({ nfl: new Error('NFL failed') });
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.getByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+    ).toBeOnTheScreen();
 
     configurePredictNextFeeds();
     await act(async () => {
-      fireEvent.press(
-        view.getByTestId(PredictHomeTestIds.sectionRetry(NFL_FEED_SCREEN_ID)),
-      );
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
     });
+
     expect(
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
     ).toBeOnTheScreen();
@@ -723,30 +1155,268 @@ describe('PredictHome', () => {
         messengerCall.mock.calls.filter(
           ([action, , feedId]) =>
             action === 'PredictMarketDataService:getFeed' &&
-            feedId === 'sports-football-nfl-games',
+            feedId === NFL_GAMES_FEED_ID,
         ),
       ).toHaveLength(2),
     );
     expect(
-      view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
+      within(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)).getByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-1'),
+      ),
     ).toBeOnTheScreen();
     expect(
-      view.queryByTestId(PredictHomeTestIds.sectionError(NFL_FEED_SCREEN_ID)),
+      view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps an empty NFL preview independent from a successful NCAAF preview', async () => {
+  describe('row loading and failures', () => {
+    /**
+     * Holds every read of `feedId` until the returned release runs; every
+     * other call keeps the configured answers.
+     */
+    const holdFeedRead = (feedId: PredictFeedId) => {
+      const configured = messengerCall.getMockImplementation();
+      let release: () => void = () => undefined;
+      const held = new Promise<void>((resolve) => {
+        release = resolve;
+      });
+      messengerCall.mockImplementation(
+        (action: string, ...params: unknown[]) =>
+          action === 'PredictMarketDataService:getFeed' && params[1] === feedId
+            ? held.then(() => configured?.(action, ...params))
+            : configured?.(action, ...params),
+      );
+      return () =>
+        act(async () => {
+          release();
+        });
+    };
+
+    it('shows the Trending Games while the Politics read is still pending', async () => {
+      // Two NFL and two NCAAF Games: Trending shows all four, Sports none.
+      const releasePolitics = holdFeedRead(POLITICS_TRUMP_FEED_ID);
+      const view = renderPredictNext();
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
+      );
+      await within(trending).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'ncaa-2'),
+      );
+      expect(rowEventIds(trending)).toEqual([
+        'nfl-1',
+        'nfl-2',
+        'ncaa-1',
+        'ncaa-2',
+      ]);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.getByTestId(
+          PredictHomeTestIds.sectionLoading(POLITICS_FEED_SCREEN_ID),
+        ),
+      ).toBeOnTheScreen();
+
+      await releasePolitics();
+
+      expect(
+        await view.findByTestId(
+          PredictHomeTestIds.event('kalshi', 'politics-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+      ).toEqual(['nfl-1', 'nfl-2', 'ncaa-1', 'ncaa-2']);
+    });
+
+    it('holds Sports on skeletons, and watches no row Event, until both Games reads settle', async () => {
+      configureFullHomeFeeds();
+      const releaseNcaa = holdFeedRead(NCAA_GAMES_FEED_ID);
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      expect(
+        view.getAllByTestId(PredictHomeTestIds.HOME_SPORTS_SKELETON).length,
+      ).toBeGreaterThan(0);
+      expect(
+        view.getAllByTestId(PredictHomeTestIds.HOME_TRENDING_SKELETON).length,
+      ).toBeGreaterThan(0);
+      // With the NFL read alone, Trending would pick nfl-1 to nfl-5 and
+      // Sports would show nfl-6. Neither row paints those partial picks.
+      expect(
+        view.queryAllByTestId(/^predict-next-event-kalshi-nfl-/),
+      ).toHaveLength(0);
+      expect(watchedEventIds()).toEqual(eventIdsOf(politicsEvents));
+
+      await releaseNcaa();
+
+      const sports = view.getByTestId(PredictHomeTestIds.HOME_SPORTS);
+      await within(sports).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-4'),
+      );
+      expect(rowEventIds(sports)).toEqual(SPORTS_EVENT_IDS);
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+      ).toEqual(TRENDING_EVENT_IDS);
+    });
+
+    it('shows one Retry when both Games reads fail and recovers both rows in place', async () => {
+      configurePredictNextFeeds({
+        nfl: new Error('NFL failed'),
+        ncaa: new Error('NCAAF failed'),
+      });
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).toBeOnTheScreen();
+      expect(view.getByText('Games couldn’t be loaded.')).toBeOnTheScreen();
+      expect(announce).toHaveBeenCalledWith('Games couldn’t be loaded.');
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
+      expect(
+        view.getAllByTestId(PredictHomeTestIds.HOME_GAMES_RETRY),
+      ).toHaveLength(1);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+
+      configureFullHomeFeeds();
+      messengerCall.mockClear();
+      // Retry alone recovers: Home stays focused and in the foreground.
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_GAMES_RETRY));
+
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
+      );
+      await within(trending).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-3'),
+      );
+      expect(rowEventIds(trending)).toEqual(TRENDING_EVENT_IDS);
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_SPORTS)),
+      ).toEqual(SPORTS_EVENT_IDS);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).not.toBeOnTheScreen();
+      // Retry reads the two failed Feeds again, and only those.
+      expect(feedCalls(NFL_GAMES_FEED_ID)).toHaveLength(1);
+      expect(feedCalls(NCAA_GAMES_FEED_ID)).toHaveLength(1);
+      expect(feedCalls(POLITICS_TRUMP_FEED_ID)).toHaveLength(0);
+    });
+
+    it('offers Retry when the NFL read alone fails and rereads only that read', async () => {
+      configurePredictNextFeeds({
+        nfl: new Error('NFL failed'),
+        ncaa: [...ncaaEvents, ...MORE_NCAA_EVENTS],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));
+      expect(
+        view.getByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+      ).not.toBeOnTheScreen();
+
+      configureFullHomeFeeds();
+      messengerCall.mockClear();
+      fireEvent.press(view.getByTestId(PredictHomeTestIds.HOME_GAMES_RETRY));
+
+      const sports = await view.findByTestId(PredictHomeTestIds.HOME_SPORTS);
+      await within(sports).findByTestId(
+        PredictHomeTestIds.event('kalshi', 'nfl-4'),
+      );
+      expect(rowEventIds(sports)).toEqual(SPORTS_EVENT_IDS);
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_GAMES_ERROR),
+      ).not.toBeOnTheScreen();
+      expect(feedCalls(NFL_GAMES_FEED_ID)).toHaveLength(1);
+      expect(feedCalls(NCAA_GAMES_FEED_ID)).toHaveLength(0);
+    });
+  });
+
+  it('keeps a Game that goes live in its Trending place until the Feed is read again', async () => {
+    const nfl = [
+      scheduledGame('nfl-1', 'Bills', 'Rams', 'NFL'),
+      scheduledGame('nfl-2', 'Chiefs', 'Broncos', 'NFL'),
+      scheduledGame('nfl-3', 'Bears', 'Lions', 'NFL'),
+    ];
+    const ncaa = [
+      scheduledGame('ncaa-1', 'Clemson', 'Duke', 'NCAAF'),
+      scheduledGame('ncaa-2', 'Georgia', 'Florida', 'NCAAF'),
+    ];
+    configurePredictNextFeeds({ nfl, ncaa });
+    const view = renderPredictNext();
+    const trending = await view.findByTestId(PredictHomeTestIds.HOME_TRENDING);
+    await within(trending).findByTestId(
+      PredictHomeTestIds.event('kalshi', 'nfl-3'),
+    );
+    const snapshotOrder = ['nfl-1', 'nfl-2', 'nfl-3', 'ncaa-1', 'ncaa-2'];
+    expect(rowEventIds(trending)).toEqual(snapshotOrder);
+
+    act(() => {
+      publishPredictNextGameLiveUpdate({
+        venueId: 'kalshi' as PredictVenueId,
+        eventId: 'nfl-3' as PredictEntityId,
+        type: 'football_game',
+        status: 'in_progress',
+        score: { away: '0', home: '0' },
+        period: 'Q1',
+        clock: '14:00',
+        observedAt: '2026-11-15T18:05:00.000Z' as PredictTimestamp,
+      });
+    });
+
+    // The card shows the live status, but the carousel keeps its snapshot.
+    expect(
+      within(
+        view.getByTestId(PredictHomeTestIds.event('kalshi', 'nfl-3')),
+      ).getByText('Q1 · 14:00'),
+    ).toBeOnTheScreen();
+    expect(
+      rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+    ).toEqual(snapshotOrder);
+
+    // The next Feed read returns the Game live, and ranks it first.
+    configurePredictNextFeeds({
+      nfl: [
+        nfl[0],
+        nfl[1],
+        makePredictNextGameEvent('nfl-3', 'Bears', 'Lions', 'NFL'),
+      ],
+      ncaa,
+    });
+    await act(async () => {
+      focusManager.setFocused(false);
+      focusManager.setFocused(true);
+    });
+
+    await waitFor(() =>
+      expect(
+        rowEventIds(view.getByTestId(PredictHomeTestIds.HOME_TRENDING)),
+      ).toEqual(['nfl-3', 'nfl-1', 'nfl-2', 'ncaa-1', 'ncaa-2']),
+    );
+  });
+
+  it('hides the Sports row when the NFL read has no Games', async () => {
     configurePredictNextFeeds({ nfl: [] });
     const view = renderPredictNext();
 
     expect(
-      await view.findByTestId(
-        PredictHomeTestIds.sectionEmpty(NFL_FEED_SCREEN_ID),
-      ),
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
     ).toBeOnTheScreen();
     expect(
-      view.getByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
-    ).toBeOnTheScreen();
+      view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
+    ).not.toBeOnTheScreen();
   });
 
   it('returns to Home after opening the immutable Event from a card', async () => {
@@ -776,7 +1446,7 @@ describe('PredictHome', () => {
       await view.findByTestId(PredictEventScreenTestIds.GAME_HEADER),
     ).toBeOnTheScreen();
     expect(
-      await view.findByTestId(EventMarketListTestIds.MARKETS_TAB),
+      await view.findByTestId(EventMarketListTestIds.layoutTab('game_lines')),
     ).toBeOnTheScreen();
     expect(messengerCall.mock.calls).toEqual(
       expect.arrayContaining([
@@ -812,10 +1482,6 @@ describe('PredictHome', () => {
   });
 
   describe('capability-gated Feed sections', () => {
-    const feedCalls = () =>
-      messengerCall.mock.calls.filter(
-        ([action]) => action === 'PredictMarketDataService:getFeed',
-      );
     const buyButtons = (view: ReturnType<typeof renderPredictNext>) =>
       view.queryAllByLabelText(/, buy$/);
 
@@ -826,7 +1492,10 @@ describe('PredictHome', () => {
         await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
       ).toBeOnTheScreen();
       expect(
-        view.getByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
+        view.getByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID)),
       ).toBeOnTheScreen();
       expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
       expect(buyButtons(view).length).toBeGreaterThan(0);
@@ -846,7 +1515,7 @@ describe('PredictHome', () => {
         await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-1')),
       ).toBeOnTheScreen();
       expect(
-        view.queryByTestId(PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID)),
+        view.queryByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1')),
       ).not.toBeOnTheScreen();
       expect(feedCalls().map(([, , feedId]) => feedId)).not.toContain(
         NCAA_GAMES_FEED_ID,
@@ -862,7 +1531,10 @@ describe('PredictHome', () => {
       ).toBeOnTheScreen();
       await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
       expect(
-        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
       ).not.toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictHomeTestIds.SEARCH),
@@ -880,7 +1552,7 @@ describe('PredictHome', () => {
         await view.findByTestId(PredictHomeTestIds.SECTIONS_ERROR),
       ).toHaveTextContent('Markets couldn’t be loaded.', { exact: false });
       expect(
-        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
       ).not.toBeOnTheScreen();
       expect(feedCalls()).toHaveLength(0);
 
@@ -906,7 +1578,7 @@ describe('PredictHome', () => {
         await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
       ).toHaveTextContent('No markets are available right now.');
       expect(
-        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
       ).not.toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictHomeTestIds.SEARCH),
@@ -923,7 +1595,7 @@ describe('PredictHome', () => {
         await view.findByTestId(PredictHomeTestIds.SECTIONS_ERROR),
       ).toBeOnTheScreen();
       expect(
-        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+        view.queryByTestId(PredictHomeTestIds.HOME_TRENDING),
       ).not.toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictHomeTestIds.SEARCH),
@@ -978,6 +1650,27 @@ describe('PredictHome', () => {
         POLITICS_TRUMP_FEED_ID,
         { limit: 2 },
       );
+    });
+
+    it('shows a binary Politics Event as the default card with Yes and No rows', async () => {
+      const view = renderPredictNext();
+
+      const card = await view.findByTestId(
+        PredictHomeTestIds.event('kalshi', 'politics-1'),
+      );
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'yes'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).getByTestId(
+          PredictHomeTestIds.outcome('politics-1', 'no'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(card).queryByTestId(PredictHomeTestIds.category('politics-1')),
+      ).not.toBeOnTheScreen();
     });
 
     it('opens the Politics Feed Screen from the section header', async () => {
@@ -1086,13 +1779,15 @@ describe('PredictHome', () => {
       ]);
     });
 
-    it('sits after the sports previews and before Politics', async () => {
+    it('sits below the Trending and Sports rows and above Politics', async () => {
+      configureFullHomeFeeds();
       const view = renderPredictNext();
+      await view.findByTestId(PredictHomeTestIds.event('kalshi', 'nfl-4'));
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'politics-1'));
 
       const order = [
-        PredictHomeTestIds.section(NFL_FEED_SCREEN_ID),
-        PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
+        PredictHomeTestIds.HOME_TRENDING,
+        PredictHomeTestIds.HOME_SPORTS,
         PredictHomeTestIds.CATEGORIES,
         PredictHomeTestIds.section(POLITICS_FEED_SCREEN_ID),
       ];
@@ -1124,12 +1819,7 @@ describe('PredictHome', () => {
 
       const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
       expect(within(feedScreen).getByText('Sports')).toBeOnTheScreen();
-      const tabs = within(
-        within(feedScreen).getByTestId(PredictFeedScreenTestIds.TABS),
-      )
-        .getAllByRole('button')
-        .map((tab) => tab.props.accessibilityLabel);
-      expect(tabs).toEqual(['NFL', 'NCAAF']);
+      expect(feedScreenTabLabels(feedScreen)).toEqual(['NFL', 'NCAAF']);
       expect(
         within(feedScreen).getByTestId(PredictFeedScreenTestIds.tab('nfl'))
           .props.accessibilityState,
@@ -1235,6 +1925,60 @@ describe('PredictHome', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('shows a Category added only on the server, labelled with its screen title, and opens that screen', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        feeds: {
+          ...KALSHI_STATIC_VENUE_CATALOG.feeds,
+          economics: 'economics-fed',
+          'economics-fed': 'economics-fed',
+        },
+        categories: [...KALSHI_STATIC_VENUE_CATALOG.categories, 'economics'],
+        screens: [
+          ...KALSHI_STATIC_VENUE_CATALOG.screens,
+          {
+            id: 'economics',
+            title: 'Economics',
+            tabs: [{ id: 'fed', title: 'Fed', feed: 'economics-fed' }],
+          },
+        ],
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+        PredictHomeTestIds.categoryChip('politics'),
+        PredictHomeTestIds.categoryChip('economics'),
+      ]);
+      expect(
+        view.getByTestId(PredictHomeTestIds.categoryChip('economics')),
+      ).toHaveTextContent('Economics');
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.categoryChip('economics')),
+      );
+
+      const feedScreen = await view.findByTestId(PredictFeedScreenTestIds.VIEW);
+      expect(feedScreenTabLabels(feedScreen)).toEqual(['Fed']);
+    });
+
+    it('drops the chip of a Category whose screen the server removed', async () => {
+      configurePredictNextCatalog({
+        ...KALSHI_STATIC_VENUE_CATALOG,
+        screens: KALSHI_STATIC_VENUE_CATALOG.screens.filter(
+          ({ id }) => id !== 'politics',
+        ),
+      });
+      const view = renderPredictNext();
+
+      await view.findByTestId(PredictHomeTestIds.CATEGORIES);
+
+      expect(chipIds(view)).toEqual([
+        PredictHomeTestIds.categoryChip('sports'),
+      ]);
+    });
+
     it.each([
       ["another Venue's catalog", POLYMARKET_STATIC_VENUE_CATALOG],
       ['a pending catalog', 'pending' as const],
@@ -1251,10 +1995,7 @@ describe('PredictHome', () => {
   });
 
   describe('venue-generic Home', () => {
-    const calls = (action: string) =>
-      messengerCall.mock.calls.filter(([name]) => name === action);
-
-    it('renders the sections and Feeds of an arbitrary Venue descriptor', async () => {
+    it('renders the rows and Feeds of an arbitrary Venue descriptor', async () => {
       // A feed set Kalshi's catalog does not have: college football only,
       // under Feed IDs of its own, plus a key Home has no section for.
       const testFeedId = 'test-college-games' as PredictFeedId;
@@ -1266,10 +2007,12 @@ describe('PredictHome', () => {
           trending: 'test-trending',
         },
         searchSupported: false,
+        // Kalshi's layout: the parser keeps only what this Venue's Feeds serve.
+        home: KALSHI_STATIC_VENUE_CATALOG.home,
       });
       const testEvents = [
-        makePredictNextEvent('test-1', 'Test Game One'),
-        makePredictNextEvent('test-2', 'Test Game Two'),
+        makePredictNextGameEvent('test-1', 'Owls', 'Hawks', 'NCAAF'),
+        makePredictNextGameEvent('test-2', 'Bears', 'Wolves', 'NCAAF'),
       ];
       mockPredictNextMessenger((action: string, venueId: string) => {
         if (action === 'PredictMarketDataService:getFeed') {
@@ -1287,47 +2030,31 @@ describe('PredictHome', () => {
       });
       const view = renderPredictNext();
 
-      const section = await view.findByTestId(
-        PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
+      const trending = await view.findByTestId(
+        PredictHomeTestIds.HOME_TRENDING,
       );
       expect(
-        await within(section).findByTestId(
+        await within(trending).findByTestId(
           PredictHomeTestIds.event('kalshi', 'test-1'),
         ),
       ).toBeOnTheScreen();
       expect(
-        within(section).getByTestId(
+        within(trending).getByTestId(
           PredictHomeTestIds.event('kalshi', 'test-2'),
         ),
       ).toBeOnTheScreen();
-      expect(within(section).getByText('NCAAF')).toBeOnTheScreen();
+      // Without an NFL Feed there is no Sports row.
       expect(
-        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+        view.queryByTestId(PredictHomeTestIds.HOME_SPORTS),
       ).not.toBeOnTheScreen();
       expect(
         view.queryByTestId(PredictHomeTestIds.SEARCH),
       ).not.toBeOnTheScreen();
       expect(
-        calls('PredictMarketDataService:getFeed').map(
+        callsTo('PredictMarketDataService:getFeed').map(
           ([, venueId, feedId, params]) => [venueId, feedId, params],
         ),
-      ).toEqual([['kalshi', testFeedId, { limit: 2 }]]);
-
-      fireEvent.press(
-        view.getByTestId(PredictHomeTestIds.sectionHeader(NCAA_FEED_SCREEN_ID)),
-      );
-
-      expect(
-        await view.findByTestId(PredictFeedScreenTestIds.VIEW),
-      ).toBeOnTheScreen();
-      await waitFor(() =>
-        expect(messengerCall).toHaveBeenCalledWith(
-          'PredictMarketDataService:getFeed',
-          'kalshi',
-          testFeedId,
-          { limit: 20 },
-        ),
-      );
+      ).toEqual([['kalshi', testFeedId, { limit: 4 }]]);
     });
 
     describe('for a Venue other than Kalshi', () => {
@@ -1372,10 +2099,10 @@ describe('PredictHome', () => {
           await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
         ).toBeOnTheScreen();
         expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
-        expect(calls('PredictPortfolioService:getBalance')).toEqual([
+        expect(callsTo('PredictPortfolioService:getBalance')).toEqual([
           ['PredictPortfolioService:getBalance', venueId],
         ]);
-        expect(calls('PredictMarketDataService:getFeed')).toHaveLength(0);
+        expect(callsTo('PredictMarketDataService:getFeed')).toHaveLength(0);
         expect(
           messengerCall.mock.calls.filter(([, id]) => id === 'kalshi'),
         ).toEqual([]);
@@ -1392,7 +2119,7 @@ describe('PredictHome', () => {
         ).toBeOnTheScreen();
         await waitFor(() =>
           expect(
-            calls('PredictPortfolioService:getPositions').map(([, id]) => id),
+            callsTo('PredictPortfolioService:getPositions').map(([, id]) => id),
           ).toContain(venueId),
         );
       });
@@ -1413,6 +2140,570 @@ describe('PredictHome', () => {
             expect.objectContaining({ q: 'chiefs' }),
           ),
         );
+      });
+    });
+  });
+
+  describe('deposit status line', () => {
+    it('shows awaiting_transfer under balance and opens DepositInProgressSheet with Continue and Cancel on tap', async () => {
+      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+      const view = renderPredictNext();
+
+      const statusLine = await view.findByTestId(
+        PredictHomeTestIds.DEPOSIT_STATUS,
+      );
+      expect(statusLine).toHaveTextContent('Deposit waiting for your transfer');
+      // Pending deposit amount is never added to the authoritative balance ($123.13).
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+      ).toHaveTextContent('$123.13');
+
+      fireEvent.press(statusLine);
+
+      expect(
+        await view.findByTestId(PredictDepositScreenTestIds.IN_PROGRESS),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+      ).toBeOnTheScreen();
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows Deposit processing under balance without adding pending funds', async () => {
+      configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit processing');
+      expect(
+        view.getByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+      ).toHaveTextContent('$123.13');
+    });
+
+    it('shows Deposit under review with full supportReference and lets the user copy it', async () => {
+      configurePredictNextFeeds({ depositStatus: needsReviewDeposit });
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
+      const view = renderPredictNext();
+
+      expect(
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent(
+        `Deposit under review · Ref ${needsReviewDeposit.next.supportReference}`,
+      );
+
+      const copyButton = view.getByTestId(
+        `${PredictHomeTestIds.DEPOSIT_STATUS}-copy`,
+      );
+      expect(copyButton).toHaveProp('hitSlop', {
+        top: 11,
+        bottom: 11,
+        left: 16,
+        right: 16,
+      });
+      fireEvent.press(copyButton);
+      expect(Clipboard.setString).toHaveBeenCalledWith(
+        needsReviewDeposit.next.supportReference,
+      );
+      expect(announce).toHaveBeenCalledWith('Support reference copied');
+    });
+
+    it.each([
+      [
+        'completed',
+        { ...awaitingTransferDeposit, status: 'completed', next: null },
+      ],
+      ['cancelled', cancelledDeposit],
+    ])(
+      'rechecks live deposit before Continue can send USDC when %s and creates no transaction',
+      async (_label, resolvedDeposit) => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:getDeposit') {
+              return Promise.resolve(resolvedDeposit);
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const addTxSpy = jest.spyOn(
+          Engine.context.TransactionController,
+          'addTransaction',
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:getDeposit',
+            'kalshi',
+            awaitingTransferDeposit.operationId,
+          ),
+        );
+        expect(addTxSpy).not.toHaveBeenCalled();
+        expect(
+          callsTo('PredictFundingService:reportDepositTransfer'),
+        ).toHaveLength(0);
+      },
+    );
+
+    it('hides Continue live when an open sheet transitions to cancelled', async () => {
+      configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+      const view = renderPredictNext();
+
+      const statusLine = await view.findByTestId(
+        PredictHomeTestIds.DEPOSIT_STATUS,
+      );
+      fireEvent.press(statusLine);
+      expect(
+        await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        ),
+      ).toBeOnTheScreen();
+
+      act(() =>
+        publishPredictNextDepositStatus({
+          ...awaitingTransferDeposit,
+          status: 'cancelled',
+          next: null,
+        }),
+      );
+
+      await waitFor(() =>
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE),
+        ).not.toBeOnTheScreen(),
+      );
+      expect(
+        view.getByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CLOSE),
+      ).toBeOnTheScreen();
+    });
+
+    it.each([
+      [
+        'loading',
+        'pending' as const,
+        PredictDepositScreenTestIds.IN_PROGRESS_LOADING,
+        strings('predict_next.deposit.in_progress.checking_availability'),
+      ],
+      [
+        'unavailable',
+        new Error('catalog failed'),
+        PredictDepositScreenTestIds.IN_PROGRESS_ALERT,
+        strings('predict_next.deposit.unavailable_error'),
+      ],
+      [
+        'missing_environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+        PredictDepositScreenTestIds.IN_PROGRESS_ALERT,
+        strings('predict_next.deposit.unavailable'),
+      ],
+    ])(
+      'shows %s reason and disables Continue while keeping Cancel enabled on the open sheet',
+      async (_label, catalogState, statusTestId, expectedCopy) => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:cancelDeposit') {
+              return Promise.resolve({
+                ...awaitingTransferDeposit,
+                status: 'cancelled',
+                next: null,
+              });
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        const cancelButton = view.getByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CANCEL,
+        );
+        expect(continueButton).toBeDisabled();
+        expect(cancelButton).toBeEnabled();
+        expect(view.getByTestId(statusTestId)).toHaveTextContent(expectedCopy);
+
+        await act(async () => {
+          fireEvent.press(cancelButton);
+        });
+
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictFundingService:cancelDeposit',
+          'kalshi',
+          awaitingTransferDeposit.operationId,
+        );
+      },
+    );
+
+    it.each([
+      ['catalog read error', new Error('catalog failed')],
+      [
+        'catalog omitting environment',
+        (() => {
+          const { environment: _omitted, ...legacyCatalog } =
+            KALSHI_STATIC_VENUE_CATALOG;
+          return legacyCatalog;
+        })(),
+      ],
+    ])(
+      'keeps Continue enabled, hides Cancel and unavailable copy, and reports a submitted transfer on %s',
+      async (_label, catalogState) => {
+        const txHash: PredictHex = `0x${'ab'.repeat(32)}`;
+        recordSessionDepositTransfer(
+          {
+            venueId: 'kalshi' as PredictVenueId,
+            operationId: awaitingTransferDeposit.operationId,
+            from: '0x0000000000000000000000000000000000000001',
+            plan: {
+              chainId: awaitingTransferDeposit.next.chainId,
+              tokenContract: awaitingTransferDeposit.next
+                .tokenContract as PredictHex,
+              amount: awaitingTransferDeposit.next.amount as PredictAmount,
+              depositAddress: awaitingTransferDeposit.next
+                .depositAddress as PredictHex,
+              planExpiresAt: awaitingTransferDeposit.next
+                .planExpiresAt as PredictTimestamp,
+            },
+          },
+          {
+            txHash,
+            chainId: awaitingTransferDeposit.chainId,
+            to: awaitingTransferDeposit.next.tokenContract,
+            data: encodeUsdcTransfer(
+              awaitingTransferDeposit.next.depositAddress,
+              awaitingTransferDeposit.next.amount as PredictAmount,
+            ),
+          },
+        );
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        configurePredictNextCatalog(catalogState);
+        const addTxSpy = jest.spyOn(
+          Engine.context.TransactionController,
+          'addTransaction',
+        );
+        const baseImplementation = messengerCall.getMockImplementation();
+        messengerCall.mockImplementation(
+          (action: string, ...args: unknown[]) => {
+            if (action === 'PredictFundingService:getDeposit') {
+              return Promise.resolve(awaitingTransferDeposit);
+            }
+            if (action === 'PredictFundingService:reportDepositTransfer') {
+              return Promise.resolve(transferReportedDeposit);
+            }
+            return baseImplementation?.(action, ...args);
+          },
+        );
+        const view = renderPredictNext();
+
+        const statusLine = await view.findByTestId(
+          PredictHomeTestIds.DEPOSIT_STATUS,
+        );
+        fireEvent.press(statusLine);
+
+        const continueButton = await view.findByTestId(
+          PredictDepositScreenTestIds.IN_PROGRESS_CONTINUE,
+        );
+        expect(continueButton).toBeEnabled();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_CANCEL),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_ALERT),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.queryByTestId(PredictDepositScreenTestIds.IN_PROGRESS_RETRY),
+        ).not.toBeOnTheScreen();
+        expect(
+          view.getByText(
+            strings('predict_next.deposit.in_progress.processing', {
+              amount: '$25.50',
+            }),
+          ),
+        ).toBeOnTheScreen();
+
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:reportDepositTransfer',
+            'kalshi',
+            awaitingTransferDeposit.operationId,
+            {
+              txHash,
+              chainId: awaitingTransferDeposit.chainId,
+            },
+          ),
+        );
+        expect(addTxSpy).not.toHaveBeenCalled();
+        expect(callsTo('PredictFundingService:cancelDeposit')).toHaveLength(0);
+      },
+    );
+
+    it('keeps two failed notices separate across visits without acknowledging the second on the first visit', async () => {
+      const failedA = makeFailedDeposit({
+        operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e5f' as PredictEntityId,
+      });
+      const failedB = makeFailedDeposit({
+        operationId: '019a7c3e-5c1a-7d2e-9a40-3f1c2b0d4e60' as PredictEntityId,
+      });
+      const pending = [failedA, failedB];
+      configurePredictNextFeeds({ depositStatus: failedA });
+      const baseImplementation = messengerCall.getMockImplementation();
+      messengerCall.mockImplementation((action: string, ...args: unknown[]) => {
+        if (action === 'PredictFundingService:getDepositStatus') {
+          return pending[0] ?? null;
+        }
+        if (action === 'PredictFundingService:acknowledgeDepositNotice') {
+          const opId = args[1] as string;
+          const idx = pending.findIndex((item) => item.operationId === opId);
+          if (idx !== -1) {
+            pending.splice(idx, 1);
+            publishPredictNextDepositStatus(pending[0] ?? null);
+          }
+          return undefined;
+        }
+        return baseImplementation?.(action, ...args);
+      });
+
+      const firstVisit = renderPredictNext();
+      expect(
+        await firstVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit failed');
+      await waitFor(() =>
+        expect(
+          callsTo('PredictFundingService:acknowledgeDepositNotice'),
+        ).toEqual([
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedA.operationId,
+          ],
+        ]),
+      );
+      firstVisit.unmount();
+
+      const secondVisit = renderPredictNext();
+      expect(
+        await secondVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).toHaveTextContent('Deposit failed');
+      await waitFor(() =>
+        expect(
+          callsTo('PredictFundingService:acknowledgeDepositNotice'),
+        ).toEqual([
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedA.operationId,
+          ],
+          [
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            failedB.operationId,
+          ],
+        ]),
+      );
+      secondVisit.unmount();
+
+      const thirdVisit = renderPredictNext();
+      await thirdVisit.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+      expect(
+        thirdVisit.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+      ).not.toBeOnTheScreen();
+    });
+
+    it.each([
+      ['failed', makeFailedDeposit(), 'Deposit failed'],
+      ['cancelled', cancelledDeposit, 'Deposit cancelled'],
+    ])(
+      'shows %s deposit status once and removes it on the next visit',
+      async (_label, fixture, expectedText) => {
+        configurePredictNextFeeds({ depositStatus: fixture });
+        const firstVisit = renderPredictNext();
+
+        expect(
+          await firstVisit.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent(expectedText);
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictFundingService:acknowledgeDepositNotice',
+            'kalshi',
+            fixture.operationId,
+          ),
+        );
+        firstVisit.unmount();
+
+        const secondVisit = renderPredictNext();
+        await secondVisit.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+        expect(
+          secondVisit.queryByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).not.toBeOnTheScreen();
+      },
+    );
+
+    describe('accessibility', () => {
+      const failedDeposit = makeFailedDeposit({
+        operationId: transferReportedDeposit.operationId as PredictEntityId,
+      });
+      const underReviewDeposit = {
+        ...needsReviewDeposit,
+        operationId: transferReportedDeposit.operationId,
+      };
+      const underReviewText = `Deposit under review · Ref ${underReviewDeposit.next.supportReference}`;
+      const depositAnnouncements = (announce: jest.SpyInstance) =>
+        announce.mock.calls
+          .map(([message]) => message)
+          .filter((message: string) => message.startsWith('Deposit'));
+
+      it('extends the awaiting_transfer tap target to 44pt without changing layout', async () => {
+        configurePredictNextFeeds({ depositStatus: awaitingTransferDeposit });
+        const view = renderPredictNext();
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveProp('hitSlop', { top: 11, bottom: 11 });
+      });
+
+      it('announces each live status change once and stays silent for an open status on mount or an identical update', async () => {
+        configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        const statusLine = () =>
+          view.getByTestId(PredictHomeTestIds.DEPOSIT_STATUS);
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+        expect(depositAnnouncements(announce)).toEqual([]);
+
+        act(() => publishPredictNextDepositStatus(underReviewDeposit));
+        await waitFor(() =>
+          expect(statusLine()).toHaveTextContent(underReviewText),
+        );
+        act(() => publishPredictNextDepositStatus({ ...underReviewDeposit }));
+        act(() => publishPredictNextDepositStatus(failedDeposit));
+        await waitFor(() =>
+          expect(statusLine()).toHaveTextContent('Deposit failed'),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual([
+          underReviewText,
+          'Deposit failed',
+        ]);
+      });
+
+      it('announces a transfer moving into processing but not a new awaiting_transfer deposit', async () => {
+        configurePredictNextFeeds();
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+        act(() => publishPredictNextDepositStatus(awaitingTransferDeposit));
+        expect(
+          await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit waiting for your transfer');
+        act(() =>
+          publishPredictNextDepositStatus({
+            ...awaitingTransferDeposit,
+            status: 'processing',
+          }),
+        );
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent('Deposit processing'),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual(['Deposit processing']);
+      });
+
+      it.each([
+        ['failed', failedDeposit, 'Deposit failed'],
+        ['cancelled', cancelledDeposit, 'Deposit cancelled'],
+      ])(
+        'announces a %s notice once when it first shows on mount',
+        async (_label, fixture, expectedText) => {
+          configurePredictNextFeeds({ depositStatus: fixture });
+          const announce = jest.spyOn(
+            AccessibilityInfo,
+            'announceForAccessibility',
+          );
+          const view = renderPredictNext();
+
+          expect(
+            await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent(expectedText);
+          await waitFor(() =>
+            expect(messengerCall).toHaveBeenCalledWith(
+              'PredictFundingService:acknowledgeDepositNotice',
+              'kalshi',
+              fixture.operationId,
+            ),
+          );
+
+          expect(depositAnnouncements(announce)).toEqual([expectedText]);
+        },
+      );
+
+      it('announces a change only on the focused Portfolio, not on Home underneath it', async () => {
+        configurePredictNextFeeds({ depositStatus: transferReportedDeposit });
+        const announce = jest.spyOn(
+          AccessibilityInfo,
+          'announceForAccessibility',
+        );
+        const view = renderPredictNext();
+        await view.findByTestId(PredictHomeTestIds.DEPOSIT_STATUS);
+
+        fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+        expect(
+          await view.findByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+        ).toHaveTextContent('Deposit processing');
+        act(() => publishPredictNextDepositStatus(underReviewDeposit));
+        await waitFor(() =>
+          expect(
+            view.getByTestId(PredictPortfolioScreenTestIds.DEPOSIT_STATUS),
+          ).toHaveTextContent(underReviewText),
+        );
+
+        expect(depositAnnouncements(announce)).toEqual([underReviewText]);
       });
     });
   });

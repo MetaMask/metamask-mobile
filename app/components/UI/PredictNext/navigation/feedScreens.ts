@@ -1,104 +1,95 @@
-import {
-  PREDICT_SURFACE_FEED_KEYS,
-  resolveSurfaceFeeds,
-  type PredictVenueCapabilities,
-} from '../capabilities';
+import { getVenueFeedId, type PredictVenueCapabilities } from '../capabilities';
 import type { PredictFeedId } from '../types';
+import { strings } from '../../../../../locales/i18n';
 
+/**
+ * Kalshi's Feed Screen IDs, for tests and fixtures. No surface opens a screen
+ * by a hardcoded ID: Home's headers name theirs in the catalog's `home`
+ * (PRED-1527), and the screens, their tabs and their order come from its
+ * `screens` (PRED-1525).
+ */
 export const NFL_FEED_SCREEN_ID = 'sports-football-nfl';
 export const NCAA_FEED_SCREEN_ID = 'sports-football-ncaa';
 export const POLITICS_FEED_SCREEN_ID = 'politics';
 export const SPORTS_FEED_SCREEN_ID = 'sports';
 
-type FeedScreenTabKeys = typeof PREDICT_SURFACE_FEED_KEYS.nextFeedScreenTabs;
+/** A Feed Screen ID: any kebab-case ID the Venue catalog serves. */
+export type FeedScreenId = string;
 
-interface FeedScreenTabDefinition<TTabId extends string = string> {
-  id: TTabId;
+/** A Feed Screen tab, labelled for display, on a Feed the Venue serves. */
+export interface FeedScreenTab {
+  id: string;
   label: string;
-}
-
-export interface FeedScreenDefinition {
-  title: string;
-  selectionLabel?: string;
-  tabs: readonly FeedScreenTabDefinition[];
-}
-
-/** A Feed Screen tab whose Feed the Venue supports. */
-export interface FeedScreenTab extends FeedScreenTabDefinition {
   feedId: PredictFeedId;
 }
 
-/** Feed Screen copy and tab order. Each tab's Feed key comes from
- * {@link PREDICT_SURFACE_FEED_KEYS}, so a tab exists only where it has one. */
-export const FEED_SCREENS = {
-  [NFL_FEED_SCREEN_ID]: {
-    title: 'Sports',
-    selectionLabel: 'NFL',
-    tabs: [
-      { id: 'games', label: 'Games' },
-      { id: 'props', label: 'Props' },
-    ],
-  },
-  [NCAA_FEED_SCREEN_ID]: {
-    title: 'Sports',
-    selectionLabel: 'NCAAF',
-    tabs: [
-      { id: 'games', label: 'Games' },
-      { id: 'props', label: 'Props' },
-    ],
-  },
-  /** The Sports Category: one tab per league, each on that league's Games
-   * Feed. Props stay on the league Feed Screens Home's previews open. */
-  [SPORTS_FEED_SCREEN_ID]: {
-    title: 'Sports',
-    tabs: [
-      { id: 'nfl', label: 'NFL' },
-      { id: 'ncaaf', label: 'NCAAF' },
-    ],
-  },
-  [POLITICS_FEED_SCREEN_ID]: {
-    title: 'Politics',
-    tabs: [
-      { id: 'trump', label: 'Trump' },
-      { id: 'congress', label: 'Congress' },
-      { id: 'iran', label: 'Iran' },
-    ],
-  },
-} as const satisfies {
-  [TScreenId in keyof FeedScreenTabKeys]: FeedScreenDefinition & {
-    tabs: readonly FeedScreenTabDefinition<
-      keyof FeedScreenTabKeys[TScreenId] & string
-    >[];
-  };
+/** A Feed Screen from the Venue catalog, labelled for display. */
+export interface FeedScreenDefinition {
+  id: FeedScreenId;
+  title: string;
+  selectionLabel?: string;
+  /** In catalog order; never empty. */
+  tabs: readonly FeedScreenTab[];
+}
+
+/**
+ * The app's copy for an ID it knows, else `fallback`: the server's title, so
+ * a screen or tab added on the server reads sensibly without a release.
+ */
+const localized = (key: string, fallback: string): string => {
+  const value: unknown = strings(`predict_next.feed_screens.${key}`, {
+    defaultValue: fallback,
+  });
+  return typeof value === 'string' ? value : fallback;
 };
 
-export type FeedScreenId = keyof typeof FEED_SCREENS;
+/** The app's title for a Feed Screen ID it knows, else an empty string. */
+export const getKnownFeedScreenTitle = (feedScreenId: FeedScreenId): string =>
+  localized(`titles.${feedScreenId}`, '');
 
-const isFeedScreenId = (feedScreenId: string): feedScreenId is FeedScreenId =>
-  Object.prototype.hasOwnProperty.call(FEED_SCREENS, feedScreenId);
-
+/**
+ * The Venue's Feed Screen `feedScreenId`, labelled, with the tabs whose Feed
+ * the Venue serves. Undefined unless capabilities are ready and the catalog
+ * has the screen with at least one such tab.
+ */
 export const getFeedScreen = (
-  feedScreenId: string,
-): FeedScreenDefinition | undefined =>
-  isFeedScreenId(feedScreenId) ? FEED_SCREENS[feedScreenId] : undefined;
-
-/** The Feed Screen's tabs the Venue supports, in definition order. Empty
- * unless capabilities are ready, and for an unknown Feed Screen. */
-export const resolveFeedScreenTabs = (
-  feedScreenId: string,
+  feedScreenId: FeedScreenId,
   capabilities: PredictVenueCapabilities,
-): FeedScreenTab[] => {
-  if (!isFeedScreenId(feedScreenId)) {
-    return [];
+): FeedScreenDefinition | undefined => {
+  if (capabilities.status !== 'ready') {
+    return undefined;
   }
-  const feeds = resolveSurfaceFeeds<string>(
-    capabilities,
-    PREDICT_SURFACE_FEED_KEYS.nextFeedScreenTabs[feedScreenId],
+  const screen = capabilities.descriptor.screens.find(
+    ({ id }) => id === feedScreenId,
   );
-  return FEED_SCREENS[feedScreenId].tabs.flatMap((tab) => {
-    const feed = feeds.find(({ sectionId }) => sectionId === tab.id);
-    return feed ? [{ ...tab, feedId: feed.feedId }] : [];
+  if (!screen) {
+    return undefined;
+  }
+  const tabs = screen.tabs.flatMap((tab) => {
+    const feedId = getVenueFeedId(capabilities, tab.feed);
+    return feedId
+      ? [
+          {
+            id: tab.id,
+            label: localized(`tabs.${screen.id}.${tab.id}`, tab.title),
+            feedId,
+          },
+        ]
+      : [];
   });
+  if (tabs.length === 0) {
+    return undefined;
+  }
+  return {
+    id: screen.id,
+    title: localized(`titles.${screen.id}`, screen.title),
+    ...(screen.subtitle
+      ? {
+          selectionLabel: localized(`subtitles.${screen.id}`, screen.subtitle),
+        }
+      : {}),
+    tabs,
+  };
 };
 
 /** The selected tab, else the first. Undefined only when there are no tabs. */

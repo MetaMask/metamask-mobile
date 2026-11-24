@@ -65,6 +65,21 @@ describe('useCryptoTargetPrice', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it.each(['XAU', 'XAG'])('does not fetch for metal symbol %s', (symbol) => {
+    const { Wrapper } = createWrapper();
+
+    const { result } = renderHook(
+      () => useCryptoTargetPrice({ ...defaultParams, symbol }),
+      { wrapper: Wrapper },
+    );
+
+    expect(result.current.isFetching).toBe(false);
+    expect(result.current.data).toBeUndefined();
+    expect(
+      Engine.context.PredictController.getCryptoTargetPrice,
+    ).not.toHaveBeenCalled();
+  });
+
   it('returns target price from controller', async () => {
     (
       Engine.context.PredictController.getCryptoTargetPrice as jest.Mock

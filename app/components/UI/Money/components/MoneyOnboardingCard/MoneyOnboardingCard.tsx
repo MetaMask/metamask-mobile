@@ -11,7 +11,6 @@ import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
 import MoneyNextBestActionParallax, {
-  PARALLAX_ARTBOARD_CARD,
   PARALLAX_ARTBOARD_FUND,
 } from '../MoneyNextBestActionParallax';
 import { useMoneyDepositNavigation } from '../../hooks/useMoneyDepositNavigation';
@@ -28,7 +27,7 @@ import {
 } from '../../../Card/util/metrics';
 import { useSelector } from 'react-redux';
 import {
-  selectIsCardholder,
+  selectHasCard,
   selectCardHomeDataStatus,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
@@ -72,7 +71,10 @@ const MoneyOnboardingCard = ({
 
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
   const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
-  const { apyPercent } = useMoneyVaultApy();
+  // Money home's positions query owns this key, including the offline pause.
+  const { apyPercent } = useMoneyVaultApy({
+    positionsRefetchInterval: false,
+  });
   const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
@@ -87,7 +89,7 @@ const MoneyOnboardingCard = ({
     isLinking,
     isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasCard);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
 
@@ -324,13 +326,6 @@ const MoneyOnboardingCard = ({
       ),
     };
 
-    const cardStepMedia = (
-      <MoneyNextBestActionParallax
-        artboardName={PARALLAX_ARTBOARD_CARD}
-        fallbackImage={moneyOnboardingStepperStep2}
-      />
-    );
-
     // Case 1: Cardholder, or authenticated with a card not yet linked.
     const step2: StepperCardStep = shouldShowLinkCardAction
       ? {
@@ -340,7 +335,9 @@ const MoneyOnboardingCard = ({
           ),
           primaryCta: {
             text: strings(
-              'money.onboarding.step_2.unlinked_card_account.cta_primary',
+              isCardholder && !isCardAuthenticated
+                ? 'money.onboarding.step_2.unlinked_card_account.cta_log_in'
+                : 'money.onboarding.step_2.unlinked_card_account.cta_primary',
             ),
             onPress: () =>
               handleCardCtaPress(
@@ -362,7 +359,6 @@ const MoneyOnboardingCard = ({
               ),
           },
           image: moneyOnboardingStepperStep2,
-          media: cardStepMedia,
         }
       : // No MetaMask card yet.
         {
@@ -394,7 +390,6 @@ const MoneyOnboardingCard = ({
               ),
           },
           image: moneyOnboardingStepperStep2,
-          media: cardStepMedia,
         };
 
     return [step1, step2];
@@ -406,6 +401,8 @@ const MoneyOnboardingCard = ({
     apyPercent,
     handleStep1CtaPressed,
     shouldShowLinkCardAction,
+    isCardholder,
+    isCardAuthenticated,
     isLinking,
     handleCardCtaPress,
     handleSkipPress,

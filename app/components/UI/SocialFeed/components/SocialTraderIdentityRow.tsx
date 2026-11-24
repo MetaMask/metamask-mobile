@@ -19,8 +19,9 @@ import TraderAvatar from './TraderAvatar';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
 import XTrustMark from './XTrustMark';
+import ProfileVerifiedBadge from './ProfileVerifiedBadge';
 import { buildTraderStatLabels } from '../utils/traderStats';
-import { formatFeedPostAge } from '../utils/formatters';
+import FeedPostAge from './FeedPostAge';
 import {
   SocialTraderIdentityRowSelectorsIDs,
   type SocialTraderIdentityRowTestIds,
@@ -104,9 +105,19 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           >
             {handle}
           </Text>
+          {author.verified ? (
+            <ProfileVerifiedBadge
+              testID={
+                testIDs?.verifiedBadge ??
+                SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE
+              }
+            />
+          ) : null}
           {author.xHandle ? <XTrustMark /> : null}
         </Box>
-        <Text
+        <FeedPostAge
+          timestampMs={timestampMs}
+          now={now}
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextMuted}
@@ -114,9 +125,7 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
           testID={
             testIDs?.timestamp ?? SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
           }
-        >
-          {formatFeedPostAge(timestampMs, now)}
-        </Text>
+        />
       </Box>
       <RotatingTraderStat
         labels={statLabels}

@@ -253,40 +253,97 @@ export const PREDICT_VENUE_ACTIONS = [
 ] as const;
 export type PredictVenueAction = (typeof PREDICT_VENUE_ACTIONS)[number];
 
+/** Which venue deployment the catalog describes. Drives deposit chain and
+ * transfer mode in every build. */
+export const PREDICT_VENUE_ENVIRONMENTS = ['sandbox', 'production'] as const;
+export type PredictVenueEnvironment =
+  (typeof PREDICT_VENUE_ENVIRONMENTS)[number];
+
 /**
- * Stable, kebab-case product keys for discovery Feeds. A surface section or
- * tab names a key, never a concrete Feed ID; each Venue's catalog maps the
- * keys it supports to its own Feed IDs. Keys outside this list are dropped
- * when a catalog is parsed.
+ * Stable, kebab-case product key for a discovery Feed, for example
+ * `nfl-games`. The Predict API owns the vocabulary (PRED-1522), so any
+ * kebab-case key a catalog serves is accepted (PRED-1526). A surface section
+ * or tab names a key, never a concrete Feed ID; each Venue's catalog maps the
+ * keys it supports to its own Feed IDs.
  */
-export const PREDICT_FEED_KEYS = [
-  'trending',
-  'live',
-  'sports',
-  'crypto',
-  'politics',
-  'crypto-up-down-live',
-  'world-cup',
-  'nfl-games',
-  'nfl-props',
-  'college-football-games',
-  'college-football-props',
-  'politics-trump',
-  'politics-congress',
-  'politics-iran',
-] as const;
-export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
+export type PredictFeedKey = string;
+
+/** One tab of a Feed Screen: it shows the Feed its `feed` key names. */
+export interface PredictVenueFeedScreenTab {
+  /** Kebab-case, unique within its screen: deep links select a tab by it. */
+  id: string;
+  /** The server's label, shown when the app has no localized one. */
+  title: string;
+  /** A Feed key of the same catalog. */
+  feed: PredictFeedKey;
+}
+
+/** A titled screen of tabs, each on one Feed (PRED-1525). */
+export interface PredictVenueFeedScreen {
+  /** Kebab-case and unique: deep links use it, and a Category opens the
+   * screen whose `id` is its Feed key. */
+  id: string;
+  title: string;
+  subtitle?: string;
+  /** In display order; never empty. */
+  tabs: readonly PredictVenueFeedScreenTab[];
+}
+
+/**
+ * One PredictNext Home section (PRED-1527). `screen` names the Feed Screen
+ * its header opens; the header opens nothing while the Venue's `screens` lack
+ * it. Feed keys are keys of the same catalog's `feeds`.
+ */
+export type PredictHomeSection =
+  /** The Trending carousel, ranked from the Games of its source Feeds. */
+  | {
+      kind: 'trending';
+      /** In read order; never empty. */
+      sources: readonly PredictFeedKey[];
+      screen?: string;
+    }
+  /** A row of the Games of one Feed. */
+  | {
+      kind: 'games-row';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen?: string;
+    }
+  /** The catalog's `categories`, as chips. */
+  | { kind: 'categories' }
+  /** A preview of one Feed's first Events. */
+  | {
+      kind: 'feed-preview';
+      id: string;
+      title: string;
+      feed: PredictFeedKey;
+      screen: string;
+    };
+
+/** PredictNext Home, as the Venue catalog lays it out. */
+export interface PredictVenueHome {
+  /** In display order; at most eight, reading at most eight Feeds. */
+  sections: readonly PredictHomeSection[];
+}
 
 /** The support part of a Venue descriptor: the wire shape of the Venue
  * catalog (`GET /v1/venues/{venueId}/catalog`). */
 export interface PredictVenueCatalog {
   venueId: PredictVenueId;
+  /** Optional on legacy catalogs; required to enable deposits. */
+  environment?: PredictVenueEnvironment;
   actions: readonly PredictVenueAction[];
   feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
   /** The Venue's Categories in display order, each named by its Feed key.
    * Every key is in `feeds`, and the Category opens on that Feed. */
   categories: readonly PredictFeedKey[];
   searchSupported: boolean;
+  /** The Venue's Feed Screens. Empty when the catalog serves none. */
+  screens: readonly PredictVenueFeedScreen[];
+  /** PredictNext Home's sections. Undefined when the catalog serves no
+   * usable `home`, and Home then shows no Feed sections. */
+  home?: PredictVenueHome;
 }
 
 export interface PredictBalance {
@@ -305,6 +362,8 @@ export type PredictOrderPreviewParams =
       action: 'buy';
       /** The entered maximum USD spend before fees. */
       amount: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     }
   | {
       marketId: PredictEntityId;
@@ -314,6 +373,8 @@ export type PredictOrderPreviewParams =
        * a Position is share-denominated and the Venue matches whole
        * contracts only. */
       contracts: PredictAmount;
+      /** Phone-generated id. The preview stores it as `client_order_id`. */
+      idempotencyKey: string;
     };
 
 /** Wire-shape twin of PredictOrderPreviewParams for the API transport.
@@ -326,6 +387,7 @@ export type FetchOrderPreviewParams =
       marketId: string;
       side: PredictOutcomeSide;
       amount: string;
+      idempotencyKey: string;
     }
   | {
       marketId: string;
@@ -333,6 +395,7 @@ export type FetchOrderPreviewParams =
       action: 'sell';
       /** Positive-integer decimal string: whole contracts only. */
       contracts: string;
+      idempotencyKey: string;
     };
 
 /** Structured fee component source, keyed by the client into localized
@@ -354,6 +417,9 @@ interface PredictOrderPreviewBase {
   side: PredictOutcomeSide;
   estimatedContracts: number;
   averagePrice: PredictDecimal;
+  /** The worst per-contract price the quote walked — the worst ask on a
+   * buy, the worst bid on a sell. The commit signs its yes-leg form. */
+  limitPrice: PredictDecimal;
   fee: PredictAmount;
   /** Backend-owned breakdown of the fee; present when the backend reports it. */
   feeBreakdown: readonly PredictOrderPreviewFeeComponent[];
@@ -380,10 +446,6 @@ export interface PredictSellOrderPreview extends PredictOrderPreviewBase {
   action: 'sell';
   /** The requested whole-contract count. */
   requestedContracts: number;
-  /** The worst Bid the sale would consume: the Immediate Order price floor.
-   * Shared wire field — buy Previews report the worst ask, which the mobile
-   * buy schema masks rather than rejects. */
-  limitPrice: PredictDecimal;
   /** Gross Proceeds the quoted contracts sell for, before fees. */
   estimatedProceeds: PredictAmount;
   /** Proceeds minus the fee: the amount credited to the Venue Account. */
@@ -396,6 +458,21 @@ export type PredictOrderPreview =
   | PredictBuyOrderPreview
   | PredictSellOrderPreview;
 
+/** Emitted only by the user's explicit approval of the displayed Preview. */
+export interface PredictOrderApproval {
+  readonly kind: 'user-approved';
+}
+
+/** Venue-neutral bounds checked by the phone for the exact quoted Order. */
+export interface PredictOrderReview {
+  readonly previewId: string;
+  readonly maxCost: string;
+  readonly contracts: string;
+  readonly payout: string;
+  /** Sell proceeds for the full count; partial or no fill can produce less. */
+  readonly proceedsIfFullyFilled: string;
+}
+
 /** Wire-shape body for committing an approved Order Preview. Strictly the
  * Preview reference only: the backend derives every executable detail from
  * the stored, expiring Order Preview, so the client can never alter Market,
@@ -407,15 +484,16 @@ export interface FetchOrderCommitParams {
 /** Status of a committed Order operation, as projected by the backend onto
  * the canonical Order Receipt. `pending` and `submitted` are in-progress
  * projections: the backend has accepted the Commit and is still working, so
- * keep observing by committing the same Order Preview again — the Commit is
- * idempotent by `previewId`. `filled` is a complete fill of the quoted
+ * keep observing with the receipt GET, never another POST. `filled` is a
+ * complete fill of the quoted
  * contracts. `partially_filled` is a non-zero partial fill: a success
  * rendered with honest partial-fill copy. `not_filled` is the canonical
  * outcome for zero fills; nothing was spent and no Position changed.
  * `rejected` means the Venue refused the Order; nothing was filled.
  * `reconciliation_required` means the backend is still resolving the true
- * outcome; render it like an in-progress status and re-observe by committing
- * the same Order Preview again. */
+ * outcome; render it like an in-progress status and re-observe with GET.
+ * `needs_manual_review` means the order scan is too old to sign. The outcome
+ * is unknown; retain its recovery reference without automatic scanning. */
 export type PredictOrderReceiptStatus =
   | 'pending'
   | 'submitted'
@@ -423,7 +501,8 @@ export type PredictOrderReceiptStatus =
   | 'partially_filled'
   | 'not_filled'
   | 'rejected'
-  | 'reconciliation_required';
+  | 'reconciliation_required'
+  | 'needs_manual_review';
 
 /** Shared header of a committed Order's canonical result. One Order
  * produces exactly one Order Receipt, and repeated Commits of the same
@@ -479,6 +558,106 @@ export interface PredictSellOrderReceipt extends PredictOrderReceiptBase {
 export type PredictOrderReceipt =
   | PredictBuyOrderReceipt
   | PredictSellOrderReceipt;
+
+/** Owner-scoped discovery of financially unresolved operations. */
+export interface PredictUnresolvedOrder {
+  previewId: string;
+  receipt: PredictOrderReceipt;
+  createdAt: PredictTimestamp;
+  submittedAt: PredictTimestamp | null;
+}
+
+export interface PredictUnresolvedOrdersPage {
+  operations: readonly PredictUnresolvedOrder[];
+  nextCursor?: string;
+}
+
+/** How a Withdraw names its amount: one fixed USD figure, or the whole
+ * withdrawable balance. */
+export type PredictWithdrawMode = 'fixed' | 'sweep_all';
+
+/** Networks a withdrawal can pay out on. */
+export type PredictWithdrawNetwork = 'base';
+
+/** Where the payout destination came from: the sandbox wallet this client
+ * registered during demo setup, or a binding the Venue itself reported. A
+ * destination is always read-only; the phone never supplies one. */
+export type PredictWithdrawDestinationSource = 'configured_demo' | 'venue';
+
+export interface PredictWithdrawDestination {
+  address: string;
+  network: PredictWithdrawNetwork;
+  source: PredictWithdrawDestinationSource;
+}
+
+/** A Withdraw intent. Exactly one of a fixed USD amount or the whole balance;
+ * the client sends no identity, destination, or idempotency key. */
+export type PredictWithdrawPreviewParams =
+  | { amount: PredictAmount }
+  | { sweepAll: true };
+
+/** A server-authoritative Withdraw Quote. The backend resolves the payout
+ * destination and the expiry; the response carries no fee. A sweep omits
+ * `requestedAmount` rather than nulling it. */
+export interface PredictWithdrawPreview {
+  /** Opaque expiring token binding the quote to the authenticated intent. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  /** Present exactly on a `fixed` quote. */
+  requestedAmount?: PredictAmount;
+  destination: PredictWithdrawDestination;
+  expiresAt: PredictTimestamp;
+}
+
+/** Status of a committed withdrawal, as projected by the backend. `pending`
+ * and `processing` are in-progress: keep observing with the receipt GET,
+ * never another POST. `settled` means the funds left; `failed` and `returned`
+ * are terminal failures, and `returned` means the funds are back in the
+ * account. `rejected` means the Venue refused the withdrawal and nothing was
+ * sent. */
+export type PredictWithdrawReceiptStatus =
+  | 'pending'
+  | 'processing'
+  | 'settled'
+  | 'failed'
+  | 'returned'
+  | 'rejected';
+
+/** Why the Venue refused a `rejected` withdrawal. */
+export type PredictWithdrawRejectionCode =
+  | 'insufficient_balance'
+  | 'amount_below_minimum'
+  | 'step_up_verification_required'
+  | 'venue_rejected';
+
+/** The canonical result of a committed withdrawal. One Withdraw produces
+ * exactly one receipt, and repeated Commits of the same `previewId` converge
+ * on it. `needsManualReview` ends automatic observation: the outcome is
+ * unknown and support resolves it. */
+export interface PredictWithdrawReceipt {
+  /** Durable backend operation identity; stable across repeated Commits. */
+  operationId: string;
+  /** The committed Withdraw Preview; the idempotency key for re-observation. */
+  previewId: string;
+  venueId: PredictVenueId;
+  currency: 'USD';
+  mode: PredictWithdrawMode;
+  status: PredictWithdrawReceiptStatus;
+  /** Present exactly on a `rejected` receipt, and always present there. */
+  rejectionCode?: PredictWithdrawRejectionCode;
+  needsManualReview: boolean;
+  /** Present exactly on a `fixed` receipt. */
+  requestedAmount?: PredictAmount;
+  /** The amount the Venue reports as withdrawn; null until it reports one. */
+  withdrawnAmount: PredictAmount | null;
+  /** Venue transfer identifier once the Venue has produced one. */
+  venueTransferId: string | null;
+  destination: PredictWithdrawDestination;
+  createdAt: PredictTimestamp;
+  resolvedAt: PredictTimestamp | null;
+}
 
 export interface FetchPortfolioPageParams {
   cursor?: string;
@@ -630,10 +809,128 @@ export interface PredictPositionsPage {
 export interface PredictActivityPage {
   venueId: PredictVenueId;
   activity: PredictActivityEntry[];
+  /** Opaque continuation; it can be present even when activity is empty. */
   nextCursor?: string;
   /** Present when the page reaches history the Venue has archived:
    * Settlements before this instant may be missing. Trades stay complete. */
   settlementsCompleteFrom?: PredictTimestamp;
+  /** Explicit demo-only Trades fallback. Production permission failures are
+   * errors, not a successful page with silently missing Settlements. */
+  settlementsDegradedReason?: 'venue_permission_denied';
+}
+
+/**
+ * The statuses a deposit shows the app. Each covers one or more statuses the
+ * backend stores (va-mmcx-predict-api `docs/FUNDING.md`). Only `failed` is
+ * final. A `cancelled` deposit moves on when a transfer turns up after it, a
+ * `completed` one goes to `under_review` when the credited transfer fails or
+ * is returned, and support moves an `under_review` one to `completed` or
+ * `failed`.
+ */
+export type PredictDepositStatus =
+  | 'awaiting_transfer'
+  | 'processing'
+  | 'completed'
+  | 'cancelled'
+  | 'failed'
+  | 'under_review';
+
+/** A `0x`-prefixed EVM address or transaction hash. */
+export type PredictHex = `0x${string}`;
+
+/**
+ * The Funding Plan: send exactly `amount` of the token at `tokenContract` on
+ * `chainId` to `depositAddress` before `planExpiresAt`. Typed fields only,
+ * never transaction data. The venue cannot settle a different amount without
+ * manual work.
+ */
+export interface PredictFundingPlan {
+  chainId: number;
+  tokenContract: PredictHex;
+  /** USD, two decimals. The token is a USD stablecoin. */
+  amount: PredictAmount;
+  depositAddress: PredictHex;
+  planExpiresAt: PredictTimestamp;
+}
+
+/**
+ * The values the device signs for a new deposit. Never request bytes: the
+ * phone renders the request from its signing profile.
+ */
+export interface PredictDepositSignRequest {
+  kind: 'sign_request';
+  amountCents: number;
+  clientOperationId: string;
+}
+
+/**
+ * What the app does next for a deposit. The set is closed: the app has one
+ * fixed handler per kind and stops on a kind it does not know. There is no
+ * generic "sign these bytes" or "send this transaction" step.
+ */
+export type PredictDepositNextStep =
+  /** Only the unsigned create call answers it, before a deposit exists. */
+  | PredictDepositSignRequest
+  | ({ kind: 'wallet_transfer' } & PredictFundingPlan)
+  /** The backend is working on it. Read the deposit again later. */
+  | { kind: 'wait' }
+  | { kind: 'done' }
+  /** Support has to look at it. Show the reference and never retry. */
+  | { kind: 'review'; supportReference: string };
+
+/** A deposit's own next step: a deposit never asks to be signed. */
+export type PredictDepositOperationStep = Exclude<
+  PredictDepositNextStep,
+  PredictDepositSignRequest
+>;
+
+/** One deposit operation, as the funding routes return it. */
+export interface PredictDepositOperation {
+  /** The backend's operation ID, not the venue's deposit ID. */
+  operationId: PredictEntityId;
+  status: PredictDepositStatus;
+  /** The USD amount the user asked to deposit, two decimals. */
+  amount: PredictAmount;
+  chainId: number;
+  tokenContract: PredictHex;
+  /** Null until the venue returns an address. Several deposits can share
+   * one address. */
+  depositAddress: PredictHex | null;
+  /** Null until the venue returns an address. The backend's deadline. */
+  planExpiresAt: PredictTimestamp | null;
+  /** Set once the transfer hash is reported. */
+  txHash: PredictHex | null;
+  createdAt: PredictTimestamp;
+  /** Null once the deposit needs nothing more from the app: it failed or was
+   * cancelled. */
+  next: PredictDepositOperationStep | null;
+}
+
+/**
+ * What starting a deposit answers: the values to sign, or the deposit the
+ * same `clientOperationId` already created.
+ */
+export type PredictDepositStart =
+  | { kind: 'sign_request'; signRequest: PredictDepositSignRequest }
+  | { kind: 'deposit'; deposit: PredictDepositOperation };
+
+/** Starts a deposit. `clientOperationId` is a UUID v4 the app makes once per
+ * deposit; it is the idempotency key the device signs. */
+export interface PredictDepositParams {
+  /** USD, at least 1, at most two decimals. */
+  amount: PredictAmount;
+  clientOperationId: string;
+}
+
+/** The deposit's transfer, reported from the user's wallet. */
+export interface PredictDepositTransferParams {
+  txHash: PredictHex;
+  chainId: number;
+}
+
+/** The explicit user approval that lets a deposit request be signed. */
+export interface PredictDepositApproval {
+  kind: 'user-approved';
 }
 
 export interface PredictReadOptions {

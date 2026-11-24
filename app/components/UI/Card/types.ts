@@ -48,7 +48,15 @@ export enum CardMessageBoxType {
   UkMigrationSoft = 'uk_migration_soft',
   UkMigrationRequired = 'uk_migration_required',
   WalletVerificationPending = 'wallet_verification_pending',
+  SetupIncomplete = 'setup_incomplete',
 }
+
+export type CardSetupStep =
+  | 'contact'
+  | 'kyc'
+  | 'expected_spend'
+  | 'funding'
+  | 'rejected';
 
 /**
  * How the `card_provisioning` alert should render. Providers that reconcile
@@ -118,6 +126,7 @@ export type CardFundingTokenWithBalance = CardFundingToken & {
   rawFiatNumber: number | undefined;
   rawTokenBalance: number | undefined;
   asset?: TokenI;
+  isUnavailable?: boolean;
 };
 
 export interface CardLoginInitiateResponse {
@@ -170,14 +179,6 @@ export interface CardExchangeTokenRawResponse {
   refresh_token_expires_in: number;
 }
 
-export interface CardExchangeTokenResponse {
-  accessToken: string;
-  tokenType: string;
-  expiresIn: number;
-  refreshToken: string;
-  refreshTokenExpiresIn: number;
-}
-
 export enum CardStatus {
   ACTIVE = 'ACTIVE',
   FROZEN = 'FROZEN',
@@ -198,14 +199,6 @@ export interface CardDetailsResponse {
   status: CardStatus;
   type: CardType;
   holderName: string;
-}
-
-export interface CardWalletExternalResponse {
-  address: string; // This is the wallet address;
-  currency: string;
-  balance: string;
-  allowance: string;
-  network: CardNetwork;
 }
 
 export interface CardWalletExternalPriorityResponse {
@@ -229,8 +222,6 @@ export interface CardExternalWalletDetail {
   delegationContractAddress?: string;
   stagingTokenAddress?: string;
 }
-
-export type CardExternalWalletDetailsResponse = CardExternalWalletDetail[];
 
 export enum CardErrorType {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
@@ -493,57 +484,6 @@ export interface DelegationSettingsResponse {
   };
 }
 
-export interface DelegationPostApprovalParams {
-  address: string;
-  network: CardNetwork;
-  currency: string;
-  amount: string;
-  txHash: string;
-  sigHash: string;
-  sigMessage: string;
-  token: string;
-}
-
-/**
- * Request body for generating card details token
- * Used to customize the visual appearance of the card details image
- */
-export interface CardDetailsTokenRequest {
-  customCss?: {
-    cardBackgroundColor?: string;
-    cardTextColor?: string;
-    panBackgroundColor?: string;
-    panTextColor?: string;
-  };
-}
-
-/**
- * Response from generating card details token
- */
-export interface CardDetailsTokenResponse {
-  token: string;
-  imageUrl: string;
-}
-
-/**
- * Request body for generating card PIN token
- * Used to customize the visual appearance of the PIN image
- */
-export interface CardPinTokenRequest {
-  customCss?: {
-    backgroundColor?: string;
-    textColor?: string;
-  };
-}
-
-/**
- * Response from generating card PIN token
- */
-export interface CardPinTokenResponse {
-  token: string;
-  imageUrl: string;
-}
-
 /**
  * Payment methods supported for orders
  */
@@ -609,27 +549,4 @@ export interface GetOrderStatusResponse {
   paidAt?: string;
   status: OrderStatus;
   metadata?: OrderStatusMetadata;
-}
-
-export interface CashbackWalletResponse {
-  id: string;
-  balance: string;
-  currency: string;
-  isWithdrawable: boolean;
-  type: string;
-}
-
-export interface CashbackWithdrawRequest {
-  amount: string;
-}
-
-export interface CashbackWithdrawResponse {
-  txHash: string;
-}
-
-export interface CashbackWithdrawEstimationResponse {
-  wei: string;
-  eth: string;
-  price: string;
-  network: string;
 }

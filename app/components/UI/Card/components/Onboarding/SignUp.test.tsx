@@ -353,7 +353,6 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
         selectedCountry: null,
         activeProviderId: 'baanx',
         isAuthenticated: false,
-        cardholderAccounts: [],
         providerData: {},
         cardHomeData: null,
         cardHomeDataStatus: 'idle',
@@ -1551,7 +1550,7 @@ describe('SignUp Component', () => {
         }),
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
-        { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
+        { type: 'kyc', url: 'https://kyc', ctaHint: undefined, reasons: [] },
         expect.objectContaining({
           email: 'gb@example.com',
           countryKey: 'GB',

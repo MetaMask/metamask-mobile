@@ -1,12 +1,11 @@
 import React, { ReactNode } from 'react';
 import { Platform, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { Box } from '@metamask/design-system-react-native';
 import HeaderStandardGlass, {
   type HeaderStandardGlassProps,
 } from '../../../../../../component-library/components-temp/HeaderStandardGlass';
-import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
+import { useIsGlassHeader } from '../../../../../hooks/useIsGlassHeader';
 import { useTheme } from '../../../../../../util/theme';
 
 export const NAVBAR_SHEET_HANDLE_TEST_ID = 'navbar-sheet-handle';
@@ -23,7 +22,7 @@ export function ConfirmationHeader({
   isSheetPresentation = false,
   ...props
 }: ConfirmationHeaderProps) {
-  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const isGlassHeader = useIsGlassHeader();
 
   // Sheets stay plain app-wide, so sheet-presented confirmations do too.
   return (

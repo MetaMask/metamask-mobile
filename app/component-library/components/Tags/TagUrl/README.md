@@ -32,7 +32,7 @@ Object that contains the label and callback of the call to action.
 
 ```javascript
 // Replace import with relative path.
-import TagUrl from 'app/component-library/components/Tags/TagUrl';
+import TagUrl from '#app/component-library/components/Tags/TagUrl';
 
 <TagUrl
   url={IMAGE_URL}

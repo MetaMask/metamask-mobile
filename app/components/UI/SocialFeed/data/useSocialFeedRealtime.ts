@@ -3,7 +3,6 @@ import type {
   SocialFeedEvent,
   SocialFeedRealtimeScope,
 } from '@metamask/social-controllers';
-import isEqual from 'lodash/isEqual';
 import {
   startTransition,
   useCallback,
@@ -15,6 +14,11 @@ import {
 import Engine from '../../../../core/Engine';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+import {
+  pruneStableFeedPosts,
+  retainStableFeedPost,
+  type StableFeedPostEntry,
+} from './stableFeedPost';
 import {
   createSocialFeedEntrances,
   type SocialFeedEntrances,
@@ -30,6 +34,7 @@ import {
   getRowFeedItemId,
   getVisiblePendingNewCount,
   mergeRealtimeRows,
+  pinRealtimeRows,
   rememberEvictedRevision,
   toRealtimeEventPost,
   type PendingRealtimeEvent,
@@ -99,11 +104,10 @@ type RealtimeView = Omit<RealtimeStore, 'evicted'> & {
   stream: string | null;
 };
 
-interface CachedFeedPost {
-  core: CoreFeedItem;
-  item: TraderFeedRow['item'];
-  now: number;
-  post: SocialV1FeedPost;
+/** The sort keys rows were shown at, for the request they were streamed for. */
+interface RowPlacement {
+  stream: string | null;
+  placed: ReadonlyMap<string, number>;
 }
 
 const createStore = (): RealtimeStore => ({
@@ -132,7 +136,8 @@ const noop = () => undefined;
  * Socket-only posts are capped at
  * {@link SOCIAL_FEED_REALTIME_BUFFER_SIZE}; going over the cap, a reconnect,
  * or becoming active again schedules a catch-up refresh, run once the list is
- * at the top and live. Rows survive while inactive.
+ * at the top and live. Rows survive while inactive. A shown row keeps its
+ * place; posts the list did not show yet only enter above it.
  */
 export const useSocialFeedRealtime = (
   { rows, dataUpdatedAt, refresh }: UseSocialFeedRealtimeInput,
@@ -166,7 +171,7 @@ export const useSocialFeedRealtime = (
   const [revealRequested, setRevealRequested] = useState(false);
   const [catchUpVersion, setCatchUpVersion] = useState(0);
   const [entrances] = useState(createSocialFeedEntrances);
-  const postCache = useRef(new Map<string, CachedFeedPost>());
+  const postCache = useRef(new Map<string, StableFeedPostEntry>());
 
   const serverRowsById = useMemo(
     () =>
@@ -563,62 +568,62 @@ export const useSocialFeedRealtime = (
     entrances.retain(eventIds);
   }, [entrances, view.revisedRows, view.socketRows]);
 
-  const mergedRows = useMemo(
-    () =>
-      realtimeScope
-        ? mergeRealtimeRows({
-            serverRows: rows,
-            socketRows: view.socketRows,
-            revisedRows: view.revisedRows,
-            pending: view.pending,
-          })
-        : [],
-    [realtimeScope, rows, view.pending, view.revisedRows, view.socketRows],
-  );
+  // Pinning is idempotent for the same rows, so a repeated render (strict
+  // mode, a discarded concurrent render) recomputes the same placement.
+  const placementRef = useRef<RowPlacement>({ stream, placed: new Map() });
+  const mergedRows = useMemo(() => {
+    if (!realtimeScope) {
+      return [];
+    }
+    const merged = mergeRealtimeRows({
+      serverRows: rows,
+      socketRows: view.socketRows,
+      revisedRows: view.revisedRows,
+      pending: view.pending,
+    });
+    const previous = placementRef.current;
+    const pinned = pinRealtimeRows(
+      merged,
+      previous.stream === stream ? previous.placed : new Map(),
+      serverRowsById,
+    );
+    placementRef.current = { stream, placed: pinned.placed };
+    return pinned.rows;
+  }, [
+    realtimeScope,
+    rows,
+    serverRowsById,
+    stream,
+    view.pending,
+    view.revisedRows,
+    view.socketRows,
+  ]);
 
   const posts = useMemo(() => {
     if (!realtimeScope) {
       return EMPTY_POSTS;
     }
-    const now = dataUpdatedAt ?? Date.now();
     const activeIds = new Set(mergedRows.map((row) => row.stableId));
-    const nextPosts = mergedRows.map((row) => {
-      const cached = postCache.current.get(row.stableId);
-      if (
-        cached &&
-        cached.core === row.core &&
-        cached.item === row.item &&
-        cached.now === now &&
-        cached.post.realtimeEventId === row.realtimeEventId
-      ) {
-        return cached.post;
-      }
-
-      const [mappedPost] = toSocialFeedPosts([row], now);
-      const rebuilt = row.realtimeEventId
-        ? { ...mappedPost, realtimeEventId: row.realtimeEventId }
-        : mappedPost;
-      // A refresh hands back new objects for rows that did not change, and a
-      // new post object re-renders its whole row.
-      const post =
-        cached && isEqual(cached.post, rebuilt) ? cached.post : rebuilt;
-      postCache.current.set(row.stableId, {
-        core: row.core,
-        item: row.item,
-        now,
-        post,
-      });
-      return post;
-    });
-
-    postCache.current.forEach((_cached, id) => {
-      if (!activeIds.has(id)) {
-        postCache.current.delete(id);
-      }
-    });
+    const nextPosts = mergedRows.map((row) =>
+      retainStableFeedPost(
+        postCache.current,
+        row.stableId,
+        row.core,
+        row.realtimeEventId,
+        () => {
+          const [mappedPost] = toSocialFeedPosts([row]);
+          // A refresh hands back new objects for rows that did not change, and
+          // a new post object re-renders its whole row.
+          return row.realtimeEventId
+            ? { ...mappedPost, realtimeEventId: row.realtimeEventId }
+            : mappedPost;
+        },
+      ),
+    );
+    pruneStableFeedPosts(postCache.current, activeIds);
 
     return filterPost ? nextPosts.filter(filterPost) : nextPosts;
-  }, [dataUpdatedAt, filterPost, mergedRows, realtimeScope]);
+  }, [filterPost, mergedRows, realtimeScope]);
 
   const pendingNewCount = useMemo(
     () =>

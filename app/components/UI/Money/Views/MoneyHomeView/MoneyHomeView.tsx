@@ -82,31 +82,42 @@ import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { useVbaTransactionRefresh } from '../../hooks/useVbaTransactionRefresh';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import {
+  deriveMoneyCardSetupPollIntervalMs,
+  deriveMoneyCardSetupView,
   deriveMoneyMetaMaskCardMode,
   MoneyMetaMaskCardMode,
 } from '../../utils/moneyMetaMaskCardMode';
 import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
+import useMoneyVaultState from '../../hooks/useMoneyVaultState';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { convertSelectedFiatToUsd } from '../../utils/moneyActivityFiat';
+import { TOKEN_BALANCE_LOADING } from '../../../Tokens/constants';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
 import {
   selectCardHomeDataStatus,
   selectHasMetalCard,
-  selectIsCardholder,
+  selectHasCard,
   selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardActiveProviderId,
 } from '../../../../../selectors/cardController';
-import { selectMoneyEarningSectionEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectIsMoneyEarningsHistoryEnabledFlag,
+  selectMoneyEarningSectionEnabledFlag,
+  selectMoneyEnableHistoricalVaultShareValuationsFlag,
+} from '../../selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { useCardHomeData } from '../../../Card/hooks/useCardHomeData';
+import { useCardEnableCard } from '../../../Card/Views/CardHome/hooks/useCardEnableCard';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
@@ -197,7 +208,12 @@ const MoneyHomeView = () => {
     lastKnownTotalFiatFormatted,
     refetchBalance,
   } = useMoneyAccountBalance();
-  const { vaultApyQuery, apyPercent, apyDecimal } = useMoneyVaultApy();
+  const {
+    status: vaultStatus,
+    apyPercent,
+    apyDecimal,
+    isLoading: isVaultApyLoading,
+  } = useMoneyVaultState();
   const { last30DaysQuery, sinceInceptionQuery, refetchInterest } =
     useMoneyAccountInterest();
 
@@ -220,8 +236,11 @@ const MoneyHomeView = () => {
   // session GET.
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
-  const { isEligible: isVbaEligible, isLoading: isVbaEligibilityLoading } =
-    useVbaEligibility();
+  const {
+    isEligible: isVbaEligible,
+    isLoading: isVbaEligibilityLoading,
+    market: vbaMarket,
+  } = useVbaEligibility();
   const { hasCrypto, isLoading: isCryptoBalanceLoading } =
     useActiveGroupCryptoPresence();
   const devOverride = useMoneyHomeCardDevOverride();
@@ -250,6 +269,9 @@ const MoneyHomeView = () => {
     overrideToUsd: true,
   });
   const { navigateToMoneyDeposit } = useMoneyDepositNavigation();
+  const historicalValuationsEnabled = useSelector(
+    selectMoneyEnableHistoricalVaultShareValuationsFlag,
+  );
   // Share the single merge/bucket path with the full activity view so the home
   // preview and that view never diverge. The home preview shows the "All"
   // bucket.
@@ -261,6 +283,7 @@ const MoneyHomeView = () => {
     // predicate that drives its fetch loop, so the skeleton can neither
     // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
     isSettling: isActivitySettling,
+    isValuationSettling,
     error: activityError,
     refetch: refetchActivity,
     moneyAddress,
@@ -269,6 +292,7 @@ const MoneyHomeView = () => {
     fill: {
       bucket: MoneyActivityFilter.All,
       count: MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+      ...(historicalValuationsEnabled ? { maxPages: 1 } : {}),
     },
   });
   const activityItems = buckets[MoneyActivityFilter.All];
@@ -281,7 +305,13 @@ const MoneyHomeView = () => {
         refetchInterest(),
         refreshMusdFiatRate(),
         Promise.resolve(refetchActivity()),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
+        ...(Engine.context.CardController.state.isAuthenticated
+          ? [
+              Engine.context.CardController.fetchCardHomeData({
+                force: true,
+              }),
+            ]
+          : []),
       ]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
@@ -290,13 +320,16 @@ const MoneyHomeView = () => {
     }
   }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
 
-  const isCardholder = useSelector(selectIsCardholder);
+  const isCardholder = useSelector(selectHasCard);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
   const isCardHomeDataResolved = useSelector(selectIsCardHomeDataResolved);
   const hasMetalCard = useSelector(selectHasMetalCard);
   const isMoneyEarningSectionEnabled = useSelector(
     selectMoneyEarningSectionEnabledFlag,
+  );
+  const isEarningsHistoryEnabled = useSelector(
+    selectIsMoneyEarningsHistoryEnabledFlag,
   );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const {
@@ -312,6 +345,33 @@ const MoneyHomeView = () => {
     isMoneyCardSectionAvailable,
     reportsVerificationStatus,
   } = useMoneyAccountCardLinkage();
+
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
+  const networkTier = useNetworkTier();
+  const cardSetupPollIntervalMs = deriveMoneyCardSetupPollIntervalMs(
+    hardwareTier,
+    networkTier,
+  );
+  const { data: cardHomeData, primaryToken: cardPrimaryToken } =
+    useCardHomeData();
+  const {
+    enableCard,
+    provisioningView,
+    setupStep,
+    isEnableCardPending,
+    markCardFlowOpened,
+  } = useCardEnableCard(cardHomeData, {
+    pollIntervalMs: cardSetupPollIntervalMs,
+    navigateFromOutsideCard: true,
+    recheckOnFocus: true,
+  });
+  const cardSetupView = deriveMoneyCardSetupView({
+    hasProvisioningAlert: (cardHomeData?.alerts ?? []).some(
+      (cardAlert) => cardAlert.type === 'card_provisioning',
+    ),
+    provisioningView,
+    setupStep,
+  });
 
   const isMoneyAccountFunded = Boolean(
     !isBalanceLoading && tokenTotal?.isGreaterThan(0),
@@ -352,6 +412,8 @@ const MoneyHomeView = () => {
     hasCardHomeDataFailed: cardHomeDataStatus === 'error',
     isMoneyCardSectionAvailable,
     reportsVerificationStatus,
+    hasProviderCard: Boolean(cardHomeData?.card),
+    cardSetupView,
   });
   let displayState: MoneyBalanceDisplayState;
   if (!hasMoneyAccount) {
@@ -359,6 +421,8 @@ const MoneyHomeView = () => {
   } else if (totalFiatFormatted !== undefined) {
     // A fresh balance always wins — the banner is hidden on success.
     displayState = { kind: 'balance', value: totalFiatFormatted };
+  } else if (isBalanceLoading && !lastKnownTotalFiatFormatted) {
+    displayState = { kind: 'loading' };
   } else {
     // No fresh balance (loading, fetch error, or rate not ready). Carry the
     // cached balance (when valid for this account/currency) so it renders as a
@@ -370,7 +434,8 @@ const MoneyHomeView = () => {
     };
   }
 
-  const showBalanceUnavailableBanner = displayState.kind === 'unavailable';
+  const showBalanceUnavailableBanner =
+    displayState.kind === 'unavailable' && !isBalanceLoading;
 
   const hasBalanceValue = displayState.kind === 'balance';
   const hasSpendableBalance =
@@ -385,6 +450,24 @@ const MoneyHomeView = () => {
   // trace can't close before auto-fill rows are actually on screen. A failed
   // fetch ends the span as a failure rather than a (fast) success.
   const activityReady = !isActivitySettling;
+  const previewDisplayAmounts = activityItems
+    .slice(0, MONEY_HOME_ACTIVITY_PREVIEW_COUNT)
+    .flatMap((item) =>
+      item.kind === 'accountsApi' && item.tx.displayAmount
+        ? [item.tx.displayAmount]
+        : [],
+    );
+  const hasHistoricalActivityTargets =
+    historicalValuationsEnabled && previewDisplayAmounts.length > 0;
+  const hasUnresolvedHistoricalAmounts = previewDisplayAmounts.some(
+    (amount) => amount.type !== 'historical',
+  );
+  const historicalActivityReady =
+    hasHistoricalActivityTargets && !hasUnresolvedHistoricalAmounts;
+  const historicalActivityFailed =
+    hasHistoricalActivityTargets &&
+    hasUnresolvedHistoricalAmounts &&
+    !isValuationSettling;
 
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
@@ -435,14 +518,14 @@ const MoneyHomeView = () => {
     last30DaysQuery.isLoading ||
     sinceInceptionQuery.isLoading ||
     (formattedLast30DaysInterest === undefined &&
-      (vaultApyQuery.isLoading || isBalanceLoading));
+      (isVaultApyLoading || isBalanceLoading));
 
   const hasEarningsContent = Boolean(last30DaysInterest);
   const earningsFailed =
     (last30DaysQuery.isError || sinceInceptionQuery.isError) &&
     !hasEarningsContent;
-  const apyReady = apyPercent !== undefined || !vaultApyQuery.isLoading;
-  const apyFailed = vaultApyQuery.isError && apyPercent === undefined;
+  const apyReady = apyPercent !== undefined || !isVaultApyLoading;
+  const apyFailed = !isVaultApyLoading && apyPercent === undefined;
 
   // Report each independently so the existing balance, activity, and combined
   // Money Home metrics retain their definitions. Optional sections are
@@ -458,6 +541,14 @@ const MoneyHomeView = () => {
       ready: activityReady,
       failed: activityError,
       contentState: activityItems.length > 0 ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeHistoricalActivityTimeToContent,
+      enabled: hasHistoricalActivityTargets,
+      backdateToMount: true,
+      ready: historicalActivityReady,
+      failed: historicalActivityFailed,
+      contentState: historicalActivityReady ? 'filled' : 'empty',
     },
     {
       name: TraceName.MoneyHomeTimeToContent,
@@ -579,7 +670,7 @@ const MoneyHomeView = () => {
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
-      label_key: 'money.action.transfer',
+      label_key: 'money.action.move',
       redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
@@ -592,6 +683,7 @@ const MoneyHomeView = () => {
   }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const navigateToCardHome = useCallback(() => {
+    markCardFlowOpened();
     const isUpsell = metamaskCardMode === 'upsell';
 
     // Cross-navigator jump into the Card stack + top-level `animation` option.
@@ -603,7 +695,21 @@ const MoneyHomeView = () => {
         ...(isUpsell ? { animation: 'slide_from_bottom' } : {}),
       },
     ]);
-  }, [navigation, metamaskCardMode]);
+  }, [markCardFlowOpened, navigation, metamaskCardMode]);
+
+  const navigateToCardLogin = useCallback(() => {
+    markCardFlowOpened();
+    navigateWithDetails(navigation, [
+      Routes.CARD.ROOT,
+      {
+        screen: Routes.CARD.HOME,
+        params: {
+          screen: Routes.CARD.AUTHENTICATION,
+          params: { postAuthRedirect: MONEY_HOME_CARD_ORIGIN },
+        },
+      },
+    ]);
+  }, [markCardFlowOpened, navigation]);
 
   const handleActionButtonCardPress = useCallback(() => {
     trackButtonClicked({
@@ -672,7 +778,12 @@ const MoneyHomeView = () => {
         return getLinkFlowRedirectTarget();
       }
 
-      if (mode === 'upsell' || mode === 'manage') {
+      if (
+        mode === 'upsell' ||
+        mode === 'manage' ||
+        mode === 'setup' ||
+        mode === 'sign_in'
+      ) {
         return SCREEN_NAMES.CARD_HOME;
       }
 
@@ -695,11 +806,12 @@ const MoneyHomeView = () => {
   );
 
   const handleLinkCardPress = useCallback(() => {
+    markCardFlowOpened();
     startLinkFlow({
       ...MONEY_HOME_CARD_ORIGIN,
       entrypoint: CardEntryPoint.MONEY_HOME_METAMASK_CARD,
     });
-  }, [startLinkFlow]);
+  }, [markCardFlowOpened, startLinkFlow]);
 
   useEffect(() => {
     if (hasTrackedCardActionRowViewRef.current) return;
@@ -726,9 +838,9 @@ const MoneyHomeView = () => {
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.APY_INFO_SHEET,
-      params: { apy: apyPercent },
+      params: { apy: apyPercent, vaultStatus },
     });
-  }, [trackTooltipClicked, navigation, apyPercent]);
+  }, [trackTooltipClicked, navigation, apyPercent, vaultStatus]);
 
   const handleBalancePress = useCallback(() => {
     PreferencesController.setPrivacyMode(!privacyMode);
@@ -759,6 +871,17 @@ const MoneyHomeView = () => {
       params: { variant: 'lifetime' },
     });
   }, [navigation, trackTooltipClicked]);
+
+  const handleEarningsHeaderPress = useCallback(() => {
+    trackSurfaceClicked({
+      component_name: COMPONENT_NAMES.MONEY_EARNINGS_SECTION_HEADER,
+      redirect_target: SCREEN_NAMES.MONEY_EARNINGS,
+    });
+
+    navigation.navigate(Routes.MONEY.EARNINGS, {
+      activeTab: 'earnings',
+    });
+  }, [navigation, trackSurfaceClicked]);
 
   const handleEarnCryptoProjectedAmountPressed = useCallback(() => {
     trackTooltipClicked({
@@ -925,24 +1048,31 @@ const MoneyHomeView = () => {
     [navigation, trackActivitySurfaceClicked],
   );
 
-  const { primaryToken: cardPrimaryToken } = useCardHomeData();
   const currencyRates = useSelector(selectCurrencyRates);
-  // Money Account entries are already valued in USD. Other Card tokens report
+  const isCardBalanceLoading =
+    cardPrimaryToken?.balanceFiat === TOKEN_BALANCE_LOADING;
+  // Money Account entries are already valued in USD. USD-pegged tokens use
+  // their token amount, which is already dollars. Other Card tokens report
   // their fiat value in the user's selected currency.
   const cardBalanceUsd = useMemo(() => {
-    const rawFiat = cardPrimaryToken?.rawFiatNumber;
-    const usd = cardPrimaryToken?.isMoneyAccountEntry
-      ? rawFiat
-      : convertSelectedFiatToUsd(rawFiat, currencyRates);
-    return usd === undefined
-      ? formattedZero
+    if (!cardPrimaryToken || cardPrimaryToken.isUnavailable) {
+      return '—';
+    }
+    let usd: number | undefined;
+    if (cardPrimaryToken.isMoneyAccountEntry) {
+      usd = cardPrimaryToken.rawFiatNumber;
+    } else if (cardPrimaryToken.assumeUsdParity) {
+      usd = cardPrimaryToken.rawTokenBalance;
+    } else {
+      usd = convertSelectedFiatToUsd(
+        cardPrimaryToken.rawFiatNumber,
+        currencyRates,
+      );
+    }
+    return usd === undefined || Number.isNaN(usd)
+      ? '—'
       : moneyFormatUsd(new BigNumber(usd));
-  }, [
-    cardPrimaryToken?.isMoneyAccountEntry,
-    cardPrimaryToken?.rawFiatNumber,
-    currencyRates,
-    formattedZero,
-  ]);
+  }, [cardPrimaryToken, currencyRates]);
 
   const cardState = deriveCardState({
     isCardholder,
@@ -967,10 +1097,15 @@ const MoneyHomeView = () => {
             onGetNowPress={navigateToCardHome}
             onLinkPress={handleLinkCardPress}
             onManagePress={navigateToCardHome}
+            onSignInPress={navigateToCardLogin}
+            setupView={cardSetupView ?? undefined}
+            onSetupContinuePress={enableCard ?? navigateToCardHome}
+            isSetupContinueLoading={isEnableCardPending}
             showMetalCard={hasMetalCard}
             isLinkDisabled={isLinking}
             cardBalance={cardBalanceUsd}
-            isBalanceStale={showBalanceUnavailableBanner}
+            isBalanceLoading={isCardBalanceLoading}
+            isBalanceStale={cardHomeDataStatus === 'error'}
             privacyMode={privacyMode}
             apy={apyPercent}
             analyticsScreen={CardScreens.MONEY_HOME}
@@ -996,6 +1131,9 @@ const MoneyHomeView = () => {
           last30DaysEarnings={last30DaysInterest}
           sinceInceptionEarnings={sinceInceptionInterest}
           isLoading={isEarningsLoading}
+          onHeaderPress={
+            isEarningsHistoryEnabled ? handleEarningsHeaderPress : undefined
+          }
           onMonthlyInfoPress={handleMonthlyEarningsInfoPress}
           onLifetimeInfoPress={handleLifetimeEarningsInfoPress}
           privacyMode={privacyMode}
@@ -1015,7 +1153,7 @@ const MoneyHomeView = () => {
               componentName: COMPONENT_NAMES.MONEY_HOW_IT_WORKS_SECTION_HEADER,
             })
           }
-          isLoading={vaultApyQuery.isLoading}
+          isLoading={isVaultApyLoading}
         />
       ),
     });
@@ -1167,6 +1305,13 @@ const MoneyHomeView = () => {
             privacyMode={privacyMode}
             onBalancePress={handleBalancePress}
             showTitle={isPushed && !isNativeHeader}
+            isPremium={vaultStatus === MoneyVaultStatus.Premium}
+            pendingVaultTransition={
+              vaultStatus === MoneyVaultStatus.Upgrading ||
+              vaultStatus === MoneyVaultStatus.Downgrading
+                ? vaultStatus
+                : undefined
+            }
           />
         </Box>
         <MoneyActionButtonRow
@@ -1199,6 +1344,7 @@ const MoneyHomeView = () => {
           <MoneyVbaHomeCard
             key={devOverride?.id ?? moneyHomeCard.variant}
             variant={moneyHomeCard.variant}
+            sourceCurrency={vbaMarket?.currency}
             onDismiss={() => {
               if (devOverride?.card.type === 'vba') {
                 if (devOverride.card.variant === 'kyc_decision') {

@@ -45,6 +45,7 @@ import { useTransactionAccountOverride } from '../transactions/useTransactionAcc
 import { useRampsPaymentMethods } from '../../../../UI/Ramp/hooks/useRampsPaymentMethods';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
 
 export interface SetPayTokenRequest {
   address: Hex;
@@ -64,6 +65,7 @@ export function useAutomaticTransactionPayToken({
 } = {}) {
   const isUpdated = useRef<string | undefined>(undefined);
   const { payToken, setPayToken } = useTransactionPayToken();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
   const fiatPayment = useTransactionPayFiatPayment();
   const hasFiatPaymentSelected = Boolean(fiatPayment?.selectedPaymentMethodId);
   const requiredTokens = useTransactionPayRequiredTokens();
@@ -241,10 +243,7 @@ export function useAutomaticTransactionPayToken({
       return;
     }
 
-    setPayToken({
-      address: automaticToken.address,
-      chainId: automaticToken.chainId,
-    });
+    setPayToken({ assetId: encodeAssetId(automaticToken) });
 
     isUpdated.current = transactionId;
 
@@ -262,6 +261,7 @@ export function useAutomaticTransactionPayToken({
     payToken,
     paymentMethods,
     requiredTokens,
+    encodeAssetId,
     setPayToken,
     shouldSelectMoneyAccount,
     tokens,
@@ -282,31 +282,44 @@ export function useAutomaticTransactionPayToken({
   // Skipped while a fiat flow never had an explicit pay token:
   // `updatePaymentToken` resets the fiat payment, so re-selecting here would
   // clear (or block) the auto-selected fiat payment method.
+  //
+  // The last seen account key is tracked separately from whether a re-select
+  // is still owed: an override account that was never selected globally has
+  // no assets until its on-demand load completes, so the re-select must stay
+  // pending until a token is available, while any later switch (including
+  // back to a previously handled account) must still count as a change.
   const prevAccountKeyRef = useRef(`${from ?? ''}:${accountOverride ?? ''}`);
+  const isReselectPendingRef = useRef(false);
   useEffect(() => {
     const accountKey = `${from ?? ''}:${accountOverride ?? ''}`;
+    if (prevAccountKeyRef.current !== accountKey) {
+      prevAccountKeyRef.current = accountKey;
+      isReselectPendingRef.current = true;
+    }
+
     if (
       disable ||
       hasFiatPaymentSelected ||
       !from ||
-      prevAccountKeyRef.current === accountKey ||
+      !isReselectPendingRef.current ||
       postQuoteTransactionType
     ) {
       return;
     }
-    prevAccountKeyRef.current = accountKey;
 
     if (autoSelectFiatPayment && !payTokenEverSelectedRef.current) {
+      isReselectPendingRef.current = false;
       return;
     }
 
-    if (automaticToken) {
-      setPayToken({
-        address: automaticToken.address,
-        chainId: automaticToken.chainId,
-      });
-      log('Re-selected pay token after account change', automaticToken);
+    if (!automaticToken) {
+      return;
     }
+
+    isReselectPendingRef.current = false;
+
+    setPayToken({ assetId: encodeAssetId(automaticToken) });
+    log('Re-selected pay token after account change', automaticToken);
   }, [
     accountOverride,
     autoSelectFiatPayment,
@@ -315,6 +328,7 @@ export function useAutomaticTransactionPayToken({
     from,
     hasFiatPaymentSelected,
     postQuoteTransactionType,
+    encodeAssetId,
     setPayToken,
   ]);
 
@@ -336,10 +350,7 @@ export function useAutomaticTransactionPayToken({
     }
 
     if (automaticToken) {
-      setPayToken({
-        address: automaticToken.address,
-        chainId: automaticToken.chainId,
-      });
+      setPayToken({ assetId: encodeAssetId(automaticToken) });
       log('Re-selected pay token after money account change', automaticToken);
     }
   }, [
@@ -347,6 +358,7 @@ export function useAutomaticTransactionPayToken({
     disable,
     from,
     hasFiatPaymentSelected,
+    encodeAssetId,
     setPayToken,
     isMoneyPaymentOverride,
   ]);

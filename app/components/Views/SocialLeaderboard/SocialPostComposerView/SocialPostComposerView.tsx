@@ -41,6 +41,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   TextInput,
   type TextStyle,
 } from 'react-native';
@@ -65,6 +66,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import HeaderBaseGlass from '../../../../component-library/components-temp/HeaderBaseGlass';
 import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   fireImpact,
   ImpactMoment,
@@ -80,7 +82,10 @@ import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
 import { invalidateModerationStatus } from '../../../UI/SocialFeed/moderationApi';
-import { extractHttpStatus } from '../../../../util/social/socialServiceTelemetry';
+import {
+  extractHttpStatus,
+  reportSocialServiceFailure,
+} from '../../../../util/social/socialServiceTelemetry';
 import { addPendingPost } from '../pendingPosts/pendingPostsStore';
 import type {
   SocialV1FeedAuthor,
@@ -89,8 +94,15 @@ import type {
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
 import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
-import { withCreateSwapCommentTimeout } from './createSwapCommentTimeout';
-import { COMPOSER_COMMENT_MAX_LENGTH } from './commentValidation';
+import {
+  CreateSwapCommentTimeoutError,
+  withCreateSwapCommentTimeout,
+} from './createSwapCommentTimeout';
+import { resolvePostFailureReason } from './resolvePostFailureReason';
+import {
+  COMPOSER_COMMENT_MAX_LENGTH,
+  countComposerCharacters,
+} from './commentValidation';
 import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
@@ -103,13 +115,18 @@ import type {
 } from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
 import AddPositionBottomSheet from './AddPositionBottomSheet';
+import PrivateComposerContent from './PrivateComposerContent';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import {
   SocialEvent,
   useSocialInteraction,
   useSocialScreenAnalytics,
 } from '../analytics';
-import { resolvePostComposerAnalyticsSource } from './resolvePostComposerAnalyticsSource';
+import type { SocialBlockedSubmitReason } from '../analytics/socialEvents';
+import {
+  resolvePostComposerAnalyticsSource,
+  resolvePostComposerEntry,
+} from './resolvePostComposerAnalyticsSource';
 
 const { Interaction, Outcome, Screen, ShareDestination, Trade } = SocialEvent;
 type ComposerRoute = NavigationState['routes'][number];
@@ -151,6 +168,9 @@ interface ImageInsertEvent {
   };
 }
 
+/** 32px disc plus 6px on each side, so the tap target meets the 44pt minimum. */
+const ATTACHMENT_CLOSE_HIT_SLOP = 6;
+
 const ComposerAttachmentCloseButton = ({
   onPress,
   accessibilityLabel,
@@ -160,15 +180,23 @@ const ComposerAttachmentCloseButton = ({
   accessibilityLabel: string;
   testID: string;
 }) => (
-  <ButtonIcon
-    iconName={IconName.Close}
-    size={ButtonIconSize.Md}
-    iconProps={{ color: IconColor.IconDefault }}
-    twClassName="absolute z-20 -top-3 -right-3 border-2 border-background-default bg-section"
-    onPress={onPress}
-    accessibilityLabel={accessibilityLabel}
-    testID={testID}
-  />
+  // React Native draws a border inside its view, so the ring is a 36px frame
+  // around the unchanged 32px disc. The offset keeps that disc where it was.
+  <Box
+    pointerEvents="box-none"
+    twClassName="absolute z-20 -top-3.5 -right-3.5 h-9 w-9 items-center justify-center rounded-full border-2 border-background-default"
+  >
+    <ButtonIcon
+      iconName={IconName.Close}
+      size={ButtonIconSize.Md}
+      iconProps={{ color: IconColor.IconDefault, size: IconSize.Md }}
+      hitSlop={ATTACHMENT_CLOSE_HIT_SLOP}
+      twClassName="bg-section"
+      onPress={onPress}
+      accessibilityLabel={accessibilityLabel}
+      testID={testID}
+    />
+  </Box>
 );
 
 interface ComposerChipProps {
@@ -281,7 +309,7 @@ const TABULAR_NUMS_STYLE: TextStyle = { fontVariant: ['tabular-nums'] };
 // HeaderBase re-renders when its end accessory's width changes, so use
 // equal-width digits to keep the count's width stable while typing.
 const ComposerCharacterCount = ({ store }: { store: ComposerTextStore }) => {
-  const count = useComposerText(store, (value) => value.length);
+  const count = useComposerText(store, countComposerCharacters);
 
   return (
     <Text
@@ -307,30 +335,47 @@ const ComposerPostButton = ({
   hasTarget,
   isSubmitting,
   onPress,
+  onBlocked,
 }: {
   store: ComposerTextStore;
   hasTarget: boolean;
   isSubmitting: boolean;
   onPress: () => void;
+  onBlocked: (reason: SocialBlockedSubmitReason) => void;
 }) => {
-  const hasPostableText = useComposerText(
-    store,
-    (value) =>
-      value.trim().length > 0 && value.length <= COMPOSER_COMMENT_MAX_LENGTH,
+  const textBlock = useComposerText(store, (value) =>
+    countComposerCharacters(value) > COMPOSER_COMMENT_MAX_LENGTH
+      ? 'too_long'
+      : value.trim().length === 0
+        ? 'empty_caption'
+        : null,
   );
+  const blockReason = !hasTarget ? 'no_position' : textBlock;
+  const hasPostableText = blockReason == null;
 
   return (
-    <Button
-      variant={ButtonVariant.Primary}
-      size={ButtonSize.Md}
-      isDisabled={!hasTarget || !hasPostableText || isSubmitting}
-      onPress={onPress}
-      testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
-    >
-      {isSubmitting
-        ? strings('social_leaderboard.composer.posting')
-        : strings('social_leaderboard.composer.post')}
-    </Button>
+    <Box twClassName="relative">
+      <Button
+        variant={ButtonVariant.Primary}
+        size={ButtonSize.Md}
+        isDisabled={!hasPostableText || isSubmitting}
+        onPress={onPress}
+        testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
+      >
+        {isSubmitting
+          ? strings('social_leaderboard.composer.posting')
+          : strings('social_leaderboard.composer.post')}
+      </Button>
+      {blockReason && !isSubmitting ? (
+        <Pressable
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          onPress={() => onBlocked(blockReason)}
+          style={StyleSheet.absoluteFill}
+          testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON_BLOCKED}
+        />
+      ) : null}
+    </Box>
   );
 };
 
@@ -414,7 +459,7 @@ const ComposerPreview = ({
   );
 };
 
-const SocialPostComposerView: React.FC = () => {
+const SocialPostComposerEditor: React.FC = () => {
   const tw = useTailwind();
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
@@ -444,8 +489,14 @@ const SocialPostComposerView: React.FC = () => {
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
   const analyticsSource = resolvePostComposerAnalyticsSource(routeParams);
+  const composerEntry = resolvePostComposerEntry(routeParams);
+  const composerAnalytics = useMemo(
+    () => (composerEntry ? { composer_entry: composerEntry } : undefined),
+    [composerEntry],
+  );
   const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
     source: analyticsSource,
+    properties: composerAnalytics,
   });
   const trackShareSheet = useSocialInteraction(Screen.SHARE_POSITION_SHEET, {
     source: analyticsSource,
@@ -475,8 +526,9 @@ const SocialPostComposerView: React.FC = () => {
       username: authorName,
       avatarUri: profile?.imageUrl,
       winRatePercent: COMPOSER_FEED_AUTHOR.winRatePercent,
+      verified: profile?.verified === true,
     }),
-    [authorName, profile?.imageUrl, profile?.profileId],
+    [authorName, profile?.imageUrl, profile?.profileId, profile?.verified],
   );
 
   // The preview maps itself inside ComposerPreview, so the analytics trade
@@ -559,18 +611,32 @@ const SocialPostComposerView: React.FC = () => {
     focusComposer();
   }, [isScreenTransitionComplete, focusComposer]);
 
+  const tradeCorrelation = useMemo(() => {
+    const shareId =
+      routeParams && 'shareId' in routeParams ? routeParams.shareId : undefined;
+    return {
+      ...(shareId ? { share_id: shareId } : {}),
+      ...(tradeInFlightParams && 'orderId' in tradeInFlightParams
+        ? { order_id: tradeInFlightParams.orderId }
+        : {}),
+      ...(tradeInFlightParams && 'transactionHash' in tradeInFlightParams
+        ? { transaction_hash: tradeInFlightParams.transactionHash }
+        : {}),
+    };
+  }, [routeParams, tradeInFlightParams]);
   const handlePost = useCallback(async () => {
     const rawText = textStore.get();
     const caption = rawText.trim();
     if (
       (!selectedPosition && !tradeInFlightParams) ||
-      rawText.length > COMPOSER_COMMENT_MAX_LENGTH ||
+      countComposerCharacters(rawText) > COMPOSER_COMMENT_MAX_LENGTH ||
       caption.length === 0 ||
       isSubmitting
     ) {
       return;
     }
     const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
+    const postContent = { has_gif: Boolean(gifUri) };
     fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
     try {
@@ -606,6 +672,7 @@ const SocialPostComposerView: React.FC = () => {
             username: name,
             avatarUri,
             winRatePercent: null,
+            verified: profile?.verified === true,
           };
           const timestampMs = comment.timestamp * 1000;
           let item: SocialV1FeedItem;
@@ -679,6 +746,13 @@ const SocialPostComposerView: React.FC = () => {
       trackInteraction(Interaction.POST_SUBMITTED, {
         outcome: Outcome.SUCCESS,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+        ...postContent,
+        post_id: comment.uid,
+        ...(comment.author.id ? { author_trader_id: comment.author.id } : {}),
+        has_thesis: caption.length > 0,
+        has_attached_position: true,
+        is_held_position: selectedPosition != null && !tradeInFlightParams,
+        ...tradeCorrelation,
       });
       trackInteraction(Interaction.POST_SHARED, {
         share_destination: ShareDestination.METAMASK_POST,
@@ -694,7 +768,21 @@ const SocialPostComposerView: React.FC = () => {
       trackInteraction(Interaction.POST_FAILED, {
         outcome: Outcome.FAILED,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+        ...postContent,
+        failure_reason: resolvePostFailureReason(error),
+        ...tradeCorrelation,
       });
+      // The 7s timeout already reports itself from withCreateSwapCommentTimeout.
+      if (!(error instanceof CreateSwapCommentTimeoutError)) {
+        reportSocialServiceFailure(error, {
+          surface: 'post_composer',
+          operation: 'create_comment',
+          extraMessage: 'Social post composer create comment failed',
+          source: 'SocialPostComposerView',
+          endpoint: 'create_comment',
+          ...(profile?.profileId ? { profileId: profile.profileId } : {}),
+        });
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: ComponentLibraryIconName.Danger,
@@ -717,10 +805,12 @@ const SocialPostComposerView: React.FC = () => {
     navigation,
     profile?.imageUrl,
     profile?.profileId,
+    profile?.verified,
     selectedPosition,
     textStore,
     trackInteraction,
     toastRef,
+    tradeCorrelation,
     tradeInFlightParams,
     tradeInFlightPreview,
   ]);
@@ -762,6 +852,11 @@ const SocialPostComposerView: React.FC = () => {
                 hasTarget={hasTarget}
                 isSubmitting={isSubmitting}
                 onPress={handlePost}
+                onBlocked={(blocked_submit_reason) =>
+                  trackInteraction(Interaction.SUBMIT_BLOCKED, {
+                    blocked_submit_reason,
+                  })
+                }
               />
             </Box>
           }
@@ -893,6 +988,11 @@ const SocialPostComposerView: React.FC = () => {
       </SafeAreaView>
     </SocialFeedSurfaceProvider>
   );
+};
+
+const SocialPostComposerView: React.FC = () => {
+  const isPrivate = useSelector(selectIsProfileTradingActivityPrivate);
+  return isPrivate ? <PrivateComposerContent /> : <SocialPostComposerEditor />;
 };
 
 export default SocialPostComposerView;

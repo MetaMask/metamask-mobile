@@ -205,6 +205,87 @@ describe('useSocialFeedRealtime', () => {
     expect(afterChanged).not.toBe(beforeChanged);
   });
 
+  it('keeps the post when a new page rebuilds the row around the same position', () => {
+    const row = buildRow({ positionId: 'pos-a' });
+    const { result, rerender } = renderRealtime({
+      rows: [row],
+      dataUpdatedAt: 1_000,
+    });
+    const before = result.current?.posts[0];
+
+    rerender({
+      rows: [{ ...row, item: { ...row.item } }],
+      dataUpdatedAt: 2_000,
+    });
+
+    expect(result.current?.posts[0]).toBe(before);
+  });
+
+  it('keeps shown posts in place when a refresh returns one moved forward', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+      ],
+      dataUpdatedAt: 2_000,
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-b',
+      'pos-a',
+    ]);
+  });
+
+  it('adds a late post at the top instead of between shown posts', () => {
+    const { result } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-c', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    emit(buildEvent('pos-b', { occurredAt: '2026-01-01T00:00:02Z' }));
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-b',
+      'pos-c',
+      'pos-a',
+    ]);
+  });
+
+  it('places rows by their own time again for another request', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:01Z' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a', occurredAt: '2026-01-01T00:00:03Z' }),
+        buildRow({ positionId: 'pos-b', occurredAt: '2026-01-01T00:00:02Z' }),
+      ],
+      dataUpdatedAt: 2_000,
+      streamKey: 'other',
+    });
+
+    expect(positionIds(result.current?.posts ?? [])).toEqual([
+      'pos-a',
+      'pos-b',
+    ]);
+  });
+
   it('adds a new post at the top with an entrance while live', () => {
     const { result } = renderRealtime();
 

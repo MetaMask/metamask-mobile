@@ -51,7 +51,7 @@ Optional custom styles for the skeleton component.
 ### Basic Usage
 
 ```javascript
-import { Skeleton } from 'app/component-library';
+import { Skeleton } from '#app/component-library/components/Skeleton';
 
 <Skeleton height={32} width={300} />;
 ```
@@ -59,7 +59,7 @@ import { Skeleton } from 'app/component-library';
 ### Multiple Skeletons
 
 ```javascript
-import { Skeleton } from 'app/component-library';
+import { Skeleton } from '#app/component-library/components/Skeleton';
 
 <>
   <Skeleton height={32} width={300} />
@@ -71,7 +71,7 @@ import { Skeleton } from 'app/component-library';
 ### With Children
 
 ```javascript
-import { Skeleton } from 'app/component-library';
+import { Skeleton } from '#app/component-library/components/Skeleton';
 import { View } from 'react-native';
 
 <Skeleton
@@ -93,7 +93,8 @@ import { View } from 'react-native';
 ### Hiding Children
 
 ```javascript
-import { Skeleton, Text } from 'app/component-library';
+import { Skeleton } from '#app/component-library/components/Skeleton';
+import Text from '#app/component-library/components/Texts/Text';
 
 isLoaded ? (
   <Text>Content to load</Text>

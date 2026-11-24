@@ -84,9 +84,9 @@ PRED-1356: these move to canonical funding and operation contracts (the PRED-138
 
 ### `toastRegistration`: legacy toast registration
 
-| File                             | Imports                                                                                                         | PRED-1356                                                                                                                      |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `app/components/Nav/App/App.tsx` | `Predict/hooks/usePredictToastRegistrations`, `PredictNext/notifications` (`usePredictOrderToastRegistrations`) | Remove `usePredictToastRegistrations` and its spread. Keep `usePredictOrderToastRegistrations`, which then serves both Venues. |
+| File                             | Imports                                                                                                                                                | PRED-1356                                                                                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app/components/Nav/App/App.tsx` | `Predict/hooks/usePredictToastRegistrations`, `PredictNext/notifications` (`usePredictOrderToastRegistrations`, `usePredictDepositToastRegistrations`) | Remove `usePredictToastRegistrations` and its spread. Keep `usePredictOrderToastRegistrations` and `usePredictDepositToastRegistrations` for both Venues. |
 
 Both registrations are mounted outside the Predict navigator, whatever the Active Venue (PRED-1383). The PredictNext one comes from the `notifications` module boundary, not the entry point, because App.tsx is loaded with the Engine.
 
@@ -115,17 +115,18 @@ Outside the fence, `Routes.PREDICT.*` (`app/constants/navigation/Routes.ts`) and
 
 ### `predictNextEngine`: PredictNext Engine services and their messengers
 
-| File                                                                  | Wires                                                                 |
-| --------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `app/core/Engine/controllers/predict-service-init.ts`                 | Market data, live data, portfolio and order services, Kalshi adapters |
-| `app/core/Engine/controllers/predict-device-auth-service-init.ts`     | Kalshi device auth (A2T) and the bundled auth profile                 |
-| `app/core/Engine/controllers/predict-venue-controller-init.ts`        | `PredictVenueController` (Active Venue, persisted preference)         |
-| `app/core/Engine/messengers/predict-market-data-service-messenger.ts` |                                                                       |
-| `app/core/Engine/messengers/predict-live-data-service-messenger.ts`   |                                                                       |
-| `app/core/Engine/messengers/predict-portfolio-service-messenger.ts`   |                                                                       |
-| `app/core/Engine/messengers/predict-order-service-messenger.ts`       |                                                                       |
-| `app/core/Engine/messengers/predict-device-auth-service-messenger.ts` |                                                                       |
-| `app/core/Engine/messengers/predict-venue-controller-messenger.ts`    |                                                                       |
+| File                                                                  | Wires                                                                          |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `app/core/Engine/controllers/predict-service-init.ts`                 | Market data, live data, portfolio, order and funding services, Kalshi adapters |
+| `app/core/Engine/controllers/predict-device-auth-service-init.ts`     | Kalshi device auth (A2T) and the bundled auth profile                          |
+| `app/core/Engine/controllers/predict-venue-controller-init.ts`        | `PredictVenueController` (Active Venue, persisted preference)                  |
+| `app/core/Engine/messengers/predict-market-data-service-messenger.ts` |                                                                                |
+| `app/core/Engine/messengers/predict-live-data-service-messenger.ts`   |                                                                                |
+| `app/core/Engine/messengers/predict-portfolio-service-messenger.ts`   |                                                                                |
+| `app/core/Engine/messengers/predict-order-service-messenger.ts`       |                                                                                |
+| `app/core/Engine/messengers/predict-funding-service-messenger.ts`     |                                                                                |
+| `app/core/Engine/messengers/predict-device-auth-service-messenger.ts` |                                                                                |
+| `app/core/Engine/messengers/predict-venue-controller-messenger.ts`    |                                                                                |
 
 PRED-1356 keeps this group: it is the permanent composition root of the PredictNext stack. `predict-service-init.ts` gains the Polymarket adapter next to `KalshiRemoteAdapter`.
 
@@ -180,7 +181,8 @@ Goal: change `polymarket: 'legacy'` to `polymarket: 'next'` and delete the legac
 ### 0. Before
 
 - [ ] The PredictNext Polymarket adapter serves the canonical contract (catalog, Feeds, search, Positions, Portfolio Summary, Activity, Orders), per the [feasibility table](./canonical-portfolio-activity-catalog-contract.md#polymarket-feasibility-pred-1356) and [Inputs for PRED-1356](./public-api-contract.md#inputs-for-pred-1356-polymarket-backend-adapter).
-- [ ] `POLYMARKET_STATIC_VENUE_CATALOG` (`config/venueCatalogs.ts`) is replaced by the backend catalog, and `PREDICT_SURFACE_FEED_KEYS` maps every Polymarket surface (Homepage slots including World Cup and BTC up/down, Explore tabs, campaign rows) to a Feed key the catalog serves.
+- [ ] Replace `POLYMARKET_STATIC_VENUE_CATALOG` (`config/venueCatalogs.ts`) with the backend venue catalog. Add the Polymarket Feed Screens and Home sections to that catalog, with references to the Feed keys it serves.
+- [ ] The Polymarket adapter emits full-game moneyline Markets in a `choice` group under the `moneyline` section and `full_game` subgroup, with `gameSelection` on the matching Outcomes. PredictNext needs this metadata for team prices on Game cards and the dual-team chart.
 - [ ] Polymarket funding (deposit, withdraw, claim) has a `next` flow and a `PREDICT_FUNDING_IMPLEMENTATIONS.next` entry.
 
 ### 1. Flip the map (the only switch)

@@ -1,4 +1,4 @@
-import { ApiEnv, getApiEnv } from '../../apiEnv';
+import { getPredictDeviceAuthIssuerUrl } from '../../../components/UI/PredictNext/config/predictClusterUrls';
 import {
   parsePredictConfig,
   resolveSelectedAuthProfile,
@@ -11,24 +11,6 @@ import {
 } from '../../../components/UI/PredictNext/services/PredictDeviceAuthService';
 import type { PredictDeviceAuthServiceInitMessenger } from '../messengers/predict-device-auth-service-messenger';
 import type { MessengerClientInitFunction } from '../types';
-
-/**
- * MetaMask Auth hosts that mint the Kalshi A2T. The placeholder
- * `authentication.<env>.cx.metamask.io` does not resolve. These are the
- * hosts that answer `POST /api/v2/kalshi/token` with 401 when no bearer
- * token is sent. Prod is `authentication.api`, matching the rest of Auth.
- */
-const KALSHI_AUTH_API_URL: Record<ApiEnv, string> = {
-  [ApiEnv.Dev]: 'https://authentication.dev-api.cx.metamask.io',
-  [ApiEnv.Uat]: 'https://authentication.uat-api.cx.metamask.io',
-  [ApiEnv.Prod]: 'https://authentication.api.cx.metamask.io',
-};
-
-/** Auth base for the cluster `MM_API_ENV` selects. Unset is prod. */
-export const resolveKalshiAuthApiUrl = (apiEnv: ApiEnv = getApiEnv()): string =>
-  KALSHI_AUTH_API_URL[apiEnv];
-
-const getConfiguredIssuerUrl = (): string => resolveKalshiAuthApiUrl();
 
 export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   PredictDeviceAuthService,
@@ -64,7 +46,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
   ).isSignedIn;
   const controller = new PredictDeviceAuthService(controllerMessenger, {
     getProfile: () => resolveSelectedAuthProfile(readConfig()),
-    getIssuerUrl: getConfiguredIssuerUrl,
+    getIssuerUrl: getPredictDeviceAuthIssuerUrl,
     getAccessToken: async () => {
       const accessToken = await initMessenger.call(
         'AuthenticationController:getBearerToken',
@@ -87,14 +69,19 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     fetch: (input, init) => global.fetch(input, init),
   });
 
-  initMessenger.subscribe('KeyringController:lock', () => controller.clear());
+  // Lock, sign-out and a change of Predict User also drop the approved
+  // intents: a confirmation never outlives the session that gave it.
+  const clearApprovals = () => {
+    controller.clearApprovals().catch(() => undefined);
+  };
+  initMessenger.subscribe('KeyringController:lock', clearApprovals);
   initMessenger.subscribe('AuthenticationController:stateChange', () => {
     const currentAuthentication = initMessenger.call(
       'AuthenticationController:getState',
     );
     if (isSignedIn && !currentAuthentication.isSignedIn) {
       rememberCanonicalProfileId(undefined);
-      controller.clear();
+      clearApprovals();
     }
     isSignedIn = currentAuthentication.isSignedIn;
   });
@@ -102,7 +89,7 @@ export const predictDeviceAuthServiceInit: MessengerClientInitFunction<
     'AuthenticationController:profileSignIn',
     ({ profileId, profileIdChanged }) => {
       if (profileIdChanged) {
-        controller.clear();
+        clearApprovals();
       }
       rememberCanonicalProfileId(profileId);
     },

@@ -1,7 +1,6 @@
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
@@ -27,6 +26,9 @@ import {
 } from '../../constants/slippageConfig';
 import { PerpsCustomSlippageBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { createStyles } from './PerpsCustomSlippageBottomSheet.styles';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsCustomSlippageBottomSheetProps {
   isVisible: boolean;
@@ -53,6 +55,7 @@ function clampToRange(pct: number): number {
 const PerpsCustomSlippageBottomSheet: React.FC<
   PerpsCustomSlippageBottomSheetProps
 > = ({ isVisible, currentValueBps, onClose, onSave }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -142,14 +145,15 @@ const PerpsCustomSlippageBottomSheet: React.FC<
 
   return (
     <BottomSheet ref={bottomSheetRef} onClose={onClose}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={onClose}
         closeButtonProps={{
           testID: PerpsCustomSlippageBottomSheetSelectorsIDs.CLOSE,
         }}
       >
         {strings('perps.slippage.use_custom_title')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <View style={styles.container}>
         <View

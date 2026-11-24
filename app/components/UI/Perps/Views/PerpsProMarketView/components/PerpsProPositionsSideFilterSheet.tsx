@@ -1,6 +1,5 @@
 import {
   BottomSheet,
-  BottomSheetHeader,
   ListItemSelect,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
@@ -13,6 +12,9 @@ import {
   PRO_POSITION_SIDE_FILTER_OPTIONS,
   type ProPositionSideFilter,
 } from '../utils/proPositionSideFilter';
+import BottomSheetHeaderGlass from '../../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PerpsProPositionsSideFilterSheetProps {
   isVisible: boolean;
@@ -33,6 +35,7 @@ const PerpsProPositionsSideFilterSheet = ({
   onClose,
   testID = 'perps-pro-positions-side-filter-sheet',
 }: PerpsProPositionsSideFilterSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { playSelection } = useHaptics();
   const sheetRef = useRef<BottomSheetRef>(null);
 
@@ -64,12 +67,13 @@ const PerpsProPositionsSideFilterSheet = ({
   return (
     <PerpsProModalPortal onRequestClose={handleClose}>
       <BottomSheet ref={sheetRef} onClose={onClose} testID={testID}>
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           closeButtonProps={{ testID: `${testID}-close` }}
         >
           {strings('perps.market_type.filter_by')}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         {PRO_POSITION_SIDE_FILTER_OPTIONS.map((option) => {
           const isSelected = sideFilter === option.id;
 

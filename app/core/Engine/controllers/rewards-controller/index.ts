@@ -58,7 +58,6 @@ export type {
   RewardsControllerGetClientVersionRequirementsAction,
   RewardsControllerGetDefaultRewardsEnvUrlAction,
   RewardsControllerGetFirstSubscriptionIdAction,
-  RewardsControllerGetGeoRewardsMetadataAction,
   RewardsControllerGetHasAccountOptedInAction,
   RewardsControllerGetOffDeviceSubscriptionAccountsAction,
   RewardsControllerGetOndoCampaignDepositsAction,

@@ -1,5 +1,7 @@
 import React from 'react';
+import { Image } from 'react-native';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
+import moneyOnboardingStepperStep2 from '../../../../../images/money-onboarding-stepper-step-2.png';
 import BigNumber from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import MoneyOnboardingCard, {
@@ -26,7 +28,6 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
-import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../component-library/components-temp/BoxGlass';
 import Logger from '../../../../../util/Logger';
 
@@ -49,10 +50,19 @@ jest.mock('../../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 
-jest.mock('../MoneyNextBestActionParallax', () => ({
-  __esModule: true,
-  default: () => null,
-}));
+jest.mock('../MoneyNextBestActionParallax', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ artboardName }: { artboardName?: string }) =>
+      ReactActual.createElement(View, {
+        testID: 'money-next-best-action-parallax',
+        accessibilityLabel: artboardName,
+      }),
+    PARALLAX_ARTBOARD_FUND: 'Parallax Block 1',
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
@@ -111,7 +121,7 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
 }));
 jest.mock('../../../../../selectors/cardController', () => ({
-  selectIsCardholder: () => mockIsCardholder(),
+  selectHasCard: () => mockIsCardholder(),
   selectCardHomeDataStatus: () => mockCardHomeDataStatus(),
   selectIsCardStateResolved: () => mockIsCardStateResolved(),
   selectCardActiveProviderId: () => 'baanx',
@@ -202,6 +212,16 @@ describe('MoneyOnboardingCard', () => {
   });
 
   describe('visibility guard', () => {
+    it('does not start a positions poll of its own', () => {
+      setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
+
+      render(<MoneyOnboardingCard />);
+
+      expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({
+        positionsRefetchInterval: false,
+      });
+    });
+
     it('returns null when currentStep equals MONEY_ONBOARDING_TOTAL_STEPS', () => {
       setupDefaultMocks({ currentStep: MONEY_ONBOARDING_TOTAL_STEPS });
 
@@ -356,6 +376,24 @@ describe('MoneyOnboardingCard', () => {
   });
 
   describe('step 2 — no card yet', () => {
+    it('renders the static card image and no parallax', () => {
+      setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
+
+      const { getByTestId, queryByTestId } = render(<MoneyOnboardingCard />);
+
+      expect(
+        queryByTestId('money-next-best-action-parallax'),
+      ).not.toBeOnTheScreen();
+      expect(
+        getByTestId('money-onboarding-card-step-image').findByType(Image).props,
+      ).toEqual(
+        expect.objectContaining({
+          source: moneyOnboardingStepperStep2,
+          resizeMode: 'contain',
+        }),
+      );
+    });
+
     it('renders the no-card description', () => {
       setupDefaultMocks({ currentStep: 1, isCardAuthenticated: false });
 
@@ -633,7 +671,7 @@ describe('MoneyOnboardingCard', () => {
       );
     });
 
-    it('renders the Link card primary CTA when user is a cardholder but not authenticated', () => {
+    it('renders the Log in primary CTA when user is a cardholder but not authenticated', () => {
       setupDefaultMocks({
         currentStep: 1,
         isCardholder: true,
@@ -644,7 +682,7 @@ describe('MoneyOnboardingCard', () => {
       const { getByTestId } = render(<MoneyOnboardingCard />);
 
       expect(getByTestId('money-onboarding-card-cta-button')).toHaveTextContent(
-        strings('money.onboarding.step_2.unlinked_card_account.cta_primary'),
+        strings('money.onboarding.step_2.unlinked_card_account.cta_log_in'),
       );
     });
 

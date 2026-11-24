@@ -6,7 +6,6 @@ import { View, ActivityIndicator } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   BottomSheetRef,
   Box,
   ButtonSize,
@@ -27,13 +26,12 @@ import {
   usePerpsLivePositions,
   usePerpsCloseAllCalculations,
   usePerpsCloseAllPositions,
-  usePerpsRewardAccountOptedIn,
 } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
-import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import PerpsCloseTotals from '../PerpsClosePositionBottomSheet/components/PerpsCloseTotals';
 import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -46,6 +44,9 @@ import {
   type Position,
 } from '@metamask/perps-controller';
 import { PerpsCloseAllPositionsViewSelectorsIDs } from '../../Perps.testIds';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface PerpsCloseAllPositionsViewProps {
   sheetRef?: React.RefObject<BottomSheetRef | null>;
@@ -64,6 +65,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
   isFiltered = false,
   enableHaptics = false,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const theme = useTheme();
   const styles = createStyles(theme);
   const navigation = useNavigation<AppNavigationProp>();
@@ -94,9 +96,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
-  // Check opt-in status for rewards
-  const { accountOptedIn, account: rewardsAccount } =
-    usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
 
   // Track screen viewed event
   usePerpsEventTracking({
@@ -294,12 +293,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={onClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
           {title}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box paddingHorizontal={4}>
           <View style={styles.loadingContainer}>
             <ActivityIndicator
@@ -321,12 +321,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
         onClose={onClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
       >
-        <BottomSheetHeader
+        <BottomSheetHeaderGlass
+          isGlass={isGlassHeader}
           onClose={handleClose}
           testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
         >
           {title}
-        </BottomSheetHeader>
+        </BottomSheetHeaderGlass>
         <Box paddingHorizontal={4}>
           <View style={styles.emptyContainer}>
             <Text
@@ -349,12 +350,13 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
       onClose={onClose}
       testID={PerpsCloseAllPositionsViewSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         testID={PerpsCloseAllPositionsViewSelectorsIDs.TITLE}
       >
         {title}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
 
       <Box twClassName="py-2">
         <Box paddingHorizontal={4}>
@@ -388,34 +390,23 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             </View>
           </Box>
         ) : (
-          <PerpsCloseSummary
-            totalMargin={calculations.totalMargin}
-            totalPnl={calculations.totalPnl}
-            totalFees={calculations.totalFees}
-            originalTotalFees={calculations.originalTotalFees}
-            feeDiscountPercentage={calculations.avgFeeDiscountPercentage}
-            feeDiscountKind={calculations.feeDiscountKind}
-            metamaskFeeRate={calculations.avgMetamaskFeeRate}
-            protocolFeeRate={calculations.avgProtocolFeeRate}
-            originalMetamaskFeeRate={calculations.avgOriginalMetamaskFeeRate}
-            receiveAmount={calculations.receiveAmount}
-            shouldShowRewards={calculations.shouldShowRewards}
-            estimatedPoints={calculations.totalEstimatedPoints}
-            bonusBips={calculations.avgBonusBips}
-            isLoadingFees={calculations.isLoading}
-            isLoadingRewards={calculations.isLoading}
-            hasRewardsError={calculations.hasError}
-            accountOptedIn={accountOptedIn}
-            rewardsAccount={rewardsAccount}
-            enableTooltips={false}
-            afterFees={<PerpsRebateBanner containerTwClassName="px-4 mb-3" />}
-            testIDs={{
-              feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
-              marginValue: PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
-              receiveValue:
-                PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
-            }}
-          />
+          <>
+            <PerpsCloseTotals
+              pnl={calculations.totalPnl}
+              receiveAmount={calculations.receiveAmount}
+              margin={calculations.totalMargin}
+              marginMode={calculations.summaryMarginMode}
+              testIDs={{
+                marginValue:
+                  PerpsCloseAllPositionsViewSelectorsIDs.MARGIN_VALUE,
+                receiveValue:
+                  PerpsCloseAllPositionsViewSelectorsIDs.RECEIVE_VALUE,
+                pnlValue: PerpsCloseAllPositionsViewSelectorsIDs.PNL_VALUE,
+                pnlRow: PerpsCloseAllPositionsViewSelectorsIDs.PNL_ROW,
+              }}
+            />
+            <PerpsRebateBanner containerTwClassName="px-4 mb-3" />
+          </>
         )}
       </Box>
 

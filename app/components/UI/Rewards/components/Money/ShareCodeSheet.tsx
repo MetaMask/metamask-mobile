@@ -13,7 +13,6 @@ import QRCode from 'react-native-qrcode-svg';
 import Pressable from '../../../../../component-library/components-temp/Pressable/Pressable';
 import {
   BottomSheet,
-  BottomSheetHeader,
   type BottomSheetRef,
   Box,
   BoxAlignItems,
@@ -32,6 +31,9 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { resolveMoneyShareUrl } from '../../utils/moneyShareUrl';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const SHARE_CODE_SHEET_TEST_IDS = {
   CONTAINER: 'share-code-sheet',
@@ -90,10 +92,9 @@ export function buildShareSmsBody(
  * Share copy, resolved per key.
  *
  * The server fills every `localized_text` key from its own defaults, so a
- * missing key means there is no referral-me payload — and this sheet is only
- * mounted for a referrer read out of one. Only the title has an existing Mobile
- * string to fall back on; an action whose label is missing is left out rather
- * than rendered as an unlabelled circle.
+ * missing key means there is no referral-me payload. Only the title has an
+ * existing Mobile string to fall back on; an action whose label is missing is
+ * left out rather than rendered as an unlabelled circle.
  */
 function useShareCopy(localizedText: ReferralLocalizedText | undefined) {
   return useMemo(
@@ -125,10 +126,10 @@ export interface ShareCodeSheetProps {
 }
 
 /**
- * The referrer's share sheet, mounted inline by the referrer hero.
+ * Share sheet for a referral code, mounted by the Money dashboard header.
  *
- * It is presentational: every value it shows arrives as a prop, so the one
- * surface that owns a referral code is also the only thing that can mount it.
+ * It is presentational: every value it shows arrives as a prop, so the
+ * dashboard that owns the referral-me read is also the only thing that mounts it.
  * Dismissal is the parent's `onClose` rather than `goBack`, because the sheet
  * is not a route.
  */
@@ -139,6 +140,7 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
   localizedText,
   onClose,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const copy = useShareCopy(localizedText);
@@ -310,12 +312,13 @@ const ShareCodeSheet: React.FC<ShareCodeSheetProps> = ({
             onClose={handleSheetClosed}
             testID={SHARE_CODE_SHEET_TEST_IDS.CONTAINER}
           >
-            <BottomSheetHeader
+            <BottomSheetHeaderGlass
+              isGlass={isGlassHeader}
               onClose={handleRequestClose}
               closeButtonProps={{ testID: SHARE_CODE_SHEET_TEST_IDS.CLOSE }}
             >
               {copy.title}
-            </BottomSheetHeader>
+            </BottomSheetHeaderGlass>
             <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
               {resolvedShareUrl ? (
                 // The graphic carries no information a screen reader can use;

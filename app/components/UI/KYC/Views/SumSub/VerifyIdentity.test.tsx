@@ -80,23 +80,23 @@ describe('KycVerifyIdentity', () => {
     expect(getByText('Confirm your details')).toBeOnTheScreen();
     expect(getByText('Answer a few questions')).toBeOnTheScreen();
     expect(
-      getByText('We partner with idOS to verify your identity.'),
+      getByText('We partner with idOS to verify your identity'),
     ).toBeOnTheScreen();
-    expect(getByText('Verify once, reuse later.')).toBeOnTheScreen();
+    expect(getByText('Verify once, reuse later')).toBeOnTheScreen();
     expect(
       getByText(
-        'MetaMask securely stores an encrypted copy of your verified identity, so you can sign up with other partners faster.',
+        'MetaMask securely stores an encrypted copy of your verification, so you can sign up with other partners faster.',
       ),
     ).toBeOnTheScreen();
-    expect(getByText('You control your data.')).toBeOnTheScreen();
+    expect(getByText('You control your data')).toBeOnTheScreen();
     expect(
       getByText(
-        'We share your verified identity with a partner only when you agree.',
+        'We only share your verification with a partner when you agree.',
       ),
     ).toBeOnTheScreen();
-    expect(getByText('Delete anytime.')).toBeOnTheScreen();
+    expect(getByText('Delete anytime')).toBeOnTheScreen();
     expect(
-      getByText('Delete your verified identity any time in Settings.'),
+      getByText('Delete your verification anytime in Settings.'),
     ).toBeOnTheScreen();
     expect(
       getByTestId(KycVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),

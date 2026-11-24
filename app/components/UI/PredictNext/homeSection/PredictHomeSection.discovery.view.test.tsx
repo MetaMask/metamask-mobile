@@ -32,7 +32,7 @@ import type {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog; the Polymarket section uses the same id
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
-import { KALSHI_STATIC_VENUE_CATALOG } from '../config/venueCatalogs';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../contracts/v1/fixtures/kalshiVenueCatalog';
 import type { PredictConfig } from '../config/predictConfig';
 import type { PredictVenueControllerState } from '../implementation/PredictVenueController';
 import { NextVenueProvider } from '../implementation';
@@ -332,7 +332,7 @@ describe('PredictHomeSection discovery (Kalshi)', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('reads only the Venue’s own Feeds, at the PredictNext Home preview size, and never Polymarket markets', async () => {
+    it('reads only the Venue’s own Feeds, at the slot size, and never Polymarket markets', async () => {
       const view = renderSection();
 
       await view.findByTestId(PredictHomeTestIds.event('kalshi', 'ncaa-1'));

@@ -103,7 +103,7 @@ import type {
 import type {
   CardModalsNavigationParamList,
   CardOnboardingStackParamList,
-  CardRootParamList,
+  CardRootEntryParams,
   CardScreensStackParamList,
 } from '../../components/UI/Card/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
@@ -334,7 +334,6 @@ interface ImportFromSecretRecoveryPhraseParams {
 /** Confirm-add-asset screen params (includes callback for token list refresh). */
 interface ConfirmAddAssetParams {
   selectedAsset: ImportAsset[];
-  networkName: string;
   addTokenList: () => Promise<void>;
 }
 
@@ -647,8 +646,6 @@ export type RootStackParamList = {
   SitesFullView: { mode?: 'favorites' } | undefined;
   MarketInsightsView: MarketInsightsRouteParams;
   ExploreSearch: ExploreSearchRouteParams | undefined;
-  RewardsOnboardingFlow: undefined;
-  RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
   BenefitsFullView: undefined;
 
@@ -722,9 +719,6 @@ export type RootStackParamList = {
     | undefined;
   RewardsMoneyInviteSheet:
     | RewardsNavigationParamList['RewardsMoneyInviteSheet']
-    | undefined;
-  RewardsMoneyTermsSheet:
-    | RewardsNavigationParamList['RewardsMoneyTermsSheet']
     | undefined;
   RewardsTaxQuestionSheet: RewardsNavigationParamList['RewardsTaxQuestionSheet'];
   RewardsTaxOpenFormSheet: RewardsNavigationParamList['RewardsTaxOpenFormSheet'];
@@ -916,19 +910,21 @@ export type RootStackParamList = {
   MoneyHome: MoneyNavigationParamList['MoneyHome'];
   MoneyActivity: MoneyNavigationParamList['MoneyActivity'];
   MoneyHowItWorks: MoneyNavigationParamList['MoneyHowItWorks'];
-  MoneyOnboarding: MoneyNavigationParamList['MoneyOnboarding'];
   MoneySplash: MoneyNavigationParamList['MoneySplash'];
   MoneyFirstTimeDeposit: MoneyNavigationParamList['MoneyFirstTimeDeposit'];
+  MoneyEarnings: MoneyNavigationParamList['MoneyEarnings'];
   MoneyPotentialEarnings: MoneyNavigationParamList['MoneyPotentialEarnings'];
   MoneyTransactionDetails: MoneyNavigationParamList['MoneyTransactionDetails'];
   MoneyCardTransactionDetails: MoneyNavigationParamList['MoneyCardTransactionDetails'];
   MoneyDepositDeeplink: MoneyNavigationParamList['MoneyDepositDeeplink'];
+  MoneyAccountStatus: MoneyNavigationParamList['MoneyAccountStatus'];
   MoneyAddMoneySheet: MoneyNavigationParamList['MoneyAddMoneySheet'];
   MoneyMoreSheet: MoneyNavigationParamList['MoneyMoreSheet'];
   MoneyTransferSheet: MoneyNavigationParamList['MoneyTransferSheet'];
   MoneyMusdRescueSend: MoneyNavigationParamList['MoneyMusdRescueSend'];
   MoneyMusdRescueRecipient: MoneyNavigationParamList['MoneyMusdRescueRecipient'];
   MoneyApyInfoSheet: MoneyNavigationParamList['MoneyApyInfoSheet'];
+  MoneyEstimatedBalanceSheet: MoneyNavigationParamList['MoneyEstimatedBalanceSheet'];
   MoneyEarningsInfoSheet: MoneyNavigationParamList['MoneyEarningsInfoSheet'];
   MoneyBalanceInfoSheet: MoneyNavigationParamList['MoneyBalanceInfoSheet'];
   MoneyLinkCardSheet: MoneyNavigationParamList['MoneyLinkCardSheet'];
@@ -1110,6 +1106,7 @@ export type RootStackParamList = {
   SocialPositionDetailsSheet: PositionDetailsSheetParams;
   SocialLeaderboardOnboarding: { returnToTab?: boolean } | undefined;
   TradingSignalsSetupBottomSheet: TradingSignalsSetupParams | undefined;
+  SocialTraderPreviewSheet: { traderId: string; positionId?: string };
 
   // Misc routes
   MoreTokenActionsMenu: MoreTokenActionsMenuParams;
@@ -1209,7 +1206,7 @@ export type RootStackParamList = {
   SampleFeature: undefined;
 
   // Card routes
-  CardScreens: NavigatorScreenParams<CardRootParamList> | undefined;
+  CardScreens: CardRootEntryParams | undefined;
   CardHome: CardScreensStackParamList['CardHome'];
   CardApplePaySplash: CardScreensStackParamList['CardApplePaySplash'];
   CardApplePayConfirmation: CardScreensStackParamList['CardApplePayConfirmation'];
@@ -1269,6 +1266,8 @@ export type RootStackParamList = {
 
   // Add asset routes
   AddAsset: AddAssetParams | undefined;
+  AddCustomToken: undefined;
+  HiddenTokens: undefined;
   ConfirmAddAsset: ConfirmAddAssetParams | undefined;
 
   // Asset detail stack routes (siblings of `Asset` inside `AssetStackFlow`)

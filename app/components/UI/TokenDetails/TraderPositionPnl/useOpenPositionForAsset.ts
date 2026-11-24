@@ -2,11 +2,13 @@ import { useCallback } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
+import type { CaipAssetType } from '@metamask/utils';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import {
   formatSocialQueryErrorMessage,
   useLogSocialQueryError,
 } from '../../../../util/social/socialServiceTelemetry';
+import { assetChainScope, isOpenPositionChain } from './openPositionWallet';
 import {
   getOpenPositionForAsset,
   TraderPositionHttpError,
@@ -40,12 +42,15 @@ const isMissingTrader = (error: unknown): boolean =>
   error instanceof TraderPositionHttpError &&
   (error.status === 404 || error.status === 403);
 
+const openPositionRouteId = (value: string | undefined): string => value ?? '';
+
 /**
  * One wallet's open position from `GET /api/v2/traders/{wallet}/{assetId}/open`.
  * `{assetId}` is the CAIP-19 id of the token on screen.
  * Polled on the same interval as `useTraderPosition` while the screen is focused.
  * 404 and 403 are "no ready position" (`null`), not an error. A different
  * wallet is tried once when the first address is not the one the caller holds.
+ * No request is sent for an asset on a chain the route does not serve.
  */
 export const useOpenPositionForAsset = (
   traderId: string | undefined,
@@ -54,15 +59,19 @@ export const useOpenPositionForAsset = (
 ): UseOpenPositionForAssetResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
   const isFocused = useIsFocused();
-  const enabled = Boolean(traderId && tokenAddress) && isUnlocked;
+  const servedChain = isOpenPositionChain(
+    assetChainScope(tokenAddress as CaipAssetType | undefined),
+  );
+  const enabled =
+    Boolean(traderId && tokenAddress) && isUnlocked && servedChain;
 
   const query = useQuery({
     queryKey: queryKey(traderId, tokenAddress, walletAddress),
     queryFn: async ({ signal }) => {
       try {
         return await getOpenPositionForAsset(
-          traderId ?? '',
-          tokenAddress ?? '',
+          openPositionRouteId(traderId),
+          openPositionRouteId(tokenAddress),
           signal,
         );
       } catch (error) {
@@ -74,7 +83,7 @@ export const useOpenPositionForAsset = (
           try {
             return await getOpenPositionForAsset(
               fallback,
-              tokenAddress ?? '',
+              openPositionRouteId(tokenAddress),
               signal,
             );
           } catch (retryError) {

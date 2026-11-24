@@ -36,6 +36,7 @@ import { getSignatureControllerMessenger } from './signature-controller-messenge
 import type { SamplePetnamesControllerMessenger } from '@metamask/sample-controllers';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
 import { getPredictControllerMessenger } from './predict-controller-messenger';
+import { getCollectiblesControllerMessenger } from './collectibles-controller-messenger';
 import {
   getPredictMarketDataServiceMessenger,
   getPredictMarketDataServiceInitMessenger,
@@ -55,6 +56,10 @@ import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
 } from './predict-order-service-messenger';
+import {
+  getPredictFundingServiceInitMessenger,
+  getPredictFundingServiceMessenger,
+} from './predict-funding-service-messenger';
 import { getPredictVenueControllerMessenger } from './predict-venue-controller-messenger';
 import {
   getPredictDeviceAuthServiceInitMessenger,
@@ -110,7 +115,10 @@ import {
   getRampsControllerInitMessenger,
 } from './ramps-controller-messenger';
 import { getRampsServiceMessenger } from './ramps-service-messenger';
-import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
+import {
+  getTransakServiceInitMessenger,
+  getTransakServiceMessenger,
+} from './transak-service-messenger/transak-service-messenger';
 import { getNeoBankServiceMessenger } from './neo-bank-service-messenger/neo-bank-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
 import { getNetworkConnectionBannerControllerMessenger } from './network-connection-banner-controller-messenger';
@@ -149,6 +157,7 @@ import {
   getChompApiServiceInitMessenger,
 } from './chomp-api-service-messenger';
 import { getMoneyAccountUpgradeControllerMessenger } from './money-account-upgrade-controller-messenger';
+import { getMoneyAccountLifecycleControllerMessenger } from './money-account-lifecycle-controller-messenger';
 
 /**
  * The messenger factories for the messenger clients that have been modularized.
@@ -300,6 +309,10 @@ export const MESSENGER_FACTORIES = {
     getMessenger: getPredictControllerMessenger,
     getInitMessenger: noop,
   },
+  CollectiblesController: {
+    getMessenger: getCollectiblesControllerMessenger,
+    getInitMessenger: noop,
+  },
   PredictMarketDataService: {
     getMessenger: getPredictMarketDataServiceMessenger,
     getInitMessenger: getPredictMarketDataServiceInitMessenger,
@@ -319,6 +332,10 @@ export const MESSENGER_FACTORIES = {
   PredictOrderService: {
     getMessenger: getPredictOrderServiceMessenger,
     getInitMessenger: getPredictOrderServiceInitMessenger,
+  },
+  PredictFundingService: {
+    getMessenger: getPredictFundingServiceMessenger,
+    getInitMessenger: getPredictFundingServiceInitMessenger,
   },
   PredictVenueController: {
     getMessenger: getPredictVenueControllerMessenger,
@@ -378,7 +395,7 @@ export const MESSENGER_FACTORIES = {
   },
   TransakService: {
     getMessenger: getTransakServiceMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getTransakServiceInitMessenger,
   },
   NeoBankService: {
     getMessenger: getNeoBankServiceMessenger,
@@ -498,6 +515,10 @@ export const MESSENGER_FACTORIES = {
   },
   MoneyAccountUpgradeController: {
     getMessenger: getMoneyAccountUpgradeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  MoneyAccountLifecycleController: {
+    getMessenger: getMoneyAccountLifecycleControllerMessenger,
     getInitMessenger: noop,
   },
 } as const;

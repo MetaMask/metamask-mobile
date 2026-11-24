@@ -1,5 +1,15 @@
 /* eslint-disable no-useless-escape */
 import { MockEventsObject } from '../../../framework';
+import { ACCOUNTS_SUPPORTED_NETWORKS_V2 } from '../synced/accounts-supported-networks-v2';
+import type {
+  AccountsActiveNetworksV2Response,
+  AccountsBalancesV2Response,
+  AccountsMultiaccountBalancesV4Response,
+  AccountsMultiaccountBalancesV5Response,
+  AccountsMultiaccountBalancesV6Response,
+  AccountsMultiaccountTransactionsV5Response,
+  AccountsSupportedNetworksV2Response,
+} from '../../api-response-types';
 export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   data: [
     {
@@ -1200,6 +1210,15 @@ export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   pageInfo: { hasNextPage: false, cursor: null, count: 34 },
 };
 
+export const ACCOUNTS_API_V5_TRANSACTIONS_URL =
+  /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/transactions(\?.*)?$/;
+
+export const ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE = {
+  data: [],
+  pageInfo: { count: 0, hasNextPage: false },
+  unprocessedAccounts: [],
+} satisfies AccountsMultiaccountTransactionsV5Response;
+
 export const ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE = {
   activeNetworks: [
     'eip155:1:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
@@ -1207,7 +1226,88 @@ export const ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE = {
     'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
     'eip155:8453:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
   ],
-};
+} satisfies AccountsActiveNetworksV2Response;
+
+export const ACCOUNTS_API_BALANCES_V2_RESPONSE = {
+  count: 3,
+  balances: [
+    {
+      object: 'token',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      type: 'native',
+      timestamp: '2015-07-30T15:26:13.000Z',
+      decimals: 18,
+      chainId: 1,
+      balance: '0.5',
+    },
+    {
+      object: 'token',
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      name: 'USD Coin',
+      type: 'erc20',
+      timestamp: '2018-05-28T00:00:00.000Z',
+      decimals: 6,
+      chainId: 1,
+      balance: '1000.0',
+    },
+    {
+      object: 'token',
+      address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+      symbol: 'DAI',
+      name: 'Dai Stablecoin',
+      type: 'erc20',
+      timestamp: '2017-12-18T00:00:00.000Z',
+      decimals: 18,
+      chainId: 1,
+      balance: '500.0',
+    },
+  ],
+  unprocessedNetworks: [],
+} satisfies AccountsBalancesV2Response;
+
+export const ACCOUNTS_API_BALANCES_V4_RESPONSE = {
+  count: 2,
+  balances: [
+    {
+      object: 'token',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      name: 'Ether',
+      type: 'native',
+      decimals: 18,
+      chainId: 1,
+      balance: '0.000000000000000000',
+      accountAddress: 'eip155:1:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    },
+    {
+      object: 'token',
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'MATIC',
+      name: 'MATIC',
+      type: 'native',
+      decimals: 18,
+      chainId: 137,
+      balance: '0.000000000000000000',
+      accountAddress: 'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+    },
+  ],
+  unprocessedNetworks: [1329],
+} satisfies AccountsMultiaccountBalancesV4Response;
+
+export const ACCOUNTS_API_BALANCES_V5_RESPONSE = {
+  count: 0,
+  balances: [],
+  unprocessedNetworks: [],
+} satisfies AccountsMultiaccountBalancesV5Response;
+
+export const ACCOUNTS_API_BALANCES_V6_RESPONSE = {
+  balances: [],
+  unprocessedNetworks: [],
+  unprocessedIncludeAssetIds: [],
+} satisfies AccountsMultiaccountBalancesV6Response;
 
 /**
  * Minimal mock data for accounts API endpoints used in E2E testing.
@@ -1241,6 +1341,11 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
       response: ACCOUNTS_API_TRANSACTIONS_RESPONSE,
     },
     {
+      urlEndpoint: ACCOUNTS_API_V5_TRANSACTIONS_URL,
+      responseCode: 200,
+      response: ACCOUNTS_API_V5_TRANSACTIONS_RESPONSE,
+    },
+    {
       urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
       responseCode: 200,
       response: {
@@ -1259,88 +1364,24 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           'eip155:999',
         ],
         partialSupport: ['eip155:42220', 'eip155:43114'],
-      },
+      } satisfies AccountsSupportedNetworksV2Response,
     },
     {
       urlEndpoint: 'https://accounts.api.cx.metamask.io/v2/supportedNetworks',
       responseCode: 200,
-      response: {
-        fullSupport: [
-          'eip155:1',
-          'eip155:137',
-          'eip155:56',
-          'eip155:59144',
-          'eip155:8453',
-          'eip155:10',
-          'eip155:42161',
-          'eip155:534352',
-          'eip155:1329',
-        ],
-        partialSupport: ['eip155:42220', 'eip155:43114'],
-      },
+      response: ACCOUNTS_SUPPORTED_NETWORKS_V2,
     },
     {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/supportedNetworks(\?.*)?$/,
       responseCode: 200,
-      response: {
-        fullSupport: [
-          'eip155:1',
-          'eip155:137',
-          'eip155:56',
-          'eip155:59144',
-          'eip155:8453',
-          'eip155:10',
-          'eip155:42161',
-          'eip155:534352',
-          'eip155:1329',
-        ],
-        partialSupport: ['eip155:42220', 'eip155:43114'],
-      },
+      response: ACCOUNTS_SUPPORTED_NETWORKS_V2,
     },
     {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^\/]+\/balances\?.*$/,
       responseCode: 200,
-      response: {
-        count: 3,
-        balances: [
-          {
-            object: 'token',
-            address: '0x0000000000000000000000000000000000000000',
-            symbol: 'ETH',
-            name: 'Ethereum',
-            type: 'native',
-            timestamp: '2015-07-30T15:26:13.000Z',
-            decimals: 18,
-            chainId: 1,
-            balance: '0.5',
-          },
-          {
-            object: 'token',
-            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            symbol: 'USDC',
-            name: 'USD Coin',
-            type: 'erc20',
-            timestamp: '2018-05-28T00:00:00.000Z',
-            decimals: 6,
-            chainId: 1,
-            balance: '1000.0',
-          },
-          {
-            object: 'token',
-            address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-            symbol: 'DAI',
-            name: 'Dai Stablecoin',
-            type: 'erc20',
-            timestamp: '2017-12-18T00:00:00.000Z',
-            decimals: 18,
-            chainId: 1,
-            balance: '500.0',
-          },
-        ],
-        unprocessedNetworks: [],
-      },
+      response: ACCOUNTS_API_BALANCES_V2_RESPONSE,
     },
     {
       urlEndpoint:
@@ -1362,66 +1403,25 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
           },
         ],
         unprocessedNetworks: [],
-      },
+      } satisfies AccountsBalancesV2Response,
     },
     {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances\?accountAddresses=.*$/,
       responseCode: 200,
-      response: {
-        balances: [
-          {
-            count: 2,
-            balances: [
-              {
-                object: 'token',
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                name: 'Ether',
-                type: 'native',
-                decimals: 18,
-                chainId: 1,
-                balance: '0.000000000000000000',
-                accountAddress:
-                  'eip155:1:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-              },
-              {
-                object: 'token',
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'MATIC',
-                name: 'MATIC',
-                type: 'native',
-                decimals: 18,
-                chainId: 137,
-                balance: '0.000000000000000000',
-                accountAddress:
-                  'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
-              },
-            ],
-            unprocessedNetworks: ['eip155:1329'],
-          },
-        ],
-      },
+      response: ACCOUNTS_API_BALANCES_V4_RESPONSE,
     },
     {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v5\/multiaccount\/balances\?.*$/,
       responseCode: 200,
-      response: {
-        count: 0,
-        balances: [],
-        unprocessedNetworks: [],
-      },
+      response: ACCOUNTS_API_BALANCES_V5_RESPONSE,
     },
     {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v6\/multiaccount\/balances\?.*$/,
       responseCode: 200,
-      response: {
-        count: 0,
-        balances: [],
-        unprocessedNetworks: [],
-      },
+      response: ACCOUNTS_API_BALANCES_V6_RESPONSE,
     },
     {
       urlEndpoint:

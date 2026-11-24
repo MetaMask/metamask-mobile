@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-deprecated -- Screen children are typed with react-test-renderer */
 import React from 'react';
 import MainNavigator from './MainNavigator';
+import { collectiblesRoutes } from '../../UI/Collectibles/routeNames';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import initialRootState from '../../../util/test/initial-root-state';
 import Routes from '../../../constants/navigation/Routes';
@@ -96,9 +97,9 @@ jest.mock(
   }),
 );
 
-// RewardsHome resolves the candidate subscription id for both the dashboard and
-// onboarding branches. Mock it so the regression test can assert the call
-// without exercising the real async fetch.
+// RewardsHome resolves the candidate subscription id before it opens a home.
+// Mock it so the regression test can assert the call without exercising the
+// real async fetch.
 const mockUseCandidateSubscriptionId = jest.fn();
 jest.mock('../../UI/Rewards/hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: () => mockUseCandidateSubscriptionId(),
@@ -131,6 +132,7 @@ jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
 
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
+const mockSelectCollectiblesEnabled = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
 const mockSelectMarketInsightsPerpsEnabled = jest.fn();
 
@@ -172,6 +174,12 @@ jest.mock(
       mockSelectPredictEnabledFlag(state),
   }),
 );
+
+jest.mock('../../UI/Collectibles/selectors/featureFlags', () => ({
+  ...jest.requireActual('../../UI/Collectibles/selectors/featureFlags'),
+  selectCollectiblesEnabled: (state: unknown) =>
+    mockSelectCollectiblesEnabled(state),
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');
@@ -215,8 +223,13 @@ jest.mock('../../UI/Money/components/MoneyTabPressTracker', () => ({
 }));
 
 const mockSelectMoneyEnableMoneyAccountFlag = jest.fn().mockReturnValue(false);
+const mockSelectIsMoneyEarningsHistoryEnabledFlag = jest
+  .fn()
+  .mockReturnValue(false);
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
   ...jest.requireActual('../../UI/Money/selectors/featureFlags'),
+  selectIsMoneyEarningsHistoryEnabledFlag: (state: unknown) =>
+    mockSelectIsMoneyEarningsHistoryEnabledFlag(state),
   selectMoneyEnableMoneyAccountFlag: (state: unknown) =>
     mockSelectMoneyEnableMoneyAccountFlag(state),
 }));
@@ -235,6 +248,7 @@ describe('MainNavigator', () => {
     jest.clearAllMocks();
     mockIsNativeTabBar = false;
     mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
+    mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(true);
     mockSelectIsMoneyAccountVisible.mockReturnValue(false);
   });
 
@@ -363,11 +377,10 @@ describe('MainNavigator', () => {
         (node: ReactTestInstance) =>
           node.type?.toString?.() === 'Screen' &&
           node.props?.name === Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-      )[0];
+      );
 
-      // Then every screen in the wallet tab stack, including pushed screens,
-      // inherits the themed content background (native-stack uses contentStyle)
-      // and the hidden header, so pushed screens need no options of their own.
+      // Then the wallet tab stack inherits the themed content background
+      // (native-stack uses contentStyle) and the hidden header.
       expect(stackNavigator?.props?.screenOptions).toEqual(
         expect.objectContaining({
           headerShown: false,
@@ -376,7 +389,7 @@ describe('MainNavigator', () => {
           },
         }),
       );
-      expect(revealPrivateCredentialScreen?.props?.options).toBeUndefined();
+      expect(revealPrivateCredentialScreen).toHaveLength(0);
     });
 
     it.each([
@@ -404,7 +417,7 @@ describe('MainNavigator', () => {
     });
 
     describe('Rewards tab bar visibility', () => {
-      // Only the three Rewards home screens live under the tab; every sub-page
+      // Only the Rewards home screens live under the tab; every sub-page
       // is pushed as REWARDS_FLOW on the root stack, which covers the tab
       // shell entirely. So the tab bar stays up for the whole tab.
       const buildRewardsState = (activeRouteName: string | undefined) => ({
@@ -425,7 +438,6 @@ describe('MainNavigator', () => {
       it.each([
         Routes.REWARDS_DASHBOARD,
         Routes.REWARDS_MONEY_DASHBOARD,
-        Routes.REWARDS_ONBOARDING_FLOW,
         undefined,
       ])('shows tab bar on the Rewards home screen %s', (activeRouteName) => {
         // Given HomeTabs is rendered with the Rewards tab active
@@ -644,6 +656,7 @@ describe('MainNavigator', () => {
           headerShown?: boolean;
           animation?: string;
           contentStyle?: unknown;
+          gestureEnabled?: boolean;
         };
       }
       return container.root
@@ -965,17 +978,46 @@ describe('MainNavigator', () => {
         Routes.MONEY.ROOT,
         Routes.MONEY.CONFIRMATIONS_ROOT,
         Routes.MONEY.POTENTIAL_EARNINGS,
+        Routes.MONEY.EARNINGS,
         Routes.MONEY.MUSD_RESCUE_SEND,
         Routes.MONEY.MUSD_RESCUE_RECIPIENT,
         Routes.MONEY.TRANSACTION_DETAILS,
         Routes.MONEY.CARD_TRANSACTION_DETAILS,
+        Routes.MONEY.ACCOUNT_STATUS,
       ]);
-      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.ONBOARDING);
       expect(groupedScreenNames(group)).not.toContain(
         Routes.MONEY.FIRST_TIME_DEPOSIT,
       );
       expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.MODALS.ROOT);
       expect(groupedScreenNames(group)).not.toContain(Routes.TRANSACTIONS_VIEW);
+    });
+
+    it('disables the back gesture on the Earnings chart screen', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+      const earningsScreen = getScreenProps(container).find(
+        ({ name }) => name === Routes.MONEY.EARNINGS,
+      );
+
+      expect(earningsScreen?.options).toEqual(
+        expect.objectContaining({ gestureEnabled: false }),
+      );
+    });
+
+    it('does not register the Earnings route when history is disabled', () => {
+      mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
+      mockSelectIsMoneyEarningsHistoryEnabledFlag.mockReturnValue(false);
+
+      const { root } = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const group = findGroupContaining(root, Routes.MONEY.ROOT);
+
+      expect(groupedScreenNames(group)).not.toContain(Routes.MONEY.EARNINGS);
     });
 
     it('registers one feature-level VBA onboarding route', () => {
@@ -1032,17 +1074,78 @@ describe('MainNavigator', () => {
       ]);
     });
 
-    it('includes Bridge routes', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
+    describe('Bridge routes', () => {
+      const resolveBridgeRootOptions = (
+        route: Record<string, unknown>,
+      ): Record<string, unknown> => {
+        const container = renderWithProvider(<MainNavigator />, {
+          state: initialRootState,
+        });
+        const bridgeScreen = getScreenProps(container).find(
+          (screen) => screen?.name === Routes.BRIDGE.ROOT,
+        );
+        const resolveOptions = bridgeScreen?.options as unknown as (args: {
+          route: Record<string, unknown>;
+        }) => Record<string, unknown>;
+
+        return resolveOptions({
+          route: { key: 'bridge-root', name: Routes.BRIDGE.ROOT, ...route },
+        });
+      };
+
+      it('slides the Bridge stack in from the right', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options).toMatchObject(slideFromRightNativeOptions);
+        expect(options).not.toHaveProperty('gestureEnabled');
       });
 
-      const screenProps = getScreenProps(container);
-      const bridgeScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.BRIDGE.ROOT,
+      it('enables the full screen back gesture before the Bridge stack renders', () => {
+        const options = resolveBridgeRootOptions({});
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it('enables the full screen back gesture while BridgeView is focused', () => {
+        const options = resolveBridgeRootOptions({
+          state: {
+            index: 0,
+            routes: [{ name: Routes.BRIDGE.BRIDGE_VIEW }],
+          },
+        });
+
+        expect(options.fullScreenGestureEnabled).toBe(true);
+      });
+
+      it.each([
+        Routes.BRIDGE.RECURRING_ORDER_DETAILS,
+        Routes.BRIDGE.RECURRING_SWAP_DETAILS,
+        Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+        Routes.BRIDGE.TOKEN_SELECTOR,
+      ])(
+        'leaves the back gesture to the Bridge stack while %s is pushed over BridgeView',
+        (nestedRouteName) => {
+          const options = resolveBridgeRootOptions({
+            state: {
+              index: 1,
+              routes: [
+                { name: Routes.BRIDGE.BRIDGE_VIEW },
+                { name: nestedRouteName },
+              ],
+            },
+          });
+
+          expect(options).not.toHaveProperty('fullScreenGestureEnabled');
+        },
       );
 
-      expect(bridgeScreen).toBeDefined();
+      it('leaves the back gesture to the platform default when a nested Bridge screen is opened directly', () => {
+        const options = resolveBridgeRootOptions({
+          params: { screen: Routes.BRIDGE.RECURRING_ORDER_DETAILS },
+        });
+
+        expect(options).not.toHaveProperty('fullScreenGestureEnabled');
+      });
     });
 
     it('includes Earn routes', () => {
@@ -1110,17 +1213,23 @@ describe('MainNavigator', () => {
       expect(settingsScreen).toBeDefined();
     });
 
-    it('includes QRTabSwitcher route', () => {
+    it('leaves QR, add-device, and private-credential reveal to AppFlow', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,
       });
 
-      const screenProps = getScreenProps(container);
-      const qrScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.QR_TAB_SWITCHER,
+      const screenNames = getScreenProps(container).map(
+        (screen) => screen.name,
       );
 
-      expect(qrScreen).toBeDefined();
+      expect(screenNames).not.toContain(Routes.QR_TAB_SWITCHER);
+      expect(screenNames).not.toContain(Routes.ONBOARDING.ADD_DEVICE_TO_WALLET);
+      expect(screenNames).not.toContain(
+        Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+      );
+      expect(screenNames).not.toContain(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      );
     });
 
     it('includes Notifications view route', () => {
@@ -1173,6 +1282,7 @@ describe('MainNavigator', () => {
     beforeEach(() => {
       mockSelectPerpsEnabledFlag.mockReturnValue(false);
       mockSelectPredictEnabledFlag.mockReturnValue(false);
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
       mockSelectMarketInsightsEnabled.mockReturnValue(false);
     });
 
@@ -1272,6 +1382,32 @@ describe('MainNavigator', () => {
       );
 
       expect(predictRootScreen).toBeUndefined();
+    });
+
+    it('includes the Collectibles route when its feature flag is enabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(true);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeDefined();
+    });
+
+    it('excludes the Collectibles route when its feature flag is disabled', () => {
+      mockSelectCollectiblesEnabled.mockReturnValue(false);
+
+      const container = renderWithProvider(<MainNavigator />, {
+        state: initialRootState,
+      });
+
+      const collectiblesScreen = getScreenProps(container).find(
+        (screen) => screen?.name === collectiblesRoutes.root,
+      );
+      expect(collectiblesScreen).toBeUndefined();
     });
 
     it('includes Market Insights view when feature flag is enabled', () => {
@@ -2444,11 +2580,10 @@ describe('MainNavigator', () => {
       });
 
       it('fetches the candidate subscription id at the Rewards tab entry point', () => {
-        // Regression: non-opted-in users only ever mount RewardsHome ->
-        // RewardsOnboardingNavigator (never RewardsDashboard / RewardsNavigator),
-        // so the candidate-subscription fetch must run here. Otherwise
-        // candidateSubscriptionId stays 'pending' and OnboardingMainStep shows a
-        // full-screen skeleton indefinitely.
+        // Regression: users who have not joined only mount RewardsHome, so the
+        // candidate-subscription fetch must run here. Otherwise
+        // candidateSubscriptionId stays 'pending' and the tab skeleton never
+        // clears.
         mockUseCandidateSubscriptionId.mockClear();
         const RewardsHome = getScreenComponent(
           homeTabsRoot,
@@ -2526,20 +2661,28 @@ describe('MainNavigator', () => {
           (node: ReactTestInstance) => node.type?.toString?.() === 'Navigator',
         )[0]?.props?.initialRouteName as string | undefined;
 
-      it('registers onboarding and dashboard in the Rewards tab stack', () => {
-        // Both routes stay registered so opt-in can push the dashboard with a
-        // native slide transition; initialRouteName picks the entry screen.
+      it('registers the two Rewards homes in the tab stack', () => {
         const screenNames = findRewardsHomeScreenNames('test-subscription-id');
 
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
-        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
       });
 
-      it('registers onboarding and dashboard when the user has no subscription', () => {
+      it('registers the same homes when the user has no subscription', () => {
         const screenNames = findRewardsHomeScreenNames(null);
 
-        expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
-        expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+        expect(screenNames).toEqual([
+          Routes.REWARDS_DASHBOARD,
+          Routes.REWARDS_MONEY_DASHBOARD,
+        ]);
+      });
+
+      it('opens the points dashboard when Money is off and the user has not joined', () => {
+        expect(findRewardsHomeInitialRouteName(null)).toBe(
+          Routes.REWARDS_DASHBOARD,
+        );
       });
 
       it('does not register rewards modal screens in the Rewards tab stack', () => {
@@ -2569,22 +2712,20 @@ describe('MainNavigator', () => {
         expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
         );
-        expect(screenNames).not.toContain(
-          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
-        );
       });
 
       describe('Rewards Money routing', () => {
-        it('registers the Money dashboard alongside onboarding and the points dashboard', () => {
+        it('registers the Money dashboard alongside the points dashboard', () => {
           const screenNames = findRewardsHomeScreenNames(null, {
             moneyEnabled: true,
             moneyReferralResolved: true,
             moneyPersona: 'plain',
           });
 
-          expect(screenNames).toContain(Routes.REWARDS_MONEY_DASHBOARD);
-          expect(screenNames).toContain(Routes.REWARDS_ONBOARDING_FLOW);
-          expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
+          expect(screenNames).toEqual([
+            Routes.REWARDS_DASHBOARD,
+            Routes.REWARDS_MONEY_DASHBOARD,
+          ]);
         });
 
         it.each<MoneyDashboardPersona>(['referrer', 'referee'])(
@@ -2641,9 +2782,8 @@ describe('MainNavigator', () => {
         });
 
         it('mounts no home screen while the Money persona is unresolved', () => {
-          // Neither onboarding nor the points dashboard may become active
-          // before the persona settles, or the tab flashes the wrong home and
-          // swaps under the user.
+          // Neither home may become active before the persona settles, or the
+          // tab flashes the wrong home and swaps under the user.
           const screenNames = findRewardsHomeScreenNames(null, {
             moneyEnabled: true,
             moneyReferralResolved: false,
@@ -2743,7 +2883,6 @@ describe('MainNavigator', () => {
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
             Routes.MODAL.REWARDS_SELECT_SHEET,
             Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-            Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           ]),
         );
       });
@@ -2785,7 +2924,6 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
           Routes.MODAL.REWARDS_SELECT_SHEET,
           Routes.MODAL.REWARDS_MONEY_INVITE_SHEET,
-          Routes.MODAL.REWARDS_MONEY_TERMS_SHEET,
           Routes.MODAL.REWARDS_TAX_QUESTION_SHEET,
           Routes.MODAL.REWARDS_TAX_OPEN_FORM_SHEET,
           Routes.MODAL.REWARDS_TAX_CONTACT_SHEET,
@@ -2861,7 +2999,7 @@ describe('MainNavigator', () => {
         expect(WalletView).toBeTruthy();
       });
 
-      it('renders RevealPrivateCredential inside WalletTabStackFlow', () => {
+      it('keeps RevealPrivateCredential off WalletTabStackFlow and SettingsFlow', () => {
         const { root: mainRoot } = renderWithProvider(<MainNavigator />, {
           state: initialRootState,
         });
@@ -2873,14 +3011,24 @@ describe('MainNavigator', () => {
           'TabScreen',
         );
         const { root: walletStackRoot } = renderInner(WalletTabStackFlow);
+        const SettingsFlow = getScreenComponent(mainRoot, Routes.SETTINGS_VIEW);
+        const { root: settingsRoot } = renderInner(SettingsFlow);
 
-        // RevealPrivateCredential is now a sibling screen inside WalletTabStackFlow
-        // (previously it was nested inside WalletModalFlow).
-        const RevealPrivateCredential = getScreenComponent(
-          walletStackRoot,
+        const screenNames = (root: ReactTestInstance) =>
+          root
+            .findAll(
+              (node: ReactTestInstance) =>
+                node.type?.toString?.() === 'Screen' &&
+                typeof node.props?.name === 'string',
+            )
+            .map((node) => node.props.name as string);
+
+        expect(screenNames(walletStackRoot)).not.toContain(
           Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
         );
-        expect(RevealPrivateCredential).toBeTruthy();
+        expect(screenNames(settingsRoot)).not.toContain(
+          Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        );
       });
 
       it('registers the asset detail screens directly under the Asset route', () => {

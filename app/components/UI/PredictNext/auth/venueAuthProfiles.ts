@@ -13,17 +13,13 @@ export interface VenueAuthenticationProfile {
     readonly keySlot: string;
   };
   readonly a2t: {
-    /** MetaMask Auth path. The host comes from the selected API env. */
+    /** Appended to the issuer base from `MM_API_ENV`, or `MM_PREDICT_A2T_URL` when set. */
     readonly tokenPath: string;
-    readonly requestTimeoutMs: number;
-    readonly readinessTimeoutMs: number;
-    readonly readinessPollMs: number;
-    readonly refreshMarginSeconds: number;
   };
 }
 
 /**
- * Bundled Kalshi authentication profile.
+ * Bundled authentication profile.
  *
  * The service consumes this declarative contract. Future remote configuration
  * may select its bundled id, but cannot replace the profile contents.
@@ -36,10 +32,6 @@ export const KALSHI_AUTHENTICATION_PROFILE: VenueAuthenticationProfile = {
   },
   a2t: {
     tokenPath: '/api/v2/kalshi/token',
-    requestTimeoutMs: 15_000,
-    readinessTimeoutMs: 15_000,
-    readinessPollMs: 200,
-    refreshMarginSeconds: 60,
   },
 };
 

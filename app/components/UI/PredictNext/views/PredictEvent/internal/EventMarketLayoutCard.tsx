@@ -37,7 +37,7 @@ const StandardCards = ({
   markets: readonly PredictMarket[];
   onOrder: EventMarketLayoutCardProps['onOrder'];
   onRulesPress: EventMarketLayoutCardProps['onRulesPress'];
-}) => (
+}): React.ReactElement => (
   <>
     {markets.map((market) => (
       <MarketStandardCard
@@ -59,7 +59,7 @@ const UnknownLineCards = ({
   markets: readonly PredictMarket[];
   onOrder: EventMarketLayoutCardProps['onOrder'];
   onRulesPress: EventMarketLayoutCardProps['onRulesPress'];
-}) => {
+}): React.ReactElement => {
   useEffect(() => {
     DevLogger.log(
       `[PredictNext] No card for marketType "${marketType}"; showing its lines as standard cards`,
@@ -117,7 +117,7 @@ const LabelledChoiceCard = ({
   title?: string;
   game?: PredictGame;
   onOrder: EventMarketLayoutCardProps['onOrder'];
-}) => {
+}): React.ReactElement => {
   const { colors } = useTheme();
   const teamColors = useGameTeamColors(game);
   const describeRow = useCallback(
@@ -137,98 +137,136 @@ const LabelledChoiceCard = ({
   return <ChoiceMarketGroupCard {...props} describeRow={describeRow} />;
 };
 
+/** Market types a line picker renders; any other type lists every line. */
+const LINE_PICKER_MARKET_TYPES: ReadonlySet<string> = new Set([
+  PREDICT_MARKET_TYPES.SPREAD,
+  PREDICT_MARKET_TYPES.TOTAL,
+  PREDICT_MARKET_TYPES.THRESHOLD,
+  PREDICT_MARKET_TYPES.TEAM_TOTAL,
+]);
+
+/**
+ * Market ids {@link EventMarketLayoutCard} prices for this card: the one
+ * Market of a standard card, every row of a choice card, the selected line of
+ * a line picker (its other lines show only their line value), and every line
+ * of a market type with no picker, which renders as standard cards.
+ */
+export const getLayoutCardMarketIds = (
+  card: MarketLayoutCard,
+  selectedMarketId?: PredictMarket['id'],
+): PredictMarket['id'][] => {
+  if (card.type === 'standard') {
+    return [card.market.id];
+  }
+  if (
+    card.type === 'choice' ||
+    !LINE_PICKER_MARKET_TYPES.has(card.marketType)
+  ) {
+    return card.markets.map((market) => market.id);
+  }
+  const selectedMarket =
+    card.markets.find((market) => market.id === selectedMarketId) ??
+    card.markets[0];
+  return selectedMarket ? [selectedMarket.id] : [];
+};
+
 /**
  * Renders one projected card with the component for its group's shape. Line
  * pickers have no title or rules button: the section header names them. A
  * threshold picker is the exception: it's titled with its label and line.
  */
-export const EventMarketLayoutCard = ({
-  card,
-  game,
-  selectedMarketId,
-  onSelectMarket,
-  onOrder,
-  onRulesPress,
-}: EventMarketLayoutCardProps) => {
-  if (card.type === 'standard') {
-    return (
-      <MarketStandardCard
-        market={card.market}
-        onOrder={onOrder}
-        onRulesPress={onRulesPress}
-      />
-    );
-  }
-
-  if (card.type === 'choice') {
-    const label = card.markets.find((market) => market.group?.label)?.group
-      ?.label;
-    if (label === undefined && !game) {
+export const EventMarketLayoutCard = React.memo(
+  ({
+    card,
+    game,
+    selectedMarketId,
+    onSelectMarket,
+    onOrder,
+    onRulesPress,
+  }: EventMarketLayoutCardProps): React.ReactElement => {
+    if (card.type === 'standard') {
       return (
-        <StandardCards
-          markets={card.markets}
+        <MarketStandardCard
+          market={card.market}
           onOrder={onOrder}
           onRulesPress={onRulesPress}
         />
       );
     }
-    if (label === undefined && game && isMoneyline(card.markets)) {
+
+    if (card.type === 'choice') {
+      const label = card.markets.find((market) => market.group?.label)?.group
+        ?.label;
+      if (label === undefined && !game) {
+        return (
+          <StandardCards
+            markets={card.markets}
+            onOrder={onOrder}
+            onRulesPress={onRulesPress}
+          />
+        );
+      }
+      if (label === undefined && game && isMoneyline(card.markets)) {
+        return (
+          <MoneylineMarketGroupCard
+            groupKey={card.key}
+            markets={card.markets}
+            game={game}
+            onOrder={onOrder}
+          />
+        );
+      }
       return (
-        <MoneylineMarketGroupCard
+        <LabelledChoiceCard
           groupKey={card.key}
           markets={card.markets}
+          title={label}
           game={game}
           onOrder={onOrder}
         />
       );
     }
-    return (
-      <LabelledChoiceCard
-        groupKey={card.key}
-        markets={card.markets}
-        title={label}
-        game={game}
-        onOrder={onOrder}
-      />
-    );
-  }
 
-  const selectedMarket =
-    card.markets.find((market) => market.id === selectedMarketId) ??
-    card.markets[0];
-  const groupProps = {
-    groupKey: card.key,
-    markets: card.markets,
-    selectedMarket,
-    onSelectMarket: (marketId: PredictMarket['id']) =>
-      onSelectMarket(card.key, marketId),
-    onOrder,
-  };
+    const selectedMarket =
+      card.markets.find((market) => market.id === selectedMarketId) ??
+      card.markets[0];
+    const groupProps = {
+      groupKey: card.key,
+      markets: card.markets,
+      selectedMarket,
+      onSelectMarket: (marketId: PredictMarket['id']): void =>
+        onSelectMarket(card.key, marketId),
+      onOrder,
+    };
 
-  switch (card.marketType) {
-    case PREDICT_MARKET_TYPES.SPREAD:
-      return <SpreadMarketGroupCard {...groupProps} game={game} />;
-    case PREDICT_MARKET_TYPES.TOTAL:
-      return <TotalMarketGroupCard {...groupProps} />;
-    case PREDICT_MARKET_TYPES.THRESHOLD:
-      return (
-        <ThresholdMarketGroupCard {...groupProps} onRulesPress={onRulesPress} />
-      );
-    case PREDICT_MARKET_TYPES.TEAM_TOTAL:
-      return (
-        <TotalMarketGroupCard
-          {...groupProps}
-          title={getTeamTotalTitle(card.markets, game)}
-        />
-      );
-    default:
-      return (
-        <UnknownLineCards
-          marketType={card.marketType}
-          markets={card.markets}
-          onOrder={onOrder}
-          onRulesPress={onRulesPress}
-        />
-      );
-  }
-};
+    switch (card.marketType) {
+      case PREDICT_MARKET_TYPES.SPREAD:
+        return <SpreadMarketGroupCard {...groupProps} game={game} />;
+      case PREDICT_MARKET_TYPES.TOTAL:
+        return <TotalMarketGroupCard {...groupProps} />;
+      case PREDICT_MARKET_TYPES.THRESHOLD:
+        return (
+          <ThresholdMarketGroupCard
+            {...groupProps}
+            onRulesPress={onRulesPress}
+          />
+        );
+      case PREDICT_MARKET_TYPES.TEAM_TOTAL:
+        return (
+          <TotalMarketGroupCard
+            {...groupProps}
+            title={getTeamTotalTitle(card.markets, game)}
+          />
+        );
+      default:
+        return (
+          <UnknownLineCards
+            marketType={card.marketType}
+            markets={card.markets}
+            onOrder={onOrder}
+            onRulesPress={onRulesPress}
+          />
+        );
+    }
+  },
+);

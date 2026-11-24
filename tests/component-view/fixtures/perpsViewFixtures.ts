@@ -18,6 +18,33 @@ export const createFundedAccountForViews = (balance: string): AccountState => ({
   returnOnEquity: '0',
 });
 
+/** Funded account whose cross summary the view tests can set per journey. */
+export const createCrossMarginAccountForViews = ({
+  balance = '1000',
+  accountValue = balance,
+  maintenanceMargin,
+  marginUsed,
+  notional,
+  spotCollateral = '0',
+}: {
+  balance?: string;
+  accountValue?: string;
+  maintenanceMargin: string;
+  marginUsed: string;
+  notional: string;
+  /** Spot USDC counted as cross collateral. `undefined` is not known yet. */
+  spotCollateral?: string;
+}): AccountState => ({
+  ...createFundedAccountForViews(balance),
+  spotCollateral,
+  crossMarginSummary: {
+    accountValue,
+    maintenanceMargin,
+    marginUsed,
+    notional,
+  },
+});
+
 const defaultEthMarketForViews: PerpsMarketData = {
   symbol: 'ETH',
   name: 'Ethereum',

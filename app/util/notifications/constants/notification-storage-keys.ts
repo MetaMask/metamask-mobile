@@ -47,16 +47,18 @@ export const setUserHasTurnedOffNotificationsOnce = async () => {
 };
 
 /**
- * Tracks whether this user has ever seen the push pre-prompt flow.
- * The flag is intentionally local and shared by both pre-prompt variants so a
- * user sees at most one pre-prompt on this install.
+ * Tracks a response to either pre-prompt variant, not an impression. An
+ * unanswered prompt stays eligible across app restarts.
+ *
+ * Keep the legacy storage key: older versions wrote it on display, and those
+ * installs must remain suppressed because their response cannot be recovered.
  */
-export const hasPushPrePromptBeenShown = () => {
+export const hasPushPrePromptBeenAnswered = () => {
   const localShown = storageWrapper.getItemSync(PUSH_PRE_PROMPT_SHOWN);
   return localShown === TRUE;
 };
 
-export const setPushPrePromptShown = async () => {
+export const setPushPrePromptAnswered = async () => {
   await storageWrapper.setItem(PUSH_PRE_PROMPT_SHOWN, TRUE);
 };
 

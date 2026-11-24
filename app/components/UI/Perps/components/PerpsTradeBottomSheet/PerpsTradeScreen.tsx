@@ -21,7 +21,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { OrderType } from '@metamask/perps-controller';
+import type { MarginMode, OrderType } from '@metamask/perps-controller';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,6 +29,9 @@ import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsMarginModeTag, {
+  getPerpsMarginModeLabel,
+} from '../PerpsMarginModeTag';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
 import PerpsDirectionButton from '../PerpsDirectionButton';
 import PerpsOICapWarning from '../PerpsOICapWarning';
@@ -77,6 +80,11 @@ interface PerpsTradeScreenProps {
   autoCloseText: string;
   showAutoClose: boolean;
   margin: string;
+  /**
+   * Margin mode of the order this sheet is placing. An open position locks
+   * the venue to that position's mode; a new lite order stays isolated.
+   */
+  marginMode: MarginMode | undefined;
   /** Formatted liquidation price, or a fallback when there is nothing to show. */
   liquidationPrice: string;
   /** Formatted distance from the entry price to liquidation (e.g. `30.05%`). */
@@ -289,6 +297,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   autoCloseText,
   showAutoClose,
   margin,
+  marginMode,
   liquidationPrice,
   liquidationDistance,
   amount,
@@ -342,6 +351,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   onSubmit,
 }) => {
   const { navigateTo, title, banner } = usePerpsTradeSheet();
+  const marginModeLabel = getPerpsMarginModeLabel(marginMode);
   const { denomination, setDenomination } = usePerpsSizeDenomination();
   // A USD amount typed before the price can project coin must stay in USD
   // until the keypad closes. Flipping to coin on the price tick would reseed
@@ -594,6 +604,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
               step={1}
               showPercentageLabels
               disabled={isAmountDisabled}
+              testID={PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER}
+              ignoreUntilLayout
+              layoutTestID={PerpsTradeSheetSelectorsIDs.AMOUNT_SLIDER_LAYOUT}
               accessibilityLabel={strings(
                 'perps.trade_sheet.amount_slider_accessibility_label',
               )}
@@ -720,14 +733,15 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   label={strings('perps.order.margin')}
                   accessibilityLabel={`${strings(
                     'perps.order.margin',
-                  )}, ${strings('perps.margin_mode.isolated_title')}, ${margin}. ${strings(
+                  )}, ${marginModeLabel}, ${margin}. ${strings(
                     'perps.trade_sheet.margin_info_accessibility_label',
                   )}`}
                   labelEndAccessory={
                     <>
-                      <Tag severity={TagSeverity.Neutral}>
-                        {strings('perps.margin_mode.isolated_title')}
-                      </Tag>
+                      <PerpsMarginModeTag
+                        marginMode={marginMode}
+                        testID={PerpsTradeSheetSelectorsIDs.MARGIN_MODE_TAG}
+                      />
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}

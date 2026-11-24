@@ -15,6 +15,7 @@ import {
   formatTradeUnitPrice,
   formatUsd,
 } from './formatters';
+import { getPerpPositionDirection, isPerpPosition } from './perp';
 import { isEntryAction } from './tradeAction';
 import { tradeTimestampToMs } from './tradeTimestamp';
 import { buildLivePriceSource } from '../live/buildLivePriceSource';
@@ -22,6 +23,7 @@ import { splitKlipyGifFromCommentText } from './klipyGifComment';
 import { readAuthorComment } from '../reactions';
 import { asFeedCardItem, toWholePercent } from './feedCardStats';
 import { readXHandle } from './xHandle';
+import { isProfileVerified } from './profileVerified';
 
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
@@ -95,14 +97,33 @@ export const deriveExitPrice = (core: Position): number | null => {
 };
 
 /**
- * Current unit price of an open position: what the remaining holdings are
- * worth over how many there are. `null` once the position is closed, or when
- * the row omitted its current value.
+ * A perp's `currentValueUSD` is equity (margin + unrealized P&L), not
+ * size × price, so its mark is backed out of the API's unrealized P&L on the
+ * leveraged size instead.
  */
-export const deriveCurrentPrice = (core: Position): number | null =>
-  isPresentNumber(core.currentValueUSD) && core.positionAmount > 0
+const derivePerpMarkPrice = (core: Position): number | null => {
+  const entryPrice = deriveAverageEntryPrice(core);
+  const size = Math.abs(core.positionAmountWithLeverage ?? core.positionAmount);
+  if (entryPrice == null || !(size > 0) || !isPresentNumber(core.pnlValueUsd)) {
+    return null;
+  }
+  const unrealizedUsd = core.pnlValueUsd - (core.realizedPnl ?? 0);
+  const direction = getPerpPositionDirection(core) === 'short' ? -1 : 1;
+  return entryPrice + (direction * unrealizedUsd) / size;
+};
+
+/**
+ * Current unit price of an open position. `null` once the position is closed,
+ * or when the row omitted the figures it is derived from.
+ */
+export const deriveCurrentPrice = (core: Position): number | null => {
+  if (isPerpPosition(core)) {
+    return derivePerpMarkPrice(core);
+  }
+  return isPresentNumber(core.currentValueUSD) && core.positionAmount > 0
     ? core.currentValueUSD / core.positionAmount
     : null;
+};
 
 /**
  * Market cap per unit of price, read off the latest fill that recorded both.
@@ -171,6 +192,29 @@ const deriveHoldDurationMs = (
   return span > 0 ? span : null;
 };
 
+/**
+ * When an open hold started. The card formats the elapsed time from this
+ * anchor, so a later page does not have to rebuild the post to keep it current.
+ */
+const deriveHoldStartedAtMs = (core: CoreFeedItem): number | undefined => {
+  const { firstTradeAt } = asFeedCardItem(core);
+
+  if (isPresentNumber(firstTradeAt)) {
+    const startedAtMs = tradeTimestampToMs(firstTradeAt);
+    return startedAtMs > 0 ? startedAtMs : undefined;
+  }
+
+  const timestamps = (core.trades ?? []).map((trade) =>
+    tradeTimestampToMs(trade.timestamp),
+  );
+  if (timestamps.length === 0) {
+    return undefined;
+  }
+
+  const first = Math.min(...timestamps);
+  return first > 0 ? first : undefined;
+};
+
 const toLeverageLabel = (item: {
   leverage: number | null;
 }): string | undefined =>
@@ -235,6 +279,7 @@ export function toSocialV1FeedItem(
     tradeCount30d: card.actor.tradeCount30d ?? null,
     followerCount: card.actor.followerCount ?? null,
     xHandle: readXHandle(card.actor.socialHandles),
+    verified: isProfileVerified(card.actor),
   };
 
   const authorComment = readAuthorComment(core);
@@ -295,6 +340,9 @@ export function toSocialV1FeedItem(
   );
   const holdTimeLabel =
     holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs);
+  const holdStartedAtMs = item.isClosed
+    ? undefined
+    : deriveHoldStartedAtMs(core);
 
   if (item.isClosed) {
     const exitPrice = deriveExitPrice(core);
@@ -343,6 +391,7 @@ export function toSocialV1FeedItem(
       entryPriceLabel,
       entryMarketCapLabel: toMarketCapLabel(marketCapPerPrice, entryPrice),
       holdTimeLabel,
+      ...(holdStartedAtMs != null ? { holdStartedAtMs } : {}),
       ...(live ? { live } : {}),
     };
   }
@@ -358,16 +407,7 @@ export function toSocialV1FeedItem(
       currentPrice == null ? undefined : formatTradeUnitPrice(currentPrice),
     entryPriceLabel,
     holdTimeLabel,
+    ...(holdStartedAtMs != null ? { holdStartedAtMs } : {}),
     ...(live ? { live } : {}),
   };
 }
-
-/** Maps a page of loaded rows, preserving order. */
-/**
- * Maps a page of loaded rows, preserving order. One `now` for the whole page so
- * every open position's hold time is measured against the same instant.
- */
-export const toSocialV1FeedItems = (
-  rows: TraderFeedRow[],
-  now: number = Date.now(),
-): SocialV1FeedItem[] => rows.map((row) => toSocialV1FeedItem(row, now));

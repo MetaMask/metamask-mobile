@@ -46,6 +46,8 @@ export interface TopTrader {
    * Absent or null hides the trust mark.
    */
   xHandle?: string | null;
+  /** Profile API verified this trader. Absent or false hides the badge. */
+  verified?: boolean;
 }
 
 /**
@@ -99,14 +101,9 @@ export interface TraderRowProps {
    */
   highlighted?: boolean;
   /**
-   * Social V1 only: leave the position column blank when the viewer's rank
-   * is unknown. The column keeps its width. Ignored by the legacy row.
+   * Social V1 only: the viewer's rank is unknown, so the position column shows
+   * "-" instead of a number. The column keeps its width. Ignored by the legacy
+   * row.
    */
   hideRank?: boolean;
 }
-
-/**
- * Network filter selection for the leaderboard.
- * null means "All networks".
- */
-export type NetworkFilterSelection = string | null;

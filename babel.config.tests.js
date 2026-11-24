@@ -34,6 +34,12 @@ const newOverrides = [
   // Don't transform environment variables for files that depend on them.
   {
     exclude: [
+      // The CV platform helper reads TEST_OS at module scope to scope tests to
+      // iOS/Android. If the inliner bakes it, jest's transform cache freezes
+      // whichever value was set during the first transform after a cache
+      // wipe, and later runs silently execute the wrong platform's tests no
+      // matter what TEST_OS they export.
+      'tests/component-view/platform.ts',
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
       'app/components/UI/Money/selectors/featureFlags.ts',
       'app/components/UI/Money/selectors/featureFlags.test.ts',
@@ -49,6 +55,8 @@ const newOverrides = [
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/components/UI/Perps/utils/lighterFeatureFlags.ts',
       'app/components/UI/Perps/Views/PerpsSelectProviderView/PerpsSelectProviderView.view.test.tsx',
+      'tests/component-view/helpers/perpsViewTestHelpers.ts',
+      'tests/component-view/presets/perpsTwoExchangePresets.test.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
       'app/util/test/utils.js',

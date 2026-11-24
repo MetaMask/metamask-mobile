@@ -60,8 +60,27 @@ const PERPS_PRO_MODE_FLAGS = {
   },
 };
 
-export const setupPerpsSmokeMocks = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(mockServer, PERPS_PRO_MODE_FLAGS);
+/**
+ * Serves the Perps screen-vs-bottom-sheet experiment as `treatment`, so order
+ * entry opens the PerpsTradeScreen bottom sheet instead of the full page.
+ */
+export const PERPS_TRADE_SHEET_FLAGS = {
+  perpsTAT3938AbtestScreenVsBottomSheet: [
+    {
+      name: 'treatment',
+      scope: { type: 'percentage_rollout', value: 1.0 },
+    },
+  ],
+};
+
+export const setupPerpsSmokeMocks = async (
+  mockServer: Mockttp,
+  extraFlags: Record<string, unknown> = {},
+) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    ...PERPS_PRO_MODE_FLAGS,
+    ...extraFlags,
+  });
   await PERPS_ARBITRUM_MOCKS(mockServer);
   await mockPerpsGeolocation(mockServer, RampsRegions[RampsRegionsEnum.SPAIN]);
 };

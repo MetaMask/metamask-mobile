@@ -1,9 +1,14 @@
 import type { P256DevicePublicMaterial } from './p256DeviceKey';
 import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
+export const A2T_REQUEST_TIMEOUT_MS = 15_000;
+export const A2T_READINESS_TIMEOUT_MS = 15_000;
+export const A2T_READINESS_POLL_MS = 200;
+export const A2T_REFRESH_MARGIN_SECONDS = 60;
+
 export interface A2tSessionDependencies {
   profile: VenueAuthenticationProfile;
-  /** Undefined when this build has no auth URL. Issuance is skipped. */
+  /** Issuer base. Undefined when this build has no issuer. Issuance is skipped. */
   getIssuerUrl: () => string | undefined;
   getAccessToken: () => Promise<string>;
   /** Canonical MetaMask profile id for the primary SRP. */
@@ -40,6 +45,11 @@ interface A2tIssued {
   expiresIn: number;
 }
 
+interface A2tTokenRequest {
+  device_public_key: string;
+  salt: string;
+}
+
 class A2tHttpError extends Error {
   readonly status: number;
 
@@ -61,10 +71,6 @@ export class A2tSessionClearedError extends Error {
 export const isA2tSessionCleared = (error: unknown): boolean =>
   error instanceof A2tSessionClearedError;
 
-/**
- * MetaMask Auth answers `{ access_token, expires_in, token_type: "bearer" }`.
- * `access_token` is the opaque A2T.
- */
 const parseIssued = (value: unknown): A2tIssued => {
   if (typeof value !== 'object' || value === null) {
     throw new Error('A2T response was empty');
@@ -74,24 +80,21 @@ const parseIssued = (value: unknown): A2tIssued => {
     expires_in?: unknown;
     token_type?: unknown;
   };
-  if (typeof body.access_token !== 'string' || body.access_token.length === 0) {
-    throw new Error('A2T response was malformed');
-  }
-  if (body.token_type !== 'bearer') {
-    throw new Error('A2T response was malformed');
-  }
   if (
+    typeof body.access_token !== 'string' ||
+    body.access_token.length === 0 ||
+    String(body.token_type).toLowerCase() !== 'bearer' ||
     typeof body.expires_in !== 'number' ||
     !Number.isFinite(body.expires_in) ||
     body.expires_in <= 0
   ) {
-    throw new Error('A2T response lifetime was malformed');
+    throw new Error('A2T response was malformed');
   }
 
   return { a2t: body.access_token, expiresIn: body.expires_in };
 };
 
-/** Accepts an opaque A2T for the lifetime returned by MetaMask Auth. */
+/** Accepts an opaque A2T for the lifetime returned by the issuer. */
 const acceptIssued = (
   value: unknown,
   receivedAtSec: number,
@@ -106,10 +109,10 @@ const acceptIssued = (
 
 /**
  * One in-memory A2T session. `ensureA2T` waits until the MetaMask access
- * token and the Kalshi device key are available, then asks MetaMask Auth
- * for a token. Concurrent callers share one flight. The token stays here
- * until shortly before `expires_in` elapses, measured from when the
- * response arrived. It is not written to Redux or component state.
+ * token and the device key are available, then posts both the public
+ * key and the salt once. Concurrent callers share one flight. The token
+ * stays here until shortly before `expires_in` elapses, measured from when
+ * the response arrived. It is not written to Redux or component state.
  */
 export class A2tSession {
   readonly #deps: A2tSessionDependencies;
@@ -122,8 +125,8 @@ export class A2tSession {
   }
 
   /**
-   * Returns a cached A2T, or requests one. A build with no auth URL
-   * resolves to undefined and does not start a request.
+   * Returns a cached A2T, or requests one from MetaMask Auth.
+   * A build with no token URL resolves to undefined and does not start one.
    */
   ensureA2T(): Promise<string | undefined> {
     const fresh = this.#readFresh(
@@ -183,8 +186,7 @@ export class A2tSession {
   }
 
   async #waitUntilReady(generation: number): Promise<ReadyA2t> {
-    const deadline =
-      this.#deps.nowMs() + this.#deps.profile.a2t.readinessTimeoutMs;
+    const deadline = this.#deps.nowMs() + A2T_READINESS_TIMEOUT_MS;
     let lastError: unknown;
     let accessToken = '';
 
@@ -220,13 +222,10 @@ export class A2tSession {
         lastError = error;
       }
 
-      if (
-        this.#deps.nowMs() + this.#deps.profile.a2t.readinessPollMs >
-        deadline
-      ) {
+      if (this.#deps.nowMs() + A2T_READINESS_POLL_MS > deadline) {
         throwNotReady();
       }
-      await this.#deps.sleep(this.#deps.profile.a2t.readinessPollMs);
+      await this.#deps.sleep(A2T_READINESS_POLL_MS);
       return poll();
     };
 
@@ -239,17 +238,16 @@ export class A2tSession {
     generation: number,
   ): Promise<string> {
     this.#assertCurrent(generation);
-    const payload = await this.#postJson(
-      issuerUrl,
-      this.#deps.profile.a2t.tokenPath,
+    const payload = await this.#postToken(
+      `${issuerUrl}${this.#deps.profile.a2t.tokenPath}`,
       ready.accessToken,
       {
         device_public_key: ready.device.publicKey,
         salt: ready.device.salt,
       },
     );
-    const issued = acceptIssued(payload, this.#deps.now());
     this.#assertCurrent(generation);
+    const issued = acceptIssued(payload, this.#deps.now());
     this.#cached = {
       a2t: issued.a2t,
       expiresAt: issued.expiresAt,
@@ -259,13 +257,12 @@ export class A2tSession {
     return issued.a2t;
   }
 
-  async #postJson(
-    issuerUrl: string,
-    path: string,
+  async #postToken(
+    tokenUrl: string,
     accessToken: string,
-    body: unknown,
+    body: A2tTokenRequest,
   ): Promise<unknown> {
-    const response = await this.#deps.fetch(`${issuerUrl}${path}`, {
+    const response = await this.#deps.fetch(tokenUrl, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -273,7 +270,7 @@ export class A2tSession {
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(this.#deps.profile.a2t.requestTimeoutMs),
+      signal: AbortSignal.timeout(A2T_REQUEST_TIMEOUT_MS),
     });
 
     const payload: unknown = await response.json().catch(() => undefined);
@@ -297,10 +294,7 @@ export class A2tSession {
     ) {
       return undefined;
     }
-    if (
-      cached.expiresAt - this.#deps.now() <=
-      this.#deps.profile.a2t.refreshMarginSeconds
-    ) {
+    if (cached.expiresAt - this.#deps.now() <= A2T_REFRESH_MARGIN_SECONDS) {
       return undefined;
     }
     return cached.a2t;

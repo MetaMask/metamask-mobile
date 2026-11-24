@@ -14,10 +14,6 @@ describe('KALSHI_AUTHENTICATION_PROFILE', () => {
       },
       a2t: {
         tokenPath: '/api/v2/kalshi/token',
-        requestTimeoutMs: 15_000,
-        readinessTimeoutMs: 15_000,
-        readinessPollMs: 200,
-        refreshMarginSeconds: 60,
       },
     });
   });

@@ -258,7 +258,6 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;
   RewardsMoneyInviteSheet: RewardsMoneyInviteSheetParams | undefined;
-  RewardsMoneyTermsSheet: undefined;
   RewardsTaxQuestionSheet: TaxFormQuestionSheetParams;
   RewardsTaxOpenFormSheet: TaxFormOpenFormSheetParams;
   RewardsTaxContactSheet: TaxFormContactUsSheetParams;

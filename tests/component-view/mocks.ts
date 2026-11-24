@@ -226,6 +226,15 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
         getSessionProfile: jest.fn().mockResolvedValue(undefined),
+        // Real MFA kit (`useMfa` → AuthenticationController). Defaults match a
+        // profile with no credential and no verification session.
+        refreshEnrolledCredentials: jest.fn().mockResolvedValue([]),
+        beginCredentialEnrollment: jest.fn(),
+        completeCredentialEnrollment: jest.fn(),
+        beginCredentialVerification: jest.fn(),
+        completeCredentialVerification: jest.fn(),
+        getVerificationToken: jest.fn().mockReturnValue(null),
+        clearVerificationSession: jest.fn(),
       },
       ProfileController: {
         state: {
@@ -282,6 +291,9 @@ jest.mock('../../app/core/Engine', () => {
         fetchAndUpdateXAccount: jest.fn().mockResolvedValue(undefined),
         disconnectX: jest.fn().mockResolvedValue(undefined),
       },
+      ProfileService: {
+        checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
+      },
       GeolocationController: {
         state: {
           location: 'US',
@@ -290,6 +302,10 @@ jest.mock('../../app/core/Engine', () => {
       },
       KycService: {
         getGeoCountry: jest.fn().mockResolvedValue('BR'),
+        // Fired, fire-and-forget, once the vendor-terms screen's initial
+        // disclaimers request settles (CreateVirtualBankAccount).
+        fetchIdosEnclaveJwks: jest.fn().mockResolvedValue({ keys: [] }),
+        fetchIdosRelayJwks: jest.fn().mockResolvedValue({ keys: [] }),
       },
       KycController: {
         readSessionStatus: jest.fn().mockReturnValue(null),
@@ -297,11 +313,22 @@ jest.mock('../../app/core/Engine', () => {
         // Null is a first-time user; tests that resume a session override this.
         getSessionStatusForVendor: jest.fn().mockResolvedValue(null),
         startSession: jest.fn().mockResolvedValue(undefined),
+        reset: jest.fn().mockResolvedValue(undefined),
         fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
         recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
         // Fired, fire-and-forget, once the vendor-terms screen's initial
         // disclaimers request settles (CreateVirtualBankAccount).
         ensureLocalUserSecret: jest.fn().mockResolvedValue(undefined),
+        // Identity verification records session consents, then launches SumSub.
+        fetchSessionDisclaimers: jest.fn().mockResolvedValue({
+          idOS: [],
+          kycProvider: [],
+        }),
+        recordSessionDisclaimers: jest.fn().mockResolvedValue(undefined),
+        // Presents SumSub. Continue on the KYC retry home card must not call it.
+        launchProviderFlow: jest.fn().mockResolvedValue('abandoned'),
+        refreshSessionStatus: jest.fn(),
+        deleteEncryptedStorage: jest.fn().mockResolvedValue(undefined),
       },
       // Kalshi surfaces ask kyc-api for the step when they appear. The answer
       // lives in Redux; this call only refreshes it.
@@ -313,6 +340,15 @@ jest.mock('../../app/core/Engine', () => {
         state: {
           accessToken: undefined,
         },
+        // OAuthService.getValidAccessToken() (marketing opt-in sync and other
+        // auth-server calls) reads the token through this method. CV tests
+        // seed `state.accessToken` (SEEDLESS_CV_ACCESS_TOKEN) the same way
+        // they sync Redux backgroundState.
+        getAccessToken: jest.fn(async function (this: {
+          state?: { accessToken?: string };
+        }) {
+          return this?.state?.accessToken;
+        }),
       },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
@@ -365,6 +401,7 @@ jest.mock('../../app/core/Engine', () => {
         setSelectedToken: jest.fn(),
         setSelectedProvider: jest.fn(),
         setSelectedProviderForAsset: jest.fn().mockReturnValue(false),
+        selectProviderForAsset: jest.fn().mockReturnValue(null),
         setSelectedPaymentMethod: jest.fn(),
         setUserRegion: jest.fn().mockResolvedValue(null),
         // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
@@ -676,6 +713,7 @@ jest.mock('../../app/core/Engine', () => {
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
         saveOrderBookGrouping: jest.fn(),
+        saveMarginMode: jest.fn(),
         getWithdrawalRoutes: jest.fn(() => [
           {
             assetId: 'usdc-mainnet',
@@ -697,11 +735,13 @@ jest.mock('../../app/core/Engine', () => {
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
       call: jest.fn((action: string, ...args: unknown[]) => {
+        if (action === 'MoneyAccountApiDataService:fetchVaults') {
+          return Promise.resolve({
+            vaults: [{ vault_key: 'standard', current_apy: '0.042' }],
+          });
+        }
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
-        if (action === 'MoneyAccountBalanceService:getVaultApy') {
-          return Promise.resolve({ apy: '0.042' });
-        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'

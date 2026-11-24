@@ -17,8 +17,10 @@ import nock from 'nock';
 import {
   clearAllNockMocks,
   disableNetConnect,
+  nockRequestUri,
   teardownNock,
 } from './nockHelpers';
+import { installDefaultApiMocks } from './defaults';
 import { clearSitesCache } from '../../../app/components/UI/Sites/hooks/useSiteData/useSitesData';
 
 export interface MockTrendingToken {
@@ -163,7 +165,7 @@ export function setupTrendingApiFetchMock(
   nock(TRENDING_ORIGIN)
     .get(TRENDING_PATH)
     .query(true)
-    .reply(200, (uri: string) => replyBody(uri))
+    .reply(200, (request: Request) => replyBody(nockRequestUri(request)))
     .persist();
 
   nock(TRENDING_ORIGIN)
@@ -207,6 +209,8 @@ export function setupTrendingApiFetchMock(
       pageInfo: { nextCursor: null, hasNextPage: false },
     })
     .persist();
+
+  installDefaultApiMocks();
 }
 
 /**

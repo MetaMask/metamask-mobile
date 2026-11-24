@@ -103,7 +103,9 @@ const ProfilesToFollowView: React.FC = () => {
         subtitle={formatFollowerCountLabel(item.followerCount)}
         address={item.address}
         avatarUri={item.avatarUri}
+        isVerified={item.verified}
         isFollowing={item.isFollowing}
+        followVariant={ButtonVariant.Secondary}
         onFollowPress={() => {
           handleFollowPress(item).catch(() => undefined);
         }}

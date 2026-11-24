@@ -1,6 +1,7 @@
 /* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';
+import { Platform } from 'react-native';
 import {
   updateId,
   manifest,
@@ -15,12 +16,17 @@ import { Performance } from '../../core/Performance';
 import Device from '../device';
 import { TraceName, hasMetricsConsent } from '../trace';
 import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
+import {
+  installStandaloneOutgoingFetchSpan,
+  registerOutgoingRequestAnnotation,
+} from './outgoingRequestContext';
 import { getTraceTags } from './tags';
 import {
   groupDiskSpaceSentryReport,
   isDiskSpaceSentryReport,
 } from './diskSpaceSentry';
 import { ReduxStore } from '../../core/redux';
+import { selectSentryTransactionSampleRates } from '../../selectors/featureFlagController/sentry';
 import { OTA_VERSION } from '../../constants/ota';
 
 /**
@@ -662,6 +668,26 @@ export function getNavIntegration(): ReturnType<
   return _navIntegration;
 }
 
+/**
+ * Remote `sentry.transactionSampleRates[name][Platform.OS]` rate for a root
+ * transaction (setting one changes Sentry volume and cost). Undefined until
+ * the store has loaded flags, or once the entry's `expiresAt` has passed;
+ * the sampler must not throw.
+ */
+function getRemoteTraceSampleRate(name: string): number | undefined {
+  try {
+    const entry = selectSentryTransactionSampleRates(store.getState())[name];
+    if (!entry || entry.expiresAt <= Date.now()) {
+      return undefined;
+    }
+    return Platform.OS === 'android' || Platform.OS === 'ios'
+      ? entry[Platform.OS]
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 // Setup sentry remote error reporting
 export async function setupSentry(
   forceEnabled: boolean = false,
@@ -679,13 +705,13 @@ export async function setupSentry(
     // Ensure consent cache is populated early
     const hasConsent = await hasMetricsConsent();
 
-    // reactNativeTracingIntegration is intentionally omitted here: getDefaultIntegrations()
-    // already pushes it whenever tracesSampleRate is set and enableAutoPerformanceTracing
-    // is true (both hold for this config). Adding it explicitly would be a no-op after
-    // the SDK's name-deduplication pass.
+    // Replaces the default ReactNativeTracing integration. traceFetch wraps
+    // global.fetch, which this app has already replaced with nitro-fetch.
+    // The default leaves fetch tracing off and only instruments XHR.
     const integrations = [
       Sentry.dedupeIntegration(),
       Sentry.extraErrorDataIntegration(),
+      Sentry.reactNativeTracingIntegration({ traceFetch: true }),
       getNavIntegration(),
     ];
     const environment = deriveSentryEnvironment(
@@ -694,13 +720,26 @@ export async function setupSentry(
       METAMASK_BUILD_TYPE,
     );
 
+    // Dev and E2E/exp builds send every transaction to Sentry.
+    const isFullSampling = isDev || isE2EOrExpEnvironment;
+    const tracesSampleRate = isFullSampling ? 1.0 : 0.03;
+
     Sentry.init({
       dsn,
       debug: isDev && process.env.SENTRY_DEBUG_DEV !== 'false',
       environment,
       integrations: integrations as Sentry.ReactNativeOptions['integrations'],
-      // Set tracesSampleRate to 1.0, as that ensures that every transaction will be sent to Sentry for development builds.
-      tracesSampleRate: isDev || isE2EOrExpEnvironment ? 1.0 : 0.03,
+      tracesSampleRate,
+      // Takes precedence over tracesSampleRate. A per-name rate pins
+      // regardless of the parent; otherwise this reproduces the SDK default.
+      tracesSampler: ({ name, parentSampled }) => {
+        if (isFullSampling) {
+          return 1;
+        }
+        return (
+          getRemoteTraceSampleRate(name) ?? parentSampled ?? tracesSampleRate
+        );
+      },
       profilesSampleRate: 1.0,
       beforeSend: (report) => {
         const rewritten = rewriteReport(report as SentryEvent);
@@ -717,6 +756,8 @@ export async function setupSentry(
         return filtered as typeof event;
       },
       enabled: forceEnabled || hasConsent,
+      // Local sidecar only. Opt in with SENTRY_SPOTLIGHT=true and __DEV__ is true
+      spotlight: isDev && process.env.SENTRY_SPOTLIGHT === 'true',
       // Use tracePropagationTargets from v5 SDK as default
       tracePropagationTargets: ['localhost', /^\/(?!\/)/],
       _experiments: {
@@ -726,6 +767,16 @@ export async function setupSentry(
         enableStandaloneAppStartTracing: true,
       },
     });
+
+    // Route and connection type are captured here, at request start.
+    // beforeSendSpan runs when the span is sent, after the parent has ended,
+    // so it would record a later screen.
+    const client = Sentry.getClient();
+    if (client && typeof client.on === 'function') {
+      registerOutgoingRequestAnnotation(client);
+    }
+    // Fetch spans created above are still dropped unless a parent is active.
+    installStandaloneOutgoingFetchSpan();
 
     beginNavigationInitializationAppStart();
 

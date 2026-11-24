@@ -13,7 +13,6 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
-  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -71,7 +70,6 @@ if (
 const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   hasInsufficientBalance,
   location,
-  isGaslessSwapRedesignTreatment = false,
   gaslessFeeAsset,
 }) => {
   const tw = useTailwind();
@@ -173,6 +171,9 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
   const shouldShowPriceImpactRow =
     activeQuote?.quote.priceData?.priceImpact?.amount != null;
 
+  // Hide recipient row to prevent changing the recipient money account
+  const shouldShowRecipientRow = !destToken?.isMoneyToken;
+
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -244,8 +245,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                     'bridge.network_fee_info_content_sponsored',
                     { nativeToken: nativeTokenName },
                   )}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Medium}
                 />
               ),
             }}
@@ -268,7 +267,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               ),
             }}
           />
-        ) : isGasless && isGaslessSwapRedesignTreatment ? (
+        ) : isGasless ? (
           <KeyValueRow
             field={{
               label: (
@@ -287,6 +286,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
                   gap={1}
+                  testID={BridgeViewSelectorsIDs.GASLESS_NETWORK_FEE}
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -322,35 +322,6 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               ),
             }}
           />
-        ) : isGasless ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {toSentenceCase(strings('bridge.network_fee'))}
-            </Text>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={2}
-            >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                style={styles.strikethroughText}
-              >
-                {formattedQuoteData.networkFee}
-              </Text>
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-                {strings('bridge.included')}
-              </Text>
-            </Box>
-          </Box>
         ) : (
           <KeyValueRow
             field={{
@@ -496,7 +467,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
           />
         )}
 
-        <QuoteDetailsRecipientKeyValueRow />
+        {shouldShowRecipientRow && <QuoteDetailsRecipientKeyValueRow />}
 
         {/* Estimated Points */}
         {shouldShowRewardsRow && (

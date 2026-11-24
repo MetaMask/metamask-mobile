@@ -7,12 +7,7 @@ import {
   parseSocialNotificationDeeplinkParams,
   trackSocialNotificationClick,
 } from './socialNotificationDeeplink';
-import {
-  fetchSocialPosition,
-  resolveSocialPositionAuthor,
-} from './socialPositionSheetDeeplink';
-
-const LOG_PREFIX = '[handleSocialPostUrl]';
+import { resolveSharedSocialPosition } from './socialPositionSheetDeeplink';
 
 interface HandleSocialPostUrlParams {
   actionPath: string;
@@ -30,17 +25,17 @@ const openCopiedPost = async (
   positionId: string,
   traderId: string,
 ): Promise<void> => {
-  const position = await fetchSocialPosition(positionId, LOG_PREFIX);
+  const shared = await resolveSharedSocialPosition(positionId, traderId);
 
-  if (!position) {
+  if (!shared) {
     navigateToOwnProfile();
     return;
   }
 
   NavigationService.navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
     positionId,
-    position,
-    author: await resolveSocialPositionAuthor(traderId, LOG_PREFIX),
+    position: shared.position,
+    author: shared.author,
   });
 };
 
@@ -82,22 +77,31 @@ export const handleSocialPostUrl = ({
       deduplicationId,
     });
 
-    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+    const openPost = () => {
+      if (!positionId || !traderId) {
+        DevLogger.log(
+          '[handleSocialPostUrl] Missing positionId or traderId, falling back to the profile',
+        );
+        navigateToOwnProfile();
+        return;
+      }
+
+      openCopiedPost(positionId, traderId).catch((error) => {
+        DevLogger.log('[handleSocialPostUrl] Failed to open the post:', error);
+        navigateToOwnProfile();
+      });
+    };
+
+    if (
+      !ensureSocialTermsAccepted(
+        NavigationService.navigation.navigate,
+        openPost,
+      )
+    ) {
       return;
     }
 
-    if (!positionId || !traderId) {
-      DevLogger.log(
-        '[handleSocialPostUrl] Missing positionId or traderId, falling back to the profile',
-      );
-      navigateToOwnProfile();
-      return;
-    }
-
-    openCopiedPost(positionId, traderId).catch((error) => {
-      DevLogger.log('[handleSocialPostUrl] Failed to open the post:', error);
-      navigateToOwnProfile();
-    });
+    openPost();
   } catch (error) {
     DevLogger.log('[handleSocialPostUrl] Failed to handle deeplink:', error);
     navigateToOwnProfile();

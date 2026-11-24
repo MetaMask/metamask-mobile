@@ -10,7 +10,15 @@ import type { SharedValue } from 'react-native-reanimated';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
 import type { PositionSheetMarker } from '../hooks/usePositionSheetData';
-import PositionSheetChart from './PositionSheetChart';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
+import { mockTheme } from '../../../../../util/theme';
+import PositionSheetChart, { SCRUB_LONG_PRESS_MS } from './PositionSheetChart';
+
+jest.mock('../../../../../util/haptics');
 
 const PRICES: TokenPrice[] = [
   ['1', 100],
@@ -78,6 +86,38 @@ describe('PositionSheetChart', () => {
         ).props.style,
       ).borderWidth,
     ).toBeUndefined();
+
+    const markerStyle = StyleSheet.flatten(
+      screen.getByTestId(
+        `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-${MARKER.id}`,
+      ).props.style,
+    ) as ViewStyle;
+    const outlineStyle = StyleSheet.flatten(
+      screen.getByTestId(
+        `${PositionDetailsSheetSelectorsIDs.CHART_MARKER}-outline-${MARKER.id}`,
+      ).props.style,
+    ) as ViewStyle;
+
+    expect(outlineStyle.width).toBe(20);
+    expect(outlineStyle.height).toBe(20);
+    expect(outlineStyle.backgroundColor).toBe(
+      mockTheme.colors.background.elevated1,
+    );
+    expect(outlineStyle.left).toBe(Number(markerStyle.left) - 2);
+    expect(outlineStyle.top).toBe(Number(markerStyle.top) - 2);
+  });
+
+  it('shows a retry instead of the skeleton when prices fail', () => {
+    const onRetry = jest.fn();
+    renderChart({ isLoading: true, isError: true, onRetry });
+
+    expect(
+      screen.queryByTestId(PositionDetailsSheetSelectorsIDs.CHART_LOADING),
+    ).toBeNull();
+    fireEvent.press(
+      screen.getByTestId(PositionDetailsSheetSelectorsIDs.CHART_RETRY),
+    );
+    expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
   it('shows the skeleton while prices load', () => {
@@ -112,6 +152,34 @@ describe('PositionSheetChart', () => {
     expect(onScrub).toHaveBeenCalledWith(PRICES[1]);
     expect(onScrub).toHaveBeenCalledWith(PRICES[2]);
     expect(onScrub).toHaveBeenLastCalledWith(null);
+  });
+
+  it('starts scrubbing only after a brief long press', () => {
+    renderChart();
+
+    const gesture = getByGestureTestId(
+      PositionDetailsSheetSelectorsIDs.CHART_SCRUB,
+    );
+
+    expect(gesture.config.activateAfterLongPress).toBe(SCRUB_LONG_PRESS_MS);
+    expect(SCRUB_LONG_PRESS_MS).toBe(200);
+  });
+
+  it('taps once when scrubbing starts and ticks once per fill crossed', () => {
+    jest.mocked(playImpact).mockClear();
+    jest.mocked(playSelection).mockClear();
+    renderChart();
+
+    act(() => {
+      fireGestureHandler(
+        getByGestureTestId(PositionDetailsSheetSelectorsIDs.CHART_SCRUB),
+        [{ x: 100 }, { x: 102 }, { x: 200 }],
+      );
+    });
+
+    expect(playImpact).toHaveBeenCalledTimes(1);
+    expect(playImpact).toHaveBeenCalledWith(ImpactMoment.ChartCrosshair);
+    expect(playSelection).toHaveBeenCalledTimes(1);
   });
 
   it('pins the tooltip on the scrubbed fill and colors an exit amount', () => {

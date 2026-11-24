@@ -112,7 +112,7 @@ describe('SocialV1TraderRow', () => {
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
   });
 
-  it('keeps the rank column width when hideRank is set', () => {
+  it('shows a dash in the rank column when hideRank is set', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -124,7 +124,7 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
@@ -163,6 +163,32 @@ describe('SocialV1TraderRow', () => {
     );
 
     expect(screen.queryByTestId(X_TRUST_MARK_TEST_ID)).toBeNull();
+  });
+
+  it('renders the verified badge when the trader is verified', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, verified: true }}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeOnTheScreen();
+  });
+
+  it('omits the verified badge when the trader is not verified', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
   });
 
   it('renders no name tag by default', () => {
@@ -323,7 +349,7 @@ describe('SocialV1TraderRow', () => {
       />,
     );
 
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
@@ -349,7 +375,7 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByText('$0.00')).toBeOnTheScreen();
     expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
-    expect(screen.queryByText('-')).toBeNull();
+    expect(screen.getByText('-')).toBeOnTheScreen();
   });
 
   it('keeps followers and hides a missing percent on the pinned card', () => {

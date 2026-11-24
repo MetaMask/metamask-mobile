@@ -26,9 +26,7 @@ import {
 } from 'react-native-permissions';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import { showCardExitConfirmation } from '../../hooks/useCardHeaderHandlers';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Logger from '../../../../../util/Logger';
@@ -107,34 +105,71 @@ export const IMMERSVE_KYC_ERROR_BRIDGE_JS = `
 `;
 
 /**
- * Hides Immersve's progress dots, logo, and Close button before first paint,
- * and collapses the empty logo row so the progress bar sits under our header.
- * The logo and dots are scoped to their progress header; the Close button is
- * not, so it stays hidden on every Immersve screen. Sumsub never renders these
- * hooks. Injected on both platforms; the Vue app mounts into #app and never
- * replaces <html>, so the style survives in-flow screen changes.
+ * Hides Immersve's progress dots, logo, and Close button, and collapses the
+ * empty logo row so the progress bar sits under our header. The logo and dots
+ * are scoped to their progress header; the Close button is not, so it stays
+ * hidden on every Immersve screen. Sumsub never renders these hooks.
+ *
+ * iOS runs this as a document-start user script, before first paint. Android
+ * has no document-start hook: the same string is evaluated from onPageStarted,
+ * often before <html> exists, so this waits for the document root and is also
+ * re-run at document end. A fixed style id keeps that second run from adding
+ * a duplicate. The Vue app mounts into #app and never replaces <html>, so the
+ * style survives in-flow screen changes.
  */
+/**
+ * Id of the style element this script inserts, so a second run does not add
+ * another.
+ */
+export const IMMERSVE_KYC_UI_STYLE_ID = 'immersve-kyc-ui-override';
+
 export const IMMERSVE_KYC_UI_JS = `
 (function () {
-  var style = document.createElement('style');
-  style.textContent = [
-    '[data-test="session-progress-header"] .rounded-full,',
-    '[data-test="session-progress-header"] .logo,',
-    '[data-test="exit"] { display: none !important; }',
-    '[data-test="session-progress-header"] > header > div:first-child { margin-top: 0 !important; }',
-    '[data-test="session-progress-header"] > header > div:nth-child(2) { margin-top: 8px !important; }',
-  ].join(' ');
-  (document.head || document.documentElement).appendChild(style);
+  var STYLE_ID = '${IMMERSVE_KYC_UI_STYLE_ID}';
+
+  function inject() {
+    if (document.getElementById(STYLE_ID)) {
+      return true;
+    }
+    var parent = document.head || document.documentElement;
+    if (!parent) {
+      return false;
+    }
+    var style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = [
+      '[data-test="session-progress-header"] .rounded-full,',
+      '[data-test="session-progress-header"] .logo,',
+      '[data-test="exit"] { display: none !important; }',
+      '[data-test="session-progress-header"] > header > div:first-child { margin-top: 0 !important; }',
+      '[data-test="session-progress-header"] > header > div:nth-child(2) { margin-top: 8px !important; }',
+    ].join(' ');
+    parent.appendChild(style);
+    return true;
+  }
+
+  if (inject()) {
+    return true;
+  }
+
+  var observer = new MutationObserver(function () {
+    if (inject()) {
+      observer.disconnect();
+    }
+  });
+  observer.observe(document, { childList: true });
   true;
 })();
 `;
 
 // The opener re-polls when the webview closes back onto it. Close and that
-// re-poll have to happen together: exit to the wallet tears the processing
-// screen down before focus returns, so useFocusEffect is not a reliable signal.
-let onCloseCallback: (() => void) | null = null;
+// re-poll have to happen together: a confirmed exit removes the processing
+// screen before focus returns, so useFocusEffect is not a reliable signal.
+let onCloseCallback: ((completed: boolean) => void) | null = null;
 
-export const setImmersveKycOnClose = (callback: () => void) => {
+export const setImmersveKycOnClose = (
+  callback: (completed: boolean) => void,
+) => {
   onCloseCallback = callback;
 };
 
@@ -161,14 +196,17 @@ const isAnyPermissionBlocked = (
 /**
  * Hosted Immersve-conducted KYC webview. Completion is detected by watching for navigation to `redirectUrl`
  * — the URL Immersve sends the user to on exit — after which the modal closes
- * and the progress screen re-polls spending-prerequisites.
+ * back onto the KYC screen. That screen re-polls spending-prerequisites and
+ * shows the result in place.
  *
  * On Android, Sumsub's getUserMedia only works after the app already holds
  * CAMERA + RECORD_AUDIO; otherwise WebView silently denies PermissionRequest
  * and the page hangs on a black spinner (CARD-555). That pre-grant, and the
  * script that reports the resulting getUserMedia failure, stay on Android.
- * Both platforms inject a style before first paint that hides Immersve's
- * progress-bar dots, logo, and Close button. Our header shows the logo.
+ * Both platforms inject a style that hides Immersve's progress-bar dots, logo,
+ * and Close button. Android has no document-start hook, so the script waits
+ * for the document root and is re-run at document end. Our header shows the
+ * logo.
  */
 const ImmersveKYCModal: React.FC = () => {
   const { colors } = useTheme();
@@ -343,65 +381,51 @@ const ImmersveKYCModal: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [status, retryKey, reportError]);
 
-  // Completion redirect re-polls the opener so it can route forward. Manual
-  // exit goes to the wallet home via exitToWalletHome instead.
-  const closeModal = useCallback(() => {
-    // WebView can fire multiple navigation updates for the same redirect URL.
-    if (hasClosed.current) {
-      return;
-    }
-    hasClosed.current = true;
+  // Every close returns to the processing screen, which re-polls. The header
+  // X and the completion redirect call goBack. Android back and swipe are
+  // already that goBack, so they only notify — a second goBack would also
+  // pop the processing screen.
+  const closeWebview = useCallback(
+    (completed: boolean) => {
+      if (hasClosed.current) {
+        return;
+      }
+      hasClosed.current = true;
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_WEBVIEW_COMPLETED,
-          }),
-        )
-        .build(),
-    );
-    onCloseCallback?.();
-    navigation.goBack();
-  }, [navigation, trackEvent, createEventBuilder]);
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties(
+            withCardProvider(CardProviderIds.Immersve, {
+              action: completed
+                ? CardActions.KYC_WEBVIEW_COMPLETED
+                : CardActions.KYC_WEBVIEW_CLOSE,
+            }),
+          )
+          .build(),
+      );
+      onCloseCallback?.(completed);
+    },
+    [trackEvent, createEventBuilder],
+  );
 
-  const exitToWalletHome = useCallback(() => {
-    if (hasClosed.current) {
-      return;
-    }
-    hasClosed.current = true;
+  const dismissWebview = useCallback(
+    (completed: boolean) => {
+      closeWebview(completed);
+      navigation.goBack();
+    },
+    [closeWebview, navigation],
+  );
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties(
-          withCardProvider(CardProviderIds.Immersve, {
-            action: CardActions.KYC_WEBVIEW_CLOSE,
-          }),
-        )
-        .build(),
-    );
-    navigation.navigate(Routes.WALLET.HOME);
-  }, [navigation, trackEvent, createEventBuilder]);
-
-  const confirmExit = useCallback(() => {
-    showCardExitConfirmation(exitToWalletHome);
-  }, [exitToWalletHome]);
-
-  // Hardware back and swipe skip the header X. Ask the same way, unless we
-  // already started a close (redirect goBack or a confirmed exit). A reset or
-  // navigate from the screen underneath (pending timeout, next onboarding
-  // step) must go through, or the exit alert replaces that navigation.
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (event) => {
       const { type } = event.data.action;
-      if (hasClosed.current || (type !== 'GO_BACK' && type !== 'POP')) {
+      if (type !== 'GO_BACK' && type !== 'POP') {
         return;
       }
-      event.preventDefault();
-      confirmExit();
+      closeWebview(false);
     });
     return unsubscribe;
-  }, [navigation, confirmExit]);
+  }, [navigation, closeWebview]);
 
   const handleRetry = useCallback(() => {
     trackEvent(
@@ -507,10 +531,10 @@ const ImmersveKYCModal: React.FC = () => {
   const handleNavigationStateChange = useCallback(
     (navState: WebViewNavigation) => {
       if (redirectUrl && navState.url.startsWith(redirectUrl)) {
-        closeModal();
+        dismissWebview(true);
       }
     },
-    [redirectUrl, closeModal],
+    [redirectUrl, dismissWebview],
   );
 
   const isErrorStatus = status === 'error' || status === 'permission-error';
@@ -531,7 +555,7 @@ const ImmersveKYCModal: React.FC = () => {
       <HeaderStandardGlass
         isGlass={isGlassHeader}
         isFloating={false}
-        onClose={confirmExit}
+        onClose={() => dismissWebview(false)}
         closeButtonProps={{ testID: 'immersve-kyc-close-button' }}
         title={
           <ImmersveLogo
@@ -581,7 +605,7 @@ const ImmersveKYCModal: React.FC = () => {
               injectedJavaScriptBeforeContentLoaded={IMMERSVE_KYC_UI_JS}
               injectedJavaScript={
                 requestsAndroidMediaPermission
-                  ? IMMERSVE_KYC_ERROR_BRIDGE_JS
+                  ? IMMERSVE_KYC_UI_JS + IMMERSVE_KYC_ERROR_BRIDGE_JS
                   : undefined
               }
               originWhitelist={['*']}

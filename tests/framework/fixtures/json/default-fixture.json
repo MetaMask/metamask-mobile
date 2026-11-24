@@ -71,6 +71,7 @@
       "cardArrivalAnimationSeen": false,
       "cardArrivalPreviewRequested": false,
       "geoLocation": "UNKNOWN",
+      "immersveFundingSettling": false,
       "isDaimoDemo": false,
       "onboarding": {
         "consentSetId": null,
@@ -147,8 +148,6 @@
           "cardLinkApiBlocked": false,
           "cardLinks": null,
           "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
-          "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
           "moneyAccountCardLinkInProgress": false,
@@ -156,11 +155,7 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null,
-          "cardLinks": null,
-          "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
-          "cardLinkApiBlocked": false
+          "signInLink": null
         },
         "ClaimsController": {
           "claims": [],
@@ -234,8 +229,12 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {},
-          "defaultMoneyAccountId": null
+          "defaultMoneyAccountId": null,
+          "moneyAccounts": {}
+        },
+        "MoneyAccountLifecycleController": {
+          "addressRegistrations": {},
+          "moneyAccounts": {}
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -450,8 +449,13 @@
           "activeProvider": "hyperliquid",
           "cachedMarketDataByProvider": {},
           "cachedUserDataByProvider": {},
+          "defaultProvider": "hyperliquid",
           "depositInProgress": false,
           "depositRequests": [],
+          "effectiveProvider": "hyperliquid",
+          "hasExplicitDefaultProviderSelection": false,
+          "hasExplicitProviderSelection": false,
+          "hasMigratedToMultiProvider": false,
           "hasPlacedFirstOrder": {
             "mainnet": false,
             "testnet": false
@@ -703,15 +707,15 @@
               "featureVersion": "2",
               "minimumVersion": "7.46.0"
             },
-            "tronAccounts": {
-              "enabled": true,
-              "featureVersion": null,
-              "minimumVersion": null
-            },
             "stellarAccounts": {
               "enabled": true,
               "featureVersion": null,
               "minimumVersion": "0.0.0"
+            },
+            "tronAccounts": {
+              "enabled": true,
+              "featureVersion": null,
+              "minimumVersion": null
             }
           }
         },
@@ -736,7 +740,6 @@
         },
         "TransactionController": {
           "methodData": {},
-          "swapsTransactions": {},
           "transactions": []
         },
         "UiSlotsController": {
@@ -906,22 +909,17 @@
       "campaignsLoading": false,
       "candidateSubscriptionId": null,
       "dismissedCampaignOutcomeToasts": {},
-      "geoLocation": null,
       "hideCurrentAccountNotOptedInBanner": [],
       "hideUnlinkedAccountsBanner": false,
       "moneyAccountSweepstakesDrawProofs": {},
       "moneyAccountSweepstakesPrizePools": {},
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
-      "onboardingActiveStep": "INTRO",
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
       "ondoCampaignLeaderboards": {},
       "ondoCampaignPortfolio": {},
-      "optinAllowedForGeo": null,
-      "optinAllowedForGeoError": false,
-      "optinAllowedForGeoLoading": false,
       "pendingDeeplink": null,
       "pendingMasSeriesOptIn": {
         "needsRetry": false,
@@ -986,10 +984,10 @@
     "security": {
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
+      "dataSharingPreference": null,
       "isNFTAutoDetectionModalViewed": false,
       "osAuthEnabled": false,
-      "shouldShowConsentSheet": true,
-      "dataSharingPreference": null
+      "shouldShowConsentSheet": true
     },
     "securityAlerts": {
       "alerts": {}
@@ -1009,6 +1007,7 @@
       "perpsChartPreferences": {
         "preferredCandlePeriod": "15m"
       },
+      "perpsCrossMarginConfirmedAccounts": {},
       "perpsMarketListPreferences": {
         "marketTypeFilter": "all",
         "showFavoritesOnly": false
@@ -1016,6 +1015,10 @@
       "primaryCurrency": "ETH",
       "searchEngine": "Google",
       "showAccountOnLeaderboard": true
+    },
+    "socialEarlyAccess": {
+      "hasAccess": false,
+      "profileId": null
     },
     "swaps": {
       "0x1": {
@@ -1032,6 +1035,7 @@
       "appTheme": "os",
       "backUpSeedphraseVisible": false,
       "bridgeLimitTabSeen": false,
+      "bridgeRecurringTabSeen": false,
       "existingUser": true,
       "gasEducationCarouselSeen": false,
       "initialScreen": "",
@@ -1040,7 +1044,6 @@
       "loadingMsg": "",
       "loadingSet": false,
       "moneyEarnBannerDismissedTokens": {},
-      "moneyOnboardingSeen": false,
       "moneySplashSeen": false,
       "multichainAccountsIntroModalSeen": true,
       "musdConversionAssetDetailCtasSeen": {},

@@ -478,27 +478,23 @@ describe('CardHome', () => {
       });
     });
 
-    describe('when unauthenticated (teaser mode)', () => {
-      it('shows CardAuthentication when Change Asset is pressed while unauthenticated', async () => {
-        const { getByTestId, findByTestId, queryByTestId } = renderCardHomeView(
-          {
-            overrides: {
-              engine: {
-                backgroundState: {
-                  CardController: { isAuthenticated: false },
-                },
+    describe('when unauthenticated', () => {
+      it('sends a logged-out cardholder to Card login', async () => {
+        const { findByTestId, queryByTestId } = renderCardHomeView({
+          overrides: {
+            engine: {
+              backgroundState: {
+                CardController: { isAuthenticated: false },
               },
             },
-            extraRoutes: [
-              {
-                name: Routes.CARD.AUTHENTICATION,
-                Component: CardAuthentication,
-              },
-            ],
           },
-        );
-
-        fireEvent.press(getByTestId(CardHomeSelectors.CHANGE_ASSET_BUTTON));
+          extraRoutes: [
+            {
+              name: Routes.CARD.AUTHENTICATION,
+              Component: CardAuthentication,
+            },
+          ],
+        });
 
         expect(
           await findByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
@@ -569,13 +565,41 @@ describe('CardHome', () => {
         extraRoutes: [{ name: Routes.MONEY.MODALS.ROOT }],
       });
 
-      fireEvent.press(
-        await findByTestId(MoneyMetaMaskCardTestIds.LINK_CONTAINER),
-      );
+      fireEvent.press(await findByTestId(MoneyMetaMaskCardTestIds.CONTENT));
 
       expect(
         await findByTestId(getRouteProbeTestId(Routes.MONEY.MODALS.ROOT)),
       ).toBeOnTheScreen();
+    });
+
+    it('hides the Link card CTA while the card still needs enabling', async () => {
+      mockGetCapabilities.mockReturnValue({
+        ...defaultCapabilities,
+        supportsMoneyAccountLinking: true,
+      });
+      const { findByTestId, queryByTestId } = renderCardHomeView({
+        overrides: {
+          engine: {
+            backgroundState: {
+              ...linkableCardHomeOverrides.engine.backgroundState,
+              CardController: {
+                cardHomeData: {
+                  ...linkableCardHomeOverrides.engine.backgroundState
+                    .CardController.cardHomeData,
+                  actions: [{ type: 'enable_card' }],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      expect(
+        await findByTestId(CardHomeSelectors.ENABLE_CARD_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.LINK_SUBTITLE),
+      ).not.toBeOnTheScreen();
     });
   });
 });

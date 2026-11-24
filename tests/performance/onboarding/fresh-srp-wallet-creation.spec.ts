@@ -2,7 +2,6 @@ import { test as perfTest } from '../../framework/fixtures/playwright';
 import {
   createLogger,
   AppiumAssertions,
-  AppiumGestures,
   sleep,
   type AppiumElement,
 } from '../../framework';
@@ -19,10 +18,8 @@ import TimerHelper, {
 } from '../../framework/TimerHelper';
 import { getPasswordForScenario } from '../../framework/utils/TestConstants.js';
 import OnboardingView from '../../page-objects/Onboarding/OnboardingView';
-import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
-import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
-import ProtectYourWalletView from '../../page-objects/Onboarding/ProtectYourWalletView';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
+import { createFreshSrpWallet } from './helpers/createFreshSrpWallet';
 import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PushNotificationOnboardingView from '../../page-objects/Notifications/PushNotificationOnboardingView';
 import { closePredictModal } from '../../flows/wallet.flow';
@@ -44,6 +41,7 @@ const logger = createLogger({
 const POST_ONBOARDING_DESTINATIONS = [
   'interest-questionnaire',
   'push-notification',
+  'push-notification-existing-user',
   'wallet',
 ] as const;
 
@@ -53,11 +51,17 @@ type PostOnboardingSource =
   | 'metametrics'
   | Exclude<PostOnboardingDestination, 'wallet'>;
 
-const POST_ONBOARDING_THRESHOLD: PlatformThreshold = {
-  // Baseline from 2026-09-02 Pixel 8 Pro: Agree → usable wallet ~10.4–12.5s.
-  // ~1.5× headroom for first enforce pass; tighten in TO-946.
-  ios: 14_000,
-  android: 16_000,
+// Bases from Pixel 8 Pro dev-build runs on 2026-11-11. The gate adds 15%.
+// The new-user push sheet did not appear; it uses the same base as the
+// existing-user sheet, which is the same kind of transition.
+const POST_ONBOARDING_THRESHOLDS: Record<
+  PostOnboardingDestination,
+  PlatformThreshold
+> = {
+  'interest-questionnaire': { ios: 2_500, android: 3_000 },
+  'push-notification': { ios: 10_000, android: 10_000 },
+  'push-notification-existing-user': { ios: 10_000, android: 10_000 },
+  wallet: { ios: 3_500, android: 4_000 },
 };
 
 const POST_ONBOARDING_DESTINATION_LABELS: Record<
@@ -66,6 +70,7 @@ const POST_ONBOARDING_DESTINATION_LABELS: Record<
 > = {
   'interest-questionnaire': 'onboarding interest questionnaire',
   'push-notification': 'push notification sheet',
+  'push-notification-existing-user': 'personalized alerts sheet',
   wallet: 'usable wallet',
 };
 
@@ -73,6 +78,8 @@ const POST_ONBOARDING_SOURCE_LABELS: Record<PostOnboardingSource, string> = {
   metametrics: '"Agree" on MetaMetrics',
   'interest-questionnaire': '"Skip" on the onboarding interest questionnaire',
   'push-notification': '"Not now" on the push notification sheet',
+  'push-notification-existing-user':
+    '"Not now" on the personalized alerts sheet',
 };
 
 // 0ms implicit wait: non-existent elements return immediately (just Appium RTT)
@@ -83,12 +90,21 @@ const DESTINATION_POLL_INTERVAL_MS = 250;
 const DESTINATION_POLL_TIMEOUT_MS = 30_000;
 const OPTIONAL_DESTINATION_PROBE_TIMEOUT_MS = 1_000;
 
-const isCandidateVisible = async (
+const isCandidatePresent = async (
   getElement: () => Promise<AppiumElement>,
+  requireDisplayed: boolean,
 ): Promise<boolean> => {
   try {
     const el = await getElement();
-    return (await el.unwrap().isExisting()) && (await el.isVisible());
+    if (!(await el.unwrap().isExisting())) {
+      return false;
+    }
+    // Bottom-sheet titles stay in the hierarchy while reporting
+    // isDisplayed=false. Requiring displayed charges that wait to the timer.
+    if (!requireDisplayed) {
+      return true;
+    }
+    return await el.isVisible();
   } catch {
     return false;
   }
@@ -110,6 +126,10 @@ const waitForPostOnboardingDestination = async (
     {
       destination: 'push-notification',
       getElement: () => PushNotificationOnboardingView.title,
+    },
+    {
+      destination: 'push-notification-existing-user',
+      getElement: () => PushNotificationOnboardingView.existingUserTitle,
     },
     {
       // Tab-bar Wallet button (matches import-wallet.spec.ts): usable home,
@@ -135,9 +155,16 @@ const waitForPostOnboardingDestination = async (
   // tracking instead of the multi-candidate polling loop.
   if (remaining.length === 1) {
     const only = remaining[0];
-    await AppiumAssertions.expectElementToBeVisible(only.getElement(), {
-      description: `${POST_ONBOARDING_DESTINATION_LABELS[only.destination]} should be visible`,
-    });
+    const description = `${POST_ONBOARDING_DESTINATION_LABELS[only.destination]} should be visible`;
+    if (only.destination === 'wallet') {
+      await AppiumAssertions.expectElementToBeVisible(only.getElement(), {
+        description,
+      });
+    } else {
+      await AppiumAssertions.expectElementToExist(only.getElement(), {
+        description,
+      });
+    }
     return only.destination;
   }
 
@@ -182,7 +209,7 @@ const waitForPostOnboardingDestination = async (
         }
 
         const t0 = Date.now();
-        const visible = await isCandidateVisible(candidate.getElement);
+        const visible = await isCandidatePresent(candidate.getElement, false);
         if (!visible) {
           if (tracking) {
             // These optional UI probes are known infrastructure lookups when
@@ -211,8 +238,9 @@ const waitForPostOnboardingDestination = async (
       if (!walletCandidate) break;
 
       const walletT0 = Date.now();
-      const walletVisible = await isCandidateVisible(
+      const walletVisible = await isCandidatePresent(
         walletCandidate.getElement,
+        true,
       );
       const walletElapsed = Date.now() - walletT0;
 
@@ -238,12 +266,20 @@ const waitForPostOnboardingDestination = async (
 
   // Final confirmation via AppiumAssertions provides probe RTT calibration
   // used to cap all preceding recordFailedPollCommand entries.
-  await AppiumAssertions.expectElementToBeVisible(
-    resolvedCandidate.getElement(),
-    {
-      description: `${POST_ONBOARDING_DESTINATION_LABELS[resolvedCandidate.destination]} should be visible`,
-    },
-  );
+  // Sheets are confirmed by existence: a bottom sheet can be on screen while
+  // isDisplayed stays false.
+  const description = `${POST_ONBOARDING_DESTINATION_LABELS[resolvedCandidate.destination]} should be visible`;
+  if (resolvedCandidate.destination === 'wallet') {
+    await AppiumAssertions.expectElementToBeVisible(
+      resolvedCandidate.getElement(),
+      { description },
+    );
+  } else {
+    await AppiumAssertions.expectElementToExist(
+      resolvedCandidate.getElement(),
+      { description },
+    );
+  }
 
   return resolvedCandidate.destination;
 };
@@ -274,6 +310,9 @@ const dismissPostOnboardingDestination = async (
       break;
     case 'push-notification':
       await PushNotificationOnboardingView.tapNotNowButton();
+      break;
+    case 'push-notification-existing-user':
+      await PushNotificationOnboardingView.tapExistingUserNotNowButton();
       break;
   }
 };
@@ -307,22 +346,26 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       // performance baselines once this coverage is running consistently.
       const onboardingSheetTimer = new TimerHelper(
         'Time since the user taps "Create a new wallet" until the onboarding sheet is visible',
-        { ios: 1_500, android: 1_800 },
+        // Measured 0.8–1.0s.
+        { ios: 1_200, android: 2_000 },
         currentDeviceDetails.platform,
       );
       const passwordScreenTimer = new TimerHelper(
         'Time since the user selects SRP wallet creation until the password fields are visible',
-        { ios: 1_500, android: 2_000 },
+        // Measured 0.4–0.6s.
+        { ios: 1_000, android: 2_000 },
         currentDeviceDetails.platform,
       );
       const walletCreationTimer = new TimerHelper(
         'Time since the user taps "Create Password" until the wallet backup screen is visible',
-        { ios: 5_000, android: 7_000 },
+        // Measured 1.6–1.8s.
+        { ios: 2_500, android: 3_000 },
         currentDeviceDetails.platform,
       );
       const backupSkipTimer = new TimerHelper(
         'Time since the user taps "Remind me later" until the MetaMetrics screen is visible',
-        { ios: 2_000, android: 2_500 },
+        // Measured 0.4–0.8s.
+        { ios: 1_200, android: 2_500 },
         currentDeviceDetails.platform,
       );
 
@@ -335,50 +378,11 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       );
 
       await enableHermesAppProfiling();
-      await OnboardingView.tapCreateNewWalletButton();
-      await onboardingSheetTimer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          OnboardingSheet.importSeedButton,
-        );
-      });
-
-      // Note: `IMPORT_SEED_BUTTON` is the testID name, but the underlying
-      // component (app/components/Views/OnboardingSheet/index.tsx) toggles
-      // its behavior on the `createWallet` prop. Because we entered via
-      // "Create a new wallet", tapping this button fires `onPressCreate` and
-      // navigates to ChoosePassword — i.e. it starts a fresh SRP creation,
-      // not an import. The Page Object method name mirrors the testID.
-      await OnboardingSheet.tapImportSeedButton();
-      await passwordScreenTimer.measure(async () => {
-        await CreatePasswordView.isVisible();
-      });
-
-      const password = getPasswordForScenario('onboarding') ?? '';
-      await CreatePasswordView.enterPassword(password);
-      await CreatePasswordView.reEnterPassword(password);
-      await AppiumGestures.hideKeyboard();
-
-      await CreatePasswordView.tapCreatePasswordButton();
-      await CreatePasswordView.tapPasswordWarningConfirmButton();
-      await walletCreationTimer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          ProtectYourWalletView.remindMeLaterButton,
-          {
-            timeout: 30_000,
-            description: 'Wallet backup screen should be visible',
-          },
-        );
-      });
-
-      await ProtectYourWalletView.tapRemindMeLater();
-      await backupSkipTimer.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          MetaMetricsOptInView.screenTitle,
-          {
-            timeout: 30_000,
-            description: 'MetaMetrics screen should be visible',
-          },
-        );
+      await createFreshSrpWallet(getPasswordForScenario('onboarding') ?? '', {
+        onboardingSheet: onboardingSheetTimer,
+        passwordScreen: passwordScreenTimer,
+        walletCreation: walletCreationTimer,
+        backupSkip: backupSkipTimer,
       });
 
       performanceTracker.addTimers(
@@ -413,12 +417,15 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
 
           const transitionTimer = new TimerHelper(
             `Fresh SRP post-onboarding transition ${hop}`,
-            POST_ONBOARDING_THRESHOLD,
+            undefined,
             currentDeviceDetails.platform,
           );
           destination = await measurePostOnboardingDestination(
             transitionTimer,
             dismissedDestinations,
+          );
+          transitionTimer.changeThreshold(
+            POST_ONBOARDING_THRESHOLDS[destination],
           );
 
           // The modal can appear while the measured destination is becoming
@@ -442,6 +449,13 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
           markSkippedDestinationsBefore(dismissedDestinations, destination);
           await dismissPostOnboardingDestination(destination);
           dismissedDestinations.add(destination);
+          // Only one push sheet is shown. Skip the other variant.
+          if (destination === 'push-notification') {
+            dismissedDestinations.add('push-notification-existing-user');
+          }
+          if (destination === 'push-notification-existing-user') {
+            dismissedDestinations.add('push-notification');
+          }
           source = destination;
         }
 

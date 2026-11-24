@@ -116,10 +116,12 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 import { scanCompleted, scanRequested } from '../redux/slices/qrKeyringScanner';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { predictControllerInit } from './controllers/predict-controller';
+import { collectiblesControllerInit } from './controllers/collectibles-controller';
 import {
   predictLiveDataServiceInit,
   predictMarketDataServiceInit,
   predictOrderServiceInit,
+  predictFundingServiceInit,
   predictPortfolioServiceInit,
 } from './controllers/predict-service-init';
 import { predictDeviceAuthServiceInit } from './controllers/predict-device-auth-service-init';
@@ -180,6 +182,7 @@ import { kycControllerInit } from './controllers/kyc/kyc-controller-init';
 import { vendorOnboardingControllerInit } from './controllers/kyc/vendor-onboarding-controller-init';
 import { chompApiServiceInit } from './controllers/chomp-api-service-init';
 import { moneyAccountUpgradeControllerInit } from './controllers/money-account-upgrade-controller-init';
+import { moneyAccountLifecycleControllerInit } from './controllers/money-account-lifecycle-controller-init';
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
@@ -354,10 +357,12 @@ export class Engine {
         AssetsController: assetsControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
+        CollectiblesController: collectiblesControllerInit,
         PredictMarketDataService: predictMarketDataServiceInit,
         PredictLiveDataService: predictLiveDataServiceInit,
         PredictPortfolioService: predictPortfolioServiceInit,
         PredictOrderService: predictOrderServiceInit,
+        PredictFundingService: predictFundingServiceInit,
         PredictDeviceAuthService: predictDeviceAuthServiceInit,
         RecurringOrdersDataService: recurringOrdersDataServiceInit,
         LimitOrdersDataService: limitOrdersDataServiceInit,
@@ -394,6 +399,7 @@ export class Engine {
         VendorOnboardingController: vendorOnboardingControllerInit,
         ChompApiService: chompApiServiceInit,
         MoneyAccountUpgradeController: moneyAccountUpgradeControllerInit,
+        MoneyAccountLifecycleController: moneyAccountLifecycleControllerInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
@@ -426,6 +432,8 @@ export class Engine {
     const perpsController = messengerClientsByName.PerpsController;
     const phishingController = messengerClientsByName.PhishingController;
     const predictController = messengerClientsByName.PredictController;
+    const collectiblesController =
+      messengerClientsByName.CollectiblesController;
     const rewardsController = messengerClientsByName.RewardsController;
     const rewardsMoneyController =
       messengerClientsByName.RewardsMoneyController;
@@ -656,10 +664,12 @@ export class Engine {
       NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
       PredictController: predictController,
+      CollectiblesController: collectiblesController,
       PredictMarketDataService: messengerClientsByName.PredictMarketDataService,
       PredictLiveDataService: messengerClientsByName.PredictLiveDataService,
       PredictPortfolioService: messengerClientsByName.PredictPortfolioService,
       PredictOrderService: messengerClientsByName.PredictOrderService,
+      PredictFundingService: messengerClientsByName.PredictFundingService,
       PredictDeviceAuthService: messengerClientsByName.PredictDeviceAuthService,
       PredictVenueController: messengerClientsByName.PredictVenueController,
       RecurringOrdersDataService:
@@ -696,6 +706,8 @@ export class Engine {
       VendorOnboardingController: vendorOnboardingController,
       ChompApiService: messengerClientsByName.ChompApiService,
       MoneyAccountUpgradeController: moneyAccountUpgradeController,
+      MoneyAccountLifecycleController:
+        messengerClientsByName.MoneyAccountLifecycleController,
     };
 
     const childControllers = Object.assign({}, this.context);
@@ -1335,16 +1347,26 @@ export class Engine {
       SnapController,
       LoggingController,
       MoneyAccountController,
+      MoneyAccountLifecycleController,
       SubscriptionController,
       ShieldController,
       ClaimsController,
       KycController,
       VendorOnboardingController,
+      ProfileMetricsController,
+      ProfileMetricsService,
       PredictOrderService,
+      PredictFundingService,
       PredictPortfolioService,
       PredictDeviceAuthService,
       PredictVenueController,
+      CollectiblesController,
     } = this.context;
+
+    // Wait for any in-flight profile metrics poll before clearing its state
+    // and resetting the circuit breakers for the next wallet.
+    await ProfileMetricsController.clearState();
+    ProfileMetricsService.resetCircuitBreakers();
 
     // Remove all permissions.
     PermissionController?.clearState?.();
@@ -1366,13 +1388,13 @@ export class Engine {
       batchTransactionCounts: {},
       lastFetchedBlockNumbers: {},
       submitHistory: [],
-      swapsTransactions: {},
     }));
 
     LoggingController.clear();
 
     // Accounts:
     MoneyAccountController.clearState();
+    MoneyAccountLifecycleController.clearState();
 
     // Subscriptions:
     SubscriptionController.stopAllPolling();
@@ -1389,12 +1411,26 @@ export class Engine {
     VendorOnboardingController.reset();
 
     // PredictNext account state. A wallet reset replaces the Predict User
-    // within one process, so the previous person's account reads and their
-    // Order observation must not outlive it. Commits are abandoned before the
-    // reads are dropped, so no receipt can refill the cache afterwards. The
-    // Venue-scoped market-data and live-data caches carry public data and stay.
+    // within one process, so the previous person's account reads, their
+    // Order and Withdrawal observations and the deposits the funding service
+    // remembers must not outlive it. Commits are abandoned before the reads
+    // are dropped, so no receipt can refill the cache afterwards. The reset
+    // then clears the durable dispatch journal, so the previous person's
+    // unresolved references cannot be rediscovered by a later session. The
+    // Venue-scoped market-data and live-data caches carry public data and
+    // stay.
     try {
-      PredictOrderService.abandonCommits();
+      await PredictOrderService.reset();
+    } catch (error) {
+      // reset() fences observation before it rethrows, so a journal that cannot
+      // be cleared must never skip dropping the account reads below.
+      Logger.error(
+        ensureError(error, 'Engine.resetState'),
+        'Engine: failed to clear the PredictNext order dispatch journal',
+      );
+    }
+    try {
+      PredictFundingService.clearState();
       await PredictPortfolioService.clearAccountData();
     } catch (error) {
       // Housekeeping a replaced person must never break the reset itself.
@@ -1408,6 +1444,9 @@ export class Engine {
     // The Venue Selection Preference and the last Active Venue are device
     // Venue history, not the next person's choice.
     PredictVenueController.clearState();
+
+    // Collectibles:
+    CollectiblesController.clearState();
   };
 
   removeAllListeners() {
@@ -1575,6 +1614,7 @@ export default {
       PerpsController,
       PhishingController,
       PredictController,
+      CollectiblesController,
       PreferencesController,
       RemoteFeatureFlagController,
       RewardsController,
@@ -1611,6 +1651,7 @@ export default {
       ProfileMetricsController,
       MoneyAccountController,
       MoneyAccountUpgradeController,
+      MoneyAccountLifecycleController,
       QrSyncController,
     } = instance.context;
 
@@ -1651,6 +1692,7 @@ export default {
       PerpsController: PerpsController.state,
       PhishingController: PhishingController.state,
       PredictController: PredictController.state,
+      CollectiblesController: CollectiblesController.state,
       PreferencesController: PreferencesController.state,
       RemoteFeatureFlagController: RemoteFeatureFlagController.state,
       RewardsController: RewardsController.state,
@@ -1692,6 +1734,7 @@ export default {
       ProfileMetricsController: ProfileMetricsController.state,
       MoneyAccountController: MoneyAccountController.state,
       MoneyAccountUpgradeController: MoneyAccountUpgradeController.state,
+      MoneyAccountLifecycleController: MoneyAccountLifecycleController.state,
       QrSyncController: QrSyncController.state,
     };
   },

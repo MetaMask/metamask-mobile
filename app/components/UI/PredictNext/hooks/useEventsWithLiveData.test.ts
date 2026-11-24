@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { fullGameMoneylineMetadata } from '../contracts/v1/fixtures/fullGameMoneyline';
 import type { PredictGameLive, PredictQuote } from '../contracts/v1/liveData';
 import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
 import type {
@@ -47,6 +48,18 @@ const makeMarket = (id: string): PredictMarket => ({
     { id: `${id}:no` as PredictEntityId, side: 'no', label: 'No' },
   ],
 });
+
+const makeMoneylineMarket = (
+  id: string,
+  gameSelection: 'away' | 'home',
+): PredictMarket => {
+  const market = makeMarket(id);
+  return {
+    ...market,
+    ...fullGameMoneylineMetadata(),
+    outcomes: [{ ...market.outcomes[0], gameSelection }, market.outcomes[1]],
+  };
+};
 
 const makeEvent = (id: string, withGame = true): PredictEvent => ({
   venueId,
@@ -113,26 +126,8 @@ describe('getPresentMarketIds', () => {
   });
 
   it('lists only card-visible Markets when the scope is card', () => {
-    const away = {
-      ...makeMarket('card-away'),
-      outcomes: [
-        {
-          ...makeMarket('card-away').outcomes[0],
-          gameSelection: 'away' as const,
-        },
-        makeMarket('card-away').outcomes[1],
-      ],
-    } as PredictMarket;
-    const home = {
-      ...makeMarket('card-home'),
-      outcomes: [
-        {
-          ...makeMarket('card-home').outcomes[0],
-          gameSelection: 'home' as const,
-        },
-        makeMarket('card-home').outcomes[1],
-      ],
-    } as PredictMarket;
+    const away = makeMoneylineMarket('card-away', 'away');
+    const home = makeMoneylineMarket('card-home', 'home');
     const spread = makeMarket('card-spread');
     const gameEvent: PredictEvent = {
       ...eventA,
@@ -650,27 +645,98 @@ describe('useEventsWithLiveData', () => {
     ]);
   });
 
+  describe('visible scope', () => {
+    const [m1, m2] = marketIds(eventA);
+    const visible = (
+      ...ids: readonly PredictEntityId[]
+    ): LiveMarketWatchScope => ({ type: 'visible', marketIds: ids });
+    const renderVisible = (marketScope: LiveMarketWatchScope) =>
+      renderHook(
+        (props: { marketScope: LiveMarketWatchScope }) =>
+          useEventsWithLiveData(venueId, [eventA], props),
+        { initialProps: { marketScope } },
+      );
+
+    it('carries the visible ids on the watch and the matching unwatch', () => {
+      const { unmount } = renderVisible(visible(m1));
+
+      unmount();
+
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+      ]);
+    });
+
+    it('re-scopes by watching the new ids before releasing the old ones', () => {
+      const { rerender } = renderVisible(visible(m1));
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2) });
+
+      // Watch first, so the Event never drops to zero watchers between the
+      // two calls; the service turns each pair into a Market-level diff.
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+      ]);
+    });
+
+    it('does not re-scope when a re-render names the same ids', () => {
+      const { rerender } = renderVisible(visible(m1, m2));
+      mockCall.mockClear();
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2, m1, m2) });
+
+      expect(mockCall).not.toHaveBeenCalled();
+    });
+
+    it('keeps an empty visible list distinct from the all scope', () => {
+      const { rerender } = renderVisible(visible());
+
+      rerender({ marketScope: 'all' });
+
+      expect(scopeCalls()).toEqual([
+        [WATCH, { marketScope: visible() }],
+        [WATCH, { marketScope: 'all' }],
+        [UNWATCH, { marketScope: visible() }],
+      ]);
+    });
+
+    it('applies quotes for every Market of the Event, not only the visible ones', () => {
+      const { result } = renderVisible(visible(m1));
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      act(() => {
+        onQuote({
+          venueId,
+          marketId: m2,
+          outcomes: [
+            {
+              id: eventA.markets[1].outcomes[0].id,
+              side: 'yes',
+              askPrice: '0.71' as PredictDecimal,
+            },
+            { id: eventA.markets[1].outcomes[1].id, side: 'no' },
+          ],
+          updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+        });
+      });
+
+      // A Market that just left the screen keeps its last live price.
+      expect(result.current[0].markets[1].outcomes[0].askPrice).toBe('0.71');
+    });
+  });
+
   it('keeps only card-visible quotes when marketScope is card', () => {
-    const away = {
-      ...makeMarket('live-away'),
-      outcomes: [
-        {
-          ...makeMarket('live-away').outcomes[0],
-          gameSelection: 'away' as const,
-        },
-        makeMarket('live-away').outcomes[1],
-      ],
-    } as PredictMarket;
-    const home = {
-      ...makeMarket('live-home'),
-      outcomes: [
-        {
-          ...makeMarket('live-home').outcomes[0],
-          gameSelection: 'home' as const,
-        },
-        makeMarket('live-home').outcomes[1],
-      ],
-    } as PredictMarket;
+    const away = makeMoneylineMarket('live-away', 'away');
+    const home = makeMoneylineMarket('live-home', 'home');
     const spread = makeMarket('live-spread');
     const gameEvent: PredictEvent = {
       ...eventA,
