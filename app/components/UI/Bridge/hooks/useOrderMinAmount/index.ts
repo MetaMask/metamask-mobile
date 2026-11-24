@@ -7,7 +7,7 @@ import { formatCurrency } from '../../utils/currencyUtils';
 import { useFiatToUsdRate } from '../useFiatToUsdRate';
 import { useLiveTokenFiatRate } from '../useLiveTokenFiatRate';
 
-const USD_CENT_DECIMALS = 2;
+const FIAT_DECIMALS = 2;
 const USD_CURRENCY = 'USD';
 
 interface UseOrderMinAmountParams {
@@ -25,6 +25,18 @@ export interface UseOrderMinAmountResult {
 
 function isValidRate(rate: number | undefined): rate is number {
   return rate !== undefined && Number.isFinite(rate) && rate > 0;
+}
+
+function formatMinAmount(amount: BigNumber.Value, currency: string): string {
+  const roundedAmount = new BigNumber(amount).decimalPlaces(
+    FIAT_DECIMALS,
+    BigNumber.ROUND_HALF_UP,
+  );
+
+  return formatCurrency(roundedAmount.toNumber(), currency, {
+    minimumFractionDigits: roundedAmount.isInteger() ? 0 : FIAT_DECIMALS,
+    maximumFractionDigits: FIAT_DECIMALS,
+  });
 }
 
 /**
@@ -50,7 +62,7 @@ export function useOrderMinAmount({
     }
 
     if (currentCurrency === USD_CURRENCY) {
-      return formatCurrency(minAmountUsd, USD_CURRENCY);
+      return formatMinAmount(minAmountUsd, USD_CURRENCY);
     }
 
     const minAmountInCurrentCurrency = new BigNumber(minAmountUsd).dividedBy(
@@ -58,7 +70,7 @@ export function useOrderMinAmount({
     );
 
     return minAmountInCurrentCurrency.isFinite()
-      ? formatCurrency(minAmountInCurrentCurrency.toNumber(), currentCurrency)
+      ? formatMinAmount(minAmountInCurrentCurrency, currentCurrency)
       : undefined;
   }, [currentCurrency, fiatToUsdRate, minAmountUsd]);
 
@@ -77,7 +89,7 @@ export function useOrderMinAmount({
     const sourceAmountUsd = new BigNumber(sourceAmount || 0)
       .times(sourceTokenFiatRate)
       .times(fiatToUsdRate)
-      .decimalPlaces(USD_CENT_DECIMALS, BigNumber.ROUND_HALF_UP);
+      .decimalPlaces(FIAT_DECIMALS, BigNumber.ROUND_HALF_UP);
 
     return sourceAmountUsd.isFinite() && sourceAmountUsd.lt(minAmountUsd);
   }, [fiatToUsdRate, minAmountUsd, sourceAmount, sourceTokenFiatRate]);
