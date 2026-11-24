@@ -51,7 +51,10 @@ export interface MoneyOnboardingParams extends NavigationAnalyticsRouteParams {
   postOnboardingRedirect?: MoneyPostOnboardingRedirect;
 }
 
-export type MoneySplashParams = MoneyOnboardingParams;
+export interface MoneySplashParams extends MoneyOnboardingParams {
+  /** Opens the splash as a read-only explainer: no CTA, no FAQ, and it does not mark the splash as seen. */
+  infoMode?: boolean;
+}
 
 export interface MoneyHomeParams extends NavigationAnalyticsRouteParams {
   /**
@@ -109,15 +112,17 @@ export type MoneyModalsNavigationParamList = {
   MoneyTransferSheet: undefined;
   MoneyApyInfoSheet: {
     apy?: number;
-    variant?: 'default' | 'deposit';
     vaultStatus?: MoneyVaultStatus;
+  };
+  MoneyEstimatedBalanceSheet: {
+    depositAmountFiat: string;
+    projectedAmountFiat: string;
+    apy?: number;
   };
   MoneyEarningsInfoSheet: { variant: 'monthly' | 'lifetime' };
   MoneyBalanceInfoSheet: undefined;
   MoneyLinkCardSheet: { entrypoint?: string } | undefined;
-  MoneyEarnCryptoInfoSheet:
-    | { variant?: 'default' | 'deposit'; showMoneyHomeCta?: boolean }
-    | undefined;
+  MoneyEarnCryptoInfoSheet: { showMoneyHomeCta?: boolean } | undefined;
   MoneyGeoBlockSheet: undefined;
 };
 

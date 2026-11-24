@@ -17,8 +17,6 @@ jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => true),
 }));
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
-import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
-import { WAYS_TO_EARN_TAB_TEST_IDS } from '../components/Money/Tabs/WaysToEarnTab.testIds';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -67,17 +65,6 @@ jest.mock('../hooks/useEarningsSummary', () => ({
   useEarningsSummary: jest.fn(),
 }));
 
-jest.mock('../components/Money/RewardsOptInSection', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    REWARDS_OPT_IN_SECTION_TEST_IDS: {
-      CONTAINER: 'rewards-opt-in-section',
-    },
-    default: () => <View testID="rewards-opt-in-section" />,
-  };
-});
-
 jest.mock(
   '../../../../component-library/components/Navigation/TabBarFloating',
   () => ({
@@ -95,13 +82,23 @@ jest.mock('../../../Views/ErrorBoundary', () => {
   };
 });
 
-jest.mock('../components/Campaigns/CampaignsPreview', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <View testID="campaigns-preview" />,
-  };
-});
+// The Campaigns and Benefits tabs and their opt-in card are covered through
+// real state in RewardsMoneyDashboard.view.test.tsx. They are stubbed here so
+// this suite does not load the Engine.
+jest.mock('../components/Money/RewardsOptInSection', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../components/Money/Tabs/CampaignsTab', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../components/Money/Tabs/BenefitsTab', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 
 const mockPerformanceTab = jest.fn();
 
@@ -127,14 +124,6 @@ jest.mock('../components/Money/Tabs/PerformanceTab', () => {
       mockPerformanceTab(props);
       return <View testID="rewards-money-performance-tab" />;
     },
-  };
-});
-
-jest.mock('../components/Benefits/BenefitsPreview', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => <View testID="benefits-preview" />,
   };
 });
 
@@ -527,33 +516,6 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the referrer hero and opted-in previews for a subscribed referrer', () => {
-    const { getByTestId, queryByTestId } = renderDashboard();
-
-    expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
-    expect(getByTestId('benefits-preview')).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('renders campaigns and benefits sections with dividers on the dashboard', () => {
-    const { getByTestId } = renderDashboard();
-
-    expect(
-      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
-    ).toBeOnTheScreen();
-    expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
-    expect(getByTestId('benefits-preview')).toBeOnTheScreen();
-  });
-
   it('renders the referee hero and hides the referrer share card', () => {
     const { getByTestId, queryByTestId } = renderDashboard({
       referralMeEntry: {
@@ -646,24 +608,6 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REFERER_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
     ).toBeOnTheScreen();
-  });
-
-  it('renders the Rewards opt-in section when there is no subscription', () => {
-    const { getByTestId, queryByTestId } = renderDashboard({
-      subscriptionId: null,
-    });
-
-    expect(
-      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
-    expect(queryByTestId('benefits-preview')).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.CAMPAIGNS_SECTION),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(WAYS_TO_EARN_TAB_TEST_IDS.BENEFITS_SECTION),
-    ).not.toBeOnTheScreen();
   });
 
   it('keeps the hero and hides the banner when referral me refresh fails with cached data', () => {

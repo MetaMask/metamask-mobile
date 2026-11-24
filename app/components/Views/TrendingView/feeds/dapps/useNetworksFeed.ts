@@ -30,6 +30,20 @@ const NETWORKS: SiteData[] = [
     displayUrl: 'Solana Hub',
     logoSource: images.SOLANA,
   },
+  {
+    id: 'network-tron',
+    name: 'Tron',
+    url: 'https://portfolio.metamask.io/explore/networks/tron',
+    displayUrl: 'Tron Hub',
+    logoSource: images.TRON,
+  },
+  {
+    id: 'network-stellar',
+    name: 'Stellar',
+    url: 'https://portfolio.metamask.io/explore/networks/stellar',
+    displayUrl: 'Stellar Hub',
+    logoSource: images.STELLAR,
+  },
 ];
 
 export interface UseNetworksFeedResult {

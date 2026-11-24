@@ -407,6 +407,98 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     );
   });
 
+  describe('webViewInstanceKey', () => {
+    const renderSeries = () =>
+      renderHook(
+        ({ symbol, interval }) =>
+          usePerpsAdvancedChartAdapter({
+            symbol,
+            interval,
+            visibleCandleCount: 45,
+          }),
+        { initialProps: { symbol: SYMBOL, interval: INTERVAL } },
+      );
+    const deliver = (
+      callIndex: number,
+      symbol: string,
+      interval: CandlePeriod,
+      candles: TestCandle[],
+    ) =>
+      act(() => {
+        subscribeParams(callIndex).callback({ symbol, interval, candles });
+      });
+
+    it('keeps the WebView across an interval switch, including the loading render', () => {
+      const { result, rerender } = renderSeries();
+      deliver(0, SYMBOL, INTERVAL, [candle(1000), candle(2000)]);
+      const initialKey = result.current.webViewInstanceKey;
+
+      rerender({ symbol: SYMBOL, interval: CandlePeriod.FourHours });
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.webViewInstanceKey).toBe(initialKey);
+
+      deliver(1, SYMBOL, CandlePeriod.FourHours, [candle(4000), candle(8000)]);
+      expect(result.current.webViewInstanceKey).toBe(initialKey);
+    });
+
+    it('remounts the WebView once when a new interval resolves empty after bars were shown', () => {
+      const { result, rerender } = renderSeries();
+      deliver(0, SYMBOL, INTERVAL, [candle(1000), candle(2000)]);
+      const initialKey = result.current.webViewInstanceKey;
+
+      rerender({ symbol: SYMBOL, interval: CandlePeriod.FourHours });
+      deliver(1, SYMBOL, CandlePeriod.FourHours, []);
+      const remountedKey = result.current.webViewInstanceKey;
+      expect(remountedKey).not.toBe(initialKey);
+
+      deliver(1, SYMBOL, CandlePeriod.FourHours, []);
+      expect(result.current.webViewInstanceKey).toBe(remountedKey);
+    });
+
+    it('remounts the WebView when a new interval errors after bars were shown', () => {
+      const { result, rerender } = renderSeries();
+      deliver(0, SYMBOL, INTERVAL, [candle(1000), candle(2000)]);
+      const initialKey = result.current.webViewInstanceKey;
+
+      rerender({ symbol: SYMBOL, interval: CandlePeriod.FourHours });
+      act(() => {
+        subscribeParams(1).onError(new Error('candles down'));
+      });
+
+      expect(result.current.webViewInstanceKey).not.toBe(initialKey);
+    });
+
+    it('keeps the WebView when the same series later delivers no bars', () => {
+      const { result } = renderSeries();
+      deliver(0, SYMBOL, INTERVAL, [candle(1000), candle(2000)]);
+      const initialKey = result.current.webViewInstanceKey;
+
+      deliver(0, SYMBOL, INTERVAL, []);
+
+      expect(result.current.webViewInstanceKey).toBe(initialKey);
+    });
+
+    it('does not remount again when a new symbol resolves empty', () => {
+      const { result, rerender } = renderSeries();
+      deliver(0, SYMBOL, INTERVAL, [candle(1000), candle(2000)]);
+
+      rerender({ symbol: 'ETH', interval: INTERVAL });
+      const newSymbolKey = result.current.webViewInstanceKey;
+      deliver(1, 'ETH', INTERVAL, []);
+
+      expect(result.current.webViewInstanceKey).toBe(newSymbolKey);
+    });
+
+    it('keeps the WebView when the first load is empty', () => {
+      const { result } = renderSeries();
+      const initialKey = result.current.webViewInstanceKey;
+
+      deliver(0, SYMBOL, INTERVAL, []);
+
+      expect(result.current.webViewInstanceKey).toBe(initialKey);
+    });
+  });
+
   it('clears retained bars before resolving an empty new interval', () => {
     const { result, rerender } = renderHook(
       ({ interval }) =>
