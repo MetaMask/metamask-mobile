@@ -14582,9 +14582,6 @@
   "app/components/UI/WhatsHappening/components/WhatsHappeningCard.tsx": {
     "typescript/prefer-nullish-coalescing": {
       "count": 1
-    },
-    "typescript/unbound-method": {
-      "count": 2
     }
   },
   "app/components/UI/WhatsHappening/components/WhatsHappeningCardSkeleton.test.tsx": {
@@ -14606,6 +14603,11 @@
     },
     "typescript/promise-function-async": {
       "count": 4
+    }
+  },
+  "app/components/UI/WhatsHappening/hooks/useWhatsHappeningCardViewTracking.ts": {
+    "typescript/unbound-method": {
+      "count": 2
     }
   },
   "app/components/UI/WhatsNewModal/WhatsNewModal.tsx": {
