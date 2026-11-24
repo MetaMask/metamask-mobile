@@ -1,6 +1,7 @@
 import {
   array,
   boolean,
+  enums,
   is,
   literal,
   optional,
@@ -14,6 +15,7 @@ import Logger from '../../../../../util/Logger';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   PREDICT_VENUE_ACTIONS,
+  PREDICT_VENUE_ENVIRONMENTS,
   type PredictFeedId,
   type PredictFeedKey,
   type PredictHomeSection,
@@ -37,12 +39,15 @@ const kebabCase = refine(string(), 'KebabCase', (value) =>
   KEBAB_CASE.test(value),
 );
 
+const venueEnvironmentSchema = enums(PREDICT_VENUE_ENVIRONMENTS);
+
 // Unknown fields are ignored, and unknown actions are dropped below, so the
 // schema accepts any string there. A known field with the wrong shape still
 // rejects the catalog, except the ones that drive single entries: `feeds`
 // entries, `categories`, `screens` and `home` drop what they can't use instead.
 const venueCatalogSchema = type({
   venueId: nonEmptyString,
+  environment: optional(venueEnvironmentSchema),
   actions: array(string()),
   feeds: record(string(), unknown()),
   categories: optional(unknown()),
@@ -430,6 +435,9 @@ export const parsePredictVenueCatalog = (
 
   return {
     venueId: expectedVenueId,
+    ...(value.environment !== undefined
+      ? { environment: value.environment }
+      : {}),
     actions,
     feeds,
     categories: parseCategories(value.categories, feeds, expectedVenueId),

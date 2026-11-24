@@ -207,6 +207,12 @@ jest.mock('../../../hooks/pay/usePayMoneyAccountAvailable', () => ({
 jest.mock('../../rows/perps-account-picker-row', () => ({
   PerpsAccountPickerRow: () => null,
 }));
+jest.mock('../../rows/money-deposit-to-row', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    MoneyDepositToRow: () => <View testID="money-deposit-to-row-mock" />,
+  };
+});
 jest.mock('../../rows/perps-receive-to-row', () => ({
   DEFAULT_PERPS_RECEIVE_DESTINATION: 'hyperliquid',
   PerpsReceiveToRow: () => null,
@@ -525,12 +531,11 @@ describe('CustomAmountInfo', () => {
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: {
-        address: '0x123',
+        assetId: 'eip155:1/erc20:0x123',
         balanceHuman: '0',
         balanceFiat: '0',
         balanceRaw: '0',
         balanceUsd: '0',
-        chainId: '0x1',
         decimals: 18,
         symbol: 'TST',
       },
@@ -1755,12 +1760,11 @@ describe('CustomAmountInfo', () => {
     it('falls back to 90% when pay token is native and the flow is not a withdraw (safeguard against sending entire native balance with no gas reserve)', () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'TST',
         },
@@ -1787,12 +1791,11 @@ describe('CustomAmountInfo', () => {
         } as never);
         useTransactionPayTokenMock.mockReturnValue({
           payToken: {
-            address: '0x123',
+            assetId: 'eip155:1/erc20:0x123',
             balanceHuman: '0',
             balanceFiat: '0',
             balanceRaw: '0',
             balanceUsd: '0',
-            chainId: '0x1',
             decimals: 18,
             symbol: 'TST',
           },
@@ -1839,12 +1842,11 @@ describe('CustomAmountInfo', () => {
       useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: true });
       useTransactionPayTokenMock.mockReturnValue({
         payToken: {
-          address: '0x123',
+          assetId: 'eip155:1/erc20:0x123',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },
@@ -2088,12 +2090,11 @@ describe('CustomAmountInfo', () => {
       useTransactionPayTokenMock.mockReturnValue({
         isNative: true,
         payToken: {
-          address: '0x0000000000000000000000000000000000000000',
+          assetId: 'eip155:1/slip44:60',
           balanceHuman: '0',
           balanceFiat: '0',
           balanceRaw: '0',
           balanceUsd: '0',
-          chainId: '0x1',
           decimals: 18,
           symbol: 'ETH',
         },
@@ -2358,7 +2359,7 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('PayWithRow visibility for moneyAccountDeposit', () => {
-    it('renders PayWithRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
+    it('renders PayWithRow and MoneyDepositToRow while keyboard is visible for non-addMusd moneyAccountDeposit', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         type: TransactionType.moneyAccountDeposit,
         txParams: { from: '0x123' },
@@ -2369,6 +2370,53 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(getByTestId('pay-with')).toBeOnTheScreen();
+      expect(getByTestId('money-deposit-to-row-mock')).toBeOnTheScreen();
+    });
+  });
+
+  describe('DepositToRow placement for perpsDeposit and predictDeposit', () => {
+    it.each([
+      [TransactionType.perpsDeposit, 'Perps balance'],
+      [TransactionType.predictDeposit, 'Predict balance'],
+    ])(
+      'renders DepositToRow directly below the Convert row for %s',
+      (type, expectedDestination) => {
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type,
+          txParams: { from: '0x123' },
+        } as never);
+
+        const { getByTestId, toJSON } = render({ transactionType: type });
+
+        expect(getByTestId('pay-with')).toBeOnTheScreen();
+        expect(getByTestId('deposit-to')).toBeOnTheScreen();
+        expect(getByTestId('deposit-to-value')).toHaveTextContent(
+          expectedDestination,
+        );
+
+        const json = JSON.stringify(toJSON());
+        expect(json.indexOf('"pay-with"')).toBeLessThan(
+          json.indexOf('"deposit-to"'),
+        );
+      },
+    );
+
+    it('hides DepositToRow when payWithOption is money_account', () => {
+      useRouteMock.mockReturnValue({
+        key: 'mock-route',
+        name: 'MockScreen',
+        params: { payWithOption: 'money_account' },
+      });
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.perpsDeposit,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { queryByTestId } = render({
+        transactionType: TransactionType.perpsDeposit,
+      });
+
+      expect(queryByTestId('deposit-to')).toBeNull();
     });
   });
 

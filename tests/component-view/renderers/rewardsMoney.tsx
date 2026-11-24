@@ -118,9 +118,9 @@ function pendingPage(): Promise<never> {
  * Installs Rewards Money reads on the shared Engine mock.
  *
  * `mockReset` drops a previous test's implementation. Unknown
- * RewardsMoneyController actions throw. Everything else, including
- * MoneyAccountBalanceService:getVaultApy, delegates to the implementation
- * captured when this module loaded.
+ * RewardsMoneyController actions throw. Everything else, including Money
+ * balance reads, delegates to the implementation captured when this module
+ * loaded.
  */
 export function installRewardsMoneyEngine({
   referralMe = referralMeFixture('referee'),

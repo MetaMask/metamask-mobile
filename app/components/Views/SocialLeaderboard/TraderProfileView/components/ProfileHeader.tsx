@@ -17,7 +17,9 @@ import { strings } from '../../../../../../locales/i18n';
 import type { TraderProfile } from '@metamask/social-controllers';
 import { TraderProfileViewSelectorsIDs } from '../TraderProfileView.testIds';
 
+import ProfileVerifiedBadge from '../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
+import { isProfileVerified } from '../../../../UI/SocialFeed/utils/profileVerified';
 
 const AVATAR_SIZE = 40;
 
@@ -66,6 +68,11 @@ const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           >
             {profile.name}
           </Text>
+          {isProfileVerified(profile) ? (
+            <ProfileVerifiedBadge
+              testID={TraderProfileViewSelectorsIDs.VERIFIED_BADGE}
+            />
+          ) : null}
           {twitterHandle ? (
             <Pressable
               onPress={handleTwitterPress}
