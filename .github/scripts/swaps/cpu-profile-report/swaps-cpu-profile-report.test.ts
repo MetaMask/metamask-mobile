@@ -1,4 +1,5 @@
 import {
+  buildFullReport,
   buildSlackMessage,
   failedTestNames,
   lastWeek,
@@ -179,7 +180,7 @@ describe('buildSlackMessage', () => {
         '',
         "Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. p90 is over this week's scheduled runs on main (Pixel 8 Pro).",
         'Coverage: 1 of 5 runs had no profile analysis; ETH swap: 1 of 4 runs failed before measuring; Cross-chain swap: 1 of 1 runs had no profile.',
-        '<https://example.com/run|Run log>',
+        '<https://example.com/run|Full report>',
       ].join('\n'),
     );
   });
@@ -247,6 +248,50 @@ describe('buildSlackMessage', () => {
     );
     expect(renamed).toContain(
       'Running alongside, not Swaps: Native or no source path 600ms (was 0ms)',
+    );
+  });
+});
+
+describe('buildFullReport', () => {
+  it('lists every number, links functions and runs, and escapes table text', () => {
+    const fn = {
+      name: 'anonymous',
+      file: selector.url,
+      line: 993,
+      commit: 'abc123',
+    };
+    const summary = summarizeScenario([
+      {
+        status: 'used',
+        runId: 42,
+        audit: {
+          ...audit(1000, 40),
+          widestFunction: fn,
+          nonSwapsConcurrentAreas: [{ area: 'a|b <x>', selfMs: 600 }],
+        },
+      },
+      { status: 'failed' },
+    ]);
+    const markdown = buildFullReport([{ label: 'Cross-chain swap', summary }], {
+      window: { label: 'week' },
+      runsRead: 2,
+      runsFound: 3,
+      devices: ['Pixel 8 Pro'],
+    });
+    const link =
+      'an anonymous function in [app/core/redux/slices/bridge/index.ts:993](https://github.com/MetaMask/metamask-mobile/blob/abc123/app/core/redux/slices/bridge/index.ts#L993)';
+    expect(markdown).toContain(
+      'Read 2 of 3 scheduled performance runs on main (Pixel 8 Pro); 1 had no profile analysis.',
+    );
+    expect(markdown).toContain('Used 1 of 2 runs; 1 failed before measuring.');
+    expect(markdown).toContain(
+      '| Widest span | 1,000ms | 1,000ms | no baseline yet |',
+    );
+    expect(markdown).toContain(`Widest span at p90: ${link}.`);
+    expect(markdown).toContain('| fast-equals (dependency) | 900ms | – |');
+    expect(markdown).toContain('| a\\|b &lt;x&gt; | 600ms | – |');
+    expect(markdown).toContain(
+      `| [42](https://github.com/MetaMask/metamask-mobile/actions/runs/42) | 1,000ms | 40ms | ${link} |`,
     );
   });
 });

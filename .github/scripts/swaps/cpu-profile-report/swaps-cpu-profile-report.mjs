@@ -133,13 +133,13 @@ export function summarizeScenario(samples) {
   samples.forEach((sample) => {
     counts[sample.status] += 1;
   });
-  const audits = samples
-    .filter((sample) => sample.status === 'used')
-    .map((sample) => sample.audit);
+  const used = samples.filter((sample) => sample.status === 'used');
+  const audits = used.map((sample) => sample.audit);
   if (audits.length === 0) {
     return { counts };
   }
-  const runs = audits.map((audit) => ({
+  const runs = used.map(({ runId, audit }) => ({
+    runId,
     widestSpanMs: audit.swapsWidestInclusiveMs || 0,
     ownedSelfMs: audit.swapsOwnedSelfMs || 0,
     widestFunction: audit.widestFunction,
@@ -187,6 +187,8 @@ const DROP_REASONS = [
   ['missing', 'had no profile'],
   ['ambiguous', 'matched more than one device'],
 ];
+const SPAN_EXPLAINED =
+  'Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called.';
 const movedNotably = (current, previous) =>
   Math.abs(current - previous) >= Math.max(previous * 0.25, 20);
 
@@ -198,19 +200,32 @@ function weekOverWeek(current, previous) {
   return `${percent < 0 ? 'down' : 'up'} ${Math.abs(percent)}% from ${formatMs(previous)} last week`;
 }
 
-function describeFunction(fn) {
+const REPO_URL = 'https://github.com/MetaMask/metamask-mobile';
+const NOT_NAMED = "the analysis doesn't name the function";
+
+/** The function's name and a GitHub link to its line, or null when the analysis doesn't name it. */
+function functionLink(fn) {
   if (!fn?.file?.startsWith('/app/')) {
-    return "the analysis doesn't name the function";
+    return null;
   }
   const file = fn.file.slice(1);
+  return {
+    name: fn.name === 'anonymous' ? 'an anonymous function' : fn.name,
+    text: `${file}:${fn.line}`,
+    url: encodeURI(
+      `${REPO_URL}/blob/${fn.commit || 'main'}/${file}#L${fn.line}`,
+    ),
+  };
+}
+
+function describeFunction(fn) {
+  const link = functionLink(fn);
+  if (!link) {
+    return NOT_NAMED;
+  }
   const name =
-    fn.name === 'anonymous'
-      ? 'an anonymous function'
-      : `\`${escapeSlack(fn.name)}\``;
-  const url = encodeURI(
-    `https://github.com/MetaMask/metamask-mobile/blob/${fn.commit || 'main'}/${file}#L${fn.line}`,
-  );
-  return `from ${name} in <${url}|${escapeSlack(file)}:${fn.line}>`;
+    fn.name === 'anonymous' ? link.name : `\`${escapeSlack(link.name)}\``;
+  return `from ${name} in <${link.url}|${escapeSlack(link.text)}>`;
 }
 
 /** Breakdown lines for what moved notably since last week; none without a baseline. */
@@ -280,13 +295,123 @@ export function buildSlackMessage(
   }
   lines.push(
     '',
-    `Widest span: how long the most expensive swaps function kept the JS thread busy in one run, counting the code it called. p90 is over this week's scheduled runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}).`,
+    `${SPAN_EXPLAINED} p90 is over this week's scheduled runs on main (${escapeSlack(devices.join(', ')) || 'device unknown'}).`,
   );
   if (coverage.length) {
     lines.push(`Coverage: ${coverage.join('; ')}.`);
   }
   if (runUrl) {
-    lines.push(`<${runUrl}|Run log>`);
+    lines.push(`<${runUrl}|Full report>`);
   }
   return lines.join('\n');
+}
+
+/** Markdown for the run page: GitHub renders HTML and `|` splits table cells, so artifact text is escaped. */
+const escapeMd = (text) =>
+  String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\|/g, '\\|');
+const table = (header, rows) =>
+  [header, header.map(() => '---'), ...rows]
+    .map((cells) => `| ${cells.join(' | ')} |`)
+    .join('\n');
+
+function markdownFunction(fn) {
+  const link = functionLink(fn);
+  return link
+    ? `${escapeMd(link.name)} in [${escapeMd(link.text)}](${link.url})`
+    : NOT_NAMED;
+}
+
+/**
+ * Every number behind the Slack post, for the workflow run page.
+ *
+ * @param {{ label: string, summary: object }[]} scenarios
+ * @param {{ window: { label: string }, runsRead: number, runsFound: number, devices: string[], previous?: object | null }} options
+ */
+export function buildFullReport(
+  scenarios,
+  { window, runsRead, runsFound, devices, previous },
+) {
+  const lines = [
+    `## Swaps CPU profile report, ${window.label}`,
+    '',
+    `Shadow mode, no flags. Read ${runsRead} of ${runsFound} scheduled performance runs on main (${escapeMd(devices.join(', ')) || 'device unknown'})${runsRead < runsFound ? `; ${runsFound - runsRead} had no profile analysis` : ''}.`,
+    '',
+    `${SPAN_EXPLAINED} Own time is the time spent in swaps functions themselves, without the code they called. Areas show average own time per run. "Called by swaps" is an upper bound: a function swaps calls even once counts with all its own time.`,
+  ];
+  for (const { label, summary } of scenarios) {
+    const before = previous?.scenarios?.find(
+      (scenario) => scenario.label === label,
+    )?.summary;
+    const total = Object.values(summary.counts).reduce((a, b) => a + b, 0);
+    const dropped = DROP_REASONS.filter(([status]) => summary.counts[status])
+      .map(([status, reason]) => `${summary.counts[status]} ${reason}`)
+      .join(', ');
+    lines.push(
+      '',
+      `### ${label}`,
+      '',
+      `Used ${summary.counts.used} of ${total} runs${dropped ? `; ${dropped}` : ''}.`,
+    );
+    if (!summary.widestSpanMs) {
+      continue;
+    }
+    const lastWeek = (field) =>
+      before?.[field] ? formatMs(before[field].p90) : 'no baseline yet';
+    lines.push(
+      '',
+      table(
+        ['', 'Median', 'p90', 'Last week p90'],
+        [
+          ['widestSpanMs', 'Widest span'],
+          ['ownedSelfMs', 'Swaps own time'],
+        ].map(([field, name]) => [
+          name,
+          formatMs(summary[field].median),
+          formatMs(summary[field].p90),
+          lastWeek(field),
+        ]),
+      ),
+      '',
+      `Widest span at p90: ${markdownFunction(summary.widestFunction)}.`,
+    );
+    for (const [field, title] of AREA_GROUPS) {
+      const beforeAreas = new Map(
+        (before?.[field] || []).map(({ area, avgMs }) => [area, avgMs]),
+      );
+      lines.push(
+        '',
+        `**${title}**`,
+        '',
+        table(
+          ['Area', 'Average per run', 'Last week'],
+          summary[field]
+            .slice(0, 10)
+            .map(({ area, avgMs }) => [
+              escapeMd(AREA_NAMES.get(area) ?? area),
+              formatMs(avgMs),
+              before ? formatMs(beforeAreas.get(area) ?? 0) : '–',
+            ]),
+        ),
+      );
+    }
+    lines.push(
+      '',
+      '**Per run**',
+      '',
+      table(
+        ['Run', 'Widest span', 'Swaps own time', 'Widest function'],
+        summary.runs.map((run) => [
+          `[${run.runId}](${REPO_URL}/actions/runs/${run.runId})`,
+          formatMs(run.widestSpanMs),
+          formatMs(run.ownedSelfMs),
+          markdownFunction(run.widestFunction),
+        ]),
+      ),
+    );
+  }
+  return `${lines.join('\n')}\n`;
 }

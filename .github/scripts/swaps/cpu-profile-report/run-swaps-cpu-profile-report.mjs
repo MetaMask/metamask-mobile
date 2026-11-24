@@ -15,6 +15,7 @@ import {
   SLACK_CHANNEL_ID,
 } from './swaps-cpu-profile-report.config.mjs';
 import {
+  buildFullReport,
   buildSlackMessage,
   failedTestNames,
   lastWeek,
@@ -140,7 +141,7 @@ async function main() {
         if (sample.status === 'ambiguous') {
           console.warn(`[ambiguous] run ${runId}: ${scenario.label}`);
         }
-        samples[index].push(sample);
+        samples[index].push({ ...sample, runId });
       });
       runsRead += 1;
     } catch (error) {
@@ -160,13 +161,21 @@ async function main() {
     path.join(env.OUT_DIR, 'summary.json'),
     `${JSON.stringify({ window, runIds, runsRead, devices, scenarios }, null, 2)}\n`,
   );
-  const message = buildSlackMessage(scenarios, {
+  const details = {
     window,
     runsRead,
     devices,
     runsFound: runIds.length,
-    runUrl: env.GITHUB_RUN_URL || '',
     previous: previousSummary(window),
+  };
+  const report = buildFullReport(scenarios, details);
+  fs.writeFileSync(path.join(env.OUT_DIR, 'report.md'), report);
+  if (env.GITHUB_STEP_SUMMARY) {
+    fs.appendFileSync(env.GITHUB_STEP_SUMMARY, report);
+  }
+  const message = buildSlackMessage(scenarios, {
+    ...details,
+    runUrl: env.GITHUB_RUN_URL || '',
   });
   console.log(`${message}\n`);
   if (dryRun) {
