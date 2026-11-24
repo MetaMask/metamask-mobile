@@ -229,6 +229,40 @@ describe('CardFreezeUnfreezeAnimation', () => {
     expect(mockTrigger).not.toHaveBeenCalled();
   });
 
+  it('dims the static fallback for a frozen card under reduce motion', () => {
+    mockUseReduceMotion.mockReturnValue(true);
+
+    const { getByTestId } = render(animationElement(true));
+
+    const fallbackImage =
+      getByTestId('freeze-animation').findAllByType(Image)[0];
+    expect(StyleSheet.flatten(fallbackImage.props.style).opacity).toBe(0.5);
+  });
+
+  it('does not play the melt when the Rive view recovers on an unfrozen card', () => {
+    const { rerender } = render(animationElement(false));
+
+    mockViewReady = false;
+    rerender(animationElement(false));
+    mockViewReady = true;
+    rerender(animationElement(false));
+
+    expect(mockTrigger).not.toHaveBeenCalled();
+  });
+
+  it('re-applies the freeze when the Rive view recovers on a frozen card', () => {
+    const { rerender } = render(animationElement(true));
+    mockTrigger.mockClear();
+
+    mockViewReady = false;
+    rerender(animationElement(true));
+    mockViewReady = true;
+    rerender(animationElement(true));
+
+    expect(mockTrigger).toHaveBeenCalledTimes(1);
+    expect(mockTrigger).toHaveBeenCalledWith('freeze');
+  });
+
   it('falls back to the static card when the Rive view reports an error', () => {
     const { getByTestId, queryByTestId } = render(animationElement(true));
 
@@ -269,6 +303,14 @@ describe('CardFreezeUnfreezeAnimation', () => {
       (cardHeight - (riveWidth * 754) / 1192) / 2,
       6,
     );
+  });
+
+  it('passes the same Rive file options on every render', () => {
+    const { rerender } = render(animationElement(false));
+    rerender(animationElement(true));
+
+    const [first, second] = mockUseRiveFile.mock.calls;
+    expect(second[1]).toBe(first[1]);
   });
 
   it('feeds the .riv file the full-resolution card face out-of-band', () => {
