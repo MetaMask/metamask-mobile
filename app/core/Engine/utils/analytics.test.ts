@@ -1,4 +1,9 @@
 import { trackEvent, buildAndTrackEvent } from './analytics';
+import NavigationService from '../../NavigationService';
+import {
+  recordFocusedRoute,
+  resetNavigationAnalyticsAttributionForTests,
+} from '../../../util/analytics/navigationAnalyticsAttribution';
 import Logger from '../../../util/Logger';
 import type { ControllerMessenger } from '../types';
 import {
@@ -42,6 +47,7 @@ describe('trackEvent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetNavigationAnalyticsAttributionForTests();
 
     mockCall = jest.fn();
     mockInitMessenger = {
@@ -86,10 +92,39 @@ describe('trackEvent', () => {
       );
     });
 
+    it('leaves previous_screen unset when Engine tracks Home Viewed', () => {
+      recordFocusedRoute({ name: 'WalletView', key: 'wallet' });
+      recordFocusedRoute({ name: 'SettingsView', key: 'settings' });
+      const getCurrentRoute = jest
+        .spyOn(NavigationService, 'getCurrentRoute')
+        .mockReturnValue({
+          key: 'settings',
+          name: 'SettingsView',
+          params: {},
+        });
+      const event = {
+        name: 'Home Viewed',
+        properties: { screen: 'settings' },
+        sensitiveProperties: {},
+      } as unknown as AnalyticsTrackingEvent;
+
+      try {
+        trackEvent(mockInitMessenger, event);
+
+        expect(mockCall).toHaveBeenCalledWith(
+          'AnalyticsController:trackEvent',
+          event,
+        );
+        expect(event.properties).toEqual({ screen: 'settings' });
+      } finally {
+        getCurrentRoute.mockRestore();
+      }
+    });
+
     it('enriches allowlisted events before calling the analytics controller', () => {
       jest.mocked(store.getState).mockReturnValue(
         createStateWithFeatureFlags({
-          assetsASSETS3205AbtestAmbientPriceColor: 'treatment',
+          swapsSWAPS5094AbtestQuickBuyEntrypoints: 'treatment_1',
         }),
       );
 
@@ -111,10 +146,10 @@ describe('trackEvent', () => {
             source: 'wallet',
             active_ab_tests: [
               {
-                key: 'assetsASSETS3205AbtestAmbientPriceColor',
-                value: 'treatment',
+                key: 'swapsSWAPS5094AbtestQuickBuyEntrypoints',
+                value: 'treatment_1',
                 key_value_pair:
-                  'assetsASSETS3205AbtestAmbientPriceColor=treatment',
+                  'swapsSWAPS5094AbtestQuickBuyEntrypoints=treatment_1',
               },
             ],
           },
@@ -209,7 +244,7 @@ describe('trackEvent', () => {
       it('inherits A/B enrichment when buildAndTrackEvent forwards a matching event', () => {
         jest.mocked(store.getState).mockReturnValue(
           createStateWithFeatureFlags({
-            assetsASSETS3205AbtestAmbientPriceColor: 'control',
+            swapsSWAPS5094AbtestQuickBuyEntrypoints: 'control',
           }),
         );
 
@@ -243,10 +278,10 @@ describe('trackEvent', () => {
               source: 'wallet',
               active_ab_tests: [
                 {
-                  key: 'assetsASSETS3205AbtestAmbientPriceColor',
+                  key: 'swapsSWAPS5094AbtestQuickBuyEntrypoints',
                   value: 'control',
                   key_value_pair:
-                    'assetsASSETS3205AbtestAmbientPriceColor=control',
+                    'swapsSWAPS5094AbtestQuickBuyEntrypoints=control',
                 },
               ],
             },

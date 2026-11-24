@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import type { FeedAudience } from '../types';
+import type { FeedAudience } from '../../../../UI/SocialFeed/types';
 import { FeedViewSelectorsIDs } from '../FeedView.testIds';
 
 export interface FeedEmptyStateProps {

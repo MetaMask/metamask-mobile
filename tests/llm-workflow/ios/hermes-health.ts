@@ -128,7 +128,21 @@ export async function verifyJsLiveness(
     timeoutId = setTimeout(() => finish(false), timeoutMs);
 
     try {
-      ws = new WebSocketCtor(webSocketDebuggerUrl);
+      // Metro rejects debugger sockets without an Origin header ("origin
+      // 'undefined'"). Node's WebSocket accepts `{ headers }` as the second
+      // argument; the DOM typings do not know this overload.
+      const WebSocketWithHeaders = WebSocketCtor as unknown as new (
+        url: string,
+        options: { headers: { origin: string } },
+      ) => WebSocket;
+      ws = new WebSocketWithHeaders(webSocketDebuggerUrl, {
+        headers: {
+          // Same override device-mcp honours (custom packager host / proxy).
+          origin:
+            process.env.HERMES_CDP_ORIGIN ||
+            debuggerOrigin(webSocketDebuggerUrl),
+        },
+      });
     } catch {
       finish(false);
       return;
@@ -159,6 +173,22 @@ export async function verifyJsLiveness(
     ws.onerror = () => finish(false);
     ws.onclose = () => finish(false);
   });
+}
+
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+
+/**
+ * The Origin Metro expects for a debugger WebSocket. Same rule as device-mcp
+ * (`resolveWebSocketOrigin`): `ws:`→`http:`, `wss:`→`https:`, loopback hosts
+ * become `127.0.0.1` (Expo normalizes its server URL to it), port kept.
+ */
+export function debuggerOrigin(webSocketDebuggerUrl: string): string {
+  const url = new URL(webSocketDebuggerUrl);
+  url.protocol = url.protocol === 'wss:' ? 'https:' : 'http:';
+  if (LOOPBACK_HOSTNAMES.has(url.hostname)) {
+    url.hostname = '127.0.0.1';
+  }
+  return url.origin;
 }
 
 function sleep(durationMs: number): Promise<void> {

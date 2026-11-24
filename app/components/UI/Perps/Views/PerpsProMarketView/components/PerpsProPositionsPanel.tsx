@@ -7,6 +7,8 @@ import {
   ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  SelectButton,
+  SelectButtonSize,
   Checkbox,
   FontWeight,
   IconName,
@@ -64,6 +66,7 @@ import {
   getPerpsProChaseRepriceSelector,
   getPerpsProChaseStatusSelector,
   getPerpsProChaseTerminateSelector,
+  getPerpsProChaseHandleSelector,
   getPerpsProPositionRowSelector,
   PerpsProMarketViewSelectorsIDs,
 } from '../../../Perps.testIds';
@@ -100,6 +103,8 @@ import usePerpsToasts from '../../../hooks/usePerpsToasts';
 import { registerVisibleChaseOrderHandles } from '../../../services/ChaseOrderVisibility';
 import PerpsTokenLogo from '../../../components/PerpsTokenLogo';
 import PerpsProActivityFilterSheet from './PerpsProActivityFilterSheet';
+import PerpsProHiddenByFiltersCaption from './PerpsProHiddenByFiltersCaption';
+import ProPositionSideFilterIcon from './ProPositionSideFilterIcon';
 import PerpsProOrderCard from './PerpsProOrderCard';
 import PerpsProOrdersEmptyState from './PerpsProOrdersEmptyState';
 import PerpsProOrdersSortSheet from './PerpsProOrdersSortSheet';
@@ -627,6 +632,12 @@ const PerpsProPositionsPanel = ({
     [orderSortConfig, sideFilteredOrders],
   );
 
+  const hiddenByFiltersCount = isOrdersTab
+    ? orders.length - sideFilteredOrders.length
+    : positions.length - sideFilteredPositions.length;
+  const showHiddenByFiltersCaption =
+    !isChaseTab && !isTwapTab && hiddenByFiltersCount > 0;
+
   const visibleChaseOrders = useMemo(
     () =>
       chaseOrders.filter((order) => {
@@ -1123,7 +1134,10 @@ const PerpsProPositionsPanel = ({
           index === 0,
         )}
       >
-        <Box twClassName="gap-3 py-3">
+        <Box
+          twClassName="gap-3 py-3"
+          testID={getPerpsProChaseHandleSelector(order.symbol, order.handle)}
+        >
           <Pressable
             onPress={handlePress}
             disabled={!handlePress}
@@ -1369,10 +1383,19 @@ const PerpsProPositionsPanel = ({
             />
           </Box>
         ) : null}
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          endIconName={IconName.ArrowDown}
+        <SelectButton
+          size={SelectButtonSize.Sm}
+          placeholder={strings(
+            getProPositionSideFilterButtonLabelKey(activeSideFilter),
+          )}
+          value={strings(
+            getProPositionSideFilterButtonLabelKey(activeSideFilter),
+          )}
+          startAccessory={
+            activeSideFilter === 'all' ? undefined : (
+              <ProPositionSideFilterIcon sideFilter={activeSideFilter} />
+            )
+          }
           onPress={() => setIsSideFilterSheetOpen(true)}
           testID={
             isChaseTab
@@ -1381,9 +1404,7 @@ const PerpsProPositionsPanel = ({
                 ? PerpsProMarketViewSelectorsIDs.TWAP_SIDE_FILTER_BUTTON
                 : PerpsProMarketViewSelectorsIDs.POSITIONS_SIDE_FILTER_BUTTON
           }
-        >
-          {strings(getProPositionSideFilterButtonLabelKey(activeSideFilter))}
-        </Button>
+        />
         <Box twClassName="bg-muted rounded-full px-2 py-1">
           {renderTickerOnlyCheckbox()}
         </Box>
@@ -1428,6 +1449,16 @@ const PerpsProPositionsPanel = ({
           </Box>
         ) : null}
       </ScrollView>
+      {showHiddenByFiltersCaption ? (
+        <PerpsProHiddenByFiltersCaption
+          count={hiddenByFiltersCount}
+          messageKey={
+            isOrdersTab
+              ? 'perps.pro_positions_panel.orders_hidden_by_filters'
+              : 'perps.pro_positions_panel.positions_hidden_by_filters'
+          }
+        />
+      ) : null}
       {renderActiveTab()}
       {renderActionSheets(
         sideFilteredPositions,

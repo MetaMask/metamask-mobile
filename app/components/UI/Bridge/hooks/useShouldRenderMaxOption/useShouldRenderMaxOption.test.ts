@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { useShouldRenderMaxOption } from '.';
 import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
-import { ARC_USDC_BRIDGE_TOKEN } from '../../../../../enablement/assets/arc';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -77,6 +76,19 @@ describe('useShouldRenderMaxOption', () => {
     expect(result.current).toBe(false);
   });
 
+  it('returns true for a money token with a positive balance', () => {
+    const moneyToken: BridgeToken = {
+      ...mockToken,
+      isMoneyToken: true,
+    };
+
+    const { result } = renderHook(() =>
+      useShouldRenderMaxOption(moneyToken, '10'),
+    );
+
+    expect(result.current).toBe(true);
+  });
+
   it('returns false when display balance is zero', () => {
     const { result } = renderHook(() =>
       useShouldRenderMaxOption(mockToken, '0'),
@@ -132,34 +144,6 @@ describe('useShouldRenderMaxOption', () => {
 
     const { result } = renderHook(() =>
       useShouldRenderMaxOption(nativeToken, '1.25'),
-    );
-
-    expect(result.current).toBe(false);
-  });
-
-  it('returns true for ERC20 USDC on Arc when 7702 is enabled', () => {
-    setSelectorValues({
-      gasIncluded: false,
-      gasIncluded7702: true,
-    });
-    mockIsNativeAddress.mockReturnValue(false);
-
-    const { result } = renderHook(() =>
-      useShouldRenderMaxOption(ARC_USDC_BRIDGE_TOKEN, '1.25'),
-    );
-
-    expect(result.current).toBe(true);
-  });
-
-  it('returns false for ERC20 USDC on Arc when gasIncluded and 7702 are both disabled', () => {
-    setSelectorValues({
-      gasIncluded: false,
-      gasIncluded7702: false,
-    });
-    mockIsNativeAddress.mockReturnValue(false);
-
-    const { result } = renderHook(() =>
-      useShouldRenderMaxOption(ARC_USDC_BRIDGE_TOKEN, '1.25'),
     );
 
     expect(result.current).toBe(false);

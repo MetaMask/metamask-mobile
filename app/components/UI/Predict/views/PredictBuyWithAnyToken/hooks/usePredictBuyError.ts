@@ -1,10 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import { MINIMUM_BET } from '../../../constants/transactions';
+import { PredictEventValues } from '../../../constants/eventNames';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
-import { OrderPreview, PlaceOrderParams } from '../../../types';
+import {
+  ActiveOrderState,
+  OrderPreview,
+  PlaceOrderParams,
+  type PredictRetryOrderState,
+} from '../../../types';
 import { formatCents, formatPrice } from '../../../utils/format';
+import { classifyPredictBuyFailure } from '../../../utils/analytics';
 import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import type { PredictBuyErrorBannerVariant } from '../components/PredictBuyErrorBanner';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
@@ -37,6 +44,49 @@ type PredictBuyErrorResult =
 interface PredictBuyErrorMessageData {
   message: string;
   source: PredictBuyErrorMessageSource;
+}
+
+/**
+ * Retry-guard state from the active-order machine (authoritative for the
+ * buy-with-any-token flow). Anything other than 'unknown' is in flight or
+ * terminal and must never be retried as a fresh failure.
+ */
+function getBuyRetryOrderState({
+  isPlacingOrder,
+  activeOrder,
+}: {
+  isPlacingOrder: boolean;
+  activeOrder:
+    | {
+        state: ActiveOrderState;
+        error?: string;
+      }
+    | null
+    | undefined;
+}): PredictRetryOrderState {
+  if (
+    isPlacingOrder ||
+    activeOrder?.state === ActiveOrderState.PLACING_ORDER ||
+    activeOrder?.state === ActiveOrderState.DEPOSITING ||
+    activeOrder?.state === ActiveOrderState.PAY_WITH_ANY_TOKEN
+  ) {
+    return 'pending';
+  }
+  if (activeOrder?.state === ActiveOrderState.SUCCESS) {
+    return 'filled';
+  }
+  // A user rejection (canceled order) is terminal. The failure classifier is
+  // the existing authority for that; anything else stays retryable.
+  if (activeOrder?.error) {
+    const { isUserRejected } = classifyPredictBuyFailure(
+      activeOrder.error,
+      PredictEventValues.FAILURE_STAGE.ORDER,
+    );
+    if (isUserRejected) {
+      return 'canceled';
+    }
+  }
+  return 'unknown';
 }
 
 interface UsePredictBuyInfoParams {
@@ -376,6 +426,7 @@ export const usePredictBuyError = ({
     errorMessageSource: errorMessageData?.source,
     buyErrorBanner,
     isOrderNotFilled,
+    retryOrderState: getBuyRetryOrderState({ isPlacingOrder, activeOrder }),
     resetOrderNotFilled,
     clearBuyErrorBanner,
   };

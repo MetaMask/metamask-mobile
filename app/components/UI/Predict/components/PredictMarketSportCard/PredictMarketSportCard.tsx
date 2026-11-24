@@ -300,7 +300,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           <Text
             variant={TextVariant.HeadingSm}
             color={TextColor.TextDefault}
-            fontWeight={FontWeight.Bold}
+            fontWeight={FontWeight.Medium}
             twClassName="text-center"
             numberOfLines={isCompact ? 1 : 2}
           >

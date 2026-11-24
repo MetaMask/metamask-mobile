@@ -713,9 +713,22 @@ const BASE_HOME_FLAGS = [
     ],
   },
   {
-    homeTMCU1209AbtestHomepageBalanceBreakdown: {
-      enabled: false,
-    },
+    homeTMCU1209AbtestHomepageBalanceBreakdownV2: [
+      {
+        name: 'control',
+        scope: {
+          value: 0,
+          type: 'percentage_rollout',
+        },
+      },
+      {
+        name: 'treatment',
+        scope: {
+          value: 1,
+          type: 'percentage_rollout',
+        },
+      },
+    ],
   },
   {
     homeTMCU470AbtestTrendingSections: {
@@ -833,9 +846,6 @@ const BASE_MONEY_ACCOUNT_FLAGS = [
     },
   },
   {
-    moneyActivityMockDataEnabled: false,
-  },
-  {
     moneyEnableActivityDetails: {
       enabled: true,
       minimumVersion: '7.83.0',
@@ -851,12 +861,6 @@ const BASE_MONEY_ACCOUNT_FLAGS = [
     moneyEnableMoneyAccount: {
       enabled: true,
       minimumVersion: '0.0.0',
-    },
-  },
-  {
-    moneyEnableOnboardingStepperAnimation: {
-      minimumVersion: '8.0.0',
-      enabled: true,
     },
   },
   {
@@ -1028,6 +1032,12 @@ const BASE_PERPS_FLAGS = [
   {
     perpsPositionModifyPreviewEnabled: {
       minimumVersion: '8.11.0',
+      enabled: false,
+    },
+  },
+  {
+    perpsSocialEnabled: {
+      minimumVersion: '8.17.0',
       enabled: false,
     },
   },
@@ -1263,18 +1273,6 @@ const BASE_STX_FLAGS = [
 ];
 
 const BASE_TMCU_FLAGS = [
-  {
-    tmcuActivityRedesignEnabled: {
-      enabled: true,
-      minimumVersion: '8.5.0',
-    },
-  },
-  {
-    tmcuTransactionsRedesignEnabled: {
-      enabled: true,
-      minimumVersion: '8.5.0',
-    },
-  },
   {
     walletHomeOnboardingSteps: {
       enabled: true,

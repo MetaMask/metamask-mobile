@@ -1,8 +1,10 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectProfileControllerProfile } from '../../../../selectors/profileController';
 import {
   selectCampaignParticipantStatuses,
   selectPendingMasSeriesOptIn,
@@ -96,6 +98,9 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
     [series.activeCampaign],
   );
 
+  const profileUsername =
+    useSelector(selectProfileControllerProfile)?.username?.trim() || undefined;
+
   const ensureOptedIn =
     useCallback(async (): Promise<MoneyAccountSweepstakesOptInResult> => {
       if (!subscriptionId) {
@@ -128,11 +133,18 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
 
       setIsOptingIn(true);
       try {
-        const results = await Engine.controllerMessenger.call(
-          'RewardsController:optInToCampaigns',
-          targets.map((campaign) => campaign.id),
-          subscriptionId,
-        );
+        const results = profileUsername
+          ? await Engine.controllerMessenger.call(
+              'RewardsController:optInToCampaigns',
+              targets.map((campaign) => campaign.id),
+              subscriptionId,
+              profileUsername,
+            )
+          : await Engine.controllerMessenger.call(
+              'RewardsController:optInToCampaigns',
+              targets.map((campaign) => campaign.id),
+              subscriptionId,
+            );
 
         const resolvedOptedIn: Record<string, boolean> = {
           ...optedInByCampaignId,
@@ -165,6 +177,7 @@ export function useMoneyAccountSweepstakesOptIn(): UseMoneyAccountSweepstakesOpt
       series.campaigns,
       optedInByCampaignId,
       subscriptionId,
+      profileUsername,
       dispatch,
       ensureBound,
       updatePendingFlag,
@@ -196,12 +209,15 @@ export function useResumePendingMasSeriesOptIn(): void {
         !subscriptionId ||
         pending.subscriptionId !== subscriptionId
       ) {
-        return;
+        return undefined;
       }
 
-      ensureOptedInRef.current().catch(() => {
-        // Quiet resume — failures remain pending for a later focus.
+      const handle = runAfterInteractions(() => {
+        ensureOptedInRef.current().catch(() => {
+          // Quiet resume — failures remain pending for a later focus.
+        });
       });
+      return () => handle.cancel();
     }, [pending.needsRetry, pending.subscriptionId, subscriptionId]),
   );
 }

@@ -1,6 +1,11 @@
+import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { LimitOrderDelegationsParams } from '../../api/limitOrders/getDelegations';
+import type { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 import type { EIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
 import type { BridgeToken } from '../../types';
+import type { LimitOrderTriggerInput } from '../../utils/limitOrders/getLimitOrderTriggerParams';
+import type { LimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
+import type { InsufficientBalanceBannerProps } from './InsufficientBalanceBanner/types';
 
 /**
  * Market comparison shown under the trigger price, e.g. "(-5% from market)".
@@ -28,6 +33,12 @@ export interface LimitOrderConfirmationModalParams {
    */
   payingAmount: string;
   /**
+   * Destination amount the order would produce if it filled exactly at its
+   * limit price, including its symbol, e.g. "341.22 USDC". It is an estimate
+   * since the cost tolerance can reduce what is actually received.
+   */
+  estReceivingAmount: string;
+  /**
    * Limit price the order triggers at, e.g. "$3,412.20".
    */
   triggerPrice: string;
@@ -47,15 +58,36 @@ export interface LimitOrderConfirmationModalParams {
    * sheet is open.
    */
   order: Omit<LimitOrderDelegationsParams, 'costTolerance'>;
+  /**
+   * The limit price exactly as entered, with the side it is quoted on. The
+   * caller is the only place holding it. This screen turns it into the
+   * `POST /v2/limit-orders` trigger itself, converting a price in another
+   * display currency to USD with the live rate, so the order is placed at the
+   * rate shown in the notice at the time it is created.
+   */
+  triggerInput: LimitOrderTriggerInput;
+  /**
+   * Entry point the user opened the swaps flow from, reported as the
+   * `location` of the order's analytics events.
+   */
+  location: MetaMetricsSwapsEventSource;
 }
 
 export interface LimitOrderConfirmationModalProps
-  extends Omit<LimitOrderConfirmationModalParams, 'order'> {
+  extends Omit<
+    LimitOrderConfirmationModalParams,
+    'order' | 'triggerInput' | 'location'
+  > {
   /**
    * Cost tolerance label, e.g. "2%". Read from state by the host screen so
    * edits made in the cost tolerance modal are reflected here.
    */
   costTolerance: string;
+  /**
+   * Which side of the trigger price fills the order, shown as a ≥ or ≤ sign
+   * before it. Read from the trigger input by the host screen.
+   */
+  triggerDirection: LimitOrderPriceComparisonDirection;
   /**
    * Comparison against the current market price.
    */
@@ -70,10 +102,19 @@ export interface LimitOrderConfirmationModalProps
    * Token the network fee is paid in, used for the network fee row avatar.
    */
   feeToken?: BridgeToken;
+  /**
+   * Rate of one US dollar in the display currency the trigger is converted
+   * at, e.g. `{ rate: '85.05', currency: 'RUB' }`. Set only for a price
+   * entered in fiat while the display currency is not USD, since the order is
+   * placed at the USD equivalent of the price on screen.
+   */
+  usdExchangeRate?: LimitOrderUsdExchangeRate;
+  insufficientBalance?: InsufficientBalanceBannerProps['insufficientBalance'];
   primaryButton: {
     onPress: () => void;
     label: string;
     isLoading?: boolean;
+    isDisabled?: boolean;
   };
   error?: string;
   /**

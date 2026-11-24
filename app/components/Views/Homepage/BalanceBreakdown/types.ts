@@ -23,7 +23,6 @@ export interface BalanceSlice {
 }
 
 export interface SliceData extends BalanceSlice {
-  color: string;
   percentOfTotal: number;
 }
 

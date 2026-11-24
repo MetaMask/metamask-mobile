@@ -1,5 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Pressable, StyleSheet, type ViewStyle } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  useAnimatedValue,
+  type ViewStyle,
+} from 'react-native';
 import {
   Box,
   BoxFlexDirection,
@@ -18,7 +24,11 @@ export interface SlidingPillOption<T extends string> {
 
 interface SlidingPillToggleProps<T extends string> {
   value: T;
-  options: readonly [SlidingPillOption<T>, SlidingPillOption<T>];
+  options: readonly [
+    SlidingPillOption<T>,
+    SlidingPillOption<T>,
+    ...SlidingPillOption<T>[],
+  ];
   onChange: (value: T) => void;
   isDisabled?: boolean;
   testID: string;
@@ -71,19 +81,22 @@ function SlidingPillToggle<T extends string>({
   weightBySelection = false,
   style,
 }: SlidingPillToggleProps<T>) {
-  const slideAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useAnimatedValue(0);
   const [pillWidth, setPillWidth] = useState(0);
-  const [firstOption, secondOption] = options;
 
   useEffect(() => {
     if (!pillWidth) return;
+    const selectedIndex = Math.max(
+      options.findIndex((option) => option.value === value),
+      0,
+    );
     Animated.spring(slideAnim, {
-      toValue: value === firstOption.value ? 0 : pillWidth,
+      toValue: selectedIndex * pillWidth,
       useNativeDriver: true,
       tension: 180,
       friction: 20,
     }).start();
-  }, [value, pillWidth, firstOption.value, slideAnim]);
+  }, [value, pillWidth, options, slideAnim]);
 
   const pillMinWidth = stretchPills ? undefined : pillWidth;
 
@@ -159,8 +172,7 @@ function SlidingPillToggle<T extends string>({
         />
       )}
       <Box flexDirection={BoxFlexDirection.Row} style={{ padding: inset }}>
-        {renderOption(firstOption)}
-        {renderOption(secondOption)}
+        {options.map(renderOption)}
       </Box>
     </Box>
   );

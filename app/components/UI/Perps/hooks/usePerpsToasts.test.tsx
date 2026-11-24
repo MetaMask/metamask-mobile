@@ -1,3 +1,4 @@
+import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +17,6 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
-import { mockTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 jest.mock('react', () => ({
   ...jest.requireActual('react'),
@@ -80,7 +80,7 @@ jest.mock('../utils/translatePerpsError', () => ({
   }: {
     error?: string;
     fallbackMessage: string;
-  }) => error || fallbackMessage,
+  }): string => error || fallbackMessage,
 }));
 
 describe('getPerpsToastLabels', () => {
@@ -467,6 +467,8 @@ describe('usePerpsToasts', () => {
           label: 'Network error',
           isBold: false,
         });
+        expect(config.linkButtonOptions).toBeUndefined();
+        expect(config.hasNoTimeout).toBe(false);
       });
 
       it('strips hip3 prefix from asset symbol in market order submitted', () => {
@@ -569,6 +571,20 @@ describe('usePerpsToasts', () => {
         });
       });
 
+      it('retains a supplied definite refusal reason without changing default failure copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.creationFailed(
+            undefined,
+            'Review existing Scale orders before placing another',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Review existing Scale orders before placing another',
+          isBold: false,
+        });
+      });
+
       it('strips hip3 prefix from asset symbol in limit order submitted', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const config =
@@ -611,6 +627,51 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions).toContainEqual({
           label: 'Long 5 BTC',
           isBold: false,
+        });
+      });
+
+      describe('post-only edit failures', () => {
+        it('says the order was cancelled when the rejection reports a cancelled original', () => {
+          // Arrange
+          const error = PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS;
+          const { result } = renderHook(() => usePerpsToasts());
+
+          // Act
+          const config =
+            result.current.PerpsToastOptions.orderManagement.limit.editFailed({
+              reason: 'post_only_would_cross',
+              originalOrder: 'cancelled',
+              error,
+            });
+
+          // Assert
+          expect(config.labelOptions).toEqual([
+            { label: strings('perps.order.order_update_failed'), isBold: true },
+            { label: '\n', isBold: false },
+            {
+              label: strings('perps.order.order_update_post_only_would_cross'),
+              isBold: false,
+            },
+          ]);
+          expect(JSON.stringify(config.labelOptions)).not.toMatch(
+            /bbo|2347|still open|\[missing/i,
+          );
+        });
+
+        it('keeps the previous-order fallback for edit failures that are not post-only', () => {
+          // Arrange
+          const { result } = renderHook(() => usePerpsToasts());
+
+          // Act
+          const config =
+            result.current.PerpsToastOptions.orderManagement.limit.editFailed();
+
+          // Assert
+          expect(config.labelOptions).toContainEqual({
+            label: strings('perps.order.order_update_failed_subtitle'),
+            isBold: false,
+          });
+          expect(JSON.stringify(config.labelOptions)).not.toMatch(/\[missing/);
         });
       });
     });
@@ -1303,6 +1364,29 @@ describe('usePerpsToasts', () => {
         expect(config.labelOptions?.[0]).toMatchObject({
           isBold: true,
         });
+      });
+
+      it('returns remove amount changed configuration with the new max', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '7.00',
+          );
+
+        expect(config.labelOptions).toHaveLength(3);
+        expect(config.labelOptions?.[0]).toMatchObject({ isBold: true });
+        expect(config.labelOptions?.[2]).toMatchObject({ isBold: false });
+        expect(String(config.labelOptions?.[2]?.label)).toContain('7.00');
+      });
+
+      it('explains nothing is removable when the new max is zero', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '0.00',
+          );
+
+        expect(String(config.labelOptions?.[2]?.label)).not.toContain('0.00');
       });
 
       it('returns adjustment failed configuration with custom error', () => {

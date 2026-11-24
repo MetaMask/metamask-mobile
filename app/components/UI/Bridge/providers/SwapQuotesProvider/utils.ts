@@ -12,27 +12,25 @@ const normalizeSrcAmount = (
   return calcTokenValue(srcAmount, decimals).toFixed(0);
 };
 
+export interface QuoteParams {
+  srcAmount?: string;
+  srcToken?: BridgeToken;
+  destToken?: BridgeToken;
+  walletAddress?: string;
+  destWalletAddress?: string;
+  slippage?: string;
+  gasIncluded?: boolean;
+  gasIncluded7702?: boolean;
+}
+
 export const buildGenericQuoteRequest = (input: {
-  quoteParams: {
-    srcAmount?: string;
-    srcToken?: BridgeToken;
-    destToken?: BridgeToken;
-    walletAddress?: string;
-    destWalletAddress?: string;
-    slippage?: string;
-  };
-  gasIncluded: boolean;
-  gasIncluded7702: boolean;
+  quoteParams: QuoteParams;
   insufficientBalance: boolean;
   insufficientNativeReserveError: boolean;
-}): GenericQuoteRequest | undefined => {
-  const {
-    quoteParams,
-    gasIncluded,
-    gasIncluded7702,
-    insufficientBalance,
-    insufficientNativeReserveError,
-  } = input;
+  moneyAccountAddress?: string;
+}): (Partial<GenericQuoteRequest> & { walletAddress: string }) | undefined => {
+  const { quoteParams, insufficientBalance, insufficientNativeReserveError } =
+    input;
   const {
     walletAddress,
     srcAmount,
@@ -40,36 +38,42 @@ export const buildGenericQuoteRequest = (input: {
     destToken,
     destWalletAddress,
     slippage,
+    gasIncluded,
+    gasIncluded7702,
   } = quoteParams;
+  const moneyAccountAddress = input.moneyAccountAddress;
 
-  if (
-    !walletAddress ||
-    !srcToken ||
-    srcAmount === undefined ||
-    !destToken?.chainId
-  ) {
+  if (!walletAddress) {
     return;
   }
+
   const normalizedSourceAmount = normalizeSrcAmount(
     srcAmount,
-    srcToken.decimals,
+    srcToken?.decimals,
   );
 
   const slippageNumber = slippage ? Number(slippage) : undefined;
 
-  const insufficientBal = insufficientBalance || insufficientNativeReserveError;
+  const insufficientBal = srcToken?.isMoneyToken
+    ? true
+    : insufficientBalance || insufficientNativeReserveError;
 
   return {
-    srcChainId: srcToken.chainId,
-    srcTokenAddress: srcToken.address,
-    destChainId: destToken.chainId,
-    destTokenAddress: destToken.address,
-    srcTokenAmount: normalizedSourceAmount,
+    srcChainId: srcToken?.chainId,
+    srcTokenAddress: srcToken?.address,
+    destChainId: destToken?.chainId,
+    destTokenAddress: destToken?.address,
+    srcTokenAmount: normalizedSourceAmount ?? '0',
     slippage: Number.isNaN(slippageNumber) ? undefined : slippageNumber,
     walletAddress,
-    destWalletAddress: destWalletAddress ?? walletAddress,
-    gasIncluded,
-    gasIncluded7702,
+    destWalletAddress:
+      destToken?.isMoneyToken && moneyAccountAddress
+        ? moneyAccountAddress
+        : (destWalletAddress ?? walletAddress),
+    gasIncluded: Boolean(gasIncluded),
+    gasIncluded7702: Boolean(gasIncluded7702),
     insufficientBal,
+    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+    isMoneyAccount: Boolean(srcToken?.isMoneyToken || destToken?.isMoneyToken),
   };
 };

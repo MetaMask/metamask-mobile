@@ -168,8 +168,9 @@ describe('RWATokensFullView', () => {
         assetId: 'eip155:1/erc20:0xstock1',
       }),
       createMockToken({
-        name: 'USDY Token',
-        assetId: 'eip155:1/erc20:0xstock2',
+        name: 'Apple',
+        symbol: 'AAPL',
+        assetId: 'eip155:4663/erc20:0xstock2',
       }),
     ];
 
@@ -179,7 +180,7 @@ describe('RWATokensFullView', () => {
 
     expect(getByTestId(TEST_IDS.tokensList)).toBeOnTheScreen();
     expect(getByText('OUSG Token')).toBeOnTheScreen();
-    expect(getByText('USDY Token')).toBeOnTheScreen();
+    expect(getByText('Apple')).toBeOnTheScreen();
   });
 
   it('calls refetch when pull-to-refresh is triggered', async () => {
@@ -201,16 +202,13 @@ describe('RWATokensFullView', () => {
     expect(mocks.mockRefetch).toHaveBeenCalledTimes(1);
   });
 
-  it.skip('opens network bottom sheet when button is pressed', async () => {
-    const { getByTestId, getByText } = renderRWAFullView();
-
+  it('includes Robinhood Chain in the network bottom sheet', async () => {
+    const { getByTestId } = renderRWAFullView();
     const networkButton = getByTestId('all-networks-button');
+
     await userEvent.press(networkButton);
 
-    expect(
-      getByTestId('trending-token-network-bottom-sheet'),
-    ).toBeOnTheScreen();
-    expect(getByText('Robinhood Chain')).toBeOnTheScreen();
+    expect(getByTestId('network-select-eip155:4663')).toBeOnTheScreen();
   });
 
   it('opens price change bottom sheet when button is pressed', async () => {

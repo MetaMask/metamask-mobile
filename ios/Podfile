@@ -10,7 +10,7 @@ podfile_properties = JSON.parse(File.read(File.join(__dir__, 'Podfile.properties
 
 ENV['EX_DEV_CLIENT_NETWORK_INSPECTOR'] = podfile_properties['EX_DEV_CLIENT_NETWORK_INSPECTOR']
 
-platform :ios, '15.1'
+platform :ios, '16.4'
 prepare_react_native_project!
 
 # react-native-permissions v4+: select permission handlers compiled into RNPermissions
@@ -97,9 +97,6 @@ def common_target_logic
    # Comment the next line if you don't want to use dynamic frameworks
   # use_frameworks!
   pod 'GzipSwift'
-
-  # Pod for fixing react-native-quick-crypto issue: https://github.com/margelo/react-native-quick-crypto/issues/244
-  pod 'OpenSSL-Universal', :modular_headers => true
 
   use_react_native!(
     :path => config[:reactNativePath],

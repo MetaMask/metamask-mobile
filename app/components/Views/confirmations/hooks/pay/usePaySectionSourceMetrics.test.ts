@@ -193,12 +193,20 @@ describe('usePaySectionSourceMetrics', () => {
     expect(result.current.presented).toBe('money-account');
   });
 
-  it('returns money-account when isDefaultMoneyAccount flag is true', () => {
+  it('returns money-account when isDefaultMoneyAccount flag is true and no pay token is selected', () => {
     useIsMoneyAccountFlagDefaultMock.mockReturnValue(true);
 
-    const { result } = runHook();
+    const { result } = runHook({ hasPayToken: false });
 
     expect(result.current.selected).toBe('money-account');
+  });
+
+  it('uses the selected pay token once the money-account override is cleared', () => {
+    useIsMoneyAccountFlagDefaultMock.mockReturnValue(true);
+
+    const { result } = runHook({ hasPayToken: true });
+
+    expect(result.current.selected).toBe('metamask');
   });
 
   it('returns perps when perps balance selected for perpsDepositAndOrder', () => {

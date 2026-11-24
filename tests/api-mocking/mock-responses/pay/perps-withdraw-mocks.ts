@@ -10,10 +10,15 @@ import {
   mockRelayQuoteWith,
   mockRelayStatusSuccess,
 } from './relay-mocks';
-import { TX_SENTINEL_NETWORKS_MAP } from '../tx-sentinel-networks-map';
+import {
+  TX_SENTINEL_NETWORKS_MAP,
+  TX_SENTINEL_SIGNERS_MOCK,
+  mockTxSentinelNetworks,
+} from '../tx-sentinel-networks-map';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../../framework/fixtures/FixtureBuilder';
 import { mockMoneyAccountApis } from './money-account-deposit-mocks';
 import { MUSD_MAINNET } from '../../../constants/musd-mainnet';
+import { mockAccountsApiTransactionRoutes } from './accounts-api-transactions-mock';
 
 const PERPS_ARBITRUM_USDC = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
 const PERPS_WITHDRAW_TELLER = '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117';
@@ -956,26 +961,7 @@ async function mockAccountsApiTransactions(
     },
   });
 
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return Boolean(
-        url.includes('accounts.api.cx.metamask.io') &&
-          (url.includes('multi-account/transactions') ||
-            url.includes('multiaccount/transactions') ||
-            url.includes('transactions')),
-      );
-    })
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet(
-      /^https:\/\/accounts\.api\.cx\.metamask\.io\/v4\/multi-account\/transactions(\?.*)?$/,
-    )
-    .asPriority(1001)
-    .thenCallback(handler);
+  await mockAccountsApiTransactionRoutes(mockServer, handler);
 }
 
 async function mockAccountsApiActiveNetworks(mockServer: Mockttp) {
@@ -1011,37 +997,19 @@ async function mockSentinelNetworks(
   mockServer: Mockttp,
   relayChainIds: number[],
 ) {
-  const withRelay = relayChainIds.reduce<Record<string, unknown>>(
+  const withRelay = relayChainIds.reduce<Record<string, { network: string }>>(
     (acc, chainId) => ({
       ...acc,
       [String(chainId)]: {
-        ...(TX_SENTINEL_NETWORKS_MAP[
+        ...TX_SENTINEL_NETWORKS_MAP[
           String(chainId) as keyof typeof TX_SENTINEL_NETWORKS_MAP
-        ] || {}),
+        ],
+        cubistSigners: TX_SENTINEL_SIGNERS_MOCK,
         relayTransactions: true,
       },
     }),
     { ...TX_SENTINEL_NETWORKS_MAP },
   );
 
-  const handler = () => ({
-    statusCode: 200,
-    json: withRelay,
-  });
-
-  await mockServer
-    .forGet('https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks')
-    .asPriority(1001)
-    .thenCallback(handler);
-
-  await mockServer
-    .forGet('/proxy')
-    .asPriority(1001)
-    .matching((request) => {
-      const url = new URL(request.url).searchParams.get('url') || '';
-      return url.includes(
-        'tx-sentinel-ethereum-mainnet.api.cx.metamask.io/networks',
-      );
-    })
-    .thenCallback(handler);
+  await mockTxSentinelNetworks(mockServer, withRelay, 1001);
 }

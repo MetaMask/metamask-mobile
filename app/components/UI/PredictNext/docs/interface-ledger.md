@@ -2,7 +2,9 @@
 
 This ledger records the implemented mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
 
-The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). It is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
+The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). The account-scoped Position, Portfolio Summary, Activity, and Venue catalog contract is [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md); PRED-1404 made it executable. The read-model direction is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
+
+This ledger covers PredictNext's internal canonical contract. The interface exposed to code outside Predict is described in [the public API contract](./public-api-contract.md). It does not expose these types yet.
 
 ## Canonical read models
 
@@ -10,7 +12,9 @@ The agreed next-contract direction is documented in [`canonical-read-model-and-a
 - `PredictEvent` is returned within a Feed and by `getEvent`, and contains one or more `PredictMarket` values.
 - Feed pagination uses `{ venueId, id, title, events, nextCursor? }`; cursors are opaque.
 - `PredictMarket` contains exactly two `PredictOutcome` values: one `yes` and one `no`.
-- `PredictMarket.group` is optional backend-owned presentation metadata. Mobile supports `marketSelector` groups with a key, Market type, numeric option, and optional display order. Unknown group types remain standard Markets, and mobile never derives group values.
+- `PredictMarket.group` is optional backend-owned presentation metadata. Mobile supports `marketSelector` groups with a key, Market type (including `team_total`), numeric option, and optional display order, and `choice` groups with a key and optional display order. Unknown group types remain standard Markets, and mobile never derives group values.
+- `PredictMarket.layout` is optional backend-owned Event screen placement (tab › section › optional subgroup, each a key and order). Unknown keys parse; a malformed layout is dropped without rejecting the Market (PRED-1426).
+- Game winner quotes come from the full-game moneyline `choice` Markets (layout `moneyline › full_game`), falling back to ungrouped Markets for Events without them.
 - Each Event, Market, and Outcome retains its own opaque ID. Only the root Event carries `venueId`; nested scope and parent relationships come from containment.
 - Each Outcome may contain independent `askPrice` and `bidPrice` decimal strings in the inclusive range `[0, 1]`. Missing means no current quote, not zero.
 - Event responses provide the initial Bid Price and Ask Price snapshot. Market history is read separately with `venueId + marketId + range`; it returns the last traded Yes probability observed by the backend and its exact complementary No probability.
@@ -49,13 +53,60 @@ marketDataQueries.getVenueStatus(venueId);
 marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
 marketDataQueries.getMarketHistory(venueId, marketId, range);
+marketDataQueries.searchEvents(venueId, { q, limit });
+marketDataQueries.getVenueCatalog(venueId);
+fundingQueries.openDeposits(venueId);
+fundingQueries.deposit(venueId, operationId);
 ```
 
-All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
+All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling. The Venue catalog is fresh for five minutes, matching the catalog route's `Cache-Control: max-age=300`. Funding descriptors belong to `PredictFundingService`: open deposits are fresh for 10 seconds, and one deposit (keyed by Venue and operation ID, family Venue-wide) for 5 seconds.
 
 ## Portfolio
 
 `portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
+
+`portfolioQueries.getPositions`, `getActivity`, and `getPortfolioSummary` follow [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md), parsed by `contracts/v1/portfolio.ts` and checked against the contract's examples in `contracts/v1/fixtures/portfolio-contract/`:
+
+- **Positions** carry `status` and the backend's valuation (`averagePrice`, `costBasis`, `currentValue`, `unrealizedPnl`, `unrealizedPnlPercent`). Each valuation field is absent, never zero, without an authoritative source; the parser rejects PnL without the value and cost basis it comes from, and zero `shares`. The params add a `status` filter and `sort` (`opened` or the unpaginated `value`), both part of the cursor-free key. Lists de-duplicate by Market and side, keeping the latest copy (`utils/positions.ts`).
+- **Activity** is `trade` entries with an authoritative `action` and Settlements of the net held side. The parser rejects a page out of the pinned order (timestamp descending, `trade` before `settlement`, `id` ascending) instead of re-sorting it, and keeps `settlementsCompleteFrom`, which the Portfolio Activity tab shows as the date Settlements are complete from.
+- **Summary** (`['PredictPortfolioService:getPortfolioSummary', venueId]`, 30-second stale time, own retry policy, `usePortfolioSummary`) is the only source of portfolio totals. The parser rejects a Summary whose `totalValue` is not exactly `availableBalance + positionsValue + claimableValue`. The Portfolio screen renders it as served and flags `complete: false` next to the total.
+
+Balance, Positions, Activity, and the Summary are account data: they belong to the authenticated Predict User, not to the wallet. Keys stay Venue-only, and the platform reset — the only event that replaces a Predict User, because a wallet reset or a new wallet runs in process — purges them. `PredictPortfolioService.clearAccountData()` cancels in-flight reads so their callers fail and late responses are discarded, removes the cached entries, and drops the remembered reads so a later invalidation cannot refresh them. The next read refetches. Lock/unlock, account switches, and sign-out/sign-in keep the cache, and the shared app query client that mirrors it is cleared only on that same reset.
+
+## Order commit (write contract, PRED-1194)
+
+The signed write is `POST /v1/venues/{venueId}/orders/{previewId}/commit`, carrying the bearer token, device envelope and exact signed body bytes. Observation is `GET /v1/venues/{venueId}/orders/{previewId}`; it never submits or re-approves.
+
+- The response is one canonical Order Receipt, validated by `parsePredictOrderReceipt` in `contracts/v1/trading.ts`. It reports the durable operation identity (`operationId`, `venueOrderId`), the quoted values, and, once reported, the execution values: filled contracts, actual spend, average Fill price, Fee, and payout exposure.
+- The first accepted commit creates one durable operation with stable venue `client_order_id`. An ambiguous POST is never resubmitted; later work uses receipt GETs and server-owned signed scan cursor/challenges.
+- `pending`, `submitted`, and `reconciliation_required` remain checking. A 404, preview expiry, local deadline or spent read budget does not prove no fill. Only authoritative `filled`, `partially_filled`, `not_filled`, or `rejected` resolves the financial outcome. `needs_manual_review` retains an unknown outcome without automatic scanning.
+- Before dispatch, mobile writes a versioned safe journal reference: authenticated canonical identity scope, venue, preview identity, dispatch timestamp and recovery marker. It stores no approval, signed body, signature, envelope or credential. Persistence failure prevents the POST.
+- Unlocked authenticated startup, foreground and reconnect merge journal entries with paginated owner-scoped `GET /v1/venues/{venueId}/orders?state=unresolved`. Recovery observes GET only, fairly bounded to 12 calls and five minutes per eligible session. Pausing preserves unknown references and server discovery/scan continuation for a later session.
+- A terminal receipt removes its journal reference before publishing a new completion, preventing a restored completion toast from replaying on every launch. Manual-review references remain visible; the Portfolio recovery panel offers observation-only refresh for checking operations.
+- Lock, background, signout and identity replacement synchronously cancel/fence work without deleting financial history. A different canonical identity cannot see or observe another scope. Wallet reset clears the wallet journal; unrelated selected-account switches do not redefine Predict identity.
+
+## Order preview and commit (action contract, PRED-1195)
+
+The same route pair serves both Order Actions (ADR-0001). A sell Preview request carries `action: 'sell'` plus `contracts` — a positive-integer decimal string, whole contracts only — while a buy request keeps the exact PRED-1194 body with no `action` key. Version tolerance: deployments skew, and a strict backend schema rejects unknown keys, so an old client must keep working against a new backend and vice versa; a buy response that omits `action` parses as the buy variant (normalized to `action: 'buy'`), an explicit `action: 'sell'` parses as the sell variant, and a response carrying the other action's fields fails validation (absent, not null).
+
+- The sell Preview reports `requestedContracts`, `estimatedContracts`, `averagePrice`, `limitPrice`, `fee` with its `feeBreakdown`, `estimatedProceeds` (gross), `estimatedNetProceeds` (Proceeds minus Fee), and `expiresAt`. `limitPrice` is a shared field on both Preview actions — the worst ask consumed on a buy, the worst bid on a sell: the Immediate Order's price floor — and the mobile buy schema masks it rather than rejecting it. Buy-only fields (`requestedAmount`, `orderAmount`, `totalDebit`, `potentialPayout`, `potentialProfit`) are absent, not null.
+- The sell Receipt reports `quotedContracts` and, once the Venue reports fills, `filledContracts`, `averageFillPrice`, `fee`, `actualProceeds`, and `netProceeds` — fill fields are projected as fixed-point decimal strings, identical across actions (`filledContracts: '7.00'`). `requestedMaxSpend`, `actualSpend`, and `payoutExposure` are absent on sell receipts.
+- Over-selling a Position fails closed with the canonical `insufficient_position` code; a failed position read reports `position_unavailable`. The backend ownership check validates the requested count against venue position evidence at preview and commit, but it is not a reservation — concurrent sells of the shared venue account can jointly exceed the position until fills settle. `reconciliation_required` observation and the idempotent re-POST of the same `previewId` are identical for both actions.
+
+## Deposit (write contract, PRED-1494)
+
+The routes are in [Remote Venue Adapters](./remote-adapters.md#deposits-pred-1494). The contract is va-mmcx-predict-api `docs/FUNDING.md`; `contracts/v1/funding.ts` parses it and fails closed with `INVALID_RESPONSE`. The fixtures in `contracts/v1/fixtures/funding-contract/` come from the API's own `projectDeposit`.
+
+- `PredictDepositOperation` has `operationId` (the backend's, not Kalshi's deposit ID), `status`, `amount` (USD, two decimals), `chainId`, `tokenContract`, `depositAddress` and `planExpiresAt` (both null until Kalshi returns an address), `txHash`, `createdAt` and `next`.
+- `status` is one of `awaiting_transfer`, `processing`, `completed`, `cancelled`, `failed` and `under_review`. An unknown status fails parsing. Only `failed` is final: a transfer that turns up after a cancel moves the deposit on, a credited transfer that fails or is returned moves `completed` to `under_review`, and support moves `under_review` to `completed` or `failed`.
+- `next` is a closed union: `wallet_transfer` (the Funding Plan, typed fields only), `wait`, `done` and `review` (with a support reference). Only the unsigned create call answers `sign_request`. An unknown kind fails parsing, and so does a step that does not fit the status or a Funding Plan that disagrees with its deposit's chain, token, amount, address or deadline. There is no generic "sign these bytes" or "send this transaction" step.
+- Deposit network and transfer mode (`config/depositEnvironment.ts`, `useDepositEnvironment`) come from `PredictVenueCatalog.environment` (`'sandbox'` → Base Sepolia + simulated transfer; `'production'` → Base mainnet + wallet transfer) in every build, with no build-environment inference and no default when omitted. While the catalog is `loading`, `unavailable`, or omits `environment`, deposit entry points stay disabled and deposit `Continue` and `Add funds` remain disabled without guessing a chain or mode (though an already-submitted transfer for an open deposit is reconciled against its stored Funding Plan before checking any catalog mismatch).
+- `listOpenDeposits` returns the deposits that are not final, oldest first. A closed or repeated deposit in that list fails parsing.
+- `PredictFundingService` exposes `prepareDeposit`, `getDeposit`, `listOpenDeposits`, `reportDepositTransfer` and `cancelDeposit` as messenger actions. `prepareDeposit` sends nothing without a `{ kind: 'user-approved' }` approval and shares one call per `clientOperationId` while it is in flight.
+- `PredictFundingService:depositResolved` fires when the service sees a deposit it already knew reach `completed`, `cancelled`, `failed` or `under_review`, once per move. That includes the backend's moves between those statuses (`under_review` to `completed` or `failed`, `completed` to `under_review`, and a late transfer after `cancelled`). A deposit first read already resolved is not announced. A move into or out of `completed` invalidates the Balance and the Portfolio Summary. Answers can arrive out of order, so the service keeps what it knows per deposit apart from the last answer: an answer at an earlier lifecycle stage is ignored, and a move between `completed` and `under_review` counts only from a call sent after the last answer it took arrived. Callers still get every answer as the backend sent it.
+- The phone persists nothing about a deposit. `Engine.resetState` calls `PredictFundingService.clearState()`, which forgets the statuses it saw and detaches calls in flight.
+- Withdrawal commits share one in-flight call per pinned preview. `stopObserving()` aborts observations and unsent commits on lock without clearing pins or receipt transitions. The adapter's `onDispatch` notification marks a commit when its POST is issued, so a lock never aborts an already-sent mutation. `changeIdentity()` and `clearState()` detach all in-memory funding state and discard older answers, but let sent mutations settle. Quote pins retain the newest 50 entries where possible; the latest quote and committing or unresolved dispatched pins are not evicted.
+- Withdrawal methods remain direct service calls. Messenger actions for the withdrawal screen belong with its senders in #40012; the funding init messenger delegates no unused unlock event or keyring-state action.
 
 ## Runtime boundary
 

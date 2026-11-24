@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
@@ -24,7 +24,6 @@ import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
-import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmationAlertMetrics';
 import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
@@ -37,6 +36,7 @@ import {
 } from '@metamask/transaction-controller';
 import {
   MMM_ORIGIN,
+  MONEY_ACCOUNT_DEPOSIT_TYPES,
   MM_PAY_TRANSACTION_TYPES,
   PAY_TOKEN_REQUIRED_TRANSACTION_TYPES,
   TRANSFER_TRANSACTION_TYPES,
@@ -53,11 +53,14 @@ import { useIsConfirmationFromQrAccount } from '../../../../../core/HardwareWall
 import { useIsGaslessLoading } from '../../hooks/gas/useIsGaslessLoading';
 
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
-  TransactionType.moneyAccountDeposit,
+  ...MONEY_ACCOUNT_DEPOSIT_TYPES,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsDeposit,
+  TransactionType.perpsLighterDeposit,
   TransactionType.perpsDepositAndOrder,
+  TransactionType.perpsLighterDepositAndOrder,
   TransactionType.perpsWithdraw,
+  TransactionType.perpsLighterWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
@@ -79,7 +82,6 @@ export function Footer() {
 
 function FooterInternal() {
   const {
-    alerts,
     fieldAlerts,
     hasBlockingAlerts,
     hasDangerAlerts,
@@ -89,7 +91,6 @@ function FooterInternal() {
   const { needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { trackAlertMetrics } = useConfirmationAlertMetrics();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const transactionType = transactionMetadata?.type as TransactionType;
   const isStakingConfirmationBool = isStakingConfirmation(transactionType);
@@ -165,10 +166,6 @@ function FooterInternal() {
     onConfirm,
     showConfirmAlertModal,
   ]);
-
-  useEffect(() => {
-    trackAlertMetrics();
-  }, [alerts, trackAlertMetrics]);
 
   const { styles } = useStyles(styleSheet, {
     isStakingConfirmationBool,

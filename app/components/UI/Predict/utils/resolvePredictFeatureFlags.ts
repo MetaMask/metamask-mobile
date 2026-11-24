@@ -8,6 +8,7 @@ import {
   DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
@@ -23,10 +24,12 @@ import {
   parse,
   PredictFeeCollectionSchema,
   PredictHiddenMarketsSchema,
+  PredictHomeCategoriesSchema,
   PredictSportsFeedSchema,
   PredictWimbledonTabSchema,
 } from '../schemas';
 import {
+  PredictCryptoPriceFeedFlag,
   PredictExtendedSportsMarketsFlag,
   PredictFeatureFlags,
   PredictHiddenMarketsFlag,
@@ -38,6 +41,34 @@ import { unwrapRemoteFeatureFlag } from './flags';
 
 export interface RawFeatureFlags {
   remoteFeatureFlags?: Record<string, unknown>;
+}
+
+// PolyBolt's format: 1 to 512 printable ASCII characters. It answers a
+// malformed key with auth_invalid, which blocks the whole feed.
+const CHAINLINK_API_KEY_FORMAT = /^[\x20-\x7E]{1,512}$/u;
+
+/**
+ * Reads the Chainlink API key from `predictCryptoPriceFeed`. A missing or
+ * disabled flag, an app below `minimumVersion`, or a key that is empty or not
+ * in PolyBolt's format all give no key, so the feed connects without one.
+ *
+ * @param flag - Raw `predictCryptoPriceFeed` value, direct or wrapped.
+ * @returns The key, or undefined.
+ */
+function resolveChainlinkApiKey(flag: unknown): string | undefined {
+  const cryptoPriceFeed =
+    unwrapRemoteFeatureFlag<PredictCryptoPriceFeedFlag>(flag);
+  if (!validatedVersionGatedFeatureFlag(cryptoPriceFeed)) {
+    return undefined;
+  }
+
+  const key = cryptoPriceFeed?.chainlinkApiKey;
+  if (typeof key !== 'string') {
+    return undefined;
+  }
+
+  const trimmed = key.trim();
+  return CHAINLINK_API_KEY_FORMAT.test(trimmed) ? trimmed : undefined;
 }
 
 function resolveVersionGatedBooleanFlag(
@@ -154,6 +185,13 @@ export function resolvePredictFeatureFlags(
     flags.predictSportCardLivePrices,
     true,
   );
+  const isMembershipFeeWaiverEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictSubscriptionFeeWaiverEnabled,
+  );
+  const disablePolymarketV2Markets = resolveVersionGatedBooleanFlag(
+    flags.predictDisablePolymarketV2Markets,
+  );
+  const chainlinkApiKey = resolveChainlinkApiKey(flags.predictCryptoPriceFeed);
   const parsedPredictSportsFeed = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
       flags.predictSportsFeed,
@@ -166,6 +204,22 @@ export function resolvePredictFeatureFlags(
   )
     ? parsedPredictSportsFeed
     : DEFAULT_PREDICT_SPORTS_FEED_FLAG;
+  const parsedPredictHomeCategories = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictHomeCategories']>(
+      flags.predictHomeCategories,
+    ),
+    PredictHomeCategoriesSchema,
+    DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  );
+  // An enabled flag with no renderable tiles would blank the Categories
+  // section, so treat it like an invalid payload and keep the bundled rail.
+  const predictHomeCategories =
+    validatedVersionGatedFeatureFlag(parsedPredictHomeCategories) &&
+    parsedPredictHomeCategories.categories.some(
+      (category) => category.enabled !== false,
+    )
+      ? parsedPredictHomeCategories
+      : DEFAULT_PREDICT_HOME_CATEGORIES_FLAG;
   const parsedPredictWimbledonTab = parse(
     unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
     PredictWimbledonTabSchema,
@@ -191,7 +245,11 @@ export function resolvePredictFeatureFlags(
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
     predictSportCardLivePricesEnabled,
+    isMembershipFeeWaiverEnabled,
+    disablePolymarketV2Markets,
     predictSportsFeed,
+    predictHomeCategories,
     predictWimbledonTab,
+    ...(chainlinkApiKey && { chainlinkApiKey }),
   };
 }

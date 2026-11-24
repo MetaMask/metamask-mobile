@@ -9,13 +9,13 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   KeyValueRow,
   KeyValueRowVariant,
   SectionDivider,
   SensitiveText,
   SensitiveTextLength,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -27,6 +27,7 @@ import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { PerpsMarketBalanceActionsSelectorsIDs } from '../../Perps.testIds';
+import PerpsAvailableBalanceLabel from '../PerpsAvailableBalanceLabel';
 import { BigNumber } from 'bignumber.js';
 import {
   INITIAL_AMOUNT_UI_PROGRESS,
@@ -36,6 +37,7 @@ import { usePerpsDepositProgress } from '../../hooks/usePerpsDepositProgress';
 import { usePerpsTransactionState } from '../../hooks/usePerpsTransactionState';
 import { convertPerpsAmountToUSD } from '../../utils/amountConversion';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import PerpsEmptyBalance from '../PerpsEmptyBalance';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsProgressBar } from '../PerpsProgressBar';
@@ -47,6 +49,7 @@ interface PerpsMarketBalanceActionsProps {
   hideBalanceSection?: boolean;
   onTitleSectionLayout?: (event: LayoutChangeEvent) => void;
   children?: React.ReactNode;
+  isGlass?: boolean;
 }
 
 const PerpsMarketBalanceActionsSkeleton: React.FC = () => {
@@ -74,6 +77,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
   hideBalanceSection = false,
   onTitleSectionLayout,
   children,
+  isGlass = false,
 }) => {
   const tw = useTailwind();
   const { isDepositInProgress } = usePerpsDepositProgress();
@@ -254,15 +258,16 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
         {/* Balance Section — defer until account data lands when balance is in TitleHub */}
         {!isInitialLoading &&
           (isBalanceEmpty ? (
-            <PerpsEmptyBalance onAddFunds={handleAddFunds} />
+            <PerpsEmptyBalance onAddFunds={handleAddFunds} isGlass={isGlass} />
           ) : hideBalanceSection ? (
             showActionButtons && (
               <Box
-                twClassName="gap-3 px-4 pt-1"
+                twClassName="gap-3 px-4 pt-1 pb-3"
                 flexDirection={BoxFlexDirection.Row}
               >
                 <Box twClassName="flex-1">
-                  <Button
+                  <ButtonGlass
+                    isGlass={isGlass}
                     variant={ButtonVariant.Secondary}
                     size={ButtonSize.Lg}
                     onPress={handleWithdraw}
@@ -272,10 +277,11 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     }
                   >
                     {strings('perps.withdraw')}
-                  </Button>
+                  </ButtonGlass>
                 </Box>
                 <Box twClassName="flex-1">
-                  <Button
+                  <ButtonGlass
+                    isGlass={isGlass}
                     variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
                     onPress={handleAddFunds}
@@ -285,7 +291,7 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                     }
                   >
                     {strings('perps.add_funds')}
-                  </Button>
+                  </ButtonGlass>
                 </Box>
               </Box>
             )
@@ -293,7 +299,8 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
             <Box twClassName="px-4 pt-2 pb-4">
               <Animated.View style={[getBalanceAnimatedStyle]}>
                 <SensitiveText
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
                   color={TextColor.TextDefault}
                   testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
                   isHidden={privacyMode}
@@ -302,29 +309,12 @@ const PerpsMarketBalanceActions: React.FC<PerpsMarketBalanceActionsProps> = ({
                   {formatPerpsBalance(totalBalance)}
                 </SensitiveText>
               </Animated.View>
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                style={tw.style('mt-1')}
-                testID={
-                  PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
-                }
-              >
-                <SensitiveText
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Short}
-                >
-                  {formatPerpsBalance(spendableBalance)}
-                </SensitiveText>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {' '}
-                  {strings('perps.available')}
-                </Text>
-              </Box>
+              <PerpsAvailableBalanceLabel
+                spendableBalance={spendableBalance}
+                isHidden={privacyMode}
+                variant={TextVariant.BodyMd}
+                twClassName="mt-1"
+              />
               {/* Action Buttons */}
               {showActionButtons && (
                 <Box

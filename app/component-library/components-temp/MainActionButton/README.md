@@ -44,8 +44,8 @@ Optional param to disable the button.
 
 ```javascript
 // Replace import with relative path.
-import MainActionButton from 'app/component-library/components-temp/MainActionButton';
-import { IconName } from 'app/component-library/components/Icons/Icon';
+import MainActionButton from '#app/component-library/components-temp/MainActionButton';
+import { IconName } from '#app/component-library/components/Icons/Icon';
 
 <MainActionButton
   iconName={IconName.Add}
@@ -59,8 +59,8 @@ import { IconName } from 'app/component-library/components/Icons/Icon';
 ```javascript
 import React from 'react';
 import { View } from 'react-native';
-import MainActionButton from 'app/component-library/components-temp/MainActionButton';
-import { IconName } from 'app/component-library/components/Icons/Icon';
+import MainActionButton from '#app/component-library/components-temp/MainActionButton';
+import { IconName } from '#app/component-library/components/Icons/Icon';
 
 const ActionButtonExample = () => (
   <View style={{ flexDirection: 'row', gap: 16 }}>

@@ -28,6 +28,10 @@ import useRemainingTime from './useRemainingTime';
 import { ThemeColors } from '@metamask/design-tokens';
 import { selectSmartTransactionsForCurrentChain } from '../../../../selectors/smartTransactionsController';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 
 const getPortfolioStxLink = (chainId: Hex, uuid: string) => {
   const chainIdDec = hexToDecimal(chainId);
@@ -295,9 +299,13 @@ const SmartTransactionStatus = ({
     onConfirm();
   };
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    sourcePage: 'ActivityDetails',
+    location: SwapBridgeNavigationLocation.TransactionDetails,
+  });
   const createNewSwap = () => {
     onConfirm();
-    navigation.navigate(Routes.BRIDGE.ROOT);
+    goToSwaps();
   };
 
   const createNewSend = () => {

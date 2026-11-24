@@ -5,6 +5,7 @@ import {
   parseArgs,
   listRunArtifacts,
   scenarioDownloadMap,
+  scenarioTeam,
   slackTeamOwnerLabel,
   linkScenarioNames,
 } from './link-scenario-artifacts.mjs';
@@ -109,6 +110,37 @@ test('slackTeamOwnerLabel names owners without notifying Slack groups', () => {
     ),
     'owner performance-team',
   );
+});
+
+test('scenarioTeam maps every owner to its Jira project', () => {
+  const cases = [
+    ['Perps add funds', 'team-perps', 'MetaMask/perps', 'TAT'],
+    ['Predict Deposit - Complete Flow Performance', 'team-predict', 'MetaMask/predict', 'PRED'],
+    ['Cross-chain swap ETH to USDC', 'team-swaps-and-bridge', 'MetaMask/swaps-engineers', 'SWAPS'],
+    ['Asset View: ETH details', 'team-assets', 'MetaMask/metamask-assets', 'ASSETS'],
+    ['Money Home after importing SRP with funded balance', 'team-earn', 'MetaMask/metamask-earn', 'TE'],
+    ['Import SRP with 10 accounts', 'team-accounts', 'MetaMask/accounts-team', 'MCWP'],
+    ['Seedless Onboarding: Apple Login New User', 'team-onboarding', 'MetaMask/web3auth', 'MCWP'],
+    ['Measure Warm Start: Warm Start to Login Screen', 'team-mobile-platform', 'MetaMask/mobile-platform', 'MCWP'],
+  ];
+  for (const [scenario, githubLabel, githubTeam, jiraProject] of cases) {
+    const team = scenarioTeam(scenario);
+    assert.equal(team.githubLabel, githubLabel, scenario);
+    assert.equal(team.githubTeam, githubTeam, scenario);
+    assert.equal(team.jiraProject, jiraProject, scenario);
+  }
+  const rewards = scenarioTeam(
+    'Rewards tab time-to-content: onboarding or dashboard',
+  );
+  assert.equal(rewards.handle, 'performance-team');
+  assert.equal(rewards.githubLabel, null);
+  assert.equal(rewards.githubTeam, null);
+  assert.equal(rewards.jiraProject, 'RWDS');
+  const unmatched = scenarioTeam('Some scenario nobody owns');
+  assert.equal(unmatched.handle, 'performance-team');
+  assert.equal(unmatched.githubLabel, null);
+  assert.equal(unmatched.githubTeam, null);
+  assert.equal(unmatched.jiraProject, 'MCWP');
 });
 
 test('linkScenarioNames renders GitHub markdown links for the run page', () => {

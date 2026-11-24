@@ -15,10 +15,12 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { playImpact, ImpactMoment } from '../../../../util/haptics';
-import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
+import { useMoneyHomeNavigation } from '../../../../components/UI/Money/hooks/useMoneyHomeNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
-import { TabBarProps } from '../TabBar/TabBar.types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { navigateToSocialTab } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { TabBarIconKey, TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
 import TabBarFloatingSurface from './TabBarFloatingSurface';
@@ -74,7 +76,7 @@ const TabBarFloating = ({
   const { bottom: bottomInset } = useSafeAreaInsets();
 
   const bottomPadding = getTabBarFloatingBottomPadding(bottomInset);
-  const { navigateToMoneyHome } = useMoneyNavigation();
+  const { navigateToMoneyHome } = useMoneyHomeNavigation();
 
   const lastReportedHeight = useRef<number>(0);
   const handleLayout = useCallback(
@@ -95,7 +97,7 @@ const TabBarFloating = ({
   const handleSearchPress = useCallback(() => {
     playImpact(ImpactMoment.TabChange);
     trackExploreSearchOpened('nav_bar');
-    navigation.navigate(Routes.EXPLORE_SEARCH);
+    navigation.navigate(Routes.EXPLORE_SEARCH, { entryPoint: 'nav_bar' });
   }, [navigation]);
 
   // Tabs that stay mounted on blur (Explore) can only clean up via `onLeave`,
@@ -132,6 +134,12 @@ const TabBarFloating = ({
           previousTabIndexRef.current = index;
         }
         options.callback?.();
+        // Lets a focused screen react to its own tab being tapped again.
+        navigation.emit({
+          type: 'tabPress',
+          target: route.key,
+          canPreventDefault: true,
+        });
         switch (options.rootScreenName) {
           case Routes.WALLET_VIEW:
             navigation.navigate(Routes.WALLET.HOME, {
@@ -151,7 +159,9 @@ const TabBarFloating = ({
             navigateToMoneyHome();
             break;
           case Routes.SOCIAL.TAB:
-            navigation.navigate(Routes.SOCIAL.TAB);
+            navigateToSocialTab(navigation.navigate, {
+              source: 'nav_tab',
+            });
             break;
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);
@@ -167,6 +177,12 @@ const TabBarFloating = ({
           label={labelText}
           isActive={isSelected}
           onPress={onPress}
+          showNewBadge={options.showNewBadge}
+          newBadgeTestID={
+            tabBarIconKey === TabBarIconKey.Social
+              ? TAB_BAR_FLOATING_TEST_IDS.SOCIAL_NEW_BADGE
+              : undefined
+          }
         />
       );
     },

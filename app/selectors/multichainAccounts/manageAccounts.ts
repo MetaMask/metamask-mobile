@@ -6,6 +6,7 @@ import {
   selectAccountGroupsByWallet,
   selectAccountGroupById,
   selectAccountGroups,
+  selectWalletsMap,
 } from './accountTreeController';
 import type { AccountSection } from '../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 
@@ -49,4 +50,52 @@ export const selectHiddenAccountGroupIds = createSelector(
     accountGroups
       .filter((group: AccountGroupObject) => Boolean(group.metadata?.hidden))
       .map((group: AccountGroupObject) => group.id),
+);
+
+/**
+ * Counts describing the account tree as a whole, used by the Manage Accounts
+ * analytics.
+ */
+export interface AccountListStats {
+  /**
+   * Account groups across every wallet, hidden ones included. A group is one
+   * row in the account list whatever wallet backs it, so this counts rows
+   * rather than the addresses underneath them.
+   */
+  totalAccounts: number;
+  /** Wallets in the tree: SRPs, hardware devices, imported keys and snaps. */
+  totalWallets: number;
+  /** Account groups marked `metadata.hidden`. */
+  hiddenCount: number;
+}
+
+/**
+ * Get account list statistics (total accounts, total wallets, hidden count).
+ *
+ * Counts come from the whole account tree, including hidden groups, so they
+ * stay correct in views that render a searched or otherwise filtered subset.
+ *
+ * @param state - Root redux state
+ * @returns The account, wallet and hidden-account totals.
+ */
+export const selectAccountListStats = createSelector(
+  [selectWalletsMap],
+  (wallets): AccountListStats => {
+    let totalAccounts = 0;
+    let totalWallets = 0;
+    let hiddenCount = 0;
+
+    for (const wallet of Object.values(wallets ?? {})) {
+      totalWallets += 1;
+
+      for (const group of Object.values(wallet.groups ?? {})) {
+        totalAccounts += 1;
+        if (group.metadata?.hidden) {
+          hiddenCount += 1;
+        }
+      }
+    }
+
+    return { totalAccounts, totalWallets, hiddenCount };
+  },
 );

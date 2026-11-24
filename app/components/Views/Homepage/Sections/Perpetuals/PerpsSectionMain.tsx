@@ -32,12 +32,18 @@ import {
 } from '../../../../UI/Perps/hooks';
 
 import {
+  formatCrossMarginRatio,
   formatPnl,
   formatPercentage,
 } from '../../../../UI/Perps/utils/formatUtils';
 import { calculatePositionAggregateTotals } from '../../../../UI/Perps/utils/pnlCalculations';
 import { usePerpsConnection } from '../../../../UI/Perps/hooks/usePerpsConnection';
 import PerpsCard from '../../../../UI/Perps/components/PerpsCard';
+import PerpsServiceInterruptionBanner from '../../../../UI/Perps/components/PerpsServiceInterruptionBanner';
+import PerpsCrossMarginRatioBanner from '../../../../UI/Perps/components/PerpsCrossMarginRatioBanner';
+import { usePerpsCrossMarginSummary } from '../../../../UI/Perps/hooks/usePerpsCrossMarginSummary';
+import { getCrossMarginRatioAlert } from '../../../../UI/Perps/utils/crossMarginSummary';
+import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../../../UI/Perps/selectors/featureFlags';
 import PerpsPositionSkeleton from './components/PerpsPositionSkeleton';
 import PerpsTrendingCarousel from './components/PerpsTrendingCarousel';
 import PerpsPillsRail from './components/PerpsPillsRail';
@@ -56,7 +62,10 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
-import { homepageSectionTitleTestId } from '../../Homepage.testIds';
+import {
+  HomepagePerpsSelectorsIDs,
+  homepageSectionTitleTestId,
+} from '../../Homepage.testIds';
 import { usePerpsNavigationHandlers } from './hooks/usePerpsNavigationHandlers';
 import { useHomepagePerpsPillsEmptyTransactionActiveAbTests } from '../../hooks/useHomepagePerpsPillsEmptyTransactionActiveAbTests';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -111,6 +120,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       totalSectionsLoaded,
       emptyStateContent = 'tiles',
       emptyStateTitleOverride,
+      deviceCapability,
     },
     ref,
   ) => {
@@ -124,6 +134,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       usePerpsConnection();
     const { track } = usePerpsEventTracking();
     const privacyMode = useSelector(selectPrivacyMode);
+    const isServiceInterruptionBannerEnabled = useSelector(
+      selectPerpsServiceInterruptionBannerEnabledFlag,
+    );
 
     const { positions, isInitialLoading: positionsLoading } =
       usePerpsLivePositions({
@@ -256,6 +269,14 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const showHomepageUnrealizedPnl =
       !showSkeleton && !pendingTrending && hasFilledPositions && !privacyMode;
+
+    const { accountRatio: crossMarginRatio, tone: crossMarginTone } =
+      usePerpsCrossMarginSummary({
+        throttleMs: HOMEPAGE_ACCOUNT_THROTTLE_MS,
+      });
+    const crossMarginBannerSeverity = showSkeleton
+      ? undefined
+      : getCrossMarginRatioAlert(crossMarginTone);
 
     // Aggregated over every live-enriched position, not just the MAX_ITEMS the rows
     // below display, so this stays the account-wide total it has always been. It
@@ -533,6 +554,25 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               testID="homepage-perps-unrealized-pnl"
             />
           )}
+          {crossMarginBannerSeverity && crossMarginRatio !== undefined && (
+            <SectionRow>
+              <PerpsCrossMarginRatioBanner
+                ratio={formatCrossMarginRatio(crossMarginRatio)}
+                severity={crossMarginBannerSeverity}
+                isRatioHidden={privacyMode}
+                testID={HomepagePerpsSelectorsIDs.CROSS_MARGIN_RATIO_BANNER}
+              />
+            </SectionRow>
+          )}
+          {/* Outer flag guard avoids mounting the padded wrapper (and banner
+              hooks) when disabled, so `gap` does not reserve space for it. */}
+          {isServiceInterruptionBannerEnabled && (
+            <SectionRow>
+              <PerpsServiceInterruptionBanner
+                testID={HomepagePerpsSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+              />
+            </SectionRow>
+          )}
           {showSkeleton || pendingTrending || hasItems ? (
             showSkeleton || pendingTrending ? (
               <SectionRow>
@@ -546,6 +586,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                     position={position}
                     onPress={() => handlePositionPress(position)}
                     testID={`perps-position-row-${position.symbol}`}
+                    showMarginModeTag={false}
                   />
                 ))}
                 {displayOrders.map((order) => (
@@ -570,6 +611,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               sparklines={sparklines}
               onPressMarket={handleTrendingMarketPress}
               onPressViewMore={handleViewMorePerps}
+              deviceCapability={deviceCapability}
             />
           )}
         </Box>

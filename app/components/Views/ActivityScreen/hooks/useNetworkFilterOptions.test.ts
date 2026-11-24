@@ -98,4 +98,45 @@ describe('useNetworkFilterOptions', () => {
     expect(result.current).toHaveLength(1);
     expect(result.current[0].name).toBe('Ethereum');
   });
+
+  it('keeps only the given chain IDs, in the usual order', () => {
+    mockSelectors({
+      popular: [
+        { caipChainId: 'eip155:1', name: 'Ethereum' },
+        { caipChainId: 'eip155:59144', name: 'Linea' },
+        { caipChainId: 'eip155:8453', name: 'Base' },
+      ],
+      custom: [],
+      nonEvm: {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          name: 'Solana',
+          isTestnet: false,
+        },
+      },
+    });
+
+    const { result } = renderHook(() =>
+      useNetworkFilterOptions(['eip155:8453', 'eip155:1', 'eip155:10']),
+    );
+
+    expect(result.current.map((n) => n.caipChainId)).toStrictEqual([
+      'eip155:1',
+      'eip155:8453',
+    ]);
+  });
+
+  it('returns every network when no chain IDs are given', () => {
+    mockSelectors({
+      popular: [
+        { caipChainId: 'eip155:1', name: 'Ethereum' },
+        { caipChainId: 'eip155:59144', name: 'Linea' },
+      ],
+      custom: [],
+      nonEvm: {},
+    });
+
+    const { result } = renderHook(() => useNetworkFilterOptions(undefined));
+
+    expect(result.current).toHaveLength(2);
+  });
 });

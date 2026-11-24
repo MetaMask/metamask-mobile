@@ -1,10 +1,6 @@
-import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Theme } from '@metamask/design-tokens';
-import {
-  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
-  SupportedCaipChainId,
-} from '@metamask/multichain-network-controller';
-import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
+import { parseCaipAssetType } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -21,11 +17,20 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AppState, StyleSheet, View } from 'react-native';
+import {
+  AppState,
+  StyleSheet,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import { useSelector } from 'react-redux';
+import { useSharedValue } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { useAddNetworkIfMissingQuery } from '../../../hooks/useAddNetworkIfMissing/useAddNetworkIfMissing';
 import { RootState } from '../../../../reducers';
 import {
@@ -34,35 +39,48 @@ import {
 } from '../../../../selectors/networkController';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import { calcUsdAmountFromFiat } from '../../Bridge/utils/exchange-rates';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
 import ActivityHeader from '../../../Views/Asset/ActivityHeader';
 import MultichainTransactionsView from '../../../Views/MultichainTransactionsView/MultichainTransactionsView';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import { MarketInsightsDisclaimerBottomSheet } from '../../MarketInsights';
 import Transactions from '../../Transactions';
-import {
-  AMBIENT_PRICE_COLOR_AB_KEY,
-  AMBIENT_PRICE_COLOR_VARIANTS,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-  EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-} from '../components/abTestConfig';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
+import {
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
+  SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
+} from '../../QuickBuy/abTestConfig';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import ShareTokenBottomSheet from '../components/ShareTokenBottomSheet';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
+import { TokenDetailsTestIds } from './TokenDetails.testIds';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/featureFlagController/tokenDetailsBrandRefresh';
+import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
   TokenDetailsAction,
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
+import { getTdpAnalyticsBase } from '../analytics/getTdpAnalyticsBase';
+import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescription';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
+import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
+import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { useTraderPositionPnl } from '../TraderPositionPnl/useTraderPositionPnl';
+import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import { PriceApiHostProvider } from '../context/PriceApiHostProvider';
+import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
@@ -76,8 +94,16 @@ import {
 } from '../../Money/components/MoneyAssetOverviewBalanceCta';
 import { useMoneyAssetOverviewCtas } from '../../Money/hooks/useMoneyAssetOverviewCtas';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
+import { EVM_SCOPE } from '../../Earn/constants/networks';
+import {
+  selectBridgeLimitOrderFeatureFlags,
+  selectBridgeRecurringBuyFeatureFlags,
+} from '../../../../selectors/bridge/featureFlags';
 import { TextColor } from '../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../locales/i18n';
+import { useMostRecentOrder } from '../../Bridge/hooks/useMostRecentOrder';
+import TokenDetailsPagePending from './TokenDetailsPagePending';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -86,6 +112,10 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       backgroundColor: colors.background.default,
       flex: 1,
+    },
+    content: {
+      flex: 1,
+      isolation: 'isolate',
     },
   });
 };
@@ -96,6 +126,10 @@ const styleSheet = (params: { theme: Theme }) => {
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
+
+  // Legacy page is always `v2` / `standard`; computed from the shared helper so
+  // both pages derive these the same way.
+  const { tdp_version, token_category } = getTdpAnalyticsBase(params, null);
 
   return useCallback(
     ({
@@ -113,6 +147,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         | 'swap'
         | 'money_swap'
         | 'money'
+        | 'buy_sell'
         | undefined;
     }) => {
       const source = params.source ?? TokenDetailsSource.Unknown;
@@ -131,6 +166,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       const eventProperties = {
         source,
         chain_id: params.chainId,
+        tdp_version,
+        token_category,
         token_symbol: params.symbol,
         token_address: params.address,
         token_name: params.name,
@@ -156,6 +193,8 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
       params.name,
       params.source,
       params.symbol,
+      tdp_version,
+      token_category,
       trackEvent,
     ],
   );
@@ -181,6 +220,40 @@ const ShareTokenBottomSheetController = forwardRef<
 ShareTokenBottomSheetController.displayName = 'ShareTokenBottomSheetController';
 
 /**
+ * Legacy-TDP sticky footer that also mounts the trader-position P&L line.
+ *
+ * The trader-position machinery (open position, profile, share-to-feed) is
+ * isolated in its own component so it only runs when the legacy page actually
+ * renders this variant — i.e. when the memecoin flag is on. A flag-off page
+ * renders the plain {@link TokenDetailsStickyFooter} and never mounts these
+ * hooks, so it fires no Social/profile/open-position requests and shows no
+ * position line (today's footer). The line is appended once it resolves; the
+ * action buttons render immediately either way.
+ */
+const TokenDetailsStickyFooterWithTraderPosition: React.FC<
+  Omit<
+    React.ComponentProps<typeof TokenDetailsStickyFooter>,
+    'traderPositionPnl'
+  > & {
+    /** Identity of the token on screen; resets the expanded state when it changes. */
+    tokenKey: string;
+  }
+> = ({ tokenKey, ...footerProps }) => {
+  const { traderPositionPnl } = useTraderPositionPnl({
+    token: footerProps.token,
+    tokenKey,
+  });
+
+  return (
+    <TokenDetailsStickyFooter
+      {...footerProps}
+      reserveTraderPositionLayout
+      traderPositionPnl={traderPositionPnl}
+    />
+  );
+};
+
+/**
  * TokenDetails component - Clean orchestrator that fetches data and sets layout.
  * All business logic is delegated to hooks and presentation to AssetOverviewContent.
  */
@@ -191,7 +264,7 @@ const TokenDetails: React.FC<{
     severity: string | undefined;
   }) => void;
   onStickyButtonsResolved?: (
-    shown: 'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null,
+    shown: 'both' | 'buy' | 'swap' | 'money_swap' | 'money' | 'buy_sell' | null,
   ) => void;
   onCtaClicked?: () => void;
   onPerpsMarketResolved?: (result: {
@@ -209,46 +282,24 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
-    useState(false);
+
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
-  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+  const { variant: quickBuyEntrypointVariant } = useABTest(
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_VARIANTS,
+    SWAPS5094_QUICK_BUY_ENTRYPOINTS_EXPOSURE_METADATA,
+  );
+  const { onQuickBuyPress, openQuickBuy, quickBuySheet } = useStickyQuickBuy({
     token,
     source: 'asset_details',
   });
-  const { variant: ambientColorVariant } = useABTest(
-    AMBIENT_PRICE_COLOR_AB_KEY,
-    AMBIENT_PRICE_COLOR_VARIANTS,
-  );
-  const useAmbientColor = ambientColorVariant.useAmbientPriceColor;
-  const { variant: moneyFooterCtaVariant } = useABTest(
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_KEY,
-    EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_VARIANTS,
-  );
+  const caip19AssetId = useTokenCaipAssetId(token);
 
-  const caip19AssetId = useMemo((): CaipAssetType | null => {
-    try {
-      if (token.caipAssetId && isCaipAssetType(token.caipAssetId)) {
-        return token.caipAssetId;
-      }
-      if (isCaipAssetType(token.address)) {
-        return token.address as CaipAssetType;
-      }
-      if (!token.chainId) return null;
-      const formatted = formatAddressToAssetId(token.address, token.chainId);
-      if (formatted) return formatted as CaipAssetType;
-      // For non-EVM native tokens (e.g. Bitcoin), formatAddressToAssetId returns
-      // undefined for addresses like "native". Fall back to the chain's native
-      // currency CAIP-19 id from the multichain network configurations.
-      const nonEvmConfig =
-        AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
-          token.chainId as SupportedCaipChainId
-        ];
-      return (nonEvmConfig?.nativeCurrency as CaipAssetType) ?? null;
-    } catch {
-      return null;
-    }
-  }, [token.caipAssetId, token.address, token.chainId]);
+  // Port the memecoin TDP V1 position line to the legacy page, gated on the
+  // same flag. Flag off renders the plain footer, so the position machinery
+  // (Social/profile/open-position) is never mounted — today's footer.
+  const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
   const shareUrl = useMemo(
     () =>
@@ -257,6 +308,37 @@ const TokenDetails: React.FC<{
         : null,
     [caip19AssetId],
   );
+
+  const getSelectedAccountByScope = useSelector(
+    selectSelectedInternalAccountByScope,
+  );
+  const walletAddress = getSelectedAccountByScope(EVM_SCOPE)?.address;
+  const limitOrderFeatureFlags = useSelector(
+    selectBridgeLimitOrderFeatureFlags,
+  );
+  const recurringBuyFeatureFlags = useSelector(
+    selectBridgeRecurringBuyFeatureFlags,
+  );
+  const orderAssetChainId = useMemo(() => {
+    if (!caip19AssetId) return undefined;
+    try {
+      return parseCaipAssetType(caip19AssetId).chainId;
+    } catch {
+      return undefined;
+    }
+  }, [caip19AssetId]);
+  const isLimitOrderLookupEnabled = Boolean(
+    limitOrderFeatureFlags?.enabled &&
+      orderAssetChainId &&
+      limitOrderFeatureFlags.enabledChainIds?.includes(orderAssetChainId),
+  );
+  const isRecurringOrderLookupEnabled = Boolean(
+    recurringBuyFeatureFlags?.enabled &&
+      orderAssetChainId &&
+      recurringBuyFeatureFlags.enabledChainIds?.includes(orderAssetChainId),
+  );
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
 
   const handleShare = useCallback(() => {
     if (!shareUrl) {
@@ -319,6 +401,44 @@ const TokenDetails: React.FC<{
     historicalPricesApiMs,
     exchangeRateApiMs,
   } = useTokenPrice({ token });
+  const isOrderLookupEnabled = !(
+    hardwareTier === 'LOW' &&
+    networkTier === 'SLOW_CELLULAR' &&
+    isLoading
+  );
+  const { mostRecentOrder } = useMostRecentOrder({
+    walletAddress,
+    assetId: caip19AssetId,
+    isLimitOrderEnabled: isOrderLookupEnabled && isLimitOrderLookupEnabled,
+    isRecurringOrderEnabled:
+      isOrderLookupEnabled && isRecurringOrderLookupEnabled,
+  });
+
+  const { description: headerDescription, onScrollOffset } =
+    useLivePriceHeaderDescription({ currentPrice, currentCurrency });
+
+  // The glass header floats over the list and fades its backdrop in on scroll.
+  const isGlassHeader =
+    useSelector(selectTokenDetailsBrandRefreshEnabled) === true;
+  const headerScrollY = useSharedValue(0);
+  const safeAreaInsets = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, safeAreaInsets.top);
+
+  const handleListScrollOffset = useCallback(
+    (y: number) => {
+      headerScrollY.set(y);
+      onScrollOffset(y);
+    },
+    [headerScrollY, onScrollOffset],
+  );
+
+  const handleMultichainScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      handleListScrollOffset(event.nativeEvent.contentOffset.y);
+    },
+    [handleListScrollOffset],
+  );
 
   const hasEndedAssetDetailsTraceRef = useRef(false);
 
@@ -384,16 +504,23 @@ const TokenDetails: React.FC<{
     setChartPricePositive(isPositive);
   }, []);
 
+  const refreshTronAssets = useFreshTronAssets(token.chainId);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTronNativeToken(token)) {
+        refreshTronAssets().catch(() => undefined);
+      }
+    }, [refreshTronAssets, token]),
+  );
+
   const {
     balance,
     fiatBalance,
     balanceFiatUsd,
     tokenFormattedBalance,
-    ///: BEGIN:ONLY_INCLUDE_IF(tron)
     stakedTrxAsset,
     inLockPeriodBalance,
     readyForWithdrawalBalance,
-    ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -405,9 +532,8 @@ const TokenDetails: React.FC<{
     hasBalance: hasBalanceValue,
   });
   const isMoneyFooterCtaActive =
-    moneyFooterCtaVariant.showMoneyDepositFooterCta &&
-    (moneyAssetOverviewCtas.isFooterCtaLoading ||
-      moneyAssetOverviewCtas.isFooterCtaVisible);
+    moneyAssetOverviewCtas.isFooterCtaLoading ||
+    moneyAssetOverviewCtas.isFooterCtaVisible;
   const trackActionTapped = useTokenDetailsActionTracking({
     token,
     hasBalance: hasBalanceValue,
@@ -417,6 +543,7 @@ const TokenDetails: React.FC<{
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
+    tdpVersion: 'v2',
   });
 
   const { moneyBalanceCta, moneyBalanceDescription } = useMemo(() => {
@@ -495,10 +622,6 @@ const TokenDetails: React.FC<{
     trackActionTapped(TokenDetailsAction.CopyTokenAddress);
   }, [trackActionTapped]);
 
-  const handleMarketInsightsDisclaimerPress = useCallback(() => {
-    setIsInsightsDisclaimerVisible(true);
-  }, []);
-
   const starButton = useMemo(
     () => (
       <WatchlistStarButton
@@ -546,8 +669,16 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  const headerSpacer = headerInset > 0 && (
+    <View
+      style={{ height: headerInset }}
+      testID={TokenDetailsTestIds.HEADER_SPACER}
+    />
+  );
+
   const renderHeader = () => (
     <>
+      {headerSpacer}
       <AssetOverviewContent
         token={token}
         balance={balance}
@@ -582,20 +713,17 @@ const TokenDetails: React.FC<{
         onSend={handleSend}
         onReceive={onReceive}
         onMarketInsightsDisplayResolved={onMarketInsightsDisplayResolved}
-        onMarketInsightsDisclaimerPress={handleMarketInsightsDisclaimerPress}
         securityData={securityData}
         isSecurityDataLoading={isSecurityDataLoading}
         hasSecurityDataError={Boolean(securityDataError)}
         onPriceDirectionChange={handlePriceDirectionChange}
-        useAmbientColor={useAmbientColor}
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
         onPerpsMarketResolved={onPerpsMarketResolved}
-        ///: BEGIN:ONLY_INCLUDE_IF(tron)
+        mostRecentOrder={mostRecentOrder}
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
         readyForWithdrawalBalance={readyForWithdrawalBalance}
-        ///: END:ONLY_INCLUDE_IF
       />
       {(txLoading || hasTransactions) && (
         <ActivityHeader
@@ -610,76 +738,109 @@ const TokenDetails: React.FC<{
 
   return (
     <View style={styles.wrapper}>
-      <TokenDetailsInlineHeader
-        token={token}
-        securityData={securityData}
-        onBackPress={handleBackPress}
-        onSharePress={handleShare}
-        starButton={starButton}
-        onPriceAlertPress={
-          isPriceAlertsChainSupported &&
-          (currentPriceUsd ?? 0) > 0 &&
-          caip19AssetId
-            ? handlePriceAlertPress
-            : undefined
-        }
-        onCopyAddress={handleCopyAddress}
-      />
+      <View style={styles.content} testID={TokenDetailsTestIds.CONTENT}>
+        <TokenDetailsInlineHeader
+          token={token}
+          securityData={securityData}
+          tdpVersion="v2"
+          onBackPress={handleBackPress}
+          onSharePress={handleShare}
+          starButton={starButton}
+          onPriceAlertPress={
+            isPriceAlertsChainSupported &&
+            (currentPriceUsd ?? 0) > 0 &&
+            caip19AssetId
+              ? handlePriceAlertPress
+              : undefined
+          }
+          onCopyAddress={handleCopyAddress}
+          description={headerDescription}
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          scrollY={headerScrollY}
+        />
 
-      {txIsNonEvmAsset ? (
-        <MultichainTransactionsView
-          header={renderHeader()}
-          transactions={transactions}
-          navigation={navigation}
-          selectedAddress={selectedAddress}
-          chainId={token.chainId as SupportedCaipChainId}
-          bridgeArrivalTransactions={bridgeArrivalTxs}
-          enableRefresh
-          showDisclaimer
-          location={TransactionDetailLocation.AssetDetails}
+        {txIsNonEvmAsset ? (
+          <MultichainTransactionsView
+            header={renderHeader()}
+            transactions={transactions}
+            navigation={navigation}
+            selectedAddress={selectedAddress}
+            chainId={token.chainId as SupportedCaipChainId}
+            bridgeArrivalTransactions={bridgeArrivalTxs}
+            enableRefresh
+            showDisclaimer
+            location={TransactionDetailLocation.AssetDetails}
+            onScroll={handleMultichainScroll}
+            refreshControlOffset={headerInset}
+          />
+        ) : (
+          <>
+            {/* Transactions drops its header while loading, so its spinner needs the spacer here. */}
+            {!transactionsUpdated && headerSpacer}
+            <Transactions
+              header={renderHeader()}
+              onScrollThroughContent={handleListScrollOffset}
+              assetSymbol={token.symbol}
+              navigation={navigation}
+              transactions={transactions}
+              submittedTransactions={submittedTxs}
+              confirmedTransactions={confirmedTxs}
+              selectedAddress={selectedAddress}
+              conversionRate={conversionRate}
+              currentCurrency={txCurrentCurrency}
+              networkType={token.chainId}
+              loading={!transactionsUpdated}
+              headerHeight={280}
+              tokenChainId={token.chainId}
+              skipScrollOnClick
+              hideEmptyState
+              location={TransactionDetailLocation.AssetDetails}
+              refreshControlOffset={headerInset}
+            />
+          </>
+        )}
+      </View>
+      {/* Outside the isolated content, so its sheets open above the glass header. */}
+      {isMemecoinTdpEnabled ? (
+        <TokenDetailsStickyFooterWithTraderPosition
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyDepositCta={moneyDepositCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+          quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+          onOpenQuickBuy={openQuickBuy}
+          tokenKey={traderPositionTokenKey}
         />
       ) : (
-        <Transactions
-          header={renderHeader()}
-          assetSymbol={token.symbol}
-          navigation={navigation}
-          transactions={transactions}
-          submittedTransactions={submittedTxs}
-          confirmedTransactions={confirmedTxs}
-          selectedAddress={selectedAddress}
-          conversionRate={conversionRate}
-          currentCurrency={txCurrentCurrency}
-          networkType={token.chainId}
-          loading={!transactionsUpdated}
-          headerHeight={280}
-          tokenChainId={token.chainId}
-          skipScrollOnClick
-          hideEmptyState
-          location={TransactionDetailLocation.AssetDetails}
+        <TokenDetailsStickyFooter
+          token={token}
+          securityData={securityData}
+          balanceFiatUsd={balanceFiatUsd}
+          networkName={networkName}
+          currentTokenBalance={balance}
+          hasTokenBalance={hasBalanceValue}
+          moneyDepositCta={moneyDepositCta}
+          onStickyButtonsResolved={onStickyButtonsResolved}
+          sourcePage="TokenDetailsView"
+          onSwapPress={onCtaClicked}
+          onBuyPress={onCtaClicked}
+          onQuickBuyPress={onQuickBuyPress}
+          quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
+          quickBuyEntrypointLayout={quickBuyEntrypointVariant.footerLayout}
+          onOpenQuickBuy={openQuickBuy}
         />
       )}
-      <TokenDetailsStickyFooter
-        token={token}
-        securityData={securityData}
-        balanceFiatUsd={balanceFiatUsd}
-        networkName={networkName}
-        currentTokenBalance={balance}
-        hasTokenBalance={hasBalanceValue}
-        moneyDepositCta={moneyDepositCta}
-        onStickyButtonsResolved={onStickyButtonsResolved}
-        sourcePage="TokenDetailsView"
-        useAmbientColor={useAmbientColor}
-        onSwapPress={onCtaClicked}
-        onBuyPress={onCtaClicked}
-        onQuickBuyPress={onQuickBuyPress}
-        quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
-      />
 
-      {isInsightsDisclaimerVisible && (
-        <MarketInsightsDisclaimerBottomSheet
-          onClose={() => setIsInsightsDisclaimerVisible(false)}
-        />
-      )}
       {shareUrl && (
         <ShareTokenBottomSheetController
           ref={shareSheetRef}
@@ -699,13 +860,16 @@ const TokenDetails: React.FC<{
 };
 
 /**
- * TokenDetailsRouteWrapper screen
- * Reads token from React Navigation route.params and renders TokenDetails.
+ * Legacy Token Details page.
+ *
+ * Owns the analytics lifecycle (TOKEN_DETAILS_OPENED / TOKEN_DETAILS_CLOSED)
+ * and the perps / sticky-button / market-insights state that gates it. All of
+ * it is specific to this page, so none of it runs for a V1 variant.
  */
-export const TokenDetailsRouteWrapper: React.FC = () => {
-  const route = useRoute();
+const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
+  token,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
-  const token = route.params as TokenDetailsRouteParams;
 
   const [perpsMarket, setPerpsMarket] = useState<{
     hasPerpsMarket: boolean;
@@ -715,7 +879,14 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // undefined = not yet resolved; null = footer won't render; string = resolved value
   const [resolvedStickyButtons, setResolvedStickyButtons] = useState<
-    'both' | 'buy' | 'swap' | 'money_swap' | 'money' | null | undefined
+    | 'both'
+    | 'buy'
+    | 'swap'
+    | 'money_swap'
+    | 'money'
+    | 'buy_sell'
+    | null
+    | undefined
   >(undefined);
 
   const trackTokenDetailsOpened = useTokenDetailsOpenedTracking(token);
@@ -816,9 +987,9 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
 
   // Reset perps market state when the token changes so stale results from a
   // previously viewed token never reach TOKEN_DETAILS_OPENED for the new one.
-  const prevTokenKeyRef = useRef<string | null>(null);
-  if (prevTokenKeyRef.current !== tokenKey) {
-    prevTokenKeyRef.current = tokenKey;
+  const [prevTokenKey, setPrevTokenKey] = useState<string | null>(null);
+  if (prevTokenKey !== tokenKey) {
+    setPrevTokenKey(tokenKey);
     if (perpsMarket.hasPerpsMarket || !perpsMarket.isLoading) {
       setPerpsMarket({ hasPerpsMarket: false, isLoading: true });
     }
@@ -882,4 +1053,41 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   );
 };
 
-export { TokenDetailsRouteWrapper as TokenDetails };
+export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+
+  return <TokenDetailsLegacy token={token} />;
+};
+
+/**
+ * TokenDetailsRouteWrapper screen
+ *
+ * Reads the token from React Navigation route.params and picks the page to
+ * render. Swapping component types rather than returning early keeps the two
+ * pages' hooks fully independent: neither page's hooks run for the other, and
+ * Swapping component types keeps the two pages' hooks fully independent.
+ */
+export const TokenDetailsRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+  const { variant, isLoading } = useTokenDetailsVariant(token);
+  usePrefetchTokenDetails(token);
+
+  if (isLoading) {
+    return <TokenDetailsPagePending token={token} />;
+  }
+
+  // Only the V1 branch is wrapped. The legacy page is a sibling here rather
+  // than a child, which is what keeps it on the prod price API without
+  // needing to read the flag or pass anything down.
+  return variant ? (
+    <PriceApiHostProvider>
+      <TokenDetailsV1 token={token} variant={variant} />
+    </PriceApiHostProvider>
+  ) : (
+    <TokenDetailsLegacy token={token} />
+  );
+};
+
+export { TokenDetailsLegacy, TokenDetailsRouteWrapper as TokenDetails };

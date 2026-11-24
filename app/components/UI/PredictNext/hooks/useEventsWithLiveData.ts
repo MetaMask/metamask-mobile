@@ -2,7 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import type { PredictGameLive, PredictQuote } from '../contracts/v1/liveData';
 import { getEventCardLiveMarketIds } from '../events/cards';
-import { PREDICT_LIVE_DATA_SERVICE_NAME } from '../services/PredictLiveDataService';
+import {
+  PREDICT_LIVE_DATA_SERVICE_NAME,
+  type PredictLiveMarketScope,
+} from '../services/PredictLiveDataService';
 import type {
   PredictEntityId,
   PredictEvent,
@@ -16,66 +19,66 @@ import {
   mergeMarketQuote,
 } from '../utils/mergeLiveData';
 
+const NO_IDS: readonly PredictEntityId[] = [];
+
 const idsKey = (ids: readonly PredictEntityId[]) => JSON.stringify(ids);
 
-const requestedEvents = (
-  events: readonly PredictEvent[],
-  watchEventIds?: readonly PredictEntityId[],
-): PredictEvent[] => {
-  if (!watchEventIds) {
-    return [...events];
-  }
-  const byId = new Map(events.map((event) => [event.id, event]));
-  return watchEventIds.flatMap((eventId) => {
-    const event = byId.get(eventId);
-    return event ? [event] : [];
-  });
+const uniqueIds = (ids: readonly PredictEntityId[]): PredictEntityId[] => [
+  ...new Set(ids),
+];
+
+/** Which Markets a screen should hold live prices for. */
+export type LiveMarketWatchScope = PredictLiveMarketScope;
+
+/**
+ * Code-unit order, so the key never depends on the device locale.
+ */
+const compareIds = (a: PredictEntityId, b: PredictEntityId): number => {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
 };
 
-/** Event ids that can receive live Game patches. */
-export const getLiveGameWatchIds = (
+/**
+ * A scope as a string that is equal for equal scopes: `all`, `card`, or the
+ * sorted, de-duplicated `visible` ids as JSON. The service orders a `visible`
+ * list by the Event's own Markets, so order here carries no meaning and a
+ * reorder must not re-issue the watch.
+ */
+const scopeKeyOf = (scope: LiveMarketWatchScope): string =>
+  typeof scope === 'string'
+    ? scope
+    : JSON.stringify([...new Set(scope.marketIds)].sort(compareIds));
+
+const scopeFromKey = (key: string): LiveMarketWatchScope =>
+  key === 'all' || key === 'card'
+    ? key
+    : { type: 'visible', marketIds: JSON.parse(key) as PredictEntityId[] };
+
+/**
+ * Market ids present in the given Events that can receive live price patches.
+ * `card` narrows each Event to the Markets a list card prices. `visible` keeps
+ * every Market: frames only arrive for the subscribed ones, and a Market that
+ * leaves the screen keeps its last live price instead of falling back to the
+ * REST read.
+ */
+export const getPresentMarketIds = (
   events: readonly PredictEvent[],
-  watchEventIds?: readonly PredictEntityId[],
-): PredictEntityId[] =>
-  requestedEvents(events, watchEventIds)
-    .filter((event) => event.sports?.game)
-    .map((event) => event.id);
-
-/** Which Markets a screen should subscribe to for live prices. */
-export type LiveMarketWatchScope = 'all' | 'card';
-
-export interface UseEventsWithLiveDataOptions {
-  watchEventIds?: readonly PredictEntityId[];
-  /** Defaults to `all`. Home and Feed use `card` so hidden lines stay off the wire. */
-  marketScope?: LiveMarketWatchScope;
-}
-
-/** Market ids that can receive live price patches. */
-export const getLiveMarketWatchIds = (
-  events: readonly PredictEvent[],
-  watchEventIds?: readonly PredictEntityId[],
   marketScope: LiveMarketWatchScope = 'all',
 ): PredictEntityId[] =>
-  requestedEvents(events, watchEventIds).flatMap((event) =>
+  events.flatMap((event) =>
     marketScope === 'card'
       ? getEventCardLiveMarketIds(event)
       : event.markets.map((market) => market.id),
   );
 
 type Listener<TLive> = (live: TLive) => void;
-type WatchCall = (
-  venueId: PredictVenueId,
-  ids: readonly PredictEntityId[],
-) => void;
 
 /**
  * One live-data topic as the hook sees it. The messenger calls are closed over
- * here, with literal action and event names, so each topic type-checks against
- * the service's own action and event declarations.
+ * here, with literal event names, so each topic type-checks against the
+ * service's own event declarations.
  */
 interface LiveTopic<TLive extends { venueId: PredictVenueId }> {
-  watch: WatchCall;
-  unwatch: WatchCall;
   subscribe: (listener: Listener<TLive>) => void;
   unsubscribe: (listener: Listener<TLive>) => void;
   keyOf: (live: TLive) => PredictEntityId;
@@ -83,18 +86,6 @@ interface LiveTopic<TLive extends { venueId: PredictVenueId }> {
 }
 
 const GAME_TOPIC: LiveTopic<PredictGameLive> = {
-  watch: (venueId, ids) =>
-    Engine.controllerMessenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`,
-      venueId,
-      ids,
-    ),
-  unwatch: (venueId, ids) =>
-    Engine.controllerMessenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`,
-      venueId,
-      ids,
-    ),
   subscribe: (listener) =>
     Engine.controllerMessenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
@@ -110,18 +101,6 @@ const GAME_TOPIC: LiveTopic<PredictGameLive> = {
 };
 
 const MARKET_TOPIC: LiveTopic<PredictQuote> = {
-  watch: (venueId, ids) =>
-    Engine.controllerMessenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`,
-      venueId,
-      ids,
-    ),
-  unwatch: (venueId, ids) =>
-    Engine.controllerMessenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchMarkets`,
-      venueId,
-      ids,
-    ),
   subscribe: (listener) =>
     Engine.controllerMessenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
@@ -147,68 +126,188 @@ const MARKET_TOPIC: LiveTopic<PredictQuote> = {
   },
 };
 
+const watchEvents = (
+  venueId: PredictVenueId,
+  eventIds: readonly PredictEntityId[],
+  marketScope: LiveMarketWatchScope,
+) =>
+  Engine.controllerMessenger.call(
+    `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchEvents`,
+    venueId,
+    eventIds,
+    { marketScope },
+  );
+
+const unwatchEvents = (
+  venueId: PredictVenueId,
+  eventIds: readonly PredictEntityId[],
+  marketScope: LiveMarketWatchScope,
+) =>
+  Engine.controllerMessenger.call(
+    `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchEvents`,
+    venueId,
+    eventIds,
+    { marketScope },
+  );
+
 /**
- * Holds one topic's watches with the live-data service and collects its
- * accumulated value per id. Game frames fold as patches; quotes replace as
- * snapshots. `idsToWatch` drives subscriptions (usually the viewport);
- * `presentIds` bounds which frames are kept (everything rendered), so a frame
- * for a row that scrolled out of the viewport still lands when it scrolls back.
+ * Holds live-data watches for exactly the given Event ids: newly listed ids
+ * are watched, ids that drop off the list are released, and unmounting
+ * releases whatever is still held. Only the diff travels to the service, so a
+ * card that stays on screen across re-renders never resubscribes. A retryable
+ * resolution failure is retried by the service while these ids stay listed;
+ * this effect does not call `watch` again for them. A change of `marketScope`
+ * (including a new `visible` id list) re-issues every watch under the new
+ * scope before releasing the old one, since the service ref-counts per scope:
+ * the Event never drops to zero watchers, and the service subscribes and
+ * releases only the Markets that differ.
+ */
+const useLiveEventWatches = (
+  venueId: PredictVenueId,
+  eventIds: readonly PredictEntityId[],
+  marketScope: LiveMarketWatchScope,
+): void => {
+  const watchKey = idsKey(eventIds);
+  const scopeKey = scopeKeyOf(marketScope);
+  const watchedRef = useRef<{
+    ids: PredictEntityId[];
+    scopeKey: string;
+  }>({ ids: [], scopeKey });
+
+  useEffect(() => {
+    const ids = JSON.parse(watchKey) as PredictEntityId[];
+    const previous = watchedRef.current;
+    const scopeChanged = previous.scopeKey !== scopeKey;
+    const previousSet = new Set(scopeChanged ? [] : previous.ids);
+    const nextSet = new Set(scopeChanged ? [] : ids);
+    const added = ids.filter((id) => !previousSet.has(id));
+    const removed = previous.ids.filter((id) => !nextSet.has(id));
+
+    if (added.length > 0) {
+      watchEvents(venueId, added, scopeFromKey(scopeKey));
+    }
+    if (removed.length > 0) {
+      unwatchEvents(venueId, removed, scopeFromKey(previous.scopeKey));
+    }
+    watchedRef.current = { ids, scopeKey };
+  }, [watchKey, venueId, scopeKey]);
+
+  // Keyed on venueId only. When the venue changes React runs this cleanup
+  // (releasing the old venue's ids and emptying the ref) before re-running the
+  // diff effect above, which then sees an empty previous set and re-watches
+  // every id under the new venue. Do not add deps here: a cleanup on every
+  // ids change would release and reacquire the whole set on each scroll tick.
+  useEffect(
+    () => () => {
+      const { ids, scopeKey: heldScopeKey } = watchedRef.current;
+      watchedRef.current = { ids: [], scopeKey: heldScopeKey };
+      if (ids.length > 0) {
+        unwatchEvents(venueId, ids, scopeFromKey(heldScopeKey));
+      }
+    },
+    [venueId],
+  );
+};
+
+/**
+ * Minimum gap between two live-data state updates on one surface. Frames that
+ * arrive inside the gap are applied together when it ends.
+ */
+export const LIVE_UPDATE_THROTTLE_MS = 250;
+
+/**
+ * Collects one topic's accumulated value per id for everything rendered
+ * (`presentIds`), so a frame for a row that scrolled out of the viewport still
+ * lands when it scrolls back. Game frames fold as patches; quotes replace as
+ * snapshots.
+ *
+ * Each frame arrives as its own socket message, so applying them one by one
+ * re-renders the whole list per frame. After a quiet period, every frame in the
+ * current JS turn applies at once, so a replay from `watchEvents` (one frame
+ * per cached id, published synchronously) shows without delay. The cooldown
+ * starts when that turn ends; later frames are held and applied in one update
+ * at most every `LIVE_UPDATE_THROTTLE_MS`.
  */
 const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
   topic: LiveTopic<TLive>,
   venueId: PredictVenueId,
-  idsToWatch: readonly PredictEntityId[],
   presentIds: readonly PredictEntityId[],
 ): ReadonlyMap<PredictEntityId, TLive> => {
   const [updates, setUpdates] = useState(
     () => new Map<PredictEntityId, TLive>(),
   );
-  const watchKey = idsKey(idsToWatch);
   const presentKey = idsKey(presentIds);
-  const watchedIdsRef = useRef<PredictEntityId[]>([]);
 
   useEffect(() => {
-    const ids = JSON.parse(watchKey) as PredictEntityId[];
     const present = new Set(JSON.parse(presentKey) as PredictEntityId[]);
-    const previousIds = watchedIdsRef.current;
-    const previousSet = new Set(previousIds);
-    const added = ids.filter((id) => !previousSet.has(id));
-    const removed = previousIds.filter((id) => !ids.includes(id));
+    let pending: TLive[] = [];
+    let cooldown: ReturnType<typeof setTimeout> | undefined;
+    let turnOpen = false;
+    let disposed = false;
 
-    const onUpdate = (live: TLive) => {
-      const key = topic.keyOf(live);
-      if (live.venueId !== venueId || !present.has(key)) {
+    const flush = () => {
+      if (pending.length === 0) {
         return;
       }
+      const frames = pending;
+      pending = [];
       setUpdates((current) => {
-        const previous = current.get(key);
-        if (previous === live) {
-          return current;
-        }
-        const merged = topic.merge(previous, live);
-        if (!merged || merged === previous) {
-          return current;
-        }
-
-        const next = new Map(current);
-        next.set(key, merged);
-        return next;
+        let next: Map<PredictEntityId, TLive> | undefined;
+        frames.forEach((live) => {
+          const key = topic.keyOf(live);
+          const previous = (next ?? current).get(key);
+          if (previous === live) {
+            return;
+          }
+          const merged = topic.merge(previous, live);
+          if (!merged || merged === previous) {
+            return;
+          }
+          next ??= new Map(current);
+          next.set(key, merged);
+        });
+        return next ?? current;
       });
     };
 
-    topic.subscribe(onUpdate);
-    if (added.length > 0) {
-      topic.watch(venueId, added);
-    }
-    if (removed.length > 0) {
-      topic.unwatch(venueId, removed);
-    }
-    watchedIdsRef.current = ids;
-
-    return () => {
-      topic.unsubscribe(onUpdate);
+    const endCooldown = () => {
+      if (pending.length === 0) {
+        cooldown = undefined;
+        return;
+      }
+      flush();
+      cooldown = setTimeout(endCooldown, LIVE_UPDATE_THROTTLE_MS);
     };
-  }, [presentKey, watchKey, venueId, topic]);
+
+    const onUpdate = (live: TLive) => {
+      if (live.venueId !== venueId || !present.has(topic.keyOf(live))) {
+        return;
+      }
+      pending.push(live);
+      if (cooldown !== undefined) {
+        return;
+      }
+      flush();
+      if (!turnOpen) {
+        turnOpen = true;
+        queueMicrotask(() => {
+          turnOpen = false;
+          if (!disposed) {
+            cooldown = setTimeout(endCooldown, LIVE_UPDATE_THROTTLE_MS);
+          }
+        });
+      }
+    };
+
+    topic.subscribe(onUpdate);
+    return () => {
+      disposed = true;
+      topic.unsubscribe(onUpdate);
+      clearTimeout(cooldown);
+      // The Venue does not resend a held frame, so apply it rather than drop it.
+      flush();
+    };
+  }, [presentKey, venueId, topic]);
 
   useEffect(() => {
     const present = new Set(JSON.parse(presentKey) as PredictEntityId[]);
@@ -224,18 +323,6 @@ const useLiveTopicUpdates = <TLive extends { venueId: PredictVenueId }>(
       return changed ? next : current;
     });
   }, [presentKey]);
-
-  useEffect(
-    () => () => {
-      const ids = watchedIdsRef.current;
-      watchedIdsRef.current = [];
-      if (ids.length === 0) {
-        return;
-      }
-      topic.unwatch(venueId, ids);
-    },
-    [venueId, topic],
-  );
 
   return updates;
 };
@@ -258,6 +345,28 @@ const patchMarkets = (
   });
   return changed ? patched : markets;
 };
+
+export interface UseEventsWithLiveDataOptions {
+  /**
+   * The Events currently on screen. Defaults to every Event in `events`.
+   * Ids not present in `events` are ignored.
+   */
+  visibleEventIds?: readonly PredictEntityId[];
+  /**
+   * Whether the surface is showing at all (navigation focus). While `false`
+   * nothing is watched; the collected values stay so the surface re-renders
+   * from them the moment it comes back.
+   */
+  isVisible?: boolean;
+  /**
+   * Which Markets of each visible Event to hold live prices for. Defaults to
+   * `all`. Home and Feed use `card` so hidden lines stay off the wire; the
+   * Event Screen passes `{ type: 'visible', marketIds }` with the Markets it
+   * renders. Changing the `visible` ids re-scopes without resubscribing the
+   * Markets both lists share.
+   */
+  marketScope?: LiveMarketWatchScope;
+}
 
 const applyLiveData = (
   event: PredictEvent,
@@ -299,45 +408,53 @@ const eventLiveInputsUnchanged = (
   );
 
 /**
- * Watches live Game and market-price updates for the given Events and returns
- * the same Events with Game fields and outcome prices patched.
+ * Watches live Game and market-price updates for the visible Events and
+ * returns the same Events with Game fields and outcome prices patched.
  *
- * `watchEventIds` narrows which Events are subscribed (the viewport); every
- * Event in `events` can still receive a frame it already has.
- * `marketScope: 'card'` watches only Markets a list card prices.
+ * Subscriptions follow the user's eyes: an Event is watched while it is in
+ * `visibleEventIds` and the surface `isVisible`, and released as soon as it
+ * scrolls out, the surface hides, or the component unmounts. The live-data
+ * service resolves which Markets (and, for live Games, which `game` subject)
+ * each Event needs and shares one upstream subscription across surfaces.
+ * `marketScope: 'card'` asks it for only the Markets a list card prices.
  */
 export const useEventsWithLiveData = (
   venueId: PredictVenueId,
   events: readonly PredictEvent[],
-  options: UseEventsWithLiveDataOptions = {},
+  {
+    visibleEventIds,
+    isVisible = true,
+    marketScope = 'all',
+  }: UseEventsWithLiveDataOptions = {},
 ): readonly PredictEvent[] => {
-  const { watchEventIds, marketScope = 'all' } = options;
-  const gameIdsToWatch = useMemo(
-    () => getLiveGameWatchIds(events, watchEventIds),
-    [events, watchEventIds],
-  );
-  const marketIdsToWatch = useMemo(
-    () => getLiveMarketWatchIds(events, watchEventIds, marketScope),
-    [events, watchEventIds, marketScope],
-  );
   const presentEventIds = useMemo(() => events.map(({ id }) => id), [events]);
+  const listsCardMarkets = marketScope === 'card';
   const presentMarketIds = useMemo(
-    () => getLiveMarketWatchIds(events, undefined, marketScope),
-    [events, marketScope],
+    () => getPresentMarketIds(events, listsCardMarkets ? 'card' : 'all'),
+    [events, listsCardMarkets],
   );
+  const eventIdsToWatch = useMemo(() => {
+    if (!isVisible) {
+      return NO_IDS;
+    }
+    if (!visibleEventIds) {
+      return presentEventIds;
+    }
+    const present = new Set(presentEventIds);
+    return uniqueIds(visibleEventIds.filter((id) => present.has(id)));
+  }, [isVisible, visibleEventIds, presentEventIds]);
 
-  const gameUpdates = useLiveTopicUpdates(
-    GAME_TOPIC,
-    venueId,
-    gameIdsToWatch,
-    presentEventIds,
-  );
+  // Subscribe before watching. React runs these effects in call order, and
+  // `watchEvents` replays the last known Game and quotes synchronously when
+  // another surface already holds the Event. Listeners registered afterwards
+  // miss that snapshot, and the Venue sends no other until the next frame.
+  const gameUpdates = useLiveTopicUpdates(GAME_TOPIC, venueId, presentEventIds);
   const quoteUpdates = useLiveTopicUpdates(
     MARKET_TOPIC,
     venueId,
-    marketIdsToWatch,
     presentMarketIds,
   );
+  useLiveEventWatches(venueId, eventIdsToWatch, marketScope);
   const previousLiveRef = useRef<{
     events: readonly PredictEvent[];
     gameUpdates: ReadonlyMap<PredictEntityId, PredictGameLive>;

@@ -33,6 +33,7 @@ import { MoneyAccountWithdrawInfo } from '../info/money-account-withdraw-info';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useTransactionPayAutoFiatSubmission } from '../../hooks/pay/useTransactionPayAutoFiatSubmission';
 import PerpsOrderView from '../../../../UI/Perps/Views/PerpsOrderView';
+import { MONEY_ACCOUNT_DEPOSIT_TYPES } from '../../constants/confirmations';
 
 interface ConfirmationInfoComponentRequest {
   signatureRequestVersion?: string;
@@ -123,9 +124,7 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [
-      TransactionType.moneyAccountDeposit,
-    ])
+    hasTransactionType(transactionMetadata, MONEY_ACCOUNT_DEPOSIT_TYPES)
   ) {
     return <MoneyAccountDepositInfo />;
   }
@@ -155,9 +154,30 @@ const Info = ({ route }: InfoProps) => {
 
   if (
     transactionMetadata &&
-    hasTransactionType(transactionMetadata, [TransactionType.perpsWithdraw])
+    hasTransactionType(transactionMetadata, [
+      TransactionType.perpsWithdraw,
+      TransactionType.perpsLighterWithdraw,
+    ])
   ) {
     return <PerpsWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.perpsLighterDeposit,
+    ])
+  ) {
+    return <PerpsDepositInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [
+      TransactionType.perpsLighterDepositAndOrder,
+    ])
+  ) {
+    return <PerpsOrderView />;
   }
 
   const { requestData } = approvalRequest ?? {

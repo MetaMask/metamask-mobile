@@ -7,8 +7,7 @@
  * strings + live trader data in through these data bindings, streams the
  * displayed traders' avatars in via `referencedAssets`, and observes the
  * state-machine triggers to
- * run the follow / notification / analytics / persistence logic. Mirrors the
- * Money onboarding pattern (`MoneyOnboardingView`).
+ * run the follow / notification / analytics / persistence logic.
  *
  * Update these names if the Rive file's artboard, state machine, bindings or
  * triggers change.

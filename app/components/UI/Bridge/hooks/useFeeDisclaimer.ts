@@ -36,6 +36,7 @@ export const useFeeDisclaimer = ({
     !isNullOrUndefined(discountType) && discountType !== '';
 
   const hasFee = activeQuote && feePercentage > 0;
+  const isFree = discountType === 'free';
 
   const isDiscounted =
     activeQuote &&
@@ -53,6 +54,10 @@ export const useFeeDisclaimer = ({
       return { type: DiscountType.VIP };
     }
 
+    if (isFree) {
+      return { type: 'free', label: strings('bridge.discount_badge_free') };
+    }
+
     if (discountType === DiscountType.DAO) {
       return {
         type: DiscountType.DAO,
@@ -60,17 +65,29 @@ export const useFeeDisclaimer = ({
       };
     }
 
+    if (discountType === DiscountType.SUBSCRIPTION) {
+      return { type: DiscountType.SUBSCRIPTION };
+    }
+
     return {
       type: DiscountType.PROMO,
       label: strings('bridge.discount_badge_promo'),
     };
-  }, [discountType, hasDiscountType]);
+  }, [discountType, hasDiscountType, isFree]);
+
+  const isSubscriptionDiscount = discountType === DiscountType.SUBSCRIPTION;
+  const showDiscountedFee = Boolean(isDiscounted) && !isFree;
 
   const infoText = useMemo(() => {
-    if (isDiscounted) {
+    if (showDiscountedFee) {
       return;
     }
 
+    if (isFree) {
+      return strings('bridge.fee_percentage_meta_mask', {
+        feePercentage: baseFeePercentage,
+      });
+    }
     if (hasFee) {
       return strings('bridge.fee_disclaimer', {
         feePercentage,
@@ -84,20 +101,32 @@ export const useFeeDisclaimer = ({
     return strings('bridge.no_mm_fee_disclaimer', {
       destTokenSymbol: activeQuote.quote.dest.asset.symbol,
     });
-  }, [isDiscounted, hasFee, activeQuote, feePercentage]);
+  }, [
+    showDiscountedFee,
+    hasFee,
+    activeQuote,
+    feePercentage,
+    isFree,
+    baseFeePercentage,
+  ]);
+
+  const discountedFeeCopy = showDiscountedFee
+    ? {
+        infoSuffix: isSubscriptionDiscount
+          ? strings('bridge.no_fees_with_orange')
+          : strings('bridge.fee_percentage_meta_mask', { feePercentage }),
+        baseFeePercentage: strings('bridge.fee_percentage', {
+          feePercentage: baseFeePercentage,
+        }),
+      }
+    : {
+        infoSuffix: undefined,
+        baseFeePercentage: undefined,
+      };
 
   return {
     discountBadge,
     infoText,
-    infoSuffix: isDiscounted
-      ? strings('bridge.fee_percentage_meta_mask', {
-          feePercentage,
-        })
-      : undefined,
-    baseFeePercentage: isDiscounted
-      ? strings('bridge.fee_percentage', {
-          feePercentage: baseFeePercentage,
-        })
-      : undefined,
+    ...discountedFeeCopy,
   };
 };

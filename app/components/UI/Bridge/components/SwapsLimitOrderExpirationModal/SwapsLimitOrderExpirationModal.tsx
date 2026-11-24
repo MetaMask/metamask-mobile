@@ -1,40 +1,64 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ListItemSelect,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  SWAPS_LIMIT_ORDER_EXPIRATION_CLOSE_DELAY_MS,
   SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES,
   getSwapsLimitOrderExpirationLabel,
+  type SwapsLimitOrderExpirationMinutes,
 } from '../../constants/limitOrders';
 import { SwapsLimitOrderExpirationModalSelectorsIDs } from './testIds';
 import type { SwapsLimitOrderExpirationModalProps } from './types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 const SwapsLimitOrderExpirationModal: React.FC<
   SwapsLimitOrderExpirationModalProps
 > = ({
   selectedMinutes,
   onSelect,
-  onConfirm,
   onClose,
   goBack,
   testID = SwapsLimitOrderExpirationModalSelectorsIDs.SHEET,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
+
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const handleConfirm = useCallback(() => {
-    onConfirm(selectedMinutes);
-    closeSheet();
-  }, [closeSheet, onConfirm, selectedMinutes]);
+  useEffect(
+    () => () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleSelect = useCallback(
+    (minutes: SwapsLimitOrderExpirationMinutes) => {
+      onSelect(minutes);
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+      // Brief delay so the user sees the new selection before the sheet closes.
+      closeTimeoutRef.current = setTimeout(
+        closeSheet,
+        SWAPS_LIMIT_ORDER_EXPIRATION_CLOSE_DELAY_MS,
+      );
+    },
+    [closeSheet, onSelect],
+  );
 
   return (
     <BottomSheet
@@ -43,14 +67,15 @@ const SwapsLimitOrderExpirationModal: React.FC<
       goBack={goBack}
       onClose={onClose}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: SwapsLimitOrderExpirationModalSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.limit.expiration')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box paddingBottom={2}>
         {SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES.map((minutes) => (
           <ListItemSelect
@@ -58,18 +83,11 @@ const SwapsLimitOrderExpirationModal: React.FC<
             title={getSwapsLimitOrderExpirationLabel(minutes)}
             isSelected={selectedMinutes === minutes}
             showSelectedIcon
-            onPress={() => onSelect(minutes)}
+            onPress={() => handleSelect(minutes)}
             testID={SwapsLimitOrderExpirationModalSelectorsIDs.OPTION(minutes)}
           />
         ))}
       </Box>
-      <BottomSheetFooter
-        primaryButtonProps={{
-          children: strings('bridge.confirm'),
-          onPress: handleConfirm,
-          testID: SwapsLimitOrderExpirationModalSelectorsIDs.CONFIRM_BUTTON,
-        }}
-      />
     </BottomSheet>
   );
 };

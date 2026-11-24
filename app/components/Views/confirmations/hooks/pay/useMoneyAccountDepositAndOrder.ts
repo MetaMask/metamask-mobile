@@ -1,5 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 import { useDefaultPaySelectedSection } from './useDefaultPaySelectedSection';
@@ -7,6 +8,8 @@ import { useIsMoneyAccountPaymentOverride } from './useIsMoneyAccountPaymentOver
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
+import { selectEvmAssetIdEncoder } from '../../../../../selectors/assets/assets-controller';
+import { isSameAssetId } from '../../../../../util/transactions/payment-token';
 
 /**
  * Enables Money Account as a payment source for the perps and predict
@@ -28,34 +31,51 @@ import { useTransactionPayFiatPayment } from './useTransactionPayData';
  * fallback and the flag both only write `paymentOverride`; in the
  * `CustomAmountInfo` flows `useAutomaticTransactionPayToken` is what turns that
  * into the mUSD-on-Monad pay token the quote is actually built from.
+ *
+ * @param options - Hook options.
+ * @param options.disable - Set `true` while the product balance can already
+ * fund the order. Both automatic paths only look at the EOA token balance, so
+ * an empty wallet otherwise selects the Money Account over a funded Perps or
+ * Predict balance. Selecting the Money Account by hand is unaffected.
  */
-export function useMoneyAccountDepositAndOrder(): void {
-  useDefaultPaySelectedSection();
+export function useMoneyAccountDepositAndOrder({
+  disable = false,
+}: { disable?: boolean } = {}): void {
+  useDefaultPaySelectedSection({ disable });
 
   const { payToken, setPayToken } = useTransactionPayToken();
-  const { hasTokens } = useTransactionPayAvailableTokens();
+  const encodeAssetId = useSelector(selectEvmAssetIdEncoder);
+  const { availableTokens } = useTransactionPayAvailableTokens();
   const fiatPayment = useTransactionPayFiatPayment();
 
   useAutomaticMoneyAccountPayToken({
+    availableTokens,
+    disable,
     hasFiatPaymentSelected: Boolean(fiatPayment?.selectedPaymentMethodId),
-    hasTokenBalance: hasTokens,
     payTokenSelected: Boolean(payToken),
   });
 
   const isMoneyAccountSelected = useIsMoneyAccountPaymentOverride();
 
-  const isPayTokenMusdOnMonad =
-    payToken?.chainId?.toLowerCase() === CHAIN_IDS.MONAD.toLowerCase() &&
-    payToken?.address?.toLowerCase() === MUSD_TOKEN_ADDRESS.toLowerCase();
+  const musdOnMonadAssetId = encodeAssetId({
+    address: MUSD_TOKEN_ADDRESS,
+    chainId: CHAIN_IDS.MONAD,
+  });
+  const isPayTokenMusdOnMonad = isSameAssetId(
+    payToken?.assetId,
+    musdOnMonadAssetId,
+  );
 
   useEffect(() => {
     if (!isMoneyAccountSelected || isPayTokenMusdOnMonad) {
       return;
     }
 
-    setPayToken({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
-    });
-  }, [isMoneyAccountSelected, isPayTokenMusdOnMonad, setPayToken]);
+    setPayToken({ assetId: musdOnMonadAssetId });
+  }, [
+    isMoneyAccountSelected,
+    isPayTokenMusdOnMonad,
+    musdOnMonadAssetId,
+    setPayToken,
+  ]);
 }

@@ -15,9 +15,15 @@ import React from 'react';
 import { Pressable, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedAbbreviatedUsd } from '../../../../SocialLeaderboard/utils/formatters';
-import TraderAvatar from './TraderAvatar';
+
+import { formatSignedAbbreviatedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
+import {
+  getTopTraderAvatarTestId,
+  getTopTraderCardTestId,
+  getTopTraderVerifiedBadgeTestId,
+} from './TopTraderCard.testIds';
+import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
+import ProfileVerifiedBadge from '../../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
 
 export interface TopTraderCardProps {
   trader: TopTrader;
@@ -69,7 +75,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       }
       disabled={!onTraderPress}
       accessibilityRole={onTraderPress ? 'button' : undefined}
-      testID={testID ?? `top-trader-card-${trader.id}`}
+      testID={testID ?? getTopTraderCardTestId(trader.id)}
       style={({ pressed }) =>
         tw.style(
           `relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl overflow-hidden`,
@@ -86,20 +92,33 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
           <TraderAvatar
             imageUrl={trader.avatarUri}
             address={trader.address}
+            profileId={trader.id}
             size={AVATAR_SIZE}
-            testID={`top-trader-avatar-${trader.id}`}
+            testID={getTopTraderAvatarTestId(trader.id)}
           />
 
           <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-              ellipsizeMode="tail"
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {trader.username}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                twClassName="shrink"
+              >
+                {trader.username}
+              </Text>
+              {trader.verified ? (
+                <ProfileVerifiedBadge
+                  testID={getTopTraderVerifiedBadgeTestId(trader.id)}
+                />
+              ) : null}
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}

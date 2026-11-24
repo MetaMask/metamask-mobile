@@ -158,6 +158,57 @@ describe('useHasSufficientGas', () => {
   });
 
   describe('when gas is not included in the quote', () => {
+    const createStellarNonNativeQuote = () => {
+      const nativeAsset = toBridgeAssetV2(
+        getNativeAssetForChainId(ChainId.STELLAR),
+      );
+      return {
+        chainId: formatChainIdToCaip(ChainId.STELLAR),
+        quote: {
+          src: {
+            asset: {
+              assetId:
+                'stellar:pubnet/credit_alphanum4:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+            },
+          },
+          feeData: {
+            network: [{ normalizedAmount: '0.00001', asset: nativeAsset }],
+            reserve: [{ normalizedAmount: '1.5', asset: nativeAsset }],
+          },
+        },
+      } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
+    };
+
+    it('returns false when native balance cannot cover quote fee and reserve for a non-native source', () => {
+      const mockQuote = createStellarNonNativeQuote();
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '0.4',
+        atomicBalance: BigNumber.from('4000000'),
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useHasSufficientGas({ quote: mockQuote }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when native balance covers quote fee and reserve for a non-native source', () => {
+      const mockQuote = createStellarNonNativeQuote();
+      mockUseLatestBalance.mockReturnValue({
+        displayBalance: '2',
+        atomicBalance: BigNumber.from('20000000'),
+      });
+
+      const { result } = renderHookWithProvider(
+        () => useHasSufficientGas({ quote: mockQuote }),
+        { state: {} },
+      );
+
+      expect(result.current).toBe(true);
+    });
+
     describe('for EVM chains', () => {
       it('should return true when user has sufficient gas balance', () => {
         const mockQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] =

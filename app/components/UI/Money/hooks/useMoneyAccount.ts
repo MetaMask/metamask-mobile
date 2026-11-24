@@ -1,14 +1,16 @@
 import { useCallback } from 'react';
+import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import { bytesToHex, Hex } from '@metamask/utils';
-import { v4 as uuidv4, parse as uuidParse } from 'uuid';
+import { Hex } from '@metamask/utils';
+import { TransactionType } from '@metamask/transaction-controller';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectEvmAddress } from '../../../../selectors/accountsController';
+import { createMoneyAccountBatchId } from '../utils/createMoneyAccountBatchId';
 import {
   buildMoneyAccountDepositBatch,
   buildMoneyAccountWithdrawBatch,
@@ -30,6 +32,7 @@ import { useMoneyAccountDepositPrefillEnabled } from '../../../Views/confirmatio
 import { ensureError } from '../../../../util/errorUtils';
 import { isUserRejectedError } from '../../../../util/errorHandling/isUserRejectedError';
 import useMoneyToasts from './useMoneyToasts';
+import { useMoneyAccountAvailability } from './useMoneyAccountAvailability';
 import {
   clearMoneyAccountDepositIntent,
   setMoneyAccountDepositIntent,
@@ -45,6 +48,8 @@ export {
 const LOG_TAG = '[Money Account]';
 
 export interface InitiateDepositOptions {
+  /** Initial editable deposit amount in USD, automatically quoted for token deposits. */
+  amount?: string;
   preferredPaymentToken?: {
     address: Hex;
     chainId: Hex;
@@ -52,11 +57,19 @@ export interface InitiateDepositOptions {
   intent?: MoneyAccountDepositIntent;
   autoSelectFiatPayment?: boolean;
   replaceConfirmation?: boolean;
+  forceBottomSheet?: boolean;
+  bottomSheetHeightPercentage?: number;
   /**
    * Where the deposit was started from. Carried to the confirmation so it can
    * land somewhere other than the Money tab — see `navigateOnConfirm`.
    */
   launchedFrom?: ConfirmationLaunchSource;
+  transactionType?: TransactionType;
+  /**
+   * Optional batch id so a caller can subscribe to transaction events before
+   * `addTransactionBatch` runs and avoid missing the confirmed/rejected race.
+   */
+  batchId?: Hex;
   onDepositSetupFailure?: (error: Error) => void;
 }
 
@@ -75,16 +88,19 @@ function waitForNextFrame(): Promise<void> {
   });
 }
 
-function isMoneyConfirmationActive(): boolean {
+function isMoneyConfirmationActive(forceBottomSheet = false): boolean {
   return (
     NavigationService.navigation.getCurrentRoute()?.name ===
-    Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS
+    (forceBottomSheet
+      ? Routes.CONFIRMATION_REQUEST_MODAL
+      : Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS)
   );
 }
 
 export function useMoneyAccountDeposit() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const isDepositPrefillEnabled = useMoneyAccountDepositPrefillEnabled();
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
@@ -92,6 +108,8 @@ export function useMoneyAccountDeposit() {
 
   const initiateDeposit = useCallback(
     async (options?: InitiateDepositOptions) => {
+      assertMoneyAccountAccessible();
+
       const preferredPaymentToken = options?.preferredPaymentToken;
       const getDepositSetup = () => {
         if (!vaultConfig) {
@@ -141,7 +159,7 @@ export function useMoneyAccountDeposit() {
         throw error;
       }
 
-      const batchId = bytesToHex(new Uint8Array(uuidParse(uuidv4())));
+      const batchId = options?.batchId ?? createMoneyAccountBatchId();
       // Only record an explicit funding intent (card / addMusd). Generic deposits
       // (e.g. the home "Add" button) are left unset so the toast derives the
       // intent from the transaction's actual payment method instead of a guess.
@@ -149,13 +167,27 @@ export function useMoneyAccountDeposit() {
         setMoneyAccountDepositIntent(batchId, options.intent);
       }
 
+      const explicitAmount = new BigNumber(options?.amount ?? '0');
+      const shouldQuoteExplicitAmount =
+        explicitAmount.isFinite() &&
+        explicitAmount.gt(0) &&
+        options?.intent !== 'card' &&
+        !options?.autoSelectFiatPayment;
+
       const confirmationParams = {
-        loader: isDepositPrefillEnabled(options?.intent)
+        amount: options?.amount,
+        loader: (
+          options?.amount !== undefined
+            ? shouldQuoteExplicitAmount
+            : isDepositPrefillEnabled(options?.intent)
+        )
           ? ConfirmationLoader.PrefillCustomAmount
           : ConfirmationLoader.AdvancedCustomAmount,
         preferredPaymentToken,
         autoSelectFiatPayment: options?.autoSelectFiatPayment,
         launchedFrom: options?.launchedFrom,
+        forceBottomSheet: options?.forceBottomSheet,
+        bottomSheetHeightPercentage: options?.bottomSheetHeightPercentage,
       };
 
       // Navigate early for better UX; recover on failure below.
@@ -203,27 +235,37 @@ export function useMoneyAccountDeposit() {
             },
           ],
           skipInitialGasEstimate: true,
-          transactions: [approveTx, depositTx],
+          transactions: [
+            approveTx,
+            { ...depositTx, type: options?.transactionType ?? depositTx.type },
+          ],
         });
       } catch (error) {
         const errorObj = ensureError(error, `${LOG_TAG} Deposit setup failed`);
         clearMoneyAccountDepositIntent(batchId);
         if (!isUserRejectedError(error, errorObj.message)) {
-          if (isMoneyConfirmationActive()) {
-            navigation.goBack();
+          if (isMoneyConfirmationActive(options?.forceBottomSheet)) {
+            if (options?.forceBottomSheet) {
+              // The container ref routes Back to the focused confirmation,
+              // not the nested navigator that initiated the deposit.
+              NavigationService.navigation.goBack();
+            } else {
+              navigation.goBack();
+            }
           }
           showToast(
             MoneyToastOptions.deposit.failed({ intent: options?.intent }),
           );
+          Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
+          showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
         }
-        Logger.error(errorObj, `${LOG_TAG} Deposit setup failed`);
-        showDevErrorAlert(`${LOG_TAG} Deposit setup failed`, errorObj);
         // Rethrow so the caller can log the failed initiation.
         throw error;
       }
     },
     [
       MoneyToastOptions.deposit,
+      assertMoneyAccountAccessible,
       isDepositPrefillEnabled,
       navigateToConfirmation,
       navigation,
@@ -239,12 +281,15 @@ export function useMoneyAccountDeposit() {
 export function useMoneyAccountWithdrawal() {
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const { assertMoneyAccountAccessible } = useMoneyAccountAvailability();
   const recipient = useSelector(selectEvmAddress);
   const { navigateToConfirmation } = useConfirmNavigation();
   const navigation = useNavigation<AppNavigationProp>();
   const { showToast, MoneyToastOptions } = useMoneyToasts();
 
   const initiateWithdrawal = useCallback(async () => {
+    assertMoneyAccountAccessible();
+
     if (!vaultConfig) {
       throw new Error(`${LOG_TAG} Missing vault config`);
     }
@@ -310,14 +355,15 @@ export function useMoneyAccountWithdrawal() {
           navigation.goBack();
         }
         showToast(MoneyToastOptions.withdraw.failed());
+        Logger.error(errorObj, `${LOG_TAG} Withdrawal transaction failed`);
+        showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, errorObj);
       }
-      Logger.error(errorObj, `${LOG_TAG} Withdrawal transaction failed`);
-      showDevErrorAlert(`${LOG_TAG} Withdrawal transaction failed`, errorObj);
       // Rethrow so the caller can roll back navigation / surface a toast.
       throw error;
     }
   }, [
     MoneyToastOptions.withdraw,
+    assertMoneyAccountAccessible,
     navigateToConfirmation,
     navigation,
     primaryMoneyAccount,

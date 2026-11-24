@@ -8,10 +8,15 @@ import {
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { AccountGroupObject } from '@metamask/account-tree-controller';
 import {
+  Box,
   ButtonSize,
   ButtonsAlignment,
   BottomSheet,
   BottomSheetFooter,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
   TitleAlert,
   toast,
   ToastSeverity,
@@ -94,15 +99,23 @@ const RemoveAccount = () => {
       onClose={handleClose}
       testID={RemoveAccountSelectors.CONTAINER}
     >
-      <TitleAlert
-        severity="danger"
-        title={strings('accounts.remove_account_title_with_account_name', {
-          accountName: accountGroup?.metadata.name,
-        })}
-        description={strings('accounts.remove_account_warning')}
-        twClassName="px-4 pt-2 pb-4"
-        testID={RemoveAccountSelectors.WARNING}
-      />
+      <Box twClassName="px-4 pt-2 pb-4 gap-4">
+        <TitleAlert
+          severity="danger"
+          title={strings('accounts.remove_account_title_with_account_name', {
+            accountName: accountGroup?.metadata.name,
+          })}
+          testID={RemoveAccountSelectors.WARNING}
+        />
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
+          {strings('accounts.remove_account_warning')}
+        </Text>
+      </Box>
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Vertical}
         primaryButtonProps={removeButtonProps}

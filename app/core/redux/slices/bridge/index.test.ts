@@ -13,6 +13,8 @@ import reducer, {
   setSlippageUserOverride,
   setLimitOrderCostTolerance,
   selectLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
+  selectLimitOrderExpirationMinutes,
   setBridgeViewMode,
   selectBridgeViewMode,
   setSourceToken,
@@ -75,6 +77,7 @@ import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
 import { RecurringScheduleErrorCode } from '../../../../components/UI/Bridge/utils/recurringSchedule';
+import type { SwapsLimitOrderExpirationMinutes } from '../../../../components/UI/Bridge/constants/limitOrders';
 import {
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStatus,
@@ -138,6 +141,7 @@ describe('bridge slice', () => {
         destToken: undefined,
         isGasIncludedSTXSendBundleSupported: false,
         isGasIncluded7702Supported: false,
+        isNativeGasIncludedSupported: false,
         destAddress: undefined,
         selectedSourceChainIds: undefined,
         selectedDestChainId: undefined,
@@ -316,6 +320,41 @@ describe('bridge slice', () => {
 
     it('returns undefined when no cost tolerance is stored', () => {
       expect(selectLimitOrderCostTolerance(mockRootState)).toBeUndefined();
+    });
+  });
+
+  describe('setLimitOrderExpirationMinutes', () => {
+    it('sets the expiration preset without touching the cost tolerance', () => {
+      const stateWithTolerance = reducer(
+        initialState,
+        setLimitOrderCostTolerance('0.5'),
+      );
+
+      const state = reducer(
+        stateWithTolerance,
+        setLimitOrderExpirationMinutes(10080),
+      );
+
+      expect(state.limitOrderCostTolerance).toBe('0.5');
+      expect(state.limitOrderExpirationMinutes).toBe(10080);
+    });
+  });
+
+  describe('selectLimitOrderExpirationMinutes', () => {
+    it('returns the stored limit order expiration preset', () => {
+      const state = {
+        ...mockRootState,
+        bridge: {
+          ...mockRootState.bridge,
+          limitOrderExpirationMinutes: 10080,
+        },
+      } as RootState;
+
+      expect(selectLimitOrderExpirationMinutes(state)).toBe(10080);
+    });
+
+    it('returns undefined when no expiration preset is stored', () => {
+      expect(selectLimitOrderExpirationMinutes(mockRootState)).toBeUndefined();
     });
   });
 
@@ -663,6 +702,21 @@ describe('bridge slice', () => {
 
       expect(newState.visiblePillChainIds).toBeUndefined();
     });
+
+    it('keeps the limit order settings for the rest of the app session', () => {
+      const stateWithLimitOrderSettings = {
+        ...initialState,
+        limitOrderCostTolerance: '3',
+        limitOrderExpirationMinutes: 10080 as SwapsLimitOrderExpirationMinutes,
+        sourceAmount: '1.5',
+      };
+
+      const newState = reducer(stateWithLimitOrderSettings, resetBridgeState());
+
+      expect(newState.sourceAmount).toBeUndefined();
+      expect(newState.limitOrderCostTolerance).toBe('3');
+      expect(newState.limitOrderExpirationMinutes).toBe(10080);
+    });
   });
 
   describe('resetBridgeDestToken', () => {
@@ -673,6 +727,7 @@ describe('bridge slice', () => {
       destToken: mockDestToken,
       selectedDestChainId: '0x89' as Hex,
       isDestTokenManuallySet: true,
+      destAddress: 'pXwSggYaFeUryz86UoCs9ugZ4VWoZ7R1U5CVhxYjL61',
       slippage: '3.5',
       isSlippageUserOverride: true,
     };
@@ -690,6 +745,12 @@ describe('bridge slice', () => {
 
       expect(newState.slippage).toBeUndefined();
       expect(newState.isSlippageUserOverride).toBe(false);
+    });
+
+    it('clears the recipient since it was chosen for the cleared destination', () => {
+      const newState = reducer(stateWithDestSelection, resetBridgeDestToken());
+
+      expect(newState.destAddress).toBeUndefined();
     });
 
     it('leaves the source selection and amount untouched', () => {

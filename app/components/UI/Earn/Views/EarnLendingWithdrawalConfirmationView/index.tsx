@@ -13,13 +13,8 @@ import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   BadgeNetwork,
-  ButtonIconSize,
-  FontWeight,
-  HeaderStandard,
-  IconName,
   KeyValueRow,
   Text,
-  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { navigateToActivityAfterConfirmation } from '../../../../../util/navigation/navigateToActivityAfterConfirmation';
@@ -51,6 +46,7 @@ import {
 import { EARN_EXPERIENCES } from '../../constants/experiences';
 import useEarnToken from '../../hooks/useEarnToken';
 import { EarnTokenDetails } from '../../types/lending.types';
+import { registerLendingOutputToken } from '../../utils';
 import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLending';
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
@@ -60,6 +56,8 @@ import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 import { EVM_SCOPE } from '../../constants/networks';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -78,6 +76,7 @@ export interface EarnWithdrawalConfirmationViewProps {
 }
 
 const EarnLendingWithdrawalConfirmationView = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -345,33 +344,25 @@ const EarnLendingWithdrawalConfirmationView = () => {
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionConfirmed',
         () => {
-          if (!earnToken) {
-            try {
-              const tokenNetworkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId: tokenNetworkClientId,
-              }).catch(console.error);
-            } catch (error) {
-              console.error(
-                error,
-                `error adding counter-token for ${
-                  outputToken?.symbol || outputToken?.ticker || ''
-                } on confirmation`,
-              );
-            }
+          if (!earnToken && selectedAccount?.id) {
+            registerLendingOutputToken(
+              selectedAccount.id,
+              tokenSnapshot,
+              outputToken?.symbol || outputToken?.ticker || '',
+            );
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
+    [
+      emitTxMetaMetric,
+      tokenSnapshot,
+      earnToken,
+      outputToken,
+      navigation,
+      selectedAccount,
+    ],
   );
 
   // Guards
@@ -466,7 +457,9 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   return (
     <View style={styles.pageContainer}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={headerTitle}
         onBack={handleHeaderBackPress}
         backButtonProps={{

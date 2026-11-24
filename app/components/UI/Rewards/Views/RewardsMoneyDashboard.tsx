@@ -1,0 +1,607 @@
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  ButtonAnimated,
+  ButtonIconSize,
+  FontWeight,
+  Icon,
+  IconName,
+  IconSize,
+  Skeleton,
+  Text,
+  TextVariant,
+  TitleStandard,
+  useHeaderStandardAnimated,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
+import {
+  TabsBar,
+  type TabItem,
+} from '../../../../component-library/components-temp/Tabs';
+import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
+import type { RootState } from '../../../../reducers';
+import { selectCandidateSubscriptionId } from '../../../../reducers/rewards/selectors';
+import { selectPrimaryHDKeyring } from '../../../../selectors/keyringController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
+import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import {
+  moneyDashboardPersona,
+  selectEarningsSummaryEntry,
+  selectReferralMeEntry,
+  selectSettingsReferralAvailable,
+} from '../../../../reducers/rewardsMoney/selectors';
+import { strings } from '../../../../../locales/i18n';
+import { useHeaderGlassInset } from '../../../../component-library/components-temp/HeaderGlass';
+import HeaderStandardAnimatedGlass from '../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
+import ButtonIconGlass from '../../../../component-library/components-temp/ButtonIconGlass';
+import CapsuleGlass from '../../../../component-library/components-temp/CapsuleGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
+import ErrorBoundary from '../../../Views/ErrorBoundary';
+import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import RewardsOptInSection from '../components/Money/RewardsOptInSection';
+import BenefitsTab from '../components/Money/Tabs/BenefitsTab';
+import CampaignsTab from '../components/Money/Tabs/CampaignsTab';
+import EarningsTab from '../components/Money/Tabs/EarningsTab';
+import PerformanceTab from '../components/Money/Tabs/PerformanceTab';
+import ShareCodeSheet from '../components/Money/ShareCodeSheet';
+import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
+import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
+import { useReferralMe } from '../hooks/useReferralMe';
+import { navigateToRewardsRoute } from '../utils';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  claimRouteOptions,
+  showEarningsIndicator,
+} from '../utils/claimEarnings';
+import { useClaimMechanisms } from '../hooks/useFollowTradeClaimOpen';
+import {
+  RewardsDashboardKind,
+  trackRewardsDashboardViewed,
+} from '../utils/rewardsDashboardViewedTracking';
+import { rewardsMoneyScrollClipSpacer } from './rewardsMoneyScrollClipSpacer';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
+
+const TAB_ORDER = [
+  'waysToEarn',
+  'earnings',
+  'performance',
+  'campaigns',
+  'benefits',
+] as const;
+
+type RewardsMoneyTab = (typeof TAB_ORDER)[number];
+
+function sessionHasNoProfile(
+  identityReady: boolean,
+  profileId: string | undefined,
+): boolean {
+  return identityReady && !profileId;
+}
+
+function referralReadSettledEmpty(
+  profileId: string | undefined,
+  hasReferral: boolean,
+  entry: { loading: boolean } | undefined,
+): boolean {
+  // A session re-read settles loading and writes no error. A finished entry
+  // with no payload is the error state; an entry that has not been written
+  // yet is still the skeleton.
+  return (
+    Boolean(profileId) && entry !== undefined && !entry.loading && !hasReferral
+  );
+}
+
+function stableLayoutHeight(current: number, next: number): number {
+  return Math.abs(current - next) < 1 ? current : next;
+}
+
+function isShareableReferralCode(
+  referralCode:
+    | { code?: string | null; status?: string | null }
+    | null
+    | undefined,
+  referralCodeStatus: string | null | undefined,
+): boolean {
+  const code = referralCode?.code?.trim() ?? '';
+  const codeStatus = referralCodeStatus ?? referralCode?.status;
+  return codeStatus === 'ACTIVE' && code.length > 0;
+}
+
+/**
+ * Header share control. Same composition as the other labeled glass capsules:
+ * the capsule is the only fixed height and centres a row that hugs its icon
+ * and label. A full-height button inside it leaves the label's line box low.
+ */
+const ShareCodeHeaderButton: React.FC<{
+  isGlass: boolean;
+  label: string;
+  onPress: () => void;
+}> = ({ isGlass, label, onPress }) => {
+  const tw = useTailwind();
+  const button = (
+    <ButtonAnimated
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SHARE_BUTTON}
+      style={tw.style(
+        'flex-row items-center justify-center gap-1 pl-3 pr-4',
+        isGlass ? undefined : 'h-10 rounded-full bg-muted',
+      )}
+    >
+      <Icon
+        name={IconName.Share}
+        size={IconSize.Sm}
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+      />
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </ButtonAnimated>
+  );
+
+  if (!isGlass) {
+    return button;
+  }
+
+  return <CapsuleGlass twClassName="shrink-0">{button}</CapsuleGlass>;
+};
+
+function dashboardStillLoading(
+  identityReady: boolean,
+  profileId: string | undefined,
+  hasReferral: boolean,
+  settledEmpty: boolean,
+): boolean {
+  if (!identityReady) {
+    return true;
+  }
+  return Boolean(profileId) && !hasReferral && !settledEmpty;
+}
+
+const RewardsMoneyDashboard: React.FC = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation<AppNavigationProp>();
+  const floatingTabBarInset = useFloatingTabBarInset();
+  const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
+    useHeaderStandardAnimated();
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
+  const { top: topInset } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: handleHeaderLayout } =
+    useHeaderGlassInset(isGlassHeader, topInset);
+  const collapsingBlockStyle = useAnimatedStyle(() => {
+    const maxShift = titleSectionHeightSv.value;
+    const shift =
+      maxShift > 0 ? Math.max(0, Math.min(scrollY.value, maxShift)) : 0;
+    return {
+      bottom: -maxShift,
+      transform: [{ translateY: -shift }],
+    };
+  });
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
+  const settingsDisabled = !subscriptionId && !settingsReferralAvailable;
+  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
+  // selectRewardsSubscriptionId hides a candidate still 'pending' or 'retry'
+  // as null. Wait for that lookup, unless the account subscription is already
+  // known, so a subscribed visit is not locked in as unsubscribed.
+  const subscriptionKnown =
+    Boolean(subscriptionId) ||
+    (candidateSubscriptionId !== 'pending' &&
+      candidateSubscriptionId !== 'retry');
+  const profileId = useSelector(selectSessionProfileId);
+  const identityReady = Boolean(useSelector(selectPrimaryHDKeyring));
+  const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
+  const referralMeEntry = useSelector((state: RootState) =>
+    selectReferralMeEntry(state, profileId),
+  );
+  const earningsSummaryEntry = useSelector((state: RootState) =>
+    selectEarningsSummaryEntry(state, profileId),
+  );
+  const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [titleSectionHeight, setMeasuredTitleSectionHeight] = useState(0);
+  const [scrollViewportHeight, setScrollViewportHeight] = useState(0);
+  const [panelContentHeight, setPanelContentHeight] = useState(0);
+  const hasTrackedDashboardViewed = useRef(false);
+  const { createEventBuilder } = useAnalytics();
+  const panelScrollRef = useRef<ScrollView>(null);
+  const referralMe = referralMeEntry?.data;
+  const { followTradeClaimOpen, revShareClaimOpen } =
+    useClaimMechanisms(profileId);
+  const localizedText = referralMe?.localized_text;
+  const showEarningsDot = showEarningsIndicator(
+    earningsSummaryEntry?.data,
+    claimRouteOptions(
+      localizedText?.taxFormUrl,
+      followTradeClaimOpen,
+      revShareClaimOpen,
+    ),
+  );
+  const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
+  // Every panel shares this scroller. A tab press returns to the top so a
+  // long Campaigns page cannot leave Performance opened mid-list. Pressing
+  // the tab that is already selected leaves the offset alone. scrollY is reset
+  // with the list because a programmatic scroll does not always emit onScroll,
+  // and the collapsing title reads that shared value.
+  const selectTab = useCallback(
+    (index: number) => {
+      const nextTab = TAB_ORDER[index];
+      if (!nextTab || nextTab === activeTab) {
+        return;
+      }
+      panelScrollRef.current?.scrollTo({ y: 0, animated: false });
+      scrollY.value = 0;
+      setActiveTab(nextTab);
+    },
+    [activeTab, scrollY],
+  );
+
+  // The scroller's layout box includes the title overdraw, which the parent
+  // clips. A short panel in that band cannot scroll to its own end.
+  const clipSpacerHeight = rewardsMoneyScrollClipSpacer({
+    rawContentHeight: panelContentHeight + floatingTabBarInset,
+    scrollViewportHeight,
+    titleSectionHeight,
+  });
+
+  useEffect(() => {
+    if (
+      !profileId ||
+      !referralMe ||
+      !subscriptionKnown ||
+      hasTrackedDashboardViewed.current
+    ) {
+      return;
+    }
+    trackRewardsDashboardViewed(createEventBuilder, {
+      dashboard: RewardsDashboardKind.REWARDS_MONEY,
+      hasSubscription: Boolean(subscriptionId),
+      referralMe,
+    });
+    hasTrackedDashboardViewed.current = true;
+  }, [
+    createEventBuilder,
+    profileId,
+    referralMe,
+    subscriptionId,
+    subscriptionKnown,
+  ]);
+
+  const tabs = useMemo<TabItem[]>(
+    () => [
+      {
+        key: 'waysToEarn',
+        label: localizedText?.overviewTab ?? '',
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB,
+      },
+      {
+        key: 'earnings',
+        label: localizedText?.earningsTab ?? '',
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB,
+        endAccessory: showEarningsDot ? (
+          // Absolute so the dot drops out of the tab layout and does not
+          // widen the underline. top-1 cancels the tab's py-1 so it sits on
+          // the label's top-right corner.
+          <Box
+            testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT}
+            twClassName="absolute top-1 -right-1 h-1.5 w-1.5 flex-none rounded-full bg-success-default"
+          />
+        ) : undefined,
+      },
+      {
+        key: 'performance',
+        label: localizedText?.performanceTitle ?? '',
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB,
+      },
+      {
+        key: 'campaigns',
+        label: strings('rewards.campaigns_view.title'),
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_TAB,
+      },
+      {
+        key: 'benefits',
+        label: strings('rewards.benefits.title'),
+        content: null,
+        testID: REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_TAB,
+      },
+    ],
+    [localizedText, showEarningsDot],
+  );
+
+  // Anyone with their own active, non-empty code can share it, referee or referrer.
+  const showShareCode = isShareableReferralCode(
+    referralMe?.referral_code,
+    referralMe?.referral_code_status,
+  );
+  const shareLabel =
+    referralMe?.localized_text.shareCode ??
+    strings('rewards.referral.actions.share_referral_link');
+  const headerEndAccessory =
+    !showShareCode && settingsDisabled ? null : (
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="shrink-0 gap-2"
+      >
+        {showShareCode ? (
+          <ShareCodeHeaderButton
+            isGlass={isGlassHeader}
+            label={shareLabel}
+            onPress={() => setIsShareOpen(true)}
+          />
+        ) : null}
+        {settingsDisabled ? null : (
+          <ButtonIconGlass
+            isCapsule={isGlassHeader}
+            iconName={IconName.Setting}
+            onPress={() =>
+              navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+            }
+            size={ButtonIconSize.Md}
+            accessibilityLabel={strings('rewards.settings.title')}
+            testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON}
+          />
+        )}
+      </Box>
+    );
+
+  const sessionSettledWithoutProfile = sessionHasNoProfile(
+    identityReady,
+    profileId,
+  );
+  const referralSettledWithoutData = referralReadSettledEmpty(
+    profileId,
+    Boolean(referralMe),
+    referralMeEntry,
+  );
+  const stillLoading = dashboardStillLoading(
+    identityReady,
+    profileId,
+    Boolean(referralMe),
+    referralSettledWithoutData,
+  );
+
+  if (stillLoading) {
+    // The same surface the tab shows while the persona resolves, so the two
+    // waits read as one screen rather than a skeleton swapping for another.
+    return (
+      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
+    );
+  }
+
+  if (sessionSettledWithoutProfile || referralSettledWithoutData) {
+    return (
+      <Box
+        twClassName="flex-1 bg-default p-4"
+        testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.ERROR}
+      >
+        <RewardsErrorBanner
+          title={strings('rewards.referral_details_error.error_fetching_title')}
+          description={strings(
+            'rewards.referral_details_error.error_fetching_description',
+          )}
+          onConfirm={() => {
+            void fetchReferralMe({ forceFresh: true });
+          }}
+          confirmButtonLabel={strings(
+            'rewards.referral_details_error.retry_button',
+          )}
+        />
+      </Box>
+    );
+  }
+
+  if (!profileId || !referralMe) {
+    return (
+      <RewardsTabSkeleton testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.LOADING} />
+    );
+  }
+
+  // Campaigns and benefits belong to the Rewards subscription, not to the
+  // referral role, so both tabs ask for the opt-in until the user has one.
+  // The subscription lookup can still be running when this screen opens, and
+  // it reads as "no subscription" until it settles. Hold a skeleton for that
+  // gap so a subscribed user is never offered the opt-in.
+  const subscriptionPanel = (tab: React.ReactElement) => {
+    if (subscriptionId) {
+      return tab;
+    }
+    if (!subscriptionKnown) {
+      return (
+        <Box twClassName="p-4">
+          <Skeleton
+            style={tw.style('h-50 rounded-xl')}
+            testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SUBSCRIPTION_PENDING}
+          />
+        </Box>
+      );
+    }
+    return (
+      <Box twClassName="pt-4">
+        <RewardsOptInSection localizedText={referralMe.localized_text} />
+      </Box>
+    );
+  };
+
+  return (
+    <ErrorBoundary navigation={navigation} view="RewardsMoneyDashboard">
+      <SafeAreaView
+        // A floating header pads the status bar itself, so content scrolls under both.
+        edges={isGlassHeader ? {} : { top: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+        testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CONTAINER}
+      >
+        <HeaderStandardAnimatedGlass
+          isGlass={isGlassHeader}
+          onLayout={handleHeaderLayout}
+          includesTopInset={isGlassHeader}
+          scrollY={scrollY}
+          titleSectionHeight={titleSectionHeightSv}
+          title={strings('rewards.main_title')}
+          titleProps={{ accessibilityRole: 'header', numberOfLines: 1 }}
+          onBack={isPushedScreen ? navigation.goBack : undefined}
+          // HeaderBase gives both accessory slots the wider one's width so the
+          // title stays centered. That mirrored width, plus the Share code
+          // label, pushes Settings past the screen edge. Size each slot to
+          // its own content and let the title yield instead.
+          startAccessoryWrapperProps={{
+            style: tw.style('shrink-0 items-start'),
+          }}
+          endAccessoryWrapperProps={{
+            style: tw.style('shrink-0 items-end'),
+          }}
+          childrenWrapperProps={{
+            style: tw.style('min-w-0 flex-1 items-center'),
+          }}
+          endAccessory={headerEndAccessory}
+        />
+        {/* `overflow-hidden` clips the title as the block slides up so it
+            disappears under the fixed header (revealing the compact title)
+            instead of scrolling over the header actions. */}
+        <Box twClassName="flex-1 overflow-hidden">
+          <Animated.View
+            style={[
+              tw.style('absolute top-0 right-0 bottom-0 left-0'),
+              { paddingTop: headerInset },
+              collapsingBlockStyle,
+            ]}
+          >
+            <TitleStandard
+              title={strings('rewards.main_title')}
+              twClassName="px-4 pt-2 pb-4"
+              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION}
+              onLayout={(event) => {
+                const height = event.nativeEvent.layout.height;
+                setTitleSectionHeight(height);
+                setMeasuredTitleSectionHeight((current) =>
+                  stableLayoutHeight(current, height),
+                );
+              }}
+              titleProps={{ accessibilityRole: 'header' }}
+            />
+            <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TABS}>
+              <TabsBar
+                tabs={tabs}
+                activeIndex={TAB_ORDER.indexOf(activeTab)}
+                onTabPress={selectTab}
+              />
+            </Box>
+            <Animated.ScrollView
+              ref={panelScrollRef}
+              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW}
+              showsVerticalScrollIndicator={false}
+              style={tw.style('flex-1')}
+              contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
+              onLayout={(event) => {
+                const height = event.nativeEvent.layout.height;
+                setScrollViewportHeight((current) =>
+                  stableLayoutHeight(current, height),
+                );
+              }}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+            >
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL}
+                onLayout={(event) => {
+                  const height = event.nativeEvent.layout.height;
+                  setPanelContentHeight((current) =>
+                    stableLayoutHeight(current, height),
+                  );
+                }}
+              >
+                {activeTab === 'waysToEarn' ? (
+                  <Box
+                    testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
+                  >
+                    <WaysToEarnTab
+                      profileId={profileId}
+                      referralMe={referralMe}
+                    />
+                  </Box>
+                ) : null}
+                {activeTab === 'earnings' ? (
+                  <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}>
+                    <EarningsTab
+                      profileId={profileId}
+                      persona={moneyDashboardPersona(referralMe)}
+                      onViewPerformance={() => setActiveTab('performance')}
+                    />
+                  </Box>
+                ) : null}
+                {activeTab === 'performance' ? (
+                  <Box
+                    testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}
+                  >
+                    <PerformanceTab
+                      profileId={profileId}
+                      persona={moneyDashboardPersona(referralMe)}
+                      active
+                    />
+                  </Box>
+                ) : null}
+                {activeTab === 'campaigns' ? (
+                  <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_BODY}>
+                    {subscriptionPanel(<CampaignsTab />)}
+                  </Box>
+                ) : null}
+                {activeTab === 'benefits' ? (
+                  <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_BODY}>
+                    {subscriptionPanel(<BenefitsTab />)}
+                  </Box>
+                ) : null}
+              </Box>
+              {clipSpacerHeight > 0 ? (
+                <Box
+                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER}
+                  style={{ height: clipSpacerHeight }}
+                />
+              ) : null}
+            </Animated.ScrollView>
+          </Animated.View>
+        </Box>
+        {isShareOpen ? (
+          <ShareCodeSheet
+            open
+            code={referralMe.referral_code?.code}
+            shareUrl={referralMe.referral_code?.share_url}
+            localizedText={referralMe.localized_text}
+            onClose={() => setIsShareOpen(false)}
+          />
+        ) : null}
+      </SafeAreaView>
+    </ErrorBoundary>
+  );
+};
+
+export default RewardsMoneyDashboard;

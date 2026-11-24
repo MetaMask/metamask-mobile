@@ -18,11 +18,13 @@ import {
   IconName,
   Text,
   TextVariant,
+  toast,
+  ToastSeverity,
 } from '@metamask/design-system-react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import { RootState } from '../../../../reducers';
-import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
+import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
 import { useFeatureNotificationsStatus } from './hooks/useFeatureNotificationsStatus';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import {
@@ -33,6 +35,7 @@ import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView
 import { strings } from '../../../../../locales/i18n';
 import NotifCard from '../../../UI/Notification/NotifCard';
 import Logger from '../../../../util/Logger';
+import { promptOsPushPermissionIfNeeded } from './promptOsPushPermission';
 
 export interface FeatureNotificationsGateSheetParams {
   feature: FeatureNotificationsGateFeature;
@@ -58,7 +61,7 @@ type FeatureNotificationsGateSheetRouteProp = RouteProp<
  *
  * Layout mirrors the push-onboarding notification sheets: preview image,
  * centered title/subhead, and a single primary CTA that enables notifications
- * with sensible defaults (master + push + in-app for the gated feature).
+ * with in-app enabled and push enabled when OS permission is granted.
  */
 export const FeatureNotificationsGateSheet = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -69,8 +72,12 @@ export const FeatureNotificationsGateSheet = () => {
   const basicFunctionalityEnabled = useSelector(
     (state: RootState) => state.settings.basicFunctionalityEnabled,
   );
-  const { switchNotifications } = useNotificationsToggle();
-  const { updatePreferencesSection } = useNotificationStoragePreferences();
+  const { enableNotifications } = useEnableNotifications({
+    nudgeEnablePush: false,
+    throwOnError: true,
+  });
+  const { refetch, updatePreferencesSection } =
+    useNotificationStoragePreferences();
   const { isMasterEnabled, isPushEnabled, isInAppEnabled } =
     useFeatureNotificationsStatus(feature);
 
@@ -104,6 +111,14 @@ export const FeatureNotificationsGateSheet = () => {
     navigation.goBack();
   };
 
+  const showEnableErrorToast = useCallback(() => {
+    toast({
+      severity: ToastSeverity.Danger,
+      title: strings('notifications.feature_gate.error'),
+      showCloseButton: false,
+    });
+  }, []);
+
   const handleTurnOn = useCallback(async () => {
     if (!basicFunctionalityEnabled) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -117,34 +132,58 @@ export const FeatureNotificationsGateSheet = () => {
 
     setIsEnabling(true);
     try {
+      const isPushGranted = await promptOsPushPermissionIfNeeded();
+      // Read before enableNotifications: first-time setup seeds every feature
+      // with push on, which would hide whether the user had already chosen it.
+      // A denied OS prompt must not clear a push preference that is shared
+      // with the user's other devices.
+      const nextPushEnabled = isPushGranted || isPushEnabled;
+
       if (!isMasterEnabled) {
-        await switchNotifications(true);
+        await enableNotifications();
       }
 
-      if (!isPushEnabled || !isInAppEnabled) {
+      const { data: refreshedPreferences } = await refetch();
+      const refreshedFeaturePreferences = refreshedPreferences?.[feature];
+
+      if (!refreshedFeaturePreferences) {
+        throw new Error(
+          `No notification preferences found after enabling ${feature}`,
+        );
+      }
+
+      if (
+        refreshedFeaturePreferences.pushNotificationsEnabled !==
+          nextPushEnabled ||
+        !refreshedFeaturePreferences.inAppNotificationsEnabled
+      ) {
         await updatePreferencesSection(feature, (section) => ({
           ...section,
-          pushNotificationsEnabled: true,
+          pushNotificationsEnabled: nextPushEnabled,
           inAppNotificationsEnabled: true,
         }));
       }
+
+      sheetRef.current?.onCloseBottomSheet();
     } catch (error) {
       Logger.error(error instanceof Error ? error : new Error(String(error)), {
         message:
           'FeatureNotificationsGateSheet: failed to enable notifications',
         feature,
       });
+      showEnableErrorToast();
     } finally {
       setIsEnabling(false);
     }
   }, [
+    enableNotifications,
     basicFunctionalityEnabled,
     feature,
-    isInAppEnabled,
     isMasterEnabled,
     isPushEnabled,
     navigation,
-    switchNotifications,
+    refetch,
+    showEnableErrorToast,
     updatePreferencesSection,
   ]);
 

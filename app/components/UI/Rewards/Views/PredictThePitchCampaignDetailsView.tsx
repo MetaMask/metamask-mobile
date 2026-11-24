@@ -14,7 +14,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -55,6 +54,8 @@ import {
   type CampaignHowItWorks as CampaignHowItWorksData,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type PredictThePitchCampaignDetailsRouteParams = {
@@ -74,6 +75,7 @@ export function resetPredictThePitchCampaignDetailsSessionAutoNavigationForTests
 }
 
 const PredictThePitchCampaignDetailsView: React.FC = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -324,7 +326,9 @@ const PredictThePitchCampaignDetailsView: React.FC = () => {
         style={tw.style('flex-1 bg-default')}
         testID={PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW_TEST_IDS.CONTAINER}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          isGlass={isGlassHeader}
+          isFloating={false}
           title={
             campaign?.name ??
             strings('rewards.predict_the_pitch_campaign.title')

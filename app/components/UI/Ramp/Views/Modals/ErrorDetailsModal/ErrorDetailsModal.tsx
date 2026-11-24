@@ -8,7 +8,6 @@ import {
   Button,
   ButtonBaseSize,
   ButtonVariant,
-  HeaderStandard,
   Icon,
   IconColor,
   IconName,
@@ -27,6 +26,9 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import Logger from '../../../../../../util/Logger';
 import styleSheet from './ErrorDetailsModal.styles';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface ErrorDetailsModalParams {
   errorMessage: string;
@@ -43,6 +45,7 @@ export const createErrorDetailsModalNavDetails =
   );
 
 function ErrorDetailsModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation<AppStackNavigationProp>();
   const { height: screenHeight } = useWindowDimensions();
@@ -92,7 +95,9 @@ function ErrorDetailsModal() {
 
   return (
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{ testID: 'error-details-close-button' }}
       >
@@ -106,7 +111,7 @@ function ErrorDetailsModal() {
             {strings('deposit.errors.error_details_title')}
           </Text>
         </View>
-      </HeaderStandard>
+      </HeaderStandardGlass>
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.contentContainer}>

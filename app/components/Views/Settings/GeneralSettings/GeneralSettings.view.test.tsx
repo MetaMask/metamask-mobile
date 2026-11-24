@@ -43,11 +43,7 @@ describeForPlatforms('General Settings component view', () => {
     expect(getByText(SETTINGS_LAUNCHER_LABEL)).toBeOnTheScreen();
   });
 
-  it('updates both currency controllers', () => {
-    const setCurrentCurrencySpy = jest.spyOn(
-      Engine.context.CurrencyRateController,
-      'setCurrentCurrency',
-    );
+  it('updates the selected currency on AssetsController', () => {
     const setSelectedCurrencySpy = jest.spyOn(
       Engine.context.AssetsController,
       'setSelectedCurrency',
@@ -57,7 +53,6 @@ describeForPlatforms('General Settings component view', () => {
     fireEvent.press(getByTestId(GENERAL_SETTINGS_CURRENCY_SELECTOR));
     fireEvent.press(getByText('EUR - Euro'));
 
-    expect(setCurrentCurrencySpy).toHaveBeenCalledWith('eur');
     expect(setSelectedCurrencySpy).toHaveBeenCalledWith('eur');
   });
 

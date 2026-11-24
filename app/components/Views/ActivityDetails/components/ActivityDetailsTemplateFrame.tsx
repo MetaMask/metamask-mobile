@@ -12,16 +12,29 @@ export function ActivityDetailsTemplateFrame({
   metadata,
   details,
   footer,
+  heroDividerMarginVertical = 0,
+  heroDividerTestID,
 }: {
   hero?: React.ReactNode;
   metadata: React.ReactNode;
   details?: React.ReactNode;
   footer: React.ReactNode;
+  /**
+   * Extra vertical margin on the divider under the hero, in 4px units.
+   * The frame already separates sections by 8px, so `2` makes that gap 16px.
+   */
+  heroDividerMarginVertical?: 0 | 2 | 4;
+  heroDividerTestID?: string;
 }) {
   return (
     <Box twClassName="flex-1 gap-2">
       {hero}
-      {hero ? <SectionDivider marginVertical={0} /> : null}
+      {hero ? (
+        <SectionDivider
+          marginVertical={heroDividerMarginVertical}
+          testID={heroDividerTestID}
+        />
+      ) : null}
       {metadata}
       {details ? (
         <>

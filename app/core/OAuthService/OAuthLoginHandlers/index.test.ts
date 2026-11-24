@@ -91,12 +91,14 @@ function createMintAuthSuccessResponse(): Response {
 }
 
 jest.mock('expo-auth-session', () => ({
-  AuthRequest: () => ({
+  // Must be constructable (`new AuthRequest(...)`): RN 0.85's babel preset no
+  // longer downlevels arrow functions, so a plain arrow mock throws under `new`.
+  AuthRequest: jest.fn(() => ({
     promptAsync: mockExpoAuthSessionPromptAsync,
     makeAuthUrlAsync: jest.fn().mockResolvedValue({
       url: 'https://example.com',
     }),
-  }),
+  })),
   CodeChallengeMethod: jest.fn(),
   ResponseType: jest.fn(),
   Prompt: {

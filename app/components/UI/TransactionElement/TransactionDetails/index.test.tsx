@@ -2,6 +2,7 @@ import React from 'react';
 import { query } from '@metamask/controller-utils';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import TransactionDetails from './';
+import { strings } from '../../../../../locales/i18n';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -474,6 +475,24 @@ describe('TransactionDetails', () => {
 
     expect(getByText('Speed up')).toBeOnTheScreen();
     expect(getByText('Cancel')).toBeOnTheScreen();
+  });
+
+  it('hides speed-up for swaps, bridges, and their approvals', () => {
+    for (const type of [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ]) {
+      const { queryByText, unmount } = renderComponent({
+        state: initialState,
+        status: 'submitted',
+        transactionObj: { type },
+      });
+
+      expect(queryByText(strings('transaction.speedup'))).toBeNull();
+      unmount();
+    }
   });
 
   it('does not render speed up and cancel buttons when selectedGasFeeToken is set', async () => {

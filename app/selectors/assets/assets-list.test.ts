@@ -1981,6 +1981,7 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
     expect(result.maxBandwidth).toBeUndefined();
     expect(result.stakedTrxForEnergy).toBeUndefined();
     expect(result.stakedTrxForBandwidth).toBeUndefined();
+    expect(result.status).toBe('ready');
   });
 
   it('maps all resource types and computes totalStakedTrx with BigNumber precision', () => {
@@ -2066,6 +2067,7 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
     // totalStakedTrx computed via BigNumber avoids floating-point errors
     // 65.48463 + 65.48463 = 130.96926 (not 130.96926000000002)
     expect(result.totalStakedTrx).toBe(130.96926);
+    expect(result.status).toBe('ready');
   });
 
   it('returns empty object when Tron network is disabled', () => {
@@ -2102,6 +2104,7 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
 
     // When Tron is disabled, all asset properties should be undefined and total should be 0
     expect(result).toEqual({
+      status: 'ready',
       energy: undefined,
       bandwidth: undefined,
       maxEnergy: undefined,
@@ -2150,6 +2153,314 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
 
     expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
     expect(result.energy?.balance).toBe('400');
+  });
+
+  describe('when TRX balance metadata is present (migration data source)', () => {
+    const metadataMockState = ({
+      balances,
+      prices = {},
+    }: {
+      balances: Record<string, unknown>;
+      prices?: Record<string, unknown>;
+    }) => {
+      const base = mockState();
+      return {
+        ...base,
+        engine: {
+          ...base.engine,
+          backgroundState: {
+            ...base.engine.backgroundState,
+            AssetsController: {
+              selectedCurrency: 'USD',
+              assetsBalance: {
+                '2d89e6a0-b4e6-45a8-a707-f10cef143b42': balances,
+              },
+              assetsPrice: prices,
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                [KnownCaipNamespace.Tron]: {
+                  [TrxScope.Mainnet]: true,
+                },
+              },
+            },
+          },
+        },
+      } as unknown as RootState;
+    };
+
+    it('builds special assets from the TRX native asset balance metadata', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '583379269',
+            metadata: {
+              staking: {
+                bandwidth: '6000000',
+                energy: '5000000',
+                inLockPeriod: '0',
+                readyForWithdrawal: '0',
+                rewards: '0',
+              },
+              bandwidth: { limit: '34851', available: '34851' },
+              energy: { limit: '422103', available: '422103' },
+            },
+          },
+        },
+        prices: {
+          'tron:728126428/slip44:195': {
+            assetPriceType: 'fungible',
+            price: 0.12,
+            usdPrice: 0.12,
+            lastUpdated: 0,
+          },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.energy?.balance).toBe('422103');
+      expect(result.maxEnergy?.balance).toBe('422103');
+      expect(result.bandwidth?.balance).toBe('34851');
+      expect(result.maxBandwidth?.balance).toBe('34851');
+      // Staking values are TRX-denominated raw amounts (SUN) converted to TRX
+      expect(result.stakedTrxForEnergy?.balance).toBe('5');
+      expect(result.stakedTrxForBandwidth?.balance).toBe('6');
+      expect(result.trxStakingRewards?.balance).toBe('0');
+      expect(result.trxInLockPeriod?.balance).toBe('0');
+      expect(result.trxReadyForWithdrawal?.balance).toBe('0');
+      expect(result.totalStakedTrx).toBe(11);
+      expect(result.status).toBe('ready');
+      expect(result.stakedTrxForEnergy?.fiat?.balance).toBeCloseTo(5 * 0.12);
+    });
+
+    it('metadata values win over legacy special-asset entries', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '583379269',
+            metadata: {
+              energy: { limit: '422103', available: '422103' },
+            },
+          },
+          'tron:728126428/slip44:energy': { amount: '1' },
+          'tron:728126428/slip44:maximum-energy': { amount: '2' },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.energy?.balance).toBe('422103');
+      expect(result.maxEnergy?.balance).toBe('422103');
+    });
+
+    it('falls back to legacy special-asset entries for values the metadata does not provide', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '583379269',
+            metadata: {
+              energy: { limit: '422103', available: null },
+            },
+          },
+          'tron:728126428/slip44:energy': { amount: '400' },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      // Metadata provides the max; the null `available` falls back to the
+      // legacy special-asset entry.
+      expect(result.maxEnergy?.balance).toBe('422103');
+      expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
+      expect(result.energy?.balance).toBe('400');
+      expect(result.energy?.unknown).toBeFalsy();
+    });
+
+    it('flags metadata values arriving as null as unknown instead of zero when no legacy entry exists', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '115000004',
+            metadata: {
+              staking: {
+                bandwidth: '0',
+                energy: '0',
+                inLockPeriod: '0',
+                readyForWithdrawal: '0',
+                rewards: null,
+              },
+              bandwidth: { limit: '600', available: '600' },
+              energy: { limit: null, available: null },
+            },
+          },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.trxStakingRewards?.unknown).toBe(true);
+      expect(result.energy?.unknown).toBe(true);
+      expect(result.maxEnergy?.unknown).toBe(true);
+      expect(result.bandwidth?.unknown).toBeFalsy();
+      expect(result.bandwidth?.balance).toBe('600');
+      expect(result.stakedTrxForEnergy?.unknown).toBeFalsy();
+      expect(result.stakedTrxForBandwidth?.unknown).toBeFalsy();
+      expect(result.status).toBe('ready');
+    });
+
+    it('flags staking metadata as unknown for totalStakedTrx when staked values are null', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '115000004',
+            metadata: {
+              staking: {
+                bandwidth: null,
+                energy: '5000000',
+                inLockPeriod: '0',
+                readyForWithdrawal: '0',
+                rewards: '0',
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.stakedTrxForBandwidth?.unknown).toBe(true);
+      expect(result.stakedTrxForEnergy?.balance).toBe('5');
+      expect(result.stakedTrxForEnergy?.unknown).toBeFalsy();
+      expect(result.totalStakedTrx).toBe(5);
+      expect(result.status).toBe('ready');
+    });
+
+    it('leaves entries unset when the TRX balance has no Tron metadata', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': { amount: '115000004' },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result).toEqual({
+        status: 'ready',
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+        totalStakedTrx: 0,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
+      });
+    });
+
+    it('reports loading while the balance request has not completed', () => {
+      const state = metadataMockState({ balances: {} });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.status).toBe('loading');
+      expect(result.energy).toBeUndefined();
+      expect(result.stakedTrxForEnergy).toBeUndefined();
+      expect(result.totalStakedTrx).toBe(0);
+    });
+
+    it('leaves the legacy entry untouched when the metadata energy section is absent', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '583379269',
+            metadata: {
+              bandwidth: { limit: '600', available: '34851' },
+            },
+          },
+          'tron:728126428/slip44:energy': { amount: '400' },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.energy?.assetId).toBe('tron:728126428/slip44:energy');
+      expect(result.energy?.balance).toBe('400');
+      expect(result.energy?.unknown).toBeFalsy();
+      expect(result.bandwidth?.balance).toBe('34851');
+      expect(result.status).toBe('ready');
+    });
+
+    it('keeps an available value readable while flagging only the null limit as unknown', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '115000004',
+            metadata: {
+              energy: { limit: null, available: '422103' },
+            },
+          },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.energy?.balance).toBe('422103');
+      expect(result.energy?.unknown).toBeFalsy();
+      expect(result.maxEnergy?.unknown).toBe(true);
+    });
+
+    it('still surfaces the legacy energy entry while the balance request has not completed', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:energy': { amount: '400' },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.status).toBe('loading');
+      expect(result.energy?.balance).toBe('400');
+      expect(result.totalStakedTrx).toBe(0);
+    });
+
+    it('flags malformed metadata strings as unknown instead of rendering zero', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': {
+            amount: '115000004',
+            metadata: {
+              energy: { limit: '600', available: 'not-a-number' },
+              staking: { rewards: '42', energy: 42 },
+            },
+          },
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.energy?.unknown).toBe(true);
+      expect(result.maxEnergy?.balance).toBe('600');
+      expect(result.maxEnergy?.unknown).toBeFalsy();
+      expect(result.stakedTrxForEnergy?.unknown).toBe(true);
+      expect(result.status).toBe('ready');
+    });
+
+    it('treats a legacy entry without a readable amount as absent', () => {
+      const state = metadataMockState({
+        balances: {
+          'tron:728126428/slip44:195': { amount: '115000004' },
+          'tron:728126428/slip44:energy': {},
+        },
+      });
+
+      const result = selectTronSpecialAssetsBySelectedAccountGroup(state);
+
+      expect(result.energy).toBeUndefined();
+      expect(result.status).toBe('ready');
+    });
   });
 });
 

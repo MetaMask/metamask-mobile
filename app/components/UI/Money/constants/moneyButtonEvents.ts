@@ -8,6 +8,7 @@ export enum MONEY_BUTTON_INTENTS {
   GET_STARTED = 'get_started',
   GO_TO_MONEY_HOME = 'go_to_money_home',
   GO_TO_MONEY_ONBOARDING = 'go_to_money_onboarding',
+  GO_TO_MONEY_SPLASH = 'go_to_money_splash',
   TRANSFER_MONEY = 'transfer_money',
   LEARN_MORE = 'learn_more',
   OPEN_MORE_MENU = 'open_more_menu',
@@ -15,6 +16,7 @@ export enum MONEY_BUTTON_INTENTS {
   FILTER = 'filter',
   CARD_HOME = 'card_home',
   CARD_FEES = 'card_fees',
+  BANK_DETAILS = 'bank_details',
   GET_PRO = 'get_pro',
   OPEN_PRO_HUB = 'open_pro_hub',
 }

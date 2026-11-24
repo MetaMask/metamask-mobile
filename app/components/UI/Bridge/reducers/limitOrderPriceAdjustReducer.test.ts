@@ -12,6 +12,7 @@ const modifiedState: LimitOrderPriceAdjustState = {
   isTrackingMarket: false,
   isCustomActive: true,
   customValue: '8',
+  hasUserEditedLimitPrice: true,
 };
 
 const initialLimitOrderPriceAdjustState = getInitialLimitOrderPriceAdjustState({
@@ -28,6 +29,7 @@ describe('limitOrderPriceAdjustReducer', () => {
       isTrackingMarket: true,
       isCustomActive: false,
       customValue: undefined,
+      hasUserEditedLimitPrice: false,
     });
   });
 
@@ -44,6 +46,7 @@ describe('limitOrderPriceAdjustReducer', () => {
       isTrackingMarket: true,
       isCustomActive: false,
       customValue: undefined,
+      hasUserEditedLimitPrice: false,
     });
   });
 
@@ -58,6 +61,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         ...initialLimitOrderPriceAdjustState,
         limitPrice: '95',
         isTrackingMarket: false,
+        hasUserEditedLimitPrice: true,
       });
     });
   });
@@ -160,11 +164,62 @@ describe('limitOrderPriceAdjustReducer', () => {
     });
   });
 
+  describe('hasUserEditedLimitPrice', () => {
+    it.each([
+      ['setLimitPrice', { type: 'setLimitPrice', limitPrice: '95' }],
+      [
+        'applyPreset',
+        { type: 'applyPreset', limitPrice: '100', isTrackingMarket: true },
+      ],
+      [
+        'commitCustomPercent',
+        {
+          type: 'commitCustomPercent',
+          limitPrice: '95',
+          isTrackingMarket: false,
+          customValue: '5',
+        },
+      ],
+    ] as const)('is set when the user sets the price via %s', (_, action) => {
+      const result = limitOrderPriceAdjustReducer(
+        initialLimitOrderPriceAdjustState,
+        action,
+      );
+
+      expect(result.hasUserEditedLimitPrice).toBe(true);
+    });
+
+    it('is not set when the price is seeded from market', () => {
+      const result = limitOrderPriceAdjustReducer(
+        initialLimitOrderPriceAdjustState,
+        {
+          type: 'seedFromMarket',
+          limitPrice: '100',
+          executionType: initialLimitOrderPriceAdjustState.executionType,
+          isLimitFiatMode: initialLimitOrderPriceAdjustState.isLimitFiatMode,
+        },
+      );
+
+      expect(result.hasUserEditedLimitPrice).toBe(false);
+    });
+
+    it('is not set by a preset that leaves the price unchanged', () => {
+      const result = limitOrderPriceAdjustReducer(
+        initialLimitOrderPriceAdjustState,
+        { type: 'applyPreset', isTrackingMarket: false },
+      );
+
+      expect(result.hasUserEditedLimitPrice).toBe(false);
+    });
+  });
+
   describe('seedFromMarket', () => {
     it('seeds market price without changing tracking or denomination', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'seedFromMarket',
         limitPrice: '100',
+        executionType: modifiedState.executionType,
+        isLimitFiatMode: modifiedState.isLimitFiatMode,
       });
 
       expect(result).toEqual({
@@ -177,9 +232,55 @@ describe('limitOrderPriceAdjustReducer', () => {
       const result = limitOrderPriceAdjustReducer(modifiedState, {
         type: 'seedFromMarket',
         limitPrice: modifiedState.limitPrice as string,
+        executionType: modifiedState.executionType,
+        isLimitFiatMode: modifiedState.isLimitFiatMode,
       });
 
       expect(result).toBe(modifiedState);
+    });
+
+    it('ignores a price seeded for a side the state no longer holds', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'seedFromMarket',
+        limitPrice: '1',
+        executionType: LimitOrderExecutionType.BUY,
+        isLimitFiatMode: modifiedState.isLimitFiatMode,
+      });
+
+      expect(result).toBe(modifiedState);
+    });
+
+    it('ignores a price seeded for a denomination the state no longer holds', () => {
+      const result = limitOrderPriceAdjustReducer(modifiedState, {
+        type: 'seedFromMarket',
+        limitPrice: '1',
+        executionType: modifiedState.executionType,
+        isLimitFiatMode: !modifiedState.isLimitFiatMode,
+      });
+
+      expect(result).toBe(modifiedState);
+    });
+
+    it('ignores a stale seed queued after a reset to a new pair', () => {
+      const staleSideState = getInitialLimitOrderPriceAdjustState({
+        executionType: LimitOrderExecutionType.BUY,
+        isLimitFiatMode: true,
+      });
+
+      const afterReset = limitOrderPriceAdjustReducer(staleSideState, {
+        type: 'reset',
+        executionType: LimitOrderExecutionType.SELL,
+        isLimitFiatMode: false,
+      });
+      const result = limitOrderPriceAdjustReducer(afterReset, {
+        type: 'seedFromMarket',
+        limitPrice: '1',
+        executionType: staleSideState.executionType,
+        isLimitFiatMode: staleSideState.isLimitFiatMode,
+      });
+
+      expect(result).toBe(afterReset);
+      expect(result.limitPrice).toBeUndefined();
     });
   });
 
@@ -277,6 +378,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
 
@@ -297,6 +399,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
   });
@@ -316,6 +419,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
 
@@ -336,6 +440,7 @@ describe('limitOrderPriceAdjustReducer', () => {
         isTrackingMarket: true,
         isCustomActive: false,
         customValue: undefined,
+        hasUserEditedLimitPrice: false,
       });
     });
   });

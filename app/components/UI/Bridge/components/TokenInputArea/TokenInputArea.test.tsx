@@ -1,5 +1,4 @@
 import React, { createRef } from 'react';
-import { CaipChainId } from '@metamask/utils';
 import {
   FeatureId,
   UnifiedSwapBridgeEventName,
@@ -17,6 +16,7 @@ import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { BridgeToken } from '../../types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { POLYGON_NATIVE_TOKEN } from '../../constants/assets';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockTrackUnifiedSwapBridgeEvent = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
@@ -322,7 +322,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '100.5';
 
@@ -358,7 +358,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '100.5';
 
@@ -390,7 +390,7 @@ describe('TokenInputArea', () => {
       address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
       symbol: 'ETH',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '1.5';
 
@@ -458,13 +458,13 @@ describe('TokenInputArea', () => {
       address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
       symbol: 'ETH',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const destToken: BridgeToken = {
       address: '0x0000000000000000000000000000000000000001', // Different token on same chain
       symbol: 'TOKEN1',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '1.5';
 
@@ -505,7 +505,7 @@ describe('TokenInputArea', () => {
       address: POLYGON_NATIVE_TOKEN, // 0x0000...001010
       symbol: 'POL',
       decimals: 18,
-      chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      chainId: CHAIN_IDS.POLYGON,
     };
     const tokenBalance = '10';
 
@@ -571,13 +571,13 @@ describe('TokenInputArea', () => {
       address: POLYGON_NATIVE_TOKEN, // 0x0000...001010
       symbol: 'POL',
       decimals: 18,
-      chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      chainId: CHAIN_IDS.POLYGON,
     };
     const destToken: BridgeToken = {
       address: '0x2791bca1f2de4661ed88a30c99a7a9449aa84174', // USDC
       symbol: 'USDC',
       decimals: 6,
-      chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      chainId: CHAIN_IDS.POLYGON,
     };
     const tokenBalance = '10';
 
@@ -645,7 +645,7 @@ describe('TokenInputArea', () => {
       address: '0x0000000000000000000000000000000000000000',
       symbol: 'ETH',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const tokenBalance = '1.5';
 
@@ -764,6 +764,36 @@ describe('TokenInputArea', () => {
       );
 
       // Destination tokens never show max button
+      expect(queryByText('Max')).toBeNull();
+    });
+
+    it('does not display max button for a money source token', () => {
+      mockUseShouldRenderMaxOption.mockReturnValue(true);
+      const moneyToken: BridgeToken = {
+        ...nativeToken,
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      };
+
+      const { queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Source}
+              token={moneyToken}
+              tokenBalance={tokenBalance}
+              onMaxPress={mockOnMaxPress}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        {
+          name: 'TokenInputArea',
+        },
+        { state: initialState },
+      );
+
       expect(queryByText('Max')).toBeNull();
     });
   });
@@ -901,7 +931,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
 
     it('shows currency value when token, amount > 0, and currencyValue are all provided', () => {
@@ -1140,6 +1170,38 @@ describe('TokenInputArea', () => {
       expect(getByTestId('token-input-input').props.value).toBe('1.5');
       expect(queryByText('$0.00')).toBeNull();
     });
+
+    it('shows quoted dest money amount as primary when dest is unpriced', () => {
+      mockUseDisplayCurrencyValue.mockReturnValue('$0.00');
+      const moneyToken: BridgeToken = {
+        ...mockToken,
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        isMoneyToken: true,
+      };
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+              amount="1.5"
+              showFiatAmountAsPrimary
+              hideFiatValueWhenUnpriced
+              secondaryValue={strings('bridge.money_name')}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-input-input').props.value).toBe('1.5');
+      expect(queryByText('$0.00')).toBeNull();
+      expect(getByText(strings('bridge.money_name'))).toBeOnTheScreen();
+    });
   });
 
   describe('amount overrides', () => {
@@ -1147,7 +1209,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
     const renderAmountOverrideInput = (
       props: Partial<React.ComponentProps<typeof TokenInputArea>> = {},
@@ -1196,6 +1258,29 @@ describe('TokenInputArea', () => {
         mockToken,
       );
     });
+
+    it('truncates the destination token amount for display only', () => {
+      const { getByTestId } = renderAmountOverrideInput({
+        amount: '1.234567890123456789',
+        tokenType: TokenInputAreaType.Destination,
+      });
+
+      expect(getByTestId('token-input-input').props.value).toBe('1.23456');
+      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        '1.234567890123456789',
+        mockToken,
+      );
+    });
+
+    it('displays the full source token amount', () => {
+      const { getByTestId } = renderAmountOverrideInput({
+        amount: '1.234567890123456789',
+      });
+
+      expect(getByTestId('token-input-input').props.value).toBe(
+        '1.234567890123456789',
+      );
+    });
   });
 
   describe('token button vs select button', () => {
@@ -1203,7 +1288,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
 
     it('shows TokenButton with symbol when token is provided', () => {
@@ -1251,7 +1336,7 @@ describe('TokenInputArea', () => {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'ETH',
         decimals: 18,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       const { getByTestId } = renderScreen(
@@ -1278,7 +1363,7 @@ describe('TokenInputArea', () => {
         address: POLYGON_NATIVE_TOKEN,
         symbol: 'POL',
         decimals: 18,
-        chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+        chainId: CHAIN_IDS.POLYGON,
       };
 
       const { getByTestId } = renderScreen(
@@ -1391,7 +1476,7 @@ describe('TokenInputArea', () => {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'ETH',
         decimals: 18,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       // Act
@@ -1420,7 +1505,7 @@ describe('TokenInputArea', () => {
         address: '0x1234567890123456789012345678901234567890',
         symbol: 'USDC',
         decimals: 6,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       // Act
@@ -1443,13 +1528,71 @@ describe('TokenInputArea', () => {
       expect(getByText(/0x.*\.\.\./)).toBeTruthy();
     });
 
+    // TokenInputArea is a presentational row, not a screen. Dest money APY
+    // copy is render-only ("shows X when prop Y"), which CV writing-tests drop.
+    it('shows the money subtitle override with a dotted underline', () => {
+      const moneyToken: BridgeToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f',
+        isMoneyToken: true,
+      };
+
+      const { getByTestId, getByText, queryByText } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+              subtitle="Earn 6.2% APY"
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('subtitle-underline')).toBeOnTheScreen();
+      expect(getByText('Earn 6.2% APY')).toBeOnTheScreen();
+      expect(queryByText(/0x.*\.\.\./)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the default subtitle when a money token has no override', () => {
+      const moneyToken: BridgeToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f',
+        isMoneyToken: true,
+      };
+
+      const { getByText, queryByTestId } = renderScreen(
+        () => (
+          <SwapsFeatureIdProvider featureId={FeatureId.UNIFIED_SWAP_BRIDGE}>
+            <TokenInputArea
+              testID="token-input"
+              tokenType={TokenInputAreaType.Destination}
+              token={moneyToken}
+            />
+          </SwapsFeatureIdProvider>
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(queryByTestId('subtitle-underline')).not.toBeOnTheScreen();
+      expect(getByText(/0x.*\.\.\./)).toBeOnTheScreen();
+    });
+
     it('destination native token shows no address subtitle', () => {
       // Arrange — native (zero) address should produce no subtitle
       const nativeToken: BridgeToken = {
         address: '0x0000000000000000000000000000000000000000',
         symbol: 'ETH',
         decimals: 18,
-        chainId: '0x1' as `0x${string}`,
+        chainId: '0x1',
       };
 
       // Act
@@ -1525,7 +1668,7 @@ describe('TokenInputArea', () => {
       address: '0x1234567890123456789012345678901234567890',
       symbol: 'TEST',
       decimals: 18,
-      chainId: '0x1' as `0x${string}`,
+      chainId: '0x1',
     };
 
     it('renders the amount label and hides the dest amount, fiat, and subtitle', () => {

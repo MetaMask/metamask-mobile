@@ -1,7 +1,6 @@
 import { type AppThemeKey } from '../../util/theme/models';
 import { type ChartType } from '../../components/UI/Charts/AdvancedChart/AdvancedChart.types';
 import {
-  type LockAppAction,
   type CheckForDeeplinkAction,
   type PasswordSetAction,
   type PasswordUnsetAction,
@@ -26,7 +25,7 @@ import {
   type SetMusdConversionEducationSeenAction,
   type SetMusdConversionAssetDetailCtaSeenAction,
   type ClearMusdConversionAssetDetailCtasSeenAction,
-  type SetMoneyOnboardingSeenAction,
+  type SetMoneySplashSeenAction,
   type SetMoneyEarnBannerDismissedAction,
   type ClearMoneyEarnBannerDismissedTokensAction,
   type SetTokenOverviewChartTypeAction,
@@ -36,17 +35,13 @@ import {
   type SetAppInstallEventFiredAction,
   type SetPendingAppInstallAction,
   type ClearPendingAppInstallAction,
+  type SetBridgeLimitTabSeenAction,
+  type SetBridgeRecurringTabSeenAction,
   UserActionType,
 } from './types';
 import { type PendingAppInstall } from '../../reducers/user/types';
 
 export * from './types';
-
-export function lockApp(): LockAppAction {
-  return {
-    type: UserActionType.LOCKED_APP,
-  };
-}
 
 export function checkForDeeplink(): CheckForDeeplinkAction {
   return {
@@ -236,14 +231,9 @@ export function clearMusdConversionAssetDetailCtasSeen(): ClearMusdConversionAss
   };
 }
 
-/**
- * Action to set Money onboarding as seen
- */
-export function setMoneyOnboardingSeen(
-  seen: boolean,
-): SetMoneyOnboardingSeenAction {
+export function setMoneySplashSeen(seen: boolean): SetMoneySplashSeenAction {
   return {
-    type: UserActionType.SET_MONEY_ONBOARDING_SEEN,
+    type: UserActionType.SET_MONEY_SPLASH_SEEN,
     payload: { seen },
   };
 }
@@ -341,5 +331,23 @@ export function setPendingAppInstall(
 export function clearPendingAppInstall(): ClearPendingAppInstallAction {
   return {
     type: UserActionType.CLEAR_PENDING_APP_INSTALL,
+  };
+}
+
+/**
+ * Action to mark the Swaps Limit tab as opened, dismissing its discovery dot.
+ */
+export function setBridgeLimitTabSeen(): SetBridgeLimitTabSeenAction {
+  return {
+    type: UserActionType.SET_BRIDGE_LIMIT_TAB_SEEN,
+  };
+}
+
+/**
+ * Action to mark the Swaps Recurring tab as opened, dismissing its discovery dot.
+ */
+export function setBridgeRecurringTabSeen(): SetBridgeRecurringTabSeenAction {
+  return {
+    type: UserActionType.SET_BRIDGE_RECURRING_TAB_SEEN,
   };
 }

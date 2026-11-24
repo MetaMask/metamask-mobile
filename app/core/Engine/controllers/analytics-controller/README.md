@@ -16,6 +16,7 @@ MetaMetricsPrivacySegmentPlugin (enrichment)
   ↓
 BrazePlugin (destination, device-mode)
   ├─ profileId guard (no-op if undefined)
+  ├─ event blocklist (drop listed track names; empty list sends every event)
   └─ Braze SDK calls (Braze.logCustomEvent, Braze.setCustomUserAttribute)
   ↓
 Segment Cloud (for cloud-mode destinations & Destination Filters)
@@ -23,12 +24,12 @@ Segment Cloud (for cloud-mode destinations & Destination Filters)
 
 ## Files
 
-| File                           | Purpose                                       |
-| ------------------------------ | --------------------------------------------- |
-| `BrazePlugin.ts`               | Segment destination plugin                    |
-| `BrazePlugin.test.ts`          | Unit tests                                    |
-| `app/core/Braze/index.ts`      | Public API (`setBrazeUser`, `clearBrazeUser`) |
-| `analytics-controller-init.ts` | Wires up plugin on init                       |
+| File                                                   | Purpose                                       |
+| ------------------------------------------------------ | --------------------------------------------- |
+| `BrazePlugin.ts`                                       | Segment destination plugin                    |
+| `BrazePlugin.test.ts`                                  | Unit tests                                    |
+| `app/core/Braze/index.ts`                              | Public API (`setBrazeUser`, `clearBrazeUser`) |
+| `wallet-init/instance-options/analytics-controller.ts` | Wires up plugin on init                       |
 
 ## Event Flow
 
@@ -38,9 +39,14 @@ Segment Cloud (for cloud-mode destinations & Destination Filters)
 analytics.track('Swap Completed', { amount: 100 });
   ↓
 BrazePlugin.track()
-  ↓ profileId set? YES → Braze.logCustomEvent('Swap Completed', { amount: 100 })
-  ↓ NO  → no-op
+  ↓ profileId set? NO → no-op
+  ↓ event name on the LaunchDarkly blocklist? YES → skip Braze
+  ↓ otherwise → Braze.logCustomEvent('Swap Completed', { amount: 100 })
   ↓ ALWAYS → return event (continues to Segment cloud)
+
+The blocklist comes from the `brazeEventBlocklist` remote flag
+(`{ enabled, minimumVersion, blockedEvents }`). A missing, disabled, or
+malformed flag sends every event.
 ```
 
 ### Identify Traits

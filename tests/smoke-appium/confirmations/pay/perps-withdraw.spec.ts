@@ -14,7 +14,7 @@ import {
 import { openPerpsWithdrawPayConfirmation } from '../../../flows/perps.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions, Utilities } from '../../../framework/index.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import PerpsHomeView from '../../../page-objects/Perps/PerpsHomeView.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
@@ -36,7 +36,11 @@ const PERPS_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Perps withdraw'), () => {
-  appiumTest.describe.configure({ timeout: 250_000 });
+  // Multi-step CI path (Trade→Perps, pay picker, keypad, confirm, wallet
+  // settle, Activity) finishes in ~174–240s when it passes, and main kills it
+  // at 250s. 300s matches the other Perps pay specs (perps-deposit,
+  // perps-withdraw-to-money-account, predict-withdraw-to-money-account).
+  appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest(
     'withdraws Perps balance to Arbitrum ETH',
@@ -91,7 +95,7 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Perps withdraw'), () => {
             await PerpsHomeView.tapBackHomeButton();
           }
           await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-          await WalletView.tapActivityButton();
+          await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();
           await ActivitiesView.tapTypeFilterOption('perps');

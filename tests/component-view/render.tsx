@@ -2,10 +2,11 @@ import React from 'react';
 import { Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import type { Json } from '@metamask/utils';
+import { Toaster } from '@metamask/design-system-react-native';
 import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import renderWithProvider, {
   renderScreen,
@@ -46,20 +47,32 @@ const dataServiceMessenger = {
   },
 };
 
-function createQueryClient() {
+export function createComponentViewQueryClient() {
   return createUIQueryClient(DATA_SERVICES, dataServiceMessenger, {
     defaultOptions: { queries: { retry: false } },
   });
 }
 
-function QueryClientBoundary({ children }: { children: React.ReactNode }) {
-  const [queryClient] = React.useState(createQueryClient);
+function QueryClientBoundary({
+  children,
+  client,
+}: {
+  children: React.ReactNode;
+  /** A caller-owned client, for tests that must keep the cache across a
+   * remount (for example when driving a reset). */
+  client?: QueryClient;
+}) {
+  const [createdClient] = React.useState(createComponentViewQueryClient);
+  const queryClient = client ?? createdClient;
 
   React.useEffect(
     () => () => {
-      queryClient.clear();
+      // A caller-owned client outlives the render: clear only our own.
+      if (!client) {
+        createdClient.clear();
+      }
     },
-    [queryClient],
+    [client, createdClient],
   );
 
   return (
@@ -67,11 +80,26 @@ function QueryClientBoundary({ children }: { children: React.ReactNode }) {
   );
 }
 
-function withQueryClient(Component: React.ComponentType): React.ComponentType {
+/** Design-system toasts render through the app-root Toaster, so view tests mount one too. */
+export function ToasterBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      {children}
+      <Toaster />
+    </>
+  );
+}
+
+function withQueryClient(
+  Component: React.ComponentType,
+  client?: QueryClient,
+): React.ComponentType {
   return function WrappedWithQueryClient(props) {
     return (
-      <QueryClientBoundary>
-        <Component {...props} />
+      <QueryClientBoundary client={client}>
+        <ToasterBoundary>
+          <Component {...props} />
+        </ToasterBoundary>
       </QueryClientBoundary>
     );
   };
@@ -82,9 +110,10 @@ export function renderComponentViewScreen(
   options: Parameters<typeof renderScreen>[1],
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
+  queryClient?: QueryClient,
 ) {
   return renderScreen(
-    withQueryClient(Component),
+    withQueryClient(Component, queryClient),
     options,
     providerValues,
     initialParams,
@@ -121,6 +150,8 @@ export function renderScreenWithRoutes(
   }[],
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
+  queryClient?: QueryClient,
+  frame?: (children: React.ReactNode) => React.ReactElement,
 ) {
   const Stack = createNativeStackNavigator();
 
@@ -129,23 +160,28 @@ export function renderScreenWithRoutes(
     () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
 
   const stackTree = (
-    <QueryClientBoundary>
-      <Stack.Navigator>
-        <Stack.Screen
-          name={options.name}
-          component={Component}
-          initialParams={initialParams}
-        />
-        {extraRoutes.map(({ name, Component: Extra }) => (
+    <QueryClientBoundary client={queryClient}>
+      <ToasterBoundary>
+        <Stack.Navigator>
           <Stack.Screen
-            key={name}
-            name={name}
-            component={Extra ?? DefaultRouteProbe(name)}
+            name={options.name}
+            component={Component}
+            initialParams={initialParams}
           />
-        ))}
-      </Stack.Navigator>
+          {extraRoutes.map(({ name, Component: Extra }) => (
+            <Stack.Screen
+              key={name}
+              name={name}
+              component={Extra ?? DefaultRouteProbe(name)}
+            />
+          ))}
+        </Stack.Navigator>
+      </ToasterBoundary>
     </QueryClientBoundary>
   );
 
-  return renderWithProvider(stackTree, providerValues);
+  return renderWithProvider(
+    frame ? frame(stackTree) : stackTree,
+    providerValues,
+  );
 }

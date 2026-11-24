@@ -1,6 +1,10 @@
 import React, { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import QuickBuyAmountSection from './components/QuickBuyAmountSection';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import { selectQuickBuyPostTradeShareHintEnabled } from '../../../selectors/featureFlagController/quickBuyPostTradeShareHint';
+import { useQuoteTokensQuery } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/useQuoteTokensQuery';
+import { isUnsupportedPostTradeAsset } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/quoteTokens';
 
 /**
  * Amount section primitive — primary amount, balance, hidden input.
@@ -18,6 +22,9 @@ const QuickBuyAmount: React.FC = () => {
     sourceTokenAmount,
     sourceToken,
     estimatedReceiveAmount,
+    hasInsufficientBalance,
+    sourceBalanceDisplay,
+    sourceBalanceFiat,
     destToken,
     isBlockingQuoteLoad,
     hiddenInputRef,
@@ -26,15 +33,33 @@ const QuickBuyAmount: React.FC = () => {
     setIsKeypadOpen,
     isKeypadOpen,
     hasNoPayWithFunds,
+    isBelowPostTradeShareMinimum,
+    buttonError,
   } = useQuickBuyContext();
+  const isPostTradeShareHintEnabled = useSelector(
+    selectQuickBuyPostTradeShareHintEnabled,
+  );
+  // Hidden until the quote-token list loads so tokens that are never posted
+  // (e.g. natives) don't flash the hint.
+  const { data: quoteTokens } = useQuoteTokensQuery(
+    isPostTradeShareHintEnabled,
+  );
+  const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
+  // Unpriced sells have no USD value, so they are never posted.
+  const showPostTradeShareHint =
+    isPostTradeShareHintEnabled &&
+    quoteTokens !== undefined &&
+    isBelowPostTradeShareMinimum &&
+    !hasNoPayWithFunds &&
+    !isUnpricedSource &&
+    buttonError !== 'no_quotes' &&
+    !isUnsupportedPostTradeAsset(target.tokenAddress, target.chain);
 
   // Tapping the headline (re)opens the keypad and aligns the display mode.
   const handleHeadlinePress = useCallback(() => {
     setIsKeypadOpen(true);
     handleAmountAreaPress();
   }, [setIsKeypadOpen, handleAmountAreaPress]);
-
-  const isUnpricedSource = tradeMode === 'sell' && !hasSourcePrice;
 
   // In sell mode (priced), the secondary label should show how much of the
   // source token the user is selling, not how much destination they'll receive.
@@ -56,9 +81,19 @@ const QuickBuyAmount: React.FC = () => {
       destSymbol={cryptoSymbol}
       estimatedReceiveAmount={displayedCryptoAmount}
       isQuoteLoading={isBlockingQuoteLoad}
+      hasInsufficientBalance={hasInsufficientBalance}
+      sourceBalanceDisplay={
+        tradeMode === 'sell'
+          ? hasSourcePrice
+            ? sourceBalanceFiat
+            : sourceBalanceDisplay
+          : undefined
+      }
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}
+      tradeMode={tradeMode}
+      showPostTradeShareHint={showPostTradeShareHint}
       // The keypad now stays expanded without funds, so the caret has to be
       // suppressed explicitly — a blinking caret on a dead field would imply
       // typing does something.

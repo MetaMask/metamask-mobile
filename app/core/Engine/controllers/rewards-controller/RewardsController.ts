@@ -11,7 +11,6 @@ import {
   type SeasonTierState,
   type SeasonTierDto,
   type SubscriptionReferralDetailState,
-  type GeoRewardsMetadata,
   type SubscriptionDto,
   type PaginatedPointsEventsDto,
   type GetPointsEventsDto,
@@ -41,6 +40,7 @@ import {
   type PredictThePitchPrizePoolDto,
   type MoneyAccountSweepstakesStatsMeDto,
   type MoneyAccountSweepstakesPrizePoolDto,
+  type MoneyAccountSweepstakesVolumeStatsDto,
   type MoneyAccountSweepstakesDrawProofDto,
   type MoneyAccountSweepstakesOutcomeDto,
   type OndoGmActivityState,
@@ -70,12 +70,16 @@ import {
   type PaginatedVipTransactionsDto,
   type VipTransactionDto,
   type VipTransactionsState,
+  type PerpsFeeResolverScope,
+  type PerpsTradingFeeGrant,
+  type TradingFeeGrantResponseDto,
   CampaignType,
 } from './types';
 import {
   defaultRewardsControllerState,
   getRewardsControllerDefaultState,
 } from './defaultState';
+import { getHyperliquidMainnetBuilderAddress } from './utils/hyperliquid-builder-address';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
   storeSubscriptionToken,
@@ -108,13 +112,12 @@ import {
   InvalidTimestampError,
   AccountAlreadyRegisteredError,
   SeasonNotFoundError,
+  MAX_PERPS_TRADING_FEE_GRANT_BIPS,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
-
-export const DEFAULT_BLOCKED_REGIONS = ['UK', 'GB', 'GI'];
 
 const controllerName = 'RewardsController';
 
@@ -139,6 +142,10 @@ const VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
 const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+
+const TRADING_FEE_GRANT_CACHE_TTL_MS = 30_000;
+const TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS = 5_000;
+const TRADING_FEE_GRANT_CACHE_KEY = 'perps-trading-fee-grant';
 
 // VIP transactions cache threshold (first page only).
 // Disabled so each first-page read checks the backend last-updated timestamp.
@@ -392,6 +399,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  moneyAccountSweepstakesVolumeStats: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   moneyAccountSweepstakesDrawProof: {
     includeInStateLogs: true,
     persist: true,
@@ -562,7 +575,6 @@ export async function wrapWithCache<T>({
 const MESSENGER_EXPOSED_METHODS = [
   'addPointsEstimateToHistory',
   'applyBonusCode',
-  'applyReferralCode',
   'calculateTierStatus',
   'canChangeRewardsEnvUrl',
   'checkOptInStatusAgainstCache',
@@ -581,7 +593,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'getClientVersionRequirements',
   'getDefaultRewardsEnvUrl',
   'getFirstSubscriptionId',
-  'getGeoRewardsMetadata',
   'getHasAccountOptedIn',
   'getOffDeviceSubscriptionAccounts',
   'getOndoCampaignDeposits',
@@ -603,9 +614,11 @@ const MESSENGER_EXPOSED_METHODS = [
   'getPredictThePitchPrizePool',
   'getMoneyAccountSweepstakesStatsMe',
   'getMoneyAccountSweepstakesPrizePool',
+  'getMoneyAccountSweepstakesVolumeStats',
   'getMoneyAccountSweepstakesDrawProof',
   'getMoneyAccountSweepstakesParticipantOutcome',
   'getPerpsDiscountForAccount',
+  'getPerpsTradingFeeGrant',
   'getVipTierForAccount',
   'getVipTransactions',
   'getVipTransactionsIfChanged',
@@ -627,7 +640,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'hasActivityChanged',
   'hasPointsEventsChanged',
   'hasVipTransactionsChanged',
-  'invalidateReferralDetailsCache',
   'invalidateSubscriptionAndAccounts',
   'invalidateSubscriptionCache',
   'isOptInSupported',
@@ -651,7 +663,6 @@ const MESSENGER_EXPOSED_METHODS = [
   'shouldSkipSilentAuth',
   'signRewardsMessage',
   'validateBonusCode',
-  'validateReferralCode',
 ] as const;
 
 /**
@@ -663,7 +674,6 @@ export class RewardsController extends BaseController<
   RewardsControllerState,
   RewardsControllerMessenger
 > {
-  #geoLocation: GeoRewardsMetadata | null = null;
   #participantOutcomeCache: Map<
     string,
     { payload: OndoGmCampaignParticipantOutcomeDto; lastFetched: number }
@@ -676,6 +686,16 @@ export class RewardsController extends BaseController<
   // Cleared when the promise settles (success or failure).
   #vipFeesFetchInFlight: Map<string, Promise<VipFeesResponseDto | 0>> =
     new Map();
+  #tradingFeeGrantCache: {
+    payload: TradingFeeGrantResponseDto;
+    lastFetched: number;
+  } | null = null;
+  #tradingFeeGrantRequest: Promise<TradingFeeGrantResponseDto> | null = null;
+  #tradingFeeGrantFailureCooldown: {
+    expiresAt: number;
+    errorMessage: string;
+  } | null = null;
+  #tradingFeeGrantCacheGeneration = 0;
   /**
    * In-memory display cache for equity multiplier. Keyed by
    * `${subscriptionId}::${holdingsUsd}`. Not Redux / not program truth.
@@ -932,6 +952,17 @@ export class RewardsController extends BaseController<
     this.messenger.subscribe('KeyringController:unlock', () =>
       this.handleAuthenticationTrigger('KeyringController unlocked'),
     );
+
+    this.messenger.subscribe('AuthenticationController:stateChange', () => {
+      this.#resetTradingFeeGrantCache();
+    });
+  }
+
+  #resetTradingFeeGrantCache(): void {
+    this.#tradingFeeGrantCacheGeneration += 1;
+    this.#tradingFeeGrantCache = null;
+    this.#tradingFeeGrantRequest = null;
+    this.#tradingFeeGrantFailureCooldown = null;
   }
 
   /**
@@ -939,6 +970,7 @@ export class RewardsController extends BaseController<
    */
   resetState(): void {
     const { rewardsEnvUrl } = this.state;
+    this.#resetTradingFeeGrantCache();
     this.#participantOutcomeCache.clear();
     this.#perpsTradingParticipantOutcomeCache.clear();
     this.#predictThePitchParticipantOutcomeCache.clear();
@@ -985,6 +1017,7 @@ export class RewardsController extends BaseController<
     if (!this.canChangeRewardsEnvUrl()) {
       return;
     }
+    this.#resetTradingFeeGrantCache();
     this.update((state) => {
       state.rewardsEnvUrl = url;
     });
@@ -2033,6 +2066,166 @@ export class RewardsController extends BaseController<
     return vipDiscountBips;
   }
 
+  async #requestTradingFeeGrant(
+    cacheGeneration: number,
+  ): Promise<TradingFeeGrantResponseDto> {
+    try {
+      const response = await this.messenger.call(
+        'RewardsDataService:getTradingFeeGrants',
+      );
+      if (cacheGeneration === this.#tradingFeeGrantCacheGeneration) {
+        this.#tradingFeeGrantFailureCooldown = null;
+      }
+      return response;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      if (cacheGeneration === this.#tradingFeeGrantCacheGeneration) {
+        this.#tradingFeeGrantFailureCooldown = {
+          expiresAt: Date.now() + TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS,
+          errorMessage,
+        };
+      }
+      Logger.log(
+        'RewardsController: trading fee grant fetch failed; returning no grant:',
+        errorMessage,
+      );
+      throw error;
+    }
+  }
+
+  #fetchTradingFeeGrant(
+    cacheGeneration: number,
+  ): Promise<TradingFeeGrantResponseDto> {
+    const activeRequest = this.#tradingFeeGrantRequest;
+    if (activeRequest) {
+      return activeRequest;
+    }
+
+    const request = this.#requestTradingFeeGrant(cacheGeneration);
+    this.#tradingFeeGrantRequest = request;
+    request.then(
+      () => {
+        if (this.#tradingFeeGrantRequest === request) {
+          this.#tradingFeeGrantRequest = null;
+        }
+      },
+      () => {
+        if (this.#tradingFeeGrantRequest === request) {
+          this.#tradingFeeGrantRequest = null;
+        }
+      },
+    );
+    return request;
+  }
+
+  async #getTradingFeeGrantResponse(): Promise<TradingFeeGrantResponseDto | null> {
+    const failureCooldown = this.#tradingFeeGrantFailureCooldown;
+    if (failureCooldown) {
+      if (Date.now() < failureCooldown.expiresAt) {
+        Logger.log(
+          'RewardsController: trading fee grant request suppressed during failure cooldown:',
+          failureCooldown.errorMessage,
+        );
+        return null;
+      }
+      this.#tradingFeeGrantFailureCooldown = null;
+    }
+
+    const cacheGeneration = this.#tradingFeeGrantCacheGeneration;
+    try {
+      return await wrapWithCache({
+        key: TRADING_FEE_GRANT_CACHE_KEY,
+        ttl: TRADING_FEE_GRANT_CACHE_TTL_MS,
+        readCache: () => {
+          const cached = this.#tradingFeeGrantCache;
+          const grantExpiresAt = cached?.payload.grant
+            ? Date.parse(cached.payload.grant.expiresAt)
+            : null;
+          if (
+            grantExpiresAt !== null &&
+            (!Number.isFinite(grantExpiresAt) || grantExpiresAt <= Date.now())
+          ) {
+            this.#tradingFeeGrantCache = null;
+            return undefined;
+          }
+          return cached ?? undefined;
+        },
+        fetchFresh: () => this.#fetchTradingFeeGrant(cacheGeneration),
+        writeCache: (_key, response) => {
+          if (cacheGeneration !== this.#tradingFeeGrantCacheGeneration) {
+            return;
+          }
+          const grantExpiresAt = response.grant
+            ? Date.parse(response.grant.expiresAt)
+            : null;
+          if (
+            grantExpiresAt !== null &&
+            (!Number.isFinite(grantExpiresAt) || grantExpiresAt <= Date.now())
+          ) {
+            return;
+          }
+          this.#tradingFeeGrantCache = {
+            payload: response,
+            lastFetched: Date.now(),
+          };
+        },
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Fetch a trading-fee grant for the requested Perps route.
+   * Grant lookup respects Basic Functionality while remaining independent of
+   * Rewards opt-in, VIP feature state, and Rewards subscription state.
+   */
+  async getPerpsTradingFeeGrant(
+    scope: PerpsFeeResolverScope,
+  ): Promise<PerpsTradingFeeGrant | null> {
+    if (
+      this.#isDisabled() ||
+      scope.providerId !== 'hyperliquid' ||
+      scope.isTestnet
+    ) {
+      return null;
+    }
+
+    const response = await this.#getTradingFeeGrantResponse();
+    const grant = response?.grant;
+    if (!grant) {
+      return null;
+    }
+
+    const configuredBuilderAddress =
+      getHyperliquidMainnetBuilderAddress().toLowerCase();
+    if (
+      grant.hyperliquid.builderCode.toLowerCase() !== configuredBuilderAddress
+    ) {
+      return null;
+    }
+
+    const feeBips = Number(grant.hyperliquid.builderFeeBips);
+    const expiresAt = Date.parse(grant.expiresAt);
+    if (
+      !Number.isFinite(feeBips) ||
+      feeBips < 0 ||
+      feeBips > MAX_PERPS_TRADING_FEE_GRANT_BIPS ||
+      !Number.isFinite(expiresAt) ||
+      expiresAt <= Date.now()
+    ) {
+      return null;
+    }
+
+    return {
+      providerId: 'hyperliquid',
+      isTestnet: false,
+      feeBips,
+      expiresAt,
+    };
+  }
+
   /**
    * Resolve a VIP-driven perps discount for the given account. Always calls
    * /vip/fees (cached) regardless of local VIP status — the backend is the
@@ -2814,12 +3007,8 @@ export class RewardsController extends BaseController<
   /**
    * Perform the complete opt-in process for rewards
    * @param accounts - Array of internal accounts to opt in
-   * @param referralCode - Optional referral code
    */
-  async optIn(
-    accounts: InternalAccount[],
-    referralCode?: string,
-  ): Promise<string | null> {
+  async optIn(accounts: InternalAccount[]): Promise<string | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
       Logger.log(
@@ -2857,7 +3046,7 @@ export class RewardsController extends BaseController<
       );
 
       try {
-        optinResult = await this.#optIn(accountToTry, referralCode);
+        optinResult = await this.#optIn(accountToTry);
       } catch {
         // Silent auth failed for this account
       }
@@ -2900,12 +3089,10 @@ export class RewardsController extends BaseController<
   /**
    * Private method to perform opt-in for a single internal account (using mobile opt-in logic)
    * @param account - The internal account to opt in
-   * @param referralCode - Optional referral code
    * @returns Promise with subscription data or null if failed
    */
   async #optIn(
     account: InternalAccount,
-    referralCode?: string,
   ): Promise<{ subscription: SubscriptionDto; sessionId: string } | null> {
     const rewardsEnabled = this.isRewardsFeatureEnabled();
     if (!rewardsEnabled) {
@@ -2934,7 +3121,6 @@ export class RewardsController extends BaseController<
           account: account.address,
           timestamp: ts,
           signature: sig as `0x${string}`,
-          referralCode,
         });
       } catch (error) {
         // Check if it's an InvalidTimestampError and we haven't exceeded retry attempts
@@ -3122,95 +3308,6 @@ export class RewardsController extends BaseController<
     } catch (error) {
       Logger.log(
         'RewardsController: Logout failed to complete',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Get geo rewards metadata including location and support status
-   * @returns Promise<GeoRewardsMetadata> - The geo rewards metadata
-   */
-  async getGeoRewardsMetadata(): Promise<GeoRewardsMetadata> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: false,
-      };
-    }
-
-    if (this.#geoLocation) {
-      return this.#geoLocation;
-    }
-
-    try {
-      Logger.log(
-        'RewardsController: Fetching geo location for rewards metadata',
-      );
-
-      const geoLocation = await this.messenger.call(
-        'GeolocationController:getGeolocation',
-      );
-
-      // Check if the location is supported (not in blocked regions)
-      const optinAllowedForGeo = !DEFAULT_BLOCKED_REGIONS.some(
-        (blockedRegion) => geoLocation.startsWith(blockedRegion),
-      );
-
-      const result: GeoRewardsMetadata = {
-        geoLocation,
-        optinAllowedForGeo,
-      };
-
-      Logger.log('RewardsController: Geo rewards metadata retrieved', result);
-      this.#geoLocation = result;
-      return result;
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to get geo rewards metadata:',
-        error instanceof Error ? error.message : String(error),
-      );
-
-      // Return fallback metadata on error
-      return {
-        geoLocation: 'UNKNOWN',
-        optinAllowedForGeo: true,
-      };
-    }
-  }
-
-  /**
-   * Validate a referral code
-   * @param code - The referral code to validate
-   * @returns Promise<{ valid: boolean; isVipCode: boolean }> - Validation result including VIP status
-   */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode: boolean }> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return { valid: false, isVipCode: false };
-    }
-
-    if (!code.trim()) {
-      return { valid: false, isVipCode: false };
-    }
-
-    try {
-      const response = await this.messenger.call(
-        'RewardsDataService:validateReferralCode',
-        code,
-      );
-      // A referral code is only treated as a VIP code when the backend says so
-      // AND the VIP feature is enabled locally (rewards on and VIP not disabled).
-      const isVipCode =
-        (response.isVipCode ?? false) && this.isVipFeatureEnabled();
-      return { valid: response.valid, isVipCode };
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to validate referral code:',
         error instanceof Error ? error.message : String(error),
       );
       throw error;
@@ -3918,11 +4015,13 @@ export class RewardsController extends BaseController<
    * Opt a subscription into a campaign.
    * @param campaignId - The campaign ID to opt into.
    * @param subscriptionId - The subscription ID for authentication.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one.
    * @returns The participant status after opting in.
    */
   async optInToCampaign(
     campaignId: string,
     subscriptionId: string,
+    profileUsername?: string,
   ): Promise<CampaignParticipantStatusDto> {
     if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
@@ -3935,11 +4034,20 @@ export class RewardsController extends BaseController<
       this.state.campaignParticipantStatus[key]?.optedIn === true;
     const result = await this.#withAuthRetry(async () => {
       Logger.log('RewardsController: Opting into campaign', campaignId);
-      return (await this.messenger.call(
-        'RewardsDataService:optInToCampaign',
-        subscriptionId,
-        campaignId,
-      )) as CampaignParticipantStatusDto;
+      return (
+        profileUsername
+          ? await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+              profileUsername,
+            )
+          : await this.messenger.call(
+              'RewardsDataService:optInToCampaign',
+              subscriptionId,
+              campaignId,
+            )
+      ) as CampaignParticipantStatusDto;
     }, subscriptionId);
     this.invalidateSubscriptionCache({ subscriptionId, campaignId });
     // Only emit if the user wasn't already opted in, to avoid redundant refetches
@@ -3973,11 +4081,13 @@ export class RewardsController extends BaseController<
    * post-event status fetches hit cache instead of the network.
    * @param campaignIds - Campaign IDs to opt into, in call order.
    * @param subscriptionId - The subscription ID for authentication.
+   * @param profileUsername - Social profile username captured at opt-in, when the user has one. Applied to every campaign in the batch.
    * @returns Per-campaign participant statuses after opting in.
    */
   async optInToCampaigns(
     campaignIds: string[],
     subscriptionId: string,
+    profileUsername?: string,
   ): Promise<Record<string, CampaignParticipantStatusDto>> {
     if (!this.isRewardsFeatureEnabled()) {
       return Object.fromEntries(
@@ -4020,11 +4130,20 @@ export class RewardsController extends BaseController<
               campaignId,
               `attempt ${attempt + 1}/${maxAttempts}`,
             );
-            return (await this.messenger.call(
-              'RewardsDataService:optInToCampaign',
-              subscriptionId,
-              campaignId,
-            )) as CampaignParticipantStatusDto;
+            return (
+              profileUsername
+                ? await this.messenger.call(
+                    'RewardsDataService:optInToCampaign',
+                    subscriptionId,
+                    campaignId,
+                    profileUsername,
+                  )
+                : await this.messenger.call(
+                    'RewardsDataService:optInToCampaign',
+                    subscriptionId,
+                    campaignId,
+                  )
+            ) as CampaignParticipantStatusDto;
           }, subscriptionId);
 
           if (attemptResult?.optedIn) {
@@ -4112,6 +4231,7 @@ export class RewardsController extends BaseController<
 
   /**
    * Register (or re-assert) the Money Account holder address for a subscription.
+   * The request carries a personal_sign signature from the Money Account.
    * Results are memoized in-session so repeated re-asserts do not re-POST, and
    * a discovered conflict is returned synchronously on subsequent calls.
    * @param moneyAccountAddress - The Money Account holder address to bind.
@@ -4132,14 +4252,53 @@ export class RewardsController extends BaseController<
       return cached;
     }
 
-    const result = await this.#withAuthRetry(async () => {
-      Logger.log('RewardsController: Registering Money Account binding');
-      return (await this.messenger.call(
-        'RewardsDataService:registerMoneyAccountBinding',
-        subscriptionId,
-        moneyAccountAddress,
-      )) as 'bound' | 'conflict';
-    }, subscriptionId);
+    const signBinding = async (ts: number): Promise<string> => {
+      const message = `metamask-rewards:money-account-binding:${subscriptionId}:${moneyAccountAddress.toLowerCase()}:${ts}`;
+      return this.messenger.call('KeyringController:signPersonalMessage', {
+        data: '0x' + Buffer.from(message, 'utf8').toString('hex'),
+        from: moneyAccountAddress,
+      });
+    };
+
+    let timestamp = Date.now();
+    let signature = await signBinding(timestamp);
+    let retryAttempt = 0;
+    const MAX_RETRY_ATTEMPTS = 1;
+
+    const executeBind = async (
+      ts: number,
+      sig: string,
+    ): Promise<'bound' | 'conflict'> => {
+      try {
+        return (await this.#withAuthRetry(async () => {
+          Logger.log('RewardsController: Registering Money Account binding');
+          return await this.messenger.call(
+            'RewardsDataService:registerMoneyAccountBinding',
+            subscriptionId,
+            moneyAccountAddress,
+            ts,
+            sig,
+          );
+        }, subscriptionId)) as 'bound' | 'conflict';
+      } catch (error) {
+        if (
+          error instanceof InvalidTimestampError &&
+          retryAttempt < MAX_RETRY_ATTEMPTS
+        ) {
+          retryAttempt++;
+          Logger.log(
+            'RewardsController: Retrying Money Account binding with server timestamp',
+            { originalTimestamp: ts, newTimestamp: error.timestamp },
+          );
+          timestamp = error.timestamp;
+          signature = await signBinding(timestamp);
+          return await executeBind(timestamp, signature);
+        }
+        throw error;
+      }
+    };
+
+    const result = await executeBind(timestamp, signature);
 
     this.#moneyAccountBindingResults.set(cacheKey, result);
     return result;
@@ -5256,49 +5415,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Apply a referral code to an existing subscription.
-   * @param referralCode - The referral code to apply.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    referralCode: string,
-    subscriptionId: string,
-  ): Promise<void> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      throw new Error('Rewards are not enabled');
-    }
-
-    try {
-      await this.#withAuthRetry(
-        () =>
-          this.messenger.call(
-            'RewardsDataService:applyReferralCode',
-            { referralCode },
-            subscriptionId,
-          ),
-        subscriptionId,
-      );
-
-      // Invalidate referral details cache for this subscription
-      this.invalidateReferralDetailsCache(subscriptionId);
-
-      Logger.log(
-        'RewardsController: Successfully applied referral code',
-        subscriptionId,
-      );
-    } catch (error) {
-      Logger.log(
-        'RewardsController: Failed to apply referral code:',
-        error instanceof Error ? error.message : String(error),
-      );
-      throw error;
-    }
-  }
-
-  /**
    * Apply a bonus code to a subscription.
    * @param bonusCode - The bonus code to apply.
    * @param subscriptionId - The subscription ID to apply the bonus code to.
@@ -5372,21 +5488,6 @@ export class RewardsController extends BaseController<
     });
 
     return result;
-  }
-
-  /**
-   * Invalidate referral details cache for a subscription
-   * @param subscriptionId - The subscription ID to invalidate cache for
-   */
-  invalidateReferralDetailsCache(subscriptionId: string): void {
-    this.update((state) => {
-      delete state.subscriptionReferralDetails[subscriptionId];
-    });
-
-    Logger.log(
-      'RewardsController: Invalidated referral details cache for subscription',
-      subscriptionId,
-    );
   }
 
   /**
@@ -5885,6 +5986,58 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         this.update((state) => {
           state.moneyAccountSweepstakesPrizePool[k] = {
+            ...payload,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+  }
+
+  /**
+   * Fetch the Money Account Sweepstakes aggregate volume stats.
+   * Public endpoint — results are cached for 5 minutes.
+   * @param campaignId - The campaign ID.
+   * @returns The volume stats DTO.
+   */
+  async getMoneyAccountSweepstakesVolumeStats(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesVolumeStatsDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        totalVolumeUsd: 0,
+        eligibleParticipantCount: 0,
+        yieldEarnedUsd: 0,
+      };
+    }
+
+    return await wrapWithCache<MoneyAccountSweepstakesVolumeStatsDto>({
+      key: campaignId,
+      ttl: MONEY_ACCOUNT_SWEEPSTAKES_PRIZE_POOL_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.moneyAccountSweepstakesVolumeStats[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            totalVolumeUsd: cached.totalVolumeUsd,
+            eligibleParticipantCount: cached.eligibleParticipantCount,
+            yieldEarnedUsd: cached.yieldEarnedUsd,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh Money Account Sweepstakes volume stats via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
+          campaignId,
+        )) as MoneyAccountSweepstakesVolumeStatsDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.moneyAccountSweepstakesVolumeStats[k] = {
             ...payload,
             lastFetched: Date.now(),
           };

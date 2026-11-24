@@ -43,7 +43,7 @@ const ChainIdWarning: React.FC<{
             chainid.network{' '}
             <Icon
               size={IconSize.Xs}
-              name={IconName.Export}
+              name={IconName.ArrowSquareOut}
               color={IconColor.PrimaryAlternative}
             />
           </Text>

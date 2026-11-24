@@ -10,7 +10,6 @@ import {
   Box,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -38,6 +37,14 @@ import { getRampCallbackBaseUrl } from '../../../utils/getRampCallbackBaseUrl';
 import { isCustomAction } from '../../../types';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { useRampScreenPerformance } from '../../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../../constants/rampScreenPerformance';
+import HeaderStandardGlass from '../../../../../../component-library/components-temp/HeaderStandardGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../../selectors/featureFlagController/glassHeaders';
 
 export interface PaymentSelectionModalParams {
   amount?: number;
@@ -53,6 +60,7 @@ export const createPaymentSelectionModalNavigationDetails =
 const DEFAULT_QUOTE_AMOUNT = 100;
 
 function PaymentSelectionModal() {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { height: screenHeight } = useWindowDimensions();
@@ -113,6 +121,16 @@ function PaymentSelectionModal() {
 
   const { data: quotes, loading: quotesLoading } =
     useRampsQuotes(quoteFetchParams);
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.PAYMENT_SELECTION_MODAL,
+    contentReady: !paymentMethodsLoading,
+    contentState: paymentMethodsError
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : paymentMethods.length === 0
+        ? RAMP_SCREEN_CONTENT_STATE.EMPTY
+        : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   const handleChangeProviderPress = useCallback(() => {
     trackEvent(
@@ -280,7 +298,9 @@ function PaymentSelectionModal() {
     <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
       <View style={styles.containerOuter}>
         <View style={styles.paymentPanelContent}>
-          <HeaderStandard
+          <HeaderStandardGlass
+            isFloating={false}
+            isGlass={isGlassHeader}
             title={strings('fiat_on_ramp.pay_with')}
             onClose={() => sheetRef.current?.onCloseBottomSheet()}
             closeButtonProps={{

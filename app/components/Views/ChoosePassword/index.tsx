@@ -6,36 +6,32 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { Platform, Keyboard, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { AccessibilityInfo, Platform, Keyboard, TextInput } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  Button,
   BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
   TextVariant,
-  TextColor,
-  ButtonVariant,
   ButtonSize,
   TextField,
   IconName,
   ButtonIcon,
   ButtonIconSize,
-  HeaderStandard,
   TitleStandard,
   HelpText,
   HelpTextSeverity,
-  Checkbox,
-  ListItem,
   ListItemMultiSelect,
   ListItemVariant,
-  TextButton,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
@@ -48,11 +44,11 @@ import { setLockTime as setLockTimeAction } from '../../../actions/settings';
 import Engine from '../../../core/Engine';
 import { useMessenger } from '../../../hooks/useMessenger';
 import { RouteMessengerInstance } from './messenger';
-import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
+import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   SEED_PHRASE_HINTS,
@@ -61,6 +57,7 @@ import {
 } from '../../../constants/storage';
 import {
   passwordRequirementsMet,
+  shouldShowPasswordMismatchError,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -82,11 +79,10 @@ import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
-import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import FoxRiveLoaderAnimation, {
-  type FoxRiveLoaderAnimationRef,
-} from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
+import OnboardingFoxLoader, {
+  type OnboardingFoxLoaderRef,
+} from '../../UI/OnboardingFoxLoader/OnboardingFoxLoader';
 import {
   TraceName,
   endTrace,
@@ -97,7 +93,6 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { hasTestOverrides } from '../../../util/test/utils';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
@@ -119,6 +114,66 @@ import { ONBOARDING_LOADING_STALL_SCREEN } from '../../../util/onboarding/onboar
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
+import PasswordResetWarningSheet from '../shared/PasswordResetWarningSheet/PasswordResetWarningSheet';
+
+const confirmValidationShouldArm = (
+  nextPassword: string,
+  nextConfirm: string,
+) =>
+  nextPassword.length > 0 &&
+  nextPassword.length === nextConfirm.length &&
+  passwordRequirementsMet(nextConfirm);
+
+const reservedHelpTextProps = (isHidden: boolean) => ({
+  accessibilityElementsHidden: isHidden,
+  importantForAccessibility: isHidden
+    ? ('no-hide-descendants' as const)
+    : ('auto' as const),
+  ...(isHidden ? { style: { opacity: 0 } } : {}),
+});
+
+const getConfirmPasswordStatusMessage = (
+  password: string,
+  confirmPassword: string,
+  confirmValidationArmed: boolean,
+  hasLeftConfirmPasswordField: boolean,
+): string | undefined => {
+  if (
+    confirmValidationArmed &&
+    shouldShowPasswordMismatchError(password, confirmPassword)
+  ) {
+    return strings('choose_password.password_error');
+  }
+
+  if (
+    hasLeftConfirmPasswordField &&
+    passwordRequirementsMet(password) &&
+    confirmPassword.length > 0 &&
+    !passwordRequirementsMet(confirmPassword)
+  ) {
+    return strings('choose_password.must_be_at_least', {
+      number: MIN_PASSWORD_LENGTH,
+    });
+  }
+
+  return undefined;
+};
+
+const getCreatePasswordDisabledHint = (
+  password: string,
+  confirmPassword: string,
+): string => {
+  if (
+    !passwordRequirementsMet(password) ||
+    !passwordRequirementsMet(confirmPassword)
+  ) {
+    return strings('choose_password.must_be_at_least', {
+      number: MIN_PASSWORD_LENGTH,
+    });
+  }
+
+  return strings('choose_password.password_error');
+};
 
 interface KeyringState {
   type: string;
@@ -180,6 +235,11 @@ async function reimportPrivateKeyAccounts(
 const ChoosePassword = () => {
   const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
 
   const navigation = useNavigation<AppNavigationProp>();
   const route =
@@ -203,8 +263,12 @@ const ChoosePassword = () => {
   const isAwaitingGeolocation = isSocialLoginUser && !isGeolocationResolved;
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasLeftPasswordField, setHasLeftPasswordField] = useState(false);
+  const [hasLeftConfirmPasswordField, setHasLeftConfirmPasswordField] =
+    useState(false);
+  const [confirmValidationArmed, setConfirmValidationArmed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isWarningSheetVisible, setIsWarningSheetVisible] = useState(false);
   const stallOauthProvider = route.params?.provider;
   const stallAccountType = stallOauthProvider
     ? getSocialAccountType(stallOauthProvider, false)
@@ -245,7 +309,7 @@ const ChoosePassword = () => {
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
-  const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
+  const foxRiveLoaderRef = useRef<OnboardingFoxLoaderRef>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
   const { shouldShowQuestionnaire } =
@@ -428,10 +492,7 @@ const ChoosePassword = () => {
       return { valid: false, shouldTrack: false };
     }
 
-    if (
-      (!getOauth2LoginSuccess() && !isSelected) ||
-      (getOauth2LoginSuccess() && !isGeolocationResolved)
-    ) {
+    if (getOauth2LoginSuccess() && !isGeolocationResolved) {
       return { valid: false, shouldTrack: false };
     }
 
@@ -440,7 +501,6 @@ const ChoosePassword = () => {
     password,
     confirmPassword,
     loading,
-    isSelected,
     isGeolocationResolved,
     getOauth2LoginSuccess,
     route.params?.provider,
@@ -551,7 +611,7 @@ const ChoosePassword = () => {
           ...(accountType && { accountType }),
         });
       } else {
-        await onContinueNavigation();
+        onContinueNavigation();
       }
     },
     [
@@ -701,11 +761,7 @@ const ChoosePassword = () => {
     ],
   );
 
-  const onPressCreate = useCallback(async () => {
-    setHasSubmitted(true);
-    const validation = validatePasswordSubmission();
-    if (!validation.valid) return;
-
+  const startWalletCreation = useCallback(async () => {
     const provider = route.params?.provider;
     const accountType = provider
       ? getSocialAccountType(provider, false)
@@ -723,7 +779,6 @@ const ChoosePassword = () => {
       await handleWalletCreationError(err as Error, metricsEnabled);
     }
   }, [
-    validatePasswordSubmission,
     route.params?.provider,
     track,
     getOauth2LoginSuccess,
@@ -732,29 +787,44 @@ const ChoosePassword = () => {
     metrics,
   ]);
 
+  const onPressCreate = useCallback(async () => {
+    const validation = validatePasswordSubmission();
+    if (!validation.valid) return;
+
+    if (!getOauth2LoginSuccess()) {
+      Keyboard.dismiss();
+      setIsWarningSheetVisible(true);
+      return;
+    }
+
+    await startWalletCreation();
+  }, [validatePasswordSubmission, getOauth2LoginSuccess, startWalletCreation]);
+
+  const onDismissWarningSheet = useCallback(() => {
+    setIsWarningSheetVisible(false);
+  }, []);
+
+  const onConfirmWarningSheet = useCallback(() => {
+    setIsWarningSheetVisible(false);
+    void startWalletCreation();
+  }, [startWalletCreation]);
+
   const onPasswordChange = useCallback(
     (val: string) => {
+      const nextConfirm = val === '' ? '' : confirmPassword;
       setPassword(val);
-      setConfirmPassword(val === '' ? '' : confirmPassword);
+      setConfirmPassword(nextConfirm);
+      if (val === '') {
+        setConfirmValidationArmed(false);
+        setHasLeftConfirmPasswordField(false);
+        return;
+      }
+      if (confirmValidationShouldArm(val, nextConfirm)) {
+        setConfirmValidationArmed(true);
+      }
     },
     [confirmPassword],
   );
-
-  const learnMore = useCallback(() => {
-    track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
-      text: 'Learn More',
-      location: 'choose_password',
-      url_domain: RESET_PASSWORD_GUIDE_URL,
-    });
-
-    navigation.navigate('Webview', {
-      screen: 'SimpleWebview',
-      params: {
-        url: RESET_PASSWORD_GUIDE_URL,
-        title: 'support.metamask.io',
-      },
-    });
-  }, [navigation, track]);
 
   const toggleShowPassword = useCallback((index: number) => {
     setShowPasswordIndex((prev) => {
@@ -766,13 +836,31 @@ const ChoosePassword = () => {
   }, []);
 
   const jumpToConfirmPassword = useCallback(() => {
-    const input = confirmPasswordInputRef.current;
-    if (input) input.focus();
+    setHasLeftPasswordField(true);
+    confirmPasswordInputRef.current?.focus();
   }, []);
 
-  const setConfirmPasswordValue = useCallback((val: string) => {
-    setConfirmPassword(val);
-  }, []);
+  const leaveConfirmPasswordField = useCallback(() => {
+    setHasLeftConfirmPasswordField(true);
+    if (passwordRequirementsMet(confirmPassword)) {
+      setConfirmValidationArmed(true);
+    }
+  }, [confirmPassword]);
+
+  const submitConfirmPassword = useCallback(() => {
+    Keyboard.dismiss();
+    leaveConfirmPasswordField();
+  }, [leaveConfirmPasswordField]);
+
+  const setConfirmPasswordValue = useCallback(
+    (val: string) => {
+      setConfirmPassword(val);
+      if (confirmValidationShouldArm(password, val)) {
+        setConfirmValidationArmed(true);
+      }
+    },
+    [password],
+  );
 
   useEffect(() => {
     const initBiometrics = async () => {
@@ -818,275 +906,243 @@ const ChoosePassword = () => {
     [],
   );
 
+  const confirmPasswordStatusMessage = getConfirmPasswordStatusMessage(
+    password,
+    confirmPassword,
+    confirmValidationArmed,
+    hasLeftConfirmPasswordField,
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios' || !confirmPasswordStatusMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(confirmPasswordStatusMessage);
+  }, [confirmPasswordStatusMessage]);
+
   const renderContent = () => {
-    const isPasswordInvalid =
-      hasSubmitted && !passwordRequirementsMet(password);
-    const isConfirmPasswordInvalid =
-      hasSubmitted && (confirmPassword === '' || password !== confirmPassword);
-    const isAcknowledgementInvalid =
-      hasSubmitted && !getOauth2LoginSuccess() && !isSelected;
+    if (loading) {
+      return <OnboardingFoxLoader ref={foxRiveLoaderRef} />;
+    }
+
+    const passwordMeetsLength = passwordRequirementsMet(password);
+    const passwordsMatch = password !== '' && password === confirmPassword;
+    const canSubmitPassword = passwordMeetsLength && passwordsMatch;
+    const showPasswordError = hasLeftPasswordField && !passwordMeetsLength;
 
     return (
       <SafeAreaView
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-background-default')}
       >
-        <HeaderStandard
+        <HeaderStandardGlass
+          backdrop="static"
+          onLayout={onHeaderLayout}
           includesTopInset
-          onBack={loading ? undefined : () => navigation.goBack()}
-          backButtonProps={
-            loading
-              ? undefined
-              : { testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID }
-          }
+          onBack={() => navigation.goBack()}
+          backButtonProps={{
+            testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID,
+          }}
         />
-        {loading ? (
+        <KeyboardAwareScrollView
+          style={{ marginTop: headerInset }}
+          contentContainerStyle={tw.style('flex-1 px-4')}
+          keyboardShouldPersistTaps="handled"
+          // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard
+          mode="layout"
+        >
           <Box
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Start}
-            twClassName="flex-1 px-4"
-            gap={6}
+            flexDirection={BoxFlexDirection.Column}
+            twClassName="flex-1 pt-3"
+            gap={4}
+            testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
           >
-            {!hasTestOverrides && (
-              <FoxRiveLoaderAnimation ref={foxRiveLoaderRef} />
-            )}
-          </Box>
-        ) : (
-          <KeyboardAwareScrollView
-            contentContainerStyle={tw.style('flex-1 px-4')}
-            keyboardShouldPersistTaps="handled"
-            // Pre-1.21 reflow behavior so the mt-auto CTA lifts with the keyboard
-            mode="layout"
-          >
+            <TitleStandard
+              title={strings('choose_password.title')}
+              titleProps={{
+                testID: ChoosePasswordSelectorsIDs.TITLE_ID,
+              }}
+              bottomLabel={
+                getOauth2LoginSuccess()
+                  ? strings(
+                      'choose_password.description_social_login_update_ios',
+                    )
+                  : strings('choose_password.create_description')
+              }
+              bottomLabelProps={{
+                testID: ChoosePasswordSelectorsIDs.DESCRIPTION_ID,
+              }}
+            />
+
             <Box
               flexDirection={BoxFlexDirection.Column}
-              twClassName="flex-1"
-              gap={4}
-              testID={ChoosePasswordSelectorsIDs.CONTAINER_ID}
+              twClassName="relative"
+              gap={2}
             >
-              <TitleStandard
-                title={strings('choose_password.title')}
-                titleProps={{
-                  testID: ChoosePasswordSelectorsIDs.TITLE_ID,
+              <TextField
+                autoFocus
+                value={password}
+                onChangeText={onPasswordChange}
+                onBlur={() => {
+                  setHasLeftPasswordField(true);
                 }}
-                bottomLabel={
-                  getOauth2LoginSuccess()
-                    ? strings(
-                        'choose_password.description_social_login_update_ios',
-                      )
-                    : strings('choose_password.create_description')
+                placeholder={strings(
+                  'choose_password.new_password_placeholder',
+                )}
+                isError={showPasswordError}
+                endAccessory={
+                  <ButtonIcon
+                    testID={
+                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
+                    }
+                    iconName={
+                      showPasswordIndex.includes(0)
+                        ? IconName.Eye
+                        : IconName.EyeSlash
+                    }
+                    size={ButtonIconSize.Md}
+                    twClassName="-mr-1"
+                    onPress={() => toggleShowPassword(0)}
+                    accessibilityLabel={strings(
+                      showPasswordIndex.includes(0)
+                        ? 'choose_password.show'
+                        : 'choose_password.hide',
+                    )}
+                  />
                 }
-                bottomLabelProps={{
-                  testID: ChoosePasswordSelectorsIDs.DESCRIPTION_ID,
+                inputProps={{
+                  secureTextEntry: showPasswordIndex.includes(0),
+                  testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                  accessibilityLabel:
+                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+                  onSubmitEditing: jumpToConfirmPassword,
+                  autoComplete: 'password-new',
+                  returnKeyType: 'next',
+                  autoCapitalize: 'none',
+                  keyboardAppearance: themeAppearance,
                 }}
               />
-
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="relative"
-                gap={2}
+              <HelpText
+                severity={
+                  showPasswordError ? HelpTextSeverity.Danger : undefined
+                }
+                {...reservedHelpTextProps(passwordMeetsLength)}
               >
-                <TextField
-                  autoFocus
-                  value={password}
-                  onChangeText={onPasswordChange}
-                  placeholder={strings(
-                    'choose_password.new_password_placeholder',
-                  )}
-                  isError={isPasswordInvalid}
-                  endAccessory={
-                    <ButtonIcon
-                      testID={
-                        ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID
-                      }
-                      iconName={
-                        showPasswordIndex.includes(0)
-                          ? IconName.Eye
-                          : IconName.EyeSlash
-                      }
-                      size={ButtonIconSize.Md}
-                      onPress={() => toggleShowPassword(0)}
-                      accessibilityLabel={strings(
-                        showPasswordIndex.includes(0)
-                          ? 'choose_password.show'
-                          : 'choose_password.hide',
-                      )}
-                    />
-                  }
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(0),
-                    testID: ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-                    onSubmitEditing: jumpToConfirmPassword,
-                    autoComplete: 'password-new',
-                    returnKeyType: 'next',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                <HelpText
-                  severity={
-                    isPasswordInvalid ? HelpTextSeverity.Danger : undefined
-                  }
-                >
-                  {strings('choose_password.must_be_at_least', {
-                    number: MIN_PASSWORD_LENGTH,
-                  })}
-                </HelpText>
-              </Box>
-
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="relative"
-                gap={2}
-              >
-                <TextField
-                  inputRef={confirmPasswordInputRef}
-                  value={confirmPassword}
-                  onChangeText={setConfirmPasswordValue}
-                  placeholder={strings(
-                    'choose_password.confirm_password_placeholder',
-                  )}
-                  endAccessory={
-                    <ButtonIcon
-                      testID={
-                        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
-                      }
-                      iconName={
-                        showPasswordIndex.includes(1)
-                          ? IconName.Eye
-                          : IconName.EyeSlash
-                      }
-                      size={ButtonIconSize.Md}
-                      isDisabled={password === ''}
-                      onPress={() => toggleShowPassword(1)}
-                      accessibilityLabel={strings(
-                        showPasswordIndex.includes(1)
-                          ? 'choose_password.show'
-                          : 'choose_password.hide',
-                      )}
-                    />
-                  }
-                  isDisabled={password === ''}
-                  isError={isConfirmPasswordInvalid}
-                  inputProps={{
-                    secureTextEntry: showPasswordIndex.includes(1),
-                    testID:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    accessibilityLabel:
-                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-                    autoComplete: 'password-new',
-                    onSubmitEditing: Keyboard.dismiss,
-                    returnKeyType: 'done',
-                    autoCapitalize: 'none',
-                    keyboardAppearance: themeAppearance,
-                  }}
-                />
-                {isConfirmPasswordInvalid && (
-                  <HelpText severity={HelpTextSeverity.Danger}>
-                    {strings('choose_password.password_error')}
-                  </HelpText>
-                )}
-              </Box>
-
-              {getOauth2LoginSuccess() ? (
-                <ListItemMultiSelect
-                  variant={ListItemVariant.MultiLine}
-                  isSelected={marketingOptInChecked}
-                  onPress={setSelection}
-                  testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: marketingOptInChecked }}
-                  twClassName="mt-2 border border-muted rounded-xl"
-                  titleProps={{
-                    variant: TextVariant.BodySm,
-                    testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
-                  }}
-                  title={strings(
-                    'choose_password.marketing_opt_in_description',
-                  )}
-                />
-              ) : (
-                <ListItem
-                  variant={ListItemVariant.TwoLines}
-                  accessoryGap={3}
-                  twClassName={
-                    marketingOptInChecked
-                      ? 'mt-2 border border-muted rounded-xl bg-background-muted'
-                      : 'mt-2 border border-muted rounded-xl'
-                  }
-                  endAccessory={
-                    <Checkbox
-                      isSelected={marketingOptInChecked}
-                      onChange={setSelection}
-                      label=""
-                      testID={
-                        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
-                      }
-                      accessibilityLabel={strings(
-                        'choose_password.loose_password_description',
-                      )}
-                    />
-                  }
-                  title={
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextDefault}
-                      testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
-                    >
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.TextDefault}
-                        onPress={setSelection}
-                      >
-                        {strings(
-                          'choose_password.loose_password_description',
-                        )}{' '}
-                      </Text>
-                      <TextButton
-                        variant={TextVariant.BodySm}
-                        onPress={learnMore}
-                        testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                      >
-                        {strings('reset_password.learn_more')}
-                      </TextButton>
-                    </Text>
-                  }
-                />
-              )}
-              {isAcknowledgementInvalid && (
-                <HelpText severity={HelpTextSeverity.Danger}>
-                  {strings('choose_password.acknowledgement_error')}
-                </HelpText>
-              )}
-
-              <Box
-                flexDirection={BoxFlexDirection.Column}
-                twClassName="w-full mt-auto"
-                gap={4}
-                style={tw.style(Platform.OS === 'android' ? 'mb-6' : 'mb-4')}
-              >
-                <Button
-                  variant={ButtonVariant.Primary}
-                  onPress={onPressCreate}
-                  isFullWidth
-                  isLoading={isAwaitingGeolocation}
-                  size={ButtonSize.Lg}
-                  testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                >
-                  {strings('choose_password.create_password_cta')}
-                </Button>
-              </Box>
+                {strings('choose_password.must_be_at_least', {
+                  number: MIN_PASSWORD_LENGTH,
+                })}
+              </HelpText>
             </Box>
-          </KeyboardAwareScrollView>
-        )}
-        <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
+
+            <Box
+              flexDirection={BoxFlexDirection.Column}
+              twClassName="relative"
+              gap={2}
+            >
+              <TextField
+                inputRef={confirmPasswordInputRef}
+                value={confirmPassword}
+                onChangeText={setConfirmPasswordValue}
+                onBlur={leaveConfirmPasswordField}
+                placeholder={strings(
+                  'choose_password.confirm_password_placeholder',
+                )}
+                endAccessory={
+                  <ButtonIcon
+                    testID={
+                      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID
+                    }
+                    iconName={
+                      showPasswordIndex.includes(1)
+                        ? IconName.Eye
+                        : IconName.EyeSlash
+                    }
+                    size={ButtonIconSize.Md}
+                    twClassName="-mr-1"
+                    isDisabled={password === ''}
+                    onPress={() => toggleShowPassword(1)}
+                    accessibilityLabel={strings(
+                      showPasswordIndex.includes(1)
+                        ? 'choose_password.show'
+                        : 'choose_password.hide',
+                    )}
+                  />
+                }
+                isDisabled={password === ''}
+                isError={Boolean(confirmPasswordStatusMessage)}
+                inputProps={{
+                  secureTextEntry: showPasswordIndex.includes(1),
+                  testID: ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                  accessibilityLabel:
+                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+                  autoComplete: 'password-new',
+                  onSubmitEditing: submitConfirmPassword,
+                  returnKeyType: 'done',
+                  autoCapitalize: 'none',
+                  keyboardAppearance: themeAppearance,
+                }}
+              />
+              {confirmPasswordStatusMessage ? (
+                <HelpText
+                  severity={HelpTextSeverity.Danger}
+                  accessibilityLiveRegion={
+                    Platform.OS === 'android' ? 'polite' : undefined
+                  }
+                >
+                  {confirmPasswordStatusMessage}
+                </HelpText>
+              ) : null}
+            </Box>
+
+            {getOauth2LoginSuccess() && (
+              <ListItemMultiSelect
+                variant={ListItemVariant.MultiLine}
+                isSelected={marketingOptInChecked}
+                onPress={setSelection}
+                testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: marketingOptInChecked }}
+                twClassName="mt-2 border border-muted rounded-xl"
+                titleProps={{
+                  variant: TextVariant.BodySm,
+                  testID: ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID,
+                }}
+                title={strings('choose_password.marketing_opt_in_description')}
+              />
+            )}
+
+            <FooterGlass
+              twClassName="px-0 w-full mt-auto py-2"
+              primaryButtonProps={{
+                children: strings('choose_password.create_password_cta'),
+                onPress: onPressCreate,
+                isDisabled: !canSubmitPassword,
+                isLoading: isAwaitingGeolocation,
+                size: ButtonSize.Lg,
+                testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+                accessibilityHint: canSubmitPassword
+                  ? undefined
+                  : getCreatePasswordDisabledHint(password, confirmPassword),
+              }}
+            />
+          </Box>
+        </KeyboardAwareScrollView>
+        <PasswordResetWarningSheet
+          isVisible={isWarningSheetVisible}
+          onConfirm={onConfirmWarningSheet}
+          onDismiss={onDismissWarningSheet}
+        />
       </SafeAreaView>
     );
   };
 
-  return renderContent();
+  // Stays mounted for the whole screen, including the wallet-creation loader.
+  return (
+    <>
+      {renderContent()}
+      <ScreenshotDeterrent enabled hasNavigation={false} isSRP={false} />
+    </>
+  );
 };
 
 export default ChoosePassword;

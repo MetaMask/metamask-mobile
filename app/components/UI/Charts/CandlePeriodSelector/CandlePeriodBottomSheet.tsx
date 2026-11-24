@@ -1,7 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 import {
   BottomSheet,
-  BottomSheetHeader,
   Box,
   FilterButton,
   FilterButtonSize,
@@ -23,6 +22,9 @@ import {
   CandlePeriodBottomSheetSelectorsIDs,
 } from './testIds';
 import { strings } from '../../../../../locales/i18n';
+import BottomSheetHeaderGlass from '../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 interface CandlePeriodBottomSheetProps {
   isVisible: boolean;
@@ -57,6 +59,7 @@ const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
   testID,
   onViewed,
 }) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const onViewedRef = useRef(onViewed);
   onViewedRef.current = onViewed;
@@ -142,6 +145,15 @@ const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
             size={FilterButtonSize.Md}
             onPress={() => handlePeriodSelect(period.value)}
             isFullWidth
+            // Default button padding clips `15m` and `30m` to `15` and `30`
+            // in a five-column row. Tighten the padding and scale the label
+            // so the unit stays visible.
+            twClassName="px-1"
+            textProps={{
+              adjustsFontSizeToFit: true,
+              minimumFontScale: 0.7,
+              numberOfLines: 1,
+            }}
             testID={
               testID
                 ? getCandlePeriodBottomSheetSelectors.periodButton(
@@ -161,14 +173,15 @@ const CandlePeriodBottomSheet: React.FC<CandlePeriodBottomSheetProps> = ({
 
   return (
     <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={handleClose}
         closeButtonProps={{
           testID: CandlePeriodBottomSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('perps.chart.candle_intervals')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="px-4">
         {showAllPeriods && periodSections ? (
           periodSections.map((section, sectionIndex) => (

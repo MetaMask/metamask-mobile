@@ -10,7 +10,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef } from 'react';
-import { Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../locales/i18n';
@@ -52,6 +52,7 @@ import {
 } from '../../utils/perpsPaymentTokenSelection';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -60,6 +61,113 @@ const tokenIconStyles = StyleSheet.create({
     borderRadius: 12,
   },
 });
+
+/**
+ * The pay-with row already has an accessibility label. The icon, including its
+ * network badge, is decorative and must not be announced again.
+ */
+const DecorativePayIcon = ({ children }: { children: React.ReactNode }) => (
+  <View
+    accessible={false}
+    accessibilityElementsHidden
+    importantForAccessibility="no-hide-descendants"
+    testID="perps-pay-row-token-icon-frame"
+  >
+    {children}
+  </View>
+);
+
+/**
+ * Payment token icon shared by the full-screen pay row and the Trade sheet
+ * row: Money Account, Perps balance, or the selected token with its network.
+ */
+export const PerpsPayTokenIcon = () => {
+  const { payToken } = useTransactionPayToken();
+  const transactionMeta = useTransactionMetadataRequest();
+  const matchesPerpsBalance = useIsPerpsBalanceSelected();
+  const paymentOverride = useSelector((state: RootState) =>
+    selectPaymentOverrideByTransactionId(state, transactionMeta?.id ?? ''),
+  );
+  const isMoneyAccountSelected =
+    paymentOverride === PaymentOverride.MoneyAccount;
+
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
+  const displayToken = matchesPerpsBalance
+    ? {
+        address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+        tokenLookupChainId: PERPS_BALANCE_CHAIN_ID,
+        networkBadgeChainId: PERPS_BALANCE_CHAIN_ID,
+      }
+    : {
+        address: payTokenAsset?.address ?? PERPS_BALANCE_PLACEHOLDER_ADDRESS,
+        tokenLookupChainId: payTokenAsset?.chainId ?? CHAIN_IDS.MAINNET,
+        networkBadgeChainId: payTokenAsset?.chainId ?? CHAIN_IDS.MAINNET,
+      };
+
+  const token = useTokenWithBalance(
+    displayToken.address as unknown as Hex,
+    displayToken.tokenLookupChainId,
+  );
+
+  const networkImageSource = useMemo(
+    () =>
+      getNetworkImageSource({
+        chainId: displayToken.networkBadgeChainId,
+      }),
+    [displayToken.networkBadgeChainId],
+  );
+
+  if (isMoneyAccountSelected) {
+    return (
+      <DecorativePayIcon>
+        <Image
+          accessible={false}
+          testID="perps-pay-row-token-icon"
+          source={MoneyIcon}
+          style={tokenIconStyles.iconSmall}
+        />
+      </DecorativePayIcon>
+    );
+  }
+
+  if (matchesPerpsBalance) {
+    return (
+      <DecorativePayIcon>
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={PERPS_BALANCE_ICON_URI}
+          symbol={strings('perps.adjust_margin.perps_balance')}
+          style={tokenIconStyles.iconSmall}
+        />
+      </DecorativePayIcon>
+    );
+  }
+
+  if (!token) {
+    return null;
+  }
+
+  return (
+    <DecorativePayIcon>
+      <BadgeWrapper
+        badgePosition={BadgePosition.BottomRight}
+        badgeElement={
+          <Badge
+            variant={BadgeVariant.Network}
+            imageSource={networkImageSource}
+          />
+        }
+      >
+        <BaseTokenIcon
+          testID="perps-pay-row-token-icon"
+          icon={token.image}
+          symbol={token.symbol}
+          style={tokenIconStyles.iconSmall}
+        />
+      </BadgeWrapper>
+    </DecorativePayIcon>
+  );
+};
 
 export interface PerpsPayRowProps {
   /** Optional callback when the info (i) icon is pressed, e.g. for tooltip */
@@ -93,9 +201,7 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
   // when the selector opens. Comparing identity avoids misclassifying a
   // selection of a different token that shares a symbol as a dismissal. `null`
   // means no selector open is pending.
-  const payTokenIdentity = payToken
-    ? `${payToken.address}:${payToken.chainId}`
-    : '';
+  const payTokenIdentity = payToken?.assetId ?? '';
   const selectorOpenIdentityRef = useRef<string | null>(null);
 
   const handleClick = useCallback(() => {
@@ -138,33 +244,6 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
     }, [payTokenIdentity, payToken, track]),
   );
 
-  const displayToken = matchesPerpsBalance
-    ? {
-        address: PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-        tokenLookupChainId: PERPS_BALANCE_CHAIN_ID,
-        networkBadgeChainId: PERPS_BALANCE_CHAIN_ID,
-        symbol: strings('perps.adjust_margin.perps_balance'),
-      }
-    : {
-        address: payToken?.address ?? PERPS_BALANCE_PLACEHOLDER_ADDRESS,
-        tokenLookupChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
-        networkBadgeChainId: payToken?.chainId ?? CHAIN_IDS.MAINNET,
-        symbol: payToken?.symbol ?? '',
-      };
-
-  const token = useTokenWithBalance(
-    displayToken.address as unknown as Hex,
-    displayToken.tokenLookupChainId,
-  );
-
-  const networkImageSource = useMemo(
-    () =>
-      getNetworkImageSource({
-        chainId: displayToken.networkBadgeChainId,
-      }),
-    [displayToken.networkBadgeChainId],
-  );
-
   const getValueLabel = () => {
     if (isMoneyAccountSelected) {
       return strings('confirm.pay_with_bottom_sheet.money_account');
@@ -174,57 +253,10 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
       return strings('perps.adjust_margin.perps_balance');
     }
 
-    return displayToken.symbol;
-  };
-
-  const getValueStartAccessory = () => {
-    if (isMoneyAccountSelected) {
-      return (
-        <Image
-          testID="perps-pay-row-token-icon"
-          source={MoneyIcon}
-          style={tokenIconStyles.iconSmall}
-        />
-      );
-    }
-
-    if (matchesPerpsBalance) {
-      return (
-        <BaseTokenIcon
-          testID="perps-pay-row-token-icon"
-          icon={PERPS_BALANCE_ICON_URI}
-          symbol={strings('perps.adjust_margin.perps_balance')}
-          style={tokenIconStyles.iconSmall}
-        />
-      );
-    }
-
-    if (!token) {
-      return null;
-    }
-
-    return (
-      <BadgeWrapper
-        badgePosition={BadgePosition.BottomRight}
-        badgeElement={
-          <Badge
-            variant={BadgeVariant.Network}
-            imageSource={networkImageSource}
-          />
-        }
-      >
-        <BaseTokenIcon
-          testID="perps-pay-row-token-icon"
-          icon={token.image}
-          symbol={token.symbol}
-          style={tokenIconStyles.iconSmall}
-        />
-      </BadgeWrapper>
-    );
+    return payToken?.symbol ?? '';
   };
 
   const valueLabel = getValueLabel();
-  const valueStartAccessory = getValueStartAccessory();
 
   return (
     <TouchableOpacity
@@ -241,7 +273,7 @@ export const PerpsPayRow = ({ onPayWithInfoPress }: PerpsPayRowProps) => {
           onPress: () => onPayWithInfoPress?.(),
           testID: 'perps-pay-row-info',
         }}
-        valueStartAccessory={valueStartAccessory}
+        valueStartAccessory={<PerpsPayTokenIcon />}
         value={
           <Text
             variant={TextVariant.BodyMd}

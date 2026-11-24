@@ -1,7 +1,7 @@
 import TimerHelper from '../../../framework/TimerHelper';
 import { AppiumAssertions } from '../../../framework';
 import OnboardingInterestQuestionnaireView from '../../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
-import OnboardingSuccessView from '../../../page-objects/Onboarding/OnboardingSuccessView';
+import WalletView from '../../../page-objects/wallet/WalletView';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -17,22 +17,19 @@ const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
     });
   });
 
-const expectSuccessDoneVisible = async (): Promise<void> => {
-  await AppiumAssertions.expectElementToBeVisible(
-    OnboardingSuccessView.doneButton,
-    {
-      description: 'Onboarding success done button should be visible',
-    },
-  );
+const expectWalletHomeVisible = async (): Promise<void> => {
+  await AppiumAssertions.expectElementToBeVisible(WalletView.accountIcon, {
+    description: 'Wallet main screen should be visible',
+  });
 };
 
 /**
- * After Create Password tap: measure Create Password → Onboarding Success Done.
- * Success-first (no survey): timer records the full create → success latency.
+ * After Create Password tap: measure Create Password → wallet home.
+ * Home-first (no survey): timer records the full create → home latency.
  * Questionnaire-first: skip is untimed after the race; timer is re-measured for
- * post-skip → success only (survey time is not kept in the recorded duration).
+ * post-skip → home only (survey time is not kept in the recorded duration).
  */
-export async function measureCreatePasswordToOnboardingSuccess(
+export async function measureCreatePasswordToWalletHome(
   timer: TimerHelper,
 ): Promise<void> {
   let questionnaireFirst = false;
@@ -45,7 +42,7 @@ export async function measureCreatePasswordToOnboardingSuccess(
           description: 'Interest questionnaire Skip should be visible',
         },
       ).then(() => 'questionnaire' as const),
-      expectSuccessDoneVisible().then(() => 'success' as const),
+      expectWalletHomeVisible().then(() => 'home' as const),
     ]);
 
     if (next === 'questionnaire') {
@@ -55,9 +52,9 @@ export async function measureCreatePasswordToOnboardingSuccess(
 
   if (questionnaireFirst) {
     await OnboardingInterestQuestionnaireView.tapSkipButton();
-    // Overwrites the race-to-questionnaire duration with post-skip → success only.
+    // Overwrites the race-to-questionnaire duration with post-skip → home only.
     await timer.measure(async () => {
-      await expectSuccessDoneVisible();
+      await expectWalletHomeVisible();
     });
   }
 }

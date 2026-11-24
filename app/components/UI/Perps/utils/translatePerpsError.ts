@@ -1,6 +1,10 @@
 import { strings } from '../../../../../locales/i18n';
+import { hasProperty } from '@metamask/utils';
 import {
+  isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
+  type OrderResult,
+  type PriceMovedErrorDetails,
   type PerpsErrorCode,
   type PerpsDebugLogger,
 } from '@metamask/perps-controller';
@@ -10,6 +14,127 @@ import {
  * When provided, enables detailed logging for debugging.
  */
 export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
+
+export interface PerpsErrorInput
+  extends Pick<OrderResult, 'errorCode' | 'errorDetails'> {
+  error: string;
+  maxSlippageBps?: number;
+  providerId?: string;
+}
+
+// Only the interpolation guard interprets details. Future controller variants
+// must not prevent an otherwise valid code or message from being translated.
+type NormalizedPerpsErrorInput = Omit<PerpsErrorInput, 'errorDetails'> & {
+  errorDetails?: unknown;
+};
+
+const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
+
+function isPriceMovedErrorDetails(
+  value: unknown,
+): value is PriceMovedErrorDetails {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    hasProperty(value, 'code') &&
+    value.code === PERPS_ERROR_CODES.PRICE_MOVED &&
+    hasProperty(value, 'priceDeltaBps') &&
+    typeof value.priceDeltaBps === 'number' &&
+    hasProperty(value, 'maxSlippageBps') &&
+    typeof value.maxSlippageBps === 'number' &&
+    hasProperty(value, 'expectedPrice') &&
+    typeof value.expectedPrice === 'number' &&
+    hasProperty(value, 'currentPrice') &&
+    typeof value.currentPrice === 'number'
+  );
+}
+
+function isPerpsErrorInput(value: unknown): value is NormalizedPerpsErrorInput {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !hasProperty(value, 'error') ||
+    typeof value.error !== 'string'
+  ) {
+    return false;
+  }
+
+  const hasValidCode =
+    !hasProperty(value, 'errorCode') ||
+    value.errorCode === undefined ||
+    isPerpsErrorCodeValue(value.errorCode);
+  const hasValidSlippage =
+    !hasProperty(value, 'maxSlippageBps') ||
+    value.maxSlippageBps === undefined ||
+    typeof value.maxSlippageBps === 'number';
+  const hasValidProviderId =
+    !hasProperty(value, 'providerId') ||
+    value.providerId === undefined ||
+    typeof value.providerId === 'string';
+
+  return hasValidCode && hasValidSlippage && hasValidProviderId;
+}
+
+const normalizePerpsError = (
+  error: unknown,
+): NormalizedPerpsErrorInput | null => {
+  if (isPerpsErrorInput(error)) {
+    return error;
+  }
+  if (error instanceof Error) {
+    return { error: error.message };
+  }
+  if (typeof error === 'string') {
+    return { error };
+  }
+  return null;
+};
+
+const getErrorInterpolationData = (
+  errorInput: NormalizedPerpsErrorInput,
+  context?: Record<string, unknown>,
+): Record<string, unknown> => {
+  const interpolationData: Record<string, unknown> = {};
+  const { errorCode, errorDetails } = errorInput;
+
+  if (
+    isPriceMovedErrorDetails(errorDetails) &&
+    Number.isFinite(errorDetails.priceDeltaBps) &&
+    Number.isFinite(errorDetails.maxSlippageBps)
+  ) {
+    interpolationData.priceDelta = formatBpsAsPercent(
+      errorDetails.priceDeltaBps,
+    );
+    interpolationData.maxSlippage = formatBpsAsPercent(
+      errorDetails.maxSlippageBps,
+    );
+  } else if (
+    typeof errorCode === 'string' &&
+    (errorCode === PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE ||
+      errorCode === PERPS_ERROR_CODES.PROVIDER_NOT_FOUND)
+  ) {
+    const providerId =
+      context?.providerId ??
+      (typeof errorInput.providerId === 'string' && errorInput.providerId
+        ? errorInput.providerId
+        : undefined);
+    interpolationData.providerId =
+      typeof providerId === 'string' && providerId.length > 0
+        ? providerId
+        : 'Unknown';
+  } else if (errorCode === PERPS_ERROR_CODES.IOC_CANCEL) {
+    const maxSlippageBps =
+      errorInput.maxSlippageBps ??
+      (typeof context?.maxSlippageBps === 'number'
+        ? context.maxSlippageBps
+        : undefined);
+    if (maxSlippageBps !== undefined) {
+      interpolationData.maxSlippage = formatBpsAsPercent(maxSlippageBps);
+    }
+  }
+
+  return interpolationData;
+};
 
 /**
  * Maps error codes to i18n keys
@@ -22,6 +147,8 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE]:
     'perps.errors.providerNotAvailable',
   [PERPS_ERROR_CODES.PROVIDER_NOT_FOUND]: 'perps.errors.providerNotAvailable',
+  [PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED]:
+    'perps.errors.providerRouteRequired',
   [PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE]:
     'perps.errors.clientReinitializing',
   [PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED]: 'perps.errors.tokenNotSupported',
@@ -33,9 +160,14 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
   [PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED]: 'perps.errors.accountStateFailed',
   [PERPS_ERROR_CODES.MARKETS_FAILED]: 'perps.errors.marketsFailed',
   [PERPS_ERROR_CODES.UNKNOWN_ERROR]: 'perps.errors.unknownError',
+  [PERPS_ERROR_CODES.BATCH_INCOMPLETE]: 'perps.errors.batchIncomplete',
+  [PERPS_ERROR_CODES.ORDERS_FAILED]: 'perps.errors.ordersFailed',
+  [PERPS_ERROR_CODES.ORDER_NO_LONGER_OPEN]: 'perps.errors.orderNoLongerOpen',
+  [PERPS_ERROR_CODES.LIQUIDATION_PRICE_UNAVAILABLE]:
+    'perps.errors.liquidationPriceUnavailable',
   [PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED]:
     'perps.errors.orderLeverageReductionFailed',
-  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.insufficientLiquidity',
+  [PERPS_ERROR_CODES.IOC_CANCEL]: 'perps.errors.iocCancel',
   [PERPS_ERROR_CODES.CONNECTION_TIMEOUT]: 'perps.errors.connectionTimeout',
   // Withdraw validation errors
   [PERPS_ERROR_CODES.WITHDRAW_ASSET_ID_REQUIRED]:
@@ -142,6 +274,13 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.orderValidation.scaleSizeTooSmall',
   [PERPS_ERROR_CODES.ORDER_SCALE_NOTIONAL_TOO_SMALL]:
     'perps.errors.orderValidation.scaleNotionalTooSmall',
+  [PERPS_ERROR_CODES.ORDER_SCALE_PREVIEW_STALE]:
+    'perps.errors.orderValidation.scalePreviewStale',
+  // Internal scale-order failures; not caused by user input
+  [PERPS_ERROR_CODES.ORDER_SCALE_SIZE_CONSERVATION_FAILED]:
+    'perps.errors.orderValidation.scaleSizeConservationFailed',
+  [PERPS_ERROR_CODES.ORDER_SCALE_EXPOSURE_EXCEEDS_INTENT]:
+    'perps.errors.orderValidation.scaleExposureExceedsIntent',
   [PERPS_ERROR_CODES.ORDER_CHASE_INTERVAL_INVALID]:
     'perps.errors.orderValidation.chaseIntervalInvalid',
   [PERPS_ERROR_CODES.ORDER_CHASE_DURATION_INVALID]:
@@ -190,9 +329,16 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.marginAdjustmentFailed',
   [PERPS_ERROR_CODES.TPSL_UPDATE_FAILED]: 'perps.errors.tpslUpdateFailed',
   [PERPS_ERROR_CODES.TPSL_PROTECTION_LOST]: 'perps.errors.tpslUpdateFailed',
+  [PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED]:
+    'perps.errors.tpslLegReplaceUnsupported',
+  // Post-only rejections
+  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS]:
+    'perps.errors.postOnlyWouldCross',
+  [PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW]: 'perps.errors.postOnlyWindow',
   // Order execution errors
   [PERPS_ERROR_CODES.ORDER_REJECTED]: 'perps.errors.orderRejected',
   [PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED]: 'perps.errors.slippageExceeded',
+  [PERPS_ERROR_CODES.PRICE_MOVED]: 'perps.errors.priceMoved',
   [PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED]: 'perps.errors.rateLimitExceeded',
   // Network/service errors
   [PERPS_ERROR_CODES.SERVICE_UNAVAILABLE]: 'perps.errors.serviceUnavailable',
@@ -201,124 +347,14 @@ export const ERROR_CODE_TO_I18N_KEY: Record<PerpsErrorCode, string> = {
     'perps.errors.unsupportedCollateral',
 };
 
-/**
- * Pattern matching for common HyperLiquid API error messages.
- * Maps regex patterns to error codes for user-friendly translation.
- *
- * IMPORTANT: Order matters - more specific patterns MUST come before general ones.
- * For example, "Transfer failed: network error" should match NETWORK_ERROR, not TRANSFER_FAILED.
- */
-const API_ERROR_PATTERNS: {
-  pattern: RegExp;
-  errorCode: PerpsErrorCode;
-}[] = [
-  // === SPECIFIC PATTERNS FIRST ===
-
-  // Network/service errors - check these early since they can appear in compound errors
-  // e.g., "Transfer failed: network error" should match NETWORK_ERROR
-  {
-    pattern: /timeout|timed out/i,
-    errorCode: PERPS_ERROR_CODES.CONNECTION_TIMEOUT,
-  },
-  {
-    pattern: /service unavailable|503|temporarily unavailable/i,
-    errorCode: PERPS_ERROR_CODES.SERVICE_UNAVAILABLE,
-  },
-  {
-    pattern: /network error|fetch failed|connection failed/i,
-    errorCode: PERPS_ERROR_CODES.NETWORK_ERROR,
-  },
-  // Rate limiting
-  {
-    pattern: /rate limit|too many requests|throttl/i,
-    errorCode: PERPS_ERROR_CODES.RATE_LIMIT_EXCEEDED,
-  },
-
-  // Margin/balance errors
-  {
-    pattern: /margin available|not enough margin|insufficient margin/i,
-    errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-  },
-  {
-    pattern: /insufficient balance|not enough balance/i,
-    errorCode: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
-  },
-
-  // Order execution errors
-  {
-    pattern: /reduce only|reduceOnly/i,
-    errorCode: PERPS_ERROR_CODES.REDUCE_ONLY_VIOLATION,
-  },
-  {
-    pattern: /position would flip|would flip position/i,
-    errorCode: PERPS_ERROR_CODES.POSITION_WOULD_FLIP,
-  },
-  {
-    pattern: /slippage|price moved too much/i,
-    errorCode: PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED,
-  },
-  {
-    pattern: /insufficient liquidity|no liquidity|IOC.*cancel/i,
-    errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
-  },
-  {
-    pattern: /order rejected|rejected order/i,
-    errorCode: PERPS_ERROR_CODES.ORDER_REJECTED,
-  },
-
-  // Data errors
-  {
-    pattern:
-      /spot pair not found|trading pair not found|USDH.*USDC.*not found/i,
-    errorCode: PERPS_ERROR_CODES.SPOT_PAIR_NOT_FOUND,
-  },
-  {
-    pattern: /no price available|price unavailable|price data unavailable/i,
-    errorCode: PERPS_ERROR_CODES.PRICE_UNAVAILABLE,
-  },
-
-  // Batch operation errors - use specific patterns to avoid matching single-order errors
-  // e.g., "Order cancellation failed" should NOT match batch cancel
-  {
-    pattern: /batch cancel|cancel all|bulk cancel|multiple.*cancel/i,
-    errorCode: PERPS_ERROR_CODES.BATCH_CANCEL_FAILED,
-  },
-  {
-    pattern: /batch close|close all|bulk close|multiple.*close/i,
-    errorCode: PERPS_ERROR_CODES.BATCH_CLOSE_FAILED,
-  },
-
-  // Leverage errors
-  {
-    pattern: /cannot reduce.*leverage|leverage reduction/i,
-    errorCode: PERPS_ERROR_CODES.ORDER_LEVERAGE_REDUCTION_FAILED,
-  },
-
-  // === GENERIC PATTERNS LAST ===
-  // These are catch-all patterns that should only match if no specific pattern matched
-  {
-    pattern: /transfer failed/i,
-    errorCode: PERPS_ERROR_CODES.TRANSFER_FAILED,
-  },
-  {
-    pattern: /swap failed/i,
-    errorCode: PERPS_ERROR_CODES.SWAP_FAILED,
-  },
-];
-
-/**
- * Attempts to match an error string against known API error patterns.
- * @param errorString - The error message to match
- * @returns The matched error code or null if no match found
- */
-function matchApiErrorPattern(errorString: string): PerpsErrorCode | null {
-  for (const { pattern, errorCode } of API_ERROR_PATTERNS) {
-    if (pattern.test(errorString)) {
-      return errorCode;
-    }
-  }
-  return null;
-}
+const getErrorI18nKey = (
+  errorCode: PerpsErrorCode,
+  interpolationData: Record<string, unknown>,
+): string =>
+  errorCode === PERPS_ERROR_CODES.IOC_CANCEL &&
+  interpolationData.maxSlippage === undefined
+    ? 'perps.errors.iocCancelUnknownTolerance'
+    : ERROR_CODE_TO_I18N_KEY[errorCode];
 
 /**
  * Translates an error code to a localized message
@@ -335,40 +371,30 @@ export function translatePerpsError(
     return strings('perps.errors.unknownError');
   }
 
-  // Handle error code strings
-  if (typeof error === 'string' && error in ERROR_CODE_TO_I18N_KEY) {
-    const i18nKey = ERROR_CODE_TO_I18N_KEY[error as PerpsErrorCode];
-    return strings(i18nKey, data || {});
+  const errorInput = normalizePerpsError(error);
+  if (!errorInput) {
+    return strings('perps.errors.unknownError');
+  }
+  const errorCode =
+    errorInput.errorCode ??
+    (isPerpsErrorCodeValue(errorInput.error) ? errorInput.error : undefined);
+  const interpolationData = {
+    ...getErrorInterpolationData(
+      errorCode ? { ...errorInput, errorCode } : errorInput,
+    ),
+    ...data,
+  };
+
+  if (errorCode) {
+    return strings(
+      getErrorI18nKey(errorCode, interpolationData),
+      interpolationData,
+    );
   }
 
-  // Handle standard Error objects
-  if (error instanceof Error) {
-    // Check if error message is an error code
-    if (error.message in ERROR_CODE_TO_I18N_KEY) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[error.message as PerpsErrorCode];
-      return strings(i18nKey, data || {});
-    }
-    // Try pattern matching for API error messages
-    const matchedErrorCode = matchApiErrorPattern(error.message);
-    if (matchedErrorCode) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, data || {});
-    }
-    return error.message;
-  }
-
-  // Handle string errors that might be error codes
-  if (typeof error === 'string') {
-    // Try pattern matching for API error messages
-    const matchedErrorCode = matchApiErrorPattern(error);
-    if (matchedErrorCode) {
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      return strings(i18nKey, data || {});
-    }
-    return error;
-  }
-
-  // Handle objects, numbers, and other types
+  // Unrecognized text is never shown. It can be a venue diagnostic that Core
+  // has not classified yet, so the user gets the same retryable fallback as
+  // UNKNOWN_ERROR.
   return strings('perps.errors.unknownError');
 }
 
@@ -379,28 +405,56 @@ export function isPerpsErrorCode(
   error: unknown,
   code: PerpsErrorCode,
 ): boolean {
-  if (error instanceof Error && error.message === code) {
-    return true;
-  }
-
-  return error === code;
+  const errorInput = normalizePerpsError(error);
+  return (errorInput?.errorCode ?? errorInput?.error) === code;
 }
-
-/** HyperLiquid phrasing for a close/TP-SL aimed at a position it no longer holds. */
-const NO_POSITION_FOUND_PATTERN = /No position found/i;
 
 /**
  * True when the venue rejected the request because the position was already
  * filled, closed, or liquidated — a stale-state race, not a user-side failure.
  */
 export function isNoPositionFoundError(error: unknown): boolean {
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === 'string'
-        ? error
-        : '';
-  return NO_POSITION_FOUND_PATTERN.test(message);
+  return isPerpsErrorCode(error, PERPS_ERROR_CODES.POSITION_NOT_FOUND);
+}
+
+/** True when Core reports a post-only window rejection. */
+export function isPostOnlyWindowError(error: unknown): boolean {
+  return isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW);
+}
+
+/** True when Core reports a post-only order that would cross the spread. */
+export function isPostOnlyWouldCrossError(error: unknown): boolean {
+  return isPerpsErrorCode(error, PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS);
+}
+
+/** Why an order edit was refused, and what happened to the order it replaced. */
+export interface OrderEditRejection {
+  reason: 'post_only_would_cross' | 'other';
+  originalOrder: 'cancelled' | 'retained';
+  error?: string;
+}
+
+/**
+ * Normalizes a refused order edit for the UI. HyperLiquid cancels the original
+ * order when its post-only replacement is rejected, so that outcome reports a
+ * cancelled original.
+ *
+ * Core classifies the venue rejection as `ORDER_POST_ONLY_WOULD_CROSS` before
+ * returning it to the client.
+ *
+ * @param error - The failed edit result, error code, or Error object.
+ */
+export function normalizeOrderEditRejection(
+  error?: unknown,
+): OrderEditRejection {
+  const message = normalizePerpsError(error)?.error;
+  return isPostOnlyWouldCrossError(error)
+    ? {
+        reason: 'post_only_would_cross',
+        originalOrder: 'cancelled',
+        error: message,
+      }
+    : { reason: 'other', originalOrder: 'retained', error: message };
 }
 
 /**
@@ -419,6 +473,7 @@ export interface HandlePerpsErrorParams {
     assetId?: string;
     supportedAssets?: string;
     method?: string;
+    maxSlippageBps?: number;
   };
   fallbackMessage?: string;
   debugLogger?: ErrorHandlerDebugLogger;
@@ -444,14 +499,18 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
     return fallbackMessage || strings('perps.errors.unknownError');
   }
 
-  // Extract error string from Error objects or use as-is
-  let errorString: string | null = null;
-
-  if (error instanceof Error) {
-    errorString = error.message;
-  } else if (typeof error === 'string') {
-    errorString = error;
+  const parsedError = normalizePerpsError(error);
+  if (!parsedError) {
+    return fallbackMessage || strings('perps.errors.unknownError');
   }
+  const errorString = parsedError.error;
+  const errorCode =
+    parsedError.errorCode ??
+    (isPerpsErrorCodeValue(errorString) ? errorString : undefined);
+  const normalizedError = errorCode
+    ? { ...parsedError, errorCode }
+    : parsedError;
+  const errorParams = getErrorInterpolationData(normalizedError, context);
 
   // Log error for debugging (without event tracking)
   debugLogger?.log('PerpsErrorHandler: Error encountered', {
@@ -461,20 +520,15 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   });
 
   // Check if it's a Core PerpsController or Perps Provider error code
-  if (
-    errorString &&
-    Object.values(PERPS_ERROR_CODES).includes(errorString as PerpsErrorCode)
-  ) {
+  if (errorCode && errorCode in ERROR_CODE_TO_I18N_KEY) {
     // Map error codes to their required parameters
-    const errorParams: Record<string, unknown> = {};
-
-    switch (errorString) {
+    switch (errorCode) {
       case PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED:
         errorParams.token = context?.token || 'Unknown';
         break;
       case PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE:
       case PERPS_ERROR_CODES.PROVIDER_NOT_FOUND:
-        errorParams.providerId = context?.providerId || 'Unknown';
+        // getErrorInterpolationData already resolved providerId.
         break;
       // Add other error codes that need parameters as they arise
       default:
@@ -483,23 +537,8 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
         break;
     }
 
-    const i18nKey = ERROR_CODE_TO_I18N_KEY[errorString as PerpsErrorCode];
+    const i18nKey = getErrorI18nKey(errorCode, errorParams);
     return strings(i18nKey, errorParams);
-  }
-
-  // Try pattern matching for API error messages
-  if (errorString) {
-    const matchedErrorCode = matchApiErrorPattern(errorString);
-    if (matchedErrorCode) {
-      debugLogger?.log('PerpsErrorHandler: Matched error pattern', {
-        originalError: errorString,
-        matchedCode: matchedErrorCode,
-      });
-
-      const i18nKey = ERROR_CODE_TO_I18N_KEY[matchedErrorCode];
-      // Pass through any provided context for interpolation
-      return strings(i18nKey, context || {});
-    }
   }
 
   // For any other error/error string that was not matched, use fallback

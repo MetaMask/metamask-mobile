@@ -3,6 +3,7 @@ import { SolScope } from '@metamask/keyring-api';
 
 import handleSolanaUrl, {
   buildSolanaPayAsset,
+  mapDeeplinkOriginToInitSendLocation,
   resolveSolanaPayTokenMeta,
 } from '../handleSolanaUrl';
 import {
@@ -12,6 +13,7 @@ import {
 import { InitSendLocation } from '../../../../components/Views/confirmations/constants/send';
 import NavigationService from '../../../NavigationService';
 import { fetchAssetMetadata } from '../../../../components/UI/Bridge/hooks/useAssetMetadata/utils';
+import AppConstants from '../../../AppConstants';
 
 jest.mock('../../../NavigationService', () => ({
   navigation: {
@@ -71,7 +73,10 @@ describe('handleSolanaUrl', () => {
   it('navigates to send with recipient, USDC asset, and normalized amount', async () => {
     const url = `solana:${RECIPIENT}?amount=25.515000&spl-token=${USDC_MINT}`;
 
-    await handleSolanaUrl({ url });
+    await handleSolanaUrl({
+      url,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+    });
 
     expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(
       NavigationService.navigation.navigate,
@@ -95,7 +100,10 @@ describe('handleSolanaUrl', () => {
   it('navigates to send with native SOL when spl-token is omitted', async () => {
     const url = `solana:${RECIPIENT}?amount=1.5`;
 
-    await handleSolanaUrl({ url });
+    await handleSolanaUrl({
+      url,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+    });
 
     expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(
       NavigationService.navigation.navigate,
@@ -114,15 +122,37 @@ describe('handleSolanaUrl', () => {
     );
   });
 
+  it('navigates to send with Deeplink location for a non-QR origin', async () => {
+    const url = `solana:${RECIPIENT}?amount=1.5`;
+
+    await handleSolanaUrl({
+      url,
+      origin: AppConstants.DEEPLINKS.ORIGIN_DEEPLINK,
+    });
+
+    expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(
+      NavigationService.navigation.navigate,
+      expect.objectContaining({
+        location: InitSendLocation.Deeplink,
+      }),
+    );
+  });
+
   it('alerts when the URI is not a Solana Pay transfer or transaction request', async () => {
-    await handleSolanaUrl({ url: 'solana:not-an-address' });
+    await handleSolanaUrl({
+      url: 'solana:not-an-address',
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+    });
 
     expect(Alert.alert).toHaveBeenCalledWith('deeplink.invalid');
     expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
   });
 
   it('alerts when the amount is malformed', async () => {
-    await handleSolanaUrl({ url: `solana:${RECIPIENT}?amount=1e5` });
+    await handleSolanaUrl({
+      url: `solana:${RECIPIENT}?amount=1e5`,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+    });
 
     expect(Alert.alert).toHaveBeenCalledWith('deeplink.invalid');
     expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
@@ -131,6 +161,7 @@ describe('handleSolanaUrl', () => {
   it('alerts when the amount has more decimals than the asset supports', async () => {
     await handleSolanaUrl({
       url: `solana:${RECIPIENT}?amount=1.1234567&spl-token=${USDC_MINT}`,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
     });
 
     expect(Alert.alert).toHaveBeenCalledWith('deeplink.invalid');
@@ -142,6 +173,7 @@ describe('handleSolanaUrl', () => {
 
     await handleSolanaUrl({
       url: `solana:${RECIPIENT}?amount=1&spl-token=${UNKNOWN_MINT}`,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
     });
 
     expect(Alert.alert).toHaveBeenCalledWith(
@@ -156,6 +188,7 @@ describe('handleSolanaUrl', () => {
 
     await handleSolanaUrl({
       url: `solana:${RECIPIENT}?amount=1&spl-token=${USDC_MINT}`,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
     });
 
     expect(mockHandleSendPageNavigation).toHaveBeenCalledWith(
@@ -174,6 +207,7 @@ describe('handleSolanaUrl', () => {
   it('alerts when the URI includes a Solana Pay reference', async () => {
     await handleSolanaUrl({
       url: `solana:${RECIPIENT}?amount=1&reference=${RECIPIENT}`,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
     });
 
     expect(Alert.alert).toHaveBeenCalledWith(
@@ -186,6 +220,7 @@ describe('handleSolanaUrl', () => {
   it('alerts when the URI includes a Solana Pay memo', async () => {
     await handleSolanaUrl({
       url: `solana:${RECIPIENT}?amount=1&memo=merchant-order-123`,
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
     });
 
     expect(Alert.alert).toHaveBeenCalledWith(
@@ -198,6 +233,7 @@ describe('handleSolanaUrl', () => {
   it('alerts when the URI is a Solana Pay transaction request', async () => {
     await handleSolanaUrl({
       url: 'solana:https://api.triple-a.io/pay?id=abc',
+      origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
     });
 
     expect(Alert.alert).toHaveBeenCalledWith(
@@ -205,6 +241,32 @@ describe('handleSolanaUrl', () => {
       'deeplink.solana_pay_transaction_request_not_supported',
     );
     expect(mockHandleSendPageNavigation).not.toHaveBeenCalled();
+  });
+});
+
+describe('mapDeeplinkOriginToInitSendLocation', () => {
+  it('maps QR origin to QRScanner', () => {
+    const origin = AppConstants.DEEPLINKS.ORIGIN_QR_CODE;
+
+    const location = mapDeeplinkOriginToInitSendLocation(origin);
+
+    expect(location).toBe(InitSendLocation.QRScanner);
+  });
+
+  it('maps a supported non-QR origin to Deeplink', () => {
+    const origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;
+
+    const location = mapDeeplinkOriginToInitSendLocation(origin);
+
+    expect(location).toBe(InitSendLocation.Deeplink);
+  });
+
+  it('maps an unknown origin to Deeplink', () => {
+    const origin = 'unknown-origin';
+
+    const location = mapDeeplinkOriginToInitSendLocation(origin);
+
+    expect(location).toBe(InitSendLocation.Deeplink);
   });
 });
 

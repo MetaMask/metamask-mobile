@@ -1,14 +1,21 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { FEED_CAIP2_CHAINS } from '../feed-constants';
-import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
+import { FEED_CAIP2_CHAINS } from '../../../../UI/SocialFeed/data/feed-constants';
 import {
+  mockFeedResponse,
+  mockSpotFeedItem,
+} from '../../../../UI/SocialFeed/mocks/coreFeed.mock';
+import {
+  buildSocialFeedQueryKey,
   FEED_PAGE_LIMIT,
+} from '../../../../UI/SocialFeed/data/socialFeedQueries';
+import { toSocialFeedRequest } from '../../../../UI/SocialFeed/data/socialFeedSource';
+import {
   PREFETCH_FEED_AUDIENCES,
+  toFeedScope,
   buildTraderFeedQueryKey,
   fetchTraderFeedPage,
   getTraderFeedNextPageParam,
   prefetchTraderFeeds,
-  toFeedScope,
 } from './traderFeedQueries';
 
 const expectedFeedFetchOptions = {
@@ -52,8 +59,21 @@ describe('traderFeedQueries', () => {
     it('returns the SocialService fetchFeed key for the given scope', () => {
       expect(buildTraderFeedQueryKey('following')).toEqual([
         'SocialService:fetchFeed',
-        { scope: 'following', chains: FEED_CAIP2_CHAINS },
+        {
+          scope: 'following',
+          chains: FEED_CAIP2_CHAINS,
+          limit: FEED_PAGE_LIMIT,
+        },
+        'infinite',
       ]);
+    });
+
+    it('matches the useSocialFeed key for the global feed, so both share a cache', () => {
+      const request = toSocialFeedRequest({ scope: 'leaderboard' });
+
+      expect(buildTraderFeedQueryKey('leaderboard')).toEqual(
+        request && buildSocialFeedQueryKey(request, FEED_PAGE_LIMIT),
+      );
     });
   });
 
@@ -97,23 +117,23 @@ describe('traderFeedQueries', () => {
   describe('prefetchTraderFeeds', () => {
     it('prefetches the first page of every feed audience', async () => {
       mockCall.mockResolvedValue(mockFeedResponse([]));
-      const prefetchInfiniteQuery = jest.fn().mockResolvedValue(undefined);
+      const infiniteQuery = jest.fn().mockResolvedValue(undefined);
       const queryClient = {
-        prefetchInfiniteQuery,
+        infiniteQuery,
       } as unknown as QueryClient;
 
       await prefetchTraderFeeds(queryClient);
 
-      expect(prefetchInfiniteQuery).toHaveBeenCalledTimes(
+      expect(infiniteQuery).toHaveBeenCalledTimes(
         PREFETCH_FEED_AUDIENCES.length,
       );
-      expect(prefetchInfiniteQuery).toHaveBeenCalledWith(
+      expect(infiniteQuery).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: buildTraderFeedQueryKey('following'),
           retry: false,
         }),
       );
-      expect(prefetchInfiniteQuery).toHaveBeenCalledWith(
+      expect(infiniteQuery).toHaveBeenCalledWith(
         expect.objectContaining({
           queryKey: buildTraderFeedQueryKey('leaderboard'),
           retry: false,
@@ -122,12 +142,12 @@ describe('traderFeedQueries', () => {
     });
 
     it('still resolves when one audience fetch rejects', async () => {
-      const prefetchInfiniteQuery = jest
+      const infiniteQuery = jest
         .fn()
         .mockResolvedValueOnce(undefined)
         .mockRejectedValueOnce(new Error('boom'));
       const queryClient = {
-        prefetchInfiniteQuery,
+        infiniteQuery,
       } as unknown as QueryClient;
 
       await expect(prefetchTraderFeeds(queryClient)).resolves.toBeUndefined();

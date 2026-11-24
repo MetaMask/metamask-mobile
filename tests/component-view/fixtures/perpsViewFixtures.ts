@@ -5,8 +5,8 @@ import type {
   Position,
 } from '@metamask/perps-controller';
 import {
-  PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
-  type ScreenVsBottomSheetVariant,
+  PERPS_HOME_EXPLORE_AB_TEST_KEY,
+  type PerpsHomeExploreVariant,
 } from '../../../app/components/UI/Perps/abTestConfig';
 
 export const createFundedAccountForViews = (balance: string): AccountState => ({
@@ -16,6 +16,33 @@ export const createFundedAccountForViews = (balance: string): AccountState => ({
   marginUsed: '0',
   unrealizedPnl: '0',
   returnOnEquity: '0',
+});
+
+/** Funded account whose cross summary the view tests can set per journey. */
+export const createCrossMarginAccountForViews = ({
+  balance = '1000',
+  accountValue = balance,
+  maintenanceMargin,
+  marginUsed,
+  notional,
+  spotCollateral = '0',
+}: {
+  balance?: string;
+  accountValue?: string;
+  maintenanceMargin: string;
+  marginUsed: string;
+  notional: string;
+  /** Spot USDC counted as cross collateral. `undefined` is not known yet. */
+  spotCollateral?: string;
+}): AccountState => ({
+  ...createFundedAccountForViews(balance),
+  spotCollateral,
+  crossMarginSummary: {
+    accountValue,
+    maintenanceMargin,
+    marginUsed,
+    notional,
+  },
 });
 
 const defaultEthMarketForViews: PerpsMarketData = {
@@ -128,14 +155,14 @@ export const createLimitOrderForViews = (
   ...overrides,
 });
 
-export const createScreenVsBottomSheetAssignmentForViews = (
-  variant: ScreenVsBottomSheetVariant,
+export const createHomeExploreAssignmentForViews = (
+  variant: PerpsHomeExploreVariant,
 ) => ({
   engine: {
     backgroundState: {
       RemoteFeatureFlagController: {
         remoteFeatureFlags: {
-          [PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY]: variant,
+          [PERPS_HOME_EXPLORE_AB_TEST_KEY]: variant,
         },
       },
     },

@@ -5,6 +5,11 @@ import SocialFiltersBottomSheet from './SocialFiltersBottomSheet';
 import { DEFAULT_FILTERS } from './filterDefaults';
 import type { SocialShellFilters } from './types';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(() => false),
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -65,6 +70,8 @@ jest.mock('@metamask/design-system-react-native', () => {
     Pressable,
   } = jest.requireActual('react-native');
   return {
+    ButtonIconSize: jest.requireActual('@metamask/design-system-react-native')
+      .ButtonIconSize,
     BottomSheet: ({
       children,
       testID,
@@ -76,20 +83,49 @@ jest.mock('@metamask/design-system-react-native', () => {
       children as React.ReactElement,
     BottomSheetFooter: ({
       primaryButtonProps,
+      secondaryButtonProps,
     }: {
       primaryButtonProps: {
         onPress: () => void;
         testID: string;
         children: string;
+        style?: Record<string, unknown>;
       };
+      secondaryButtonProps?: {
+        onPress: () => void;
+        testID: string;
+        children: string;
+        style?: Record<string, unknown>;
+      };
+      // The real footer applies `flex-1` first and merges the caller's style
+      // after it, so forwarding `style` mirrors what the button receives.
     }) =>
       ReactActual.createElement(
-        Pressable,
-        {
-          onPress: primaryButtonProps.onPress,
-          testID: primaryButtonProps.testID,
-        },
-        primaryButtonProps.children,
+        View,
+        null,
+        secondaryButtonProps
+          ? ReactActual.createElement(
+              Pressable,
+              {
+                onPress: secondaryButtonProps.onPress,
+                testID: secondaryButtonProps.testID,
+                style: [
+                  { flexGrow: 1, flexBasis: '0%' },
+                  secondaryButtonProps.style,
+                ],
+              },
+              secondaryButtonProps.children,
+            )
+          : null,
+        ReactActual.createElement(
+          Pressable,
+          {
+            onPress: primaryButtonProps.onPress,
+            testID: primaryButtonProps.testID,
+            style: [{ flexGrow: 1, flexBasis: '0%' }, primaryButtonProps.style],
+          },
+          primaryButtonProps.children,
+        ),
       ),
     Box: ({
       children,
@@ -108,6 +144,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     TextVariant: { BodyMd: 'body-md' },
     FontWeight: { Medium: 'medium' },
     ButtonSize: { Lg: 'lg' },
+    ButtonsAlignment: { Horizontal: 'horizontal' },
     FilterButton: ({
       children,
       value,
@@ -147,7 +184,7 @@ jest.mock('@metamask/design-system-react-native', () => {
           onPress: () => onChange?.(value),
         });
       }),
-    FilterButtonSize: { Lg: 'lg' },
+    FilterButtonSize: { Sm: 'sm', Lg: 'lg' },
     FilterButtonVariant: { Secondary: 'secondary' },
   };
 });
@@ -155,30 +192,52 @@ jest.mock('@metamask/design-system-react-native', () => {
 describe('SocialFiltersBottomSheet', () => {
   const baseDraft: SocialShellFilters = { ...DEFAULT_FILTERS };
 
-  it('renders the sheet title and show results CTA', () => {
+  it('renders the sheet title, Reset, and Apply', () => {
     render(
       <SocialFiltersBottomSheet
-        tab="trending"
+        tab="following"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
 
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
     expect(
-      screen.getByTestId('social-filters-bottom-sheet-show-results'),
+      screen.getByTestId('social-filters-bottom-sheet-apply'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-bottom-sheet-reset'),
     ).toBeOnTheScreen();
   });
 
-  it('renders the Type section for every tab', () => {
+  it('hides the Type section on the Leaderboard tab', () => {
     render(
       <SocialFiltersBottomSheet
         tab="leaderboard"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('social-filters-type-all')).toBeNull();
+    expect(screen.queryByTestId('social-filters-type-tokens')).toBeNull();
+    expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
+  });
+
+  it('renders the Type section on non-Leaderboard tabs', () => {
+    render(
+      <SocialFiltersBottomSheet
+        tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -187,31 +246,33 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.getByTestId('social-filters-type-tokens')).toBeOnTheScreen();
   });
 
-  it('hides the Time frame section on the Live trades tab', () => {
+  it('hides the Time frame section on Following and Live', () => {
     render(
       <SocialFiltersBottomSheet
-        tab="liveTrades"
+        tab="live"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
 
-    expect(screen.queryByTestId('social-filters-timeframe-1h')).toBeNull();
+    expect(screen.queryByTestId('social-filters-timeframe-7d')).toBeNull();
   });
 
-  it('shows the Time frame section on Trending and Leaderboard', () => {
+  it('shows the Time frame section on Leaderboard only', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
-        tab="trending"
+        tab="following"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
-    expect(screen.getByTestId('social-filters-timeframe-1h')).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-timeframe-7d')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
@@ -219,10 +280,16 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
-    expect(screen.getByTestId('social-filters-timeframe-1h')).toBeOnTheScreen();
+    expect(screen.getByTestId('social-filters-timeframe-7d')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-timeframe-30d'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-timeframe-1h')).toBeNull();
+    expect(screen.queryByTestId('social-filters-timeframe-24h')).toBeNull();
   });
 
   it('hides the Market cap and 24h volume sliders on the Leaderboard tab', () => {
@@ -232,6 +299,7 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -240,32 +308,38 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
-  it('shows the Following cohort chip on Trending and Live trades but not Leaderboard', () => {
+  it('shows the Following cohort chip on Leaderboard but not Following or Live', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
-        tab="trending"
+        tab="following"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
-    expect(
-      screen.getByTestId('social-filters-cohort-following'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-all')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-shrimp')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-dolphin')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-whale')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
-        tab="liveTrades"
+        tab="live"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
-    expect(
-      screen.getByTestId('social-filters-cohort-following'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-all')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-shrimp')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-dolphin')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-whale')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
@@ -273,39 +347,87 @@ describe('SocialFiltersBottomSheet', () => {
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
-    expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+    expect(
+      screen.getByTestId('social-filters-cohort-following'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-verified')).toBeNull();
   });
 
-  it('calls onApply when Show results is tapped', () => {
+  it('sizes Reset by its label and lets Apply take the remaining width', () => {
+    render(
+      <SocialFiltersBottomSheet
+        tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet-reset')).toHaveStyle(
+      {
+        flexGrow: 0,
+        flexShrink: 1,
+        flexBasis: 'auto',
+      },
+    );
+    expect(screen.getByTestId('social-filters-bottom-sheet-apply')).toHaveStyle(
+      {
+        flexGrow: 1,
+      },
+    );
+  });
+
+  it('calls onApply when Apply is tapped', () => {
     const onApply = jest.fn();
     render(
       <SocialFiltersBottomSheet
-        tab="trending"
+        tab="following"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={onApply}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
 
-    fireEvent.press(
-      screen.getByTestId('social-filters-bottom-sheet-show-results'),
-    );
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
 
     expect(onApply).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onReset when Reset is tapped', () => {
+    const onReset = jest.fn();
+    render(
+      <SocialFiltersBottomSheet
+        tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={onReset}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-reset'));
+
+    expect(onReset).toHaveBeenCalledTimes(1);
   });
 
   it('calls onChange with the new type when a Type chip is tapped', () => {
     const onChange = jest.fn();
     render(
       <SocialFiltersBottomSheet
-        tab="trending"
+        tab="following"
         draft={baseDraft}
         onChange={onChange}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
@@ -315,50 +437,45 @@ describe('SocialFiltersBottomSheet', () => {
     expect(onChange).toHaveBeenCalledWith({ type: 'tokens' });
   });
 
-  it('renders market cap and 24h volume sliders on Trending and Live trades', () => {
+  it('hides Market cap and 24h volume on Following and Live', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
-        tab="trending"
+        tab="following"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
 
-    expect(
-      screen.getByTestId('social-filters-market_cap-slider'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-filters-volume_24h-slider'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-market_cap-slider')).toBeNull();
+    expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
-        tab="liveTrades"
+        tab="live"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={jest.fn()}
       />,
     );
 
-    expect(
-      screen.getByTestId('social-filters-market_cap-slider'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-filters-volume_24h-slider'),
-    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-market_cap-slider')).toBeNull();
+    expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
   it('calls onClose when the backdrop is pressed', () => {
     const onClose = jest.fn();
     render(
       <SocialFiltersBottomSheet
-        tab="trending"
+        tab="following"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
+        onReset={jest.fn()}
         onClose={onClose}
       />,
     );
@@ -366,5 +483,125 @@ describe('SocialFiltersBottomSheet', () => {
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides Network chips on every tab', () => {
+    render(
+      <SocialFiltersBottomSheet
+        tab="live"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('social-filters-network-all')).toBeNull();
+  });
+
+  it('shows Positions on Trending, Following, and Live', () => {
+    const { rerender } = render(
+      <SocialFiltersBottomSheet
+        tab="trending"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-positions-all'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-positions-open'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-positions-closed'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
+    expect(
+      screen.queryByTestId('social-filters-verification-verified'),
+    ).toBeNull();
+    expect(screen.queryByTestId('social-filters-market_cap-slider')).toBeNull();
+
+    rerender(
+      <SocialFiltersBottomSheet
+        tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-positions-open'),
+    ).toBeOnTheScreen();
+
+    rerender(
+      <SocialFiltersBottomSheet
+        tab="live"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-positions-closed'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+
+    rerender(
+      <SocialFiltersBottomSheet
+        tab="leaderboard"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('social-filters-positions-open')).toBeNull();
+  });
+
+  it('omits Predictions and Verification on Following', () => {
+    render(
+      <SocialFiltersBottomSheet
+        tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
+    expect(
+      screen.queryByTestId('social-filters-verification-verified'),
+    ).toBeNull();
+  });
+
+  it('omits KOL from Traders chips', () => {
+    render(
+      <SocialFiltersBottomSheet
+        tab="leaderboard"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('social-filters-cohort-kol')).toBeNull();
   });
 });

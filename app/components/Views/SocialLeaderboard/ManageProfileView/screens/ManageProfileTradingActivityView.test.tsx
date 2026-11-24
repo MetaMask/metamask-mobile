@@ -1,19 +1,39 @@
 import React from 'react';
-import { fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
+import type { UseProfileControllerResult } from '../hooks/useProfileController';
 import ManageProfileTradingActivityView from './ManageProfileTradingActivityView';
 
 const mockGoBack = jest.fn();
+const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack }),
 }));
 
+jest.mock('../hooks/useProfileController', () => ({
+  useProfileController: () => mockUseProfileController(),
+}));
+
 describe('ManageProfileTradingActivityView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: false,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile: jest.fn().mockResolvedValue(undefined),
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
+    });
   });
 
   it('renders a display-only switch that stays on', () => {
@@ -31,13 +51,128 @@ describe('ManageProfileTradingActivityView', () => {
     });
   });
 
-  it('does not navigate when the info icon is pressed', () => {
+  it('renders the toggle label without an info icon', () => {
     renderWithProvider(<ManageProfileTradingActivityView />);
 
-    fireEvent.press(
-      screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.INFO_BUTTON),
-    );
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.show_trading_activity'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        ManageProfileTradingActivitySelectorsIDs.INFO_BUTTON,
+      ),
+    ).toBeNull();
+  });
 
-    expect(mockGoBack).not.toHaveBeenCalled();
+  it('updates trading privacy for a controller-backed profile', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: {
+        profileId: 'profile-123',
+        username: 'alice',
+        displayName: 'Alice',
+        bio: '',
+        linkedAddresses: [],
+        avatarUrl: '',
+        tradingPrivacy: 'public',
+        connectedToX: false,
+        verified: false,
+        createdAt: '',
+        updatedAt: '',
+      },
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
+    });
+
+    renderWithProvider(<ManageProfileTradingActivityView />);
+
+    expect(
+      screen.getByTestId(
+        `${ManageProfileTradingActivitySelectorsIDs.BENEFITS}-positions-shown`,
+      ),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
+        'valueChange',
+        false,
+      );
+    });
+
+    expect(updateProfile).toHaveBeenCalledWith({
+      trading_privacy: 'private',
+    });
+    expect(
+      screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
+    ).toHaveProp('value', false);
+    expect(
+      screen.getByTestId(
+        `${ManageProfileTradingActivitySelectorsIDs.BENEFITS}-positions-hidden`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        `${ManageProfileTradingActivitySelectorsIDs.BENEFITS}-private-shown`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('restores the switch and shows the save error when the update fails', async () => {
+    const updateProfile = jest
+      .fn()
+      .mockRejectedValue(new Error('profile update failed'));
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: {
+        profileId: 'profile-123',
+        username: 'alice',
+        displayName: 'Alice',
+        bio: '',
+        linkedAddresses: [],
+        avatarUrl: '',
+        tradingPrivacy: 'public',
+        connectedToX: false,
+        verified: false,
+        createdAt: '',
+        updatedAt: '',
+      },
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability: jest.fn(),
+      checkDisplayNameValidity: jest.fn().mockResolvedValue({ valid: true }),
+    });
+
+    renderWithProvider(<ManageProfileTradingActivityView />);
+
+    await act(async () => {
+      fireEvent(
+        screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
+        'valueChange',
+        false,
+      );
+    });
+
+    expect(
+      screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),
+    ).toHaveProp('value', true);
+    expect(
+      screen.getByText(strings('social_leaderboard.manage_profile.save_error')),
+    ).toBeOnTheScreen();
   });
 });

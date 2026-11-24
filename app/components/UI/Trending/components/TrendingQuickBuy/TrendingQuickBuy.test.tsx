@@ -101,6 +101,46 @@ describe('TrendingQuickBuy', () => {
     );
   });
 
+  it.each([
+    'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+    'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+  ] as const)(
+    'keeps the full CAIP-19 assetId for non-EVM token %s',
+    (assetId) => {
+      render(
+        <TrendingQuickBuy token={makeToken({ assetId })} onClose={jest.fn()} />,
+      );
+
+      expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+        expect.objectContaining({
+          target: expect.objectContaining({
+            chain: assetId.split('/')[0],
+            tokenAddress: assetId,
+          }),
+        }),
+      );
+    },
+  );
+
+  it('maps a non-EVM native (slip44) TrendingAsset to the zero address', () => {
+    const token = makeToken({
+      assetId: 'stellar:pubnet/slip44:148',
+      symbol: 'XLM',
+      name: 'Stellar',
+    });
+
+    render(<TrendingQuickBuy token={token} onClose={jest.fn()} />);
+
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: expect.objectContaining({
+          chain: 'stellar:pubnet',
+          tokenAddress: '0x0000000000000000000000000000000000000000',
+        }),
+      }),
+    );
+  });
+
   it('passes analyticsContext with source=explore_search to QuickBuy.Root', () => {
     render(<TrendingQuickBuy token={makeToken()} onClose={jest.fn()} />);
 

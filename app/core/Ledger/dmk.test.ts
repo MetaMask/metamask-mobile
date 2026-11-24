@@ -1,4 +1,4 @@
-import { isDmkEnabled } from './dmk';
+import { getLedgerDmkMode, initializeLedgerDmkMode, isDmkEnabled } from './dmk';
 import { FeatureFlagNames } from '../../constants/featureFlags';
 import { validatedVersionGatedFeatureFlag } from '../../util/remoteFeatureFlag';
 
@@ -56,4 +56,23 @@ describe('isDmkEnabled', () => {
 
   // LEDGER_FORCE_DMK is inlined by babel-plugin-transform-inline-environment-variables
   // at compile time, so its true branch cannot be exercised via runtime env mutation.
+});
+
+describe('getLedgerDmkMode', () => {
+  it('returns the legacy stack (false) before Engine initialization has seeded the mode', () => {
+    // Isolate a fresh module instance so the unseeded state is exercised
+    // regardless of test order within this file.
+    jest.isolateModules(() => {
+      const { getLedgerDmkMode: freshGetLedgerDmkMode } =
+        jest.requireActual('./dmk');
+
+      expect(freshGetLedgerDmkMode()).toBe(false);
+    });
+  });
+
+  it('reads back the mode seeded by initializeLedgerDmkMode', () => {
+    initializeLedgerDmkMode({ [FeatureFlagNames.ledgerDmk]: true });
+
+    expect(getLedgerDmkMode()).toBe(true);
+  });
 });

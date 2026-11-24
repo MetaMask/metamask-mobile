@@ -15,6 +15,7 @@ import {
   type DeepLinkModalParams,
 } from '../../../components/UI/DeepLinkModal';
 import handleDeepLinkModalDisplay from '../utils/handleDeepLinkModalDisplay';
+import { capturePendingMoneyReferralCode } from '../utils/capturePendingMoneyReferralCode';
 import handleMetaMaskDeeplink from './handleMetaMaskDeeplink';
 import { capitalize } from '../../../util/general';
 import handleRampUrl from './legacy/handleRampUrl';
@@ -57,12 +58,18 @@ import {
 } from './intent/handleTrendingUrl';
 import { handleWhatsHappeningUrl } from './legacy/handleWhatsHappeningUrl';
 import { handleSocialLeaderboardUrl } from './legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderUrl } from './legacy/handleSocialTraderUrl';
 import { handleSocialTraderPositionUrl } from './legacy/handleSocialTraderPositionUrl';
+import { handleSocialUrl } from './legacy/handleSocialUrl';
 import { handleEarnMusd } from './legacy/handleEarnMusd';
 import { handleAssetUrl } from './legacy/handleAssetUrl';
 import { handleNftUrl } from './legacy/handleNftUrl';
 import { handleAgenticCliApproval } from './legacy/handleAgenticCliApproval';
 import { handlePrivacyUrl } from './legacy/handlePrivacyUrl';
+import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from './intent/handleNotificationsSettingsUrl';
 import {
   getDeeplinkProcessedTraceContext,
   markDeeplinkInterstitialShown,
@@ -87,6 +94,7 @@ import {
   DeepLinkRoute,
 } from '../types/deepLinkAnalytics.types';
 import { isSupportedAction } from '../types/deepLink.types';
+import { resolveSocialDeeplinkTarget } from '../util/deeplinks/socialDeeplinkPath';
 import { selectDeepLinkModalDisabled } from '../../../selectors/settings';
 import ReduxService from '../../redux';
 import { analytics } from '../../../util/analytics/analytics';
@@ -95,8 +103,10 @@ import Logger from '../../../util/Logger';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
-
-const { MM_IO_UNIVERSAL_LINK_HOST } = AppConstants;
+import {
+  createMoneyDepositDeeplinkIntent,
+  handleMoneyDeposit,
+} from './intent/handleMoneyDeposit';
 
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
@@ -124,6 +134,8 @@ const SUPPORTED_ACTIONS = {
   TRENDING: ACTIONS.TRENDING,
   WHATS_HAPPENING: ACTIONS.WHATS_HAPPENING,
   TOP_TRADERS: ACTIONS.TOP_TRADERS,
+  SOCIAL: ACTIONS.SOCIAL,
+  SOCIAL_TRADER: ACTIONS.SOCIAL_TRADER,
   SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
@@ -131,6 +143,9 @@ const SUPPORTED_ACTIONS = {
   AGENTIC_CLI: ACTIONS.AGENTIC_CLI,
   ON_RAMP: ACTIONS.ON_RAMP,
   PRIVACY: ACTIONS.PRIVACY,
+  NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
+  MONEY_ACCOUNT_DEPOSIT: ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  KYC: ACTIONS.KYC,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -145,6 +160,7 @@ type SUPPORTED_ACTIONS =
  * Actions that should not show the deep link INTERSTITIAL modal
  */
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
+  SUPPORTED_ACTIONS.HOME,
   SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.SWAP,
   SUPPORTED_ACTIONS.BATCH_SELL,
@@ -165,13 +181,18 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.TRENDING,
   SUPPORTED_ACTIONS.WHATS_HAPPENING,
   SUPPORTED_ACTIONS.TOP_TRADERS,
+  SUPPORTED_ACTIONS.SOCIAL,
+  SUPPORTED_ACTIONS.SOCIAL_TRADER,
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
   SUPPORTED_ACTIONS.AGENTIC_CLI,
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
+  SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT,
+  SUPPORTED_ACTIONS.KYC,
   SUPPORTED_ACTIONS.ASSET,
+  SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS,
 ];
 
 const interstitialWhitelistUrls = [] as const;
@@ -221,8 +242,10 @@ interface UniversalLinkActionHandler {
   ) => DeeplinkIntent | Promise<DeeplinkIntent> | null;
 }
 
-// perps-asset URLs carry just '?symbol=X', so inject screen=asset to reuse the
-// unified perps handler/intent builder.
+// perps-asset URLs carry just '?symbol=X' (and optionally '&mode=pro'), so
+// inject screen=asset to reuse the unified perps handler/intent builder. Any
+// other query params (e.g. `mode=pro` to open the market in Pro mode, which
+// defaults to BTC when `symbol` is omitted) are forwarded through as-is.
 const getPerpsAssetPath = (actionBasedRampPath: string): string =>
   `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`;
 
@@ -312,6 +335,44 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
     resolve: ({ actionBasedRampPath }) =>
       createTrendingDeeplinkIntent({ actionPath: actionBasedRampPath }),
   },
+  [SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleNotificationsSettingsUrl({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
+    resolve: ({ actionBasedRampPath }) =>
+      createNotificationsSettingsDeeplinkIntent({
+        notificationsSettingsPath: actionBasedRampPath,
+      }),
+  },
+  [SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT]: {
+    execute: ({ actionBasedRampPath }) =>
+      handleMoneyDeposit({ moneyDepositPath: actionBasedRampPath }),
+    resolve: ({ actionBasedRampPath }) =>
+      createMoneyDepositDeeplinkIntent({
+        moneyDepositPath: actionBasedRampPath,
+      }),
+  },
+};
+
+const resolveUniversalLinkRoute = (
+  action: string,
+  pathname: string,
+): DeepLinkRoute => {
+  if (action === ACTIONS.SOCIAL) {
+    switch (resolveSocialDeeplinkTarget(pathname)) {
+      case 'position':
+        return DeepLinkRoute.SOCIAL_TRADER_POSITION;
+      case 'trader':
+        return DeepLinkRoute.SOCIAL_TRADER;
+      default:
+        return DeepLinkRoute.TOP_TRADERS;
+    }
+  }
+
+  return isSupportedAction(action)
+    ? mapSupportedActionToRoute(action)
+    : DeepLinkRoute.INVALID;
 };
 
 async function handleUniversalLink({
@@ -341,17 +402,23 @@ async function handleUniversalLink({
     throw new Error('Invalid hostname');
   }
 
-  const action: SUPPORTED_ACTIONS | ACTIONS.OAUTH_REDIRECT =
-    validatedUrl.pathname.split('/')[1] as
-      | SUPPORTED_ACTIONS
-      | ACTIONS.OAUTH_REDIRECT;
+  const action:
+    | SUPPORTED_ACTIONS
+    | ACTIONS.OAUTH_REDIRECT
+    | ACTIONS.X_OAUTH_REDIRECT = validatedUrl.pathname.split('/')[1] as
+    | SUPPORTED_ACTIONS
+    | ACTIONS.OAUTH_REDIRECT
+    | ACTIONS.X_OAUTH_REDIRECT;
 
   // Skip handling deeplinks that do not have a pathname or query
   // Skip handling oauth-login universal links (it is handled by the OAuthService)
+  // Skip handling the X OAuth relay link (it is handled by XAuthService while
+  // its connect flow is in flight).
   // Ex. It's common for third party apps to open MetaMask using only the scheme (metamask://)
   if (
     (!validatedUrl.pathname.replace('/', '') && !validatedUrl.search) ||
-    action === ACTIONS.OAUTH_REDIRECT
+    action === ACTIONS.OAUTH_REDIRECT ||
+    action === ACTIONS.X_OAUTH_REDIRECT
   ) {
     handled();
     return;
@@ -379,7 +446,7 @@ async function handleUniversalLink({
   // Intercept SDK actions and handle them in handleMetaMaskDeeplink
   if (isMetaMaskSDKDeeplinkAction(action)) {
     const mappedUrl = url.replace(
-      `${PROTOCOLS.HTTPS}://${MM_IO_UNIVERSAL_LINK_HOST}/`,
+      `${PROTOCOLS.HTTPS}://${validatedUrl.hostname}/`,
       `${PROTOCOLS.METAMASK}://`,
     );
     const { urlObj: mappedUrlObj, params } = extractURLParams(mappedUrl);
@@ -536,9 +603,7 @@ async function handleUniversalLink({
   }
 
   // Type guard to ensure action is a SupportedAction before mapping
-  const route = isSupportedAction(action)
-    ? mapSupportedActionToRoute(action)
-    : DeepLinkRoute.INVALID;
+  const route = resolveUniversalLinkRoute(action, validatedUrl.pathname);
 
   // Get interstitial disabled state safely
   let interstitialDisabled = false;
@@ -707,6 +772,8 @@ async function handleUniversalLink({
     return false;
   }
 
+  capturePendingMoneyReferralCode(validatedUrl);
+
   const BASE_URL_ACTION = `${PROTOCOLS.HTTPS}://${urlObj.hostname}/${action}`;
   const actionBasedRampPath = urlObj.href.replace(BASE_URL_ACTION, '');
   const universalLinkActionHandlerContext: UniversalLinkActionHandlerContext = {
@@ -816,7 +883,21 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.TOP_TRADERS: {
-      handleSocialLeaderboardUrl();
+      handleSocialLeaderboardUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL: {
+      handleSocialUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL_TRADER: {
+      handleSocialTraderUrl({
+        actionPath: actionBasedRampPath,
+      });
       break;
     }
     case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {
@@ -838,7 +919,13 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.MONEY: {
-      handleMoney();
+      handleMoney({ moneyPath: actionBasedRampPath });
+      break;
+    }
+    case SUPPORTED_ACTIONS.KYC: {
+      // The session id is not read yet. The Money account screen resumes the
+      // latest Iron KYC session.
+      handleMoney({ moneyPath: '?screen=account' });
       break;
     }
     case SUPPORTED_ACTIONS.PRIVACY: {

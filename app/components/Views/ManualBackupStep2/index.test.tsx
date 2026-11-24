@@ -526,7 +526,7 @@ describe('ManualBackupStep2', () => {
     });
   });
 
-  describe('HeaderStandard back button', () => {
+  describe('header back button', () => {
     it('triggers goBack when back button is pressed', () => {
       const mockGoBack = jest.fn();
       const navProps = createMockNavigationProps({ goBack: mockGoBack });
@@ -602,30 +602,6 @@ describe('ManualBackupStep2', () => {
       fireEvent.press(
         wrapper.getByTestId(
           ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_TRY_AGAIN_BUTTON,
-        ),
-      );
-
-      const emptySlots: ReactTestInstance[] = [];
-      for (let i = 0; i < 12; i++) {
-        try {
-          emptySlots.push(
-            wrapper.getByTestId(
-              `${ManualBackUpStepsSelectorsIDs.GRID_ITEM_EMPTY}-${i}`,
-            ),
-          );
-        } catch {
-          // filled slot — skip
-        }
-      }
-      expect(emptySlots).toHaveLength(3);
-    });
-
-    it('regenerates grid with 3 empty slots when error sheet close is pressed', async () => {
-      const { wrapper } = await setupErrorSheet();
-
-      fireEvent.press(
-        wrapper.getByTestId(
-          ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_CLOSE_BUTTON,
         ),
       );
 

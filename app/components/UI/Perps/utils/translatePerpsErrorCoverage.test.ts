@@ -27,6 +27,17 @@ const resolveTranslation = (i18nKey: string): string | undefined => {
 };
 
 describe('ERROR_CODE_TO_I18N_KEY', () => {
+  it('maps IOC cancellation to user-facing slippage copy', () => {
+    const key = ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.IOC_CANCEL];
+
+    const message = resolveTranslation(key);
+
+    expect(key).toBe('perps.errors.iocCancel');
+    expect(message).not.toContain(PERPS_ERROR_CODES.IOC_CANCEL);
+    expect(message).toContain('slippage tolerance');
+    expect(message).toContain('limit order');
+  });
+
   const errorCodes = Object.values(PERPS_ERROR_CODES);
 
   it('maps every error code the controller exports', () => {
@@ -111,6 +122,39 @@ describe('ERROR_CODE_TO_I18N_KEY', () => {
     const unmapped = v16Codes.filter((code) => !ERROR_CODE_TO_I18N_KEY[code]);
 
     expect(unmapped).toStrictEqual([]);
+  });
+
+  it('maps the v23 and v24 provider-route and TP/SL leg codes', () => {
+    const routeKey =
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PROVIDER_ROUTE_REQUIRED];
+    const legReplaceCopy = resolveTranslation(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+    );
+
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.TPSL_LEG_REPLACE_UNSUPPORTED],
+    ).toBe('perps.errors.tpslLegReplaceUnsupported');
+    expect(legReplaceCopy).toContain('together instead');
+    expect(legReplaceCopy).not.toContain('Try again');
+    expect(routeKey).toBe('perps.errors.providerRouteRequired');
+    expect(resolveTranslation(routeKey)).toBe(
+      'No exchange selected. Select one and try again.',
+    );
+  });
+
+  it('maps the v20 price-moved code to detailed price movement copy', () => {
+    expect(ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.PRICE_MOVED]).toBe(
+      'perps.errors.priceMoved',
+    );
+  });
+
+  it('maps post-only codes to the existing post-only copy', () => {
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.ORDER_POST_ONLY_WOULD_CROSS],
+    ).toBe('perps.errors.postOnlyWouldCross');
+    expect(
+      ERROR_CODE_TO_I18N_KEY[PERPS_ERROR_CODES.ORDER_POST_ONLY_WINDOW],
+    ).toBe('perps.errors.postOnlyWindow');
   });
 
   it('resolves every mapped i18n key to English copy', () => {

@@ -13,14 +13,17 @@ import type { BridgeControllerInitMessenger } from '../../messengers/bridge-cont
 import { TransactionParams } from '@metamask/transaction-controller';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
-import {
-  ChainId,
-  handleFetch,
-  TraceCallback,
-} from '@metamask/controller-utils';
+import { ChainId, handleFetch } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
+import ReduxService from '../../../redux';
+import {
+  FirstQuoteAbTestVariant,
+  IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
+  YIELD_AFTER_FIRST_QUOTE_AB_KEY,
+  selectFirstQuoteAbTestVariant,
+} from '../../../../components/UI/Bridge/utils/firstQuoteFlushAbTestConfig';
 import packageJSON from '../../../../../package.json';
 
 const { version: clientVersion } = packageJSON;
@@ -80,12 +83,21 @@ export const bridgeControllerInit: MessengerClientInitFunction<
           properties as AnalyticsUnfilteredProperties,
         );
       },
-      traceFn: trace as TraceCallback,
-
+      traceFn: trace,
       // AssetsController is now the sole source of truth for asset rates
       // (the legacy TokenRatesController/CurrencyRateController have been
       // removed).
       getUseAssetsControllerForRates: () => true,
+      getShouldFetchFirstQuoteImmediately: () =>
+        selectFirstQuoteAbTestVariant(
+          ReduxService.store.getState(),
+          IMMEDIATE_FIRST_QUOTE_FETCH_AB_KEY,
+        ) === FirstQuoteAbTestVariant.Treatment,
+      getShouldYieldAfterFirstQuote: () =>
+        selectFirstQuoteAbTestVariant(
+          ReduxService.store.getState(),
+          YIELD_AFTER_FIRST_QUOTE_AB_KEY,
+        ) === FirstQuoteAbTestVariant.Treatment,
     });
 
     return { controller: bridgeController };

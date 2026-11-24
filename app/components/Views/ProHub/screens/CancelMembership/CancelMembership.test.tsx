@@ -1,7 +1,10 @@
 import React from 'react';
 import { BackHandler } from 'react-native';
+import { Provider } from 'react-redux';
 import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import {
+  CANCELLATION_REASONS,
   CANCEL_TYPES,
   PAYMENT_TYPES,
   PRODUCT_TYPES,
@@ -12,10 +15,25 @@ import {
 import CancelMembership from './CancelMembership';
 import {
   CancelMembershipTestIds,
+  getCancelReasonCheckmarkTestId,
   getCancelReasonTestId,
 } from './CancelMembership.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import configureStore from '../../../../../util/test/configureStore';
+import initialRootState from '../../../../../util/test/initial-root-state';
 import { POST_CANCELLATION_PRO_HUB_SOURCE } from './CancelMembership.utils';
+import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
+import useMoneyPremiumVaultRate from '../../../../UI/Money/hooks/useMoneyPremiumVaultRate';
+import { strings } from '../../../../../../locales/i18n';
+
+const PREMIUM_APY = '7.1%';
+const CASHBACK_RATE = '3%';
+
+const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
+jest.mock('../../../../UI/Money/hooks/useMoneyPremiumVaultRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -40,6 +58,19 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockInvalidateQueries = jest.fn().mockResolvedValue(undefined);
+const mockRemoveQueries = jest.fn();
+
+jest.mock('../../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+      removeQueries: (...args: unknown[]) => mockRemoveQueries(...args),
+    },
+  },
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
   default: {
@@ -61,6 +92,19 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
+const getOnPress = (button: ReactTestInstance): (() => void) => {
+  let current: ReactTestInstance | null = button;
+  while (current) {
+    const { onPress } = current.props as { onPress?: () => void };
+    if (typeof onPress === 'function') {
+      return onPress;
+    }
+    current = current.parent;
+  }
+  throw new Error('onPress handler not found');
+};
+
+const CURRENT_PERIOD_END = '2027-07-20T12:00:00.000Z';
 const PLUS_SUBSCRIPTION: Subscription = {
   id: 'subscription-1',
   products: [
@@ -72,7 +116,7 @@ const PLUS_SUBSCRIPTION: Subscription = {
     },
   ],
   currentPeriodStart: '2027-06-20T12:00:00.000Z',
-  currentPeriodEnd: '2027-07-20T12:00:00.000Z',
+  currentPeriodEnd: CURRENT_PERIOD_END,
   status: SUBSCRIPTION_STATUSES.active,
   interval: RECURRING_INTERVALS.year,
   paymentMethod: {
@@ -86,14 +130,6 @@ const PLUS_SUBSCRIPTION: Subscription = {
   cancelType: CANCEL_TYPES.ALLOWED_AT_PERIOD_END,
   isEligibleForSupport: true,
 };
-const FORMATTED_PERIOD_END = new Date(
-  PLUS_SUBSCRIPTION.currentPeriodEnd,
-).toLocaleDateString(undefined, {
-  month: 'long',
-  day: 'numeric',
-  year: 'numeric',
-});
-
 const mockProFlowState = {
   key: 'stack',
   index: 3,
@@ -108,7 +144,7 @@ const mockProFlowState = {
   stale: false,
 };
 
-const expectPostCancellationReset = (shouldReturnToProHub = true) => {
+const expectPostCancellationReset = () => {
   expect(mockDispatch).toHaveBeenCalledTimes(1);
   const stackReducer = mockDispatch.mock.calls[0][0] as (
     state: typeof mockProFlowState,
@@ -119,16 +155,32 @@ const expectPostCancellationReset = (shouldReturnToProHub = true) => {
     expect.objectContaining({
       type: 'RESET',
       payload: expect.objectContaining({
-        index: shouldReturnToProHub ? 1 : 0,
-        routes: shouldReturnToProHub
-          ? [
-              { key: 'home', name: 'Home' },
-              {
-                name: Routes.PRO_HUB.ROOT,
-                params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
-              },
-            ]
-          : [{ key: 'home', name: 'Home' }],
+        index: 1,
+        routes: [
+          { key: 'home', name: 'Home' },
+          {
+            name: Routes.PRO_HUB.ROOT,
+            params: { source: POST_CANCELLATION_PRO_HUB_SOURCE },
+          },
+        ],
+      }),
+    }),
+  );
+};
+
+const expectHomeCancellationReset = () => {
+  expect(mockDispatch).toHaveBeenCalledTimes(1);
+  const stackReducer = mockDispatch.mock.calls[0][0] as (
+    state: typeof mockProFlowState,
+  ) => unknown;
+
+  expect(typeof stackReducer).toBe('function');
+  expect(stackReducer(mockProFlowState)).toEqual(
+    expect.objectContaining({
+      type: 'RESET',
+      payload: expect.objectContaining({
+        index: 0,
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       }),
     }),
   );
@@ -142,9 +194,55 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
+// ─── Design system animation ─────────────────────────────────────────────────
+// BottomSheet and Button drive native animations. Jest has no native animated
+// emitter, so both are plain views here. Press and disabled still work.
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactNative = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { Pressable, View } = ReactNative;
+
+  return {
+    ...actual,
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children: React.ReactNode;
+      testID?: string;
+    }) => <View testID={testID}>{children}</View>,
+    Button: ({
+      children,
+      onPress,
+      testID,
+      isDisabled,
+    }: {
+      children: React.ReactNode;
+      onPress?: () => void;
+      testID?: string;
+      isDisabled?: boolean;
+    }) => (
+      <Pressable
+        testID={testID}
+        onPress={onPress}
+        disabled={isDisabled}
+        accessibilityState={{ disabled: Boolean(isDisabled) }}
+      >
+        {children}
+      </Pressable>
+    ),
+  };
+});
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const renderScreen = () => render(<CancelMembership />);
+const renderScreen = () =>
+  render(
+    <Provider store={configureStore(initialRootState)}>
+      <CancelMembership />
+    </Provider>,
+  );
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -154,6 +252,13 @@ describe('CancelMembership', () => {
     mockAddListener.mockReturnValue(jest.fn());
     mockGetSubscriptionByProduct.mockReturnValue(PLUS_SUBSCRIPTION);
     mockCancelSubscription.mockResolvedValue(undefined);
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    mockUseMoneyPremiumVaultRate.mockReturnValue({
+      vaultRateQuery: { data: undefined },
+      rate: '0.071',
+      ratePercent: 7.1,
+      ratePercentFormatted: PREMIUM_APY,
+    } as ReturnType<typeof useMoneyPremiumVaultRate>);
   });
 
   afterEach(() => {
@@ -166,69 +271,14 @@ describe('CancelMembership', () => {
     expect(getByTestId(CancelMembershipTestIds.CONTAINER)).toBeOnTheScreen();
   });
 
-  it('starts on the survey step', () => {
+  it('starts on the reason step', () => {
     const { getByTestId, queryByTestId } = renderScreen();
 
     expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
-    expect(
-      queryByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
-    ).not.toBeOnTheScreen();
-  });
-
-  it('shows the stay question after a reason is selected', () => {
-    const { getByTestId, queryByTestId } = renderScreen();
-
     expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
-
-    expect(
-      getByTestId(CancelMembershipTestIds.STAY_QUESTION),
-    ).toBeOnTheScreen();
   });
 
-  it('shows the other reason input after other is selected', () => {
-    const { getByTestId, queryByTestId } = renderScreen();
-
-    expect(
-      queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-    ).toBeNull();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-
-    expect(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides the other reason input after switching from other to a different reason', () => {
-    const { getByTestId, queryByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
-
-    expect(
-      queryByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-    ).toBeNull();
-  });
-
-  it('keeps typed other reason text after switching away from other and back', () => {
-    const { getByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-    fireEvent.changeText(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      'Too many emails',
-    );
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-
-    expect(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT).props.value,
-    ).toBe('Too many emails');
-  });
-
-  it('calls goBack when the back button on the survey step is pressed', () => {
+  it('calls goBack when the back button on the reason step is pressed', () => {
     const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
@@ -244,16 +294,235 @@ describe('CancelMembership', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  // ── Two-step survey ───────────────────────────────────────────────────────
+
+  describe('two-step survey', () => {
+    it('advances to the stay step when a reason is selected', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.TITLE)).toBeNull();
+      expect(queryByTestId(CancelMembershipTestIds.REASONS_LIST)).toBeNull();
+    });
+
+    it('advances to the stay step when other is selected', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.OTHER)),
+      );
+
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.TITLE)).toBeNull();
+    });
+
+    it('keeps the reason order when returning from the stay step', () => {
+      const randomSpy = jest.spyOn(Math, 'random');
+      randomSpy
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0)
+        .mockReturnValueOnce(0)
+        .mockReturnValue(0.99);
+
+      const { getByTestId, getAllByRole } = renderScreen();
+      const orderBeforeLeave = getAllByRole('radio').map(
+        (item) => item.props.testID,
+      );
+
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(getAllByRole('radio').map((item) => item.props.testID)).toEqual(
+        orderBeforeLeave,
+      );
+    });
+
+    it('returns to the reason step with the selection preserved when back is pressed', () => {
+      const { getByTestId, queryByTestId } = renderScreen();
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          getCancelReasonCheckmarkTestId(CANCELLATION_REASONS.TOO_EXPENSIVE),
+        ),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('keeps typed stay feedback after going back and selecting another reason', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+      fireEvent.changeText(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+        'Lower the price',
+      );
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+      fireEvent.press(
+        getByTestId(
+          getCancelReasonTestId(CANCELLATION_REASONS.NOT_USING_BENEFITS),
+        ),
+      );
+
+      expect(
+        getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT).props.value,
+      ).toBe('Lower the price');
+    });
+
+    it('calls goBack when keep membership is pressed on the stay step', () => {
+      const { getByTestId } = renderScreen();
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.KEEP_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not block leaving by gesture on the stay step', () => {
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+
+      expect(mockSetOptions).toHaveBeenLastCalledWith({
+        gestureEnabled: true,
+      });
+    });
+
+    it('redirects beforeRemove on the stay step back to the reason step', () => {
+      let beforeRemoveHandler:
+        | ((e: { preventDefault: () => void }) => void)
+        | undefined;
+      mockAddListener.mockImplementation(
+        (
+          event: string,
+          handler: (e: { preventDefault: () => void }) => void,
+        ) => {
+          if (event === 'beforeRemove') {
+            beforeRemoveHandler = handler;
+          }
+          return jest.fn();
+        },
+      );
+      const { getByTestId, queryByTestId } = renderScreen();
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+      expect(beforeRemoveHandler).toBeDefined();
+
+      const mockPreventDefault = jest.fn();
+      act(() => {
+        beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
+      });
+
+      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
+      expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('does not register a beforeRemove listener on the reason step', () => {
+      renderScreen();
+
+      expect(mockAddListener).not.toHaveBeenCalledWith(
+        'beforeRemove',
+        expect.any(Function),
+      );
+    });
+
+    it('redirects the Android hardware back button on the stay step to the reason step', () => {
+      let backPressHandler: (() => boolean) | undefined;
+      jest
+        .spyOn(BackHandler, 'addEventListener')
+        .mockImplementation((_event, handler) => {
+          backPressHandler = handler as () => boolean;
+          return { remove: jest.fn() };
+        });
+      const { getByTestId, queryByTestId } = renderScreen();
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+      );
+      expect(backPressHandler).toBeDefined();
+
+      let handled: boolean | undefined;
+      act(() => {
+        handled = backPressHandler?.();
+      });
+
+      expect(handled).toBe(true);
+      expect(getByTestId(CancelMembershipTestIds.TITLE)).toBeOnTheScreen();
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  it('cancels once when confirm is pressed twice before the request settles', async () => {
+    let resolveCancel: (() => void) | undefined;
+    mockCancelSubscription.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveCancel = () => resolve();
+      }),
+    );
+    const { getByTestId } = renderScreen();
+    const cancelButton = getByTestId(CancelMembershipTestIds.CANCEL_BUTTON);
+    const pressCancel = getOnPress(cancelButton);
+
+    act(() => {
+      pressCancel();
+      pressCancel();
+    });
+
+    expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      resolveCancel?.();
+    });
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
+    expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
   it('cancels at period end without a reason when the survey is skipped', async () => {
-    const { getByTestId, queryByTestId } = renderScreen();
+    const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
     await waitFor(() =>
       expect(
-        getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
       ).toBeOnTheScreen(),
     );
+    expect(mockDispatch).not.toHaveBeenCalled();
 
     expect(mockGetSubscriptionByProduct).toHaveBeenCalledWith(
       PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
@@ -262,27 +531,32 @@ describe('CancelMembership', () => {
       subscriptionId: PLUS_SUBSCRIPTION.id,
       cancelAtPeriodEnd: true,
     });
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
+    expect(mockRemoveQueries).toHaveBeenCalledTimes(1);
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
       'cancellationReason',
     );
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
       'cancellationFeedback',
     );
-    expect(
-      getByTestId(CancelMembershipTestIds.SUCCESS_DESCRIPTION),
-    ).toHaveTextContent(new RegExp(FORMATTED_PERIOD_END));
-    expect(queryByTestId(CancelMembershipTestIds.TITLE)).not.toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
+
+    fireEvent.press(
+      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+    );
+
+    expectPostCancellationReset();
   });
 
-  it('includes the selected reason code and omits free-text feedback', async () => {
+  it('includes the selected reason code and trimmed stay feedback', async () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(getCancelReasonTestId('too_expensive')));
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+    );
     fireEvent.changeText(
       getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
-      'Lower the price',
+      '  Lower the price  ',
     );
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
@@ -290,21 +564,17 @@ describe('CancelMembership', () => {
       expect(mockCancelSubscription).toHaveBeenCalledWith({
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
-        cancellationReason: 'too_expensive',
+        cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
+        cancellationFeedback: 'Lower the price',
       }),
-    );
-    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
-      'cancellationFeedback',
     );
   });
 
-  it('sends other as the reason code without typed other text', async () => {
+  it('sends other as the reason code', async () => {
     const { getByTestId } = renderScreen();
 
-    fireEvent.press(getByTestId(getCancelReasonTestId('other')));
-    fireEvent.changeText(
-      getByTestId(CancelMembershipTestIds.OTHER_REASON_INPUT),
-      'Too many emails',
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.OTHER)),
     );
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
@@ -312,7 +582,7 @@ describe('CancelMembership', () => {
       expect(mockCancelSubscription).toHaveBeenCalledWith({
         subscriptionId: PLUS_SUBSCRIPTION.id,
         cancelAtPeriodEnd: true,
-        cancellationReason: 'other',
+        cancellationReason: CANCELLATION_REASONS.OTHER,
       }),
     );
     expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
@@ -320,7 +590,31 @@ describe('CancelMembership', () => {
     );
   });
 
-  it('passes immediate timing to the controller and success screen', async () => {
+  it('omits stay feedback that is only whitespace', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(
+      getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
+    );
+    fireEvent.changeText(
+      getByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      '   ',
+    );
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(mockCancelSubscription).toHaveBeenCalledWith({
+        subscriptionId: PLUS_SUBSCRIPTION.id,
+        cancelAtPeriodEnd: true,
+        cancellationReason: CANCELLATION_REASONS.TOO_EXPENSIVE,
+      }),
+    );
+    expect(mockCancelSubscription.mock.calls[0][0]).not.toHaveProperty(
+      'cancellationFeedback',
+    );
+  });
+
+  it('cancels immediately and returns to home without Pro Hub once the sheet is confirmed', async () => {
     mockGetSubscriptionByProduct.mockReturnValue({
       ...PLUS_SUBSCRIPTION,
       cancelType: CANCEL_TYPES.ALLOWED_IMMEDIATE,
@@ -335,19 +629,43 @@ describe('CancelMembership', () => {
         cancelAtPeriodEnd: false,
       }),
     );
-    expect(
-      getByTestId(CancelMembershipTestIds.SUCCESS_DESCRIPTION),
-    ).toHaveTextContent(/your benefits have ended/);
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
 
-    fireEvent.press(getByTestId(CancelMembershipTestIds.SUCCESS_DONE_BUTTON));
-    expectPostCancellationReset(false);
+    fireEvent.press(
+      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+    );
+
+    expectHomeCancellationReset();
+  });
+
+  it('does not cancel again while the post-cancel sheet is shown', async () => {
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      ).toBeOnTheScreen(),
+    );
+
+    expect(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON)).toBeDisabled();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    expect(mockCancelSubscription).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('shows an error and allows retry when cancellation fails', async () => {
     mockCancelSubscription
       .mockRejectedValueOnce(new Error('Request failed'))
       .mockResolvedValueOnce(undefined);
-    const { getByTestId, queryByTestId } = renderScreen();
+    const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
@@ -356,16 +674,39 @@ describe('CancelMembership', () => {
         getByTestId(CancelMembershipTestIds.ERROR_MESSAGE),
       ).toBeOnTheScreen(),
     );
-    expect(queryByTestId(CancelMembershipTestIds.SUCCESS_TITLE)).toBeNull();
+    expect(mockDispatch).not.toHaveBeenCalled();
 
     fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
     await waitFor(() =>
       expect(
-        getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
       ).toBeOnTheScreen(),
     );
     expect(mockCancelSubscription).toHaveBeenCalledTimes(2);
+
+    fireEvent.press(
+      getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+    );
+
+    expectPostCancellationReset();
+  });
+
+  it('does not cancel a period-end membership when the renewal date cannot be shown', async () => {
+    mockGetSubscriptionByProduct.mockReturnValue({
+      ...PLUS_SUBSCRIPTION,
+      currentPeriodEnd: 'not-a-date',
+    });
+    const { getByTestId } = renderScreen();
+
+    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+    await waitFor(() =>
+      expect(
+        getByTestId(CancelMembershipTestIds.ERROR_MESSAGE),
+      ).toBeOnTheScreen(),
+    );
+    expect(mockCancelSubscription).not.toHaveBeenCalled();
   });
 
   it('does not cancel when the subscription disallows cancellation', async () => {
@@ -383,20 +724,6 @@ describe('CancelMembership', () => {
       ).toBeOnTheScreen(),
     );
     expect(mockCancelSubscription).not.toHaveBeenCalled();
-  });
-
-  it('resets the stack to Pro Hub on top of the origin screen when done is pressed on the success step', async () => {
-    const { getByTestId } = renderScreen();
-
-    fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-    await waitFor(() =>
-      expect(
-        getByTestId(CancelMembershipTestIds.SUCCESS_DONE_BUTTON),
-      ).toBeOnTheScreen(),
-    );
-    fireEvent.press(getByTestId(CancelMembershipTestIds.SUCCESS_DONE_BUTTON));
-
-    expectPostCancellationReset();
   });
 
   // ── In-flight cancellation ────────────────────────────────────────────────
@@ -517,6 +844,42 @@ describe('CancelMembership', () => {
       await finishCancel();
     });
 
+    it('keeps the screen open after success and does not block the reset once Got it is pressed', async () => {
+      let beforeRemoveHandler:
+        | ((e: { preventDefault: () => void }) => void)
+        | undefined;
+      mockAddListener.mockImplementation(
+        (
+          event: string,
+          handler: (e: { preventDefault: () => void }) => void,
+        ) => {
+          if (event === 'beforeRemove') {
+            beforeRemoveHandler = handler;
+          }
+          return jest.fn();
+        },
+      );
+
+      const screen = await startCancel();
+      await waitFor(() => expect(beforeRemoveHandler).toBeDefined());
+      await finishCancel();
+
+      // The post-cancel sheet is shown on this screen, so leaving is still blocked.
+      const blockedPreventDefault = jest.fn();
+      beforeRemoveHandler?.({ preventDefault: blockedPreventDefault });
+      expect(blockedPreventDefault).toHaveBeenCalledTimes(1);
+      expect(mockDispatch).not.toHaveBeenCalled();
+
+      fireEvent.press(
+        screen.getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+      );
+
+      expectPostCancellationReset();
+      const resetPreventDefault = jest.fn();
+      beforeRemoveHandler?.({ preventDefault: resetPreventDefault });
+      expect(resetPreventDefault).not.toHaveBeenCalled();
+    });
+
     it('re-enables leaving after the request fails', async () => {
       const { getByTestId } = await startCancel();
 
@@ -533,60 +896,125 @@ describe('CancelMembership', () => {
     });
   });
 
-  // ── Gesture / navigation interception ─────────────────────────────────────
+  // ── Post-cancel sheet ─────────────────────────────────────────────────────
 
-  describe('gesture and navigation interception', () => {
-    it('registers a beforeRemove listener on the success step', async () => {
+  describe('post-cancel sheet', () => {
+    it('shows the renewal date for a period-end cancellation', async () => {
       const { getByTestId } = renderScreen();
 
-      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-
-      await waitFor(() =>
-        expect(mockAddListener).toHaveBeenCalledWith(
-          'beforeRemove',
-          expect.any(Function),
-        ),
-      );
-    });
-
-    it('beforeRemove handler prevents default and resets to Pro Hub on top of the origin screen', async () => {
-      let beforeRemoveHandler:
-        | ((e: { preventDefault: () => void }) => void)
-        | undefined;
-      mockAddListener.mockImplementation(
-        (
-          event: string,
-          handler: (e: { preventDefault: () => void }) => void,
-        ) => {
-          if (event === 'beforeRemove') {
-            beforeRemoveHandler = handler;
-          }
-          return jest.fn();
-        },
-      );
-
-      const { getByTestId } = renderScreen();
       fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
       await waitFor(() =>
         expect(
-          getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
         ).toBeOnTheScreen(),
       );
-      expect(beforeRemoveHandler).toBeDefined();
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
+      ).toHaveTextContent(
+        strings('pro_hub.cancel_membership.post_cancel_sheet.title'),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+      ).toHaveTextContent(
+        strings(
+          'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
+          {
+            date: formatSubscriptionPeriodEnd(CURRENT_PERIOD_END) ?? '',
+            apy: PREMIUM_APY,
+            rate: CASHBACK_RATE,
+          },
+        ),
+      );
+    });
 
-      const mockPreventDefault = jest.fn();
-      beforeRemoveHandler?.({ preventDefault: mockPreventDefault });
+    it('reads the cached premium vault rate without starting another poll', () => {
+      renderScreen();
 
-      expect(mockPreventDefault).toHaveBeenCalledTimes(1);
-      expectPostCancellationReset();
+      expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
+        refetchInterval: false,
+      });
+    });
+
+    it('uses an em dash when the premium vault rate is unavailable', async () => {
+      mockUseMoneyPremiumVaultRate.mockReturnValue({
+        vaultRateQuery: { data: undefined },
+        rate: undefined,
+        ratePercent: undefined,
+        ratePercentFormatted: undefined,
+      } as ReturnType<typeof useMoneyPremiumVaultRate>);
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+      ).toHaveTextContent(
+        strings(
+          'pro_hub.cancel_membership.post_cancel_sheet.period_end_description',
+          {
+            date: formatSubscriptionPeriodEnd(CURRENT_PERIOD_END) ?? '',
+            apy: '—',
+            rate: CASHBACK_RATE,
+          },
+        ),
+      );
+    });
+
+    it('shows the immediate copy without a renewal date for an immediate cancellation', async () => {
+      mockGetSubscriptionByProduct.mockReturnValue({
+        ...PLUS_SUBSCRIPTION,
+        cancelType: CANCEL_TYPES.ALLOWED_IMMEDIATE,
+      });
+      const { getByTestId } = renderScreen();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+        ).toBeOnTheScreen(),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_TITLE),
+      ).toHaveTextContent(
+        strings('pro_hub.cancel_membership.post_cancel_sheet.title'),
+      );
+      expect(
+        getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_DESCRIPTION),
+      ).toHaveTextContent(
+        strings(
+          'pro_hub.cancel_membership.post_cancel_sheet.immediate_description',
+          { apy: PREMIUM_APY, rate: CASHBACK_RATE },
+        ),
+      );
+    });
+
+    it('ignores the header back button while the sheet is shown', async () => {
+      const { getByTestId } = renderScreen();
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+      await waitFor(() =>
+        expect(
+          getByTestId(CancelMembershipTestIds.POST_CANCEL_SHEET_BUTTON),
+        ).toBeOnTheScreen(),
+      );
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.BACK_BUTTON));
+
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 
   // ── Android hardware back button ──────────────────────────────────────────
 
   describe('Android hardware back button', () => {
-    it('does not register a BackHandler listener on the survey step', () => {
+    it('does not register a BackHandler listener on the reason step', () => {
       const addSpy = jest.spyOn(BackHandler, 'addEventListener');
 
       renderScreen();
@@ -594,56 +1022,15 @@ describe('CancelMembership', () => {
       expect(addSpy).not.toHaveBeenCalled();
     });
 
-    it('registers a BackHandler listener once the success step is reached', async () => {
-      const addSpy = jest.spyOn(BackHandler, 'addEventListener');
-
-      const { getByTestId } = renderScreen();
-      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-
-      await waitFor(() =>
-        expect(addSpy).toHaveBeenCalledWith(
-          'hardwareBackPress',
-          expect.any(Function),
-        ),
-      );
-    });
-
-    it('behaves like pressing Done (resets to Pro Hub on top of the origin screen) instead of popping the screen', async () => {
-      let backPressHandler: (() => boolean) | undefined;
-      jest
-        .spyOn(BackHandler, 'addEventListener')
-        .mockImplementation((_event, handler) => {
-          backPressHandler = handler as () => boolean;
-          return { remove: jest.fn() };
-        });
-
-      const { getByTestId } = renderScreen();
-      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-
-      await waitFor(() =>
-        expect(
-          getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
-        ).toBeOnTheScreen(),
-      );
-      const handled = backPressHandler?.();
-
-      expect(handled).toBe(true);
-      expect(mockGoBack).not.toHaveBeenCalled();
-      expectPostCancellationReset();
-    });
-
-    it('removes the BackHandler listener on unmount so it cannot leak into other screens', async () => {
+    it('removes the BackHandler listener on unmount so it cannot leak into other screens', () => {
       const mockRemove = jest.fn();
       jest
         .spyOn(BackHandler, 'addEventListener')
         .mockReturnValue({ remove: mockRemove });
 
       const { getByTestId, unmount } = renderScreen();
-      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
-      await waitFor(() =>
-        expect(
-          getByTestId(CancelMembershipTestIds.SUCCESS_TITLE),
-        ).toBeOnTheScreen(),
+      fireEvent.press(
+        getByTestId(getCancelReasonTestId(CANCELLATION_REASONS.TOO_EXPENSIVE)),
       );
       unmount();
 

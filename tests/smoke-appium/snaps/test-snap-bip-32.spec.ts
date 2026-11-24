@@ -11,7 +11,10 @@ const multiSrpFixture = new FixtureBuilder()
   .build();
 
 appiumTest.describe(SmokeSnaps('BIP-32 Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Android snap install allows 60s per sheet (connect, approve, OK).
+  // That budget plus login exceeds the previous 150s test timeout, so the
+  // connect test was killed mid-install on slow CI runners.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to BIP-32 snap',

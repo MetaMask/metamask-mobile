@@ -10,7 +10,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -37,22 +36,23 @@ import {
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  getPriceRangeDecimals,
   isInvertedPriceRange,
   isValidPriceRange,
-  PRICE_RANGE_CURRENCY,
+  PRICE_RANGE_MAX_DECIMALS,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
   tokenPairRateFromFiatRates,
   type PriceRangeTokenSide,
 } from '../../utils/priceRange';
-import {
-  FIAT_INPUT_DECIMALS,
-  FIAT_KEYPAD_CURRENCY,
-} from '../../utils/sourceAmountInputMode';
+import { FIAT_KEYPAD_CURRENCY } from '../../utils/sourceAmountInputMode';
 import { SwapsKeypad } from '../SwapsKeypad';
 import type { SwapsKeypadRef } from '../SwapsKeypad/types';
 import { PriceRangeSheetSelectorsIDs } from './PriceRangeSheet.testIds';
 import type { PriceRangeSheetProps } from './PriceRangeSheet.types';
+import BottomSheetHeaderGlass from '../../../../../component-library/components-temp/BottomSheetHeaderGlass';
+import { useSelector } from 'react-redux';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 type PriceRangeField = 'min' | 'max';
 
@@ -73,8 +73,6 @@ function PricePercentRow({
   isDisabled: boolean;
   onSelect: (percent: number) => void;
 }) {
-  const tw = useTailwind();
-
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -83,28 +81,18 @@ function PricePercentRow({
       twClassName="w-full"
     >
       {percents.map((percent) => (
-        <Pressable
+        <Button
           key={percent}
-          accessibilityRole="button"
-          disabled={isDisabled}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          isDisabled={isDisabled}
           onPress={() => onSelect(percent)}
           testID={PriceRangeSheetSelectorsIDs.PERCENT(bound, percent)}
-          style={({ pressed }) =>
-            tw.style(
-              'h-12 min-w-0 flex-1 items-center justify-center rounded-xl bg-muted',
-              isDisabled && 'opacity-50',
-              pressed && !isDisabled && 'bg-muted-pressed',
-            )
-          }
+          twClassName="min-w-0 flex-1 px-0"
+          textProps={{ fontWeight: FontWeight.Medium }}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-          >
-            {formatPercentLabel(percent)}
-          </Text>
-        </Pressable>
+          {formatPercentLabel(percent)}
+        </Button>
       ))}
     </Box>
   );
@@ -148,14 +136,16 @@ function PriceRangeAmountField({
 const PriceRangeSheet = ({
   sourceToken,
   destToken,
-  sourceUsdRate,
-  destUsdRate,
+  currency,
+  sourceFiatRate,
+  destFiatRate,
   initialTokenSide,
   initialMin,
   initialMax,
   onConfirm,
   goBack,
 }: PriceRangeSheetProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -182,25 +172,21 @@ const PriceRangeSheet = ({
   }, [focusedField]);
 
   const selectedToken = pendingTokenSide === 'source' ? sourceToken : destToken;
-  const selectedUsdRate =
-    pendingTokenSide === 'source' ? sourceUsdRate : destUsdRate;
+  const selectedFiatRate =
+    pendingTokenSide === 'source' ? sourceFiatRate : destFiatRate;
+  const priceDecimals = getPriceRangeDecimals(selectedFiatRate);
   const hasLivePrice =
-    selectedUsdRate !== undefined && Number.isFinite(selectedUsdRate);
+    selectedFiatRate !== undefined && Number.isFinite(selectedFiatRate);
   const isClearedRange = pendingMin === '' && pendingMax === '';
   const canConfirm =
     isClearedRange || isValidPriceRange(pendingMin, pendingMax);
   const showInvertedRangeError = isInvertedPriceRange(pendingMin, pendingMax);
-  const currencySymbol = getCurrencySymbol(PRICE_RANGE_CURRENCY);
+  const currencySymbol = getCurrencySymbol(currency);
   const isKeypadOpen = focusedField !== null;
 
   const priceLabel = useMemo(
-    () =>
-      formatTokenPrice(
-        selectedToken?.symbol,
-        selectedUsdRate,
-        PRICE_RANGE_CURRENCY,
-      ),
-    [selectedToken?.symbol, selectedUsdRate],
+    () => formatTokenPrice(selectedToken?.symbol, selectedFiatRate, currency),
+    [currency, selectedToken?.symbol, selectedFiatRate],
   );
   const exchangeRateLabel = useMemo(
     () =>
@@ -208,13 +194,13 @@ const PriceRangeSheet = ({
         selected: pendingTokenSide,
         sourceSymbol: sourceToken?.symbol,
         destSymbol: destToken?.symbol,
-        quoteRate: tokenPairRateFromFiatRates(sourceUsdRate, destUsdRate),
+        quoteRate: tokenPairRateFromFiatRates(sourceFiatRate, destFiatRate),
       }),
     [
-      destUsdRate,
+      destFiatRate,
       destToken?.symbol,
       pendingTokenSide,
-      sourceUsdRate,
+      sourceFiatRate,
       sourceToken?.symbol,
     ],
   );
@@ -250,22 +236,26 @@ const PriceRangeSheet = ({
 
   const handleMinPercentPress = useCallback(
     (percent: number) => {
-      if (selectedUsdRate === undefined) {
+      if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMin(applyPercentToPrice(selectedUsdRate, percent));
+      setPendingMin(
+        applyPercentToPrice(selectedFiatRate, percent, priceDecimals),
+      );
     },
-    [selectedUsdRate],
+    [priceDecimals, selectedFiatRate],
   );
 
   const handleMaxPercentPress = useCallback(
     (percent: number) => {
-      if (selectedUsdRate === undefined) {
+      if (selectedFiatRate === undefined) {
         return;
       }
-      setPendingMax(applyPercentToPrice(selectedUsdRate, percent));
+      setPendingMax(
+        applyPercentToPrice(selectedFiatRate, percent, priceDecimals),
+      );
     },
-    [selectedUsdRate],
+    [priceDecimals, selectedFiatRate],
   );
 
   const handleKeypadChange = useCallback(
@@ -298,7 +288,7 @@ const PriceRangeSheet = ({
       isValidPriceRange(pendingMin, pendingMax)
         ? {
             tokenSide: pendingTokenSide,
-            currency: PRICE_RANGE_CURRENCY,
+            currency,
             min: pendingMin,
             max: pendingMax,
           }
@@ -308,6 +298,7 @@ const PriceRangeSheet = ({
   }, [
     canConfirm,
     closeSheet,
+    currency,
     onConfirm,
     pendingMax,
     pendingMin,
@@ -321,14 +312,15 @@ const PriceRangeSheet = ({
       goBack={goBack}
       onClose={closeKeypad}
     >
-      <BottomSheetHeader
+      <BottomSheetHeaderGlass
+        isGlass={isGlassHeader}
         onClose={closeSheet}
         closeButtonProps={{
           testID: PriceRangeSheetSelectorsIDs.CLOSE_BUTTON,
         }}
       >
         {strings('bridge.recurring.price_range.label')}
-      </BottomSheetHeader>
+      </BottomSheetHeaderGlass>
       <Box twClassName="relative">
         <ScrollView
           ref={scrollViewRef}
@@ -535,7 +527,7 @@ const PriceRangeSheet = ({
         ref={keypadRef}
         value={focusedField === 'max' ? pendingMax : pendingMin}
         currency={FIAT_KEYPAD_CURRENCY}
-        decimals={FIAT_INPUT_DECIMALS}
+        decimals={PRICE_RANGE_MAX_DECIMALS}
         isInteractable
         onChange={handleKeypadChange}
         onClose={() => setFocusedField(null)}

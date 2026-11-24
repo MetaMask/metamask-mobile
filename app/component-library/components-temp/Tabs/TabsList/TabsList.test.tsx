@@ -750,6 +750,30 @@ describe('TabsList', () => {
     });
   });
 
+  describe('End Accessory', () => {
+    it('passes endAccessory from child props to the tab', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TabsList testID="tabs-list">
+          <View key="tab1" {...({ tabLabel: 'Tab 1' } as TabViewProps)}>
+            <Text>Tab 1 Content</Text>
+          </View>
+          <View
+            key="tab2"
+            {...({
+              tabLabel: 'Tab 2',
+              endAccessory: <View testID="tab-2-end-accessory" />,
+            } as TabViewProps)}
+          >
+            <Text>Tab 2 Content</Text>
+          </View>
+        </TabsList>,
+      );
+
+      expect(getByTestId('tab-2-end-accessory')).toBeOnTheScreen();
+      expect(queryByTestId('tab-1-end-accessory')).toBeNull();
+    });
+  });
+
   describe('Gesture Detection', () => {
     it('renders with GestureDetector wrapper', () => {
       // Arrange & Act

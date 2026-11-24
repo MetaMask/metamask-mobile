@@ -3,6 +3,7 @@ import type { PredictLiveDataClient } from '../adapters/remote/PredictLiveDataCl
 import type { PredictQuote } from '../contracts/v1/liveData';
 import type {
   PredictEntityId,
+  PredictEvent,
   PredictTimestamp,
   PredictVenueId,
 } from '../types';
@@ -17,6 +18,32 @@ const eventId = 'KXTEST-EVENT' as PredictEntityId;
 const marketId = 'KXTEST-EVENT-A' as PredictEntityId;
 
 const at = (value: string) => value as PredictTimestamp;
+
+const liveGameEvent: PredictEvent = {
+  venueId,
+  id: eventId,
+  title: 'Test Event',
+  sports: {
+    sport: { id: 'football' as PredictEntityId, label: 'Football' },
+    game: {
+      status: 'in_progress',
+      homeTeam: { name: 'Home' },
+      awayTeam: { name: 'Away' },
+      observedAt: at('2026-09-08T12:00:00.000Z'),
+    },
+  },
+  markets: [
+    {
+      id: marketId,
+      question: 'Will Home win?',
+      status: 'active',
+      outcomes: [
+        { id: `${marketId}:yes` as PredictEntityId, side: 'yes', label: 'Yes' },
+        { id: `${marketId}:no` as PredictEntityId, side: 'no', label: 'No' },
+      ],
+    },
+  ],
+};
 
 const quote = (updatedAt: string, volume = '100.00'): PredictQuote => ({
   venueId,
@@ -39,51 +66,200 @@ const createClient = (released: readonly PredictEntityId[] = []) =>
     destroy: jest.fn(),
   }) as unknown as PredictLiveDataClient;
 
+const flush = () => new Promise<void>((resolve) => setImmediate(resolve));
+
+const createService = ({
+  messenger = createMessenger(),
+  client = createClient(),
+  event = liveGameEvent,
+}: {
+  messenger?: PredictLiveDataServiceMessenger;
+  client?: PredictLiveDataClient;
+  event?: PredictEvent;
+} = {}) => {
+  const resolveEvent = jest.fn(async () => event);
+  const service = new PredictLiveDataService({
+    messenger,
+    createClient: () => client,
+    resolveEvent,
+    venueId,
+  });
+  return { service, messenger, client, resolveEvent };
+};
+
+/** Watches the fixture Event and waits for its resolution to settle. */
+const watchEvent = async (messenger: PredictLiveDataServiceMessenger) => {
+  messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchEvents`, venueId, [
+    eventId,
+  ]);
+  await flush();
+};
+
+const unwatchEvent = (messenger: PredictLiveDataServiceMessenger) =>
+  messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchEvents`, venueId, [
+    eventId,
+  ]);
+
 describe('PredictLiveDataService', () => {
-  it('subscribes and unsubscribes through messenger actions', () => {
-    const messenger = createMessenger();
-    const client = createClient();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => client,
-      venueId,
+  it('resolves a watched Event and subscribes its Markets and live Game once', async () => {
+    const { service, messenger, client, resolveEvent } = createService({
+      client: createClient([marketId]),
     });
 
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
+    await watchEvent(messenger);
 
-    expect(client.subscribe).toHaveBeenCalledWith('game', venueId, [eventId]);
-    expect(client.unsubscribe).toHaveBeenCalledWith('game', venueId, [eventId]);
-
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`, venueId, [
-      marketId,
-    ]);
-    messenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchMarkets`,
-      venueId,
-      [marketId],
-    );
-
+    expect(resolveEvent).toHaveBeenCalledTimes(1);
+    expect(resolveEvent).toHaveBeenCalledWith(venueId, eventId);
+    expect(client.subscribe).toHaveBeenCalledTimes(2);
     expect(client.subscribe).toHaveBeenCalledWith('market', venueId, [
       marketId,
     ]);
+    expect(client.subscribe).toHaveBeenCalledWith('game', venueId, [eventId]);
+    expect(service.watchedEventIds).toEqual([eventId]);
+
+    unwatchEvent(messenger);
+    expect(client.unsubscribe).not.toHaveBeenCalled();
+
+    unwatchEvent(messenger);
     expect(client.unsubscribe).toHaveBeenCalledWith('market', venueId, [
       marketId,
+    ]);
+    expect(client.unsubscribe).toHaveBeenCalledWith('game', venueId, [eventId]);
+    expect(service.watchedEventIds).toEqual([]);
+    service.destroy();
+  });
+
+  it('passes the market scope through to the Event subscriptions', async () => {
+    const markets = ['m-1', 'm-2', 'm-3', 'm-4'].map(
+      (marketIdValue) => marketIdValue as PredictEntityId,
+    );
+    const { service, messenger, client } = createService({
+      event: {
+        venueId,
+        id: eventId,
+        title: 'Props',
+        markets: markets.map((marketIdValue) => ({
+          id: marketIdValue,
+          question: marketIdValue,
+          status: 'active',
+          outcomes: [
+            {
+              id: `${marketIdValue}:yes` as PredictEntityId,
+              side: 'yes',
+              label: 'Yes',
+            },
+            {
+              id: `${marketIdValue}:no` as PredictEntityId,
+              side: 'no',
+              label: 'No',
+            },
+          ],
+        })),
+      },
+    });
+
+    messenger.call(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchEvents`,
+      venueId,
+      [eventId],
+      { marketScope: 'card' },
+    );
+    await flush();
+
+    expect(client.subscribe).toHaveBeenCalledTimes(1);
+    expect(client.subscribe).toHaveBeenCalledWith(
+      'market',
+      venueId,
+      markets.slice(0, 3),
+    );
+
+    messenger.call(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchEvents`,
+      venueId,
+      [eventId],
+      { marketScope: 'card' },
+    );
+    expect(client.unsubscribe).toHaveBeenCalledWith(
+      'market',
+      venueId,
+      markets.slice(0, 3),
+    );
+    service.destroy();
+  });
+
+  it('subscribes only the visible Markets and re-scopes by their difference', async () => {
+    const markets = ['m-1', 'm-2', 'm-3', 'm-4'].map(
+      (marketIdValue) => marketIdValue as PredictEntityId,
+    );
+    const [m1, m2, m3, m4] = markets;
+    const { service, messenger, client } = createService({
+      event: {
+        ...liveGameEvent,
+        markets: markets.map((marketIdValue) => ({
+          ...liveGameEvent.markets[0],
+          id: marketIdValue,
+        })),
+      },
+    });
+    const call = (
+      action: 'watchEvents' | 'unwatchEvents',
+      ids: readonly PredictEntityId[],
+    ) =>
+      messenger.call(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:${action}`,
+        venueId,
+        [eventId],
+        { marketScope: { type: 'visible', marketIds: ids } },
+      );
+
+    call('watchEvents', [m1, m2]);
+    await flush();
+    expect(jest.mocked(client.subscribe).mock.calls).toEqual([
+      ['market', venueId, [m1, m2]],
+      ['game', venueId, [eventId]],
+    ]);
+
+    call('watchEvents', [m1, m3, m4]);
+    call('unwatchEvents', [m1, m2]);
+    expect(client.subscribe).toHaveBeenLastCalledWith('market', venueId, [
+      m3,
+      m4,
+    ]);
+    expect(jest.mocked(client.unsubscribe).mock.calls).toEqual([
+      ['market', venueId, [m2]],
     ]);
     service.destroy();
   });
 
-  it('publishes game updates for its venue', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient(),
-      venueId,
-    });
+  it('rejects watches for another Venue', () => {
+    const { service, messenger } = createService();
+
+    expect(() =>
+      messenger.call(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchEvents`,
+        'other' as PredictVenueId,
+        [eventId],
+      ),
+    ).toThrow(expect.objectContaining({ code: 'UNSUPPORTED_VENUE' }));
+    service.destroy();
+  });
+
+  it('releases every subscription on destroy', async () => {
+    const { service, messenger, client } = createService();
+    await watchEvent(messenger);
+
+    service.destroy();
+
+    expect(client.unsubscribe).toHaveBeenCalledWith('market', venueId, [
+      marketId,
+    ]);
+    expect(client.unsubscribe).toHaveBeenCalledWith('game', venueId, [eventId]);
+    expect(client.destroy).toHaveBeenCalled();
+  });
+
+  it('publishes game updates for its venue', async () => {
+    const { service, messenger } = createService();
     const listener = jest.fn();
     messenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
@@ -97,9 +273,7 @@ describe('PredictLiveDataService', () => {
       observedAt: at('2026-09-08T13:00:00.000Z'),
     };
 
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
     service.onGameUpdate(game);
 
     expect(listener).toHaveBeenCalledWith({
@@ -109,13 +283,8 @@ describe('PredictLiveDataService', () => {
     service.destroy();
   });
 
-  it('replays the last known Game to a watcher that arrives after the snapshot', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient(),
-      venueId,
-    });
+  it('replays the last known Game to a watcher that arrives after the snapshot', async () => {
+    const { service, messenger } = createService();
     const game = {
       venueId,
       eventId,
@@ -124,9 +293,7 @@ describe('PredictLiveDataService', () => {
       score: { home: '7', away: '0' },
       observedAt: at('2026-09-08T13:00:00.000Z'),
     };
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
     service.onGameUpdate(game);
 
     const listener = jest.fn();
@@ -134,9 +301,7 @@ describe('PredictLiveDataService', () => {
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       listener,
     );
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
 
     expect(listener).toHaveBeenCalledWith({
       ...game,
@@ -148,16 +313,11 @@ describe('PredictLiveDataService', () => {
     service.destroy();
   });
 
-  it('drops the cached Game once its last watcher releases it', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient([eventId]),
-      venueId,
+  it('drops the cached Game once its last watcher releases it', async () => {
+    const { service, messenger } = createService({
+      client: createClient([eventId]),
     });
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
     service.onGameUpdate({
       venueId,
       eventId,
@@ -166,32 +326,23 @@ describe('PredictLiveDataService', () => {
       observedAt: at('2026-09-08T13:00:00.000Z'),
     });
 
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [
-      eventId,
-    ]);
+    unwatchEvent(messenger);
     const listener = jest.fn();
     messenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       listener,
     );
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
 
     expect(listener).not.toHaveBeenCalled();
     service.destroy();
   });
 
-  it('does not recache a Game from frames that arrive after the last watcher', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient([eventId]),
-      venueId,
+  it('does not recache a Game from frames that arrive after the last watcher', async () => {
+    const { service, messenger } = createService({
+      client: createClient([eventId]),
     });
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
     service.onGameUpdate({
       venueId,
       eventId,
@@ -199,9 +350,7 @@ describe('PredictLiveDataService', () => {
       score: { home: '7', away: '0' },
       observedAt: at('2026-09-08T13:00:00.000Z'),
     });
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [
-      eventId,
-    ]);
+    unwatchEvent(messenger);
     service.onGameUpdate({
       venueId,
       eventId,
@@ -215,21 +364,14 @@ describe('PredictLiveDataService', () => {
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       listener,
     );
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
 
     expect(listener).not.toHaveBeenCalled();
     service.destroy();
   });
 
-  it('keeps the newer Game when an older snapshot arrives later', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient(),
-      venueId,
-    });
+  it('keeps the newer Game when an older snapshot arrives later', async () => {
+    const { service, messenger } = createService();
     const listener = jest.fn();
     messenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
@@ -250,9 +392,7 @@ describe('PredictLiveDataService', () => {
       observedAt: at('2026-09-08T12:30:00.000Z'),
     };
 
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
     service.onGameUpdate(newer);
     service.onGameUpdate(older);
 
@@ -269,30 +409,21 @@ describe('PredictLiveDataService', () => {
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       replay,
     );
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
 
     expect(replay).toHaveBeenCalledWith(accumulatedNewer);
     service.destroy();
   });
 
-  it('replays the accumulated Game patch, not only the latest partial frame', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient(),
-      venueId,
-    });
+  it('replays the accumulated Game patch, not only the latest partial frame', async () => {
+    const { service, messenger } = createService();
     const listener = jest.fn();
     messenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       listener,
     );
 
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
     service.onGameUpdate({
       venueId,
       eventId,
@@ -332,9 +463,7 @@ describe('PredictLiveDataService', () => {
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
       replay,
     );
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [
-      eventId,
-    ]);
+    await watchEvent(messenger);
 
     expect(replay).toHaveBeenCalledWith({
       venueId,
@@ -355,13 +484,8 @@ describe('PredictLiveDataService', () => {
     service.destroy();
   });
 
-  it('publishes quote updates for watched markets of its venue', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient(),
-      venueId,
-    });
+  it('publishes quote updates for watched markets of its venue', async () => {
+    const { service, messenger } = createService();
     const listener = jest.fn();
     messenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
@@ -372,9 +496,7 @@ describe('PredictLiveDataService', () => {
     service.onQuoteUpdate(update);
     expect(listener).not.toHaveBeenCalled();
 
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`, venueId, [
-      marketId,
-    ]);
+    await watchEvent(messenger);
     service.onQuoteUpdate(update);
     service.onQuoteUpdate({ ...update, venueId: 'other' as PredictVenueId });
 
@@ -383,17 +505,12 @@ describe('PredictLiveDataService', () => {
     service.destroy();
   });
 
-  it('replays the last quote to a later market watcher and drops it on release', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient([marketId]),
-      venueId,
+  it('replays the last quote to a later market watcher and drops it on release', async () => {
+    const { service, messenger } = createService({
+      client: createClient([marketId]),
     });
     const update = quote('2026-09-08T13:00:00.000Z');
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`, venueId, [
-      marketId,
-    ]);
+    await watchEvent(messenger);
     service.onQuoteUpdate(update);
 
     const replay = jest.fn();
@@ -401,37 +518,20 @@ describe('PredictLiveDataService', () => {
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
       replay,
     );
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`, venueId, [
-      marketId,
-    ]);
+    await watchEvent(messenger);
     expect(replay).toHaveBeenCalledWith(update);
 
-    messenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchMarkets`,
-      venueId,
-      [marketId],
-    );
-    messenger.call(
-      `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchMarkets`,
-      venueId,
-      [marketId],
-    );
+    unwatchEvent(messenger);
+    unwatchEvent(messenger);
     replay.mockClear();
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`, venueId, [
-      marketId,
-    ]);
+    await watchEvent(messenger);
 
     expect(replay).not.toHaveBeenCalled();
     service.destroy();
   });
 
-  it('keeps the newer quote when an older one arrives later', () => {
-    const messenger = createMessenger();
-    const service = new PredictLiveDataService({
-      messenger,
-      createClient: () => createClient(),
-      venueId,
-    });
+  it('keeps the newer quote when an older one arrives later', async () => {
+    const { service, messenger } = createService();
     const listener = jest.fn();
     messenger.subscribe(
       `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
@@ -440,9 +540,7 @@ describe('PredictLiveDataService', () => {
     const newer = quote('2026-09-08T13:00:00.000Z', '200.00');
     const older = quote('2026-09-08T12:30:00.000Z', '100.00');
 
-    messenger.call(`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`, venueId, [
-      marketId,
-    ]);
+    await watchEvent(messenger);
     service.onQuoteUpdate(newer);
     service.onQuoteUpdate(older);
 

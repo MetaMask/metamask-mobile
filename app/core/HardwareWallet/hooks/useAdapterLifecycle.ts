@@ -15,9 +15,7 @@ import {
 import { createAdapter } from '../adapters';
 import { HardwareWalletAdapter } from '../types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
-import { isDmkEnabled } from '../../Ledger/dmk';
-import { useSelector } from 'react-redux';
-import { selectRemoteFeatureFlags } from '../../../selectors/featureFlagController';
+import { getLedgerDmkMode } from '../../Ledger/dmk';
 
 interface UseAdapterLifecycleOptions {
   walletType: HardwareWalletType | null;
@@ -75,20 +73,14 @@ export const useAdapterLifecycle = ({
   const isFlowActiveRef = useRef(isFlowActive);
   isFlowActiveRef.current = isFlowActive;
 
-  // DMK flag, read live from feature-flag state. Held in a ref so the adapter
-  // callbacks stay stable (no spurious re-creation on flag change); the value
-  // is read fresh at adapter-creation time.
-  const dmkFlags = useSelector(selectRemoteFeatureFlags);
-  const dmkFlagsRef = useRef(dmkFlags);
-  dmkFlagsRef.current = dmkFlags;
-
   const onDeviceEvent = useEffectEvent(handleDeviceEvent);
   const onError = useEffectEvent(handleError);
   const onUpdateConnectionState = useEffectEvent(updateConnectionState);
 
   const createAdapterWithCallbacks = useCallback(
     (targetType: HardwareWalletType) => {
-      const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+      // Engine-initialized mode; same value the keyring bridge uses.
+      const enableDmk = getLedgerDmkMode();
       return createAdapter(
         targetType,
         {
@@ -158,7 +150,7 @@ export const useAdapterLifecycle = ({
 
     previousTransportAvailableRef.current = null;
 
-    const enableDmk = isDmkEnabled(dmkFlagsRef.current);
+    const enableDmk = getLedgerDmkMode();
 
     const adapter = walletType
       ? createAdapterWithCallbacks(walletType)

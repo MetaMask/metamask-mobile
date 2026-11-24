@@ -1,5 +1,12 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
-import { numberToHex, type Hex, type Json } from '@metamask/utils';
+import {
+  bytesToHex,
+  numberToHex,
+  parseCaipChainId,
+  type Hex,
+  type Json,
+} from '@metamask/utils';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import {
   TransactionType,
   type TransactionMeta,
@@ -30,6 +37,10 @@ import {
   type CardRedeemWithdrawalError,
   type CardAccountLookupCacheEntry,
   type CardRedeemWithdrawalErrorReason,
+  type CardLink,
+  type CardLinkWriteBody,
+  type CardLinkWriteStatus,
+  type CardSha256,
   type FetchCardHomeDataOptions,
 } from './types';
 import type {
@@ -43,6 +54,7 @@ import {
   CardProviderErrorCode,
   CardStatus,
   emptyCardHomeData,
+  type ApplePayProvisioningParams,
   type CardAuthSession,
   type CardAuthResult,
   type CardAuthStep,
@@ -76,8 +88,10 @@ import {
   type CreditWithdrawEstimationResponse,
   type CreditWithdrawParams,
   type CreditWithdrawResponse,
+  type CompleteMoneyAccountLinkParams,
   type DelegationChallengeResponse,
   type FundingApprovalParams,
+  type PrepareMoneyAccountLinkParams,
   type ICardProvider,
   isCardAuthTokenError,
   CardProviderIds,
@@ -90,7 +104,9 @@ import { CardOnboardingStore } from './CardOnboardingStore';
 import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
+import { latestByUpdatedAt, pickRoutableCardLink } from './utils/cardLinks';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
+import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import {
   awaitTransactionConfirmed,
   type AwaitTransactionConfirmedMessenger,
@@ -101,12 +117,7 @@ import {
   ExternalTransactionReceiptTimeoutError,
   ExternalTransactionRevertedError,
 } from './utils/awaitExternalTransactionReceipt';
-import { resolveMoneyAccountCardToken } from './utils/moneyAccountCardToken';
 import { capRedeemAmount } from './utils/redeemAmount';
-import {
-  MONEY_ACCOUNT_DELEGATION_NETWORK,
-  MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-} from '../../../../components/UI/Card/util/vedaToken';
 import {
   areAddressesEqual,
   safeToChecksumAddress,
@@ -114,7 +125,7 @@ import {
 import { toTokenMinimalUnit } from '../../../../util/number/bigint';
 import TransactionTypes from '../../../../core/TransactionTypes';
 import {
-  readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   FALLBACK_CARD_PROVIDER_ID,
@@ -123,17 +134,22 @@ import {
   ImmersveProvider,
   type CardResumeInfo,
 } from './providers/ImmersveProvider';
-import { CardService } from './services/CardService';
+import {
+  CARD_LINK_CLIENT_NOT_ALLOWED,
+  CardService,
+  getCardApiErrorBodyCode,
+} from './services/CardService';
 import { CardApiError } from './services/BaanxService';
 import type { CardApiSupportedRegionsResponse } from './services/card-supported-regions.types';
 import { cardNetworkInfos } from '../../../../components/UI/Card/constants';
 import { safeFormatChainIdToHex } from '../../../../components/UI/Card/util/safeFormatChainIdToHex';
 
-const CARDHOLDER_BATCH_SIZE = 50;
-const CARDHOLDER_MAX_BATCHES = 3;
 const CARD_HOME_DATA_FRESH_MS = 1000 * 60;
 const ACCOUNT_LOOKUP_MISS_TTL_MS = 24 * 60 * 60 * 1000;
 const ACCOUNT_LOOKUP_TIMEOUT_MS = 2000;
+const CARD_LINKS_FRESH_MS = 24 * 60 * 60 * 1000;
+const CARD_LINKS_FETCH_ATTEMPTS = 3;
+const CARD_LINK_FIELD_MAX_LENGTH = 128;
 
 type RedeemFailureStage = 'estimation' | 'submit' | 'on_chain';
 
@@ -146,6 +162,54 @@ const bucketRedeemAmount = (amount: string): string => {
   if (n < 1000) return '100-1000';
   return '1000+';
 };
+
+interface CardLinkWriteFields {
+  address?: string;
+  providerCardholderId?: string;
+  promptWalletProof?: boolean;
+}
+
+const HARDWARE_KEYRING_TYPES = new Set<string>([
+  'Ledger Hardware',
+  'QR Hardware Wallet Device',
+  'Trezor Hardware',
+  'Lattice Hardware',
+  'OneKey Hardware',
+]);
+
+function profileIdFromBearer(token: string): string | undefined {
+  const segment = token.split('.')[1];
+  if (!segment) return undefined;
+  try {
+    const json = JSON.parse(
+      Buffer.from(segment, 'base64url').toString('utf8'),
+    ) as { sub?: unknown };
+    return typeof json.sub === 'string' && json.sub ? json.sub : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function cardLinkProofMessage(
+  profileId: string,
+  address: string,
+  issuedAt: string,
+): string {
+  const bare = address.includes(':')
+    ? address.slice(address.lastIndexOf(':') + 1)
+    : address;
+  return [
+    'MetaMask Card link',
+    `Profile: ${profileId.toLowerCase()}`,
+    `Address: ${bare.toLowerCase()}`,
+    `Issued at: ${issuedAt}`,
+  ].join('\n');
+}
+
+const isValidCardLinkField = (value: string | undefined): value is string =>
+  typeof value === 'string' &&
+  value.length > 0 &&
+  value.length <= CARD_LINK_FIELD_MAX_LENGTH;
 
 const resolveRedeemPollingChainId = (network?: string): string | undefined => {
   const info = network ? cardNetworkInfos[network as CardNetwork] : undefined;
@@ -181,12 +245,6 @@ const metadata: StateMetadata<CardControllerState> = {
   },
   lastUnauthenticatedReason: {
     persist: false,
-    includeInDebugSnapshot: true,
-    includeInStateLogs: true,
-    usedInUi: true,
-  },
-  cardholderAccounts: {
-    persist: true,
     includeInDebugSnapshot: true,
     includeInStateLogs: true,
     usedInUi: true,
@@ -251,6 +309,24 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
+  cardLinks: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  cardLinksFetchedAt: {
+    persist: true,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: false,
+  },
+  cardLinkApiBlocked: {
+    persist: false,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
 };
 
 export const defaultCardControllerState: CardControllerState = {
@@ -259,7 +335,6 @@ export const defaultCardControllerState: CardControllerState = {
   isAuthenticated: false,
   providerUserId: null,
   lastUnauthenticatedReason: null,
-  cardholderAccounts: [],
   providerData: {},
   cardHomeData: null,
   cardHomeDataAddress: null,
@@ -270,6 +345,9 @@ export const defaultCardControllerState: CardControllerState = {
   redeemWithdrawal: null,
   signInLink: null,
   accountLookupCache: {},
+  cardLinks: null,
+  cardLinksFetchedAt: null,
+  cardLinkApiBlocked: false,
 };
 
 /**
@@ -289,7 +367,6 @@ export class CardController extends BaseController<
   private readonly cardService: CardService;
   private currentSession: CardAuthSession | null = null;
   private refreshPromise: Promise<CardAuthTokens | null> | null = null;
-  #cardholderCheckTimer: ReturnType<typeof setTimeout> | undefined;
   private fetchCardHomeDataPromise: Promise<void> | null = null;
   private fetchGeneration = 0;
   private redeemGeneration = 0;
@@ -299,17 +376,30 @@ export class CardController extends BaseController<
   #lastFetchedAt = 0;
   /** In-flight fetch is a silent revalidation. Instance state, not a local, so a joined forced call can clear it. */
   #silentRevalidation = false;
+  readonly #sha256: CardSha256;
+  readonly #isBasicFunctionalityEnabled: () => boolean;
+  #cardLinksFetchPromise: Promise<void> | null = null;
+  #cardLinkBackfillPromise: Promise<void> | null = null;
+  /** Providers whose backfill was rejected this session. A failure stays out, so the next trigger retries. */
+  #cardLinkBackfillAttempted = new Set<CardProviderId>();
+  #cardLinksGeneration = 0;
+  #cardLinksWriteRevision = 0;
+  #cardLinkWriteQueues: Partial<Record<CardProviderId, Promise<unknown>>> = {};
 
   constructor({
     messenger,
     state,
     providers,
     cardService,
+    sha256,
+    isBasicFunctionalityEnabled,
   }: {
     messenger: CardControllerMessenger;
     state?: Partial<CardControllerState>;
     providers: Partial<Record<CardProviderId, ICardProvider>>;
     cardService: CardService;
+    sha256: CardSha256;
+    isBasicFunctionalityEnabled: () => boolean;
   }) {
     super({
       name: CARD_CONTROLLER_NAME,
@@ -322,6 +412,12 @@ export class CardController extends BaseController<
     });
     this.providers = providers;
     this.cardService = cardService;
+    this.#sha256 = sha256;
+    this.#isBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
+    // The logged-out dashboard used to persist an on-chain snapshot. Drop it
+    // on the first start after that screen is gone, and on every later start
+    // while signed out so a restored cache cannot render a balance.
+    this.#clearLoggedOutCardHomeSnapshot();
     try {
       this.previousEvmAddress = this.#getSelectedEvmAddress();
       this.#discardCardHomeDataFromOtherAccount(this.previousEvmAddress);
@@ -329,6 +425,25 @@ export class CardController extends BaseController<
       this.previousEvmAddress = null;
     }
     this.#subscribeToEvents();
+  }
+
+  #clearLoggedOutCardHomeSnapshot(): void {
+    if (this.state.isAuthenticated) return;
+    if (
+      this.state.cardHomeData === null &&
+      this.state.cardHomeDataAddress === null &&
+      this.state.cardHomeDataError === null &&
+      this.state.cardHomeDataStatus === 'idle'
+    ) {
+      return;
+    }
+
+    this.update((s) => {
+      s.cardHomeData = null;
+      s.cardHomeDataAddress = null;
+      s.cardHomeDataError = null;
+      s.cardHomeDataStatus = 'idle';
+    });
   }
 
   /**
@@ -359,9 +474,37 @@ export class CardController extends BaseController<
   }
 
   #subscribeToEvents(): void {
+    this.messenger.subscribe('AuthenticationController:profileSignIn', () => {
+      if (this.resetInProgress) return;
+      // Pairing can change the canonical profile, so a cached read is stale.
+      this.#fetchCardLinksWithLogging('#onProfileSignIn/fetchCardLinks', {
+        force: true,
+      });
+    });
+
+    // isSignedIn is persisted, so this runs on the change to signed in: the
+    // first sign-in after an SRP import, or a sign-in after a sign-out.
+    // Forced, because a wallet reset can leave the previous wallet's cached
+    // links behind when its Card cleanup does not run.
+    this.messenger.subscribe(
+      'AuthenticationController:stateChange',
+      (isSignedIn: boolean) => {
+        if (isSignedIn && !this.resetInProgress) {
+          this.#fetchCardLinksWithLogging('#onSignIn/fetchCardLinks', {
+            force: true,
+          });
+        }
+      },
+      (state) => state.isSignedIn,
+    );
+
     this.messenger.subscribe('KeyringController:unlock', () => {
       if (this.resetInProgress) return;
-      this.#triggerCardholderCheck();
+      // Restore publishes unlock before the new keyrings are in state, and
+      // the bearer token cannot be resolved until an HD keyring is there.
+      if (this.#hasHdKeyring()) {
+        this.#fetchCardLinksWithLogging('#onUnlock/fetchCardLinks');
+      }
       this.validateAndRefreshSession()
         .then(({ isAuthenticated }) => {
           if (isAuthenticated && !this.resetInProgress) {
@@ -376,13 +519,12 @@ export class CardController extends BaseController<
         );
     });
 
-    // Re-check when the account tree changes (account added/removed) or the
-    // selected group changes. Membership alone misses a pure selection switch.
+    // Account added or removed, or the selected group changed. Membership
+    // alone misses a pure selection switch.
     this.messenger.subscribe(
       'AccountTreeController:stateChange',
       (_key: string) => {
         if (this.resetInProgress) return;
-        this.#triggerCardholderCheck();
         this.#handleAccountSwitch();
         this.#invalidateNotFoundLookupCache();
       },
@@ -407,6 +549,17 @@ export class CardController extends BaseController<
         this.#handleCardFeatureFlagChange();
       },
       (state) => JSON.stringify(state.remoteFeatureFlags?.cardFeature ?? {}),
+    );
+
+    this.messenger.subscribe(
+      'RemoteFeatureFlagController:stateChange',
+      (_cardLinkApiKey: string) => {
+        // Keyrings are empty while locked and before onboarding, so the
+        // bearer token cannot be resolved yet. The next unlock or sign-in reads.
+        if (this.resetInProgress || !this.#hasHdKeyring()) return;
+        this.#fetchCardLinksWithLogging('#onCardLinkApiFlagChange');
+      },
+      (state) => JSON.stringify(state.remoteFeatureFlags?.cardLinkApi ?? null),
     );
   }
 
@@ -449,49 +602,6 @@ export class CardController extends BaseController<
     if (!currentAddress) return;
 
     this.#invalidateAndClear();
-  }
-
-  #triggerCardholderCheck(): void {
-    // Debounce: coalesce rapid consecutive triggers (e.g. KeyringController:unlock
-    // and AccountTreeController:stateChange both fire on wallet unlock) into a
-    // single API call. The account list is sampled inside the callback so it
-    // always reflects the latest state.
-    if (this.#cardholderCheckTimer !== undefined) {
-      clearTimeout(this.#cardholderCheckTimer);
-    }
-    this.#cardholderCheckTimer = setTimeout(() => {
-      this.#cardholderCheckTimer = undefined;
-
-      const { internalAccounts } = this.messenger.call(
-        'AccountsController:getState',
-      );
-      const evmAccounts = Object.values(internalAccounts.accounts).filter(
-        (acc) => isEthAccount(acc),
-      );
-      if (!evmAccounts.length) return;
-
-      const caipAccountIds = evmAccounts.map(
-        (acc) => `eip155:0:${acc.address}` as `${string}:${string}:${string}`,
-      );
-
-      const featureState = this.messenger.call(
-        'RemoteFeatureFlagController:getState',
-      );
-      const cardFeature = readCardFeatureFlag(featureState.remoteFeatureFlags);
-      const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
-      if (!accountsApiUrl) return;
-
-      this.checkCardholderAccounts(caipAccountIds, accountsApiUrl).catch(
-        (error) =>
-          Logger.error(error as Error, {
-            tags: { feature: 'card' },
-            context: {
-              name: 'CardController',
-              data: { method: '#triggerCardholderCheck' },
-            },
-          }),
-      );
-    }, 50);
   }
 
   /**
@@ -543,77 +653,659 @@ export class CardController extends BaseController<
     );
   }
 
-  /**
-   * Checks which CAIP-10 account IDs are MetaMask Card holders and stores
-   * the result in controller state. Processes up to 150 accounts (3 × 50).
-   * Public for testability.
-   */
-  async checkCardholderAccounts(
-    caipAccountIds: `${string}:${string}:${string}`[],
-    accountsApiUrl: string,
-  ): Promise<void> {
-    if (!caipAccountIds?.length || !accountsApiUrl) return;
+  // -- Card links --
 
-    const batches = this.#createBatches(
-      caipAccountIds,
-      CARDHOLDER_BATCH_SIZE,
-      CARDHOLDER_MAX_BATCHES,
-    );
+  #isCardLinkApiEnabled(): boolean {
+    if (this.state.cardLinkApiBlocked) return false;
+    try {
+      if (!this.#isBasicFunctionalityEnabled()) return false;
+      const { remoteFeatureFlags } = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      return readCardLinkApiEnabled(remoteFeatureFlags);
+    } catch {
+      return false;
+    }
+  }
 
-    const settled = await Promise.allSettled(
-      batches.map((batch) => this.#fetchCardholderBatch(batch, accountsApiUrl)),
-    );
-
-    const results: string[] = [];
-    let anySucceeded = false;
-    for (const outcome of settled) {
-      if (outcome.status === 'fulfilled') {
-        anySucceeded = true;
-        results.push(...outcome.value);
-      } else {
-        Logger.error(outcome.reason as Error, {
-          tags: { feature: 'card', operation: 'checkCardholderAccounts' },
-          context: {
-            name: 'CardController',
-            data: { accountCount: caipAccountIds.length },
-          },
-        });
+  async #withCardLinkBearer<T>(
+    call: (bearerToken: string) => Promise<T>,
+  ): Promise<T> {
+    // No argument: an entropy-source ID returns another profile's token.
+    const getToken = () =>
+      this.messenger.call('AuthenticationController:getBearerToken');
+    const token = await getToken();
+    try {
+      return await call(token);
+    } catch (error) {
+      if (!(error instanceof CardApiError) || error.statusCode !== 401) {
+        throw error;
       }
+      // getBearerToken returns the cached session until it is near expiry, so a
+      // rejected token comes back unchanged unless the session is invalidated.
+      let next = await getToken();
+      if (next === token) {
+        await this.messenger.call(
+          'AuthenticationController:refreshCanonicalProfileId',
+        );
+        next = await getToken();
+      }
+      return await call(next);
+    }
+  }
+
+  #handleCardLinkError(error: unknown, method: string): void {
+    if (
+      error instanceof CardApiError &&
+      error.statusCode === 403 &&
+      getCardApiErrorBodyCode(error) === CARD_LINK_CLIENT_NOT_ALLOWED
+    ) {
+      this.update((s) => {
+        s.cardLinkApiBlocked = true;
+      });
+      return;
+    }
+    // Offline and timeouts are expected at this volume; not worth a Sentry event.
+    if (
+      error instanceof CardApiError &&
+      (error.statusCode === 0 || error.statusCode === 408)
+    ) {
+      return;
+    }
+    Logger.error(error as Error, {
+      tags: { feature: 'card', operation: 'cardLinks' },
+      context: {
+        name: 'CardController',
+        data: {
+          method,
+          statusCode: error instanceof CardApiError ? error.statusCode : null,
+        },
+      },
+    });
+  }
+
+  #fetchCardLinksWithLogging(
+    method: string,
+    options?: { force?: boolean },
+  ): void {
+    this.fetchCardLinks(options).catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: { name: 'CardController', data: { method } },
+      }),
+    );
+  }
+
+  #hasHdKeyring(): boolean {
+    try {
+      const { keyrings } = this.messenger.call('KeyringController:getState');
+      return keyrings.some((keyring) => keyring.type === KeyringTypes.hd);
+    } catch {
+      return false;
+    }
+  }
+
+  async fetchCardLinks({
+    force = false,
+  }: { force?: boolean } = {}): Promise<void> {
+    if (!this.#isCardLinkApiEnabled()) return;
+
+    const { cardLinks, cardLinksFetchedAt } = this.state;
+    const isFresh =
+      cardLinks !== null &&
+      cardLinksFetchedAt !== null &&
+      Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
+    if (isFresh && !force) {
+      await this.#backfillSessionCardLink();
+      return;
     }
 
-    // Only update state if at least one batch succeeded. A total failure
-    // (e.g. network outage) should leave the existing cached list intact.
-    if (anySucceeded) {
-      this.update((s) => {
-        s.cardholderAccounts = results;
+    // A forced read must not join one that started earlier: that result can
+    // belong to the previous profile. Wait for it, then read again. Two forced
+    // callers still share the second read.
+    if (force && this.#cardLinksFetchPromise) {
+      await this.#cardLinksFetchPromise.catch(() => undefined);
+    }
+
+    if (!this.#cardLinksFetchPromise) {
+      const read = this.#doFetchCardLinks().finally(() => {
+        if (this.#cardLinksFetchPromise === read) {
+          this.#cardLinksFetchPromise = null;
+        }
+      });
+      this.#cardLinksFetchPromise = read;
+    }
+    await this.#cardLinksFetchPromise;
+  }
+
+  async #doFetchCardLinks(attempt = 0): Promise<void> {
+    const generation = this.#cardLinksGeneration;
+    const writeRevision = this.#cardLinksWriteRevision;
+    let links: CardLink[] | null;
+    try {
+      links = await this.#withCardLinkBearer((token) =>
+        this.cardService.getCardLinks(token),
+      );
+    } catch (error) {
+      this.#handleCardLinkError(error, 'fetchCardLinks');
+      return;
+    }
+    if (generation !== this.#cardLinksGeneration) return;
+    if (writeRevision !== this.#cardLinksWriteRevision) {
+      // This GET started before a write, so its body is the pre-write list.
+      // Applying it would replace the write and start the 24h freshness window.
+      if (attempt + 1 < CARD_LINKS_FETCH_ATTEMPTS) {
+        await this.#doFetchCardLinks(attempt + 1);
+      }
+      return;
+    }
+
+    this.update((s) => {
+      s.cardLinks = links;
+      s.cardLinksFetchedAt = Date.now();
+    });
+    await this.#backfillSessionCardLink();
+  }
+
+  #clearCardLinkBackfill(): void {
+    this.#cardLinkBackfillAttempted.clear();
+    this.#cardLinkBackfillPromise = null;
+  }
+
+  /**
+   * A restored provider session never passes through login, so it never writes
+   * a card link. Once this session has both a fresh link read and card home
+   * data, create the missing row or move an onboarding row to active. A closed
+   * row is the server's decision and is left alone. One backfill runs at a time.
+   */
+  async #backfillSessionCardLink(): Promise<void> {
+    if (!this.#cardLinkBackfillPromise) {
+      const run = this.#doBackfillSessionCardLink().finally(() => {
+        if (this.#cardLinkBackfillPromise === run) {
+          this.#cardLinkBackfillPromise = null;
+        }
+      });
+      this.#cardLinkBackfillPromise = run;
+    }
+    await this.#cardLinkBackfillPromise;
+  }
+
+  async #doBackfillSessionCardLink(): Promise<void> {
+    try {
+      if (!this.#isCardLinkApiEnabled()) return;
+
+      const {
+        isAuthenticated,
+        activeProviderId,
+        cardLinks,
+        cardLinksFetchedAt,
+        cardHomeData,
+        cardHomeDataStatus,
+        cardHomeDataFetchedThisSession,
+      } = this.state;
+      const readIsFresh =
+        cardLinksFetchedAt !== null &&
+        Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
+      if (
+        !isAuthenticated ||
+        !activeProviderId ||
+        !readIsFresh ||
+        cardLinks === null ||
+        cardHomeDataStatus !== 'success' ||
+        !cardHomeDataFetchedThisSession ||
+        this.#cardLinkBackfillAttempted.has(activeProviderId)
+      ) {
+        return;
+      }
+
+      const home = cardHomeData as {
+        card?: unknown;
+        account?: { verificationStatus?: string };
+        primaryFundingAsset?: { walletAddress?: string };
+      } | null;
+      const status: CardLinkWriteStatus =
+        home?.card != null || home?.account?.verificationStatus === 'VERIFIED'
+          ? 'active'
+          : 'onboarding';
+      const existing = latestByUpdatedAt(
+        cardLinks.filter((link) => link.provider === activeProviderId),
+      );
+      // Status only moves forward. An active row is already current, and an
+      // onboarding row stays until the provider reports a card.
+      if (existing?.status === 'closed') return;
+      if (
+        existing &&
+        (existing.status === 'active' || status === 'onboarding')
+      ) {
+        return;
+      }
+
+      // A row that already names an account keeps that ref. Sending another
+      // address would replace it and ask for a signature.
+      const address = existing?.linkedAccountRef
+        ? undefined
+        : await this.#backfillLinkedAccountAddress(
+            activeProviderId,
+            home?.primaryFundingAsset?.walletAddress,
+          );
+      const providerCardholderId =
+        await this.#storedCardholderId(activeProviderId);
+
+      if (!this.state.isAuthenticated) return;
+      if (this.#cardLinkBackfillAttempted.has(activeProviderId)) return;
+
+      const outcome = await this.#writeCardLink(
+        activeProviderId,
+        status,
+        {
+          address,
+          providerCardholderId,
+          promptWalletProof: false,
+        },
+        '#backfillSessionCardLink',
+      );
+      if (outcome === 'rejected') {
+        this.#cardLinkBackfillAttempted.add(activeProviderId);
+      }
+      if (outcome !== 'skipped') {
+        this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
+          provider: activeProviderId,
+          outcome,
+          source: 'session',
+          change: existing ? 'upgraded' : 'created',
+        });
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#backfillSessionCardLink' },
+        },
       });
     }
   }
 
-  async #fetchCardholderBatch(
-    accountIds: string[],
-    accountsApiUrl: string,
-  ): Promise<string[]> {
-    const url = new URL('v1/metadata', accountsApiUrl);
-    url.searchParams.set('accountIds', accountIds.join(',').toLowerCase());
-    url.searchParams.set('label', 'card_user');
-    const response = await fetch(url.toString());
-    if (!response.ok)
-      throw new Error(`Cardholder API error: ${response.status}`);
-    const data = await response.json();
-    return (data.is as string[]) ?? [];
+  async #backfillLinkedAccountAddress(
+    provider: CardProviderId,
+    baanxWalletAddress: string | undefined,
+  ): Promise<string | undefined> {
+    let candidate = baanxWalletAddress;
+    if (provider === CardProviderIds.Immersve) {
+      try {
+        candidate = (await CardTokenStore.get(provider))?.accountAddress;
+      } catch {
+        return undefined;
+      }
+    }
+    if (!candidate) return undefined;
+    return this.#ownedEvmAddress(candidate) ?? undefined;
   }
 
-  #createBatches<T>(items: T[], size: number, maxBatches: number): T[][] {
-    const batches: T[][] = [];
-    for (
-      let i = 0;
-      i < items.length && batches.length < maxBatches;
-      i += size
-    ) {
-      batches.push(items.slice(i, i + size));
+  #ownedEvmAddress(address: string): string | null {
+    const bare = (
+      address.includes(':')
+        ? address.slice(address.lastIndexOf(':') + 1)
+        : address
+    ).toLowerCase();
+    if (!bare) return null;
+    const accounts = Object.values(
+      this.messenger.call('AccountsController:getState').internalAccounts
+        .accounts,
+    );
+    return (
+      accounts.find(
+        (account) =>
+          isEthAccount(account) && account.address.toLowerCase() === bare,
+      )?.address ?? null
+    );
+  }
+
+  #trackCardLinkEvent(
+    event: IMetaMetricsEvent,
+    properties: Record<string, string>,
+  ): void {
+    try {
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
+          .build(),
+      );
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#trackCardLinkEvent' },
+        },
+      });
     }
-    return batches;
+  }
+
+  #getLinkedCardProviderId(): CardProviderId | null {
+    if (!this.#isCardLinkApiEnabled()) return null;
+    return pickRoutableCardLink(this.state.cardLinks)?.provider ?? null;
+  }
+
+  /** The account whose hash matches the routable link's `linkedAccountRef`. */
+  async findLinkedAccountAddress(addresses?: string[]): Promise<string | null> {
+    if (!this.#isCardLinkApiEnabled()) return null;
+    const ref = pickRoutableCardLink(this.state.cardLinks)?.linkedAccountRef;
+    if (!ref) return null;
+
+    const candidates =
+      addresses ??
+      Object.values(
+        this.messenger.call('AccountsController:getState').internalAccounts
+          .accounts,
+      )
+        .filter((account) => isEthAccount(account))
+        .map((account) => account.address);
+
+    for (const address of candidates) {
+      if ((await this.#computeLinkedAccountRef(address)) === ref) {
+        return address;
+      }
+    }
+    return null;
+  }
+
+  async #resolveSignInForLinkedProvider(
+    providerId: CardProviderId,
+    deviceAddresses: string[],
+  ): Promise<CardSignInResolution | null> {
+    const provider = this.providers[providerId];
+    if (!provider) return null;
+
+    const option: CardSignInOption = {
+      providerId,
+      method: provider.capabilities.authMethod,
+    };
+    if (option.method === 'email_password') {
+      return { kind: 'email', option };
+    }
+
+    const address = await this.findLinkedAccountAddress(deviceAddresses);
+    return address
+      ? { kind: 'wallet', option, address, source: 'card_link' }
+      : null;
+  }
+
+  async recordProviderOnboardingStarted({
+    provider,
+    address,
+    providerCardholderId,
+  }: {
+    provider: CardProviderId;
+    address: string;
+    providerCardholderId?: string;
+  }): Promise<void> {
+    await this.#recordProviderMilestone(
+      provider,
+      'onboarding',
+      { address, providerCardholderId },
+      'recordProviderOnboardingStarted',
+    );
+  }
+
+  async recordCardActivated({
+    provider,
+    address,
+    providerCardholderId,
+  }: {
+    provider: CardProviderId;
+    address?: string;
+    providerCardholderId?: string;
+  }): Promise<void> {
+    await this.#recordProviderMilestone(
+      provider,
+      'active',
+      { address, providerCardholderId },
+      'recordCardActivated',
+    );
+  }
+
+  async #recordProviderMilestone(
+    provider: CardProviderId,
+    status: CardLinkWriteStatus,
+    { address, providerCardholderId }: CardLinkWriteFields,
+    method: string,
+  ): Promise<void> {
+    const cardholderId =
+      providerCardholderId ?? (await this.#storedCardholderId(provider));
+    await this.#writeCardLink(
+      provider,
+      status,
+      {
+        address,
+        providerCardholderId: cardholderId,
+        promptWalletProof: true,
+      },
+      method,
+    );
+  }
+
+  async #storedCardholderId(
+    provider: CardProviderId,
+  ): Promise<string | undefined> {
+    try {
+      return (await CardTokenStore.get(provider))?.cardholderAccountId;
+    } catch {
+      return undefined;
+    }
+  }
+
+  async recordProviderLogin({
+    provider,
+    phase,
+    address,
+  }: {
+    provider: CardProviderId;
+    phase: CardLinkWriteStatus;
+    address?: string | null;
+  }): Promise<void> {
+    await this.#writeCardLink(
+      provider,
+      phase,
+      { address: address ?? undefined },
+      'recordProviderLogin',
+    );
+  }
+
+  #recordProviderLoginWithLogging(
+    provider: CardProviderId,
+    phase: CardLinkWriteStatus,
+  ): void {
+    // Resolved when the queued write runs, so a write ahead of it is visible.
+    this.#writeCardLink(
+      provider,
+      phase,
+      () => ({
+        address: this.#loginAccountForLinkedRef(provider) ?? undefined,
+      }),
+      'recordProviderLogin',
+    ).catch((error) =>
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider },
+        context: {
+          name: 'CardController',
+          data: { method: 'recordProviderLogin' },
+        },
+      }),
+    );
+  }
+
+  // Writes for one provider run in order, so a slow `onboarding` PUT cannot
+  // land after `active` and replace the stored row with the older state.
+  // card-api replaces linkedAccountRef on every write that carries one, so a
+  // login sends the selected account only when the stored link has no ref yet.
+  #loginAccountForLinkedRef(provider: CardProviderId): string | null {
+    const selected = this.#getSelectedEvmAddress();
+    if (!selected) return null;
+    const { cardLinks, cardLinksFetchedAt } = this.state;
+    const linksAreFresh =
+      cardLinks !== null &&
+      cardLinksFetchedAt !== null &&
+      Date.now() - cardLinksFetchedAt < CARD_LINKS_FRESH_MS;
+    if (!linksAreFresh) return null;
+    const existing = latestByUpdatedAt(
+      cardLinks.filter((l) => l.provider === provider),
+    );
+    return existing?.linkedAccountRef ? null : selected;
+  }
+
+  #writeCardLink(
+    provider: CardProviderId,
+    status: CardLinkWriteStatus,
+    fields: CardLinkWriteFields | (() => CardLinkWriteFields),
+    method: string,
+  ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
+    const generation = this.#cardLinksGeneration;
+    const run = () =>
+      this.#doWriteCardLink(provider, status, fields, method, generation);
+    const queued = (
+      this.#cardLinkWriteQueues[provider] ?? Promise.resolve()
+    ).then(run, run);
+    this.#cardLinkWriteQueues[provider] = queued;
+    return queued;
+  }
+
+  async #doWriteCardLink(
+    provider: CardProviderId,
+    status: CardLinkWriteStatus,
+    fields: CardLinkWriteFields | (() => CardLinkWriteFields),
+    method: string,
+    generation: number,
+  ): Promise<'written' | 'rejected' | 'failed' | 'skipped'> {
+    try {
+      if (generation !== this.#cardLinksGeneration) return 'skipped';
+      if (!this.#isCardLinkApiEnabled()) return 'skipped';
+
+      const { address, providerCardholderId, promptWalletProof } =
+        typeof fields === 'function' ? fields() : fields;
+      const body: CardLinkWriteBody = { status };
+      if (isValidCardLinkField(providerCardholderId)) {
+        body.providerCardholderId = providerCardholderId;
+      }
+      const linkedAccountRef = address
+        ? await this.#computeLinkedAccountRef(address)
+        : undefined;
+      if (isValidCardLinkField(linkedAccountRef)) {
+        body.linkedAccountRef = linkedAccountRef;
+      }
+      if (provider === CardProviderIds.Immersve && address) {
+        const walletProof = await this.#cardLinkWalletProof(
+          address,
+          promptWalletProof === true,
+        );
+        if (walletProof) {
+          body.walletProof = walletProof;
+        }
+      }
+
+      const put = (payload: CardLinkWriteBody) =>
+        this.#withCardLinkBearer((token) =>
+          this.cardService.putCardLink(provider, payload, token),
+        );
+      let link;
+      try {
+        link = await put(body);
+      } catch (error) {
+        if (
+          !body.walletProof ||
+          !(error instanceof CardApiError) ||
+          error.statusCode !== 400
+        ) {
+          throw error;
+        }
+        const { walletProof: _walletProof, ...unverified } = body;
+        link = await put(unverified);
+      }
+      if (generation === this.#cardLinksGeneration) {
+        this.update((s) => {
+          s.cardLinks = [
+            ...(s.cardLinks ?? []).filter((l) => l.provider !== link.provider),
+            link,
+          ];
+        });
+        this.#cardLinksWriteRevision += 1;
+      }
+      return 'written';
+    } catch (error) {
+      this.#handleCardLinkError(error, method);
+      return error instanceof CardApiError && error.statusCode === 400
+        ? 'rejected'
+        : 'failed';
+    }
+  }
+
+  async #cardLinkWalletProof(
+    address: string,
+    prompt: boolean,
+  ): Promise<{ message: string; signature: string } | undefined> {
+    if (!prompt) {
+      try {
+        if (this.#isHardwareAddress(address)) return undefined;
+      } catch {
+        return undefined;
+      }
+    }
+
+    let token: string;
+    try {
+      token = await this.messenger.call(
+        'AuthenticationController:getBearerToken',
+      );
+    } catch {
+      return undefined;
+    }
+    const profileId = profileIdFromBearer(token);
+    const bare = address.includes(':')
+      ? address.slice(address.lastIndexOf(':') + 1)
+      : address;
+    if (!profileId || !bare) return undefined;
+
+    const message = cardLinkProofMessage(
+      profileId,
+      bare,
+      new Date().toISOString(),
+    );
+    try {
+      const signature = await this.messenger.call(
+        'KeyringController:signPersonalMessage',
+        {
+          data: `0x${Buffer.from(message, 'utf8').toString('hex')}`,
+          from: bare,
+        },
+      );
+      return /^0x[0-9a-fA-F]{130}$/.test(signature)
+        ? { message, signature }
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  #isHardwareAddress(address: string): boolean {
+    const bare = (
+      address.includes(':')
+        ? address.slice(address.lastIndexOf(':') + 1)
+        : address
+    ).toLowerCase();
+    const { keyrings } = this.messenger.call('KeyringController:getState');
+    return keyrings.some(
+      (keyring) =>
+        HARDWARE_KEYRING_TYPES.has(keyring.type) &&
+        keyring.accounts.some((account) => account.toLowerCase() === bare),
+    );
+  }
+
+  async #computeLinkedAccountRef(address: string): Promise<string | undefined> {
+    const bare = address.includes(':')
+      ? address.slice(address.lastIndexOf(':') + 1)
+      : address;
+    if (!bare) return undefined;
+    return bytesToHex(await this.#sha256(bare.toLowerCase()));
   }
 
   private getActiveProvider(): ICardProvider {
@@ -751,6 +1443,7 @@ export class CardController extends BaseController<
           s.cardHomeDataError = null;
         });
         this.#lastFetchedAt = Date.now();
+        await this.#backfillSessionCardLink();
       }
     } catch (error) {
       if (generation === this.fetchGeneration) {
@@ -788,8 +1481,8 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Sentry span for the card home request. `is_authenticated` separates the
-   * provider call from the on-chain-assets fallback — very different costs.
+   * Sentry span for the card home request. `is_authenticated` separates a
+   * signed-in provider call from the empty result returned with no session.
    */
   async #tracedGetCardHomeData(address: string): Promise<CardHomeData> {
     return await trace(
@@ -1037,6 +1730,36 @@ export class CardController extends BaseController<
     });
   }
 
+  /**
+   * Best-effort signal to Baanx (Exodus) that a UK migration user started
+   * Immersve onboarding. Targets the fallback provider directly because the
+   * active provider may already be Immersve. Failures are logged and never
+   * thrown — the user proceeds with sign-up either way.
+   */
+  async requestLegacyAccountClosure(): Promise<void> {
+    const provider = this.providers[FALLBACK_CARD_PROVIDER_ID];
+    if (!provider?.requestAccountClosure) {
+      return;
+    }
+
+    const tokens = await CardTokenStore.get(FALLBACK_CARD_PROVIDER_ID);
+    if (!tokens || provider.validateTokens(tokens) === 'expired') {
+      return;
+    }
+
+    try {
+      await provider.requestAccountClosure(tokens);
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', provider: FALLBACK_CARD_PROVIDER_ID },
+        context: {
+          name: 'CardController',
+          data: { method: 'requestLegacyAccountClosure' },
+        },
+      });
+    }
+  }
+
   getSignInOptions(country: string): CardSignInOption[] {
     const featureState = this.messenger.call(
       'RemoteFeatureFlagController:getState',
@@ -1082,6 +1805,37 @@ export class CardController extends BaseController<
     }
   }
 
+  #resolveSignInFromRecord(
+    record: CardSignInLink,
+    walletOption: CardSignInOption,
+    deviceAddresses: string[],
+  ): CardSignInResolution | null {
+    if (!this.#isAddressInList(record.address, deviceAddresses)) {
+      return {
+        kind: 'wallet_account_missing',
+        option: walletOption,
+        address: record.address,
+      };
+    }
+    if (record.status === 'completed' || record.status === 'linked') {
+      return {
+        kind: 'wallet',
+        option: walletOption,
+        address: record.address,
+        source: 'record',
+      };
+    }
+    if (record.status === 'started') {
+      return {
+        kind: 'resume',
+        option: walletOption,
+        address: record.address,
+        stage: record.stage ?? null,
+      };
+    }
+    return null;
+  }
+
   async resolveSignIn({
     country,
     candidateAddresses,
@@ -1104,29 +1858,24 @@ export class CardController extends BaseController<
     const emailOption = options.find((o) => o.method === 'email_password');
 
     if (routingEnabled && record && walletOption) {
-      if (!this.#isAddressInList(record.address, deviceAddresses)) {
-        return {
-          kind: 'wallet_account_missing',
-          option: walletOption,
-          address: record.address,
-        };
-      }
-      if (record.status === 'completed' || record.status === 'linked') {
-        return {
-          kind: 'wallet',
-          option: walletOption,
-          address: record.address,
-          source: 'record',
-        };
-      }
-      if (record.status === 'started') {
-        return {
-          kind: 'resume',
-          option: walletOption,
-          address: record.address,
-          stage: record.stage ?? null,
-        };
-      }
+      const fromRecord = this.#resolveSignInFromRecord(
+        record,
+        walletOption,
+        deviceAddresses,
+      );
+      if (fromRecord) return fromRecord;
+    }
+
+    const linkedProviderId = this.#getLinkedCardProviderId();
+    if (
+      linkedProviderId &&
+      options.some((option) => option.providerId === linkedProviderId)
+    ) {
+      const linkedResolution = await this.#resolveSignInForLinkedProvider(
+        linkedProviderId,
+        deviceAddresses,
+      );
+      if (linkedResolution) return linkedResolution;
     }
 
     if (options.length === 1 && emailOption) {
@@ -1234,24 +1983,37 @@ export class CardController extends BaseController<
       },
     );
 
-    const result = await this.submitCredentials({
+    return this.submitCredentials({
       type: 'siwe',
       signature,
     });
+  }
 
-    if (result.done && !this.getSignInLink()) {
-      this.#writeSignInLink({
-        providerId: option.providerId,
-        status: 'linked',
-        address,
-        providerUserId:
-          result.tokenSet?.providerUserId ??
-          result.tokenSet?.cardholderAccountId,
-        updatedAt: Date.now(),
-      });
+  /**
+   * Drops an in-progress login, including a half-finished MFA challenge,
+   * without clearing stored tokens. Also drops a migration that was waiting
+   * on that login, so the next ordinary sign-in does not write a started link.
+   */
+  abandonAuth(): void {
+    this.currentSession = null;
+    this.#migrationInProgress = false;
+  }
+
+  #linkWalletSignInIfMissing(
+    providerId: NonNullable<CardControllerState['activeProviderId']>,
+    address: string | null | undefined,
+    tokenSet: CardAuthTokens,
+  ): void {
+    if (!address || this.getSignInLink()) {
+      return;
     }
-
-    return result;
+    this.#writeSignInLink({
+      providerId,
+      status: 'linked',
+      address,
+      providerUserId: tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
+      updatedAt: Date.now(),
+    });
   }
 
   #writeSignInLink(link: CardSignInLink): void {
@@ -1400,14 +2162,31 @@ export class CardController extends BaseController<
         'submitCredentials: no active provider',
       );
     }
-    const result = await provider.submitCredentials(
-      this.currentSession,
-      credentials,
-    );
+    const sessionAddress =
+      typeof this.currentSession._metadata?.address === 'string'
+        ? this.currentSession._metadata.address
+        : undefined;
+
+    let result: CardAuthResult;
+    try {
+      result = await provider.submitCredentials(
+        this.currentSession,
+        credentials,
+      );
+    } catch (error) {
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.AuthRestartRequired
+      ) {
+        this.currentSession = null;
+      }
+      throw error;
+    }
 
     if (result.nextStep) {
       this.currentSession = {
         ...this.currentSession,
+        id: result.nextSessionId ?? this.currentSession.id,
         currentStep: result.nextStep,
       };
     } else {
@@ -1441,31 +2220,44 @@ export class CardController extends BaseController<
         ] = { location: tokenSet.location };
       });
 
+      const completesWalletSignIn =
+        credentials.type === 'siwe' || credentials.type === 'mfa_code';
+      const linkAddress = completesWalletSignIn
+        ? (sessionAddress ??
+          tokenSet.accountAddress ??
+          this.#getSelectedEvmAddress())
+        : undefined;
+
       if (this.#migrationInProgress) {
         this.#migrationInProgress = false;
-        if (credentials.type === 'siwe') {
-          const address =
-            (typeof this.currentSession?._metadata?.address === 'string'
-              ? this.currentSession._metadata.address
-              : undefined) ??
-            tokenSet.accountAddress ??
-            this.#getSelectedEvmAddress();
-          if (address) {
-            this.#writeSignInLink({
-              providerId: pid,
-              status: 'started',
-              address,
-              providerUserId:
-                tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
-              stage: 'identity',
-              updatedAt: Date.now(),
-            });
-          }
+        if (completesWalletSignIn && linkAddress) {
+          this.#writeSignInLink({
+            providerId: pid,
+            status: 'started',
+            address: linkAddress,
+            providerUserId:
+              tokenSet.providerUserId ?? tokenSet.cardholderAccountId,
+            stage: 'identity',
+            updatedAt: Date.now(),
+          });
         }
+      } else if (completesWalletSignIn) {
+        this.#linkWalletSignInIfMissing(pid, linkAddress, tokenSet);
+      }
+
+      if (this.#isCardLinkApiEnabled() && this.state.cardLinks?.length === 0) {
+        this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_MISSED_AT_LOGIN, {
+          provider: pid,
+        });
+      }
+      if (pid === CardProviderIds.Baanx) {
+        this.#recordProviderLoginWithLogging(pid, 'active');
       }
 
       this.invalidateFetch();
       this.#fetchCardHomeDataWithLogging('submitCredentials/fetchCardHomeData');
+    } else if (result.onboardingRequired && pid === CardProviderIds.Baanx) {
+      this.#recordProviderLoginWithLogging(pid, 'onboarding');
     }
 
     return result;
@@ -1480,6 +2272,23 @@ export class CardController extends BaseController<
     }
     const provider = this.getActiveProvider();
     await provider.executeStepAction?.(this.currentSession);
+  }
+
+  async requestEmailLoginCode(email: string): Promise<void> {
+    if (!this.currentSession) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: no active auth session',
+      );
+    }
+    const provider = this.getActiveProvider();
+    if (!provider.requestEmailLoginCode) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: provider does not support email codes',
+      );
+    }
+    await provider.requestEmailLoginCode(email);
   }
 
   async logout(): Promise<void> {
@@ -1514,6 +2323,7 @@ export class CardController extends BaseController<
     await this.clearTokens();
     this.invalidateFetch();
     this.#invalidateRedeemWithdrawal();
+    this.#clearCardLinkBackfill();
     this.update((s) => {
       s.isAuthenticated = false;
       s.providerUserId = null;
@@ -1591,10 +2401,10 @@ export class CardController extends BaseController<
       this.refreshPromise = null;
       this.invalidateFetch();
       this.#invalidateRedeemWithdrawal();
-      if (this.#cardholderCheckTimer !== undefined) {
-        clearTimeout(this.#cardholderCheckTimer);
-        this.#cardholderCheckTimer = undefined;
-      }
+      this.#cardLinksGeneration += 1;
+      this.#cardLinksFetchPromise = null;
+      this.#cardLinkWriteQueues = {};
+      this.#clearCardLinkBackfill();
       this.update(() => ({ ...defaultCardControllerState }));
 
       ReduxService.store.dispatch(resetCardState());
@@ -1625,6 +2435,15 @@ export class CardController extends BaseController<
     if (!isAuthenticated) return;
     this.#invalidateAndClear();
     await this.fetchCardHomeData({ force: true });
+    const home = this.state.cardHomeData as {
+      account?: { verificationStatus?: string };
+    } | null;
+    this.#recordProviderLoginWithLogging(
+      CardProviderIds.Baanx,
+      home?.account?.verificationStatus === 'VERIFIED'
+        ? 'active'
+        : 'onboarding',
+    );
   }
 
   // -- Token helpers --
@@ -1806,8 +2625,16 @@ export class CardController extends BaseController<
 
   // -- Data pass-throughs --
 
-  getCapabilities(): CardProviderCapabilities {
-    const provider = this.getActiveProvider();
+  getCapabilities(providerId?: CardProviderId): CardProviderCapabilities {
+    const provider = providerId
+      ? this.providers[providerId]
+      : this.getActiveProvider();
+    if (!provider) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `No provider: ${providerId}`,
+      );
+    }
     return provider.capabilities;
   }
 
@@ -1820,14 +2647,7 @@ export class CardController extends BaseController<
       );
     }
 
-    const onChainProvider =
-      provider.getOnChainAssets != null
-        ? provider
-        : this.providers[DEFAULT_CARD_PROVIDER_ID];
-    return (
-      (await onChainProvider?.getOnChainAssets?.(address)) ??
-      emptyCardHomeData()
-    );
+    return emptyCardHomeData();
   }
 
   #restoreCardHomeDataAfterOptimisticFailure(
@@ -1973,6 +2793,28 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => getCardSensitiveDetails(tokens));
   }
 
+  /**
+   * Funding source id for this Money account address on the active provider's
+   * channel. Reuses a matching source, or creates one.
+   */
+  async resolveMoneyAccountFundingSourceId(
+    moneyAccountAddress: string,
+  ): Promise<string> {
+    const provider = this.getActiveProvider();
+    const resolveMoneyAccountFundingSource =
+      provider.resolveMoneyAccountFundingSource?.bind(provider);
+    if (!resolveMoneyAccountFundingSource) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Money account funding source resolution not supported',
+      );
+    }
+    const source = await this.#withAuthRetry((tokens) =>
+      resolveMoneyAccountFundingSource(moneyAccountAddress, tokens),
+    );
+    return source.id;
+  }
+
   async createFundingSource(): Promise<CardFundingSourceResult> {
     const provider = this.getActiveProvider();
     const createFundingSource = provider.createFundingSource?.bind(provider);
@@ -2062,7 +2904,33 @@ export class CardController extends BaseController<
         'Card creation not supported',
       );
     }
-    return this.#withAuthRetry((tokens) => createCard(fundingSourceId, tokens));
+    const pid = this.state.activeProviderId;
+    try {
+      const result = await this.#withAuthRetry((tokens) =>
+        createCard(fundingSourceId, tokens),
+      );
+      this.#recordCreatedCard(pid);
+      return result;
+    } catch (error) {
+      if (
+        error instanceof CardProviderError &&
+        error.code === CardProviderErrorCode.Conflict
+      ) {
+        this.#recordCreatedCard(pid);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * The card now exists at the provider. Record it active without an address,
+   * so an existing account ref stays put and no wallet is asked to sign.
+   */
+  #recordCreatedCard(provider: CardProviderId | null): void {
+    if (!provider) return;
+    this.#recordProviderMilestone(provider, 'active', {}, 'createCard').catch(
+      () => undefined,
+    );
   }
 
   async getContactDetails(): Promise<CardContactDetails> {
@@ -2195,32 +3063,25 @@ export class CardController extends BaseController<
   }
 
   /**
-   * Links a primary Money Account to Card by approving a Monad USDC allowance
-   * to the active provider's delegation contract and completing the provider's
-   * funding flow. The approval transaction is submitted via
+   * Links a primary Money account to Card by approving the provider's spender
+   * from the Money account and completing that provider's funding flow.
+   *
+   * Provider-specific work (Baanx delegation challenge and post-approval,
+   * Immersve funding source and card creation) lives in
+   * `prepareMoneyAccountLink` / `completeMoneyAccountLink`. The approval
+   * itself is always a gas-sponsored ERC-20 approve via
    * `TransactionController:addTransactionBatch` with `requireApproval: false`
-   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal
-   * and the money account doesn't pay MON gas — Sentinel sponsors the relayer
-   * fee. This is the background linkage path UI hooks consume.
+   * and `isGasFeeSponsored: true`, so it never opens the Confirmations modal.
    *
-   * Pre-flight enforces one invariant before submission: the Monad gas
-   * sponsorship feature flag must be enabled (the relay must accept
-   * sponsorship for this chain).
+   * Pre-flight enforces one invariant before any provider call: Monad gas
+   * sponsorship must be enabled.
    *
-   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`:
-   * when the Money Account has no existing delegation, the hook auto-signs a
-   * 7702 authorization and bundles it in the same Sentinel relay request as
-   * the approve. No separate upgrade step is required here.
+   * EIP-7702 upgrade is handled atomically by `Delegation7702PublishHook`
+   * when the Money account has no existing delegation.
    *
-   * Race-safe by construction: subscribes to
-   * `TransactionController:transactionConfirmed` BEFORE submitting the
-   * transaction (see `awaitTransactionConfirmed`).
-   *
-   *
-   * @param params.moneyAccountAddress - The primary Money Account address.
-   * @param params.delegationAmountHuman - Allowance in human-readable units
-   * (e.g. `"2199023255551"`); converted to minimal units using the token's
-   * decimals. Pass `"0"` to revoke.
+   * @param params.moneyAccountAddress - The primary Money account address.
+   * @param params.delegationAmountHuman - Allowance in human-readable units.
+   * Pass `"0"` to revoke.
    */
   async linkMoneyAccountCard(params: {
     moneyAccountAddress: string;
@@ -2273,94 +3134,55 @@ export class CardController extends BaseController<
     // Fail fast before any transaction work when there is no usable session.
     await this.requireValidTokens();
     const provider = this.getActiveProvider();
-    if (
-      !provider.fetchDelegationChallenge ||
-      !provider.approveFunding ||
-      !provider.generateCardDelegationSignatureMessage
-    ) {
+    const prepare = provider.prepareMoneyAccountLink?.bind(provider);
+    const complete = provider.completeMoneyAccountLink?.bind(provider);
+    if (!prepare || !complete) {
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Money account card delegation is not supported for this provider',
       );
     }
 
-    const cardToken = await this.#resolveMoneyAccountCardTokenOrRefetch();
-    if (!cardToken) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card spending token unavailable',
-      );
-    }
+    const delegationSettings =
+      await this.#resolveMoneyAccountDelegationSettingsOrRefetch();
+    const preparation = await this.#withAuthRetry((tokens) =>
+      prepare(
+        {
+          moneyAccountAddress: fromAddress,
+          amountHuman: delegationAmountHuman,
+          delegationSettings,
+        } satisfies PrepareMoneyAccountLinkParams,
+        tokens,
+      ),
+    );
 
-    const tokenAddress = cardToken.stagingTokenAddress ?? cardToken.address;
-    if (!tokenAddress) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card spending token address missing',
-      );
-    }
-    if (!cardToken.delegationContract) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Money Account Card delegation contract missing',
-      );
-    }
+    const chainNumber = Number(
+      parseCaipChainId(preparation.caipChainId).reference,
+    );
+    this.#assertGasSponsorship(chainNumber);
+
+    const signatureMessage = preparation.context.signatureMessage;
+    const sigHash = signatureMessage
+      ? await this.messenger.call('KeyringController:signPersonalMessage', {
+          data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
+          from: fromAddress,
+        })
+      : undefined;
 
     const amountInMinimalUnits = toTokenMinimalUnit(
       delegationAmountHuman,
-      cardToken.decimals ?? 6,
+      preparation.decimals,
     ).toString();
     const data = encodeErc20ApproveCalldata(
-      cardToken.delegationContract,
+      preparation.spender,
       amountInMinimalUnits,
-    );
-
-    const chainNumber = parseInt(
-      cardToken.caipChainId?.split(':')[1] ?? '143',
-      10,
     );
     const hexChainId = numberToHex(chainNumber) as Hex;
     const networkClientId = this.messenger.call(
       'NetworkController:findNetworkClientIdByChainId',
       hexChainId,
     );
-
-    // Pre-flight 1: Monad gas sponsorship feature flag must be on. The card
-    // link approve is submitted with `isGasFeeSponsored: true`, so if the
-    // server-side sponsorship is disabled we must refuse before the relay
-    // call — otherwise the publish hook would reject and the user would see
-    // a generic link-failed toast with no actionable reason.
-    const isMonadSponsorshipEnabled = getGasFeesSponsoredNetworkEnabled(
-      ReduxService.store.getState() as RootState,
-    )(hexChainId);
-    if (!isMonadSponsorshipEnabled) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Monad gas sponsorship unavailable',
-      );
-    }
-
-    // Public wrappers carry the 401 refresh-retry; the transaction flow in
-    // between can outlive the access token that passed the guard above.
-    const { delegationToken, nonce } = await this.fetchDelegationChallenge({
-      network: 'monad',
-      address: fromAddress,
-    });
-
-    const signatureMessage = this.generateCardDelegationSignatureMessage({
-      network: 'monad',
-      address: fromAddress,
-      nonce,
-      caipChainId: cardToken.caipChainId ?? 'eip155:143',
-    });
-
-    const sigHash = await this.messenger.call(
-      'KeyringController:signPersonalMessage',
-      {
-        data: `0x${Buffer.from(signatureMessage, 'utf8').toString('hex')}`,
-        from: fromAddress,
-      },
-    );
+    const tokenAddress = preparation.tokenAddress;
 
     const { transactionMeta: confirmedMeta } = await awaitTransactionConfirmed({
       messenger: this
@@ -2399,16 +3221,18 @@ export class CardController extends BaseController<
 
     const txHash = confirmedMeta.hash ?? '';
 
-    await this.approveFunding({
-      address: fromAddress,
-      network: MONEY_ACCOUNT_DELEGATION_NETWORK,
-      currency: MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-      amount: delegationAmountHuman,
-      txHash,
-      sigHash,
-      sigMessage: signatureMessage,
-      token: delegationToken,
-    });
+    await this.#withAuthRetry((tokens) =>
+      complete(
+        {
+          moneyAccountAddress: fromAddress,
+          amountHuman: delegationAmountHuman,
+          txHash,
+          sigHash,
+          context: preparation.context,
+        } satisfies CompleteMoneyAccountLinkParams,
+        tokens,
+      ),
+    );
 
     try {
       await this.fetchCardHomeData({ force: true });
@@ -2420,13 +3244,39 @@ export class CardController extends BaseController<
     }
   }
 
-  async #resolveMoneyAccountCardTokenOrRefetch() {
+  #assertGasSponsorship(chainNumber: number): void {
+    const hexChainId = numberToHex(chainNumber) as Hex;
+    const isEnabled = getGasFeesSponsoredNetworkEnabled(
+      ReduxService.store.getState() as RootState,
+    )(hexChainId);
+    if (!isEnabled) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Gas sponsorship unavailable for chain ${chainNumber}`,
+      );
+    }
+  }
+
+  async #resolveMoneyAccountDelegationSettingsOrRefetch() {
     const fromState = () => {
       const data = this.state.cardHomeData as unknown as CardHomeData | null;
-      return resolveMoneyAccountCardToken(data?.delegationSettings ?? null);
+      return data?.delegationSettings ?? null;
     };
-    const existing = fromState();
-    if (existing) return existing;
+    const settings = fromState();
+
+    // Only providers that spend the Veda token need these settings. A
+    // persisted object without Monad/Veda is stale and has to be refreshed.
+    // Other providers ignore the settings, and a home-data fetch must not
+    // block their link.
+    if (
+      !this.getActiveProvider().capabilities.usesMoneyAccountDelegationSettings
+    ) {
+      return settings;
+    }
+
+    if (resolveMoneyAccountCardToken(settings)) {
+      return settings;
+    }
 
     await this.fetchCardHomeData({ force: true });
     return fromState();
@@ -2482,12 +3332,9 @@ export class CardController extends BaseController<
     );
   }
 
-  async createApplePayProvisioningRequest(params: {
-    leafCertificate: string;
-    intermediateCertificate: string;
-    nonce: string;
-    nonceSignature: string;
-  }): Promise<{
+  async createApplePayProvisioningRequest(
+    params: ApplePayProvisioningParams,
+  ): Promise<{
     encryptedPassData: string;
     activationData: string;
     ephemeralPublicKey: string;

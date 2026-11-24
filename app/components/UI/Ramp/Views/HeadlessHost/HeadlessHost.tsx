@@ -38,6 +38,11 @@ import useRampAccountAddress from '../../hooks/useRampAccountAddress';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useRampsPaymentMethods } from '../../hooks/useRampsPaymentMethods';
 import { getQuoteProviderName } from '../../types';
+import { useRampScreenPerformance } from '../../hooks/useRampScreenPerformance';
+import {
+  RAMP_SCREEN_CONTENT_STATE,
+  RAMP_V2_SCREEN_ID,
+} from '../../constants/rampScreenPerformance';
 
 import styleSheet from './HeadlessHost.styles';
 
@@ -161,6 +166,16 @@ function HeadlessHost() {
     chainId ?? ('' as CaipChainId),
   );
   const walletAddress = session?.params.walletAddress ?? resolvedWalletAddress;
+
+  useRampScreenPerformance({
+    screenId: RAMP_V2_SCREEN_ID.HEADLESS_HOST,
+    contentReady:
+      Boolean(nativeFlowError) ||
+      Boolean(session && chainId && walletAddress !== null),
+    contentState: nativeFlowError
+      ? RAMP_SCREEN_CONTENT_STATE.ERROR
+      : RAMP_SCREEN_CONTENT_STATE.POPULATED,
+  });
 
   // Auth-loop error path: OtpCode resets back to the Host with
   // `nativeFlowError` set when post-OTP routing fails. Forward to the

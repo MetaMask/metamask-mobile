@@ -8,13 +8,14 @@ import {
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
+  dismissToWalletHomePlaywright,
   loginToAppPlaywright,
   waitForWalletHomePlaywright,
 } from '../../../flows/wallet.flow.js';
 import { openPredictWithdrawPayConfirmation } from '../../../flows/predict.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
 import { Assertions } from '../../../framework/index.js';
-import WalletView from '../../../page-objects/wallet/WalletView.js';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import PredictHome from '../../../page-objects/Predict/PredictHome.js';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation.js';
 import PayWithModal from '../../../page-objects/Confirmation/PayWithModal.js';
@@ -47,13 +48,6 @@ appiumTest.describe(
     appiumTest(
       'withdraws Predict balance directly to Money account',
       async ({ driver: _driver, currentDeviceDetails }) => {
-        // Skipped on Android: this test consistently fails in Appium CI while
-        // returning to wallet home after confirming the deposit.
-        appiumTest.skip(
-          currentDeviceDetails.platform === 'android',
-          'Flaky on Android Appium CI: wallet home readiness after Predict deposit',
-        );
-
         await withFixtures(
           {
             fixture: new FixtureBuilder()
@@ -109,8 +103,16 @@ appiumTest.describe(
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
             await PredictHome.tapBackButton();
-            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
-            await WalletView.tapActivityButton();
+            if (currentDeviceDetails.platform === 'android') {
+              await dismissToWalletHomePlaywright(
+                resolveE2EWaitTimeoutMs(30_000),
+              );
+            } else {
+              await waitForWalletHomePlaywright(
+                resolveE2EWaitTimeoutMs(20_000),
+              );
+            }
+            await TabBarComponent.tapActivity();
 
             await ActivitiesView.tapTypeFilterChip();
             await ActivitiesView.tapTypeFilterOption('predictions');

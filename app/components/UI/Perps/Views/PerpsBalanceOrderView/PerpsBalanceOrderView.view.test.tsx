@@ -3,16 +3,22 @@ import '../../../../../../tests/component-view/mocks';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { renderPerpsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { createFundedAccountForViews } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
+import { withLighterBuildEnabled } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import { perpsTwoExchangeState } from '../../../../../../tests/component-view/presets/perpsTwoExchangePresets';
+import type { ComponentType } from 'react';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsMarketDetailsView from '../PerpsMarketDetailsView';
+import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 import PerpsBalanceOrderView from './PerpsBalanceOrderView';
 import { PerpsBalanceOrderViewSelectorsIDs } from './PerpsBalanceOrderView.testIds';
 
@@ -56,6 +62,8 @@ const options = {
 };
 
 describe('PerpsBalanceOrderView', () => {
+  withLighterBuildEnabled();
+
   beforeEach(() => {
     jest.clearAllMocks();
     jest
@@ -201,46 +209,43 @@ describe('PerpsBalanceOrderView', () => {
   });
 
   it('preserves an order-book limit price and allows editing it', async () => {
-    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
-      ...options,
-      initialParams: {
-        asset: 'ETH',
-        direction: 'short',
-        orderType: 'limit',
-        price: '2600',
-      },
-    });
+    const originalLocale = I18n.locale;
+    I18n.locale = 'en-US';
 
-    const input = await screen.findByTestId(
-      PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT,
-    );
-    expect(input).toHaveProp('value', '2600');
-    fireEvent.changeText(input, '2700');
+    try {
+      renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+        ...options,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'short',
+          orderType: 'limit',
+          price: '2600',
+        },
+      });
 
-    expect(input).toHaveProp('value', '2700');
-    expect(
-      Engine.context.PerpsController.depositWithOrder,
-    ).not.toHaveBeenCalled();
+      const input = await screen.findByTestId(
+        PerpsProOrderFormSelectorsIDs.LIMIT_PRICE_INPUT,
+      );
+      expect(input).toHaveProp('value', '2,600');
+      fireEvent.changeText(input, '2700');
+
+      expect(input).toHaveProp('value', '2,700');
+      expect(
+        Engine.context.PerpsController.depositWithOrder,
+      ).not.toHaveBeenCalled();
+    } finally {
+      I18n.locale = originalLocale;
+    }
   });
 
   it('selects the explicit Lighter market while aggregated', async () => {
-    const hyperliquidMarket = {
-      ...market,
-      name: 'Ethereum HyperLiquid',
-      providerId: 'hyperliquid' as const,
-    };
+    const twoExchange = perpsTwoExchangeState('sameMarketOnBoth');
     renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
       ...options,
-      overrides: {
-        engine: {
-          backgroundState: {
-            PerpsController: { activeProvider: 'aggregated' as const },
-          },
-        },
-      },
+      overrides: twoExchange.overrides,
       streamOverrides: {
         ...options.streamOverrides,
-        marketData: [hyperliquidMarket, market],
+        ...twoExchange.streamOverrides,
       },
       initialParams: {
         asset: 'ETH',
@@ -277,6 +282,124 @@ describe('PerpsBalanceOrderView', () => {
     expect(
       Engine.context.PerpsController.depositWithOrder,
     ).not.toHaveBeenCalled();
+  });
+
+  it('blocks a Lighter limit order once both take profit and stop loss are set', async () => {
+    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+      ...options,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        orderType: 'limit',
+        price: '2600',
+      },
+      extraRoutes: [
+        {
+          name: Routes.PERPS.TPSL,
+          Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+        },
+      ],
+    });
+
+    fireEvent.changeText(
+      await screen.findByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+      '10',
+    );
+    const submit = screen.getByTestId(
+      PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await waitFor(() => expect(submit).toBeEnabled());
+
+    fireEvent.press(screen.getByTestId(PerpsProOrderFormSelectorsIDs.TPSL));
+    fireEvent.changeText(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      ),
+      '2800',
+    );
+    fireEvent.changeText(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      '2400',
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).not.toBeOnTheScreen(),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('perps.order.validation.lighter_limit_tpsl_unsupported'),
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(submit).toBeDisabled());
+  });
+
+  it('blocks a Lighter limit order with both TP and SL on a providerless market', async () => {
+    renderPerpsView(PerpsBalanceOrderView, Routes.PERPS.BALANCE_ORDER, {
+      ...options,
+      streamOverrides: {
+        ...options.streamOverrides,
+        marketData: [{ ...market, providerId: undefined }],
+      },
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        orderType: 'limit',
+        price: '2600',
+      },
+      extraRoutes: [
+        {
+          name: Routes.PERPS.TPSL,
+          Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+        },
+      ],
+    });
+
+    fireEvent.changeText(
+      await screen.findByTestId(PerpsProOrderFormSelectorsIDs.SIZE_INPUT),
+      '10',
+    );
+    const submit = screen.getByTestId(
+      PerpsProOrderFormSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await waitFor(() => expect(submit).toBeEnabled());
+
+    fireEvent.press(screen.getByTestId(PerpsProOrderFormSelectorsIDs.TPSL));
+    fireEvent.changeText(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      ),
+      '2800',
+    );
+    fireEvent.changeText(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      '2400',
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).not.toBeOnTheScreen(),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('perps.order.validation.lighter_limit_tpsl_unsupported'),
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(submit).toBeDisabled());
   });
 
   it('rejects an explicit non-Lighter provider', async () => {

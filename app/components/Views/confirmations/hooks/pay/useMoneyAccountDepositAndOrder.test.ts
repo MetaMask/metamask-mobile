@@ -8,7 +8,16 @@ import { useMoneyAccountDepositAndOrder } from './useMoneyAccountDepositAndOrder
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useTransactionPayFiatPayment } from './useTransactionPayData';
 import { useTransactionPayToken } from './useTransactionPayToken';
+import {
+  buildPaymentTokenMock,
+  evmAssetId,
+  mockUseSelectorWithEvmAssetIdEncoder,
+} from '../../__mocks__/pay-token.mock';
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
 jest.mock('./useAutomaticMoneyAccountPayToken');
 jest.mock('./useDefaultPaySelectedSection');
 jest.mock('./useIsMoneyAccountPaymentOverride');
@@ -33,6 +42,7 @@ describe('useMoneyAccountDepositAndOrder', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelectorWithEvmAssetIdEncoder();
 
     useIsMoneyAccountPaymentOverrideMock.mockReturnValue(false);
     useAutomaticMoneyAccountPayTokenMock.mockReturnValue({
@@ -53,17 +63,36 @@ describe('useMoneyAccountDepositAndOrder', () => {
   it('mounts the default-pay-section hook so the remote flag applies to this flow', () => {
     renderHook(() => useMoneyAccountDepositAndOrder());
 
-    expect(useDefaultPaySelectedSection).toHaveBeenCalled();
+    expect(useDefaultPaySelectedSection).toHaveBeenCalledWith({
+      disable: false,
+    });
+  });
+
+  it('disables both automatic selection paths when disabled', () => {
+    renderHook(() => useMoneyAccountDepositAndOrder({ disable: true }));
+
+    expect(useDefaultPaySelectedSection).toHaveBeenCalledWith({
+      disable: true,
+    });
+    expect(useAutomaticMoneyAccountPayTokenMock).toHaveBeenCalledWith(
+      expect.objectContaining({ disable: true }),
+    );
+  });
+
+  it('still points the pay token at mUSD on Monad when disabled', () => {
+    useIsMoneyAccountPaymentOverrideMock.mockReturnValue(true);
+
+    renderHook(() => useMoneyAccountDepositAndOrder({ disable: true }));
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
+    });
   });
 
   it('mounts the money account fallback with the current pay state', () => {
-    jest.mocked(useTransactionPayAvailableTokens).mockReturnValue({
-      availableTokens: [],
-      hasTokens: true,
-    });
     jest
       .mocked(useTransactionPayFiatPayment)
-      .mockReturnValue({ selectedPaymentMethodId: 'card' } as never);
+      .mockReturnValue({ selectedPaymentMethodId: 'card' });
     useTransactionPayTokenMock.mockReturnValue({
       payToken: ARBITRUM_USDC_MOCK as never,
       setPayToken: setPayTokenMock,
@@ -72,8 +101,9 @@ describe('useMoneyAccountDepositAndOrder', () => {
     renderHook(() => useMoneyAccountDepositAndOrder());
 
     expect(useAutomaticMoneyAccountPayTokenMock).toHaveBeenCalledWith({
+      availableTokens: [],
+      disable: false,
       hasFiatPaymentSelected: true,
-      hasTokenBalance: true,
       payTokenSelected: true,
     });
   });
@@ -84,8 +114,7 @@ describe('useMoneyAccountDepositAndOrder', () => {
     renderHook(() => useMoneyAccountDepositAndOrder());
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
     });
   });
 
@@ -99,8 +128,7 @@ describe('useMoneyAccountDepositAndOrder', () => {
     renderHook(() => useMoneyAccountDepositAndOrder());
 
     expect(setPayTokenMock).toHaveBeenCalledWith({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MONAD,
+      assetId: evmAssetId(MUSD_TOKEN_ADDRESS, CHAIN_IDS.MONAD),
     });
   });
 
@@ -118,10 +146,10 @@ describe('useMoneyAccountDepositAndOrder', () => {
   it('does not re-set the pay token when mUSD on Monad is already selected', () => {
     useIsMoneyAccountPaymentOverrideMock.mockReturnValue(true);
     useTransactionPayTokenMock.mockReturnValue({
-      payToken: {
+      payToken: buildPaymentTokenMock({
         address: MUSD_TOKEN_ADDRESS.toUpperCase(),
         chainId: CHAIN_IDS.MONAD,
-      } as never,
+      }),
       setPayToken: setPayTokenMock,
     });
 

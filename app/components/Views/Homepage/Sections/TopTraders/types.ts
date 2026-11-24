@@ -25,6 +25,11 @@ export interface TopTrader {
   /** Absolute PnL over the requested window in USD (formatted by the UI). */
   pnlValue: number;
   /**
+   * 30-day realized PnL in USD, independent of the displayed window. Used to
+   * band shrimp / dolphin / whale. Null when the leaderboard omitted it.
+   */
+  pnl30d?: number | null;
+  /**
    * Share of winning trades over the requested window, as a whole percent
    * (e.g. 92 for 92%) to match `percentageChange`. The API reports it as a
    * 0–1 fraction. `null` when the window has no win-rate data.
@@ -36,6 +41,13 @@ export interface TopTrader {
   followerCount: number;
   /** Whether the current user is following this trader. */
   isFollowing: boolean;
+  /**
+   * X (Twitter) username without `@`, when this trader is connected to X.
+   * Absent or null hides the trust mark.
+   */
+  xHandle?: string | null;
+  /** Profile API verified this trader. Absent or false hides the badge. */
+  verified?: boolean;
 }
 
 /**
@@ -51,6 +63,11 @@ export interface TraderRowMetric {
   label: string;
   /** Renders the value in success green rather than error red. */
   isPositive: boolean;
+  /**
+   * Renders the value in the default text color, ignoring `isPositive`. For a
+   * holding such as a position size, which is not a gain or a loss.
+   */
+  isNeutral?: boolean;
 }
 
 /**
@@ -78,6 +95,17 @@ export interface TraderRowProps {
   /** Toggles the muted state for this trader. */
   onMuteToggle?: (traderId: string) => void;
   testID?: string;
+  /**
+   * Social V1 only: rounded muted surface for the signed-in viewer's pinned
+   * card. Ignored by the legacy Follow-button row.
+   */
+  highlighted?: boolean;
+  /**
+   * Social V1 only: the viewer's rank is unknown, so the position column shows
+   * "-" instead of a number. The column keeps its width. Ignored by the legacy
+   * row.
+   */
+  hideRank?: boolean;
 }
 
 /**

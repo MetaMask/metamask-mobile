@@ -3,7 +3,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { Icon, IconSize } from '@metamask/design-system-react-native';
 
 import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import { useTokenListSecurityBadgeQuery } from '../../Tokens/hooks/useTokenListSecurityBadgeQuery';
+import { useTokenSecurityQuery } from '../../Tokens/hooks/useTokenSecurityQuery';
 
 export interface SwapsTokenSecurityBadgeProps {
   caipAssetId: CaipAssetType;
@@ -12,7 +12,7 @@ export interface SwapsTokenSecurityBadgeProps {
 const SwapsTokenSecurityBadge = ({
   caipAssetId,
 }: SwapsTokenSecurityBadgeProps) => {
-  const { data: securityData } = useTokenListSecurityBadgeQuery(caipAssetId);
+  const { data: securityData } = useTokenSecurityQuery(caipAssetId);
 
   const verifiedBadge = useMemo(() => {
     if (securityData?.resultType !== 'Verified') return null;

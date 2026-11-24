@@ -24,6 +24,19 @@ function getRemoteFFEnv(env: string | undefined): string {
 }
 
 /**
+ * `MM_API_ENV` is the cluster. An unset or unrecognized value is prod.
+ * Matches `getApiEnv()` in the app.
+ */
+function resolveApiEnv(apiEnv: string | undefined): string {
+  const override = (apiEnv ?? '').toLowerCase();
+  if (override === 'dev' || override === 'uat' || override === 'prod') {
+    return override;
+  }
+
+  return 'prod';
+}
+
+/**
  * Maps METAMASK_BUILD_TYPE to Remote Feature Flag Distribution display value
  */
 function getRemoteFFDistribution(buildType: string | undefined): string {
@@ -61,7 +74,7 @@ export function buildEnvValidationSection(
   const buildType = result.extractedValues.METAMASK_BUILD_TYPE ?? '—';
   const rewardsUrl = result.extractedValues.REWARDS_API_URL ?? '—';
   const portfolioUrl = result.extractedValues.MM_PORTFOLIO_URL ?? '—';
-  const rampsEnv = result.extractedValues.RAMPS_ENVIRONMENT ?? '—';
+  const apiEnv = resolveApiEnv(result.extractedValues.MM_API_ENV);
 
   // Main environment info table (like About MetaMask screen)
   lines.push('| Setting | Value |');
@@ -70,7 +83,7 @@ export function buildEnvValidationSection(
   lines.push(`| **Build Type** | \`${buildType}\` |`);
   lines.push(`| **Remote Feature Flag Env** | \`${getRemoteFFEnv(env)}\` |`);
   lines.push(`| **Remote Feature Flag Distribution** | \`${getRemoteFFDistribution(buildType)}\` |`);
-  lines.push(`| **Ramps Environment** | \`${rampsEnv}\` |`);
+  lines.push(`| **Backend API env** | \`${apiEnv}\` |`);
   lines.push('');
 
   // Detailed info in collapsible section

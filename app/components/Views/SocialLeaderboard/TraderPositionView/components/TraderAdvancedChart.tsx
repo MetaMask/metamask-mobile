@@ -38,7 +38,7 @@ import { INTERVAL_MS } from '../../../../UI/Perps/hooks/usePerpsAdvancedChartAda
 import { useSocialPerpsChartAdapter } from '../hooks/useSocialPerpsChartAdapter';
 import { getPerpsVolumeColors } from '../../../../UI/Perps/utils/chartColors';
 import { useTheme } from '../../../../../util/theme';
-import { tradeTimestampToMs } from '../../utils/tradeTimestamp';
+import { tradeTimestampToMs } from '../../../../UI/SocialFeed/utils/tradeTimestamp';
 import type { TimePeriod } from '../useTraderPositionData';
 import TraderPriceChart from './TraderPriceChart';
 
@@ -507,22 +507,32 @@ const TraderPerpAdvancedChart = ({
     [onScrubPercentChange, comparePrice],
   );
 
+  const reportedPerpMetrics = useRef<{
+    percentChange: number | undefined;
+    currentPrice: number | undefined;
+  } | null>(null);
   useEffect(() => {
     if (!onPerpMetricsChange) return;
     const lastClose = latestBar?.close;
-    if (visibleWindowBars.length < 2) {
-      onPerpMetricsChange({
-        percentChange: undefined,
-        currentPrice: lastClose,
-      });
+    const percentChange =
+      visibleWindowBars.length < 2
+        ? undefined
+        : visibleWindowBars[0].close !== 0 && lastClose != null
+          ? ((lastClose - visibleWindowBars[0].close) /
+              visibleWindowBars[0].close) *
+            100
+          : undefined;
+    const previous = reportedPerpMetrics.current;
+    if (
+      previous != null &&
+      previous.percentChange === percentChange &&
+      previous.currentPrice === lastClose
+    ) {
       return;
     }
-    const firstClose = visibleWindowBars[0].close;
-    const percentChange =
-      firstClose !== 0 && lastClose != null
-        ? ((lastClose - firstClose) / firstClose) * 100
-        : undefined;
-    onPerpMetricsChange({ percentChange, currentPrice: lastClose });
+    const next = { percentChange, currentPrice: lastClose };
+    reportedPerpMetrics.current = next;
+    onPerpMetricsChange(next);
   }, [visibleWindowBars, latestBar, onPerpMetricsChange]);
 
   const fallbackPrices = useMemo(

@@ -55,9 +55,11 @@ describe('CostToleranceRow', () => {
     expect(queryByTestId(CostToleranceRowSelectorsIDs.CONTAINER)).toBeNull();
   });
 
-  it('renders a tooltip button next to the cost tolerance label', () => {
+  it('renders the cost tolerance label as the tooltip trigger', () => {
     const { getByTestId } = render(<CostToleranceRow {...defaultProps} />);
 
-    expect(getByTestId(CostToleranceRowSelectorsIDs.TOOLTIP)).toBeOnTheScreen();
+    expect(getByTestId(CostToleranceRowSelectorsIDs.TOOLTIP)).toHaveTextContent(
+      strings('bridge.cost_tolerance'),
+    );
   });
 });

@@ -10,9 +10,10 @@ import type {
   PredictVenueId,
 } from '../types';
 import {
-  getLiveGameWatchIds,
-  getLiveMarketWatchIds,
+  getPresentMarketIds,
+  LIVE_UPDATE_THROTTLE_MS,
   useEventsWithLiveData,
+  type LiveMarketWatchScope,
 } from './useEventsWithLiveData';
 
 const mockCall = jest.fn();
@@ -74,22 +75,23 @@ const eventA = makeEvent('event-a');
 const eventB = makeEvent('event-b');
 const propsEvent = makeEvent('event-props', false);
 
+const WATCH = `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchEvents`;
+const UNWATCH = `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchEvents`;
+
+/** `[action, venueId, eventIds]` of every watch call; scope is asserted separately. */
 const watchCalls = () =>
-  mockCall.mock.calls.filter(
-    ([action]) => action === `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`,
-  );
+  mockCall.mock.calls
+    .filter(([action]) => action === WATCH)
+    .map((call) => call.slice(0, 3));
 const unwatchCalls = () =>
-  mockCall.mock.calls.filter(
-    ([action]) => action === `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`,
-  );
-const watchMarketCalls = () =>
-  mockCall.mock.calls.filter(
-    ([action]) => action === `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`,
-  );
-const unwatchMarketCalls = () =>
-  mockCall.mock.calls.filter(
-    ([action]) => action === `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchMarkets`,
-  );
+  mockCall.mock.calls
+    .filter(([action]) => action === UNWATCH)
+    .map((call) => call.slice(0, 3));
+/** The `marketScope` each watch/unwatch call carried, in call order. */
+const scopeCalls = () =>
+  mockCall.mock.calls
+    .filter(([action]) => action === WATCH || action === UNWATCH)
+    .map(([action, , , options]) => [action, options]);
 const marketIds = (event: PredictEvent) =>
   event.markets.map((market) => market.id);
 
@@ -102,36 +104,12 @@ const listeners = () =>
     ]),
   );
 
-describe('getLiveGameWatchIds', () => {
-  it('skips Events that have no Game', () => {
-    expect(getLiveGameWatchIds([eventA, propsEvent, eventB])).toEqual([
-      eventA.id,
-      eventB.id,
-    ]);
-  });
-
-  it('intersects an explicit watch list with Events that have a Game', () => {
-    expect(
-      getLiveGameWatchIds(
-        [eventA, eventB, propsEvent],
-        [propsEvent.id, eventB.id],
-      ),
-    ).toEqual([eventB.id]);
-  });
-});
-
-describe('getLiveMarketWatchIds', () => {
+describe('getPresentMarketIds', () => {
   it('lists the markets of every Event, with or without a Game', () => {
-    expect(getLiveMarketWatchIds([eventA, propsEvent])).toEqual([
+    expect(getPresentMarketIds([eventA, propsEvent])).toEqual([
       ...marketIds(eventA),
       ...marketIds(propsEvent),
     ]);
-  });
-
-  it('narrows to the explicit watch list', () => {
-    expect(
-      getLiveMarketWatchIds([eventA, eventB, propsEvent], [propsEvent.id]),
-    ).toEqual(marketIds(propsEvent));
   });
 
   it('lists only card-visible Markets when the scope is card', () => {
@@ -170,9 +148,7 @@ describe('getLiveMarketWatchIds', () => {
       ],
     };
 
-    expect(
-      getLiveMarketWatchIds([gameEvent, extraProps], undefined, 'card'),
-    ).toEqual([
+    expect(getPresentMarketIds([gameEvent, extraProps], 'card')).toEqual([
       away.id,
       home.id,
       extraProps.markets[0].id,
@@ -187,23 +163,26 @@ describe('useEventsWithLiveData', () => {
     mockCall.mockClear();
     mockSubscribe.mockReset();
     mockUnsubscribe.mockClear();
+    // The throttle starts its cooldown from a microtask at the end of the turn.
+    jest.useFakeTimers({ doNotFake: ['queueMicrotask'] });
   });
 
-  it('watches the Event ids on mount', () => {
-    renderHook(() => useEventsWithLiveData(venueId, [eventA]));
-
-    expect(watchCalls()).toEqual([
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventA.id]],
-    ]);
-    expect(unwatchCalls()).toEqual([]);
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
-  it('does not watch Events that have no Game', () => {
+  const endThrottle = () =>
+    act(() => {
+      jest.advanceTimersByTime(LIVE_UPDATE_THROTTLE_MS);
+    });
+
+  it('watches every present Event on mount, with or without a Game', () => {
     renderHook(() => useEventsWithLiveData(venueId, [propsEvent, eventA]));
 
     expect(watchCalls()).toEqual([
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventA.id]],
+      [WATCH, venueId, [propsEvent.id, eventA.id]],
     ]);
+    expect(unwatchCalls()).toEqual([]);
   });
 
   it('watches only newly added Event ids when the list grows', () => {
@@ -216,8 +195,8 @@ describe('useEventsWithLiveData', () => {
     rerender({ events: [eventA, eventB] });
 
     expect(watchCalls()).toEqual([
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventA.id]],
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventB.id]],
+      [WATCH, venueId, [eventA.id]],
+      [WATCH, venueId, [eventB.id]],
     ]);
     expect(unwatchCalls()).toEqual([]);
   });
@@ -231,38 +210,171 @@ describe('useEventsWithLiveData', () => {
 
     rerender({ events: [eventB] });
 
-    expect(unwatchCalls()).toEqual([
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [eventA.id]],
-    ]);
+    expect(unwatchCalls()).toEqual([[UNWATCH, venueId, [eventA.id]]]);
     expect(watchCalls()).toEqual([
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventA.id]],
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventB.id]],
+      [WATCH, venueId, [eventA.id]],
+      [WATCH, venueId, [eventB.id]],
     ]);
   });
 
-  it('watches only the explicit viewport Event ids', () => {
+  it('watches only the visible Event ids and swaps on change', () => {
     const { rerender } = renderHook(
       ({
         events,
-        watchEventIds,
+        visibleEventIds,
       }: {
         events: readonly PredictEvent[];
-        watchEventIds?: readonly PredictEntityId[];
-      }) => useEventsWithLiveData(venueId, events, { watchEventIds }),
+        visibleEventIds?: readonly PredictEntityId[];
+      }) => useEventsWithLiveData(venueId, events, { visibleEventIds }),
       {
-        initialProps: { events: [eventA, eventB], watchEventIds: [eventA.id] },
+        initialProps: {
+          events: [eventA, eventB],
+          visibleEventIds: [eventA.id],
+        },
       },
     );
 
-    rerender({ events: [eventA, eventB], watchEventIds: [eventB.id] });
+    rerender({ events: [eventA, eventB], visibleEventIds: [eventB.id] });
 
     expect(watchCalls()).toEqual([
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventA.id]],
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:watchGames`, venueId, [eventB.id]],
+      [WATCH, venueId, [eventA.id]],
+      [WATCH, venueId, [eventB.id]],
     ]);
+    expect(unwatchCalls()).toEqual([[UNWATCH, venueId, [eventA.id]]]);
+  });
+
+  it('ignores visible ids that are not present and duplicates', () => {
+    renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA], {
+        visibleEventIds: [eventB.id, eventA.id, eventA.id],
+      }),
+    );
+
+    expect(watchCalls()).toEqual([[WATCH, venueId, [eventA.id]]]);
+  });
+
+  it('releases the old Venue before watching the new one', () => {
+    const otherVenueId = 'polymarket' as PredictVenueId;
+    const { rerender } = renderHook(
+      ({ currentVenueId }: { currentVenueId: PredictVenueId }) =>
+        useEventsWithLiveData(currentVenueId, [eventA]),
+      { initialProps: { currentVenueId: venueId } },
+    );
+    mockCall.mockClear();
+
+    rerender({ currentVenueId: otherVenueId });
+
+    expect(unwatchCalls()).toEqual([[UNWATCH, venueId, [eventA.id]]]);
+    expect(watchCalls()).toEqual([[WATCH, otherVenueId, [eventA.id]]]);
+    // The venue-keyed cleanup must run before the diff effect re-watches,
+    // or the new venue's watch would be undone by the old venue's release.
+    const [unwatchOrder] = mockCall.mock.calls
+      .map((call, index) => ({ call, index }))
+      .filter(({ call }) => call[0] === UNWATCH)
+      .map(({ index }) => mockCall.mock.invocationCallOrder[index]);
+    const [watchOrder] = mockCall.mock.calls
+      .map((call, index) => ({ call, index }))
+      .filter(({ call }) => call[0] === WATCH)
+      .map(({ index }) => mockCall.mock.invocationCallOrder[index]);
+    expect(unwatchOrder).toBeLessThan(watchOrder);
+  });
+
+  it('holds no watches while the surface is hidden and rewatches on show', () => {
+    const { rerender } = renderHook(
+      ({ isVisible }: { isVisible: boolean }) =>
+        useEventsWithLiveData(venueId, [eventA, eventB], { isVisible }),
+      { initialProps: { isVisible: true } },
+    );
+
+    rerender({ isVisible: false });
     expect(unwatchCalls()).toEqual([
-      [`${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`, venueId, [eventA.id]],
+      [UNWATCH, venueId, [eventA.id, eventB.id]],
     ]);
+
+    rerender({ isVisible: true });
+    expect(watchCalls()).toEqual([
+      [WATCH, venueId, [eventA.id, eventB.id]],
+      [WATCH, venueId, [eventA.id, eventB.id]],
+    ]);
+  });
+
+  it('applies a snapshot replayed synchronously from watchEvents', () => {
+    const replayedGame: PredictGameLive = {
+      venueId,
+      eventId: eventA.id,
+      type: 'football_game',
+      status: 'in_progress',
+      observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+    };
+    const replayedQuotes: PredictQuote[] = eventA.markets.map(
+      (market, index) => ({
+        venueId,
+        marketId: market.id,
+        outcomes: [
+          {
+            id: market.outcomes[0].id,
+            side: 'yes',
+            askPrice: `0.6${index + 1}` as PredictDecimal,
+          },
+          { id: market.outcomes[1].id, side: 'no' },
+        ],
+        updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+      }),
+    );
+    // The service publishes the last known values inside watchEvents when
+    // another surface already holds the Event. Only listeners registered
+    // before that call can receive them.
+    mockCall.mockImplementation((action: unknown) => {
+      if (action !== WATCH) {
+        return;
+      }
+      const subscribed = listeners();
+      (
+        subscribed.get(`${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`) as
+          | ((live: PredictGameLive) => void)
+          | undefined
+      )?.(replayedGame);
+      const onQuote = subscribed.get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as ((quote: PredictQuote) => void) | undefined;
+      replayedQuotes.forEach((quote) => onQuote?.(quote));
+    });
+
+    try {
+      const { result } = renderHook(() =>
+        useEventsWithLiveData(venueId, [eventA]),
+      );
+
+      expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
+      expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.61');
+      expect(result.current[0].markets[1].outcomes[0].askPrice).toBe('0.62');
+    } finally {
+      mockCall.mockReset();
+    }
+  });
+
+  it('keeps the collected live values while hidden', () => {
+    const { result, rerender } = renderHook(
+      ({ isVisible }: { isVisible: boolean }) =>
+        useEventsWithLiveData(venueId, [eventA], { isVisible }),
+      { initialProps: { isVisible: true } },
+    );
+    const onUpdate = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:gameLiveUpdated`,
+    ) as (live: PredictGameLive) => void;
+
+    act(() => {
+      onUpdate({
+        venueId,
+        eventId: eventA.id,
+        type: 'football_game',
+        status: 'in_progress',
+        observedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+      });
+    });
+    rerender({ isVisible: false });
+
+    expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
   });
 
   it('keeps the newer live Game when an older snapshot arrives later', () => {
@@ -293,6 +405,7 @@ describe('useEventsWithLiveData', () => {
         observedAt: '2026-09-08T12:30:00.000Z' as PredictTimestamp,
       });
     });
+    endThrottle();
 
     expect(result.current[0]?.sports?.game?.score).toEqual({
       away: '17',
@@ -330,6 +443,7 @@ describe('useEventsWithLiveData', () => {
         observedAt: '2026-09-08T13:01:00.000Z' as PredictTimestamp,
       });
     });
+    endThrottle();
 
     expect(result.current[0]?.sports?.game).toEqual({
       ...eventA.sports?.game,
@@ -389,6 +503,7 @@ describe('useEventsWithLiveData', () => {
         observedAt: '2026-09-08T13:01:00.000Z' as PredictTimestamp,
       });
     });
+    endThrottle();
 
     expect(result.current[0]?.sports?.game?.score).toEqual({
       away: '14',
@@ -396,55 +511,6 @@ describe('useEventsWithLiveData', () => {
     });
     expect(result.current[0]?.sports?.game?.clock).toBe('09:12');
     expect(result.current[0]?.sports?.game?.status).toBe('in_progress');
-  });
-
-  it('watches the markets of watched Events, including Events without a Game', () => {
-    renderHook(() => useEventsWithLiveData(venueId, [propsEvent, eventA]));
-
-    expect(watchMarketCalls()).toEqual([
-      [
-        `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`,
-        venueId,
-        [...marketIds(propsEvent), ...marketIds(eventA)],
-      ],
-    ]);
-  });
-
-  it('narrows market watches to the viewport Event ids and swaps on change', () => {
-    const { rerender } = renderHook(
-      ({
-        events,
-        watchEventIds,
-      }: {
-        events: readonly PredictEvent[];
-        watchEventIds?: readonly PredictEntityId[];
-      }) => useEventsWithLiveData(venueId, events, { watchEventIds }),
-      {
-        initialProps: { events: [eventA, eventB], watchEventIds: [eventA.id] },
-      },
-    );
-
-    rerender({ events: [eventA, eventB], watchEventIds: [eventB.id] });
-
-    expect(watchMarketCalls()).toEqual([
-      [
-        `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`,
-        venueId,
-        marketIds(eventA),
-      ],
-      [
-        `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`,
-        venueId,
-        marketIds(eventB),
-      ],
-    ]);
-    expect(unwatchMarketCalls()).toEqual([
-      [
-        `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchMarkets`,
-        venueId,
-        marketIds(eventA),
-      ],
-    ]);
   });
 
   it('patches streamed prices onto the matching market and keeps the rest', () => {
@@ -517,24 +583,9 @@ describe('useEventsWithLiveData', () => {
 
     act(() => onQuote(quoteAt('2026-09-08T13:00:00.000Z', '0.70')));
     act(() => onQuote(quoteAt('2026-09-08T12:30:00.000Z', '0.20')));
+    endThrottle();
 
     expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.70');
-  });
-
-  it('unwatches remaining market ids on unmount', () => {
-    const { unmount } = renderHook(() =>
-      useEventsWithLiveData(venueId, [eventA]),
-    );
-
-    unmount();
-
-    expect(unwatchMarketCalls()).toEqual([
-      [
-        `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchMarkets`,
-        venueId,
-        marketIds(eventA),
-      ],
-    ]);
   });
 
   it('unwatches remaining Event ids on unmount', () => {
@@ -545,15 +596,150 @@ describe('useEventsWithLiveData', () => {
     unmount();
 
     expect(unwatchCalls()).toEqual([
-      [
-        `${PREDICT_LIVE_DATA_SERVICE_NAME}:unwatchGames`,
-        venueId,
-        [eventA.id, eventB.id],
-      ],
+      [UNWATCH, venueId, [eventA.id, eventB.id]],
     ]);
   });
 
-  it('watches only card-visible Markets when marketScope is card', () => {
+  it('watches with the all scope by default', () => {
+    const { unmount } = renderHook(() =>
+      useEventsWithLiveData(venueId, [eventA]),
+    );
+
+    unmount();
+
+    expect(scopeCalls()).toEqual([
+      [WATCH, { marketScope: 'all' }],
+      [UNWATCH, { marketScope: 'all' }],
+    ]);
+  });
+
+  it('carries the card scope on every watch and unwatch', () => {
+    const { rerender, unmount } = renderHook(
+      ({ events }: { events: readonly PredictEvent[] }) =>
+        useEventsWithLiveData(venueId, events, { marketScope: 'card' }),
+      { initialProps: { events: [eventA] } },
+    );
+
+    rerender({ events: [eventB] });
+    unmount();
+
+    expect(scopeCalls()).toEqual([
+      [WATCH, { marketScope: 'card' }],
+      [WATCH, { marketScope: 'card' }],
+      [UNWATCH, { marketScope: 'card' }],
+      [UNWATCH, { marketScope: 'card' }],
+    ]);
+  });
+
+  it('re-issues held watches under the new scope when marketScope changes', () => {
+    const initialProps: { marketScope: LiveMarketWatchScope } = {
+      marketScope: 'card',
+    };
+    const { rerender } = renderHook(
+      ({ marketScope }: { marketScope: LiveMarketWatchScope }) =>
+        useEventsWithLiveData(venueId, [eventA, eventB], { marketScope }),
+      { initialProps },
+    );
+
+    rerender({ marketScope: 'all' });
+
+    expect(mockCall.mock.calls).toEqual([
+      [WATCH, venueId, [eventA.id, eventB.id], { marketScope: 'card' }],
+      [WATCH, venueId, [eventA.id, eventB.id], { marketScope: 'all' }],
+      [UNWATCH, venueId, [eventA.id, eventB.id], { marketScope: 'card' }],
+    ]);
+  });
+
+  describe('visible scope', () => {
+    const [m1, m2] = marketIds(eventA);
+    const visible = (
+      ...ids: readonly PredictEntityId[]
+    ): LiveMarketWatchScope => ({ type: 'visible', marketIds: ids });
+    const renderVisible = (marketScope: LiveMarketWatchScope) =>
+      renderHook(
+        (props: { marketScope: LiveMarketWatchScope }) =>
+          useEventsWithLiveData(venueId, [eventA], props),
+        { initialProps: { marketScope } },
+      );
+
+    it('carries the visible ids on the watch and the matching unwatch', () => {
+      const { unmount } = renderVisible(visible(m1));
+
+      unmount();
+
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+      ]);
+    });
+
+    it('re-scopes by watching the new ids before releasing the old ones', () => {
+      const { rerender } = renderVisible(visible(m1));
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2) });
+
+      // Watch first, so the Event never drops to zero watchers between the
+      // two calls; the service turns each pair into a Market-level diff.
+      expect(mockCall.mock.calls).toEqual([
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1) }],
+        [WATCH, venueId, [eventA.id], { marketScope: visible(m2) }],
+        [UNWATCH, venueId, [eventA.id], { marketScope: visible(m1, m2) }],
+      ]);
+    });
+
+    it('does not re-scope when a re-render names the same ids', () => {
+      const { rerender } = renderVisible(visible(m1, m2));
+      mockCall.mockClear();
+
+      rerender({ marketScope: visible(m1, m2) });
+      rerender({ marketScope: visible(m2, m1, m2) });
+
+      expect(mockCall).not.toHaveBeenCalled();
+    });
+
+    it('keeps an empty visible list distinct from the all scope', () => {
+      const { rerender } = renderVisible(visible());
+
+      rerender({ marketScope: 'all' });
+
+      expect(scopeCalls()).toEqual([
+        [WATCH, { marketScope: visible() }],
+        [WATCH, { marketScope: 'all' }],
+        [UNWATCH, { marketScope: visible() }],
+      ]);
+    });
+
+    it('applies quotes for every Market of the Event, not only the visible ones', () => {
+      const { result } = renderVisible(visible(m1));
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      act(() => {
+        onQuote({
+          venueId,
+          marketId: m2,
+          outcomes: [
+            {
+              id: eventA.markets[1].outcomes[0].id,
+              side: 'yes',
+              askPrice: '0.71' as PredictDecimal,
+            },
+            { id: eventA.markets[1].outcomes[1].id, side: 'no' },
+          ],
+          updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+        });
+      });
+
+      // A Market that just left the screen keeps its last live price.
+      expect(result.current[0].markets[1].outcomes[0].askPrice).toBe('0.71');
+    });
+  });
+
+  it('keeps only card-visible quotes when marketScope is card', () => {
     const away = {
       ...makeMarket('live-away'),
       outcomes: [
@@ -579,18 +765,33 @@ describe('useEventsWithLiveData', () => {
       ...eventA,
       markets: [away, home, spread],
     };
-
-    renderHook(() =>
+    const { result } = renderHook(() =>
       useEventsWithLiveData(venueId, [gameEvent], { marketScope: 'card' }),
     );
-
-    expect(watchMarketCalls()).toEqual([
-      [
-        `${PREDICT_LIVE_DATA_SERVICE_NAME}:watchMarkets`,
-        venueId,
-        [away.id, home.id],
+    const onQuote = listeners().get(
+      `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+    ) as (quote: PredictQuote) => void;
+    const quoteFor = (market: PredictMarket): PredictQuote => ({
+      venueId,
+      marketId: market.id,
+      outcomes: [
+        {
+          id: market.outcomes[0].id,
+          side: 'yes',
+          askPrice: '0.61' as PredictDecimal,
+        },
+        { id: market.outcomes[1].id, side: 'no' },
       ],
-    ]);
+      updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+    });
+
+    act(() => {
+      onQuote(quoteFor(away));
+      onQuote(quoteFor(spread));
+    });
+
+    expect(result.current[0].markets[0].outcomes[0].askPrice).toBe('0.61');
+    expect(result.current[0].markets[2]).toBe(spread);
   });
 
   it('keeps an Event that a quote did not touch', () => {
@@ -654,8 +855,89 @@ describe('useEventsWithLiveData', () => {
     act(() =>
       onQuote(quoteFor(eventB.markets[0], '0.33', '2026-09-08T13:01:00.000Z')),
     );
+    endThrottle();
 
     expect(result.current[0]).toBe(afterFirst);
     expect(result.current[1]).not.toBe(eventB);
+  });
+
+  describe('throttling', () => {
+    const quoteFor = (
+      market: PredictMarket,
+      askPrice: string,
+    ): PredictQuote => ({
+      venueId,
+      marketId: market.id,
+      outcomes: [
+        {
+          id: market.outcomes[0].id,
+          side: 'yes',
+          askPrice: askPrice as PredictDecimal,
+        },
+        { id: market.outcomes[1].id, side: 'no' },
+      ],
+      updatedAt: '2026-09-08T13:00:00.000Z' as PredictTimestamp,
+    });
+    const askPrices = (events: readonly PredictEvent[]) =>
+      events.flatMap((event) =>
+        event.markets.map((market) => market.outcomes[0].askPrice),
+      );
+
+    it('applies the first frame at once and later frames inside the window in one render', async () => {
+      let renders = 0;
+      const { result } = renderHook(() => {
+        renders += 1;
+        return useEventsWithLiveData(venueId, [eventA, eventB]);
+      });
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      await act(async () => onQuote(quoteFor(eventA.markets[0], '0.61')));
+      expect(askPrices(result.current)).toEqual([
+        '0.61',
+        '0.50',
+        '0.50',
+        '0.50',
+      ]);
+
+      const rendersBeforeBurst = renders;
+      act(() => onQuote(quoteFor(eventA.markets[1], '0.62')));
+      act(() => onQuote(quoteFor(eventB.markets[0], '0.63')));
+      act(() => onQuote(quoteFor(eventB.markets[1], '0.64')));
+      expect(renders).toBe(rendersBeforeBurst);
+      expect(askPrices(result.current)).toEqual([
+        '0.61',
+        '0.50',
+        '0.50',
+        '0.50',
+      ]);
+
+      endThrottle();
+      expect(renders).toBe(rendersBeforeBurst + 1);
+      expect(askPrices(result.current)).toEqual([
+        '0.61',
+        '0.62',
+        '0.63',
+        '0.64',
+      ]);
+    });
+
+    it('applies a held frame when the Event list changes before the window ends', async () => {
+      const { result, rerender } = renderHook(
+        ({ events }: { events: readonly PredictEvent[] }) =>
+          useEventsWithLiveData(venueId, events),
+        { initialProps: { events: [eventA] } },
+      );
+      const onQuote = listeners().get(
+        `${PREDICT_LIVE_DATA_SERVICE_NAME}:quoteUpdated`,
+      ) as (quote: PredictQuote) => void;
+
+      await act(async () => onQuote(quoteFor(eventA.markets[0], '0.61')));
+      act(() => onQuote(quoteFor(eventA.markets[1], '0.62')));
+      rerender({ events: [eventA, eventB] });
+
+      expect(askPrices(result.current).slice(0, 2)).toEqual(['0.61', '0.62']);
+    });
   });
 });

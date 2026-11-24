@@ -4,6 +4,8 @@ import type {
   PredictFeedCarouselConfig,
   PredictFeeCollection,
   PredictHiddenMarketsFlag,
+  PredictHomeCategoriesConfig,
+  PredictHomeCategoryConfig,
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
@@ -13,6 +15,7 @@ import type {
   PredictWimbledonTabFlag,
 } from '../types/flags';
 import { PREDICT_MIN_GAME_OUTCOME_VOLUME } from '../utils/marketStaleness';
+import { translateIfPresent } from '../utils/translations';
 import {
   PredictFeedBannerPosition,
   PredictFeedBannerSeverity,
@@ -242,4 +245,78 @@ export const DEFAULT_PREDICT_SPORTS_FEED_FLAG: PredictSportsFeedConfig = {
       chips: createSportsFeedChips('nhl'),
     }),
   ],
+};
+
+/** Icon used for a home category tile whose `iconName` is missing or unknown. */
+export const PREDICT_HOME_CATEGORY_FALLBACK_ICON_NAME = 'Explore';
+
+export const predictHomeCategoryTitleKey = (id: string): string =>
+  `predict.category.${id}`;
+
+const createHomeCategory = ({
+  id,
+  tagSlug = id,
+  iconName,
+}: {
+  id: string;
+  tagSlug?: string;
+  iconName: string;
+}): PredictHomeCategoryConfig => ({
+  id,
+  tagSlug,
+  titleKey: predictHomeCategoryTitleKey(id),
+  iconName,
+  enabled: true,
+});
+
+/**
+ * Bundled Predict home "Categories" rail (PRED-1226). Used when the
+ * `predictHomeCategories` LaunchDarkly flag is missing, invalid, or fails its
+ * version gate. Order here is the default display order. `tagSlug` values are
+ * confirmed live against Polymarket Gamma (`Culture` → `pop-culture`).
+ */
+export const DEFAULT_PREDICT_HOME_CATEGORIES_FLAG: PredictHomeCategoriesConfig =
+  {
+    enabled: true,
+    minimumVersion: '',
+    categories: [
+      createHomeCategory({ id: 'politics', iconName: 'Global' }),
+      createHomeCategory({ id: 'sports', iconName: 'Trophy' }),
+      createHomeCategory({ id: 'crypto', iconName: 'MoneyBag' }),
+      createHomeCategory({ id: 'esports', iconName: 'Speedometer' }),
+      createHomeCategory({
+        id: 'culture',
+        tagSlug: 'pop-culture',
+        iconName: 'StarFilled',
+      }),
+      createHomeCategory({ id: 'finance', iconName: 'Bank' }),
+      createHomeCategory({ id: 'tech', iconName: 'Data' }),
+    ],
+  };
+
+/**
+ * Tile / feed copy for a home category.
+ *
+ * 1. Remote `label` — ops override, or a new tile with no i18n yet
+ * 2. Remote `titleKey` — explicit i18n key from LD
+ * 3. Locale bank `predict.category.<id>` if a translation exists, even when LD omits copy
+ * 4. Raw `id` as `label` so tiles and feed headers never render blank
+ */
+export const resolvePredictHomeCategoryCopy = (
+  category: PredictHomeCategoryConfig,
+): { titleKey?: string; label?: string } => {
+  const label = category.label?.trim();
+  if (label) {
+    return { label };
+  }
+
+  const titleKey = category.titleKey?.trim();
+  if (titleKey) {
+    return { titleKey };
+  }
+
+  const bundledTitleKey = predictHomeCategoryTitleKey(category.id);
+  return translateIfPresent(bundledTitleKey)
+    ? { titleKey: bundledTitleKey }
+    : { label: category.id };
 };

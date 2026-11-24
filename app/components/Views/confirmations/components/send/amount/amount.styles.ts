@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 import {
@@ -7,39 +7,20 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 
-export const getFontSizeForInputLength = (contentLength: number) => {
-  if (contentLength <= 10) {
-    return 60;
-  }
-  if (contentLength <= 12) {
-    return 48;
-  }
-  if (contentLength <= 18) {
-    return 32;
-  }
-  if (contentLength <= 24) {
-    return 24;
-  }
-  if (contentLength <= 32) {
-    return 18;
-  }
-  return 12;
-};
-
 export const styleSheet = (params: {
   theme: Theme;
   vars: {
-    contentLength: number;
+    inputFontSize: number;
   };
 }) => {
   const {
     theme,
-    vars: { contentLength },
+    vars: { inputFontSize },
   } = params;
   return StyleSheet.create({
     balanceText: {
       alignSelf: 'center',
-      marginTop: 16,
+      marginTop: 8,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -47,29 +28,37 @@ export const styleSheet = (params: {
       flexDirection: FlexDirection.Column,
       justifyContent: JustifyContent.spaceBetween,
     },
-    currencyTag: {
-      alignSelf: 'center',
-      backgroundColor: theme.colors.background.section,
-      color: theme.colors.text.alternative,
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.center,
-      marginTop: 8,
-      minWidth: 100,
-    },
     inputSection: {
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
+      paddingHorizontal: 24,
       width: '100%',
     },
     inputText: {
-      fontSize: getFontSizeForInputLength(contentLength),
-      lineHeight: 75,
-      fontFamily: 'Inter-Medium',
+      fontSize: inputFontSize,
+      lineHeight: inputFontSize,
+    },
+    cursor: {
+      marginHorizontal: 0,
+      width: 1,
+      height: Math.round(inputFontSize * 0.95),
+      backgroundColor: theme.colors.text.muted,
+      // Android renders glyphs lower than iOS in a line box equal to fontSize.
+      transform: [
+        {
+          translateY: Math.round(
+            inputFontSize * (Platform.OS === 'android' ? 0.02 : -0.04),
+          ),
+        },
+      ],
     },
     inputWrapper: {
       alignItems: 'center',
+      flexShrink: 1,
       justifyContent: 'center',
       flexDirection: 'row',
+      maxWidth: '100%',
+      width: '100%',
     },
     nftImage: { alignSelf: 'center', height: 100, width: 100 },
     nftImageWrapper: {

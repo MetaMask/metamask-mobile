@@ -5,8 +5,6 @@ import { useMoneySlice } from './slices/useMoneySlice';
 import { usePerpsSlice } from './slices/usePerpsSlice';
 import { usePredictSlice } from './slices/usePredictSlice';
 import { useDefiSlice } from './slices/useDefiSlice';
-import { mockTheme } from '../../../../../util/theme';
-import { getBalanceBreakdownSliceColors } from '../utils/getBalanceBreakdownSliceColors';
 
 const mockUseTokensSlice = jest.mocked(useTokensSlice);
 const mockUseMoneySlice = jest.mocked(useMoneySlice);
@@ -36,25 +34,13 @@ jest.mock('./useFiatNormalizer', () => ({
   }),
 }));
 
-jest.mock('../../../../../util/theme', () => {
-  const themeModule = jest.requireActual<
-    typeof import('../../../../../util/theme')
-  >('../../../../../util/theme');
-  return {
-    ...themeModule,
-    useTheme: () => themeModule.mockTheme,
-  };
-});
-
 function makeSlice(
   key: 'tokens' | 'money' | 'perps' | 'predict' | 'defi',
   valueFiat: number,
   status: 'ready' | 'loading' | 'error' | 'ineligible' = 'ready',
 ) {
-  const colors = getBalanceBreakdownSliceColors(mockTheme.themeAppearance);
   return {
     key,
-    color: colors[key],
     isVisible: true,
     valueFiat,
     percentOfTotal: 0,

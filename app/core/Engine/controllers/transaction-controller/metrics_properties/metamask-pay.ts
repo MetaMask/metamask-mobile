@@ -529,7 +529,14 @@ function addAmountInputProperties(
     state: RootState;
   },
 ) {
-  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
+  if (
+    !hasTransactionType(transaction, [
+      TransactionType.moneyAccountDeposit,
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+      TransactionType.predictDepositAndOrder,
+    ])
+  ) {
     return;
   }
 
@@ -557,6 +564,10 @@ function addAmountInputProperties(
     eventType !== TRANSACTION_EVENTS.TRANSACTION_ADDED ||
     uiPresented !== undefined
   ) {
+    return;
+  }
+
+  if (!hasTransactionType(transaction, [TransactionType.moneyAccountDeposit])) {
     return;
   }
 

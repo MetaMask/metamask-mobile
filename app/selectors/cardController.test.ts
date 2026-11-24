@@ -2,17 +2,21 @@ import { RootState } from '../reducers';
 import {
   selectCardSelectedCountry,
   selectCardActiveProviderId,
+  selectImmersveFundingChannelForSelectedCountry,
+  selectImmersveMoneyAccountMode,
+  selectMoneyAccountVedaTokenConfig,
   selectIsCardAuthenticated,
   selectCardLastUnauthenticatedReason,
   selectIsMoneyAccountCardLinkInProgress,
-  selectCardholderAccounts,
-  selectHasCardholderAccounts,
-  selectIsCardholder,
+  selectCardLinks,
+  selectHasCard,
+  selectLinkedCardProvider,
   selectCardUserLocation,
   selectCardHomeData,
   selectCardHomeDataStatus,
   selectCardHomeDataError,
   selectCardHomeDataFetchedThisSession,
+  selectIsCardHomeDataResolved,
   selectIsCardStateResolved,
   selectCardVerificationStatus,
   selectIsCardVerified,
@@ -40,7 +44,11 @@ import { FundingStatus, CardType } from '../components/UI/Card/types';
 import { selectSelectedInternalAccountByScope } from './multichainAccounts/accounts';
 import { isEthAccount } from '../core/Multichain/utils';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
+import { IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS } from './featureFlagController/card/defaults';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '10.0.0'),
+}));
 jest.mock('./multichainAccounts/accounts');
 jest.mock('../core/Multichain/utils');
 jest.mock('./moneyAccountController', () => ({
@@ -127,7 +135,6 @@ const createMockRootState = (
           selectedCountry: null,
           activeProviderId: null,
           isAuthenticated: false,
-          cardholderAccounts: [],
           providerData: {},
           cardHomeData: null,
           cardHomeDataStatus: 'idle',
@@ -230,6 +237,115 @@ describe('CardController selectors', () => {
     });
   });
 
+  describe('Immersve funding channel selectors', () => {
+    const baseAssetId =
+      'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913';
+    const moneyAssetId = `eip155:143/erc20:${IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS}`;
+    const fundingFlags = {
+      cardImmersveConfig: {
+        fundingChannels: {
+          usdcBase: {
+            source: 'wallet',
+            fundingChannelId: 'usdc-base-channel',
+            assetId: baseAssetId,
+            spenderAddress: '0x1111111111111111111111111111111111111111',
+          },
+          moneyAccount: {
+            source: 'moneyAccount',
+            fundingChannelId: 'money-channel',
+            assetId: moneyAssetId,
+            spenderAddress: '0x2222222222222222222222222222222222222222',
+          },
+        },
+      },
+      cardImmersveCountries: {
+        GB: { fundingChannel: 'usdcBase' },
+        NZ: { fundingChannel: 'moneyAccount' },
+      },
+    };
+
+    it('returns null when no country is selected', () => {
+      const state = createMockRootState({}, undefined, fundingFlags);
+
+      expect(selectImmersveFundingChannelForSelectedCountry(state)).toBeNull();
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('resolves the wallet channel for GB', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'GB', activeProviderId: 'immersve' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(
+        selectImmersveFundingChannelForSelectedCountry(state),
+      ).toMatchObject({
+        source: 'wallet',
+        symbol: 'USDC',
+        caipChainId: 'eip155:8453',
+      });
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('resolves the Money account channel for a lowercase country code', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'nz', activeProviderId: 'immersve' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(
+        selectImmersveFundingChannelForSelectedCountry(state),
+      ).toMatchObject({
+        source: 'moneyAccount',
+        symbol: 'vmUSD',
+        caipChainId: 'eip155:143',
+        tokenAddress: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+      });
+      expect(selectImmersveMoneyAccountMode(state)).toBe(true);
+    });
+
+    it('stays off when another provider is active', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'baanx' },
+        undefined,
+        fundingFlags,
+      );
+
+      expect(selectImmersveMoneyAccountMode(state)).toBe(false);
+    });
+
+    it('builds the Veda config from the Money account channel, not cardFeature', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'immersve' },
+        CARD_FEATURE_WITHOUT_VEDA,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: IMMERSVE_MONEY_ACCOUNT_TOKEN_ADDRESS,
+        decimals: 6,
+        delegationContract: '0x2222222222222222222222222222222222222222',
+      });
+    });
+
+    it('keeps the cardFeature Veda token when the provider is not in Money account mode', () => {
+      const state = createMockRootState(
+        { selectedCountry: 'NZ', activeProviderId: 'baanx' },
+        MONAD_VEDA_FEATURE_FLAG,
+        fundingFlags,
+      );
+
+      expect(selectMoneyAccountVedaTokenConfig(state)).toEqual({
+        caipChainId: 'eip155:143',
+        address: VEDA_ADDRESS,
+        decimals: 6,
+      });
+    });
+  });
+
   describe('selectIsCardAuthenticated', () => {
     it('returns false by default', () => {
       const state = createMockRootState();
@@ -270,21 +386,6 @@ describe('CardController selectors', () => {
     });
   });
 
-  describe('selectCardholderAccounts', () => {
-    it('returns empty array by default', () => {
-      const state = createMockRootState();
-
-      expect(selectCardholderAccounts(state)).toStrictEqual([]);
-    });
-
-    it('returns cardholder accounts', () => {
-      const accounts = ['eip155:1:0xabc', 'eip155:1:0xdef'];
-      const state = createMockRootState({ cardholderAccounts: accounts });
-
-      expect(selectCardholderAccounts(state)).toStrictEqual(accounts);
-    });
-  });
-
   describe('when CardController state is undefined', () => {
     const state = {
       engine: { backgroundState: {} },
@@ -301,106 +402,107 @@ describe('CardController selectors', () => {
     it('returns false for isAuthenticated', () => {
       expect(selectIsCardAuthenticated(state)).toBe(false);
     });
-
-    it('returns empty array for cardholderAccounts', () => {
-      expect(selectCardholderAccounts(state)).toStrictEqual([]);
-    });
   });
 });
 
-describe('selectHasCardholderAccounts', () => {
-  it('returns false when cardholderAccounts is empty', () => {
-    const state = createMockRootState({ cardholderAccounts: [] });
-    expect(selectHasCardholderAccounts(state)).toBe(false);
+describe('card link selectors', () => {
+  const row = (
+    provider: 'baanx' | 'immersve',
+    status: 'onboarding' | 'active' | 'closed',
+    updatedAt = '2026-09-01T00:00:00.000Z',
+  ) => ({
+    provider,
+    status,
+    linkedAccountRef: null,
+    closedReason: status === 'closed' ? ('migrated' as const) : null,
+    migratedToProvider: null,
+    linkedAt: '2026-09-01T00:00:00.000Z',
+    updatedAt,
+  });
+  const flagOn = { cardLinkApi: { enabled: true, minimumVersion: '0.0.0' } };
+  const withLinks = (
+    cardLinks: ReturnType<typeof row>[] | null,
+    overrides: Partial<CardControllerState> = {},
+    flags: Record<string, unknown> = flagOn,
+  ) => createMockRootState({ cardLinks, ...overrides }, undefined, flags);
+
+  it('returns null links when basic functionality is off', () => {
+    const state = withLinks([row('immersve', 'active')]);
+    (state as { settings?: { basicFunctionalityEnabled: boolean } }).settings =
+      { basicFunctionalityEnabled: false };
+
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasCard(state)).toBe(false);
   });
 
-  it('returns true when there is at least one cardholder account', () => {
-    const state = createMockRootState({
-      cardholderAccounts: ['eip155:0:0xabc'],
-    });
-    expect(selectHasCardholderAccounts(state)).toBe(true);
-  });
-});
-
-describe('selectIsCardholder', () => {
-  const mockEvmAccount = {
-    address: '0xabc',
-    type: 'eip155:eoa',
-    scopes: ['eip155:0'],
-  } as unknown as InternalAccount;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockIsEthAccount.mockReturnValue(true);
+  it('returns null links before the first fetch', () => {
+    const state = withLinks(null);
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
   });
 
-  it('returns true when selected account address matches a cardholder CAIP-10 ID', () => {
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      jest.fn().mockReturnValue(mockEvmAccount),
+  it('reports no linked card for an empty array', () => {
+    const state = withLinks([]);
+    expect(selectCardLinks(state)).toStrictEqual([]);
+    expect(selectHasCard(state)).toBe(false);
+  });
+
+  it('returns the provider of an onboarding row', () => {
+    const state = withLinks([row('immersve', 'onboarding')]);
+    expect(selectHasCard(state)).toBe(true);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('prefers an active row over an onboarding row', () => {
+    const state = withLinks([
+      row('baanx', 'onboarding'),
+      row('immersve', 'active'),
+    ]);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('ignores a closed row, routing a migrated user to the active provider', () => {
+    const state = withLinks([
+      row('baanx', 'closed'),
+      row('immersve', 'active'),
+    ]);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('reports no linked card when every row is closed', () => {
+    const state = withLinks([row('baanx', 'closed')]);
+    expect(selectHasCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
+  });
+
+  it('breaks a tie between two active rows on the newest updatedAt', () => {
+    const state = withLinks([
+      row('baanx', 'active', '2026-09-02T00:00:00.000Z'),
+      row('immersve', 'active', '2026-09-05T00:00:00.000Z'),
+    ]);
+    expect(selectLinkedCardProvider(state)).toBe('immersve');
+  });
+
+  it('hides stored links while cardLinkApi is off', () => {
+    const state = withLinks(
+      [row('immersve', 'active')],
+      {},
+      {
+        cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+      },
     );
-    const state = createMockRootState({
-      cardholderAccounts: ['eip155:0:0xabc'],
-    });
-    expect(selectIsCardholder(state)).toBe(true);
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasCard(state)).toBe(false);
+    expect(selectLinkedCardProvider(state)).toBeNull();
   });
 
-  it('returns false when selected account address does not match any cardholder', () => {
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      jest.fn().mockReturnValue(mockEvmAccount),
-    );
-    const state = createMockRootState({
-      cardholderAccounts: ['eip155:0:0xdifferent'],
+  it('hides stored links after Card API refused this client', () => {
+    const state = withLinks([row('immersve', 'active')], {
+      cardLinkApiBlocked: true,
     });
-    expect(selectIsCardholder(state)).toBe(false);
-  });
-
-  it('returns false when cardholderAccounts is empty', () => {
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      jest.fn().mockReturnValue(mockEvmAccount),
-    );
-    const state = createMockRootState({ cardholderAccounts: [] });
-    expect(selectIsCardholder(state)).toBe(false);
-  });
-
-  it('returns false when no selected account', () => {
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      jest.fn().mockReturnValue(undefined),
-    );
-    const state = createMockRootState({
-      cardholderAccounts: ['eip155:0:0xabc'],
-    });
-    expect(selectIsCardholder(state)).toBe(false);
-  });
-
-  it('returns false when selected account is not an EVM account', () => {
-    mockIsEthAccount.mockReturnValue(false);
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      jest.fn().mockReturnValue(mockEvmAccount),
-    );
-    const state = createMockRootState({
-      cardholderAccounts: ['eip155:0:0xabc'],
-    });
-    expect(selectIsCardholder(state)).toBe(false);
-  });
-
-  it('is case-insensitive when comparing addresses', () => {
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      jest.fn().mockReturnValue({ ...mockEvmAccount, address: '0xABC' }),
-    );
-    const state = createMockRootState({
-      cardholderAccounts: ['eip155:0:0xabc'],
-    });
-    expect(selectIsCardholder(state)).toBe(true);
-  });
-
-  it('returns false for invalid CAIP-10 IDs in cardholderAccounts', () => {
-    mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      jest.fn().mockReturnValue(mockEvmAccount),
-    );
-    const state = createMockRootState({
-      cardholderAccounts: ['not-a-caip-id'],
-    });
-    expect(selectIsCardholder(state)).toBe(false);
+    expect(selectCardLinks(state)).toBeNull();
+    expect(selectHasCard(state)).toBe(false);
   });
 });
 
@@ -513,7 +615,6 @@ describe('selectIsCardVerified', () => {
 
   it('returns false when cardHomeData is missing even if user is a cardholder', () => {
     const state = createMockRootState({
-      cardholderAccounts: ['eip155:1:0xabc'],
       cardHomeData: null,
     });
     expect(selectIsCardVerified(state)).toBe(false);
@@ -595,6 +696,51 @@ describe('selectCardHomeDataFetchedThisSession', () => {
   });
 });
 
+describe('selectIsCardHomeDataResolved', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockIsEthAccount.mockReturnValue(true);
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue(undefined),
+    );
+  });
+
+  it('returns true when the home data fetch succeeded', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'success',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns true when data is already present during a refresh', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+      cardHomeData: {
+        account: null,
+      } as unknown as CardControllerState['cardHomeData'],
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+
+  it('returns false while an authenticated user is still loading', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'loading',
+      isAuthenticated: true,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(false);
+  });
+
+  it('returns true for an unauthenticated non-cardholder even while idle', () => {
+    const state = createMockRootState({
+      cardHomeDataStatus: 'idle',
+      isAuthenticated: false,
+    });
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+  });
+});
+
 describe('selectIsCardStateResolved', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -638,7 +784,6 @@ describe('selectIsCardStateResolved', () => {
     const state = createMockRootState({
       cardHomeDataStatus: 'idle',
       isAuthenticated: false,
-      cardholderAccounts: [],
     });
     expect(selectIsCardStateResolved(state)).toBe(true);
   });
@@ -673,7 +818,7 @@ describe('selectIsCardStateResolved', () => {
     expect(selectIsCardStateResolved(state)).toBe(true);
   });
 
-  it('returns false while idle for a cardholder', () => {
+  it('returns true while idle for a logged-out cardholder', () => {
     mockSelectSelectedInternalAccountByScope.mockReturnValue(
       jest.fn().mockReturnValue({
         address: '0xabc',
@@ -684,9 +829,59 @@ describe('selectIsCardStateResolved', () => {
     const state = createMockRootState({
       cardHomeDataStatus: 'idle',
       isAuthenticated: false,
-      cardholderAccounts: ['eip155:0:0xabc'],
     });
-    expect(selectIsCardStateResolved(state)).toBe(false);
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true while idle when stored links are closed only', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+        cardLinks: [
+          {
+            provider: 'baanx',
+            status: 'closed',
+            linkedAccountRef: null,
+            closedReason: 'migrated',
+            migratedToProvider: 'immersve',
+            linkedAt: '2026-09-01T00:00:00.000Z',
+            updatedAt: '2026-09-01T00:00:00.000Z',
+          },
+        ],
+      },
+      undefined,
+      { cardLinkApi: { enabled: true, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+    expect(selectIsCardStateResolved(state)).toBe(true);
+  });
+
+  it('returns true while idle when logged out and card links are off', () => {
+    mockSelectSelectedInternalAccountByScope.mockReturnValue(
+      jest.fn().mockReturnValue({
+        address: '0xabc',
+        type: 'eip155:eoa',
+        scopes: ['eip155:0'],
+      } as unknown as InternalAccount),
+    );
+    const state = createMockRootState(
+      {
+        cardHomeDataStatus: 'idle',
+        isAuthenticated: false,
+      },
+      undefined,
+      { cardLinkApi: { enabled: false, minimumVersion: '0.0.0' } },
+    );
+    expect(selectIsCardHomeDataResolved(state)).toBe(true);
+    expect(selectIsCardStateResolved(state)).toBe(true);
   });
 });
 
@@ -717,6 +912,7 @@ const mockCardHomeData: CardHomeData = {
   availableFundingAssets: [mockPrimaryAsset],
   card: null,
   account: null,
+  walletProvisioning: null,
   alerts: [],
   actions: [],
   delegationSettings: {
@@ -858,6 +1054,31 @@ describe('selectCardPrimaryToken', () => {
     const token = selectCardPrimaryToken(state);
     expect(token?.isMoneyAccountEntry).toBe(false);
     expect(token?.displaySymbol).toBeUndefined();
+  });
+
+  it('flags a moneyAccount funding source even when the token is not the selected Veda config', () => {
+    const homeData: CardHomeData = {
+      ...mockCardHomeData,
+      primaryFundingAsset: {
+        ...mockPrimaryAsset,
+        symbol: 'USDC',
+        address: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+        chainId: 'eip155:8453',
+        fundingSourceType: 'moneyAccount',
+      },
+    } as unknown as CardHomeData;
+    const state = createMockRootState(
+      {
+        cardHomeData:
+          homeData as unknown as CardControllerState['cardHomeData'],
+      },
+      CARD_FEATURE_WITHOUT_VEDA,
+    );
+
+    const token = selectCardPrimaryToken(state);
+
+    expect(token?.isMoneyAccountEntry).toBe(true);
+    expect(token?.displaySymbol).toBe('mUSD');
   });
 });
 
@@ -1626,7 +1847,6 @@ describe('selectCardCountryOfResidence', () => {
         ...mockCardHomeData,
         account: {
           verificationStatus: 'VERIFIED',
-          provisioningEligible: false,
           holderName: 'Test User',
           shippingAddress: null,
           countryOfResidence: 'GB',
@@ -1645,7 +1865,6 @@ describe('selectCardResidencyRegion', () => {
         ...mockCardHomeData,
         account: {
           verificationStatus: 'VERIFIED',
-          provisioningEligible: false,
           holderName: 'Test User',
           shippingAddress: null,
           countryOfResidence: 'US',
@@ -1677,7 +1896,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'GB',
@@ -1698,7 +1916,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1719,7 +1936,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1740,7 +1956,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1761,7 +1976,6 @@ describe('selectIsCardResidencyBlocked', () => {
           ...mockCardHomeData,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: 'Test User',
             shippingAddress: null,
             countryOfResidence: 'US',
@@ -1792,7 +2006,6 @@ describe('selectCardAvailableTokens residency blocking', () => {
       delegationSettings: makeVedaDelegationSettings(),
       account: {
         verificationStatus: 'VERIFIED',
-        provisioningEligible: false,
         holderName: 'Test User',
         shippingAddress: null,
         countryOfResidence: 'GB',
@@ -1834,7 +2047,6 @@ describe('selectCardAvailableTokens residency blocking', () => {
       delegationSettings: makeVedaDelegationSettings(),
       account: {
         verificationStatus: 'VERIFIED',
-        provisioningEligible: false,
         holderName: 'Test User',
         shippingAddress: null,
         countryOfResidence: 'GB',
@@ -1987,21 +2199,6 @@ describe('referential stability of card list selectors', () => {
 
     expect(second).toBe(first);
     expect(first?.symbol).toBe('USDC');
-  });
-
-  it('returns the shared empty array for selectCardholderAccounts when CardController is missing', () => {
-    const stateA = {
-      engine: { backgroundState: {} },
-    } as unknown as RootState;
-    const stateB = {
-      engine: { backgroundState: {} },
-    } as unknown as RootState;
-
-    const first = selectCardholderAccounts(stateA);
-    const second = selectCardholderAccounts(stateB);
-
-    expect(first).toStrictEqual([]);
-    expect(second).toBe(first);
   });
 
   it('returns the shared empty array for selectCardExternalWalletPriority when missing', () => {

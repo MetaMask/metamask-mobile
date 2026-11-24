@@ -8,6 +8,8 @@ jest.mock('../useAuthentication');
 jest.mock('../useAccountSyncing');
 jest.mock('../useContactSyncing');
 jest.mock('../useCanonicalProfileIdTrait');
+jest.mock('../useSocialProfileHydration');
+jest.mock('../useSocialEarlyAccess');
 jest.mock('../../../../core/Braze/hooks', () => ({
   useBrazeIdentity: jest.fn(),
 }));

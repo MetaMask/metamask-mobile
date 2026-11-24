@@ -3,6 +3,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
+  showSpeedUp,
   getPendingTxActionVisibility,
   hasAnyPendingTxAction,
 } from './pendingTxActions';
@@ -15,6 +16,21 @@ const baseTx = {
 } as unknown as TransactionMeta;
 
 const noHardware = { isQRHardwareAccount: false, isLedgerAccount: false };
+
+describe('showSpeedUp', () => {
+  it('hides speed-up for swaps, bridges, and their approvals', () => {
+    const types = [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ];
+
+    for (const type of types) {
+      expect(showSpeedUp(type)).toBe(false);
+    }
+  });
+});
 
 describe('getPendingTxActionVisibility', () => {
   it('shows speed up + cancel for a submitted tx', () => {

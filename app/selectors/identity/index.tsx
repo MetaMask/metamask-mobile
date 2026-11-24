@@ -5,9 +5,11 @@ import {
   UserStorageController,
 } from '@metamask/profile-sync-controller';
 import { selectPrimaryHDKeyring } from '../keyringController';
+import { createDeepEqualSelector } from '../util';
 
 type AuthenticationState =
   AuthenticationController.AuthenticationControllerState;
+
 type UserStorageState = UserStorageController.UserStorageControllerState;
 
 const selectAuthenticationControllerState = (state: RootState) =>
@@ -59,6 +61,94 @@ export const selectCanonicalProfileId = createSelector(
 );
 
 /**
+ * True when the primary session lists this SRP's login identifier.
+ *
+ * `pairedIdentifierIds` holds server identifier ids (a hash of the SRP public
+ * key). Local keyring ids never appear there, so they are not compared.
+ */
+const isSrpPairedToPrimary = (
+  identifierId: string | undefined,
+  pairedIdentifierIds: Set<string>,
+): boolean =>
+  identifierId !== undefined && pairedIdentifierIds.has(identifierId);
+
+/**
+ * Selector that returns the entropy source IDs of the SRPs that belong to the
+ * wallet's profile: the primary SRP first, followed by every SRP whose login
+ * identifier is listed in the primary session's `pairedIdentifierIds`.
+ *
+ * `canonicalProfileId` is not used for this: the AuthenticationController
+ * propagates it to every session, including SRPs the server skipped while
+ * pairing.
+ *
+ * Falls back to the primary SRP alone when it has no session yet (signed out
+ * or not paired). Returns an empty array when the wallet is locked, because
+ * the primary HD keyring is unknown.
+ */
+export const selectProfileEntropySourceIds = createDeepEqualSelector(
+  selectAuthenticationControllerState,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string[] => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return [];
+    }
+
+    const srpSessionData = authenticationControllerState.srpSessionData ?? {};
+    const pairedIdentifierIds = new Set(
+      (
+        srpSessionData[primaryEntropySourceId]?.profile?.pairedIdentifierIds ??
+        []
+      ).map((identifier) => identifier.id),
+    );
+
+    const pairedEntropySourceIds = Object.entries(srpSessionData)
+      .filter(
+        ([entropySourceId, session]) =>
+          entropySourceId !== primaryEntropySourceId &&
+          isSrpPairedToPrimary(
+            session?.profile?.identifierId,
+            pairedIdentifierIds,
+          ),
+      )
+      .map(([entropySourceId]) => entropySourceId);
+
+    return [primaryEntropySourceId, ...pairedEntropySourceIds];
+  },
+);
+
+/**
+ * Profile id of the primary SRP session (`profile.profileId`). For a merged
+ * profile this is the pre-merge alias, not the canonical id the access token's
+ * `sub` carries, so profile API and social API calls must not use it.
+ *
+ * Same key as {@link selectCanonicalProfileId}: the primary HD keyring, so a
+ * stale session left behind by a wallet reset is not read as the live one.
+ * `undefined` when that identity is not knowable yet — signed out, no session
+ * for the primary SRP, or the wallet is locked.
+ */
+export const selectSessionProfileId = createSelector(
+  selectAuthenticationControllerState,
+  selectPrimaryHDKeyring,
+  (
+    authenticationControllerState: AuthenticationState,
+    primaryHdKeyring,
+  ): string | undefined => {
+    const primaryEntropySourceId = primaryHdKeyring?.metadata?.id;
+    if (!primaryEntropySourceId) {
+      return undefined;
+    }
+    return (
+      authenticationControllerState.srpSessionData?.[primaryEntropySourceId]
+        ?.profile?.profileId || undefined
+    );
+  },
+);
+
+/**
  * Selector that exposes the `needsProfilePairing` flag from the
  * `AuthenticationController` state.
  *
@@ -92,6 +182,18 @@ export const selectNeedsSocialPairing = createSelector(
   selectAuthenticationControllerState,
   (authenticationControllerState: AuthenticationState) =>
     authenticationControllerState.needsSocialPairing ?? true,
+);
+
+/**
+ * Selector that exposes the MFA credentials cached by the
+ * `AuthenticationController`. The cache is only filled by
+ * `refreshEnrolledCredentials()` and after an enrollment, so callers that need
+ * fresh data refresh first.
+ */
+export const selectEnrolledCredentials = createSelector(
+  selectAuthenticationControllerState,
+  (authenticationControllerState: AuthenticationState) =>
+    authenticationControllerState.enrolledCredentials ?? [],
 );
 
 // User Storage

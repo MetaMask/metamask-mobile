@@ -5,19 +5,25 @@ import {
   type DataServiceInvalidateQueriesAction,
 } from '@metamask/base-data-service';
 import type { Messenger } from '@metamask/messenger';
-import type { Json } from '@metamask/utils';
 import {
-  getRecurringOrders as fetchRecurringOrders,
-  getRecurringSwaps as fetchRecurringSwaps,
-} from '../api/recurringOrders';
-import type {
-  GetRecurringOrdersResponse,
-  GetRecurringSwapsResponse,
-} from '../api/recurringOrders.types';
+  KnownCaipNamespace,
+  toCaipAccountId,
+  type Json,
+} from '@metamask/utils';
 import {
-  recurringOrdersQueries,
+  RecurringOrderState,
+  type GetRecurringOrderResponse,
+  type GetRecurringOrdersByAssetResponse,
+  type ListRecurringOrdersResponse,
+  type ListRecurringSwapsResponse,
   type RecurringOrdersQueryParams,
   type RecurringSwapsQueryParams,
+} from '../api/recurringOrders.types';
+import { recurringOrdersApiClient } from '../api/recurringOrders.client';
+import {
+  recurringOrdersQueries,
+  type RecurringOrderQueryParams,
+  type RecurringOrdersByAssetQueryParams,
 } from '../queries/recurringOrders';
 
 export const RECURRING_ORDERS_DATA_SERVICE_NAME =
@@ -28,7 +34,15 @@ export interface RecurringOrdersDataServiceGetRecurringOrdersAction {
   handler: (
     params: RecurringOrdersQueryParams,
     cursor?: string,
-  ) => Promise<GetRecurringOrdersResponse>;
+  ) => Promise<ListRecurringOrdersResponse>;
+}
+
+export interface RecurringOrdersDataServiceGetRecurringOrderAction {
+  type: 'RecurringOrdersDataService:getRecurringOrder';
+  handler: (
+    orderId: string,
+    params: RecurringOrderQueryParams,
+  ) => Promise<GetRecurringOrderResponse>;
 }
 
 export interface RecurringOrdersDataServiceGetRecurringSwapsAction {
@@ -37,11 +51,20 @@ export interface RecurringOrdersDataServiceGetRecurringSwapsAction {
     orderId: string,
     params: RecurringSwapsQueryParams,
     cursor?: string,
-  ) => Promise<GetRecurringSwapsResponse>;
+  ) => Promise<ListRecurringSwapsResponse>;
+}
+
+export interface RecurringOrdersDataServiceGetRecurringOrdersByAssetAction {
+  type: 'RecurringOrdersDataService:getRecurringOrdersByAsset';
+  handler: (
+    params: RecurringOrdersByAssetQueryParams,
+  ) => Promise<GetRecurringOrdersByAssetResponse>;
 }
 
 export type RecurringOrdersDataServiceActions =
+  | RecurringOrdersDataServiceGetRecurringOrderAction
   | RecurringOrdersDataServiceGetRecurringOrdersAction
+  | RecurringOrdersDataServiceGetRecurringOrdersByAssetAction
   | RecurringOrdersDataServiceGetRecurringSwapsAction
   | DataServiceInvalidateQueriesAction<
       typeof RECURRING_ORDERS_DATA_SERVICE_NAME
@@ -74,8 +97,16 @@ export class RecurringOrdersDataService extends BaseDataService<
     });
 
     messenger.registerActionHandler(
+      'RecurringOrdersDataService:getRecurringOrder',
+      this.getRecurringOrder.bind(this),
+    );
+    messenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringOrders',
       this.getRecurringOrders.bind(this),
+    );
+    messenger.registerActionHandler(
+      'RecurringOrdersDataService:getRecurringOrdersByAsset',
+      this.getRecurringOrdersByAsset.bind(this),
     );
     messenger.registerActionHandler(
       'RecurringOrdersDataService:getRecurringSwaps',
@@ -83,10 +114,29 @@ export class RecurringOrdersDataService extends BaseDataService<
     );
   }
 
+  async getRecurringOrder(
+    orderId: string,
+    params: RecurringOrderQueryParams,
+  ): Promise<GetRecurringOrderResponse> {
+    const descriptor = recurringOrdersQueries.getRecurringOrder(
+      orderId,
+      params,
+    );
+
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: () =>
+        recurringOrdersApiClient.getRecurringOrder(orderId, params) as Promise<
+          Json & GetRecurringOrderResponse
+        >,
+    });
+  }
+
   async getRecurringOrders(
     params: RecurringOrdersQueryParams,
     cursor?: string,
-  ): Promise<GetRecurringOrdersResponse> {
+  ): Promise<ListRecurringOrdersResponse> {
     const descriptor = recurringOrdersQueries.getRecurringOrders(params);
 
     return this.fetchInfiniteQuery(
@@ -95,21 +145,55 @@ export class RecurringOrdersDataService extends BaseDataService<
         staleTime: descriptor.staleTime,
         initialPageParam: cursor as string | null,
         queryFn: ({ pageParam }) =>
-          fetchRecurringOrders({
-            ...params,
-            cursor: pageParam as string | undefined,
-          }) as Promise<Json & GetRecurringOrdersResponse>,
-        getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
+          recurringOrdersApiClient.getRecurringOrders({
+            accountAddress: toCaipAccountId(
+              KnownCaipNamespace.Eip155,
+              '1',
+              params.walletAddress,
+            ),
+            ...(params.orderStates ? { states: params.orderStates } : {}),
+            ...(params.chainId ? { chainIds: [params.chainId] } : {}),
+            ...(params.assetId ? { assetId: params.assetId } : {}),
+            ...(params.limit === undefined ? {} : { limit: params.limit }),
+            ...(pageParam ? { after: pageParam as string } : {}),
+          }) as Promise<Json & ListRecurringOrdersResponse>,
+        getNextPageParam: (lastPage) =>
+          lastPage.hasNextPage ? (lastPage.endCursor ?? null) : null,
       },
       cursor,
     );
+  }
+
+  async getRecurringOrdersByAsset(
+    params: RecurringOrdersByAssetQueryParams,
+  ): Promise<GetRecurringOrdersByAssetResponse> {
+    const descriptor = recurringOrdersQueries.getRecurringOrdersByAsset(params);
+
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: async () => {
+        const response = await recurringOrdersApiClient.getRecurringOrders({
+          accountAddress: toCaipAccountId(
+            KnownCaipNamespace.Eip155,
+            '1',
+            params.walletAddress,
+          ),
+          states: [RecurringOrderState.Open],
+          assetId: params.assetId,
+          limit: 1,
+        });
+
+        return response.orders as Json & GetRecurringOrdersByAssetResponse;
+      },
+    });
   }
 
   async getRecurringSwaps(
     orderId: string,
     params: RecurringSwapsQueryParams,
     cursor?: string,
-  ): Promise<GetRecurringSwapsResponse> {
+  ): Promise<ListRecurringSwapsResponse> {
     const descriptor = recurringOrdersQueries.getRecurringSwaps(
       orderId,
       params,
@@ -121,11 +205,13 @@ export class RecurringOrdersDataService extends BaseDataService<
         staleTime: descriptor.staleTime,
         initialPageParam: cursor as string | null,
         queryFn: ({ pageParam }) =>
-          fetchRecurringSwaps(orderId, {
-            ...params,
-            cursor: pageParam as string | undefined,
-          }) as Promise<Json & GetRecurringSwapsResponse>,
-        getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
+          recurringOrdersApiClient.getRecurringSwaps(orderId, {
+            accountAddress: params.accountAddress,
+            ...(params.limit === undefined ? {} : { limit: params.limit }),
+            ...(pageParam ? { after: pageParam as string } : {}),
+          }) as Promise<Json & ListRecurringSwapsResponse>,
+        getNextPageParam: (lastPage) =>
+          lastPage.hasNextPage ? (lastPage.endCursor ?? null) : null,
       },
       cursor,
     );

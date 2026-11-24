@@ -1,5 +1,13 @@
 import React from 'react';
+import {
+  InteractionManager,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { FlashList } from '@shopify/flash-list';
+import { ActivitiesViewSelectorsIDs } from '../../Views/ActivityView/ActivitiesView.testIds';
 import { UnconnectedTransactions, mapStateToProps } from '.';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -16,6 +24,7 @@ import {
   getBlockExplorerName,
 } from '../../../util/networks';
 import { speedUpTransaction } from '../../../util/transaction-controller';
+import { strings } from '../../../../locales/i18n';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
@@ -25,13 +34,19 @@ import {
 } from '../../../selectors/networkController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
-import { selectAllTokens } from '../../../selectors/tokensController';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../selectors/multichainAccounts/accountTreeController';
 
 const mockGroupActivityListItems = jest.fn();
 const mockMapTransactionToActivityItem = jest.fn();
 const mockCreateQRSigningTransactionModalNavDetails = jest.fn();
 const mockExecuteHardwareWalletOperation = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    toast: Object.assign(jest.fn(), { dismiss: jest.fn() }),
+  };
+});
 
 type FlashListItem = Record<string, unknown>;
 
@@ -47,6 +62,7 @@ interface FlashListHarnessProps {
   onScroll?: (event: { nativeEvent: { contentOffset: { y: number } } }) => void;
   refreshControl?: React.ReactElement<{ onRefresh?: () => void }>;
   renderItem: (args: { item: FlashListItem; index: number }) => React.ReactNode;
+  contentContainerStyle?: StyleProp<ViewStyle>;
   testID?: string;
 }
 
@@ -72,6 +88,7 @@ jest.mock('@shopify/flash-list', () => {
           onScroll,
           refreshControl,
           renderItem,
+          contentContainerStyle,
           testID,
         }: FlashListHarnessProps,
         ref: React.ForwardedRef<FlashListHarnessRef>,
@@ -81,7 +98,7 @@ jest.mock('@shopify/flash-list', () => {
         }));
 
         return (
-          <View testID={testID}>
+          <View testID={testID} style={contentContainerStyle}>
             {data.length ? (
               data.map((item, index) => (
                 <View key={keyExtractor(item, index)}>
@@ -201,10 +218,6 @@ jest.mock('../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: { showToast: jest.fn() },
-}));
 jest.mock('../../../util/Logger', () => ({ error: jest.fn() }));
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: { trackEvent: jest.fn() },
@@ -308,15 +321,6 @@ jest.mock('../../../selectors/networkController', () => ({
 jest.mock('../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(),
 }));
-jest.mock('../../../selectors/tokensController', () => ({
-  selectAllTokens: jest.fn(),
-}));
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupEvmInternalAccount: jest.fn(),
-  }),
-);
 jest.mock('../../../selectors/settings', () => ({
   selectPrimaryCurrency: jest.fn(),
 }));
@@ -384,6 +388,18 @@ describe('UnconnectedTransactions', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      });
     resetNavigationMocks();
     (isHardwareAccount as jest.Mock).mockReturnValue(false);
     (isNonEvmChainId as jest.Mock).mockReturnValue(false);
@@ -403,6 +419,7 @@ describe('UnconnectedTransactions', () => {
   });
 
   afterEach(() => {
+    jest.restoreAllMocks();
     jest.clearAllTimers();
     jest.useRealTimers();
   });
@@ -849,6 +866,13 @@ describe('UnconnectedTransactions', () => {
         message: 'speedUpTransaction failed ',
         speedUpTxId: 'replacement',
       });
+      expect(toast).toHaveBeenCalledWith({
+        title: strings('transaction_update_toast.title'),
+        description: 'replacement failed',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
+      });
     });
 
     it('reports failed cancellation submissions through the transaction toast', async () => {
@@ -865,6 +889,13 @@ describe('UnconnectedTransactions', () => {
       expect(Logger.error).toHaveBeenCalledWith(error, {
         cancelTxId: 'replacement',
         message: 'cancelTransaction failed ',
+      });
+      expect(toast).toHaveBeenCalledWith({
+        title: strings('transaction_update_toast.title'),
+        description: 'cancellation failed',
+        severity: ToastSeverity.Danger,
+        hasNoTimeout: false,
+        showCloseButton: false,
       });
     });
 
@@ -933,20 +964,14 @@ describe('mapStateToProps', () => {
 
     it('selects asset enrichment data once in the parent', () => {
       const internalAccount = { metadata: { importTime: 123 } };
-      const groupAccount = { address: '0x123' };
       const networkConfigurations = { '0x89': { nativeCurrency: 'POL' } };
-      const allTokens = { '0x89': { '0x123': [] } };
       const bridgeHistory = { bridge: {} };
       jest
         .mocked(selectSelectedInternalAccount)
         .mockReturnValue(internalAccount as never);
       jest
-        .mocked(selectSelectedAccountGroupEvmInternalAccount)
-        .mockReturnValue(groupAccount as never);
-      jest
         .mocked(selectEvmNetworkConfigurationsByChainId)
         .mockReturnValue(networkConfigurations as never);
-      jest.mocked(selectAllTokens).mockReturnValue(allTokens as never);
       jest
         .mocked(selectBridgeHistoryForAccount)
         .mockReturnValue(bridgeHistory as never);
@@ -956,9 +981,7 @@ describe('mapStateToProps', () => {
       expect(result).toEqual(
         expect.objectContaining({
           accountImportTime: 123,
-          groupEvmAccountAddress: '0x123',
           networkConfigurationsByChainId: networkConfigurations,
-          allTokens,
           bridgeHistory,
         }),
       );
@@ -988,12 +1011,37 @@ describe('mapStateToProps', () => {
       mapStateToProps(mockState, ownProps);
 
       expect(selectSelectedInternalAccount).not.toHaveBeenCalled();
-      expect(
-        selectSelectedAccountGroupEvmInternalAccount,
-      ).not.toHaveBeenCalled();
       expect(selectEvmNetworkConfigurationsByChainId).not.toHaveBeenCalled();
-      expect(selectAllTokens).not.toHaveBeenCalled();
       expect(selectBridgeHistoryForAccount).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('Transactions list bottom inset', () => {
+  it('keeps the default bottom padding', () => {
+    renderTransactions({ transactions: [] });
+
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toHaveStyle({ paddingBottom: 80 });
+  });
+
+  it('pads the list to clear a footer floating over it', () => {
+    renderTransactions({ transactions: [], contentBottomInset: 120 });
+
+    expect(
+      screen.getByTestId(ActivitiesViewSelectorsIDs.CONTAINER),
+    ).toHaveStyle({ paddingBottom: 120 });
+  });
+});
+
+describe('Transactions refresh spinner', () => {
+  it('moves the spinner below a floating header', () => {
+    renderTransactions({ transactions: [], refreshControlOffset: 96 });
+
+    expect(
+      screen.UNSAFE_getByType(FlashList).props.refreshControl.props
+        .progressViewOffset,
+    ).toBe(96);
   });
 });

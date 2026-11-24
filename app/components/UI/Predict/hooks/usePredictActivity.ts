@@ -7,7 +7,7 @@ import {
 import { useSelector } from 'react-redux';
 import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
-import type { PredictActivity } from '../types';
+import type { PredictActivity, PredictActivityPage } from '../types';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../constants/transactions';
 import { usePredictNetworkManagement } from './usePredictNetworkManagement';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
@@ -27,7 +27,7 @@ export interface UsePredictActivityOptions {
 
 export interface UsePredictActivityResult
   extends Omit<
-    UseInfiniteQueryResult<InfiniteData<PredictActivity[]>, Error>,
+    UseInfiniteQueryResult<InfiniteData<PredictActivityPage>, Error>,
     'data'
   > {
   activity: PredictActivity[];
@@ -65,7 +65,7 @@ export function usePredictActivity({
 
     return (
       queryResult.data?.pages.flatMap((page) =>
-        page.filter((activityItem) => {
+        page.activities.filter((activityItem) => {
           if (seenActivityIds.has(activityItem.id)) {
             return false;
           }

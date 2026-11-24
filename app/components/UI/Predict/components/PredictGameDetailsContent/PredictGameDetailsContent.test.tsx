@@ -5,8 +5,37 @@ import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { usePredictGame } from '../../hooks/usePredictGame';
+import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+
+let mockPredictBrandRefreshEnabled = false;
+jest.mock('react-redux', () => {
+  const { selectPredictBrandRefreshEnabled } = jest.requireActual(
+    '../../../../../selectors/featureFlagController/predictBrandRefresh',
+  );
+  return {
+    ...jest.requireActual('react-redux'),
+    useSelector: (selector: unknown) =>
+      selector === selectPredictBrandRefreshEnabled
+        ? mockPredictBrandRefreshEnabled
+        : undefined,
+  };
+});
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
+
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -28,9 +57,15 @@ jest.mock('../../hooks/usePredictNavigation', () => ({
   }),
 }));
 
+const mockPredictShareButtonProps = jest.fn();
 jest.mock('../PredictShareButton/PredictShareButton', () => {
   const { View } = jest.requireActual('react-native');
-  return function MockPredictShareButton({ marketId }: { marketId?: string }) {
+  return function MockPredictShareButton(props: {
+    marketId?: string;
+    isCapsule?: boolean;
+  }) {
+    const { marketId } = props;
+    mockPredictShareButtonProps(props);
     return (
       <View
         testID="predict-share-button"
@@ -307,6 +342,7 @@ describe('PredictGameDetailsContent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPredictBrandRefreshEnabled = false;
     mockGetRefHandlers.mockReset();
     mockGetRefHandlers
       .mockReturnValueOnce({
@@ -388,6 +424,49 @@ describe('PredictGameDetailsContent', () => {
       expect(shareButton.props.accessibilityHint).toBe(
         'marketId:game-market-123',
       );
+    });
+
+    it('renders plain back and share buttons when the brand refresh is off', () => {
+      const market = createMockMarket();
+
+      const { queryByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(queryByTestId('capsule')).toBeNull();
+      expect(mockPredictShareButtonProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isCapsule: false }),
+      );
+    });
+
+    it('renders back and share in glass capsules when the brand refresh is on', () => {
+      mockPredictBrandRefreshEnabled = true;
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+      fireEvent.press(
+        getByTestId(PredictMarketDetailsSelectorsIDs.BACK_BUTTON),
+      );
+
+      expect(getByTestId('capsule')).toBeOnTheScreen();
+      expect(mockPredictShareButtonProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isCapsule: true }),
+      );
+      expect(mockOnBack).toHaveBeenCalledTimes(1);
     });
   });
 

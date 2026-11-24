@@ -28,8 +28,9 @@ import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 import { useTransactionPayingAccount } from '../transactions/useTransactionPayingAccount';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { isTransactionMarkedAsGasFeeSponsored } from '../../utils/transaction';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useInsufficientPayTokenBalanceMessageKey } from './useInsufficientPayTokenBalanceMessageKey';
+import { decodePaymentTokenAssetId } from '../../../../../util/transactions/payment-token';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -37,6 +38,7 @@ export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd?: string;
 } = {}): Alert[] {
   const { payToken } = useTransactionPayToken();
+  const payTokenAsset = decodePaymentTokenAssetId(payToken);
   const requiredTokens = useTransactionPayRequiredTokens();
   const totals = useTransactionPayTotals();
   const isLoading = useIsTransactionPayLoading();
@@ -57,7 +59,7 @@ export function useInsufficientPayTokenBalanceAlert({
   // is actually paid) is the transaction's own chainId.
   const sourceChainId = isPostQuote
     ? (transactionMeta?.chainId ?? '0x0')
-    : (payToken?.chainId ?? '0x0');
+    : (payTokenAsset?.chainId ?? '0x0');
 
   const nativeToken = useTokenWithBalance(
     getNativeTokenAddress(sourceChainId),
@@ -71,6 +73,8 @@ export function useInsufficientPayTokenBalanceAlert({
   // on-chain units.
   const { balanceUsd: payBalanceUsd, balanceRaw } = useTransactionPayBalance();
   const balanceUsd = String(payBalanceUsd);
+  const insufficientBalanceMessageKey =
+    useInsufficientPayTokenBalanceMessageKey(balanceUsd);
 
   const ticker = useSelector((state: RootState) =>
     selectTickerByChainId(state, sourceChainId),
@@ -81,9 +85,10 @@ export function useInsufficientPayTokenBalanceAlert({
   // source chain. Without the chainId guard, a native destination token would
   // incorrectly suppress the source-network gas insufficiency check.
   const isPayTokenNative =
-    Boolean(payToken) &&
-    payToken?.address.toLowerCase() === nativeToken?.address.toLowerCase() &&
-    payToken?.chainId === sourceChainId;
+    Boolean(payTokenAsset) &&
+    payTokenAsset?.address.toLowerCase() ===
+      nativeToken?.address.toLowerCase() &&
+    payTokenAsset?.chainId === sourceChainId;
 
   // For Max, treat the spend amount as the available balance so fiat rounding
   // between a Max snapshot and the live balance cannot false-positive.
@@ -139,12 +144,13 @@ export function useInsufficientPayTokenBalanceAlert({
     [balanceRaw, isMax, isPendingAlert, totalSourceAmountRaw],
   );
 
-  // Parent sponsorship does not cover hardware funding transactions.
+  // Quoted source-network fees are empty when the source is execute or
+  // sponsored, and a real amount when the payer covers native gas. Parent
+  // sponsorship does not change that. Hardware payers are never gasless.
   const isHardwarePayer = isHardwareAccount(payingAccount ?? '');
   const isGaslessSourceChain =
     !isHardwarePayer &&
     (sourceChainId === CHAIN_IDS.MONAD ||
-      isTransactionMarkedAsGasFeeSponsored(transactionMeta) ||
       (!isPostQuote && paymentOverride === PaymentOverride.MoneyAccount));
 
   // A plain ERC-20 send also yields a required token, but it is not funded
@@ -193,9 +199,7 @@ export function useInsufficientPayTokenBalanceAlert({
         {
           ...baseAlert,
           key: AlertKeys.InsufficientPayTokenBalance,
-          message: strings(
-            'alert_system.insufficient_pay_token_balance.message',
-          ),
+          message: strings(insufficientBalanceMessageKey),
         },
       ];
     }
@@ -237,6 +241,7 @@ export function useInsufficientPayTokenBalanceAlert({
     isInsufficientForInput,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
+    insufficientBalanceMessageKey,
     isPostQuote,
     selectedFiatPaymentMethod,
     ticker,

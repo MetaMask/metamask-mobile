@@ -53,6 +53,70 @@ describe('usePerpsSlice', () => {
     });
   });
 
+  it('reports no baseline when an aggregated provider lacks the 1d-ago observation', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsEligibility) return true;
+      if (selector === selectPerpsProvider) return 'aggregated';
+      if (selector === selectPerpsBalances) {
+        return {
+          hyperliquid: { accountValue1dAgo: '80' },
+          lighter: { totalBalance: '20' },
+        };
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => usePerpsSlice((amount) => amount));
+
+    expect(result.current.status).toBe('ready');
+    expect(result.current.valueFiat).toBe(100);
+    expect(result.current.value1dAgoFiat).toBeUndefined();
+  });
+
+  it('reports no baseline when the active provider lacks the 1d-ago observation', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsEligibility) return true;
+      if (selector === selectPerpsProvider) return 'hyperliquid';
+      if (selector === selectPerpsBalances) {
+        return { hyperliquid: { totalBalance: '100' } };
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => usePerpsSlice((amount) => amount));
+
+    expect(result.current.value1dAgoFiat).toBeUndefined();
+  });
+
+  it('keeps funded balances available when trading is geo-blocked', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectPerpsEnabledFlag) return true;
+      if (selector === selectPerpsEligibility) return false;
+      if (selector === selectPerpsProvider) return 'hyperliquid';
+      if (selector === selectPerpsBalances) {
+        return {
+          hyperliquid: { accountValue1dAgo: '80' },
+        };
+      }
+      return undefined;
+    });
+
+    const { result } = renderHook(() => usePerpsSlice((amount) => amount));
+
+    expect(mockUsePerpsLiveAccount).toHaveBeenCalledWith({
+      enabled: true,
+      throttleMs: 1000,
+    });
+    expect(result.current).toMatchObject({
+      status: 'ready',
+      isVisible: true,
+      valueFiat: 100,
+      value1dAgoFiat: 80,
+    });
+  });
+
   it('is ineligible when the feature is unavailable', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsEnabledFlag) return false;

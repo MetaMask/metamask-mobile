@@ -988,13 +988,19 @@ const OutcomeButtons = React.memo(
       }));
     }, [marketId, outcomeId, tokenIds]);
     const isMarketOpen = marketStatus === PredictMarketStatus.OPEN;
-    const { getPrice } = useLiveMarketPrices(tokenIds, {
-      enabled: isMarketOpen,
+    const shouldFetchPrices = isMarketOpen && priceQueries.length > 0;
+    const { getPrice, isConnected } = useLiveMarketPrices(tokenIds, {
+      enabled: shouldFetchPrices,
     });
+    // WebSocket prices win once the socket is up. REST still loads once for
+    // the gap before that, and keeps polling only while the socket is down.
     const { prices: restPrices } = usePredictPrices({
       queries: priceQueries,
-      enabled: isMarketOpen && priceQueries.length > 0,
-      pollingInterval: REST_POLLING_INTERVAL_MS,
+      enabled: shouldFetchPrices,
+      pollingInterval:
+        shouldFetchPrices && !isConnected
+          ? REST_POLLING_INTERVAL_MS
+          : undefined,
     });
     const upPrice = getPredictBuyPrice(
       upToken,

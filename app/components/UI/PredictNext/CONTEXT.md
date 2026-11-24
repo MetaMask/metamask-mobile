@@ -98,6 +98,10 @@ _Avoid_: Trade, transaction
 
 ### Order Lifecycle
 
+**Order Action**:
+The direction of an Order: buy opens or extends a Position, sell reduces or closes one. Every Order has exactly one Action, independent of the Outcome side it transacts.
+_Avoid_: Side, direction, transaction type
+
 **Active Order**:
 An Order currently being processed through the placement pipeline, including preview, optional funding, placement, and confirmation.
 _Avoid_: Pending order, in-flight order
@@ -111,27 +115,47 @@ An accepted Order that can remain open on the Venue order book until filled, can
 _Avoid_: Active Order; the latter describes the app workflow, not Venue order-book state
 
 **Order Preview**:
-A short-lived, venue-bound price quote showing estimated cost, fees, and potential return before an Order is placed. It has an expiry and cannot be trusted after it expires.
+A short-lived, venue-bound price quote of an Order's estimated execution values before it is placed: for a buy, estimated cost, fees, and potential return; for a sell, contracts offered, estimated Proceeds, and estimated Net Proceeds. It has an expiry and cannot be trusted after it expires.
 _Avoid_: Unbound estimate, mutable order payload
 
 **Total Debit**:
 The total settlement-currency amount expected to be charged to a Venue Account for an Order: the Order amount plus the estimated Fee. The entered USD amount caps the Order amount; the Fee is added on top.
 _Avoid_: Order total, total cost, spend
 
+**Proceeds**:
+The gross settlement-currency amount a sell Order receives for the contracts it sells, before fees. An Order Preview estimates Proceeds from current Bid liquidity; the Order Receipt reports actual Proceeds.
+_Avoid_: Payout, total credit, spend
+
+**Net Proceeds**:
+A sell Order's Proceeds minus its Fee: the amount actually credited to a Venue Account. The sell counterpart of Total Debit.
+_Avoid_: Proceeds without qualifier, take-home amount
+
 **Fee**:
 The estimated charge for executing an Order, added on top of the Order amount to produce the Total Debit. A Fee is composed of backend-owned components (today venue and MetaMask components) and is reported by the backend; the client never calculates it.
 _Avoid_: Kalshi fee as the total Fee, gas
 
+**Commit**:
+The user-approved submission of one Order Preview for execution. Commit sends only the Preview's opaque reference; the quoted Market, Outcome, spend, quantity, and price cannot change at commit time. Repeated commits for one operation converge on one Order Receipt.
+_Avoid_: New order request, order-details echo, re-quote at submit time
+
 **Order Receipt**:
-The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable.
+The canonical result returned after a Venue accepts, rejects, or fills a submitted Order. It includes the venue order identifier, status, spent and received amounts, and transaction hashes when applicable. Receipt statuses are `pending`, `submitted`, `filled`, `partially_filled`, `not_filled`, `rejected`, and `reconciliation_required`; `pending` and `submitted` are in-progress statuses the backend reports while the operation is still being worked, observed by committing the same Order Preview again.
 _Avoid_: Order Result, raw venue response
 
+**Reconciliation**:
+The resolution of an ambiguous Order submission by looking up the stable Venue operation reference or the resulting Venue Order. Reconciliation determines the outcome; it never places a second Order.
+_Avoid_: Retry, resubmit, duplicate order
+
 **Fill**:
-Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity should be derived from Fills rather than inferring execution from Order creation records.
+Execution of some or all of an Order against another order. A Fill carries an Outcome side but never claims whether the User bought or sold — the Venue's canonical fields do not distinguish the two directions of the same exposure (buying Yes and selling No are economically identical). Activity reports executions as Trades rather than inferring execution from Order creation records.
 _Avoid_: Order when referring to execution, Bought/Sold as Fill attributes
 
+**Trade**:
+The executed part of one Order: its Fills aggregated, with the Order Action as its authoritative buy or sell direction. The backend takes the Action from its own Order records, never from a Venue Fill side. An Order with no Fills produces no Trade.
+_Avoid_: Fill when the direction matters, Order creation record, Transaction
+
 **Cash Out**:
-Selling an existing Position before Market resolution.
+Selling an existing Position before Market resolution by quoting and submitting an Immediate sell Order. A Cash Out may reduce the Position or close it entirely.
 _Avoid_: Sell, exit, withdraw
 
 **Claim**:
@@ -143,8 +167,8 @@ A payout or portfolio adjustment produced when a resolved Market is finalized by
 _Avoid_: Claim when no user action is required, payout without context
 
 **Activity**:
-The ordered, paginated projection of a Predict User's Fills and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records. The Portfolio screen presents it under the accepted display label "History", which remains a display label and not a domain term.
-_Avoid_: History as a domain term, Transactions, Trades
+The ordered, paginated projection of a Predict User's Trades and Settlements at one Venue. Activity is derived from executions and settlements, never from Order creation records. Funding records are not Activity. The Portfolio screen presents it under the accepted display label "History", which remains a display label and not a domain term.
+_Avoid_: History as a domain term, Transactions
 
 ### Financial Terms
 
@@ -160,6 +184,14 @@ _Avoid_: Cash out
 A short-lived, venue-produced plan prepared before a Predict User confirms a Deposit, Withdraw, or Claim. It describes either a wallet transfer or a Venue operation and carries a stable Venue Operation reference. Preparing a Funding Plan must not itself move funds.
 _Avoid_: TransactionBatch as a product term, tx builder, completed transfer
 
+**Client Operation ID**:
+A UUID v4 the app makes once per Deposit before it is signed. It is the idempotency key the device signs, so a retry with the same ID returns the Deposit it already created instead of asking the Venue for a second address.
+_Avoid_: request ID, nonce
+
+**Next Step**:
+What the app does next for a Deposit, as the backend states it: sign the request, make the wallet transfer in the Funding Plan, wait, done, or review by support. The set is closed. The app stops on a step it does not know and never runs a generic "sign these bytes" or "send this transaction" step.
+_Avoid_: action, instruction
+
 **Venue Operation**:
 A durable Venue-side operation reference for a write such as a Deposit, Withdraw, or Order. It lets the system resume observation or reconcile after app restarts and lost responses. The reference does not itself make an external Venue call idempotent; retry requires verified Venue semantics.
 _Avoid_: UI request, transient loading state
@@ -167,6 +199,10 @@ _Avoid_: UI request, transient loading state
 **Balance**:
 The Predict User's available settlement-currency amount in a Venue Account, ready for placing Orders.
 _Avoid_: Funds, wallet balance, raw token amount
+
+**Displayed Probability**:
+A Venue-provided probability or mark shown as odds for an Outcome, such as a midpoint, last trade, or Venue mark. It is distinct from the executable Ask Price and Bid Price and never substitutes for them.
+_Avoid_: Ask Price, buy quote, guaranteed execution price
 
 **Ask Price**:
 The lowest currently available per-share price to buy an Outcome, expressed in settlement currency. A missing Ask Price means no current buy quote; it does not mean zero.
@@ -272,13 +308,15 @@ _Avoid_: New Venue, backend provider, opaque proxy
 - Each Market may have one Market Group. The backend owns this metadata, and mobile does not derive it.
 - Each Position is tied to exactly one Outcome.
 - Each Order targets exactly one Outcome and may produce zero or more Fills.
+- An Order has one Action — buy or sell — chosen when its Preview is requested and bound to its Commit.
+- A sell Order may not sell more contracts than the Position it reduces; the backend validates against authoritative Venue evidence.
 - An Immediate Order does not remain open; a Resting Order may later be cancelled or amended when the Venue supports those capabilities.
 - Each submitted Order may produce one Order Receipt.
 - A Funding Plan is prepared before confirmation and references a durable Venue Operation.
 - A Deposit increases Venue Account Balance.
 - A Withdraw decreases Venue Account Balance.
 - A Settlement records winnings paid after a Market is finalized.
-- Activity contains Fills and Settlements; Order creation records never appear as Activity.
+- Activity contains Trades and Settlements; Order creation records never appear as Activity.
 - A Cash Out reduces or closes a Position; it is not a Withdraw.
 - A crypto up/down Market compares asset prices against a Reference Price.
 - A Live Update refreshes the current understanding of an existing domain object; it is not a separate Event or Order.

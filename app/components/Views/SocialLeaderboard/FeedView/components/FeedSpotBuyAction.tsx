@@ -14,11 +14,11 @@ import {
 } from '../../../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeToken } from '../../../../UI/Bridge/types';
 import {
-  QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
 } from '../../../../UI/QuickBuy';
 import { useQuickBuySetup } from '../../../../UI/QuickBuy/hooks/useQuickBuySetup';
+import { useQuickBuySheet } from '../../../../UI/QuickBuy/QuickBuySheetHost';
 import {
   TOP_TRADERS_BUY_ACTION_AB_KEY,
   TOP_TRADERS_BUY_ACTION_EXPOSURE_METADATA,
@@ -132,10 +132,11 @@ const FeedSpotBuyAction = forwardRef<
   const isFocused = useIsFocused();
   const isSurfaceActive = isFocused && isActive;
 
-  const [quickBuyTarget, setQuickBuyTarget] = useState<QuickBuyTarget | null>(
-    null,
-  );
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
+  const {
+    openQuickBuy: showQuickBuy,
+    closeQuickBuy,
+    quickBuySheet,
+  } = useQuickBuySheet();
   // When set, a keyed <SwapDestResolver> is mounted to resolve this token and
   // navigate to swaps (treatment only).
   const [swapTarget, setSwapTarget] = useState<QuickBuyTarget | null>(null);
@@ -145,10 +146,15 @@ const FeedSpotBuyAction = forwardRef<
     sourcePage: FOLLOW_TRADER_SWAPS_SOURCE_PAGE,
   });
 
-  const openQuickBuy = useCallback((target: QuickBuyTarget) => {
-    setQuickBuyTarget(target);
-    setIsQuickBuyVisible(true);
-  }, []);
+  const openQuickBuy = useCallback(
+    (target: QuickBuyTarget) =>
+      showQuickBuy({
+        target,
+        features: TOP_TRADERS_QUICK_BUY_FEATURES,
+        analyticsContext: { source: 'trader_feed' },
+      }),
+    [showQuickBuy],
+  );
 
   useImperativeHandle(
     ref,
@@ -157,23 +163,23 @@ const FeedSpotBuyAction = forwardRef<
         if (variant.openSwaps) {
           // Dismiss any QuickBuy left open by a prior fallback so it can't
           // linger behind a fresh swap resolution.
-          setIsQuickBuyVisible(false);
+          closeQuickBuy();
           setSwapTarget(nextTarget);
         } else {
           openQuickBuy(nextTarget);
         }
       },
     }),
-    [variant.openSwaps, openQuickBuy],
+    [variant.openSwaps, openQuickBuy, closeQuickBuy],
   );
 
   const handleSwapResolved = useCallback(
     (destToken: BridgeToken) => {
       setSwapTarget(null);
-      setIsQuickBuyVisible(false);
+      closeQuickBuy();
       goToSwaps(undefined, destToken, undefined, true);
     },
-    [goToSwaps],
+    [goToSwaps, closeQuickBuy],
   );
 
   // Metadata couldn't be resolved (e.g. unsupported chain / unknown token) —
@@ -190,10 +196,6 @@ const FeedSpotBuyAction = forwardRef<
     setSwapTarget(null);
   }, []);
 
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
-
   return (
     <>
       {swapTarget && (
@@ -207,13 +209,7 @@ const FeedSpotBuyAction = forwardRef<
         />
       )}
 
-      <QuickBuy.Root
-        isVisible={isQuickBuyVisible}
-        target={quickBuyTarget}
-        onClose={handleQuickBuyClose}
-        features={TOP_TRADERS_QUICK_BUY_FEATURES}
-        analyticsContext={{ source: 'trader_feed' }}
-      />
+      {quickBuySheet}
     </>
   );
 });

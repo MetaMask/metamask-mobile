@@ -8,6 +8,8 @@ import {
   MARKET_DATA_EVENT_STALE_TIME,
   MARKET_DATA_FEED_STALE_TIME,
   MARKET_DATA_MARKET_HISTORY_STALE_TIME,
+  MARKET_DATA_SEARCH_STALE_TIME,
+  MARKET_DATA_VENUE_CATALOG_STALE_TIME,
   MARKET_DATA_VENUE_STATUS_STALE_TIME,
   marketDataQueries,
 } from './marketDataQueries';
@@ -30,6 +32,18 @@ describe('market data query descriptors', () => {
     });
   });
 
+  it('qualifies Venue catalog queries by Venue with a five-minute stale time', () => {
+    const descriptor = marketDataQueries.getVenueCatalog(venueId);
+
+    expect(descriptor).toEqual({
+      queryKey: ['PredictMarketDataService:getVenueCatalog', venueId],
+      family: ['PredictMarketDataService:getVenueCatalog', venueId],
+      staleTime: MARKET_DATA_VENUE_CATALOG_STALE_TIME,
+      scope: 'venue',
+    });
+    expect(MARKET_DATA_VENUE_CATALOG_STALE_TIME).toBe(300_000);
+  });
+
   it('qualifies event list queries by venue and cursor-free parameters', () => {
     const params = { limit: 20 };
 
@@ -39,6 +53,19 @@ describe('market data query descriptors', () => {
       queryKey: ['PredictMarketDataService:getFeed', venueId, feedId, params],
       family: ['PredictMarketDataService:getFeed', venueId, feedId],
       staleTime: MARKET_DATA_FEED_STALE_TIME,
+      scope: 'venue',
+    });
+  });
+
+  it('qualifies search queries by Venue and search parameters', () => {
+    const params = { q: 'chiefs', limit: 20 };
+
+    const descriptor = marketDataQueries.searchEvents(venueId, params);
+
+    expect(descriptor).toEqual({
+      queryKey: ['PredictMarketDataService:searchEvents', venueId, params],
+      family: ['PredictMarketDataService:searchEvents', venueId],
+      staleTime: MARKET_DATA_SEARCH_STALE_TIME,
       scope: 'venue',
     });
   });

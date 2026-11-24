@@ -5,20 +5,21 @@ export const MembershipTestIds = {
   // Stats section
   STATS_SECTION: 'membership-stats-section',
   PLAN_ROW: 'membership-plan-row',
-  EARNED_ROW: 'membership-earned-row',
+  LIFETIME_EARNINGS_ROW: 'membership-lifetime-earnings-row',
   SAVED_ROW: 'membership-saved-row',
   // Payment details section
   PAYMENT_SECTION: 'membership-payment-section',
   TOTAL_ROW: 'membership-total-row',
   PAYING_WITH_ROW: 'membership-paying-with-row',
+  PAYING_WITH_MONEY_ICON: 'membership-paying-with-money-icon',
   RENEWS_ON_ROW: 'membership-renews-on-row',
   // Manage section
   MANAGE_SECTION: 'membership-manage-section',
   INVOICES_ROW: 'membership-invoices-row',
-  CONTACT_SUPPORT_ROW: 'membership-contact-support-row',
+  INVOICES_ERROR: 'membership-invoices-error',
   CANCEL_MEMBERSHIP_ROW: 'membership-cancel-membership-row',
+  CANCEL_NOT_ALLOWED: 'membership-cancel-not-allowed',
+  RESUME_MEMBERSHIP_ROW: 'membership-resume-membership-row',
+  RESUME_ERROR: 'membership-resume-error',
   // Stat info bottom sheet
-  STAT_INFO_SHEET: 'membership-stat-info-sheet',
-  STAT_INFO_SHEET_TITLE: 'membership-stat-info-sheet-title',
-  STAT_INFO_SHEET_DESCRIPTION: 'membership-stat-info-sheet-description',
 } as const;

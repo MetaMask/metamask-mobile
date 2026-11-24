@@ -1,5 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import { DEFAULT_FILTERS, DEFAULT_TAB_FILTER_STATE } from './filterDefaults';
+import {
+  DEFAULT_FILTERS,
+  DEFAULT_LEADERBOARD_FILTERS,
+  DEFAULT_TAB_FILTER_STATE,
+} from './filterDefaults';
 import { resolveNetworkForType } from './networkOptions';
 import { mapFiltersToApiParams } from './mapFiltersToApiParams';
 import type { SocialFilterApiParams, SocialShellFilters } from './types';
@@ -11,15 +15,37 @@ const cloneFilters = (filters: SocialShellFilters): SocialShellFilters => ({
   volume24h: { ...filters.volume24h },
 });
 
-const filtersEqual = (a: SocialShellFilters, b: SocialShellFilters): boolean =>
-  a.type === b.type &&
-  a.traderCohort === b.traderCohort &&
-  a.timeframe === b.timeframe &&
-  a.network === b.network &&
-  a.marketCap.min === b.marketCap.min &&
-  a.marketCap.max === b.marketCap.max &&
-  a.volume24h.min === b.volume24h.min &&
-  a.volume24h.max === b.volume24h.max;
+const getDefaultFilters = (tab: SocialShellTab): SocialShellFilters =>
+  tab === 'leaderboard' ? DEFAULT_LEADERBOARD_FILTERS : DEFAULT_FILTERS;
+
+/**
+ * Compares only the fields a tab can edit, so the leaderboard's chip-owned
+ * asset type and leftover hidden values do not light the filter icon.
+ */
+const tabFiltersEqual = (
+  tab: SocialShellTab,
+  a: SocialShellFilters,
+  b: SocialShellFilters,
+): boolean => {
+  const cohortA = a.traderCohort === 'verified' ? 'all' : a.traderCohort;
+  const cohortB = b.traderCohort === 'verified' ? 'all' : b.traderCohort;
+  if (tab !== 'leaderboard' && a.type !== b.type) {
+    return false;
+  }
+  // Leaderboard has no Positions section. The other tabs do.
+  if (tab !== 'leaderboard' && a.positionStatus !== b.positionStatus) {
+    return false;
+  }
+  if (tab === 'leaderboard') {
+    if (cohortA !== cohortB) {
+      return false;
+    }
+    return a.timeframe === b.timeframe;
+  }
+  // Market cap, trader cohort, verification, and 24h volume are hidden on
+  // these tabs, so leftover values must not light the filter icon.
+  return true;
+};
 
 export interface UseSocialShellFiltersResult {
   /** The tab whose sheet is currently open, or `null` when closed. */
@@ -39,20 +65,20 @@ export interface UseSocialShellFiltersResult {
   updateDraft: (patch: Partial<SocialShellFilters>) => void;
   /** Applies the draft to the open tab and closes the sheet. */
   applyFilters: () => void;
-  /** Resets the open tab's draft back to its applied state. */
-  resetDraft: () => void;
+  /** Resets sheet-owned fields to defaults. Apply still required to commit. */
+  resetDraftToDefaults: () => void;
+  /** Clears a tab's applied filters. The leaderboard type chip is kept. */
+  clearAppliedFilters: (tab: SocialShellTab) => void;
+  /** Updates the leaderboard asset type owned by the chip outside the sheet. */
+  setLeaderboardType: (type: SocialShellFilters['type']) => void;
 }
 
 /**
  * Per-tab filter state for the Social Bundle V1 unified Filters sheet.
  *
  * Each tab keeps its own `applied` + `draft` pair. Opening the sheet copies
- * `applied → draft`; closing without applying discards the draft. "Show
- * results" commits the draft to `applied` and closes the sheet.
- *
- * The hook is deliberately decoupled from any fetch layer — `getApiParams`
- * exposes API-ready params via `mapFiltersToApiParams` so the V1 lists can
- * consume them once they ship.
+ * `applied → draft`; closing without applying discards the draft. Apply
+ * commits the draft to `applied` and closes the sheet.
  */
 export function useSocialShellFilters(): UseSocialShellFiltersResult {
   const [applied, setApplied] = useState<
@@ -60,7 +86,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   >(() => ({
     trending: cloneFilters(DEFAULT_TAB_FILTER_STATE.trending),
     following: cloneFilters(DEFAULT_TAB_FILTER_STATE.following),
-    liveTrades: cloneFilters(DEFAULT_TAB_FILTER_STATE.liveTrades),
+    live: cloneFilters(DEFAULT_TAB_FILTER_STATE.live),
     leaderboard: cloneFilters(DEFAULT_TAB_FILTER_STATE.leaderboard),
   }));
   const [openTab, setOpenTab] = useState<SocialShellTab | null>(null);
@@ -83,11 +109,6 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   const updateDraft = useCallback((patch: Partial<SocialShellFilters>) => {
     setDraft((prev) => {
       const next: SocialShellFilters = { ...prev, ...patch };
-      // Keep network valid for the new type. The sheet calls `updateDraft`
-      // with `{ type }` when the user taps a Type chip; we reconcile the
-      // network here so the rest of the sheet never has to. When the patch
-      // also includes a `network`, validate that against the new type
-      // instead of the previous network.
       if (patch.type && patch.type !== prev.type) {
         const candidateNetwork = patch.network ?? prev.network;
         next.network = resolveNetworkForType(next.type, candidateNetwork);
@@ -96,12 +117,39 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     });
   }, []);
 
-  const resetDraft = useCallback(() => {
+  const resetDraftToDefaults = useCallback(() => {
     if (!openTab) {
       return;
     }
-    setDraft(cloneFilters(applied[openTab]));
-  }, [applied, openTab]);
+    const resetFilters = cloneFilters(getDefaultFilters(openTab));
+    if (openTab === 'leaderboard') {
+      resetFilters.type = draft.type;
+    }
+    setDraft(resetFilters);
+  }, [draft.type, openTab]);
+
+  const setLeaderboardType = useCallback((type: SocialShellFilters['type']) => {
+    setApplied((prev) => ({
+      ...prev,
+      leaderboard: {
+        ...prev.leaderboard,
+        type,
+      },
+    }));
+  }, []);
+
+  const clearAppliedFilters = useCallback((tab: SocialShellTab) => {
+    setApplied((prev) => {
+      const resetFilters = cloneFilters(getDefaultFilters(tab));
+      if (tab === 'leaderboard') {
+        resetFilters.type = prev.leaderboard.type;
+      }
+      return {
+        ...prev,
+        [tab]: resetFilters,
+      };
+    });
+  }, []);
 
   const applyFilters = useCallback(() => {
     if (!openTab) {
@@ -115,7 +163,8 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   }, [draft, openTab]);
 
   const hasActiveFilters = useCallback(
-    (tab: SocialShellTab) => !filtersEqual(applied[tab], DEFAULT_FILTERS),
+    (tab: SocialShellTab) =>
+      !tabFiltersEqual(tab, applied[tab], getDefaultFilters(tab)),
     [applied],
   );
 
@@ -125,7 +174,8 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   );
 
   const hasDraftChanges = useMemo(
-    () => (openTab ? !filtersEqual(draft, applied[openTab]) : false),
+    () =>
+      openTab ? !tabFiltersEqual(openTab, draft, applied[openTab]) : false,
     [draft, applied, openTab],
   );
 
@@ -140,6 +190,8 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     closeSheet,
     updateDraft,
     applyFilters,
-    resetDraft,
+    resetDraftToDefaults,
+    clearAppliedFilters,
+    setLeaderboardType,
   };
 }

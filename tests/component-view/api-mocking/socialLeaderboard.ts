@@ -8,6 +8,13 @@
  * Uses the same spy/restore pattern as api-mocking/watchlist.ts.
  */
 
+import type {
+  FeedItem as CoreFeedItem,
+  Position as SocialPosition,
+  SwapCommentResponse,
+  FollowingResponse,
+  TraderProfileResponse,
+} from '@metamask/social-controllers';
 import Engine from '../../../app/core/Engine';
 import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 
@@ -149,9 +156,50 @@ export interface LeaderboardApiMockOptions {
   allTraders?: MockLeaderboardEntry[];
   /** Override notification preferences returned by the AUS GET action. */
   notificationPrefs?: NotificationPrefsOptions;
+  /** Items returned by `SocialService:fetchFeed`. Default: none. */
+  feedItems?: CoreFeedItem[];
+  /** Items returned by `SocialService:fetchTokenFeed` (token and perp-market feeds). Default: none. */
+  tokenFeedItems?: CoreFeedItem[];
+  /**
+   * Number of `SocialService:fetchLeaderboard` calls that reject with
+   * `LEADERBOARD_FETCH_ERROR_MESSAGE` before the fixture traders are served.
+   * Default: 0 (every fetch succeeds).
+   */
+  leaderboardFailuresBeforeSuccess?: number;
+  /**
+   * Number of `SocialService:fetchFeed` calls that reject with
+   * `FEED_FETCH_ERROR_MESSAGE` before `feedItems` is served.
+   * Default: 0 (every fetch succeeds).
+   */
+  feedFailuresBeforeSuccess?: number;
+  /**
+   * Number of `SocialService:fetchFollowing` calls that reject with
+   * `FOLLOWING_FETCH_ERROR_MESSAGE` before `following` is served.
+   * Default: 0 (every fetch succeeds).
+   */
+  followingFailuresBeforeSuccess?: number;
+  /**
+   * Number of `SocialService:fetchTraderProfile` calls that reject with
+   * `TRADER_PROFILE_FETCH_ERROR_MESSAGE` before `traderProfile` is served.
+   * Default: 0 (every fetch succeeds).
+   */
+  traderProfileFailuresBeforeSuccess?: number;
+  openPositions?: SocialPosition[];
+  /** Profiles returned by `fetchFollowing`. Omit to leave unintercepted. */
+  following?: FollowingResponse['following'];
+  /** Response from `fetchTraderProfile`; null means no trader data. */
+  traderProfile?: TraderProfileResponse | null;
+  /** Items returned by `fetchTraderFeed`. Omit to leave unintercepted. */
+  traderFeedItems?: CoreFeedItem[];
+  swapComment?: SwapCommentResponse;
 }
 
 const PERP_CHAIN = 'hyperliquid';
+
+export const LEADERBOARD_FETCH_ERROR_MESSAGE = 'Leaderboard unavailable';
+export const FEED_FETCH_ERROR_MESSAGE = 'Feed unavailable';
+export const FOLLOWING_FETCH_ERROR_MESSAGE = 'Following unavailable';
+export const TRADER_PROFILE_FETCH_ERROR_MESSAGE = 'Trader profile unavailable';
 
 /**
  * Spies on Engine.controllerMessenger.call to intercept Social Leaderboard
@@ -168,9 +216,24 @@ export function setupLeaderboardApiMock(
     perpsTraders = mockPerpsTraders,
     allTraders = mockLeaderboardTraders,
     notificationPrefs = {},
+    feedItems = [],
+    tokenFeedItems = [],
+    leaderboardFailuresBeforeSuccess = 0,
+    feedFailuresBeforeSuccess = 0,
+    followingFailuresBeforeSuccess = 0,
+    traderProfileFailuresBeforeSuccess = 0,
+    openPositions,
+    following,
+    traderProfile,
+    traderFeedItems,
+    swapComment,
   } = options;
 
-  const prefsResponse = buildNotificationPrefsResponse(notificationPrefs);
+  let prefsResponse = buildNotificationPrefsResponse(notificationPrefs);
+  let remainingLeaderboardFailures = leaderboardFailuresBeforeSuccess;
+  let remainingFeedFailures = feedFailuresBeforeSuccess;
+  let remainingFollowingFailures = followingFailuresBeforeSuccess;
+  let remainingTraderProfileFailures = traderProfileFailuresBeforeSuccess;
 
   const originalCall = Engine.controllerMessenger.call.bind(
     Engine.controllerMessenger,
@@ -178,8 +241,14 @@ export function setupLeaderboardApiMock(
 
   clearLeaderboardApiMock();
 
+  // The CV Engine mock's `controllerMessenger.call` is already a `jest.fn`, so
+  // `spyOn` returns that shared mock rather than a fresh spy. A previous
+  // test's tree can still call it after that test's `mockRestore` (for example
+  // an idle tab prefetch firing before unmount), so drop that history here or
+  // call assertions in this test read the other test's requests.
   messengerSpy = jest
     .spyOn(Engine.controllerMessenger, 'call')
+    .mockClear()
     .mockImplementation((...messengerArgs: [string, ...unknown[]]) => {
       const [action, fetchOpts] = messengerArgs as [
         string,
@@ -187,7 +256,87 @@ export function setupLeaderboardApiMock(
         ...unknown[],
       ];
 
+      if (action === 'SocialService:fetchFollowing') {
+        if (remainingFollowingFailures > 0) {
+          remainingFollowingFailures -= 1;
+          return Promise.reject(
+            new Error(FOLLOWING_FETCH_ERROR_MESSAGE),
+          ) as ReturnType<typeof Engine.controllerMessenger.call>;
+        }
+        if (following !== undefined) {
+          return Promise.resolve({ following }) as ReturnType<
+            typeof Engine.controllerMessenger.call
+          >;
+        }
+      }
+      if (action === 'SocialService:fetchTraderProfile') {
+        if (remainingTraderProfileFailures > 0) {
+          remainingTraderProfileFailures -= 1;
+          return Promise.reject(
+            new Error(TRADER_PROFILE_FETCH_ERROR_MESSAGE),
+          ) as ReturnType<typeof Engine.controllerMessenger.call>;
+        }
+        if (traderProfile !== undefined) {
+          return Promise.resolve(traderProfile) as ReturnType<
+            typeof Engine.controllerMessenger.call
+          >;
+        }
+      }
+      if (
+        traderFeedItems !== undefined &&
+        action === 'SocialService:fetchTraderFeed'
+      ) {
+        return Promise.resolve({ items: traderFeedItems }) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+
+      if (action === 'SocialService:fetchFeed') {
+        if (remainingFeedFailures > 0) {
+          remainingFeedFailures -= 1;
+          return Promise.reject(
+            new Error(FEED_FETCH_ERROR_MESSAGE),
+          ) as ReturnType<typeof Engine.controllerMessenger.call>;
+        }
+        return Promise.resolve({
+          items: feedItems,
+        }) as ReturnType<typeof Engine.controllerMessenger.call>;
+      }
+
+      if (action === 'SocialService:fetchTokenFeed') {
+        return Promise.resolve({
+          items: tokenFeedItems,
+        }) as ReturnType<typeof Engine.controllerMessenger.call>;
+      }
+
+      if (
+        openPositions !== undefined &&
+        (action === 'SocialService:fetchOpenPositions' ||
+          action === 'SocialService:fetchClosedPositions')
+      ) {
+        return Promise.resolve({
+          positions:
+            action === 'SocialService:fetchOpenPositions' ? openPositions : [],
+          pagination: { hasMore: false },
+        }) as ReturnType<typeof Engine.controllerMessenger.call>;
+      }
+
+      if (
+        swapComment !== undefined &&
+        action === 'SocialService:createSwapComment'
+      ) {
+        return Promise.resolve(swapComment) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+
       if (action === 'SocialService:fetchLeaderboard') {
+        if (remainingLeaderboardFailures > 0) {
+          remainingLeaderboardFailures -= 1;
+          return Promise.reject(
+            new Error(LEADERBOARD_FETCH_ERROR_MESSAGE),
+          ) as ReturnType<typeof Engine.controllerMessenger.call>;
+        }
         const chains = fetchOpts?.chains ?? [];
         const isPerpsOnly = chains.length === 1 && chains[0] === PERP_CHAIN;
         const isMixedWithPerps =
@@ -211,6 +360,29 @@ export function setupLeaderboardApiMock(
         action === 'AuthenticatedUserStorageService:getNotificationPreferences'
       ) {
         return Promise.resolve(prefsResponse) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+
+      if (
+        action === 'AuthenticatedUserStorageService:putNotificationPreferences'
+      ) {
+        const nextPreferences = messengerArgs[1];
+        if (nextPreferences && typeof nextPreferences === 'object') {
+          prefsResponse = nextPreferences as typeof prefsResponse;
+        }
+        return Promise.resolve(prefsResponse) as ReturnType<
+          typeof Engine.controllerMessenger.call
+        >;
+      }
+
+      // Resolve follow writes here. Falling through re-enters this spy and
+      // overflows, which the UI treats as a failed follow and rolls back.
+      if (
+        action === 'SocialController:followTrader' ||
+        action === 'SocialController:unfollowTrader'
+      ) {
+        return Promise.resolve(undefined) as ReturnType<
           typeof Engine.controllerMessenger.call
         >;
       }

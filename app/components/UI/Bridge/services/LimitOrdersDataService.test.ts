@@ -5,11 +5,15 @@ import {
 } from '@metamask/messenger';
 import { getLimitOrders } from '../api/limitOrders/getLimitOrders';
 import {
+  MOCK_LIMIT_CANCELLED_ORDER,
   MOCK_LIMIT_FILLED_ORDER,
   MOCK_LIMIT_OPEN_ORDER,
 } from '../api/limitOrders/getLimitOrders/mock';
-import { LimitOrderStatus } from '../api/limitOrders/getLimitOrders/types';
-import type { LimitOrdersQueryParams } from '../queries/limitOrders';
+import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
+import {
+  limitOrdersQueries,
+  type LimitOrdersQueryParams,
+} from '../queries/limitOrders';
 import {
   LimitOrdersDataService,
   type LimitOrdersDataServiceActions,
@@ -24,7 +28,7 @@ jest.mock('../api/limitOrders/getLimitOrders', () => ({
 const mockGetLimitOrders = jest.mocked(getLimitOrders);
 const PARAMS: LimitOrdersQueryParams = {
   walletAddress: '0x1234567890123456789012345678901234567890',
-  status: [LimitOrderStatus.Open],
+  states: [LimitOrderState.Open],
   chainId: 'eip155:1',
   limit: 20,
 };
@@ -80,7 +84,10 @@ describe('LimitOrdersDataService', () => {
   }
 
   it('forwards query parameters to the limit-orders transport', async () => {
-    mockGetLimitOrders.mockResolvedValue({ orders: [MOCK_LIMIT_OPEN_ORDER] });
+    mockGetLimitOrders.mockResolvedValue({
+      orders: [MOCK_LIMIT_OPEN_ORDER],
+      total: 1,
+    });
     const service = buildService();
 
     const result = await service.getLimitOrders(PARAMS);
@@ -97,9 +104,11 @@ describe('LimitOrdersDataService', () => {
       .mockResolvedValueOnce({
         orders: [MOCK_LIMIT_OPEN_ORDER],
         nextCursor: 'next-page',
+        total: 2,
       })
       .mockResolvedValueOnce({
         orders: [MOCK_LIMIT_FILLED_ORDER],
+        total: 2,
       });
     const service = buildService();
 
@@ -120,11 +129,70 @@ describe('LimitOrdersDataService', () => {
     expect(secondPage.orders).toStrictEqual([MOCK_LIMIT_FILLED_ORDER]);
   });
 
+  // A list shown again, on a tab switch or a refetch, must reflect the orders
+  // as they are now rather than as they were when last fetched.
+  it('fetches the open orders and the history from the API on every request', async () => {
+    const historyParams: LimitOrdersQueryParams = {
+      ...PARAMS,
+      states: [LimitOrderState.Filled, LimitOrderState.Cancelled],
+    };
+    mockGetLimitOrders.mockImplementation(async ({ states }) => ({
+      orders: states?.includes(LimitOrderState.Open)
+        ? [MOCK_LIMIT_OPEN_ORDER]
+        : [],
+      total: states?.includes(LimitOrderState.Open) ? 1 : 0,
+    }));
+    // Freshness is measured against the clock, which the test setup stubs and
+    // `resetAllMocks` leaves returning nothing.
+    jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
+    const service = buildService();
+
+    await service.getLimitOrders(PARAMS);
+    await service.getLimitOrders(historyParams);
+    expect(mockGetLimitOrders).toHaveBeenCalledTimes(2);
+
+    // The order is cancelled server side: it leaves the open orders for the
+    // history.
+    mockGetLimitOrders.mockImplementation(async ({ states }) => ({
+      orders: states?.includes(LimitOrderState.Cancelled)
+        ? [MOCK_LIMIT_CANCELLED_ORDER]
+        : [],
+      total: states?.includes(LimitOrderState.Cancelled) ? 1 : 0,
+    }));
+
+    expect((await service.getLimitOrders(PARAMS)).orders).toStrictEqual([]);
+    expect((await service.getLimitOrders(historyParams)).orders).toStrictEqual([
+      MOCK_LIMIT_CANCELLED_ORDER,
+    ]);
+    expect(mockGetLimitOrders).toHaveBeenCalledTimes(4);
+  });
+
+  it('fetches the open orders and the history again once every limit orders query is invalidated', async () => {
+    const historyParams: LimitOrdersQueryParams = {
+      ...PARAMS,
+      states: [LimitOrderState.Filled, LimitOrderState.Cancelled],
+    };
+    mockGetLimitOrders.mockResolvedValue({ orders: [], total: 0 });
+    const { messenger } = createMessenger();
+    const service = buildService(messenger);
+    await service.getLimitOrders(PARAMS);
+    await service.getLimitOrders(historyParams);
+
+    await messenger.call('LimitOrdersDataService:invalidateQueries', {
+      queryKey: limitOrdersQueries.allOrdersKey(),
+    });
+    await service.getLimitOrders(PARAMS);
+    await service.getLimitOrders(historyParams);
+
+    expect(mockGetLimitOrders).toHaveBeenCalledTimes(4);
+  });
+
   it('persists a successful fetch to StorageService so it survives a restart', async () => {
     jest.useFakeTimers();
     try {
       mockGetLimitOrders.mockResolvedValue({
         orders: [MOCK_LIMIT_OPEN_ORDER],
+        total: 1,
       });
       const { messenger, setItem } = createMessenger();
       const service = buildService(messenger);

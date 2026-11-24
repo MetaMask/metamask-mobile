@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
@@ -13,7 +14,9 @@ import {
   FontWeight,
   BannerAlert,
   BannerAlertSeverity,
+  Checkbox,
 } from '@metamask/design-system-react-native';
+import { isProduction } from '../../../../../util/environment';
 import {
   BENEFITS,
   BENEFIT_DETAILS,
@@ -29,29 +32,104 @@ import PlanSelectorCard from './components/PlanSelectorCard';
 import PlanSelectorCardSkeleton from './components/PlanSelectorCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlusTrialEligibility';
 import {
   getBenefitsPriceLine,
   getPlanSelectorCardCopy,
   resolveSelectedPlanId,
 } from './utils/getMoneyAccountPlusPricingCopy';
-import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
 import {
   getSelectedPlusPlan,
   type SelectedPlusPlan,
 } from './utils/getSelectedPlusPlan';
+import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { isSubscriptionAlreadyStartingError } from '../../hooks/isSubscriptionAlreadyStartingError';
+import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
+import {
+  PLUS_PRICING_STATUS,
+  type PlusPricingStatus,
+} from './utils/mapMoneyAccountPlusPricing';
 
 interface BenefitsProps {
   onSuccess: (plan: SelectedPlusPlan) => void;
+  /** On-ramp or bridge funding is still in flight. Caller opens Pro Hub. */
+  onProcessing: () => void;
+  onCheckoutStart: () => void;
+  onCheckoutError: () => void;
   onPlanChange?: (planId: PlanId) => void;
   initialPlan?: PlanId;
 }
 
-const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
+/**
+ * Plan cards stay hidden while prices load, and while the trial check is
+ * still running. A pricing error, or a price list that cannot be shown,
+ * does not wait on the trial check.
+ *
+ * @param isPricingLoading - True while subscription prices are loading.
+ * @param isTrialEligibilityLoading - True while the trial check is loading.
+ * @param hasError - True when prices failed to load.
+ * @param pricingStatus - Resolved price-list status.
+ * @returns Whether the plan cards and trial copy should stay hidden.
+ */
+function isBenefitsPlanListLoading(
+  isPricingLoading: boolean,
+  isTrialEligibilityLoading: boolean,
+  hasError: boolean,
+  pricingStatus: PlusPricingStatus,
+): boolean {
+  if (isPricingLoading) {
+    return true;
+  }
+  if (
+    hasError ||
+    pricingStatus === PLUS_PRICING_STATUS.unavailable ||
+    pricingStatus === PLUS_PRICING_STATUS.malformed
+  ) {
+    return false;
+  }
+  return isTrialEligibilityLoading;
+}
+
+/**
+ * Button label for the one loaded answer. Loading copy is shown until the
+ * trial check finishes, then the label is trial or paid.
+ *
+ * @param isPlansLoading - True while plan cards are still hidden.
+ * @param selectedPlanOffersTrial - True when the selected plan includes a trial.
+ * @returns The localized call-to-action label.
+ */
+function getBenefitsCtaLabel(
+  isPlansLoading: boolean,
+  selectedPlanOffersTrial: boolean,
+): string {
+  if (isPlansLoading) {
+    return strings('pro_subscription.pricing.loading');
+  }
+  if (selectedPlanOffersTrial) {
+    return strings('pro_subscription.start_free_trial');
+  }
+  return strings('pro_subscription.join_orange');
+}
+
+const Benefits = ({
+  onSuccess,
+  onProcessing,
+  onCheckoutStart,
+  onCheckoutError,
+  onPlanChange,
+  initialPlan,
+}: BenefitsProps) => {
+  const tw = useTailwind();
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
+  const { isEligibleForTrial, isLoading: isTrialEligibilityLoading } =
+    useMoneyAccountPlusTrialEligibility();
+  const { startSubscription, isSubmitting, errorMessage } =
+    useStartProSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string>(
     initialPlan ?? DEFAULT_PLAN,
   );
 
+  const [enableTestClocks, setEnableTestClocks] = useState(false);
   const [isBenefitDetailSheetOpen, setIsBenefitDetailSheetOpen] =
     useState(false);
   const [selectedBenfitDetail, setSelectedBenfitDetail] =
@@ -64,18 +142,32 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
   const visiblePlans = useMemo(
     () =>
       PLANS.flatMap((plan) => {
-        const copy = getPlanSelectorCardCopy(plan.id, plusPricing);
+        const copy = getPlanSelectorCardCopy(
+          plan.id,
+          plusPricing,
+          isEligibleForTrial,
+        );
         if (copy === undefined) {
           return [];
         }
         return [{ plan, copy }];
       }),
-    [plusPricing],
+    [plusPricing, isEligibleForTrial],
   );
 
+  const selectedPlanOffersTrial = visiblePlans.some(
+    ({ plan, copy }) => plan.id === resolvedPlan && Boolean(copy.trialLabel),
+  );
+
+  const isPlansLoading = isBenefitsPlanListLoading(
+    isLoading,
+    isTrialEligibilityLoading,
+    hasError,
+    plusPricing.status,
+  );
   const canSelectPlans =
-    !isLoading && !hasError && isPricingReady && visiblePlans.length > 0;
-  const isCtaDisabled = !canSelectPlans;
+    !isPlansLoading && !hasError && isPricingReady && visiblePlans.length > 0;
+  const isCtaDisabled = !canSelectPlans || isSubmitting;
 
   const handleBenefitPress = useCallback((id: string) => {
     setIsBenefitDetailSheetOpen(true);
@@ -88,7 +180,7 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
     setIsBenefitDetailSheetOpen(false);
   }, []);
 
-  const handleCtaPress = useCallback(() => {
+  const handleCtaPress = useCallback(async () => {
     if (isCtaDisabled) {
       return;
     }
@@ -98,8 +190,39 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
       return;
     }
 
-    onSuccess(checkoutPlan);
-  }, [isCtaDisabled, onSuccess, plusPricing, resolvedPlan]);
+    onCheckoutStart();
+
+    try {
+      const { outcome } = await startSubscription(checkoutPlan, {
+        isTrial: selectedPlanOffersTrial,
+        enableTestClocks,
+      });
+      if (outcome === StartProSubscriptionOutcome.Processing) {
+        onProcessing();
+        return;
+      }
+      onSuccess(checkoutPlan);
+    } catch (error) {
+      // A second tap rejects while the first checkout is still running.
+      // Treating that as a failure clears checkout and skips Success.
+      if (isSubscriptionAlreadyStartingError(error)) {
+        return;
+      }
+      // The hook logs the failure and exposes localized error state.
+      onCheckoutError();
+    }
+  }, [
+    isCtaDisabled,
+    onCheckoutError,
+    onCheckoutStart,
+    onProcessing,
+    onSuccess,
+    enableTestClocks,
+    plusPricing,
+    resolvedPlan,
+    selectedPlanOffersTrial,
+    startSubscription,
+  ]);
 
   const handlePlanPress = useCallback(
     (planId: PlanId) => {
@@ -114,36 +237,41 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
       twClassName="flex-1 bg-background-default"
       testID={BenefitsTestIds.CONTAINER}
     >
-      {/* Header */}
-      <Box twClassName="px-4 py-2">
-        <Text
-          variant={TextVariant.HeadingLg}
-          twClassName="mb-2"
-          testID={BenefitsTestIds.TITLE}
-        >
-          {strings('pro_subscription.title')}
-        </Text>
-        {priceLine ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2 flex-wrap"
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        style={tw.style('flex-1')}
+        contentContainerStyle={tw.style('w-full')}
+      >
+        {/* Header */}
+        <Box twClassName="w-full px-4 py-2">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="mb-2 w-full"
+            testID={BenefitsTestIds.TITLE}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextAlternative}
-              testID={BenefitsTestIds.PRICE_LINE}
+            {strings('pro_subscription.title')}
+          </Text>
+          {priceLine ? (
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full gap-2 flex-wrap"
             >
-              {priceLine}
-            </Text>
-          </Box>
-        ) : null}
-      </Box>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextAlternative}
+                twClassName="w-full"
+                testID={BenefitsTestIds.PRICE_LINE}
+              >
+                {priceLine}
+              </Text>
+            </Box>
+          ) : null}
+        </Box>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Benefits list */}
-        <Box twClassName="px-4 pb-2">
+        <Box twClassName="w-full px-4 pb-2">
           {BENEFITS.map((item) => (
             <BenefitRow
               key={item.id}
@@ -155,9 +283,8 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
         </Box>
       </ScrollView>
 
-      {/* Plan selector */}
       <Box twClassName="flex flex-col gap-y-4 px-4 pt-3 pb-2 border-t border-border-muted">
-        {isLoading ? (
+        {isPlansLoading ? (
           <Box
             twClassName="flex flex-col gap-y-4"
             testID={BenefitsTestIds.PRICING_LOADING}
@@ -243,10 +370,30 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
                 plan={plan}
                 copy={copy}
                 isSelected={resolvedPlan === plan.id}
+                isDisabled={isSubmitting}
                 onPress={handlePlanPress}
               />
             ))
           : null}
+
+        {!isProduction() ? (
+          <Checkbox
+            label={strings('pro_subscription.enable_stripe_test_clocks')}
+            labelProps={{ style: tw.style('flex-1') }}
+            isSelected={enableTestClocks}
+            onChange={setEnableTestClocks}
+            testID={BenefitsTestIds.TEST_CLOCKS_CHECKBOX}
+            twClassName="items-start"
+          />
+        ) : null}
+
+        {errorMessage ? (
+          <BannerAlert
+            severity={BannerAlertSeverity.Danger}
+            description={errorMessage}
+            testID={BenefitsTestIds.JOIN_ERROR}
+          />
+        ) : null}
 
         <Button
           variant={ButtonVariant.Primary}
@@ -254,10 +401,22 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           onPress={handleCtaPress}
           testID={BenefitsTestIds.CTA_BUTTON}
           isDisabled={isCtaDisabled}
+          isLoading={isSubmitting}
           isFullWidth
         >
-          {strings('pro_subscription.join_pro')}
+          {getBenefitsCtaLabel(isPlansLoading, selectedPlanOffersTrial)}
         </Button>
+        {!isPlansLoading && selectedPlanOffersTrial ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={BenefitsTestIds.FREE_TRIAL_DESCRIPTION}
+          >
+            {strings('pro_subscription.free_trial_description')}
+          </Text>
+        ) : null}
       </Box>
 
       {isBenefitDetailSheetOpen && selectedBenfitDetail && (

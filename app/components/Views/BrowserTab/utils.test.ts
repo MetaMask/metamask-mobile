@@ -3,6 +3,7 @@ import {
   isENSUrl,
   getMaskedUrl,
   isDisallowedExplicitPort,
+  isHttpPageUrl,
   resolveCommittedDocumentUrl,
 } from './utils';
 import URLParse from 'url-parse';
@@ -101,6 +102,23 @@ describe('BrowserTab utils', () => {
       const result = resolveCommittedDocumentUrl(nativeUrl, pageReportedUrl);
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe('isHttpPageUrl', () => {
+    const testCases = [
+      { url: 'https://example.com/page', expected: true },
+      { url: 'http://localhost:8085/?contract=0x1', expected: true },
+      { url: 'http://127.0.0.1:8085', expected: true },
+      { url: 'about:blank', expected: false },
+      { url: 'file:///android_asset/index.html', expected: false },
+      { url: '', expected: false },
+    ];
+
+    testCases.forEach(({ url, expected }) => {
+      it(`returns ${expected} for ${url || 'empty string'}`, () => {
+        expect(isHttpPageUrl(url)).toBe(expected);
+      });
     });
   });
 

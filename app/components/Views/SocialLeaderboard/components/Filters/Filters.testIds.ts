@@ -32,6 +32,12 @@ export const RankingFilterSelectorsIDs = {
   BACKDROP: 'ranking-filter-backdrop',
 } as const;
 
+export const FeedSortFilterSelectorsIDs = {
+  SELECTOR: 'feed-sort-filter-selector',
+  SHEET: 'feed-sort-filter-sheet',
+  BACKDROP: 'feed-sort-filter-backdrop',
+} as const;
+
 export const getTypeFilterOptionTestId = (type: string) =>
   `type-filter-option-${type}`;
 
@@ -46,3 +52,6 @@ export const getCohortFilterOptionTestId = (cohort: string) =>
 
 export const getRankingFilterOptionTestId = (ranking: string) =>
   `ranking-filter-option-${ranking}`;
+
+export const getFeedSortFilterOptionTestId = (sort: string) =>
+  `feed-sort-filter-option-${sort}`;

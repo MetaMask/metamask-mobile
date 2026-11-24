@@ -38,7 +38,7 @@ on:
         type: string
       build_name:
         description: >-
-          builds.yml build name (artifact names, env, secrets and signing come from it).
+          builds.yml build name (artifact names, env and signing come from it).
           Must be a build whose github_environment is `build-rc`, since a job environment
           cannot be resolved from a step output.
         required: false
@@ -87,7 +87,7 @@ jobs:
       ${{
         ((inputs.platform == 'ios' && vars.NAMESPACE_RUNNER_IOS || vars.NAMESPACE_RUNNER_ANDROID) ||
          vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
-        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build' || 'namespace-profile-metamask-android-build') ||
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-build-tahoe-slim' || 'namespace-profile-metamask-android-build') ||
         (inputs.platform == 'ios' && 'ghcr.io/cirruslabs/macos-runner:tahoe-xl' || 'ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg')
       }}
     # github_environment of main-rc in builds.yml; see the build_name input.
@@ -263,7 +263,6 @@ jobs:
           const build = config.builds[process.env.BUILD_NAME];
           if (!build) { throw new Error('Unknown build name: ' + process.env.BUILD_NAME); }
           const signing = build.signing || {};
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'secrets_json=' + JSON.stringify(build.secrets || {}) + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_role=' + (signing.aws_role || '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing.aws_secret || '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing.android_keystore_path || '') + '\n');
@@ -273,26 +272,15 @@ jobs:
       # code-signing certificate from it, and repack regenerates EXConstants.bundle/app.config
       # and Expo.plist from the Expo config.
       - name: Apply build config
+        env:
+          BUILD_NAME: ${{ inputs.build_name }}
         run: |
-          eval "$(node scripts/apply-build-config.js ${{ inputs.build_name }} --export)"
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --export-github-env >> "$GITHUB_ENV"
-          node scripts/apply-build-config.js ${{ inputs.build_name }} --write-build-env || true
-
-      - name: Validate secrets
-        env:
-          CONFIG_SECRETS: ${{ steps.config.outputs.secrets_json }}
-          SECRETS_JSON: ${{ toJSON(secrets) }}
-        run: node scripts/validate-secrets-from-config.js
-
-      # Writes GITHUB_ENV, so the values land in the Repack step below (a later step),
-      # exactly as build.yml feeds them to build.sh.
-      - name: Set secrets
-        env:
-          CONFIG_SECRETS: ${{ steps.config.outputs.secrets_json }}
-          ALL_SECRETS: ${{ toJSON(secrets) }}
-        run: node scripts/set-secrets-from-config.js
+          eval "$(node scripts/apply-build-config.js "${BUILD_NAME}" --export)"
+          node scripts/apply-build-config.js "${BUILD_NAME}" --export-github-env >> "$GITHUB_ENV"
+          node scripts/apply-build-config.js "${BUILD_NAME}" --write-build-env || true
 
       - name: Configure signing certificates
+        id: signing
         uses: ./.github/actions/configure-signing
         with:
           aws-role-to-assume: ${{ steps.config.outputs.signing_aws_role }}
@@ -325,18 +313,100 @@ jobs:
             echo "RESIGN_KEYCHAIN_PATH=$KEYCHAIN"
           } >> "$GITHUB_ENV"
 
-      - name: Repack iOS IPA
-        if: inputs.platform == 'ios'
+      # One step for both platforms, so the app secrets are mapped in a single place.
+      - name: Repack ${{ inputs.platform }}
         timeout-minutes: 40
         env:
           CI: 'true'
           GITHUB_CI: 'true'
           NODE_OPTIONS: '--max-old-space-size=8192'
           METRO_MAX_WORKERS: '6'
-          REPACK_SOURCE_IPA: ${{ steps.donor.outputs.path }}
-          REPACK_OUTPUT_IPA: ${{ steps.donor.outputs.output }}
-          REPACK_SOURCEMAP_PATH: sourcemaps/ios/index.js.map
-        run: yarn build:repack:ios
+          PLATFORM: ${{ inputs.platform }}
+          DONOR_PATH: ${{ steps.donor.outputs.path }}
+          DONOR_OUTPUT: ${{ steps.donor.outputs.output }}
+          REPACK_ANDROID_KEYSTORE_PATH: android/keystores/${{ steps.config.outputs.signing_android_keystore_path }}
+          SIGNING_ENV_FILE: ${{ steps.signing.outputs.env-file }}
+          # App secrets are mapped on this step only, so no other step can read them. The
+          # same list is in build.yml, eas-update-platform.yml and
+          # build-android-upload-to-testmu.yml; keep them in sync.
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
+          MM_SENTRY_DSN: ${{ secrets.MM_SENTRY_DSN }}
+          GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
+          GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
+          WALLET_CONNECT_PROJECT_ID: ${{ secrets.WALLET_CONNECT_PROJECT_ID }}
+          MM_KLIPY_API_KEY: ${{ secrets.MM_KLIPY_API_KEY }}
+          MM_FOX_CODE: ${{ secrets.MM_FOX_CODE }}
+          MM_BRANCH_KEY_LIVE: ${{ secrets.MM_BRANCH_KEY_LIVE }}
+          MM_BRANCH_KEY_TEST: ${{ secrets.MM_BRANCH_KEY_TEST }}
+          SEGMENT_WRITE_KEY: ${{ secrets.SEGMENT_WRITE_KEY }}
+          SEGMENT_PROXY_URL: ${{ secrets.SEGMENT_PROXY_URL }}
+          SEGMENT_DELETE_API_SOURCE_ID: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID }}
+          SEGMENT_REGULATIONS_ENDPOINT: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT }}
+          FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN: ${{ secrets.FEATURES_ANNOUNCEMENTS_ACCESS_TOKEN }}
+          FEATURES_ANNOUNCEMENTS_SPACE_ID: ${{ secrets.FEATURES_ANNOUNCEMENTS_SPACE_ID }}
+          FCM_CONFIG_API_KEY: ${{ secrets.FCM_CONFIG_API_KEY }}
+          FCM_CONFIG_AUTH_DOMAIN: ${{ secrets.FCM_CONFIG_AUTH_DOMAIN }}
+          FCM_CONFIG_STORAGE_BUCKET: ${{ secrets.FCM_CONFIG_STORAGE_BUCKET }}
+          FCM_CONFIG_PROJECT_ID: ${{ secrets.FCM_CONFIG_PROJECT_ID }}
+          FCM_CONFIG_MESSAGING_SENDER_ID: ${{ secrets.FCM_CONFIG_MESSAGING_SENDER_ID }}
+          FCM_CONFIG_APP_ID: ${{ secrets.FCM_CONFIG_APP_ID }}
+          FCM_CONFIG_MEASUREMENT_ID: ${{ secrets.FCM_CONFIG_MEASUREMENT_ID }}
+          QUICKNODE_MAINNET_URL: ${{ secrets.QUICKNODE_MAINNET_URL }}
+          QUICKNODE_ARBITRUM_URL: ${{ secrets.QUICKNODE_ARBITRUM_URL }}
+          QUICKNODE_AVALANCHE_URL: ${{ secrets.QUICKNODE_AVALANCHE_URL }}
+          QUICKNODE_BASE_URL: ${{ secrets.QUICKNODE_BASE_URL }}
+          QUICKNODE_LINEA_MAINNET_URL: ${{ secrets.QUICKNODE_LINEA_MAINNET_URL }}
+          QUICKNODE_MONAD_URL: ${{ secrets.QUICKNODE_MONAD_URL }}
+          QUICKNODE_OPTIMISM_URL: ${{ secrets.QUICKNODE_OPTIMISM_URL }}
+          QUICKNODE_POLYGON_URL: ${{ secrets.QUICKNODE_POLYGON_URL }}
+          QUICKNODE_HYPEREVM_URL: ${{ secrets.QUICKNODE_HYPEREVM_URL }}
+          QUICKNODE_ARC_URL: ${{ secrets.QUICKNODE_ARC_URL }}
+          QUICKNODE_ROBINHOOD_URL: ${{ secrets.QUICKNODE_ROBINHOOD_URL }}
+          QUICKNODE_ZKSYNC_URL: ${{ secrets.QUICKNODE_ZKSYNC_URL }}
+          QUICKNODE_MEGAETH_URL: ${{ secrets.QUICKNODE_MEGAETH_URL }}
+          IOS_GOOGLE_CLIENT_ID: ${{ secrets.IOS_GOOGLE_CLIENT_ID }}
+          IOS_GOOGLE_REDIRECT_URI: ${{ secrets.IOS_GOOGLE_REDIRECT_URI }}
+          ANDROID_APPLE_CLIENT_ID: ${{ secrets.ANDROID_APPLE_CLIENT_ID }}
+          ANDROID_GOOGLE_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_CLIENT_ID }}
+          ANDROID_GOOGLE_SERVER_CLIENT_ID: ${{ secrets.ANDROID_GOOGLE_SERVER_CLIENT_ID }}
+          MM_CARD_BAANX_API_CLIENT_KEY: ${{ secrets.MM_CARD_BAANX_API_CLIENT_KEY }}
+          MM_BRAZE_API_KEY_IOS: ${{ secrets.MM_BRAZE_API_KEY_IOS }}
+          MM_BRAZE_API_KEY_ANDROID: ${{ secrets.MM_BRAZE_API_KEY_ANDROID }}
+          MM_BRAZE_SDK_ENDPOINT: ${{ secrets.MM_BRAZE_SDK_ENDPOINT }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+          # IN_BUILD_SRP and E2E_PASSWORD are repo-level secrets that every build can read;
+          # only the *-with-srp builds may bake them in.
+          ADDITIONAL_SRP_1: ${{ endsWith(inputs.build_name, '-with-srp') && secrets.IN_BUILD_SRP || '' }}
+          PREDEFINED_PASSWORD: ${{ endsWith(inputs.build_name, '-with-srp') && secrets.E2E_PASSWORD || '' }}
+          E2E_BYOA_AUTH_SECRET: ${{ endsWith(inputs.build_name, '-without-srp') && secrets.E2E_BYOA_AUTH_SECRET || '' }}
+        run: |
+          set -euo pipefail
+          if [ "$PLATFORM" = "ios" ]; then
+            # scripts/repack.js takes the iOS path whenever REPACK_SOURCE_IPA is set.
+            export REPACK_SOURCE_IPA="$DONOR_PATH"
+            export REPACK_OUTPUT_IPA="$DONOR_OUTPUT"
+            export REPACK_SOURCEMAP_PATH=sourcemaps/ios/index.js.map
+            yarn build:repack:ios
+            exit 0
+          fi
+          # configure-signing stores the RC signer's variables verbatim (the same names
+          # android/app/build.gradle reads for signingConfigs.mainRc); map them onto the
+          # signer-agnostic names scripts/repack.js expects.
+          # shellcheck source=/dev/null
+          . "$SIGNING_ENV_FILE"
+          if [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD:-}" ] || [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS:-}" ]; then
+            echo "::error::RC keystore credentials missing; the signer secret did not expose BITRISEIO_ANDROID_RC_KEYSTORE_*."
+            exit 1
+          fi
+          export REPACK_ANDROID_KEYSTORE_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD"
+          export REPACK_ANDROID_KEYSTORE_ALIAS="$BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS"
+          export REPACK_ANDROID_KEY_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD"
+          export REPACK_SOURCE_APK="$RUNNER_TEMP/patched.apk"
+          export REPACK_OUTPUT_APK="$RUNNER_TEMP/repacked-intermediate.apk"
+          export REPACK_FINAL_APK="$DONOR_OUTPUT"
+          export REPACK_SOURCEMAP_PATH=sourcemaps/android/index.android.bundle.map
+          yarn build:repack:android
 
       # Swapping the JS bundle invalidates the donor's signature, so the IPA has to be
       # re-signed. This is a separate step rather than @expo/repack-app's own signing because
@@ -355,33 +425,6 @@ jobs:
             signing_identity:"$RESIGN_SIGNING_IDENTITY" \
             provisioning_profile:"$RESIGN_PROVISIONING_PROFILE" \
             keychain_path:"$RESIGN_KEYCHAIN_PATH"
-
-      - name: Repack Android APK
-        if: inputs.platform == 'android'
-        timeout-minutes: 40
-        env:
-          CI: 'true'
-          GITHUB_CI: 'true'
-          NODE_OPTIONS: '--max-old-space-size=8192'
-          METRO_MAX_WORKERS: '6'
-          REPACK_SOURCE_APK: ${{ runner.temp }}/patched.apk
-          REPACK_OUTPUT_APK: ${{ runner.temp }}/repacked-intermediate.apk
-          REPACK_FINAL_APK: ${{ steps.donor.outputs.output }}
-          REPACK_SOURCEMAP_PATH: sourcemaps/android/index.android.bundle.map
-          REPACK_ANDROID_KEYSTORE_PATH: android/keystores/${{ steps.config.outputs.signing_android_keystore_path }}
-        run: |
-          set -euo pipefail
-          # configure-signing exports the RC signer's variables verbatim (the same names
-          # android/app/build.gradle reads for signingConfigs.mainRc); map them onto the
-          # signer-agnostic names scripts/repack.js expects.
-          if [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD:-}" ] || [ -z "${BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS:-}" ]; then
-            echo "::error::RC keystore credentials missing; the signer secret did not expose BITRISEIO_ANDROID_RC_KEYSTORE_*."
-            exit 1
-          fi
-          export REPACK_ANDROID_KEYSTORE_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD"
-          export REPACK_ANDROID_KEYSTORE_ALIAS="$BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS"
-          export REPACK_ANDROID_KEY_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD"
-          yarn build:repack:android
 
       # SwiftSupport and friends live outside the signed bundle, so this must happen after
       # repack (which rebuilds the archive from Payload/ only) and cannot disturb signing.
@@ -415,6 +458,7 @@ jobs:
       # same shape on Android.
       - name: Upload sourcemaps to Sentry
         env:
+          MM_SENTRY_AUTH_TOKEN: ${{ secrets.MM_SENTRY_AUTH_TOKEN }}
           PLATFORM: ${{ inputs.platform }}
           OUTPUT: ${{ steps.donor.outputs.output }}
           BUILD_NUMBER: ${{ inputs.build_number }}

@@ -14,8 +14,10 @@ export const useMarketHistory = (
   venueId: PredictVenueId,
   marketId: PredictEntityId,
   range: PredictMarketHistoryRange,
+  enabled = true,
 ) =>
   useQuery<GetMarketHistoryResult>({
     queryKey: marketDataQueries.getMarketHistory(venueId, marketId, range)
       .queryKey,
+    enabled,
   });

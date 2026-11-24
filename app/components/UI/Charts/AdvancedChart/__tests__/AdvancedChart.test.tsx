@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { render, act, within } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
 import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
@@ -47,6 +48,8 @@ jest.mock('@metamask/react-native-webview', () => {
   return { WebView: MockWebView };
 });
 
+const CANDLE_SKELETON_ID = 'chart-candle-skeleton';
+
 const MOCK_BARS: OHLCVBar[] = [
   { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
   { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
@@ -60,6 +63,74 @@ describe('AdvancedChart', () => {
   it('renders without crashing', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+  });
+
+  it.each(['omitted', 'default'] as const)(
+    'keeps the flat skeleton overlay when skeletonVariant is %s',
+    (variant) => {
+      const { getByTestId, queryByTestId } = render(
+        <AdvancedChart
+          ohlcvData={MOCK_BARS}
+          height={240}
+          {...(variant === 'default' ? { skeletonVariant: 'default' } : {})}
+        />,
+      );
+
+      expect(
+        StyleSheet.flatten(getByTestId('advanced-chart-skeleton').props.style),
+      ).toEqual(expect.objectContaining({ height: 240, width: '100%' }));
+      expect(queryByTestId(CANDLE_SKELETON_ID)).not.toBeOnTheScreen();
+    },
+  );
+
+  it('renders the candle skeleton inside the overlay when skeletonVariant is candles', () => {
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        height={240}
+        skeletonVariant="candles"
+      />,
+    );
+
+    const candleSkeleton = within(
+      getByTestId('advanced-chart-skeleton'),
+    ).getByTestId(CANDLE_SKELETON_ID);
+
+    expect(StyleSheet.flatten(candleSkeleton.props.style).height).toBe(240);
+  });
+
+  it('swaps the candle skeleton for the chart once the chart is ready', () => {
+    const { getByTestId, queryByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        height={240}
+        skeletonVariant="candles"
+      />,
+    );
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(
+      within(getByTestId('advanced-chart-skeleton')).getByTestId(
+        CANDLE_SKELETON_ID,
+      ),
+    ).toBeOnTheScreen();
+
+    const webView = getByTestId('mock-webview');
+
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId(CANDLE_SKELETON_ID)).not.toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
   });
 
   it('serializes configured price decimals into the WebView template', () => {

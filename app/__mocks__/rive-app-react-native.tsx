@@ -48,6 +48,9 @@ export interface RiveError {
 /** Shared so tests can assert `triggerInput` across RiveView remounts. */
 export const __mockRiveTriggerInput = jest.fn();
 
+/** `set` calls on any `instance.imageProperty(path)` handle. */
+export const __mockRiveImagePropertySet = jest.fn();
+
 interface RiveViewMethodsMock {
   play: jest.Mock;
   pause: jest.Mock;
@@ -69,6 +72,7 @@ const propertySetters = new Map<string, jest.Mock>();
 const propertyValues = new Map<string, unknown>();
 const propertyListeners = new Map<string, Set<(value: unknown) => void>>();
 const triggerCallbacks = new Map<string, Set<() => void>>();
+const unavailableProperties = new Set<string>();
 
 export const __getLastRiveViewMethods = (): RiveViewMethodsMock | undefined =>
   lastRiveViewMethods;
@@ -82,6 +86,31 @@ export const __getRivePropertySetter = (path: string): jest.Mock => {
   return setter;
 };
 
+const createMockViewModelProperty = (path: string) => ({
+  set: __getRivePropertySetter(path),
+  addListener: (listener: (value: unknown) => void) => {
+    let listeners = propertyListeners.get(path);
+    if (!listeners) {
+      listeners = new Set();
+      propertyListeners.set(path, listeners);
+    }
+    listeners.add(listener);
+    return () => listeners?.delete(listener);
+  },
+  removeListeners: () => propertyListeners.delete(path),
+});
+
+export const __setRivePropertyAvailability = (
+  path: string,
+  available: boolean,
+): void => {
+  if (available) {
+    unavailableProperties.delete(path);
+  } else {
+    unavailableProperties.add(path);
+  }
+};
+
 export const __setRivePropertyValue = <T,>(path: string, value: T): void => {
   propertyValues.set(path, value);
   propertyListeners.get(path)?.forEach((listener) => listener(value));
@@ -91,13 +120,23 @@ export const __fireRiveTrigger = (path: string): void => {
   triggerCallbacks.get(path)?.forEach((cb) => cb());
 };
 
+let lastRiveViewOnError: ((error: RiveError) => void) | undefined;
+
+/** Fires the `onError` passed to the most recently rendered `RiveView`. */
+export const __fireRiveViewError = (error: RiveError): void => {
+  lastRiveViewOnError?.(error);
+};
+
 export const __resetRiveMocks = (): void => {
   __mockRiveTriggerInput.mockClear();
+  __mockRiveImagePropertySet.mockClear();
   lastRiveViewMethods = undefined;
+  lastRiveViewOnError = undefined;
   propertySetters.clear();
   propertyValues.clear();
   propertyListeners.clear();
   triggerCallbacks.clear();
+  unavailableProperties.clear();
 };
 
 const DEFAULT_TEST_ID = 'mock-rive-animation';
@@ -132,6 +171,7 @@ export const RiveView = ({
 }: MockRiveViewProps) => {
   const methods = useMemo(() => createRiveViewMethods(), []);
   lastRiveViewMethods = methods;
+  lastRiveViewOnError = onError;
 
   useEffect(() => {
     hybridRef?.f(methods);
@@ -142,7 +182,26 @@ export const RiveView = ({
 };
 
 const MOCK_RIVE_FILE = { __mockRiveFile: true };
-const MOCK_VIEW_MODEL_INSTANCE = { __mockViewModelInstance: true };
+
+const MOCK_VIEW_MODEL_INSTANCE = {
+  __mockViewModelInstance: true,
+  imageProperty: () => ({ set: __mockRiveImagePropertySet }),
+  numberProperty: (path: string) =>
+    unavailableProperties.has(path)
+      ? undefined
+      : createMockViewModelProperty(path),
+  booleanProperty: (path: string) =>
+    unavailableProperties.has(path)
+      ? undefined
+      : createMockViewModelProperty(path),
+};
+
+const MOCK_RIVE_IMAGE = { byteSize: 1 };
+export const RiveImages = {
+  loadFromURLAsync: jest.fn(() => Promise.resolve(MOCK_RIVE_IMAGE)),
+  loadFromResourceAsync: jest.fn(() => Promise.resolve(MOCK_RIVE_IMAGE)),
+  loadFromBytesAsync: jest.fn(() => Promise.resolve(MOCK_RIVE_IMAGE)),
+};
 
 export const useRiveFile = (_input?: unknown, _options?: unknown) => ({
   riveFile: MOCK_RIVE_FILE,

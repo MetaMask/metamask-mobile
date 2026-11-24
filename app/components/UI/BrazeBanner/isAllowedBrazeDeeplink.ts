@@ -18,6 +18,8 @@ const getAllowedHttpsHosts = (): ReadonlySet<string> =>
     AppConstants.MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
     AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
     AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+    AppConstants.MM_COM_UNIVERSAL_LINK_HOST,
+    AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
   ]);
 
 /**
@@ -60,4 +62,24 @@ export function isAllowedBrazeDeeplink(uri: unknown): uri is string {
 
   // Reject http:, javascript:, file:, data:, intent:, about:, wc:, etc.
   return false;
+}
+
+/**
+ * Returns whether a Braze banner URL can be opened externally by the OS.
+ * MetaMask-owned hosts are excluded so they continue through the in-app
+ * deeplink pipeline (and are not opened in the browser).
+ */
+export function isAllowedBrazeExternalUrl(uri: unknown): uri is string {
+  if (typeof uri !== 'string' || uri.length === 0) return false;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(uri);
+  } catch {
+    return false;
+  }
+
+  const isWebUrl = parsed.protocol === `${PROTOCOLS.HTTPS}:`;
+
+  return isWebUrl && !getAllowedHttpsHosts().has(parsed.hostname);
 }

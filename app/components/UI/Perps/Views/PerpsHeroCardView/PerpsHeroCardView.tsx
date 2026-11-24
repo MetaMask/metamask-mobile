@@ -11,13 +11,13 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
-import { useSelector } from 'react-redux';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
   FontWeight,
   IconName as DSIconName,
   Text,
@@ -32,10 +32,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
-import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
-import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featureFlags';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
-import RewardsReferralCodeTag from '../../../Rewards/components/RewardsReferralCodeTag';
 import {
   formatPerpsFiat,
   parseCurrencyString,
@@ -53,19 +50,16 @@ import {
   getPerpsDisplaySymbol,
   type Position,
 } from '@metamask/perps-controller';
-import { darkTheme } from '@metamask/design-tokens';
 import styleSheet from './PerpsHeroCardView.styles';
 import Logger from '../../../../../util/Logger';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { buildReferralUrl } from '../../../Rewards/utils';
 import { usePerpsToasts } from '../../hooks';
 import { ShareOpenResult } from 'react-native-share/lib/typescript/types';
 import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
 } from '../../Perps.testIds';
-import { useReferralDetails } from '../../../Rewards/hooks/useReferralDetails';
 import { ensureError } from '../../../../../util/errorUtils';
 
 // To add a new card, add the image to the array.
@@ -92,17 +86,6 @@ const PerpsHeroCardView: React.FC = () => {
     source?: string;
   };
   const { position, marketPrice, source } = params;
-
-  const rewardsReferralCode = useSelector(selectReferralCode);
-  const isReferralEnabled = useSelector(
-    selectPerpsRewardsReferralCodeEnabledFlag,
-  );
-
-  // Fetch referral details to ensure code is available for display
-  useReferralDetails();
-
-  // Gate referral code behind feature flag
-  const effectiveReferralCode = isReferralEnabled ? rewardsReferralCode : null;
 
   const { track } = usePerpsEventTracking();
 
@@ -186,7 +169,6 @@ const PerpsHeroCardView: React.FC = () => {
 
   const { styles } = useStyles(styleSheet, {
     isLong: data.isLong,
-    hasReferralCode: Boolean(effectiveReferralCode),
   });
 
   const handleClose = () => {
@@ -219,7 +201,7 @@ const PerpsHeroCardView: React.FC = () => {
             resizeMode="contain"
           />
 
-          {/* Top Row: Logo + Referral Tag */}
+          {/* Top Row: Logo */}
           <View style={styles.heroCardTopRow}>
             <Image
               source={MetaMaskLogo}
@@ -256,16 +238,11 @@ const PerpsHeroCardView: React.FC = () => {
             </View>
           </View>
 
-          <View
-            style={
-              effectiveReferralCode
-                ? undefined
-                : styles.referralCodeContentContainer
-            }
-          >
+          <View style={styles.pnlContentContainer}>
             {/* P&L Percentage */}
             <Text
-              variant={TextVariant.DisplayLg}
+              variant={TextVariant.AmountDisplayLg}
+              fontFamily={FontFamily.Hero}
               style={data.roe >= 0 ? styles.pnlPositive : styles.pnlNegative}
               testID={getPerpsHeroCardViewSelector.pnlText(index)}
             >
@@ -320,32 +297,10 @@ const PerpsHeroCardView: React.FC = () => {
               </View>
             </View>
           </View>
-
-          {effectiveReferralCode && (
-            <>
-              <View
-                style={styles.referralCodeTagContainer}
-                testID={getPerpsHeroCardViewSelector.referralCodeTag(index)}
-              >
-                <RewardsReferralCodeTag
-                  referralCode={effectiveReferralCode}
-                  backgroundColor={darkTheme.colors.background.mutedHover}
-                  fontColor={darkTheme.colors.accent04.light}
-                />
-              </View>
-              <Text
-                variant={TextVariant.BodyXs}
-                style={styles.referralCodeText}
-              >
-                {strings('perps.pnl_hero_card.referral_code_text')}
-              </Text>
-            </>
-          )}
         </View>
       )),
     [
       styles,
-      effectiveReferralCode,
       data.asset,
       data.roe,
       data.entryPrice,
@@ -402,15 +357,10 @@ const PerpsHeroCardView: React.FC = () => {
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.INITIATED,
         });
 
-        const message = effectiveReferralCode
-          ? strings('perps.pnl_hero_card.share_message_with_referral_code', {
-              asset: data.asset,
-              code: effectiveReferralCode,
-              link: buildReferralUrl(effectiveReferralCode),
-            })
-          : strings('perps.pnl_hero_card.share_message_without_referral_code', {
-              asset: data.asset,
-            });
+        const message = strings(
+          'perps.pnl_hero_card.share_message_without_referral_code',
+          { asset: data.asset },
+        );
 
         result = await Share.open({
           failOnCancel: false,

@@ -24,22 +24,4 @@ describe('getLanguage', () => {
     );
     expect(gasModal.gas_limit_too_low).toBeUndefined();
   });
-
-  it('leaves the new gas-limit copy to the translation pipeline', () => {
-    const translatedLocales = Object.entries(supportedTranslations).filter(
-      ([locale]) => locale !== 'en',
-    );
-
-    translatedLocales.forEach(([, translation]) => {
-      expect(
-        translation.alert_system.gas_limit_below_minimum,
-      ).toBeUndefined();
-      expect(
-        translation.transactions.gas_modal.gas_limit_below_minimum,
-      ).toBeUndefined();
-      expect(
-        translation.transactions.gas_modal.gas_limit_too_low,
-      ).toBeUndefined();
-    });
-  });
 });

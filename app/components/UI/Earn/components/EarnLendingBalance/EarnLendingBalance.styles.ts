@@ -42,6 +42,10 @@ const styleSheet = (params: {
     earnings: {
       paddingHorizontal: 16,
     },
+    maintenanceBanner: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+    },
   });
 };
 

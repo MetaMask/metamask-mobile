@@ -8,7 +8,9 @@ const readRepoFile = (relativePath: string): string =>
   fs.readFileSync(path.join(REPO_ROOT, relativePath), 'utf8');
 
 const getBaselineWorkflow = (): string => {
-  const source = readRepoFile('tests/scripts/diff-app-profiling.mjs');
+  const source = readRepoFile(
+    '.github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs',
+  );
   const match = source.match(/const BASELINE_WORKFLOW = '([^']+)';/);
 
   if (!match) {
@@ -46,7 +48,7 @@ describe('app profiling baseline workflow', () => {
 
   it('shares the baseline workflow with the PR comment generator', () => {
     const commentGenerator = readRepoFile(
-      'tests/scripts/generate-performance-pr-comment.mjs',
+      '.github/scripts/qa-automation/performance-tests/generate-performance-pr-comment.mjs',
     );
 
     expect(commentGenerator).toContain('BASELINE_WORKFLOW');

@@ -1,5 +1,18 @@
-import { parseVolume } from '@metamask/perps-controller';
-import { createE2EMockStreamManager } from './perps-controller-mixin';
+import {
+  BaseController,
+  type ControllerGetStateAction,
+  type ControllerStateChangedEvent,
+  type ControllerStateChangeEvent,
+} from '@metamask/base-controller';
+import { Messenger } from '@metamask/messenger';
+import type { Json } from '@metamask/utils';
+import { parseVolume, type OrderBookData } from '@metamask/perps-controller';
+import { calculateMarketOrderLiquidity } from '../../../app/components/UI/Perps/utils/slippageCalculation';
+import {
+  applyE2EPerpsControllerMocks,
+  createE2EMockStreamManager,
+  E2EControllerOverrides,
+} from './perps-controller-mixin';
 
 /**
  * Contract tests for the E2E Perps stream manager stub.
@@ -128,5 +141,169 @@ describe('createE2EMockStreamManager', () => {
         return parseVolume(market.openInterest) > 0;
       }),
     ).toBe(true);
+  });
+});
+
+describe('E2EControllerOverrides.subscribeToOrderBook', () => {
+  let mockConsoleLog: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    mockConsoleLog = jest
+      .spyOn(console, 'log')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    mockConsoleLog.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it.each([true, false])(
+    'emits a book deep enough for market orders to pass the liquidity guard (isBuy=%s)',
+    (isBuy) => {
+      const overrides = new E2EControllerOverrides({});
+      const callback = jest.fn<void, [OrderBookData]>();
+
+      overrides.subscribeToOrderBook({ symbol: 'BTC', levels: 10, callback });
+      jest.runAllTimers();
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      const orderBook = callback.mock.calls[0][0];
+      expect(orderBook.bids).toHaveLength(10);
+      expect(orderBook.asks).toHaveLength(10);
+      expect(
+        calculateMarketOrderLiquidity({
+          orderBook,
+          sizeUsd: 100_000,
+          isBuy,
+          currentPrice: Number(orderBook.midPrice),
+          maxSlippageBps: 300,
+          szDecimals: 5,
+        }).canFillWithinSlippage,
+      ).toBe(true);
+    },
+  );
+
+  it('emits nothing for a symbol without a mock price', () => {
+    const overrides = new E2EControllerOverrides({});
+    const callback = jest.fn();
+
+    overrides.subscribeToOrderBook({ symbol: 'UNKNOWN', callback });
+    jest.runAllTimers();
+
+    expect(callback).not.toHaveBeenCalled();
+  });
+});
+
+describe('applyE2EPerpsControllerMocks account state protection', () => {
+  interface TestControllerState extends Record<string, Json> {
+    accountState: Record<string, Json> | null;
+    lastUpdateTimestamp: number;
+  }
+  type TestControllerMessenger = Messenger<
+    'PerpsController',
+    ControllerGetStateAction<'PerpsController', TestControllerState>,
+    | ControllerStateChangeEvent<'PerpsController', TestControllerState>
+    | ControllerStateChangedEvent<'PerpsController', TestControllerState>
+  >;
+
+  const persistNothing = {
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    persist: false,
+    usedInUi: false,
+  };
+
+  // `update` is protected on `BaseController`; PerpsController exposes it, so
+  // the test controller does too.
+  class TestPerpsController extends BaseController<
+    'PerpsController',
+    TestControllerState,
+    TestControllerMessenger
+  > {
+    updateState(recipe: (draft: TestControllerState) => void): void {
+      this.update(recipe);
+    }
+  }
+
+  // Real `BaseController` + `Messenger` so the test exercises the event names
+  // the controller actually publishes instead of a hand-rolled fake.
+  const createController = () => {
+    const messenger: TestControllerMessenger = new Messenger({
+      namespace: 'PerpsController',
+    });
+    const controller = new TestPerpsController({
+      name: 'PerpsController',
+      messenger,
+      metadata: {
+        accountState: persistNothing,
+        lastUpdateTimestamp: persistNothing,
+      },
+      state: { accountState: null, lastUpdateTimestamp: 0 },
+    });
+    return { controller, messenger };
+  };
+
+  it('re-seeds the mock account when the controller clears accountState', () => {
+    const { controller } = createController();
+
+    applyE2EPerpsControllerMocks(controller);
+    expect(controller.state.accountState).not.toBeNull();
+
+    controller.updateState((draft) => {
+      draft.accountState = null;
+    });
+
+    expect(controller.state.accountState).not.toBeNull();
+  });
+
+  it('listens to both the legacy and the current state change events', () => {
+    const { controller, messenger } = createController();
+    const subscribeSpy = jest.spyOn(messenger, 'subscribe');
+
+    applyE2EPerpsControllerMocks(controller);
+
+    const subscribedEvents = subscribeSpy.mock.calls.map(([event]) => event);
+    expect(subscribedEvents).toEqual(
+      expect.arrayContaining([
+        'PerpsController:stateChange',
+        'PerpsController:stateChanged',
+      ]),
+    );
+  });
+
+  it('re-seeds once per clear instead of once per published event', () => {
+    const { controller, messenger } = createController();
+    applyE2EPerpsControllerMocks(controller);
+    const stateChangedListener = jest.fn();
+    messenger.subscribe('PerpsController:stateChanged', stateChangedListener);
+
+    controller.updateState((draft) => {
+      draft.accountState = null;
+    });
+
+    // One event for the clear and one for the single re-seed.
+    expect(stateChangedListener).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not touch accountState while it is populated', () => {
+    const { controller, messenger } = createController();
+    applyE2EPerpsControllerMocks(controller);
+    const stateChangedListener = jest.fn();
+    messenger.subscribe('PerpsController:stateChanged', stateChangedListener);
+
+    controller.updateState((draft) => {
+      draft.lastUpdateTimestamp += 1;
+    });
+
+    // Only the one update itself, no re-seed.
+    expect(stateChangedListener).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not throw when the controller has no messenger', () => {
+    const controller = { state: { accountState: null }, update: jest.fn() };
+
+    expect(() => applyE2EPerpsControllerMocks(controller)).not.toThrow();
   });
 });

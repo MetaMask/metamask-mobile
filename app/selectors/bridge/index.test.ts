@@ -367,6 +367,99 @@ describe('bridge selectors', () => {
       expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
     });
 
+    it('returns gasIncluded true for a native source when fee-inclusive simulation is supported', () => {
+      const mockState = {
+        bridge: {
+          ...bridgeInitialState,
+          sourceToken: {
+            ...mockToken,
+            address: '0x0000000000000000000000000000000000000000',
+          },
+          isNativeGasIncludedSupported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('keeps 7702 requested for a native swap when fee-inclusive simulation and 7702 are supported', () => {
+      const mockState = {
+        bridge: {
+          ...bridgeInitialState,
+          sourceToken: {
+            ...mockToken,
+            address: '0x0000000000000000000000000000000000000000',
+          },
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isNativeGasIncludedSupported: true,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
+    });
+
+    it('keeps 7702 requested for a native bridge when the chain has the 7702 bridge flag', () => {
+      jest
+        .mocked(getGaslessBridgeWith7702EnabledForChain)
+        .mockReturnValue(true);
+      const mockState = {
+        bridge: {
+          ...bridgeInitialState,
+          sourceToken: {
+            ...mockToken,
+            address: '0x0000000000000000000000000000000000000000',
+          },
+          isNativeGasIncludedSupported: true,
+          isGasIncludedSTXSendBundleSupported: false,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: true });
+    });
+
+    it('requests 7702 false for a native source when STX send bundle already covers gas', () => {
+      const mockState = {
+        bridge: {
+          ...bridgeInitialState,
+          sourceToken: {
+            ...mockToken,
+            address: '0x0000000000000000000000000000000000000000',
+          },
+          destToken: { ...mockDestToken, chainId: mockToken.chainId },
+          isNativeGasIncludedSupported: true,
+          isGasIncludedSTXSendBundleSupported: true,
+          isGasIncluded7702Supported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: true, gasIncluded7702: false });
+    });
+
+    it('does not enable gasIncluded for an ERC-20 source based on native simulation support', () => {
+      const mockState = {
+        bridge: {
+          ...bridgeInitialState,
+          sourceToken: mockToken,
+          isNativeGasIncludedSupported: true,
+        },
+      } as RootState;
+
+      const result = selectGasIncludedQuoteParams(mockState);
+
+      expect(result).toEqual({ gasIncluded: false, gasIncluded7702: false });
+    });
+
     it('returns gasIncluded true with 7702 true for swap when 7702 is supported', () => {
       const mockState = {
         bridge: {

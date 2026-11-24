@@ -1,7 +1,33 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
-import { getNavbar } from './navbar';
+import { getNavbar, NAVBAR_SHEET_HANDLE_TEST_ID } from './navbar';
+
+let mockGlassHeadersEnabled = false;
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockGlassHeadersEnabled,
+}));
+
+const mockHeaderStandardGlass = jest.fn();
+
+jest.mock(
+  '../../../../../../component-library/components-temp/HeaderStandardGlass',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const actual = jest.requireActual(
+      '../../../../../../component-library/components-temp/HeaderStandardGlass',
+    );
+    return {
+      __esModule: true,
+      default: (props: Record<string, unknown>) => {
+        mockHeaderStandardGlass(props);
+        return ReactActual.createElement(actual.default, props);
+      },
+    };
+  },
+);
 
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
@@ -23,9 +49,16 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 describe('getNavbar', () => {
   const mockOnReject = jest.fn();
+  const originalPlatformOS = Platform.OS;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGlassHeadersEnabled = false;
+    Platform.OS = 'ios';
+  });
+
+  afterAll(() => {
+    Platform.OS = originalPlatformOS;
   });
 
   describe('default behavior', () => {
@@ -85,6 +118,68 @@ describe('getNavbar', () => {
     });
   });
 
+  describe('sheetPresentation', () => {
+    it('omits the drag handle by default', () => {
+      const { queryByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+          }).header()}
+        </>,
+      );
+
+      expect(queryByTestId(NAVBAR_SHEET_HANDLE_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('renders the drag handle and keeps the title when presented as a sheet', () => {
+      const { getByTestId, getByText } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            sheetPresentation: true,
+          }).header()}
+        </>,
+      );
+
+      expect(getByTestId(NAVBAR_SHEET_HANDLE_TEST_ID)).toBeOnTheScreen();
+      expect(getByText('Test Title')).toBeOnTheScreen();
+    });
+
+    it('keeps the back button working when presented as a sheet', () => {
+      const { getByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            sheetPresentation: true,
+          }).header()}
+        </>,
+      );
+
+      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
+
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the full-window header on Android', () => {
+      Platform.OS = 'android';
+
+      const { queryByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            sheetPresentation: true,
+          }).header()}
+        </>,
+      );
+
+      expect(queryByTestId(NAVBAR_SHEET_HANDLE_TEST_ID)).not.toBeOnTheScreen();
+    });
+  });
+
   describe('mmPayRequestInProgressNavHandler', () => {
     it('calls the handler instead of onReject when ref is a function', () => {
       const mockHandler = jest.fn();
@@ -137,6 +232,62 @@ describe('getNavbar', () => {
       fireEvent.press(getByTestId('Test Title-navbar-back-button'));
 
       expect(mockOnReject).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('glass headers', () => {
+    it('renders a plain in-flow header when glassHeaders is off', () => {
+      render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+          }).header()}
+        </>,
+      );
+
+      expect(mockHeaderStandardGlass).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: false, isFloating: false }),
+      );
+    });
+
+    it('renders glass buttons when glassHeaders is on', () => {
+      mockGlassHeadersEnabled = true;
+
+      const { getByTestId } = render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+          }).header()}
+        </>,
+      );
+
+      expect(mockHeaderStandardGlass).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: true, isFloating: false }),
+      );
+
+      fireEvent.press(getByTestId('Test Title-navbar-back-button'));
+
+      expect(mockOnReject).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps sheet-presented confirmations plain when glassHeaders is on', () => {
+      mockGlassHeadersEnabled = true;
+
+      render(
+        <>
+          {getNavbar({
+            onReject: mockOnReject,
+            title: 'Test Title',
+            sheetPresentation: true,
+          }).header()}
+        </>,
+      );
+
+      expect(mockHeaderStandardGlass).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isGlass: false }),
+      );
     });
   });
 

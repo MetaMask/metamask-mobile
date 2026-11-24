@@ -10,7 +10,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   IconColor,
   IconName,
   IconSize,
@@ -23,7 +22,7 @@ import {
   setLimitOrderCostTolerance,
 } from '../../../../../core/redux/slices/bridge';
 import Keypad from '../../../../Base/Keypad';
-import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../constants/limitOrders';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selectors/bridge/featureFlags';
 import { InputStepper } from '../InputStepper';
 import {
   COST_TOLERANCE_MAX,
@@ -33,14 +32,20 @@ import {
 } from './constants';
 import { useCostToleranceCursor } from './useCostToleranceCursor';
 import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from './testIds';
+import HeaderStandardGlass from '../../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../../selectors/featureFlagController/glassHeaders';
 
 export const SwapsLimitOrderCustomCostToleranceModal = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const sheetRef = useRef<BottomSheetRef>(null);
   const { goBack } = useNavigation<AppNavigationProp>();
   const dispatch = useDispatch();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
+  const defaultCostTolerance = useSelector(
+    selectBridgeLimitOrderDefaultCostTolerance,
+  );
   const [inputAmount, setInputAmount] = useState(
-    costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+    costTolerance ?? defaultCostTolerance,
   );
   const [hasAttemptedToExceedMax, setHasAttemptedToExceedMax] = useState(false);
   const parsedInputAmount = Number.parseFloat(inputAmount);
@@ -127,7 +132,9 @@ export const SwapsLimitOrderCustomCostToleranceModal = () => {
       goBack={goBack}
       testID={SwapsLimitOrderCostToleranceModalSelectorsIDs.CUSTOM_SHEET}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isFloating={false}
+        isGlass={isGlassHeader}
         title={strings('bridge.cost_tolerance')}
         onClose={handleClose}
         closeButtonProps={{

@@ -4,7 +4,7 @@
  * Prepares the iOS Appium runner before Playwright tests:
  * 1. Boot the simulator pool (N=1 uses the base sim; N>1 clones + boots in parallel)
  * 2. Post-boot settle (SpringBoard / system UI — mirrors Android emulator settle)
- * 3. Prebuild WDA into ~/appium-wda on cache miss (once, using the primary UDID)
+ * 3. Prebuild WDA into $WDA_DERIVED_DATA_PATH on cache miss (once, using the primary UDID)
  * 4. Per simulator: simctl install WebDriverAgentRunner + MetaMask.app
  *    (sequential per UDID; parallel across UDIDs in pool mode)
  * 5. Grant common simulator permissions + warm-launch MetaMask (once per simulator)

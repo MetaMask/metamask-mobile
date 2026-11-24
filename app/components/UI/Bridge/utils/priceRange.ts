@@ -1,37 +1,143 @@
+import { BigNumber } from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
-import { formatCurrency } from './currencyUtils';
+import type { RecurringOrderPriceRange } from '../api/recurringOrders.types';
+import type { BridgeToken } from '../types';
+import { formatCurrency, getFiatPriceDecimals } from './currencyUtils';
+import { getIsSwapsLimitOrderStablecoin } from './limitOrders/getSwapsLimitOrderDefaultPriceMode';
 import { FIAT_INPUT_DECIMALS } from './sourceAmountInputMode';
 
 export const PRICE_RANGE_TOKEN_SIDES = ['source', 'dest'] as const;
 
 export type PriceRangeTokenSide = (typeof PRICE_RANGE_TOKEN_SIDES)[number];
 
-export const PRICE_RANGE_CURRENCY = 'USD' as const;
+export const USD_PRICE_RANGE_CURRENCY = 'USD' as const;
 
 export interface RecurringPriceRange {
   tokenSide: PriceRangeTokenSide;
-  currency: typeof PRICE_RANGE_CURRENCY;
+  currency: string;
   min: string;
   max: string;
 }
 
 export const DEFAULT_PRICE_RANGE_TOKEN_SIDE: PriceRangeTokenSide = 'dest';
 
+/**
+ * Returns the token side used when starting a recurring price range.
+ * Mixed stablecoin pairs default to the non-stable token; all other pairs
+ * default to the destination token.
+ *
+ * @param sourceToken - Source token in the recurring swap pair.
+ * @param destToken - Destination token in the recurring swap pair.
+ * @returns The default token side for the recurring price range.
+ */
+export function getDefaultRecurringPriceRangeTokenSide({
+  sourceToken,
+  destToken,
+}: {
+  sourceToken: BridgeToken | undefined;
+  destToken: BridgeToken | undefined;
+}): PriceRangeTokenSide {
+  if (!sourceToken || !destToken) {
+    return DEFAULT_PRICE_RANGE_TOKEN_SIDE;
+  }
+
+  const isSourceStablecoin = getIsSwapsLimitOrderStablecoin(sourceToken);
+  const isDestStablecoin = getIsSwapsLimitOrderStablecoin(destToken);
+
+  return isDestStablecoin && !isSourceStablecoin
+    ? 'source'
+    : DEFAULT_PRICE_RANGE_TOKEN_SIDE;
+}
+
 export const PRICE_RANGE_MIN_PERCENTS = [-1, -5, -10, -25, -50] as const;
 
 export const PRICE_RANGE_MAX_PERCENTS = [1, 5, 10, 25, 50] as const;
 
 export const PRICE_RANGE_MISSING_VALUE = '--';
+export const PRICE_RANGE_MAX_DECIMALS = 12;
 
-export function applyPercentToPrice(price: number, percent: number): string {
-  const next = price * (1 + percent / 100);
+/**
+ * Returns adaptive display and preset precision within the API limit.
+ */
+export function getPriceRangeDecimals(
+  price: BigNumber.Value | undefined,
+): number {
+  return Math.min(getFiatPriceDecimals(price), PRICE_RANGE_MAX_DECIMALS);
+}
 
-  if (!Number.isFinite(next) || next <= 0) {
+/**
+ * Converts a locally stored display-currency range to the USD-only API shape.
+ * Empty bounds remain absent so one-sided ranges do not acquire a synthetic
+ * zero value.
+ *
+ * @param priceRange - Range stored in the user's display currency.
+ * @param fiatToUsdRate - USD value of one unit of the display currency.
+ * @returns The USD API range, or undefined when conversion is unavailable.
+ */
+export function convertPriceRangeToUsd(
+  priceRange: RecurringPriceRange | undefined,
+  fiatToUsdRate: number | undefined,
+): RecurringOrderPriceRange | undefined {
+  if (!priceRange) {
+    return undefined;
+  }
+
+  const isAlreadyUsd =
+    priceRange.currency.toUpperCase() === USD_PRICE_RANGE_CURRENCY;
+  const conversionRate = isAlreadyUsd ? 1 : fiatToUsdRate;
+  if (
+    conversionRate === undefined ||
+    !Number.isFinite(conversionRate) ||
+    conversionRate <= 0
+  ) {
+    return undefined;
+  }
+
+  const convertBound = (bound: string): string | undefined => {
+    if (!bound) {
+      return undefined;
+    }
+
+    const value = new BigNumber(bound);
+    if (!value.isFinite() || value.lte(0)) {
+      return undefined;
+    }
+
+    return value
+      .multipliedBy(conversionRate)
+      .decimalPlaces(PRICE_RANGE_MAX_DECIMALS)
+      .toFixed();
+  };
+  const min = convertBound(priceRange.min);
+  const max = convertBound(priceRange.max);
+
+  if ((priceRange.min && !min) || (priceRange.max && !max)) {
+    return undefined;
+  }
+
+  return {
+    side: priceRange.tokenSide === 'source' ? 'src' : 'dest',
+    currency: 'USD',
+    min,
+    max,
+  };
+}
+
+export function applyPercentToPrice(
+  price: number,
+  percent: number,
+  decimals = getPriceRangeDecimals(price),
+): string {
+  const next = new BigNumber(price).multipliedBy(
+    new BigNumber(1).plus(new BigNumber(percent).dividedBy(100)),
+  );
+
+  if (!next.isFinite() || next.lte(0)) {
     return '';
   }
 
-  return next.toFixed(FIAT_INPUT_DECIMALS);
+  return next.toFixed(decimals);
 }
 
 export function parsePriceInput(value: string): number | undefined {
@@ -59,7 +165,7 @@ export function sanitizePriceInput(value: string): string {
   const fraction = digitsAndDots
     .slice(firstDot + 1)
     .replace(/\./gu, '')
-    .slice(0, FIAT_INPUT_DECIMALS);
+    .slice(0, PRICE_RANGE_MAX_DECIMALS);
 
   return digitsAndDots.slice(0, firstDot + 1) + fraction;
 }
@@ -120,17 +226,29 @@ export function formatPriceRangeBounds(
   currency: string,
 ): { minLabel?: string; maxLabel?: string } {
   if (min && !max) {
-    return { minLabel: `≥ ${formatCurrency(min, currency)}` };
+    return { minLabel: `≥ ${formatPriceCurrency(min, currency)}` };
   }
 
   if (max && !min) {
-    return { maxLabel: `≤ ${formatCurrency(max, currency)}` };
+    return { maxLabel: `≤ ${formatPriceCurrency(max, currency)}` };
   }
 
   return {
-    minLabel: min ? formatCurrency(min, currency) : undefined,
-    maxLabel: max ? formatCurrency(max, currency) : undefined,
+    minLabel: min ? formatPriceCurrency(min, currency) : undefined,
+    maxLabel: max ? formatPriceCurrency(max, currency) : undefined,
   };
+}
+
+function formatPriceCurrency(
+  amount: number | string,
+  currency: string,
+): string {
+  const maximumFractionDigits = getPriceRangeDecimals(amount);
+  if (maximumFractionDigits === FIAT_INPUT_DECIMALS) {
+    return formatCurrency(amount, currency);
+  }
+
+  return formatCurrency(amount, currency, { maximumFractionDigits });
 }
 
 export function formatTokenPrice(
@@ -144,7 +262,7 @@ export function formatTokenPrice(
 
   return strings('bridge.recurring.price_range.token_price', {
     symbol,
-    price: formatCurrency(price, currency),
+    price: formatPriceCurrency(price, currency),
   });
 }
 

@@ -36,6 +36,7 @@ import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -70,6 +71,7 @@ const PerpsClosePositionView: React.FC = () => {
     feeResults,
     rewardsState,
     summaryMargin,
+    summaryMarginMode,
     summaryPnl,
     summaryFees,
     receiveAmount,
@@ -93,10 +95,12 @@ const PerpsClosePositionView: React.FC = () => {
   const Summary = (
     <PerpsCloseSummary
       totalMargin={summaryMargin}
+      marginMode={summaryMarginMode}
       totalPnl={summaryPnl}
       totalFees={summaryFees}
       originalTotalFees={feeResults.undiscountedTotalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+      feeDiscountKind={rewardsState.feeDiscountKind}
       metamaskFeeRate={feeResults.metamaskFeeRate}
       protocolFeeRate={feeResults.protocolFeeRate}
       originalMetamaskFeeRate={feeResults.originalMetamaskFeeRate}
@@ -109,6 +113,16 @@ const PerpsClosePositionView: React.FC = () => {
       hasRewardsError={rewardsState.hasError}
       accountOptedIn={rewardsState.accountOptedIn}
       rewardsAccount={rewardsState.account}
+      afterFees={
+        !isInputFocused ? (
+          <PerpsRebateBanner
+            coin={position.symbol}
+            direction={isLong ? 'short' : 'long'}
+            notionalUsd={closeAmountUSDString}
+            containerTwClassName="px-4 mb-3"
+          />
+        ) : undefined
+      }
       testIDs={{
         feesTooltip: PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
         receiveTooltip:

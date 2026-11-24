@@ -2,6 +2,32 @@ import { Platform, type EmulatorConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
 import { getAppiumHost, getAppiumPort } from '../../appium/AppiumServer.ts';
 
+function readEnv(name: string): string {
+  // `process.env[name]` stays runtime-readable. A direct `process.env.NAME`
+  // is inlined by Jest's transform-inline-environment-variables plugin.
+  const value = process.env[name];
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+/**
+ * Same path contract as `getDerivedDataPath` in
+ * `.github/scripts/qa-automation/appium-runner-prep/wda-derived-data-path.mjs`.
+ * CI DerivedData stays inside the workspace so actions/cache can extract it.
+ */
+function resolveIosWdaDerivedDataPath(): string {
+  const override = readEnv('WDA_DERIVED_DATA_PATH');
+  if (override) {
+    return override;
+  }
+
+  const workspace = readEnv('GITHUB_WORKSPACE');
+  if (workspace) {
+    return `${workspace}/.cache/appium-wda`;
+  }
+
+  return `${readEnv('HOME') || '~'}/appium-wda`;
+}
+
 function readOptionalPort(envKey: string): number | undefined {
   const raw = process.env[envKey]?.trim();
   if (!raw) {
@@ -195,7 +221,7 @@ export class EmulatorConfigBuilder {
         // with current timestamps, causing a full rebuild.
         ...(platformName === Platform.IOS
           ? {
-              'appium:derivedDataPath': `${process.env.HOME ?? '~'}/appium-wda`,
+              'appium:derivedDataPath': resolveIosWdaDerivedDataPath(),
               'appium:skipLogCapture': true,
               ...(usePreinstalledWda
                 ? {

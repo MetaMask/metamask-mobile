@@ -15,8 +15,9 @@ import {
   type PerpsProviderType,
   type PerpsProvider,
 } from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { translatePerpsError } from '../utils/translatePerpsError';
+import { handlePerpsError } from '../utils/translatePerpsError';
 import {
   getOrderFormFieldIssues,
   isAdvisoryOrderFormFieldIssue,
@@ -58,6 +59,7 @@ interface UsePerpsOrderValidationParams {
   providerId?: PerpsProviderType;
   /** Protocol error codes whose UI is owned by the calling form. */
   suppressedProtocolErrorCodes?: readonly string[];
+  maxLeverage?: number;
 }
 
 interface ValidationState {
@@ -142,6 +144,7 @@ interface ProtocolValidationErrorsInput {
   existingPositionLeverage?: number;
   minimumOrderSize: number;
   suppressedProtocolErrors: ReadonlySet<string>;
+  maxLeverage?: number;
 }
 
 interface BuildValidationOutcomeInput {
@@ -265,17 +268,19 @@ const getProtocolErrorContext = ({
   orderForm,
   existingPositionLeverage,
   minimumOrderSize,
+  maxLeverage,
 }: {
   error?: string;
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
   minimumOrderSize: number;
+  maxLeverage?: number;
 }): Record<string, unknown> => {
   switch (error) {
     case PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID:
       return {
         min: 1,
-        max: PERPS_CONSTANTS.DefaultMaxLeverage,
+        max: maxLeverage ?? PERPS_CONSTANTS.DefaultMaxLeverage,
       };
     case PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION:
       return {
@@ -311,6 +316,7 @@ const getProtocolValidationErrors = ({
   existingPositionLeverage,
   minimumOrderSize,
   suppressedProtocolErrors,
+  maxLeverage,
 }: ProtocolValidationErrorsInput): ErrorsWithInsufficientBalance => {
   const errors: string[] = [];
   const insufficientBalanceErrors: string[] = [];
@@ -326,15 +332,17 @@ const getProtocolValidationErrors = ({
     !isFieldOwnedError &&
     !suppressedProtocolErrors.has(error)
   ) {
-    const translatedError = translatePerpsError(
+    const translatedError = handlePerpsError({
       error,
-      getProtocolErrorContext({
+      context: getProtocolErrorContext({
         error,
         orderForm,
         existingPositionLeverage,
         minimumOrderSize,
+        maxLeverage,
       }),
-    );
+      fallbackMessage: strings('perps.order.validation.failed'),
+    });
     const isDuplicate = localErrors.some((existingError) =>
       existingError.includes(translatedError),
     );
@@ -352,6 +360,25 @@ const getProtocolValidationErrors = ({
 
   return { errors, insufficientBalanceErrors };
 };
+
+/**
+ * Mobile's Lighter signer only supports two-order groups, but a Lighter limit
+ * order with both TP and SL set signs as a group of three (entry + TP + SL).
+ */
+const getLighterLimitTpSlErrors = ({
+  providerId,
+  orderType,
+  hasTakeProfitAndStopLoss,
+}: {
+  providerId?: PerpsProviderType;
+  orderType: OrderFormState['type'];
+  hasTakeProfitAndStopLoss: boolean;
+}): string[] =>
+  providerId === PROVIDER_CONFIG.LighterProvider &&
+  orderType === 'limit' &&
+  hasTakeProfitAndStopLoss
+    ? [strings('perps.order.validation.lighter_limit_tpsl_unsupported')]
+    : EMPTY_ERRORS;
 
 const getValidationWarnings = (leverage: number): string[] => {
   if (leverage <= VALIDATION_THRESHOLDS.HighLeverageWarning) {
@@ -431,6 +458,7 @@ export function usePerpsOrderValidation(
     twapRandomize,
     providerId,
     suppressedProtocolErrorCodes = EMPTY_ERRORS,
+    maxLeverage,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -507,7 +535,22 @@ export function usePerpsOrderValidation(
       spendableBalance,
     ],
   );
-  const localErrors = immediateValidation.errors;
+  const hasLighterLimitTakeProfitAndStopLoss = Boolean(
+    orderForm.takeProfitPrice && orderForm.stopLossPrice,
+  );
+  const lighterLimitTpSlErrors = useMemo(
+    () =>
+      getLighterLimitTpSlErrors({
+        providerId,
+        orderType: orderForm.type,
+        hasTakeProfitAndStopLoss: hasLighterLimitTakeProfitAndStopLoss,
+      }),
+    [providerId, orderForm.type, hasLighterLimitTakeProfitAndStopLoss],
+  );
+  const localErrors = useMemo(
+    () => [...immediateValidation.errors, ...lighterLimitTpSlErrors],
+    [immediateValidation.errors, lighterLimitTpSlErrors],
+  );
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
@@ -631,6 +674,7 @@ export function usePerpsOrderValidation(
           existingPositionLeverage,
           minimumOrderSize,
           suppressedProtocolErrors,
+          maxLeverage,
         });
 
         return finalizeValidation({
@@ -669,6 +713,7 @@ export function usePerpsOrderValidation(
       triggerPrice,
       twapDuration,
       twapRandomize,
+      maxLeverage,
       providerId,
       suppressedProtocolErrors,
       validateOrder,
@@ -704,20 +749,34 @@ export function usePerpsOrderValidation(
     if (!hasValidatedOnceRef.current || becameLocallyValid) {
       hasValidatedOnceRef.current = true;
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors);
+        performValidation(requestId, fieldIssues, localErrors).catch(
+          (error: unknown) => {
+            DevLogger.log(
+              'usePerpsOrderValidation: Unexpected validation failure',
+              error,
+            );
+          },
+        );
       }
       return;
     }
 
     validationTimerRef.current = setTimeout(() => {
       if (requestId === validationRequestIdRef.current) {
-        performValidation(requestId, fieldIssues, localErrors);
+        performValidation(requestId, fieldIssues, localErrors).catch(
+          (error: unknown) => {
+            DevLogger.log(
+              'usePerpsOrderValidation: Unexpected validation failure',
+              error,
+            );
+          },
+        );
       }
       validationTimerRef.current = null;
     }, PERFORMANCE_CONFIG.ValidationDebounceMs);
 
     // Cleanup
-    return () => {
+    return (): void => {
       clearValidationTimer();
     };
   }, [

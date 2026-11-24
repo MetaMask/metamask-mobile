@@ -52,11 +52,13 @@ jest.mock('./utils/DeviceInfoExtractor', () => ({
   },
 }));
 
-jest.mock('./providers/browserstack/BrowserStackEnricher', () => ({
-  BrowserStackEnricher: jest.fn().mockImplementation(() => ({
+jest.mock('./providers/testmu/TestMuAIEnricher', () => ({
+  TestMuAIEnricher: jest.fn().mockImplementation(() => ({
     enrichSession: jest.fn().mockResolvedValue(undefined),
-    canHandle: jest.fn(() => true),
-    getProviderName: jest.fn(() => 'browserstack'),
+    canHandle: jest.fn((projectName: string) =>
+      projectName.toLowerCase().includes('testmu'),
+    ),
+    getProviderName: jest.fn(() => 'testmu'),
   })),
 }));
 
@@ -83,7 +85,8 @@ import PerformanceReporter from './PerformanceReporter';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
 import { JsonReportGenerator } from './generators/JsonReportGenerator';
-import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
+import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
+import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
 import { clearQualityGateFailures } from '../framework/quality-gates';
 
 function makeTest(overrides: Record<string, unknown> = {}) {
@@ -143,6 +146,10 @@ describe('PerformanceReporter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // clearAllMocks keeps implementations: restore the fs defaults that
+    // individual tests override (a throwing write, a missing reports dir).
+    (fs.writeFileSync as jest.Mock).mockReset();
+    (fs.existsSync as jest.Mock).mockReset().mockReturnValue(true);
     reporter = new PerformanceReporter();
   });
 
@@ -267,6 +274,191 @@ describe('PerformanceReporter', () => {
       // Basic entry created — verified by onEnd still having metrics
     });
 
+    describe('session creation failures and retries', () => {
+      interface ReporterInternals {
+        metrics: {
+          testName: string;
+          testFailed?: boolean;
+          failureReason?: string | null;
+          failureMessage?: string | null;
+          sessionId?: string | null;
+          steps: unknown[];
+          total: number;
+          retryInfo?: {
+            attempts: number;
+            firstFailureReason: string | null;
+            firstFailureMessage?: string | null;
+            firstFailureDurationSec: number | null;
+          };
+        }[];
+        sessions: { sessionId: string }[];
+        failedTestsByTeam: Record<
+          string,
+          { tests: { failureMessage?: string | null }[] }
+        >;
+      }
+      const internals = (r: PerformanceReporter) =>
+        r as unknown as ReporterInternals;
+
+      it('classifies a failure without metrics or session as session_creation_failed', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'timedOut', duration: 420003 }) as never,
+        );
+
+        const { metrics } = internals(reporter);
+        expect(metrics[0]?.testFailed).toBe(true);
+        expect(metrics[0]?.failureReason).toBe('session_creation_failed');
+      });
+
+      it('keeps the Playwright status when a session existed but no metrics were attached', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({
+            status: 'failed',
+            annotations: [{ type: 'sessionId', description: 'sess-9' }],
+          }) as never,
+        );
+
+        expect(internals(reporter).metrics[0]?.failureReason).toBe('failed');
+      });
+
+      it('replaces the stale failed attempt with the passing retry and records why it failed', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'timedOut', duration: 420003 }) as never,
+        );
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({
+            status: 'passed',
+            retry: 1,
+            attachments: [makeMetricsAttachment(), makeSessionAttachment()],
+          }) as never,
+        );
+
+        const { metrics, sessions, failedTestsByTeam } = internals(reporter);
+        expect(metrics).toHaveLength(1);
+        expect(metrics[0]?.testFailed).toBe(false);
+        expect(metrics[0]?.steps).toHaveLength(1);
+        expect(metrics[0]?.total).toBe(0.5);
+        expect(sessions.map((s) => s.sessionId)).toEqual(['sess-1']);
+        expect(failedTestsByTeam).toEqual({});
+        expect(metrics[0]?.retryInfo).toEqual({
+          attempts: 2,
+          firstFailureReason: 'session_creation_failed',
+          firstFailureMessage: null,
+          firstFailureDurationSec: 420.003,
+        });
+      });
+
+      describe('failure message', () => {
+        const elementError =
+          '\u001b[31mError: element ("android=new UiSelector().resourceId("navbar-hamburger-menu-button")") still not displayed after 936ms\u001b[39m\n    at framework/AppiumAssertions.ts:141';
+
+        it('keeps the first line of the error for tests that failed mid-way', () => {
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              error: { message: elementError },
+              attachments: [makeMetricsAttachment({ steps: [], total: 0 })],
+            }) as never,
+          );
+
+          const { metrics, failedTestsByTeam } = internals(reporter);
+          expect(metrics[0]?.failureReason).toBe('no_performance_metrics');
+          expect(metrics[0]?.failureMessage).toBe(
+            'element ("android=new UiSelector().resourceId("navbar-hamburger-menu-button")") still not displayed after 936ms',
+          );
+          expect(
+            failedTestsByTeam['@performance-team']?.tests[0]?.failureMessage,
+          ).toBe(metrics[0]?.failureMessage);
+        });
+
+        it('keeps the error for failures without metrics', () => {
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              annotations: [{ type: 'sessionId', description: 'sess-1' }],
+              errors: [
+                { message: 'Error: Expected element text "A" within 10000ms' },
+              ],
+            }) as never,
+          );
+
+          expect(internals(reporter).metrics[0]?.failureMessage).toBe(
+            'Expected element text "A" within 10000ms',
+          );
+        });
+
+        it('drops the error when quality gates are what failed', () => {
+          mockValidateMetrics.mockReturnValueOnce({
+            passed: false,
+            hasThresholds: true,
+            violations: [],
+          });
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              error: { message: 'Error: Quality gates exceeded: Step 1 ...' },
+              attachments: [makeMetricsAttachment()],
+            }) as never,
+          );
+
+          const { metrics } = internals(reporter);
+          expect(metrics[0]?.failureReason).toBe('quality_gates_exceeded');
+          expect(metrics[0]?.failureMessage).toBeNull();
+        });
+
+        it('records why the first attempt failed when a retry passes', () => {
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'failed',
+              error: {
+                message:
+                  'Error: element ("~login") still not displayed after 10ms',
+              },
+              attachments: [makeMetricsAttachment({ steps: [], total: 0 })],
+            }) as never,
+          );
+          reporter.onTestEnd(
+            makeTest() as never,
+            makeResult({
+              status: 'passed',
+              retry: 1,
+              attachments: [makeMetricsAttachment()],
+            }) as never,
+          );
+
+          expect(
+            internals(reporter).metrics[0]?.retryInfo?.firstFailureMessage,
+          ).toBe('element ("~login") still not displayed after 10ms');
+        });
+      });
+
+      it('keeps the first attempt as passed when the passing retry has no metrics', () => {
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'timedOut', duration: 420003 }) as never,
+        );
+        reporter.onTestEnd(
+          makeTest() as never,
+          makeResult({ status: 'passed', retry: 1 }) as never,
+        );
+
+        const { metrics } = internals(reporter);
+        expect(metrics).toHaveLength(1);
+        expect(metrics[0]?.testFailed).toBe(false);
+        expect(metrics[0]?.retryInfo?.firstFailureReason).toBe(
+          'session_creation_failed',
+        );
+      });
+    });
+
     it('retry pass clears only the matching project, not same title in another project', () => {
       const sharedTitle = 'Shared Title Flow';
       const device = { name: 'Pixel 6', osVersion: '12' };
@@ -354,60 +546,6 @@ describe('PerformanceReporter', () => {
       expect(fs.writeFileSync).toHaveBeenCalled();
     });
 
-    it('enriches sessions for BrowserStack runs', async () => {
-      const result = makeResult({
-        attachments: [
-          makeSessionAttachment({ projectName: 'browserstack-android' }),
-          makeMetricsAttachment(),
-        ],
-      });
-      reporter.onTestEnd(makeTest() as never, result as never);
-
-      await reporter.onEnd();
-
-      expect(BrowserStackEnricher).toHaveBeenCalled();
-    });
-
-    it('enriches sessions when project name ends with browserstack', async () => {
-      const result = makeResult({
-        attachments: [
-          makeSessionAttachment({
-            projectName: 'browserstack-android',
-          }),
-          makeMetricsAttachment(),
-        ],
-      });
-      reporter.onTestEnd(
-        makeTest({
-          parent: { project: { name: 'browserstack-android' } },
-        }) as never,
-        result as never,
-      );
-
-      await reporter.onEnd();
-
-      expect(BrowserStackEnricher).toHaveBeenCalled();
-    });
-
-    it('enriches sessions for onboarding BrowserStack projects', async () => {
-      const result = makeResult({
-        attachments: [
-          makeSessionAttachment({ projectName: 'android-onboarding' }),
-          makeMetricsAttachment(),
-        ],
-      });
-      reporter.onTestEnd(
-        makeTest({
-          parent: { project: { name: 'android-onboarding' } },
-        }) as never,
-        result as never,
-      );
-
-      await reporter.onEnd();
-
-      expect(BrowserStackEnricher).toHaveBeenCalled();
-    });
-
     it('creates reports directory if it does not exist', async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(false);
       const result = makeResult({
@@ -436,7 +574,70 @@ describe('PerformanceReporter', () => {
       await expect(reporter.onEnd()).resolves.not.toThrow();
     });
 
-    it('does not enrich sessions for non-BrowserStack runs', async () => {
+    describe('TestMu runs', () => {
+      const TESTMU_PROJECT = 'testmu-android';
+
+      const recordTestMuTest = () => {
+        const result = makeResult({
+          attachments: [
+            makeSessionAttachment({ projectName: TESTMU_PROJECT }),
+            makeMetricsAttachment(),
+          ],
+        });
+        reporter.onTestEnd(
+          makeTest({
+            parent: { project: { name: TESTMU_PROJECT } },
+          }) as never,
+          result as never,
+        );
+      };
+
+      const writtenPaths = (): string[] =>
+        (fs.writeFileSync as jest.Mock).mock.calls.map(([filePath]) =>
+          String(filePath),
+        );
+
+      it('enriches the session with the TestMu enricher', async () => {
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        const enricher = (TestMuAIEnricher as unknown as jest.Mock).mock
+          .results[0].value;
+        expect(enricher.enrichSession).toHaveBeenCalledWith(
+          expect.objectContaining({ projectName: TESTMU_PROJECT }),
+        );
+      });
+
+      it('writes HTML and CSV reports with a -testmu suffix for a TestMu device', async () => {
+        (DeviceInfoExtractor.extract as jest.Mock).mockReturnValueOnce({
+          name: 'Pixel 8 Pro',
+          osVersion: '14',
+          provider: 'testmu',
+        });
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        const paths = writtenPaths();
+        expect(
+          paths.some((p) => p.endsWith('.html') && p.includes('-testmu')),
+        ).toBe(true);
+        expect(
+          paths.some((p) => p.endsWith('.csv') && p.includes('-testmu')),
+        ).toBe(true);
+      });
+
+      it('leaves the -testmu suffix off for other providers', async () => {
+        recordTestMuTest();
+
+        await reporter.onEnd();
+
+        expect(writtenPaths().some((p) => p.includes('-testmu'))).toBe(false);
+      });
+    });
+
+    it('does not enrich local emulator sessions with TestMu', async () => {
       const result = makeResult({
         attachments: [
           makeSessionAttachment({ projectName: 'local-android' }),
@@ -450,13 +651,7 @@ describe('PerformanceReporter', () => {
 
       await reporter.onEnd();
 
-      // BrowserStackEnricher should still be constructed but enrichSession should not be called
-      // because the project name doesn't include "browserstack"
-      const enricherInstance = (BrowserStackEnricher as unknown as jest.Mock)
-        .mock.results[0];
-      if (enricherInstance) {
-        expect(enricherInstance.value.enrichSession).not.toHaveBeenCalled();
-      }
+      expect(TestMuAIEnricher).not.toHaveBeenCalled();
     });
   });
 });

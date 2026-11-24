@@ -181,6 +181,25 @@ describe('parseDeeplink', () => {
 
     expect(mockHandleSolanaUrl).toHaveBeenCalledWith({
       url,
+      origin: 'testOrigin',
+    });
+  });
+
+  it('passes QR origin through to handleSolanaUrl', async () => {
+    const url =
+      'solana:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV?amount=25.515000';
+
+    await parseDeeplink({
+      deeplinkManager: instance,
+      url,
+      origin: 'qr-code',
+      browserCallBack: mockBrowserCallBack,
+      onHandled: mockOnHandled,
+    });
+
+    expect(mockHandleSolanaUrl).toHaveBeenCalledWith({
+      url,
+      origin: 'qr-code',
     });
   });
 
@@ -206,6 +225,30 @@ describe('parseDeeplink', () => {
   it('calls handleUniversalLinks for METAMASK protocol', async () => {
     const url = 'metamask://example.com';
     const expectedMappedUrl = 'https://link.metamask.io/example.com';
+    const { urlObj } = extractURLParams(expectedMappedUrl);
+
+    await parseDeeplink({
+      deeplinkManager: instance,
+      url,
+      origin: 'testOrigin',
+      browserCallBack: mockBrowserCallBack,
+      onHandled: mockOnHandled,
+    });
+
+    expect(mockHandleUniversalLinks).toHaveBeenCalledWith({
+      instance,
+      handled: expect.any(Function),
+      urlObj,
+      browserCallBack: mockBrowserCallBack,
+      url: expectedMappedUrl,
+      source: 'testOrigin',
+      mode: 'execute',
+    });
+  });
+
+  it('maps the custom Money deposit scheme to the universal-link handler', async () => {
+    const url = 'metamask://money-account-deposit';
+    const expectedMappedUrl = 'https://link.metamask.io/money-account-deposit';
     const { urlObj } = extractURLParams(expectedMappedUrl);
 
     await parseDeeplink({

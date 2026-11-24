@@ -131,6 +131,35 @@ export const isPriceOutsideDeviationBand = (
   return minPrice < (1 - maxDeviation) * maxPrice;
 };
 
+/**
+ * Inclusive HyperLiquid price band around a reference price.
+ * `isPriceOutsideDeviationBand` is true exactly when `price` is outside this range.
+ *
+ * @param referencePrice - Oracle/mark used as the band center
+ * @param maxDeviation - Max allowed deviation as a decimal (e.g. 0.95 = 95%)
+ * @returns `{ min, max }` when the reference is usable, otherwise `undefined`
+ */
+export const getPriceDeviationBand = (
+  referencePrice: number,
+  maxDeviation: number,
+): { min: number; max: number } | undefined => {
+  if (
+    !referencePrice ||
+    referencePrice <= 0 ||
+    !Number.isFinite(referencePrice) ||
+    !Number.isFinite(maxDeviation) ||
+    maxDeviation <= 0 ||
+    maxDeviation >= 1
+  ) {
+    return undefined;
+  }
+  const ratio = 1 - maxDeviation;
+  return {
+    min: ratio * referencePrice,
+    max: referencePrice / ratio,
+  };
+};
+
 type OrderPriceLabelKey =
   | 'perps.order.limit_price'
   | 'perps.order.market_price';

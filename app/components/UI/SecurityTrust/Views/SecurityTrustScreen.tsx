@@ -68,9 +68,7 @@ const SecurityTrustScreen: React.FC = () => {
   const hasTrackedView = useRef(false);
   const timeSpentStart = useRef<number>(Date.now());
 
-  const params = route.params as TokenDetailsRouteParams & {
-    useAmbientColor?: boolean;
-  };
+  const params = route.params as TokenDetailsRouteParams;
   const securityData = params?.securityData ?? null;
   const explorer = useBlockExplorer(params?.chainId);
   const evmNetworkConfigurations = useSelector(
@@ -273,7 +271,7 @@ const SecurityTrustScreen: React.FC = () => {
           <Text
             variant={TextVariant.HeadingMd}
             color={resultTextColor}
-            fontWeight={'600' as FontWeight}
+            fontWeight={FontWeight.Bold}
           >
             {resultLabel}
           </Text>
@@ -480,7 +478,7 @@ const SecurityTrustScreen: React.FC = () => {
                 flexDirection={BoxFlexDirection.Row}
                 alignItems={BoxAlignItems.Center}
                 gap={1}
-                twClassName="bg-success-muted rounded px-1.5 min-w-[22px] self-start"
+                twClassName="bg-success-muted rounded-md px-1.5 py-0.5 min-w-[22px] self-start"
               >
                 <Icon
                   name={IconName.SecurityTick}
@@ -720,7 +718,6 @@ const SecurityTrustScreen: React.FC = () => {
         securityData={securityData}
         networkName={networkName}
         sourcePage="SecurityTrustView"
-        useAmbientColor={params.useAmbientColor}
         onQuickBuyPress={onQuickBuyPress}
       />
       {quickBuySheet}

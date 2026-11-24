@@ -1,9 +1,10 @@
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
-import { ToastContext } from '../../../../component-library/components/Toast';
 import type {
   BaseCampaignParticipantOutcomeDto,
   CampaignType,
@@ -20,6 +21,14 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { navigateToRewardsRoute } from '../utils';
 import useRewardsToast from './useRewardsToast';
 import type { RewardsStackParamList } from '../types/navigation';
+
+const dismissToast = () => {
+  try {
+    toast.dismiss();
+  } catch {
+    // Toaster is registered at app root; ignore if it is not mounted yet.
+  }
+};
 
 export interface CampaignOutcomeToastConfig {
   campaignType: CampaignType;
@@ -47,7 +56,6 @@ export function useCampaignOutcomeToast(
   } = config;
 
   const dispatch = useDispatch();
-  const { toastRef } = useContext(ToastContext);
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const navigation = useNavigation<AppNavigationProp>();
 
@@ -105,8 +113,8 @@ export function useCampaignOutcomeToast(
         variant,
       }),
     );
-    toastRef?.current?.closeToast();
-  }, [variant, targetCampaign, subscriptionId, dispatch, toastRef]);
+    dismissToast();
+  }, [variant, targetCampaign, subscriptionId, dispatch]);
 
   const handleCta = useCallback(() => {
     if (!targetCampaign || !variant) return;
@@ -131,45 +139,54 @@ export function useCampaignOutcomeToast(
 
   useFocusEffect(
     useCallback(() => {
-      if (!variant || isDismissed || !targetCampaign) return;
+      if (!variant || isDismissed || !targetCampaign) return undefined;
 
-      const isWinner = variant === 'winner';
-      if (isWinner) {
-        showToast(
-          RewardsToastOptions.outcomeWinner({
-            title: strings('rewards.campaign_outcome_toast.winner.title'),
-            description: strings(
-              'rewards.campaign_outcome_toast.winner.description',
-              { campaignName: targetCampaign.name ?? '' },
-            ),
-            ctaLabel: strings('rewards.campaign_outcome_toast.winner.cta'),
-            onCtaPress: handleCta,
-            onClosePress: handleDismiss,
-          }),
-        );
-      } else {
-        showToast(
-          RewardsToastOptions.outcomeNonWinner({
-            title: strings('rewards.campaign_outcome_toast.non_winner.title'),
-            description: strings(
-              'rewards.campaign_outcome_toast.non_winner.description',
-              { campaignName: targetCampaign.name ?? '' },
-            ),
-            ctaLabel: strings('rewards.campaign_outcome_toast.non_winner.cta'),
-            onCtaPress: handleCta,
-            onClosePress: handleDismiss,
-          }),
-        );
-      }
+      let cancelled = false;
+      const handle = runAfterInteractions(() => {
+        if (cancelled) {
+          return;
+        }
+        const isWinner = variant === 'winner';
+        if (isWinner) {
+          showToast(
+            RewardsToastOptions.outcomeWinner({
+              title: strings('rewards.campaign_outcome_toast.winner.title'),
+              description: strings(
+                'rewards.campaign_outcome_toast.winner.description',
+                { campaignName: targetCampaign.name ?? '' },
+              ),
+              ctaLabel: strings('rewards.campaign_outcome_toast.winner.cta'),
+              onCtaPress: handleCta,
+              onClosePress: handleDismiss,
+            }),
+          );
+        } else {
+          showToast(
+            RewardsToastOptions.outcomeNonWinner({
+              title: strings('rewards.campaign_outcome_toast.non_winner.title'),
+              description: strings(
+                'rewards.campaign_outcome_toast.non_winner.description',
+                { campaignName: targetCampaign.name ?? '' },
+              ),
+              ctaLabel: strings(
+                'rewards.campaign_outcome_toast.non_winner.cta',
+              ),
+              onCtaPress: handleCta,
+              onClosePress: handleDismiss,
+            }),
+          );
+        }
+      });
 
       return () => {
-        toastRef?.current?.closeToast();
+        cancelled = true;
+        handle.cancel();
+        dismissToast();
       };
     }, [
       variant,
       isDismissed,
       targetCampaign,
-      toastRef,
       showToast,
       RewardsToastOptions,
       handleCta,

@@ -7,15 +7,19 @@ import {
   logBrazeBannerClick,
   dismissBrazeBanner,
   refreshBrazeBanners,
+  syncBrazeEventBlocklist,
 } from './index';
 import { BrazePlugin } from '../Engine/controllers/analytics-controller/BrazePlugin';
 import Braze from '@braze/react-native-sdk';
+import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
 import {
   BANNER_EVENT_DISMISSED,
   BANNER_EVENT_DISPLAY,
+  BANNER_EVENT_SELECT,
 } from '../../constants/engagement';
 
 const mockSetBrazeProfileId = jest.fn();
+const mockSetBlockedEvents = jest.fn();
 const mockSetLanguage = jest.fn();
 const mockHasPendingBrazePushUnregistrationSync = jest.fn();
 
@@ -24,6 +28,7 @@ jest.mock('../Engine/controllers/analytics-controller/BrazePlugin', () => ({
     type: 'destination',
     key: 'Appboy',
     setBrazeProfileId: mockSetBrazeProfileId,
+    setBlockedEvents: mockSetBlockedEvents,
     setLanguage: mockSetLanguage,
   })),
 }));
@@ -33,7 +38,12 @@ jest.mock('./pushRegistrationState', () => ({
     mockHasPendingBrazePushUnregistrationSync(),
 }));
 
+jest.mock('../../selectors/featureFlagController/brazeEventBlocklist', () => ({
+  getBrazeBlockedEventNames: jest.fn(),
+}));
+
 const MockBrazePlugin = BrazePlugin as jest.MockedClass<typeof BrazePlugin>;
+const mockGetBrazeBlockedEventNames = jest.mocked(getBrazeBlockedEventNames);
 
 describe('Braze service', () => {
   beforeEach(() => {
@@ -45,6 +55,7 @@ describe('Braze service', () => {
           type: 'destination',
           key: 'Appboy',
           setBrazeProfileId: mockSetBrazeProfileId,
+          setBlockedEvents: mockSetBlockedEvents,
           setLanguage: mockSetLanguage,
         }) as unknown as BrazePlugin,
     );
@@ -150,9 +161,33 @@ describe('Braze service', () => {
 
   describe('logBrazeBannerClick', () => {
     it('calls logBannerClick with the placementId and null', () => {
-      logBrazeBannerClick('placement-1');
+      logBrazeBannerClick('placement-1', null);
 
       expect(Braze.logBannerClick).toHaveBeenCalledWith('placement-1', null);
+    });
+
+    it('logs a select custom event with the supplied properties', () => {
+      logBrazeBannerClick('placement-1', {
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
+
+      expect(Braze.logCustomEvent).toHaveBeenCalledWith(BANNER_EVENT_SELECT, {
+        campaign_name: 'campaign-abc',
+        variant_name: 'variant-1',
+      });
+    });
+
+    it('skips the select custom event when properties is null', () => {
+      logBrazeBannerClick('placement-1', null);
+
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+    });
+
+    it('does not flush the select event immediately', () => {
+      logBrazeBannerClick('placement-1', { campaign_name: 'campaign-abc' });
+
+      expect(Braze.requestImmediateDataFlush).not.toHaveBeenCalled();
     });
   });
 
@@ -164,23 +199,55 @@ describe('Braze service', () => {
     });
   });
 
+  describe('syncBrazeEventBlocklist', () => {
+    it('applies the event names returned for the flag value', () => {
+      const flagValue = {
+        enabled: true,
+        minimumVersion: '8.14.0',
+        blockedEvents: ['App Opened'],
+      };
+      mockGetBrazeBlockedEventNames.mockReturnValue(['App Opened']);
+
+      syncBrazeEventBlocklist(flagValue);
+
+      expect(mockGetBrazeBlockedEventNames).toHaveBeenCalledWith(flagValue);
+      expect(mockSetBlockedEvents).toHaveBeenCalledWith(['App Opened']);
+    });
+
+    it('clears the blocklist when parsing the flag throws', () => {
+      mockGetBrazeBlockedEventNames.mockImplementation(() => {
+        throw new Error('flag parse failed');
+      });
+
+      syncBrazeEventBlocklist({ enabled: true });
+
+      expect(mockSetBlockedEvents).toHaveBeenCalledWith([]);
+    });
+  });
+
   describe('dismissBrazeBanner', () => {
-    it('logs the dismissed event with the supplied properties', () => {
-      dismissBrazeBanner({ banner_id: 'campaign-xyz', placement_id: 'home' });
+    it('calls Braze.dismissBanner with the placement ID', () => {
+      dismissBrazeBanner('placement-1', { campaign_name: 'campaign-abc' });
+
+      expect(Braze.dismissBanner).toHaveBeenCalledWith('placement-1');
+    });
+
+    it('logs a custom dismissed event with the supplied properties', () => {
+      dismissBrazeBanner('placement-1', { campaign_name: 'campaign-abc' });
 
       expect(Braze.logCustomEvent).toHaveBeenCalledWith(
         BANNER_EVENT_DISMISSED,
-        {
-          banner_id: 'campaign-xyz',
-          placement_id: 'home',
-        },
+        { campaign_name: 'campaign-abc' },
       );
+      expect(Braze.requestImmediateDataFlush).toHaveBeenCalled();
     });
 
-    it('requests an immediate data flush after logging the event', () => {
-      dismissBrazeBanner({ banner_id: 'campaign-xyz' });
+    it('skips the custom dismissed event when properties is null', () => {
+      dismissBrazeBanner('placement-1', null);
 
-      expect(Braze.requestImmediateDataFlush).toHaveBeenCalledTimes(1);
+      expect(Braze.dismissBanner).toHaveBeenCalledWith('placement-1');
+      expect(Braze.logCustomEvent).not.toHaveBeenCalled();
+      expect(Braze.requestImmediateDataFlush).not.toHaveBeenCalled();
     });
   });
 });

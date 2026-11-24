@@ -19,9 +19,12 @@ import {
   type GetEventResult,
   type GetFeedResult,
   type GetMarketHistoryResult,
+  type GetVenueCatalogResult,
   type GetVenueStatusResult,
+  type SearchEventsResult,
 } from '../queries/marketDataQueries';
 import type {
+  FetchSearchParams,
   PredictEntityId,
   PredictFeedId,
   PredictMarketHistoryRange,
@@ -40,6 +43,14 @@ export interface PredictMarketDataServiceGetVenueStatusAction {
     venueId: PredictVenueId,
     options?: PredictReadOptions,
   ) => Promise<GetVenueStatusResult>;
+}
+
+export interface PredictMarketDataServiceGetVenueCatalogAction {
+  type: 'PredictMarketDataService:getVenueCatalog';
+  handler: (
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ) => Promise<GetVenueCatalogResult>;
 }
 
 export interface PredictMarketDataServiceGetFeedAction {
@@ -72,11 +83,22 @@ export interface PredictMarketDataServiceGetMarketHistoryAction {
   ) => Promise<GetMarketHistoryResult>;
 }
 
+export interface PredictMarketDataServiceSearchEventsAction {
+  type: 'PredictMarketDataService:searchEvents';
+  handler: (
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ) => Promise<SearchEventsResult>;
+}
+
 export type PredictMarketDataServiceActions =
   | PredictMarketDataServiceGetVenueStatusAction
+  | PredictMarketDataServiceGetVenueCatalogAction
   | PredictMarketDataServiceGetFeedAction
   | PredictMarketDataServiceGetEventAction
   | PredictMarketDataServiceGetMarketHistoryAction
+  | PredictMarketDataServiceSearchEventsAction
   | DataServiceInvalidateQueriesAction<typeof PREDICT_MARKET_DATA_SERVICE_NAME>;
 
 export type PredictMarketDataServiceEvents =
@@ -133,6 +155,10 @@ export class PredictMarketDataService extends BaseDataService<
       this.getVenueStatus.bind(this),
     );
     messenger.registerActionHandler(
+      'PredictMarketDataService:getVenueCatalog',
+      this.getVenueCatalog.bind(this),
+    );
+    messenger.registerActionHandler(
       'PredictMarketDataService:getFeed',
       this.getFeed.bind(this),
     );
@@ -143,6 +169,10 @@ export class PredictMarketDataService extends BaseDataService<
     messenger.registerActionHandler(
       'PredictMarketDataService:getMarketHistory',
       this.getMarketHistory.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictMarketDataService:searchEvents',
+      this.searchEvents.bind(this),
     );
   }
 
@@ -170,6 +200,24 @@ export class PredictMarketDataService extends BaseDataService<
             }) as Promise<Json & GetVenueStatusResult>,
         }),
     );
+  }
+
+  /** Reads the Venue's product support. Fresh for five minutes; a failed
+   * refresh leaves the last valid catalog in the cache. */
+  async getVenueCatalog(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<GetVenueCatalogResult> {
+    this.#assertVenue(venueId);
+    const descriptor = marketDataQueries.getVenueCatalog(venueId);
+    return this.fetchQuery({
+      queryKey: descriptor.queryKey,
+      staleTime: descriptor.staleTime,
+      queryFn: ({ signal }) =>
+        this.#marketData.fetchVenueCatalog({
+          signal: options?.signal ?? signal,
+        }) as Promise<Json & GetVenueCatalogResult>,
+    });
   }
 
   async getFeed(
@@ -271,6 +319,35 @@ export class PredictMarketDataService extends BaseDataService<
             this.#marketData.fetchMarketHistory(marketId, range, {
               signal: options?.signal ?? signal,
             }) as Promise<Json & GetMarketHistoryResult>,
+        }),
+    );
+  }
+
+  async searchEvents(
+    venueId: PredictVenueId,
+    params: FetchSearchParams,
+    options?: PredictReadOptions,
+  ): Promise<SearchEventsResult> {
+    this.#assertVenue(venueId);
+    const descriptor = marketDataQueries.searchEvents(venueId, params);
+    return withPredictNextTrace(
+      {
+        method: 'searchEvents',
+        name: TraceName.PredictNextSearchEvents,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId },
+        // The query text is user input; only its size is traced.
+        data: { queryLength: params.q.length, limit: params.limit ?? 0 },
+        resultData: (result) => ({ eventCount: result.events.length }),
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#marketData.searchEvents(params, {
+              signal: options?.signal ?? signal,
+            }) as Promise<Json & SearchEventsResult>,
         }),
     );
   }

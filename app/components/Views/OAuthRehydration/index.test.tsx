@@ -23,6 +23,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { useNetInfo } from '@react-native-community/netinfo';
 import Logger from '../../../util/Logger';
 import { captureException } from '@sentry/react-native';
+import { captureExceptionForced } from '../../../util/sentry/utils';
 import { UNLOCK_WALLET_ERROR_MESSAGES } from '../../../core/Authentication/constants';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
@@ -75,6 +76,10 @@ jest.mock('../../../core/Performance/unlockTraces', () => ({
 
 jest.mock('../../../util/Logger');
 
+jest.mock('../../../util/sentry/utils', () => ({
+  captureExceptionForced: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock(
   '../../../util/onboarding/hooks/useOnboardingLoadingStallTracker',
   () => ({
@@ -99,8 +104,7 @@ jest.mock('../../../util/analytics/analytics', () => ({
 
 jest.mock('react-native-qrcode-svg', () => 'QRCode');
 
-jest.mock('../../../images/branding/fox.png', () => 'fox-logo');
-jest.mock('../../../images/branding/metamask-name.png', () => 'metamask-name');
+jest.mock('../../UI/FoxAnimation/FoxAnimation');
 
 jest.mock('../../../util/trace', () => ({
   ...jest.requireActual('../../../util/trace'),
@@ -198,6 +202,7 @@ jest.mock('../../../store/storage-wrapper', () => ({
 const mockTrackOnboarding = trackOnboarding as jest.Mock;
 const mockUseNetInfo = useNetInfo as jest.Mock;
 const mockCaptureException = captureException as jest.Mock;
+const mockCaptureExceptionForced = captureExceptionForced as jest.Mock;
 
 const enterPasswordAndSubmit = async (
   getByTestId: (id: string) => ReactTestInstance,
@@ -278,9 +283,6 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
-      await waitFor(() => {
-        expect(mockGetMarketingOptInStatus).toHaveBeenCalled();
-      });
       expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
         mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
       );
@@ -298,11 +300,7 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('syncs marketing consent into Redux and analytics after unlock', async () => {
-      mockGetMarketingOptInStatus.mockResolvedValueOnce({
-        is_opt_in: true,
-      });
-
+    it('does not read marketing consent from the OAuth backend after unlock', async () => {
       const { getByTestId, store } = renderWithProvider(<OAuthRehydration />, {
         state: {
           engine: {
@@ -312,27 +310,17 @@ describe('OAuthRehydration', () => {
               },
             },
           },
+          security: { dataCollectionForMarketing: false },
         },
       });
       await enterPasswordAndSubmit(getByTestId);
 
       await waitFor(() => {
-        expect(store.getState().security.dataCollectionForMarketing).toBe(true);
-        expect(mockAnalyticsIdentify).toHaveBeenCalledWith({
-          [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-        });
-        expect(mockAnalyticsTrackEvent).toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-            properties: expect.objectContaining({
-              [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
-              updated_after_onboarding: true,
-              location: 'oauth_rehydration',
-              account_type: AccountType.ImportedGoogle,
-            }),
-          }),
-        );
+        expect(mockTrackOnboarding).toHaveBeenCalled();
       });
+      expect(mockGetMarketingOptInStatus).not.toHaveBeenCalled();
+      expect(store.getState().security.dataCollectionForMarketing).toBe(false);
+      expect(mockAnalyticsIdentify).not.toHaveBeenCalled();
     });
 
     it('logs error when post-unlock biometric prompt fails', async () => {
@@ -612,11 +600,11 @@ describe('OAuthRehydration', () => {
       });
     });
 
-    it('captures Sentry exception for non-oauth seedless failure when metrics enabled', async () => {
+    it('force-captures Sentry for non-oauth seedless failure without incident_1745 tag', async () => {
       mockRoute.mockReturnValue({
         params: { locked: true, oauthLoginSuccess: false },
       });
-      mockIsEnabled.mockReturnValue(true);
+      mockIsEnabled.mockReturnValue(false);
       const seedlessError = new Error(
         'SeedlessOnboardingController - Vault corrupted',
       );
@@ -626,12 +614,19 @@ describe('OAuthRehydration', () => {
       await enterPasswordAndSubmit(getByTestId, 'password123');
 
       await waitFor(() => {
-        expect(mockCaptureException).toHaveBeenCalledWith(
+        expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
           seedlessError,
           expect.objectContaining({
-            tags: expect.objectContaining({ view: 'Re-login' }),
+            view: 'Re-login',
+            context: 'seedless flow unlock wallet failed',
+            profile_id: expect.any(String),
           }),
         );
+        const extra = mockCaptureExceptionForced.mock.calls[0][1] as Record<
+          string,
+          string
+        >;
+        expect(extra.incident).toBeUndefined();
       });
     });
 

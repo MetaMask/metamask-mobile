@@ -4,6 +4,7 @@ import type { IncludeAsset, PopularToken } from '../types';
 interface UsePopularTokensParams {
   includeAssets: IncludeAsset[];
   fetchTokens: (signal?: AbortSignal) => Promise<PopularToken[] | undefined>;
+  enabled?: boolean;
 }
 
 interface UsePopularTokensResult {
@@ -19,6 +20,7 @@ interface UsePopularTokensResult {
 export const usePopularTokens = ({
   includeAssets,
   fetchTokens,
+  enabled = true,
 }: UsePopularTokensParams): UsePopularTokensResult => {
   const [popularTokens, setPopularTokens] = useState<
     PopularToken[] | undefined
@@ -27,6 +29,10 @@ export const usePopularTokens = ({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(false);
+      return undefined;
+    }
     abortControllerRef.current?.abort();
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
@@ -58,7 +64,7 @@ export const usePopularTokens = ({
     return () => {
       abortControllerRef.current?.abort();
     };
-  }, [fetchTokens]);
+  }, [enabled, fetchTokens]);
 
   return { popularTokens: popularTokens ?? includeAssets, isLoading };
 };

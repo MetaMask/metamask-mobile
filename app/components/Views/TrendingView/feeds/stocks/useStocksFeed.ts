@@ -4,14 +4,15 @@ import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import { NetworkToCaipChainId } from '../../../../UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens';
+import { RWA_CHAIN_IDS } from '../../../../UI/Trending/utils/trendingNetworksList';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import { useFeedRefresh } from '../../hooks/useFeedRefresh';
 import type { RefreshConfig } from '../../hooks/useExploreRefresh';
+import type { SearchRequestPerformance } from '../../../../../util/searchPerformance';
 
 const STOCKS_FEED_RWA_CHAIN_IDS: CaipChainId[] = [
   NetworkToCaipChainId.ETHEREUM,
-  // TODO: re-enable Robinhood RWA when cleared for release (#35854).
-  // NetworkToCaipChainId.ROBINHOOD,
+  NetworkToCaipChainId.ROBINHOOD,
 ];
 const STOCKS_FEED_ASSET_ID_PREFIXES = STOCKS_FEED_RWA_CHAIN_IDS.map(
   (chainId) => `${chainId}/`,
@@ -20,6 +21,7 @@ export const STOCKS_FEED_PREVIEW_PAGE_SIZE = 3;
 
 interface UseStocksFeedOptions {
   query?: string;
+  performance?: SearchRequestPerformance;
   pageSize?: number;
   refresh?: RefreshConfig;
 }
@@ -48,11 +50,13 @@ export interface UseStocksFeedResult {
  */
 export const useStocksFeed = ({
   query,
+  performance,
   pageSize,
   refresh,
 }: UseStocksFeedOptions = {}): UseStocksFeedResult => {
   const trimmedQuery = query?.trim();
   const hasQuery = Boolean(trimmedQuery);
+  const chainIds = hasQuery ? RWA_CHAIN_IDS : STOCKS_FEED_RWA_CHAIN_IDS;
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
@@ -66,8 +70,9 @@ export const useStocksFeed = ({
     loadMore,
   } = useRwaTokens({
     searchQuery: hasQuery ? trimmedQuery : undefined,
-    chainIds: hasQuery ? undefined : STOCKS_FEED_RWA_CHAIN_IDS,
+    chainIds,
     pageSize,
+    ...(hasQuery && performance ? { performance } : {}),
     includeTokenSecurityData: hasQuery && isBasicFunctionalityEnabled,
   });
 

@@ -96,6 +96,22 @@ jest.mock('../../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
 }));
 
+// The submit path reads the social post-trade prompt and the social flag. Their
+// selectors need the version-gated flag helper, which this suite does not
+// exercise.
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({
+    usePostTradePromptResolver: () => () => ({ kind: 'none' }),
+  }),
+);
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  ...jest.requireActual(
+    '../../../../../selectors/featureFlagController/socialV1',
+  ),
+  selectIsSocialV1Enabled: () => false,
+}));
+
 jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
   useHwConnectionMonitoring: jest.fn(() => ({
     isDisconnectedRef: { current: false },
@@ -150,6 +166,7 @@ const createMockBridgeSession = (
   setRenderedTab: jest.fn(),
   latestSourceBalance: mockLatestSourceBalance,
   quoteParams: {},
+  setQuoteParams: jest.fn(),
   ...overrides,
 });
 
@@ -2021,6 +2038,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2059,6 +2077,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2092,6 +2111,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '25%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2238,6 +2258,7 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(
@@ -2261,10 +2282,8 @@ describe('SwapsMarketOrderConfirmButton', () => {
       );
     });
 
-    it('reads the danger threshold from bridge feature flags state', async () => {
-      // priceImpact raw value 0.25 exactly meets the danger threshold configured
-      // in mockState (defaultBridgeConfigV2.priceImpactThreshold.error = 0.25),
-      // confirming the component reads bridgeFeatureFlags from the Redux store.
+    it('navigates to PriceImpactModal when shouldShowPriceImpactError is true', async () => {
+      // 0.25 >= 0.25, so the modal IS shown and the transaction is not submitted
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -2273,13 +2292,14 @@ describe('SwapsMarketOrderConfirmButton', () => {
             ...mockActiveQuote,
             quote: {
               ...mockActiveQuote.quote,
-              priceData: { priceImpact: { amount: '0.25' } }, // 0.25 >= 0.25 → modal shown
+              priceData: { priceImpact: { amount: '0.25' } },
             },
           },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '25%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const { getByTestId } = renderWithProvider(

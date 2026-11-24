@@ -53,6 +53,36 @@ describe('getTransactionPayControllerMessenger', () => {
     );
   });
 
+  it('delegates the AccountTreeController actions used to resolve the source account', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'AccountTreeController:getAccountContext',
+          'AccountTreeController:getAccountGroupObject',
+        ]),
+      }),
+    );
+  });
+
+  it('delegates the AssetsController state action and event', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['AssetsController:getState']),
+        events: expect.arrayContaining(['AssetsController:stateChange']),
+      }),
+    );
+  });
+
   it('delegates the RampsController actions the fiat pay strategy needs', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
@@ -97,5 +127,34 @@ describe('getTransactionPayControllerInitMessenger', () => {
     const result = getTransactionPayControllerInitMessenger(rootMessenger);
 
     expect(result).toBeInstanceOf(Messenger);
+  });
+
+  it('delegates KeyringController:getState and unlock so signing can wait for unlock', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerInitMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining(['KeyringController:getState']),
+        events: expect.arrayContaining(['KeyringController:unlock']),
+      }),
+    );
+  });
+
+  it('delegates RemoteFeatureFlagController:getState for the delegation deadline', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    getTransactionPayControllerInitMessenger(rootMessenger);
+
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actions: expect.arrayContaining([
+          'RemoteFeatureFlagController:getState',
+        ]),
+      }),
+    );
   });
 });

@@ -30,7 +30,6 @@ import {
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
-  setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
   selectBridgeControllerState,
   selectQuoteStreamComplete,
@@ -51,8 +50,6 @@ import QuoteDetailsCardSkeleton from '../../../components/QuoteDetailsCard/Quote
 import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { createStyles } from './BridgeMarketView.styles';
-import { useInitialSourceToken } from '../../../hooks/useInitialSourceToken';
-import { useInitialDestToken } from '../../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
@@ -83,6 +80,7 @@ import { normalizeSourceAmountToMaxLength } from '../../../utils/normalizeSource
 import { FLipQuoteButton } from '../../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../../hooks/useIsGasIncluded7702Supported/index.ts';
+import { useIsNativeGasIncludedSupported } from '../../../hooks/useIsNativeGasIncludedSupported';
 import { useRefreshSmartTransactionsLiveness } from '../../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import { SwapsKeypadRef } from '../../../components/SwapsKeypad/types.ts';
@@ -106,6 +104,9 @@ import { selectRemoteFeatureFlags } from '../../../../../../selectors/featureFla
 import type { RootState } from '../../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeMarketViewFooter } from './BridgeMarketViewFooter.tsx';
+import RebateBanner from '../../../../shared/RebateBanner';
+import { SWAPS_REBATE_BANNER_TEST_ID } from '../../../components/SwapsRebateBanner';
+import { useSwapsRebate } from '../../../hooks/useSwapsRebate';
 import {
   InsufficientNativeReserveBanner,
   MarketClosedBanner,
@@ -125,19 +126,17 @@ import {
   showPostTradeNotificationSurface,
 } from '../../../utils/postTradeNotifications';
 import { useStockMarketHours } from '../../../hooks/useStockMarketHours';
-import { isGaslessQuote } from '../../../utils/isGaslessQuote';
 import { getGaslessFeeAsset } from '../../../utils/getGaslessFeeAsset';
 import { useShouldRenderGasSponsoredBanner } from '../../../hooks/useShouldRenderGasSponsoredBanner';
-import {
-  GASLESS_SWAP_REDESIGN_AB_KEY,
-  GASLESS_SWAP_REDESIGN_EXPOSURE_METADATA,
-  GASLESS_SWAP_REDESIGN_VARIANTS,
-} from '../../../components/QuoteDetailsCard/abTestConfig';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
-const BridgeMarketViewContent = () => {
+const BridgeMarketViewContent = ({
+  location,
+}: {
+  location: MetaMetricsSwapsEventSource;
+}) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
 
   const { isStockMarketClosed } = useStockMarketHours();
@@ -209,9 +208,6 @@ const BridgeMarketViewContent = () => {
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
-  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
-  const location =
-    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -228,11 +224,8 @@ const BridgeMarketViewContent = () => {
   // Update isGasIncluded7702Supported state
   useIsGasIncluded7702Supported(sourceToken?.chainId);
 
-  const initialSourceToken = route.params?.sourceToken;
-  const initialSourceAmount = route.params?.sourceAmount;
-  const initialDestToken = route.params?.destToken;
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
+  // Update native fee-inclusive simulation support for the source chain
+  useIsNativeGasIncludedSupported(sourceToken?.chainId);
 
   // Initialize recipient account
   const hasInitializedRecipient = useRef(false);
@@ -264,12 +257,7 @@ const BridgeMarketViewContent = () => {
     }, [navigation, route.params?.scrollToTopOnNav]),
   );
 
-  useEffect(() => {
-    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
-      dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
-    }
-  }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
-
+  // oxlint-disable-next-line typescript/prefer-nullish-coalescing
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
   const { latestSourceBalance } = useBridgeSession();
@@ -279,7 +267,6 @@ const BridgeMarketViewContent = () => {
 
   const {
     activeQuote,
-    formattedQuoteData,
     isLoading,
     destTokenAmount,
     isNoQuotesAvailable,
@@ -289,6 +276,8 @@ const BridgeMarketViewContent = () => {
     needsNewQuote,
     isActiveQuoteForCurrentTokenPair,
   } = useBridgeQuoteDataContext();
+
+  const rebatePercent = useSwapsRebate(activeQuote?.quote);
 
   useInitialSlippage(
     activeQuote?.quote.slippage,
@@ -345,6 +334,10 @@ const BridgeMarketViewContent = () => {
     quotesLastFetched,
   ]);
 
+  const hasCurrentQuote = Boolean(
+    !needsNewQuote && isValidSourceAmount && activeQuote && quotesLastFetched,
+  );
+
   const scrollContentContainerStyle = useMemo(
     () => [
       styles.scrollViewContent,
@@ -388,7 +381,7 @@ const BridgeMarketViewContent = () => {
     // Both tokens must be on the same chain
     if (sourceToken.chainId !== destToken.chainId) return false;
     // Check if the chain is sponsored
-    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
+    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId);
   }, [
     sourceToken?.chainId,
     destToken?.chainId,
@@ -480,8 +473,6 @@ const BridgeMarketViewContent = () => {
     }
   }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);
 
-  useTrackSwapPageViewed(location);
-
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       const balance = latestSourceBalance.displayBalance;
@@ -536,30 +527,9 @@ const BridgeMarketViewContent = () => {
     return 'quote';
   };
   const contentMode = getContentMode();
-  const networkFee = formattedQuoteData?.networkFee;
   const gaslessFeeAsset = getGaslessFeeAsset(
     activeQuote?.quote?.feeData?.txFee,
   );
-  const isGaslessSwapRedesignEligible =
-    contentMode === 'quote' &&
-    isGaslessQuote(activeQuote?.quote) &&
-    !shouldShowGasSponsored;
-  const { variant: gaslessSwapRedesignVariant } = useABTest(
-    GASLESS_SWAP_REDESIGN_AB_KEY,
-    GASLESS_SWAP_REDESIGN_VARIANTS,
-    {
-      ...GASLESS_SWAP_REDESIGN_EXPOSURE_METADATA,
-      trackExposure: isGaslessSwapRedesignEligible,
-    },
-  );
-  const showGaslessRedesign =
-    isGaslessSwapRedesignEligible && gaslessSwapRedesignVariant.redesigned;
-  const destinationGasFeeLabel =
-    showGaslessRedesign && networkFee && networkFee !== '-'
-      ? strings('bridge.gas_fee_deduction', {
-          fee: networkFee,
-        })
-      : undefined;
   const shouldShowDiscoveryFeed = contentMode === 'zero';
   const hasInteractiveDiscoverySurface =
     shouldShowDiscoveryFeed && discoveryFeedVariant.mode !== 'empty';
@@ -666,8 +636,29 @@ const BridgeMarketViewContent = () => {
                   isLoading={!destTokenAmount && isLoading}
                   style={styles.destTokenArea}
                   isQuoteSponsored={isQuoteSponsored}
-                  showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
-                  destinationGasFeeLabel={destinationGasFeeLabel}
+                  showFiatAmountAsPrimary={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    sourceAmountInput.isFiatMode ||
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    sourceToken?.isMoneyToken ||
+                    destToken?.isMoneyToken
+                  }
+                  secondaryValue={
+                    destToken?.isMoneyToken
+                      ? strings('bridge.money_name')
+                      : undefined
+                  }
+                  subtitle={
+                    destToken?.apy !== undefined
+                      ? strings('money.asset_overview.balance_cta.earn_apy', {
+                          apy: destToken.apy,
+                        })
+                      : undefined
+                  }
+                  hideFiatValueWhenUnpriced={
+                    // oxlint-disable-next-line typescript/prefer-nullish-coalescing
+                    destToken?.isMoneyToken || sourceToken?.isMoneyToken
+                  }
                 />
               </Box>
             </Box>
@@ -702,10 +693,7 @@ const BridgeMarketViewContent = () => {
                 <QuoteDetailsCard
                   location={location}
                   hasInsufficientBalance={hasInsufficientBalance}
-                  gaslessFeeAsset={
-                    showGaslessRedesign ? gaslessFeeAsset : undefined
-                  }
-                  isGaslessSwapRedesignTreatment={showGaslessRedesign}
+                  gaslessFeeAsset={gaslessFeeAsset}
                 />
               </Box>
             ) : null}
@@ -727,32 +715,43 @@ const BridgeMarketViewContent = () => {
         <BridgeMarketViewFooter
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}
+          rebatePercent={rebatePercent}
         />
+      </Box>
 
-        <SwapsKeypad
-          ref={keypadRef}
-          value={sourceAmountInput.keypadValue}
-          onChange={sourceAmountInput.handleKeypadChange}
-          currency={sourceAmountInput.keypadCurrency}
-          decimals={sourceAmountInput.keypadDecimals}
-        >
-          {sourceAmount && sourceAmount !== '0' ? (
+      <SwapsKeypad
+        ref={keypadRef}
+        value={sourceAmountInput.keypadValue}
+        onChange={sourceAmountInput.handleKeypadChange}
+        currency={sourceAmountInput.keypadCurrency}
+        decimals={sourceAmountInput.keypadDecimals}
+      >
+        {sourceAmount && sourceAmount !== '0' ? (
+          <>
+            {hasCurrentQuote && rebatePercent ? (
+              // -mt-3 offsets the sheet's hidden drag-handle area so the top inset matches the sides.
+              <RebateBanner
+                rebatePercent={rebatePercent}
+                testID={SWAPS_REBATE_BANNER_TEST_ID}
+                twClassName="-mt-3"
+              />
+            ) : null}
             <SwapsMarketOrderConfirmButton
               location={location}
               transactionActiveAbTests={transactionActiveAbTests}
               testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
             />
-          ) : (
-            <GaslessQuickPickOptions
-              token={sourceToken}
-              tokenBalance={latestSourceBalance?.displayBalance}
-              onMaxPress={handleSourceMaxPress}
-              isQuoteSponsored={isQuoteSponsored}
-              onAmountSelect={handleSourcePresetAmountSelect}
-            />
-          )}
-        </SwapsKeypad>
-      </Box>
+          </>
+        ) : (
+          <GaslessQuickPickOptions
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
+            onMaxPress={handleSourceMaxPress}
+            isQuoteSponsored={isQuoteSponsored}
+            onAmountSelect={handleSourcePresetAmountSelect}
+          />
+        )}
+      </SwapsKeypad>
     </ScreenView>
   );
 };

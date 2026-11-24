@@ -509,12 +509,32 @@ describe('basicFunctionalityConsolidation selectors', () => {
       ).toBe(false);
     });
 
-    it('does not repair a linked-social wallet with a scheduled notice', () => {
+    it('does not repair a linked-social wallet with the social sheet already scheduled', () => {
       expect(
         shouldRepair({
           isBasicFunctionalityEnabled: true,
           hasLinkedSocialLoginProfile: true,
           migrationNotification: 'bottom-sheet',
+        }),
+      ).toBe(false);
+    });
+
+    it('repairs a linked-social wallet that migrated to the mixed toast', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          hasLinkedSocialLoginProfile: true,
+          migrationNotification: 'toast',
+        }),
+      ).toBe(true);
+    });
+
+    it('does not repair a mixed toast on a wallet with no linked social profile', () => {
+      expect(
+        shouldRepair({
+          isBasicFunctionalityEnabled: true,
+          isSocialLoginUser: false,
+          migrationNotification: 'toast',
         }),
       ).toBe(false);
     });

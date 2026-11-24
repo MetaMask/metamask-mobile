@@ -1,32 +1,285 @@
 import {
+  PROFILE_AVATAR_BACKGROUNDS,
+  PROFILE_AVATAR_PRESETS,
+} from '../MyProfileView/avatarPresets';
+import {
+  applyXOnboardingProfile,
+  startManualOnboarding,
+  buildCreateProfileParams,
   buildOnboardedSocialProfile,
   canContinueUsernameStep,
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
-  nextUsernameSuggestion,
+  isUneditedXUsername,
   normalizeUsername,
+  onboardingProfileFingerprint,
+  withEligibleLinkedAccount,
+  type XOnboardingIdentity,
 } from './profileOnboardingDraft';
 
+const PROFILE_ID = 'session-profile-id';
+
+const X_IDENTITY: XOnboardingIdentity = {
+  username: 'degangirl',
+  displayName: 'Degan Giri',
+  avatarUrl:
+    'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+};
+
 describe('profileOnboardingDraft', () => {
-  it('normalizes a typed handle', () => {
-    expect(normalizeUsername('  @Wen-Cat ')).toBe('wen-cat');
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
-  it('builds a display name from a hyphenated handle', () => {
-    expect(displayNameFromUsername('wen-cat')).toBe('Wen Cat');
+  it('removes whitespace and leading @ characters without changing casing', () => {
+    const value = '  @@Wen_Cat ';
+
+    const username = normalizeUsername(value);
+
+    expect(username).toBe('Wen_Cat');
   });
 
-  it('marks short handles as unusable', () => {
-    expect(getUsernameStatus('ab')).toBe('invalid');
-    expect(getUsernameStatus('bad_name')).toBe('invalid');
+  it('starts the draft with a generated username and matching display name', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.username).toBe('BonkTurboQueen');
+    expect(draft.displayName).toBe('Bonk Turbo Queen');
+  });
+
+  it('starts the draft on the first avatar and the first middle backdrop when the random draw is zero', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[0].id);
+    expect(draft.avatarBackgroundId).toBe(PROFILE_AVATAR_BACKGROUNDS[2].id);
+  });
+
+  it('starts the draft on a later avatar and the last middle backdrop when the random draw moves on', () => {
+    const avatarIndex = 2;
+    const backgroundIndex = 4;
+    let call = 0;
+    jest.spyOn(Math, 'random').mockImplementation(() => {
+      call += 1;
+      if (call <= 3) {
+        return 0;
+      }
+      if (call === 4) {
+        return avatarIndex / PROFILE_AVATAR_PRESETS.length;
+      }
+      return 0.999;
+    });
+
+    const draft = createInitialOnboardingDraft();
+
+    expect(draft.avatarPresetId).toBe(PROFILE_AVATAR_PRESETS[avatarIndex].id);
+    expect(draft.avatarBackgroundId).toBe(
+      PROFILE_AVATAR_BACKGROUNDS[backgroundIndex].id,
+    );
+  });
+
+  it('builds a display name from an underscored handle', () => {
+    expect(displayNameFromUsername('wen_cat')).toBe('Wen Cat');
+  });
+
+  it('builds a display name from a CamelCase handle', () => {
+    expect(displayNameFromUsername('BonkTurboQueen')).toBe('Bonk Turbo Queen');
+    expect(displayNameFromUsername('GmZenWolf')).toBe('Gm Zen Wolf');
+    expect(displayNameFromUsername('ETHMaxi')).toBe('Eth Maxi');
+  });
+
+  it('puts a space before the number in a numbered handle', () => {
+    expect(displayNameFromUsername('BonkTurboQueen343')).toBe(
+      'Bonk Turbo Queen 343',
+    );
+    expect(displayNameFromUsername('WenMoon343')).toBe('Wen Moon 343');
+    expect(displayNameFromUsername('bonk_turbo_queen_343')).toBe(
+      'Bonk Turbo Queen 343',
+    );
+    expect(displayNameFromUsername('CryptoKing99')).toBe('Crypto King 99');
+    expect(displayNameFromUsername('ETHMaxi343')).toBe('Eth Maxi 343');
+  });
+
+  it('keeps digits inside typed handles attached as before', () => {
+    expect(displayNameFromUsername('wen_cat2')).toBe('Wen Cat2');
+    expect(displayNameFromUsername('web3dev')).toBe('Web3dev');
+    expect(displayNameFromUsername('crypto24')).toBe('Crypto24');
+  });
+
+  it('does not split a single leading letter off a CamelCase word', () => {
+    expect(displayNameFromUsername('iPhone')).toBe('Iphone');
+    expect(displayNameFromUsername('eBay')).toBe('Ebay');
+  });
+
+  it('keeps a trailing number attached when the handle has no CamelCase', () => {
+    expect(displayNameFromUsername('BTC202')).toBe('Btc202');
+    expect(displayNameFromUsername('bitcoin100')).toBe('Bitcoin100');
+    expect(displayNameFromUsername('iPhone100')).toBe('Iphone100');
+  });
+
+  it('keeps display name generation unchanged for mixed-case usernames', () => {
+    const username = 'wEN_cAT';
+
+    const displayName = displayNameFromUsername(username);
+
+    expect(displayName).toBe('Wen Cat');
+  });
+
+  it('accepts letters, numbers, and underscores between 3 and 16 characters', () => {
+    expect(getUsernameStatus('bad-name')).toBe('invalid');
+    expect(getUsernameStatus('bad name')).toBe('invalid');
     expect(getUsernameStatus('')).toBe('empty');
-    expect(getUsernameStatus('wen-cat')).toBe('available');
+    expect(getUsernameStatus('wen_cat')).toBe('available');
+    expect(getUsernameStatus('wen_cat_12')).toBe('available');
+    expect(getUsernameStatus('Wen_CAT_12')).toBe('available');
   });
 
-  it('cycles username suggestions', () => {
-    expect(nextUsernameSuggestion('wen-cat')).toBe('moon-fox');
-    expect(nextUsernameSuggestion('not-in-list')).toBe('wen-cat');
+  it('reports a handle above the maximum length before the pattern', () => {
+    expect(getUsernameStatus('a'.repeat(17))).toBe('tooLong');
+    expect(getUsernameStatus('a'.repeat(16))).toBe('available');
+    // Length outranks the pattern.
+    expect(getUsernameStatus('bad-name-that-is-long')).toBe('tooLong');
+  });
+
+  it('reports a handle under the minimum length before any other rule', () => {
+    expect(getUsernameStatus('a')).toBe('tooShort');
+    expect(getUsernameStatus('ab')).toBe('tooShort');
+    expect(getUsernameStatus('@a')).toBe('tooShort');
+    // Length outranks the pattern.
+    expect(getUsernameStatus('a-')).toBe('tooShort');
+    expect(getUsernameStatus('abc')).toBe('available');
+  });
+
+  it('accepts underscores at the edges and repeated underscores', () => {
+    expect(getUsernameStatus('hello_')).toBe('available');
+    expect(getUsernameStatus('_hello')).toBe('available');
+    expect(getUsernameStatus('hello__world')).toBe('available');
+    expect(getUsernameStatus('_bad__name')).toBe('available');
+  });
+
+  it('accepts an unedited X handle that fails the username pattern', () => {
+    const draft = applyXOnboardingProfile(createInitialOnboardingDraft(), {
+      ...X_IDENTITY,
+      username: 'bad-name',
+    });
+
+    expect(getUsernameStatus(draft.username)).toBe('invalid');
+    expect(isUneditedXUsername(draft)).toBe(true);
+    expect(canContinueUsernameStep(draft)).toBe(true);
+    expect(canContinueUsernameStep({ ...draft, useXUsername: false })).toBe(
+      false,
+    );
+    expect(
+      canContinueUsernameStep({
+        ...draft,
+        useXUsername: false,
+        username: 'still-bad-name',
+      }),
+    ).toBe(false);
+  });
+
+  it('changes the profile fingerprint when the username or account changes', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      username: 'wen_cat',
+      displayName: 'Wen Cat',
+      linkedAccountAddress: '0xabc',
+    };
+
+    const fingerprint = onboardingProfileFingerprint(draft);
+
+    expect(fingerprint).toBe(onboardingProfileFingerprint(draft));
+    expect(
+      onboardingProfileFingerprint({ ...draft, username: 'moon_fox' }),
+    ).not.toBe(fingerprint);
+    expect(
+      onboardingProfileFingerprint({ ...draft, username: 'Wen_Cat' }),
+    ).not.toBe(fingerprint);
+    expect(
+      onboardingProfileFingerprint(draft, ['eip155:1:0xabc', 'eip155:1:0xdef']),
+    ).not.toBe(fingerprint);
+    expect(
+      onboardingProfileFingerprint({
+        ...draft,
+        linkedAccountAddress: null,
+      }),
+    ).toBeNull();
+  });
+
+  it('drops a linked account that is no longer eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+    ]);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('leaves a cleared selection empty when another account is eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+    const accounts = [{ id: 'kept', address: '0xkept' }];
+
+    const cleared = withEligibleLinkedAccount(draft, accounts);
+    const again = withEligibleLinkedAccount(cleared, accounts);
+
+    expect(again.linkedAccountId).toBeNull();
+    expect(again.linkedAccountAddress).toBeNull();
+    expect(again).toBe(cleared);
+  });
+
+  it('clears the linked account when the eligible list is empty', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'gone',
+      linkedAccountAddress: '0xgone',
+    };
+
+    const next = withEligibleLinkedAccount(draft, []);
+
+    expect(next.linkedAccountId).toBeNull();
+    expect(next.linkedAccountAddress).toBeNull();
+    expect(next.linkedAccountSelectionCleared).toBe(true);
+  });
+
+  it('keeps a linked account that is still eligible', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountId: 'kept',
+      linkedAccountAddress: '0xkept',
+    };
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'kept', address: '0xkept' },
+      { id: 'other', address: '0xother' },
+    ]);
+
+    expect(next).toBe(draft);
+  });
+
+  it('selects the first account when the draft has none', () => {
+    const draft = createInitialOnboardingDraft();
+
+    const next = withEligibleLinkedAccount(draft, [
+      { id: 'first', address: '0xfirst' },
+      { id: 'second', address: '0xsecond' },
+    ]);
+
+    expect(next.linkedAccountId).toBe('first');
+    expect(next.linkedAccountAddress).toBe('0xfirst');
   });
 
   it('blocks continue until the handle and display name are filled', () => {
@@ -41,7 +294,10 @@ describe('profileOnboardingDraft', () => {
   it('writes onboarding choices onto a local profile', () => {
     const draft = {
       ...createInitialOnboardingDraft(),
-      avatarPresetId: 'fox-emoji',
+      username: 'wen_cat',
+      displayName: 'Wen Cat',
+      avatarPresetId: 'zombie',
+      avatarBackgroundId: 'lime',
       linkedAccountId: 'acc-1',
       linkedAccountAddress: '0xabc',
       shareTradingActivity: false,
@@ -49,13 +305,117 @@ describe('profileOnboardingDraft', () => {
 
     const profile = buildOnboardedSocialProfile(draft);
 
-    expect(profile.handle).toBe('wen-cat');
+    expect(profile.handle).toBe('wen_cat');
     expect(profile.displayName).toBe('Wen Cat');
-    expect(profile.avatarPresetId).toBe('fox-emoji');
+    expect(profile.avatarPresetId).toBe('zombie');
+    expect(profile.avatarBackgroundId).toBe('lime');
     expect(profile.linkedAccountId).toBe('acc-1');
     expect(profile.shareTradingActivity).toBe(false);
     expect(profile.xHandle).toBeNull();
+    expect(profile.connectedToX).toBe(false);
     expect(profile.rankingTag).toBeNull();
-    expect(profile.shareUrl).toBe('https://metamask.io/wen-cat');
+  });
+
+  it('keeps the mocked X handle and avatar when those toggles stay on', () => {
+    const draft = {
+      ...applyXOnboardingProfile(createInitialOnboardingDraft(), X_IDENTITY),
+      linkedAccountAddress: '0xabc',
+    };
+
+    expect(buildOnboardedSocialProfile(draft)).toEqual(
+      expect.objectContaining({
+        handle: 'degangirl',
+        displayName: 'Degan Giri',
+        imageUrl: X_IDENTITY.avatarUrl,
+        avatarPresetId: null,
+        xHandle: 'degangirl',
+        connectedToX: true,
+      }),
+    );
+    expect(buildCreateProfileParams(draft, PROFILE_ID).avatar_url).toBe(
+      X_IDENTITY.avatarUrl,
+    );
+  });
+
+  it('preserves the casing of an imported X username in the draft and profile', () => {
+    const identity = { ...X_IDENTITY, username: 'DeganGirl' };
+
+    const draft = applyXOnboardingProfile(
+      createInitialOnboardingDraft(),
+      identity,
+    );
+    const profile = buildOnboardedSocialProfile(draft);
+
+    expect(draft.username).toBe(identity.username);
+    expect(draft.xUsername).toBe(identity.username);
+    expect(profile.handle).toBe(identity.username);
+    expect(profile.xHandle).toBe(identity.username);
+  });
+
+  it('clears the X path when manual onboarding starts', () => {
+    const draft = {
+      ...applyXOnboardingProfile(createInitialOnboardingDraft(), X_IDENTITY),
+      linkedAccountId: 'acc-1',
+      linkedAccountAddress: '0xabc',
+    };
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const manual = startManualOnboarding(draft);
+
+    expect(manual.path).toBe('manual');
+    expect(manual.useXAvatar).toBe(false);
+    expect(manual.xUsername).toBeNull();
+    expect(manual.username).toBe('BonkTurboQueen');
+    expect(manual.linkedAccountId).toBe('acc-1');
+    expect(buildOnboardedSocialProfile(manual).connectedToX).toBe(false);
+    expect(buildOnboardedSocialProfile(manual).xHandle).toBeNull();
+  });
+
+  it('keeps an in-progress manual draft', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      username: 'moon_fox',
+      displayName: 'Moon Fox',
+    };
+
+    expect(startManualOnboarding(draft)).toBe(draft);
+  });
+
+  it('maps a draft onto createProfile parameters', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      username: ' @Wen_Cat ',
+      displayName: 'Wen Cat',
+      avatarPresetId: 'vr',
+      avatarBackgroundId: 'background3',
+      linkedAccountAddress: '0xabc',
+      shareTradingActivity: false,
+    };
+
+    expect(buildCreateProfileParams(draft, PROFILE_ID)).toEqual({
+      profile_id: PROFILE_ID,
+      username: 'Wen_Cat',
+      display_name: 'Wen Cat',
+      bio: null,
+      linked_addresses: ['eip155:1:0xabc'],
+      avatar_url: 'foxicon://vr/background3',
+      trading_privacy: 'private',
+    });
+  });
+
+  it('links every address in the chosen account, Solana included', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountAddress: '0xabc',
+    };
+    const linkedAddresses = [
+      'eip155:1:0xabc',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+    ] as const;
+
+    expect(
+      buildCreateProfileParams(draft, PROFILE_ID, [...linkedAddresses])
+        .linked_addresses,
+    ).toEqual(linkedAddresses);
   });
 });

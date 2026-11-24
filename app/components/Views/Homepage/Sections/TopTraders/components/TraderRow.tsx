@@ -17,11 +17,17 @@ import { TouchableOpacity, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { RankMedal, isTopRank } from '../topRank';
 import type { TraderRowProps } from '../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+
+import { formatSignedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
-import TraderAvatar from './TraderAvatar';
+import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
+import ProfileVerifiedBadge from '../../../../../UI/SocialFeed/components/ProfileVerifiedBadge';
+import {
+  getTraderRowMuteChipTestId,
+  getTraderRowTestId,
+  getTraderRowVerifiedBadgeTestId,
+} from './TraderRow.testIds';
 
 const MUTE_CHIP_DIAMETER = 40;
 
@@ -64,7 +70,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
       justifyContent={BoxJustifyContent.Between}
       twClassName="px-4"
       style={{ height: TRADER_ROW_HEIGHT }}
-      testID={testID ?? `trader-row-${trader.id}`}
+      testID={testID ?? getTraderRowTestId(trader.id)}
     >
       <TouchableOpacity
         activeOpacity={onTraderPress ? 0.7 : 1}
@@ -86,12 +92,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
             <TraderAvatar
               imageUrl={trader.avatarUri}
               address={trader.address}
+              profileId={trader.id}
               size={AVATAR_SIZE}
               recyclingKey={trader.id}
             />
             {showMedal ? (
-              // Offset so the medal bottom (incl. its 2px border) sits ~10px
-              // below the avatar's bottom edge.
               <View style={tw.style('absolute -bottom-[10px] -right-2')}>
                 <RankMedal rank={trader.rank} />
               </View>
@@ -99,14 +104,26 @@ const TraderRow: React.FC<TraderRowProps> = ({
           </View>
 
           <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              gap={1}
             >
-              {trader.username}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+                numberOfLines={1}
+                twClassName="shrink"
+              >
+                {trader.username}
+              </Text>
+              {trader.verified ? (
+                <ProfileVerifiedBadge
+                  testID={getTraderRowVerifiedBadgeTestId(trader.id)}
+                />
+              ) : null}
+            </Box>
             <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
@@ -144,7 +161,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
             onPress={handleMutePress}
             diameter={MUTE_CHIP_DIAMETER}
             traderName={trader.username}
-            testID={`trader-row-mute-chip-${trader.id}`}
+            testID={getTraderRowMuteChipTestId(trader.id)}
           />
         )}
       </Box>

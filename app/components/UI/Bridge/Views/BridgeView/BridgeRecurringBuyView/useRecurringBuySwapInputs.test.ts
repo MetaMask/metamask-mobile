@@ -7,14 +7,17 @@ import {
   selectSourceToken,
   setDestToken,
   setSourceAmount,
-  setSourceToken,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectBridgeRecurringBuyFeatureFlags } from '../../../../../../selectors/bridge/featureFlags';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { getNativeSourceToken } from '../../../utils/tokenUtils';
+import {
+  getDefaultDestToken,
+  getNativeSourceToken,
+} from '../../../utils/tokenUtils';
 import { createMockToken } from '../../../testUtils/fixtures';
 import { TokenSelectorType, type BridgeToken } from '../../../types';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { useRecurringOrderMinAmount } from '../../../hooks/useRecurringOrderMinAmount';
 
 const mockDispatch = jest.fn();
 
@@ -53,9 +56,19 @@ jest.mock('../../../hooks/useIsHardwareWalletForBridge', () => ({
   useIsHardwareWalletForBridge: () => mockIsHardwareWallet,
 }));
 
+jest.mock('../../../hooks/useLiveTokenFiatRate', () => ({
+  useLiveTokenFiatRate: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useRecurringOrderMinAmount', () => ({
+  useRecurringOrderMinAmount: jest.fn(),
+}));
+
 const mockSyncFiatAmountToTokenAmount = jest.fn();
+const mockUseSourceAmountInput = jest.fn();
 jest.mock('../../../hooks/useSourceAmountInput', () => ({
-  useSourceAmountInput: () => ({
+  useSourceAmountInput: (params: unknown) => ({
+    ...mockUseSourceAmountInput(params),
     amount: '',
     selection: undefined,
     handleFocus: jest.fn(),
@@ -86,6 +99,7 @@ jest.mock('../../../hooks/useBridgeSession', () => ({
 }));
 
 import { useSelector } from 'react-redux';
+import { useLiveTokenFiatRate } from '../../../hooks/useLiveTokenFiatRate';
 const mockUseSelector = jest.mocked(useSelector);
 
 const ENABLED_CHAIN_IDS: CaipChainId[] = [
@@ -131,75 +145,52 @@ describe('useRecurringBuySwapInputs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsHardwareWallet = false;
+    jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+      formattedMinAmountInSelectedCurrency: '$50.00',
+      hasError: false,
+      isBelowMinAmount: false,
+      minAmountUsd: 50,
+    });
   });
 
-  it('always resets source/dest to ETH/mUSD on mount when Ethereum is enabled', () => {
-    // Simulates a token selected on another tab (e.g. Market order) whose
-    // chain isn't part of this flow's allowed chains. The view mounting fresh
-    // (tab switch) is what triggers the reset.
-    const staleSourceToken = createMockToken({
-      chainId: '0xa4b1', // Arbitrum, not in ENABLED_CHAIN_IDS
-      symbol: 'ARB-TOKEN',
-    });
-    const staleDestToken = createMockToken({
-      chainId: '0xa4b1',
-      symbol: 'ARB-DEST',
+  it('preserves a same-chain token pair and source amount on mount', () => {
+    const sourceToken = getNativeSourceToken('eip155:1');
+    const destToken = createMockToken({
+      chainId: '0x1',
       address: '0xdest',
+      symbol: 'mUSD',
     });
 
-    renderRecurringBuySwapInputsHook(
+    const { result } = renderRecurringBuySwapInputsHook(
       {
-        sourceToken: staleSourceToken,
-        destToken: staleDestToken,
-        sourceAmount: undefined,
+        sourceToken,
+        destToken,
+        sourceAmount: '1',
       },
       ENABLED_CHAIN_IDS,
     );
 
-    const expectedDefaultSourceToken = getNativeSourceToken('eip155:1');
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(expectedDefaultSourceToken),
+    expect(result.current.sourceToken).toEqual(sourceToken);
+    expect(result.current.destToken).toEqual(destToken);
+    expect(result.current.sourceAmount).toBe('1');
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      setDestToken(expect.anything()),
     );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setDestToken(expect.objectContaining({ symbol: 'mUSD' })),
-    );
+    expect(mockUpdateQuoteParams).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to the first enabled chain default pair when Ethereum is not enabled', () => {
-    const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
+  it('converts fiat input at the live rate of the source token', () => {
+    const sourceToken = createMockToken({ chainId: '0x1' });
+    jest.mocked(useLiveTokenFiatRate).mockReturnValue(2460.27);
 
     renderRecurringBuySwapInputsHook(
-      {
-        sourceToken: staleSourceToken,
-        destToken: undefined,
-        sourceAmount: undefined,
-      },
-      ['eip155:56', 'eip155:8453'],
-    );
-
-    const expectedDefaultSourceToken = getNativeSourceToken('eip155:56');
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(expectedDefaultSourceToken),
-    );
-  });
-
-  it('resets to the default pair even when the current selection is already within the enabled chains', () => {
-    // Intentional: the reset always fires on mount (tab entry), so the
-    // picker starts from a predictable default every time rather than
-    // depending on whatever was left selected from a prior visit.
-    const validSourceToken = getNativeSourceToken('eip155:1');
-
-    renderRecurringBuySwapInputsHook(
-      {
-        sourceToken: validSourceToken,
-        destToken: undefined,
-        sourceAmount: undefined,
-      },
+      { sourceToken, destToken: undefined, sourceAmount: '0.02' },
       ENABLED_CHAIN_IDS,
     );
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setSourceToken(getNativeSourceToken('eip155:1')),
+    expect(useLiveTokenFiatRate).toHaveBeenCalledWith(sourceToken);
+    expect(mockUseSourceAmountInput).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceToken, tokenFiatRate: 2460.27 }),
     );
   });
 
@@ -255,7 +246,7 @@ describe('useRecurringBuySwapInputs', () => {
     });
 
     it('is false when the tokens are on different chains', () => {
-      const sourceToken = createMockToken({ chainId: '0x279f' });
+      const sourceToken = createMockToken({ chainId: '0x38' });
       const destToken = createMockToken({
         chainId: '0x1',
         address: '0xdest',
@@ -264,7 +255,7 @@ describe('useRecurringBuySwapInputs', () => {
       const { result } = renderRecurringBuySwapInputsHook(
         { sourceToken, destToken, sourceAmount: undefined },
         ENABLED_CHAIN_IDS,
-        ['0x279f', '0x1'],
+        ['0x38', '0x1'],
       );
 
       expect(result.current.isQuoteSponsored).toBe(false);
@@ -303,6 +294,44 @@ describe('useRecurringBuySwapInputs', () => {
       renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
 
       expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
+    });
+
+    it('does not request a quote below the recurring minimum', () => {
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 50,
+      });
+
+      renderRecurringBuySwapInputsHook(validInputs, ENABLED_CHAIN_IDS);
+
+      expect(mockUpdateQuoteParams).not.toHaveBeenCalled();
+    });
+
+    it('requests a quote when the amount is no longer below the recurring minimum', () => {
+      const selectorState = { ...validInputs };
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: true,
+        minAmountUsd: 50,
+      });
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      jest.mocked(useRecurringOrderMinAmount).mockReturnValue({
+        formattedMinAmountInSelectedCurrency: '$50.00',
+        hasError: false,
+        isBelowMinAmount: false,
+        minAmountUsd: 50,
+      });
+      selectorState.sourceAmount = '2';
+
+      rerender(undefined);
+
+      expect(mockUpdateQuoteParams).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -396,7 +425,7 @@ describe('useRecurringBuySwapInputs', () => {
     });
   });
 
-  it('does not reset tokens when the recurring buy feature flag is missing', () => {
+  it('does not update tokens when the recurring buy feature flag is missing', () => {
     const staleSourceToken = createMockToken({ chainId: '0xa4b1' });
 
     renderRecurringBuySwapInputsHook(
@@ -408,9 +437,126 @@ describe('useRecurringBuySwapInputs', () => {
       undefined,
     );
 
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      setSourceToken(expect.anything()),
-    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  describe('cross-chain destination token correction', () => {
+    const mUsdToken = createMockToken({
+      chainId: '0x1',
+      symbol: 'mUSD',
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    });
+
+    it('resets the destination token to the source chain default when the token chains differ', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+
+      renderRecurringBuySwapInputsHook(selectorState, ENABLED_CHAIN_IDS);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'mUSD',
+            chainId: '0x1',
+          }),
+        ),
+      );
+    });
+
+    it('resets the destination token after the source network changes', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:56');
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(
+          expect.objectContaining({
+            symbol: 'BSC-USD',
+            chainId: '0x38',
+          }),
+        ),
+      );
+    });
+
+    it('preserves the destination token when the source token stays on the same chain', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: mUsdToken,
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = createMockToken({
+        chainId: '0x1',
+        symbol: 'USDC',
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      });
+
+      rerender(undefined);
+
+      expect(mockDispatch).not.toHaveBeenCalledWith(
+        setDestToken(expect.anything()),
+      );
+    });
+
+    it('uses the native token when the source matches the default destination', () => {
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:1'),
+        destToken: createMockToken({ chainId: '0x89', symbol: 'USDT' }),
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = mUsdToken;
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        setDestToken(getNativeSourceToken('eip155:1')),
+      );
+    });
+
+    it('uses the source chain default after changing between non-Ethereum networks', () => {
+      const bnbDestToken = getDefaultDestToken('0x38');
+      const baseDestToken = getDefaultDestToken('0x2105');
+      if (!bnbDestToken || !baseDestToken) {
+        throw new Error('expected default destination tokens for BNB and Base');
+      }
+      const selectorState: SelectorState = {
+        sourceToken: getNativeSourceToken('eip155:56'),
+        destToken: bnbDestToken,
+        sourceAmount: undefined,
+      };
+      const { rerender } = renderRecurringBuySwapInputsHook(
+        selectorState,
+        ENABLED_CHAIN_IDS,
+      );
+      mockDispatch.mockClear();
+      selectorState.sourceToken = getNativeSourceToken('eip155:8453');
+
+      rerender(undefined);
+
+      expect(mockDispatch).toHaveBeenCalledWith(setDestToken(baseDestToken));
+    });
   });
 
   it('requests quotes without a Recurring slippage override', () => {

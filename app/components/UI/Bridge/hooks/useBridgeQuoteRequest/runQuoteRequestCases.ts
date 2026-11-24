@@ -27,6 +27,9 @@ import {
 } from '../../../../../util/trace';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { useSwapsFeatureId } from '../useSwapsFeatureId';
+import { useSwapQuotes } from '../useSwapQuotes';
+import type { TraceContext, TraceRequest } from '@metamask/controller-utils';
+import useMoneyAccountInfo from '../../../Money/hooks/useMoneyAccountInfo';
 
 const spyUpdateBridgeQuoteRequestParams = jest.spyOn(
   Engine.context.BridgeController,
@@ -39,7 +42,10 @@ const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
 const mockUseInsufficientNativeReserveError = jest.mocked(
   useInsufficientNativeReserveError,
 );
-const mockTrace = jest.mocked(trace);
+const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
+const mockTrace = trace as jest.MockedFunction<
+  (request: TraceRequest) => TraceContext
+>;
 const mockEndTrace = jest.mocked(endTrace);
 
 const defaultWalletAddress = '0x1234567890123456789012345678901234567890';
@@ -168,6 +174,11 @@ export const runQuoteRequestCases = ({
 
       mockUseIsInsufficientBalance.mockReturnValue(false);
       mockUseInsufficientNativeReserveError.mockReturnValue(undefined);
+      mockUseMoneyAccountInfo.mockReturnValue({
+        isMoneyAccountFeatureEnabled: false,
+        hasMoneyAccount: false,
+        primaryMoneyAccount: undefined,
+      });
     });
 
     afterEach(() => {
@@ -237,7 +248,7 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      const started = mockTrace.mock.calls[0][0];
+      const started: TraceRequest = mockTrace.mock.calls[0][0];
 
       expect(started).toEqual({
         name: TraceName.SwapQuoteFetch,
@@ -251,6 +262,9 @@ export const runQuoteRequestCases = ({
         },
         id: started.id,
         startTime: Date.now(),
+        tags: {
+          feature: 'swap',
+        },
       });
 
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
@@ -351,6 +365,46 @@ export const runQuoteRequestCases = ({
         }),
       );
     });
+
+    it('does not end a quote trace on unmount when the quote source is inactive', async () => {
+      if (isCombinedQuoteHook) {
+        const mockUseSwapsFeatureId = jest.mocked(useSwapsFeatureId);
+        mockUseSwapsFeatureId
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE)
+          .mockReturnValueOnce(FeatureId.UNIFIED_SWAP_BRIDGE);
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+
+        expect(result.current).toBeUndefined();
+        expect(mockTrace).not.toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapsFeatureId).toHaveBeenCalledTimes(2);
+      } else {
+        const mockUseSwapQuotes = jest.mocked(useSwapQuotes);
+        mockUseSwapQuotes.mockReturnValueOnce(
+          {} as NonNullable<ReturnType<typeof useSwapQuotes>>,
+        );
+
+        const { result, unmount } = renderUseBridgeQuoteRequest();
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        expect(mockTrace).toHaveBeenCalled();
+
+        mockEndTrace.mockClear();
+        unmount();
+
+        expect(mockUseSwapQuotes).toHaveBeenCalledTimes(1);
+      }
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+    });
+
     it('marks manually requested quote refreshes in the quote trace', async () => {
       const { result } = renderUseBridgeQuoteRequest();
 
@@ -368,6 +422,9 @@ export const runQuoteRequestCases = ({
         }),
         id: expect.any(String),
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
     });
 
@@ -394,6 +451,9 @@ export const runQuoteRequestCases = ({
         }),
         id: expect.any(String),
         startTime: expect.any(Number),
+        tags: {
+          feature: 'swap',
+        },
       });
     });
 
@@ -597,7 +657,18 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      if (isCombinedQuoteHook) {
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      } else {
+        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+      }
       expect(mockTrace).not.toHaveBeenCalled();
     });
 
@@ -727,7 +798,11 @@ export const runQuoteRequestCases = ({
           await result.current.flush?.();
         });
 
-        expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        if (isCombinedQuoteHook && !omitWallet) {
+          expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledTimes(1);
+        } else {
+          expect(spyUpdateBridgeQuoteRequestParams).not.toHaveBeenCalled();
+        }
       },
     );
 
@@ -741,15 +816,64 @@ export const runQuoteRequestCases = ({
         jest.advanceTimersByTime(debounceMs);
       });
 
-      expect(mockTrace).toHaveBeenCalled();
       expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalled();
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.SwapQuoteFetch,
-        id: expect.any(String),
-        timestamp: expect.any(Number),
-        data: { result: 'cancelled' },
-      });
+      if (isCombinedQuoteHook) {
+        expect(mockTrace).not.toHaveBeenCalled();
+        expect(mockEndTrace).not.toHaveBeenCalled();
+      } else {
+        expect(mockTrace).toHaveBeenCalled();
+        expect(mockEndTrace).toHaveBeenCalledWith({
+          name: TraceName.SwapQuoteFetch,
+          id: expect.any(String),
+          timestamp: expect.any(Number),
+          data: { result: 'cancelled' },
+        });
+      }
     });
+
+    it.each(['0', ''])(
+      'cancels an in-flight quote trace when source amount becomes %s',
+      async (clearedSourceAmount) => {
+        const { result, rerender } = renderUseBridgeQuoteRequest({
+          sourceAmount: '1',
+        });
+
+        await act(async () => {
+          result.current();
+          await result.current.flush?.();
+        });
+
+        const startedTraceId = mockTrace.mock.calls[0][0].id as string;
+        mockEndTrace.mockClear();
+        spyUpdateBridgeQuoteRequestParams.mockClear();
+
+        jest
+          .spyOn(bridgeSlice, 'selectSourceAmount')
+          .mockReturnValue(clearedSourceAmount);
+        rerender?.(undefined);
+
+        await act(async () => {
+          result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            srcTokenAmount: '0',
+          }),
+          mockContext,
+          0,
+          1,
+        );
+        expect(mockEndTrace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: TraceName.SwapQuoteFetch,
+            id: startedTraceId,
+            data: { result: 'cancelled' },
+          }),
+        );
+      },
+    );
 
     it('converts source amount to wei with 18 decimals', async () => {
       const { result } = renderUseBridgeQuoteRequest({
@@ -1166,6 +1290,7 @@ export const runQuoteRequestCases = ({
           decimals: testState.bridge.sourceToken?.decimals,
           chainId: testState.bridge.sourceToken?.chainId,
           balance: testState.bridge.sourceToken?.balance,
+          isMoneyToken: testState.bridge.sourceToken?.isMoneyToken,
         });
       });
 
@@ -1223,6 +1348,7 @@ export const runQuoteRequestCases = ({
           decimals: testState.bridge.sourceToken?.decimals,
           chainId: testState.bridge.sourceToken?.chainId,
           balance: testState.bridge.sourceToken?.balance,
+          isMoneyToken: testState.bridge.sourceToken?.isMoneyToken,
         });
         expect(mockUseIsInsufficientBalance).toHaveBeenCalledWith({
           amount: '5.5',
@@ -1236,6 +1362,178 @@ export const runQuoteRequestCases = ({
           token: testState.bridge.sourceToken,
           latestAtomicBalance: latestBalance,
           ignoreGasFees: true,
+        });
+      });
+    });
+
+    describe('money account quote params', () => {
+      const moneyAccountAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const moneyToken = {
+        address: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+        symbol: 'MUSD',
+        decimals: 6,
+        chainId: '0x8f' as const,
+        name: 'MetaMask Money',
+        isMoneyToken: true,
+        balance: '10000000000000000000',
+      };
+
+      beforeEach(() => {
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: true,
+          primaryMoneyAccount: { address: moneyAccountAddress },
+        } as ReturnType<typeof useMoneyAccountInfo>);
+      });
+
+      it('uses the money account as walletAddress and forces insufficientBal when source is money', async () => {
+        const { result } = renderUseBridgeQuoteRequest({
+          sourceToken: moneyToken,
+          sourceAmount: '4.5',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: defaultWalletAddress,
+            insufficientBal: true,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('uses the money account as destWalletAddress when dest is money', async () => {
+        const { result } = renderUseBridgeQuoteRequest({
+          destToken: moneyToken,
+          destAddress: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          sourceAmount: '1.0',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: moneyAccountAddress,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('uses destAddress as destWalletAddress when dest is money but the money account has no address', async () => {
+        const destAddress = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: false,
+          primaryMoneyAccount: undefined,
+        });
+
+        const { result } = renderUseBridgeQuoteRequest({
+          destToken: moneyToken,
+          destAddress,
+          sourceAmount: '1.0',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: destAddress,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('uses the source wallet as destWalletAddress when dest is money and destAddress is missing', async () => {
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: false,
+          primaryMoneyAccount: undefined,
+        });
+
+        const { result } = renderUseBridgeQuoteRequest({
+          destToken: moneyToken,
+          sourceAmount: '1.0',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            destWalletAddress: defaultWalletAddress,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('keeps the source wallet when source is money but the money account has no address', async () => {
+        mockUseMoneyAccountInfo.mockReturnValue({
+          isMoneyAccountFeatureEnabled: true,
+          hasMoneyAccount: false,
+          primaryMoneyAccount: undefined,
+        });
+
+        const { result } = renderUseBridgeQuoteRequest({
+          sourceToken: moneyToken,
+          sourceAmount: '4.5',
+        });
+
+        await act(async () => {
+          await result.current();
+          jest.advanceTimersByTime(debounceMs);
+        });
+
+        expect(spyUpdateBridgeQuoteRequestParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            walletAddress: defaultWalletAddress,
+            insufficientBal: true,
+            isMoneyAccount: true,
+          }),
+          mockContext,
+          0,
+          1,
+        );
+      });
+
+      it('passes isMoneyToken into useLatestBalance for a money source token', () => {
+        renderUseBridgeQuoteRequest({
+          sourceToken: moneyToken,
+        });
+
+        expect(mockUseLatestBalance).toHaveBeenCalledWith({
+          address: moneyToken.address,
+          decimals: moneyToken.decimals,
+          chainId: moneyToken.chainId,
+          balance: moneyToken.balance,
+          isMoneyToken: true,
         });
       });
     });

@@ -1,3 +1,4 @@
+import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller';
 import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
 
 export const KEYPAD_EMPTY = '0';
@@ -30,17 +31,44 @@ export const getKeypadDecimalPlaces = (price: number): number => {
 };
 
 /**
+ * Hyperliquid price tick decimals: `MaxPriceDecimals - szDecimals` (never negative).
+ */
+export const getPerpsKeypadDecimalPlaces = (szDecimals: number): number =>
+  Math.max(0, DECIMAL_PRECISION_CONFIG.MaxPriceDecimals - szDecimals);
+
+/**
  * Converts a computed price into a plain decimal string suitable for the keypad.
  * Always preserves 6 significant figures and never produces scientific notation.
  * e.g. 0.3224 * 1.10 → "0.35464", 1.05e-14 → "0.000000000000011".
+ * When `szDecimals` is provided, uses Hyperliquid tick precision instead.
  */
-export const toKeypadString = (price: number): string => {
+export const toKeypadString = (price: number, szDecimals?: number): string => {
   if (!Number.isFinite(price) || price <= 0) return KEYPAD_EMPTY;
 
-  const decimalPlaces = getKeypadDecimalPlaces(price);
+  const decimalPlaces =
+    szDecimals === undefined
+      ? getKeypadDecimalPlaces(price)
+      : getPerpsKeypadDecimalPlaces(szDecimals);
   const str = trimTrailingZeros(price.toFixed(decimalPlaces));
 
   return str || KEYPAD_EMPTY;
+};
+
+/**
+ * Groups the integer part of a raw keypad string with thousand separators
+ * while leaving the fraction exactly as typed, so an in-progress entry such as
+ * "84244." or "84244.50" survives round-tripping through the display.
+ */
+export const formatKeypadDisplay = (value: string): string => {
+  const [integerPart, decimalPart] = value.replace(/,/g, '').split('.');
+  const groupedInteger = (integerPart || '0').replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    ',',
+  );
+
+  return decimalPart === undefined
+    ? groupedInteger
+    : `${groupedInteger}.${decimalPart}`;
 };
 
 /**

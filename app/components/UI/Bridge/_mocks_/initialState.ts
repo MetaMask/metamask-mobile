@@ -21,6 +21,7 @@ import type { RootState } from '../../../../reducers';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
   hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  validatedVersionGatedFeatureFlag: jest.fn(),
 }));
 
 export const ethChainId = '0x1' as Hex;
@@ -165,6 +166,10 @@ export const bridgeTestState = {
         },
       },
       BridgeController: defaultBridgeControllerState,
+      MoneyAccountController: {
+        moneyAccounts: {},
+        defaultMoneyAccountId: null,
+      },
       TokenBalancesController: {
         tokenBalances: {
           [evmAccountAddress]: {
@@ -1008,6 +1013,7 @@ export const bridgeTestState = {
     tokenSelectorNetworkFilter: undefined,
     recurring: initialRecurringState,
     limitOrderCostTolerance: undefined,
+    limitOrderExpirationMinutes: undefined,
     limitOrderMarketComparison: undefined,
     ordersNetworkFilter: undefined,
   },

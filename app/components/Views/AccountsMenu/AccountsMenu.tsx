@@ -3,9 +3,9 @@ import { ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -17,19 +17,20 @@ import {
   ActionListItem,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
+import MainActionButtonGlass from '../../../component-library/components-temp/MainActionButtonGlass';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { ActivityScreenEntryPoint } from '../../../core/Analytics/events/activity';
 import { Authentication } from '../../../core/';
+import AppConstants from '../../../core/AppConstants';
 import { useTheme } from '../../../util/theme';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useSupportConsent } from '../../hooks/useSupportConsent';
 import { useQRScanner } from '../../hooks/useQRScanner';
-import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
 import { useRampsButtonClickData } from '../../UI/Ramp/hooks/useRampsButtonClickData';
+import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
@@ -42,17 +43,27 @@ import {
 } from '../../../selectors/notifications';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { getBetaSupportUrl } from './AccountsMenu.utils';
+import { isBetaBuild, isFlaskBuild } from '../../../util/environment';
 import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigrationUpdateBadge';
 import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
+import { useMetamaskOrangeEntry } from '../../../hooks/useMetamaskOrangeEntry';
 import {
   CardFlow,
   mapUkMigrationPhaseToAnalytics,
   withCardProvider,
 } from '../../UI/Card/util/metrics';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
+import type { RootState } from '../../../reducers';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../util/address';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../selectors/featureFlagController/glassHeaders';
 
 const AccountsMenu = () => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
@@ -62,6 +73,17 @@ const AccountsMenu = () => {
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
+  const isSwapsEnabled = useSelector((state: RootState) =>
+    selectIsSwapsEnabled(state),
+  );
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isHardwareWallet = selectedAddress
+    ? Boolean(isHardwareAccount(selectedAddress))
+    : false;
+  const shouldRenderBatchSell =
+    useSelector(selectBatchSellEnabled) &&
+    AppConstants.SWAPS.ACTIVE &&
+    !isHardwareWallet;
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -74,6 +96,20 @@ const AccountsMenu = () => {
   const {
     state: { phase: ukMigrationPhase },
   } = useCardUkMigrationState();
+  const {
+    showOrangeEntry,
+    label: orangeLabel,
+    onPress: onPressOrange,
+  } = useMetamaskOrangeEntry();
+
+  const onPressBatchSell = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+      params: {
+        batchSellLocation: BatchSellMetricsLocation.Unknown,
+      },
+    });
+  }, [navigation]);
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -98,6 +134,14 @@ const AccountsMenu = () => {
     rampGeodetectedRegion,
     rampsButtonClickData,
   ]);
+
+  const onPressActivity = useCallback(() => {
+    trackEvent(createEventBuilder(EVENT_NAME.ACTIVITY_CLICKED).build());
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { entryPoint: ActivityScreenEntryPoint.AccountsMenu },
+    });
+  }, [navigation, trackEvent, createEventBuilder]);
 
   const onPressNotifications = useCallback(() => {
     navigation.navigate(Routes.NOTIFICATIONS.VIEW);
@@ -278,17 +322,15 @@ const AccountsMenu = () => {
   );
 
   const aboutMetaMaskTitle = useMemo(() => {
-    let title = strings('app_settings.info_title');
+    if (isFlaskBuild) {
+      return strings('app_settings.info_title_flask');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(flask)
-    title = strings('app_settings.info_title_flask');
-    ///: END:ONLY_INCLUDE_IF
+    if (isBetaBuild) {
+      return strings('app_settings.info_title_beta');
+    }
 
-    ///: BEGIN:ONLY_INCLUDE_IF(beta)
-    title = strings('app_settings.info_title_beta');
-    ///: END:ONLY_INCLUDE_IF
-
-    return title;
+    return strings('app_settings.info_title');
   }, []);
 
   const isNotificationsEnabled = useMemo(
@@ -356,7 +398,9 @@ const AccountsMenu = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1', { backgroundColor: colors.background.default })}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         onBack={handleBack}
         backButtonProps={{ testID: AccountsMenuSelectorsIDs.BACK_BUTTON }}
         includesTopInset
@@ -368,22 +412,44 @@ const AccountsMenu = () => {
         testID={AccountsMenuSelectorsIDs.ACCOUNTS_MENU_SCROLL_ID}
       >
         {/* Quick Actions Section */}
-        <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
+        <Box style={tw.style('px-4 pt-4 pb-3 flex-row gap-4 justify-between')}>
           <Box style={tw.style('mb-2 flex-1')}>
-            <MainActionButton
-              iconName={LocalIconName.AttachMoney}
-              label={strings('accounts_menu.buy')}
-              onPress={onPressDeposit}
-              testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+            <MainActionButtonGlass
+              iconName={IconName.Activity}
+              label={strings('activity_view.title')}
+              onPress={onPressActivity}
+              testID={AccountsMenuSelectorsIDs.ACTIVITY_BUTTON}
+              isGlass={isGlassHeader}
             />
           </Box>
           <Box style={tw.style('mb-2 flex-1')}>
-            <MainActionButton
-              iconName={LocalIconName.QrCode}
+            <MainActionButtonGlass
+              iconName={IconName.QrCode}
               label={strings('accounts_menu.scan')}
               onPress={openQRScanner}
               testID={WalletViewSelectorsIDs.WALLET_SCAN_BUTTON}
+              isGlass={isGlassHeader}
             />
+          </Box>
+          <Box style={tw.style('mb-2 flex-1')}>
+            {shouldRenderBatchSell ? (
+              <MainActionButtonGlass
+                iconName={IconName.BuySell}
+                label={strings('asset_overview.batch_sell')}
+                onPress={onPressBatchSell}
+                isDisabled={!isSwapsEnabled}
+                testID={AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON}
+                isGlass={isGlassHeader}
+              />
+            ) : (
+              <MainActionButtonGlass
+                iconName={IconName.AttachMoney}
+                label={strings('accounts_menu.buy')}
+                onPress={onPressDeposit}
+                testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+                isGlass={isGlassHeader}
+              />
+            )}
           </Box>
         </Box>
 
@@ -399,6 +465,18 @@ const AccountsMenu = () => {
             testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
           />
         )}
+
+        {showOrangeEntry ? (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
+            }
+            label={orangeLabel}
+            endAccessory={arrowRightIcon}
+            onPress={onPressOrange}
+            testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}
+          />
+        ) : null}
 
         {/* MetaMask Card Row */}
         <ActionListItem

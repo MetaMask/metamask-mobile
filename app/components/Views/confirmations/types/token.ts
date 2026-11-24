@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { ImageSourcePropType } from 'react-native';
 
 import { TokenI } from '../../../UI/Tokens/types';
@@ -11,6 +11,8 @@ export enum TokenStandard {
 
 export interface AssetType extends TokenI {
   assetId?: string;
+  /** CAIP-19 asset ID as keyed in `AssetsController` state. */
+  caipAssetId?: CaipAssetType;
   accountId?: string;
   disabled?: boolean;
   disabledMessage?: string;
@@ -20,6 +22,11 @@ export interface AssetType extends TokenI {
   standard?: TokenStandard;
   description?: string;
   balanceInSelectedCurrency?: string;
+  /**
+   * Unformatted balance in the same currency as `balanceInSelectedCurrency`.
+   * Pay-with rows reformat this number; the string is display-only.
+   */
+  balanceInSelectedCurrencyAmount?: number;
   type?: string;
   fiat?: {
     balance?: number;

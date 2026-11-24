@@ -10,8 +10,28 @@ import {
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   EXPLORE_QUICK_BUY_AB_TEST_ANALYTICS_MAPPING,
   ExploreQuickBuyVariant,
+  HOMEPAGE_SEARCH_AB_KEY,
+  HOMEPAGE_SEARCH_VARIANTS,
+  HomepageSearchVariant,
 } from './abTestConfig';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
+
+describe('HOMEPAGE_SEARCH_VARIANTS', () => {
+  it('keeps the existing header when the flag is missing or control', () => {
+    expect(HOMEPAGE_SEARCH_AB_KEY).toBe('homeTMCU1384AbtestHomepageSearch');
+    expect(
+      HOMEPAGE_SEARCH_VARIANTS[HomepageSearchVariant.Control]
+        .showHomepageSearchBar,
+    ).toBe(false);
+  });
+
+  it('shows the homepage search bar for the treatment', () => {
+    expect(
+      HOMEPAGE_SEARCH_VARIANTS[HomepageSearchVariant.Treatment]
+        .showHomepageSearchBar,
+    ).toBe(true);
+  });
+});
 
 describe('EXPLORE_QUICK_BUY_AB_KEY', () => {
   it('matches the LaunchDarkly flag name', () => {

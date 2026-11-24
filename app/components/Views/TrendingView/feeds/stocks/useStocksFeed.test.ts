@@ -6,7 +6,12 @@ import { useStocksFeed } from './useStocksFeed';
 let mockIsBasicFunctionalityEnabled = true;
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => mockIsBasicFunctionalityEnabled),
+  useSelector: (selector: (state: unknown) => unknown) =>
+    selector({
+      settings: {
+        basicFunctionalityEnabled: mockIsBasicFunctionalityEnabled,
+      },
+    }),
 }));
 
 jest.mock('../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
@@ -51,11 +56,10 @@ describe('useStocksFeed', () => {
   });
 
   describe('no-query path (tab sections)', () => {
-    it.skip('filters to Ethereum and Robinhood assets', () => {
+    it('filters to Ethereum and Robinhood assets', () => {
       const { result } = renderHook(() => useStocksFeed());
       const symbols = result.current.data.map((d) => d.symbol);
-      expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);
-      expect(symbols).not.toContain('bOUSG');
+      expect(symbols).toStrictEqual(['OUSG', 'BUIDL', 'AAPL']);
     });
 
     it('passes undefined searchQuery to useRwaTokens', () => {
@@ -65,7 +69,7 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it.skip('requests Ethereum and Robinhood from the RWA API', () => {
+    it('requests Ethereum and Robinhood from the RWA API', () => {
       renderHook(() => useStocksFeed());
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
@@ -128,19 +132,20 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it('does not restrict chainIds when searching', () => {
+    it('requests all RWA chains when searching', () => {
       renderHook(() => useStocksFeed({ query: 'OUSG' }));
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: undefined }),
+        expect.objectContaining({
+          chainIds: ['eip155:1', 'eip155:56', 'eip155:4663'],
+        }),
       );
     });
 
-    it.skip('treats a whitespace-only query like no query', () => {
+    it('treats a whitespace-only query like no query', () => {
       const { result } = renderHook(() => useStocksFeed({ query: '   ' }));
       const symbols = result.current.data.map((d) => d.symbol);
-      expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);
-      expect(symbols).not.toContain('bOUSG');
+      expect(symbols).toStrictEqual(['OUSG', 'BUIDL', 'AAPL']);
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
         expect.objectContaining({
           searchQuery: undefined,

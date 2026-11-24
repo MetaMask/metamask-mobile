@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-09-22
+ * Production defaults last synced: 2026-11-17
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -70,7 +70,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'additionalNetworksBlacklist',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: ['0x32'],
     status: FeatureFlagStatus.Active,
   },
 
@@ -180,6 +180,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialCommentTranslation: {
+    name: 'aiSocialCommentTranslation',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialFeedEnabled: {
     name: 'aiSocialFeedEnabled',
     type: FeatureFlagType.Remote,
@@ -187,6 +198,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '8.3.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialGifApi: {
+    name: 'aiSocialGifApi',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -225,7 +247,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'perpsTAT3597AbtestPerpsSectionPriority',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: {
+      versions: {
+        '8.15.0': [
+          {
+            name: 'treatment',
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'treatment — full rollout',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -293,24 +330,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'assetsAccountsApiV6',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [
-      {
-        name: 'feature is ON',
-        scope: {
-          type: 'threshold',
-          value: 0,
-        },
-        value: true,
+    productionDefault: {
+      versions: {
+        '8.15.0': [
+          {
+            name: 'feature is ON',
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            value: true,
+          },
+          {
+            name: 'feature is OFF',
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            value: false,
+          },
+        ],
       },
-      {
-        name: 'feature is OFF',
-        scope: {
-          type: 'threshold',
-          value: 1,
-        },
-        value: false,
-      },
-    ],
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -338,11 +379,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '8.10.0': [
+        '8.12.0': [
           {
             scope: {
               type: 'threshold',
-              value: 1,
+              value: 0,
             },
             thresholdName: 'feature is OFF',
             thresholdVersion: 2,
@@ -353,7 +394,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           {
             scope: {
               type: 'threshold',
-              value: 0,
+              value: 1,
             },
             thresholdName: 'feature is ON',
             thresholdVersion: 2,
@@ -385,6 +426,44 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: false,
     productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  assetsMemecoinTdpV1: {
+    name: 'assetsMemecoinTdpV1',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.17.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'feature is OFF',
+            thresholdVersion: 2,
+            value: {
+              enabled: false,
+            },
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'feature is ON',
+            thresholdVersion: 2,
+            value: {
+              enabled: true,
+              priceApiBaseUrl: 'https://price.api.cx.metamask.io',
+              tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
+              tokenApiBaseUrl: 'https://token.api.cx.metamask.io',
+            },
+          },
+        ],
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -557,6 +636,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  swapsSWAPS5043AbtestFirstQuoteFlush: {
+    name: 'swapsSWAPS5043AbtestFirstQuoteFlush',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
   bridgeQuoteStatusManager: {
     name: 'bridgeQuoteStatusManager',
     type: FeatureFlagType.Remote,
@@ -611,6 +698,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
           },
         },
+        stellar: {
+          other: {},
+          standard: {
+            'stellar:pubnet/slip44:148':
+              'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+          },
+        },
         tron: {
           other: {},
           standard: {
@@ -647,6 +741,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         {
           chainId: 'eip155:8453',
           name: 'Base',
+        },
+        {
+          chainId: 'stellar:pubnet',
+          name: 'Stellar',
         },
         {
           chainId: 'eip155:42161',
@@ -820,6 +918,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           isActiveSrc: true,
           isUnifiedUIEnabled: true,
         },
+        '20000000000002': {
+          isActiveDest: true,
+          isActiveSrc: true,
+        },
       },
       maxRefreshCount: 5,
       minimumVersion: '7.46.0',
@@ -872,7 +974,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           ],
         },
         'eip155:59144': {
-          balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
           enabled: true,
           foxConnectAddresses: {
             global: '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
@@ -1002,7 +1103,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
       constants: {
-        accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+        applePayLearnMoreUrl: 'https://metamask.io/card',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
       },
     },
@@ -1165,19 +1266,19 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       {
         scope: {
           type: 'threshold',
-          value: 0,
+          value: 1,
         },
         thresholdName: 'enabled',
         thresholdVersion: 1,
         value: {
           enabled: true,
-          minimumVersion: '8.8.0',
+          minimumVersion: '8.13.0',
         },
       },
       {
         scope: {
           type: 'threshold',
-          value: 1,
+          value: 0,
         },
         thresholdName: 'disabled',
         thresholdVersion: 1,
@@ -1194,7 +1295,48 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'cardImmersveChains',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {},
+    productionDefault: {
+      'eip155:143': {
+        fallbackRpcUrl: 'https://rpc.monad.xyz',
+        network: 'monad-mainnet',
+        tokens: {
+          'eip155:143/erc20:0x1C8a336051D2024E318A229d01F9F6CF96efD316': {
+            decimals: 6,
+            symbol: 'vmUSD',
+          },
+        },
+      },
+      'eip155:421614': {
+        fallbackRpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
+        network: 'arbitrum-sepolia',
+        tokens: {
+          'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d': {
+            decimals: 6,
+            symbol: 'USDC',
+          },
+        },
+      },
+      'eip155:8453': {
+        fallbackRpcUrl: 'https://mainnet.base.org',
+        network: 'base-mainnet',
+        tokens: {
+          'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913': {
+            decimals: 6,
+            symbol: 'USDC',
+          },
+        },
+      },
+      'eip155:84532': {
+        fallbackRpcUrl: 'https://sepolia.base.org',
+        network: 'base-sepolia',
+        tokens: {
+          'eip155:84532/erc20:0x036CbD53842c5426634e7929541eC2318f3dCF7e': {
+            decimals: 6,
+            symbol: 'USDC',
+          },
+        },
+      },
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -1203,13 +1345,29 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      apiBaseUrl: 'https://test.immersve.com',
-      cardProgramId: '845d18d0530d11f1939b2555262ada6d',
-      clientApplicationId: '1e49c6da65c643003b7bc83402c73884',
-      fundingChannelId: '3fb4d892192f0a7587169abc5b9fe152',
-      network: 'base-sepolia',
-      partnerAccountId: '539a7dae231e578d0da0e293d110d08d',
-      spenderAddress: '0x46E98Cc4cEfd1E8d1ac07BdB7bc06e6e0914a0A0',
+      apiBaseUrl: 'https://api.immersve.com',
+      cardProgramId: '836aae2080a211f1b5a601a9d64744df',
+      clientApplicationId: '4f6bf010115e7169891340d78c5290d9',
+      fundingChannelId: '4daa0338e2992360c5cb5659d13af1b1',
+      fundingChannels: {
+        moneyAccount: {
+          assetId:
+            'eip155:143/erc20:0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+          fundingChannelId: 'd32fbc3527bc048e7de9e9fdc68c1966',
+          source: 'moneyAccount',
+          spenderAddress: '0xBcD8FAeD3A67d72Ac7697D227582A6198B968964',
+        },
+        usdcBase: {
+          assetId:
+            'eip155:8453/erc20:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
+          fundingChannelId: '4daa0338e2992360c5cb5659d13af1b1',
+          source: 'wallet',
+          spenderAddress: '0x97B6c98B9f9c83A2EE2f0687a0e10ad908810dFE',
+        },
+      },
+      network: 'base-mainnet',
+      partnerAccountId: '3c4deee311f7636ad291a50ed8f75210',
+      spenderAddress: '0x97B6c98B9f9c83A2EE2f0687a0e10ad908810dFE',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -1218,7 +1376,52 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'cardImmersveCountries',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [],
+    productionDefault: ['GB'],
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardBaanxProvisioning: {
+    name: 'cardBaanxProvisioning',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '7.74.0',
+      countries: {
+        US: {
+          enabled: true,
+          eligibility: { cardProcessors: ['galileo'] },
+          ios: {
+            apple_wallet: { enabled: true, minimumVersion: '7.74.0' },
+          },
+          android: {
+            google_wallet: { enabled: true, minimumVersion: '7.73.0' },
+          },
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardImmersveProvisioning: {
+    name: 'cardImmersveProvisioning',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      countries: {
+        NZ: {
+          enabled: true,
+          ios: {
+            apple_wallet: {
+              enabled: true,
+              minimumVersion: '8.20.0',
+            },
+          },
+        },
+      },
+      enabled: false,
+      minimumVersion: '8.20.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -1227,14 +1430,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
 
-  immersveOnboardingEnabled: {
-    name: 'immersveOnboardingEnabled',
+  cardLinkApi: {
+    name: 'cardLinkApi',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
@@ -1249,6 +1452,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  collectiblesEnabled: {
+    name: 'collectiblesEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.23.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -1282,6 +1496,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       contract_deployment: true,
       contract_interaction: true,
       signatures: true,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  confirmations_delegations: {
+    name: 'confirmations_delegations',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      deadlineSeconds: 1800,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -1324,12 +1548,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               '0x58bad06882c339b16db39cb62d2f7f57675c7c8dbe31d635e93141356aaaaff6496d04614ddf842c16c225bee6f6eb02eb10aec9daced3e47e11ff9a86c479f51c',
           },
         ],
+        '0x1388': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Mantle',
+            signature:
+              '0x4c61526fecf5131c325291c7ba80ec8374fe0913cbb0f833156bb20a55e49fad67712115cb7a0a08581f6667427f631051e612cb9692c452aa50945c3ece02e01c',
+          },
+        ],
         '0x13882': [
           {
             address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
             name: 'Polygon Amoy Testnet',
             signature:
               '0x472bb78ebb6686ddf0bb2e75265e1f4266cd050f8b498e88f97e9380afd8bfbd169c4d3221ec8845cb81ba7e9ddb7de9b819a15617803e20aee2aaa07664b6c81b',
+          },
+        ],
+        '0x138b': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Mantle Sepolia',
+            signature:
+              '0x79f782a65005a4e4a2e565ae98c47f91321f633f80e234310157b58162bfc3aa5f36256df5c2ca53be0e351c566f851c55c6e5c7dc6427cbaf3ce59a50e302671b',
           },
         ],
         '0x138c5': [
@@ -1346,6 +1586,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             name: 'Berachain',
             signature:
               '0x2c2037ddedcdfb9b7d8ea7c546259eef371a86b0e3610192eb15ece0114c59d86134791cd9e9df4208bbbdc83776d80b30b1fea6bf1a05bb072575217492497a1b',
+          },
+        ],
+        '0x13b2': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Arc',
+            signature:
+              '0xde6523202f8d3a6959af88a8fb316f8ab8cb283d0794eba79256ee83eecceca07b1ed3295cff0004aaea2006f4aec6cb710b94d7e009a825c55c28d75e3236331b',
           },
         ],
         '0x13fb': [
@@ -1434,6 +1682,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             name: 'Intuition Mainnet',
             signature:
               '0x0bb2e5471222492f516a6f1d92fd2b592645bf4124db1b53a6e1b2c505da9c3877fbbdc03642dc8be4ffdfb84a880662dde7b9be394114271b7dd1c217dca9ed1b',
+          },
+        ],
+        '0x4cef52': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Arc Testnet',
+            signature:
+              '0xc5cc9c91348b13e1085482abc9a2b90cc8183ed43324bec3e875690012887c7842c51f6c35f052c9183a5773108047c8c70bc2e2dfe280551e223854d1dc30a81b',
           },
         ],
         '0x515': [
@@ -1594,6 +1850,22 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               '0xa60cab833af6a8aa2dcc80d5e12d9e1566edb6cdf51c38e7cf43d441dac561007f05643e73e6b00107e18dbf15de98aae14192306276e92d654f62bd7c3023241c',
           },
         ],
+        '0xb405d': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Katana Bokuto',
+            signature:
+              '0x9b978802508b217c324d6460da78c71228d80ed23dc17fff6c6291611e86357632086f8899e7494edf64156abd1c3e6c7064337ba0aa5f60d0520f30a42829ab1b',
+          },
+        ],
+        '0xb67d2': [
+          {
+            address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+            name: 'Katana',
+            signature:
+              '0xb7fac9fa1549fe373b2d8ea57a7347625d13afd3ff9a5114442816ba3f94ee667f07444a0c599550be6b9744f61ec52a4c3f624dbe2868beee021da292aa79d91b',
+          },
+        ],
         '0xe708': [
           {
             address: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
@@ -1609,9 +1881,12 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         '0x1012',
         '0x1079',
         '0x1237',
+        '0x1388',
         '0x13882',
+        '0x138b',
         '0x138c5',
         '0x138de',
+        '0x13b2',
         '0x13fb',
         '0x14a34',
         '0x152',
@@ -1623,6 +1898,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         '0x38',
         '0x3909',
         '0x483',
+        '0x4cef52',
         '0x515',
         '0x530',
         '0x531',
@@ -1642,6 +1918,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         '0xaa044c',
         '0xaa36a7',
         '0xaa37dc',
+        '0xb405d',
+        '0xb67d2',
         '0xe708',
       ],
     },
@@ -2342,8 +2620,12 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       blockedTokens: {
         default: {
-          chainIds: ['0xaa36a7', '0xe705', '0x4cef52'],
+          chainIds: ['0xaa36a7', '0xe705', '0x4cef52', '0x531'],
           tokens: [
+            {
+              address: '0x33A3d962955A3862C8093D1273344719f03cA17C',
+              chainId: '0x38',
+            },
             {
               address: '0x66a3c2fa3e467aa586e90912f977e648589cabaf',
               chainId: '0x1',
@@ -2398,203 +2680,261 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             },
           ],
         },
-        overrides: {
-          perpsDeposit: {
-            chainIds: ['0xaa36a7', '0xe705', '0x4cef52'],
-            tokens: [
-              {
-                address: '0x33A3d962955A3862C8093D1273344719f03cA17C',
-                chainId: '0x38',
-              },
-              {
-                address: '0x66a3c2fa3e467aa586e90912f977e648589cabaf',
-                chainId: '0x1',
-              },
-              {
-                address: '0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE',
-                chainId: '0x38',
-              },
-              {
-                address: '0x5ca42204cdaa70d5c773946e69de942b85ca6706',
-                chainId: '0x38',
-              },
-              {
-                address: '0x683e9dcf085e5efcc7925858aace94d4b8882024',
-                chainId: '0x38',
-              },
-              {
-                address: '0xe90d1567ecEF9282CC1AB348D9e9E2ac95659B99',
-                chainId: '0x38',
-              },
-              {
-                address: '0xEF1f39d8391cdDcaee62b8b383cB992F46a6ce4f',
-                chainId: '0x38',
-              },
-              {
-                address: '0xf0f9D895aCa5c8678f706FB8216fa22957685A13',
-                chainId: '0x1',
-              },
-              {
-                address: '0xb1ced2e320e3f4c8e3511b1dc59203303493f382',
-                chainId: '0x38',
-              },
-              {
-                address: '0x73a15fed60bf67631dc6cd7bc5b6e8da8190acf5',
-                chainId: '0x1',
-              },
-              {
-                address: '0xfecbda1b8dbd73c4eea7843c04db816107fa6666',
-                chainId: '0x38',
-              },
-              {
-                address: '0x8C907e0a72C3d55627E853f4ec6a96b0C8771145',
-                chainId: '0x38',
-              },
-              {
-                address: '0x619940C0F69f1612245f94b7659403623239Fb20',
-                chainId: '0x38',
-              },
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                chainId: '0x8f',
-              },
-            ],
-          },
-          predictDeposit: {
-            chainIds: ['0xaa36a7', '0xe705', '0x4cef52'],
-            tokens: [
-              {
-                address: '0x66a3c2fa3e467aa586e90912f977e648589cabaf',
-                chainId: '0x1',
-              },
-              {
-                address: '0x1D2F0da169ceB9fC7B3144628dB156f3F6c60dBE',
-                chainId: '0x38',
-              },
-              {
-                address: '0x5ca42204cdaa70d5c773946e69de942b85ca6706',
-                chainId: '0x38',
-              },
-              {
-                address: '0x683e9dcf085e5efcc7925858aace94d4b8882024',
-                chainId: '0x38',
-              },
-              {
-                address: '0xe90d1567ecEF9282CC1AB348D9e9E2ac95659B99',
-                chainId: '0x38',
-              },
-              {
-                address: '0xEF1f39d8391cdDcaee62b8b383cB992F46a6ce4f',
-                chainId: '0x38',
-              },
-              {
-                address: '0xf0f9D895aCa5c8678f706FB8216fa22957685A13',
-                chainId: '0x1',
-              },
-              {
-                address: '0xb1ced2e320e3f4c8e3511b1dc59203303493f382',
-                chainId: '0x38',
-              },
-              {
-                address: '0x73a15fed60bf67631dc6cd7bc5b6e8da8190acf5',
-                chainId: '0x1',
-              },
-              {
-                address: '0xfecbda1b8dbd73c4eea7843c04db816107fa6666',
-                chainId: '0x38',
-              },
-              {
-                address: '0x8C907e0a72C3d55627E853f4ec6a96b0C8771145',
-                chainId: '0x38',
-              },
-              {
-                address: '0x619940C0F69f1612245f94b7659403623239Fb20',
-                chainId: '0x38',
-              },
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                chainId: '0x8f',
-              },
-            ],
-          },
-        },
+        overrides: {},
       },
       minimumRequiredTokenBalance: 10,
       preferredTokens: {
         default: [],
         overrides: {
-          perpsDeposit: [
+          moneyAccountDeposit: [
             {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0x1',
               name: 'ETH',
-              successRate: 93.89,
             },
             {
               address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
               chainId: '0x1',
               name: 'USDC',
-              successRate: 93.17,
             },
             {
               address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
               chainId: '0xa4b1',
               name: 'USDC',
-              successRate: 90.73,
             },
             {
               address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
               chainId: '0x1',
               name: 'USDT',
-              successRate: 90.4,
             },
             {
               address: '0x55d398326f99059fF775485246999027B3197955',
               chainId: '0x38',
               name: 'USDT',
-              successRate: 91.4,
             },
             {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0xa4b1',
               name: 'ETH',
-              successRate: 96.55,
             },
             {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0x2105',
               name: 'ETH',
-              successRate: 91.15,
             },
             {
               address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
               chainId: '0xa4b1',
               name: 'USDT',
-              successRate: 97.5,
             },
             {
               address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
               chainId: '0x38',
               name: 'USDC',
-              successRate: 96.38,
             },
             {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0x38',
               name: 'BNB',
-              successRate: 89.94,
             },
             {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0x89',
               name: 'POL',
-              successRate: 89.65,
             },
             {
               address: '0xe2fceAc20813592220b8C56999000d08C7844E6c',
               chainId: '0x1',
               name: 'MUSD',
-              successRate: 96.66,
+            },
+            {
+              address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+              chainId: '0x1',
+              name: 'mUSD',
+            },
+            {
+              address: '0x98c23e9d8f34fefb1b7bd6a91b7ff122f4e16f5c',
+              chainId: '0x1',
+              name: 'aEthUSDC',
+            },
+            {
+              address: '0x23878914efe38d27c4d67ab83ed1b93a74d4086a',
+              chainId: '0x1',
+              name: 'aEthUSDT',
+            },
+            {
+              address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+              chainId: '0x1',
+              name: 'DAI',
+            },
+            {
+              address: '0x018008bfb33d285247a21d44e50697654f754e63',
+              chainId: '0x1',
+              name: 'aEthDAI',
+            },
+            {
+              address: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913',
+              chainId: '0x2105',
+              name: 'USDC',
+            },
+            {
+              address: '0x4e65fe4dba92790696d040ac24aa414708f5c0ab',
+              chainId: '0x2105',
+              name: 'aBasUSDC',
+            },
+            {
+              address: '0x00901a076785e0906d1028c7d6372d247bec7d61',
+              chainId: '0x38',
+              name: 'aBnbUSDC',
+            },
+            {
+              address: '0xa9251ca9de909cb71783723713b21e4233fbf1b1',
+              chainId: '0x38',
+              name: 'aBnbUSDT',
+            },
+            {
+              address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+              chainId: '0x8f',
+              name: 'USDC',
+            },
+            {
+              address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+              chainId: '0x8f',
+              name: 'mUSD',
+            },
+            {
+              address: '0x724dc807b04555b71ed48a6896b6f41593b8c637',
+              chainId: '0xa4b1',
+              name: 'aArbUSDC',
+            },
+            {
+              address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+              chainId: '0xe708',
+              name: 'mUSD',
+            },
+          ],
+          perpsDeposit: [
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              name: 'ETH',
+            },
+            {
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
+              chainId: '0x1',
+              name: 'USDC',
+            },
+            {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: '0xa4b1',
+              name: 'USDC',
+            },
+            {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              name: 'USDT',
+            },
+            {
+              address: '0x55d398326f99059fF775485246999027B3197955',
+              chainId: '0x38',
+              name: 'USDT',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0xa4b1',
+              name: 'ETH',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x2105',
+              name: 'ETH',
+            },
+            {
+              address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+              chainId: '0xa4b1',
+              name: 'USDT',
+            },
+            {
+              address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+              chainId: '0x38',
+              name: 'USDC',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x38',
+              name: 'BNB',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x89',
+              name: 'POL',
+            },
+            {
+              address: '0xe2fceAc20813592220b8C56999000d08C7844E6c',
+              chainId: '0x1',
+              name: 'MUSD',
+            },
+          ],
+          perpsDepositAndOrder: [
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              name: 'ETH',
+            },
+            {
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
+              chainId: '0x1',
+              name: 'USDC',
+            },
+            {
+              address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+              chainId: '0xa4b1',
+              name: 'USDC',
+            },
+            {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              name: 'USDT',
+            },
+            {
+              address: '0x55d398326f99059fF775485246999027B3197955',
+              chainId: '0x38',
+              name: 'USDT',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0xa4b1',
+              name: 'ETH',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x2105',
+              name: 'ETH',
+            },
+            {
+              address: '0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9',
+              chainId: '0xa4b1',
+              name: 'USDT',
+            },
+            {
+              address: '0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d',
+              chainId: '0x38',
+              name: 'USDC',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x38',
+              name: 'BNB',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x89',
+              name: 'POL',
+            },
+            {
+              address: '0xe2fceAc20813592220b8C56999000d08C7844E6c',
+              chainId: '0x1',
+              name: 'MUSD',
             },
           ],
           perpsWithdraw: [
@@ -2609,61 +2949,103 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0x1',
               name: 'ETH',
-              successRate: 88.47,
             },
             {
               address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
               chainId: '0x89',
               name: 'USDC',
-              successRate: 87.55,
             },
             {
               address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
               chainId: '0x89',
               name: 'USDC.e',
-              successRate: 90.04,
             },
             {
               address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
               chainId: '0x1',
               name: 'USDC',
-              successRate: 88.36,
             },
             {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0x38',
               name: 'BNB',
-              successRate: 92.22,
             },
             {
               address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
               chainId: '0x1',
               name: 'USDT',
-              successRate: 88.5,
             },
             {
               address: '0x0000000000000000000000000000000000000000',
               chainId: '0x89',
               name: 'POL',
-              successRate: 94.08,
             },
             {
               address: '0x55d398326f99059fF775485246999027B3197955',
               chainId: '0x38',
               name: 'USDT',
-              successRate: 89.34,
             },
             {
               address: '0xe2fceAc20813592220b8C56999000d08C7844E6c',
               chainId: '0x1',
               name: 'MUSD',
-              successRate: 93.61,
             },
             {
               address: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
               chainId: '0x89',
               name: 'WETH',
-              successRate: 90,
+            },
+          ],
+          predictDepositAndOrder: [
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x1',
+              name: 'ETH',
+            },
+            {
+              address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359',
+              chainId: '0x89',
+              name: 'USDC',
+            },
+            {
+              address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              chainId: '0x89',
+              name: 'USDC.e',
+            },
+            {
+              address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48',
+              chainId: '0x1',
+              name: 'USDC',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x38',
+              name: 'BNB',
+            },
+            {
+              address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+              chainId: '0x1',
+              name: 'USDT',
+            },
+            {
+              address: '0x0000000000000000000000000000000000000000',
+              chainId: '0x89',
+              name: 'POL',
+            },
+            {
+              address: '0x55d398326f99059fF775485246999027B3197955',
+              chainId: '0x38',
+              name: 'USDT',
+            },
+            {
+              address: '0xe2fceAc20813592220b8C56999000d08C7844E6c',
+              chainId: '0x1',
+              name: 'MUSD',
+            },
+            {
+              address: '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619',
+              chainId: '0x89',
+              name: 'WETH',
             },
           ],
           predictWithdraw: [
@@ -2689,6 +3071,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         base: '0x2105',
         bsc: '0x38',
         eth: '0x1',
+        hyperliquid: '0x539',
         linea: '0xe708',
         monad: '0x8f',
       },
@@ -2707,6 +3090,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         ['eth', 'eth_adai', 'monad', 'musd'],
         ['eth', 'musd', 'monad', 'musd'],
         ['linea', 'musd', 'monad', 'musd'],
+        ['monad', 'musd', 'hyperliquid', 'hypercore_usdc'],
       ],
       tokens: {
         arbitrum_ausdcn: '0x724dc807b04555b71ed48a6896b6f41593b8c637',
@@ -2723,6 +3107,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         eth_dai: '0x6b175474e89094c44da98b954eedeac495271d0f',
         eth_usdc: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         eth_usdt: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        hypercore_usdc: '0x00000000000000000000000000000000',
         monad_usdc: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
         musd: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
       },
@@ -3681,6 +4066,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           '0x2105': 5,
         },
       },
+      replaceUnderpricedDappGasFees: {
+        perChainConfig: {
+          '0x13b2': true,
+        },
+      },
       timeoutAttempts: {
         default: 30,
         perChainConfig: {
@@ -3702,12 +4092,24 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  rampsProvidersAheadOfHistory: {
+    name: 'rampsProvidersAheadOfHistory',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.22.0',
+      providerIds: [],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   crossmintApplePayCheckout: {
     name: 'crossmintApplePayCheckout',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
       minimumVersion: '8.9.0',
     },
     status: FeatureFlagStatus.Active,
@@ -3776,6 +4178,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         '0x98C23E9d8f34FEFb1B7BD6a91B7FF122F4e16F5c',
         '0x23878914EFE38d27C4D67Ab83ed1b93A74D4086a',
         '0x018008bfb33d285247A21d44E50697654f754e63',
+        '0x6c3ea9036406852006290770BEdFcAbA0e23A0e8',
       ],
       '0x2105': [
         '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
@@ -3803,6 +4206,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         '0xDA10009cBd5D07dd0CeCc66161FC93D7c9000da1',
         '0x625E7708f30cA75bfd92586e17077590C60eb4cD',
         '0x724dc807b04555b71ed48a6896b6f41593b8c637',
+        '0x46850aD61C2B7d64d08c9C754F45254596696984',
       ],
       '0xe708': [
         '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
@@ -3869,42 +4273,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  musd1313AbtestEarnSectionOnHomepage: {
-    name: 'musd1313AbtestEarnSectionOnHomepage',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-        thresholdName: 'control',
-        thresholdVersion: 2,
-        value: 'control',
-      },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-        thresholdName: 'treatment',
-        thresholdVersion: 2,
-        value: 'treatment',
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnHomeSectionEnabled: {
-    name: 'earnHomeSectionEnabled',
+  earnMoneyDepositBrazeCampaignEnabled: {
+    name: 'earnMoneyDepositBrazeCampaignEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3914,8 +4289,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3936,8 +4311,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3971,13 +4346,42 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton: {
+    name: 'earnMUSD1516AbtestStablecoinTokenDetailsFooterMoneyDepositButton',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+        thresholdName: 'control',
+        thresholdVersion: 2,
+        value: 'control',
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+        thresholdName: 'treatment',
+        thresholdVersion: 2,
+        value: 'treatment',
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyAssetOverviewBalanceCtaEnabled: {
     name: 'earnMoneyAssetOverviewBalanceCtaEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3998,8 +4402,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4041,8 +4445,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.14.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4065,7 +4469,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: false,
       minimumVersion: '0.0.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   earnMoneyVaultApyControl: {
@@ -4261,8 +4665,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4323,7 +4727,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.74.0',
       enabled: true,
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   galileoGoogleWalletInAppProvisioningEnabled: {
@@ -4334,7 +4738,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.73.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   gasFeesSponsoredNetwork: {
@@ -4345,6 +4749,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       '0x531': true,
       '0x8f': true,
       '0x38': false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  mfaUiKit: {
+    name: 'mfaUiKit',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      methods: ['email_otp'],
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4384,7 +4800,21 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      enabled: true,
+      endDate: '2026-12-29T23:59:59.999Z',
+      minimumVersion: '8.13.0',
+      startDate: '2026-09-28T00:00:00.000Z',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardUkMigrationSignInRouting: {
+    name: 'cardUkMigrationSignInRouting',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
       enabled: false,
+      minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4395,7 +4825,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       androidMinimumAPIVersion: 21,
-      appMinimumBuild: 6489,
+      appMinimumBuild: 7249,
       appleMinimumOS: 6,
     },
     status: FeatureFlagStatus.Active,
@@ -4431,13 +4861,23 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  moneyMovementBrazilNeobank: {
-    name: 'moneyMovementBrazilNeobank',
+  // Production client-config snapshot. This build reads only `chooseCurrency`
+  // and `regionOverride` from this flag; signup gating uses the per-currency
+  // flags. Older builds (8.17 to 8.20) still read `enabled`, `minimumVersion`,
+  // `regions`, `regionCurrencies`, and `defaultCurrency`.
+  moneyMovementNeobank: {
+    name: 'moneyMovementNeobank',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      defaultCurrency: 'USD',
       enabled: false,
-      minimumVersion: '0.0.0',
+      minimumVersion: '8.20.0',
+      regionCurrencies: {
+        BR: 'BRL',
+        US: 'USD',
+      },
+      regions: [],
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4472,7 +4912,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   moneyCardActivityCashbackMultisendContracts: {
@@ -4486,6 +4926,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       '0x144c1cE815Bd1Eb71678978fE8641cC4e3fd59e6',
       '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyVbaCompletedActivityEnabled: {
+    name: 'moneyVbaCompletedActivityEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyVbaPendingActivityEnabled: {
+    name: 'moneyVbaPendingActivityEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4522,6 +4984,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyEnableHistoricalVaultShareValuations: {
+    name: 'moneyEnableHistoricalVaultShareValuations',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableMoneyAccount: {
     name: 'moneyEnableMoneyAccount',
     type: FeatureFlagType.Remote,
@@ -4529,6 +5002,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  isMoneyMfaEnabled: {
+    name: 'isMoneyMfaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4548,17 +5031,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           featureVersion: '1',
         },
       },
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyEnableOnboardingStepperAnimation: {
-    name: 'moneyEnableOnboardingStepperAnimation',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: true,
-      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4619,6 +5091,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       'https://sei.carbondefi.xyz',
       'https://matcha.xyz',
       'https://app.trysweep.finance',
+      'https://app.ens.domains',
+      'https://app.mibboverse.io',
     ],
     status: FeatureFlagStatus.Active,
   },
@@ -4664,29 +5138,68 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         ],
       },
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   perpsTAT3938AbtestScreenVsBottomSheet: {
     name: 'perpsTAT3938AbtestScreenVsBottomSheet',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
+    productionDefault: {
+      versions: {
+        '8.15.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'treatment',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
       },
-      {
-        name: 'treatment',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsTAT3793AbtestPerpsHomeExplore: {
+    name: 'perpsTAT3793AbtestPerpsHomeExplore',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.18.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'treatment',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
       },
-    ],
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4701,13 +5214,57 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsBrandRefresh: {
+    name: 'perpsBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  exploreBrandRefresh: {
+    name: 'exploreBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  glassHeaders: {
+    name: 'glassHeaders',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  slowNetworkBanner: {
+    name: 'slowNetworkBanner',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.22.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsCompetitionBannerEnabled: {
     name: 'perpsCompetitionBannerEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '7.0.0',
+      enabled: true,
+      minimumVersion: '7.80.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4750,8 +5307,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.13.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4762,7 +5319,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.11.0',
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsSocialEnabled: {
+    name: 'perpsSocialEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4772,8 +5340,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.13.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4783,8 +5351,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.13.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5270,6 +5838,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictCryptoPriceFeed: {
+    name: 'predictCryptoPriceFeed',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.20.0',
+      chainlinkApiKey: '',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   predictWithAnyToken: {
     name: 'predictWithAnyToken',
     type: FeatureFlagType.Remote,
@@ -5278,6 +5858,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.3.0',
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictSubscriptionFeeWaiverEnabled: {
+    name: 'predictSubscriptionFeeWaiverEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -5323,6 +5911,27 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  quickBuyPostTradeShareHintEnabled: {
+    name: 'quickBuyPostTradeShareHintEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  rampsOffRampNonEvm: {
+    name: 'rampsOffRampNonEvm',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   rampsServiceDisruptionModal: {
     name: 'rampsServiceDisruptionModal',
     type: FeatureFlagType.Remote,
@@ -5354,7 +5963,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.0.0',
+      minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5367,7 +5976,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '0.0.0',
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   rewardsReferralEnabled: {
@@ -5377,7 +5986,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   rwaTokensEnabled: {
@@ -5393,7 +6002,52 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      versions: {},
+      versions: {
+        '8.18.0': {
+          baseUrl: 'https://bridge.api.cx.metamask.io',
+          defaultPriceTolerance: 3,
+          enabled: true,
+          enabledChainIds: [
+            'eip155:1',
+            'eip155:56',
+            'eip155:8453',
+            'eip155:4663',
+          ],
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsFromMoney: {
+    name: 'swapsFromMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsToMoney: {
+    name: 'swapsToMoney',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsRebateBannerEnabled: {
+    name: 'swapsRebateBannerEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5560,7 +6214,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         sentinelUrl: 'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
       },
       '0x1237': {
-        gaslessBridgeWith7702Enabled: false,
+        gaslessBridgeWith7702Enabled: true,
         mobileActive: true,
         mobileActiveAndroid: true,
         mobileActiveIOS: true,
@@ -5770,6 +6424,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  tokenDetailsBrandRefresh: {
+    name: 'tokenDetailsBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tokenDetailsTechnicalIndicators: {
     name: 'tokenDetailsTechnicalIndicators',
     type: FeatureFlagType.Remote,
@@ -5788,6 +6453,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '7.78.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  chartsServerMigration: {
+    name: 'chartsServerMigration',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.22.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5917,14 +6593,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     },
     status: FeatureFlagStatus.Active,
   },
-
-  walletFrameworkRpcFailoverEnabled: {
-    name: 'walletFrameworkRpcFailoverEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
   cardExperimentalSwitch2: {
     name: 'cardExperimentalSwitch2',
     type: FeatureFlagType.Remote,
@@ -6034,8 +6702,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
+      enabled: true,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6089,33 +6757,26 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  brazeBannerHomeMinVersion: {
-    name: 'brazeBannerHomeMinVersion',
+  brazeEventBlocklist: {
+    name: 'brazeEventBlocklist',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
+      blockedEvents: [],
       enabled: false,
       minimumVersion: '0.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
 
-  brazeSegmentForwarding: {
-    name: 'brazeSegmentForwarding',
+  brazeBannerHomeMinVersion: {
+    name: 'brazeBannerHomeMinVersion',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      allowedEvents: [],
-      allowedTraits: [],
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.6.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-  brazeBannerHome: {
-    name: 'brazeBannerHome',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -6182,6 +6843,219 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             },
           },
         },
+        '8.13.0': {
+          defaultPaySelectedSection: {
+            perpsWithdraw: 'money-account',
+            predictWithdraw: 'money-account',
+          },
+          depositLimit: {
+            moneyAccountDeposit: 500000,
+          },
+          enableDepositWalletWithdraw: true,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsDepositAndOrder: false,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictDepositAndOrder: true,
+            predictWithdraw: true,
+          },
+          excludeChainIdsFromInfura: ['0x8f'],
+          payStrategies: {
+            relay: {
+              atomicMaxEnabled: {
+                default: false,
+                transactionTypes: {
+                  moneyAccountDeposit: true,
+                },
+              },
+              gaslessEnabled: true,
+              validationEnabled: {
+                default: true,
+                transactionTypes: {},
+              },
+            },
+          },
+          prefilledAmount: {
+            default: {
+              enabled: false,
+            },
+            overrides: {
+              moneyAccountDeposit: {
+                enabled: true,
+              },
+            },
+          },
+        },
+        '8.15.0': {
+          defaultPaySelectedSection: {
+            perpsWithdraw: 'money-account',
+            predictWithdraw: 'money-account',
+          },
+          depositLimit: {
+            moneyAccountDeposit: 500000,
+          },
+          enableDepositWalletWithdraw: true,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsDepositAndOrder: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictDepositAndOrder: true,
+            predictWithdraw: true,
+          },
+          excludeChainIdsFromInfura: ['0x8f'],
+          maxBalanceRefreshInterval: {
+            perpsWithdraw: 7000,
+          },
+          payStrategies: {
+            relay: {
+              atomicMaxEnabled: {
+                default: false,
+                transactionTypes: {
+                  moneyAccountDeposit: true,
+                },
+              },
+              gaslessEnabled: true,
+              validationEnabled: {
+                default: true,
+                transactionTypes: {},
+              },
+            },
+          },
+          prefilledAmount: {
+            default: {
+              enabled: false,
+            },
+            overrides: {
+              moneyAccountDeposit: {
+                enabled: true,
+              },
+            },
+          },
+        },
+        '8.16.0': [
+          {
+            name: 'control',
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            value: {
+              defaultPaySelectedSection: {
+                perpsWithdraw: 'money-account',
+                predictWithdraw: 'money-account',
+              },
+              depositLimit: {
+                moneyAccountDeposit: 500000,
+              },
+              enableDepositWalletWithdraw: true,
+              enableMoneyAccountTransactions: {
+                perpsDeposit: true,
+                perpsDepositAndOrder: true,
+                perpsWithdraw: true,
+                predictDeposit: true,
+                predictDepositAndOrder: true,
+                predictWithdraw: true,
+              },
+              excludeChainIdsFromInfura: ['0x8f'],
+              maxBalanceRefreshInterval: {
+                perpsWithdraw: 7000,
+              },
+              payStrategies: {
+                relay: {
+                  atomicMaxEnabled: {
+                    default: false,
+                    transactionTypes: {
+                      moneyAccountDeposit: true,
+                    },
+                  },
+                  gaslessEnabled: true,
+                  validationEnabled: {
+                    default: true,
+                    transactionTypes: {},
+                  },
+                },
+              },
+              prefilledAmount: {
+                default: {
+                  enabled: false,
+                },
+                overrides: {
+                  moneyAccountDeposit: {
+                    enabled: true,
+                  },
+                  perpsDeposit: {
+                    enabled: false,
+                  },
+                  predictDeposit: {
+                    enabled: false,
+                  },
+                },
+              },
+            },
+          },
+          {
+            name: 'treatment',
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            value: {
+              defaultPaySelectedSection: {
+                perpsWithdraw: 'money-account',
+                predictWithdraw: 'money-account',
+              },
+              depositLimit: {
+                moneyAccountDeposit: 500000,
+              },
+              enableDepositWalletWithdraw: true,
+              enableMoneyAccountTransactions: {
+                perpsDeposit: true,
+                perpsDepositAndOrder: true,
+                perpsWithdraw: true,
+                predictDeposit: true,
+                predictDepositAndOrder: true,
+                predictWithdraw: true,
+              },
+              excludeChainIdsFromInfura: ['0x8f'],
+              maxBalanceRefreshInterval: {
+                perpsWithdraw: 7000,
+              },
+              payStrategies: {
+                relay: {
+                  atomicMaxEnabled: {
+                    default: false,
+                    transactionTypes: {
+                      moneyAccountDeposit: true,
+                    },
+                  },
+                  gaslessEnabled: true,
+                  validationEnabled: {
+                    default: true,
+                    transactionTypes: {},
+                  },
+                },
+              },
+              prefilledAmount: {
+                default: {
+                  enabled: false,
+                },
+                overrides: {
+                  moneyAccountDeposit: {
+                    enabled: true,
+                  },
+                  perpsDeposit: {
+                    enabled: true,
+                  },
+                  predictDeposit: {
+                    enabled: true,
+                  },
+                },
+              },
+            },
+          },
+        ],
         '8.7.0': {
           defaultPaySelectedSection: {
             perpsWithdraw: 'money-account',
@@ -6248,6 +7122,12 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           excludeChainIdsFromInfura: ['0x8f'],
           payStrategies: {
             relay: {
+              atomicMaxEnabled: {
+                default: false,
+                transactionTypes: {
+                  moneyAccountDeposit: true,
+                },
+              },
               gaslessEnabled: true,
               validationEnabled: {
                 default: true,
@@ -6276,7 +7156,33 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      versions: {
+        '8.13.0': {
+          default: {
+            enabled: false,
+          },
+          overrides: {
+            moneyAccountDeposit: {
+              enabled: true,
+            },
+          },
+        },
+        '8.14.0': {
+          default: {
+            enabled: false,
+          },
+        },
+        '8.16.0': {
+          default: {
+            enabled: false,
+          },
+          overrides: {
+            moneyAccountDeposit: {
+              enabled: true,
+            },
+          },
+        },
+      },
     },
     status: FeatureFlagStatus.Active,
   },
@@ -6329,12 +7235,24 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU1209AbtestHomepageBalanceBreakdown: {
-    name: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+  homeBrandRefreshSurfaces: {
+    name: 'homeBrandRefreshSurfaces',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeInterimHeaderNavBar: {
+    name: 'homeInterimHeaderNavBar',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.20.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -7416,6 +8334,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         '0x55d398326f99059ff775485246999027b3197955',
         '0xa9251ca9de909cb71783723713b21e4233fbf1b1',
       ],
+      '0x539': ['0x00000000000000000000000000000000'],
       '0x8f': [
         '0x754704bc059f8c67012fed69bc8a327a5aafb603',
         '0xaca92e438df0b2401ff60da7e4337b687a2435da',
@@ -7557,6 +8476,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  socialCopyTradeGeoBlockedCountries: {
+    name: 'socialCopyTradeGeoBlockedCountries',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      blockedRegions: ['GB'],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   tmcuActivityRedesignEnabled: {
     name: 'tmcuActivityRedesignEnabled',
     type: FeatureFlagType.Remote,
@@ -7565,7 +8494,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
 
   tmcuTransactionsRedesignEnabled: {
@@ -7576,7 +8505,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '8.5.0',
     },
-    status: FeatureFlagStatus.Active,
+    status: FeatureFlagStatus.Deprecated,
   },
   assetsASSETS3380AbtestExploreQuickBuy: {
     name: 'assetsASSETS3380AbtestExploreQuickBuy',
@@ -7682,8 +8611,19 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      enabled: false,
-      minimumVersion: '8.3.0',
+      enabled: true,
+      minimumVersion: '8.15.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsPriceAlertsPercentChangeEnabled: {
+    name: 'perpsPriceAlertsPercentChangeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.17.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -7715,8 +8655,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '0.0.1',
-      enabled: false,
+      enabled: true,
+      minimumVersion: '8.13.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -7824,11 +8764,32 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '13.41.0': {
-          featureVersion: '1',
-          minimumSnapVersion: '1.20.0',
-          stage: 0,
-        },
+        '8.19.0': [
+          {
+            name: 's1',
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            value: {
+              featureVersion: '1',
+              minimumSnapVersion: '4.3.0',
+              stage: 1,
+            },
+          },
+          {
+            name: 'off',
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            value: {
+              featureVersion: '1',
+              minimumSnapVersion: '4.3.0',
+              stage: 0,
+            },
+          },
+        ],
       },
     },
     status: FeatureFlagStatus.Active,
@@ -7960,6 +8921,52 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'swapsSWAPS5010AbtestGaslessSwapRedesign',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Deprecated,
+  },
+  immersveAppleWalletInAppProvisioningEnabled: {
+    name: 'immersveAppleWalletInAppProvisioningEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Deprecated,
+  },
+  earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton: {
+    name: 'earnMUSD1442AbtestTokenDetailsBalanceMoneyDepositButton',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+        thresholdName: 'control',
+        thresholdVersion: 2,
+        value: 'control',
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+        thresholdName: 'treatment',
+        thresholdVersion: 2,
+        value: 'treatment',
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1384AbtestHomepageSearch: {
+    name: 'homeTMCU1384AbtestHomepageSearch',
+    type: FeatureFlagType.Remote,
+    inProd: true,
     productionDefault: [
       {
         name: 'control',
@@ -7978,13 +8985,567 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     ],
     status: FeatureFlagStatus.Active,
   },
-  immersveAppleWalletInAppProvisioningEnabled: {
-    name: 'immersveAppleWalletInAppProvisioningEnabled',
+
+  moneyAccountPremiumVaultConfig: {
+    name: 'moneyAccountPremiumVaultConfig',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      accountantAddress: '0xb4c9e25D3D6a4E42A7d52C21822D6016d29Ee0A2',
+      boringVault: '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7',
+      chainId: '0x8f',
+      lensAddress: '0x1234',
+      tellerAddress: '0xB0025a2eBc0474d4F28E975F0D3E70471246ebae',
+      underlyingToken: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  routeRestoration: {
+    name: 'routeRestoration',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  subscriptionMoneyAccountOrangeEnabled: {
+    name: 'subscriptionMoneyAccountOrangeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS5094AbtestQuickBuyEntrypoints: {
+    name: 'swapsSWAPS5094AbtestQuickBuyEntrypoints',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+      },
+      {
+        name: 'treatment_1',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+      {
+        name: 'treatment_2',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+  gachaEnabled: {
+    name: 'gachaEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1209AbtestHomepageBalanceBreakdown: {
+    name: 'homeTMCU1209AbtestHomepageBalanceBreakdown',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyBrandRefresh: {
+    name: 'moneyBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+  cardImmersveMfa: {
+    name: 'cardImmersveMfa',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  homeTMCU1209AbtestHomepageBalanceBreakdownV2: {
+    name: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.18.0': [
+          {
+            name: 'control',
+            scope: {
+              type: 'percentage_rollout',
+              value: 1,
+            },
+            thresholdVersion: 2,
+          },
+          {
+            name: 'treatment',
+            scope: {
+              type: 'percentage_rollout',
+              value: 0,
+            },
+            thresholdVersion: 2,
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsRebatesEnabled: {
+    name: 'perpsRebatesEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictBrandRefresh: {
+    name: 'predictBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+  cardBaanxPasswordlessLogin: {
+    name: 'cardBaanxPasswordlessLogin',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyVbaActivityDepositFromAddresses: {
+    name: 'moneyVbaActivityDepositFromAddresses',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsTAT4021AbtestPerpsHeaderMarketList: {
+    name: 'perpsTAT4021AbtestPerpsHeaderMarketList',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.20.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'treatment',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  predictDisablePolymarketV2Markets: {
+    name: 'predictDisablePolymarketV2Markets',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+  earnHomeSectionEnabled: {
+    name: 'earnHomeSectionEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyAccountDebugEnabled: {
+    name: 'moneyAccountDebugEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        metaMetricsIds: [],
+        name: 'debug-users',
+        scope: {
+          type: 'threshold',
+          value: 0,
+        },
+        value: {
+          enabled: false,
+          minimumVersion: '7.70.0',
+        },
+      },
+      {
+        name: 'everyone',
+        scope: {
+          type: 'threshold',
+          value: 1,
+        },
+        value: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyMovementNeobankBrl: {
+    name: 'moneyMovementNeobankBrl',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'on',
+        scope: {
+          type: 'threshold',
+          value: 0,
+        },
+        value: {
+          currency: 'BRL',
+          enabled: true,
+          layout: 'Pix',
+          minimumVersion: '8.20.1',
+          regions: ['BR'],
+        },
+      },
+      {
+        name: 'off',
+        scope: {
+          type: 'threshold',
+          value: 1,
+        },
+        value: {
+          currency: 'BRL',
+          enabled: false,
+          layout: 'Pix',
+          minimumVersion: '8.20.1',
+          regions: ['BR'],
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyMovementNeobankUsd: {
+    name: 'moneyMovementNeobankUsd',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'on',
+        scope: {
+          type: 'threshold',
+          value: 0,
+        },
+        value: {
+          currency: 'USD',
+          enabled: true,
+          layout: 'UsBank',
+          minimumVersion: '8.21.0',
+          regions: ['US'],
+        },
+      },
+      {
+        name: 'off',
+        scope: {
+          type: 'threshold',
+          value: 1,
+        },
+        value: {
+          currency: 'USD',
+          enabled: false,
+          layout: 'UsBank',
+          minimumVersion: '8.21.0',
+          regions: ['US'],
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  musd1313AbtestEarnSectionOnHomepage: {
+    name: 'musd1313AbtestEarnSectionOnHomepage',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'control',
+        scope: {
+          type: 'percentage_rollout',
+          value: 1,
+        },
+        thresholdName: 'control',
+        thresholdVersion: 2,
+        value: 'control',
+      },
+      {
+        name: 'treatment',
+        scope: {
+          type: 'percentage_rollout',
+          value: 0,
+        },
+        thresholdName: 'treatment',
+        thresholdVersion: 2,
+        value: 'treatment',
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsTAT4046AbtestFeeDisplayFormat: {
+    name: 'perpsTAT4046AbtestFeeDisplayFormat',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.20.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'treatment',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsTAT4267AbtestLiveTrades: {
+    name: 'perpsTAT4267AbtestLiveTrades',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.21.0': [
+          {
+            scope: {
+              type: 'threshold',
+              value: 1,
+            },
+            thresholdName: 'control — 100%',
+            thresholdVersion: 2,
+            value: 'control',
+          },
+          {
+            scope: {
+              type: 'threshold',
+              value: 0,
+            },
+            thresholdName: 'treatment — 0%',
+            thresholdVersion: 2,
+            value: 'treatment',
+          },
+        ],
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+  aiSocialPositionShareCardEnabled: {
+    name: 'aiSocialPositionShareCardEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.20.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  mobileQRUi: {
+    name: 'mobileQRUi',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.13.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+  moneyMovementNeobankEur: {
+    name: 'moneyMovementNeobankEur',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      {
+        name: 'on',
+        scope: {
+          type: 'threshold',
+          value: 0,
+        },
+        value: {
+          currency: 'EUR',
+          enabled: true,
+          layout: 'Sepa',
+          minimumVersion: '8.21.0',
+          regions: [
+            'AT',
+            'BE',
+            'HR',
+            'CY',
+            'CZ',
+            'DK',
+            'EE',
+            'FI',
+            'FR',
+            'DE',
+            'GR',
+            'HU',
+            'IS',
+            'IE',
+            'IT',
+            'LV',
+            'LI',
+            'LT',
+            'LU',
+            'MT',
+            'NL',
+            'NO',
+            'PL',
+            'PT',
+            'RO',
+            'SK',
+            'SI',
+            'ES',
+            'SE',
+          ],
+        },
+      },
+      {
+        name: 'off',
+        scope: {
+          type: 'threshold',
+          value: 1,
+        },
+        value: {
+          currency: 'EUR',
+          enabled: false,
+          layout: 'Sepa',
+          minimumVersion: '8.21.0',
+          regions: [
+            'AT',
+            'BE',
+            'HR',
+            'CY',
+            'CZ',
+            'DK',
+            'EE',
+            'FI',
+            'FR',
+            'DE',
+            'GR',
+            'HU',
+            'IS',
+            'IE',
+            'IT',
+            'LV',
+            'LI',
+            'LT',
+            'LU',
+            'MT',
+            'NL',
+            'NO',
+            'PL',
+            'PT',
+            'RO',
+            'SK',
+            'SI',
+            'ES',
+            'SE',
+          ],
+        },
+      },
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  walletFrameworkRpcFailoverEnabled: {
+    name: 'walletFrameworkRpcFailoverEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  socialCopyTradeEnabled: {
+    name: 'socialCopyTradeEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      blockedRegions: [],
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  sentry: {
+    name: 'sentry',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      transactionSampleRates: {},
     },
     status: FeatureFlagStatus.Active,
   },

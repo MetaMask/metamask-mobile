@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { mapApiTransaction } from '@metamask/client-utils';
+import { TransactionStatus } from '@metamask/transaction-controller';
 import type { CaipChainId } from '@metamask/utils';
 import {
   type ActivityListItem,
@@ -23,6 +24,7 @@ import { useRampActivityItemsById } from '../../ActivityList/hooks/useRampActivi
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import {
   mapNonEvmTransactions,
+  mapV5ActivityItem,
   shouldSkipUnrelatedTransaction,
 } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -193,6 +195,12 @@ export function useActivityDetailsItem(
       return undefined;
     }
 
+    // v5 maps as-is, like the extension's details page.
+    if ('tx' in apiTransaction) {
+      const activity = mapV5ActivityItem(apiTransaction);
+      return chainId && activity.chainId !== chainId ? undefined : activity;
+    }
+
     // Participation gate only. Without it, by-hash results whose top-level
     // from/to are not the subject (relayer gasless txs, unrelated hashes) still
     // map to a plausible "Sent" with the native value fallback. The list's
@@ -248,9 +256,13 @@ export function useActivityDetailsItem(
       (fetchedApiItem?.hash?.toLowerCase() === txIdentifier.toLowerCase()
         ? fetchedApiItem
         : undefined);
+    const localConfirmedApiPending =
+      localTransactionMeta?.status === TransactionStatus.confirmed &&
+      !apiItem &&
+      isSingleTxFetching;
     const nonEvmItem = getPreferredItem(nonEvmByHash, txIdentifier);
 
-    if (localItem) {
+    if (localItem && !localConfirmedApiPending) {
       return preferLocalOrApiActivityItem(localItem, apiItem);
     }
 
@@ -267,6 +279,7 @@ export function useActivityDetailsItem(
     rampByIdentifier,
     localTransactionMeta,
     fetchedApiItem,
+    isSingleTxFetching,
   ]);
 
   const isFetching = useMemo(() => {

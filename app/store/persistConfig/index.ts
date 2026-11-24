@@ -4,6 +4,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
+import type { BridgeState } from '../../core/redux/slices/bridge';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
 import { reportStorageWriteError } from '../../util/storage/diskSpaceError';
@@ -77,18 +78,29 @@ export const ControllerStorage = {
   // Use the consolidated storage without AsyncStorage fallback
   ...createStorage(false),
 
-  async getAllPersistedState(): Promise<Record<string, unknown>> {
+  /**
+   * Loads every persisted controller file into a `backgroundState` object.
+   *
+   * @param additionalControllerNames - Controllers to load on top of the
+   * runtime ones (derived from the Engine change event names), e.g. removed
+   * controllers whose files are still read by migrations.
+   * @returns The persisted state, keyed under `backgroundState`.
+   */
+  async getAllPersistedState(
+    additionalControllerNames: readonly string[] = [],
+  ): Promise<Record<string, unknown>> {
     try {
       const backgroundState: Record<string, unknown> = {};
 
       await Promise.all(
         // Build runtime controller list from engine change event names
         Array.from(
-          new Set(
-            Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES).map(
+          new Set([
+            ...Array.from(BACKGROUND_STATE_CHANGE_EVENT_NAMES).map(
               (eventName) => eventName.split(':')[0],
             ),
-          ),
+            ...additionalControllerNames,
+          ]),
         ).map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
@@ -184,6 +196,7 @@ const persistUserTransform = createTransform<UserState, PersistedUserState>(
   // is still locked.
   (outboundState) => ({
     ...outboundState,
+    moneySplashSeen: outboundState.moneySplashSeen ?? false,
     initialScreen: '',
     isAuthChecked: false,
     appServicesReady: false,
@@ -208,7 +221,9 @@ const persistOnboardingTransform = createTransform(
 
 type PersistedCardState = Omit<
   CardSliceState,
-  'pendingMoneyAccountCardLink' | 'cardArrivalPreviewRequested'
+  | 'pendingMoneyAccountCardLink'
+  | 'cardArrivalPreviewRequested'
+  | 'immersveFundingSettling'
 >;
 
 const persistCardTransform = createTransform<
@@ -219,6 +234,7 @@ const persistCardTransform = createTransform<
     const {
       pendingMoneyAccountCardLink: _omitSession,
       cardArrivalPreviewRequested: _omitPreview,
+      immersveFundingSettling: _omitFundingSettling,
       ...state
     } = inboundState;
     return state;
@@ -227,8 +243,33 @@ const persistCardTransform = createTransform<
     ...outboundState,
     pendingMoneyAccountCardLink: null,
     cardArrivalPreviewRequested: false,
+    immersveFundingSettling: false,
   }),
   { whitelist: ['card'] },
+);
+
+// Limit-order settings are session-only. They are also cleared on read because
+// older builds persisted limitOrderCostTolerance.
+type PersistedBridgeState = Omit<
+  BridgeState,
+  'limitOrderCostTolerance' | 'limitOrderExpirationMinutes'
+>;
+
+const persistBridgeTransform = createTransform<
+  BridgeState,
+  PersistedBridgeState
+>(
+  ({
+    limitOrderCostTolerance: _omitCostTolerance,
+    limitOrderExpirationMinutes: _omitExpirationMinutes,
+    ...state
+  }) => state,
+  (state) => ({
+    ...state,
+    limitOrderCostTolerance: undefined,
+    limitOrderExpirationMinutes: undefined,
+  }),
+  { whitelist: ['bridge'] },
 );
 
 const persistConfig = {
@@ -248,6 +289,7 @@ const persistConfig = {
     persistUserTransform,
     persistOnboardingTransform,
     persistCardTransform,
+    persistBridgeTransform,
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {

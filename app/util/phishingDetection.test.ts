@@ -2,6 +2,7 @@ import {
   PhishingController,
   PhishingDetectorResult,
   RecommendedAction,
+  RequestSourceFlow,
 } from '@metamask/phishing-controller';
 import Engine from '../core/Engine';
 import { getPhishingTestResultAsync } from './phishingDetection';
@@ -31,9 +32,12 @@ describe('Phishing Detection', () => {
         hostname: testOrigin,
       });
 
-      await getPhishingTestResultAsync(testOrigin);
+      await getPhishingTestResultAsync(testOrigin, RequestSourceFlow.Browser);
 
-      expect(mockPhishingController.scanUrl).toHaveBeenCalledWith(testOrigin);
+      expect(mockPhishingController.scanUrl).toHaveBeenCalledWith(
+        testOrigin,
+        RequestSourceFlow.Browser,
+      );
     });
 
     it('returns result=false when recommendedAction is None', async () => {
@@ -42,7 +46,10 @@ describe('Phishing Detection', () => {
         hostname: 'example.com',
       });
 
-      const result = await getPhishingTestResultAsync('example.com');
+      const result = await getPhishingTestResultAsync(
+        'example.com',
+        RequestSourceFlow.Browser,
+      );
 
       expect(result.result).toBe(false);
       expect(result.name).toBe('Product safety dapp scanning');
@@ -55,7 +62,10 @@ describe('Phishing Detection', () => {
         hostname: 'example.com',
       });
 
-      const result = await getPhishingTestResultAsync('example.com');
+      const result = await getPhishingTestResultAsync(
+        'example.com',
+        RequestSourceFlow.Browser,
+      );
 
       expect(result.result).toBe(false);
     });
@@ -66,7 +76,10 @@ describe('Phishing Detection', () => {
         hostname: 'example.com',
       });
 
-      const result = await getPhishingTestResultAsync('example.com');
+      const result = await getPhishingTestResultAsync(
+        'example.com',
+        RequestSourceFlow.Browser,
+      );
 
       expect(result.result).toBe(false);
     });
@@ -77,7 +90,10 @@ describe('Phishing Detection', () => {
         hostname: 'example.com',
       });
 
-      const result = await getPhishingTestResultAsync('example.com');
+      const result = await getPhishingTestResultAsync(
+        'example.com',
+        RequestSourceFlow.Browser,
+      );
 
       expect(result.result).toBe(true);
     });
@@ -88,8 +104,10 @@ describe('Phishing Detection', () => {
         hostname: 'example.com',
       });
 
-      const result: PhishingDetectorResult =
-        await getPhishingTestResultAsync('example.com');
+      const result: PhishingDetectorResult = await getPhishingTestResultAsync(
+        'example.com',
+        RequestSourceFlow.Browser,
+      );
 
       expect(result).toEqual({
         result: false,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { SwapQuotesProvider } from '../../providers/SwapQuotesProvider';
 import { SwapsFeatureIdProvider } from '../../providers/SwapsFeatureIdProvider';
 import { useSwapQuotes } from './index';
@@ -73,6 +73,15 @@ jest.mock('../useInsufficientBalance', () => ({
 
 jest.mock('../useInsufficientNativeReserveError', () => ({
   useInsufficientNativeReserveError: jest.fn(),
+}));
+
+jest.mock('../../../Money/hooks/useMoneyAccountInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isMoneyAccountFeatureEnabled: false,
+    hasMoneyAccount: false,
+    primaryMoneyAccount: undefined,
+  })),
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -169,27 +178,49 @@ const Wrapper = ({
   const slippage = useSelector(selectSlippage);
   const walletAddress = useSelector(selectSourceWalletAddress);
   const destAddress = useSelector(selectDestAddress);
+  const hasLatestSourceAtomicBalance = 'latestSourceAtomicBalance' in options;
+  const latestSourceAtomicBalance = options.latestSourceAtomicBalance;
 
-  mockUseBridgeSession.mockReturnValue({
-    selectedTab: BridgeTabKey.Limit,
-    renderedTab: BridgeTabKey.Limit,
-    setSelectedTab: jest.fn(),
-    setRenderedTab: jest.fn(),
-    quoteParams: {
+  const quoteParams = useMemo(
+    () => ({
       srcAmount: sourceAmount,
       srcToken: sourceToken,
       destToken,
       slippage,
       walletAddress,
       destWalletAddress: destAddress,
-    },
-    latestSourceBalance:
-      'latestSourceAtomicBalance' in options
+    }),
+    [
+      destAddress,
+      destToken,
+      slippage,
+      sourceAmount,
+      sourceToken,
+      walletAddress,
+    ],
+  );
+  const setSelectedTab = useMemo(() => jest.fn(), []);
+  const setRenderedTab = useMemo(() => jest.fn(), []);
+  const setQuoteParams = useMemo(() => jest.fn(), []);
+  const latestSourceBalance = useMemo(
+    () =>
+      hasLatestSourceAtomicBalance
         ? {
-            atomicBalance: options.latestSourceAtomicBalance,
+            atomicBalance: latestSourceAtomicBalance,
             displayBalance: '',
           }
         : undefined,
+    [hasLatestSourceAtomicBalance, latestSourceAtomicBalance],
+  );
+
+  mockUseBridgeSession.mockReturnValue({
+    selectedTab: BridgeTabKey.Limit,
+    renderedTab: BridgeTabKey.Limit,
+    setSelectedTab,
+    setRenderedTab,
+    quoteParams,
+    latestSourceBalance,
+    setQuoteParams,
   });
 
   return (

@@ -23,6 +23,12 @@ import { getGasMetricsProperties } from '../metrics_properties/gas';
 import { getSecurityAlertResponseProperties } from '../metrics_properties/security-alert-response';
 import { getSwapTransactionActiveAbTestProperties } from '../metrics_properties/swap-transaction-ab-tests';
 import { registerPendingTransactionActiveAbTestsForTransactionIds } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import {
+  dropUnclaimedPrewarmTransaction,
+  isUnclaimedPrewarmTransaction,
+  stashUnclaimedPrewarmTransactionAdded,
+  suppressUnclaimedPrewarmTransactionAdded,
+} from '../../../../../components/UI/Perps/utils/unclaimedPrewarmTransactionMetrics';
 
 const log = createProjectLogger('transaction-metrics');
 
@@ -94,8 +100,9 @@ const createTransactionEventHandler =
     }
   };
 
-export const handleTransactionAddedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_ADDED, {
+const trackTransactionAddedEvent = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_ADDED,
+  {
     syncBeforeMetrics: (transactionMeta) => {
       if (transactionMeta.id) {
         registerPendingTransactionActiveAbTestsForTransactionIds([
@@ -103,13 +110,53 @@ export const handleTransactionAddedEventForMetrics =
         ]);
       }
     },
-  });
+  },
+);
+
+export const handleTransactionAddedEventForMetrics = (
+  transactionMeta: TransactionMeta,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) => {
+  // An unclaimed deposit prewarm is not a user-started transaction. Hold Added
+  // until claim; trackStashedPrewarmTransactionAdded emits this same handler.
+  if (
+    transactionMeta.id &&
+    suppressUnclaimedPrewarmTransactionAdded(transactionMeta)
+  ) {
+    stashUnclaimedPrewarmTransactionAdded(transactionMeta.id, () =>
+      trackTransactionAddedEvent(
+        transactionMeta,
+        transactionEventHandlerRequest,
+      ),
+    );
+    return undefined;
+  }
+  return trackTransactionAddedEvent(
+    transactionMeta,
+    transactionEventHandlerRequest,
+  );
+};
 
 export const handleTransactionApprovedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_APPROVED);
 
-export const handleTransactionRejectedEventForMetrics =
-  createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_REJECTED);
+const trackTransactionRejectedEvent = createTransactionEventHandler(
+  TRANSACTION_EVENTS.TRANSACTION_REJECTED,
+);
+
+export const handleTransactionRejectedEventForMetrics = (
+  transactionMeta: TransactionMeta,
+  transactionEventHandlerRequest: TransactionEventHandlerRequest,
+) => {
+  if (transactionMeta.id && isUnclaimedPrewarmTransaction(transactionMeta.id)) {
+    dropUnclaimedPrewarmTransaction(transactionMeta.id);
+    return undefined;
+  }
+  return trackTransactionRejectedEvent(
+    transactionMeta,
+    transactionEventHandlerRequest,
+  );
+};
 
 export const handleTransactionSubmittedEventForMetrics =
   createTransactionEventHandler(TRANSACTION_EVENTS.TRANSACTION_SUBMITTED);

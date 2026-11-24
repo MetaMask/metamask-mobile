@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Braze, { Banner } from '@braze/react-native-sdk';
-import { useDispatch, useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 import { dismissBrazeBanner, getBannerForPlacement } from '../../../core/Braze';
-import { setLastDismissedBrazeBanner } from '../../../reducers/banners';
-import { selectLastDismissedBrazeBanner } from '../../../selectors/banner';
 import Logger from '../../../util/Logger';
 import { isProduction } from '../../../util/environment';
 import {
@@ -39,7 +36,7 @@ export interface UseBrazeBannerResult {
  * Braze dashboard property keys. Each key must be set on the campaign for
  * the corresponding feature to work.
  *
- * - `banner_id`    Cross-session dismissal persistence and impression tracking.
+ * - `campaign_name` Campaign identifier used for impression analytics.
  * - `deeplink`     URL routed through the app's deeplink pipeline on tap.
  * - `title`        Optional bold heading above the body text.
  * - `body`         Main message text (required; banner is ignored without it).
@@ -80,26 +77,22 @@ function logBrazeBannerDebug(
  * States: `loading → visible`, `loading → empty`, `visible → dismissed`.
  *
  * - `loading`   Skeleton shown; waiting for the first valid banner event.
- * - `visible`   A non-dismissed banner is ready to render.
+ * - `visible`   A banner is ready to render.
  * - `empty`     No banner arrived within the timeout (or SDK returned empty).
- * - `dismissed` User dismissed this session; renders nothing until next mount.
+ * - `dismissed` User dismissed this mount; renders nothing until next mount.
  *
  * Dismissal behaviour:
- * - Always in-memory: hides immediately and stays hidden for the session.
- * - Persisted to Redux (and Braze notified) for all campaigns except test sends.
- * The persisted value is only used to suppress the banner on the next session's
- * first render, then cleared — so the banner can reappear if Braze serves it again.
+ * - Hides immediately for this mount (in-memory).
+ * - Calls `Braze.dismissBanner` so Braze records the close and applies campaign re-eligibility.
+ * - Logs the `Banner Dismissed` custom event when `campaign_name` is present, for next banner targeting.
+ * - Test sends skip the SDK call so they can be shown again without waiting for re-eligibility.
  */
 export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
-  const dispatch = useDispatch();
   const [status, setStatus] = useState<BrazeBannerStatus>('loading');
   const [banner, setBanner] = useState<Banner | null>(null);
 
-  const lastDismissedBrazeBanner = useSelector(selectLastDismissedBrazeBanner);
-  const lastDismissedBrazeBannerRef = useRef(lastDismissedBrazeBanner);
-
   // In-memory dismissal flag. Once true, no future bannerCardsUpdated events
-  // will change the status for the rest of this app session.
+  // will change the status for the rest of this mount.
   const dismissedRef = useRef(false);
 
   // Track the currently rendered trackingId so repeated SDK events for the
@@ -196,20 +189,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         return; // wait for a meaningful banner
       }
 
-      const bannerName = getRawStringProp(candidate, PROP_BANNER_NAME);
-      if (
-        bannerName !== null &&
-        bannerName === lastDismissedBrazeBannerRef.current
-      ) {
-        logBrazeBannerDebug(
-          'Ignoring previously dismissed banner',
-          placementId,
-          candidate,
-        );
-        // This banner was explicitly dismissed last session - skip it.
-        return;
-      }
-
       if (
         source === 'event' &&
         currentBannerTrackingIdRef.current === null &&
@@ -255,12 +234,6 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   );
 
   useEffect(() => {
-    // Consume the stale-cache guard: the ref already holds the value for this
-    // session, so clear storage now — the next session starts with no guard.
-    if (lastDismissedBrazeBannerRef.current !== null) {
-      dispatch(setLastDismissedBrazeBanner(null));
-    }
-
     const traceId = uuidv4();
     brazeTraceIdRef.current = traceId;
     trace({
@@ -329,13 +302,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         placement_id: placementId,
       });
     };
-  }, [
-    placementId,
-    dispatch,
-    handleBanner,
-    clearNoResponseTimeout,
-    endBrazeTrace,
-  ]);
+  }, [placementId, handleBanner, clearNoResponseTimeout, endBrazeTrace]);
 
   const bannerName = banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null;
   const deeplink = banner ? getRawStringProp(banner, PROP_DEEPLINK) : null;
@@ -361,18 +328,15 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
   );
 
   const dismiss = useCallback(() => {
-    // we don't dismiss again if it has already been dismissed
     if (!banner || dismissedRef.current) return;
 
     dismissedRef.current = true;
     setStatus('dismissed');
 
-    // Persist the dismissal and notify Braze unless this is a test send.
-    if (eventProperties && !banner.isTestSend) {
-      dispatch(setLastDismissedBrazeBanner(bannerName));
-      dismissBrazeBanner(eventProperties);
+    if (!banner.isTestSend) {
+      dismissBrazeBanner(placementId, eventProperties);
     }
-  }, [banner, bannerName, eventProperties, dispatch]);
+  }, [banner, placementId, eventProperties]);
 
   return {
     status,

@@ -1,0 +1,145 @@
+import React from 'react';
+import {
+  Box,
+  BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  IconName,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { strings } from '../../../../../../locales/i18n';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
+import PerpsDirectionButton from '../../../../UI/Perps/components/PerpsDirectionButton';
+import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
+import type { QuickBuyTradeMode } from '../../../../UI/QuickBuy/types';
+import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
+
+export interface PositionSheetFooterProps {
+  isPerp: boolean;
+  isClosed: boolean;
+  /**
+   * The viewer's own position. Copy trade would repeat it, so it offers the
+   * same trade actions as a closed position, whether open or closed.
+   */
+  isOwnPost: boolean;
+  /** Spot only: the viewer holds the token, so Sell is offered. */
+  canSell: boolean;
+  /**
+   * Another trader's open position. UK geolocation and an unresolved lookup
+   * pass false so Copy trade is not rendered.
+   */
+  showCopyTrade?: boolean;
+  onCopyTrade: () => void;
+  onPerpsOrder: (direction: PerpDirection) => void;
+  onSpotTrade: (mode: QuickBuyTradeMode) => void;
+}
+
+/**
+ * Another trader's open position offers Copy trade. Every other position, the
+ * viewer's own included, offers a fresh trade in the same market: Long / Short
+ * for perps, Sell / Buy for spot (Sell only when the viewer has something to
+ * sell).
+ */
+const PositionSheetFooter = ({
+  isPerp,
+  isClosed,
+  isOwnPost,
+  canSell,
+  showCopyTrade = true,
+  onCopyTrade,
+  onPerpsOrder,
+  onSpotTrade,
+}: PositionSheetFooterProps) => {
+  const tw = useTailwind();
+  const halfWidth = tw.style('flex-1');
+
+  if (!isClosed && !isOwnPost && !showCopyTrade) {
+    return null;
+  }
+
+  const renderActions = () => {
+    if (!isClosed && !isOwnPost) {
+      return (
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          startIconName={IconName.SwapHorizontal}
+          onPress={() => {
+            fireImpact(ImpactMoment.SecondaryCTA);
+            onCopyTrade();
+          }}
+          testID={PositionDetailsSheetSelectorsIDs.COPY_TRADE_BUTTON}
+        >
+          {strings('social_leaderboard.feed.position_card.copy_trade')}
+        </Button>
+      );
+    }
+
+    if (isPerp) {
+      return (
+        <>
+          <PerpsDirectionButton
+            direction="long"
+            size={ButtonSize.Lg}
+            onPress={() => onPerpsOrder('long')}
+            style={halfWidth}
+            testID={PositionDetailsSheetSelectorsIDs.LONG_BUTTON}
+          >
+            {strings('social_leaderboard.trader_position.long')}
+          </PerpsDirectionButton>
+          <PerpsDirectionButton
+            direction="short"
+            size={ButtonSize.Lg}
+            onPress={() => onPerpsOrder('short')}
+            style={halfWidth}
+            testID={PositionDetailsSheetSelectorsIDs.SHORT_BUTTON}
+          >
+            {strings('social_leaderboard.trader_position.short')}
+          </PerpsDirectionButton>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {canSell ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Lg}
+            onPress={() => onSpotTrade('sell')}
+            style={halfWidth}
+            testID={PositionDetailsSheetSelectorsIDs.SELL_BUTTON}
+          >
+            {strings('social_leaderboard.trader_position.sell')}
+          </Button>
+        ) : null}
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          onPress={() => {
+            fireImpact(ImpactMoment.PrimaryCTA);
+            onSpotTrade('buy');
+          }}
+          style={halfWidth}
+          testID={PositionDetailsSheetSelectorsIDs.BUY_BUTTON}
+        >
+          {strings('social_leaderboard.trader_position.buy')}
+        </Button>
+      </>
+    );
+  };
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      gap={3}
+      twClassName="px-4 pt-4 pb-5"
+    >
+      {renderActions()}
+    </Box>
+  );
+};
+
+export default PositionSheetFooter;

@@ -65,6 +65,19 @@ jest.mock('../useSwapsFeatureId', () => ({
   useSwapsFeatureId: jest.fn(),
 }));
 
+jest.mock('../useSwapQuotes', () => ({
+  useSwapQuotes: jest.fn().mockReturnValue(null),
+}));
+
+jest.mock('../../../Money/hooks/useMoneyAccountInfo', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    isMoneyAccountFeatureEnabled: false,
+    hasMoneyAccount: false,
+    primaryMoneyAccount: undefined,
+  })),
+}));
+
 runQuoteRequestCases({
   name: 'useBridgeQuoteRequest',
   debounceMs: DEBOUNCE_WAIT,

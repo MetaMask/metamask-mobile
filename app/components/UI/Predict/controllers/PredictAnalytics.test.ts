@@ -184,6 +184,60 @@ describe('PredictAnalytics', () => {
       });
       expect(event.sensitiveProperties).toMatchObject({ amount_usd: 42 });
     });
+    it('copies retry properties onto the tracked event, keeping a zero retry count', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.RETRY_COMPLETED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        retryReason: PredictEventValues.RETRY_REASON.ORDER_NOT_FILLED,
+        retryCount: 0,
+        oneTickDecision: PredictEventValues.ONE_TICK_DECISION.WITHIN_ONE_TICK,
+        slippageBand: '5%',
+        retryOutcome: PredictEventValues.RETRY_OUTCOME.SUCCESS,
+      });
+
+      const event = getTrackedEvent();
+
+      // retry_count must survive the spread at 0: a truthy check would drop
+      // it and misreport the first retry in the Mixpanel board.
+      expect(event.properties).toMatchObject({
+        retry_reason: 'order_not_filled',
+        retry_count: 0,
+        one_tick_decision: 'within_one_tick',
+        slippage_band: '5%',
+        retry_outcome: 'success',
+      });
+    });
+
+    it('copies Cash Out price check properties onto the tracked event, keeping a false reconfirmed flag', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.PRESUBMIT_CHECKED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        sharePrice: 0.58,
+        completionDuration: 320,
+        presubmitOutcome: PredictEventValues.PRESUBMIT_OUTCOME.PRICE_MOVED,
+        approvedPrice: 0.6,
+        worstFillPrice: 0.57,
+        reconfirmed: false,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        status: 'presubmit_checked',
+        share_price: 0.58,
+        completion_duration: 320,
+        presubmit_outcome: 'price_moved',
+        approved_price: 0.6,
+        worst_fill_price: 0.57,
+        reconfirmed: false,
+      });
+    });
   });
 
   describe('trackTradeConsidered', () => {
@@ -459,6 +513,33 @@ describe('PredictAnalytics', () => {
 
       expect(event.properties).not.toHaveProperty('predict_feed_tab');
       expect(event.properties).not.toHaveProperty('predict_screen');
+    });
+
+    it('includes outcome_version when outcomeVersion is provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        analyticsProperties: {
+          marketId: 'test',
+          entryPoint: 'predict_feed',
+          outcomeVersion: PredictEventValues.OUTCOME_VERSION.V2,
+        },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties.outcome_version).toBe('v2');
+      expect(event.sensitiveProperties).not.toHaveProperty('outcome_version');
+    });
+
+    it('omits outcome_version when outcomeVersion is not provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        analyticsProperties: { marketId: 'test', entryPoint: 'predict_feed' },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).not.toHaveProperty('outcome_version');
     });
   });
 

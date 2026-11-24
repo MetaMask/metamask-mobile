@@ -1,3 +1,8 @@
+import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -24,6 +29,7 @@ const mockFollowWithSetup = jest.fn(
   },
 );
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
@@ -88,6 +94,41 @@ describe('ProfilesToFollowView', () => {
     mockUsePopularTraders.mockReturnValue(loadedResult());
   });
 
+  const backgroundColor = (testID: string) => {
+    const style = screen.getByTestId(testID).props.style;
+    const flat = Array.isArray(style) ? Object.assign({}, ...style) : style;
+    return flat?.backgroundColor;
+  };
+
+  it('uses the secondary Follow button', () => {
+    renderWithProvider(
+      <>
+        <ProfilesToFollowView />
+        <Button
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          testID="secondary-reference"
+        >
+          Follow
+        </Button>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Md}
+          testID="primary-reference"
+        >
+          Follow
+        </Button>
+      </>,
+    );
+
+    expect(backgroundColor(getConnectionFollowButtonTestId('trader-1'))).toBe(
+      backgroundColor('secondary-reference'),
+    );
+    expect(
+      backgroundColor(getConnectionFollowButtonTestId('trader-1')),
+    ).not.toBe(backgroundColor('primary-reference'));
+  });
+
   it('lists the same top traders with follower-count subtitles', () => {
     renderWithProvider(<ProfilesToFollowView />);
 
@@ -116,13 +157,17 @@ describe('ProfilesToFollowView', () => {
 
     fireEvent.press(screen.getByTestId(getConnectionRowTestId('trader-1')));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE, {
-      traderId: 'trader-1',
-      traderName: 'Pain',
-      traderAddress: mockTraders[0].address,
-      source: 'profiles_to_follow',
-      traderRank: 1,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.V1_PROFILE,
+      {
+        traderId: 'trader-1',
+        traderName: 'Pain',
+        traderAddress: mockTraders[0].address,
+        source: 'profiles_to_follow',
+        traderRank: 1,
+      },
+      {},
+    );
   });
 
   it('toggles follow from a row Follow button', () => {

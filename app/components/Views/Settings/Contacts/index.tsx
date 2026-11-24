@@ -10,17 +10,17 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  HeaderStandard,
   Icon,
   IconName,
   IconSize,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
 import type { Hex } from '@metamask/utils';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -37,6 +37,8 @@ import { selectAddressBook } from '../../../../selectors/addressBookController';
 import type { RootState } from '../../../../reducers';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import type { Colors } from '../../../../util/theme/models';
+import HeaderStandardGlass from '../../../../component-library/components-temp/HeaderStandardGlass';
+import { selectGlassHeadersEnabled } from '../../../../selectors/featureFlagController/glassHeaders';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -71,6 +73,7 @@ type ContactsProps = ContactsOwnProps & ContactsStateProps;
  * View that contains app information
  */
 const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
+  const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const { colors, themeAppearance } = useTheme();
   const styles = createStyles(colors);
   const [reloadAddressList, setReloadAddressList] = useState(false);
@@ -161,7 +164,9 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
       testID={ContactsViewSelectorIDs.CONTAINER}
       edges={{ bottom: 'additive' }}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        isGlass={isGlassHeader}
+        isFloating={false}
         title={strings('app_settings.contacts_title')}
         onBack={() => navigation.goBack()}
         includesTopInset
@@ -185,12 +190,18 @@ const Contacts = ({ addressBook, navigation, chainId }: ContactsProps) => {
           testID={ContactsViewSelectorIDs.EMPTY_STATE}
         >
           <Icon name={IconName.Bookmark} size={IconSize.Xl} />
-          <Text variant={TextVariant.HeadingSm}>
-            {strings('address_book.no_contacts')}
-          </Text>
-          <Text variant={TextVariant.BodyMd} twClassName="text-center">
-            {strings('address_book.no_contacts_desc')}
-          </Text>
+          <Box twClassName="items-center gap-2">
+            <Text variant={TextVariant.HeadingSm}>
+              {strings('address_book.no_contacts')}
+            </Text>
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('address_book.no_contacts_desc')}
+            </Text>
+          </Box>
         </Box>
       )}
       <View style={styles.addContact}>

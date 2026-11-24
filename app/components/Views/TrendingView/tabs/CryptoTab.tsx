@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -22,9 +22,12 @@ import PerpsTileRowItem from '../feeds/perps/PerpsTileRowItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import PerpsMarketTileCardSkeleton from '../../Homepage/Sections/Perpetuals/components/PerpsMarketTileCardSkeleton';
 import { navigateToPerpsMarketList } from '../feeds/perps/perpsNavigation';
-import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
-import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
+import {
+  PredictTrendingCarousel,
+  usePredictEntryActions,
+  usePredictTrendingFeed,
+} from '../../../UI/PredictNext';
 import CardList from '../components/CardList';
 import ExploreScroll from '../components/ExploreScroll';
 import ExploreSectionList, {
@@ -36,11 +39,6 @@ import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
 import { useTrendingQuickBuySheet } from '../../../UI/Trending/contexts';
-import {
-  RobinhoodBanner,
-  RobinhoodBannerSurface,
-  useRobinhoodBanner,
-} from '../../../UI/RobinhoodBanner';
 import { useABTest } from '../../../../hooks/useABTest';
 import {
   EXPLORE_QUICK_BUY_AB_KEY,
@@ -48,6 +46,8 @@ import {
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../search/abTestConfig';
 import { selectIsExploreEarnSectionVisible } from '../../../UI/Earn/selectors/visibility';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -67,6 +67,12 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
     refresh,
     withTileExtras: true,
   });
+  const [hardwareTier] = useState(() => getHardwareTier());
+  const networkTier = useNetworkTier();
+  const deviceCapability = useMemo(
+    () => ({ hardwareTier, networkTier }),
+    [hardwareTier, networkTier],
+  );
 
   if (!perps.isLoading && perps.data.length === 0) return null;
 
@@ -87,6 +93,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
             item={item}
             testIdPrefix="crypto-tab-perps-market-tile-card"
             sourceSection="perps_crypto"
+            deviceCapability={deviceCapability}
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',
@@ -115,6 +122,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
   onRefresh,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
+  const { openPredict } = usePredictEntryActions();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -127,15 +135,9 @@ const CryptoTabContent: React.FC<TabProps> = ({
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
 
-  const {
-    dismiss: dismissRobinhoodBanner,
-    handlePress: handleRobinhoodBannerPress,
-    shouldShow: shouldShowRobinhoodBanner,
-  } = useRobinhoodBanner(RobinhoodBannerSurface.ExploreCrypto);
-
   const tokens = useTokensFeed({ refresh });
-  const cryptoPredictions = usePredictionsFeed({
-    variant: 'crypto',
+  const cryptoPredictions = usePredictTrendingFeed({
+    tab: 'crypto',
     refresh,
   });
   const cryptoPerps = usePerpsFeed({
@@ -233,7 +235,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
       items.push({
         key: 'predictions',
         content: (
-          <PredictionsCarouselSection
+          <PredictTrendingCarousel
             feed={cryptoPredictions}
             tabName="Crypto"
             sectionName="predictions_crypto"
@@ -241,7 +243,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
             testIdPrefix="predict-crypto-market-row-item"
             idPrefix="crypto_predictions"
             onViewAll={() =>
-              navigateToExplorePredictionsList(navigation, 'crypto')
+              navigateToExplorePredictionsList(openPredict, 'crypto')
             }
           />
         ),
@@ -261,6 +263,7 @@ const CryptoTabContent: React.FC<TabProps> = ({
     refresh,
     perpsNavigation,
     cryptoPredictions,
+    openPredict,
   ]);
 
   return (
@@ -270,12 +273,6 @@ const CryptoTabContent: React.FC<TabProps> = ({
         onRefresh={onRefresh}
         testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
       >
-        {shouldShowRobinhoodBanner ? (
-          <RobinhoodBanner
-            onDismiss={dismissRobinhoodBanner}
-            onPress={handleRobinhoodBannerPress}
-          />
-        ) : null}
         <ExploreSectionList sections={sections} />
       </ExploreScroll>
     </View>

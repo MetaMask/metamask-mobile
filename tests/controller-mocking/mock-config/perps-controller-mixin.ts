@@ -22,6 +22,8 @@ import {
   type PerpsControllerState,
   type GetMarketsParams,
   type MarketInfo,
+  type OrderBookData,
+  type OrderBookLevel,
   WebSocketConnectionState,
 } from '@metamask/perps-controller';
 
@@ -42,6 +44,11 @@ type AddTransactionMessengerResult =
   | undefined;
 
 const PERPS_DEPOSIT_ADD_TRANSACTION_TIMEOUT_MS = 1200;
+
+/** Deep mock book: 1 bp between levels, $10M per level. */
+const E2E_ORDER_BOOK_LEVELS = 10;
+const E2E_ORDER_BOOK_STEP = 0.0001;
+const E2E_ORDER_BOOK_LEVEL_NOTIONAL_USD = 10_000_000;
 
 /** Size decimals aligned with typical HyperLiquid main-DEX markets (used by order form). */
 const E2E_MARKET_SZ_DECIMALS: Record<string, number> = {
@@ -445,6 +452,57 @@ export class E2EControllerOverrides {
     setTimeout(() => params.callback(filteredPrices), 0);
     return () => undefined;
   }
+
+  // Mock L2 order book subscription. Market-order liquidity checks block
+  // submission on an empty book, so E2E needs depth that fills any test size
+  // well within the default slippage cap.
+  subscribeToOrderBook(params: {
+    symbol: string;
+    levels?: number;
+    callback: (data: OrderBookData) => void;
+  }): () => void {
+    console.log('E2E Mock: Intercepted subscribeToOrderBook:', params.symbol);
+    const midPrice = Number(
+      this.mockService.getMockPrices()[params.symbol]?.price,
+    );
+    if (!(midPrice > 0)) {
+      return () => undefined;
+    }
+
+    const levelCount = params.levels ?? E2E_ORDER_BOOK_LEVELS;
+    const sizePerLevel = E2E_ORDER_BOOK_LEVEL_NOTIONAL_USD / midPrice;
+    const buildSide = (direction: 1 | -1): OrderBookLevel[] => {
+      let totalNotional = 0;
+      return Array.from({ length: levelCount }, (_, index) => {
+        const price =
+          midPrice * (1 + direction * (index + 1) * E2E_ORDER_BOOK_STEP);
+        const notional = sizePerLevel * price;
+        totalNotional += notional;
+        return {
+          price: price.toPrecision(8),
+          size: sizePerLevel.toString(),
+          total: (sizePerLevel * (index + 1)).toString(),
+          notional: notional.toString(),
+          totalNotional: totalNotional.toString(),
+        };
+      });
+    };
+    const bids = buildSide(-1);
+    const asks = buildSide(1);
+    const spread = Number(asks[0].price) - Number(bids[0].price);
+    const orderBook: OrderBookData = {
+      bids,
+      asks,
+      spread: spread.toString(),
+      spreadPercentage: ((spread / midPrice) * 100).toString(),
+      midPrice: midPrice.toString(),
+      lastUpdated: Date.now(),
+      maxTotal: (sizePerLevel * levelCount).toString(),
+    };
+
+    setTimeout(() => params.callback(orderBook), 0);
+    return () => undefined;
+  }
 }
 
 /**
@@ -476,6 +534,7 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     'subscribeToOrders',
     'subscribeToOrderFills',
     'subscribeToPrices',
+    'subscribeToOrderBook',
   ];
 
   methodsToOverride.forEach((method) => {
@@ -620,7 +679,71 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
     );
   }
 
+  keepMockAccountStateOnController(controller, mockService);
+
   console.log('✅ E2E PerpsController mocks applied with initial state');
+}
+
+/**
+ * `@metamask/perps-controller` >= 25 clears `state.accountState` (and
+ * `perpsBalances`) whenever the selected trading account changes, which
+ * happens right after login once the account tree resolves the selected
+ * account. The E2E stream mocks never write account data back to the
+ * controller (the real `subscribeToAccount` does), so the seeded mock account
+ * is lost. Redux consumers such as
+ * `useDefaultPayWithTokenWhenNoPerpsBalance` then see a zero spendable
+ * balance and default the order sheet to a pay-with token (ETH). That puts
+ * Transaction Pay in the critical path of order entry and withdrawals, where
+ * no quotes are mocked, so the fees row never resolves and the CTA /
+ * Continue button stays disabled.
+ *
+ * Re-seed the mock account whenever the controller clears it.
+ */
+function keepMockAccountStateOnController(
+  controller: unknown,
+  mockService: PerpsE2EMockService,
+): void {
+  const messenger = (
+    controller as {
+      messenger?: {
+        subscribe: (event: string, handler: () => void) => void;
+      };
+    }
+  ).messenger;
+
+  if (typeof messenger?.subscribe !== 'function') {
+    console.warn(
+      'E2E Mock: controller messenger unavailable — cannot protect mock accountState from being cleared',
+    );
+    return;
+  }
+
+  const reseedWhenCleared = (): void => {
+    // Read the live state rather than the event payload: `BaseController`
+    // publishes both events for one update, each carrying that update's
+    // (cleared) payload, so the payload would trigger a redundant re-seed.
+    const currentState = (controller as { state?: PerpsControllerState }).state;
+    if (currentState?.accountState) {
+      return;
+    }
+    try {
+      (controller as ControllerWithUpdate).update(
+        (draft: PerpsControllerState) => {
+          draft.accountState = mockService.getMockAccountState();
+          draft.lastUpdateTimestamp = Date.now();
+        },
+      );
+    } catch (e) {
+      console.error('E2E Mock: failed to re-seed mock accountState:', e);
+    }
+  };
+
+  // `BaseController` publishes `stateChange` (legacy name, still used by the
+  // Engine allowlist) and `stateChanged` (its replacement) on every update.
+  // Listen to both so this keeps working whichever one a future
+  // `@metamask/base-controller` stops publishing; the handler is idempotent.
+  messenger.subscribe('PerpsController:stateChange', reseedWhenCleared);
+  messenger.subscribe('PerpsController:stateChanged', reseedWhenCleared);
 }
 
 /**
@@ -644,6 +767,8 @@ export function buildE2EMockStreamManagerPlain(): Record<
   return {
     prices: {
       getSnapshot: (): Record<string, PriceUpdate> => mockPrices,
+      getSnapshotForSymbol: (symbol: string): PriceUpdate | null =>
+        mockPrices[symbol] ?? null,
       subscribe: (params: {
         callback: (data: Record<string, PriceUpdate>) => void;
       }) => {
@@ -726,6 +851,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
     },
     orders: {
       getSnapshot: () => mockService.getMockOrders(),
+      getError: (): Error | null => null,
       getLastDeliveredAt: (): number | null => Date.now(),
       subscribe: (params: { callback: (data: Order[]) => void }) => {
         // Register for live updates
@@ -755,6 +881,7 @@ export function buildE2EMockStreamManagerPlain(): Record<
     },
     fills: {
       getSnapshot: () => mockService.getMockOrderFills(),
+      getError: (): Error | null => null,
       subscribe: (params: { callback: (data: OrderFill[]) => void }) => {
         setTimeout(() => params.callback(mockService.getMockOrderFills()), 0);
         return () => undefined;
@@ -788,6 +915,10 @@ export function buildE2EMockStreamManagerPlain(): Record<
         setTimeout(() => params.callback({ candles: [] }), 0);
         return () => undefined;
       },
+      // PerpsOrderView reads the cached chart close synchronously for the
+      // trade sheet header; no cached chart exists in E2E mocks.
+      getCachedData: (): null => null,
+      isChartCacheFresh: (): boolean => false,
       fetchHistoricalCandles: async (
         _symbol: string,
         _interval: unknown,

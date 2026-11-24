@@ -358,8 +358,8 @@ jest.mock('./components/PerpsMarketFiltersBar', () => {
     // Map sort option IDs to display labels
     const getSortLabel = (optionId: string) => {
       const translations: Record<string, string> = {
-        volume: 'Volume',
-        priceChange: 'Price change',
+        volume: 'Volume (24h)',
+        priceChange: 'Price change (24h)',
         fundingRate: 'Funding rate',
         openInterest: 'Open interest',
       };
@@ -830,7 +830,7 @@ describe('PerpsMarketListView', () => {
       ).toBeOnTheScreen();
 
       await waitFor(() => {
-        expect(screen.getByText('Volume')).toBeOnTheScreen();
+        expect(screen.getByText('Volume (24h)')).toBeOnTheScreen();
       });
     });
 

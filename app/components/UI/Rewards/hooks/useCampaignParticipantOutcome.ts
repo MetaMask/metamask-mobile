@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectCampaignParticipantOptedIn } from '../../../../reducers/rewards/selectors';
@@ -58,9 +60,14 @@ export function useCampaignParticipantOutcome<
     }
   }, [campaignId, subscriptionId, isOptedIn, config.messengerAction]);
 
-  useEffect(() => {
-    fetchOutcome();
-  }, [fetchOutcome]);
+  useFocusEffect(
+    useCallback(() => {
+      const handle = runAfterInteractions(() => {
+        void fetchOutcome();
+      });
+      return () => handle.cancel();
+    }, [fetchOutcome]),
+  );
 
   return { outcome, isLoading, hasError };
 }

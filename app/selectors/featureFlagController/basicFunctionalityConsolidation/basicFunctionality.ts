@@ -256,12 +256,15 @@ export const selectIsSocialLoginBasicFunctionalityLocked = createSelector(
 /**
  * True when an already-consolidated social-login wallet needs repair: Basic
  * Functionality is off, or the wallet only turned out to be social once its
- * SRP was linked to a profile, so its one-time notice was never scheduled.
+ * SRP was linked to a profile, so it was given the wrong notice or none.
  *
- * The missing-notice repair excludes wallets already known locally to be
- * social. Onboarding enrols those without a notice by design, so treating
- * their later profile signal as a missed migration would show the
- * existing-wallet sheet to a brand new social wallet.
+ * A mixed wallet migrates to the toast before sign-in reveals the linked
+ * profile, so an undismissed toast is also repaired up to the social sheet.
+ *
+ * The notice repair excludes wallets already known locally to be social.
+ * Onboarding enrols those without a notice by design, so treating their later
+ * profile signal as a missed migration would show the existing-wallet sheet to
+ * a brand new social wallet.
  */
 export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
   selectIsBasicFunctionalityConsolidatedEnabled,
@@ -285,5 +288,5 @@ export const selectShouldRepairSocialLoginBasicFunctionality = createSelector(
       (hasLinkedSocialLoginProfile === true &&
         !isLocallyKnownSocialLoginUser &&
         !isMigrationNotificationDismissed &&
-        migrationNotification === null)),
+        migrationNotification !== 'bottom-sheet')),
 );

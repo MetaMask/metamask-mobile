@@ -1083,6 +1083,12 @@ describe('hyperLiquidAdapter', () => {
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
         returnOnEquity: '7.991673605328893', // Calculated from weighted return and margin
         totalBalance: '1000.5', // Perps only (no spot balance provided)
+        crossMarginSummary: {
+          accountValue: '1000.50',
+          maintenanceMargin: '100.0',
+          marginUsed: '300.25',
+          notional: '1000.50',
+        },
       });
     });
 

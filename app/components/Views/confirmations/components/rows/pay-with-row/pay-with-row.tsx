@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useMemo, useRef } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
@@ -33,6 +33,8 @@ import { BigNumber } from 'bignumber.js';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { hasTransactionType } from '@metamask/transaction-controller';
+import { CONVERT_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { isHardwareAccount } from '../../../../../../util/address';
 import PaymentMethodIcon from '../../../../../UI/Ramp/Aggregator/components/PaymentMethodIcon';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
@@ -52,6 +54,7 @@ import { useIsMoneyAccountFlagDefault } from '../../../hooks/pay/useIsMoneyAccou
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useTheme } from '../../../../../../util/theme';
 import { usePayTokenAccountBalance } from '../../../hooks/pay/usePayTokenAccountBalance';
+import { decodePaymentTokenAssetId } from '../../../../../../util/transactions/payment-token';
 
 interface PayWithRouteParams {
   preferredPaymentToken?: SetPayTokenRequest;
@@ -65,16 +68,11 @@ function PayWithRowComponent({
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
   );
+  const { payToken } = useTransactionPayToken();
+  const selectedFiatPaymentMethod =
+    useTransactionPaySelectedFiatPaymentMethod();
   const { payWithOption } = useParams<ConfirmationParams>({});
   const isDefaultMoneyAccount = useIsMoneyAccountFlagDefault();
-
-  // Once the controller has set a paymentOverride (even if later cleared by the
-  // user switching away), Redux is the source of truth and the flag-based
-  // default no longer applies.
-  const overrideApplied = useRef(false);
-  if (paymentOverride !== undefined) {
-    overrideApplied.current = true;
-  }
 
   // Nav-param means money home pre-set the method; bottom-sheet selection doesn't set this.
   if (payWithOption === PayWithOption.MoneyAccount) {
@@ -86,8 +84,15 @@ function PayWithRowComponent({
     return <PayWithRowMoneyAccount />;
   }
 
-  // Flag-based default — step aside when results are ready so user can change.
-  if (isDefaultMoneyAccount && !overrideApplied.current && !isResultReady) {
+  // Flag default only before a token or fiat method is chosen. Clearing the
+  // money-account override leaves the selected pay token in place, and that
+  // token is what the row should show.
+  if (
+    isDefaultMoneyAccount &&
+    !payToken &&
+    !selectedFiatPaymentMethod &&
+    !isResultReady
+  ) {
     return <PayWithRowMoneyAccount />;
   }
 
@@ -156,9 +161,14 @@ function PayWithRowInteractive() {
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const { preferredPaymentToken } = useParams<PayWithRouteParams>({});
 
+  const transactionMeta = useTransactionMetadataRequest();
   const {
     txParams: { from },
-  } = useTransactionMetadataRequest() ?? { txParams: {} };
+  } = transactionMeta ?? { txParams: {} };
+  const isConvertDeposit = hasTransactionType(
+    transactionMeta,
+    CONVERT_DEPOSIT_TYPES,
+  );
 
   const { balanceUsd: accountBalanceUsd } = usePayTokenAccountBalance();
   const { isHeadlessBuyInProgress } = useConfirmationContext();
@@ -178,9 +188,12 @@ function PayWithRowInteractive() {
     });
   }, [isDisabled, navigation, preferredPaymentToken, setConfirmationMetric]);
 
-  const label = isWithdraw
-    ? strings('confirm.label.receive_as')
-    : strings('confirm.label.pay_with');
+  let label = strings('confirm.label.pay_with');
+  if (isWithdraw) {
+    label = strings('confirm.label.receive_as');
+  } else if (isConvertDeposit) {
+    label = strings('confirm.label.convert');
+  }
 
   // For withdrawals, default to the primary required token (where funds are going)
   // if no payment token has been explicitly selected.
@@ -193,10 +206,15 @@ function PayWithRowInteractive() {
     if (hasAccountNoFunds) {
       return null;
     }
+    const payTokenAsset = decodePaymentTokenAssetId(payToken);
+    const payTokenDisplay =
+      payToken && payTokenAsset
+        ? { ...payTokenAsset, symbol: payToken.symbol }
+        : undefined;
     if (isWithdraw) {
-      return payToken ?? defaultWithdrawToken ?? null;
+      return payTokenDisplay ?? defaultWithdrawToken ?? null;
     }
-    return payToken ?? null;
+    return payTokenDisplay ?? null;
   }, [hasAccountNoFunds, isWithdraw, payToken, defaultWithdrawToken]);
 
   const balanceUsdFormatted = useMemo(
@@ -211,7 +229,11 @@ function PayWithRowInteractive() {
     return (
       <PayWithFiatPaymentMethodRow
         paymentMethod={selectedFiatPaymentMethod}
-        label={label}
+        label={
+          isWithdraw
+            ? strings('confirm.label.receive_as')
+            : strings('confirm.label.pay_with')
+        }
         disabled={isDisabled}
         hasFrom={Boolean(from)}
         onPress={handleClick}
@@ -385,12 +407,12 @@ export function PayWithRowSkeleton() {
     <Box
       testID="pay-with-row-skeleton"
       twClassName="flex-row items-center justify-between"
-      style={styles.skeletonContainer}
+      style={styles.container}
     >
-      <Skeleton height={18} width={60} style={styles.skeletonTop} />
+      <Skeleton height={18} width={60} />
       <Box twClassName="flex-row items-center gap-2">
-        <Skeleton height={32} width={32} style={styles.skeletonCircle} />
-        <Skeleton height={18} width={120} style={styles.skeletonTop} />
+        <Skeleton height={20} width={20} style={styles.skeletonCircle} />
+        <Skeleton height={18} width={120} />
       </Box>
     </Box>
   );

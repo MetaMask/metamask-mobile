@@ -3,15 +3,9 @@ import { renderHook } from '@testing-library/react-native';
 import { useIsNativeTabBar } from './useIsNativeTabBar';
 
 let mockIsCompactHeaderEnabled = true;
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: () => ({
-    variant: {
-      isCompactHeaderEnabled: mockIsCompactHeaderEnabled,
-      trailingNavBarAction: mockIsCompactHeaderEnabled ? 'search' : 'none',
-      isHeaderSearchEnabled: false,
-    },
-    variantName: mockIsCompactHeaderEnabled ? 'searchFocused' : 'control',
-    isActive: true,
+jest.mock('../../../Views/Homepage/hooks/useHomeNavBarConfig', () => ({
+  useHomeNavBarConfig: () => ({
+    isRefreshedNavBar: mockIsCompactHeaderEnabled,
   }),
 }));
 
