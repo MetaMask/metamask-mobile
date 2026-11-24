@@ -160,8 +160,6 @@ jest.mock('./FeedItemEntryAnimation', () => ({
   createFeedItemEntryScheduler: () => () => 0,
   FEED_ITEM_ENTRY_DURATION_MS: 500,
   FEED_ROW_SLIDE_MS_LOW: 250,
-  FEED_ROW_LAYOUT_TRANSITION: 'row-layout-transition',
-  FEED_ROW_LAYOUT_TRANSITION_LOW: 'row-layout-transition-low',
 }));
 
 jest.mock('react-native-reanimated', () => {

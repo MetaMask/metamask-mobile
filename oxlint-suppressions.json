@@ -2747,14 +2747,6 @@
       "count": 1
     }
   },
-  "app/components/UI/Card/Views/SpendingLimit/components/AssetCard.tsx": {
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
-    "typescript/prefer-nullish-coalescing": {
-      "count": 1
-    }
-  },
   "app/components/UI/Card/Views/SpendingLimit/components/SpendAndEarnPromoCard.tsx": {
     "typescript/unbound-method": {
       "count": 2
@@ -3634,9 +3626,6 @@
     }
   },
   "app/components/UI/Card/sdk/index.tsx": {
-    "typescript/no-floating-promises": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -22617,7 +22606,7 @@
   },
   "app/core/SDKConnect/SDKConnect.ts": {
     "typescript/no-floating-promises": {
-      "count": 2
+      "count": 1
     },
     "typescript/no-misused-promises": {
       "count": 1
