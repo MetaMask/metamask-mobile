@@ -37,6 +37,7 @@ const fixtureFollowers = {
       address: '0x1111111111111111111111111111111111111111',
       name: 'Moon Rabbit',
       imageUrl: 'https://example.com/moon.png',
+      verified: true,
     },
     {
       profileId: 'follower-2',
@@ -138,12 +139,14 @@ describe('useFollowers', () => {
           username: 'Moon Rabbit',
           address: '0x1111111111111111111111111111111111111111',
           avatarUri: 'https://example.com/moon.png',
+          verified: true,
         },
         {
           id: 'follower-2',
           username: 'Hippo Maxi',
           address: '0x2222222222222222222222222222222222222222',
           avatarUri: undefined,
+          verified: false,
         },
       ]);
     });
