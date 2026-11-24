@@ -24,7 +24,6 @@ export interface CryptoPillDefinition {
   minItems: number;
   /** Optional leading pill icon. */
   iconName?: IconName;
-  iconOnly?: boolean;
   /** Token API request; omitted for the watchlist pill. */
   request?: CryptoPillRequestParams;
 }
@@ -48,7 +47,6 @@ export const CRYPTO_WATCHLIST_PILL: CryptoPillDefinition = {
   sectionName: 'tokens_watchlist',
   minItems: 0,
   iconName: IconName.StarFilled,
-  iconOnly: true,
 };
 
 export const CRYPTO_TOKEN_PILLS: readonly CryptoPillDefinition[] = [

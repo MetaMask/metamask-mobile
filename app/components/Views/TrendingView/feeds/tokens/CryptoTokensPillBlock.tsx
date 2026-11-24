@@ -2,7 +2,12 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { ListRenderItem } from '@shopify/flash-list';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FilterButton,
+  FilterButtonGroup,
+  FilterButtonVariant,
+} from '@metamask/design-system-react-native';
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -12,7 +17,6 @@ import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/consta
 import { getCaipChainIdFromAssetId } from '../../../../UI/Trending/components/TrendingTokenRowItem/utils';
 import TrendingTokensSkeleton from '../../../../UI/Trending/components/TrendingTokenSkeleton/TrendingTokensSkeleton';
 import CardList from '../../components/CardList';
-import PillRow, { type PillOption } from '../../components/PillRow';
 import SectionHeader from '../../components/SectionHeader';
 import {
   type ExploreTabName,
@@ -182,15 +186,6 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
     !activeResult.isError &&
     activeItems.length === 0;
 
-  const pillOptions: PillOption[] = visiblePills.map(
-    ({ key, labelKey, iconName, iconOnly }) => ({
-      key,
-      name: strings(labelKey),
-      iconName,
-      iconOnly,
-    }),
-  );
-
   return (
     <Box testID={testIdPrefix}>
       <SectionHeader
@@ -202,12 +197,36 @@ const CryptoTokensPillBlock: React.FC<CryptoTokensPillBlockProps> = ({
         tabName={tabName}
         sectionName={activeSectionName}
       />
-      <PillRow
-        pills={pillOptions}
-        activeKey={effectiveActiveKey}
-        onSelect={handleSelectPill}
-        testIdPrefix={testIdPrefix}
-      />
+      <FilterButtonGroup
+        value={effectiveActiveKey}
+        onChange={handleSelectPill}
+        variant={FilterButtonVariant.Primary}
+        twClassName="px-4 py-2"
+        testID={`${testIdPrefix}-pills`}
+      >
+        {visiblePills.map(({ key, labelKey, iconName }) =>
+          iconName ? (
+            <FilterButton
+              key={key}
+              value={key}
+              startIconName={iconName}
+              accessibilityLabel={strings(labelKey)}
+              testID={`${testIdPrefix}-pill-${key}`}
+              contentWrapperProps={{ gap: 0 }}
+            >
+              {null}
+            </FilterButton>
+          ) : (
+            <FilterButton
+              key={key}
+              value={key}
+              testID={`${testIdPrefix}-pill-${key}`}
+            >
+              {strings(labelKey)}
+            </FilterButton>
+          ),
+        )}
+      </FilterButtonGroup>
       {showWatchlistEmpty ? (
         <WatchlistEmptyFallback />
       ) : (

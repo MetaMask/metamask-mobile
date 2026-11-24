@@ -244,12 +244,12 @@ describe('CryptoTokensPillBlock', () => {
         'accessibilityLabel',
         'perps.watchlist.filter_badge_label',
       );
-      expect(
-        queryByTestId('crypto-tokens-pill-label-watchlist'),
-      ).not.toBeOnTheScreen();
-      expect(
-        getByTestId('crypto-tokens-pill-label-trending'),
-      ).toBeOnTheScreen();
+      expect(getByTestId('crypto-tokens-pill-watchlist')).not.toHaveTextContent(
+        'perps.watchlist.filter_badge_label',
+      );
+      expect(getByTestId('crypto-tokens-pill-trending')).toHaveTextContent(
+        'trending.crypto_pills.trending',
+      );
       expect(queryByTestId('token-row-WNEW')).toBeOnTheScreen();
       expect(queryByTestId('token-row-WOLD')).toBeOnTheScreen();
       expect(queryByTestId('token-row-BTC')).not.toBeOnTheScreen();
