@@ -10,6 +10,7 @@ import {
   PROTOTYPE_CODE,
   PROTOTYPE_EMAIL,
   PROTOTYPE_GEO_COUNTRY,
+  PROTOTYPE_KALSHI_DOCUMENTS,
   PROTOTYPE_PHONE,
   PROTOTYPE_SESSION_ID,
   type PrototypeScenarioId,
@@ -141,19 +142,14 @@ const SESSION_CATALOG: KycDisclaimersCatalog = {
   ],
 };
 
-/** The fake Kalshi documents behind the vendor terms page. */
-const VENDOR_DISCLAIMERS: KycDisclaimer[] = [
-  {
-    id: 'kalshi-terms',
-    display_name: 'Kalshi Terms of Use',
-    url: 'https://kalshi.com/terms',
-  },
-  {
-    id: 'kalshi-privacy',
-    display_name: 'Kalshi Privacy Policy',
-    url: 'https://kalshi.com/privacy',
-  },
-];
+/** The Kalshi documents behind the vendor terms page. */
+const VENDOR_DISCLAIMERS: KycDisclaimer[] = PROTOTYPE_KALSHI_DOCUMENTS.map(
+  (document) => ({
+    id: document.id,
+    display_name: document.title,
+    url: document.url,
+  }),
+);
 
 /** The script as a scenario starts. */
 export const enterScenario = (

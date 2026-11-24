@@ -152,6 +152,21 @@ describe('KycPartnerTerms', () => {
     expect(indicator.props.accessibilityLabel).toBe('Step 2 of 2');
   });
 
+  it('counts against the total a longer flow passes', () => {
+    const { getByTestId } = renderWithProvider(
+      <KycPartnerTerms
+        disclaimers={DISCLAIMERS}
+        onAgree={mockOnAgree}
+        onBack={mockOnBack}
+        totalSteps={3}
+      />,
+    );
+
+    const indicator = getByTestId(KycPartnerTermsSelectorsIDs.STEP_INDICATOR);
+    expect(indicator).toHaveTextContent('Step 2 of 3');
+    expect(indicator.props.accessibilityLabel).toBe('Step 2 of 3');
+  });
+
   it('lists the idOS privacy policy and transparency document', () => {
     const { getByTestId, queryByTestId } = renderScreen();
 

@@ -145,7 +145,7 @@ describe('prototypeRuntime', () => {
         vendor: 'kalshi',
         country: 'USA',
       }),
-    ).toHaveLength(2);
+    ).toHaveLength(5);
   });
 
   it('throws when the fakes are called with the toggle off', async () => {

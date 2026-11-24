@@ -74,7 +74,7 @@ describe('prototypeScenarioEngine', () => {
 
       expect(catalog.idOS).toHaveLength(1);
       expect(catalog.kycProvider).toHaveLength(1);
-      expect(prototypeVendorDisclaimers()).toHaveLength(2);
+      expect(prototypeVendorDisclaimers()).toHaveLength(5);
       expect(prototypePartnerEmail).toBe(PROTOTYPE_EMAIL);
     });
   });

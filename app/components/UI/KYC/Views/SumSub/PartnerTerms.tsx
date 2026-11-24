@@ -60,8 +60,14 @@ import {
   isListedIdosDocument,
 } from './partnerDisclaimers';
 
-/** Pages the identity-verification terms are split across ("2 of 2"). */
-const TOTAL_PAGES = 2;
+/** This page's place in the identity-verification terms ("2 of 2"). */
+const PAGE_NUMBER = 2;
+
+/**
+ * Pages the identity-verification terms are split across. A flow that adds
+ * its own terms page after them passes a larger total.
+ */
+const DEFAULT_TOTAL_PAGES = 2;
 
 /**
  * How much of the consent row must be on screen to count as seen: the
@@ -117,6 +123,8 @@ interface KycPartnerTermsProps {
   disclaimers: KycCatalogDisclaimerLink[];
   onAgree: () => void | Promise<void>;
   onBack: () => void;
+  /** The step indicator's total ("2 of 2"); defaults to the two terms pages. */
+  totalSteps?: number;
 }
 
 /**
@@ -133,6 +141,7 @@ const KycPartnerTerms = ({
   disclaimers,
   onAgree,
   onBack,
+  totalSteps = DEFAULT_TOTAL_PAGES,
 }: KycPartnerTermsProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const isUsResident = isUnitedStatesLocation(
@@ -248,15 +257,15 @@ const KycPartnerTerms = ({
       accessibilityLabel={strings(
         'wallet.home_onboarding_steps.progress_a11y',
         {
-          current: TOTAL_PAGES,
-          total: TOTAL_PAGES,
+          current: PAGE_NUMBER,
+          total: totalSteps,
         },
       )}
       testID={KycPartnerTermsSelectorsIDs.STEP_INDICATOR}
     >
       {strings('kyc.verify_identity.step_indicator', {
-        current: TOTAL_PAGES,
-        total: TOTAL_PAGES,
+        current: PAGE_NUMBER,
+        total: totalSteps,
       })}
     </Text>
   );

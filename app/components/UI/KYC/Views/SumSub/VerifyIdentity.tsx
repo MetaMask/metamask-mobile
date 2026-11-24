@@ -19,6 +19,7 @@ import {
   IconSize,
   ListItem,
   ListItemVariant,
+  SectionDivider,
   Text,
   TextButton,
   TextColor,
@@ -49,8 +50,11 @@ import {
 } from '../../constants';
 import SentenceWithLinks from '../../components/SentenceWithLinks';
 
-/** Pages the identity-verification terms are split across ("1 of 2"). */
-const TOTAL_PAGES = 2;
+/**
+ * Pages the identity-verification terms are split across ("1 of 2"). A flow
+ * that adds its own terms page after them passes a larger total.
+ */
+const DEFAULT_TOTAL_PAGES = 2;
 
 const IDENTITY_VERIFICATION_LEARN_MORE_URL =
   'https://support.metamask.io/trade/identity-verification';
@@ -104,6 +108,8 @@ interface KycVerifyIdentityProps {
   onContinue: (disclaimers: KycCatalogDisclaimerLink[]) => void;
   /** Leaves identity verification. The caller chooses the destination. */
   onExit: () => void;
+  /** The step indicator's total ("1 of 2"); defaults to the two terms pages. */
+  totalSteps?: number;
 }
 
 /**
@@ -115,7 +121,11 @@ interface KycVerifyIdentityProps {
  * loading state of its own. Continue stays disabled until it lands — the user
  * cannot be sent to a terms page with no terms on it.
  */
-const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
+const KycVerifyIdentity = ({
+  onContinue,
+  onExit,
+  totalSteps = DEFAULT_TOTAL_PAGES,
+}: KycVerifyIdentityProps) => {
   const isGlassHeader = useSelector(selectGlassHeadersEnabled) === true;
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
@@ -175,14 +185,14 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
         'wallet.home_onboarding_steps.progress_a11y',
         {
           current: 1,
-          total: TOTAL_PAGES,
+          total: totalSteps,
         },
       )}
       testID={KycVerifyIdentitySelectorsIDs.STEP_INDICATOR}
     >
       {strings('kyc.verify_identity.step_indicator', {
         current: 1,
-        total: TOTAL_PAGES,
+        total: totalSteps,
       })}
     </Text>
   );
@@ -251,10 +261,19 @@ const KycVerifyIdentity = ({ onContinue, onExit }: KycVerifyIdentityProps) => {
             ))}
           </Box>
 
+          {/* 12px margin each side plus the last row's 12px bottom padding
+              and the heading's 12px top padding: 24px above and below. */}
+          <SectionDivider
+            marginVertical={3}
+            testID={KycVerifyIdentitySelectorsIDs.PARTNER_DIVIDER}
+          />
+
+          {/* 20px below plus the first row's 8px top padding matches the 28px
+              between the subtitle and the first step above. */}
           <Text
             variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Bold}
-            twClassName="px-4 pb-1 pt-6"
+            twClassName="px-4 pb-5 pt-3"
           >
             {strings('kyc.verify_identity.partner_title')}
           </Text>
