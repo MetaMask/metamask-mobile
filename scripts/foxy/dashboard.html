@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Foxy</title>
 <script>try{var t=localStorage.getItem('foxy.theme.v1');if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
-<link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='50' y='54' font-size='88' text-anchor='middle' dominant-baseline='central'%3E%F0%9F%A6%8A%3C/text%3E%3C/svg%3E" />
 <link rel="apple-touch-icon" href="/pwa/apple-touch-icon.png" />
 <link rel="manifest" href="/manifest.webmanifest" />
 <meta name="theme-color" content="#000000" />
@@ -454,7 +454,7 @@
   .presets { display: flex; flex-wrap: wrap; gap: 6px; }
   .presets button { padding: 2px 11px; border-radius: var(--r-box); font-size: 12px; color: var(--color-text-alternative); background: var(--color-background-default); }
   .presets button:hover { color: var(--color-text-default); border-color: var(--color-primary-default); }
-  .mkrow { display: grid; grid-template-columns: 10px 84px minmax(0, 1fr) auto auto auto; gap: 8px; align-items: center; padding: 3px 0; }
+  .mkrow { display: grid; grid-template-columns: 10px 84px minmax(0, 1fr) auto auto auto auto; gap: 8px; align-items: center; padding: 3px 0; }
   .mkrow .mk-t { font: 12px var(--font-family-mono); color: var(--color-text-alternative); }
   .mkrow input { padding: 3px 8px; min-width: 0; background: var(--color-background-default); }
   .mkrow .mk-n { font-size: 11.5px; color: var(--color-text-muted); white-space: nowrap; }
@@ -588,7 +588,7 @@
   .presets { gap: 8px; margin-bottom: 22px; }
   .presets button { padding: 7px 14px; font-size: 13px; }
   #mkList { margin-bottom: 4px; }
-  .mkrow { grid-template-columns: 10px 88px minmax(0, 1fr) auto auto auto; gap: 12px; padding: 10px 0; }
+  .mkrow { grid-template-columns: 10px 88px minmax(0, 1fr) auto auto auto auto; gap: 12px; padding: 10px 0; }
   .mkrow .mk-t { white-space: nowrap; }
   .mkrow + .mkrow { border-top: 1px solid var(--color-border-muted); }
   .mkrow .mk-t { font-size: 12.5px; }
@@ -743,10 +743,8 @@
 
   /* call-site paths that open the exact line on GitHub */
   .nfile a.gh { color: inherit; text-decoration: none; border-radius: 4px; cursor: pointer; }
-  .nfile a.gh .ic { width: 12px; height: 12px; margin-left: 5px; vertical-align: -1px; opacity: .4; transition: opacity .12s; }
   .nfile a.gh:hover, .nfile a.gh:focus-visible { color: var(--color-primary-default); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
   .nfile a.gh:hover .loc, .nfile a.gh:focus-visible .loc { color: inherit; }
-  .nfile a.gh:hover .ic, .nfile a.gh:focus-visible .ic { opacity: 1; }
   /* the line that marks where requests held during a pause begin */
   tr.held-divider td { padding: 0 !important; background: transparent !important; border-bottom: 0; }
   .hd { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: var(--color-warning-default); font-size: 12px; font-weight: 600; }
@@ -1000,6 +998,7 @@
   <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4.2" height="14" rx="1.4"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.4"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.2 5.4v13.2c0 .8.9 1.3 1.6.9l10.2-6.6c.6-.4.6-1.3 0-1.7L9.8 4.5c-.7-.4-1.6.1-1.6.9z"/></symbol>
   <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7z"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
 </svg>
 <header>
@@ -1504,6 +1503,23 @@ function computePhases(all) {
   }
   phases = list[0].n === 0 ? list.slice(1) : list; // the leading phase only matters if something ran before the first marker
 }
+/** What the download button says. The last phase is still collecting, so it gives what has arrived so far. */
+const exportTip = (p) => `Download this phase's requests as JSON${p.end === Infinity ? ' (still capturing: everything so far)' : ''}`;
+/** Downloads every request of one phase, in full (headers, bodies, call chain, owners). The server does the cutting, so Pause and the filters do not change what is in the file. */
+async function exportPhaseFile(id, btn) {
+  const use = btn?.querySelector('use'), show = (href) => { if (btn?.isConnected && use) use.setAttribute('href', href); };
+  try {
+    const res = await fetch('/api/export/phase?marker=' + encodeURIComponent(id));
+    if (!res.ok) throw new Error(res.status);
+    const name = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1] || 'foxy-phase.json';
+    const href = URL.createObjectURL(await res.blob());
+    const a = Object.assign(document.createElement('a'), { href, download: name });
+    document.body.append(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(href), 10000);
+    show('#i-check');
+  } catch { show('#i-close'); }
+  setTimeout(() => show('#i-download'), 1400);
+}
 const phaseChip = (p) => `<span class="chip" data-phase="${esc(p.id)}" style="--c:${p.color}" title="Phase: ${esc(p.label)} (click to show only this phase)"><span class="t">${esc(p.label)}</span></span>`;
 
 // ============================================================================
@@ -1803,7 +1819,7 @@ function fileLink(f) {
   const pkg = f.link;
   const url = pkg ? pkg.url : ghUrl(f);
   const title = pkg ? `Open ${pkg.text} on GitHub` : `Open ${f.file}${f.line ? ' at line ' + f.line : ''} on GitHub`;
-  return url ? `<a class="gh" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${esc(title)}">${text}${icon('external')}</a>` : text;
+  return url ? `<a class="gh" href="${esc(url)}" target="_blank" rel="noopener noreferrer" title="${esc(title)}">${text}</a>` : text;
 }
 
 function renderChain(r, d) {
@@ -2052,7 +2068,7 @@ function phaseHeader(p, cols) {
   return `<tr class="phase" data-pid="${esc(p.id)}" style="--pc:${p.color}"><td colspan="${cols}"><div class="ph">
     <button class="ph-tgl" data-act="toggle" aria-expanded="${isOpen}" aria-label="${isOpen ? 'Collapse' : 'Expand'} phase ${esc(p.label)}">${icon('chevron')}</button>
     <span class="ph-label">${icon('flag')}${esc(p.label)}</span><span class="ph-time">${range}</span>${mix}<span class="ph-pills">${pills}</span>
-    <span class="ph-actions"><button data-act="focus" aria-pressed="${only}" aria-label="${only ? 'Show every phase again' : 'Show only this phase'}" title="${only ? 'Show every phase again' : 'Show only this phase (also filters Endpoints)'}">${icon('target')}</button>${p.marker ? `<button class="icon-btn sm" data-act="edit" title="Rename or delete this marker" aria-label="Edit marker">${icon('edit')}</button>` : ''}</span></div></td></tr>`;
+    <span class="ph-actions"><button data-act="export" aria-label="${esc(exportTip(p))}" title="${esc(exportTip(p))}">${icon('download')}</button><button data-act="focus" aria-pressed="${only}" aria-label="${only ? 'Show every phase again' : 'Show only this phase'}" title="${only ? 'Show every phase again' : 'Show only this phase (also filters Endpoints)'}">${icon('target')}</button>${p.marker ? `<button class="icon-btn sm" data-act="edit" title="Rename or delete this marker" aria-label="Edit marker">${icon('edit')}</button>` : ''}</span></div></td></tr>`;
 }
 
 /** Marks where the requests that arrived during a pause start. The list is newest first, so they sit above this line. */
@@ -2408,6 +2424,7 @@ $('#timeline').addEventListener('click', (e) => {
     if (act === 'toggle') { collapsed.has(id) ? collapsed.delete(id) : collapsed.add(id); render(); }
     else if (act === 'focus') { ui.phase = ui.phase === id ? null : id; render(); }
     else if (act === 'edit') setMark(true, id);
+    else if (act === 'export') exportPhaseFile(id, e.target.closest('[data-act]'));
     return;
   }
   if (e.target.closest('tr.detail')) return;
@@ -2467,7 +2484,7 @@ const HELP = [
     ${step(2, 'See the Phases', `<p>Every phase gets a colour. The <b>activity strip</b> shades each phase and labels its flag (click a flag to jump to it). The <b>waterfall</b> column draws a line at each marker. Long idle stretches are shortened to a hatched <b>⋯</b> break so activity gets the room, and choosing the <b>◎</b> target on a phase zooms the strip to it.</p>${art('strip', 'The activity strip with three coloured phase bands and flags')}<p>In the <b>Timeline</b>, each phase has a header with its time range, ownership mix and a summary. Click the header to fold the phase away.</p>${art('timeline', 'Timeline with a collapsible header per phase showing request counts, new endpoints, duplicates and failures')}`)}
     ${step(3, 'Zoom Into One Phase', `<p>Click the <b>◎</b> target on a header (or the one in the markers panel) and Foxy shows just that phase, in the Timeline <i>and</i> in Endpoints. A pill appears under the toolbar; click <b>×</b> to bring everything back.</p><p>The <b>Phase</b> column in Endpoints shows where each endpoint <i>first</i> appeared. Click a phase chip to filter by it.</p>`)}
     ${step(4, 'Tidy Up', '<p>Rename a marker by editing its name in the panel. Delete it with ✕ and the two phases around it merge. Nothing in the app needs to change.</p>')}
-    ${step(5, 'Take It With You', `<p><b>Copy Markdown</b> adds a phases table (requests, new endpoints, identical dupes, failures per phase) and a Phase column to the Endpoints table.</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
+    ${step(5, 'Take It With You', `<p>The <b>download</b> icon on a phase saves every request in it, in full, as JSON. The last phase is still collecting, so it saves what has arrived so far.</p><p><b>Copy Markdown</b> adds a phases table (requests, new endpoints, identical dupes, failures per phase) and a Phase column to the Endpoints table.</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
     <h3>What the Numbers in a Phase Mean</h3>
     <ul>
       <li><b>requests</b>: calls made while the phase was active.</li>
@@ -2608,14 +2625,21 @@ function renderMarkers(force) {
   $('#mkPresets').innerHTML = [...PRESETS, ...recent.filter((x) => !PRESETS.includes(x)).slice(0, 4)].filter((x) => !used.has(x) && used.add(x))
     .map((x) => `<button type="button" data-preset="${esc(x)}" title="Add &quot;${esc(x)}&quot; at the time chosen above">${esc(x)}</button>`).join('');
   const list = $('#mkList');
-  if (!force && list.contains(document.activeElement)) return; // don't clobber a name being edited
+  // don't clobber a name being edited. Only a name field counts: a clicked trash or target button is focused too, and its row has to refresh.
+  if (!force && document.activeElement?.matches('input.mk-name') && list.contains(document.activeElement)) return;
   const real = phases.filter((p) => p.marker).reverse();
+  // a focused button is replaced with the rows, so keyboard focus is handed to its twin, or to the add field when its row is gone (a deleted marker)
+  const fa = document.activeElement;
+  const hadFocus = list.contains(fa) && fa.matches('button[data-act]');
+  const focusSel = hadFocus ? `button[data-act="${fa.dataset.act}"][data-id="${CSS.escape(fa.dataset.id)}"]` : null;
   list.innerHTML = real.length ? real.map((p) => `<div class="mkrow" style="--pc:${p.color}"><i class="ph-dot"></i><span class="mk-t">+${tf(p.start)}</span>
     <input class="mk-name" data-id="${esc(p.id)}" value="${esc(p.label)}" maxlength="120" aria-label="Marker name" />
     <span class="mk-n" title="Requests made in the phase this marker starts">${p.n} req</span>
+    <button class="icon-btn sm" data-act="export" data-id="${esc(p.id)}" title="${esc(exportTip(p))}" aria-label="${esc(exportTip(p))}">${icon('download')}</button>
     <button class="icon-btn sm" data-act="only" data-id="${esc(p.id)}" aria-pressed="${ui.phase === p.id}" title="Show only this phase" aria-label="Show only phase ${esc(p.label)}">${icon('target')}</button>
     <button class="del icon-btn sm" data-act="del" data-id="${esc(p.id)}" title="Delete this marker (the phases around it merge)" aria-label="Delete marker ${esc(p.label)}">${icon('trash')}</button></div>`).join('')
     : `<div class="mk-empty">No markers yet. Drop one whenever something happens in the app (a screen appears, you tap a button) and everything captured after it is grouped into that phase.<br><br><button type="button" id="mkLearn" class="btn">${icon('help')}<span>Show Me How It Works</span></button></div>`;
+  if (hadFocus) (list.querySelector(focusSel) || $('#marker')).focus({ preventScroll: true });
 }
 $('#mkAdd').onclick = () => addMarker($('#marker').value);
 $('#marker').onkeydown = (e) => { if (e.key === 'Enter') addMarker(e.target.value); };
@@ -2624,6 +2648,7 @@ $('#mkList').addEventListener('click', (e) => {
   if (e.target.closest('#mkLearn')) { openHelp('markers'); return; }
   const b = e.target.closest('button[data-act]'); if (!b) return;
   if (b.dataset.act === 'del') api('/api/marker/' + encodeURIComponent(b.dataset.id), 'DELETE');
+  else if (b.dataset.act === 'export') exportPhaseFile(b.dataset.id, b);
   else navigate(() => { ui.phase = ui.phase === b.dataset.id ? null : b.dataset.id; tab = 'timeline'; render(); });
 });
 $('#mkList').addEventListener('change', (e) => { const i = e.target.closest('input.mk-name'); if (i && i.value.trim()) api('/api/marker/' + encodeURIComponent(i.dataset.id), 'PATCH', { label: i.value }); });
@@ -2631,7 +2656,8 @@ $('#mkList').addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.tar
 markBtn.addEventListener('click', () => setMark(!mkpop.classList.contains('open')));
 $('#mkClose').onclick = () => { setMark(false); markBtn.focus(); };
 $('#mkHelp').onclick = () => openHelp('markers');
-document.addEventListener('click', (e) => { if (!e.target.closest('#mkpop, #markBtn, tr.phase')) setMark(false); });
+// composedPath, because a list row is rebuilt while the click is still bubbling and its button would no longer sit inside the panel
+document.addEventListener('click', (e) => { if (!e.composedPath().some((n) => n.matches?.('#mkpop, #markBtn, tr.phase'))) setMark(false); });
 
 // ============================================================================
 // filters panel: multi-select by code owner, status, method and host, plus a minimum duration
@@ -2792,13 +2818,16 @@ function applyMessage(m, pauseId) {
     document.querySelector('main').scrollTop = 0; tabScroll.timeline = tabScroll.endpoints = 0;
   }
 }
+const IMMEDIATE = new Set(['marker', 'markers', 'cleared']); // messages that answer something you did, so Pause never holds them
 function connect() {
   const ws = new WebSocket(`ws://${location.host}/ui`);
   ws.onopen = () => { connected = true; renderConn(); };
   ws.onclose = () => { connected = false; renderConn(); setTimeout(connect, 1500); };
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
-    if (paused) { pending.push(m); renderConn(); return; }
+    // Pause holds the app's traffic. What you do in the dashboard (add, rename or delete a marker, Clear) shows at once, or it looks broken.
+    if (paused && !IMMEDIATE.has(m.type)) { pending.push(m); renderConn(); return; }
+    if (m.type === 'cleared') { pending.length = 0; renderConn(); } // what was held belongs to the capture that was just cleared
     applyMessage(m);
     schedule();
   };

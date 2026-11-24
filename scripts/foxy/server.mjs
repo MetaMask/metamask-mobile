@@ -17,6 +17,8 @@ import {
   summarizeInitiator,
   groupEndpoints,
   toMarkdown,
+  exportPhase,
+  fileSlug,
   describeFrames,
   bodyFingerprint,
   slim,
@@ -306,7 +308,7 @@ const readBody = (req) =>
 
 const VENDOR_FILES = { 'rive.js': 'text/javascript; charset=utf-8', 'rive.wasm': 'application/wasm', 'foxy-loading.riv': 'application/octet-stream' };
 // Installable as an app (PWA): the manifest, the service worker that keeps the shell usable when the server is down, and the icons.
-const PWA_FILES = { 'icon-192.png': 'image/png', 'icon-512.png': 'image/png', 'apple-touch-icon.png': 'image/png', 'icon.svg': 'image/svg+xml' };
+const PWA_FILES = Object.fromEntries(['icon-192.png', 'icon-512.png', 'maskable-192.png', 'maskable-512.png', 'apple-touch-icon.png'].map((name) => [name, 'image/png']));
 const MANIFEST = JSON.stringify({
   name: 'Foxy',
   short_name: 'Foxy',
@@ -320,8 +322,9 @@ const MANIFEST = JSON.stringify({
   icons: [
     { src: '/pwa/icon-192.png', sizes: '192x192', type: 'image/png' },
     { src: '/pwa/icon-512.png', sizes: '512x512', type: 'image/png' },
-    // the artwork keeps the fox inside the maskable safe zone, so the same file serves both
-    { src: '/pwa/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+    // the maskable artwork is the same fox pulled inside the safe zone, so a circular or squircle mask never crops it
+    { src: '/pwa/maskable-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+    { src: '/pwa/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
   ],
 });
 const httpServer = createServer(async (req, res) => {
@@ -396,6 +399,33 @@ const httpServer = createServer(async (req, res) => {
       });
       res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8' });
       res.end(body);
+    } else if (p === '/api/export/phase') {
+      // Everything one marker's phase holds, as a file: ?marker=<id> (or `pre` for before the first marker), &format=json (default) or md.
+      // The last marker's phase is still collecting, so it exports what has arrived so far and says so (`phase.open`).
+      const id = url.searchParams.get('marker') || '';
+      const sid = markers.find((m) => m.id === id)?.session ?? (url.searchParams.get('session') || latestSession);
+      const sessionRecords = [...records.values()].filter((r) => r.session === sid);
+      const found = exportPhase(sessionRecords, sessionMarkers(sid), id);
+      if (!found) { json(res, { error: 'unknown marker' }, 404); return; }
+      const { phase, records: inPhase } = found;
+      const md = url.searchParams.get('format') === 'md';
+      const name = `foxy-${fileSlug(phase.label)}${phase.open ? '-so-far' : ''}.${md ? 'md' : 'json'}`;
+      res.writeHead(200, {
+        'content-type': md ? 'text/markdown; charset=utf-8' : 'application/json; charset=utf-8',
+        'content-disposition': `attachment; filename="${name}"`,
+        'cache-control': 'no-store',
+        'access-control-expose-headers': 'content-disposition',
+      });
+      if (md) {
+        res.end(toMarkdown(inPhase.map(slim), { sessionId: sid, markers: [] }));
+      } else {
+        res.end(JSON.stringify({
+          foxy: { exportedAt: new Date().toISOString(), session: sid, build: buildInfo() },
+          phase,
+          // the full records: request and response headers and bodies, and the call chain with owners and GitHub links
+          requests: inPhase.map((r) => ({ ...r, frames: describeFrames(r.frames, ownersOfInfo).map((f) => ({ ...f, link: PACKAGE_LINK(f) })) })),
+        }, null, 2));
+      }
     } else if (p === '/api/markers' && req.method === 'GET') {
       json(res, { markers: sessionMarkers(latestSession) });
     } else if (p === '/api/marker' && req.method === 'POST') {

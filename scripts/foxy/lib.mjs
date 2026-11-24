@@ -286,6 +286,43 @@ export function computePhases(records, markers = []) {
   return phases[0].requests === 0 ? phases.slice(1) : phases;
 }
 
+/**
+ * The requests of one phase: those made from its marker up to the next marker (`id` is a marker id, or `'pre'` for what ran before the first one).
+ * The last marker's phase has no next marker, so it is `open`: it is still collecting, and this is what it holds right now.
+ * Returns null for an id that is not a marker. `records` and `markers` are one session's.
+ */
+export function exportPhase(records, markers, id) {
+  const sorted = [...markers].sort((a, b) => a.relMs - b.relMs);
+  const i = id === 'pre' ? -1 : sorted.findIndex((m) => m.id === id);
+  if ((id !== 'pre' && i === -1) || !sorted.length) return null;
+  const marker = i === -1 ? null : sorted[i];
+  const startMs = marker ? marker.relMs : 0;
+  const next = sorted[i + 1];
+  const endMs = next ? next.relMs : Infinity;
+  const inPhase = [...records].filter((r) => (marker ? r.relMs >= startMs : true) && r.relMs < endMs).sort((a, b) => a.relMs - b.relMs);
+  // the numbers come from the whole capture, so "new endpoints" and "identical dupes" mean what the dashboard shows
+  const stats = computePhases(records, markers).find((p) => p.id === id) ?? { requests: 0, newEndpoints: 0, identicalDupes: 0, failed: 0, bytes: 0 };
+  return {
+    phase: {
+      id: marker ? marker.id : 'pre',
+      label: marker ? marker.label : 'Before first marker',
+      marker,
+      startMs,
+      endMs: next ? endMs : null,
+      open: !next,
+      requests: inPhase.length,
+      newEndpoints: stats.newEndpoints,
+      identicalDupes: stats.identicalDupes,
+      failed: stats.failed,
+      bytes: stats.bytes,
+    },
+    records: inPhase,
+  };
+}
+
+/** A name safe for a file: `Wallet ready!` -> `wallet-ready`. */
+export const fileSlug = (text) => String(text).normalize('NFKD').replace(/[^\x00-\x7f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'phase';
+
 /** Skeleton of the TRAM-4463 recommendation table; the verdict columns are left for a human. */
 export function toMarkdown(records, { markers = [], sessionId = '' } = {}) {
   const groups = groupEndpoints(records);

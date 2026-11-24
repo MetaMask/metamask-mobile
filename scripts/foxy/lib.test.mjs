@@ -14,6 +14,8 @@ import {
   dupeKey,
   groupEndpoints,
   computePhases,
+  exportPhase,
+  fileSlug,
   toMarkdown,
 } from './lib.mjs';
 
@@ -261,4 +263,41 @@ test('toMarkdown includes a phases table when markers exist', () => {
   );
   assert.match(md, /\| Phase \| Starts/);
   assert.match(md, /\| onboarding visible \| 1\.0 \| 1 \| 1 \| 0 \| 0 \|/);
+});
+
+test('exportPhase returns the requests from a marker up to the next one', () => {
+  const r = (id, relMs, path, extra = {}) => ({ id, key: `k${id}`, method: 'GET', host: 'h', path, query: '', url: `https://h${path}`, relMs, status: 200, ...extra });
+  const records = [r(1, 100, '/boot'), r(2, 1500, '/a'), r(3, 1600, '/a'), r(4, 3000, '/b', { status: 500 }), r(5, 3300, '/c')];
+  const markers = [{ id: 'm2', relMs: 3000, label: 'wallet created' }, { id: 'm1', relMs: 1000, label: 'onboarding visible' }];
+
+  const mid = exportPhase(records, markers, 'm1');
+  assert.deepEqual(mid.records.map((x) => x.id), [2, 3]);
+  assert.equal(mid.phase.open, false);
+  assert.equal(mid.phase.endMs, 3000); // a request exactly at the next marker belongs to the next phase
+  assert.equal(mid.phase.identicalDupes, 1);
+
+  const last = exportPhase(records, markers, 'm2');
+  assert.deepEqual(last.records.map((x) => x.id), [4, 5]);
+  assert.equal(last.phase.open, true); // nothing ends the last marker's phase: it is still collecting
+  assert.equal(last.phase.endMs, null);
+  assert.equal(last.phase.failed, 1);
+
+  const pre = exportPhase(records, markers, 'pre');
+  assert.deepEqual(pre.records.map((x) => x.id), [1]);
+  assert.equal(pre.phase.label, 'Before first marker');
+});
+
+test('exportPhase is null for an unknown marker or when there are no markers, and tolerates an empty phase', () => {
+  const rec = [{ id: 1, key: 'k1', method: 'GET', host: 'h', path: '/p', url: 'https://h/p', relMs: 500, status: 200 }];
+  assert.equal(exportPhase(rec, [], 'pre'), null);
+  assert.equal(exportPhase(rec, [{ id: 'm', relMs: 100, label: 'x' }], 'nope'), null);
+  const quiet = exportPhase(rec, [{ id: 'm', relMs: 9000, label: 'later' }], 'm');
+  assert.deepEqual(quiet.records, []);
+  assert.equal(quiet.phase.requests, 0);
+});
+
+test('fileSlug makes a safe file name', () => {
+  assert.equal(fileSlug('Wallet ready!'), 'wallet-ready');
+  assert.equal(fileSlug('Tapped “Create wallet” 🦊'), 'tapped-create-wallet');
+  assert.equal(fileSlug('🦊'), 'phase');
 });
