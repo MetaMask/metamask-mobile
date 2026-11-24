@@ -158,7 +158,11 @@ const DepositStatusSheetHost = ({
   onClose,
 }: DepositStatusSheetHostProps): React.JSX.Element => {
   const fundingWallet = useSelector(selectEvmAddress) as PredictHex | undefined;
-  const environment = useDepositEnvironment();
+  const environmentResolution = useDepositEnvironment(venueId);
+  const isEnvironmentReady = environmentResolution.status === 'ready';
+  const environment = isEnvironmentReady
+    ? environmentResolution.environment
+    : undefined;
   const flow = useDepositFlow({
     venueId,
     environment,
@@ -167,9 +171,15 @@ const DepositStatusSheetHost = ({
   });
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelFailed, setCancelFailed] = useState(false);
+  const hasSubmittedTransfer = flow.hasSubmittedTransfer(deposit);
+  const canContinue =
+    isEnvironmentReady || (Boolean(fundingWallet) && hasSubmittedTransfer);
 
   const continueDeposit = useCallback(
     (target: PredictDepositOperation) => {
+      if (!isEnvironmentReady && !flow.hasSubmittedTransfer(target)) {
+        return;
+      }
       onHide();
       void (async () => {
         try {
@@ -179,7 +189,7 @@ const DepositStatusSheetHost = ({
         }
       })();
     },
-    [flow, onClose, onHide],
+    [flow, isEnvironmentReady, onClose, onHide],
   );
 
   const cancelDeposit = useCallback(
@@ -202,7 +212,10 @@ const DepositStatusSheetHost = ({
   return (
     <DepositInProgressSheet
       deposit={deposit}
-      hasSubmittedTransfer={flow.hasSubmittedTransfer(deposit)}
+      hasSubmittedTransfer={hasSubmittedTransfer}
+      environmentResolution={environmentResolution}
+      canContinue={canContinue}
+      canCancel={Boolean(fundingWallet)}
       isVisible={isVisible}
       isCancelling={isCancelling}
       cancelFailed={cancelFailed}

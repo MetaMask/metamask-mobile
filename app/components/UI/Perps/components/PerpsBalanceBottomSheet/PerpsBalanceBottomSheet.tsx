@@ -30,10 +30,10 @@ import { usePerpsCrossMarginSummary } from '../../hooks/usePerpsCrossMarginSumma
 import { formatPerpsBalance } from '../../utils/formatUtils';
 import { formatAccountPnl } from '../../utils/positionDisplay';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
+import { PerpsInlineInfoScreen } from '../PerpsInlineInfoScreen/PerpsInlineInfoScreen';
 import { PerpsBalanceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { PerpsBalanceBottomSheetProps } from './PerpsBalanceBottomSheet.types';
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
-import PerpsProModalPortal from '../../Views/PerpsProMarketView/components/PerpsProModalPortal';
 import PerpsCrossMarginSummary, {
   type PerpsCrossMarginSummaryTooltipKey,
 } from './PerpsCrossMarginSummary';
@@ -66,6 +66,12 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const [activeTooltip, setActiveTooltip] =
     useState<PerpsCrossMarginSummaryTooltipKey | null>(null);
   const closeTooltip = useCallback(() => setActiveTooltip(null), []);
+  const handleInfoPress = useCallback(
+    (key: PerpsCrossMarginSummaryTooltipKey) => {
+      setActiveTooltip(key);
+    },
+    [],
+  );
 
   const {
     handleAddFunds,
@@ -94,6 +100,15 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
   const handleClose = useCallback(() => {
     bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  // Every dismissal (close button, swipe, backdrop, hardware back, and the
+  // Withdraw / Add funds actions) ends here. Pro market keeps this component
+  // mounted, so clear the explanation or the next open would show it instead
+  // of the account summary.
+  const handleSheetClose = useCallback(() => {
+    setActiveTooltip(null);
+    onClose();
+  }, [onClose]);
 
   // Withdraw always navigates away (to the withdraw screen or into a
   // confirmation flow), so close the sheet first instead of leaving it
@@ -124,121 +139,135 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
 
   return (
     <>
-      <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
-        <Box twClassName="w-full pt-2 pb-3">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Start}
-            gap={3}
-            twClassName="w-full px-4"
-          >
-            <TitleHub
-              twClassName="flex-1 py-2"
-              title={strings('perps.title')}
-              amount={
-                <SensitiveText
-                  variant={TextVariant.AmountDisplayLg}
-                  fontFamily={FontFamily.Hero}
-                  color={TextColor.TextDefault}
-                  isHidden={privacyMode}
-                  length={SensitiveTextLength.Medium}
-                  testID={PerpsBalanceBottomSheetSelectorsIDs.BALANCE_VALUE}
-                >
-                  {formatPerpsBalance(totalBalance)}
-                </SensitiveText>
-              }
-              amountWrapperProps={{ twClassName: 'w-full' }}
-              bottomLabel={
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  gap={6}
-                >
-                  <Box>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.balance_bottom_sheet.available')}
-                    </Text>
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={handleSheetClose}
+        testID={testID}
+      >
+        {activeTooltip ? (
+          <PerpsInlineInfoScreen
+            contentKey={activeTooltip}
+            onBack={closeTooltip}
+            buttonLocation={buttonLocation}
+          />
+        ) : (
+          <>
+            <Box twClassName="w-full pt-2 pb-3">
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Start}
+                gap={3}
+                twClassName="w-full px-4"
+              >
+                <TitleHub
+                  twClassName="flex-1 py-2"
+                  title={strings('perps.title')}
+                  amount={
                     <SensitiveText
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
+                      variant={TextVariant.AmountDisplayLg}
+                      fontFamily={FontFamily.Hero}
                       color={TextColor.TextDefault}
                       isHidden={privacyMode}
-                      length={SensitiveTextLength.Short}
-                      testID={
-                        PerpsBalanceBottomSheetSelectorsIDs.AVAILABLE_VALUE
-                      }
+                      length={SensitiveTextLength.Medium}
+                      testID={PerpsBalanceBottomSheetSelectorsIDs.BALANCE_VALUE}
                     >
-                      {formatPerpsBalance(spendableBalance)}
+                      {formatPerpsBalance(totalBalance)}
                     </SensitiveText>
-                  </Box>
+                  }
+                  amountWrapperProps={{ twClassName: 'w-full' }}
+                  bottomLabel={
+                    <Box
+                      flexDirection={BoxFlexDirection.Row}
+                      alignItems={BoxAlignItems.Center}
+                      gap={6}
+                    >
+                      <Box>
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                        >
+                          {strings('perps.balance_bottom_sheet.available')}
+                        </Text>
+                        <SensitiveText
+                          variant={TextVariant.BodySm}
+                          fontWeight={FontWeight.Medium}
+                          color={TextColor.TextDefault}
+                          isHidden={privacyMode}
+                          length={SensitiveTextLength.Short}
+                          testID={
+                            PerpsBalanceBottomSheetSelectorsIDs.AVAILABLE_VALUE
+                          }
+                        >
+                          {formatPerpsBalance(spendableBalance)}
+                        </SensitiveText>
+                      </Box>
 
-                  <Box>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings('perps.unrealized_pnl')}
-                    </Text>
-                    <SensitiveText
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={pnlColor}
-                      isHidden={privacyMode}
-                      length={SensitiveTextLength.Short}
-                      testID={PerpsBalanceBottomSheetSelectorsIDs.PNL_VALUE}
-                    >
-                      {formatAccountPnl(perpsAccount)}
-                    </SensitiveText>
-                  </Box>
+                      <Box>
+                        <Text
+                          variant={TextVariant.BodySm}
+                          color={TextColor.TextAlternative}
+                        >
+                          {strings('perps.unrealized_pnl')}
+                        </Text>
+                        <SensitiveText
+                          variant={TextVariant.BodySm}
+                          fontWeight={FontWeight.Medium}
+                          color={pnlColor}
+                          isHidden={privacyMode}
+                          length={SensitiveTextLength.Short}
+                          testID={PerpsBalanceBottomSheetSelectorsIDs.PNL_VALUE}
+                        >
+                          {formatAccountPnl(perpsAccount)}
+                        </SensitiveText>
+                      </Box>
+                    </Box>
+                  }
+                  bottomLabelWrapperProps={{ twClassName: 'w-full' }}
+                />
+
+                <Box alignItems={BoxAlignItems.Center}>
+                  <ButtonIcon
+                    size={ButtonIconSize.Md}
+                    iconName={IconName.Close}
+                    onPress={handleClose}
+                    accessibilityLabel={strings(
+                      'perps.balance_bottom_sheet.close_button',
+                    )}
+                    testID={PerpsBalanceBottomSheetSelectorsIDs.CLOSE_BUTTON}
+                  />
                 </Box>
-              }
-              bottomLabelWrapperProps={{ twClassName: 'w-full' }}
-            />
-
-            <Box alignItems={BoxAlignItems.Center}>
-              <ButtonIcon
-                size={ButtonIconSize.Md}
-                iconName={IconName.Close}
-                onPress={handleClose}
-                accessibilityLabel={strings(
-                  'perps.balance_bottom_sheet.close_button',
-                )}
-                testID={PerpsBalanceBottomSheetSelectorsIDs.CLOSE_BUTTON}
-              />
+              </Box>
             </Box>
-          </Box>
-        </Box>
 
-        {hasCrossExposure && (
-          <PerpsCrossMarginSummary
-            accountRatio={accountRatio}
-            maintenanceMargin={maintenanceMargin}
-            accountLeverage={accountLeverage}
-            crossMarginUsage={crossMarginUsage}
-            accountRatioTone={tone}
-            privacyMode={privacyMode}
-            onInfoPress={setActiveTooltip}
-          />
+            {hasCrossExposure && (
+              <PerpsCrossMarginSummary
+                accountRatio={accountRatio}
+                maintenanceMargin={maintenanceMargin}
+                accountLeverage={accountLeverage}
+                crossMarginUsage={crossMarginUsage}
+                accountRatioTone={tone}
+                privacyMode={privacyMode}
+                onInfoPress={handleInfoPress}
+              />
+            )}
+
+            <BottomSheetFooter
+              buttonsAlignment={ButtonsAlignment.Horizontal}
+              secondaryButtonProps={{
+                children: strings('perps.withdraw'),
+                onPress: handleWithdrawPress,
+                size: ButtonSize.Lg,
+                testID: PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON,
+              }}
+              primaryButtonProps={{
+                children: strings('perps.add_funds'),
+                onPress: handleAddFundsPress,
+                size: ButtonSize.Lg,
+                testID: PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
+              }}
+            />
+          </>
         )}
-
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Horizontal}
-          secondaryButtonProps={{
-            children: strings('perps.withdraw'),
-            onPress: handleWithdrawPress,
-            size: ButtonSize.Lg,
-            testID: PerpsBalanceBottomSheetSelectorsIDs.WITHDRAW_BUTTON,
-          }}
-          primaryButtonProps={{
-            children: strings('perps.add_funds'),
-            onPress: handleAddFundsPress,
-            size: ButtonSize.Lg,
-            testID: PerpsBalanceBottomSheetSelectorsIDs.ADD_FUNDS_BUTTON,
-          }}
-        />
       </BottomSheet>
 
       {isEligibilityModalVisible && (
@@ -257,18 +286,6 @@ const PerpsBalanceBottomSheet: React.FC<PerpsBalanceBottomSheetProps> = ({
             </ModalSafeAreaProvider>
           </Modal>
         </View>
-      )}
-
-      {activeTooltip && (
-        <PerpsProModalPortal onRequestClose={closeTooltip}>
-          <PerpsBottomSheetTooltip
-            isVisible
-            onClose={closeTooltip}
-            contentKey={activeTooltip}
-            buttonLocation={buttonLocation}
-            testID={PerpsBalanceBottomSheetSelectorsIDs.CROSS_MARGIN_TOOLTIP}
-          />
-        </PerpsProModalPortal>
       )}
     </>
   );

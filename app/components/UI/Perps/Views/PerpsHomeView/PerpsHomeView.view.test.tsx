@@ -49,11 +49,11 @@ import {
   getPerpsLiveTradeRowSelector,
   getPerpsMarketRowItemSelector,
   PerpsBalanceBottomSheetSelectorsIDs,
-  PerpsBottomSheetTooltipSelectorsIDs,
   PerpsHomeViewSelectorsIDs,
   PerpsMarketBalanceActionsSelectorsIDs,
   PerpsModeToggleSelectorsIDs,
   PerpsProviderLogosSelectorsIDs,
+  PerpsTradeSheetSelectorsIDs,
   PerpsWatchlistSelectorsIDs,
 } from '../../Perps.testIds';
 import { clearExploreSessionTab } from '../../components/PerpsExploreSection/exploreSessionTab';
@@ -3075,9 +3075,25 @@ describe('Perps home cross margin risk', () => {
       ),
     );
 
+    // The explanation replaces the summary in the open sheet.
     expect(
-      await screen.findByTestId(PerpsBottomSheetTooltipSelectorsIDs.CONTENT),
-    ).toHaveTextContent(strings('perps.tooltips.account_ratio.content'));
+      await screen.findByText(strings('perps.tooltips.account_ratio.content')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.INFO_BACK_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(
+        PerpsBalanceBottomSheetSelectorsIDs.ACCOUNT_RATIO_VALUE,
+      ),
+    ).toHaveTextContent('61%');
   });
 
   it('opens a safe balance summary without a home banner or risk icon', async () => {
