@@ -521,6 +521,29 @@ describe('usePerpsAdjustMarginData', () => {
       expect(result.current.currentLiquidationDistance).toBe('20.00%');
     });
 
+    it('measures the distance from the venue mark when it is known', () => {
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: {
+          price: '100000',
+          markPrice: '160000',
+          symbol: 'BTC',
+          timestamp: Date.now(),
+          isTradable: true,
+        },
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsAdjustMarginData({
+          symbol: 'BTC',
+          mode: 'remove',
+          inputAmount: 0,
+        }),
+      );
+
+      expect(result.current.currentLiquidationDistance).toBe('50.00%');
+      expect(result.current.currentPrice).toBe(100000);
+    });
+
     it('returns undefined, never "at liquidation", when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: {

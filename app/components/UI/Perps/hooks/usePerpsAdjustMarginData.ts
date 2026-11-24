@@ -180,6 +180,10 @@ export function usePerpsAdjustMarginData(
     [livePrices, symbol],
   );
 
+  // Liquidation triggers on the venue mark. Mid until the mark is known.
+  const liquidationReferencePrice =
+    parseOptionalNumber(livePrices?.[symbol]?.markPrice) ?? currentPrice;
+
   const percentChange24h = useMemo(() => {
     const rawPercentChange = Number.parseFloat(
       livePrices?.[symbol]?.percentChange24h ?? '',
@@ -317,13 +321,18 @@ export function usePerpsAdjustMarginData(
   // Core liquidation distance; undefined while either price is unknown, never
   // 0 ("at liquidation").
   const currentLiquidationDistance = useMemo(
-    () => formatLiquidationDistance(currentPrice, currentLiquidationPrice),
-    [currentPrice, currentLiquidationPrice],
+    () =>
+      formatLiquidationDistance(
+        liquidationReferencePrice,
+        currentLiquidationPrice,
+      ),
+    [liquidationReferencePrice, currentLiquidationPrice],
   );
 
   const newLiquidationDistance = useMemo(
-    () => formatLiquidationDistance(currentPrice, newLiquidationPrice),
-    [currentPrice, newLiquidationPrice],
+    () =>
+      formatLiquidationDistance(liquidationReferencePrice, newLiquidationPrice),
+    [liquidationReferencePrice, newLiquidationPrice],
   );
 
   return {
