@@ -1216,8 +1216,6 @@
       "payment_reference_label": "Payment reference",
       "copy_label": "复制 {{field}}",
       "copied_label": "已复制 {{field}}",
-      "copy_all_button": "复制所有信息",
-      "copied_all_label": "银行账户信息已复制",
       "button": "完成",
       "waiting_for_details": "您的账户详情将很快显示在这里。",
       "loading_details": "正在加载账户详情",

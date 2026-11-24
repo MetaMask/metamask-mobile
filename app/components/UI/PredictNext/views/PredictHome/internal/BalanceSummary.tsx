@@ -27,11 +27,13 @@ export const BalanceSummary = ({
   isLoading,
   error,
   onRetry,
+  depositStatus,
 }: {
   balance?: PredictBalance;
   isLoading: boolean;
   error: Error | null;
   onRetry: () => void;
+  depositStatus?: React.ReactNode;
 }) => {
   const privacyMode = useSelector(selectPrivacyMode);
 
@@ -100,6 +102,7 @@ export const BalanceSummary = ({
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {strings('predict_next.available_balance')}
       </Text>
+      {depositStatus}
     </Box>
   );
 };

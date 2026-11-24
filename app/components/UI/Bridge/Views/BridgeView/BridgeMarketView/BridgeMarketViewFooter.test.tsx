@@ -451,6 +451,45 @@ describe('BridgeMarketViewFooter', () => {
       },
     );
 
+    it('shows a Free tag and struck-through base fee copy for a free discount', async () => {
+      jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: {
+          ...mockQuoteWithMetadata,
+          quote: {
+            feeData: {
+              metabridge: [
+                {
+                  quoteBpsFee: 0,
+                  baseBpsFee: 87.5,
+                  discountType: 'free',
+                },
+              ],
+            },
+          } as unknown as QuoteResponse['quote'],
+        },
+      }));
+
+      const { getByTestId, getByText, queryByTestId } = renderFooter(
+        buildActiveQuoteState(),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER_FREE_BADGE),
+        ).toHaveTextContent(strings('bridge.discount_badge_free'));
+        expect(queryByTestId('rewards-discount-badge')).toBeNull();
+        expect(queryByTestId('rewards-vip-badge')).toBeNull();
+        expect(
+          getByText(
+            strings('bridge.fee_percentage_meta_mask', {
+              feePercentage: 0.875,
+            }),
+          ),
+        ).toHaveStyle({ textDecorationLine: 'line-through' });
+      });
+    });
+
     it('shows no-fee copy without a fee percentage for subscription discount', async () => {
       jest.mocked(useBridgeQuoteDataContext).mockImplementation(() => ({
         ...mockUseBridgeQuoteData,

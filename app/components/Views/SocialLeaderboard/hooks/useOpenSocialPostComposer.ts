@@ -13,6 +13,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useTheme } from '../../../../util/theme';
+import type { SocialEventSource } from '../analytics';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { resolveSocialPostComposerWallet } from '../navigation/resolveSocialPostComposerWallet';
 import type {
@@ -31,6 +32,8 @@ export interface OpenComposerPositionOptions {
 /** A blank composer opened from a post button. */
 export interface OpenComposerBlankOptions {
   composerEntry: SocialPostComposerBlankEntry;
+  /** Surface that opened the composer, sent as the `source` of its screen view. */
+  analyticsSource?: SocialEventSource;
 }
 
 export type OpenComposerOptions =

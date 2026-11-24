@@ -555,4 +555,60 @@ describe('PayWithRow', () => {
       expect(getByTestId('pay-with-symbol')).toHaveTextContent(/^test/);
     });
   });
+
+  describe('Convert label scoping', () => {
+    it.each([
+      TransactionType.moneyAccountDeposit,
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])('shows "Convert" token row label for %s', (type) => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-convert',
+        type,
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Convert')).toBeOnTheScreen();
+      expect(queryByText('Pay with')).toBeNull();
+    });
+
+    it.each([
+      TransactionType.contractInteraction,
+      TransactionType.perpsDepositAndOrder,
+      TransactionType.predictDepositAndOrder,
+    ])('keeps "Pay with" label for %s', (type) => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-pay-with',
+        type,
+        txParams: { from: '0x1' },
+      } as never);
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Pay with')).toBeOnTheScreen();
+      expect(queryByText('Convert')).toBeNull();
+    });
+
+    it('keeps "Pay with" label when a fiat payment method is selected on a deposit', () => {
+      jest.mocked(useTransactionMetadataRequest).mockReturnValue({
+        id: 'tx-fiat',
+        type: TransactionType.moneyAccountDeposit,
+        txParams: { from: '0x1' },
+      } as never);
+      jest.mocked(useTransactionPaySelectedFiatPaymentMethod).mockReturnValue({
+        id: 'pm-card',
+        paymentType: 'debit-credit-card',
+        name: 'Credit Card',
+        score: 1,
+        icon: 'card-icon',
+      });
+
+      const { getByText, queryByText } = render();
+
+      expect(getByText('Pay with')).toBeOnTheScreen();
+      expect(queryByText('Convert')).toBeNull();
+    });
+  });
 });

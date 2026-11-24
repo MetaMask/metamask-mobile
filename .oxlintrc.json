@@ -207,7 +207,43 @@
         "typescript/parameter-properties": "error",
         "typescript/prefer-for-of": "error",
         "typescript/triple-slash-reference": "error",
-        "typescript/unified-signatures": "error"
+        "typescript/unified-signatures": "error",
+        "typescript/await-thenable": "error",
+        "typescript/consistent-type-exports": "error",
+        "typescript/no-base-to-string": "error",
+        "typescript/no-floating-promises": "error",
+        "typescript/no-implied-eval": "error",
+        "typescript/no-misused-promises": "error",
+        "typescript/no-unnecessary-boolean-literal-compare": "error",
+        "typescript/no-unnecessary-type-assertion": "error",
+        "typescript/only-throw-error": "error",
+        "typescript/prefer-includes": "error",
+        "typescript/prefer-nullish-coalescing": "error",
+        "typescript/prefer-optional-chain": "error",
+        "typescript/prefer-promise-reject-errors": [
+          "error",
+          { "allowThrowingUnknown": true }
+        ],
+        "typescript/prefer-readonly": "error",
+        "typescript/prefer-reduce-type-parameter": "error",
+        "typescript/prefer-string-starts-ends-with": "error",
+        "typescript/promise-function-async": "error",
+        "typescript/restrict-plus-operands": "error",
+        "typescript/restrict-template-expressions": [
+          "error",
+          { "allowBoolean": true, "allowNumber": true }
+        ],
+        "typescript/switch-exhaustiveness-check": [
+          "error",
+          { "considerDefaultExhaustiveForUnions": true }
+        ],
+        "typescript/unbound-method": "error"
+      }
+    },
+    {
+      "files": ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
+      "rules": {
+        "typescript/unbound-method": "off"
       }
     },
     {

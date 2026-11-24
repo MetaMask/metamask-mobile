@@ -208,14 +208,15 @@ describe('BridgeFeeRow', () => {
       },
     } as TransactionPayTotals);
 
-    const { getByTestId, getByText } = render({
+    const { getByTestId, getByText, queryByTestId } = render({
       type: TransactionType.moneyAccountDeposit,
     });
 
     expect(getByText('$0.70')).toBeOnTheScreen();
+    expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
 
     await act(async () => {
-      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      fireEvent.press(getByTestId('transaction-fee-pressable'));
     });
 
     expect(getByText('$0.20')).toBeOnTheScreen();
@@ -308,6 +309,8 @@ describe('BridgeFeeRow', () => {
 
       expect(getByText('Paid by MetaMask')).toBeOnTheScreen();
       expect(queryByTestId('transaction-fee')).toBeNull();
+      expect(queryByTestId('transaction-fee-pressable')).toBeNull();
+      expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
     });
 
     it('hides the tooltip icon when paid by MetaMask is shown', () => {
@@ -405,7 +408,6 @@ describe('BridgeFeeRow', () => {
     it.each([
       [TransactionType.predictDeposit],
       [TransactionType.predictWithdraw],
-      [TransactionType.moneyAccountDeposit],
       [TransactionType.moneyAccountWithdraw],
     ])('renders tooltip with $ value for %s', async (type) => {
       const { getByTestId } = render({ type });
@@ -417,15 +419,18 @@ describe('BridgeFeeRow', () => {
       expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
     });
 
-    it('renders moneyAccountDeposit tooltip copy', async () => {
-      const { getByTestId, getByText } = render({
+    it('renders moneyAccountDeposit tooltip via dotted fee underline without an info icon', async () => {
+      const { getByTestId, getByText, queryByTestId } = render({
         type: TransactionType.moneyAccountDeposit,
       });
 
+      expect(queryByTestId('info-row-tooltip-open-btn')).toBeNull();
+
       await act(async () => {
-        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+        fireEvent.press(getByTestId('transaction-fee-pressable'));
       });
 
+      expect(getByTestId('info-row-tooltip-close-btn')).toBeOnTheScreen();
       expect(
         getByText(
           'Conversion fees include network costs and may include provider fees.',

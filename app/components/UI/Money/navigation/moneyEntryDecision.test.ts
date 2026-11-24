@@ -13,7 +13,7 @@ const createContext = (
   overrides: Partial<MoneyEntryContext> = {},
 ): MoneyEntryContext => ({
   accessBlockReason: undefined,
-  isOnboardingRedirectNeeded: false,
+  isSplashRedirectNeeded: false,
   ...overrides,
 });
 
@@ -60,12 +60,12 @@ describe('getMoneyEntryDecision', () => {
     });
   });
 
-  it('prioritizes access blocking over onboarding', () => {
+  it('prioritizes access blocking over the splash', () => {
     const result = getMoneyEntryDecision(
       'deposit',
       createContext({
         accessBlockReason: 'geo_blocked',
-        isOnboardingRedirectNeeded: true,
+        isSplashRedirectNeeded: true,
       }),
     );
 
@@ -75,20 +75,7 @@ describe('getMoneyEntryDecision', () => {
     );
   });
 
-  it('routes an accessible unseen entry to onboarding', () => {
-    const result = getMoneyEntryDecision(
-      'deposit',
-      createContext({ isOnboardingRedirectNeeded: true }),
-    );
-
-    expect(result).toStrictEqual({
-      destination: 'onboarding',
-      redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
-      button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
-    });
-  });
-
-  it('routes an unseen CTA entry to the splash', () => {
+  it('routes an unseen entry to the splash', () => {
     const result = getMoneyEntryDecision(
       'deposit',
       createContext({ isSplashRedirectNeeded: true }),
@@ -99,34 +86,6 @@ describe('getMoneyEntryDecision', () => {
       redirect_target: SCREEN_NAMES.MONEY_SPLASH,
       button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_SPLASH,
     });
-  });
-
-  it('prioritizes the splash over onboarding when both are unseen', () => {
-    const result = getMoneyEntryDecision(
-      'home',
-      createContext({
-        isOnboardingRedirectNeeded: true,
-        isSplashRedirectNeeded: true,
-      }),
-    );
-
-    expect(result.destination).toBe('splash');
-    expect(result.redirect_target).toBe(SCREEN_NAMES.MONEY_SPLASH);
-  });
-
-  it('prioritizes access blocking over the splash', () => {
-    const result = getMoneyEntryDecision(
-      'deposit',
-      createContext({
-        accessBlockReason: 'feature_disabled',
-        isSplashRedirectNeeded: true,
-      }),
-    );
-
-    expect(result.destination).toBe('featureDisabled');
-    expect(result.redirect_target).toBe(
-      BOTTOM_SHEET_NAMES.MONEY_DEEPLINK_MODAL,
-    );
   });
 
   it('keeps entry metadata aligned with navigation destinations', () => {
