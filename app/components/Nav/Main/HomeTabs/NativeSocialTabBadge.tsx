@@ -20,6 +20,8 @@ import { getTabBarFloatingBottomPadding } from '../../../../component-library/co
 export const SOCIAL_TAB_BADGE_OVERLAY_TEST_ID = 'social-tab-badge-overlay';
 export const NATIVE_TAB_ICON_SIZE = 28;
 export const FLOATING_TAB_ICON_SIZE = 24;
+/** Horizontal padding from the floating pill's `p-1` class. */
+const FLOATING_TAB_BAR_PILL_PADDING = 4;
 
 interface NativeSocialTabBadgeProps {
   tabIndex: number;
@@ -50,11 +52,13 @@ export const getNativeSocialTabBadgePosition = ({
     TAB_BAR_FLOATING_HORIZONTAL_INSET * 2 -
     TAB_BAR_FLOATING_GAP -
     TAB_BAR_FLOATING_HEIGHT;
-  const tabWidth = tabBarWidth / tabCount;
+  const tabBarContentWidth = tabBarWidth - FLOATING_TAB_BAR_PILL_PADDING * 2;
+  const tabWidth = tabBarContentWidth / tabCount;
 
   return {
     left:
       TAB_BAR_FLOATING_HORIZONTAL_INSET +
+      FLOATING_TAB_BAR_PILL_PADDING +
       tabWidth * (tabIndex + 0.5) -
       (iconSize ?? NATIVE_TAB_ICON_SIZE) / 2,
     top: height - bottomPadding - TAB_BAR_FLOATING_HEIGHT + 6,

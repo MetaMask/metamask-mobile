@@ -2,15 +2,8 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useWindowDimensions } from 'react-native';
 
-import { getTabBarFloatingBottomPadding } from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.utils';
-import {
-  TAB_BAR_FLOATING_GAP,
-  TAB_BAR_FLOATING_HEIGHT,
-  TAB_BAR_FLOATING_HORIZONTAL_INSET,
-} from '../../../../component-library/components/Navigation/TabBarFloating/TabBarFloating.constants';
 import NativeSocialTabBadge, {
   getNativeSocialTabBadgePosition,
-  NATIVE_TAB_ICON_SIZE,
   SOCIAL_TAB_BADGE_OVERLAY_TEST_ID,
 } from './NativeSocialTabBadge';
 
@@ -23,7 +16,7 @@ jest.mock('react-native-safe-area-context', () => ({
 const mockUseWindowDimensions = jest.mocked(useWindowDimensions);
 
 describe('getNativeSocialTabBadgePosition', () => {
-  it('places the badge over the final app tab before the detached search slot', () => {
+  it('returns the expected position for the final app tab', () => {
     const input = {
       width: 390,
       height: 844,
@@ -31,25 +24,12 @@ describe('getNativeSocialTabBadgePosition', () => {
       tabIndex: 3,
       tabCount: 4,
     };
-    const tabBarWidth =
-      input.width -
-      TAB_BAR_FLOATING_HORIZONTAL_INSET * 2 -
-      TAB_BAR_FLOATING_GAP -
-      TAB_BAR_FLOATING_HEIGHT;
-    const tabWidth = tabBarWidth / input.tabCount;
 
     const result = getNativeSocialTabBadgePosition(input);
 
     expect(result).toEqual({
-      left:
-        TAB_BAR_FLOATING_HORIZONTAL_INSET +
-        tabWidth * (input.tabIndex + 0.5) -
-        NATIVE_TAB_ICON_SIZE / 2,
-      top:
-        input.height -
-        getTabBarFloatingBottomPadding(input.bottomInset) -
-        TAB_BAR_FLOATING_HEIGHT +
-        6,
+      left: 247.25,
+      top: 766,
     });
   });
 
@@ -65,16 +45,7 @@ describe('getNativeSocialTabBadgePosition', () => {
 
     const result = getNativeSocialTabBadgePosition(input);
 
-    expect(result.left).toBe(
-      TAB_BAR_FLOATING_HORIZONTAL_INSET +
-        ((input.width -
-          TAB_BAR_FLOATING_HORIZONTAL_INSET * 2 -
-          TAB_BAR_FLOATING_GAP -
-          TAB_BAR_FLOATING_HEIGHT) /
-          input.tabCount) *
-          (input.tabIndex + 0.5) -
-        input.iconSize / 2,
-    );
+    expect(result.left).toBe(249.25);
   });
 });
 
