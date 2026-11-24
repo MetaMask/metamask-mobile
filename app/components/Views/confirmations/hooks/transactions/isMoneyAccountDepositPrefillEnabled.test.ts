@@ -38,6 +38,17 @@ describe('isMoneyAccountDepositPrefillEnabled', () => {
     ).toBe(false);
   });
 
+  it('force-enables addUsdc when forceAddMusd is true (loader path)', () => {
+    expect(
+      isMoneyAccountDepositPrefillEnabled({
+        remotePrefillEnabled: false,
+        abTestPrefillEnabled: false,
+        intent: 'addUsdc',
+        forceAddMusd: true,
+      }),
+    ).toBe(true);
+  });
+
   it('force-enables addMusd when forceAddMusd is true (loader path)', () => {
     expect(
       isMoneyAccountDepositPrefillEnabled({

@@ -20,7 +20,10 @@ import {
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
-import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
   MONEY_ACCOUNT_DEPOSIT_PREFILL_VARIANTS,
@@ -142,7 +145,7 @@ export function useDepositPrefillAmount({
       const explicitAmount = new BigNumber(amount);
       return (
         depositIntent !== 'card' &&
-        depositIntent !== 'addMusd' &&
+        !isFullBalanceDepositIntent(depositIntent) &&
         explicitAmount.isFinite() &&
         explicitAmount.gt(0)
       );

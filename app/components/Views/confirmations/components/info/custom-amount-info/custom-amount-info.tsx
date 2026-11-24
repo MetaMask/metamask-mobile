@@ -82,7 +82,10 @@ import {
 } from '../../../hooks/custom-amount/useSnapAmountToMax';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
-import { getMoneyAccountDepositIntent } from '../../../../../UI/Money/hooks/useMoneyAccount';
+import {
+  getMoneyAccountDepositIntent,
+  isFullBalanceDepositIntent,
+} from '../../../../../UI/Money/hooks/useMoneyAccount';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import {
   CustomAmountBuy,
@@ -151,7 +154,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     ]);
     const isAddMusdIntent =
       isMoneyAccountDeposit &&
-      getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+      isFullBalanceDepositIntent(
+        getMoneyAccountDepositIntent(transactionMeta?.batchId),
+      );
 
     useClearConfirmationOnBackSwipe();
 

@@ -12,7 +12,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
-import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
@@ -162,8 +161,8 @@ jest.mock('../../../../../selectors/moneyAccountController', () => ({
 }));
 
 // Sheet UI dependencies (mirrors MoneyAddMoneySheet.test.tsx setup).
-jest.mock('../../../Earn/hooks/useMusdBalance', () => ({
-  useMusdBalance: jest.fn(),
+jest.mock('../../hooks/useQuickDepositStablecoins', () => ({
+  useQuickDepositStablecoins: jest.fn(() => []),
 }));
 jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
@@ -238,13 +237,6 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
       return 0;
     });
     mockEngineState.TransactionController = { transactions: [] };
-    (useMusdBalance as jest.Mock).mockReturnValue({
-      fiatBalanceAggregated: '0',
-      fiatBalanceAggregatedFormatted: '$0.00',
-      hasMusdBalanceOnAnyChain: false,
-      tokenBalanceAggregated: '0',
-      tokenBalanceByChain: {},
-    });
     (useMMPayFiatConfig as jest.Mock).mockReturnValue({
       enabledTransactionTypes: [TransactionType.moneyAccountDeposit],
       maxDelayMinutesForPaymentMethods: 10,

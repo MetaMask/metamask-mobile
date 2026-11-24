@@ -12,7 +12,7 @@ import { useTransactionPayFiatPayment } from './useTransactionPayData';
  * Whether the pay amount can be committed as the user types, so a quote is
  * already in flight by the time they continue.
  *
- * Only generic and convert crypto deposits qualify. `addMusd` uses the Relay
+ * Only generic and convert crypto deposits qualify. `addMusd`, `addUsdc`, and `addUsdt` use the Relay
  * max/gas-station path and `card` uses the multi-stage fiat path, so both keep
  * committing on Continue until validated separately.
  *

@@ -1,9 +1,14 @@
+import {
+  isFullBalanceDepositIntent,
+  type MoneyAccountDepositIntent,
+} from '../../../../UI/Money/utils/moneyAccountDepositIntent';
+
 /**
  * Shared enablement rule for Money Account deposit amount prefill / prefill loader.
  *
  * - `card` never prefills
  * - otherwise requires remote kill-switch AND A/B treatment (`prefillEnabled`)
- * - `forceAddMusd`: when true, `addMusd` always enables (loader path). Amount autofill for addMusd stays on the dedicated 100% path in `useTransactionCustomAmount`.
+ * - `forceAddMusd`: when true, `addMusd` and `addUsdc` always enable (loader path). Amount autofill for those intents stays on the dedicated 100% path in `useTransactionCustomAmount`.
  */
 export function isMoneyAccountDepositPrefillEnabled({
   remotePrefillEnabled,
@@ -13,14 +18,14 @@ export function isMoneyAccountDepositPrefillEnabled({
 }: {
   remotePrefillEnabled: boolean;
   abTestPrefillEnabled: boolean;
-  intent?: 'convert' | 'addMusd' | 'card';
+  intent?: MoneyAccountDepositIntent;
   forceAddMusd?: boolean;
 }): boolean {
   if (intent === 'card') {
     return false;
   }
 
-  if (forceAddMusd && intent === 'addMusd') {
+  if (forceAddMusd && isFullBalanceDepositIntent(intent)) {
     return true;
   }
 
