@@ -206,7 +206,16 @@ function ingest(msg) {
     console.log(
       `[foxy] app ${isNew ? 'connected' : 'reconnected'} (${msg.platform}) session ${msg.s}`,
     );
-    if (isNew) broadcast({ type: 'session', session: sessions.get(msg.s) });
+    if (isNew) {
+      broadcast({ type: 'session', session: sessions.get(msg.s) });
+      // A marker dropped while no app was connected has no session, and the dashboard only lists the latest session's markers, so it would
+      // vanish. The first session to connect adopts it; it came before the app did, so its phase starts at time zero.
+      const orphans = markers.filter((m) => m.session == null);
+      if (orphans.length) {
+        for (const m of orphans) { m.session = msg.s; m.relMs = Math.max(0, m.ts - (sessions.get(msg.s).startedAt ?? m.ts)); }
+        broadcast({ type: 'markers', markers: sessionMarkers(latestSession) });
+      }
+    }
     return;
   }
   const session = sessions.get(msg.s);
@@ -452,9 +461,9 @@ const httpServer = createServer(async (req, res) => {
       const m = markers.find((x) => x.id === id);
       if (!m) {
         json(res, { error: 'not found' }, 404);
-      } else if (req.method === 'POST' && markers.some((x) => x.session === m.session && x.relMs > m.relMs)) {
-        // a later marker already closes this phase, so there is nothing to end
-        json(res, { error: 'a later marker already closes this phase' }, 409);
+      } else if (markers.some((x) => x.session === m.session && x.relMs > m.relMs)) {
+        // a later marker already closes this phase: ending it is moot, and reopening it would swallow the phases in between and scramble their order
+        json(res, { error: 'only the latest marker can be ended or reopened' }, 409);
       } else {
         if (req.method === 'DELETE') m.endRelMs = null;
         else if (m.endRelMs == null) { // ending twice keeps the first end: to move it, reopen and end again

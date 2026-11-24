@@ -397,6 +397,50 @@
   .vseg button.active { background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--c); }
   textarea.note { width: 100%; resize: vertical; min-height: 72px; background: var(--color-background-section); color: inherit; border: 1px solid var(--color-border-muted); border-radius: var(--r-box); padding: 8px 10px; font: 12.5px/1.5 var(--font-family-default); }
   textarea.note:focus-visible { outline: 2px solid var(--color-primary-default); outline-offset: 1px; }
+  /* audit: the Audit toggle beside the phase pill, the verdict column it turns on, and the panel above the Timeline */
+  /* audit controls sit at the trailing edge of the filter row: the Export button (only while auditing) and the Audit switch */
+  .audit-ctl { margin-left: auto; display: inline-flex; align-items: center; }
+  .audit-ctl[hidden] { display: none; }
+  .audit-ctl button { display: inline-flex; align-items: center; gap: 8px; height: 30px; box-sizing: border-box; padding: 0 14px; border: 0; border-radius: var(--r-ctl); background: var(--fill-1); color: var(--color-text-alternative); font-size: 12px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .audit-ctl button:hover { background: var(--fill-2); color: var(--color-text-default); }
+  .audit-ctl .ic { width: 16px; height: 16px; }
+  .aud-switch { padding: 0 14px 0 10px !important; }
+  /* Export grows in beside the switch (and shrinks away again) instead of popping */
+  .aud-slot { display: grid; grid-template-columns: 0fr; opacity: 0; transition: grid-template-columns .28s var(--ease-out), opacity .2s ease; }
+  .aud-slot.on { grid-template-columns: 1fr; opacity: 1; }
+  .aud-slot-in { min-width: 0; overflow: hidden; }
+  .aud-slot-in button { margin-right: 8px; }
+  /* the Verdict column and panel slide in; on the way out they fade first (see toggleAudit) */
+  @keyframes audIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+  #endpoints.aud-in tr.ep td:last-child, #endpoints.aud-in thead th:last-child, #endpoints.aud-in .vpanel { animation: audIn .34s var(--ease-out) both; }
+  @keyframes audOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(10px); } }
+  #endpoints.aud-out tr.ep td:last-child, #endpoints.aud-out thead th:last-child, #endpoints.aud-out .vpanel { animation: audOut .18s ease both; } /* rows are rebuilt on every render, so a keyframe animation (not a transition) */
+  @media (prefers-reduced-motion: reduce) { .aud-slot, .aud-track i { transition: none; } #endpoints.aud-in tr.ep td:last-child, #endpoints.aud-in thead th:last-child, #endpoints.aud-in .vpanel, #endpoints.aud-out tr.ep td:last-child, #endpoints.aud-out thead th:last-child, #endpoints.aud-out .vpanel { animation: none; } }
+  .aud-track { position: relative; flex: none; width: 28px; height: 16px; border-radius: 8px; background: var(--fill-3); transition: background .15s; }
+  .aud-track i { position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--color-text-muted); transition: transform .18s var(--ease-out), background .15s; }
+  .aud-switch[aria-checked="true"] { color: var(--color-text-default); }
+  .aud-switch[aria-checked="true"] .aud-track { background: var(--color-primary-default); }
+  .aud-switch[aria-checked="true"] .aud-track i { transform: translateX(12px); background: #fff; }
+  .toast { position: fixed; left: 50%; bottom: 22px; z-index: 60; max-width: min(520px, calc(100vw - 32px)); padding: 9px 16px; border-radius: 999px; background: var(--surface-2, var(--color-background-section)); color: var(--color-text-default); box-shadow: 0 10px 30px rgba(0, 0, 0, .5); font-size: 13px; font-weight: 600; pointer-events: none; opacity: 0; transform: translate(-50%, 10px); transition: opacity .18s ease, transform .22s var(--ease-out); }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .vhelp { margin-left: auto; }
+  .vlegend { display: none; position: fixed; z-index: 40; width: min(300px, calc(100vw - 16px)); padding: 10px 12px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); box-shadow: 0 16px 40px rgba(0, 0, 0, .55); }
+  .vlegend.open { display: block; animation: audIn .16s var(--ease-out) both; }
+  .vl-h { margin-bottom: 8px; font-size: 12px; font-weight: 600; color: var(--color-text-alternative); }
+  .vlegend dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; margin: 0; }
+  .vlegend dt { display: flex; align-items: flex-start; gap: 8px; margin: 0; font-size: 13px; font-weight: 600; }
+  .vlegend dt .dot { margin-top: 5px; }
+  .vlegend dd { margin: 0; font-size: 12.5px; line-height: 1.4; color: var(--color-text-default); }
+  .vlegend dd .ex { display: block; margin-top: 2px; font-size: 11.5px; color: var(--color-text-muted); }
+  .vl-f { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--color-border-muted); font-size: 11.5px; line-height: 1.4; color: var(--color-text-muted); }
+  @media (prefers-reduced-motion: reduce) { .vlegend.open { animation: none; } }
+  .audmenu { display: none; position: fixed; z-index: 40; width: min(280px, calc(100vw - 16px)); flex-direction: column; gap: 2px; padding: 6px; background: var(--color-background-section); border: 1px solid var(--color-border-muted); border-radius: var(--r-box); box-shadow: 0 16px 40px rgba(0, 0, 0, .55); }
+  .audmenu.open { display: flex; }
+  .audmenu button { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; width: 100%; padding: 8px 10px; border: 0; border-radius: 12px; background: transparent; color: var(--color-text-default); text-align: left; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .audmenu button:hover { background: var(--fill-2); }
+  .audmenu button:focus-visible { outline-offset: -2px; }
+  .audmenu button .d { font-size: 11.5px; font-weight: 400; color: var(--color-text-muted); }
+  .aud-none { color: var(--color-text-muted); font-style: italic; white-space: nowrap; }
   .sub-h { margin: 12px 0 4px; font-size: 11px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
 
   /* ---------------- markers & phases ---------------- */
@@ -598,12 +642,17 @@
   .presets { gap: 8px; margin-bottom: 22px; }
   .presets button { padding: 7px 14px; font-size: 13px; }
   #mkList { margin-bottom: 4px; }
-  .mkrow { grid-template-columns: 10px 88px minmax(0, 1fr) auto auto auto auto auto; gap: 12px; padding: 10px 0; }
+  .mkrow { grid-template-columns: 8px var(--tw, 70px) minmax(0, 1fr) auto auto; gap: 10px; padding: 7px 0; }
   .mkrow .mk-t { white-space: nowrap; }
   .mkrow + .mkrow { border-top: 1px solid var(--color-border-muted); }
   .mkrow .mk-t { font-size: 12.5px; }
-  .mkrow input { height: 32px; padding: 0 12px; font-size: 13.5px; }
-  .mkrow .mk-n { font-size: 12px; }
+  .mkrow input { height: 30px; padding: 0 10px; font-size: 13px; }
+  .mkrow .mk-n { font-size: 11.5px; min-width: 38px; text-align: right; font-variant-numeric: tabular-nums; }
+  /* the row's actions are one tight cluster: four fixed slots (End/Resume, Focus, Download, Delete), so icons line up from row to row */
+  .mk-acts { display: inline-grid; grid-auto-flow: column; grid-auto-columns: 24px; gap: 2px; align-items: center; }
+  .mkrow .mk-acts button { width: 24px; height: 24px; padding: 0; justify-content: center; align-items: center; border-radius: 50%; opacity: .7; }
+  .mkrow .mk-acts button:hover, .mkrow .mk-acts button:focus-visible, .mkrow .mk-acts button[aria-pressed="true"] { opacity: 1; }
+  .mkrow .mk-acts button.icon-btn .ic { width: 15px; height: 15px; }
   .mk-empty { padding: 4px 2px 8px; font-size: 13.5px; line-height: 1.55; }
   .mk-foot { margin-top: 18px; padding-top: 16px; font-size: 12px; line-height: 1.9; }
 
@@ -1010,7 +1059,7 @@
   <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7z"/></symbol>
   <!-- phase toolbar set: one stroke weight, same live area, so the row reads evenly -->
   <symbol id="i-tb-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v12M7.5 11.5 12 16l4.5-4.5M4 16.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5"/></g></symbol>
-  <symbol id="i-tb-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  <symbol id="i-tb-focus" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V6.5A2.5 2.5 0 0 1 6.5 4H9M15 4h2.5A2.5 2.5 0 0 1 20 6.5V9M20 15v2.5a2.5 2.5 0 0 1-2.5 2.5H15M9 20H6.5A2.5 2.5 0 0 1 4 17.5V15"/><circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/></g></symbol>
   <symbol id="i-tb-stop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8" y="8" width="8" height="8" rx="1.5" fill="currentColor"/></symbol>
   <symbol id="i-tb-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8.2v7.6l6-3.8z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></symbol>
   <symbol id="i-tb-edit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19.5 8.5a2.83 2.83 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></g></symbol>
@@ -1076,12 +1125,22 @@
     <div class="mk-foot">Pick several values to match any of them. Different sections must all match. <kbd class="k">F</kbd> opens this panel · <kbd class="k">Esc</kbd> closes</div>
   </div>
 </div>
-<div class="fltrow" id="fltRow" aria-label="Active filters" inert><div class="fltrow-in"><div class="fltrow-pad"><span id="ownerPill"></span><span id="phasePill"></span><span id="advPills" class="advpills"></span><span id="fltGhost" class="fltghost" aria-hidden="true"></span></div></div></div>
+<div class="fltrow" id="fltRow" aria-label="Active filters" inert><div class="fltrow-in"><div class="fltrow-pad"><span id="ownerPill"></span><span id="phasePill"></span><span id="advPills" class="advpills"></span><span id="fltGhost" class="fltghost" aria-hidden="true"></span><span id="auditCtl" class="audit-ctl" hidden></span></div></div></div>
 <div class="strip" aria-label="Requests over time"><div class="stripin" id="stripin"></div><div class="axis" id="axis"></div></div>
 <main>
   <table id="timeline"><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table>
   <table id="endpoints" hidden><colgroup></colgroup><thead><tr></tr></thead><tbody></tbody></table>
 </main>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="audMenu" class="audmenu" role="menu" aria-label="Export audit">
+  <button role="menuitem" data-aud="md"><span>Copy Markdown table</span><span class="d">One row per endpoint, ready for the ticket</span></button>
+  <button role="menuitem" data-aud="agent"><span>Download for agent</span><span class="d">JSON with verdicts, reasons and call sites</span></button>
+</div>
+<div id="vLegend" class="vlegend" role="dialog" aria-label="What the verdicts mean">
+  <div class="vl-h">Verdicts</div>
+  <dl></dl>
+  <div class="vl-f">Per phase: one endpoint can differ between phases.</div>
+</div>
 <dialog id="help" aria-label="Foxy Guide">
   <button id="helpClose" class="btn icon-btn help-x" aria-label="Close guide" title="Close (Esc)"><svg class="ic"><use href="#i-close"/></svg></button>
   <div class="hbody"><nav class="hnav" id="helpNav" aria-label="Help topics"></nav><div class="hcontent" id="helpBody" tabindex="-1"></div></div>
@@ -1092,7 +1151,7 @@
 // helpers
 // ============================================================================
 const reqs = new Map(); let markers = []; let tab = 'timeline'; let filter = ''; let open = null;
-const ui = { cat: 'all', errors: false, dupes: false, owner: null, phase: null };
+const ui = { cat: 'all', errors: false, dupes: false, owner: null, phase: null, audit: false }; // audit only applies while a phase is focused
 // Column sorting, per tab. null is the tab's natural order: the Timeline is newest first (grouped into phases, and still grouped when sorted), Endpoints is first call first.
 // A sort is { id: column, dir: 1 (ascending) | -1 (descending) }.
 const sorts = { timeline: null, endpoints: null };
@@ -1530,11 +1589,14 @@ function computePhases(all) {
 }
 /** Ends a marker's phase where it is now, or reopens it. The server answers with a `markers` message, which redraws both places. */
 const endMarker = (id, on) => api('/api/marker/' + encodeURIComponent(id) + '/end', on ? 'POST' : 'DELETE');
-/** A marker's phase can be ended: End while it is still open (only the last marker's), Reopen once it has been ended. Other phases get nothing. */
+/** The newest marker's phase: the one that is (or was just) running, and the one the E shortcut acts on. */
+const latestMarkerPhase = () => [...phases].reverse().find((x) => x.marker);
+/** Only the newest marker's phase can be ended or reopened. An older one is already closed by the marker after it, and reopening it would
+ *  swallow the phases in between and scramble their order. So every other phase gets nothing. */
 function endControl(p, cls) {
-  if (!p.marker) return '';
-  if (p.end === Infinity) return `<button${cls ? ` class="${cls}"` : ''} data-act="end" data-id="${esc(p.id)}" title="End this phase here: anything after now is Between phases" aria-label="End phase ${esc(p.label)}">${icon('tb-stop')}</button>`;
-  if (p.ended) return `<button${cls ? ` class="${cls}"` : ''} data-act="reopen" data-id="${esc(p.id)}" title="Reopen this phase: it collects again until the next marker" aria-label="Reopen phase ${esc(p.label)}">${icon('tb-play')}</button>`;
+  if (!p.marker || p !== latestMarkerPhase()) return '';
+  if (p.end === Infinity) return `<button${cls ? ` class="${cls}"` : ''} data-act="end" data-id="${esc(p.id)}" title="End this phase here: anything after now is Between phases${p === latestMarkerPhase() ? ' (E)' : ''}" aria-label="End phase ${esc(p.label)}">${icon('tb-stop')}</button>`;
+  if (p.ended) return `<button${cls ? ` class="${cls}"` : ''} data-act="reopen" data-id="${esc(p.id)}" title="Reopen this phase: it collects again until the next marker${p === latestMarkerPhase() ? ' (E)' : ''}" aria-label="Reopen phase ${esc(p.label)}">${icon('tb-play')}</button>`;
   return '';
 }
 /** What the download button says. The last phase is still collecting, so it gives what has arrived so far. */
@@ -1559,8 +1621,8 @@ const phaseChip = (p) => `<span class="chip" data-phase="${esc(p.id)}" style="--
 // ============================================================================
 // column grid: drag header labels to reorder, drag the grips to resize
 // ============================================================================
-function createGrid(id, defs, { getSort, onSort } = {}) {
-  const el = $('#' + id), key = `foxy.layout.v6.${id}`;
+function createGrid(id, defs, { getSort, onSort, layout = id } = {}) {
+  const el = $('#' + id), key = `foxy.layout.v6.${layout}`;
   const byId = Object.fromEntries(defs.map((d) => [d.id, d]));
   const isAuto = (c) => Boolean(byId[c].fit); // auto columns size themselves to their content
   const defaults = () => ({ order: defs.map((d) => d.id), widths: Object.fromEntries(defs.map((d) => [d.id, d.w])) });
@@ -1705,19 +1767,29 @@ const TIMELINE_COLS = [
   { id: 'wf', label: 'Waterfall', w: 0.12, cell: waterfallCell },
 ];
 
-// ---- verdicts (per endpoint, saved in this browser, exported with the Endpoints markdown) ----
+// ---- verdicts: one per endpoint, per phase (Keep / Defer / Move / Drop and a reason). Endpoints only shows them while a phase is being audited. ----
 const VERDICTS = [
-  { id: 'keep', label: 'Keep', c: '#b9f302', tip: 'Needed at this point in the flow' },
-  { id: 'defer', label: 'Defer', c: '#f0b034', tip: 'Not needed yet: fetch later (for example after unlock or first use)' },
-  { id: 'move', label: 'Move', c: '#8b99ff', tip: 'Needed, but should happen somewhere else in the flow' },
-  { id: 'drop', label: 'Drop', c: '#ff7584', tip: 'Not needed: remove it' },
+  { id: 'keep', label: 'Keep', c: '#b9f302', tip: 'Needed at this point in the flow', d: 'Needed right here. Leave it.', ex: 'Feature flags this screen uses' },
+  { id: 'defer', label: 'Defer', c: '#f0b034', tip: 'Not needed yet: fetch later (for example after unlock or first use)', d: 'Not needed yet. Fetch it later.', ex: 'Token prices, until the wallet opens' },
+  { id: 'move', label: 'Move', c: '#8b99ff', tip: 'Needed, but should happen somewhere else in the flow', d: 'Needed, but elsewhere in the flow.', ex: 'Analytics init, after consent' },
+  { id: 'drop', label: 'Drop', c: '#ff7584', tip: 'Not needed: remove it', d: 'Not needed. Remove the request.', ex: 'A duplicate or unused ping' },
 ];
-let verdicts = {}; try { verdicts = JSON.parse(localStorage.getItem('foxy.verdicts.v1')) || {}; } catch {}
-const saveVerdicts = () => localStorage.setItem('foxy.verdicts.v1', JSON.stringify(verdicts));
-const verdictOf = (k) => verdicts[k] || {};
-const verdictChip = (k) => {
-  const v = VERDICTS.find((x) => x.id === verdictOf(k).v);
-  return v ? `<span class="chip" style="--c:${v.c}" title="${esc(v.tip)}"><span class="t">${v.label}</span></span>` : '<span class="dim">—</span>';
+// Stored in this browser as { [phase key]: { [endpoint]: { v, note } } }. A marker's phase key is its label, so the same flow keeps its
+// verdicts across captures, and one endpoint can be Keep in one phase and Defer in another.
+let audits = {}; try { audits = JSON.parse(localStorage.getItem('foxy.audit.v1')) || {}; } catch {}
+const saveAudits = () => localStorage.setItem('foxy.audit.v1', JSON.stringify(audits));
+const auditKey = (p) => (p.marker ? `phase:${p.label}` : p.id);
+const auditOf = (p, k) => (p && audits[auditKey(p)] && audits[auditKey(p)][k]) || {};
+const setAudit = (p, k, patch) => {
+  const pk = auditKey(p); audits[pk] = audits[pk] || {};
+  audits[pk][k] = { ...auditOf(p, k), ...patch }; saveAudits();
+};
+const auditPhase = () => (ui.audit && ui.phase ? phases.find((p) => p.id === ui.phase) : null); // the phase being audited, if any
+const phaseOfGroup = (g) => phaseByKey.get(g.list[0].key);
+let auditFlash = ''; // the Export button's label for a moment after an export ("Copied!")
+const auditChip = (p, k) => {
+  const v = VERDICTS.find((x) => x.id === auditOf(p, k).v);
+  return v ? `<span class="chip" style="--c:${v.c}" title="${esc(v.tip)}"><span class="t">${v.label}</span></span>` : '<span class="aud-none">no verdict</span>';
 };
 
 const clock = (ts) => { const d = new Date(ts); return d.toLocaleTimeString([], { hour12: false }) + '.' + String(d.getMilliseconds()).padStart(3, '0'); };
@@ -1783,12 +1855,26 @@ const ENDPOINT_COLS = [
   { id: 'statuses', label: 'Statuses', w: 0.085, sort: (g) => g.failed, sortFirst: 'desc', cell: (g) => td(statusPills(g.st)) },
   { id: 'avg', label: 'Avg Duration', w: 0.055, fit: { min: '000 ms', max: '000.0 s' }, sort: (g) => g.avg, sortFirst: 'desc', cell: (g) => td(fmtMs(g.avg), { cls: 'alt num', title: g.avg == null ? '' : `p95 ${fmtMs(g.p95)}, max ${fmtMs(g.max)}` }) },
   { id: 'activity', label: 'Activity', w: 0.12, cell: (g) => td(lane(g, false), { title: 'Every call on the capture timeline (ringed = repeat of an identical request)' }) },
-  { id: 'verdict', label: 'Verdict', w: 0.095, sort: (g) => { const i = VERDICTS.findIndex((x) => x.id === verdictOf(g.k).v); return i < 0 ? null : i; }, cell: (g) => td(verdictChip(g.k)) },
 ];
 
 const timelineGrid = createGrid('timeline', TIMELINE_COLS, { getSort: () => sortOf('timeline'), onSort: (c) => cycleSort('timeline', c) });
-const endpointsGrid = createGrid('endpoints', ENDPOINT_COLS, { getSort: () => sortOf('endpoints'), onSort: (c) => cycleSort('endpoints', c) });
+// While a phase is being audited, Endpoints gets a Verdict column for that phase. It is a separate table layout, so its widths never disturb the
+// normal one. Turning audit off puts the normal grid back (see syncEndpointsGrid).
+const AUDIT_COL = { id: 'verdict', label: 'Verdict', w: 0.1, sort: (g) => { const i = VERDICTS.findIndex((x) => x.id === auditOf(phaseOfGroup(g), g.k).v); return i < 0 ? null : i; }, cell: (g) => td(auditChip(phaseOfGroup(g), g.k)) };
+let endpointsGrid = createGrid('endpoints', ENDPOINT_COLS, { getSort: () => sortOf('endpoints'), onSort: (c) => cycleSort('endpoints', c) });
+let endpointsMode = 'plain';
 const grids = { timeline: timelineGrid, endpoints: endpointsGrid };
+/** Swaps the Endpoints grid between its normal columns and the audit columns (with Verdict) as the audit state changes. */
+function syncEndpointsGrid() {
+  const mode = ui.audit && ui.phase ? 'audit' : 'plain';
+  if (mode === endpointsMode) return;
+  endpointsMode = mode;
+  const defs = mode === 'audit' ? [...ENDPOINT_COLS, AUDIT_COL] : ENDPOINT_COLS;
+  if (sorts.endpoints && !defs.some((c) => c.id === sorts.endpoints.id)) sorts.endpoints = null;
+  endpointsGrid = createGrid('endpoints', defs, { getSort: () => sortOf('endpoints'), onSort: (c) => cycleSort('endpoints', c), layout: mode === 'audit' ? 'endpoints-audit' : 'endpoints' });
+  grids.endpoints = endpointsGrid;
+  endpointsGrid.init(render);
+}
 
 // ============================================================================
 // detail panel: call chain + request / response
@@ -2111,7 +2197,7 @@ function phaseHeader(p, cols) {
   return `<tr class="phase" data-pid="${esc(p.id)}" style="--pc:${p.color}"><td colspan="${cols}"><div class="ph">
     <button class="ph-tgl" data-act="toggle" aria-expanded="${isOpen}" aria-label="${isOpen ? 'Collapse' : 'Expand'} phase ${esc(p.label)}">${icon('chevron')}</button>
     <span class="ph-label">${p.marker ? icon('flag') : ''}${esc(p.label)}</span><span class="ph-time">${range}</span>${mix}<span class="ph-pills">${pills}</span>
-    <span class="ph-actions">${endControl(p, '')}<button data-act="focus" aria-pressed="${only}" aria-label="${only ? 'Show every phase again' : 'Show only this phase'}" title="${only ? 'Show every phase again' : 'Show only this phase (also filters Endpoints)'}">${icon('tb-eye')}</button><button data-act="export" aria-label="${esc(exportTip(p))}" title="${esc(exportTip(p))}">${icon('tb-download')}</button>${p.marker ? `<button class="icon-btn sm" data-act="edit" title="Rename or delete this marker" aria-label="Edit marker">${icon('tb-edit')}</button>` : ''}</span></div></td></tr>`;
+    <span class="ph-actions">${endControl(p, '')}<button data-act="focus" aria-pressed="${only}" aria-label="${only ? 'Show every phase again' : 'Focus on this phase'}" title="${only ? 'Show every phase again' : 'Focus on this phase (also filters Endpoints)'}">${icon('tb-focus')}</button><button data-act="export" aria-label="${esc(exportTip(p))}" title="${esc(exportTip(p))}">${icon('tb-download')}</button>${p.marker ? `<button class="icon-btn sm" data-act="edit" title="Rename or delete this marker" aria-label="Edit marker">${icon('tb-edit')}</button>` : ''}</span></div></td></tr>`;
 }
 
 /** Marks where the requests that arrived during a pause start. The list is newest first, so they sit above this line. */
@@ -2188,7 +2274,7 @@ function paramsPanel(g) {
 }
 
 function renderEndpointDetail(g, cols) {
-  const v = verdictOf(g.k);
+  const aph = auditPhase(), v = aph ? auditOf(aph, g.k) : {};
   const cards = [
     card('Calls', g.n, `${g.byQuery.size} unique request${g.byQuery.size > 1 ? 's' : ''}`),
     card('Identical Dupes', g.dupes ? `+${g.dupes}` : '0', g.dupes ? `${g.wastedMs} ms · ${bytes(g.wastedBytes) || '0 B'} redundant` : 'no repeats', g.dupes ? 'warn' : 'good'),
@@ -2228,10 +2314,10 @@ function renderEndpointDetail(g, cols) {
           ${rows}</div></div>
       </section>
       <div class="estack">
-        <section class="panel"><h3>Verdict</h3>
+        ${aph ? `<section class="panel vpanel"><h3>Verdict<span class="n" style="margin-left:8px">${esc(aph.label)}</span><button type="button" class="icon-btn sm vhelp" aria-haspopup="true" aria-expanded="false" aria-controls="vLegend" aria-label="What do the verdicts mean?" title="What do the verdicts mean?"><svg class="ic"><use href="#i-help"/></svg></button></h3>
           <div class="seg vseg" role="group" aria-label="Verdict">${VERDICTS.map((x) => `<button data-verdict="${x.id}" class="${v.v === x.id ? 'active' : ''}" aria-pressed="${v.v === x.id}" style="--c:${x.c}" title="${esc(x.tip)}"><i class="dot" style="background:${x.c}"></i>${x.label}</button>`).join('')}</div>
           <textarea class="note" data-note="${esc(g.k)}" rows="3" aria-label="Reason for the verdict" placeholder="Why? For example: only needed once the user opens Swap, so fetch it then.">${esc(v.note || '')}</textarea>
-          <div class="hint">Saved in this browser and included when you <b>Copy Markdown</b> on this tab.</div></section>
+          <div class="hint">Saved in this browser for this phase only, and included when you <b>Copy Markdown</b> on this tab.</div></section>` : ''}
         <section class="panel"><h3>What Changes Between Calls</h3>${paramsPanel(g)}</section>
         <section class="panel"><h3>Who Calls It</h3>${callers}</section>
       </div>
@@ -2239,15 +2325,65 @@ function renderEndpointDetail(g, cols) {
 }
 
 function renderEndpoints() {
-  const order = endpointsGrid.order(), cols = endpointsGrid.colspan();
+  const order = endpointsGrid.order(), cols = endpointsGrid.colspan(), aph = auditPhase();
   const natural = (a, b) => a.first - b.first;
   let groups = buildGroups([...reqs.values()].filter(match)).sort(natural);
   if (sorts.endpoints) groups = sortRows(groups, sorts.endpoints, endpointsGrid.byId[sorts.endpoints.id], natural);
   endpointsGrid.fit({ first: tf(groups.reduce((m, g) => Math.max(m, g.first), 0)), calls: String(groups.reduce((m, g) => Math.max(m, g.n), 0)), avg: fmtMs(groups.reduce((m, g) => Math.max(m, g.avg || 0), 0)) });
   endpointsV.setItems(groups.length
-    ? groups.map((g) => ({ id: g.k, kind: 'ep', est: 36, tall: openEp === g.k, hk: `${g.k}${openEp === g.k ? '#open' : ''}`,
+    ? groups.map((g) => ({ id: g.k, kind: 'ep', est: 36, tall: openEp === g.k, hk: `${g.k}${openEp === g.k ? '#open' : ''}${aph ? '#' + (auditOf(aph, g.k).v || '-') : ''}`,
       html: () => `<tr class="ep ${openEp === g.k ? 'open' : ''}" data-k="${esc(g.k)}">${order.map((c) => endpointsGrid.byId[c].cell(g)).join('')}</tr>${openEp === g.k ? renderEndpointDetail(g, cols) : ''}` }))
     : [{ id: 'empty', kind: 'note', est: 44, hk: 'empty', html: () => `<tr><td colspan="${cols}" class="empty">${reqs.size ? 'No endpoints match these filters.' : 'Waiting for requests…'}</td></tr>` }], cols);
+}
+
+/** Every endpoint one phase called (not just what the filters show), in first-call order: the audit covers the whole phase. */
+const auditGroups = (ph) => buildGroups([...reqs.values()].filter((r) => phaseByKey.get(r.key)?.id === ph.id)).sort((a, b) => a.first - b.first);
+const mdCell = (x) => String(x ?? '').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+const siteText = (info) => (info ? `${info.method}() ${info.file}:${info.line}` : '');
+const slugOf = (t) => String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'phase';
+function downloadText(text, name, type) {
+  const href = URL.createObjectURL(new Blob([text], { type }));
+  const a = Object.assign(document.createElement('a'), { href, download: name });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 10000);
+}
+const verdictCounts = (ph, groups) => {
+  const n = { keep: 0, defer: 0, move: 0, drop: 0, none: 0 };
+  for (const g of groups) n[auditOf(ph, g.k).v || 'none']++;
+  return n;
+};
+/** The audit as a markdown table: one row per endpoint the phase called, judged or not. */
+function auditMarkdown(ph) {
+  const groups = auditGroups(ph), n = verdictCounts(ph, groups);
+  const when = `+${sec(ph.start)}s to ${ph.end === Infinity ? 'now (still collecting)' : `+${sec(ph.end)}s`}`;
+  const rows = groups.map((g) => {
+    const v = auditOf(ph, g.k), site = [...g.sites.values()][0]?.info;
+    return `| ${mdCell(g.k)} | ${mdCell(VERDICTS.find((x) => x.id === v.v)?.label || 'No verdict')} | ${mdCell(v.note || '')} | ${g.n} | ${g.dupes} | ${mdCell(Object.entries(g.st).map(([s2, c]) => `${s2}×${c}`).join(' '))} | ${g.avg ?? ''} | ${mdCell(g.ownerText)} | ${mdCell(siteText(site))} | ${sec(g.first)} |`;
+  });
+  return `## Audit: ${ph.label}\n\nPhase window ${when}. ${ph.n} request${ph.n === 1 ? '' : 's'} to ${groups.length} endpoint${groups.length === 1 ? '' : 's'}.\n\nKeep ${n.keep} · Defer ${n.defer} · Move ${n.move} · Drop ${n.drop} · No verdict ${n.none}\n\n| Endpoint | Verdict | Reason | Calls | Identical dupes | Statuses | Avg ms | Code owner | Call site | First call (+s) |\n|---|---|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n`;
+}
+/** The audit as JSON an agent can act on: what the verdicts mean, then every endpoint with its verdict, reason and the code that makes the call. */
+function auditAgentJson(ph) {
+  const groups = auditGroups(ph), n = verdictCounts(ph, groups);
+  return JSON.stringify({
+    foxy: 'audit', version: 1, exportedAt: new Date().toISOString(),
+    instructions: 'A human audited the network requests the MetaMask Mobile app makes during one phase of its run. Each endpoint carries the verdict they gave it for THIS phase only: '
+      + VERDICTS.map((x) => `"${x.id}" = ${x.tip}`).join('; ')
+      + '. A null verdict means it has not been judged yet, so assume nothing about it. For "defer", "move" and "drop" endpoints, use callSites (function, file, line) to find the code that makes the request and propose the change, quoting the reason. Leave "keep" endpoints alone.',
+    phase: { label: ph.label, startMs: Math.round(ph.start), endMs: ph.end === Infinity ? null : Math.round(ph.end), open: ph.end === Infinity, requests: ph.n },
+    summary: { endpoints: groups.length, judged: groups.length - n.none, keep: n.keep, defer: n.defer, move: n.move, drop: n.drop, unjudged: n.none },
+    endpoints: groups.map((g) => {
+      const v = auditOf(ph, g.k);
+      return {
+        endpoint: g.k, method: g.method, host: g.host, path: g.path,
+        verdict: v.v || null, reason: v.note || null,
+        calls: g.n, identicalDupes: g.dupes, statuses: g.st, avgMs: g.avg, firstCallMs: Math.round(g.first),
+        codeOwners: [...g.teams], ownersViaCaller: [...g.via],
+        callSites: [...g.sites.values()].sort((a, b) => b.n - a.n).map((e) => ({ function: e.info.method, file: e.info.file, line: e.info.line, kind: e.info.kind, package: e.info.pkg || null, calls: e.n })),
+        requestIds: g.list.map((r) => r.id),
+      };
+    }),
+  }, null, 2);
 }
 
 /** Client-side markdown for the Endpoints tab, including verdicts and notes. */
@@ -2259,10 +2395,38 @@ function endpointsMarkdown() {
     ? `Phases (each marker starts a phase that lasts until the next one):\n\n| Phase | Starts (+s) | Requests | New endpoints | Identical dupes | Failed |\n|---|---|---|---|---|---|\n${phases.map((p) => `| ${c(p.label)} | ${sec(p.start)} | ${p.n} | ${p.newEps} | ${p.dupes} | ${p.failed} |`).join('\n')}\n\n`
     : '';
   const rows = groups.map((g) => {
-    const site = [...g.sites.values()][0]?.info, v = verdictOf(g.k);
+    const site = [...g.sites.values()][0]?.info, v = auditOf(phaseOfGroup(g), g.k);
     return `| ${sec(g.first)} | ${c(phaseByKey.get(g.list[0].key)?.label || '')} | ${c(g.k)} | ${c(g.ownerText)} | ${g.n} | ${g.dupes} | ${c(Object.entries(g.st).map(([s, n]) => `${s}×${n}`).join(' '))} | ${g.avg ?? ''} | ${site ? c(`${site.method}() ${site.file}:${site.line}`) : ''} | ${c(VERDICTS.find((x) => x.id === v.v)?.label || '')} | ${c(v.note || '')} |`;
   });
   return `${phaseTable}${head}\n${rows.join('\n')}\n`;
+}
+
+let auditAnim = null, auditAnimTimer = 0; // 'in' / 'out' while the Verdict column and panels are animating
+const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Turning audit on animates the Verdict column and panel in. Turning it off lets them fade out first, then removes them. */
+function toggleAudit() {
+  clearTimeout(auditAnimTimer);
+  if (auditAnim === 'out') auditAnim = null; // switched back on mid-fade: just keep it
+  else if (!ui.audit) { ui.audit = true; auditAnim = calm() ? null : 'in'; auditAnimTimer = setTimeout(() => { auditAnim = null; render(); }, 420); }
+  else if (calm()) ui.audit = false;
+  else { auditAnim = 'out'; auditAnimTimer = setTimeout(() => { ui.audit = false; auditAnim = null; render(); }, 200); }
+  render(); $('#auditBtn')?.focus();
+}
+/** The Audit switch and Export button live in one persistent element (rebuilding it each render would stop the switch from sliding). */
+function renderAuditCtl() {
+  const el = $('#auditCtl'), here = Boolean(ui.phase) && tab === 'endpoints' && phases.some((p) => p.id === ui.phase);
+  el.hidden = !here;
+  if (!here) { $('#audMenu').classList.remove('open'); return; }
+  if (!el.firstElementChild) {
+    el.innerHTML = `<span id="auditSlot" class="aud-slot" inert><span class="aud-slot-in"><button id="auditExport" type="button" aria-haspopup="menu" aria-expanded="false" title="Export this phase's audit">${icon('tb-download')}<span></span></button></span></span>`
+      + '<button id="auditBtn" type="button" class="aud-switch" role="switch"><span class="aud-track"><i></i></span><span>Audit</span></button>';
+  }
+  const on = ui.audit && auditAnim !== 'out', sw = $('#auditBtn'), slot = $('#auditSlot');
+  sw.setAttribute('aria-checked', String(on));
+  sw.title = on ? 'Stop auditing this phase' : 'Audit this phase: shows the Verdict column and, in each endpoint, a verdict and reason';
+  slot.classList.toggle('on', on); slot.inert = !on;
+  $('#auditExport span').textContent = auditFlash || 'Export Audit';
+  if (!on) { $('#audMenu').classList.remove('open'); $('#auditExport').setAttribute('aria-expanded', 'false'); }
 }
 
 function renderBar() {
@@ -2278,7 +2442,9 @@ function renderBar() {
   const o = ui.owner;
   const ph = ui.phase && phases.find((p) => p.id === ui.phase);
   $('#phasePill').innerHTML = ph ? `<span class="ownerpill">Phase ${phaseChip(ph)}<button id="phaseClear" aria-label="Show all phases" title="Show all phases">×</button></span>` : '';
+  if (!(ui.audit && ph && tab === 'endpoints')) { $('#audMenu').classList.remove('open'); $('#vLegend').classList.remove('open'); }
   $('#ownerPill').innerHTML = o ? `<span class="ownerpill">${o.type === 'team' ? 'Owner' : 'Package'} ${o.type === 'team' ? teamChip(o.value) : partyChip(o.value)}<button id="ownerClear" aria-label="Clear owner filter" title="Clear">×</button></span>` : '';
+  renderAuditCtl();
 }
 
 function renderStrip(list) {
@@ -2332,6 +2498,8 @@ function render() {
   span = Math.max(1, all.reduce((m, r) => Math.max(m, r.relMs + (r.durationMs || 0)), 0), markers.reduce((m, x) => Math.max(m, x.relMs), 0));
   computePhases(all);
   if (ui.phase && !navBooting() && !phases.some((p) => p.id === ui.phase)) ui.phase = null; // its marker was deleted
+  if (!ui.phase) ui.audit = false; // auditing needs a phase in focus
+  syncEndpointsGrid();
   // the axis covers the whole capture, or just the phase being filtered to; breaks are decided from every request so filters never move it
   const zoom = ui.phase && phases.find((p) => p.id === ui.phase);
   axis = buildAxis([...all.map((r) => [r.relMs, r.relMs + (r.durationMs || 0)]), ...markers.map((m) => [m.relMs, m.relMs])],
@@ -2341,6 +2509,7 @@ function render() {
   renderBar(); renderStrip(all.filter(match)); renderMarkers(); renderFilters();
   $('#count').innerHTML = `${icon('network')}<b>${reqs.size}</b><span class="count-lbl">${reqs.size === 1 ? 'request' : 'requests'}</span>`;
   $('#timeline').hidden = tab !== 'timeline'; $('#endpoints').hidden = tab !== 'endpoints';
+  $('#endpoints').classList.toggle('aud-in', auditAnim === 'in'); $('#endpoints').classList.toggle('aud-out', auditAnim === 'out');
   if (tab !== shownTab) { shownTab = tab; $('main').scrollTop = tabScroll[tab]; const el = $('#' + tab); el.classList.remove('tab-in'); void el.offsetWidth; el.classList.add('tab-in'); }
   $('#tabTimeline').classList.toggle('active', tab === 'timeline'); $('#tabEndpoints').classList.toggle('active', tab === 'endpoints');
   $('#tabTimeline').setAttribute('aria-selected', String(tab === 'timeline')); $('#tabEndpoints').setAttribute('aria-selected', String(tab === 'endpoints'));
@@ -2377,8 +2546,8 @@ $('#endpoints').addEventListener('click', (e) => {
   if (chipFilter(e)) return;
   const vb = e.target.closest('button[data-verdict]');
   if (vb) {
-    const k = vb.closest('tr.detail').dataset.k, cur = verdictOf(k);
-    verdicts[k] = { ...cur, v: cur.v === vb.dataset.verdict ? null : vb.dataset.verdict }; saveVerdicts(); render(); return;
+    const ph = auditPhase(), k = vb.closest('tr.detail').dataset.k; if (!ph) return;
+    setAudit(ph, k, { v: auditOf(ph, k).v === vb.dataset.verdict ? null : vb.dataset.verdict }); render(); return;
   }
   const call = e.target.closest('[data-open]'); if (call) { openInTimeline(call.dataset.open); return; }
   if (e.target.closest('tr.detail')) return;
@@ -2389,7 +2558,7 @@ $('#endpoints').addEventListener('click', (e) => {
 });
 $('#endpoints').addEventListener('input', (e) => {
   const t = e.target.closest('textarea[data-note]'); if (!t) return;
-  verdicts[t.dataset.note] = { ...verdictOf(t.dataset.note), note: t.value }; saveVerdicts();
+  const ph = auditPhase(); if (ph) setAudit(ph, t.dataset.note, { note: t.value });
 });
 $('#endpoints').addEventListener('focusout', (e) => { if (e.target.matches('textarea.note') && pendingEp) { pendingEp = false; render(); } });
 $('#endpoints').addEventListener('keydown', (e) => {
@@ -2398,7 +2567,46 @@ $('#endpoints').addEventListener('keydown', (e) => {
 $('#seg').addEventListener('click', (e) => { const b = e.target.closest('button[data-cat]'); if (b) { ui.cat = b.dataset.cat; render(); } });
 document.querySelectorAll('.tog').forEach((b) => b.addEventListener('click', () => { ui[b.dataset.flag] = !ui[b.dataset.flag]; render(); }));
 $('#ownerPill').addEventListener('click', (e) => { if (e.target.closest('#ownerClear')) { ui.owner = null; render(); } });
-$('#phasePill').addEventListener('click', (e) => { if (e.target.closest('#phaseClear')) { ui.phase = null; render(); } else chipFilter(e); });
+$('#vLegend dl').innerHTML = VERDICTS.map((x) => `<dt style="color:${x.c}"><i class="dot" style="background:${x.c}"></i>${x.label}</dt><dd>${esc(x.d)}<span class="ex">e.g. ${esc(x.ex)}</span></dd>`).join('');
+function setVLegend(on) {
+  const m = $('#vLegend'), b = $('#endpoints .vhelp');
+  const open = on && Boolean(b);
+  m.classList.toggle('open', open); b?.setAttribute('aria-expanded', String(open));
+  if (!open) return;
+  const r = b.getBoundingClientRect(), w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = `${Math.min(Math.max(8, r.right - w), innerWidth - w - 8)}px`;
+  const below = r.bottom + 6, above = r.top - 6 - h; // open downward, or upward when there is no room below
+  m.style.top = `${Math.max(8, below + h > innerHeight - 8 && above >= 8 ? above : Math.min(below, innerHeight - h - 8))}px`;
+}
+$('#endpoints').addEventListener('click', (e) => { if (e.target.closest('.vhelp')) setVLegend(!$('#vLegend').classList.contains('open')); });
+document.addEventListener('click', (e) => { if ($('#vLegend').classList.contains('open') && !e.target.closest('#vLegend, .vhelp')) setVLegend(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#vLegend').classList.contains('open')) { setVLegend(false); $('#endpoints .vhelp')?.focus(); } });
+addEventListener('resize', () => setVLegend(false));
+addEventListener('scroll', () => { if ($('#vLegend').classList.contains('open')) setVLegend(false); }, true); // it is anchored to the button, so scrolling closes it
+function setAudMenu(on) {
+  const m = $('#audMenu'), b = $('#auditExport');
+  m.classList.toggle('open', on && Boolean(b)); b?.setAttribute('aria-expanded', String(on && Boolean(b)));
+  if (on && b) { const r = b.getBoundingClientRect(); m.style.top = `${r.bottom + 6}px`; m.style.right = `${Math.max(8, innerWidth - r.right)}px`; }
+}
+$('#audMenu').addEventListener('click', async (e) => {
+  const b = e.target.closest('button[data-aud]'), ph = auditPhase(); if (!b || !ph) return;
+  setAudMenu(false);
+  try {
+    if (b.dataset.aud === 'md') { await copyText(auditMarkdown(ph)); auditFlash = 'Copied!'; }
+    else { downloadText(auditAgentJson(ph), `foxy-audit-${slugOf(ph.label)}.json`, 'application/json'); auditFlash = 'Exported'; }
+  } catch { auditFlash = 'Failed'; }
+  render(); setTimeout(() => { auditFlash = ''; render(); }, 1400);
+});
+document.addEventListener('click', (e) => { if ($('#audMenu').classList.contains('open') && !e.target.closest('#audMenu, #auditExport')) setAudMenu(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#audMenu').classList.contains('open')) { setAudMenu(false); $('#auditExport')?.focus(); } });
+$('#auditCtl').addEventListener('click', (e) => {
+  if (e.target.closest('#auditBtn')) toggleAudit();
+  else if (e.target.closest('#auditExport')) setAudMenu(!$('#audMenu').classList.contains('open'));
+});
+$('#phasePill').addEventListener('click', (e) => {
+  if (e.target.closest('#phaseClear')) { ui.phase = null; render(); }
+  else chipFilter(e);
+});
 $('#stripin').addEventListener('click', (e) => {
   const flag = e.target.closest('b[data-pid]');
   if (flag) { // jump to the phase header in the Timeline
@@ -2448,6 +2656,27 @@ menuBtn.addEventListener('click', () => { const on = !actions.classList.contains
 document.addEventListener('click', (e) => { if (!e.target.closest('#actions, #menuBtn')) setMenu(false); });
 actions.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b && !b.closest('#timeSeg, #themeGrid')) setTimeout(() => setMenu(false), b.id === 'export' ? 900 : 0); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && actions.classList.contains('open')) { setMenu(false); menuBtn.focus(); } });
+let toastTimer = 0;
+function toast(text) {
+  const t = $('#toast'); t.textContent = text; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+/** E: stop the running phase, or resume it if it was already stopped. Acts on the newest marker, the same one the Stop / Resume button shows. */
+async function toggleLatestPhase() {
+  const p = latestMarkerPhase();
+  if (!p) { toast('No phase yet. Press M to start one'); return; }
+  if (p.end !== Infinity && !p.ended) return;
+  try {
+    const res = await endMarker(p.id, p.end === Infinity);
+    if (!res.ok) throw new Error(res.status);
+    toast(`${p.end === Infinity ? 'Stopped' : 'Resumed'} \u201c${p.label}\u201d`);
+  } catch { toast('Could not change that phase'); }
+}
+/** P: hold or release the live updates, like the button in the header. */
+function togglePause() {
+  if ($('#conn').disabled) return;
+  setPaused(!paused); toast(paused ? 'Paused: holding live updates' : 'Resumed live updates');
+}
 // "/" focuses the filter, Esc clears it
 document.addEventListener('keydown', (e) => {
   if (e.key === '/' && !/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName)) { e.preventDefault(); $('#filter').focus(); }
@@ -2455,6 +2684,8 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'Escape' && mkpop.classList.contains('open')) { setMark(false); markBtn.focus(); }
   else if (!e.metaKey && !e.ctrlKey && !e.altKey && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && !$('#help').open) {
     if (e.key === 'm' || e.key === 'M') { e.preventDefault(); setMark(true); }
+    else if (e.key === 'e' || e.key === 'E') { e.preventDefault(); if (!e.repeat) toggleLatestPhase(); }
+    else if (e.key === 'p' || e.key === 'P') { e.preventDefault(); if (!e.repeat) togglePause(); }
     else if (e.key === '?') { e.preventDefault(); openHelp(); }
   }
 });
@@ -2520,7 +2751,7 @@ const HELP = [
     ${step(1, 'Run the App Against Foxy', '<p>Start Foxy with <code>yarn foxy</code>, set <code>FOXY="true"</code> in <code>.js.env</code>, restart Metro and launch the app. Requests stream in live.</p>')}
     ${step(2, 'Label What You Are Doing', `<p>Drop <b>markers</b> as you use the app (${kb('M')}). They split the capture into phases such as <i>Onboarding visible</i> and <i>Wallet ready</i>.</p><p>${goto('markers', '🚩 How Markers Work')}</p>`)}
     ${step(3, 'Find the Waste', `<p>Look for identical duplicates, failures, third-party chatter and anything requested before it is needed. The <b>Endpoints</b> view groups calls by URL so repeats are obvious.</p><p>${goto('timeline', '📜 Reading the Timeline')} ${goto('endpoints', '🧭 Endpoints & Verdicts')}</p>`)}
-    ${step(4, 'Decide and Share', '<p>Give each endpoint a verdict (Keep, Defer, Move, Drop) and a reason, then <b>Copy Markdown</b> from the menu to paste the table into the ticket.</p>')}` },
+    ${step(4, 'Decide and Share', '<p>Give each endpoint a verdict (Keep, Defer, Move, Drop) and a reason, then <b>Copy Markdown</b> from the menu to paste the table into the ticket. Verdicts are per phase: open <b>Endpoints</b>, focus a phase and turn on <b>Audit</b> to see the Verdict column and give verdicts for that phase.</p>')}` },
 
   { id: 'markers', em: '🚩', title: 'Markers & Phases', html: () => `
     <h2>Markers &amp; Phases</h2>
@@ -2568,7 +2799,7 @@ const HELP = [
       <li><b>What changes between calls</b>: the query parameters that vary and the ones that never do.</li>
     </ul>
     <h3>Verdicts</h3>
-    <p><b style="color:#b9f302">Keep</b> it is needed now · <b style="color:#f0b034">Defer</b> fetch it later (after unlock, on first use) · <b style="color:#8b99ff">Move</b> needed, but elsewhere in the flow · <b style="color:#ff7584">Drop</b> not needed. Add a reason; verdicts are saved in this browser and included in <b>Copy Markdown</b>.</p>` },
+    <p><b style="color:#b9f302">Keep</b> it is needed now · <b style="color:#f0b034">Defer</b> fetch it later (after unlock, on first use) · <b style="color:#8b99ff">Move</b> needed, but elsewhere in the flow · <b style="color:#ff7584">Drop</b> not needed. Add a reason. The <b>?</b> beside the Verdict title opens a quick legend of the four. Verdicts belong to a phase: focus one, then turn on <b>Audit</b> beside the phase pill to show the Verdict column and the Verdict panel. They are saved in this browser and included in <b>Copy Markdown</b>.</p>` },
 
   { id: 'filters', em: '🎛️', title: 'Filters & Duplicates', html: () => `
     <h2>Filters &amp; Duplicates</h2>
@@ -2587,7 +2818,9 @@ const HELP = [
   { id: 'keys', em: '⌨️', title: 'Shortcuts', html: () => `
     <h2>Shortcuts</h2>
     <table class="keys">
-      <tr><td>${kb('M')}</td><td>Open the markers panel</td></tr>
+      <tr><td>${kb('M')}</td><td>Open the markers panel (start a new phase)</td></tr>
+      <tr><td>${kb('E')}</td><td>Stop the running phase; press again to resume it</td></tr>
+      <tr><td>${kb('P')}</td><td>Pause or resume live updates</td></tr>
       <tr><td>${kb('F')}</td><td>Open the filters panel</td></tr>
       <tr><td>${kb('/')}</td><td>Focus the filter box (${kb('Esc')} clears it)</td></tr>
       <tr><td>${kb('?')}</td><td>Open this guide</td></tr>
@@ -2678,13 +2911,15 @@ function renderMarkers(force) {
   const fa = document.activeElement;
   const hadFocus = list.contains(fa) && fa.matches('button[data-act]');
   const focusSel = hadFocus ? `button[data-act="${fa.dataset.act}"][data-id="${CSS.escape(fa.dataset.id)}"]` : null;
+  // the time column is as wide as the longest time ("+19h 05m 08s" is wider than "+4s"), so no row's time runs into its name field
+  list.style.setProperty('--tw', `${Math.ceil(Math.max(...real.map((p) => `+${tf(p.start)}`.length), 4) * 7.7) + 2}px`);
   list.innerHTML = real.length ? real.map((p) => `<div class="mkrow" style="--pc:${p.color}"><i class="ph-dot"></i><span class="mk-t">+${tf(p.start)}</span>
     <input class="mk-name" data-id="${esc(p.id)}" value="${esc(p.label)}" maxlength="120" aria-label="Marker name" />
     <span class="mk-n" title="Requests made in the phase this marker starts">${p.n} req</span>
-    ${endControl(p, 'icon-btn sm') || '<span></span>'}
-    <button class="icon-btn sm" data-act="only" data-id="${esc(p.id)}" aria-pressed="${ui.phase === p.id}" title="Show only this phase" aria-label="Show only phase ${esc(p.label)}">${icon('tb-eye')}</button>
+    <span class="mk-acts">${endControl(p, 'icon-btn sm') || '<span></span>'}
+    <button class="icon-btn sm" data-act="only" data-id="${esc(p.id)}" aria-pressed="${ui.phase === p.id}" title="${ui.phase === p.id ? 'Show every phase again' : 'Focus on this phase'}" aria-label="Focus on phase ${esc(p.label)}">${icon('tb-focus')}</button>
     <button class="icon-btn sm" data-act="export" data-id="${esc(p.id)}" title="${esc(exportTip(p))}" aria-label="${esc(exportTip(p))}">${icon('tb-download')}</button>
-    <button class="del icon-btn sm" data-act="del" data-id="${esc(p.id)}" title="Delete this marker (the phases around it merge)" aria-label="Delete marker ${esc(p.label)}">${icon('tb-trash')}</button></div>`).join('')
+    <button class="del icon-btn sm" data-act="del" data-id="${esc(p.id)}" title="Delete this marker (the phases around it merge)" aria-label="Delete marker ${esc(p.label)}">${icon('tb-trash')}</button></span></div>`).join('')
     : `<div class="mk-empty">No markers yet. Drop one whenever something happens in the app (a screen appears, you tap a button) and everything captured after it is grouped into that phase.<br><br><button type="button" id="mkLearn" class="btn">${icon('help')}<span>Show Me How It Works</span></button></div>`;
   if (hadFocus) (list.querySelector(focusSel) || $('#marker')).focus({ preventScroll: true });
 }
