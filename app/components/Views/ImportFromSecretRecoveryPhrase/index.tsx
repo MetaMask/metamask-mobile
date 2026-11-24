@@ -733,6 +733,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             ? [
                 {
                   iconName: IconName.Scan,
+                  accessibilityLabel: strings('qr_tab_switcher.scanner_tab'),
                   onPress: onQrCodePress,
                   testID: ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
                 },

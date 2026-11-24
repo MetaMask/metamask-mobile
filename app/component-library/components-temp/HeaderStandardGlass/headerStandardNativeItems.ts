@@ -70,7 +70,8 @@ const toButton = (
   handlers: Record<string, () => void>,
 ): NativeHeaderButton | undefined => {
   const symbol = getSfSymbol(props.iconName);
-  if (!symbol) {
+  const label = props.accessibilityLabel;
+  if (!symbol || !label) {
     return undefined;
   }
   const { onPress } = props;
@@ -81,7 +82,7 @@ const toButton = (
   return {
     identifier,
     symbol,
-    label: props.accessibilityLabel ?? props.iconName,
+    label,
     isDisabled: props.isDisabled === true,
   };
 };
@@ -92,7 +93,8 @@ const CLOSE_LABEL_KEY = 'navigation.close';
 /**
  * The header as a native bar config, or `undefined` when the header has
  * content the native bar cannot draw (a subtitle, custom accessories, a
- * non-text title or an icon with no SF Symbol). Those keep the JS header.
+ * non-text title, an icon with no SF Symbol, or a button with no
+ * `accessibilityLabel` other than back and close). Those keep the JS header.
  * A header with no title gets an empty native title.
  */
 export const getNativeHeaderConfig = (

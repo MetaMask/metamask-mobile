@@ -50,8 +50,16 @@ describe('getNativeHeaderConfig', () => {
       title: 'Rewards',
       onClose: jest.fn(),
       endButtonIconProps: [
-        { iconName: IconName.Search, onPress: jest.fn() },
-        { iconName: IconName.Setting, onPress: jest.fn() },
+        {
+          iconName: IconName.Search,
+          accessibilityLabel: 'Search',
+          onPress: jest.fn(),
+        },
+        {
+          iconName: IconName.Setting,
+          accessibilityLabel: 'Settings',
+          onPress: jest.fn(),
+        },
       ],
     });
 
@@ -66,8 +74,16 @@ describe('getNativeHeaderConfig', () => {
     const config = getNativeHeaderConfig({
       title: 'Edit',
       endButtonIconProps: [
-        { iconName: IconName.Trash, onPress: jest.fn() },
-        { iconName: IconName.Trash, onPress: jest.fn() },
+        {
+          iconName: IconName.Trash,
+          accessibilityLabel: 'Delete',
+          onPress: jest.fn(),
+        },
+        {
+          iconName: IconName.Trash,
+          accessibilityLabel: 'Delete',
+          onPress: jest.fn(),
+        },
       ],
     });
 
@@ -83,8 +99,18 @@ describe('getNativeHeaderConfig', () => {
 
     const config = getNativeHeaderConfig({
       title: 'Search',
-      startButtonIconProps: { iconName: IconName.Search, onPress: onStart },
-      endButtonIconProps: [{ iconName: IconName.Search, onPress: onEnd }],
+      startButtonIconProps: {
+        iconName: IconName.Search,
+        accessibilityLabel: 'Search',
+        onPress: onStart,
+      },
+      endButtonIconProps: [
+        {
+          iconName: IconName.Search,
+          accessibilityLabel: 'Search',
+          onPress: onEnd,
+        },
+      ],
     });
     config?.handlers[config.left[0].identifier]();
 
@@ -123,9 +149,35 @@ describe('getNativeHeaderConfig', () => {
     expect(
       getNativeHeaderConfig({
         title: 'Title',
-        endButtonIconProps: [{ iconName: IconName.Bank, onPress: jest.fn() }],
+        endButtonIconProps: [
+          {
+            iconName: IconName.Bank,
+            accessibilityLabel: 'Bank',
+            onPress: jest.fn(),
+          },
+        ],
       }),
     ).toBeUndefined();
+  });
+
+  it('keeps the JS header for an icon button with no label', () => {
+    expect(
+      getNativeHeaderConfig({
+        title: 'Title',
+        endButtonIconProps: [{ iconName: IconName.Scan, onPress: jest.fn() }],
+      }),
+    ).toBeUndefined();
+  });
+
+  it('labels back and close buttons by default', () => {
+    const config = getNativeHeaderConfig({
+      title: 'Title',
+      onBack: jest.fn(),
+      onClose: jest.fn(),
+    });
+
+    expect(config?.left[0].label).toBe('Back');
+    expect(config?.right[0].label).toBe('Close');
   });
 });
 

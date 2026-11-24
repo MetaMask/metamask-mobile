@@ -61,7 +61,7 @@ Pass `isFloating={false}` instead. The header stays in the layout with no backdr
 
 ## Native header (iOS 26)
 
-`HeaderStandardGlass` can hand an in-flow screen header (`isFloating={false}` with `includesTopInset`) to the native bar itself. Pass `isNativeHeaderEnabled`. It's behind `glassHeaders`, and the screen must not set `headerShown` on its own, or UIKit hides the bar.
+`HeaderStandardGlass` can hand an in-flow screen header (`isFloating={false}` with `includesTopInset`) to the native bar itself. Pass `isNativeHeaderEnabled`. It's behind `glassHeaders`, and the screen must not set `headerShown` on its own, or UIKit hides the bar. Icon buttons other than back and close need an `accessibilityLabel`, which VoiceOver reads. Without one, the JS header shows instead.
 
 By default a spacer holds the bar's place, so nothing scrolls under it. To let content scroll under the glass, pass `onNativeHeaderInset` and pad the scroll content by the inset it reports. The inset is 0 whenever the JS header shows. The scroll view must come right after the header, with no view before either of them, or UIKit can't find it for the scroll edge effect.
 
