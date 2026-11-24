@@ -37,8 +37,6 @@ function mockImmersveState(
     isProvisioningPollActive: false,
     recheck: jest.fn(),
     markCardFlowOpened: jest.fn(),
-    isProvisioningPollActive: false,
-    recheck: jest.fn(),
     ...overrides,
   });
 }

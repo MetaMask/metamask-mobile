@@ -198,7 +198,5 @@ export function useImmersveEnableCard(
           (isFundingSettling && pendingAction?.type === 'funding')),
     ),
     markCardFlowOpened,
-    recheck,
-    isProvisioningPollActive,
   };
 }

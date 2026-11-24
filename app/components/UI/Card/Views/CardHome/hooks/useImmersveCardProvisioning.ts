@@ -208,13 +208,6 @@ export function useImmersveCardProvisioning(
     return () => clearInterval(interval);
   }, [isProvisioning, isFocused, pendingAction, isReconciling, pollIntervalMs]);
 
-  const isProvisioningPollActive =
-    isProvisioning &&
-    isFocused &&
-    !pendingAction &&
-    !isReconciling &&
-    pollIntervalMs !== null;
-
   // Going offline drops a waiting retry. Coming back restarts a funding
   // settle, and an error retry that was dropped before its timer could run.
   // A reconcile already running, or a retry already waiting, is left alone.
