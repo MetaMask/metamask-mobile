@@ -274,6 +274,20 @@ const configuredRecurringState = {
   },
 };
 
+const EXPECTED_USD_PRICE_RANGE = {
+  side: 'src',
+  currency: 'USD',
+  min: '1000',
+  max: '2000',
+};
+
+const EXPECTED_EUR_CONVERTED_PRICE_RANGE = {
+  side: 'src',
+  currency: 'USD',
+  min: '1080',
+  max: '2160',
+};
+
 function renderScreen(
   bridgeReducerOverrides: NonNullable<
     Parameters<typeof createBridgeTestState>[0]
@@ -443,12 +457,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       recurringOrdersApiClient.prepareRecurringDelegation,
     ).toHaveBeenCalledWith({
       ...MOCK_RECURRING_PREPARE_QUERY,
-      priceRange: {
-        side: 'src',
-        currency: 'USD',
-        min: '1000',
-        max: '2000',
-      },
+      priceRange: EXPECTED_USD_PRICE_RANGE,
     });
     expect(signLimitOrderDelegations).toHaveBeenCalledWith(
       prepareResponse.delegations,
@@ -465,12 +474,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       },
       priceTolerance: 3,
       schedule: MOCK_RECURRING_PREPARE_QUERY.schedule,
-      priceRange: {
-        side: 'src',
-        currency: 'USD',
-        min: '1000',
-        max: '2000',
-      },
+      priceRange: EXPECTED_USD_PRICE_RANGE,
       delegations: prepareResponse.delegations,
     });
     expect(
@@ -532,12 +536,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     await waitFor(() => {
       expect(mockCreateRecurringOrder).toHaveBeenCalledWith(
         expect.objectContaining({
-          priceRange: {
-            side: 'src',
-            currency: 'USD',
-            min: '1080',
-            max: '2160',
-          },
+          priceRange: EXPECTED_EUR_CONVERTED_PRICE_RANGE,
         }),
       );
     });
@@ -545,12 +544,7 @@ describe('RecurringConfirmOrderSheetScreen', () => {
       recurringOrdersApiClient.prepareRecurringDelegation,
     ).toHaveBeenCalledWith({
       ...MOCK_RECURRING_PREPARE_QUERY,
-      priceRange: {
-        side: 'src',
-        currency: 'USD',
-        min: '1080',
-        max: '2160',
-      },
+      priceRange: EXPECTED_EUR_CONVERTED_PRICE_RANGE,
     });
   });
 
