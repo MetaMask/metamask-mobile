@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal } from 'react-native';
+import { AccessibilityInfo, Modal } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
 import RecoverySetupProgressBottomSheet, {
@@ -64,5 +64,19 @@ describe('RecoverySetupProgressBottomSheet', () => {
     );
     expect(spinner.props.accessibilityRole).toBe('progressbar');
     expect(spinner.props.accessibilityLabel).toBe('Updating recovery');
+  });
+
+  it('announces the title to screen readers when mounted', () => {
+    const announceSpy = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
+    try {
+      render(<RecoverySetupProgressBottomSheet title="Updating recovery" />);
+
+      expect(announceSpy).toHaveBeenCalledWith('Updating recovery');
+    } finally {
+      announceSpy.mockRestore();
+    }
   });
 });

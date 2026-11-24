@@ -167,15 +167,27 @@ describe('MfaSettings', () => {
     );
     const { getByTestId, queryByTestId } = renderSettings();
 
+    expect(
+      getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW).props.accessibilityState,
+    ).toEqual({ busy: false });
+
     await act(async () => {
       fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
     });
-    expect(getByTestId(MfaSettingsSelectorsIDs.ADD_LOADING)).toBeOnTheScreen();
+    expect(
+      getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW).props.accessibilityState,
+    ).toEqual({ busy: true });
+    const spinner = getByTestId(MfaSettingsSelectorsIDs.ADD_LOADING);
+    expect(spinner).toBeOnTheScreen();
+    expect(spinner.props.accessibilityLabel).toBe('Adding Authenticator app');
 
     await act(async () => {
       finishSync();
     });
     expect(queryByTestId(MfaSettingsSelectorsIDs.ADD_LOADING)).toBeNull();
+    expect(
+      getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW).props.accessibilityState,
+    ).toEqual({ busy: false });
   });
 
   it('does not offer the social link email outside dev builds', async () => {

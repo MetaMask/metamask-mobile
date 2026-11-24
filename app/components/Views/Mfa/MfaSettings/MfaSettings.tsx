@@ -188,6 +188,7 @@ const MfaSettings = () => {
           <ListItem
             key={method}
             isInteractive
+            accessibilityState={{ busy: pendingMethod === method }}
             variant={ContentVariant.OneLine}
             title={label}
             value={isSetUp ? summary : strings('mfa.settings.add')}
@@ -196,6 +197,9 @@ const MfaSettings = () => {
               pendingMethod === method ? (
                 <ActivityIndicator
                   size="small"
+                  accessibilityLabel={strings('mfa.settings.adding_method', {
+                    method: label,
+                  })}
                   testID={MfaSettingsSelectorsIDs.ADD_LOADING}
                 />
               ) : (
