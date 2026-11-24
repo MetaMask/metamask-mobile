@@ -255,7 +255,7 @@ describe('usePerpsMarginAdjustment', () => {
         {
           action: 'add',
           asset: 'ETH',
-          error_message: 'perps.errors.unknownError',
+          error_message: 'Insufficient funds',
           status: 'failed',
         },
       );
