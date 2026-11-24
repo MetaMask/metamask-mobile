@@ -14,6 +14,11 @@ import {
   dupeKey,
   groupEndpoints,
   computePhases,
+  VERDICTS,
+  applyAuditEntries,
+  auditKey,
+  auditSummary,
+  buildAuditDocument,
   exportCapture,
   exportPhase,
   listPhases,
@@ -337,6 +342,73 @@ test('resolvePhase finds a phase by id, label, part of a label, or the newest by
   assert.match(resolvePhase(phases, 'e').error, /more than one phase/);
   assert.match(resolvePhase([], undefined).error, /no markers yet/i);
   assert.match(resolvePhase(listPhases([r(1, 1)], []), 'pre').error, /Nothing ran before/);
+});
+
+const auditRecords = () => {
+  const r = (id, relMs, path, extra = {}) => ({ id, key: `k${id}`, method: 'GET', host: 'h.io', path, query: '', url: `https://h.io${path}`, relMs, status: 200, durationMs: 100, ...extra });
+  return [
+    r(1, 1100, '/a', { codeOwners: ['@MetaMask/wallet'], callSiteInfo: { method: 'load', file: 'app/a.ts', line: 3, kind: 'app', pkg: null } }),
+    r(2, 1200, '/a', { durationMs: 300, status: 500, codeOwners: ['@MetaMask/wallet'], callSiteInfo: { method: 'load', file: 'app/a.ts', line: 3, kind: 'app', pkg: null } }),
+    r(3, 1150, '/b', { ownerCodeOwners: ['@MetaMask/core'], callSiteInfo: { method: 'fetchIt', file: 'lib/b.js', line: 9, kind: 'package', pkg: 'lib' } }),
+    r(4, 1300, '/c', { error: 'timeout', durationMs: undefined, status: undefined }),
+  ];
+};
+
+test('buildAuditDocument lists every endpoint with its verdict, reason and call sites', () => {
+  const phase = { label: 'Onboarding visible', startMs: 1000, endMs: null, open: true, requests: 4 };
+  const doc = buildAuditDocument({ phase, records: auditRecords(), verdicts: { 'GET h.io/a': { v: 'defer', note: 'only needed after unlock' }, 'GET h.io/b': { v: 'nonsense' } }, exportedAt: 'T' });
+  assert.equal(doc.foxy, 'audit');
+  assert.match(doc.instructions, /"defer" = Not needed yet/);
+  assert.deepEqual(doc.phase, { label: 'Onboarding visible', startMs: 1000, endMs: null, open: true, requests: 4 });
+  assert.deepEqual(doc.endpoints.map((e) => e.endpoint), ['GET h.io/a', 'GET h.io/b', 'GET h.io/c']); // by first call
+  const [a, b, c] = doc.endpoints;
+  assert.equal(a.verdict, 'defer');
+  assert.equal(a.reason, 'only needed after unlock');
+  assert.equal(a.calls, 2);
+  assert.equal(a.identicalDupes, 1);
+  assert.deepEqual(a.statuses, { 200: 1, 500: 1 });
+  assert.equal(a.avgMs, 200);
+  assert.deepEqual(a.codeOwners, ['@MetaMask/wallet']);
+  assert.deepEqual(a.callSites, [{ function: 'load', file: 'app/a.ts', line: 3, kind: 'app', package: null, calls: 2 }]);
+  assert.deepEqual(a.requestIds, [1, 2]);
+  assert.equal(b.verdict, null); // an unknown verdict reads as not judged
+  assert.deepEqual(b.ownersViaCaller, ['@MetaMask/core']); // owned only through whoever started it
+  assert.equal(b.callSites[0].package, 'lib');
+  assert.deepEqual(c.statuses, { error: 1 });
+  assert.equal(c.avgMs, null);
+  assert.deepEqual(doc.summary, { endpoints: 3, judged: 1, keep: 0, defer: 1, move: 0, drop: 0, unjudged: 2 });
+  assert.doesNotThrow(() => JSON.parse(JSON.stringify(doc)));
+});
+
+test('auditSummary counts the verdicts given to a phase', () => {
+  const s = auditSummary(auditRecords(), { 'GET h.io/a': { v: 'drop' }, 'GET h.io/c': { v: 'keep' }, 'GET h.io/zzz': { v: 'keep' } });
+  assert.deepEqual(s, { endpoints: 3, judged: 2, keep: 1, defer: 0, move: 0, drop: 1 }); // a verdict for an endpoint the phase never called does not count
+});
+
+test('applyAuditEntries keeps the newest verdict and skips malformed entries', () => {
+  const audits = {};
+  assert.equal(applyAuditEntries(audits, [
+    { phase: 'phase:Home', endpoint: 'GET h/a', v: 'keep', note: 'x', t: 100 },
+    { phase: 'phase:Home', endpoint: 'GET h/b', v: 'bogus', t: 100 }, // not a verdict
+    { phase: '', endpoint: 'GET h/c', v: 'keep', t: 1 },
+    null,
+  ]), 1);
+  assert.deepEqual(audits, { 'phase:Home': { 'GET h/a': { v: 'keep', note: 'x', t: 100 } } });
+  assert.equal(applyAuditEntries(audits, [{ phase: 'phase:Home', endpoint: 'GET h/a', v: 'drop', note: 'older', t: 50 }]), 0); // older loses
+  assert.equal(audits['phase:Home']['GET h/a'].v, 'keep');
+  assert.equal(applyAuditEntries(audits, [{ phase: 'phase:Home', endpoint: 'GET h/a', v: null, note: '', t: 200 }]), 1); // clearing a verdict is an update too
+  assert.deepEqual(audits['phase:Home']['GET h/a'], { v: null, note: '', t: 200 });
+  assert.equal(applyAuditEntries(audits, 'nope'), 0);
+});
+
+test('auditKey is the label for a marker phase, the id otherwise', () => {
+  assert.equal(auditKey({ id: 'm1', label: 'Home', marker: { id: 'm1' } }), 'phase:Home');
+  assert.equal(auditKey({ id: 'pre', label: 'Before first marker', marker: null }), 'pre');
+});
+
+test('the verdict wording matches the dashboard', async () => {
+  const html = (await import('node:fs')).readFileSync(new URL('./dashboard.html', import.meta.url), 'utf8');
+  for (const v of VERDICTS) assert.ok(html.includes(`id: '${v.id}', label: '${v.label}'`) && html.includes(`tip: '${v.tip}'`), `dashboard.html is missing the ${v.id} verdict as lib.mjs words it`);
 });
 
 test('fileSlug makes a safe file name', () => {

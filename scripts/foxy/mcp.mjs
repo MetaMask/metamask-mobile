@@ -104,6 +104,18 @@ const tools = [
     inputSchema: { type: 'object', properties: {} },
   },
   {
+    name: 'audit_get',
+    description:
+      'Get the audit a person did of one phase in the Foxy dashboard: what the verdicts mean, then every endpoint the phase called with its verdict (keep / defer / move / drop, or null when not judged yet), their reason, call count, identical dupes, statuses, code owners and callSites (function, file, line) of the code that makes the request. Use it to propose changes: for "defer", "move" and "drop" endpoints find the code at callSites and change it, quoting the reason; leave "keep" alone; assume nothing about null. phase is a marker id or label (or "pre"); omit it for the newest marker\'s phase. marker_list shows how many endpoints each phase has verdicts for. Small results come back inline; a big one is written to a file and its path returned, so narrow it with verdict.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        phase: { type: 'string', description: 'Marker id or label, or "pre". Omit for the newest marker.' },
+        verdict: { type: 'string', enum: ['keep', 'defer', 'move', 'drop', 'judged', 'unjudged'], description: 'Only endpoints with this verdict ("judged" = any verdict, "unjudged" = none yet).' },
+      },
+    },
+  },
+  {
     name: 'network_clear',
     description: 'Clear captured requests and markers.',
     inputSchema: { type: 'object', properties: {} },
@@ -137,9 +149,11 @@ async function saveExport(path, fallbackName) {
   return { file, bytes: Buffer.byteLength(body), body };
 }
 
+const INLINE_LIMIT = 60000; // bytes: past this a result goes to a file
 const phaseView = (p) => ({
   id: p.id, label: p.label, startMs: Math.round(p.startMs), endMs: p.endMs == null ? null : Math.round(p.endMs), open: p.open, ended: p.ended,
   requests: p.requests, newEndpoints: p.newEndpoints, identicalDupes: p.identicalDupes, failed: p.failed, bytes: p.bytes,
+  ...(p.audit ? { audit: p.audit } : {}),
 });
 
 /** The tools that work on phases. They return text for the agent, or throw a message it can act on. */
@@ -169,7 +183,25 @@ async function phaseTool(name, args) {
   return pretty({ file: out.file, bytes: out.bytes, phase: phaseView(JSON.parse(out.body).phase), note: phase.open ? 'This phase is still collecting: the file holds what has arrived so far. Add the next marker (or call marker_end) to close it, then export again.' : undefined });
 }
 
+/** The audit of a phase from the server, optionally narrowed to one verdict. Inline when small, else written to a file. */
+async function auditTool(args) {
+  const res = await fetch(`${BASE}/api/audit/export?phase=${encodeURIComponent(args.phase ?? '')}`);
+  if (res.status === 404) throw new AgentError((await res.json()).error);
+  if (!res.ok) throw new Error(`audit export answered ${res.status}: ${await res.text()}`);
+  const doc = await res.json();
+  const want = args.verdict;
+  const keep = (e) => (!want ? true : want === 'judged' ? Boolean(e.verdict) : want === 'unjudged' ? !e.verdict : e.verdict === want);
+  const out = want ? { ...doc, shown: `${doc.endpoints.filter(keep).length} of ${doc.endpoints.length} endpoints (verdict: ${want})`, endpoints: doc.endpoints.filter(keep) } : doc;
+  const body = pretty(out);
+  if (Buffer.byteLength(body) <= INLINE_LIMIT) return body;
+  await mkdir(EXPORT_DIR, { recursive: true });
+  const file = join(EXPORT_DIR, /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1] || 'foxy-audit.json');
+  await writeFile(file, body);
+  return pretty({ file, bytes: Buffer.byteLength(body), phase: doc.phase, summary: doc.summary, note: 'Too big to return inline: read the file, or narrow it with verdict (for example "defer" or "judged").' });
+}
+
 async function call(name, args = {}) {
+  if (name === 'audit_get') return auditTool(args);
   if (name === 'marker_list' || name === 'marker_end' || name === 'network_export_phase') return phaseTool(name, args);
   if (name === 'network_export_capture') {
     const out = await saveExport('/api/export/capture', 'foxy-capture.json');

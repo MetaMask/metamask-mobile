@@ -140,6 +140,9 @@
   .bar { flex: none; width: 3px; border-radius: var(--r-ctl); background: var(--kind-package); }
   .bar.app { background: var(--kind-app); } .bar.controller { background: var(--kind-controller); } .bar.package { background: var(--kind-package); }
   .bar.project { background: var(--kind-project); } .bar.unsym { background: var(--kind-unsym); }
+  .bar.view { background: var(--color-primary-default); opacity: .75; } .bar.view.boot { background: var(--color-warning-default); }
+  .fn-name.boot { font-family: var(--font-family); color: var(--color-warning-default); }
+  .fn-file .mount { color: var(--color-primary-default); }
   .fn-text { min-width: 0; }
   .fn-name { font-family: var(--font-family-mono); font-size: 13px; font-weight: 600; color: var(--color-text-default); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fn-name .paren { color: var(--color-text-muted); font-weight: 400; }
@@ -1777,8 +1780,8 @@ const TIMELINE_COLS = [
   { id: 'id', label: 'ID', w: 0.03, fit: { min: '000', max: '000000' }, sort: (r) => r.id, cell: (r) => td(r.id, { cls: 'dim num' }) },
   { id: 't', label: 'Time', w: 0.045, fit: TIME_FIT, sort: (r) => r.relMs, cell: (r) => td(tf(r.relMs), { cls: 'alt num' }) },
   { id: 'owners', label: 'Code Owners', w: 0.15, sort: (r) => (r.codeOwners || []).map(team).join(', ') || r.callSiteInfo?.pkg || '', cell: (r) => td(rowChips(r), { title: [...(r.codeOwners || []), ...(r.ownerCodeOwners || []).map((o) => o + ' (via)')].join(', ') || r.callSiteInfo?.pkg || '' }) },
-  { id: 'site', label: 'Call Site', w: 0.2, sort: (r) => (r.callSiteInfo ? `${r.callSiteInfo.method} ${r.callSiteInfo.file}` : ''), cell: (r) => td(fnCell(r.callSiteInfo), { title: fnTitle(r.callSiteInfo) }) },
-  { id: 'from', label: 'Started From', w: 0.13, sort: (r) => (r.ownerInfo ? `${r.ownerInfo.method} ${r.ownerInfo.file}` : ''), cell: (r) => td(r.ownerInfo ? fnCell(r.ownerInfo, true) : '', { title: fnTitle(r.ownerInfo) }) },
+  { id: 'site', label: 'Call Site', w: 0.17, sort: (r) => (r.callSiteInfo ? `${r.callSiteInfo.method} ${r.callSiteInfo.file}` : ''), cell: (r) => td(fnCell(r.callSiteInfo), { title: fnTitle(r.callSiteInfo) }) },
+  { id: 'from', label: 'Launched From', w: 0.19, sort: (r) => (r.view ? (r.view.ready ? r.view.route : ' App start-up') : '~'), cell: (r) => td(viewCell(r.view), { title: viewTitle(r.view) }) },
   { id: 'method', label: 'Method', w: 0.045, mono: true, fit: { min: 'GET', max: 'OPTIONS' }, sort: (r) => r.method, cell: (r) => td(esc(r.method), { cls: 'alt mono' }) },
   { id: 'host', label: 'Host', w: 0.105, sort: (r) => r.host, cell: (r) => td(esc(r.host), { cls: 'host', title: r.host }) },
   { id: 'path', label: 'Path', w: 0.11, sort: (r) => r.path, cell: (r) => td(esc(r.path) + (r.query ? '<span class="dim">?…</span>' : '') + '', { cls: 'mono', title: r.path + (r.query ? '?' + r.query : '') }) },
@@ -1802,8 +1805,39 @@ const auditKey = (p) => (p.marker ? `phase:${p.label}` : p.id);
 const auditOf = (p, k) => (p && audits[auditKey(p)] && audits[auditKey(p)][k]) || {};
 const setAudit = (p, k, patch) => {
   const pk = auditKey(p); audits[pk] = audits[pk] || {};
-  audits[pk][k] = { ...auditOf(p, k), ...patch }; saveAudits();
+  const e = { ...auditOf(p, k), ...patch, t: Date.now() };
+  audits[pk][k] = e; saveAudits();
+  queueAudit({ phase: pk, endpoint: k, v: e.v ?? null, note: e.note ?? '', t: e.t });
 };
+// The server keeps a copy of the verdicts so an agent can read them (the audit_get tool). Changes go up in small batches; if the server is not
+// there they wait, and syncAudits() sends whatever it lacks the next time the dashboard connects. The newest verdict (`t`) wins on both sides.
+const auditQueue = new Map(); let auditSendTimer = 0;
+function queueAudit(entry) { auditQueue.set(`${entry.phase}\n${entry.endpoint}`, entry); clearTimeout(auditSendTimer); auditSendTimer = setTimeout(flushAudits, 400); }
+async function flushAudits() {
+  clearTimeout(auditSendTimer);
+  if (!auditQueue.size) return;
+  const batch = [...auditQueue.entries()]; auditQueue.clear();
+  try {
+    const res = await fetch('/api/audit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ entries: batch.map(([, e]) => e) }) });
+    if (!res.ok) throw new Error(res.status);
+  } catch { for (const [k, e] of batch) if (!auditQueue.has(k)) auditQueue.set(k, e); throw new Error('verdicts not sent'); }
+}
+async function syncAudits() {
+  try {
+    const { audits: theirs } = await (await fetch('/api/audit')).json();
+    const up = [];
+    for (const pk of new Set([...Object.keys(audits), ...Object.keys(theirs)])) {
+      for (const k of new Set([...Object.keys(audits[pk] || {}), ...Object.keys(theirs[pk] || {})])) {
+        const mine = audits[pk]?.[k], other = theirs[pk]?.[k];
+        if (mine && (!other || (mine.t ?? 0) > (other.t ?? 0))) up.push({ phase: pk, endpoint: k, v: mine.v ?? null, note: mine.note ?? '', t: mine.t ?? 0 });
+        else if (other && (!mine || (other.t ?? 0) > (mine.t ?? 0))) { (audits[pk] ||= {})[k] = other; }
+      }
+    }
+    saveAudits(); schedule();
+    if (up.length) await fetch('/api/audit', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ entries: up }) });
+    await flushAudits().catch(() => {});
+  } catch {}
+}
 const auditPhase = () => (ui.audit && ui.phase ? phases.find((p) => p.id === ui.phase) : null); // the phase being audited, if any
 const phaseOfGroup = (g) => phaseByKey.get(g.list[0].key);
 const auditChip = (p, k) => {
@@ -2065,6 +2099,16 @@ function viewStrip(r) {
   const row = sub || where ? `<div class="vsub">${sub ? `<span>${esc(sub)}</span>` : ''}${where}</div>` : '';
   return `<div class="vstrip">${icon('screen')}<span class="vk">Launched from</span><span class="vname ${v.ready ? '' : 'boot'}">${esc(name)}</span>${chips.join('')}${row}</div>`;
 }
+
+/** The screen a request was made from, as a table cell: its name, the navigators above it, and a flag when it fired as the screen mounted. */
+function viewCell(v) {
+  if (!v) return '<span class="dim">(not reported)</span>';
+  if (!v.ready) return '<div class="fn"><span class="bar view boot"></span><div class="fn-text"><div class="fn-name boot">App start-up</div><div class="fn-file">before navigation was ready</div></div></div>';
+  const above = (v.path || []).slice(0, -1).slice(-2).join(' \u203a '); // the two navigators just above the screen
+  const mount = v.screenAgeMs != null && v.screenAgeMs < 500 ? '<span class="mount" title="Made right as the screen appeared: most likely triggered by mounting it">on mount</span>' : '';
+  return `<div class="fn"><span class="bar view"></span><div class="fn-text"><div class="fn-name">${esc(v.route)}</div><div class="fn-file">${mount}${above && mount ? ' · ' : ''}${esc(above)}</div></div></div>`;
+}
+const viewTitle = (v) => (!v ? 'The app build did not report which screen this came from' : !v.ready ? 'App start-up: the navigator had not mounted yet' : `${(v.path || []).join(' \u203a ')}${v.screenAgeMs != null ? `\n${v.screenAgeMs < 500 ? 'fired' : 'on screen for'} ${dur(v.screenAgeMs)}${v.screenAgeMs < 500 ? ' after the screen opened' : ''}` : ''}`);
 
 function renderDetailRow(r, cols) {
   const d = fetchDetail(r.key);
@@ -2381,30 +2425,6 @@ function auditMarkdown(ph) {
   });
   return `## Audit: ${ph.label}\n\nPhase window ${when}. ${ph.n} request${ph.n === 1 ? '' : 's'} to ${groups.length} endpoint${groups.length === 1 ? '' : 's'}.\n\nKeep ${n.keep} · Defer ${n.defer} · Move ${n.move} · Drop ${n.drop} · No verdict ${n.none}\n\n| Endpoint | Verdict | Reason | Calls | Identical dupes | Statuses | Avg ms | Code owner | Call site | First call (+s) |\n|---|---|---|---|---|---|---|---|---|---|\n${rows.join('\n')}\n`;
 }
-/** The audit as JSON an agent can act on: what the verdicts mean, then every endpoint with its verdict, reason and the code that makes the call. */
-function auditAgentJson(ph) {
-  const groups = auditGroups(ph), n = verdictCounts(ph, groups);
-  return JSON.stringify({
-    foxy: 'audit', version: 1, exportedAt: new Date().toISOString(),
-    instructions: 'A human audited the network requests the MetaMask Mobile app makes during one phase of its run. Each endpoint carries the verdict they gave it for THIS phase only: '
-      + VERDICTS.map((x) => `"${x.id}" = ${x.tip}`).join('; ')
-      + '. A null verdict means it has not been judged yet, so assume nothing about it. For "defer", "move" and "drop" endpoints, use callSites (function, file, line) to find the code that makes the request and propose the change, quoting the reason. Leave "keep" endpoints alone.',
-    phase: { label: ph.label, startMs: Math.round(ph.start), endMs: ph.end === Infinity ? null : Math.round(ph.end), open: ph.end === Infinity, requests: ph.n },
-    summary: { endpoints: groups.length, judged: groups.length - n.none, keep: n.keep, defer: n.defer, move: n.move, drop: n.drop, unjudged: n.none },
-    endpoints: groups.map((g) => {
-      const v = auditOf(ph, g.k);
-      return {
-        endpoint: g.k, method: g.method, host: g.host, path: g.path,
-        verdict: v.v || null, reason: v.note || null,
-        calls: g.n, identicalDupes: g.dupes, statuses: g.st, avgMs: g.avg, firstCallMs: Math.round(g.first),
-        codeOwners: [...g.teams], ownersViaCaller: [...g.via],
-        callSites: [...g.sites.values()].sort((a, b) => b.n - a.n).map((e) => ({ function: e.info.method, file: e.info.file, line: e.info.line, kind: e.info.kind, package: e.info.pkg || null, calls: e.n })),
-        requestIds: g.list.map((r) => r.id),
-      };
-    }),
-  }, null, 2);
-}
-
 /** Client-side markdown for the Endpoints tab, including verdicts and notes. */
 function endpointsMarkdown(list = [...reqs.values()].filter(match)) {
   const c = (x) => String(x ?? '').replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
@@ -2434,11 +2454,11 @@ function csvCell(x) {
 const toCsv = (head, rows) => `\ufeff${[head, ...rows].map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`; // BOM: Excel reads the UTF-8
 const ownersText = (r) => (r.codeOwners || []).map(team).join(' ') || r.callSiteInfo?.pkg || '';
 function requestsCsv(list = [...reqs.values()].filter(match)) {
-  const head = ['ID', 'Time (s)', 'Clock', 'Phase', 'Method', 'Host', 'Path', 'Query', 'Status', 'Error', 'Duration (ms)', 'Size (bytes)', 'Identical dupe', 'Code owners', 'Via', 'Call site', 'Started from'];
+  const head = ['ID', 'Time (s)', 'Clock', 'Phase', 'Method', 'Host', 'Path', 'Query', 'Status', 'Error', 'Duration (ms)', 'Size (bytes)', 'Identical dupe', 'Code owners', 'Via', 'Screen', 'Call site', 'Started from'];
   return toCsv(head, [...list].sort((a, b) => a.relMs - b.relMs).map((r) => [
     r.id, Number(sec(r.relMs)), clock(r.ts), phaseByKey.get(r.key)?.label || '', r.method, r.host, r.path, r.query || '',
     r.status ?? '', r.error || '', r.durationMs == null ? null : Math.round(r.durationMs), r.sizeBytes ?? null, dupeCounts.get(reqKey(r)) > 1,
-    ownersText(r), (r.ownerCodeOwners || []).map(team).join(' '), siteText(r.callSiteInfo), siteText(r.ownerInfo),
+    ownersText(r), (r.ownerCodeOwners || []).map(team).join(' '), r.view ? (r.view.ready ? r.view.route : 'App start-up') : '', siteText(r.callSiteInfo), siteText(r.ownerInfo),
   ]));
 }
 function endpointsCsv(list = [...reqs.values()].filter(match)) {
@@ -2473,7 +2493,7 @@ function exportFormats(scope) {
   const csvEp = { id: 'csv-ep', title: 'CSV, one row per endpoint', tag: '.csv', verb: 'Download CSV', desc: 'Calls, dupes, failures, timings, owners and call site, with the verdict and reason you gave each one.', run: () => save(endpointsCsv(list()), `foxy-${slug}-endpoints-${stamp}.csv`, 'text/csv;charset=utf-8') };
   const md = { id: 'md', title: 'Markdown table', tag: 'copies', verb: 'Copy Markdown', desc: 'A table to paste into the ticket.', run: async () => { await copyText(ph ? auditMarkdown(ph) : endpointsMarkdown(list())); return 'Copied!'; } };
   if (!ph) return [json, csvReq, csvEp, md];
-  const agent = { id: 'agent', title: 'JSON for an agent', tag: '.json', verb: 'Download JSON', desc: 'Verdicts, reasons and call sites, with instructions an AI agent can act on.', run: () => save(auditAgentJson(ph), `foxy-audit-${slug}.json`, 'application/json') };
+  const agent = { id: 'agent', title: 'JSON for an agent', tag: '.json', verb: 'Download JSON', desc: 'Verdicts, reasons and call sites, with instructions an AI agent can act on. Agents can also read it themselves (audit_get).', run: async () => { await flushAudits().catch(() => {}); await downloadFromServer('/api/audit/export?phase=' + encodeURIComponent(ph.id), `foxy-audit-${slug}.json`); return 'Saved'; } };
   return [json, csvReq, csvEp, md, agent];
 }
 function xRender() {
@@ -2868,7 +2888,7 @@ const HELP = [
       <li><b>Code Owners</b>: the CODEOWNERS team for the file that called <code>fetch</code>. Third-party packages show their package name instead. Click any chip to filter by it.</li>
       <li><b>Call site</b>: the method, file, line and column that made the request.</li>
       <li><b>Waterfall</b>: where the request sits on the capture and how long it took. Coloured lines are your markers.</li>
-      <li><b>Started from</b>: the nearest app or <code>@metamask</code> frame further up the stack, when the call site is a library.</li>
+      <li><b>Launched from</b>: the screen the app was showing when the request was made, with the navigators above it. <b>on mount</b> means it fired as the screen appeared. Open a row for the screen's source file and the code that started the flow.</li>
     </ul>
     <div class="callout"><p>Click a column header to sort by it: once for one direction, again for the other, a third time to go back to the default order. The Timeline keeps its phases while sorted: <b>ID</b> and <b>Time</b> choose which end comes first, any other column orders the requests inside each phase. Drag a column header to reorder it, drag its right edge to resize it, double-click the edge to reset. <b>Reset Columns</b> in the menu restores the defaults.</p></div>
     <p>${goto('filters', '🎛️ Filters & duplicates')} ${goto('markers', '🚩 Markers & phases')}</p>` },
@@ -3189,7 +3209,7 @@ function applyMessage(m, pauseId) {
 const IMMEDIATE = new Set(['marker', 'markers', 'cleared']); // messages that answer something you did, so Pause never holds them
 function connect() {
   const ws = new WebSocket(`ws://${location.host}/ui`);
-  ws.onopen = () => { connected = true; renderConn(); };
+  ws.onopen = () => { connected = true; renderConn(); syncAudits(); };
   ws.onclose = () => { connected = false; renderConn(); setTimeout(connect, 1500); };
   ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);

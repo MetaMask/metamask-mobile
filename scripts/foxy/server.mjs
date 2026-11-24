@@ -4,7 +4,7 @@
 import { createServer } from 'node:http';
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
-import { readFile, mkdir, appendFile } from 'node:fs/promises';
+import { readFile, mkdir, appendFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { WebSocketServer } from 'ws';
@@ -17,9 +17,14 @@ import {
   summarizeInitiator,
   groupEndpoints,
   toMarkdown,
+  applyAuditEntries,
+  auditKey,
+  auditSummary,
+  buildAuditDocument,
   exportCapture,
   exportPhase,
   listPhases,
+  resolvePhase,
   fileSlug,
   describeFrames,
   bodyFingerprint,
@@ -79,6 +84,18 @@ const VIEWS = createViewIndexer(REPO);
 const PACKAGE_LINK = createPackageLinker(REPO, createTagIndex());
 const LOG_FILE =
   process.env.FOXY_LOG_FILE || join(__dirname, 'logs', 'foxy.jsonl');
+// The verdicts a person gives endpoints in the dashboard, so an agent can read them too (the dashboard keeps its own copy in the browser and
+// syncs it here). { [phase key]: { [endpoint]: { v, note, t } } }, kept across restarts next to the log.
+const AUDIT_FILE = process.env.FOXY_AUDIT_FILE || join(dirname(LOG_FILE), 'audit.json');
+let audits = {};
+try { audits = JSON.parse(readFileSync(AUDIT_FILE, 'utf-8')) || {}; } catch { audits = {}; }
+let auditSaveTimer = null;
+const saveAudits = () => {
+  clearTimeout(auditSaveTimer);
+  auditSaveTimer = setTimeout(async () => {
+    try { await mkdir(dirname(AUDIT_FILE), { recursive: true }); await writeFile(AUDIT_FILE, JSON.stringify(audits, null, 2)); } catch (error) { console.warn(`[foxy] could not save verdicts: ${error.message}`); }
+  }, 200);
+};
 
 /** @type {Map<string, {id:string,startedAt:number,platform:string,connectedAt:number}>} */
 const sessions = new Map();
@@ -438,10 +455,43 @@ const httpServer = createServer(async (req, res) => {
         }, null, 2));
       }
     } else if (p === '/api/phases') {
-      // The session's phases with their totals (requests, new endpoints, identical dupes, failures, bytes) and whether each is still open.
+      // The session's phases with their totals (requests, new endpoints, identical dupes, failures, bytes), whether each is still open,
+      // and how many of its endpoints have a verdict.
       const sid = url.searchParams.get('session') || latestSession;
       const sessionRecords = [...records.values()].filter((r) => r.session === sid);
-      json(res, { session: sid, phases: listPhases(sessionRecords, sessionMarkers(sid)) });
+      const sessionMarks = sessionMarkers(sid);
+      json(res, {
+        session: sid,
+        phases: listPhases(sessionRecords, sessionMarks).map((ph) => ({
+          ...ph,
+          audit: auditSummary(exportPhase(sessionRecords, sessionMarks, ph.id)?.records ?? [], audits[auditKey(ph)]),
+        })),
+      });
+    } else if (p === '/api/audit' && req.method === 'GET') {
+      json(res, { audits });
+    } else if (p === '/api/audit' && req.method === 'POST') {
+      // The dashboard sends the verdicts it changed (or, on start, the ones the server lacks): { entries: [{ phase, endpoint, v, note, t }] }.
+      const { entries } = await readBody(req);
+      const applied = applyAuditEntries(audits, entries);
+      if (applied) saveAudits();
+      json(res, { ok: true, applied });
+    } else if (p === '/api/audit/export') {
+      // One phase's audit as a document an agent can act on. ?phase= is a marker id or label (or `pre`); leave it out for the newest marker's phase.
+      const sid = url.searchParams.get('session') || latestSession;
+      if (url.searchParams.get('session') && !sessions.has(sid)) { json(res, { error: 'unknown session' }, 404); return; }
+      const sessionRecords = [...records.values()].filter((r) => r.session === sid);
+      const sessionMarks = sessionMarkers(sid);
+      const found = resolvePhase(listPhases(sessionRecords, sessionMarks), url.searchParams.get('phase'));
+      if (found.error) { json(res, { error: found.error }, 404); return; }
+      const inPhase = exportPhase(sessionRecords, sessionMarks, found.phase.id);
+      const doc = buildAuditDocument({ phase: inPhase.phase, records: inPhase.records, verdicts: audits[auditKey(found.phase)] });
+      res.writeHead(200, {
+        'content-type': 'application/json; charset=utf-8',
+        'content-disposition': `attachment; filename="foxy-audit-${fileSlug(found.phase.label)}.json"`,
+        'cache-control': 'no-store',
+        'access-control-expose-headers': 'content-disposition',
+      });
+      res.end(JSON.stringify(doc, null, 2));
     } else if (p === '/api/export/capture') {
       // The whole session as one file: every request in full, the markers and the phases they make. ?session=<id> picks another session.
       const sid = url.searchParams.get('session') || latestSession;

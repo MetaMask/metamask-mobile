@@ -1,3 +1,4 @@
 logs/*.jsonl
+logs/audit.json
 node_modules/
 .cache/

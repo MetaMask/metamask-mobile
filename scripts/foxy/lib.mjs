@@ -368,6 +368,105 @@ export function exportCapture(records, markers = []) {
   };
 }
 
+// ---- audit: a human's verdict on each endpoint, per phase ----
+
+/** What each verdict means. The dashboard has the same four (with colours); a test keeps the wording in step. */
+export const VERDICTS = [
+  { id: 'keep', label: 'Keep', tip: 'Needed at this point in the flow' },
+  { id: 'defer', label: 'Defer', tip: 'Not needed yet: fetch later (for example after unlock or first use)' },
+  { id: 'move', label: 'Move', tip: 'Needed, but should happen somewhere else in the flow' },
+  { id: 'drop', label: 'Drop', tip: 'Not needed: remove it' },
+];
+
+/** Where a phase's verdicts are kept. A marker's phase is keyed by its label, so the same flow keeps its verdicts across captures. */
+export const auditKey = (phase) => (phase.marker ? `phase:${phase.label}` : phase.id);
+
+/**
+ * The audit of one phase as a document an agent can act on: what the verdicts mean, then every endpoint the phase called with its verdict,
+ * reason and the code that makes the call. `phase` and `records` are what exportPhase returns; `verdicts` is `{ [endpoint]: { v, note } }`
+ * for this phase. An endpoint nobody judged has `verdict: null`.
+ */
+export function buildAuditDocument({ phase, records, verdicts = {}, exportedAt = new Date().toISOString() }) {
+  const byEndpoint = new Map();
+  for (const r of records) {
+    const key = `${r.method} ${r.host}${r.path}`;
+    if (!byEndpoint.has(key)) byEndpoint.set(key, { endpoint: key, method: r.method, host: r.host, path: r.path, list: [] });
+    byEndpoint.get(key).list.push(r);
+  }
+  const endpoints = [...byEndpoint.values()].map((g) => {
+    g.list.sort((a, b) => a.relMs - b.relMs);
+    const statuses = {}, seen = new Set(), durations = [], teams = new Set(), via = new Set(), sites = new Map();
+    let dupes = 0;
+    for (const r of g.list) {
+      const status = r.error ? 'error' : r.status ?? 'pending';
+      statuses[status] = (statuses[status] || 0) + 1;
+      const key = dupeKey(r);
+      if (seen.has(key)) dupes++;
+      else seen.add(key);
+      if (r.durationMs != null) durations.push(r.durationMs);
+      (r.codeOwners || []).forEach((o) => teams.add(o));
+      if (!(r.codeOwners || []).length) (r.ownerCodeOwners || []).forEach((o) => via.add(o));
+      if (r.callSiteInfo) {
+        const info = r.callSiteInfo, id = `${info.method}|${info.file}|${info.line}`;
+        sites.set(id, { info, calls: (sites.get(id)?.calls || 0) + 1 });
+      }
+    }
+    const v = verdicts[g.endpoint] || {};
+    return {
+      endpoint: g.endpoint, method: g.method, host: g.host, path: g.path,
+      verdict: VERDICTS.some((x) => x.id === v.v) ? v.v : null, reason: v.note || null,
+      calls: g.list.length, identicalDupes: dupes, statuses,
+      avgMs: durations.length ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length) : null,
+      firstCallMs: Math.round(g.list[0].relMs),
+      codeOwners: [...teams], ownersViaCaller: [...via],
+      callSites: [...sites.values()].sort((a, b) => b.calls - a.calls).map(({ info, calls }) => ({ function: info.method, file: info.file, line: info.line, kind: info.kind, package: info.pkg || null, calls })),
+      requestIds: g.list.map((r) => r.id),
+    };
+  }).sort((a, b) => a.firstCallMs - b.firstCallMs);
+  const count = (id) => endpoints.filter((e) => e.verdict === id).length;
+  const unjudged = endpoints.filter((e) => !e.verdict).length;
+  return {
+    foxy: 'audit', version: 1, exportedAt,
+    instructions: 'A human audited the network requests the MetaMask Mobile app makes during one phase of its run. Each endpoint carries the verdict they gave it for THIS phase only: '
+      + VERDICTS.map((x) => `"${x.id}" = ${x.tip}`).join('; ')
+      + '. A null verdict means it has not been judged yet, so assume nothing about it. For "defer", "move" and "drop" endpoints, use callSites (function, file, line) to find the code that makes the request and propose the change, quoting the reason. Leave "keep" endpoints alone.',
+    phase: { label: phase.label, startMs: Math.round(phase.startMs), endMs: phase.endMs == null ? null : Math.round(phase.endMs), open: phase.open, requests: phase.requests },
+    summary: { endpoints: endpoints.length, judged: endpoints.length - unjudged, keep: count('keep'), defer: count('defer'), move: count('move'), drop: count('drop'), unjudged },
+    endpoints,
+  };
+}
+
+/** Counts of the verdicts given to a phase's endpoints, for a quick look (marker_list). */
+export function auditSummary(records, verdicts = {}) {
+  const endpoints = new Set(records.map((r) => `${r.method} ${r.host}${r.path}`));
+  const n = { endpoints: endpoints.size, judged: 0, keep: 0, defer: 0, move: 0, drop: 0 };
+  for (const e of endpoints) {
+    const v = verdicts[e]?.v;
+    if (VERDICTS.some((x) => x.id === v)) { n.judged++; n[v]++; }
+  }
+  return n;
+}
+
+/**
+ * Applies verdicts sent by the dashboard to the stored ones. Each entry is `{ phase, endpoint, v, note, t }` where `t` is when the human set it,
+ * and the newest wins, so two tabs (or a restart) never bring back something older. Returns how many entries were applied.
+ * Anything malformed is skipped. `audits` is `{ [phase key]: { [endpoint]: { v, note, t } } }` and is changed in place.
+ */
+export function applyAuditEntries(audits, entries) {
+  let applied = 0;
+  for (const e of Array.isArray(entries) ? entries : []) {
+    if (!e || typeof e.phase !== 'string' || typeof e.endpoint !== 'string' || !e.phase || !e.endpoint) continue;
+    const v = e.v == null ? null : e.v;
+    if (v !== null && !VERDICTS.some((x) => x.id === v)) continue;
+    const t = Number.isFinite(e.t) ? e.t : 0;
+    const old = audits[e.phase]?.[e.endpoint];
+    if (old && (old.t ?? 0) > t) continue;
+    (audits[e.phase] ||= {})[e.endpoint] = { v, note: String(e.note ?? '').slice(0, 2000), t };
+    applied++;
+  }
+  return applied;
+}
+
 /** A name safe for a file: `Wallet ready!` -> `wallet-ready`. */
 export const fileSlug = (text) => String(text).normalize('NFKD').replace(/[^\x00-\x7f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'phase';
 
