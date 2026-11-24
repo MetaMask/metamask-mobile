@@ -1,3 +1,4 @@
+import { parseOrderPrice } from './parseOrderNumber';
 import { capitalize } from 'lodash';
 import {
   isLimitExecutionOrderType,
@@ -58,19 +59,12 @@ export const getValidOrderPrice = (order: Order): number | null =>
  * The oracle price is HyperLiquid's reference for the oracle price band. Falls
  * back to the mid price when the oracle price is missing or does not parse to a
  * finite positive number, so a NaN reference cannot silently skip the band
- * check in {@link isPriceOutsideDeviationBand}.
+ * check.
  */
 export const resolveOracleReferencePrice = (
   oraclePrice: string | undefined,
-  currentPrice: number,
-): number => {
-  const parsedOraclePrice = oraclePrice
-    ? Number.parseFloat(oraclePrice)
-    : Number.NaN;
-  return Number.isFinite(parsedOraclePrice) && parsedOraclePrice > 0
-    ? parsedOraclePrice
-    : currentPrice;
-};
+  currentPrice: number | undefined,
+): number | undefined => parseOrderPrice(oraclePrice) ?? currentPrice;
 
 /**
  * Applies a percentage offset to the current limit price, falling back to the
@@ -79,7 +73,7 @@ export const resolveOracleReferencePrice = (
  */
 export const calculateLimitPriceForPercentage = (
   limitPrice: string,
-  currentPrice: number,
+  currentPrice: number | undefined,
   percentage: number,
 ): string => {
   const parsedLimitPrice = limitPrice
@@ -94,72 +88,6 @@ export const calculateLimitPriceForPercentage = (
   return BigNumber(basePrice)
     .multipliedBy(1 + percentage / 100)
     .toString();
-};
-
-/**
- * Whether an order price is outside HyperLiquid's allowed band relative to a
- * reference (oracle/mark) price. HyperLiquid rejects orders whose price is more
- * than `maxDeviation` away from the reference price ("oracleRejected").
- *
- * The check is ratio-based: the smaller of the order price and the reference
- * price must be at least `(1 - maxDeviation)` of the larger one. Equivalently,
- * the reference price can't be lower than `(1 - maxDeviation)` of the order
- * price (blocks fat-fingered highs), and the order price can't be lower than
- * `(1 - maxDeviation)` of the reference price (blocks fat-fingered lows).
- *
- * Returns false when either price is missing/invalid so callers don't block on
- * incomplete data.
- *
- * @param price - The order (limit) price
- * @param referencePrice - The reference price to compare against (oracle/mark)
- * @param maxDeviation - Max allowed deviation as a decimal (e.g. 0.95 = 95%)
- * @returns True when the order price is outside the allowed band
- */
-export const isPriceOutsideDeviationBand = (
-  price: number,
-  referencePrice: number,
-  maxDeviation: number,
-): boolean => {
-  if (
-    !referencePrice ||
-    referencePrice <= 0 ||
-    !Number.isFinite(price) ||
-    price <= 0
-  ) {
-    return false;
-  }
-  const minPrice = Math.min(price, referencePrice);
-  const maxPrice = Math.max(price, referencePrice);
-  return minPrice < (1 - maxDeviation) * maxPrice;
-};
-
-/**
- * Inclusive HyperLiquid price band around a reference price.
- * `isPriceOutsideDeviationBand` is true exactly when `price` is outside this range.
- *
- * @param referencePrice - Oracle/mark used as the band center
- * @param maxDeviation - Max allowed deviation as a decimal (e.g. 0.95 = 95%)
- * @returns `{ min, max }` when the reference is usable, otherwise `undefined`
- */
-export const getPriceDeviationBand = (
-  referencePrice: number,
-  maxDeviation: number,
-): { min: number; max: number } | undefined => {
-  if (
-    !referencePrice ||
-    referencePrice <= 0 ||
-    !Number.isFinite(referencePrice) ||
-    !Number.isFinite(maxDeviation) ||
-    maxDeviation <= 0 ||
-    maxDeviation >= 1
-  ) {
-    return undefined;
-  }
-  const ratio = 1 - maxDeviation;
-  return {
-    min: ratio * referencePrice,
-    max: referencePrice / ratio,
-  };
 };
 
 type OrderPriceLabelKey =

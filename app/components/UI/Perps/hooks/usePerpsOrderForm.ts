@@ -1,3 +1,4 @@
+import { parseOrderPrice } from '../utils/parseOrderNumber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -343,7 +344,7 @@ export function usePerpsOrderForm(
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
     const feeAdjustedBalance =
       balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
-    const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
+    const marketPrice = parseOrderPrice(currentPrice?.price);
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
       orderForm.limitPrice,
@@ -359,6 +360,7 @@ export function usePerpsOrderForm(
       triggerPrice: canonicalTriggerPrice,
       marketPrice,
     });
+    if (effectiveAssetPrice === undefined) return 0; // No selectable size yet.
     const isTriggerMarketOrder =
       isTriggerOrderType(orderForm.type) &&
       !isLimitExecutionOrderType(orderForm.type);

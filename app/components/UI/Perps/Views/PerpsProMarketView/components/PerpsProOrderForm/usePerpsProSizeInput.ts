@@ -36,7 +36,7 @@ export interface UsePerpsProSizeInputParams {
   usdAmount: string;
   setAmount: (value: string) => void;
   assetSymbol: string;
-  effectivePrice: number;
+  effectivePrice: number | undefined;
   szDecimals: number;
   maxPossibleAmount: number;
   maxDigits?: number;
@@ -69,10 +69,10 @@ const getDecimalPlaces = (szDecimals: number) =>
 
 export const getUsdFromAsset = (
   assetAmount: string,
-  effectivePrice: number,
+  effectivePrice: number | undefined,
 ): string => {
   const finalizedAmount = finalizeNumericTextInput(assetAmount);
-  if (!finalizedAmount) {
+  if (!finalizedAmount || effectivePrice === undefined) {
     return '';
   }
 
@@ -84,11 +84,11 @@ export const getUsdFromAsset = (
 
 const getAssetFromUsd = (
   usdAmount: string,
-  effectivePrice: number,
+  effectivePrice: number | undefined,
   szDecimals: number,
 ): string => {
   const finalizedAmount = finalizeNumericTextInput(usdAmount);
-  if (!finalizedAmount) {
+  if (!finalizedAmount || effectivePrice === undefined) {
     return '';
   }
   if (effectivePrice <= 0) {
@@ -180,7 +180,10 @@ export const usePerpsProSizeInput = ({
   preserveAssetIntent = false,
   fillAssetAmount,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
-  const priceReady = Number.isFinite(effectivePrice) && effectivePrice > 0;
+  const priceReady =
+    effectivePrice !== undefined &&
+    Number.isFinite(effectivePrice) &&
+    effectivePrice > 0;
   const { preferences: orderBookPreferences, setOrderBookPreferences } =
     usePerpsOrderBookPreferences();
   const preferenceUnit: SizeDenominationUnit =

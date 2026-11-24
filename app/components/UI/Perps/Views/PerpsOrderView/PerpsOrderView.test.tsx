@@ -370,17 +370,7 @@ jest.mock('../../hooks', () => {
       variantName: 'control',
       isActive: false,
     })),
-    usePerpsOrderFees: jest.fn(() => ({
-      totalFee: 45,
-      undiscountedTotalFee: 45,
-      protocolFee: 45,
-      metamaskFee: 0,
-      totalFeeRate: 0.00045,
-      protocolFeeRate: 0.00045,
-      metamaskFeeRate: 0,
-      isLoadingMetamaskFee: false,
-      error: null,
-    })),
+    usePerpsOrderFees: jest.fn(),
     formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
     usePerpsOrderForm: jest.fn(() => mockDefaultUsePerpsOrderForm()),
     usePerpsOrderValidation: jest.fn(() => ({
@@ -1404,6 +1394,17 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    jest.requireMock('../../hooks').usePerpsOrderFees.mockReturnValue({
+      totalFee: 45,
+      undiscountedTotalFee: 45,
+      protocolFee: 45,
+      metamaskFee: 0,
+      totalFeeRate: 0.00045,
+      protocolFeeRate: 0.00045,
+      metamaskFeeRate: 0,
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
     mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();

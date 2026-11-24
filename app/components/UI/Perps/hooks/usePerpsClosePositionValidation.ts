@@ -2,12 +2,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import {
+  isPriceOutsideDeviationBand,
   VALIDATION_THRESHOLDS,
   type ClosePositionParams,
   type OrdinaryOrderType,
 } from '@metamask/perps-controller';
 import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
-import { isPriceOutsideDeviationBand } from '../utils/orderUtils';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
 import { usePerpsTrading } from './usePerpsTrading';
 

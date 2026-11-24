@@ -74,7 +74,7 @@ type TPSLInput =
 interface PerpsTradeTPSLScreenProps {
   asset: string;
   amount: string;
-  currentPrice: number;
+  currentPrice: number | undefined;
   direction: 'long' | 'short';
   initialTakeProfitPrice?: string;
   initialStopLossPrice?: string;
@@ -328,7 +328,9 @@ const PerpsTradeTPSLScreen: React.FC<PerpsTradeTPSLScreenProps> = ({
   // Low-value assets need more decimals than the USD default so a trigger
   // price like $0.00214 can be entered.
   const keypadDecimals =
-    effectiveEntryPrice > 0 && Number.isFinite(effectiveEntryPrice)
+    effectiveEntryPrice !== undefined &&
+    effectiveEntryPrice > 0 &&
+    Number.isFinite(effectiveEntryPrice)
       ? Math.min(
           Math.max(
             2,

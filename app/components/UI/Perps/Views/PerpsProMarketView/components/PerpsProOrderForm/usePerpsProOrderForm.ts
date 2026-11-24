@@ -86,11 +86,10 @@ import {
 } from '../../../../hooks';
 import { usePerpsHomeActions } from '../../../../hooks/usePerpsHomeActions';
 import {
-  usePerpsLiveAccount,
   usePerpsLivePrices,
   usePerpsTopOfBook,
 } from '../../../../hooks/stream';
-import { estimateCrossLiquidationPrice } from '../../../../utils/crossMarginSummary';
+import { usePerpsCrossLiquidationPrice } from '../../../../hooks/usePerpsCrossLiquidationPrice';
 import { usePerpsConnection } from '../../../../hooks/usePerpsConnection';
 import { usePerpsEstimatedSlippage } from '../../../../hooks/usePerpsEstimatedSlippage';
 import { usePerpsEventTracking } from '../../../../hooks/usePerpsEventTracking';
@@ -132,6 +131,10 @@ import {
   getProspectiveExecutionPrice,
   getReduceOnlyMaxUsdAmount,
 } from '../../../../utils/orderSizing';
+import {
+  parseOrderNumber,
+  parseOrderPrice,
+} from '../../../../utils/parseOrderNumber';
 import { willFlipPosition } from '../../../../utils/orderUtils';
 import {
   isPerpsErrorCode,
@@ -352,7 +355,7 @@ const getMarketDataBlockingReason = ({
 }: {
   isLoading: boolean;
   hasError: boolean;
-  price: number;
+  price: number | undefined;
 }): MarketDataBlockingReason | null => {
   if (hasError) {
     return 'error';
@@ -360,7 +363,7 @@ const getMarketDataBlockingReason = ({
   if (isLoading) {
     return 'loading';
   }
-  return price > 0 ? null : 'price-unavailable';
+  return price !== undefined ? null : 'price-unavailable';
 };
 
 const getBlockingNotices = ({
@@ -611,7 +614,7 @@ export interface UsePerpsProOrderFormResult {
   isLeverageVisible: boolean;
   minLeverage: number;
   maxLeverage: number;
-  currentPrice: number;
+  currentPrice: number | undefined;
   onLeverageConfirm: (
     leverage: number,
     inputMethod?: 'slider' | 'preset',
@@ -1214,38 +1217,27 @@ export const usePerpsProOrderForm = ({
   const currentPrice = prices[symbol];
   const currentTopOfBook = usePerpsTopOfBook({ symbol });
 
-  const assetData = useMemo(() => {
-    if (!currentPrice) {
-      return { price: 0, change: 0, markPrice: 0 };
-    }
-    const price = Number.parseFloat(currentPrice.price || '0');
-    const markPrice = Number.parseFloat(currentPrice.markPrice || '0');
-    const change = Number.parseFloat(currentPrice.percentChange24h || '0');
-    return {
-      price: Number.isNaN(price) ? 0 : price,
-      markPrice: Number.isNaN(markPrice) ? 0 : markPrice,
-      change: Number.isNaN(change) ? 0 : change,
-    };
-  }, [currentPrice]);
-  const latestMidPriceRef = useRef(assetData.price);
+  const marketPrice = parseOrderPrice(currentPrice?.price);
+  const markPrice = parseOrderPrice(currentPrice?.markPrice);
+  const latestMidPriceRef = useRef(marketPrice);
   useLayoutEffect(() => {
-    latestMidPriceRef.current = assetData.price;
-  }, [assetData.price]);
+    latestMidPriceRef.current = marketPrice;
+  }, [marketPrice]);
 
   const marketDataBlockingReason = getMarketDataBlockingReason({
     isLoading: isLoadingMarketData,
     hasError: Boolean(marketDataError),
-    price: assetData.price,
+    price: marketPrice,
   });
   const isMarketDataBlocking = marketDataBlockingReason !== null;
   const chaseMaxDistanceBps =
     chaseMaxDistanceUnit === 'percent'
       ? parsedChaseMaxDistance * 100
-      : assetData.price > 0
-        ? (parsedChaseMaxDistance / assetData.price) * BASIS_POINTS_DIVISOR
+      : marketPrice !== undefined
+        ? (parsedChaseMaxDistance / marketPrice) * BASIS_POINTS_DIVISOR
         : Number.NaN;
   const isChaseMaxDistanceBpsResolvable =
-    chaseMaxDistanceUnit === 'percent' || assetData.price > 0;
+    chaseMaxDistanceUnit === 'percent' || marketPrice !== undefined;
   const isChaseMaxDistanceInvalid =
     orderForm.type === 'chase' &&
     chaseMaxDistance.trim().length > 0 &&
@@ -1315,14 +1307,9 @@ export const usePerpsProOrderForm = ({
         orderType: orderForm.type,
         limitPrice: normalizedLimitPrice,
         triggerPrice: normalizedTriggerPrice,
-        marketPrice: assetData.price,
+        marketPrice,
       }),
-    [
-      assetData.price,
-      normalizedLimitPrice,
-      normalizedTriggerPrice,
-      orderForm.type,
-    ],
+    [marketPrice, normalizedLimitPrice, normalizedTriggerPrice, orderForm.type],
   );
 
   const reduceOnlyPositionError = useMemo(
@@ -1866,15 +1853,12 @@ export const usePerpsProOrderForm = ({
     getTriggerExecution(orderForm.type) === 'market';
   const hidesSlippage =
     isScaleOrder || isLimitExecutionOrderType(orderForm.type) || isTwapOrder;
+  const orderUsdAmount = parseOrderNumber(effectiveUsdAmount);
   const hasValidAmount = isVenueSizedScale
     ? scaleLadderResult.success &&
       new BigNumber(scaleLadderResult.totalSize).gt(0)
-    : Number.parseFloat(effectiveUsdAmount) > 0;
+    : orderUsdAmount !== undefined && orderUsdAmount > 0;
 
-  const orderUsdAmount = useMemo(
-    () => Number.parseFloat(effectiveUsdAmount) || 0,
-    [effectiveUsdAmount],
-  );
   const twapDuration = useMemo(
     () =>
       (Number.parseInt(twapDays, 10) || 0) *
@@ -1913,6 +1897,7 @@ export const usePerpsProOrderForm = ({
       : undefined;
   const twapMinimumSizeError =
     isTwapOrder &&
+    orderUsdAmount !== undefined &&
     orderUsdAmount > 0 &&
     orderUsdAmount < PERPS_TWAP_UI_CONFIG.MinimumNotionalUsd;
   const {
@@ -1922,7 +1907,7 @@ export const usePerpsProOrderForm = ({
   } = usePerpsEstimatedSlippage({
     symbol: orderForm.asset,
     sizeUsd: orderUsdAmount,
-    currentPrice: assetData.price,
+    currentPrice: marketPrice,
     maxSlippageBps: resolvedMaxSlippageBps,
     szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
     reduceOnly,
@@ -1962,8 +1947,8 @@ export const usePerpsProOrderForm = ({
         orderType: calculationOrderType,
         limitPrice: calculationLimitPrice,
         triggerPrice: normalizedTriggerPrice,
-        marketPrice: assetData.price,
-        markPrice: assetData.markPrice,
+        marketPrice,
+        markPrice,
         leverage: orderForm.leverage,
         szDecimals,
         isBuy: orderForm.direction === 'long',
@@ -1978,8 +1963,8 @@ export const usePerpsProOrderForm = ({
       normalizedTriggerPrice,
       orderForm.leverage,
       orderForm.direction,
-      assetData.price,
-      assetData.markPrice,
+      marketPrice,
+      markPrice,
       szDecimals,
       isLoadingMarketData,
       resolvedMaxSlippageBps,
@@ -2058,11 +2043,9 @@ export const usePerpsProOrderForm = ({
     orderForm.type === 'chase'
       ? JSON.stringify({
           submissionState: currentSubmissionState,
-          effectivePrice: new BigNumber(effectivePrice || 0).toFixed(),
-          effectivePositionSize: new BigNumber(
-            submissionPositionSize || 0,
-          ).toFixed(),
-          effectiveUsdAmount: new BigNumber(effectiveUsdAmount || 0).toFixed(),
+          effectivePrice,
+          effectivePositionSize: submissionPositionSize,
+          effectiveUsdAmount,
         })
       : currentSubmissionState;
   useLayoutEffect(() => {
@@ -2122,7 +2105,9 @@ export const usePerpsProOrderForm = ({
     !isPositionStreamLoading &&
     !currentMarketPosition;
   const liquidationEntryPrice =
-    isScaleOrder && !canCalculateScaleLiquidation ? 0 : effectivePrice;
+    marginMode === 'cross' || (isScaleOrder && !canCalculateScaleLiquidation)
+      ? undefined
+      : effectivePrice;
   const liquidationPriceParams = useMemo(
     () => ({
       entryPrice: liquidationEntryPrice,
@@ -2141,48 +2126,29 @@ export const usePerpsProOrderForm = ({
     liquidationPrice: isolatedLiquidationPrice,
     isCalculating: isLiquidationCalculating,
   } = usePerpsLiquidationPrice(liquidationPriceParams);
-  // A Cross order liquidates against the whole cross account, so it is
-  // estimated from the account's cross collateral and maintenance margin. It
-  // stays unknown when the order adds to a position or is a Scale ladder.
-  const { account: liveAccount } = usePerpsLiveAccount({
-    enabled: marginMode === 'cross',
+  // Ordinary orders can use the default route. Strategies and triggers must
+  // wait for the same capability-resolved route that placement uses.
+  const crossProviderId =
+    orderProviderId ??
+    (orderForm.type === 'market' || orderForm.type === 'limit'
+      ? PROVIDER_CONFIG.DefaultProvider
+      : undefined);
+  const crossLiquidationPrice = usePerpsCrossLiquidationPrice({
+    enabled:
+      marginMode === 'cross' &&
+      isInitialized &&
+      crossProviderId !== undefined &&
+      !isScaleOrder &&
+      !isPositionStreamLoading &&
+      !currentMarketPosition,
+    symbol: orderForm.asset,
+    direction: orderForm.direction,
+    size: positionSize,
+    entryPrice: effectivePrice,
+    leverage: orderForm.leverage,
+    providerId: crossProviderId,
+    contextKey: marginModeContextKey,
   });
-  const crossLiquidationPrice = useMemo(() => {
-    // The default max leverage would estimate against the wrong maintenance
-    // margin, so wait for the market's own.
-    const marketMaxLeverage = marketData?.maxLeverage;
-    if (
-      marginMode !== 'cross' ||
-      isScaleOrder ||
-      currentMarketPosition ||
-      marketMaxLeverage === undefined
-    ) {
-      return undefined;
-    }
-    const estimate = estimateCrossLiquidationPrice({
-      entryPrice: effectivePrice,
-      size: Number.parseFloat(positionSize),
-      isLong: orderForm.direction === 'long',
-      maxLeverage: marketMaxLeverage,
-      crossMarginSummary: liveAccount?.crossMarginSummary,
-      spotCollateral: liveAccount?.spotCollateral,
-      providerId: market.providerId ?? PROVIDER_CONFIG.DefaultProvider,
-    });
-    return estimate === undefined
-      ? undefined
-      : new BigNumber(estimate).toFixed();
-  }, [
-    marginMode,
-    isScaleOrder,
-    currentMarketPosition,
-    effectivePrice,
-    positionSize,
-    orderForm.direction,
-    marketData?.maxLeverage,
-    liveAccount?.crossMarginSummary,
-    liveAccount?.spotCollateral,
-    market.providerId,
-  ]);
   const liquidationPrice =
     marginMode === 'cross' ? crossLiquidationPrice : isolatedLiquidationPrice;
 
@@ -2196,10 +2162,7 @@ export const usePerpsProOrderForm = ({
     price: effectivePrice,
     leverage: orderForm.leverage,
     reduceOnly,
-    feeAmountUsd:
-      typeof estimatedFees === 'number' && estimatedFees > 0
-        ? estimatedFees
-        : undefined,
+    feeAmountUsd: estimatedFees,
     providerId: orderProviderId ?? currentMarketPosition?.providerId,
     hasValidAmount,
     // perps-controller 26.0.0 projects held Cross positions; the before→after
@@ -2247,12 +2210,12 @@ export const usePerpsProOrderForm = ({
   const orderValidation = usePerpsOrderValidation({
     orderForm: effectiveOrderForm,
     positionSize: submissionPositionSize,
-    assetPrice: assetData.price,
+    assetPrice: marketPrice,
     spendableBalance,
     // Reduce-only orders release margin from the existing position; they don't
     // draw from spendableBalance. Pass '0' so the balance gate is not triggered
     // for a valid close/reduce when free collateral is low.
-    marginRequired: reduceOnly ? '0' : effectiveMarginRequired || '0',
+    marginRequired: reduceOnly ? '0' : effectiveMarginRequired,
     existingPositionLeverage: existingPositionLeverageForValidation,
     // Skip protocol validation until position data is ready so we don't flash
     // unrelated errors while waiting for the position snapshot.
@@ -2272,7 +2235,7 @@ export const usePerpsProOrderForm = ({
         ? (chaseProviderId ?? undefined)
         : orderProviderId,
     triggerPrice: normalizedTriggerPrice,
-    midPrice: assetData.price,
+    midPrice: marketPrice,
     szDecimals,
     twapDuration: isTwapOrder ? twapDuration : undefined,
     twapRandomize: isTwapOrder ? twapRandomize : undefined,
@@ -2286,7 +2249,7 @@ export const usePerpsProOrderForm = ({
     orderForm: effectiveOrderForm,
     positionSize: submissionPositionSize,
     spendableBalance,
-    marginRequired: reduceOnly ? '0' : effectiveMarginRequired || '0',
+    marginRequired: reduceOnly ? '0' : effectiveMarginRequired,
     existingPositionLeverage: existingPositionLeverageForValidation,
     skipValidation: isReduceOnlyPositionLoading,
     reduceOnly,
@@ -2297,7 +2260,7 @@ export const usePerpsProOrderForm = ({
   });
   const currentScalePlacementSnapshot = useMemo(
     () => ({
-      assetPrice: assetData.price,
+      assetPrice: marketPrice,
       currentMarketPosition,
       effectiveMarginRequired,
       effectivePrice,
@@ -2316,7 +2279,7 @@ export const usePerpsProOrderForm = ({
       validateNow,
     }),
     [
-      assetData.price,
+      marketPrice,
       currentMarketPosition,
       effectiveMarginRequired,
       effectivePrice,
@@ -2373,7 +2336,9 @@ export const usePerpsProOrderForm = ({
       displayedLeverage: orderForm.leverage,
       preview: scalePreview.result,
       expectedRequest:
-        scaleLadderResult.success && scaleProviderId
+        scaleLadderResult.success &&
+        scaleProviderId &&
+        effectivePrice !== undefined
           ? buildPerpsScaleOrderParams({
               asset: orderForm.asset,
               isBuy: orderForm.direction === 'long',
@@ -2489,7 +2454,7 @@ export const usePerpsProOrderForm = ({
   });
   const currentChasePlacementSnapshot = useMemo(
     () => ({
-      assetPrice: assetData.price,
+      assetPrice: marketPrice,
       chaseValidationInputKey,
       currentMarketPosition,
       effectiveMarginRequired,
@@ -2505,7 +2470,7 @@ export const usePerpsProOrderForm = ({
       validateNow,
     }),
     [
-      assetData.price,
+      marketPrice,
       chaseValidationInputKey,
       currentMarketPosition,
       effectiveMarginRequired,
@@ -2629,7 +2594,7 @@ export const usePerpsProOrderForm = ({
         ? undefined
         : (positionModifySummaryDisplay.tpslLiquidationPrice ??
           liquidationPrice),
-    marketPrice: assetData.price,
+    marketPrice,
   });
   const standardOrderToastOptions =
     isScaleOrder ||
@@ -2882,7 +2847,7 @@ export const usePerpsProOrderForm = ({
           direction: orderForm.direction,
           triggerPrice: normalizedTriggerPrice,
           limitPrice: normalizedLimitPrice,
-          midPrice: assetData.price,
+          midPrice: marketPrice,
           szDecimals,
         });
     const currentBlockingIssue = currentFieldIssues.find(
@@ -3223,6 +3188,7 @@ export const usePerpsProOrderForm = ({
         const latestScale = latestScaleValidation.snapshot;
         if (
           isMarginModeLockPendingRef.current ||
+          latestScale.effectivePrice === undefined ||
           latestScale.isReduceOnlyPositionLoading ||
           (latestScale.reduceOnly && !latestScale.reduceOnlyValidation.isValid)
         ) {
@@ -3452,7 +3418,7 @@ export const usePerpsProOrderForm = ({
         orderForm.type === 'chase' && chaseMaxDistance.trim()
           ? chaseMaxDistanceUnit === 'percent'
             ? parsedChaseMaxDistance * 100
-            : latestMidPriceRef.current > 0
+            : latestMidPriceRef.current !== undefined
               ? (parsedChaseMaxDistance / latestMidPriceRef.current) *
                 BASIS_POINTS_DIVISOR
               : Number.NaN
@@ -3477,6 +3443,7 @@ export const usePerpsProOrderForm = ({
       }
       const placementEffectivePrice =
         submissionChaseSnapshot?.effectivePrice ?? effectivePrice;
+      if (placementEffectivePrice === undefined) return;
       const placementUsdAmount =
         submissionChaseSnapshot?.effectiveUsdAmount ?? effectiveUsdAmount;
       const placementReduceOnly =
@@ -3538,7 +3505,7 @@ export const usePerpsProOrderForm = ({
             submissionChaseSnapshot?.effectiveMarginRequired ??
             effectiveMarginRequired,
           feeResults: submissionChaseSnapshot?.feeResults ?? feeResults,
-          marketPrice: submissionChaseSnapshot?.assetPrice ?? assetData.price,
+          marketPrice: submissionChaseSnapshot?.assetPrice ?? marketPrice,
           inputMethod: 'default',
           orderType: placementOrderForm.type,
           source,
@@ -3706,7 +3673,7 @@ export const usePerpsProOrderForm = ({
     playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
     navigation.navigate(Routes.PERPS.TPSL, {
       asset: orderForm.asset,
-      currentPrice: assetData.price,
+      currentPrice: marketPrice,
       direction: orderForm.direction,
       leverage: orderForm.leverage,
       orderType: orderForm.type,
@@ -3739,7 +3706,7 @@ export const usePerpsProOrderForm = ({
     orderForm.takeProfitPrice,
     orderForm.stopLossPrice,
     effectiveUsdAmount,
-    assetData.price,
+    marketPrice,
     showToast,
     navigation,
     playImpact,
@@ -3754,7 +3721,7 @@ export const usePerpsProOrderForm = ({
       guardScaleMutation(() => {
         setLeverage(leverage);
 
-        const currentAmount = Number.parseFloat(effectiveUsdAmount || '0');
+        const currentAmount = Number.parseFloat(effectiveUsdAmount);
         const newMaxAmount = spendableBalance * leverage;
         if (!reduceOnly && currentAmount > newMaxAmount) {
           setAmount(Math.floor(newMaxAmount).toString());
@@ -3893,18 +3860,18 @@ export const usePerpsProOrderForm = ({
   );
 
   const onUseMidPricePress = useCallback(() => {
-    if (assetData.price > 0) {
+    if (marketPrice !== undefined) {
       commitLimitPrice(
         canonicalizeOrderPrice(
           formatWithSignificantDigits(
-            assetData.price,
+            marketPrice,
             DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
           ).value.toString(),
           szDecimals,
         ),
       );
     }
-  }, [assetData.price, commitLimitPrice, szDecimals]);
+  }, [marketPrice, commitLimitPrice, szDecimals]);
 
   const availableBalance = useMemo(() => {
     if (!isInitialized) {
@@ -4131,7 +4098,9 @@ export const usePerpsProOrderForm = ({
     );
     const usdAmount = Number.parseFloat(effectiveUsdAmount);
     const baseSize =
-      effectiveInputPrice > 0 && Number.isFinite(usdAmount)
+      effectiveInputPrice !== undefined &&
+      effectiveInputPrice > 0 &&
+      Number.isFinite(usdAmount)
         ? usdAmount / effectiveInputPrice
         : 0;
 
@@ -4307,7 +4276,8 @@ export const usePerpsProOrderForm = ({
       chaseMaxDistance: (price) =>
         guardScaleMutation(() => {
           const tappedPrice = new BigNumber(price ?? '');
-          const referencePrice = new BigNumber(assetData.price);
+          if (marketPrice === undefined) return;
+          const referencePrice = new BigNumber(marketPrice);
           if (
             !tappedPrice.isFinite() ||
             !referencePrice.isFinite() ||
@@ -4335,7 +4305,7 @@ export const usePerpsProOrderForm = ({
 
     return () => registerPriceFieldHandlers({});
   }, [
-    assetData.price,
+    marketPrice,
     chaseMaxDistanceUnit,
     guardScaleMutation,
     registerPriceFieldHandlers,
@@ -4678,7 +4648,7 @@ export const usePerpsProOrderForm = ({
       orderType: orderForm.type,
       direction: orderForm.direction,
       limitPrice: normalizedLimitPrice,
-      midPrice: assetData.price,
+      midPrice: marketPrice,
       szDecimals,
     });
     if (warning) {
@@ -4691,7 +4661,7 @@ export const usePerpsProOrderForm = ({
 
     return { severity: 'warning' as const, message: farFromMarketWarning };
   }, [
-    assetData.price,
+    marketPrice,
     farFromMarketWarning,
     hasBlurredLimitPrice,
     hasBlurredTriggerPrice,
@@ -4968,8 +4938,8 @@ export const usePerpsProOrderForm = ({
     chaseMaxDistanceUnit,
     onChaseMaxDistanceUnitChange,
     chaseReferencePrice:
-      assetData.price > 0
-        ? formatPerpsPrice(assetData.price, { szDecimals })
+      marketPrice !== undefined
+        ? formatPerpsPrice(marketPrice, { szDecimals })
         : PERPS_CONSTANTS.FallbackPriceDisplay,
     onChaseMaxDistanceChange,
     onLimitPriceChange,
@@ -5015,7 +4985,7 @@ export const usePerpsProOrderForm = ({
     isLeverageVisible,
     minLeverage: 1,
     maxLeverage,
-    currentPrice: assetData.price,
+    currentPrice: marketPrice,
     onLeverageConfirm,
     closeLeverage: () => setIsLeverageVisible(false),
     // Slippage sheet

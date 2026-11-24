@@ -1,10 +1,7 @@
 import {
   calculateAccountSummary,
-  getCrossCollateral,
   type AccountState,
-  type CrossMarginSummary,
   type PerpsAccountSummary,
-  type PerpsProviderType,
 } from '@metamask/perps-controller';
 import type {
   HardwareTier,
@@ -49,14 +46,6 @@ export const calculateCrossMarginAccountSummaryFromAccount = (
       })
     : EMPTY_ACCOUNT_SUMMARY;
 
-const toFiniteNumber = (value: string | undefined): number | undefined => {
-  if (value === undefined || value === '') {
-    return undefined;
-  }
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
 /**
  * Stream throttle for the cross margin summary from the UX matrix in
  * `app/util/deviceCapability/README.md`. Only a 2G or 3G connection changes
@@ -81,66 +70,6 @@ export const getCrossMarginSummaryThrottleMs = ({
       ? CROSS_MARGIN_SUMMARY_SLOW_NETWORK_LOW_HARDWARE_THROTTLE_MS
       : CROSS_MARGIN_SUMMARY_SLOW_NETWORK_THROTTLE_MS,
   );
-};
-
-/**
- * Estimates where a new cross position liquidates: the price at which the
- * cross collateral, after the position's P&L, falls to the maintenance margin
- * of the existing cross positions plus the new one. Maintenance margin is half
- * the initial margin at the market's max leverage, which is Hyperliquid's
- * rule, so other venues get no estimate. TAT-4668 moves this to
- * perps-controller.
- *
- * @returns The liquidation price, or undefined when an input is missing (the
- * spot collateral included) or the position cannot be liquidated at a
- * positive price.
- */
-export const estimateCrossLiquidationPrice = ({
-  entryPrice,
-  size,
-  isLong,
-  maxLeverage,
-  crossMarginSummary,
-  spotCollateral,
-  providerId,
-}: {
-  entryPrice: number;
-  /** Unsigned order size in base units. */
-  size: number;
-  isLong: boolean;
-  maxLeverage: number;
-  crossMarginSummary: CrossMarginSummary | undefined;
-  /** `AccountState.spotCollateral`: undefined while it is not known yet. */
-  spotCollateral: string | undefined;
-  /** Venue that takes the order. */
-  providerId: PerpsProviderType;
-}): number | undefined => {
-  if (providerId !== 'hyperliquid') {
-    return undefined;
-  }
-  const collateral = getCrossCollateral(crossMarginSummary, spotCollateral);
-  const maintenanceMargin = toFiniteNumber(
-    crossMarginSummary?.maintenanceMargin,
-  );
-  if (
-    collateral === undefined ||
-    maintenanceMargin === undefined ||
-    !(entryPrice > 0) ||
-    !(size > 0) ||
-    !(maxLeverage > 0)
-  ) {
-    return undefined;
-  }
-  const side = isLong ? 1 : -1;
-  const maintenanceFraction = 1 / (2 * maxLeverage);
-  const marginAvailable =
-    collateral - maintenanceMargin - size * entryPrice * maintenanceFraction;
-  const liquidationPrice =
-    entryPrice -
-    (side * marginAvailable) / size / (1 - maintenanceFraction * side);
-  return Number.isFinite(liquidationPrice) && liquidationPrice > 0
-    ? liquidationPrice
-    : undefined;
 };
 
 export const getCrossMarginRatioTone = (

@@ -674,6 +674,10 @@ jest.mock('../../app/core/Engine', () => {
         clearDepositResult: jest.fn(),
         calculateFees: jest.fn().mockResolvedValue({}),
         calculateLiquidationPrice: jest.fn().mockResolvedValue('0.00'),
+        estimateCrossLiquidation: jest.fn().mockResolvedValue({
+          status: 'unavailable',
+          reason: 'missing_inputs',
+        }),
         calculateMaintenanceMargin: jest.fn().mockResolvedValue(100),
         flipPosition: jest.fn().mockResolvedValue({ success: false }),
         updatePositionTPSL: jest.fn().mockResolvedValue({ success: true }),

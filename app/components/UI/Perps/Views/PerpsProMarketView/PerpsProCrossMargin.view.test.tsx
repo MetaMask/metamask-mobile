@@ -62,7 +62,33 @@ describeForPlatforms('Pro Cross margin risk editors', () => {
       .mocked(Engine.context.PerpsController.calculateLiquidationPrice)
       .mockReset()
       .mockResolvedValue('0.00');
+    jest
+      .mocked(Engine.context.PerpsController.estimateCrossLiquidation)
+      .mockReset()
+      .mockResolvedValue({ status: 'unavailable', reason: 'missing_inputs' });
     jest.clearAllMocks();
+  });
+
+  it('shows the venue’s Cross liquidation price after the trader enters a size', async () => {
+    const estimate = jest.mocked(
+      Engine.context.PerpsController.estimateCrossLiquidation,
+    );
+    estimate.mockResolvedValue({ status: 'price', price: '1842' });
+    await selectCross();
+    fireEvent.changeText(await screen.findByTestId(formIds.SIZE_INPUT), '100');
+    fireEvent(screen.getByTestId(formIds.SIZE_INPUT), 'blur');
+    await waitFor(() =>
+      expect(screen.getByTestId(formIds.SUMMARY_LIQUIDATION)).toHaveTextContent(
+        /\$1,842/,
+      ),
+    );
+    expect(estimate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        symbol: 'ETH',
+        direction: 'long',
+        providerId: 'hyperliquid',
+      }),
+    );
   });
 
   it('saves a Cross stop beyond the isolated liquidation threshold after opening TP/SL', async () => {

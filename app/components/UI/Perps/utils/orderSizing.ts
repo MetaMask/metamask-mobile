@@ -10,6 +10,7 @@ import {
   type OrderType,
 } from '@metamask/perps-controller';
 import { BigNumber } from 'bignumber.js';
+import { parseOrderNumber, parseOrderPrice } from './parseOrderNumber';
 
 export interface ProspectiveExecutionPriceInput {
   orderType: OrderType;
@@ -18,7 +19,7 @@ export interface ProspectiveExecutionPriceInput {
   /** Trigger price for trigger-market placements. */
   triggerPrice?: string;
   /** Live mid used when no user price is available. */
-  marketPrice: number;
+  marketPrice: number | undefined;
 }
 
 export interface DeriveOrderSizingInput {
@@ -30,9 +31,9 @@ export interface DeriveOrderSizingInput {
   /** Trigger price string when the order is a trigger-market placement. */
   triggerPrice?: string;
   /** Mid/market price used for market orders and display. */
-  marketPrice: number;
+  marketPrice: number | undefined;
   /** Venue mark price (`PriceUpdate.markPrice`), the standard margin basis. */
-  markPrice: number;
+  markPrice: number | undefined;
   leverage: number;
   /** Asset size decimals from market data; falls back when unknown. */
   szDecimals: number | null;
@@ -48,7 +49,7 @@ export interface DeriveOrderSizingInput {
 
 export interface DeriveOrderSizingResult {
   /** Price used for size/margin math: the limit price for priced limit orders, else market. */
-  effectivePrice: number;
+  effectivePrice: number | undefined;
   /** Position size (token units) as a display string, or the fallback placeholder while loading. */
   positionSize: string;
   /** Required margin in USD, or `undefined` while loading / when no amount is set. */
@@ -158,15 +159,13 @@ export const getProspectiveExecutionPrice = ({
   limitPrice,
   triggerPrice,
   marketPrice,
-}: ProspectiveExecutionPriceInput): number => {
+}: ProspectiveExecutionPriceInput): number | undefined => {
   if (isLimitExecutionOrderType(orderType)) {
-    const parsedLimitPrice = Number.parseFloat(limitPrice ?? '');
-    return parsedLimitPrice > 0 ? parsedLimitPrice : marketPrice;
+    return parseOrderPrice(limitPrice) ?? marketPrice;
   }
 
   if (isTriggerOrderType(orderType)) {
-    const parsedTriggerPrice = Number.parseFloat(triggerPrice ?? '');
-    return parsedTriggerPrice > 0 ? parsedTriggerPrice : marketPrice;
+    return parseOrderPrice(triggerPrice) ?? marketPrice;
   }
 
   return marketPrice;
@@ -200,20 +199,21 @@ export const deriveOrderSizing = ({
   size,
 }: DeriveOrderSizingInput): DeriveOrderSizingResult => {
   const parsedLimitPrice = isLimitExecutionOrderType(orderType)
-    ? Number.parseFloat(limitPrice ?? '')
-    : Number.NaN;
+    ? parseOrderPrice(limitPrice)
+    : undefined;
   const parsedTriggerPrice =
     isTriggerOrderType(orderType) && !isLimitExecutionOrderType(orderType)
-      ? Number.parseFloat(triggerPrice ?? '')
-      : Number.NaN;
-  const hasPricedReference = parsedLimitPrice > 0 || parsedTriggerPrice > 0;
+      ? parseOrderPrice(triggerPrice)
+      : undefined;
+  const hasPricedReference =
+    parsedLimitPrice !== undefined || parsedTriggerPrice !== undefined;
   const effectivePrice = getProspectiveExecutionPrice({
     orderType,
     limitPrice,
     triggerPrice,
     marketPrice,
   });
-  const hasValidTriggerPrice = parsedTriggerPrice > 0;
+  const hasValidTriggerPrice = parsedTriggerPrice !== undefined;
   const isTriggerMarketOrder =
     isTriggerOrderType(orderType) && !isLimitExecutionOrderType(orderType);
   const triggerMarketMarginPrice =
@@ -233,17 +233,32 @@ export const deriveOrderSizing = ({
     triggerMarketMarginPrice ??
     (hasPricedReference ? effectivePrice : markPrice);
 
-  const positionSize = isLoadingMarketData
-    ? PERPS_CONSTANTS.FallbackDataDisplay
-    : (size ??
-      calculatePositionSize({
-        amount,
-        price: effectivePrice,
-        szDecimals: szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
-      }));
+  const validAmount = parseOrderNumber(amount);
+  const positionSize =
+    isLoadingMarketData ||
+    validAmount === undefined ||
+    validAmount < 0 ||
+    effectivePrice === undefined ||
+    !Number.isFinite(effectivePrice) ||
+    effectivePrice <= 0
+      ? PERPS_CONSTANTS.FallbackDataDisplay
+      : (size ??
+        calculatePositionSize({
+          amount,
+          price: effectivePrice,
+          szDecimals:
+            szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+        }));
 
   let marginRequired: string | undefined;
-  if (!isLoadingMarketData && amount) {
+  if (
+    marginPrice !== undefined &&
+    Number.isFinite(marginPrice) &&
+    marginPrice > 0 &&
+    Number.isFinite(leverage) &&
+    leverage > 0 &&
+    parseOrderNumber(positionSize) !== undefined
+  ) {
     marginRequired = calculateMarginRequired({
       amount: BigNumber(marginPrice).times(positionSize).toString(),
       leverage,
@@ -257,7 +272,7 @@ export interface ReduceOnlyMaxUsdAmountInput {
   /** Signed or unsigned position size in token units. */
   positionSize?: string;
   /** Price used to convert size to USD (limit price when set, else market). */
-  price: number;
+  price: number | undefined;
 }
 
 /**
@@ -276,6 +291,7 @@ export const getReduceOnlyMaxUsdAmount = ({
   if (
     !Number.isFinite(absSize) ||
     absSize <= 0 ||
+    price === undefined ||
     !Number.isFinite(price) ||
     price <= 0
   ) {
@@ -289,7 +305,7 @@ export interface PayWithTokenDepositAmountInput {
   /** Margin from `deriveOrderSizing`, priced at mark for market orders. */
   marginRequired: string | undefined;
   /** Estimated taker + builder fees for the order, in USD. */
-  estimatedFeesUsd: number;
+  estimatedFeesUsd: number | undefined;
   orderType: OrderType;
   maxSlippageBps: number;
 }
@@ -303,7 +319,7 @@ export interface PayWithTokenDepositAmountInput {
  * Rounded up to cents so rounding never eats the headroom.
  *
  * @param input - Margin, fees, order type, and max slippage.
- * @returns The deposit amount in USD, or `''` while margin is unknown.
+ * @returns The deposit amount in USD, or `''` while margin or fees are unknown.
  */
 export const getPayWithTokenDepositAmount = ({
   marginRequired,
@@ -311,18 +327,22 @@ export const getPayWithTokenDepositAmount = ({
   orderType,
   maxSlippageBps,
 }: PayWithTokenDepositAmountInput): string => {
-  if (marginRequired == null) {
+  if (
+    marginRequired === undefined ||
+    !new BigNumber(marginRequired).isFinite() ||
+    estimatedFeesUsd === undefined ||
+    !Number.isFinite(estimatedFeesUsd)
+  ) {
     return '';
   }
 
   const isMarketOrder =
     !isLimitExecutionOrderType(orderType) && !isTriggerOrderType(orderType);
   const slippageBufferBps = isMarketOrder ? maxSlippageBps : 0;
-  const fees = Number.isFinite(estimatedFeesUsd) ? estimatedFeesUsd : 0;
 
   return new BigNumber(marginRequired)
     .times(1 + slippageBufferBps / 10_000)
-    .plus(fees)
+    .plus(estimatedFeesUsd)
     .decimalPlaces(2, BigNumber.ROUND_UP)
     .toString(10);
 };

@@ -14,7 +14,6 @@ import {
   type PerpsProviderType,
   type TriggerOrderType,
   type PositionModifyPreviewResult,
-  type AccountState,
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -222,10 +221,6 @@ let mockEstimatedSlippageBps: number | null = 50;
 let mockMaxSlippageBps = 100;
 let mockMaxSlippageSource = 'default';
 let mockLivePrice = '90000';
-let mockLiveAccount: Pick<
-  AccountState,
-  'crossMarginSummary' | 'spotCollateral'
-> | null = null;
 let mockLiveMarkPrice = '90000';
 let mockLiveOraclePrice = '90000';
 let mockSizeDecimals = 3;
@@ -419,7 +414,7 @@ jest.mock('../../../../hooks/stream', () => ({
   }),
   usePerpsTopOfBook: () => ({ bestBid: '89999', bestAsk: '90001' }),
   usePerpsLiveAccount: () => ({
-    account: mockLiveAccount,
+    account: null,
     isInitialLoading: false,
   }),
 }));
@@ -617,6 +612,10 @@ jest.mock('../../../../hooks/usePerpsSavedMarginMode', () => ({
 jest.mock('../../../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
+      estimateCrossLiquidation: jest.fn().mockResolvedValue({
+        status: 'unavailable',
+        reason: 'account_unknown',
+      }),
       clearPendingTradeConfiguration: (...args: unknown[]) =>
         mockClearPendingTradeConfiguration(...args),
     },
@@ -780,7 +779,6 @@ describe('usePerpsProOrderForm', () => {
     mockMaxSlippageBps = 100;
     mockMaxSlippageSource = 'default';
     mockLivePrice = '90000';
-    mockLiveAccount = null;
     mockLiveMarkPrice = '90000';
     mockLiveOraclePrice = '90000';
     mockTotalFee = 5;
@@ -4066,103 +4064,6 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.liquidationPrice).toBe('--');
     });
 
-    // 0.002 BTC at $90,000 with a 40x max leverage (1/80 maintenance):
-    // 50 collateral - 20 existing - 2.25 new maintenance leaves 27.75.
-    it.each([
-      ['long', '$75,949'],
-      ['short', '$103,704'],
-    ] as const)(
-      'estimates a Cross %s liquidation price from the cross account',
-      (direction, expected) => {
-        mockOrderForm.direction = direction;
-        mockLiveAccount = {
-          spotCollateral: '0',
-          crossMarginSummary: {
-            accountValue: '50',
-            maintenanceMargin: '20',
-            marginUsed: '40',
-            notional: '1600',
-          },
-        };
-        const { result } = renderWithCrossMargin();
-
-        act(() => {
-          result.current.onMarginModeSelect('cross');
-        });
-
-        expect(result.current.summary.liquidationPrice).toBe(expected);
-      },
-    );
-
-    it('shows no Cross liquidation estimate on a venue other than Hyperliquid', () => {
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
-      const { result } = renderProForm(
-        true,
-        true,
-        'hyperliquid',
-        false,
-        {},
-        {},
-        { ...market, providerId: 'lighter' },
-        {},
-        undefined,
-        true,
-      );
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe('--');
-    });
-
-    it('waits for market max leverage before estimating a Cross liquidation price', () => {
-      mockMarketData = null;
-      mockMarketDataLoading = true;
-      mockLiveAccount = {
-        spotCollateral: '0',
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
-      const { result } = renderWithCrossMargin();
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe('--');
-    });
-
-    it('keeps the Cross liquidation price unknown until the account publishes spot collateral', () => {
-      mockLiveAccount = {
-        crossMarginSummary: {
-          accountValue: '50',
-          maintenanceMargin: '20',
-          marginUsed: '40',
-          notional: '1600',
-        },
-      };
-      const { result } = renderWithCrossMargin();
-
-      act(() => {
-        result.current.onMarginModeSelect('cross');
-      });
-
-      expect(result.current.summary.liquidationPrice).toBe('--');
-    });
-
     it('keeps the liquidation estimate for an isolated order when Cross is available', () => {
       const { result } = renderWithCrossMargin();
 
@@ -6280,7 +6181,7 @@ describe('usePerpsProOrderForm', () => {
       )?.[0] as {
         entryPrice: number;
       };
-      expect(lastParams.entryPrice).toBe(0);
+      expect(lastParams.entryPrice).toBeUndefined();
       expect(result.current.scaleOrder.liquidationPrice).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
@@ -6298,7 +6199,7 @@ describe('usePerpsProOrderForm', () => {
       )?.[0] as {
         entryPrice: number;
       };
-      expect(lastParams.entryPrice).toBe(0);
+      expect(lastParams.entryPrice).toBeUndefined();
       expect(result.current.scaleOrder.liquidationPrice).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
@@ -6338,7 +6239,7 @@ describe('usePerpsProOrderForm', () => {
       )?.[0] as {
         entryPrice: number;
       };
-      expect(lastParams.entryPrice).toBe(0);
+      expect(lastParams.entryPrice).toBeUndefined();
       expect(result.current.scaleOrder.margin).toBe(
         PERPS_CONSTANTS.FallbackPriceDisplay,
       );
@@ -8180,7 +8081,7 @@ describe('usePerpsProOrderForm', () => {
       mockValidation.fieldIssues = [
         {
           field: 'limitPrice',
-          issue: { code: 'too_far', min: '$150.00', max: '$60,000.00' },
+          issue: { code: 'too_far', min: '$150.00', max: '$5,850.00' },
         },
       ];
 
@@ -8193,7 +8094,7 @@ describe('usePerpsProOrderForm', () => {
           ' ' +
           strings('perps.order.limit_price_modal.limit_price_too_far_range', {
             min: '$150.00',
-            max: '$60,000.00',
+            max: '$5,850.00',
           }),
       });
       expect(result.current.isPlaceOrderDisabled).toBe(true);

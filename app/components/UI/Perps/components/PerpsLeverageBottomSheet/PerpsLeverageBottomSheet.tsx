@@ -83,7 +83,7 @@ interface PerpsLeverageBottomSheetProps {
   leverage: number;
   minLeverage: number;
   maxLeverage: number;
-  currentPrice: number;
+  currentPrice: number | undefined;
   direction: 'long' | 'short';
   asset?: string;
   limitPrice?: string;
@@ -279,7 +279,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   });
 
   const liquidationDropPercentage = useMemo(() => {
-    if (currentPrice === 0 || !currentPrice) return 0;
+    if (!currentPrice) return undefined;
 
     if (tempLeverage === 1) {
       return 100;
@@ -307,9 +307,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
         ? dynamicLiquidationPrice
         : lastValidLiquidationPrice.current;
 
-  const displayLiquidationPercentage = isRecalculating
-    ? null
-    : `${liquidationDropPercentage.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
+  const displayLiquidationPercentage =
+    isRecalculating || liquidationDropPercentage === undefined
+      ? null
+      : `${liquidationDropPercentage.toFixed(LIQUIDATION_DISTANCE_DECIMALS)}%`;
 
   const leverageOptions = useMemo(
     () =>

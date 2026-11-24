@@ -1181,7 +1181,11 @@ export function usePerpsTPSLForm(
   });
 
   const expectedTakeProfitPnL =
-    takeProfitPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+    tpClosingFees.totalFee !== undefined &&
+    takeProfitPrice &&
+    positionSizeForPnL !== 0 &&
+    entryPrice &&
+    entryPrice > 0
       ? calculateExpectedPnL({
           triggerPrice: Number.parseFloat(takeProfitPrice),
           entryPrice,
@@ -1207,7 +1211,11 @@ export function usePerpsTPSLForm(
   });
 
   const expectedStopLossPnL =
-    stopLossPrice && positionSizeForPnL !== 0 && entryPrice && entryPrice > 0
+    slClosingFees.totalFee !== undefined &&
+    stopLossPrice &&
+    positionSizeForPnL !== 0 &&
+    entryPrice &&
+    entryPrice > 0
       ? calculateExpectedPnL({
           triggerPrice: Number.parseFloat(stopLossPrice),
           entryPrice,

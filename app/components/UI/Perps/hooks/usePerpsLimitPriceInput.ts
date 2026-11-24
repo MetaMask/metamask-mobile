@@ -1,5 +1,7 @@
+import { parseOrderPrice } from '../utils/parseOrderNumber';
 import { useCallback, useMemo, useRef } from 'react';
 import {
+  isPriceOutsideDeviationBand,
   DECIMAL_PRECISION_CONFIG,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -19,7 +21,6 @@ import {
 import { getLimitPriceDirectionWarning } from '../utils/limitPriceFarFromMarket';
 import {
   calculateLimitPriceForPercentage,
-  isPriceOutsideDeviationBand,
   resolveOracleReferencePrice,
 } from '../utils/orderUtils';
 import { getLimitPriceTooFarMessage } from '../utils/triggerOrderValidation';
@@ -43,7 +44,7 @@ export interface PerpsLimitPricePresetTestIDs {
 
 export interface UsePerpsLimitPriceInputParams {
   asset: string;
-  currentPrice: number;
+  currentPrice: number | undefined;
   /** Direction of the order being placed, i.e. the opposite of a closing position. */
   direction: 'long' | 'short';
   limitPrice: string;
@@ -60,7 +61,7 @@ export interface UsePerpsLimitPriceInputParams {
 
 export interface UsePerpsLimitPriceInputResult {
   /** Live mid, falling back to the price the caller passed in. */
-  currentPrice: number;
+  currentPrice: number | undefined;
   formattedLimitPrice: string;
   presets: PerpsLimitPricePreset[];
   /** Price sits outside the venue's accepted band, which blocks submission. */
@@ -99,9 +100,8 @@ export function usePerpsLimitPriceInput({
     throttleMs: 1000,
   });
   const currentPriceData = priceData[asset];
-  const currentPrice = currentPriceData?.price
-    ? Number.parseFloat(currentPriceData.price)
-    : passedCurrentPrice;
+  const currentPrice =
+    parseOrderPrice(currentPriceData?.price) ?? passedCurrentPrice;
 
   const referencePrice = resolveOracleReferencePrice(
     currentPriceData?.oraclePrice,
@@ -222,6 +222,7 @@ export function usePerpsLimitPriceInput({
 
   const exceedsMaxDeviation = useMemo(
     () =>
+      referencePrice !== undefined &&
       isPriceOutsideDeviationBand(
         Number.parseFloat(limitPrice.replace(/[$,]/g, '')),
         referencePrice,
@@ -241,9 +242,10 @@ export function usePerpsLimitPriceInput({
     [currentPrice, direction, isClosingPosition, limitPrice],
   );
 
-  const error = exceedsMaxDeviation
-    ? getLimitPriceTooFarMessage(referencePrice)
-    : directionWarning;
+  const error =
+    exceedsMaxDeviation && referencePrice !== undefined
+      ? getLimitPriceTooFarMessage(referencePrice)
+      : directionWarning;
 
   const trackInputMethod = useCallback(() => {
     if (!inputMethodRef.current) {

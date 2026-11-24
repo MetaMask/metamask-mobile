@@ -1,3 +1,4 @@
+import { parseOrderNumber } from '../utils/parseOrderNumber';
 import {
   getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
@@ -41,7 +42,7 @@ let pointsCalculationCache: {
  */
 export interface OrderFeesResult {
   /** Total fee in USD (protocol + MetaMask) */
-  totalFee: number;
+  totalFee: number | undefined;
   /** Total fee rate as decimal (protocol + MetaMask) - undefined means unavailable/error state */
   totalFeeRate: number | undefined;
   /**
@@ -49,11 +50,11 @@ export interface OrderFeesResult {
    * Equals `totalFee` when no discount is in effect. Consumers use this to
    * display a struck-through "original" fee alongside the discounted one.
    */
-  undiscountedTotalFee: number;
+  undiscountedTotalFee: number | undefined;
   /** Protocol trading fee in USD */
-  protocolFee: number;
+  protocolFee: number | undefined;
   /** MetaMask service fee in USD */
-  metamaskFee: number;
+  metamaskFee: number | undefined;
   /** Protocol fee rate as decimal (e.g., 0.00045 for 0.045%) - undefined means unavailable/error state */
   protocolFeeRate: number | undefined;
   /** MetaMask fee rate as decimal (e.g., 0.01 for 1%) - undefined means unavailable/error state */
@@ -439,10 +440,10 @@ export function usePerpsOrderFees({
     if (errorMessage) {
       setError(errorMessage);
     }
-    setProtocolFeeRate(0);
-    setMetamaskFeeRate(0);
-    setOriginalMetamaskFeeRate(0);
-    setTotalFeeRate(0);
+    setProtocolFeeRate(undefined);
+    setMetamaskFeeRate(undefined);
+    setOriginalMetamaskFeeRate(undefined);
+    setTotalFeeRate(undefined);
     setFeeDiscountPercentage(undefined);
     setFeeSource(undefined);
     setEstimatedPoints(undefined);
@@ -475,7 +476,9 @@ export function usePerpsOrderFees({
         // Undefined means error/unavailable state - UI will display "--" fallback
         if (
           coreFeesResult.metamaskFeeRate === undefined ||
-          coreFeesResult.protocolFeeRate === undefined
+          coreFeesResult.protocolFeeRate === undefined ||
+          !Number.isFinite(coreFeesResult.metamaskFeeRate) ||
+          !Number.isFinite(coreFeesResult.protocolFeeRate)
         ) {
           // Rates unavailable - set all states to undefined for UI fallback display
           // UI will show FALLBACK_DATA_DISPLAY ('--') instead of misleading $0
@@ -616,19 +619,17 @@ export function usePerpsOrderFees({
   ]);
 
   return useMemo(() => {
-    const amountNum = Number.parseFloat(amount || '0');
-
-    // Calculate fee amounts based on rates
-    // If rates are undefined (unavailable/error state), fees are 0
-    const protocolFee =
-      protocolFeeRate !== undefined ? amountNum * protocolFeeRate : 0;
-    const metamaskFee =
-      metamaskFeeRate !== undefined ? amountNum * metamaskFeeRate : 0;
-    const totalFee = totalFeeRate !== undefined ? amountNum * totalFeeRate : 0;
-
+    const amountNum = parseOrderNumber(amount);
+    const feeAtRate = (rate: number | undefined) =>
+      amountNum !== undefined && rate !== undefined && Number.isFinite(rate)
+        ? amountNum * rate
+        : undefined;
+    const protocolFee = feeAtRate(protocolFeeRate);
+    const metamaskFee = feeAtRate(metamaskFeeRate);
+    const totalFee = feeAtRate(totalFeeRate);
     const undiscountedTotalFee =
       protocolFeeRate !== undefined && originalMetamaskFeeRate !== undefined
-        ? amountNum * (protocolFeeRate + originalMetamaskFeeRate)
+        ? feeAtRate(protocolFeeRate + originalMetamaskFeeRate)
         : totalFee;
 
     return {

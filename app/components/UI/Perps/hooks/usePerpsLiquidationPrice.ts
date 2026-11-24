@@ -1,10 +1,9 @@
-import { debounce } from 'lodash';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsTrading } from './usePerpsTrading';
 
 interface LiquidationPriceParams {
-  entryPrice: number;
+  entryPrice: number | undefined;
   leverage: number;
   direction: 'long' | 'short';
   asset: string;
@@ -37,66 +36,59 @@ export const usePerpsLiquidationPrice = (
   const debounceMs = options?.debounceMs ?? 0;
   const { entryPrice, leverage, direction, asset } = params;
 
-  const calculatePrice = useMemo(
-    () =>
-      debounce(async () => {
-        // Skip calculation if invalid parameters
-        if (entryPrice <= 0 || leverage <= 0 || !asset) {
-          setLiquidationPrice(undefined);
-          return;
-        }
-
-        try {
-          setIsCalculating(true);
-          setError(null);
-
-          const price = await calculateLiquidationPrice({
-            entryPrice,
-            leverage,
-            direction,
-            asset,
-            marginType: 'isolated', // We use isolated margin for all orders
-          });
-
-          setLiquidationPrice(price);
-        } catch (err) {
-          DevLogger.log('Error calculating liquidation price:', err);
-          const errorMessage =
-            err instanceof Error
-              ? err.message
-              : 'Failed to calculate liquidation price';
-
-          setError(errorMessage);
-
-          // A rejected estimate is unavailable, not a zero liquidation price.
-          setLiquidationPrice(undefined);
-        } finally {
-          setIsCalculating(false);
-        }
-      }, debounceMs),
-    [
-      entryPrice,
-      leverage,
-      direction,
-      asset,
-      calculateLiquidationPrice,
-      debounceMs,
-    ],
-  );
-
   useEffect(() => {
-    // Set calculating to true immediately when parameters change
-    if (entryPrice > 0 && leverage > 0 && asset) {
-      setIsCalculating(true);
+    if (
+      entryPrice === undefined ||
+      !Number.isFinite(entryPrice) ||
+      entryPrice <= 0 ||
+      !Number.isFinite(leverage) ||
+      leverage <= 0 ||
+      !asset
+    ) {
+      setLiquidationPrice(undefined);
+      setIsCalculating(false);
+      setError(null);
+      return;
     }
 
-    calculatePrice()?.catch(() => undefined);
-
-    // Cleanup debounced function on unmount
-    return (): void => {
-      calculatePrice.cancel();
+    let active = true;
+    setIsCalculating(true);
+    setError(null);
+    const timer = setTimeout(async () => {
+      try {
+        const price = await calculateLiquidationPrice({
+          entryPrice,
+          leverage,
+          direction,
+          asset,
+          marginType: 'isolated',
+        });
+        if (active) setLiquidationPrice(price);
+      } catch (err) {
+        if (!active) return;
+        DevLogger.log('Error calculating liquidation price:', err);
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to calculate liquidation price',
+        );
+        setLiquidationPrice(undefined);
+      } finally {
+        if (active) setIsCalculating(false);
+      }
+    }, debounceMs);
+    return () => {
+      active = false;
+      clearTimeout(timer);
     };
-  }, [calculatePrice, entryPrice, leverage, asset]);
+  }, [
+    asset,
+    entryPrice,
+    leverage,
+    direction,
+    debounceMs,
+    calculateLiquidationPrice,
+  ]);
 
   return {
     liquidationPrice,

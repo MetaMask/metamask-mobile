@@ -16,7 +16,7 @@ export interface UsePerpsProPositionModifyPreviewParams {
   position: Position | null | undefined;
   direction: 'long' | 'short';
   size: string;
-  price: number;
+  price: number | undefined;
   leverage: number;
   reduceOnly: boolean;
   feeAmountUsd?: number;
@@ -50,12 +50,12 @@ export const usePerpsProPositionModifyPreview = ({
       position,
       direction,
       size,
-      price: String(price),
+      price: price?.toString() ?? '',
       leverage,
       reduceOnly,
       feeAmountUsd,
       providerId: providerId ?? position?.providerId,
-      enabled,
+      enabled: enabled && price !== undefined,
     },
     // Live mid/mark and fee ticks re-request this preview while the form is
     // open on a held market. ValidationDebounceMs (300ms) coalesces those

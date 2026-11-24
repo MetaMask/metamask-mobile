@@ -200,6 +200,45 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  it('withholds market margin for an invalid mark, then shows it when the quote recovers', async () => {
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '120',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+    const margin = () =>
+      screen.getByTestId(PerpsOrderViewSelectorsIDs.MARGIN_VALUE);
+    await waitFor(() => expect(margin()).toHaveTextContent('$31.25'));
+    act(() =>
+      stream.emitPrices({
+        ETH: {
+          symbol: 'ETH',
+          price: '2500',
+          markPrice: 'invalid',
+          isTradable: true,
+          timestamp: Date.now(),
+        },
+      }),
+    );
+    await waitFor(() =>
+      expect(margin()).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay),
+    );
+    emitEthPrice(stream);
+    await waitFor(() => expect(margin()).toHaveTextContent('$31.25'));
+  });
+
   it('submits a market long after the trader reviews the calculated order fees and details', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const calculateFees = Engine.context.PerpsController
@@ -1800,6 +1839,11 @@ describe('PerpsOrderView', () => {
 
       await renderAtMax();
       await waitForDisplayedAmount((amount) => amount > 3900);
+      await waitFor(() =>
+        expect(
+          screen.getByTestId(PerpsOrderViewSelectorsIDs.FEES_VALUE),
+        ).toHaveTextContent(PERPS_CONSTANTS.FallbackDataDisplay),
+      );
       const usdAmount = await placeOrderAndReadAmount();
 
       expect(usdAmount).toBeGreaterThan(3900);

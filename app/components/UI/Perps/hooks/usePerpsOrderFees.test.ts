@@ -472,9 +472,9 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.isLoadingMetamaskFee).toBe(false);
       });
 
-      expect(result.current.protocolFee).toBe(0);
-      expect(result.current.metamaskFee).toBe(0);
-      expect(result.current.totalFee).toBe(0);
+      expect(result.current.protocolFee).toBeUndefined();
+      expect(result.current.metamaskFee).toBeUndefined();
+      expect(result.current.totalFee).toBeUndefined();
     });
   });
 
@@ -500,13 +500,13 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.isLoadingMetamaskFee).toBe(false);
       });
 
-      expect(result.current.metamaskFee).toBe(0);
-      expect(result.current.totalFee).toBe(0);
+      expect(result.current.metamaskFee).toBeUndefined();
+      expect(result.current.totalFee).toBeUndefined();
       expect(result.current.metamaskFeeRate).toBeUndefined();
       expect(result.current.protocolFeeRate).toBeUndefined();
     });
 
-    it('should fall back to default fee rate on error', async () => {
+    it('leaves fees unavailable when the provider rejects the quote', async () => {
       mockCalculateFees.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(
@@ -523,8 +523,8 @@ describe('usePerpsOrderFees', () => {
       });
 
       expect(result.current.error).toBe('Network error');
-      expect(result.current.protocolFeeRate).toBe(0); // No fallback - error state
-      expect(result.current.protocolFee).toBe(0); // 100000 * 0
+      expect(result.current.protocolFeeRate).toBeUndefined();
+      expect(result.current.protocolFee).toBeUndefined();
     });
 
     it('should handle non-Error rejection', async () => {
@@ -544,7 +544,7 @@ describe('usePerpsOrderFees', () => {
       });
 
       expect(result.current.error).toBe('Failed to fetch fees');
-      expect(result.current.protocolFeeRate).toBe(0); // No fallback - error state
+      expect(result.current.protocolFeeRate).toBeUndefined();
     });
 
     it('should handle zero amount', async () => {
@@ -687,7 +687,7 @@ describe('usePerpsOrderFees', () => {
         expect.objectContaining({
           activityContext: {
             perpsContext: expect.objectContaining({
-              usdFeeValue: result.current.metamaskFee.toString(),
+              usdFeeValue: '8',
             }),
           },
         }),
@@ -2129,9 +2129,9 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
 
       // Assert - All fees should be reset on core calculation error
       expect(result.current.error).toBe('Core calculation failed');
-      expect(result.current.protocolFeeRate).toBe(0);
-      expect(result.current.metamaskFeeRate).toBe(0);
-      expect(result.current.totalFee).toBe(0);
+      expect(result.current.protocolFeeRate).toBeUndefined();
+      expect(result.current.metamaskFeeRate).toBeUndefined();
+      expect(result.current.totalFee).toBeUndefined();
       expect(result.current.estimatedPoints).toBeUndefined();
     });
   });

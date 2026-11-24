@@ -30,7 +30,7 @@ interface PerpsTradeLeverageScreenProps {
   leverage: number;
   minLeverage: number;
   maxLeverage: number;
-  currentPrice: number;
+  currentPrice: number | undefined;
   direction: 'long' | 'short';
   asset: string;
   limitPrice?: string;

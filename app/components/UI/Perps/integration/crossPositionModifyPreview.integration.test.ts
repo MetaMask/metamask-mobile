@@ -92,6 +92,48 @@ describe('Perps Cross position modify preview — integration', () => {
     });
   });
 
+  it('prices a new Cross order using the venue’s higher notional tier', async () => {
+    const harness = buildPerpsIntegrationHarness();
+    withStandardCrossAccount(harness);
+    harness.mocks.infoClient.meta.mockResolvedValue({
+      universe: [
+        { name: 'BTC', szDecimals: 3, maxLeverage: 40, marginTableId: 51 },
+      ],
+      marginTables: [
+        [
+          51,
+          {
+            marginTiers: [
+              { lowerBound: '0', maxLeverage: 40 },
+              { lowerBound: '5000', maxLeverage: 10 },
+            ],
+          },
+        ],
+      ],
+    });
+    harness.mocks.infoClient.clearinghouseState.mockResolvedValue({
+      marginSummary: { accountValue: '1500', totalMarginUsed: '0' },
+      crossMarginSummary: {
+        accountValue: '1500',
+        totalMarginUsed: '0',
+        totalNtlPos: '0',
+      },
+      crossMaintenanceMarginUsed: '0',
+      withdrawable: '1500',
+      assetPositions: [],
+    });
+
+    const estimate = await harness.provider.estimateCrossLiquidation({
+      symbol: 'BTC',
+      direction: 'long',
+      size: '0.2',
+      entryPrice: '50000',
+      leverage: 10,
+    });
+
+    expect(estimate).toEqual({ status: 'price', price: '43750' });
+  });
+
   it('reports an unavailable liquidation price when the Cross account read fails', async () => {
     const harness = buildPerpsIntegrationHarness();
     withStandardCrossAccount(harness);

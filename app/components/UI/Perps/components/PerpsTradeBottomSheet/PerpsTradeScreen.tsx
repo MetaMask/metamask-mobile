@@ -72,7 +72,7 @@ interface PerpsTradeScreenProps {
   leverage: number;
   /** Market maximum, shown as a header tag; `null` while market data loads. */
   maxLeverage: number | null;
-  currentPrice: number;
+  currentPrice: number | undefined;
   percentChange24h: number | null;
   orderType: Extract<OrderType, 'market' | 'limit'>;
   limitPrice?: string;
@@ -92,7 +92,7 @@ interface PerpsTradeScreenProps {
   amount: string;
   tokenAmount?: string;
   /** USD price used to turn a typed coin amount into the canonical USD size. */
-  amountPrice: number;
+  amountPrice: number | undefined;
   /** Market size decimals for the coin keypad. */
   sizeDecimals: number;
   sliderMaximum: number;
@@ -413,6 +413,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
       return;
     }
 
+    if (amountPrice === undefined) return;
     const usd = convertAssetAmountToUsd(nextAsset, amountPrice);
     setDraftFromKeypad(nextAsset, usd);
     onKeypadChange({

@@ -16,8 +16,8 @@ export const toPerpsSizeUnitAnalyticsValue = (
 /**
  * A saved coin unit can be shown only once this price can project USD into coin.
  */
-export const isPerpsCoinSizePriceReady = (price: number): boolean =>
-  Number.isFinite(price) && price > 0;
+export const isPerpsCoinSizePriceReady = (price: number | undefined): boolean =>
+  price !== undefined && Number.isFinite(price) && price > 0;
 
 /**
  * Unit actually on screen.
@@ -32,7 +32,7 @@ export const resolveShownPerpsSizeDenomination = ({
   holdUsdEdit,
 }: {
   saved: PerpsSizeDenomination;
-  price: number;
+  price: number | undefined;
   holdUsdEdit: boolean;
 }): PerpsSizeDenomination => {
   if (saved === 'asset' && !holdUsdEdit && isPerpsCoinSizePriceReady(price)) {

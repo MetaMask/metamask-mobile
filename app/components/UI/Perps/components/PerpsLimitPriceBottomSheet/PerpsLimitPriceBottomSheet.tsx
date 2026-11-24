@@ -75,7 +75,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   onConfirm,
   asset,
   limitPrice: initialLimitPrice,
-  currentPrice: passedCurrentPrice = 0,
+  currentPrice: passedCurrentPrice,
   direction = 'long',
   isClosingPosition = false,
   restingOrderSize,

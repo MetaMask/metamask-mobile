@@ -1,3 +1,4 @@
+import { parseOrderNumber } from '../utils/parseOrderNumber';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
@@ -31,10 +32,10 @@ import { useStableArray } from './useStableArray';
 interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
   positionSize: string;
-  assetPrice: number;
+  assetPrice: number | undefined;
   /** Max USD that can collateralize a new position (mirrors AccountState.spendableBalance). */
   spendableBalance: number;
-  marginRequired: string;
+  marginRequired: string | undefined;
   existingPositionLeverage?: number;
   skipValidation?: boolean;
   originalUsdAmount?: string; // Original USD input for validation (prevents precision loss from recalculation)
@@ -124,7 +125,7 @@ interface BuildOrderParamsInput {
 }
 
 interface ImmediateValidationInput {
-  marginRequired: string;
+  marginRequired: string | undefined;
   spendableBalance: number;
   originalUsdAmount?: string;
   minimumOrderSize: number;
@@ -172,21 +173,6 @@ const getMinimumOrderSize = (network: 'mainnet' | 'testnet'): number =>
     ? TRADING_DEFAULTS.amount.mainnet
     : TRADING_DEFAULTS.amount.testnet;
 
-const isValidationReady = ({
-  assetPrice,
-  positionSize,
-}: {
-  assetPrice: number;
-  positionSize: string;
-}): boolean => {
-  if (!(assetPrice > 0)) {
-    return false;
-  }
-
-  const numericPositionSize = Number.parseFloat(positionSize);
-  return Number.isFinite(numericPositionSize) && numericPositionSize > 0;
-};
-
 const getImmediateValidationErrors = ({
   marginRequired,
   spendableBalance,
@@ -197,9 +183,9 @@ const getImmediateValidationErrors = ({
 }: ImmediateValidationInput): ErrorsWithInsufficientBalance => {
   const errors: string[] = [];
   const insufficientBalanceErrors: string[] = [];
-  const requiredMargin = Number.parseFloat(marginRequired);
+  const requiredMargin = parseOrderNumber(marginRequired);
 
-  if (requiredMargin > spendableBalance) {
+  if (requiredMargin !== undefined && requiredMargin > spendableBalance) {
     const insufficientBalanceError = strings(
       'perps.order.validation.insufficient_balance',
       {
@@ -211,9 +197,14 @@ const getImmediateValidationErrors = ({
     insufficientBalanceErrors.push(insufficientBalanceError);
   }
 
-  const usdAmount = Number.parseFloat(originalUsdAmount || '0');
+  const usdAmount = parseOrderNumber(originalUsdAmount);
   const skipMinimumAmount = Boolean(reduceOnly && isFullClose);
-  if (!skipMinimumAmount && usdAmount > 0 && usdAmount < minimumOrderSize) {
+  if (
+    !skipMinimumAmount &&
+    usdAmount !== undefined &&
+    usdAmount > 0 &&
+    usdAmount < minimumOrderSize
+  ) {
     errors.push(
       strings('perps.order.validation.minimum_amount', {
         amount: minimumOrderSize.toString(),
@@ -554,7 +545,10 @@ export function usePerpsOrderValidation(
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
+  const parsedMargin = parseOrderNumber(marginRequired);
+  const hasMargin = parsedMargin !== undefined && parsedMargin >= 0;
   const isLocallyValid =
+    hasMargin &&
     localErrors.length === 0 &&
     !fieldIssues.some((issue) => !isAdvisoryOrderFormFieldIssue(issue));
 
@@ -625,11 +619,15 @@ export function usePerpsOrderValidation(
         isValidating: true,
       }));
 
-      const validationReady = isValidationReady({
-        assetPrice,
-        positionSize,
-      });
-      if (!validationReady) {
+      const size = parseOrderNumber(positionSize);
+      if (
+        assetPrice === undefined ||
+        !Number.isFinite(assetPrice) ||
+        assetPrice <= 0 ||
+        size === undefined ||
+        size <= 0 ||
+        !hasMargin
+      ) {
         return finalizeValidation({
           requestFieldIssues,
           requestLocalErrors,
@@ -701,6 +699,7 @@ export function usePerpsOrderValidation(
       }
     },
     [
+      hasMargin,
       assetPrice,
       existingPositionLeverage,
       isFullClose,

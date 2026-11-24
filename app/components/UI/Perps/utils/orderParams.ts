@@ -37,15 +37,15 @@ export interface BuildPerpsOrderTrackingDataInput {
   /** Required margin string (converted to a number for the event). */
   marginRequired: string | undefined;
   feeResults: {
-    totalFee: number;
-    metamaskFee: number;
+    totalFee: number | undefined;
+    metamaskFee: number | undefined;
     metamaskFeeRate: number | undefined;
     feeDiscountPercentage?: number;
     estimatedPoints?: number;
     protocolFeeRate?: number;
   };
   /** Mid/market price at submission. */
-  marketPrice: number;
+  marketPrice: number | undefined;
   /** Input method that produced the amount ('default' for the Pro inline form). */
   inputMethod: InputMethod;
   /** Order type determines whether slippage settings affect execution. */
@@ -91,7 +91,7 @@ export const buildPerpsOrderTrackingData = ({
   maxSlippageSource,
   estimatedSlippageBps,
 }: BuildPerpsOrderTrackingDataInput): OrderTrackingData => ({
-  marginUsed: Number(marginRequired),
+  marginUsed: marginRequired === undefined ? undefined : Number(marginRequired),
   totalFee: feeResults.totalFee,
   marketPrice,
   metamaskFee: feeResults.metamaskFee,

@@ -99,6 +99,30 @@ describe('deriveOrderSizing', () => {
     expect(result.marginRequired).toBeUndefined();
   });
 
+  it.each([undefined, 0, -1, NaN, Infinity])(
+    'withholds market margin for mark %s without losing the mid-priced size',
+    (markPrice) => {
+      const result = deriveOrderSizing({
+        ...base,
+        orderType: 'market',
+        markPrice,
+      });
+      expect(result.marginRequired).toBeUndefined();
+      expect(Number(result.positionSize)).toBeGreaterThan(0);
+    },
+  );
+
+  it('keeps zero margin distinct from an invalid amount', () => {
+    expect(
+      deriveOrderSizing({ ...base, orderType: 'market', amount: '0' })
+        .marginRequired,
+    ).toBe('0.00');
+    expect(
+      deriveOrderSizing({ ...base, orderType: 'market', amount: '2oops' })
+        .marginRequired,
+    ).toBeUndefined();
+  });
+
   it('uses the mark price (not market price) as the margin basis for market orders', () => {
     // Arrange / Act: with a distinct markPrice, margin reflects the oracle basis
     const withMark = deriveOrderSizing({
@@ -352,7 +376,7 @@ describe('getPayWithTokenDepositAmount', () => {
     expect(result).toBe('10.01');
   });
 
-  it('ignores a non-finite fee estimate instead of producing NaN', () => {
+  it('withholds the deposit amount when the fee estimate is unavailable', () => {
     // Arrange / Act
     const result = getPayWithTokenDepositAmount({
       ...base,
@@ -361,7 +385,7 @@ describe('getPayWithTokenDepositAmount', () => {
     });
 
     // Assert
-    expect(result).toBe('3.39');
+    expect(result).toBe('');
   });
 
   it('returns an empty amount while margin is unknown', () => {

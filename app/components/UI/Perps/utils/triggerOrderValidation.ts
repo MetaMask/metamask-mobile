@@ -1,4 +1,6 @@
 import {
+  isPriceOutsideDeviationBand,
+  getPriceDeviationBand,
   DECIMAL_PRECISION_CONFIG,
   formatHyperLiquidPrice,
   getTriggerDirection,
@@ -12,10 +14,6 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from './formatUtils';
-import {
-  getPriceDeviationBand,
-  isPriceOutsideDeviationBand,
-} from './orderUtils';
 
 export type TriggerPriceValidationIssue =
   | { code: 'required' }
@@ -55,7 +53,7 @@ export interface LimitPriceCrossingWarningInput {
   orderType: OrderType;
   direction: 'long' | 'short';
   limitPrice: string | undefined;
-  midPrice: number;
+  midPrice?: number;
   szDecimals?: number;
 }
 
@@ -303,7 +301,7 @@ export const getOrderFormFieldIssues = ({
   direction: 'long' | 'short';
   triggerPrice?: string;
   limitPrice?: string;
-  midPrice: number;
+  midPrice?: number;
   szDecimals?: number;
 }): OrderFormFieldIssue[] => {
   const issues: OrderFormFieldIssue[] = [];
@@ -416,7 +414,7 @@ export const getLimitPriceCrossingWarning = ({
     return undefined;
   }
 
-  if (!(midPrice > 0)) {
+  if (midPrice === undefined || !(midPrice > 0)) {
     return undefined;
   }
 

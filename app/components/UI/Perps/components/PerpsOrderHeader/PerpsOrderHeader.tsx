@@ -23,7 +23,7 @@ import { selectPerpsBrandRefreshEnabled } from '../../../../../selectors/feature
 
 interface PerpsOrderHeaderProps {
   asset: string;
-  price: number;
+  price: number | undefined;
   orderType?: OrderType;
   direction?: 'long' | 'short';
   onBack?: () => void;

@@ -33,7 +33,7 @@ export interface PerpsOrderTpSlWarningsInput {
   /** Liquidation price for the prospective order; `undefined` when unavailable. */
   liquidationPrice?: string;
   /** Mid/market price used as the validation reference for market orders. */
-  marketPrice: number;
+  marketPrice: number | undefined;
 }
 
 export interface PerpsOrderTpSlWarnings {
@@ -83,7 +83,8 @@ export const getPerpsOrderTpSlWarnings = ({
   const isTakeProfitPriceInvalid = Boolean(
     takeProfitPrice?.trim() &&
       (!isPositiveTriggerPrice(takeProfitPrice) ||
-        (validationReferencePrice > 0 &&
+        (validationReferencePrice !== undefined &&
+          validationReferencePrice > 0 &&
           !isValidTakeProfitPrice(takeProfitPrice, {
             currentPrice: validationReferencePrice,
             direction,
@@ -93,7 +94,8 @@ export const getPerpsOrderTpSlWarnings = ({
   const isStopLossPriceInvalid = Boolean(
     stopLossPrice?.trim() &&
       (!isPositiveTriggerPrice(stopLossPrice) ||
-        (validationReferencePrice > 0 &&
+        (validationReferencePrice !== undefined &&
+          validationReferencePrice > 0 &&
           !isValidStopLossPrice(stopLossPrice, {
             currentPrice: validationReferencePrice,
             direction,

@@ -15,8 +15,6 @@ import {
   getOrderDirection,
   willFlipPosition,
   determineMakerStatus,
-  isPriceOutsideDeviationBand,
-  getPriceDeviationBand,
   resolveOracleReferencePrice,
   calculateLimitPriceForPercentage,
   getOrderPriceRowVisibility,
@@ -1633,69 +1631,6 @@ describe('orderUtils', () => {
 
         expect(result).toBe(false);
       });
-    });
-  });
-
-  describe('isPriceOutsideDeviationBand', () => {
-    const maxDeviation = 0.95;
-
-    it('returns false when the price is within the band', () => {
-      // 3100 is ~3.3% from the 3000 reference, well within the band
-      expect(isPriceOutsideDeviationBand(3100, 3000, maxDeviation)).toBe(false);
-    });
-
-    it('returns false for a high price still within the ratio band', () => {
-      // 30000 is 10x the 3000 reference; the reference is 10% of the price,
-      // above the 5% floor, so it is allowed
-      expect(isPriceOutsideDeviationBand(30000, 3000, maxDeviation)).toBe(
-        false,
-      );
-    });
-
-    it('returns true when the price is far above the band', () => {
-      expect(isPriceOutsideDeviationBand(999999999, 3000, maxDeviation)).toBe(
-        true,
-      );
-    });
-
-    it('returns true when the price is far below the band', () => {
-      // 100 is ~3.3% of the 3000 reference, below the 5% floor
-      expect(isPriceOutsideDeviationBand(100, 3000, maxDeviation)).toBe(true);
-    });
-
-    it('is symmetric with respect to the two prices', () => {
-      expect(isPriceOutsideDeviationBand(3000, 999999999, maxDeviation)).toBe(
-        true,
-      );
-    });
-
-    it.each([
-      ['zero reference price', 1000, 0],
-      ['negative reference price', 1000, -5],
-      ['zero price', 0, 3000],
-      ['negative price', -5, 3000],
-      ['NaN price', Number.NaN, 3000],
-    ])(
-      'returns false for %s (incomplete/invalid data)',
-      (_label, price, ref) => {
-        expect(isPriceOutsideDeviationBand(price, ref, maxDeviation)).toBe(
-          false,
-        );
-      },
-    );
-  });
-
-  describe('getPriceDeviationBand', () => {
-    it('returns the inclusive ratio band around a usable reference', () => {
-      const band = getPriceDeviationBand(2000, 0.95);
-
-      expect(band?.min).toBeCloseTo(100);
-      expect(band?.max).toBeCloseTo(40000);
-    });
-
-    it('returns undefined when the reference is not usable', () => {
-      expect(getPriceDeviationBand(0, 0.95)).toBeUndefined();
-      expect(getPriceDeviationBand(2000, 1)).toBeUndefined();
     });
   });
 });
