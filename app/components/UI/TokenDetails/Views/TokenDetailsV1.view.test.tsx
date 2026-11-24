@@ -15,6 +15,11 @@ import {
 } from '@testing-library/react-native';
 
 import { renderTokenDetailsV1View } from '../../../../../tests/component-view/renderers/tokenDetailsV1';
+import { createStateFixture } from '../../../../../tests/component-view/stateFixture';
+import {
+  clearQuickBuyApiMocks,
+  setupQuickBuyApiMock,
+} from '../../../../../tests/component-view/api-mocking/quickBuy';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import {
   buildTokenDetailsV1RouteParams,
@@ -52,6 +57,12 @@ import {
   formatFollowerCountLabel,
   formatPercent,
 } from '../../SocialFeed/utils/formatters';
+import { mockSpotFeedItem } from '../../SocialFeed/mocks/coreFeed.mock';
+import { QuickBuySheetSelectorsIDs } from '../../QuickBuy/QuickBuySheet.testIds';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../../../Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { formatAddress, toChecksumAddress } from '../../../../util/address';
 
 const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
@@ -64,8 +75,9 @@ const QUOTE_TOKENS: QuoteTokensResponse = {
 
 const serveQuoteTokens = (
   response: Promise<QuoteTokensResponse>,
+  options?: Parameters<typeof setupLeaderboardApiMock>[0],
 ): jest.SpyInstance => {
-  const messenger = setupLeaderboardApiMock();
+  const messenger = setupLeaderboardApiMock(options);
   const delegate = messenger.getMockImplementation();
   messenger.mockImplementation((action: string, ...args: unknown[]) =>
     action === 'SocialService:fetchQuoteTokens'
@@ -544,11 +556,9 @@ describeForPlatforms('TokenDetailsV1', () => {
     expect(
       getByTestId(TokenDetailsIds.securityHolders.count),
     ).toHaveTextContent('100');
-    expect(rows).toHaveLength(3);
+    expect(rows).toHaveLength(2);
     expect(within(rows[0]).getByText('12.50%')).toBeOnTheScreen();
     expect(within(rows[1]).getByText('5.90%')).toBeOnTheScreen();
-    expect(within(rows[2]).getByText('Pool')).toBeOnTheScreen();
-    expect(within(rows[2]).getByText('70.00%')).toBeOnTheScreen();
     expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
     expect(getByTestId(TokenDetailsIds.tab('overview'))).toBeOnTheScreen();
 
@@ -594,6 +604,109 @@ describeForPlatforms('TokenDetailsV1', () => {
     } finally {
       __resetMockNetInfo();
     }
+  });
+
+  it('opens Quick Buy from Copy trade on a populated standard Feed', async () => {
+    setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
+    setupQuickBuyApiMock();
+    __setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    await acceptSocialTerms();
+    serveQuoteTokens(Promise.resolve(QUOTE_TOKENS), {
+      feedItems: [
+        mockSpotFeedItem({
+          tokenAddress: TOKEN_DETAILS_V1_ADDRESS,
+          authorComment: {
+            uid: 'standard-spot-post',
+            text: 'Holding this position',
+            timestamp: 1_700_000_000,
+            engagement: { reactions: [], userReaction: null },
+          },
+        }),
+      ],
+    });
+
+    try {
+      const { findByTestId, findByText, getByText } = renderTokenDetailsV1View({
+        socialEnabled: true,
+        tabConfigOrder: ['feed', 'overview', 'security'],
+        overrides: createStateFixture()
+          .withMinimalBridgeController()
+          .withPreferences({
+            tokenSortConfig: {
+              key: 'tokenFiatAmount',
+              order: 'dsc',
+              sortCallback: 'stringNumeric',
+            },
+          })
+          .withOverrides({
+            engine: {
+              backgroundState: {
+                GeolocationController: { location: 'FR', status: 'complete' },
+              },
+            },
+          })
+          .build(),
+      });
+      const copyTradeLabel = strings(
+        'social_leaderboard.feed.position_card.copy_trade',
+      );
+      await findByText(copyTradeLabel);
+      fireEvent.press(getByText(copyTradeLabel));
+
+      expect(
+        await findByTestId(QuickBuySheetSelectorsIDs.CONTENT_CONTAINER),
+      ).toBeOnTheScreen();
+    } finally {
+      clearQuickBuyApiMocks();
+      __resetMockNetInfo();
+      await resetSocialTermsAcceptance();
+    }
+  });
+
+  it('keeps an explicit Overview pick when higher-priority Feed and Holders arrive', async () => {
+    let releaseSecurity: () => void = () => undefined;
+    const securityReady = new Promise<void>((resolve) => {
+      releaseSecurity = resolve;
+    });
+    setupTokenDetailsV1ApiMocks({ launchpad: false, securityReady });
+    let resolveQuoteTokens: (value: QuoteTokensResponse) => void = () =>
+      undefined;
+    serveQuoteTokens(
+      new Promise((resolve) => {
+        resolveQuoteTokens = resolve;
+      }),
+    );
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTokenDetailsV1View({
+        socialEnabled: true,
+        tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
+      });
+
+    await findByTestId(TokenDetailsIds.tabPage('overview'));
+    expect(queryByTestId(TokenDetailsIds.tab('holders'))).not.toBeOnTheScreen();
+    expect(queryByTestId(TokenDetailsIds.tab('feed'))).not.toBeOnTheScreen();
+    fireEvent.press(getByTestId(TokenDetailsIds.tab('overview')));
+    await act(async () => {
+      releaseSecurity();
+    });
+
+    expect(
+      await findByTestId(TokenDetailsIds.tab('holders')),
+    ).toBeOnTheScreen();
+    expect(getByTestId(TokenDetailsIds.tabPage('overview'))).toBeOnTheScreen();
+
+    await act(async () => {
+      resolveQuoteTokens(QUOTE_TOKENS);
+    });
+
+    expect(await findByTestId(TokenDetailsIds.tab('feed'))).toBeOnTheScreen();
+    expect(getByTestId(TokenDetailsIds.tabPage('overview'))).toBeOnTheScreen();
+    expect(
+      queryByTestId(TokenDetailsIds.tabPage('feed')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(TokenDetailsIds.tabPage('holders')),
+    ).not.toBeOnTheScreen();
   });
 
   it.each([

@@ -513,6 +513,12 @@ export const resolveVerdict = (
 ): SecurityVerdict =>
   VERDICT_BY_RESULT_TYPE[securityData.resultType] ?? 'unscreened';
 
+/** The ranked wallet subset used by Security and Holders. */
+export const getTopTenWalletHolders = (
+  holders: TokenSecurityFinancialStats['topHolders'] | undefined,
+): NonNullable<TokenSecurityFinancialStats['topHolders']> =>
+  (holders ?? []).filter((holder) => holder.label === 'wallet').slice(0, 10);
+
 /**
  * Sum of the top ten WALLET holders' share, capped because the API can
  * overshoot.
@@ -534,15 +540,14 @@ export const resolveVerdict = (
 export const sumTopTenPercentage = (
   financialStats: TokenSecurityFinancialStats | null | undefined,
 ): number | null => {
-  const walletHolders = financialStats?.topHolders?.filter(
-    (holder) => holder.label === 'wallet',
-  );
-  if (!walletHolders?.length) {
+  const walletHolders = getTopTenWalletHolders(financialStats?.topHolders);
+  if (!walletHolders.length) {
     return null;
   }
-  const total = walletHolders
-    .slice(0, 10)
-    .reduce((sum, holder) => sum + (holder.holdingPercentage ?? 0), 0);
+  const total = walletHolders.reduce(
+    (sum, holder) => sum + (holder.holdingPercentage ?? 0),
+    0,
+  );
   return Math.min(total, 100);
 };
 

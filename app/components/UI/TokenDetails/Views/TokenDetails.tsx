@@ -45,6 +45,8 @@ import { TraceName, endTrace } from '../../../../util/trace';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { useStyles } from '../../../hooks/useStyles';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
+import Logger from '../../../../util/Logger';
+import { useTokenDetailsFeedCopyTrade } from '../hooks/useTokenDetailsFeedCopyTrade';
 import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import {
   SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
@@ -526,7 +528,15 @@ const TokenDetails: React.FC<{
           (feedAsset.chain.namespace === 'solana' &&
             feedAsset.assetNamespace === 'token')),
     );
+  const { handleFeedCopyTrade, feedCopyTradeSheet } =
+    useTokenDetailsFeedCopyTrade();
   const quoteTokens = useQuoteTokensQuery(canCheckFeedEligibility);
+  const quoteTokensError = quoteTokens.error;
+  useEffect(() => {
+    if (canCheckFeedEligibility && quoteTokensError) {
+      Logger.error(quoteTokensError, 'TokenDetails: quote-token list failed');
+    }
+  }, [canCheckFeedEligibility, quoteTokensError]);
   const showFeedTab =
     canCheckFeedEligibility &&
     caip19AssetId !== null &&
@@ -548,18 +558,15 @@ const TokenDetails: React.FC<{
   }, [showFeedTab, showHoldersTab, tabConfigOrder]);
   const landingTab = tabs[0];
   const userPickedTabRef = useRef(false);
-  const applyingLandingTabRef = useRef(false);
-  const handleTabChange = useCallback((): void => {
-    if (!applyingLandingTabRef.current) {
-      userPickedTabRef.current = true;
-    }
-    clampScrollToTabBar();
-  }, [clampScrollToTabBar]);
+  const recordTabPick = useCallback((): void => {
+    userPickedTabRef.current = true;
+  }, []);
   const { activeTab, activateTab, mountedTabs, swipeGesture } =
     useTokenDetailsV1Tabs({
       initialTab: landingTab,
       tabs,
-      onTabChange: handleTabChange,
+      onTabChange: clampScrollToTabBar,
+      onSwipeTab: recordTabPick,
     });
   const selectedTab = tabs.includes(activeTab) ? activeTab : landingTab;
   useEffect(() => {
@@ -567,9 +574,7 @@ const TokenDetails: React.FC<{
       selectedTab !== activeTab ||
       (!userPickedTabRef.current && activeTab !== landingTab)
     ) {
-      applyingLandingTabRef.current = true;
       activateTab(landingTab);
-      applyingLandingTabRef.current = false;
     }
   }, [activeTab, activateTab, landingTab, selectedTab]);
   const isFeedActive = selectedTab === 'feed';
@@ -578,6 +583,7 @@ const TokenDetails: React.FC<{
     !isOffline && hardwareTier !== 'LOW' && networkTier !== 'SLOW_CELLULAR';
   const handleTabPress = useCallback(
     (tab: TokenDetailsV1TabKey) => {
+      recordTabPick();
       trackEvent(
         createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_TAB_VIEWED)
           .addProperties({ ...getTdpAnalyticsBase(token, null), tab_name: tab })
@@ -585,7 +591,7 @@ const TokenDetails: React.FC<{
       );
       activateTab(tab);
     },
-    [activateTab, createEventBuilder, token, trackEvent],
+    [activateTab, createEventBuilder, recordTabPick, token, trackEvent],
   );
 
   const [explainer, setExplainer] = useState<ExplainerCopy | null>(null);
@@ -877,6 +883,7 @@ const TokenDetails: React.FC<{
                 <TokenDetailsFeedTab
                   key={caip19AssetId}
                   assetId={caip19AssetId}
+                  onCopyTrade={handleFeedCopyTrade}
                   token={token}
                   hasBalance={hasBalanceValue}
                   isActive={isFeedActive}
@@ -1086,6 +1093,7 @@ const TokenDetails: React.FC<{
         />
       )}
       {quickBuySheet}
+      {feedCopyTradeSheet}
     </View>
   );
 };

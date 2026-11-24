@@ -17,8 +17,10 @@ import {
   SocialEvent,
   useSocialScreenAnalytics,
 } from '../../../../Views/SocialLeaderboard/analytics';
-import { STAT_EMPTY_VALUE } from '../../constants/tokenStats';
+import { SECURITY_STAT_LABEL_KEYS } from '../V1/SecurityTab/SecurityTab.constants';
+import { STAT_EMPTY_VALUE, TokenStatKey } from '../../constants/tokenStats';
 import { TokenDetailsIds } from '../../testIds';
+import { getTopTenWalletHolders } from '../../utils/securityFacts';
 import { formatPercent } from '../../utils/statBarFormat';
 
 interface TokenSecurityHoldersTabProps {
@@ -39,8 +41,8 @@ const TokenSecurityHoldersTab: React.FC<TokenSecurityHoldersTabProps> = ({
   useSocialScreenAnalytics(SocialEvent.Screen.TOKEN_DETAILS_HOLDERS, {
     source: SocialEvent.Source.TOKEN_DETAILS_HOLDERS,
   });
-  const holderLabel = strings('token_details_v1.security_tab.stats.holders');
-  const topTenLabel = strings('token_details_v1.security_tab.stats.top_ten');
+  const holderLabel = strings(SECURITY_STAT_LABEL_KEYS[TokenStatKey.Holders]);
+  const topTenLabel = strings(SECURITY_STAT_LABEL_KEYS[TokenStatKey.Top10]);
 
   return (
     <Box twClassName="px-4 py-4">
@@ -68,9 +70,8 @@ const TokenSecurityHoldersTab: React.FC<TokenSecurityHoldersTabProps> = ({
           </Text>
         </Box>
       </Box>
-      {holders
-        .slice(0, 10)
-        .map(({ address, name, holdingPercentage }, index) => {
+      {getTopTenWalletHolders(holders).map(
+        ({ address, name, holdingPercentage }, index) => {
           const rank = index + 1;
           const shortAddress = formatAddress(address, 'short');
           const title = name ?? shortAddress;
@@ -121,7 +122,8 @@ const TokenSecurityHoldersTab: React.FC<TokenSecurityHoldersTabProps> = ({
               </Box>
             </Pressable>
           );
-        })}
+        },
+      )}
     </Box>
   );
 };
