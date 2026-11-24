@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-08, KP-10, KP-14, KP-16 (see prototypeScreens.ts)
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, HeaderStandard } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

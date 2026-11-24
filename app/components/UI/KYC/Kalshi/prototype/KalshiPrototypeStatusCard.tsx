@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-29, KP-31, KP-33 (see prototypeScreens.ts)
 import React from 'react';
 import { Image, Linking } from 'react-native';
 import BannerCompact, {

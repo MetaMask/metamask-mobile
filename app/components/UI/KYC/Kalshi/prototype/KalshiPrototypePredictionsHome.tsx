@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-01, KP-27 (see prototypeScreens.ts)
 import React, { useCallback, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';

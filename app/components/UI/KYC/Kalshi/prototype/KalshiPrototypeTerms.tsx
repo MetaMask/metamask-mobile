@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-06, KP-07, KP-11 (see prototypeScreens.ts)
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Linking,

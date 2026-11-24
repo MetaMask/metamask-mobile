@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-12 (see prototypeScreens.ts)
 import React, { useState } from 'react';
 import {
   Box,

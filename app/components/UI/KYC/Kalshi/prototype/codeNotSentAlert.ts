@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-13, KP-15 (see prototypeScreens.ts)
 import { Alert } from 'react-native';
 import { PROTOTYPE_COPY } from './prototypeConstants';
 

@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-09 (see prototypeScreens.ts)
 import React, { useCallback, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';

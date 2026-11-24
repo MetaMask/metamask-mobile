@@ -1,4 +1,5 @@
 // PROTOTYPE-DO-NOT-MERGE
+// Paper screens: KP-02 (see prototypeScreens.ts)
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
