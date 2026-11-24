@@ -834,13 +834,13 @@ describe('usePerpsClosePosition', () => {
         it('reconciles an already-closed position from a normalized Core result', async () => {
           const normalizedResult = {
             success: false,
-            error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+            error: 'Position is no longer available',
             errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
             errorDetails: {
               code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-              provider: 'hyperliquid' as const,
+              provider: 'hyperliquid',
             },
-          };
+          } satisfies OrderResult;
           mockClosePosition.mockResolvedValue(normalizedResult);
           const onSuccess = jest.fn();
           const { result } = renderHook(() =>

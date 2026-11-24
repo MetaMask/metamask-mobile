@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
+import {
+  PERPS_ERROR_CODES,
+  type MarginResult,
+} from '@metamask/perps-controller';
 import Logger from '../../../../util/Logger';
 import { usePerpsMarginAdjustment } from './usePerpsMarginAdjustment';
 
@@ -243,7 +246,7 @@ describe('usePerpsMarginAdjustment', () => {
         {
           action: 'add',
           asset: 'ETH',
-          error_message: 'perps.errors.unknownError',
+          error_message: 'Insufficient funds',
           status: 'failed',
         },
       );
@@ -309,7 +312,7 @@ describe('usePerpsMarginAdjustment', () => {
       expect(mockOnError).toHaveBeenCalledWith('perps.errors.unknownError');
     });
 
-    it('translates a provider-tagged margin failure from its error code', async () => {
+    it('uses the margin error code for analytics and translated copy for UI', async () => {
       const diagnostic =
         'Hyperliquid signer 0xabc returned an internal stack trace';
       mockUpdateMargin.mockResolvedValue({
@@ -320,7 +323,7 @@ describe('usePerpsMarginAdjustment', () => {
           code: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
           provider: 'hyperliquid',
         },
-      });
+      } satisfies MarginResult);
       const mockOnError = jest.fn();
       const { result } = renderHook(() =>
         usePerpsMarginAdjustment({ onError: mockOnError }),
@@ -334,6 +337,21 @@ describe('usePerpsMarginAdjustment', () => {
         'perps.errors.insufficientBalance',
       );
       expect(mockOnError).not.toHaveBeenCalledWith(diagnostic);
+      expect(mockShowToast).toHaveBeenCalledWith({
+        type: 'error',
+        error: 'perps.errors.insufficientBalance',
+      });
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'Perp Margin Adjustment Transaction',
+        }),
+        {
+          action: 'remove',
+          asset: 'ETH',
+          error_message: PERPS_ERROR_CODES.INSUFFICIENT_BALANCE,
+          status: 'failed',
+        },
+      );
     });
   });
 

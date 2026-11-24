@@ -23,6 +23,7 @@ import {
   type PriceUpdate,
   type OrderBookData,
   type OrderBookLevel,
+  type OrderResult,
   type Position,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
@@ -478,9 +479,9 @@ describe('PerpsOrderView', () => {
         errorCode: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
         errorDetails: {
           code: PERPS_ERROR_CODES.PROVIDER_LIFECYCLE_STALE,
-          provider: 'hyperliquid' as const,
+          provider: 'hyperliquid',
         },
-      },
+      } satisfies OrderResult,
       messageKey: 'perps.errors.clientReinitializing',
       hiddenText: 'Hyperliquid signer 0xabc returned an internal stack trace',
     },
@@ -492,9 +493,9 @@ describe('PerpsOrderView', () => {
         errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
         errorDetails: {
           code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
-          provider: 'hyperliquid' as const,
+          provider: 'hyperliquid',
         },
-      },
+      } satisfies OrderResult,
       messageKey: 'perps.errors.unknownError',
       hiddenText: 'Hyperliquid signer 0xabc returned an internal stack trace',
     },

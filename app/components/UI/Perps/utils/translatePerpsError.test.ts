@@ -52,7 +52,11 @@ jest.mock('@metamask/perps-controller', () => {
 });
 
 import { strings } from '../../../../../locales/i18n';
-import { PERPS_ERROR_CODES, PROVIDER_CONFIG } from '@metamask/perps-controller';
+import {
+  PERPS_ERROR_CODES,
+  PROVIDER_CONFIG,
+  type OrderResult,
+} from '@metamask/perps-controller';
 import {
   translatePerpsError,
   isPerpsErrorCode,
@@ -218,14 +222,16 @@ describe('translatePerpsError', () => {
       const rawDiagnostic =
         'Hyperliquid signer 0xabc returned an internal stack trace';
 
-      const result = translatePerpsError({
+      const failure = {
         error: rawDiagnostic,
         errorCode: PERPS_ERROR_CODES.UNKNOWN_ERROR,
         errorDetails: {
           code: PERPS_ERROR_CODES.UNKNOWN_ERROR,
           provider: PROVIDER_CONFIG.DefaultProvider,
         },
-      });
+      } satisfies OrderResult;
+
+      const result = translatePerpsError(failure);
 
       expect(result).toBe('perps.errors.unknownError');
       expect(result).not.toContain(rawDiagnostic);
@@ -282,7 +288,7 @@ describe('translatePerpsError', () => {
             code: errorCode,
             provider: PROVIDER_CONFIG.DefaultProvider,
           },
-        };
+        } satisfies OrderResult;
 
         const result = translatePerpsError(failure);
 
@@ -290,19 +296,43 @@ describe('translatePerpsError', () => {
       },
     );
 
-    it('rejects provider-tagged details from an unrecognized provider', () => {
+    it.each([
+      null,
+      42,
+      { code: 'FUTURE_DETAILS', reason: 'new controller variant' },
+      {
+        code: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+        provider: 'unrecognized-provider',
+      },
+      { code: PERPS_ERROR_CODES.PRICE_MOVED, priceDeltaBps: 'not numeric' },
+    ])(
+      'translates a valid code despite unrecognized details: %p',
+      (errorDetails) => {
+        // Deliberately outside the published contract to exercise the unknown boundary.
+        const failure = {
+          error: 'Unclassified venue diagnostic',
+          errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+          errorDetails,
+        };
+
+        const result = translatePerpsError(failure);
+
+        expect(result).toBe('perps.errors.insufficientMargin');
+        expect(
+          isPerpsErrorCode(failure, PERPS_ERROR_CODES.INSUFFICIENT_MARGIN),
+        ).toBe(true);
+      },
+    );
+
+    it('matches legacy text despite unrecognized details', () => {
       const failure = {
-        error: 'Unclassified venue diagnostic',
-        errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-        errorDetails: {
-          code: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
-          provider: 'unrecognized-provider',
-        },
+        error: 'Insufficient margin to place order',
+        errorDetails: { code: 'FUTURE_DETAILS' },
       };
 
       const result = translatePerpsError(failure);
 
-      expect(result).toBe('perps.errors.unknownError');
+      expect(result).toBe('perps.errors.insufficientMargin');
     });
   });
 
@@ -498,13 +528,21 @@ describe('isNoPositionFoundError', () => {
 
   it('returns true for a normalized POSITION_NOT_FOUND result', () => {
     const error = {
-      error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+      error: 'Position is no longer available',
       errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
       errorDetails: {
         code: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
         provider: PROVIDER_CONFIG.DefaultProvider,
       },
-    };
+    } satisfies OrderResult;
+
+    const result = isNoPositionFoundError(error);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns true for legacy text inside an order result', () => {
+    const error = { error: 'No position found for ETH' } satisfies OrderResult;
 
     const result = isNoPositionFoundError(error);
 
@@ -754,6 +792,21 @@ describe('normalized post-only rejections from Core', () => {
 describe('handlePerpsError', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  it('translates a valid code despite unrecognized details instead of using fallback copy', () => {
+    const error = {
+      error: 'Unclassified venue diagnostic',
+      errorCode: PERPS_ERROR_CODES.INSUFFICIENT_MARGIN,
+      errorDetails: { code: 'FUTURE_DETAILS' },
+    };
+
+    const result = handlePerpsError({
+      error,
+      fallbackMessage: 'Order validation failed',
+    });
+
+    expect(result).toBe('perps.errors.insufficientMargin');
   });
 
   describe('with TOKEN_NOT_SUPPORTED error', () => {

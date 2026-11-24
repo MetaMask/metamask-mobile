@@ -167,7 +167,10 @@ export function usePerpsMarginAdjustment(
           DevLogger.log('Failed to adjust margin:', result.error);
 
           const errorMessage = translatePerpsError(result);
-          trackAdjustment(PERPS_EVENT_VALUE.STATUS.FAILED, errorMessage);
+          trackAdjustment(
+            PERPS_EVENT_VALUE.STATUS.FAILED,
+            result.errorCode ?? result.error,
+          );
 
           showToast(
             PerpsToastOptions.positionManagement.margin.adjustmentFailed(

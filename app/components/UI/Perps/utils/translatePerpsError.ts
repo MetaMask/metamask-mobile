@@ -3,9 +3,7 @@ import { hasProperty } from '@metamask/utils';
 import {
   isPerpsErrorCode as isPerpsErrorCodeValue,
   PERPS_ERROR_CODES,
-  PROVIDER_CONFIG,
-  type HyperLiquidErrorDetails,
-  type PerpsErrorDetails,
+  type OrderResult,
   type PriceMovedErrorDetails,
   type PerpsErrorCode,
   type PerpsDebugLogger,
@@ -17,13 +15,18 @@ import {
  */
 export type ErrorHandlerDebugLogger = PerpsDebugLogger | undefined;
 
-export interface PerpsErrorInput {
+export interface PerpsErrorInput
+  extends Pick<OrderResult, 'errorCode' | 'errorDetails'> {
   error: string;
-  errorCode?: PerpsErrorCode;
-  errorDetails?: PerpsErrorDetails;
   maxSlippageBps?: number;
   providerId?: string;
 }
+
+// Only the interpolation guard interprets details. Future controller variants
+// must not prevent an otherwise valid code or message from being translated.
+type NormalizedPerpsErrorInput = Omit<PerpsErrorInput, 'errorDetails'> & {
+  errorDetails?: unknown;
+};
 
 const formatBpsAsPercent = (bps: number): number => Math.round(bps) / 100;
 
@@ -46,25 +49,7 @@ function isPriceMovedErrorDetails(
   );
 }
 
-function isHyperLiquidErrorDetails(
-  value: unknown,
-): value is HyperLiquidErrorDetails {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    hasProperty(value, 'code') &&
-    isPerpsErrorCodeValue(value.code) &&
-    value.code !== PERPS_ERROR_CODES.PRICE_MOVED &&
-    hasProperty(value, 'provider') &&
-    value.provider === PROVIDER_CONFIG.DefaultProvider
-  );
-}
-
-function isPerpsErrorDetails(value: unknown): value is PerpsErrorDetails {
-  return isPriceMovedErrorDetails(value) || isHyperLiquidErrorDetails(value);
-}
-
-function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
+function isPerpsErrorInput(value: unknown): value is NormalizedPerpsErrorInput {
   if (
     typeof value !== 'object' ||
     value === null ||
@@ -78,10 +63,6 @@ function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
     !hasProperty(value, 'errorCode') ||
     value.errorCode === undefined ||
     isPerpsErrorCodeValue(value.errorCode);
-  const hasValidDetails =
-    !hasProperty(value, 'errorDetails') ||
-    value.errorDetails === undefined ||
-    isPerpsErrorDetails(value.errorDetails);
   const hasValidSlippage =
     !hasProperty(value, 'maxSlippageBps') ||
     value.maxSlippageBps === undefined ||
@@ -91,12 +72,12 @@ function isPerpsErrorInput(value: unknown): value is PerpsErrorInput {
     value.providerId === undefined ||
     typeof value.providerId === 'string';
 
-  return (
-    hasValidCode && hasValidDetails && hasValidSlippage && hasValidProviderId
-  );
+  return hasValidCode && hasValidSlippage && hasValidProviderId;
 }
 
-const normalizePerpsError = (error: unknown): PerpsErrorInput | null => {
+const normalizePerpsError = (
+  error: unknown,
+): NormalizedPerpsErrorInput | null => {
   if (isPerpsErrorInput(error)) {
     return error;
   }
@@ -110,7 +91,7 @@ const normalizePerpsError = (error: unknown): PerpsErrorInput | null => {
 };
 
 const getErrorInterpolationData = (
-  errorInput: PerpsErrorInput,
+  errorInput: NormalizedPerpsErrorInput,
   context?: Record<string, unknown>,
 ): Record<string, unknown> => {
   const interpolationData: Record<string, unknown> = {};
@@ -603,13 +584,9 @@ export function isNoPositionFoundError(error: unknown): boolean {
     return true;
   }
 
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === 'string'
-        ? error
-        : '';
-  return NO_POSITION_FOUND_PATTERN.test(message);
+  return NO_POSITION_FOUND_PATTERN.test(
+    normalizePerpsError(error)?.error ?? '',
+  );
 }
 
 /** True when HyperLiquid refused the order because of its post-only window. */

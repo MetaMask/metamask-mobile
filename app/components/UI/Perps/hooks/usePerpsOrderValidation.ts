@@ -17,7 +17,7 @@ import {
 } from '@metamask/perps-controller';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { translatePerpsError } from '../utils/translatePerpsError';
+import { handlePerpsError } from '../utils/translatePerpsError';
 import {
   getOrderFormFieldIssues,
   isAdvisoryOrderFormFieldIssue,
@@ -332,16 +332,17 @@ const getProtocolValidationErrors = ({
     !isFieldOwnedError &&
     !suppressedProtocolErrors.has(error)
   ) {
-    const translatedError = translatePerpsError(
+    const translatedError = handlePerpsError({
       error,
-      getProtocolErrorContext({
+      context: getProtocolErrorContext({
         error,
         orderForm,
         existingPositionLeverage,
         minimumOrderSize,
         maxLeverage,
       }),
-    );
+      fallbackMessage: strings('perps.order.validation.failed'),
+    });
     const isDuplicate = localErrors.some((existingError) =>
       existingError.includes(translatedError),
     );

@@ -8,7 +8,10 @@ import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { endPerpsCufTrace } from '../utils/perpsCufTrace';
 import { PERPS_CUF_TAG, PERPS_CUF_END_REASON } from '../constants/perpsCufTags';
-import { PERPS_ERROR_CODES } from '@metamask/perps-controller';
+import {
+  PERPS_ERROR_CODES,
+  type OrderResult,
+} from '@metamask/perps-controller';
 jest.mock('./usePerpsTrading');
 jest.mock('../services/PerpsCacheInvalidator', () => ({
   PerpsCacheInvalidator: { invalidate: jest.fn() },
@@ -355,9 +358,9 @@ describe('usePerpsTPSLUpdate', () => {
 
     mockUpdatePositionTPSL.mockResolvedValue({
       success: false,
-      error: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
+      error: 'Position is no longer available',
       errorCode: PERPS_ERROR_CODES.POSITION_NOT_FOUND,
-    });
+    } satisfies OrderResult);
 
     let updateResult: { success: boolean } | undefined;
     await act(async () => {
