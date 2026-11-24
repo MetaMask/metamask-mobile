@@ -278,6 +278,7 @@ export interface EarningsSummaryFixtureOptions {
   pending?: string;
   cashbackClaimable?: string;
   cashbackBlocked?: string;
+  cashbackHeld?: string;
   cashbackBlockingReason?: SummaryTotalsDto['blocking_reason'];
   revShareLifetime?: string;
   /** Follow-trade claimable base units. Omitted leaves that family out. */
@@ -316,6 +317,9 @@ export function earningsSummaryFixture(
             ...(options.cashbackBlocked === undefined
               ? {}
               : { blocked: options.cashbackBlocked }),
+            ...(options.cashbackHeld === undefined
+              ? {}
+              : { held: options.cashbackHeld }),
             ...(options.cashbackBlockingReason === undefined
               ? {}
               : { blocking_reason: options.cashbackBlockingReason }),

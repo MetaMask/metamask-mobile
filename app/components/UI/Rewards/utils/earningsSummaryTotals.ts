@@ -135,6 +135,25 @@ function blockedUnderReview(family: {
 }
 
 /**
+ * Sums one amount per claim family, across both branches or the scoped
+ * family. No summary, or a total that is not positive, returns null.
+ */
+function sumFamilyBaseUnits(
+  summary: EarningsSummaryDto | null | undefined,
+  scope: SummaryFamilyScope | undefined,
+  amountOf: (family: ReturnType<typeof summaryFamilies>[number]) => BigNumber,
+): string | null {
+  if (!summary) {
+    return null;
+  }
+  const total = summaryFamilies(summary, scope).reduce(
+    (sum, family) => sum.plus(amountOf(family)),
+    new BigNumber(0),
+  );
+  return total.gt(0) ? total.toFixed(0) : null;
+}
+
+/**
  * Base units a review is holding in `blocked`, summed across both branches'
  * claim families.
  *
@@ -147,17 +166,7 @@ export function underReviewBlockedBaseUnits(
   summary: EarningsSummaryDto | null | undefined,
   scope?: SummaryFamilyScope,
 ): string | null {
-  if (!summary) {
-    return null;
-  }
-  const total = summaryFamilies(summary, scope).reduce(
-    (sum, family) => sum.plus(blockedUnderReview(family)),
-    new BigNumber(0),
-  );
-  if (!total.gt(0)) {
-    return null;
-  }
-  return total.toFixed(0);
+  return sumFamilyBaseUnits(summary, scope, blockedUnderReview);
 }
 
 function heldForTax(family: {
@@ -181,15 +190,5 @@ export function taxHeldBaseUnits(
   summary: EarningsSummaryDto | null | undefined,
   scope?: SummaryFamilyScope,
 ): string | null {
-  if (!summary) {
-    return null;
-  }
-  const total = summaryFamilies(summary, scope).reduce(
-    (sum, family) => sum.plus(heldForTax(family)),
-    new BigNumber(0),
-  );
-  if (!total.gt(0)) {
-    return null;
-  }
-  return total.toFixed(0);
+  return sumFamilyBaseUnits(summary, scope, heldForTax);
 }

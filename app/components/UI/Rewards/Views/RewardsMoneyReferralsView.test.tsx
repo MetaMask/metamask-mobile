@@ -5,6 +5,7 @@ import type { LedgerEarningEntryDto } from '../../../../core/Engine/controllers/
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
+  earningRow,
   earningsSummaryFixture,
   REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
@@ -46,22 +47,9 @@ const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
 const CODE = 'FRIEND123';
 
-const EARNING: LedgerEarningEntryDto = {
-  type: 'earning',
-  id: 'e1',
-  earning_origin_type: 'REFERRAL_REV_SHARE',
-  musd_amount: '1000000',
-  voided_musd_amount: '0',
-  fee_amount_usd: '1',
-  entry_count: 1,
-  transaction_hash: null,
-  chain_id: null,
-  ledger_timestamp: '2026-09-01T12:00:00.000Z',
-  claim_status: 'unclaimed',
-  claimable_at: '2026-09-02T00:00:00.000Z',
-  swaps_source: null,
-  perps_source: null,
-  predict_source: null,
+const EARNING = {
+  ...earningRow(1),
+  earning_origin_type: 'REFERRAL_REV_SHARE' as const,
 };
 
 const stateWith = ({

@@ -1,14 +1,12 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
 import { AvatarIcon, IconName } from '@metamask/design-system-react-native';
-import type {
-  CommissionEntryView,
-  SummaryTotalsDto,
-} from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import type { CommissionEntryView } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import {
   CLAIMABLE_EARNINGS_SUMMARY,
+  earningsSummaryFixture,
   REFERRAL_LOCALIZED_TEXT as LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
 import { useCommissions } from '../hooks/useCommissions';
@@ -178,14 +176,8 @@ describe('RewardsCopyTradingView', () => {
   });
 
   it('shows the held banner for this family only, below the history title', () => {
-    const family: SummaryTotalsDto = {
-      lifetime: '56000000',
-      pending: '0',
-      claimed: '0',
-      voided: '0',
-      held: '56000000',
-      blocking_reason: 'TAX_DETERMINATION_REQUIRED',
-    };
+    // Cashback is held too, under a pause. Only the follow-trade family's tax
+    // hold counts, so the banner shows $56.00 and not $65.00.
     const state = {
       ...STATE,
       rewardsMoney: {
@@ -194,24 +186,13 @@ describe('RewardsCopyTradingView', () => {
           [PROFILE_ID]: {
             loading: false,
             error: false,
-            data: {
-              ...CLAIMABLE_EARNINGS_SUMMARY,
-              self_earned: {
-                ...CLAIMABLE_EARNINGS_SUMMARY.self_earned,
-                by_claim_family: {
-                  REFERRAL_TRADE_FEE_CASHBACK: {
-                    ...family,
-                    by_address: [],
-                    held: '9000000',
-                    blocking_reason: 'SUSPENDED' as const,
-                  },
-                },
-              },
-              earned_by_others: {
-                ...CLAIMABLE_EARNINGS_SUMMARY.earned_by_others,
-                by_claim_family: { SOCIAL_FOLLOW_TRADE: family },
-              },
-            },
+            data: earningsSummaryFixture({
+              followTradeClaimable: '0',
+              followTradeHeld: '56000000',
+              followTradeBlockingReason: 'TAX_DETERMINATION_REQUIRED',
+              cashbackHeld: '9000000',
+              cashbackBlockingReason: 'SUSPENDED',
+            }),
           },
         },
       },

@@ -1,10 +1,8 @@
-import { useCallback } from 'react';
-import Engine from '../../../../core/Engine';
 import type {
   EarningOriginType,
-  EarningsLedgerPageDto,
   LedgerEarningEntryDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
+import { createEarningsLedgerFetchPage } from './createEarningsLedgerFetchPage';
 import {
   useCursorPaginatedList,
   type UseCursorPaginatedListResult,
@@ -21,13 +19,7 @@ export const REFERRAL_LEDGER_ORIGIN_TYPES: EarningOriginType[] = [
 export type UseReferralEarningsLedgerResult =
   UseCursorPaginatedListResult<LedgerEarningEntryDto>;
 
-function earningEntriesFromPage(
-  page: EarningsLedgerPageDto,
-): LedgerEarningEntryDto[] {
-  return page.results.filter(
-    (entry): entry is LedgerEarningEntryDto => entry.type === 'earning',
-  );
-}
+const fetchPage = createEarningsLedgerFetchPage(REFERRAL_LEDGER_ORIGIN_TYPES);
 
 /**
  * Referral earnings, newest first. Claim rows stay out: this page lists what
@@ -36,36 +28,8 @@ function earningEntriesFromPage(
 export const useReferralEarningsLedger = (
   profileId: string | undefined,
   { enabled = true }: { enabled?: boolean } = {},
-): UseReferralEarningsLedgerResult => {
-  const fetchPage = useCallback(
-    async ({
-      cursor,
-      isFirstPage,
-      forceFresh,
-    }: {
-      cursor: string | null;
-      isFirstPage: boolean;
-      forceFresh: boolean;
-    }) => {
-      const page: EarningsLedgerPageDto = await Engine.controllerMessenger.call(
-        'RewardsMoneyController:getEarningsLedger',
-        {
-          originTypes: REFERRAL_LEDGER_ORIGIN_TYPES,
-          cursor: isFirstPage ? undefined : cursor,
-          includeClaims: false,
-          forceFresh: isFirstPage ? forceFresh : undefined,
-        },
-      );
-      return {
-        results: earningEntriesFromPage(page),
-        cursor: page.cursor,
-        has_more: page.has_more,
-      };
-    },
-    [],
-  );
-
-  return useCursorPaginatedList<LedgerEarningEntryDto>({
+): UseReferralEarningsLedgerResult =>
+  useCursorPaginatedList<LedgerEarningEntryDto>({
     enabled: Boolean(profileId) && enabled,
     resetKey: `${profileId ?? ''}:referral-earnings`,
     fetchPage,
@@ -73,4 +37,3 @@ export const useReferralEarningsLedger = (
     feature: 'rewards-money',
     laterPageRetryLimit: 1,
   });
-};
