@@ -196,7 +196,7 @@ const EarningsErrorBanner: React.FC<{
   const copy =
     source === 'history'
       ? 'rewards.trading_activity_error'
-      : 'rewards.referral_details_error';
+      : 'rewards.earnings_summary_error';
   const retry = {
     summary: onRetrySummary,
     history: onRetryHistory,

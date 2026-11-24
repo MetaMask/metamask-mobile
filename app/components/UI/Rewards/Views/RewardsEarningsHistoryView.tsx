@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { IconName } from '@metamask/design-system-react-native';
+import { Box, IconName } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { RootState } from '../../../../reducers';
@@ -21,6 +21,7 @@ import {
 import { underReviewBlockedBaseUnits } from '../utils/earningsSummaryTotals';
 import { EarningsHistoryRow } from '../components/Money/EarningsHistoryRows';
 import RewardsPausedBanner from '../components/Money/RewardsPausedBanner';
+import RewardsMoneyListScreen from '../components/Money/RewardsMoneyListScreen';
 import TradingActivityListView from '../components/Money/TradingActivityListView';
 import { useEarningsHistory } from '../hooks/useEarningsHistory';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
@@ -70,11 +71,15 @@ const RewardsEarningsHistoryView: React.FC = () => {
       : underReviewBlockedBaseUnits(summaryData);
   const header =
     pausedBaseUnits && localizedText ? (
-      <RewardsPausedBanner
-        baseUnits={pausedBaseUnits}
-        localizedText={localizedText}
-      />
-    ) : null;
+      <Box twClassName="px-4 pb-4 pt-2">
+        <RewardsPausedBanner
+          baseUnits={pausedBaseUnits}
+          localizedText={localizedText}
+        />
+      </Box>
+    ) : (
+      <Box twClassName="pt-2" />
+    );
 
   const renderItem = useCallback(
     (item: EarningsHistoryListItem) =>
@@ -85,31 +90,35 @@ const RewardsEarningsHistoryView: React.FC = () => {
   );
 
   return (
-    <TradingActivityListView
+    <RewardsMoneyListScreen
       view="RewardsEarningsHistoryView"
       title={localizedText?.history ?? ''}
-      testIDs={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS}
-      list={{ ...list, items }}
-      renderItem={renderItem}
-      keyExtractor={(item) =>
-        isPendingClaimRow(item)
-          ? `pending-${item.id}`
-          : `${item.type}-${item.id}`
-      }
-      emptyDescription={
-        (copyTradingOnly
-          ? localizedText?.copyTradingEmptyDescription
-          : localizedText?.tradingActivityEmptyDescription) ?? ''
-      }
-      emptyActionLabel={
-        copyTradingOnly
-          ? localizedText?.copyTradingEmptyAction
-          : localizedText?.tradingActivityEmptyAction
-      }
-      emptyIconName={copyTradingOnly ? IconName.People : IconName.Activity}
-      emptyOnAction={copyTradingOnly ? openSocialTab : openTradeActions}
-      header={header}
-    />
+      testID={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.CONTAINER}
+    >
+      <TradingActivityListView
+        testIDs={REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS}
+        list={{ ...list, items }}
+        renderItem={renderItem}
+        keyExtractor={(item) =>
+          isPendingClaimRow(item)
+            ? `pending-${item.id}`
+            : `${item.type}-${item.id}`
+        }
+        emptyDescription={
+          (copyTradingOnly
+            ? localizedText?.copyTradingEmptyDescription
+            : localizedText?.tradingActivityEmptyDescription) ?? ''
+        }
+        emptyActionLabel={
+          copyTradingOnly
+            ? localizedText?.copyTradingEmptyAction
+            : localizedText?.tradingActivityEmptyAction
+        }
+        emptyIconName={copyTradingOnly ? IconName.People : IconName.Activity}
+        emptyOnAction={copyTradingOnly ? openSocialTab : openTradeActions}
+        header={header}
+      />
+    </RewardsMoneyListScreen>
   );
 };
 

@@ -17,6 +17,7 @@ import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../components/Money/RewardsPausedBanner.testIds';
 import { EARNINGS_HISTORY_TEST_IDS } from '../components/Money/EarningsHistoryRows.testIds';
 import { navigateToSocialLeaderboard } from '../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../components/Money/TradingActivityListSkeleton.testIds';
 import RewardsEarningsHistoryView from './RewardsEarningsHistoryView';
 import { REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS } from './RewardsEarningsHistoryView.testIds';
 
@@ -363,7 +364,7 @@ describe('RewardsEarningsHistoryView', () => {
     );
 
     expect(
-      getByTestId(REWARDS_EARNINGS_HISTORY_VIEW_TEST_IDS.SKELETON_SLOT),
+      getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(queryByTestId(REWARDS_PAUSED_BANNER_TEST_IDS.BANNER)).toBeNull();
   });

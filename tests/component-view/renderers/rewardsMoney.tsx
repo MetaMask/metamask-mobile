@@ -289,8 +289,12 @@ function RewardsFlowProbe() {
         component={routeProbe(Routes.REWARDS_TRADING_REBATES_VIEW)}
       />
       <FlowStack.Screen
-        name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
-        component={routeProbe(Routes.REWARDS_TRADING_COMMISSIONS_VIEW)}
+        name={Routes.REWARDS_MONEY_REFERRALS_VIEW}
+        component={routeProbe(Routes.REWARDS_MONEY_REFERRALS_VIEW)}
+      />
+      <FlowStack.Screen
+        name={Routes.REWARDS_COPY_TRADING_VIEW}
+        component={routeProbe(Routes.REWARDS_COPY_TRADING_VIEW)}
       />
       <FlowStack.Screen
         name={Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW}

@@ -43,6 +43,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   earningsTab: 'Earn',
   performanceTitle: 'Performance',
   earnEligibleFees: 'Earn eligible fees',
+  earnEligibleFeesDescription:
+    'When friends join with your code and trade, you earn a share of their trading fees.',
   referFriends: 'Refer friends',
   tradeAndEarn: 'Trade and earn',
   postTrades: 'Post trades',
@@ -111,9 +113,11 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   tradingCommissionsSection: 'Trading commissions',
   copyTradingEmptyDescription:
     'You can earn rewards from sharing a trade. Start sharing to earn today!',
-  copyTradingEmptyAction: 'Start sharing',
+  copyTradingEmptyAction: 'Post a trade',
   copyTradingInfoDescription:
     'Earn 15% from fees when someone copies your trade',
+  copyTradingDescription:
+    'Post a trade with a take. When others copy it, you earn a share of their trading fees.',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
@@ -139,6 +143,8 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   inviteAcceptedViewRewards: 'View rewards',
   inviteAcceptedStartTrading: 'Start trading',
   invitedBenefitTitle: 'Invited benefit',
+  invitedBenefitDescription:
+    'Every eligible trade you make returns 10% of its trading fee to your rewards balance.',
   offerEndsIn: 'Offer ends in',
   offerDurationDay: 'day',
   offerDurationDays: 'days',
