@@ -45,6 +45,14 @@ import {
 import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 import { usePriceApiHost } from '../context/PriceApiHostContext';
 
+jest.mock('../hooks/useTokenSecurityData', () => ({
+  useTokenSecurityData: () => ({
+    securityData: null,
+    isLoading: false,
+    error: null,
+  }),
+}));
+
 const mockUseSelector = jest.fn();
 const mockUseMoneyAssetOverviewCtas = jest.fn();
 const mockUseMostRecentOrder = jest.fn();

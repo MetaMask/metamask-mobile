@@ -207,17 +207,15 @@ export const ContractSecurityScreen: React.FC = () => {
     tokenCategory = 'memecoin',
   } = useRoute<RouteProp<AssetStackParamList, 'ContractSecurity'>>().params;
 
-  const { resolvedSecurity } = token;
   const caipAssetId = useTokenCaipAssetId(token);
-  const query = useTokenSecurityQuery(caipAssetId, {
-    enabled: !resolvedSecurity,
+  const {
+    data: securityData,
+    dataUpdatedAt,
+    isPending: isLoading,
+    error,
+  } = useTokenSecurityQuery(caipAssetId, {
+    enabled: tokenCategory !== 'standard',
   });
-  const securityData = resolvedSecurity ? resolvedSecurity.data : query.data;
-  const dataUpdatedAt = resolvedSecurity
-    ? resolvedSecurity.fetchedAt
-    : query.dataUpdatedAt;
-  const isLoading = !resolvedSecurity && query.isPending;
-  const error = resolvedSecurity ? null : query.error;
 
   const facts = useSecurityFacts({
     securityData: securityData ?? null,

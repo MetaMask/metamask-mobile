@@ -1,3 +1,4 @@
+import { strings } from '../../../../../../locales/i18n';
 import React from 'react';
 import {
   SolScope,
@@ -20,11 +21,13 @@ import ActivitySection, {
   TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID,
 } from './ActivitySection';
 
+let mockMaliciousTokenKeys = new Set<string>();
+
 jest.mock(
   '../../../../hooks/useMultichainActivityMaliciousTokenKeys/useMultichainActivityMaliciousTokenKeys',
   () => ({
     useMultichainActivityMaliciousTokenKeys: () => ({
-      maliciousTokenKeys: new Set(),
+      maliciousTokenKeys: mockMaliciousTokenKeys,
     }),
   }),
 );
@@ -55,13 +58,20 @@ jest.mock('../../../Bridge/utils/transaction-history', () => ({
 }));
 jest.mock('../../../../../core/Multichain/utils', () => ({
   getAddressUrl: () => '',
+  isNonEvmChainId: () => false,
 }));
 
 jest.mock('../../../ActivityListItemRow/ActivityListItemRow', () => ({
-  ActivityListItemRow: () => null,
+  ActivityListItemRow: () => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="mock-bridge-arrival" />;
+  },
 }));
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({}),
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: () => ({ addProperties: () => ({ build: jest.fn() }) }),
+  }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -145,6 +155,7 @@ jest.mock('../../../ActivityListItemRow/ActivityListDateHeader', () => {
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseNavigation = jest.mocked(useNavigation);
+const mockNavigate = jest.fn();
 const mockSelectSelectedInternalAccount = jest.mocked(
   selectSelectedInternalAccount,
 );
@@ -193,6 +204,8 @@ const mockTransactionsResult = (
 describe('ActivitySection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMaliciousTokenKeys = new Set();
+    jest.mocked(selectBridgeHistoryForAccount).mockReturnValue({});
     mockUseSelector.mockImplementation((selector: unknown) =>
       (selector as (state: undefined) => unknown)(undefined),
     );
@@ -201,7 +214,7 @@ describe('ActivitySection', () => {
       metadata: { importTime: 0 },
     } as never);
     mockUseNavigation.mockReturnValue({
-      navigate: jest.fn(),
+      navigate: mockNavigate,
     } as never);
     mockUseTokenTransactions.mockReturnValue(mockTransactionsResult());
   });
@@ -295,6 +308,74 @@ describe('ActivitySection', () => {
     expect(
       queryByTestId(TOKEN_DETAILS_ACTIVITY_SHOW_MORE_TEST_ID),
     ).not.toBeOnTheScreen();
+  });
+
+  it('restores the disclaimer and opens the asset-chain explorer on standard EVM pages', () => {
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        transactions: [makeTransaction('tx-1', 60)],
+      }),
+    );
+    const { getByText, getByTestId } = render(
+      <ActivitySection token={token} showEvmFooter />,
+    );
+
+    expect(getByText(strings('asset_overview.disclaimer'))).toBeOnTheScreen();
+    fireEvent.press(getByTestId('transactions-footer-view-explorer'));
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: { url: 'https://etherscan.io/address/0x123', title: 'Etherscan' },
+    });
+  });
+
+  it('excludes malicious Solana movements and deduplicates bridge arrivals', () => {
+    const solTransaction = {
+      timestamp: NOW,
+      chain: SolScope.Mainnet,
+      from: [{ address: '0x123' }],
+      to: [{ address: 'other' }],
+      type: TransactionType.Send,
+      status: TransactionStatus.Confirmed,
+    };
+    const maliciousMint = 'So11111111111111111111111111111111111111112';
+    mockMaliciousTokenKeys = new Set([`solana:${maliciousMint}`]);
+    jest.mocked(selectBridgeHistoryForAccount).mockReturnValue({
+      'tx-arrival': { status: { destChain: { txHash: 'bridge-dest' } } },
+    } as unknown as ReturnType<typeof selectBridgeHistoryForAccount>);
+    mockUseTokenTransactions.mockReturnValue(
+      mockTransactionsResult({
+        isNonEvmAsset: true,
+        bridgeArrivalTxs: [makeTransaction('tx-arrival', 60)],
+        transactions: [
+          { ...solTransaction, id: 'bridge-dest' },
+          { ...solTransaction, id: 'sol-safe' },
+          {
+            ...solTransaction,
+            id: 'sol-malicious',
+            from: [
+              {
+                address: '0x123',
+                asset: {
+                  fungible: true,
+                  type: `${SolScope.Mainnet}/token:${maliciousMint}`,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    const { getByText, getByTestId, queryByText } = render(
+      <ActivitySection
+        token={{ ...token, chainId: SolScope.Mainnet }}
+        includeNonEvm
+      />,
+    );
+
+    expect(getByTestId('mock-bridge-arrival')).toBeOnTheScreen();
+    expect(getByText('sol-safe')).toBeOnTheScreen();
+    expect(queryByText('bridge-dest')).not.toBeOnTheScreen();
+    expect(queryByText('sol-malicious')).not.toBeOnTheScreen();
   });
 
   it('paginates by rows: 3 initially, +5 per "View more" press until all visible', () => {

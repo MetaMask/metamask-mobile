@@ -82,7 +82,6 @@ import { selectTokenDetailsBrandRefreshEnabled } from '../../../../selectors/fea
 import { TokenDetailsV1 } from './TokenDetailsV1';
 import {
   TokenDetailsSource,
-  TOKEN_DETAILS_V1_TABS,
   type TokenDetailsV1TabKey,
   TokenDetailsAction,
   type TokenDetailsRouteParams,
@@ -495,15 +494,13 @@ const TokenDetails: React.FC<{
   );
 
   const tabConfigOrder = useSelector(selectMemecoinTdpV1TabConfigOrder);
-  const tabs = useMemo(() => {
-    const standardTabs = tabConfigOrder.filter(
+  const tabs = useMemo<('overview' | 'security')[]>(() => {
+    const first = tabConfigOrder.find(
       (tab) => tab === 'overview' || tab === 'security',
     );
-    return standardTabs.length
-      ? standardTabs
-      : TOKEN_DETAILS_V1_TABS.filter(
-          (tab) => tab === 'overview' || tab === 'security',
-        );
+    return first === 'security'
+      ? ['security', 'overview']
+      : ['overview', 'security'];
   }, [tabConfigOrder]);
   const { activeTab, activateTab, swipeGesture } = useTokenDetailsV1Tabs({
     initialTab: tabs[0],
@@ -541,14 +538,11 @@ const TokenDetails: React.FC<{
   const closeExplainer = useCallback(() => setExplainer(null), []);
   const openContractDetails = useCallback(() => {
     navigation.navigate(Routes.CONTRACT_SECURITY, {
-      token: {
-        ...token,
-        resolvedSecurity: { data: securityData, fetchedAt: securityFetchedAt },
-      },
+      token,
       tdpVersion: 'v2',
       tokenCategory: 'standard',
     });
-  }, [navigation, securityData, securityFetchedAt, token]);
+  }, [navigation, token]);
   const securityFacts = useSecurityFacts({
     securityData,
     isLoading: isSecurityDataLoading,
@@ -805,7 +799,7 @@ const TokenDetails: React.FC<{
             testID={TokenDetailsIds.tabPage('overview')}
           >
             {overview}
-            <ActivitySection token={token} includeNonEvm />
+            <ActivitySection token={token} includeNonEvm showEvmFooter />
           </View>
           {selectedTab === 'security' && (
             <View testID={TokenDetailsIds.tabPage('security')}>

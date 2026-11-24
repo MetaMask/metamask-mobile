@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import NonEvmActivityRows from './NonEvmActivityRows';
 import ActivityRows from './ActivityRows';
+import EvmActivityFooter from './EvmActivityFooter';
 import type { Hex } from '@metamask/utils';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { RootState } from '../../../../../reducers';
@@ -36,6 +37,7 @@ export interface ActivitySectionProps {
   token: TokenDetailsRouteParams;
   showSectionRule?: boolean;
   includeNonEvm?: boolean;
+  showEvmFooter?: boolean;
 }
 
 interface UseGroupedTokenActivityParams {
@@ -112,6 +114,7 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
   token,
   showSectionRule = false,
   includeNonEvm = false,
+  showEvmFooter = false,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const chainId = token.chainId as Hex | undefined;
@@ -170,6 +173,16 @@ const ActivitySection: React.FC<ActivitySectionProps> = ({
     <ActivityRows
       token={token}
       groupedItems={activityGroupedItems}
+      footer={
+        showEvmFooter && activityGroupedItems.length > 0 ? (
+          <EvmActivityFooter
+            chainId={chainId}
+            address={selectedAddress}
+            navigation={navigation}
+            networkConfigurations={networkConfigurationsByChainId}
+          />
+        ) : null
+      }
       showSectionRule={showSectionRule}
       renderItem={({ item, index }) => {
         const transaction = activityItemToTransaction.get(item);

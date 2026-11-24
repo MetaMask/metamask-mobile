@@ -415,7 +415,7 @@ describeForPlatforms('TokenDetailsV1', () => {
     setupTokenDetailsV1ApiMocks({ launchpad: false, security: false });
     const { findByTestId, getByTestId, queryByTestId } =
       renderTokenDetailsV1View({
-        tabConfigOrder: ['feed', 'holders'],
+        tabConfigOrder: ['overview'],
         token: {
           ...buildTokenDetailsV1RouteParams(),
           securityData: tokenDetailsV1SecurityData,
@@ -458,11 +458,14 @@ describeForPlatforms('TokenDetailsV1', () => {
   it('keeps the configured order of the standard tabs', async () => {
     setupTokenDetailsV1ApiMocks({ launchpad: false });
     const { findByTestId } = renderTokenDetailsV1View({
-      tabConfigOrder: ['holders', 'security', 'overview'],
+      tabConfigOrder: ['holders', 'security'],
     });
 
     expect(
       await findByTestId(SecurityTabSelectors.TAB, {}, FIND_TIMEOUT),
+    ).toBeOnTheScreen();
+    expect(
+      await findByTestId(TokenDetailsIds.tab('overview')),
     ).toBeOnTheScreen();
   });
 

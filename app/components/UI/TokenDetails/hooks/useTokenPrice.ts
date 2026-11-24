@@ -365,9 +365,7 @@ export const useTokenPrice = ({
     hasInsufficientCoverage,
     historicalPricesApiMs,
     exchangeRateApiMs,
-    spotMarketData: spotQuery.data?.marketData.price
-      ? spotQuery.data.marketData
-      : undefined,
+    spotMarketData: spotQuery.data?.marketData,
   };
 };
 
