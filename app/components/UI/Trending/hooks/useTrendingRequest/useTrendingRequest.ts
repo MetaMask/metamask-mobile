@@ -166,8 +166,8 @@ export const useTrendingRequest = (
   options: {
     chainIds?: CaipChainId[];
     /**
-     * When true, removes tokens that lack a meaningful symbol/name or whose
-     * security data includes WASH_TRADING or FAKE_VOLUME.
+     * When true, removes tokens that lack a meaningful symbol/name or are
+     * flagged as risky (Warning/Spam/Malicious) by the Token API security scan.
      * Defaults to false. Set to true on surfaces that should hide low-quality tokens.
      */
     filterLowQuality?: boolean;
