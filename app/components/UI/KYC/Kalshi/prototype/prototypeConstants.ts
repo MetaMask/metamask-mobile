@@ -139,7 +139,7 @@ export const PROTOTYPE_COPY = {
    * the screen renders the body. */
   emailCode: {
     title: "Enter Kalshi's verification code",
-    body: 'Kalshi sent a 6-digit code to {maskedEmail}.',
+    body: 'Check your email for a 6-digit code from Kalshi. We sent it to {maskedEmail}.',
   },
   /** The phone code screen, worded like the email one under the same wordmark. */
   phoneCode: {
