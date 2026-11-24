@@ -86,7 +86,13 @@ import {
 } from '@testing-library/react-native';
 import { type ReactTestInstance } from 'react-test-renderer';
 import { strings } from '../../../../../../locales/i18n';
-import { Alert, Linking, Platform, StyleSheet } from 'react-native';
+import {
+  Alert,
+  Linking,
+  Platform,
+  RefreshControl,
+  StyleSheet,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
 import CardHome from './CardHome';
