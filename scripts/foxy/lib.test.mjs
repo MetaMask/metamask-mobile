@@ -301,3 +301,47 @@ test('fileSlug makes a safe file name', () => {
   assert.equal(fileSlug('Tapped “Create wallet” 🦊'), 'tapped-create-wallet');
   assert.equal(fileSlug('🦊'), 'phase');
 });
+
+test('an ended phase closes at its end: later requests are Between phases until the next marker', () => {
+  const r = (id, relMs, path) => ({ id, key: `k${id}`, method: 'GET', host: 'h', path, query: '', url: `https://h${path}`, relMs, status: 200 });
+  const records = [r(1, 1500, '/a'), r(2, 2000, '/b'), r(3, 3500, '/idle'), r(4, 4500, '/c')];
+  const markers = [{ id: 'm1', relMs: 1000, label: 'app launch', endRelMs: 2500 }, { id: 'm2', relMs: 4000, label: 'next flow' }];
+
+  const phases = computePhases(records, markers);
+  assert.deepEqual(phases.map((p) => p.label), ['app launch', 'Between phases', 'next flow']); // nothing ran before the first marker, so no leading phase
+  const [launch, gap, next] = phases;
+  assert.equal(launch.endMs, 2500);
+  assert.equal(launch.ended, true);
+  assert.equal(launch.requests, 2); // /a and /b; /idle came after the end
+  assert.equal(gap.requests, 1);
+  assert.equal(gap.endMs, 4000);
+  assert.equal(gap.gap, true);
+  assert.equal(next.requests, 1);
+  assert.equal(next.ended, false);
+});
+
+test('ending the last marker leaves an open gap that keeps collecting', () => {
+  const r = (id, relMs) => ({ id, key: `k${id}`, method: 'GET', host: 'h', path: `/${id}`, query: '', url: `https://h/${id}`, relMs, status: 200 });
+  const records = [r(0, 500), r(2, 2000), r(3, 3000)];
+  const markers = [{ id: 'm1', relMs: 1000, label: 'launch', endRelMs: 1800 }];
+  const phases = computePhases(records, markers);
+  assert.deepEqual(phases.map((p) => p.label), ['Before first marker', 'launch', 'Between phases']);
+  const gap = phases[2];
+  assert.equal(gap.endMs, Infinity);
+  assert.equal(gap.requests, 2);
+
+  const exported = exportPhase(records, markers, 'm1');
+  assert.equal(exported.phase.open, false);
+  assert.equal(exported.phase.ended, true);
+  assert.equal(exported.phase.endMs, 1800);
+  assert.deepEqual(exported.records, []); // nothing ran between 1000 and 1800: 500 is before the marker, 2000 and 3000 are after the end
+});
+
+test('an empty gap is hidden, and an end that comes after the next marker is ignored', () => {
+  const r = (id, relMs) => ({ id, key: `k${id}`, method: 'GET', host: 'h', path: `/${id}`, query: '', url: `https://h/${id}`, relMs, status: 200 });
+  // ended at 1900, but the next marker is at 1500: the phase closes at 1500 and there is no gap
+  const phases = computePhases([r(1, 1200), r(2, 1600)], [{ id: 'a', relMs: 1000, label: 'a', endRelMs: 1900 }, { id: 'b', relMs: 1500, label: 'b' }]);
+  assert.deepEqual(phases.map((p) => p.label), ['a', 'b']);
+  assert.equal(phases[0].ended, false);
+  assert.equal(phases[0].endMs, 1500);
+});

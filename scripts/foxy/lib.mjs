@@ -249,21 +249,28 @@ export function groupEndpoints(records) {
 export function computePhases(records, markers = []) {
   if (!markers.length) return [];
   const sorted = [...markers].sort((a, b) => a.relMs - b.relMs);
-  const mk = (label, startMs, marker) => ({
-    id: marker?.id ?? 'pre',
+  const mk = (id, label, startMs, endMs, marker, ended, gap) => ({
+    id,
     label,
     startMs,
-    endMs: Infinity,
-    marker: marker ?? null,
+    endMs,
+    marker,
+    ended,
+    gap,
     requests: 0,
     newEndpoints: 0,
     identicalDupes: 0,
     failed: 0,
     bytes: 0,
   });
-  const phases = [mk('Before first marker', 0, null), ...sorted.map((m) => mk(m.label, m.relMs, m))];
-  phases.forEach((p, i) => {
-    if (phases[i + 1]) p.endMs = phases[i + 1].startMs;
+  const phases = [mk('pre', 'Before first marker', 0, sorted[0].relMs, null, false, false)];
+  sorted.forEach((m, i) => {
+    const nextStart = sorted[i + 1]?.relMs ?? Infinity;
+    // a marker's phase closes at its end (if it was ended) or at the next marker, whichever comes first
+    const closeAt = m.endRelMs != null ? Math.max(m.endRelMs, m.relMs) : Infinity;
+    const ended = closeAt < nextStart;
+    phases.push(mk(m.id, m.label, m.relMs, Math.min(nextStart, closeAt), m, ended, false));
+    if (ended && nextStart > closeAt) phases.push(mk(`gap:${m.id}`, 'Between phases', closeAt, nextStart, null, false, true));
   });
   const seenEndpoints = new Set();
   const seenRequests = new Set();
@@ -282,39 +289,38 @@ export function computePhases(records, markers = []) {
     if (seenRequests.has(key)) phase.identicalDupes++;
     else seenRequests.add(key);
   }
+  // a gap only shows when something was requested in it, or while it is still collecting
+  const shown = phases.filter((p) => !p.gap || p.requests || p.endMs === Infinity);
   // the leading phase only matters when something happened before the first marker
-  return phases[0].requests === 0 ? phases.slice(1) : phases;
+  return shown[0].requests === 0 ? shown.slice(1) : shown;
 }
 
 /**
- * The requests of one phase: those made from its marker up to the next marker (`id` is a marker id, or `'pre'` for what ran before the first one).
- * The last marker's phase has no next marker, so it is `open`: it is still collecting, and this is what it holds right now.
- * Returns null for an id that is not a marker. `records` and `markers` are one session's.
+ * The requests of one phase (`id` is a marker id, `'pre'` for what ran before the first marker, or `gap:<marker id>` for requests after an ended phase).
+ * A phase that nothing has closed yet is `open`: it is still collecting, and this is what it holds right now.
+ * Returns null for an id that is not in the capture. `records` and `markers` are one session's.
  */
 export function exportPhase(records, markers, id) {
-  const sorted = [...markers].sort((a, b) => a.relMs - b.relMs);
-  const i = id === 'pre' ? -1 : sorted.findIndex((m) => m.id === id);
-  if ((id !== 'pre' && i === -1) || !sorted.length) return null;
-  const marker = i === -1 ? null : sorted[i];
-  const startMs = marker ? marker.relMs : 0;
-  const next = sorted[i + 1];
-  const endMs = next ? next.relMs : Infinity;
-  const inPhase = [...records].filter((r) => (marker ? r.relMs >= startMs : true) && r.relMs < endMs).sort((a, b) => a.relMs - b.relMs);
-  // the numbers come from the whole capture, so "new endpoints" and "identical dupes" mean what the dashboard shows
-  const stats = computePhases(records, markers).find((p) => p.id === id) ?? { requests: 0, newEndpoints: 0, identicalDupes: 0, failed: 0, bytes: 0 };
+  // the phase comes from computePhases, so the file and the table always agree on where a phase starts and ends
+  const found = computePhases(records, markers).find((p) => p.id === id);
+  if (!found) return null;
+  const inPhase = records
+    .filter((r) => r.relMs < found.endMs && (found.id === 'pre' || r.relMs >= found.startMs))
+    .sort((a, b) => a.relMs - b.relMs);
   return {
     phase: {
-      id: marker ? marker.id : 'pre',
-      label: marker ? marker.label : 'Before first marker',
-      marker,
-      startMs,
-      endMs: next ? endMs : null,
-      open: !next,
+      id: found.id,
+      label: found.label,
+      marker: found.marker,
+      startMs: found.startMs,
+      endMs: found.endMs === Infinity ? null : found.endMs,
+      open: found.endMs === Infinity, // still collecting: nothing has closed it yet
+      ended: found.ended, // closed by an explicit End (not by the next marker)
       requests: inPhase.length,
-      newEndpoints: stats.newEndpoints,
-      identicalDupes: stats.identicalDupes,
-      failed: stats.failed,
-      bytes: stats.bytes,
+      newEndpoints: found.newEndpoints,
+      identicalDupes: found.identicalDupes,
+      failed: found.failed,
+      bytes: found.bytes,
     },
     records: inPhase,
   };

@@ -420,10 +420,20 @@
   .ph-pill.new { color: var(--color-primary-default); } .ph-pill.dup { color: var(--brand-colors-orange-orange300); } .ph-pill.bad { color: var(--color-error-default); }
   .ph-pill.quiet { color: var(--color-success-default); background: var(--color-success-muted); border-color: transparent; }
   .ph-actions { margin-left: auto; display: inline-flex; gap: 4px; }
+  /* every toolbar icon is the same size in a 26px round control, so the phase header and the Markers rows line up */
+  .ph-actions .ic, .mkrow button.icon-btn .ic { width: 18px; height: 18px; }
   .ph-actions button { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-color: transparent; background: transparent; color: var(--color-text-alternative); font-size: 12px; }
   .ph-actions button:hover { background: var(--color-background-hover); color: var(--color-text-default); }
   .ph-actions button[aria-pressed="true"] { color: var(--pc); border-color: var(--pc); background: color-mix(in srgb, var(--pc) 14%, transparent); }
   tr.phase-empty td { padding: 14px; font-size: 12.5px; }
+  /* the spans between markers: a divider in the muted colour, not a marker header with a colour bar */
+  tr.unmarked td { padding: 0; background: transparent; border-bottom: 0; cursor: default; }
+  .um { display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px; font-size: 12px; color: var(--color-text-muted); }
+  .um-line { flex: 1; height: 1px; background: var(--color-border-muted); }
+  .um-label { font-weight: 600; white-space: nowrap; color: var(--color-text-alternative); }
+  .um-range { font-family: var(--font-family-mono); white-space: nowrap; }
+  .um-count, .um-range { white-space: nowrap; }
+  .um .icon-btn.sm .ic { width: 18px; height: 18px; }
   @media (max-width: 720px) { .ph-actions button span { display: none; } .ph-mix { display: none; } }
 
   /* phase bands + flags on the activity strip */
@@ -454,7 +464,7 @@
   .presets { display: flex; flex-wrap: wrap; gap: 6px; }
   .presets button { padding: 2px 11px; border-radius: var(--r-box); font-size: 12px; color: var(--color-text-alternative); background: var(--color-background-default); }
   .presets button:hover { color: var(--color-text-default); border-color: var(--color-primary-default); }
-  .mkrow { display: grid; grid-template-columns: 10px 84px minmax(0, 1fr) auto auto auto auto; gap: 8px; align-items: center; padding: 3px 0; }
+  .mkrow { display: grid; grid-template-columns: 10px 84px minmax(0, 1fr) auto auto auto auto auto; gap: 8px; align-items: center; padding: 3px 0; }
   .mkrow .mk-t { font: 12px var(--font-family-mono); color: var(--color-text-alternative); }
   .mkrow input { padding: 3px 8px; min-width: 0; background: var(--color-background-default); }
   .mkrow .mk-n { font-size: 11.5px; color: var(--color-text-muted); white-space: nowrap; }
@@ -588,7 +598,7 @@
   .presets { gap: 8px; margin-bottom: 22px; }
   .presets button { padding: 7px 14px; font-size: 13px; }
   #mkList { margin-bottom: 4px; }
-  .mkrow { grid-template-columns: 10px 88px minmax(0, 1fr) auto auto auto auto; gap: 12px; padding: 10px 0; }
+  .mkrow { grid-template-columns: 10px 88px minmax(0, 1fr) auto auto auto auto auto; gap: 12px; padding: 10px 0; }
   .mkrow .mk-t { white-space: nowrap; }
   .mkrow + .mkrow { border-top: 1px solid var(--color-border-muted); }
   .mkrow .mk-t { font-size: 12.5px; }
@@ -998,7 +1008,13 @@
   <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="5" width="4.2" height="14" rx="1.4"/><rect x="13.8" y="5" width="4.2" height="14" rx="1.4"/></symbol>
   <symbol id="i-play" viewBox="0 0 24 24"><path d="M8.2 5.4v13.2c0 .8.9 1.3 1.6.9l10.2-6.6c.6-.4.6-1.3 0-1.7L9.8 4.5c-.7-.4-1.6.1-1.6.9z"/></symbol>
   <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7zM19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7h-2v7z"/></symbol>
-  <symbol id="i-download" viewBox="0 0 24 24"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></symbol>
+  <!-- phase toolbar set: one stroke weight, same live area, so the row reads evenly -->
+  <symbol id="i-tb-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5v12M7.5 11.5 12 16l4.5-4.5M4 16.5V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2.5"/></g></symbol>
+  <symbol id="i-tb-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  <symbol id="i-tb-stop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8" y="8" width="8" height="8" rx="1.5" fill="currentColor"/></symbol>
+  <symbol id="i-tb-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8.2v7.6l6-3.8z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></symbol>
+  <symbol id="i-tb-edit" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19.5 8.5a2.83 2.83 0 0 0-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></g></symbol>
+  <symbol id="i-tb-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></g></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></symbol>
 </svg>
 <header>
@@ -1488,10 +1504,17 @@ const collapsed = new Set();
 function computePhases(all) {
   phases = []; phaseByKey = new Map();
   if (!markers.length) return;
-  const mk = (id, label, start, color, marker) => ({ id, label, start, end: Infinity, color, marker, n: 0, ours: 0, third: 0, unowned: 0, failed: 0, dupes: 0, newEps: 0, bytes: 0 });
+  // a marker's phase closes at its End (if ended) or at the next marker; requests after an ended phase and before the next marker are "Between phases"
+  const mk = (id, label, start, end, color, marker, ended, gap) => ({ id, label, start, end, color, marker, ended, gap, n: 0, ours: 0, third: 0, unowned: 0, failed: 0, dupes: 0, newEps: 0, bytes: 0 });
   const sorted = [...markers].sort((a, b) => a.relMs - b.relMs);
-  const list = [mk('pre', 'Before first marker', 0, '#66676a', null), ...sorted.map((m, i) => mk(m.id, m.label, m.relMs, PHASE_COLORS[i % PHASE_COLORS.length], m))];
-  list.forEach((p, i) => { if (list[i + 1]) p.end = list[i + 1].start; });
+  const list = [mk('pre', 'Before first marker', 0, sorted[0].relMs, '#66676a', null, false, false)];
+  sorted.forEach((m, i) => {
+    const nextStart = sorted[i + 1]?.relMs ?? Infinity;
+    const closeAt = m.endRelMs != null ? Math.max(m.endRelMs, m.relMs) : Infinity;
+    const ended = closeAt < nextStart;
+    list.push(mk(m.id, m.label, m.relMs, Math.min(nextStart, closeAt), PHASE_COLORS[i % PHASE_COLORS.length], m, ended, false));
+    if (ended && nextStart > closeAt) list.push(mk(`gap:${m.id}`, 'Between phases', closeAt, nextStart, '#66676a', null, false, true));
+  });
   const seenEp = new Set(), seenReq = new Set();
   for (const r of [...all].sort((a, b) => a.relMs - b.relMs)) {
     let ph = list[0]; for (const p of list) if (p.start <= r.relMs) ph = p;
@@ -1501,7 +1524,18 @@ function computePhases(all) {
     if (!seenEp.has(ep)) { seenEp.add(ep); ph.newEps++; }
     const k = dupeKey(r); if (seenReq.has(k)) ph.dupes++; else seenReq.add(k);
   }
-  phases = list[0].n === 0 ? list.slice(1) : list; // the leading phase only matters if something ran before the first marker
+  // a gap only shows when something was requested in it, or while it is still collecting
+  const shown = list.filter((p) => !p.gap || p.n || p.end === Infinity);
+  phases = shown[0].n === 0 ? shown.slice(1) : shown; // the leading phase only matters if something ran before the first marker
+}
+/** Ends a marker's phase where it is now, or reopens it. The server answers with a `markers` message, which redraws both places. */
+const endMarker = (id, on) => api('/api/marker/' + encodeURIComponent(id) + '/end', on ? 'POST' : 'DELETE');
+/** A marker's phase can be ended: End while it is still open (only the last marker's), Reopen once it has been ended. Other phases get nothing. */
+function endControl(p, cls) {
+  if (!p.marker) return '';
+  if (p.end === Infinity) return `<button${cls ? ` class="${cls}"` : ''} data-act="end" data-id="${esc(p.id)}" title="End this phase here: anything after now is Between phases" aria-label="End phase ${esc(p.label)}">${icon('tb-stop')}</button>`;
+  if (p.ended) return `<button${cls ? ` class="${cls}"` : ''} data-act="reopen" data-id="${esc(p.id)}" title="Reopen this phase: it collects again until the next marker" aria-label="Reopen phase ${esc(p.label)}">${icon('tb-play')}</button>`;
+  return '';
 }
 /** What the download button says. The last phase is still collecting, so it gives what has arrived so far. */
 const exportTip = (p) => `Download this phase's requests as JSON${p.end === Infinity ? ' (still capturing: everything so far)' : ''}`;
@@ -2052,8 +2086,17 @@ const timelineV = createVirtualBody($('#timeline')), endpointsV = createVirtualB
 // ============================================================================
 // rendering
 // ============================================================================
+/** The spans with no marker of their own (before the first one, and after an ended phase). They are what the live capture produced, not something you named, so they are a quiet divider with their requests under it, not an accordion. */
+function unmarkedDivider(p, cols) {
+  const end = p.end === Infinity ? span : p.end;
+  const range = `+${tf(p.start)} → ${p.end === Infinity ? 'now' : '+' + tf(p.end)} · ${dur(end - p.start)}`;
+  return `<tr class="unmarked" data-pid="${esc(p.id)}"><td colspan="${cols}"><div class="um">
+    <span class="um-line"></span><span class="um-label">${esc(p.label)}</span><span class="um-range">${range}${p.end === Infinity ? ' · still capturing' : ''}</span><span class="um-count">${p.n} request${p.n === 1 ? '' : 's'}</span>
+    <button class="icon-btn sm" data-act="export" aria-label="${esc(exportTip(p))}" title="${esc(exportTip(p))}">${icon('tb-download')}</button><span class="um-line"></span></div></td></tr>`;
+}
 /** One header row per phase: name, time range, ownership mix, and what happened in it. */
 function phaseHeader(p, cols) {
+  if (!p.marker) return unmarkedDivider(p, cols);
   const isOpen = !collapsed.has(p.id), only = ui.phase === p.id;
   const end = p.end === Infinity ? span : p.end;
   const tot = p.n || 1, w = (k) => ((p[k] / tot) * 100).toFixed(1);
@@ -2067,8 +2110,8 @@ function phaseHeader(p, cols) {
   const range = `+${tf(p.start)} → ${p.end === Infinity ? 'now' : '+' + tf(p.end)} · ${dur(end - p.start)}`;
   return `<tr class="phase" data-pid="${esc(p.id)}" style="--pc:${p.color}"><td colspan="${cols}"><div class="ph">
     <button class="ph-tgl" data-act="toggle" aria-expanded="${isOpen}" aria-label="${isOpen ? 'Collapse' : 'Expand'} phase ${esc(p.label)}">${icon('chevron')}</button>
-    <span class="ph-label">${icon('flag')}${esc(p.label)}</span><span class="ph-time">${range}</span>${mix}<span class="ph-pills">${pills}</span>
-    <span class="ph-actions"><button data-act="export" aria-label="${esc(exportTip(p))}" title="${esc(exportTip(p))}">${icon('download')}</button><button data-act="focus" aria-pressed="${only}" aria-label="${only ? 'Show every phase again' : 'Show only this phase'}" title="${only ? 'Show every phase again' : 'Show only this phase (also filters Endpoints)'}">${icon('target')}</button>${p.marker ? `<button class="icon-btn sm" data-act="edit" title="Rename or delete this marker" aria-label="Edit marker">${icon('edit')}</button>` : ''}</span></div></td></tr>`;
+    <span class="ph-label">${p.marker ? icon('flag') : ''}${esc(p.label)}</span><span class="ph-time">${range}</span>${mix}<span class="ph-pills">${pills}</span>
+    <span class="ph-actions">${endControl(p, '')}<button data-act="focus" aria-pressed="${only}" aria-label="${only ? 'Show every phase again' : 'Show only this phase'}" title="${only ? 'Show every phase again' : 'Show only this phase (also filters Endpoints)'}">${icon('tb-eye')}</button><button data-act="export" aria-label="${esc(exportTip(p))}" title="${esc(exportTip(p))}">${icon('tb-download')}</button>${p.marker ? `<button class="icon-btn sm" data-act="edit" title="Rename or delete this marker" aria-label="Edit marker">${icon('tb-edit')}</button>` : ''}</span></div></td></tr>`;
 }
 
 /** Marks where the requests that arrived during a pause start. The list is newest first, so they sit above this line. */
@@ -2118,7 +2161,7 @@ function renderTimeline() {
       if (collapsed.has(p.id)) continue;
       const inPhase = byPhase.get(p) || [];
       if (inPhase.length) for (const r of inPhase) items.push(reqItem(r));
-      else items.push(noteItem(`empty:${p.id}`, p.n ? 'No requests in this phase match the filters.' : 'Nothing was requested in this phase.', 'phase-empty'));
+      else items.push(noteItem(`empty:${p.id}`, p.n ? 'No requests in this phase match the filters.' : p.marker ? 'Nothing was requested in this phase.' : 'Nothing was requested here.', 'phase-empty'));
     }
   } else if (rows.length) {
     for (const r of rows) items.push(reqItem(r));
@@ -2418,6 +2461,8 @@ document.addEventListener('keydown', (e) => {
 
 $('#timeline').addEventListener('click', (e) => {
   if (chipFilter(e)) return;
+  const um = e.target.closest('tr.unmarked');
+  if (um) { const b = e.target.closest('[data-act="export"]'); if (b) exportPhaseFile(um.dataset.pid, b); return; }
   const phRow = e.target.closest('tr.phase');
   if (phRow) { // header click collapses; its buttons do their own thing
     const id = phRow.dataset.pid, act = e.target.closest('[data-act]')?.dataset.act || 'toggle';
@@ -2425,6 +2470,7 @@ $('#timeline').addEventListener('click', (e) => {
     else if (act === 'focus') { ui.phase = ui.phase === id ? null : id; render(); }
     else if (act === 'edit') setMark(true, id);
     else if (act === 'export') exportPhaseFile(id, e.target.closest('[data-act]'));
+    else if (act === 'end' || act === 'reopen') endMarker(id, act === 'end');
     return;
   }
   if (e.target.closest('tr.detail')) return;
@@ -2483,7 +2529,7 @@ const HELP = [
     ${step(1, 'Drop a Marker When Something Happens', `<p>Press ${kb('M')} anywhere or click <b>Markers</b> in the toolbar. Type what just happened and press ${kb('Enter')}, or tap a quick-add chip. Your own labels are remembered as chips too.</p><p>Noticed late? Choose <b>5s ago</b>, <b>30s ago</b>… in the dropdown and the marker is placed in the past.</p>${art('popover', 'The markers panel with a label field, a time dropdown, quick-add chips and the list of markers')}`)}
     ${step(2, 'See the Phases', `<p>Every phase gets a colour. The <b>activity strip</b> shades each phase and labels its flag (click a flag to jump to it). The <b>waterfall</b> column draws a line at each marker. Long idle stretches are shortened to a hatched <b>⋯</b> break so activity gets the room, and choosing the <b>◎</b> target on a phase zooms the strip to it.</p>${art('strip', 'The activity strip with three coloured phase bands and flags')}<p>In the <b>Timeline</b>, each phase has a header with its time range, ownership mix and a summary. Click the header to fold the phase away.</p>${art('timeline', 'Timeline with a collapsible header per phase showing request counts, new endpoints, duplicates and failures')}`)}
     ${step(3, 'Zoom Into One Phase', `<p>Click the <b>◎</b> target on a header (or the one in the markers panel) and Foxy shows just that phase, in the Timeline <i>and</i> in Endpoints. A pill appears under the toolbar; click <b>×</b> to bring everything back.</p><p>The <b>Phase</b> column in Endpoints shows where each endpoint <i>first</i> appeared. Click a phase chip to filter by it.</p>`)}
-    ${step(4, 'Tidy Up', '<p>Rename a marker by editing its name in the panel. Delete it with ✕ and the two phases around it merge. Nothing in the app needs to change.</p>')}
+    ${step(4, 'Tidy Up', '<p>Rename a marker by editing its name in the panel. Delete it with ✕ and the two phases around it merge. When a flow is over, press the stop button on its phase: anything after that moment is <i>Between phases</i> instead of counting toward it. Nothing in the app needs to change.</p>')}
     ${step(5, 'Take It With You', `<p>The <b>download</b> icon on a phase saves every request in it, in full, as JSON. The last phase is still collecting, so it saves what has arrived so far.</p><p><b>Copy Markdown</b> adds a phases table (requests, new endpoints, identical dupes, failures per phase) and a Phase column to the Endpoints table.</p><p>Agents can add markers too with the <code>marker_add</code> tool (<code>label</code>, optional <code>agoSeconds</code>), which is handy for scripted runs.</p>`)}
     <h3>What the Numbers in a Phase Mean</h3>
     <ul>
@@ -2635,9 +2681,10 @@ function renderMarkers(force) {
   list.innerHTML = real.length ? real.map((p) => `<div class="mkrow" style="--pc:${p.color}"><i class="ph-dot"></i><span class="mk-t">+${tf(p.start)}</span>
     <input class="mk-name" data-id="${esc(p.id)}" value="${esc(p.label)}" maxlength="120" aria-label="Marker name" />
     <span class="mk-n" title="Requests made in the phase this marker starts">${p.n} req</span>
-    <button class="icon-btn sm" data-act="export" data-id="${esc(p.id)}" title="${esc(exportTip(p))}" aria-label="${esc(exportTip(p))}">${icon('download')}</button>
-    <button class="icon-btn sm" data-act="only" data-id="${esc(p.id)}" aria-pressed="${ui.phase === p.id}" title="Show only this phase" aria-label="Show only phase ${esc(p.label)}">${icon('target')}</button>
-    <button class="del icon-btn sm" data-act="del" data-id="${esc(p.id)}" title="Delete this marker (the phases around it merge)" aria-label="Delete marker ${esc(p.label)}">${icon('trash')}</button></div>`).join('')
+    ${endControl(p, 'icon-btn sm') || '<span></span>'}
+    <button class="icon-btn sm" data-act="only" data-id="${esc(p.id)}" aria-pressed="${ui.phase === p.id}" title="Show only this phase" aria-label="Show only phase ${esc(p.label)}">${icon('tb-eye')}</button>
+    <button class="icon-btn sm" data-act="export" data-id="${esc(p.id)}" title="${esc(exportTip(p))}" aria-label="${esc(exportTip(p))}">${icon('tb-download')}</button>
+    <button class="del icon-btn sm" data-act="del" data-id="${esc(p.id)}" title="Delete this marker (the phases around it merge)" aria-label="Delete marker ${esc(p.label)}">${icon('tb-trash')}</button></div>`).join('')
     : `<div class="mk-empty">No markers yet. Drop one whenever something happens in the app (a screen appears, you tap a button) and everything captured after it is grouped into that phase.<br><br><button type="button" id="mkLearn" class="btn">${icon('help')}<span>Show Me How It Works</span></button></div>`;
   if (hadFocus) (list.querySelector(focusSel) || $('#marker')).focus({ preventScroll: true });
 }
@@ -2649,6 +2696,7 @@ $('#mkList').addEventListener('click', (e) => {
   const b = e.target.closest('button[data-act]'); if (!b) return;
   if (b.dataset.act === 'del') api('/api/marker/' + encodeURIComponent(b.dataset.id), 'DELETE');
   else if (b.dataset.act === 'export') exportPhaseFile(b.dataset.id, b);
+  else if (b.dataset.act === 'end' || b.dataset.act === 'reopen') endMarker(b.dataset.id, b.dataset.act === 'end');
   else navigate(() => { ui.phase = ui.phase === b.dataset.id ? null : b.dataset.id; tab = 'timeline'; render(); });
 });
 $('#mkList').addEventListener('change', (e) => { const i = e.target.closest('input.mk-name'); if (i && i.value.trim()) api('/api/marker/' + encodeURIComponent(i.dataset.id), 'PATCH', { label: i.value }); });

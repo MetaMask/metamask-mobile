@@ -441,10 +441,29 @@ const httpServer = createServer(async (req, res) => {
         label: String(label || 'marker').slice(0, 120),
         session: latestSession,
         relMs: Math.max(0, ts - (latest?.skew || 0) - started),
+        endRelMs: null, // set by POST /api/marker/:id/end; until then the phase runs to the next marker
       };
       markers.push(m);
       broadcast({ type: 'marker', marker: m });
       json(res, m);
+    } else if (/^\/api\/marker\/[^/]+\/end$/.test(p) && (req.method === 'POST' || req.method === 'DELETE')) {
+      // End closes a marker's phase here, so what comes after is "Between phases" instead of part of it. DELETE reopens it.
+      const id = decodeURIComponent(p.slice('/api/marker/'.length, -'/end'.length));
+      const m = markers.find((x) => x.id === id);
+      if (!m) {
+        json(res, { error: 'not found' }, 404);
+      } else if (req.method === 'POST' && markers.some((x) => x.session === m.session && x.relMs > m.relMs)) {
+        // a later marker already closes this phase, so there is nothing to end
+        json(res, { error: 'a later marker already closes this phase' }, 409);
+      } else {
+        if (req.method === 'DELETE') m.endRelMs = null;
+        else if (m.endRelMs == null) { // ending twice keeps the first end: to move it, reopen and end again
+          const s = sessions.get(m.session);
+          m.endRelMs = Math.max(m.relMs, Date.now() - (s?.skew || 0) - (s?.startedAt ?? Date.now()));
+        }
+        broadcast({ type: 'markers', markers: sessionMarkers(latestSession) });
+        json(res, { ok: true, marker: { ...m } });
+      }
     } else if (p.startsWith('/api/marker/') && (req.method === 'PATCH' || req.method === 'DELETE')) {
       const id = decodeURIComponent(p.slice('/api/marker/'.length));
       const idx = markers.findIndex((m) => m.id === id);
