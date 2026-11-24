@@ -66,6 +66,7 @@ import { useClaimMechanisms } from '../../../hooks/useFollowTradeClaimOpen';
 import { selectInternalAccounts } from '../../../../../../selectors/accountsController';
 import { useInFlightClaims } from '../../../hooks/useInFlightClaims';
 import { underReviewBlockedBaseUnits } from '../../../utils/earningsSummaryTotals';
+import { isShareableReferralCode } from '../../../utils/shareableReferralCode';
 import ClaimableRewardsCard from '../ClaimableRewardsCard';
 import type {
   ClaimsPausedLabels,
@@ -367,8 +368,15 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
   );
   const { followTradeClaimOpen, revShareClaimOpen } =
     useClaimMechanisms(profileId);
-  const roles = useSelector(
-    (state: RootState) => selectReferralMeEntry(state, profileId)?.data?.roles,
+  const referralMe = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
+  );
+  const roles = referralMe?.roles;
+  // Refer friends opens the share sheet, so it needs the same shareable code
+  // the header Share button needs.
+  const canShareCode = isShareableReferralCode(
+    referralMe?.referral_code,
+    referralMe?.referral_code_status,
   );
   const copyTradingOnly = isCopyTradingOnly(roles);
   const openSocialTab = useCallback(() => {
@@ -564,7 +572,7 @@ const WaysToEarnTab: React.FC<WaysToEarnTabProps> = ({
       localizedText,
       refereeMoneySections(roles),
       socialEnabled,
-    ),
+    ).filter((row) => row.key !== 'referrals' || canShareCode),
     ...campaignRows,
   ];
 

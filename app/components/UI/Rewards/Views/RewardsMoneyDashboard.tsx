@@ -75,6 +75,7 @@ import {
   showEarningsIndicator,
 } from '../utils/claimEarnings';
 import { useClaimMechanisms } from '../hooks/useFollowTradeClaimOpen';
+import { isShareableReferralCode } from '../utils/shareableReferralCode';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -108,18 +109,6 @@ function referralReadSettledEmpty(
 
 function stableLayoutHeight(current: number, next: number): number {
   return Math.abs(current - next) < 1 ? current : next;
-}
-
-function isShareableReferralCode(
-  referralCode:
-    | { code?: string | null; status?: string | null }
-    | null
-    | undefined,
-  referralCodeStatus: string | null | undefined,
-): boolean {
-  const code = referralCode?.code?.trim() ?? '';
-  const codeStatus = referralCodeStatus ?? referralCode?.status;
-  return codeStatus === 'ACTIVE' && code.length > 0;
 }
 
 /**

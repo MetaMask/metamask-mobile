@@ -68,6 +68,44 @@ describe('WaysToEarnTab next steps', () => {
     expect(onOpenShareCode).toHaveBeenCalledTimes(1);
   });
 
+  describe('Refer friends without a shareable code', () => {
+    const referrerCode = {
+      code: 'SOPHIE',
+      kind: 'standard',
+      status: 'ACTIVE',
+      share_url: null,
+    };
+
+    it.each([
+      ['a paused code', { referral_code_status: 'PAUSED' as const }],
+      [
+        'a paused code reported only on the code itself',
+        {
+          referral_code: { ...referrerCode, status: 'PAUSED' },
+          referral_code_status: null,
+        },
+      ],
+      [
+        'no code and no status',
+        { referral_code: null, referral_code_status: null },
+      ],
+      [
+        'an active status with an empty code',
+        { referral_code: { ...referrerCode, code: '   ' } },
+      ],
+    ])('is left out for a referrer with %s', async (_label, overrides) => {
+      const { findByTestId, queryByTestId } = renderWaysToEarnTab({
+        persona: 'referrer',
+        referralMe: referralMeFixture('referrer', overrides),
+      });
+
+      // Post trades loads with the rest of the section, so waiting for it
+      // proves the absence below is not just a render still pending.
+      expect(await findByTestId(`${ROW}-social`)).toBeOnTheScreen();
+      expect(queryByTestId(`${ROW}-referrals`)).not.toBeOnTheScreen();
+    });
+  });
+
   it('lists Trade and earn for a referee and opens the trade tray', async () => {
     const { findByTestId, getByText, queryByTestId } = renderWaysToEarnTab({
       persona: 'referee',
